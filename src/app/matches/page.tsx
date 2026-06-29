@@ -8,7 +8,7 @@ import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchesPage() {
   const { t } = useI18n()
-  const { activeLeague, activeSeason, rounds, matches } =
+  const { activeLeague, activeSeason, rounds, players, matches } =
     useCurrentLeagueData()
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
@@ -86,6 +86,7 @@ export default function MatchesPage() {
                   <MatchCard
                     key={match.id}
                     match={match}
+                    players={players}
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"

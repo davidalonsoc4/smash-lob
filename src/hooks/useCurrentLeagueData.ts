@@ -1,12 +1,12 @@
 "use client"
 
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useLeagueSettings } from "@/context/LeagueSettingsProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import {
   getLastMatch,
-  getLeagueById,
   getMatchesByLeagueAndSeason,
   getNextMatch,
   getPlayersBySeasonId,
@@ -15,15 +15,23 @@ import { buildSeasonRounds } from "@/lib/rounds"
 
 export function useCurrentLeagueData() {
   const { activeLeagueId } = useActiveLeague()
+  const { leagues, userLeagues } = useLeagueAccess()
   const { getLeagueSettings } = useLeagueSettings()
   const { matches: storedMatches } = useMatchData()
   const {
     getActiveSeasonByLeagueId: getStoredActiveSeasonByLeagueId,
+    playerProfiles,
     seasonPlayers,
     getSeasonRoundSettings,
   } = useSeasonSettings()
 
-  const baseActiveLeague = getLeagueById(activeLeagueId)
+  const baseActiveLeague =
+    leagues.find((league) => league.id === activeLeagueId) ?? userLeagues[0]
+
+  if (!baseActiveLeague) {
+    throw new Error("Active league not found")
+  }
+
   const activeLeagueSettings = getLeagueSettings(baseActiveLeague.id)
 
   const activeLeague = {
@@ -40,7 +48,8 @@ export function useCurrentLeagueData() {
   const players = getPlayersBySeasonId(
     baseActiveSeason.id,
     matches,
-    seasonPlayers
+    seasonPlayers,
+    playerProfiles
   )
   const lastMatch = getLastMatch(matches)
   const nextMatch = getNextMatch(matches)

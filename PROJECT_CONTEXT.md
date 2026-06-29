@@ -44,6 +44,7 @@ Estado actual:
 
 - Liga activa por defecto: `league-smash-lob`.
 - Temporada activa: `season-2`.
+- Las ligas creadas desde la UI se guardan en `localStorage` con la clave `smash-lob-leagues`.
 - 8 jugadores en la temporada de Smash & Lob:
   - `davo`
   - `alvaro`
@@ -60,6 +61,8 @@ Estado actual:
 - El tipo de rol ya contempla `creator`, `admin` y `player`.
 - Las temporadas y sus jugadores se pueden modificar localmente mediante `SeasonSettingsProvider`.
 - No tiene por que haber los mismos jugadores en cada temporada de una liga; la relacion vive en `seasonPlayers`.
+- `SeasonSettingsProvider` tambien puede guardar perfiles de jugadores creados para nuevas temporadas en `smash-lob-season-data`.
+- Decision de modelo: las invitaciones y el acceso son por liga; la participacion, calendario y reglas de juego son por temporada.
 
 ### Providers principales
 
@@ -68,14 +71,16 @@ En `src/app/layout.tsx`, la app se envuelve con:
 1. `I18nProvider`
 2. `AuthSessionProvider`
 3. `AuthGate`
-4. `LeagueAccessProvider`
-5. `ActiveLeagueProvider`
-6. `CurrentUserProvider`
-7. `LeagueSettingsProvider`
-8. `SeasonSettingsProvider`
+4. `SeasonSettingsProvider`
+5. `LeagueAccessProvider`
+6. `ActiveLeagueProvider`
+7. `CurrentUserProvider`
+8. `LeagueSettingsProvider`
 9. `MatchDataProvider`
 10. `LeagueEntryGate`
 11. `AppShell`
+
+`SeasonSettingsProvider` va por encima de `LeagueAccessProvider` para que las invitaciones y el usuario actual puedan resolver jugadores creados localmente al preparar una nueva temporada.
 
 `CurrentUserProvider` representa el jugador reclamado por el usuario autenticado en la liga activa. Ya no existe selector temporal de usuario en Ajustes.
 
@@ -190,6 +195,7 @@ Contiene:
 
 - Boton `Volver`.
 - Cambio de liga activa.
+- Boton `Crear nueva liga`.
 - Cambio de idioma.
 - Acceso al panel admin si el usuario actual es admin/creator.
 - Cuenta, cierre de sesion y acceso al flujo de invitaciones.
@@ -210,7 +216,31 @@ Incluye un bloque `Invitar jugadores` con:
 
 El invitado abre el enlace, inicia sesion con Google si hace falta y reclama uno de los jugadores no vinculados.
 
+Los jugadores creados como huecos nuevos al preparar una temporada tambien quedan como jugadores de liga pendientes y pueden reclamarse mediante invitacion de liga.
+
 Los codigos regenerados se guardan en `localStorage` con la clave `smash-lob-league-invite-codes`. Al regenerar, el codigo anterior deja de validar para nuevas invitaciones.
+
+### Crear nueva liga (`src/app/league/new/page.tsx`)
+
+Accesible desde Ajustes y desde el onboarding cuando el usuario no pertenece a ninguna liga.
+
+Cualquier usuario autenticado puede crear una liga nueva aunque ya pertenezca a otras.
+
+El formulario crea:
+
+- Liga nueva con codigo de invitacion propio.
+- Primera temporada activa.
+- Jugadores iniciales de esa temporada.
+- Perfil del primer jugador vinculado al usuario creador con rol `creator`.
+- Reglas de juego y margen de jornadas guardados como ajustes de esa temporada.
+
+Persistencia temporal implicada:
+
+- `smash-lob-leagues`: ligas creadas localmente.
+- `smash-lob-user-league-memberships`: membresia del creador.
+- `smash-lob-season-data`: temporada inicial, jugadores y participantes.
+- `smash-lob-season-round-settings`: reglas/margenes de la temporada inicial.
+- `smash-lob-active-league`: liga nueva seleccionada como activa.
 
 ### Admin liga (`src/app/admin/league/page.tsx`)
 
@@ -218,19 +248,36 @@ Permite gestionar lugares habituales de juego.
 
 ### Admin temporada (`src/app/admin/season/page.tsx`)
 
-Permite gestionar:
+Si la temporada activa esta en estado `active`, permite gestionar solo lo editable durante la temporada:
 
 - Margen de jornadas:
   - sin margen;
   - margen fijo por jornada;
   - fecha de inicio;
   - dias por jornada.
-- Reglas de resultado:
-  - checkbox `Exigir tres sets jugados`.
-- Ciclo de temporada:
-  - terminar temporada activa;
-  - comenzar nueva temporada;
-  - elegir nombre, numero de jornadas y jugadores participantes de esa temporada.
+- Listado de jugadores de la temporada, marcando si cada jugador ya esta vinculado a una cuenta de Google o sigue pendiente.
+- Boton inferior `Terminar temporada`.
+
+Si la temporada activa esta `finished`, desaparecen los ajustes editables y la pantalla pasa a `Comenzar nueva temporada`.
+
+Ajustes de nueva temporada en esta fase:
+
+- Nombre de la temporada.
+- Cantidad de jugadores limitada a 8, 12 o 16.
+- Participantes elegidos desde los jugadores existentes de la liga.
+- Huecos restantes completados con nuevos nombres, que crean jugadores de liga pendientes de vincular.
+- Calendario equilibrado como unica opcion visible de momento.
+- Regla `Exigir tres sets jugados`.
+- Margen de jornadas: fijo o sin margen.
+- Fecha de inicio de la temporada y dias por jornada si se elige margen fijo.
+
+Decisiones:
+
+- La liga gestiona personas, invitaciones, roles y acceso.
+- La temporada gestiona competicion: participantes, calendario, reglas y resultados.
+- Las reglas de resultado, cantidad de jugadores, calendario y nombres iniciales se definen al crear la temporada; durante la temporada no se editan desde esta pantalla.
+- Los margenes y fechas de jornadas si son editables durante la temporada.
+- La cantidad de jornadas se calcula de momento como `cantidad de jugadores - 1`, siguiendo la logica actual de 8 jugadores / 7 jornadas.
 
 Estos datos se guardan de momento en `localStorage` con la clave `smash-lob-season-data`.
 
@@ -346,6 +393,7 @@ Importante:
   - `smash-lob-matches`
   - `smash-lob-season-round-settings`
   - `smash-lob-season-data`
+  - `smash-lob-leagues`
   - `smash-lob-league-settings`
   - `smash-lob-league-invite-codes`
   - `smash-lob-active-league`

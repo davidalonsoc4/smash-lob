@@ -41,6 +41,13 @@ export default function SettingsPage() {
         <div className="mt-4">
           <LeagueSwitcher />
         </div>
+
+        <Link
+          href="/league/new"
+          className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+        >
+          {t.settings.createNewLeague}
+        </Link>
       </AppCard>
 
       <AppCard>

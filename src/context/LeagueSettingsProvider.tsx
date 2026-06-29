@@ -50,7 +50,7 @@ function parseStoredSettings(value: string | null): LeagueSettings[] | null {
 
     const defaultSettings = getDefaultSettings()
 
-    return defaultSettings.map((defaultSetting) => {
+    const mergedSettings = defaultSettings.map((defaultSetting) => {
       const storedSetting = parsed.find(
         (item: Partial<LeagueSettings>) =>
           item.leagueId === defaultSetting.leagueId
@@ -65,9 +65,27 @@ function parseStoredSettings(value: string | null): LeagueSettings[] | null {
         ...storedSetting,
         locations: Array.isArray(storedSetting.locations)
           ? storedSetting.locations
-          : defaultSetting.locations,
+        : defaultSetting.locations,
       }
     })
+
+    const extraSettings = parsed
+      .filter((storedSetting: Partial<LeagueSettings>) => {
+        return !mergedSettings.some(
+          (settings) => settings.leagueId === storedSetting.leagueId
+        )
+      })
+      .map((storedSetting: Partial<LeagueSettings>) => ({
+        leagueId: storedSetting.leagueId ?? "",
+        locations: Array.isArray(storedSetting.locations)
+          ? storedSetting.locations.filter(
+              (location): location is string => typeof location === "string"
+            )
+          : [],
+      }))
+      .filter((settings) => settings.leagueId.length > 0)
+
+    return [...mergedSettings, ...extraSettings]
   } catch {
     return null
   }

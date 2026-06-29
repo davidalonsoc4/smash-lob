@@ -9,10 +9,7 @@ import {
   useMemo,
   useState,
 } from "react"
-import {
-  activeLeagueId as defaultActiveLeagueId,
-  leagues,
-} from "@/data/fakeData"
+import { activeLeagueId as defaultActiveLeagueId } from "@/data/fakeData"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
 type ActiveLeagueContextValue = {
@@ -29,10 +26,6 @@ const ActiveLeagueContext = createContext<ActiveLeagueContextValue | null>(null)
 
 const storageKey = "smash-lob-active-league"
 
-function isValidLeagueId(leagueId: string) {
-  return leagues.some((league) => league.id === leagueId)
-}
-
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const { userLeagues, canAccessLeague } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
@@ -46,7 +39,6 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
 
     if (
       storedLeagueId &&
-      isValidLeagueId(storedLeagueId) &&
       canAccessLeague(storedLeagueId)
     ) {
       window.setTimeout(() => {
@@ -66,7 +58,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   }, [canAccessLeague, userLeagues])
 
   const changeActiveLeague = useCallback((leagueId: string) => {
-    if (!isValidLeagueId(leagueId) || !canAccessLeague(leagueId)) {
+    if (!canAccessLeague(leagueId)) {
       return
     }
 
@@ -74,13 +66,18 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     window.localStorage.setItem(storageKey, leagueId)
   }, [canAccessLeague])
 
+  const setActiveLeagueId = useCallback((leagueId: string) => {
+    setActiveLeagueIdState(leagueId)
+    window.localStorage.setItem(storageKey, leagueId)
+  }, [])
+
   const value = useMemo(
     () => ({
       activeLeagueId: effectiveActiveLeagueId,
       changeActiveLeague,
-      setActiveLeagueId: changeActiveLeague,
+      setActiveLeagueId,
     }),
-    [changeActiveLeague, effectiveActiveLeagueId]
+    [changeActiveLeague, effectiveActiveLeagueId, setActiveLeagueId]
   )
 
   return (

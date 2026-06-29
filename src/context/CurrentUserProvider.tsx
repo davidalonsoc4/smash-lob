@@ -3,11 +3,12 @@
 import { createContext, useContext, useMemo } from "react"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import { playerProfiles } from "@/data/fakeData"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import type { PlayerProfile } from "@/data/fakeData"
 
 type CurrentUserContextValue = {
   currentUserId: string
-  currentUser: (typeof playerProfiles)[number]
+  currentUser: PlayerProfile
 }
 
 type CurrentUserProviderProps = {
@@ -19,6 +20,7 @@ const CurrentUserContext = createContext<CurrentUserContextValue | null>(null)
 export function CurrentUserProvider({ children }: CurrentUserProviderProps) {
   const { activeLeagueId } = useActiveLeague()
   const { getMembershipForLeague } = useLeagueAccess()
+  const { playerProfiles } = useSeasonSettings()
   const membership = getMembershipForLeague(activeLeagueId)
   const currentUser =
     playerProfiles.find((player) => player.id === membership?.playerId) ??

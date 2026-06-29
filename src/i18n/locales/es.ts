@@ -30,7 +30,7 @@ export const es = {
       "Tu cuenta de Google esta lista. Ahora crea una liga o entra en una invitacion existente.",
     createTitle: "Crear nueva liga",
     createDescription:
-      "Pronto definiremos el alta completa de ligas, jugadores y temporada inicial.",
+      "Crea una liga nueva con su primera temporada y sus jugadores iniciales.",
     createAction: "Crear liga",
     joinTitle: "Unirme a liga existente",
     joinDescription:
@@ -277,6 +277,7 @@ export const es = {
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",
     leagueTitle: "Liga",
+    createNewLeague: "Crear nueva liga",
     adminPanelTitle: "Panel de administrador",
     adminPanelDescription:
       "Gestiona la liga activa, la temporada, los lugares y las futuras herramientas de administración.",
@@ -358,10 +359,14 @@ export const es = {
     backToSettings: "← Volver a ajustes",
     title: "Administrar temporada",
     description:
-      "Configura cómo se organizan las jornadas de la temporada activa.",
+      "Configura las fechas y márgenes que pueden cambiar durante la temporada activa.",
+    finishedDescription:
+      "La temporada actual está finalizada. Define los ajustes necesarios para comenzar una nueva.",
     roundWindowTitle: "Margen de jornadas",
     roundWindowDescription:
       "Define si cada jornada tiene una ventana oficial para jugarse.",
+    newRoundWindowDescription:
+      "Este ajuste podrá modificarse durante la temporada si hace falta.",
     noWindowTitle: "Sin margen específico",
     noWindowDescription:
       "Las jornadas no tendrán una fecha límite calculada automáticamente.",
@@ -377,27 +382,69 @@ export const es = {
     requireThreeSetsTitle: "Exigir tres sets jugados",
     requireThreeSetsDescription:
       "Si está activo, el formulario obliga a completar tres sets válidos. Si no, se podrán guardar solo los sets jugados.",
+    activePlayersTitle: "Jugadores de la temporada",
+    activePlayersDescription:
+      "Listado solo de consulta para comprobar qué jugadores ya han vinculado su cuenta de Google.",
+    playerLinked: "Vinculado",
+    playerPending: "Pendiente",
     lifecycleTitle: "Ciclo de temporada",
     lifecycleDescription:
       "Termina la temporada actual o abre una nueva con sus propios jugadores.",
     currentSeason: "Temporada actual",
     statusActive: "Activa",
     statusFinished: "Finalizada",
+    finishTitle: "Cerrar temporada activa",
+    finishDescription:
+      "Al terminarla se ocultarán los ajustes editables y esta pantalla pasará a preparar la siguiente temporada.",
     finishSeason: "Terminar temporada",
     newSeasonTitle: "Comenzar nueva temporada",
     newSeasonDescription:
-      "Cada temporada puede tener jugadores y ajustes distintos dentro de la misma liga.",
+      "Cada temporada guarda sus propios jugadores, calendario y reglas dentro de la misma liga.",
     newSeasonName: "Nombre de la temporada",
     newSeasonNamePlaceholder: "Ejemplo: Temporada 3",
     newSeasonRounds: "Jornadas",
+    playerCount: "Cantidad de jugadores",
+    newPlayerName: "Nuevo jugador",
     seasonPlayersTitle: "Jugadores de esta temporada",
     seasonPlayersDescription:
-      "Selecciona quienes participan. No tienen que ser los mismos que en otras temporadas.",
+      "Elige jugadores de la liga y completa los huecos con nuevos nombres pendientes de vincular.",
+    calendarTitle: "Calendario",
+    calendarDescription:
+      "Por ahora solo se permite crear un calendario equilibrado.",
+    balancedCalendar: "Calendario equilibrado",
+    balancedCalendarDescription:
+      "Todos los jugadores tendrán una distribución compensada de partidos. Configuraremos el detalle en el siguiente paso.",
     startSeason: "Comenzar temporada",
     seasonFinished: "Temporada finalizada.",
     seasonStarted: "Nueva temporada creada.",
     save: "Guardar configuración",
     saved: "Configuración guardada.",
+  },
+
+  newLeague: {
+    title: "Crear nueva liga",
+    description:
+      "Define el grupo, su primera temporada y las reglas iniciales. Luego podrás invitar jugadores a la liga.",
+    leagueTitle: "Datos de la liga",
+    leagueName: "Nombre de la liga",
+    leagueNamePlaceholder: "Ejemplo: Liga de los jueves",
+    leagueDescription: "Descripción",
+    leagueDescriptionPlaceholder: "Ejemplo: Liga privada de pádel entre amigos.",
+    defaultDescription: "Liga privada de pádel.",
+    seasonTitle: "Primera temporada",
+    seasonDescription:
+      "Las reglas y participantes quedan ligados a esta temporada, no a toda la liga.",
+    seasonName: "Nombre de la temporada",
+    playerCount: "Cantidad de jugadores",
+    playersTitle: "Jugadores iniciales",
+    playersDescription:
+      "El primer jugador quedará vinculado a tu cuenta como creador. El resto podrá reclamar su jugador con invitación de liga.",
+    playerName: "Jugador",
+    rulesTitle: "Reglas de juego",
+    rulesDescription:
+      "Estos ajustes pertenecen a la primera temporada y podrán cambiarse en temporadas futuras.",
+    create: "Crear liga",
+    createError: "No se ha podido crear la liga con el usuario actual.",
   },
 
   language: {

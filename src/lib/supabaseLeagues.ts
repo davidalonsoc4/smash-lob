@@ -1,0 +1,493 @@
+import { supabase } from "@/lib/supabase"
+import { upsertAppUser } from "@/lib/supabaseUsers"
+import { isSuperuserEmail } from "@/lib/superuser"
+import { generateBalancedCalendar } from "@/lib/calendar"
+import type {
+  RoundWindowMode,
+  SeasonRoundSettings,
+  SeasonSnapshot,
+} from "@/context/SeasonSettingsProvider"
+import type {
+  League,
+  LeagueMemberRole,
+  PlayerProfile,
+  Season,
+  SeasonPlayer,
+  UserLeagueMembership,
+} from "@/data/fakeData"
+import type { MatchData } from "@/context/MatchDataProvider"
+
+function initials(name: string) {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "JG"
+  )
+}
+
+function slug(name: string) {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "item"
+  )
+}
+
+export async function createSupabaseLeague({
+  creatorEmail,
+  creatorName,
+  leagueName,
+  leagueDescription,
+  leagueSlug,
+  inviteCode,
+  seasonName,
+  playerNames,
+  roundWindowMode,
+  seasonStartsAt,
+  roundWindowDays,
+  requiresThreeSets,
+}: {
+  creatorEmail: string
+  creatorName?: string | null
+  leagueName: string
+  leagueDescription: string
+  leagueSlug: string
+  inviteCode: string
+  seasonName: string
+  playerNames: string[]
+  roundWindowMode: RoundWindowMode
+  seasonStartsAt: string | null
+  roundWindowDays: number | null
+  requiresThreeSets: boolean
+}) {
+  const creator = await upsertAppUser({
+    email: creatorEmail,
+    displayName: creatorName,
+  })
+  const { data: league, error: leagueError } = await supabase
+    .from("leagues")
+    .insert({
+      slug: leagueSlug,
+      name: leagueName,
+      description: leagueDescription,
+      invite_code: inviteCode,
+      join_mode: "closed",
+      created_by_user_id: creator.id,
+    })
+    .select("id,slug,name,description,invite_code,join_mode,active_season_id")
+    .single()
+
+  if (leagueError) throw leagueError
+
+  const { data: season, error: seasonError } = await supabase
+    .from("seasons")
+    .insert({
+      league_id: league.id,
+      name: seasonName,
+      status: "active",
+      total_rounds: Math.max(playerNames.length - 1, 1),
+      completed_rounds: 0,
+    })
+    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .single()
+
+  if (seasonError) throw seasonError
+
+  const cleanNames = playerNames.map((name) => name.trim()).filter(Boolean)
+  const { data: players, error: playersError } = await supabase
+    .from("players")
+    .insert(
+      cleanNames.map((name, index) => ({
+        league_id: league.id,
+        slug: `${slug(name)}-${index + 1}`,
+        display_name: name,
+        avatar_initials: initials(name),
+      }))
+    )
+    .select("id,league_id,slug,display_name,avatar_initials")
+
+  if (playersError) throw playersError
+
+  await supabase.from("season_players").insert(
+    (players ?? []).map((player) => ({
+      season_id: season.id,
+      player_id: player.id,
+    }))
+  )
+
+  const seasonMatches = generateBalancedCalendar({
+    leagueId: league.id,
+    seasonId: season.id,
+    playerIds: (players ?? []).map((player) => player.id),
+  })
+
+  const { data: matchesData, error: matchesError } =
+    seasonMatches.length > 0
+      ? await supabase
+          .from("matches")
+          .insert(
+            seasonMatches.map((match) => ({
+              league_id: match.leagueId,
+              season_id: match.seasonId,
+              round: match.round,
+              status: match.status,
+              team_a: match.teamA,
+              team_b: match.teamB,
+              points_a: match.pointsA,
+              points_b: match.pointsB,
+              sets: match.sets,
+              scheduled_at: match.scheduledAt,
+              date_label: match.dateLabel,
+              location: match.location,
+              result_recorded_at: match.resultRecordedAt,
+            }))
+          )
+          .select(
+            "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
+          )
+      : { data: [], error: null }
+
+  if (matchesError) throw matchesError
+
+  await supabase.from("season_settings").insert({
+    season_id: season.id,
+    league_id: league.id,
+    round_window_mode: roundWindowMode,
+    season_starts_at: seasonStartsAt,
+    round_window_days: roundWindowDays,
+    requires_three_sets: requiresThreeSets,
+  })
+
+  await supabase.from("league_memberships").insert({
+    user_id: creator.id,
+    league_id: league.id,
+    player_id: players?.[0]?.id ?? null,
+    role: "creator",
+  })
+
+  await supabase.from("invites").insert({
+    league_id: league.id,
+    code: inviteCode,
+    created_by_user_id: creator.id,
+  })
+
+  await supabase
+    .from("leagues")
+    .update({ active_season_id: season.id })
+    .eq("id", league.id)
+
+  const leagueResult: League = {
+    id: league.id,
+    slug: league.slug,
+    name: league.name,
+    description: league.description ?? "",
+    activeSeasonId: season.id,
+    inviteCode: league.invite_code,
+    joinMode: league.join_mode === "open" ? "open" : "closed",
+    locations: [],
+  }
+  const seasonResult: Season = {
+    id: season.id,
+    leagueId: season.league_id,
+    name: season.name,
+    status: season.status === "finished" ? "finished" : "active",
+    totalRounds: season.total_rounds,
+    completedRounds: season.completed_rounds,
+  }
+  const playerProfiles: PlayerProfile[] = (players ?? []).map((player) => ({
+    id: player.id,
+    leagueId: player.league_id,
+    slug: player.slug,
+    displayName: player.display_name,
+    avatarInitials: player.avatar_initials,
+  }))
+  const matches: MatchData[] = (matchesData ?? []).map((match) => ({
+    id: match.id,
+    leagueId: match.league_id,
+    seasonId: match.season_id,
+    round: match.round,
+    status:
+      match.status === "finished" ||
+      match.status === "scheduled" ||
+      match.status === "postponed"
+        ? match.status
+        : "scheduling",
+    teamA: Array.isArray(match.team_a) ? match.team_a : [],
+    teamB: Array.isArray(match.team_b) ? match.team_b : [],
+    pointsA: match.points_a,
+    pointsB: match.points_b,
+    sets: Array.isArray(match.sets) ? match.sets : [],
+    scheduledAt: match.scheduled_at,
+    dateLabel: match.date_label,
+    location: match.location,
+    resultRecordedAt: match.result_recorded_at,
+  }))
+
+  return {
+    league: leagueResult,
+    membership: {
+      userId: creatorEmail,
+      leagueId: league.id,
+      playerId: players?.[0]?.id ?? "",
+      role: "creator" as const,
+    },
+    matches,
+    seasonSnapshot: {
+      seasons: [seasonResult],
+      playerProfiles,
+      seasonPlayers: (players ?? []).map((player) => ({
+        seasonId: season.id,
+        playerId: player.id,
+      })),
+      seasonSettings: [
+        {
+          leagueId: league.id,
+          seasonId: season.id,
+          roundWindowMode,
+          seasonStartsAt,
+          roundWindowDays,
+          requiresThreeSets,
+        },
+      ],
+      activeSeasonIds: {
+        [league.id]: season.id,
+      },
+    },
+  }
+}
+
+function toRole(role: unknown): LeagueMemberRole {
+  return role === "creator" || role === "admin" || role === "player"
+    ? role
+    : "player"
+}
+
+export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
+  leagues: League[]
+  memberships: UserLeagueMembership[]
+  matches: MatchData[]
+  seasonSnapshot: SeasonSnapshot
+}> {
+  const normalizedEmail = email.trim().toLowerCase()
+  const { data: user } = await supabase
+    .from("app_users")
+    .select("id,email,is_superuser")
+    .eq("email", normalizedEmail)
+    .maybeSingle()
+
+  if (!user) {
+    return {
+      leagues: [],
+      memberships: [],
+      matches: [],
+      seasonSnapshot: {
+        seasons: [],
+        playerProfiles: [],
+        seasonPlayers: [],
+        seasonSettings: [],
+        activeSeasonIds: {},
+      },
+    }
+  }
+
+  const isSuperuser =
+    Boolean(user.is_superuser) || isSuperuserEmail(normalizedEmail)
+  const membershipsQuery = supabase
+    .from("league_memberships")
+    .select("league_id,player_id,role")
+
+  if (!isSuperuser) {
+    membershipsQuery.eq("user_id", user.id)
+  }
+
+  const { data: membershipRows, error: membershipError } =
+    await membershipsQuery
+
+  if (membershipError) throw membershipError
+
+  const memberships = (membershipRows ?? []).map((membership) => ({
+    userId: normalizedEmail,
+    leagueId: membership.league_id,
+    playerId: membership.player_id ?? "",
+    role: toRole(membership.role),
+  }))
+  const accessibleLeagueIds = new Set(
+    memberships.map((membership) => membership.leagueId)
+  )
+
+  if (!isSuperuser && accessibleLeagueIds.size === 0) {
+    return {
+      leagues: [],
+      memberships,
+      matches: [],
+      seasonSnapshot: {
+        seasons: [],
+        playerProfiles: [],
+        seasonPlayers: [],
+        seasonSettings: [],
+        activeSeasonIds: {},
+      },
+    }
+  }
+
+  const leaguesQuery = supabase
+    .from("leagues")
+    .select(
+      "id,slug,name,description,invite_code,join_mode,active_season_id"
+    )
+
+  if (!isSuperuser) {
+    leaguesQuery.in("id", Array.from(accessibleLeagueIds))
+  }
+
+  const { data: leagueRows, error: leaguesError } = await leaguesQuery
+
+  if (leaguesError) throw leaguesError
+
+  const leagues = (leagueRows ?? []).map((league) => ({
+    id: league.id,
+    slug: league.slug,
+    name: league.name,
+    description: league.description ?? "",
+    activeSeasonId: league.active_season_id ?? "",
+    inviteCode: league.invite_code,
+    joinMode: league.join_mode === "open" ? ("open" as const) : ("closed" as const),
+    locations: [],
+  }))
+  const leagueIds = leagues.map((league) => league.id)
+
+  if (leagueIds.length === 0) {
+    return {
+      leagues,
+      memberships,
+      matches: [],
+      seasonSnapshot: {
+        seasons: [],
+        playerProfiles: [],
+        seasonPlayers: [],
+        seasonSettings: [],
+        activeSeasonIds: {},
+      },
+    }
+  }
+
+  const [
+    seasonsResult,
+    playersResult,
+    seasonPlayersResult,
+    settingsResult,
+    matchesResult,
+  ] = await Promise.all([
+    supabase
+      .from("seasons")
+      .select("id,league_id,name,status,total_rounds,completed_rounds")
+      .in("league_id", leagueIds),
+    supabase
+      .from("players")
+      .select("id,league_id,slug,display_name,avatar_initials")
+      .in("league_id", leagueIds),
+    supabase
+      .from("season_players")
+      .select("season_id,player_id,seasons!inner(league_id)")
+      .in("seasons.league_id", leagueIds),
+    supabase
+      .from("season_settings")
+      .select(
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets"
+      )
+      .in("league_id", leagueIds),
+    supabase
+      .from("matches")
+      .select(
+        "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
+      )
+      .in("league_id", leagueIds),
+  ])
+
+  if (seasonsResult.error) throw seasonsResult.error
+  if (playersResult.error) throw playersResult.error
+  if (seasonPlayersResult.error) throw seasonPlayersResult.error
+  if (settingsResult.error) throw settingsResult.error
+  if (matchesResult.error) throw matchesResult.error
+
+  const seasons: Season[] = (seasonsResult.data ?? []).map((season) => ({
+    id: season.id,
+    leagueId: season.league_id,
+    name: season.name,
+    status: season.status === "finished" ? "finished" : "active",
+    totalRounds: season.total_rounds,
+    completedRounds: season.completed_rounds,
+  }))
+  const playerProfiles: PlayerProfile[] = (playersResult.data ?? []).map(
+    (player) => ({
+      id: player.id,
+      leagueId: player.league_id,
+      slug: player.slug,
+      displayName: player.display_name,
+      avatarInitials: player.avatar_initials,
+    })
+  )
+  const seasonPlayers: SeasonPlayer[] = (
+    seasonPlayersResult.data ?? []
+  ).map((seasonPlayer) => ({
+    seasonId: seasonPlayer.season_id,
+    playerId: seasonPlayer.player_id,
+  }))
+  const seasonSettings: SeasonRoundSettings[] = (
+    settingsResult.data ?? []
+  ).map((settings) => ({
+    leagueId: settings.league_id,
+    seasonId: settings.season_id,
+    roundWindowMode:
+      settings.round_window_mode === "fixed-days" ? "fixed-days" : "none",
+    seasonStartsAt: settings.season_starts_at,
+    roundWindowDays: settings.round_window_days,
+    requiresThreeSets: settings.requires_three_sets,
+  }))
+  const matches: MatchData[] = (matchesResult.data ?? []).map((match) => ({
+    id: match.id,
+    leagueId: match.league_id,
+    seasonId: match.season_id,
+    round: match.round,
+    status:
+      match.status === "finished" ||
+      match.status === "scheduled" ||
+      match.status === "postponed"
+        ? match.status
+        : "scheduling",
+    teamA: Array.isArray(match.team_a) ? match.team_a : [],
+    teamB: Array.isArray(match.team_b) ? match.team_b : [],
+    pointsA: match.points_a,
+    pointsB: match.points_b,
+    sets: Array.isArray(match.sets) ? match.sets : [],
+    scheduledAt: match.scheduled_at,
+    dateLabel: match.date_label,
+    location: match.location,
+    resultRecordedAt: match.result_recorded_at,
+  }))
+
+  return {
+    leagues,
+    memberships,
+    matches,
+    seasonSnapshot: {
+      seasons,
+      playerProfiles,
+      seasonPlayers,
+      seasonSettings,
+      activeSeasonIds: Object.fromEntries(
+        leagues
+          .filter((league) => league.activeSeasonId)
+          .map((league) => [league.id, league.activeSeasonId])
+      ),
+    },
+  }
+}

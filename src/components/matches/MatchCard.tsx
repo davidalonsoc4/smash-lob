@@ -4,6 +4,7 @@ import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getTeamDisplayName } from "@/lib/players"
+import type { PlayerProfile } from "@/data/fakeData"
 import { MatchStatusBadge } from "./MatchStatusBadge"
 
 type MatchCardProps = {
@@ -20,6 +21,7 @@ type MatchCardProps = {
     dateLabel: string | null
     location: string | null
   }
+  players?: PlayerProfile[]
   roundStartsAt: string | null
   roundEndsAt: string | null
   headerMode?: "round" | "match-date"
@@ -27,6 +29,7 @@ type MatchCardProps = {
 
 export function MatchCard({
   match,
+  players = [],
   roundStartsAt,
   roundEndsAt,
   headerMode = "round",
@@ -83,7 +86,7 @@ export function MatchCard({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-bold">{getTeamDisplayName(match.teamA)}</p>
+            <p className="font-bold">{getTeamDisplayName(match.teamA, players)}</p>
 
             {isFinished ? (
               <p className="text-xl font-black">{match.pointsA}</p>
@@ -91,7 +94,7 @@ export function MatchCard({
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="font-bold">{getTeamDisplayName(match.teamB)}</p>
+            <p className="font-bold">{getTeamDisplayName(match.teamB, players)}</p>
 
             {isFinished ? (
               <p className="text-xl font-black">{match.pointsB}</p>

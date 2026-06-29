@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, type ReactNode, useState } from "react"
+import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
@@ -20,8 +21,9 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
+  const isNewLeagueRoute = pathname === "/league/new"
 
-  if (isInviteRoute || userLeagues.length > 0) {
+  if (isInviteRoute || isNewLeagueRoute || userLeagues.length > 0) {
     return children
   }
 
@@ -58,13 +60,12 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
           <p className="mt-2 text-sm text-neutral-500">
             {t.onboarding.createDescription}
           </p>
-          <button
-            type="button"
-            disabled
-            className="mt-4 w-full rounded-2xl bg-neutral-200 px-4 py-3 text-sm font-black text-neutral-400"
+          <Link
+            href="/league/new"
+            className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
           >
             {t.onboarding.createAction}
-          </button>
+          </Link>
         </AppCard>
 
         <AppCard>

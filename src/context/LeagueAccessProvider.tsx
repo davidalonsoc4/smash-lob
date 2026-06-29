@@ -5,20 +5,29 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react"
 import { useSession } from "next-auth/react"
+import { useMatchData } from "@/context/MatchDataProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { upsertAppUser } from "@/lib/supabaseUsers"
+import {
+  createSupabaseLeague,
+  fetchSupabaseLeagueSnapshot,
+} from "@/lib/supabaseLeagues"
+import { isSuperuserEmail } from "@/lib/superuser"
 import {
   defaultUserLeagueMemberships,
   leagueMembers,
-  leagues,
-  playerProfiles,
+  leagues as defaultLeagues,
   type League,
   type LeagueMemberRole,
   type PlayerProfile,
   type UserLeagueMembership,
 } from "@/data/fakeData"
+import type { RoundWindowMode } from "@/context/SeasonSettingsProvider"
 
 type ClaimResult =
   | { ok: true; membership: UserLeagueMembership }
@@ -26,10 +35,22 @@ type ClaimResult =
 
 type LeagueAccessContextValue = {
   userId: string | null
+  leagues: League[]
   userMemberships: UserLeagueMembership[]
   userLeagues: League[]
+  createLeague: (settings: {
+    name: string
+    description: string
+    seasonName: string
+    playerNames: string[]
+    roundWindowMode: RoundWindowMode
+    seasonStartsAt: string | null
+    roundWindowDays: number | null
+    requiresThreeSets: boolean
+  }) => Promise<League | null>
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null
   getLeagueInviteCode: (leagueId: string) => string
+  isPlayerClaimed: (leagueId: string, playerId: string) => boolean
   regenerateLeagueInviteCode: (leagueId: string) => string
   getLeagueByInviteCode: (code: string) => League | null
   getUnclaimedPlayersForLeague: (leagueId: string) => PlayerProfile[]
@@ -43,6 +64,7 @@ type LeagueAccessProviderProps = {
 }
 
 const storageKey = "smash-lob-user-league-memberships"
+const leaguesStorageKey = "smash-lob-leagues"
 const inviteCodesStorageKey = "smash-lob-league-invite-codes"
 const adminRoles: LeagueMemberRole[] = ["creator", "admin"]
 const LeagueAccessContext = createContext<LeagueAccessContextValue | null>(null)
@@ -112,6 +134,87 @@ function readStoredMemberships() {
   }
 }
 
+function isValidStoredLeague(league: unknown): league is League {
+  if (typeof league !== "object" || league === null) {
+    return false
+  }
+
+  const item = league as Record<string, unknown>
+
+  return (
+    typeof item.id === "string" &&
+    typeof item.slug === "string" &&
+    typeof item.name === "string" &&
+    typeof item.description === "string" &&
+    typeof item.activeSeasonId === "string" &&
+    typeof item.inviteCode === "string" &&
+    (item.joinMode === "closed" || item.joinMode === "open") &&
+    Array.isArray(item.locations) &&
+    item.locations.every((location) => typeof location === "string")
+  )
+}
+
+function readStoredLeagues() {
+  if (typeof window === "undefined") {
+    return defaultLeagues
+  }
+
+  const storedValue = window.localStorage.getItem(leaguesStorageKey)
+
+  if (!storedValue) {
+    return defaultLeagues
+  }
+
+  try {
+    const parsedValue = JSON.parse(storedValue)
+
+    if (!Array.isArray(parsedValue)) {
+      return defaultLeagues
+    }
+
+    const storedLeagues = parsedValue.filter(isValidStoredLeague)
+    const storedLeagueIds = new Set(storedLeagues.map((league) => league.id))
+
+    return [
+      ...defaultLeagues.filter((league) => !storedLeagueIds.has(league.id)),
+      ...storedLeagues,
+    ]
+  } catch {
+    return defaultLeagues
+  }
+}
+
+function mergeLeagues(current: League[], incoming: League[]) {
+  const items = new Map(current.map((league) => [league.id, league]))
+
+  incoming.forEach((league) => {
+    items.set(league.id, league)
+  })
+
+  return Array.from(items.values())
+}
+
+function mergeMemberships(
+  current: UserLeagueMembership[],
+  incoming: UserLeagueMembership[]
+) {
+  const items = new Map(
+    current.map((membership) => [
+      `${membership.userId}:${membership.leagueId}:${membership.playerId}`,
+      membership,
+    ])
+  )
+
+  incoming.forEach((membership) => {
+    items.set(
+      `${membership.userId}:${membership.leagueId}:${membership.playerId}`,
+      membership
+    )
+  })
+
+  return Array.from(items.values())
+}
+
 function isValidStoredMembership(
   membership: unknown
 ): membership is UserLeagueMembership {
@@ -137,6 +240,18 @@ function getBaseRole(leagueId: string, playerId: string): LeagueMemberRole {
   )
 }
 
+function slugifyLeagueName(name: string) {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "liga"
+  )
+}
+
 function getRandomCodeSegment(length: number) {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
   const randomValues = new Uint8Array(length)
@@ -148,7 +263,7 @@ function getRandomCodeSegment(length: number) {
 }
 
 function getInvitePrefix(leagueId: string) {
-  const league = leagues.find((item) => item.id === leagueId)
+  const league = defaultLeagues.find((item) => item.id === leagueId)
   const source = league?.slug ?? leagueId
   const prefix = source
     .replace(/[^a-zA-Z0-9]/g, "")
@@ -184,12 +299,68 @@ function generateInviteCode(leagueId: string, existingCodes: string[]) {
 
 export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const { data: session } = useSession()
+  const { hydrateMatches } = useMatchData()
+  const { createInitialSeasonForLeague, hydrateSeasonSnapshot, playerProfiles } =
+    useSeasonSettings()
   const userId = normalizeUserId(session?.user?.email)
+  const isSuperuser = isSuperuserEmail(userId)
+  const [leagues, setLeagues] = useState<League[]>(readStoredLeagues)
   const [memberships, setMemberships] = useState<UserLeagueMembership[]>(
     readStoredMemberships
   )
+
+  function persistLeagues(nextLeagues: League[]) {
+    setLeagues(nextLeagues)
+    const customLeagues = nextLeagues.filter(
+      (league) =>
+        !defaultLeagues.some((defaultLeague) => defaultLeague.id === league.id)
+    )
+    window.localStorage.setItem(leaguesStorageKey, JSON.stringify(customLeagues))
+  }
   const [inviteCodeOverrides, setInviteCodeOverrides] =
     useState<Record<string, string>>(readStoredInviteCodes)
+
+  useEffect(() => {
+    if (!userId) {
+      return
+    }
+
+    upsertAppUser({
+      email: userId,
+      displayName: session?.user?.name,
+    }).catch(() => undefined)
+  }, [session?.user?.name, userId])
+
+  useEffect(() => {
+    if (!userId) {
+      return
+    }
+
+    fetchSupabaseLeagueSnapshot(userId)
+      .then((snapshot) => {
+        setLeagues((currentLeagues) =>
+          mergeLeagues(currentLeagues, snapshot.leagues)
+        )
+        setMemberships((currentMemberships) =>
+          mergeMemberships(currentMemberships, snapshot.memberships)
+        )
+        hydrateMatches(snapshot.matches)
+        hydrateSeasonSnapshot(snapshot.seasonSnapshot)
+      })
+      .catch((error) => {
+        const details =
+          typeof error === "object" && error !== null
+            ? error
+            : { message: String(error) }
+        window.localStorage.setItem(
+          "smash-lob-last-supabase-error",
+          JSON.stringify({
+            ...details,
+            createdAt: new Date().toISOString(),
+          })
+        )
+      })
+  }, [hydrateMatches, hydrateSeasonSnapshot, userId])
 
   const persistMemberships = useCallback(
     (nextMemberships: UserLeagueMembership[]) => {
@@ -213,7 +384,137 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return inviteCodeOverrides[leagueId] ?? league?.inviteCode ?? ""
     },
-    [inviteCodeOverrides]
+    [inviteCodeOverrides, leagues]
+  )
+
+  const createLeague = useCallback(
+    ({
+      name,
+      description,
+      seasonName,
+      playerNames,
+      roundWindowMode,
+      seasonStartsAt,
+      roundWindowDays,
+      requiresThreeSets,
+    }: {
+      name: string
+      description: string
+      seasonName: string
+      playerNames: string[]
+      roundWindowMode: RoundWindowMode
+      seasonStartsAt: string | null
+      roundWindowDays: number | null
+      requiresThreeSets: boolean
+    }) => {
+      if (!userId) {
+        return null
+      }
+
+      const baseSlug = slugifyLeagueName(name)
+      const existingLeagueIds = new Set(leagues.map((league) => league.id))
+      const existingSlugs = new Set(leagues.map((league) => league.slug))
+      let slug = baseSlug
+      let suffix = 2
+
+      while (existingSlugs.has(slug)) {
+        slug = `${baseSlug}-${suffix}`
+        suffix += 1
+      }
+
+      let leagueId = `league-${slug}`
+      suffix = 2
+      while (existingLeagueIds.has(leagueId)) {
+        leagueId = `league-${slug}-${suffix}`
+        suffix += 1
+      }
+
+      const { seasonId, playerIds } = createInitialSeasonForLeague({
+        leagueId,
+        seasonName,
+        playerNames,
+        roundWindowMode,
+        seasonStartsAt,
+        roundWindowDays,
+        requiresThreeSets,
+      })
+      createSeasonMatches({
+        leagueId,
+        seasonId,
+        playerIds,
+      })
+      const inviteCode = generateInviteCode(
+        leagueId,
+        leagues.map((league) => getLeagueInviteCode(league.id))
+      )
+      const league: League = {
+        id: leagueId,
+        slug,
+        name,
+        description,
+        activeSeasonId: seasonId,
+        inviteCode,
+        joinMode: "closed",
+        locations: [],
+      }
+      const nextLeagues = [...leagues, league]
+      const creatorMembership: UserLeagueMembership = {
+        userId,
+        leagueId,
+        playerId: playerIds[0],
+        role: "creator",
+      }
+
+      persistLeagues(nextLeagues)
+      persistMemberships([...memberships, creatorMembership])
+      createSupabaseLeague({
+        creatorEmail: userId,
+        creatorName: session?.user?.name,
+        leagueName: name,
+        leagueDescription: description,
+        leagueSlug: slug,
+        inviteCode,
+        seasonName,
+        playerNames,
+        roundWindowMode,
+        seasonStartsAt,
+        roundWindowDays,
+        requiresThreeSets,
+      }).catch((error) => {
+        const details =
+          typeof error === "object" && error !== null
+            ? error
+            : { message: String(error) }
+        window.localStorage.setItem(
+          "smash-lob-last-supabase-error",
+          JSON.stringify({
+            ...details,
+            createdAt: new Date().toISOString(),
+          })
+        )
+      })
+
+      return league
+    },
+    [
+      createInitialSeasonForLeague,
+      createSeasonMatches,
+      getLeagueInviteCode,
+      leagues,
+      memberships,
+      persistMemberships,
+      session?.user?.name,
+      userId,
+    ]
+  )
+
+  const isPlayerClaimed = useCallback(
+    (leagueId: string, playerId: string) =>
+      memberships.some(
+        (membership) =>
+          membership.leagueId === leagueId && membership.playerId === playerId
+      ),
+    [memberships]
   )
 
   const getLeagueWithInviteCode = useCallback(
@@ -225,14 +526,19 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   )
 
   const userLeagues = useMemo(
-    () =>
-      userMemberships
+    () => {
+      if (isSuperuser) {
+        return leagues.map(getLeagueWithInviteCode)
+      }
+
+      return userMemberships
         .map((membership) =>
           leagues.find((league) => league.id === membership.leagueId)
         )
         .filter((league): league is League => Boolean(league))
-        .map(getLeagueWithInviteCode),
-    [getLeagueWithInviteCode, userMemberships]
+        .map(getLeagueWithInviteCode)
+    },
+    [getLeagueWithInviteCode, isSuperuser, leagues, userMemberships]
   )
 
   const getMembershipForLeague = useCallback(
@@ -263,7 +569,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return code
     },
-    [inviteCodeOverrides]
+    [inviteCodeOverrides, leagues]
   )
 
   const getLeagueByInviteCode = useCallback(
@@ -277,7 +583,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return league ? getLeagueWithInviteCode(league) : null
     },
-    [getLeagueInviteCode, getLeagueWithInviteCode]
+    [getLeagueInviteCode, getLeagueWithInviteCode, leagues]
   )
 
   const getUnclaimedPlayersForLeague = useCallback(
@@ -293,7 +599,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           player.leagueId === leagueId && !claimedPlayerIds.has(player.id)
       )
     },
-    [memberships]
+    [memberships, playerProfiles]
   )
 
   const claimPlayer = useCallback(
@@ -335,26 +641,34 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   )
 
   const canAccessLeague = useCallback(
-    (leagueId: string) => Boolean(getMembershipForLeague(leagueId)),
-    [getMembershipForLeague]
+    (leagueId: string) =>
+      isSuperuser || Boolean(getMembershipForLeague(leagueId)),
+    [getMembershipForLeague, isSuperuser]
   )
 
   const isLeagueAdmin = useCallback(
     (leagueId: string) => {
+      if (isSuperuser) {
+        return true
+      }
+
       const membership = getMembershipForLeague(leagueId)
 
       return Boolean(membership && adminRoles.includes(membership.role))
     },
-    [getMembershipForLeague]
+    [getMembershipForLeague, isSuperuser]
   )
 
   const value = useMemo(
     () => ({
       userId,
+      leagues,
       userMemberships,
       userLeagues,
+      createLeague,
       getMembershipForLeague,
       getLeagueInviteCode,
+      isPlayerClaimed,
       regenerateLeagueInviteCode,
       getLeagueByInviteCode,
       getUnclaimedPlayersForLeague,
@@ -364,13 +678,16 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     }),
     [
       canAccessLeague,
+      createLeague,
       claimPlayer,
       getLeagueByInviteCode,
       getLeagueInviteCode,
       getMembershipForLeague,
       getUnclaimedPlayersForLeague,
+      isPlayerClaimed,
       regenerateLeagueInviteCode,
       isLeagueAdmin,
+      leagues,
       userId,
       userLeagues,
       userMemberships,

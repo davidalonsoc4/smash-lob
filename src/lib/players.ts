@@ -1,13 +1,22 @@
-import { playerProfiles } from "@/data/fakeData"
+import { playerProfiles, type PlayerProfile } from "@/data/fakeData"
 
-export function getPlayerById(playerId: string) {
-  return playerProfiles.find((player) => player.id === playerId)
+export function getPlayerById(
+  playerId: string,
+  players: PlayerProfile[] = playerProfiles
+) {
+  return players.find((player) => player.id === playerId)
 }
 
-export function getPlayerDisplayName(playerId: string) {
-  return getPlayerById(playerId)?.displayName ?? playerId
+export function getPlayerDisplayName(
+  playerId: string,
+  players: PlayerProfile[] = playerProfiles
+) {
+  return getPlayerById(playerId, players)?.displayName ?? playerId
 }
 
-export function getTeamDisplayName(playerIds: string[]) {
-  return playerIds.map(getPlayerDisplayName).join(" / ")
+export function getTeamDisplayName(
+  playerIds: string[],
+  players: PlayerProfile[] = playerProfiles
+) {
+  return playerIds.map((playerId) => getPlayerDisplayName(playerId, players)).join(" / ")
 }

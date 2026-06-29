@@ -28,21 +28,21 @@ export default function RootLayout({
         <I18nProvider>
           <AuthSessionProvider>
             <AuthGate>
-              <LeagueAccessProvider>
-                <ActiveLeagueProvider>
-                  <CurrentUserProvider>
-                    <LeagueSettingsProvider>
-                      <SeasonSettingsProvider>
-                        <MatchDataProvider>
+              <SeasonSettingsProvider>
+                <MatchDataProvider>
+                  <LeagueAccessProvider>
+                    <ActiveLeagueProvider>
+                      <CurrentUserProvider>
+                        <LeagueSettingsProvider>
                           <LeagueEntryGate>
                             <AppShell>{children}</AppShell>
                           </LeagueEntryGate>
-                        </MatchDataProvider>
-                      </SeasonSettingsProvider>
-                    </LeagueSettingsProvider>
-                  </CurrentUserProvider>
-                </ActiveLeagueProvider>
-              </LeagueAccessProvider>
+                        </LeagueSettingsProvider>
+                      </CurrentUserProvider>
+                    </ActiveLeagueProvider>
+                  </LeagueAccessProvider>
+                </MatchDataProvider>
+              </SeasonSettingsProvider>
             </AuthGate>
           </AuthSessionProvider>
         </I18nProvider>

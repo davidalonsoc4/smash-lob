@@ -3,11 +3,13 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react"
 import { allMatches } from "@/data/fakeData"
+import { generateBalancedCalendar } from "@/lib/calendar"
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed"
 
@@ -39,6 +41,12 @@ type MatchResultInput = {
 
 type MatchDataContextValue = {
   matches: MatchData[]
+  hydrateMatches: (matches: MatchData[]) => void
+  createSeasonMatches: (settings: {
+    leagueId: string
+    seasonId: string
+    playerIds: string[]
+  }) => MatchData[]
   updateMatchSchedule: (matchId: string, schedule: MatchScheduleInput) => void
   postponeMatch: (matchId: string) => void
   finishMatch: (matchId: string, result: MatchResultInput) => void
@@ -128,7 +136,7 @@ function parseStoredMatches(value: string | null): MatchData[] | null {
 
     const initialMatches = getInitialMatches()
 
-    return initialMatches.map((initialMatch) => {
+    const mergedInitialMatches = initialMatches.map((initialMatch) => {
       const storedMatch = parsed.find(
         (item: Partial<MatchData>) => item.id === initialMatch.id
       ) as Partial<MatchData> | undefined
@@ -149,9 +157,27 @@ function parseStoredMatches(value: string | null): MatchData[] | null {
 
       return sanitizePostponedMatch(mergedMatch)
     })
+    const extraMatches = parsed.filter((storedMatch: Partial<MatchData>) => {
+      return (
+        typeof storedMatch.id === "string" &&
+        !initialMatches.some((initialMatch) => initialMatch.id === storedMatch.id)
+      )
+    }) as MatchData[]
+
+    return [...mergedInitialMatches, ...extraMatches.map(sanitizePostponedMatch)]
   } catch {
     return null
   }
+}
+
+function mergeMatches(current: MatchData[], incoming: MatchData[]) {
+  const items = new Map(current.map((match) => [match.id, match]))
+
+  incoming.forEach((match) => {
+    items.set(match.id, match)
+  })
+
+  return Array.from(items.values())
 }
 
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
@@ -169,6 +195,49 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       }, 0)
     }
   }, [])
+
+  const hydrateMatches = useCallback((incomingMatches: MatchData[]) => {
+    setMatches((currentMatches) => {
+      const nextMatches = mergeMatches(currentMatches, incomingMatches)
+
+      window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
+
+      return nextMatches
+    })
+  }, [])
+
+  const createSeasonMatches = useCallback(
+    ({
+      leagueId,
+      seasonId,
+      playerIds,
+    }: {
+      leagueId: string
+      seasonId: string
+      playerIds: string[]
+    }) => {
+      const seasonMatches = generateBalancedCalendar({
+        leagueId,
+        seasonId,
+        playerIds,
+      })
+
+      setMatches((currentMatches) => {
+        const existingIds = new Set(currentMatches.map((match) => match.id))
+        const nextMatches = [
+          ...currentMatches,
+          ...seasonMatches.filter((match) => !existingIds.has(match.id)),
+        ]
+
+        window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
+
+        return nextMatches
+      })
+
+      return seasonMatches
+    },
+    []
+  )
 
   function updateMatchSchedule(matchId: string, schedule: MatchScheduleInput) {
     setMatches((currentMatches) => {
@@ -245,11 +314,13 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const value = useMemo(
     () => ({
       matches,
+      hydrateMatches,
+      createSeasonMatches,
       updateMatchSchedule,
       postponeMatch,
       finishMatch,
     }),
-    [matches]
+    [createSeasonMatches, hydrateMatches, matches]
   )
 
   return (
