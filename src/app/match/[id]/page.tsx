@@ -8,14 +8,17 @@ import { MatchScoreboard } from "@/components/match/MatchScoreboard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { isCurrentUserLeagueAdmin } from "@/lib/permissions"
 import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchDetailPage() {
   const { t } = useI18n()
+  const { currentUserId } = useCurrentUser()
   const params = useParams<{ id: string }>()
-  const { activeLeague, activeSeason, rounds, matches } =
+  const { activeLeague, activeSeason, roundSettings, rounds, matches } =
     useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
 
@@ -68,8 +71,14 @@ export default function MatchDetailPage() {
 
   const roundWindowText = getRoundWindowText()
   const roundStatusText = getRoundStatusText()
-  const canEnterResult = match.status === "scheduled"
-  const canEditResult = match.status === "finished"
+  const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
+    currentUserId
+  )
+  const canManageMatch =
+    isMatchParticipant ||
+    isCurrentUserLeagueAdmin(activeLeague.id, currentUserId)
+  const canEnterResult = canManageMatch && match.status === "scheduled"
+  const canEditResult = canManageMatch && match.status === "finished"
 
   return (
     <div className="space-y-5">
@@ -141,6 +150,7 @@ export default function MatchDetailPage() {
         availableLocations={activeLeague.locations}
         roundStartsAt={round?.startsAt ?? null}
         roundEndsAt={round?.endsAt ?? null}
+        canManage={canManageMatch}
       />
 
       {canEnterResult ? (
@@ -149,6 +159,7 @@ export default function MatchDetailPage() {
           teamA={match.teamA}
           teamB={match.teamB}
           mode="create"
+          requiresThreeSets={roundSettings.requiresThreeSets}
         />
       ) : null}
 
@@ -180,6 +191,7 @@ export default function MatchDetailPage() {
           teamB={match.teamB}
           initialSets={match.sets}
           mode="edit"
+          requiresThreeSets={roundSettings.requiresThreeSets}
           onCancel={() => setIsEditingResult(false)}
           onSaved={() => setIsEditingResult(false)}
         />

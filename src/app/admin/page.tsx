@@ -3,14 +3,19 @@
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { isCurrentUserLeagueAdmin } from "@/lib/permissions"
 
 export default function AdminPage() {
   const { t } = useI18n()
+  const { currentUserId } = useCurrentUser()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const canAccessAdmin = isCurrentUserLeagueAdmin(activeLeague.id)
+  const canAccessAdmin = isCurrentUserLeagueAdmin(
+    activeLeague.id,
+    currentUserId
+  )
 
   if (!canAccessAdmin) {
     return (

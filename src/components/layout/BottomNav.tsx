@@ -37,7 +37,7 @@ export function BottomNav() {
     {
       href: "/profile",
       label: t.nav.profile,
-      isActive: (currentPathname) => currentPathname === "/profile",
+      isActive: (currentPathname) => currentPathname.startsWith("/profile"),
     },
   ]
 

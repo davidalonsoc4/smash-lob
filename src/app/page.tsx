@@ -5,12 +5,14 @@ import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { StatCard } from "@/components/ui/StatCard"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getTeamDisplayName } from "@/lib/players"
 
 export default function Home() {
   const { t } = useI18n()
+  const { currentUserId } = useCurrentUser()
   const {
     activeLeague,
     activeSeason,
@@ -26,6 +28,19 @@ export default function Home() {
   })
 
   const leader = rankingPlayers[0]
+  const currentUserRankingIndex = rankingPlayers.findIndex(
+    (player) => player.id === currentUserId
+  )
+  const rankingPreviewStart =
+    currentUserRankingIndex <= 0
+      ? 0
+      : currentUserRankingIndex >= rankingPlayers.length - 1
+      ? Math.max(0, rankingPlayers.length - 3)
+      : currentUserRankingIndex - 1
+  const rankingPreviewPlayers =
+    currentUserRankingIndex === -1
+      ? rankingPlayers.slice(0, 3)
+      : rankingPlayers.slice(rankingPreviewStart, rankingPreviewStart + 3)
 
   return (
     <div className="space-y-5">
@@ -76,14 +91,16 @@ export default function Home() {
 
         <AppCard>
           <div className="space-y-3">
-            {rankingPlayers.slice(0, 4).map((player, index) => (
+            {rankingPreviewPlayers.map((player, index) => (
               <div
                 key={player.id}
-                className="flex items-center justify-between gap-3"
+                className={`flex items-center justify-between gap-3 rounded-2xl py-1.5 pl-2 pr-3 ${
+                  player.id === currentUserId ? "bg-neutral-100" : ""
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-sm font-bold">
-                    {index + 1}
+                    {rankingPreviewStart + index + 1}
                   </div>
 
                   <div>
@@ -96,7 +113,9 @@ export default function Home() {
                   </div>
                 </div>
 
-                <p className="text-lg font-black">{player.points}</p>
+                <p className="min-w-6 text-right text-lg font-black">
+                  {player.points}
+                </p>
               </div>
             ))}
           </div>

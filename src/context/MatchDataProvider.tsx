@@ -25,6 +25,7 @@ export type MatchData = {
   scheduledAt: string | null
   dateLabel: string | null
   location: string | null
+  resultRecordedAt: string | null
 }
 
 type MatchScheduleInput = {
@@ -66,6 +67,7 @@ function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
     scheduledAt: match.scheduledAt,
     dateLabel: match.dateLabel,
     location: match.location,
+    resultRecordedAt: match.resultRecordedAt ?? null,
   }
 }
 
@@ -141,6 +143,8 @@ function parseStoredMatches(value: string | null): MatchData[] | null {
         scheduledAt: storedMatch.scheduledAt ?? initialMatch.scheduledAt,
         dateLabel: storedMatch.dateLabel ?? initialMatch.dateLabel,
         location: storedMatch.location ?? initialMatch.location,
+        resultRecordedAt:
+          storedMatch.resultRecordedAt ?? initialMatch.resultRecordedAt,
       }
 
       return sanitizePostponedMatch(mergedMatch)
@@ -228,6 +232,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           sets: result.sets,
           pointsA: points.pointsA,
           pointsB: points.pointsB,
+          resultRecordedAt: new Date().toISOString(),
         }
       })
 

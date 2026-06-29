@@ -58,10 +58,28 @@ export function getPlayersBySeasonId(seasonId: string, matches: MatchData[]) {
   })
 }
 
+function getMatchTime(match: MatchData) {
+  if (!match.scheduledAt) {
+    return Number.NEGATIVE_INFINITY
+  }
+
+  const time = new Date(match.scheduledAt).getTime()
+
+  return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time
+}
+
 export function getLastMatch(matches: MatchData[]) {
   return [...matches]
     .filter((match) => match.status === "finished")
-    .sort((a, b) => b.round - a.round)[0]
+    .sort((a, b) => {
+      const timeDiff = getMatchTime(b) - getMatchTime(a)
+
+      if (timeDiff !== 0) {
+        return timeDiff
+      }
+
+      return b.round - a.round
+    })[0]
 }
 
 export function getNextMatch(matches: MatchData[]) {

@@ -28,21 +28,26 @@ export function useCurrentLeagueData() {
     locations: activeLeagueSettings.locations,
   }
 
-  const activeSeason = getActiveSeasonByLeagueId(activeLeague.id)
+  const baseActiveSeason = getActiveSeasonByLeagueId(activeLeague.id)
   const matches = getMatchesByLeagueAndSeason(
     storedMatches,
     activeLeague.id,
-    activeSeason.id
+    baseActiveSeason.id
   )
-  const players = getPlayersBySeasonId(activeSeason.id, matches)
+  const players = getPlayersBySeasonId(baseActiveSeason.id, matches)
   const lastMatch = getLastMatch(matches)
   const nextMatch = getNextMatch(matches)
-  const roundSettings = getSeasonRoundSettings(activeSeason.id)
+  const roundSettings = getSeasonRoundSettings(baseActiveSeason.id)
   const rounds = buildSeasonRounds({
-    season: activeSeason,
+    season: baseActiveSeason,
     settings: roundSettings,
     matches,
   })
+  const activeSeason = {
+    ...baseActiveSeason,
+    completedRounds: rounds.filter((round) => round.status === "completed")
+      .length,
+  }
 
   return {
     activeLeague,

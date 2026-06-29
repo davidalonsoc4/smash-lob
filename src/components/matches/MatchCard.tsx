@@ -16,17 +16,20 @@ type MatchCardProps = {
     pointsA: number | null
     pointsB: number | null
     sets: { a: number; b: number }[]
+    scheduledAt?: string | null
     dateLabel: string | null
     location: string | null
   }
   roundStartsAt: string | null
   roundEndsAt: string | null
+  headerMode?: "round" | "match-date"
 }
 
 export function MatchCard({
   match,
   roundStartsAt,
   roundEndsAt,
+  headerMode = "round",
 }: MatchCardProps) {
   const { t } = useI18n()
   const isFinished = match.status === "finished"
@@ -41,12 +44,38 @@ export function MatchCard({
     ? t.matches.needsReschedule
     : match.location ?? t.matches.missingSchedule
 
+  function getPlayedDateLabel() {
+    if (!match.scheduledAt) {
+      return match.dateLabel ?? t.matches.played
+    }
+
+    const playedAt = new Date(match.scheduledAt)
+
+    if (Number.isNaN(playedAt.getTime())) {
+      return match.dateLabel ?? t.matches.played
+    }
+
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(playedAt)
+  }
+
+  const headerText =
+    headerMode === "round"
+      ? `${t.matches.round} ${match.round}`
+      : isFinished
+      ? getPlayedDateLabel()
+      : t.matches.pendingPlay
+
   return (
     <Link href={`/match/${match.id}`}>
       <AppCard className="transition active:scale-[0.99]">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-semibold text-neutral-500">
-            {t.matches.round} {match.round}
+            {headerText}
           </p>
 
           <MatchStatusBadge status={match.status} />

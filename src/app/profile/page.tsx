@@ -4,16 +4,27 @@ import Link from "next/link"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatCard } from "@/components/ui/StatCard"
-import { currentUserId } from "@/data/fakeData"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function ProfilePage() {
   const { t } = useI18n()
+  const { currentUserId } = useCurrentUser()
   const { activeLeague, activeSeason, players, matches } =
     useCurrentLeagueData()
 
   const player = players.find((item) => item.id === currentUserId)
+  const playerMatches = matches.filter(
+    (match) =>
+      match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
+  )
+  const nextMatches = playerMatches
+    .filter((match) => match.status !== "finished")
+    .sort((firstMatch, secondMatch) => firstMatch.round - secondMatch.round)
+  const recentFinishedMatches = playerMatches
+    .filter((match) => match.status === "finished")
+    .sort((firstMatch, secondMatch) => secondMatch.round - firstMatch.round)
 
   if (!player) {
     return (
@@ -32,14 +43,12 @@ export default function ProfilePage() {
           <p className="font-bold">{t.profile.notFound}</p>
         </AppCard>
 
-        <Link href="/settings">
-          <AppCard className="transition active:scale-[0.99]">
-            <p className="font-bold">{t.settings.title}</p>
-            <p className="mt-2 text-sm text-neutral-500">
-              {t.settings.profileShortcutDescription}
-            </p>
-          </AppCard>
-        </Link>
+        <AppCard>
+          <p className="font-bold">{t.profile.placeholderTitle}</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            {t.profile.placeholderDescription}
+          </p>
+        </AppCard>
       </div>
     )
   }
@@ -108,31 +117,34 @@ export default function ProfilePage() {
 
       <PlayerMatchesList
         playerId={player.id}
-        title={t.profile.myMatches}
-        matches={matches}
+        title={t.profile.nextMatch}
+        matches={nextMatches}
+        limit={1}
+        emptyMessage={t.profile.noUpcomingMatches}
       />
 
-      <Link href="/settings">
+      <PlayerMatchesList
+        playerId={player.id}
+        title={t.profile.recentResults}
+        matches={recentFinishedMatches}
+        limit={3}
+        emptyMessage={t.profile.noRecentResults}
+      />
+
+      <Link href="/profile/matches">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-bold">{t.settings.title}</p>
+              <p className="font-bold">{t.profile.matchHistoryTitle}</p>
               <p className="mt-2 text-sm text-neutral-500">
-                {t.settings.profileShortcutDescription}
+                {t.profile.matchHistoryDescription}
               </p>
             </div>
 
-            <span className="text-xl">›</span>
+            <span className="text-xl">&gt;</span>
           </div>
         </AppCard>
       </Link>
-
-      <AppCard>
-        <p className="font-bold">{t.profile.accountFutureTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          {t.profile.accountFutureDescription}
-        </p>
-      </AppCard>
     </div>
   )
 }

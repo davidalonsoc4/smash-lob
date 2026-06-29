@@ -55,7 +55,7 @@ export const es = {
     noSpecificWindow: "Sin margen específico para esta jornada",
     statusNoWindow: "Sin margen",
     statusUpcoming: "Próxima",
-    statusActive: "Activa",
+    statusActive: "En curso",
     statusOverdue: "Fuera de plazo",
     statusCompleted: "Completada",
     outsideWindowTitle: "Fuera de la ventana de jornada",
@@ -77,6 +77,8 @@ export const es = {
     scheduled: "Programado",
     unscheduled: "Sin programar",
     postponed: "Aplazado",
+    played: "Jugado",
+    pendingPlay: "Pendiente de jugar",
     pendingDate: "Pendiente de fecha",
     pendingReschedule: "Pendiente de nueva fecha",
     missingSchedule: "Falta añadir hora, fecha y lugar",
@@ -134,6 +136,8 @@ export const es = {
     title: "Registrar resultado",
     description:
       "Introduce los tres sets del partido. La app calculará automáticamente los puntos de cada pareja.",
+    optionalSetsDescription:
+      "Introduce los sets jugados. Los sets vacíos se ignorarán al guardar.",
     editTitle: "Editar resultado",
     editDescription:
       "Corrige los sets del partido. El ranking se recalculará automáticamente al guardar.",
@@ -169,9 +173,24 @@ export const es = {
     wins: "Victorias",
     losses: "Derrotas",
     myMatches: "Mis partidos",
-    accountFutureTitle: "Cuenta e invitaciones",
-    accountFutureDescription:
-      "Más adelante este perfil se conectará al usuario registrado y a las ligas a las que se una mediante enlace de invitación.",
+    nextMatch: "Próximo partido",
+    recentResults: "Últimos resultados",
+    noUpcomingMatches: "No tienes partidos pendientes ahora mismo.",
+    noRecentResults: "Todavía no tienes resultados registrados.",
+    matchHistoryTitle: "Historial de partidos",
+    matchHistoryDescription:
+      "Consulta todos tus partidos de la temporada y filtra por estado.",
+    matchHistoryPageDescription:
+      "Todos tus partidos de la temporada activa, con filtros rápidos por estado.",
+    filteredMatches: "Partidos",
+    noFilteredMatches: "No hay partidos con este filtro.",
+    filterLabel: "Mostrar",
+    filterAll: "Todos",
+    filterFinished: "Jugados",
+    filterPending: "Pendientes",
+    filterScheduled: "Programados",
+    filterUnscheduled: "Sin programar",
+    filterPostponed: "Aplazados",
     placeholderTitle: "Perfil pendiente de conectar",
     placeholderDescription:
       "De momento usaremos un jugador falso como usuario actual. Más adelante se conectará con el login real.",
@@ -201,6 +220,11 @@ export const es = {
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",
     leagueTitle: "Liga",
+    testUserTitle: "Usuario conectado",
+    testUserDescription:
+      "Selector temporal para probar permisos como distintos jugadores.",
+    connectedUser: "Usuario",
+    connectedRole: "Rol",
     adminPanelTitle: "Panel de administrador",
     adminPanelDescription:
       "Gestiona la liga activa, la temporada, los lugares y las futuras herramientas de administración.",
@@ -214,6 +238,9 @@ export const es = {
     language: "Idioma",
     languageDescription:
       "Cambia el idioma de la aplicación.",
+    accountTitle: "Cuenta e invitaciones",
+    accountDescription:
+      "Más adelante esta sección conectará el usuario registrado, las invitaciones y las ligas a las que se una mediante enlace.",
     futureTitle: "Próximamente",
     futureDescription:
       "Aquí añadiremos modo claro/oscuro, gestión de cuenta, temporadas, ligas, invitaciones y cierre de sesión.",
@@ -277,6 +304,12 @@ export const es = {
     fixedDaysSettings: "Configuración del margen fijo",
     seasonStartDate: "Fecha de inicio de la Jornada 1",
     daysPerRound: "Días por jornada",
+    resultRulesTitle: "Reglas de resultado",
+    resultRulesDescription:
+      "Define cómo se validan los resultados introducidos por los jugadores.",
+    requireThreeSetsTitle: "Exigir tres sets jugados",
+    requireThreeSetsDescription:
+      "Si está activo, el formulario obliga a completar tres sets válidos. Si no, se podrán guardar solo los sets jugados.",
     save: "Guardar configuración",
     saved: "Configuración guardada.",
   },

@@ -81,13 +81,14 @@ export default function MatchesPage() {
                 ) : null}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {roundMatches.map((match) => (
                   <MatchCard
                     key={match.id}
                     match={match}
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
+                    headerMode="match-date"
                   />
                 ))}
               </div>

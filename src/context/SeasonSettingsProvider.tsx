@@ -17,6 +17,7 @@ export type SeasonRoundSettings = {
   roundWindowMode: RoundWindowMode
   seasonStartsAt: string | null
   roundWindowDays: number | null
+  requiresThreeSets: boolean
 }
 
 type SeasonSettingsContextValue = {
@@ -43,6 +44,7 @@ function normalizeSettings(
     roundWindowMode: settings.roundWindowMode as RoundWindowMode,
     seasonStartsAt: settings.seasonStartsAt,
     roundWindowDays: settings.roundWindowDays,
+    requiresThreeSets: settings.requiresThreeSets ?? true,
   }
 }
 
@@ -77,14 +79,25 @@ function parseStoredSettings(value: string | null): SeasonRoundSettings[] | null
       return {
         ...defaultSetting,
         ...storedSetting,
+        requiresThreeSets:
+          storedSetting.requiresThreeSets ?? defaultSetting.requiresThreeSets,
       }
     })
 
-    const extraSettings = parsed.filter((storedSetting) => {
-      return !mergedSettings.some(
-        (setting) => setting.seasonId === storedSetting.seasonId
-      )
-    })
+    const extraSettings = parsed
+      .filter((storedSetting) => {
+        return !mergedSettings.some(
+          (setting) => setting.seasonId === storedSetting.seasonId
+        )
+      })
+      .map((storedSetting: Partial<SeasonRoundSettings>) => ({
+        leagueId: storedSetting.leagueId ?? "",
+        seasonId: storedSetting.seasonId ?? "",
+        roundWindowMode: storedSetting.roundWindowMode ?? "none",
+        seasonStartsAt: storedSetting.seasonStartsAt ?? null,
+        roundWindowDays: storedSetting.roundWindowDays ?? null,
+        requiresThreeSets: storedSetting.requiresThreeSets ?? true,
+      }))
 
     return [...mergedSettings, ...extraSettings]
   } catch {
@@ -99,6 +112,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     roundWindowMode: "none",
     seasonStartsAt: null,
     roundWindowDays: null,
+    requiresThreeSets: true,
   }
 }
 

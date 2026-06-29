@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { type MouseEvent } from "react"
 
 type BackButtonProps = {
   fallbackHref: string
@@ -10,22 +11,28 @@ type BackButtonProps = {
 export function BackButton({ fallbackHref, label }: BackButtonProps) {
   const router = useRouter()
 
-  function handleBack() {
-    if (window.history.length > 1) {
-      router.back()
-      return
-    }
+  function handleBack(event: MouseEvent<HTMLAnchorElement>) {
+    const currentHref = window.location.href
+    const referrerUrl = document.referrer
+      ? new URL(document.referrer)
+      : null
+    const canGoBackInsideApp =
+      referrerUrl?.origin === window.location.origin &&
+      referrerUrl.href !== currentHref
 
-    router.push(fallbackHref)
+    if (canGoBackInsideApp) {
+      event.preventDefault()
+      router.back()
+    }
   }
 
   return (
-    <button
-      type="button"
+    <a
+      href={fallbackHref}
       onClick={handleBack}
       className="text-sm font-semibold text-neutral-500"
     >
       {label}
-    </button>
+    </a>
   )
 }

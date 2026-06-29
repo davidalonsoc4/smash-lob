@@ -23,25 +23,39 @@ type PlayerMatchesListProps = {
   playerId: string
   title: string
   matches: PlayerMatch[]
+  limit?: number
+  emptyMessage?: string
 }
 
 export function PlayerMatchesList({
   playerId,
   title,
   matches,
+  limit,
+  emptyMessage,
 }: PlayerMatchesListProps) {
   const { t } = useI18n()
 
   const playerMatches = matches.filter(
     (match) => match.teamA.includes(playerId) || match.teamB.includes(playerId)
   )
+  const visibleMatches =
+    typeof limit === "number" ? playerMatches.slice(0, limit) : playerMatches
 
   return (
     <section>
       <h2 className="mb-3 text-lg font-black">{title}</h2>
 
+      {visibleMatches.length === 0 ? (
+        <AppCard>
+          <p className="text-sm font-semibold text-neutral-500">
+            {emptyMessage ?? t.matches.noMatches}
+          </p>
+        </AppCard>
+      ) : null}
+
       <div className="space-y-3">
-        {playerMatches.map((match) => {
+        {visibleMatches.map((match) => {
           const isFinished = match.status === "finished"
           const isPostponed = match.status === "postponed"
 

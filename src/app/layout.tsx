@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
+import { CurrentUserProvider } from "@/context/CurrentUserProvider"
 import { LeagueSettingsProvider } from "@/context/LeagueSettingsProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
 import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
@@ -21,15 +22,17 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <I18nProvider>
-          <ActiveLeagueProvider>
-            <LeagueSettingsProvider>
-              <SeasonSettingsProvider>
-                <MatchDataProvider>
-                  <AppShell>{children}</AppShell>
-                </MatchDataProvider>
-              </SeasonSettingsProvider>
-            </LeagueSettingsProvider>
-          </ActiveLeagueProvider>
+          <CurrentUserProvider>
+            <ActiveLeagueProvider>
+              <LeagueSettingsProvider>
+                <SeasonSettingsProvider>
+                  <MatchDataProvider>
+                    <AppShell>{children}</AppShell>
+                  </MatchDataProvider>
+                </SeasonSettingsProvider>
+              </LeagueSettingsProvider>
+            </ActiveLeagueProvider>
+          </CurrentUserProvider>
         </I18nProvider>
       </body>
     </html>

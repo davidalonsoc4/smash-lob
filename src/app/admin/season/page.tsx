@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import {
   SeasonRoundSettings,
   useSeasonSettings,
@@ -32,6 +33,9 @@ function AdminSeasonForm({
   const [roundWindowDays, setRoundWindowDays] = useState(
     String(roundSettings.roundWindowDays ?? 15)
   )
+  const [requiresThreeSets, setRequiresThreeSets] = useState(
+    roundSettings.requiresThreeSets
+  )
   const [saved, setSaved] = useState(false)
 
   const parsedRoundWindowDays = Number(roundWindowDays)
@@ -56,6 +60,7 @@ function AdminSeasonForm({
       roundWindowMode,
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
+      requiresThreeSets,
     })
 
     setSaved(true)
@@ -159,6 +164,34 @@ function AdminSeasonForm({
         </AppCard>
       ) : null}
 
+      <AppCard>
+        <p className="font-bold">{t.adminSeason.resultRulesTitle}</p>
+        <p className="mt-2 text-sm text-neutral-500">
+          {t.adminSeason.resultRulesDescription}
+        </p>
+
+        <label className="mt-5 flex items-start gap-3 rounded-2xl border border-neutral-200 p-4">
+          <input
+            type="checkbox"
+            checked={requiresThreeSets}
+            onChange={(event) => {
+              setRequiresThreeSets(event.target.checked)
+              setSaved(false)
+            }}
+            className="mt-1"
+          />
+
+          <span>
+            <span className="block text-sm font-black">
+              {t.adminSeason.requireThreeSetsTitle}
+            </span>
+            <span className="mt-1 block text-xs text-neutral-500">
+              {t.adminSeason.requireThreeSetsDescription}
+            </span>
+          </span>
+        </label>
+      </AppCard>
+
       <button
         type="submit"
         disabled={!canSave}
@@ -178,9 +211,13 @@ function AdminSeasonForm({
 
 export default function AdminSeasonPage() {
   const { t } = useI18n()
+  const { currentUserId } = useCurrentUser()
   const { activeLeague, activeSeason, roundSettings } =
     useCurrentLeagueData()
-  const canAccessAdmin = isCurrentUserLeagueAdmin(activeLeague.id)
+  const canAccessAdmin = isCurrentUserLeagueAdmin(
+    activeLeague.id,
+    currentUserId
+  )
 
   if (!canAccessAdmin) {
     return (

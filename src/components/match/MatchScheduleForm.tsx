@@ -14,6 +14,7 @@ type MatchScheduleFormProps = {
   availableLocations: string[]
   roundStartsAt: string | null
   roundEndsAt: string | null
+  canManage: boolean
 }
 
 const otherLocationValue = "__other__"
@@ -27,6 +28,7 @@ export function MatchScheduleForm({
   availableLocations,
   roundStartsAt,
   roundEndsAt,
+  canManage,
 }: MatchScheduleFormProps) {
   const { t } = useI18n()
   const { updateMatchSchedule, postponeMatch } = useMatchData()
@@ -43,7 +45,7 @@ export function MatchScheduleForm({
         : ""
 
   const [isEditing, setIsEditing] = useState(
-    !hasSchedule && !isPostponed && !isFinished
+    canManage && !hasSchedule && !isPostponed && !isFinished
   )
   const [scheduledAtValue, setScheduledAtValue] = useState(
     hasSchedule ? scheduledAt ?? "" : ""
@@ -64,8 +66,9 @@ export function MatchScheduleForm({
     return selectedLocation.trim()
   }, [customLocation, selectedLocation])
 
-  const canSave = scheduledAtValue.trim().length > 0 && finalLocation.length > 0
-  const canPostpone = !isFinished && !isPostponed
+  const canSave =
+    canManage && scheduledAtValue.trim().length > 0 && finalLocation.length > 0
+  const canPostpone = canManage && !isFinished && !isPostponed
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -78,7 +81,7 @@ export function MatchScheduleForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!canSave) {
+    if (!canManage || !canSave) {
       return
     }
 
@@ -91,6 +94,10 @@ export function MatchScheduleForm({
   }
 
   function handleCancel() {
+    if (!canManage) {
+      return
+    }
+
     setScheduledAtValue(hasSchedule ? scheduledAt ?? "" : "")
     setSelectedLocation(initialLocationValue)
     setCustomLocation(
@@ -102,6 +109,10 @@ export function MatchScheduleForm({
   }
 
   function handlePostpone() {
+    if (!canManage) {
+      return
+    }
+
     postponeMatch(matchId)
     setScheduledAtValue("")
     setSelectedLocation("")
@@ -118,7 +129,9 @@ export function MatchScheduleForm({
       return t.matchDetail.schedule
     }
 
-    return t.matchDetail.addScheduleTitle
+    return canManage
+      ? t.matchDetail.addScheduleTitle
+      : t.matchDetail.pendingSchedule
   }
 
   function getDescription() {
@@ -130,7 +143,9 @@ export function MatchScheduleForm({
       return t.matchDetail.scheduleDescription
     }
 
-    return t.matchDetail.addScheduleDescription
+    return canManage
+      ? t.matchDetail.addScheduleDescription
+      : t.matchDetail.pendingScheduleDescription
   }
 
   return (
@@ -144,7 +159,7 @@ export function MatchScheduleForm({
           </p>
         </div>
 
-        {!isEditing && !isFinished ? (
+        {canManage && !isEditing && !isFinished ? (
           <div className="flex shrink-0 gap-2">
             {isPostponed ? (
               <button
@@ -164,7 +179,15 @@ export function MatchScheduleForm({
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+                  >
+                    {t.matchDetail.addScheduleButton}
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -211,7 +234,7 @@ export function MatchScheduleForm({
         </div>
       ) : null}
 
-      {isEditing ? (
+      {canManage && isEditing ? (
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
