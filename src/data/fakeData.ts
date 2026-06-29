@@ -6,6 +6,8 @@ export type League = {
   name: string
   description: string
   activeSeasonId: string
+  inviteCode: string
+  joinMode: "closed" | "open"
   locations: string[]
 }
 
@@ -20,12 +22,20 @@ export type Season = {
 
 export type PlayerProfile = {
   id: string
+  leagueId: string
   slug: string
   displayName: string
   avatarInitials: string
 }
 
 export type LeagueMember = {
+  leagueId: string
+  playerId: string
+  role: LeagueMemberRole
+}
+
+export type UserLeagueMembership = {
+  userId: string
   leagueId: string
   playerId: string
   role: LeagueMemberRole
@@ -75,6 +85,8 @@ export const leagues: League[] = [
     name: "Smash & Lob",
     description: "Liga privada de padel entre amigos.",
     activeSeasonId: "season-2",
+    inviteCode: "SL-8KQ4-P7M2-X9RA",
+    joinMode: "closed",
     locations: ["Padel Indoor", "Club Padel Norte", "Padel Derio"],
   },
   {
@@ -83,6 +95,8 @@ export const leagues: League[] = [
     name: "Liga del curro",
     description: "Liga privada de padel del trabajo.",
     activeSeasonId: "season-work-1",
+    inviteCode: "WK-3T9Z-L6Q8-V2BN",
+    joinMode: "closed",
     locations: ["Club Padel Work", "Padel Indoor", "Club Padel Norte"],
   },
 ]
@@ -117,51 +131,109 @@ export const seasons: Season[] = [
 export const playerProfiles: PlayerProfile[] = [
   {
     id: "davo",
+    leagueId: "league-smash-lob",
     slug: "davo",
     displayName: "Davo",
     avatarInitials: "DA",
   },
   {
     id: "alvaro",
+    leagueId: "league-smash-lob",
     slug: "alvaro",
     displayName: "Alvaro",
     avatarInitials: "AL",
   },
   {
     id: "alain",
+    leagueId: "league-smash-lob",
     slug: "alain",
     displayName: "Alain",
     avatarInitials: "AL",
   },
   {
     id: "julen",
+    leagueId: "league-smash-lob",
     slug: "julen",
     displayName: "Julen",
     avatarInitials: "JU",
   },
   {
     id: "bea",
+    leagueId: "league-smash-lob",
     slug: "bea",
     displayName: "Bea",
     avatarInitials: "BE",
   },
   {
     id: "carlos",
+    leagueId: "league-smash-lob",
     slug: "carlos",
     displayName: "Carlos",
     avatarInitials: "CA",
   },
   {
     id: "irene",
+    leagueId: "league-smash-lob",
     slug: "irene",
     displayName: "Irene",
     avatarInitials: "IR",
   },
   {
     id: "marcos",
+    leagueId: "league-smash-lob",
     slug: "marcos",
     displayName: "Marcos",
     avatarInitials: "MA",
+  },
+  {
+    id: "work-davo",
+    leagueId: "league-work",
+    slug: "davo-curro",
+    displayName: "Davo",
+    avatarInitials: "DA",
+  },
+  {
+    id: "work-bea",
+    leagueId: "league-work",
+    slug: "bea-curro",
+    displayName: "Bea",
+    avatarInitials: "BE",
+  },
+  {
+    id: "work-carlos",
+    leagueId: "league-work",
+    slug: "carlos-curro",
+    displayName: "Carlos",
+    avatarInitials: "CA",
+  },
+  {
+    id: "work-irene",
+    leagueId: "league-work",
+    slug: "irene-curro",
+    displayName: "Irene",
+    avatarInitials: "IR",
+  },
+  {
+    id: "work-marcos",
+    leagueId: "league-work",
+    slug: "marcos-curro",
+    displayName: "Marcos",
+    avatarInitials: "MA",
+  },
+]
+
+export const defaultUserLeagueMemberships: UserLeagueMembership[] = [
+  {
+    userId: "davidalonsoc4@gmail.com",
+    leagueId: "league-smash-lob",
+    playerId: "davo",
+    role: "admin",
+  },
+  {
+    userId: "davidalonsoc4@gmail.com",
+    leagueId: "league-work",
+    playerId: "work-davo",
+    role: "creator",
   },
 ]
 
@@ -208,27 +280,27 @@ export const leagueMembers: LeagueMember[] = [
   },
   {
     leagueId: "league-work",
-    playerId: "davo",
+    playerId: "work-davo",
     role: "creator",
   },
   {
     leagueId: "league-work",
-    playerId: "bea",
+    playerId: "work-bea",
     role: "player",
   },
   {
     leagueId: "league-work",
-    playerId: "carlos",
+    playerId: "work-carlos",
     role: "player",
   },
   {
     leagueId: "league-work",
-    playerId: "irene",
+    playerId: "work-irene",
     role: "player",
   },
   {
     leagueId: "league-work",
-    playerId: "marcos",
+    playerId: "work-marcos",
     role: "player",
   },
 ]
@@ -268,23 +340,23 @@ export const seasonPlayers: SeasonPlayer[] = [
   },
   {
     seasonId: "season-work-1",
-    playerId: "davo",
+    playerId: "work-davo",
   },
   {
     seasonId: "season-work-1",
-    playerId: "bea",
+    playerId: "work-bea",
   },
   {
     seasonId: "season-work-1",
-    playerId: "carlos",
+    playerId: "work-carlos",
   },
   {
     seasonId: "season-work-1",
-    playerId: "irene",
+    playerId: "work-irene",
   },
   {
     seasonId: "season-work-1",
-    playerId: "marcos",
+    playerId: "work-marcos",
   },
 ]
 
@@ -548,8 +620,8 @@ export const allMatches: Match[] = [
     seasonId: "season-work-1",
     round: 1,
     status: "finished",
-    teamA: ["davo", "bea"],
-    teamB: ["carlos", "irene"],
+    teamA: ["work-davo", "work-bea"],
+    teamB: ["work-carlos", "work-irene"],
     pointsA: 2,
     pointsB: 1,
     sets: [

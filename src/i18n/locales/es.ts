@@ -10,6 +10,63 @@ export const es = {
     versus: "vs",
   },
 
+  auth: {
+    subtitle: "Liga privada",
+    title: "Smash & Lob",
+    description:
+      "Entra con Google para acceder a tus ligas, partidos y resultados.",
+    signInWithGoogle: "Entrar con Google",
+    signOut: "Cerrar sesión",
+    loadingTitle: "Comprobando sesión",
+    loadingDescription: "Estamos preparando tu acceso.",
+    pendingTitle: "Usuario pendiente de invitación",
+    pendingDescription:
+      "Tu cuenta de Google todavía no está vinculada a un jugador de esta liga. Pide al administrador que añada tu email.",
+  },
+
+  onboarding: {
+    title: "Elige como empezar",
+    description:
+      "Tu cuenta de Google esta lista. Ahora crea una liga o entra en una invitacion existente.",
+    createTitle: "Crear nueva liga",
+    createDescription:
+      "Pronto definiremos el alta completa de ligas, jugadores y temporada inicial.",
+    createAction: "Crear liga",
+    joinTitle: "Unirme a liga existente",
+    joinDescription:
+      "Introduce el codigo que te ha pasado el administrador de la liga.",
+    joinAction: "Validar invitacion",
+  },
+
+  invites: {
+    subtitle: "Invitacion privada",
+    title: "Unirme a una liga",
+    description:
+      "Confirma la liga y reclama el jugador que te corresponde dentro de ella.",
+    codeLabel: "Codigo de invitacion",
+    codePlaceholder: "SL-8KQ4-P7M2-X9RA",
+    invalidCode: "Codigo invalido.",
+    leagueNotFound: "Liga no encontrada.",
+    notFoundTitle: "Invitacion no encontrada",
+    notFoundDescription:
+      "Revisa el enlace o pide al administrador un codigo nuevo.",
+    foundLeague: "Liga encontrada",
+    closedMode: "Modo cerrado: jugadores predefinidos por el admin.",
+    openMode: "Modo abierto preparado para mas adelante.",
+    claimTitle: "Reclama tu jugador",
+    claimDescription:
+      "Elige quien eres en esta liga. Solo podras reclamar un jugador por liga.",
+    selectPlayerError: "Selecciona un jugador para continuar.",
+    playerAlreadyClaimed: "Jugador ya reclamado.",
+    alreadyInLeague: "Ya perteneces a esta liga.",
+    alreadyInLeagueDescription:
+      "Tu cuenta ya tiene un jugador vinculado en esta liga.",
+    noPlayersAvailable: "No quedan jugadores sin reclamar en esta liga.",
+    confirmClaim: "Confirmar y entrar",
+    enterLeague: "Entrar en la liga",
+    accessDenied: "No tienes permisos para ver esta liga.",
+  },
+
   appHeader: {
     leagueSelectorLabel: "Seleccionar liga",
     settingsLabel: "Ajustes",
@@ -220,11 +277,6 @@ export const es = {
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",
     leagueTitle: "Liga",
-    testUserTitle: "Usuario conectado",
-    testUserDescription:
-      "Selector temporal para probar permisos como distintos jugadores.",
-    connectedUser: "Usuario",
-    connectedRole: "Rol",
     adminPanelTitle: "Panel de administrador",
     adminPanelDescription:
       "Gestiona la liga activa, la temporada, los lugares y las futuras herramientas de administración.",
@@ -241,6 +293,8 @@ export const es = {
     accountTitle: "Cuenta e invitaciones",
     accountDescription:
       "Más adelante esta sección conectará el usuario registrado, las invitaciones y las ligas a las que se una mediante enlace.",
+    connectedEmail: "Email conectado",
+    joinNewExistingLeague: "Unirme a una nueva liga existente",
     futureTitle: "Próximamente",
     futureDescription:
       "Aquí añadiremos modo claro/oscuro, gestión de cuenta, temporadas, ligas, invitaciones y cierre de sesión.",
@@ -258,6 +312,19 @@ export const es = {
     seasonTitle: "Administrar temporada",
     seasonDescription:
       "Configura jornadas, ventanas y reglas básicas de la temporada activa.",
+    inviteTitle: "Invitar jugadores",
+    inviteDescription:
+      "Comparte este codigo o enlace con la cuenta de Google que quieras invitar.",
+    inviteCodeLabel: "Codigo",
+    inviteLinkLabel: "Enlace",
+    copyCode: "Copiar codigo",
+    copyLink: "Copiar enlace",
+    inviteCopied: "Copiado",
+    inviteHelper:
+      "Al entrar en {leagueName}, la persona invitada iniciara sesion con Google y reclamara uno de los jugadores sin vincular.",
+    regenerateInviteCode: "Regenerar codigo",
+    regenerateInviteCodeDescription:
+      "El codigo anterior dejara de funcionar para nuevas invitaciones.",
     futureTitle: "Próximas herramientas",
     futureDescription:
       "Aquí se agruparán jugadores, invitaciones, reglas, generación de jornadas, notificaciones y auditoría.",
@@ -310,6 +377,25 @@ export const es = {
     requireThreeSetsTitle: "Exigir tres sets jugados",
     requireThreeSetsDescription:
       "Si está activo, el formulario obliga a completar tres sets válidos. Si no, se podrán guardar solo los sets jugados.",
+    lifecycleTitle: "Ciclo de temporada",
+    lifecycleDescription:
+      "Termina la temporada actual o abre una nueva con sus propios jugadores.",
+    currentSeason: "Temporada actual",
+    statusActive: "Activa",
+    statusFinished: "Finalizada",
+    finishSeason: "Terminar temporada",
+    newSeasonTitle: "Comenzar nueva temporada",
+    newSeasonDescription:
+      "Cada temporada puede tener jugadores y ajustes distintos dentro de la misma liga.",
+    newSeasonName: "Nombre de la temporada",
+    newSeasonNamePlaceholder: "Ejemplo: Temporada 3",
+    newSeasonRounds: "Jornadas",
+    seasonPlayersTitle: "Jugadores de esta temporada",
+    seasonPlayersDescription:
+      "Selecciona quienes participan. No tienen que ser los mismos que en otras temporadas.",
+    startSeason: "Comenzar temporada",
+    seasonFinished: "Temporada finalizada.",
+    seasonStarted: "Nueva temporada creada.",
     save: "Guardar configuración",
     saved: "Configuración guardada.",
   },

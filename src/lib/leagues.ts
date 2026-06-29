@@ -1,8 +1,9 @@
 import {
   leagues,
   playerProfiles,
-  seasonPlayers,
+  seasonPlayers as defaultSeasonPlayers,
   seasons,
+  type SeasonPlayer,
 } from "@/data/fakeData"
 import type { MatchData } from "@/context/MatchDataProvider"
 import { calculateSeasonRanking } from "@/lib/ranking"
@@ -49,7 +50,11 @@ export function getMatchesByLeagueAndSeason(
   )
 }
 
-export function getPlayersBySeasonId(seasonId: string, matches: MatchData[]) {
+export function getPlayersBySeasonId(
+  seasonId: string,
+  matches: MatchData[],
+  seasonPlayers: SeasonPlayer[] = defaultSeasonPlayers
+) {
   return calculateSeasonRanking({
     seasonId,
     playerProfiles,

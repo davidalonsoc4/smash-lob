@@ -1,17 +1,23 @@
 "use client"
 
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
-import { leagues } from "@/data/fakeData"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export function HeaderLeagueSelector() {
   const { t } = useI18n()
   const { activeLeagueId, changeActiveLeague } = useActiveLeague()
+  const { userLeagues } = useLeagueAccess()
 
   const activeLeague =
-    leagues.find((league) => league.id === activeLeagueId) ?? leagues[0]
+    userLeagues.find((league) => league.id === activeLeagueId) ??
+    userLeagues[0]
 
-  if (leagues.length <= 1) {
+  if (!activeLeague) {
+    return null
+  }
+
+  if (userLeagues.length <= 1) {
     return (
       <h1 className="truncate text-2xl font-black tracking-tight text-neutral-950">
         {activeLeague.name}
@@ -28,7 +34,7 @@ export function HeaderLeagueSelector() {
         onChange={(event) => changeActiveLeague(event.target.value)}
         className="w-full appearance-none truncate bg-transparent py-1 pr-8 text-2xl font-black tracking-tight text-neutral-950 outline-none"
       >
-        {leagues.map((league) => (
+        {userLeagues.map((league) => (
           <option key={league.id} value={league.id}>
             {league.name}
           </option>

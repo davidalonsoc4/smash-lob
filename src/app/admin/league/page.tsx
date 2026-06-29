@@ -3,11 +3,10 @@
 import { FormEvent, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useLeagueSettings } from "@/context/LeagueSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { isCurrentUserLeagueAdmin } from "@/lib/permissions"
 
 type AdminLeagueFormProps = {
   leagueId: string
@@ -159,12 +158,9 @@ function AdminLeagueForm({
 
 export default function AdminLeaguePage() {
   const { t } = useI18n()
-  const { currentUserId } = useCurrentUser()
+  const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const canAccessAdmin = isCurrentUserLeagueAdmin(
-    activeLeague.id,
-    currentUserId
-  )
+  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
 
   if (!canAccessAdmin) {
     return (

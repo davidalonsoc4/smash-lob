@@ -3,6 +3,7 @@
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -12,6 +13,7 @@ import {
   activeLeagueId as defaultActiveLeagueId,
   leagues,
 } from "@/data/fakeData"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
 type ActiveLeagueContextValue = {
   activeLeagueId: string
@@ -32,37 +34,53 @@ function isValidLeagueId(leagueId: string) {
 }
 
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
+  const { userLeagues, canAccessLeague } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
+  const effectiveActiveLeagueId = canAccessLeague(activeLeagueId)
+    ? activeLeagueId
+    : userLeagues[0]?.id ?? activeLeagueId
 
   useEffect(() => {
     const storedLeagueId = window.localStorage.getItem(storageKey)
 
-    if (!storedLeagueId || !isValidLeagueId(storedLeagueId)) {
+    if (
+      storedLeagueId &&
+      isValidLeagueId(storedLeagueId) &&
+      canAccessLeague(storedLeagueId)
+    ) {
+      window.setTimeout(() => {
+        setActiveLeagueIdState(storedLeagueId)
+      }, 0)
       return
     }
 
-    window.setTimeout(() => {
-      setActiveLeagueIdState(storedLeagueId)
-    }, 0)
-  }, [])
+    const firstLeagueId = userLeagues[0]?.id
 
-  function changeActiveLeague(leagueId: string) {
-    if (!isValidLeagueId(leagueId)) {
+    if (firstLeagueId) {
+      window.setTimeout(() => {
+        setActiveLeagueIdState(firstLeagueId)
+        window.localStorage.setItem(storageKey, firstLeagueId)
+      }, 0)
+    }
+  }, [canAccessLeague, userLeagues])
+
+  const changeActiveLeague = useCallback((leagueId: string) => {
+    if (!isValidLeagueId(leagueId) || !canAccessLeague(leagueId)) {
       return
     }
 
     setActiveLeagueIdState(leagueId)
     window.localStorage.setItem(storageKey, leagueId)
-  }
+  }, [canAccessLeague])
 
   const value = useMemo(
     () => ({
-      activeLeagueId,
+      activeLeagueId: effectiveActiveLeagueId,
       changeActiveLeague,
       setActiveLeagueId: changeActiveLeague,
     }),
-    [activeLeagueId]
+    [changeActiveLeague, effectiveActiveLeagueId]
   )
 
   return (

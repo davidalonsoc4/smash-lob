@@ -1,6 +1,10 @@
 import type { Metadata } from "next"
+import { AuthGate } from "@/components/auth/AuthGate"
+import { LeagueEntryGate } from "@/components/auth/LeagueEntryGate"
 import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
+import { AuthSessionProvider } from "@/context/AuthSessionProvider"
 import { CurrentUserProvider } from "@/context/CurrentUserProvider"
+import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
 import { LeagueSettingsProvider } from "@/context/LeagueSettingsProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
 import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
@@ -22,17 +26,25 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <I18nProvider>
-          <CurrentUserProvider>
-            <ActiveLeagueProvider>
-              <LeagueSettingsProvider>
-                <SeasonSettingsProvider>
-                  <MatchDataProvider>
-                    <AppShell>{children}</AppShell>
-                  </MatchDataProvider>
-                </SeasonSettingsProvider>
-              </LeagueSettingsProvider>
-            </ActiveLeagueProvider>
-          </CurrentUserProvider>
+          <AuthSessionProvider>
+            <AuthGate>
+              <LeagueAccessProvider>
+                <ActiveLeagueProvider>
+                  <CurrentUserProvider>
+                    <LeagueSettingsProvider>
+                      <SeasonSettingsProvider>
+                        <MatchDataProvider>
+                          <LeagueEntryGate>
+                            <AppShell>{children}</AppShell>
+                          </LeagueEntryGate>
+                        </MatchDataProvider>
+                      </SeasonSettingsProvider>
+                    </LeagueSettingsProvider>
+                  </CurrentUserProvider>
+                </ActiveLeagueProvider>
+              </LeagueAccessProvider>
+            </AuthGate>
+          </AuthSessionProvider>
         </I18nProvider>
       </body>
     </html>

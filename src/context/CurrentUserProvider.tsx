@@ -1,70 +1,36 @@
 "use client"
 
-import {
-  useCallback,
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-} from "react"
-import { currentUserId, playerProfiles } from "@/data/fakeData"
+import { createContext, useContext, useMemo } from "react"
+import { useActiveLeague } from "@/context/ActiveLeagueProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { playerProfiles } from "@/data/fakeData"
 
 type CurrentUserContextValue = {
   currentUserId: string
   currentUser: (typeof playerProfiles)[number]
-  setCurrentUserId: (playerId: string) => void
 }
 
 type CurrentUserProviderProps = {
   children: React.ReactNode
 }
 
-const storageKey = "smash-lob-current-user"
 const CurrentUserContext = createContext<CurrentUserContextValue | null>(null)
 
-function getValidUserId(playerId: string | null) {
-  const userExists = playerProfiles.some((player) => player.id === playerId)
-
-  return userExists && playerId ? playerId : currentUserId
-}
-
 export function CurrentUserProvider({ children }: CurrentUserProviderProps) {
-  const [selectedUserId, setSelectedUserId] = useState(() => {
-    if (typeof window === "undefined") {
-      return currentUserId
-    }
-
-    const urlUserId = new URLSearchParams(window.location.search).get(
-      "testUser"
-    )
-    const validUrlUserId = getValidUserId(urlUserId)
-
-    if (urlUserId) {
-      window.localStorage.setItem(storageKey, validUrlUserId)
-      return validUrlUserId
-    }
-
-    return getValidUserId(window.localStorage.getItem(storageKey))
-  })
-
-  const setCurrentUserId = useCallback((playerId: string) => {
-    const validUserId = getValidUserId(playerId)
-
-    setSelectedUserId(validUserId)
-    window.localStorage.setItem(storageKey, validUserId)
-  }, [])
-
+  const { activeLeagueId } = useActiveLeague()
+  const { getMembershipForLeague } = useLeagueAccess()
+  const membership = getMembershipForLeague(activeLeagueId)
   const currentUser =
-    playerProfiles.find((player) => player.id === selectedUserId) ??
+    playerProfiles.find((player) => player.id === membership?.playerId) ??
+    playerProfiles.find((player) => player.leagueId === activeLeagueId) ??
     playerProfiles[0]
 
   const value = useMemo(
     () => ({
       currentUserId: currentUser.id,
       currentUser,
-      setCurrentUserId,
     }),
-    [currentUser, setCurrentUserId]
+    [currentUser]
   )
 
   return (

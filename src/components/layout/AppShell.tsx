@@ -41,7 +41,12 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
 
   const shouldShowSettingsButton =
-    pathname !== "/settings" && !pathname.startsWith("/admin")
+    pathname !== "/settings" &&
+    !pathname.startsWith("/admin") &&
+    pathname !== "/invite" &&
+    !pathname.startsWith("/invite/")
+  const shouldShowBottomNav =
+    pathname !== "/invite" && !pathname.startsWith("/invite/")
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-950">
@@ -73,7 +78,7 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </main>
 
-        <BottomNav />
+        {shouldShowBottomNav ? <BottomNav /> : null}
       </div>
     </div>
   )

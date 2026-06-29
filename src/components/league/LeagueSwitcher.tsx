@@ -1,12 +1,13 @@
 "use client"
 
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
-import { leagues } from "@/data/fakeData"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export function LeagueSwitcher() {
   const { t } = useI18n()
   const { activeLeagueId, setActiveLeagueId } = useActiveLeague()
+  const { userLeagues } = useLeagueAccess()
 
   return (
     <div>
@@ -23,7 +24,7 @@ export function LeagueSwitcher() {
         onChange={(event) => setActiveLeagueId(event.target.value)}
         className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-bold text-neutral-900 shadow-sm"
       >
-        {leagues.map((league) => (
+        {userLeagues.map((league) => (
           <option key={league.id} value={league.id}>
             {league.name}
           </option>

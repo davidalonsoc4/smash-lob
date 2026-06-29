@@ -5,7 +5,6 @@ import { useLeagueSettings } from "@/context/LeagueSettingsProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import {
-  getActiveSeasonByLeagueId,
   getLastMatch,
   getLeagueById,
   getMatchesByLeagueAndSeason,
@@ -18,7 +17,11 @@ export function useCurrentLeagueData() {
   const { activeLeagueId } = useActiveLeague()
   const { getLeagueSettings } = useLeagueSettings()
   const { matches: storedMatches } = useMatchData()
-  const { getSeasonRoundSettings } = useSeasonSettings()
+  const {
+    getActiveSeasonByLeagueId: getStoredActiveSeasonByLeagueId,
+    seasonPlayers,
+    getSeasonRoundSettings,
+  } = useSeasonSettings()
 
   const baseActiveLeague = getLeagueById(activeLeagueId)
   const activeLeagueSettings = getLeagueSettings(baseActiveLeague.id)
@@ -28,13 +31,17 @@ export function useCurrentLeagueData() {
     locations: activeLeagueSettings.locations,
   }
 
-  const baseActiveSeason = getActiveSeasonByLeagueId(activeLeague.id)
+  const baseActiveSeason = getStoredActiveSeasonByLeagueId(activeLeague.id)
   const matches = getMatchesByLeagueAndSeason(
     storedMatches,
     activeLeague.id,
     baseActiveSeason.id
   )
-  const players = getPlayersBySeasonId(baseActiveSeason.id, matches)
+  const players = getPlayersBySeasonId(
+    baseActiveSeason.id,
+    matches,
+    seasonPlayers
+  )
   const lastMatch = getLastMatch(matches)
   const nextMatch = getNextMatch(matches)
   const roundSettings = getSeasonRoundSettings(baseActiveSeason.id)

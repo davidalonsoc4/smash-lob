@@ -1,0 +1,69 @@
+"use client"
+
+import { signIn, useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
+import { useEffect } from "react"
+import { AppCard } from "@/components/ui/AppCard"
+import { useI18n } from "@/i18n/I18nProvider"
+
+type AuthGateProps = {
+  children: React.ReactNode
+}
+
+export function AuthGate({ children }: AuthGateProps) {
+  const { t } = useI18n()
+  const { status } = useSession()
+  const pathname = usePathname()
+  const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
+
+  useEffect(() => {
+    if (status !== "unauthenticated" || !isInviteRoute) {
+      return
+    }
+
+    signIn("google", { callbackUrl: pathname })
+  }, [isInviteRoute, pathname, status])
+
+  if (status === "loading") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
+        <AppCard className="w-full max-w-sm">
+          <p className="font-bold">{t.auth.loadingTitle}</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            {t.auth.loadingDescription}
+          </p>
+        </AppCard>
+      </main>
+    )
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
+        <AppCard className="w-full max-w-sm">
+          <p className="text-sm font-medium text-neutral-500">
+            {t.auth.subtitle}
+          </p>
+          <h1 className="mt-1 text-3xl font-black tracking-tight">
+            {t.auth.title}
+          </h1>
+          <p className="mt-2 text-sm text-neutral-500">
+            {t.auth.description}
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              signIn("google", { callbackUrl: isInviteRoute ? pathname : "/" })
+            }
+            className="mt-6 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+          >
+            {t.auth.signInWithGoogle}
+          </button>
+        </AppCard>
+      </main>
+    )
+  }
+
+  return children
+}

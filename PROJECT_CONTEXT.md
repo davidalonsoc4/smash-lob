@@ -15,8 +15,8 @@ Este documento resume el estado real del prototipo despues de la ultima tanda de
 - Estado cliente con React Context.
 - Persistencia temporal en `localStorage`.
 - Sin base de datos.
-- Sin login real todavia.
-- Sin librerias de auth instaladas.
+- Login con Google implementado con Auth.js/NextAuth en modo minimo.
+- La sesion se usa para identificar al usuario por email, pero los datos de liga siguen siendo fake/localStorage.
 
 Scripts utiles:
 
@@ -58,20 +58,26 @@ Estado actual:
 - `davo` tiene rol `admin`.
 - `alvaro` tiene rol `player`.
 - El tipo de rol ya contempla `creator`, `admin` y `player`.
+- Las temporadas y sus jugadores se pueden modificar localmente mediante `SeasonSettingsProvider`.
+- No tiene por que haber los mismos jugadores en cada temporada de una liga; la relacion vive en `seasonPlayers`.
 
 ### Providers principales
 
 En `src/app/layout.tsx`, la app se envuelve con:
 
 1. `I18nProvider`
-2. `CurrentUserProvider`
-3. `ActiveLeagueProvider`
-4. `LeagueSettingsProvider`
-5. `SeasonSettingsProvider`
-6. `MatchDataProvider`
-7. `AppShell`
+2. `AuthSessionProvider`
+3. `AuthGate`
+4. `LeagueAccessProvider`
+5. `ActiveLeagueProvider`
+6. `CurrentUserProvider`
+7. `LeagueSettingsProvider`
+8. `SeasonSettingsProvider`
+9. `MatchDataProvider`
+10. `LeagueEntryGate`
+11. `AppShell`
 
-`CurrentUserProvider` es temporal para pruebas: permite simular usuario conectado con `localStorage` y query `?testUser=...`.
+`CurrentUserProvider` representa el jugador reclamado por el usuario autenticado en la liga activa. Ya no existe selector temporal de usuario en Ajustes.
 
 ### Permisos
 
@@ -184,19 +190,27 @@ Contiene:
 
 - Boton `Volver`.
 - Cambio de liga activa.
-- Selector temporal de usuario conectado para pruebas.
 - Cambio de idioma.
 - Acceso al panel admin si el usuario actual es admin/creator.
-- Cuenta e invitaciones, como bloque futuro.
+- Cuenta, cierre de sesion y acceso al flujo de invitaciones.
 - Bloque de proximamente.
-
-El selector temporal de usuario es solo para pruebas y deberia ocultarse o eliminarse cuando exista login real.
 
 ### Admin (`src/app/admin/page.tsx`)
 
 Panel central de administracion.
 
 Accesible solo para `creator`/`admin`.
+
+Incluye un bloque `Invitar jugadores` con:
+
+- Codigo de invitacion de la liga activa.
+- Enlace `/invite/[code]`.
+- Botones para copiar codigo o enlace.
+- Boton para regenerar el codigo de la liga activa.
+
+El invitado abre el enlace, inicia sesion con Google si hace falta y reclama uno de los jugadores no vinculados.
+
+Los codigos regenerados se guardan en `localStorage` con la clave `smash-lob-league-invite-codes`. Al regenerar, el codigo anterior deja de validar para nuevas invitaciones.
 
 ### Admin liga (`src/app/admin/league/page.tsx`)
 
@@ -213,6 +227,12 @@ Permite gestionar:
   - dias por jornada.
 - Reglas de resultado:
   - checkbox `Exigir tres sets jugados`.
+- Ciclo de temporada:
+  - terminar temporada activa;
+  - comenzar nueva temporada;
+  - elegir nombre, numero de jornadas y jugadores participantes de esa temporada.
+
+Estos datos se guardan de momento en `localStorage` con la clave `smash-lob-season-data`.
 
 ## Resultado de partidos
 
@@ -260,25 +280,30 @@ El idioma usado en las nuevas piezas esta principalmente actualizado en `es.ts`.
 
 Los locales `en.ts` y `eu.ts` existen, pero pueden ir por detras del espanol.
 
-## Proximo bloque: Google Login
+## Google Login
 
-El siguiente objetivo acordado es empezar con Google Login en fase minima.
+Google Login ya esta implementado en fase minima.
 
-Alcance recomendado:
+Archivos principales:
 
-1. Instalar Auth.js/NextAuth.
-2. Configurar Google Provider.
-3. Crear sesion real.
-4. Vincular emails de Google con jugadores fake existentes.
-5. Mantener datos en fake/localStorage por ahora.
-6. Si el email no corresponde a ningun jugador, mostrar una pantalla de usuario pendiente de invitacion.
-7. Mantener el selector temporal de usuario conectado solo como herramienta de desarrollo hasta que ya no haga falta.
+- `src/auth.ts`
+- `src/app/api/auth/[...nextauth]/route.ts`
+- `src/context/AuthSessionProvider.tsx`
+- `src/components/auth/AuthGate.tsx`
+- `src/components/auth/LeagueEntryGate.tsx`
+- `src/context/LeagueAccessProvider.tsx`
+- `src/context/CurrentUserProvider.tsx`
 
-El usuario debe crear credenciales en Google Cloud:
+Dependencia instalada:
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
+- `next-auth@5.0.0-beta.31`
+
+Variables en `.env.local`:
+
 - `AUTH_SECRET`
+- `AUTH_GOOGLE_ID`
+- `AUTH_GOOGLE_SECRET`
+- tambien se dejaron `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` como alias/local legacy.
 
 Callback local previsto:
 
@@ -286,7 +311,18 @@ Callback local previsto:
 http://localhost:3000/api/auth/callback/google
 ```
 
-Cuando existan esas variables, ponerlas en `.env.local` y no subirlas a git.
+Funcionamiento actual:
+
+- Si no hay sesion, se muestra pantalla de entrada con boton `Entrar con Google`.
+- Si se abre `/invite/[code]` sin sesion, se redirige al login de Google y se vuelve a esa invitacion.
+- Si el usuario autenticado no pertenece a ninguna liga, `LeagueEntryGate` muestra Crear nueva liga / Unirme a liga existente.
+- El modo implementado es cerrado: el usuario valida un codigo de invitacion y reclama un jugador predefinido.
+- La vinculacion real del prototipo vive en `UserLeagueMembership`: `userId` de Google, `leagueId`, `playerId` y `role`.
+- `PlayerProfile` no guarda email de Google; `Player.displayName` sigue siendo el nombre visible deportivo.
+
+Importante:
+
+- `.env.local` esta ignorado por git y no debe subirse.
 
 ## Cosas decididas para mas adelante
 
@@ -304,12 +340,13 @@ Cuando existan esas variables, ponerlas en `.env.local` y no subirlas a git.
 ## Notas de desarrollo
 
 - Cuidado con `localStorage`: puede conservar datos antiguos y hacer que el estado local no coincida con `fakeData.ts`.
-- Para probar permisos, usar Ajustes y `?testUser=davo` o `?testUser=alvaro`.
+- Para probar permisos, usar membresias en `defaultUserLeagueMemberships` o reclamar jugadores mediante `/invite/[code]`.
 - Para limpiar estado local durante pruebas, puede ser necesario borrar claves:
-  - `smash-lob-current-user`
+  - `smash-lob-user-league-memberships`
   - `smash-lob-matches`
   - `smash-lob-season-round-settings`
+  - `smash-lob-season-data`
   - `smash-lob-league-settings`
+  - `smash-lob-league-invite-codes`
   - `smash-lob-active-league`
 - No hay seguridad real hasta que exista backend.
-

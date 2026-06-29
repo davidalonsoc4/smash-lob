@@ -9,14 +9,15 @@ import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { isCurrentUserLeagueAdmin } from "@/lib/permissions"
 import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchDetailPage() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
+  const { isLeagueAdmin } = useLeagueAccess()
   const params = useParams<{ id: string }>()
   const { activeLeague, activeSeason, roundSettings, rounds, matches } =
     useCurrentLeagueData()
@@ -75,8 +76,7 @@ export default function MatchDetailPage() {
     currentUserId
   )
   const canManageMatch =
-    isMatchParticipant ||
-    isCurrentUserLeagueAdmin(activeLeague.id, currentUserId)
+    isMatchParticipant || isLeagueAdmin(activeLeague.id)
   const canEnterResult = canManageMatch && match.status === "scheduled"
   const canEditResult = canManageMatch && match.status === "finished"
 
