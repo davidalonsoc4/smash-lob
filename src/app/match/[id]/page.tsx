@@ -19,7 +19,7 @@ export default function MatchDetailPage() {
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const params = useParams<{ id: string }>()
-  const { activeLeague, activeSeason, roundSettings, rounds, matches } =
+  const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
     useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
 
@@ -105,6 +105,7 @@ export default function MatchDetailPage() {
       <MatchScoreboard
         teamA={match.teamA}
         teamB={match.teamB}
+        players={players}
         pointsA={match.pointsA}
         pointsB={match.pointsB}
         sets={match.sets}
@@ -158,6 +159,7 @@ export default function MatchDetailPage() {
           matchId={match.id}
           teamA={match.teamA}
           teamB={match.teamB}
+          players={players}
           mode="create"
           requiresThreeSets={roundSettings.requiresThreeSets}
         />
@@ -189,6 +191,7 @@ export default function MatchDetailPage() {
           matchId={match.id}
           teamA={match.teamA}
           teamB={match.teamB}
+          players={players}
           initialSets={match.sets}
           mode="edit"
           requiresThreeSets={roundSettings.requiresThreeSets}

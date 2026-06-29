@@ -41,6 +41,72 @@ function slug(name: string) {
   )
 }
 
+type SupabaseErrorLike = {
+  code?: string
+  message?: string
+}
+
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as SupabaseErrorLike).code === "23505"
+  )
+}
+
+function toLocations(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((location): location is string => typeof location === "string")
+}
+
+async function insertLeagueWithAvailableSlug({
+  leagueSlug,
+  leagueName,
+  leagueDescription,
+  inviteCode,
+  creatorUserId,
+}: {
+  leagueSlug: string
+  leagueName: string
+  leagueDescription: string
+  inviteCode: string
+  creatorUserId: string
+}) {
+  let lastError: unknown = null
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const slugCandidate =
+      attempt === 0 ? leagueSlug : `${leagueSlug}-${attempt + 1}`
+    const { data: league, error: leagueError } = await supabase
+      .from("leagues")
+      .insert({
+        slug: slugCandidate,
+        name: leagueName,
+        description: leagueDescription,
+        invite_code: inviteCode,
+        join_mode: "closed",
+        created_by_user_id: creatorUserId,
+      })
+      .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations")
+      .single()
+
+    if (!leagueError && league) {
+      return league
+    }
+
+    lastError = leagueError
+
+    if (!isUniqueViolation(leagueError)) {
+      throw leagueError
+    }
+  }
+
+  throw lastError ?? new Error("No se pudo crear la liga en Supabase")
+}
+
 export async function createSupabaseLeague({
   creatorEmail,
   creatorName,
@@ -68,32 +134,26 @@ export async function createSupabaseLeague({
   roundWindowDays: number | null
   requiresThreeSets: boolean
 }) {
+  const normalizedCreatorEmail = creatorEmail.trim().toLowerCase()
+  const cleanNames = playerNames.map((name) => name.trim()).filter(Boolean)
   const creator = await upsertAppUser({
-    email: creatorEmail,
+    email: normalizedCreatorEmail,
     displayName: creatorName,
   })
-  const { data: league, error: leagueError } = await supabase
-    .from("leagues")
-    .insert({
-      slug: leagueSlug,
-      name: leagueName,
-      description: leagueDescription,
-      invite_code: inviteCode,
-      join_mode: "closed",
-      created_by_user_id: creator.id,
-    })
-    .select("id,slug,name,description,invite_code,join_mode,active_season_id")
-    .single()
-
-  if (leagueError) throw leagueError
-
+  const league = await insertLeagueWithAvailableSlug({
+    leagueSlug,
+    leagueName,
+    leagueDescription,
+    inviteCode,
+    creatorUserId: creator.id,
+  })
   const { data: season, error: seasonError } = await supabase
     .from("seasons")
     .insert({
       league_id: league.id,
       name: seasonName,
       status: "active",
-      total_rounds: Math.max(playerNames.length - 1, 1),
+      total_rounds: Math.max(cleanNames.length - 1, 1),
       completed_rounds: 0,
     })
     .select("id,league_id,name,status,total_rounds,completed_rounds")
@@ -101,7 +161,6 @@ export async function createSupabaseLeague({
 
   if (seasonError) throw seasonError
 
-  const cleanNames = playerNames.map((name) => name.trim()).filter(Boolean)
   const { data: players, error: playersError } = await supabase
     .from("players")
     .insert(
@@ -116,12 +175,18 @@ export async function createSupabaseLeague({
 
   if (playersError) throw playersError
 
-  await supabase.from("season_players").insert(
-    (players ?? []).map((player) => ({
-      season_id: season.id,
-      player_id: player.id,
-    }))
-  )
+  if ((players ?? []).length > 0) {
+    const { error: seasonPlayersError } = await supabase
+      .from("season_players")
+      .insert(
+        (players ?? []).map((player) => ({
+          season_id: season.id,
+          player_id: player.id,
+        }))
+      )
+
+    if (seasonPlayersError) throw seasonPlayersError
+  }
 
   const seasonMatches = generateBalancedCalendar({
     leagueId: league.id,
@@ -157,32 +222,44 @@ export async function createSupabaseLeague({
 
   if (matchesError) throw matchesError
 
-  await supabase.from("season_settings").insert({
-    season_id: season.id,
-    league_id: league.id,
-    round_window_mode: roundWindowMode,
-    season_starts_at: seasonStartsAt,
-    round_window_days: roundWindowDays,
-    requires_three_sets: requiresThreeSets,
-  })
+  const { error: settingsError } = await supabase
+    .from("season_settings")
+    .insert({
+      season_id: season.id,
+      league_id: league.id,
+      round_window_mode: roundWindowMode,
+      season_starts_at: seasonStartsAt,
+      round_window_days: roundWindowDays,
+      requires_three_sets: requiresThreeSets,
+    })
 
-  await supabase.from("league_memberships").insert({
-    user_id: creator.id,
-    league_id: league.id,
-    player_id: players?.[0]?.id ?? null,
-    role: "creator",
-  })
+  if (settingsError) throw settingsError
 
-  await supabase.from("invites").insert({
+  const { error: membershipError } = await supabase
+    .from("league_memberships")
+    .insert({
+      user_id: creator.id,
+      league_id: league.id,
+      player_id: players?.[0]?.id ?? null,
+      role: "creator",
+    })
+
+  if (membershipError) throw membershipError
+
+  const { error: inviteError } = await supabase.from("invites").insert({
     league_id: league.id,
     code: inviteCode,
     created_by_user_id: creator.id,
   })
 
-  await supabase
+  if (inviteError) throw inviteError
+
+  const { error: leagueUpdateError } = await supabase
     .from("leagues")
     .update({ active_season_id: season.id })
     .eq("id", league.id)
+
+  if (leagueUpdateError) throw leagueUpdateError
 
   const leagueResult: League = {
     id: league.id,
@@ -192,7 +269,7 @@ export async function createSupabaseLeague({
     activeSeasonId: season.id,
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? "open" : "closed",
-    locations: [],
+    locations: toLocations(league.locations),
   }
   const seasonResult: Season = {
     id: season.id,
@@ -234,7 +311,7 @@ export async function createSupabaseLeague({
   return {
     league: leagueResult,
     membership: {
-      userId: creatorEmail,
+      userId: normalizedCreatorEmail,
       leagueId: league.id,
       playerId: players?.[0]?.id ?? "",
       role: "creator" as const,
@@ -271,6 +348,7 @@ function toRole(role: unknown): LeagueMemberRole {
 }
 
 export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
+  isSuperuser: boolean
   leagues: League[]
   memberships: UserLeagueMembership[]
   matches: MatchData[]
@@ -285,6 +363,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
 
   if (!user) {
     return {
+      isSuperuser: false,
       leagues: [],
       memberships: [],
       matches: [],
@@ -325,6 +404,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
 
   if (!isSuperuser && accessibleLeagueIds.size === 0) {
     return {
+      isSuperuser,
       leagues: [],
       memberships,
       matches: [],
@@ -341,7 +421,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id"
+      "id,slug,name,description,invite_code,join_mode,active_season_id,locations"
     )
 
   if (!isSuperuser) {
@@ -360,12 +440,13 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     activeSeasonId: league.active_season_id ?? "",
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? ("open" as const) : ("closed" as const),
-    locations: [],
+    locations: toLocations(league.locations),
   }))
   const leagueIds = leagues.map((league) => league.id)
 
   if (leagueIds.length === 0) {
     return {
+      isSuperuser,
       leagues,
       memberships,
       matches: [],
@@ -475,6 +556,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   }))
 
   return {
+    isSuperuser,
     leagues,
     memberships,
     matches,

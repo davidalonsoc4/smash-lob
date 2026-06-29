@@ -139,14 +139,14 @@ export default function Home() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-4">
                   <p className="font-bold">
-                    {getTeamDisplayName(lastMatch.teamA)}
+                    {getTeamDisplayName(lastMatch.teamA, players)}
                   </p>
                   <p className="text-xl font-black">{lastMatch.pointsA}</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
                   <p className="font-bold">
-                    {getTeamDisplayName(lastMatch.teamB)}
+                    {getTeamDisplayName(lastMatch.teamB, players)}
                   </p>
                   <p className="text-xl font-black">{lastMatch.pointsB}</p>
                 </div>
@@ -187,11 +187,11 @@ export default function Home() {
 
               <div className="space-y-2">
                 <p className="font-bold">
-                  {getTeamDisplayName(nextMatch.teamA)}
+                  {getTeamDisplayName(nextMatch.teamA, players)}
                 </p>
                 <p className="text-sm text-neutral-500">{t.common.versus}</p>
                 <p className="font-bold">
-                  {getTeamDisplayName(nextMatch.teamB)}
+                  {getTeamDisplayName(nextMatch.teamB, players)}
                 </p>
               </div>
 

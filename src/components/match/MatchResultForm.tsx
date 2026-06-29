@@ -5,11 +5,13 @@ import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getTeamDisplayName } from "@/lib/players"
+import type { PlayerProfile } from "@/data/fakeData"
 
 type MatchResultFormProps = {
   matchId: string
   teamA: string[]
   teamB: string[]
+  players?: PlayerProfile[]
   initialSets?: { a: number; b: number }[]
   mode: "create" | "edit"
   requiresThreeSets: boolean
@@ -95,6 +97,7 @@ export function MatchResultForm({
   matchId,
   teamA,
   teamB,
+  players,
   initialSets,
   mode,
   requiresThreeSets,
@@ -107,6 +110,8 @@ export function MatchResultForm({
   const [sets, setSets] = useState<SetInput[]>(
     getInitialSetInputs(initialSets)
   )
+  const [isSaving, setIsSaving] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const setWinners = useMemo(() => sets.map(getSetWinner), [sets])
   const completedSets = sets.filter(
@@ -117,9 +122,11 @@ export function MatchResultForm({
   const hasInvalidTouchedSet = sets.some(
     (set, index) => isTouched(set) && !setWinners[index]
   )
-  const canSave = requiresThreeSets
-    ? setWinners.every(Boolean)
-    : completedSets.length > 0 && !hasInvalidTouchedSet
+  const canSave =
+    !isSaving &&
+    (requiresThreeSets
+      ? setWinners.every(Boolean)
+      : completedSets.length > 0 && !hasInvalidTouchedSet)
 
   function updateSet(index: number, team: "a" | "b", value: string) {
     setSets((currentSets) =>
@@ -132,21 +139,34 @@ export function MatchResultForm({
           : set
       )
     )
+    setActionError(null)
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!canSave) {
       return
     }
 
-    finishMatch(matchId, {
+    setIsSaving(true)
+    setActionError(null)
+
+    const saved = await finishMatch(matchId, {
       sets: completedSets.map((set) => ({
         a: Number(set.a),
         b: Number(set.b),
       })),
     })
+
+    setIsSaving(false)
+
+    if (!saved) {
+      setActionError(
+        "No se ha podido guardar el resultado en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
+      )
+      return
+    }
 
     onSaved?.()
   }
@@ -185,7 +205,7 @@ export function MatchResultForm({
             </p>
 
             <p className="truncate pr-1 text-xs font-black">
-              {getTeamDisplayName(teamA)}
+              {getTeamDisplayName(teamA, players)}
             </p>
 
             {sets.map((set, index) => (
@@ -199,10 +219,11 @@ export function MatchResultForm({
                   min={0}
                   max={7}
                   value={set.a}
+                  disabled={isSaving}
                   onChange={(event) =>
                     updateSet(index, "a", event.target.value)
                   }
-                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500"
+                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
                 />
               </label>
             ))}
@@ -210,7 +231,7 @@ export function MatchResultForm({
             <p className="text-center text-lg font-black">{pointsA}</p>
 
             <p className="truncate pr-1 text-xs font-black">
-              {getTeamDisplayName(teamB)}
+              {getTeamDisplayName(teamB, players)}
             </p>
 
             {sets.map((set, index) => (
@@ -224,10 +245,11 @@ export function MatchResultForm({
                   min={0}
                   max={7}
                   value={set.b}
+                  disabled={isSaving}
                   onChange={(event) =>
                     updateSet(index, "b", event.target.value)
                   }
-                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500"
+                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
                 />
               </label>
             ))}
@@ -249,12 +271,19 @@ export function MatchResultForm({
           })}
         </div>
 
+        {actionError ? (
+          <p className="mt-4 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+            {actionError}
+          </p>
+        ) : null}
+
         <div className="mt-5 flex gap-3">
           {mode === "edit" && onCancel ? (
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
+              disabled={isSaving}
+              className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
             >
               {t.matchResult.cancelEdit}
             </button>
@@ -265,7 +294,11 @@ export function MatchResultForm({
             disabled={!canSave}
             className="flex-1 rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
           >
-            {mode === "edit" ? t.matchResult.update : t.matchResult.save}
+            {isSaving
+              ? "Guardando..."
+              : mode === "edit"
+                ? t.matchResult.update
+                : t.matchResult.save}
           </button>
         </div>
       </form>

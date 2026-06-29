@@ -5,6 +5,7 @@ import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getTeamDisplayName } from "@/lib/players"
+import type { PlayerProfile } from "@/data/fakeData"
 
 type PlayerMatch = {
   id: string
@@ -23,6 +24,7 @@ type PlayerMatchesListProps = {
   playerId: string
   title: string
   matches: PlayerMatch[]
+  players?: PlayerProfile[]
   limit?: number
   emptyMessage?: string
 }
@@ -31,6 +33,7 @@ export function PlayerMatchesList({
   playerId,
   title,
   matches,
+  players,
   limit,
   emptyMessage,
 }: PlayerMatchesListProps) {
@@ -81,7 +84,7 @@ export function PlayerMatchesList({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-bold">
-                      {getTeamDisplayName(match.teamA)}
+                      {getTeamDisplayName(match.teamA, players)}
                     </p>
 
                     {isFinished ? (
@@ -91,7 +94,7 @@ export function PlayerMatchesList({
 
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-bold">
-                      {getTeamDisplayName(match.teamB)}
+                      {getTeamDisplayName(match.teamB, players)}
                     </p>
 
                     {isFinished ? (

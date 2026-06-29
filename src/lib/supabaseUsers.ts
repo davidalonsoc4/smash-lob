@@ -16,13 +16,24 @@ export async function upsertAppUser({
   displayName?: string | null
 }) {
   const normalizedEmail = email.trim().toLowerCase()
+  const shouldBeSuperuser = isSuperuserEmail(normalizedEmail)
+  const { data: existingUser, error: existingUserError } = await supabase
+    .from("app_users")
+    .select("is_superuser")
+    .eq("email", normalizedEmail)
+    .maybeSingle()
+
+  if (existingUserError) {
+    throw existingUserError
+  }
+
   const { data, error } = await supabase
     .from("app_users")
     .upsert(
       {
         email: normalizedEmail,
         display_name: displayName ?? null,
-        is_superuser: isSuperuserEmail(normalizedEmail),
+        is_superuser: Boolean(existingUser?.is_superuser) || shouldBeSuperuser,
       },
       { onConflict: "email" }
     )

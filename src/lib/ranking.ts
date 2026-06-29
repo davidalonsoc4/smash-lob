@@ -1,13 +1,4 @@
-type PlayerProfile = {
-  id: string
-  slug: string
-  displayName: string
-}
-
-type SeasonPlayer = {
-  seasonId: string
-  playerId: string
-}
+import type { PlayerProfile, SeasonPlayer } from "@/data/fakeData"
 
 type MatchSet = {
   a: number

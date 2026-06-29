@@ -129,6 +129,7 @@ export default function ProfileMatchesPage() {
         playerId={player.id}
         title={t.profile.filteredMatches}
         matches={filteredMatches}
+        players={players}
         emptyMessage={t.profile.noFilteredMatches}
       />
     </div>

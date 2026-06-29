@@ -2,7 +2,6 @@
 
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import { useLeagueSettings } from "@/context/LeagueSettingsProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import {
@@ -16,7 +15,6 @@ import { buildSeasonRounds } from "@/lib/rounds"
 export function useCurrentLeagueData() {
   const { activeLeagueId } = useActiveLeague()
   const { leagues, userLeagues } = useLeagueAccess()
-  const { getLeagueSettings } = useLeagueSettings()
   const { matches: storedMatches } = useMatchData()
   const {
     getActiveSeasonByLeagueId: getStoredActiveSeasonByLeagueId,
@@ -32,12 +30,7 @@ export function useCurrentLeagueData() {
     throw new Error("Active league not found")
   }
 
-  const activeLeagueSettings = getLeagueSettings(baseActiveLeague.id)
-
-  const activeLeague = {
-    ...baseActiveLeague,
-    locations: activeLeagueSettings.locations,
-  }
+  const activeLeague = baseActiveLeague
 
   const baseActiveSeason = getStoredActiveSeasonByLeagueId(activeLeague.id)
   const matches = getMatchesByLeagueAndSeason(

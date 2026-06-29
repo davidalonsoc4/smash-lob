@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { type FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
@@ -47,6 +47,7 @@ export default function NewLeaguePage() {
   const [roundWindowDays, setRoundWindowDays] = useState("15")
   const [requiresThreeSets, setRequiresThreeSets] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
 
   const parsedRoundWindowDays = Number(roundWindowDays)
   const isFixedDaysMode = roundWindowMode === "fixed-days"
@@ -68,14 +69,17 @@ export default function NewLeaguePage() {
     setError(null)
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!canCreate) {
+    if (!canCreate || isCreating) {
       return
     }
 
-    const league = createLeague({
+    setIsCreating(true)
+    setError(null)
+
+    const league = await createLeague({
       name: leagueName.trim(),
       description:
         leagueDescription.trim() || t.newLeague.defaultDescription,
@@ -89,6 +93,7 @@ export default function NewLeaguePage() {
 
     if (!league) {
       setError(t.newLeague.createError)
+      setIsCreating(false)
       return
     }
 
@@ -125,6 +130,7 @@ export default function NewLeaguePage() {
                   setLeagueName(event.target.value)
                   setError(null)
                 }}
+                disabled={isCreating}
                 placeholder={t.newLeague.leagueNamePlaceholder}
                 className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
@@ -137,6 +143,7 @@ export default function NewLeaguePage() {
               <textarea
                 value={leagueDescription}
                 onChange={(event) => setLeagueDescription(event.target.value)}
+                disabled={isCreating}
                 placeholder={t.newLeague.leagueDescriptionPlaceholder}
                 rows={3}
                 className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
@@ -313,10 +320,10 @@ export default function NewLeaguePage() {
 
         <button
           type="submit"
-          disabled={!canCreate}
+          disabled={!canCreate || isCreating}
           className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
         >
-          {t.newLeague.create}
+          {isCreating ? "Creando liga..." : t.newLeague.create}
         </button>
       </form>
     </div>

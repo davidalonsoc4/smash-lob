@@ -15,16 +15,35 @@ function LeagueInviteCard({
 }: {
   inviteCode: string
   leagueName: string
-  onRegenerate: () => void
+  onRegenerate: () => Promise<string | null>
 }) {
   const { t } = useI18n()
   const [copiedValue, setCopiedValue] = useState<"code" | "link" | null>(null)
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const invitePath = `/invite/${encodeURIComponent(inviteCode)}`
 
   async function copyValue(value: string, type: "code" | "link") {
     await navigator.clipboard.writeText(value)
     setCopiedValue(type)
+    setError(null)
     window.setTimeout(() => setCopiedValue(null), 1800)
+  }
+
+  async function handleRegenerate() {
+    setIsRegenerating(true)
+    setCopiedValue(null)
+    setError(null)
+
+    const nextCode = await onRegenerate()
+
+    setIsRegenerating(false)
+
+    if (!nextCode) {
+      setError(
+        "No se ha podido regenerar la invitación en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+    }
   }
 
   return (
@@ -80,14 +99,16 @@ function LeagueInviteCard({
 
       <button
         type="button"
-        onClick={() => {
-          onRegenerate()
-          setCopiedValue(null)
-        }}
-        className="mt-4 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
+        onClick={handleRegenerate}
+        disabled={isRegenerating}
+        className="mt-4 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
       >
-        {t.adminPanel.regenerateInviteCode}
+        {isRegenerating ? "Regenerando..." : t.adminPanel.regenerateInviteCode}
       </button>
+
+      {error ? (
+        <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>
+      ) : null}
 
       <p className="mt-2 text-xs font-semibold text-neutral-500">
         {t.adminPanel.regenerateInviteCodeDescription}

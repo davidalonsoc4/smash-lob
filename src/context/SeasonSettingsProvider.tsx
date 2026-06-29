@@ -5,7 +5,6 @@ import {
   useContext,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react"
 import {
@@ -683,23 +682,20 @@ export function SeasonSettingsProvider({
     })
   }, [])
 
-  const value = useMemo(
-    () => ({
-      seasons: seasonData.seasons,
-      playerProfiles: seasonData.playerProfiles,
-      seasonPlayers: seasonData.seasonPlayers,
-      seasonSettings,
-      getActiveSeasonByLeagueId,
-      getSeasonPlayers,
-      getSeasonRoundSettings,
-      updateSeasonRoundSettings,
-      hydrateSeasonSnapshot,
-      finishActiveSeason,
-      createInitialSeasonForLeague,
-      startNewSeason,
-    }),
-    [seasonData, seasonSettings]
-  )
+  const value = {
+    seasons: seasonData.seasons,
+    playerProfiles: seasonData.playerProfiles,
+    seasonPlayers: seasonData.seasonPlayers,
+    seasonSettings,
+    getActiveSeasonByLeagueId,
+    getSeasonPlayers,
+    getSeasonRoundSettings,
+    updateSeasonRoundSettings,
+    hydrateSeasonSnapshot,
+    finishActiveSeason,
+    createInitialSeasonForLeague,
+    startNewSeason,
+  }
 
   return (
     <SeasonSettingsContext.Provider value={value}>

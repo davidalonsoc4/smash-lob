@@ -2,10 +2,12 @@
 
 import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { useI18n } from "@/i18n/I18nProvider"
+import type { PlayerProfile } from "@/data/fakeData"
 
 type MatchScoreboardProps = {
   teamA: string[]
   teamB: string[]
+  players?: PlayerProfile[]
   pointsA: number | null
   pointsB: number | null
   sets: { a: number; b: number }[]
@@ -14,6 +16,7 @@ type MatchScoreboardProps = {
 export function MatchScoreboard({
   teamA,
   teamB,
+  players,
   pointsA,
   pointsB,
   sets,
@@ -29,7 +32,7 @@ export function MatchScoreboard({
             <p className="text-sm text-neutral-500">
               {t.matchDetail.teamA}
             </p>
-            <TeamPlayers playerIds={teamA} />
+            <TeamPlayers playerIds={teamA} players={players} />
           </div>
 
           {isFinished ? (
@@ -44,7 +47,7 @@ export function MatchScoreboard({
             <p className="text-sm text-neutral-500">
               {t.matchDetail.teamB}
             </p>
-            <TeamPlayers playerIds={teamB} />
+            <TeamPlayers playerIds={teamB} players={players} />
           </div>
 
           {isFinished ? (

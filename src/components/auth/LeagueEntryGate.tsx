@@ -17,7 +17,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { data: session } = useSession()
-  const { userLeagues, getLeagueByInviteCode } = useLeagueAccess()
+  const { userLeagues } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
@@ -30,14 +30,14 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   function handleJoinSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const league = getLeagueByInviteCode(inviteCode)
+    const normalizedInviteCode = inviteCode.trim().toUpperCase()
 
-    if (!league) {
+    if (!normalizedInviteCode) {
       setError(t.invites.invalidCode)
       return
     }
 
-    router.push(`/invite/${encodeURIComponent(league.inviteCode)}`)
+    router.push(`/invite/${encodeURIComponent(normalizedInviteCode)}`)
   }
 
   return (

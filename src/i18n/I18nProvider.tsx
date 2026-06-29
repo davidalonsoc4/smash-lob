@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react"
 import {
@@ -58,15 +57,12 @@ export function I18nProvider({ children }: I18nProviderProps) {
     setLocale(availableLocales[nextIndex])
   }
 
-  const value = useMemo(
-    () => ({
-      locale,
-      t: getTranslations(locale),
-      setLocale,
-      toggleLocale,
-    }),
-    [locale]
-  )
+  const value = {
+    locale,
+    t: getTranslations(locale),
+    setLocale,
+    toggleLocale,
+  }
 
   return (
     <I18nContext.Provider value={value}>

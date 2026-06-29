@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import type { League } from "@/data/fakeData"
 
 type InviteFlowProps = {
   code: string
@@ -17,13 +18,57 @@ export function InviteFlow({ code }: InviteFlowProps) {
   const { setActiveLeagueId } = useActiveLeague()
   const {
     getLeagueByInviteCode,
+    resolveLeagueInvite,
     getMembershipForLeague,
     getUnclaimedPlayersForLeague,
     claimPlayer,
   } = useLeagueAccess()
-  const league = getLeagueByInviteCode(code)
+  const [league, setLeague] = useState<League | null>(() =>
+    getLeagueByInviteCode(code)
+  )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isClaiming, setIsClaiming] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    resolveLeagueInvite(code).then((resolvedLeague) => {
+      if (!isMounted) {
+        return
+      }
+
+      setLeague(resolvedLeague)
+      setIsLoading(false)
+    })
+
+    return () => {
+      isMounted = false
+    }
+  }, [code, resolveLeagueInvite])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-5">
+        <header className="pt-2">
+          <h1 className="text-3xl font-black tracking-tight">
+            {t.invites.title}
+          </h1>
+          <p className="mt-2 text-sm text-neutral-500">
+            Comprobando invitación y cargando la liga desde la base de datos.
+          </p>
+        </header>
+
+        <AppCard>
+          <p className="font-bold">Comprobando código</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            Estamos buscando la liga asociada a esta invitación.
+          </p>
+        </AppCard>
+      </div>
+    )
+  }
 
   if (!league) {
     return (
@@ -60,13 +105,18 @@ export function InviteFlow({ code }: InviteFlowProps) {
     router.push("/")
   }
 
-  function handleClaim() {
-    if (!league || !selectedPlayerId) {
+  async function handleClaim() {
+    if (!league || !selectedPlayerId || isClaiming) {
       setError(t.invites.selectPlayerError)
       return
     }
 
-    const result = claimPlayer(league.id, selectedPlayerId)
+    setIsClaiming(true)
+    setError(null)
+
+    const result = await claimPlayer(league.id, selectedPlayerId)
+
+    setIsClaiming(false)
 
     if (!result.ok) {
       setError(
@@ -140,7 +190,8 @@ export function InviteFlow({ code }: InviteFlowProps) {
                   setSelectedPlayerId(player.id)
                   setError(null)
                 }}
-                className={`rounded-2xl px-4 py-3 text-left text-sm font-black ${
+                disabled={isClaiming}
+                className={`rounded-2xl px-4 py-3 text-left text-sm font-black disabled:opacity-50 ${
                   selectedPlayerId === player.id
                     ? "bg-neutral-950 text-white"
                     : "bg-neutral-100 text-neutral-800"
@@ -164,10 +215,10 @@ export function InviteFlow({ code }: InviteFlowProps) {
           <button
             type="button"
             onClick={handleClaim}
-            disabled={!selectedPlayerId}
+            disabled={!selectedPlayerId || isClaiming}
             className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
           >
-            {t.invites.confirmClaim}
+            {isClaiming ? "Guardando..." : t.invites.confirmClaim}
           </button>
         </AppCard>
       )}

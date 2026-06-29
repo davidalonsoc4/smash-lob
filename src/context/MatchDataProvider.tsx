@@ -10,6 +10,12 @@ import {
 } from "react"
 import { allMatches } from "@/data/fakeData"
 import { generateBalancedCalendar } from "@/lib/calendar"
+import {
+  finishSupabaseMatch,
+  formatScheduleDateLabel,
+  postponeSupabaseMatch,
+  updateSupabaseMatchSchedule,
+} from "@/lib/supabaseMatches"
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed"
 
@@ -47,9 +53,12 @@ type MatchDataContextValue = {
     seasonId: string
     playerIds: string[]
   }) => MatchData[]
-  updateMatchSchedule: (matchId: string, schedule: MatchScheduleInput) => void
-  postponeMatch: (matchId: string) => void
-  finishMatch: (matchId: string, result: MatchResultInput) => void
+  updateMatchSchedule: (
+    matchId: string,
+    schedule: MatchScheduleInput
+  ) => Promise<boolean>
+  postponeMatch: (matchId: string) => Promise<boolean>
+  finishMatch: (matchId: string, result: MatchResultInput) => Promise<boolean>
 }
 
 type MatchDataProviderProps = {
@@ -59,6 +68,9 @@ type MatchDataProviderProps = {
 const MatchDataContext = createContext<MatchDataContextValue | null>(null)
 
 const storageKey = "smash-lob-matches"
+const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error"
+const supabaseUuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
   return {
@@ -81,22 +93,6 @@ function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
 
 function getInitialMatches() {
   return allMatches.map(normalizeMatch)
-}
-
-function formatScheduleDateLabel(scheduledAt: string) {
-  const date = new Date(scheduledAt)
-
-  if (Number.isNaN(date.getTime())) {
-    return scheduledAt
-  }
-
-  return new Intl.DateTimeFormat("es-ES", {
-    weekday: "long",
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date)
 }
 
 function sanitizePostponedMatch(match: MatchData): MatchData {
@@ -180,6 +176,81 @@ function mergeMatches(current: MatchData[], incoming: MatchData[]) {
   return Array.from(items.values())
 }
 
+function replaceMatch(currentMatches: MatchData[], updatedMatch: MatchData) {
+  const exists = currentMatches.some((match) => match.id === updatedMatch.id)
+
+  if (!exists) {
+    return [...currentMatches, updatedMatch]
+  }
+
+  return currentMatches.map((match) =>
+    match.id === updatedMatch.id ? updatedMatch : match
+  )
+}
+
+function isSupabaseBackedMatch(matchId: string) {
+  return supabaseUuidPattern.test(matchId)
+}
+
+function recordSupabaseError(action: string, error: unknown) {
+  const details =
+    typeof error === "object" && error !== null
+      ? error
+      : { message: String(error) }
+
+  window.localStorage.setItem(
+    lastSupabaseErrorStorageKey,
+    JSON.stringify({
+      action,
+      ...details,
+      createdAt: new Date().toISOString(),
+    })
+  )
+}
+
+function getLocalScheduledMatch(
+  match: MatchData,
+  schedule: MatchScheduleInput
+): MatchData {
+  return {
+    ...match,
+    status: match.status === "finished" ? "finished" : "scheduled",
+    scheduledAt: schedule.scheduledAt,
+    dateLabel: formatScheduleDateLabel(schedule.scheduledAt),
+    location: schedule.location,
+  }
+}
+
+function getLocalPostponedMatch(match: MatchData): MatchData {
+  if (match.status === "finished") {
+    return match
+  }
+
+  return {
+    ...match,
+    status: "postponed",
+    scheduledAt: null,
+    dateLabel: null,
+    location: null,
+  }
+}
+
+function getLocalFinishedMatch(
+  match: MatchData,
+  result: MatchResultInput
+): MatchData {
+  const points = calculateResultPoints(result.sets)
+
+  return {
+    ...match,
+    status: "finished",
+    sets: result.sets,
+    pointsA: points.pointsA,
+    pointsB: points.pointsB,
+    resultRecordedAt: new Date().toISOString(),
+  }
+}
+
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const [matches, setMatches] = useState<MatchData[]>(getInitialMatches)
 
@@ -196,15 +267,21 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     }
   }, [])
 
-  const hydrateMatches = useCallback((incomingMatches: MatchData[]) => {
-    setMatches((currentMatches) => {
-      const nextMatches = mergeMatches(currentMatches, incomingMatches)
-
-      window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
-
-      return nextMatches
-    })
+  const persistNextMatches = useCallback((nextMatches: MatchData[]) => {
+    window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
+    return nextMatches
   }, [])
+
+  const hydrateMatches = useCallback(
+    (incomingMatches: MatchData[]) => {
+      setMatches((currentMatches) => {
+        const nextMatches = mergeMatches(currentMatches, incomingMatches)
+
+        return persistNextMatches(nextMatches)
+      })
+    },
+    [persistNextMatches]
+  )
 
   const createSeasonMatches = useCallback(
     ({
@@ -229,87 +306,125 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           ...seasonMatches.filter((match) => !existingIds.has(match.id)),
         ]
 
-        window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
-
-        return nextMatches
+        return persistNextMatches(nextMatches)
       })
 
       return seasonMatches
     },
-    []
+    [persistNextMatches]
   )
 
-  function updateMatchSchedule(matchId: string, schedule: MatchScheduleInput) {
-    setMatches((currentMatches) => {
-      const nextMatches = currentMatches.map((match) => {
-        if (match.id !== matchId) {
-          return match
-        }
+  const updateMatchSchedule = useCallback(
+    async (matchId: string, schedule: MatchScheduleInput) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
 
-        return {
-          ...match,
-          status:
-            match.status === "finished"
-              ? "finished"
-              : ("scheduled" as MatchStatus),
+      if (!currentMatch) {
+        return false
+      }
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? getLocalScheduledMatch(match, schedule) : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await updateSupabaseMatchSchedule({
+          matchId,
           scheduledAt: schedule.scheduledAt,
-          dateLabel: formatScheduleDateLabel(schedule.scheduledAt),
           location: schedule.location,
-        }
-      })
+        })
 
-      window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
 
-      return nextMatches
-    })
-  }
+        return true
+      } catch (error) {
+        recordSupabaseError("update-match-schedule", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
 
-  function postponeMatch(matchId: string) {
-    setMatches((currentMatches) => {
-      const nextMatches = currentMatches.map((match) => {
-        if (match.id !== matchId || match.status === "finished") {
-          return match
-        }
+  const postponeMatch = useCallback(
+    async (matchId: string) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
 
-        return {
-          ...match,
-          status: "postponed" as MatchStatus,
-          scheduledAt: null,
-          dateLabel: null,
-          location: null,
-        }
-      })
+      if (!currentMatch) {
+        return false
+      }
 
-      window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? getLocalPostponedMatch(match) : match
+            )
+          )
+        )
+        return true
+      }
 
-      return nextMatches
-    })
-  }
+      try {
+        const updatedMatch = await postponeSupabaseMatch(matchId)
 
-  function finishMatch(matchId: string, result: MatchResultInput) {
-    setMatches((currentMatches) => {
-      const nextMatches = currentMatches.map((match) => {
-        if (match.id !== matchId) {
-          return match
-        }
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
 
-        const points = calculateResultPoints(result.sets)
+        return true
+      } catch (error) {
+        recordSupabaseError("postpone-match", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
 
-        return {
-          ...match,
-          status: "finished" as MatchStatus,
-          sets: result.sets,
-          pointsA: points.pointsA,
-          pointsB: points.pointsB,
-          resultRecordedAt: new Date().toISOString(),
-        }
-      })
+  const finishMatch = useCallback(
+    async (matchId: string, result: MatchResultInput) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
 
-      window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
+      if (!currentMatch) {
+        return false
+      }
 
-      return nextMatches
-    })
-  }
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? getLocalFinishedMatch(match, result) : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await finishSupabaseMatch({
+          matchId,
+          result,
+        })
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
+
+        return true
+      } catch (error) {
+        recordSupabaseError("finish-match", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
 
   const value = useMemo(
     () => ({
@@ -320,7 +435,14 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       postponeMatch,
       finishMatch,
     }),
-    [createSeasonMatches, hydrateMatches, matches]
+    [
+      createSeasonMatches,
+      finishMatch,
+      hydrateMatches,
+      matches,
+      postponeMatch,
+      updateMatchSchedule,
+    ]
   )
 
   return (

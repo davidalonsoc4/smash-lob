@@ -57,6 +57,8 @@ export function MatchScheduleForm({
       ? location
       : ""
   )
+  const [isSaving, setIsSaving] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const finalLocation = useMemo(() => {
     if (selectedLocation === otherLocationValue) {
@@ -67,8 +69,11 @@ export function MatchScheduleForm({
   }, [customLocation, selectedLocation])
 
   const canSave =
-    canManage && scheduledAtValue.trim().length > 0 && finalLocation.length > 0
-  const canPostpone = canManage && !isFinished && !isPostponed
+    canManage &&
+    !isSaving &&
+    scheduledAtValue.trim().length > 0 &&
+    finalLocation.length > 0
+  const canPostpone = canManage && !isSaving && !isFinished && !isPostponed
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -78,23 +83,35 @@ export function MatchScheduleForm({
       endsAt: roundEndsAt,
     })
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!canManage || !canSave) {
       return
     }
 
-    updateMatchSchedule(matchId, {
+    setIsSaving(true)
+    setActionError(null)
+
+    const saved = await updateMatchSchedule(matchId, {
       scheduledAt: scheduledAtValue,
       location: finalLocation,
     })
+
+    setIsSaving(false)
+
+    if (!saved) {
+      setActionError(
+        "No se ha podido guardar el horario en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
+      )
+      return
+    }
 
     setIsEditing(false)
   }
 
   function handleCancel() {
-    if (!canManage) {
+    if (!canManage || isSaving) {
       return
     }
 
@@ -105,15 +122,29 @@ export function MatchScheduleForm({
         ? location
         : ""
     )
+    setActionError(null)
     setIsEditing(false)
   }
 
-  function handlePostpone() {
-    if (!canManage) {
+  async function handlePostpone() {
+    if (!canManage || isSaving) {
       return
     }
 
-    postponeMatch(matchId)
+    setIsSaving(true)
+    setActionError(null)
+
+    const saved = await postponeMatch(matchId)
+
+    setIsSaving(false)
+
+    if (!saved) {
+      setActionError(
+        "No se ha podido aplazar el partido en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
+      )
+      return
+    }
+
     setScheduledAtValue("")
     setSelectedLocation("")
     setCustomLocation("")
@@ -165,7 +196,8 @@ export function MatchScheduleForm({
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+                disabled={isSaving}
+                className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
               >
                 {t.matchDetail.rescheduleButton}
               </button>
@@ -175,7 +207,8 @@ export function MatchScheduleForm({
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800"
+                    disabled={isSaving}
+                    className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -183,7 +216,8 @@ export function MatchScheduleForm({
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+                    disabled={isSaving}
+                    className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
                   >
                     {t.matchDetail.addScheduleButton}
                   </button>
@@ -192,9 +226,10 @@ export function MatchScheduleForm({
                 <button
                   type="button"
                   onClick={handlePostpone}
-                  className="rounded-full bg-orange-100 px-3 py-2 text-xs font-black text-orange-900"
+                  disabled={!canPostpone}
+                  className="rounded-full bg-orange-100 px-3 py-2 text-xs font-black text-orange-900 disabled:text-orange-300"
                 >
-                  {t.matchDetail.postponeButton}
+                  {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
                 </button>
               </>
             )}
@@ -234,6 +269,12 @@ export function MatchScheduleForm({
         </div>
       ) : null}
 
+      {actionError ? (
+        <p className="mt-4 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+          {actionError}
+        </p>
+      ) : null}
+
       {canManage && isEditing ? (
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <label className="block">
@@ -245,7 +286,8 @@ export function MatchScheduleForm({
               type="datetime-local"
               value={scheduledAtValue}
               onChange={(event) => setScheduledAtValue(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              disabled={isSaving}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
 
@@ -266,7 +308,8 @@ export function MatchScheduleForm({
             <select
               value={selectedLocation}
               onChange={(event) => setSelectedLocation(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              disabled={isSaving}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             >
               <option value="">
                 {t.matchDetail.scheduleLocationPlaceholder}
@@ -293,8 +336,9 @@ export function MatchScheduleForm({
               <input
                 value={customLocation}
                 onChange={(event) => setCustomLocation(event.target.value)}
+                disabled={isSaving}
                 placeholder={t.matchDetail.customLocationPlaceholder}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
           ) : null}
@@ -305,7 +349,8 @@ export function MatchScheduleForm({
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
+                  disabled={isSaving}
+                  className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
                 >
                   {t.matchDetail.cancelScheduleEdit}
                 </button>
@@ -316,9 +361,11 @@ export function MatchScheduleForm({
                 disabled={!canSave}
                 className="flex-1 rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
               >
-                {hasSchedule || isPostponed
-                  ? t.matchDetail.saveScheduleChanges
-                  : t.matchDetail.saveSchedule}
+                {isSaving
+                  ? "Guardando..."
+                  : hasSchedule || isPostponed
+                    ? t.matchDetail.saveScheduleChanges
+                    : t.matchDetail.saveSchedule}
               </button>
             </div>
 
@@ -326,9 +373,10 @@ export function MatchScheduleForm({
               <button
                 type="button"
                 onClick={handlePostpone}
-                className="w-full rounded-2xl bg-orange-100 px-4 py-3 text-sm font-black text-orange-900"
+                disabled={!canPostpone}
+                className="w-full rounded-2xl bg-orange-100 px-4 py-3 text-sm font-black text-orange-900 disabled:text-orange-300"
               >
-                {t.matchDetail.postponeButton}
+                {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
               </button>
             ) : null}
           </div>

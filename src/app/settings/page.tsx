@@ -4,6 +4,7 @@ import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { LeagueSwitcher } from "@/components/league/LeagueSwitcher"
+import { LocalDataMaintenanceCard } from "@/components/settings/LocalDataMaintenanceCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -106,6 +107,8 @@ export default function SettingsPage() {
           {t.settings.joinNewExistingLeague}
         </Link>
       </AppCard>
+
+      <LocalDataMaintenanceCard />
 
       <AppCard>
         <p className="font-bold">{t.settings.futureTitle}</p>

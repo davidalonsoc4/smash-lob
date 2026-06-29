@@ -1,10 +1,10 @@
 "use client"
 
 import { FormEvent, useState } from "react"
+import { useRouter } from "next/navigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import { useLeagueSettings } from "@/context/LeagueSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 
@@ -23,16 +23,103 @@ function hasLocation(locations: string[], location: string) {
   )
 }
 
+
+
+type DeleteLeagueCardProps = {
+  leagueId: string
+  leagueName: string
+  onDeleteLeague: (leagueId: string) => Promise<boolean>
+}
+
+function DeleteLeagueCard({
+  leagueId,
+  leagueName,
+  onDeleteLeague,
+}: DeleteLeagueCardProps) {
+  const router = useRouter()
+  const [confirmation, setConfirmation] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const canDelete = confirmation.trim() === leagueName
+
+  async function handleDelete() {
+    if (!canDelete || isDeleting) {
+      return
+    }
+
+    setIsDeleting(true)
+    setError(null)
+
+    const deleted = await onDeleteLeague(leagueId)
+
+    setIsDeleting(false)
+
+    if (!deleted) {
+      setError(
+        "No se ha podido eliminar la liga. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    router.replace("/settings")
+    window.setTimeout(() => {
+      window.location.reload()
+    }, 80)
+  }
+
+  return (
+    <AppCard className="border-red-200 bg-red-50">
+      <p className="font-bold text-red-950">Eliminar liga</p>
+      <p className="mt-2 text-sm text-red-900/80">
+        Esta acción elimina la liga completa de la base de datos: temporadas,
+        jugadores, partidos, resultados, invitaciones y miembros. Solo aparece
+        para el creador de la liga.
+      </p>
+
+      <label className="mt-5 block">
+        <span className="text-sm font-semibold text-red-950">
+          Escribe el nombre exacto de la liga para confirmar
+        </span>
+        <input
+          value={confirmation}
+          disabled={isDeleting}
+          onChange={(event) => {
+            setConfirmation(event.target.value)
+            setError(null)
+          }}
+          placeholder={leagueName}
+          className="mt-2 w-full rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-red-400 disabled:bg-red-100"
+        />
+      </label>
+
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={!canDelete || isDeleting}
+        className="mt-4 w-full rounded-2xl bg-red-700 px-4 py-3 text-sm font-black text-white disabled:bg-red-200"
+      >
+        {isDeleting ? "Eliminando..." : "Eliminar liga definitivamente"}
+      </button>
+
+      {error ? (
+        <p className="mt-3 text-xs font-semibold text-red-700">{error}</p>
+      ) : null}
+    </AppCard>
+  )
+}
+
 function AdminLeagueForm({
   leagueId,
   initialLocations,
 }: AdminLeagueFormProps) {
   const { t } = useI18n()
-  const { updateLeagueLocations } = useLeagueSettings()
+  const { updateLeagueLocations } = useLeagueAccess()
 
   const [locations, setLocations] = useState(initialLocations)
   const [newLocation, setNewLocation] = useState("")
   const [saved, setSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const normalizedNewLocation = normalizeLocation(newLocation)
   const canAdd =
@@ -50,6 +137,7 @@ function AdminLeagueForm({
     ])
     setNewLocation("")
     setSaved(false)
+    setError(null)
   }
 
   function handleRemoveLocation(locationToRemove: string) {
@@ -57,12 +145,27 @@ function AdminLeagueForm({
       currentLocations.filter((location) => location !== locationToRemove)
     )
     setSaved(false)
+    setError(null)
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    updateLeagueLocations(leagueId, locations)
+    setIsSaving(true)
+    setSaved(false)
+    setError(null)
+
+    const updated = await updateLeagueLocations(leagueId, locations)
+
+    setIsSaving(false)
+
+    if (!updated) {
+      setError(
+        "No se han podido guardar los lugares en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
     setSaved(true)
   }
 
@@ -86,6 +189,7 @@ function AdminLeagueForm({
                 <button
                   type="button"
                   onClick={() => handleRemoveLocation(location)}
+                  disabled={isSaving}
                   className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800"
                 >
                   {t.adminLeague.removeLocation}
@@ -113,9 +217,11 @@ function AdminLeagueForm({
 
             <input
               value={newLocation}
+              disabled={isSaving}
               onChange={(event) => {
                 setNewLocation(event.target.value)
                 setSaved(false)
+                setError(null)
               }}
               placeholder={t.adminLeague.locationPlaceholder}
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
@@ -132,7 +238,7 @@ function AdminLeagueForm({
           <button
             type="button"
             onClick={handleAddLocation}
-            disabled={!canAdd}
+            disabled={!canAdd || isSaving}
             className="w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
           >
             {t.adminLeague.addLocation}
@@ -142,10 +248,17 @@ function AdminLeagueForm({
 
       <button
         type="submit"
-        className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+        disabled={isSaving}
+        className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
       >
-        {t.adminLeague.save}
+        {isSaving ? "Guardando..." : t.adminLeague.save}
       </button>
+
+      {error ? (
+        <p className="text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
 
       {saved ? (
         <p className="text-center text-sm font-semibold text-neutral-600">
@@ -158,9 +271,10 @@ function AdminLeagueForm({
 
 export default function AdminLeaguePage() {
   const { t } = useI18n()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { deleteLeague, isLeagueAdmin, isLeagueCreator } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const canDeleteLeague = isLeagueCreator(activeLeague.id)
 
   if (!canAccessAdmin) {
     return (
@@ -206,6 +320,14 @@ export default function AdminLeaguePage() {
         leagueId={activeLeague.id}
         initialLocations={activeLeague.locations}
       />
+
+      {canDeleteLeague ? (
+        <DeleteLeagueCard
+          leagueId={activeLeague.id}
+          leagueName={activeLeague.name}
+          onDeleteLeague={deleteLeague}
+        />
+      ) : null}
     </div>
   )
 }

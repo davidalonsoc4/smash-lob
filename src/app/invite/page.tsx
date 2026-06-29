@@ -4,27 +4,25 @@ import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function ManualInvitePage() {
   const { t } = useI18n()
   const router = useRouter()
-  const { getLeagueByInviteCode } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const league = getLeagueByInviteCode(inviteCode)
+    const normalizedInviteCode = inviteCode.trim().toUpperCase()
 
-    if (!league) {
+    if (!normalizedInviteCode) {
       setError(t.invites.invalidCode)
       return
     }
 
-    router.push(`/invite/${encodeURIComponent(league.inviteCode)}`)
+    router.push(`/invite/${encodeURIComponent(normalizedInviteCode)}`)
   }
 
   return (

@@ -100,6 +100,7 @@ export default function PlayerPage() {
         playerId={player.id}
         title={t.playerProfile.playerMatches}
         matches={matches}
+        players={players}
       />
 
       <AppCard>
