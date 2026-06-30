@@ -313,7 +313,7 @@ export const es = {
   playerStats: {
     title: "Estadísticas avanzadas",
     subtitle: "Rendimiento de temporada",
-    winRate: "% victoria",
+    winRate: "Victorias",
     record: "balance",
     setsBalance: "Balance de sets",
     gamesBalance: "Balance de juegos",

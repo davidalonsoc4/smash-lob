@@ -233,7 +233,7 @@ export function PlayerStatsPanel({
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-        <div className="rounded-2xl bg-neutral-100 p-3">
+        <div className="rounded-2xl bg-neutral-100 p-3 text-center">
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.setsBalance}
           </p>
@@ -245,7 +245,7 @@ export function PlayerStatsPanel({
           </p>
         </div>
 
-        <div className="rounded-2xl bg-neutral-100 p-3">
+        <div className="rounded-2xl bg-neutral-100 p-3 text-center">
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.gamesBalance}
           </p>
@@ -257,15 +257,12 @@ export function PlayerStatsPanel({
           </p>
         </div>
 
-        <div className="rounded-2xl bg-neutral-100 p-3">
+        <div className="rounded-2xl bg-neutral-100 p-3 text-center">
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.mvpWon}
           </p>
           <p className="mt-1 text-lg font-black">
             {mvpSummary.roundMvpCount}
-          </p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">
-            jornada
           </p>
         </div>
       </div>

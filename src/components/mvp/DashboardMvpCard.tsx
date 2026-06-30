@@ -21,44 +21,12 @@ type DashboardMvpCardProps = {
   matches: MvpMatch[]
 }
 
-function MvpCompactItem({
-  label,
-  players,
-  helper,
-}: {
-  label: string
-  players: MvpPlayer[]
-  helper: string
-}) {
-  return (
-    <div className="rounded-2xl bg-neutral-100 p-3">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
-        {label}
-      </p>
-      {players.length > 0 ? (
-        <div className="mt-2 flex items-center gap-2">
-          <div className="flex -space-x-2">
-            {players.slice(0, 3).map((player) => (
-              <PlayerAvatar
-                key={player.id}
-                player={player}
-                size="sm"
-                className="border-2 border-neutral-100"
-              />
-            ))}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-black text-neutral-950">
-              {players.map((player) => player.displayName).join(" / ")}
-            </p>
-            <p className="text-xs font-semibold text-neutral-500">{helper}</p>
-          </div>
-        </div>
-      ) : (
-        <p className="mt-2 text-sm font-bold text-neutral-500">Pendiente</p>
-      )}
-    </div>
-  )
+function formatSignedDiff(value: number) {
+  return `${value > 0 ? "+" : ""}${value} Dif.`
+}
+
+function formatPlayerNames(players: MvpPlayer[]) {
+  return players.map((player) => player.displayName).join(" / ")
 }
 
 export function DashboardMvpCard({
@@ -97,48 +65,77 @@ export function DashboardMvpCard({
 
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-black tracking-tight">MVP</h2>
-          <p className="text-sm text-neutral-500">
-            Último reconocimiento confirmado.
-          </p>
-        </div>
+      <AppCard className="p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex flex-1 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-lg text-yellow-500">
+              ★
+            </div>
 
-        {canManage ? (
-          <Link
-            href="/admin/mvp"
-            className="shrink-0 text-sm font-semibold text-neutral-600"
-          >
-            Gestionar
-          </Link>
-        ) : null}
-      </div>
+            {latestRoundMvp ? (
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                  MVP última jornada
+                </p>
+                <div className="mt-1 flex min-w-0 items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {latestRoundMvpPlayers.slice(0, 2).map((player) => (
+                      <PlayerAvatar
+                        key={player.id}
+                        player={player}
+                        size="sm"
+                        className="border-2 border-white"
+                      />
+                    ))}
+                  </div>
+                  <p className="truncate text-sm font-black text-neutral-950">
+                    {formatPlayerNames(latestRoundMvpPlayers)}
+                  </p>
+                </div>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Jornada {latestCompletedRound} · {formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}
+                </p>
+              </div>
+            ) : seasonMvp ? (
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                  MVP final
+                </p>
+                <p className="mt-1 truncate text-sm font-black text-neutral-950">
+                  {formatPlayerNames(seasonMvpPlayers)}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  {seasonMvp.votes} MVPs de jornada{seasonMvp.tied ? " · empate" : ""}
+                </p>
+              </div>
+            ) : null}
+          </div>
 
-      <AppCard>
-        <div className={`grid gap-3 ${isSeasonClosed && seasonMvp ? "grid-cols-2" : "grid-cols-1"}`}>
-          <MvpCompactItem
-            label="Última jornada"
-            players={latestRoundMvpPlayers}
-            helper={
-              latestCompletedRound && latestRoundMvp
-                ? `Jornada ${latestCompletedRound} · ${latestRoundMvp.gamesDiff ?? 0} dif.`
-                : "Sin jornadas completas"
-            }
-          />
-
-          {isSeasonClosed ? (
-            <MvpCompactItem
-              label="MVP final"
-              players={seasonMvpPlayers}
-              helper={
-                seasonMvp
-                  ? `${seasonMvp.votes} MVPs de jornada${seasonMvp.tied ? " · empate" : ""}`
-                  : "Pendiente"
-              }
-            />
+          {canManage ? (
+            <Link
+              href="/admin/mvp"
+              className="shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
+            >
+              Gestionar
+            </Link>
           ) : null}
         </div>
+
+        {isSeasonClosed && seasonMvp && latestRoundMvp ? (
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                MVP final
+              </p>
+              <p className="mt-1 truncate text-sm font-black text-neutral-950">
+                {formatPlayerNames(seasonMvpPlayers)}
+              </p>
+            </div>
+            <p className="shrink-0 text-xs font-semibold text-neutral-500">
+              {seasonMvp.votes} jornadas{seasonMvp.tied ? " · empate" : ""}
+            </p>
+          </div>
+        ) : null}
       </AppCard>
     </section>
   )

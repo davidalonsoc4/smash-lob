@@ -4,7 +4,6 @@ import { useParams } from "next/navigation"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
-import { PlayerMvpPanel } from "@/components/mvp/PlayerMvpPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { StatCard } from "@/components/ui/StatCard"
@@ -17,7 +16,6 @@ export default function PlayerPage() {
   const { activeLeague, activeSeason, players, matches } =
     useCurrentLeagueData()
 
-  const isSeasonClosed = activeSeason.status === "finished"
   const player = players.find(
     (item) => item.slug === params.id || item.id === params.id
   )
@@ -81,14 +79,6 @@ export default function PlayerPage() {
         seasonMatches={matches}
       />
 
-      <PlayerMvpPanel
-        leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        playerId={player.id}
-        matches={matches}
-        players={players}
-        isSeasonClosed={isSeasonClosed}
-      />
 
       <PlayerMatchesList
         playerId={player.id}

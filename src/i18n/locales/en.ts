@@ -295,7 +295,7 @@ export const en = {
   playerStats: {
     title: "Advanced stats",
     subtitle: "Season performance",
-    winRate: "Win rate",
+    winRate: "Wins",
     record: "record",
     setsBalance: "Sets balance",
     gamesBalance: "Games balance",

@@ -310,7 +310,7 @@ export const eu = {
   playerStats: {
     title: "Estatistika aurreratuak",
     subtitle: "Denboraldiko errendimendua",
-    winRate: "Garaipen %",
+    winRate: "Garaipenak",
     record: "balantzea",
     setsBalance: "Seten balantzea",
     gamesBalance: "Jokoen balantzea",

@@ -13,17 +13,11 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
 
-type LeagueDetailsFormProps = {
+type LeagueIdentityFormProps = {
   leagueId: string
   seasonId: string | null
   initialName: string
   initialDescription: string
-}
-
-type LeagueLogoFormProps = {
-  leagueId: string
-  seasonId: string | null
-  leagueName: string
   initialLogoUrl?: string | null
 }
 
@@ -56,44 +50,50 @@ function hasLocation(locations: string[], location: string) {
   )
 }
 
-function LeagueDetailsForm({
+function LeagueIdentityForm({
   leagueId,
   seasonId,
   initialName,
   initialDescription,
-}: LeagueDetailsFormProps) {
+  initialLogoUrl,
+}: LeagueIdentityFormProps) {
   const { data: session } = useSession()
-  const { updateLeagueDetails } = useLeagueAccess()
+  const { updateLeagueDetails, updateLeagueLogo } = useLeagueAccess()
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
-  const [saved, setSaved] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
+  const [detailsSaved, setDetailsSaved] = useState(false)
+  const [logoSaved, setLogoSaved] = useState(false)
+  const [isSavingDetails, setIsSavingDetails] = useState(false)
+  const [isSavingLogo, setIsSavingLogo] = useState(false)
+  const [detailsError, setDetailsError] = useState<string | null>(null)
+  const [logoError, setLogoError] = useState<string | null>(null)
 
   const cleanName = name.trim()
   const cleanDescription = description.trim()
-  const canSave = cleanName.length > 0 && !isSaving
+  const canSaveDetails = cleanName.length > 0 && !isSavingDetails
+  const previewLeagueName = cleanName || initialName
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmitDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!canSave) {
+    if (!canSaveDetails) {
       return
     }
 
-    setIsSaving(true)
-    setSaved(false)
-    setError(null)
+    setIsSavingDetails(true)
+    setDetailsSaved(false)
+    setDetailsError(null)
 
     const updated = await updateLeagueDetails(leagueId, {
       name: cleanName,
       description: cleanDescription,
     })
 
-    setIsSaving(false)
+    setIsSavingDetails(false)
 
     if (!updated) {
-      setError(
+      setDetailsError(
         "No se han podido guardar los datos de la liga en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
       )
       return
@@ -118,100 +118,20 @@ function LeagueDetailsForm({
       // Los datos ya están guardados; la actividad es auxiliar.
     }
 
-    setSaved(true)
+    setDetailsSaved(true)
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <AppCard>
-        <p className="font-bold">Datos de la liga</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          Edita el nombre y la descripción que ven los jugadores.
-        </p>
-
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="text-sm font-semibold text-neutral-700">
-              Nombre de la liga
-            </span>
-            <input
-              value={name}
-              disabled={isSaving}
-              onChange={(event) => {
-                setName(event.target.value)
-                setSaved(false)
-                setError(null)
-              }}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-neutral-700">
-              Descripción
-            </span>
-            <textarea
-              value={description}
-              disabled={isSaving}
-              rows={3}
-              onChange={(event) => {
-                setDescription(event.target.value)
-                setSaved(false)
-                setError(null)
-              }}
-              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={!canSave}
-          className="mt-5 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
-        >
-          {isSaving ? "Guardando..." : "Guardar datos de liga"}
-        </button>
-
-        {error ? (
-          <p className="mt-3 text-center text-sm font-semibold text-red-600">
-            {error}
-          </p>
-        ) : null}
-
-        {saved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-            Datos de liga guardados.
-          </p>
-        ) : null}
-      </AppCard>
-    </form>
-  )
-}
-
-function LeagueLogoForm({
-  leagueId,
-  seasonId,
-  leagueName,
-  initialLogoUrl,
-}: LeagueLogoFormProps) {
-  const { data: session } = useSession()
-  const { updateLeagueLogo } = useLeagueAccess()
-  const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
   async function saveLogo(nextLogoUrl: string | null) {
-    setIsSaving(true)
-    setSaved(false)
-    setError(null)
+    setIsSavingLogo(true)
+    setLogoSaved(false)
+    setLogoError(null)
 
     const updated = await updateLeagueLogo(leagueId, nextLogoUrl)
 
-    setIsSaving(false)
+    setIsSavingLogo(false)
 
     if (!updated) {
-      setError(
+      setLogoError(
         "No se ha podido guardar el logo de la liga. Revisa Supabase o smash-lob-last-supabase-error."
       )
       return
@@ -238,7 +158,7 @@ function LeagueLogoForm({
       // El logo ya está guardado; la actividad es auxiliar.
     }
 
-    setSaved(true)
+    setLogoSaved(true)
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -256,7 +176,7 @@ function LeagueLogoForm({
 
       await saveLogo(dataUrl)
     } catch (imageError) {
-      setError(
+      setLogoError(
         imageError instanceof Error
           ? imageError.message
           : "No se ha podido procesar la imagen."
@@ -267,59 +187,116 @@ function LeagueLogoForm({
   }
 
   return (
-    <AppCard>
-      <p className="font-bold">Logo de la liga</p>
-      <p className="mt-2 text-sm text-neutral-500">
-        Sube una imagen cuadrada o recortable. Se verá en el inicio y en zonas de identificación de la liga.
-      </p>
+    <form onSubmit={handleSubmitDetails}>
+      <AppCard>
+        <p className="font-bold">Datos de la liga</p>
+        <p className="mt-2 text-sm text-neutral-500">
+          Edita el nombre, la descripción y el logo que ven los jugadores.
+        </p>
 
-      <div className="mt-5 flex items-center gap-4">
-        <LeagueLogo
-          league={{ name: leagueName, logoUrl }}
-          size="lg"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-black">{leagueName}</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            {logoUrl ? "Logo personalizado activo." : "Se usan iniciales si no hay logo."}
-          </p>
+        <div className="mt-5 flex items-center gap-4 rounded-2xl bg-neutral-100 p-4">
+          <LeagueLogo
+            league={{ name: previewLeagueName, logoUrl }}
+            size="lg"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-black">{previewLeagueName}</p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {logoUrl ? "Logo personalizado activo." : "Se usan iniciales si no hay logo."}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <label className="mt-5 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white">
-        {isSaving ? "Guardando..." : "Subir logo"}
-        <input
-          type="file"
-          accept="image/*"
-          disabled={isSaving}
-          onChange={handleFileChange}
-          className="sr-only"
-        />
-      </label>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <label className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white">
+            {isSavingLogo ? "Guardando..." : "Subir logo"}
+            <input
+              type="file"
+              accept="image/*"
+              disabled={isSavingLogo}
+              onChange={handleFileChange}
+              className="sr-only"
+            />
+          </label>
 
-      {logoUrl ? (
+          <button
+            type="button"
+            onClick={() => saveLogo(null)}
+            disabled={!logoUrl || isSavingLogo}
+            className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+          >
+            Quitar logo
+          </button>
+        </div>
+
+        {logoError ? (
+          <p className="mt-3 text-center text-sm font-semibold text-red-600">
+            {logoError}
+          </p>
+        ) : null}
+
+        {logoSaved ? (
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+            Logo guardado.
+          </p>
+        ) : null}
+
+        <div className="mt-5 space-y-4 border-t border-neutral-100 pt-5">
+          <label className="block">
+            <span className="text-sm font-semibold text-neutral-700">
+              Nombre de la liga
+            </span>
+            <input
+              value={name}
+              disabled={isSavingDetails}
+              onChange={(event) => {
+                setName(event.target.value)
+                setDetailsSaved(false)
+                setDetailsError(null)
+              }}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-neutral-700">
+              Descripción
+            </span>
+            <textarea
+              value={description}
+              disabled={isSavingDetails}
+              rows={3}
+              onChange={(event) => {
+                setDescription(event.target.value)
+                setDetailsSaved(false)
+                setDetailsError(null)
+              }}
+              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+          </label>
+        </div>
+
         <button
-          type="button"
-          onClick={() => saveLogo(null)}
-          disabled={isSaving}
-          className="mt-3 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+          type="submit"
+          disabled={!canSaveDetails}
+          className="mt-5 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
         >
-          Quitar logo
+          {isSavingDetails ? "Guardando..." : "Guardar datos de liga"}
         </button>
-      ) : null}
 
-      {error ? (
-        <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
-        </p>
-      ) : null}
+        {detailsError ? (
+          <p className="mt-3 text-center text-sm font-semibold text-red-600">
+            {detailsError}
+          </p>
+        ) : null}
 
-      {saved ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-          Logo guardado.
-        </p>
-      ) : null}
-    </AppCard>
+        {detailsSaved ? (
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+            Datos de liga guardados.
+          </p>
+        ) : null}
+      </AppCard>
+    </form>
   )
 }
 
@@ -624,19 +601,12 @@ export default function AdminLeaguePage() {
         </p>
       </header>
 
-      <LeagueDetailsForm
-        key={`${activeLeague.id}-details`}
+      <LeagueIdentityForm
+        key={`${activeLeague.id}-identity`}
         leagueId={activeLeague.id}
         seasonId={activeSeason.id}
         initialName={activeLeague.name}
         initialDescription={activeLeague.description}
-      />
-
-      <LeagueLogoForm
-        key={`${activeLeague.id}-logo`}
-        leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        leagueName={activeLeague.name}
         initialLogoUrl={activeLeague.logoUrl}
       />
 
