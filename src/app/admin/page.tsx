@@ -1,11 +1,134 @@
 "use client"
 
 import Link from "next/link"
+import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getPublicInviteUrl } from "@/lib/inviteUrls"
+
+function AdminInviteCard({ leagueId }: { leagueId: string }) {
+  const { getLeagueInviteCode, regenerateLeagueInviteCode } = useLeagueAccess()
+  const [inviteCode, setInviteCode] = useState(() =>
+    getLeagueInviteCode(leagueId)
+  )
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null)
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const inviteUrl = useMemo(
+    () => (inviteCode ? getPublicInviteUrl(inviteCode) : ""),
+    [inviteCode]
+  )
+
+  async function copyValue(value: string, label: string) {
+    if (!value) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedLabel(label)
+      setError(null)
+      window.setTimeout(() => setCopiedLabel(null), 1800)
+    } catch {
+      setError("No se ha podido copiar. Copia el texto manualmente.")
+    }
+  }
+
+  async function handleRegenerate() {
+    if (isRegenerating) {
+      return
+    }
+
+    setIsRegenerating(true)
+    setCopiedLabel(null)
+    setError(null)
+
+    const nextInviteCode = await regenerateLeagueInviteCode(leagueId)
+
+    setIsRegenerating(false)
+
+    if (!nextInviteCode) {
+      setError(
+        "No se ha podido regenerar la invitación en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    setInviteCode(nextInviteCode)
+    setCopiedLabel("Código regenerado")
+    window.setTimeout(() => setCopiedLabel(null), 1800)
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Invitaciones</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Comparte el código o el enlace completo para que otro jugador pueda
+        entrar en la liga y vincularse a su perfil.
+      </p>
+
+      <div className="mt-4 space-y-3">
+        <div className="rounded-2xl bg-neutral-100 p-4">
+          <p className="text-xs font-semibold uppercase text-neutral-500">
+            Código de invitación
+          </p>
+          <p className="mt-1 break-all text-sm font-black text-neutral-950">
+            {inviteCode || "Sin código disponible"}
+          </p>
+          <button
+            type="button"
+            onClick={() => copyValue(inviteCode, "Código copiado")}
+            disabled={!inviteCode}
+            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+          >
+            Copiar código
+          </button>
+        </div>
+
+        <div className="rounded-2xl bg-neutral-100 p-4">
+          <p className="text-xs font-semibold uppercase text-neutral-500">
+            Enlace de invitación
+          </p>
+          <p className="mt-1 break-all text-sm font-black text-neutral-950">
+            {inviteUrl || "Sin enlace disponible"}
+          </p>
+          <button
+            type="button"
+            onClick={() => copyValue(inviteUrl, "Enlace copiado")}
+            disabled={!inviteUrl}
+            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+          >
+            Copiar enlace
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleRegenerate}
+        disabled={isRegenerating}
+        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+      >
+        {isRegenerating ? "Regenerando..." : "Regenerar invitación"}
+      </button>
+
+      {copiedLabel ? (
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+          {copiedLabel}
+        </p>
+      ) : null}
+
+      {error ? (
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  )
+}
 
 export default function AdminPage() {
   const { t } = useI18n()
@@ -82,15 +205,24 @@ export default function AdminPage() {
             </div>
           </AppCard>
         </Link>
+
+        <Link href="/admin/users">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Gestión de usuarios</p>
+                <p className="mt-2 text-sm text-neutral-500">
+                  Cambia nombres, convierte usuarios en admin o desvincula cuentas.
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
       </div>
 
-      <AppCard>
-        <p className="font-bold">Invitaciones</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          El enlace de invitación ahora está en el botón flotante de compartir.
-          Solo aparece mientras queden jugadores sin vincular en la temporada activa.
-        </p>
-      </AppCard>
+      <AdminInviteCard leagueId={activeLeague.id} />
 
       <AppCard>
         <p className="font-bold">{t.adminPanel.futureTitle}</p>

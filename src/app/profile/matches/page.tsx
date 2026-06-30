@@ -69,7 +69,9 @@ export default function ProfileMatchesPage() {
 
   function handleFilterChange(filter: MatchFilter) {
     router.push(
-      filter === "all" ? "/profile/matches" : `/profile/matches?status=${filter}`
+      filter === "finished"
+        ? "/profile/matches"
+        : `/profile/matches?status=${filter}`
     )
   }
 
