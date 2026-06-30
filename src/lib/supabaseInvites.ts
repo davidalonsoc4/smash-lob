@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase"
-import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
@@ -15,7 +14,7 @@ import type {
   SeasonPlayer,
   UserLeagueMembership,
 } from "@/data/fakeData"
-import type { MatchData, MatchStatus } from "@/context/MatchDataProvider"
+import type { MatchData } from "@/context/MatchDataProvider"
 
 type SupabaseLeagueRow = {
   id: string
@@ -27,28 +26,6 @@ type SupabaseLeagueRow = {
   active_season_id: string | null
   locations: unknown
   logo_url?: string | null
-}
-
-type SupabaseMatchRow = {
-  id: string
-  league_id: string
-  season_id: string
-  round: number
-  status: string
-  team_a: unknown
-  team_b: unknown
-  points_a: number | null
-  points_b: number | null
-  sets: unknown
-  scheduled_at: string | null
-  date_label: string | null
-  location: string | null
-  result_recorded_at: string | null
-}
-
-type SupabaseSet = {
-  a: number
-  b: number
 }
 
 type ClaimPlayerResult =
@@ -76,53 +53,12 @@ function toRoundWindowMode(mode: unknown): RoundWindowMode {
   return mode === "fixed-days" ? "fixed-days" : "none"
 }
 
-function toMatchStatus(status: unknown): MatchStatus {
-  return status === "finished" ||
-    status === "scheduled" ||
-    status === "postponed" ||
-    status === "scheduling"
-    ? status
-    : "scheduling"
-}
-
-function toStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value.filter((item): item is string => typeof item === "string")
-}
-
 function toLocations(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return []
   }
 
   return value.filter((location): location is string => typeof location === "string")
-}
-
-function toMatchSets(value: unknown): SupabaseSet[] {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value
-    .map((set) => {
-      if (typeof set !== "object" || set === null) {
-        return null
-      }
-
-      const item = set as Record<string, unknown>
-      const a = Number(item.a)
-      const b = Number(item.b)
-
-      if (!Number.isFinite(a) || !Number.isFinite(b)) {
-        return null
-      }
-
-      return { a, b }
-    })
-    .filter((set): set is SupabaseSet => Boolean(set))
 }
 
 function mapLeague(league: SupabaseLeagueRow): League {
@@ -136,26 +72,6 @@ function mapLeague(league: SupabaseLeagueRow): League {
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: toLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
-  }
-}
-
-function mapMatch(match: SupabaseMatchRow): MatchData {
-  return {
-    id: match.id,
-    leagueId: match.league_id,
-    seasonId: match.season_id,
-    round: match.round,
-    status: toMatchStatus(match.status),
-    teamA: toStringArray(match.team_a),
-    teamB: toStringArray(match.team_b),
-    pointsA: match.points_a,
-    pointsB: match.points_b,
-    sets: toMatchSets(match.sets),
-    scheduledAt: match.scheduled_at,
-    dateLabel: match.date_label,
-    location: match.location,
-    resultRecordedAt: match.result_recorded_at,
-    courtBooking: getEmptyCourtBooking(),
   }
 }
 
@@ -273,7 +189,7 @@ export async function fetchSupabaseInviteSnapshot(
     playerId: membership.player_id ?? "",
     role: toRole(membership.role),
   }))
-  const matches: MatchData[] = ((matchesResult.data ?? []) as SupabaseMatchRow[])
+  const matches: MatchData[] = ((matchesResult.data ?? []) as Record<string, unknown>[])
     .map((match) => mapSupabaseMatch(match))
 
   return {

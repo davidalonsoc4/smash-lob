@@ -1,7 +1,9 @@
 import type { PlayerProfile } from "@/data/fakeData"
 
 type PlayerAvatarProps = {
-  player?: Pick<PlayerProfile, "displayName" | "avatarInitials" | "avatarUrl"> | null
+  player?: Pick<PlayerProfile, "displayName" | "avatarUrl"> & {
+    avatarInitials?: string | null
+  } | null
   size?: "sm" | "md" | "lg"
   className?: string
 }

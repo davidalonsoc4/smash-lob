@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase"
-import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { generateBalancedCalendar } from "@/lib/calendar"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
@@ -8,7 +7,7 @@ import type {
   SeasonSnapshot,
 } from "@/context/SeasonSettingsProvider"
 import type { PlayerProfile, Season, SeasonPlayer } from "@/data/fakeData"
-import type { MatchData, MatchStatus } from "@/context/MatchDataProvider"
+import type { MatchData } from "@/context/MatchDataProvider"
 
 function initials(name: string) {
   return (
@@ -36,47 +35,6 @@ function slug(name: string) {
 
 function toSeasonStatus(status: unknown): "active" | "finished" {
   return status === "finished" ? "finished" : "active"
-}
-
-function toMatchStatus(status: unknown): MatchStatus {
-  return status === "finished" ||
-    status === "scheduled" ||
-    status === "postponed" ||
-    status === "scheduling"
-    ? status
-    : "scheduling"
-}
-
-function toStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value.filter((item): item is string => typeof item === "string")
-}
-
-function toMatchSets(value: unknown): { a: number; b: number }[] {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value
-    .map((set) => {
-      if (typeof set !== "object" || set === null) {
-        return null
-      }
-
-      const item = set as Record<string, unknown>
-      const a = Number(item.a)
-      const b = Number(item.b)
-
-      if (!Number.isFinite(a) || !Number.isFinite(b)) {
-        return null
-      }
-
-      return { a, b }
-    })
-    .filter((set): set is { a: number; b: number } => Boolean(set))
 }
 
 function mapSeason(row: {
@@ -112,27 +70,6 @@ function mapPlayer(row: {
     displayName: row.display_name,
     avatarInitials: row.avatar_initials,
     avatarUrl: typeof row.avatar_url === "string" ? row.avatar_url : null,
-  }
-}
-
-function mapMatch(row: Record<string, unknown>): MatchData {
-  return {
-    id: String(row.id),
-    leagueId: String(row.league_id),
-    seasonId: String(row.season_id),
-    round: Number(row.round),
-    status: toMatchStatus(row.status),
-    teamA: toStringArray(row.team_a),
-    teamB: toStringArray(row.team_b),
-    pointsA: typeof row.points_a === "number" ? row.points_a : null,
-    pointsB: typeof row.points_b === "number" ? row.points_b : null,
-    sets: toMatchSets(row.sets),
-    scheduledAt: typeof row.scheduled_at === "string" ? row.scheduled_at : null,
-    dateLabel: typeof row.date_label === "string" ? row.date_label : null,
-    location: typeof row.location === "string" ? row.location : null,
-    resultRecordedAt:
-      typeof row.result_recorded_at === "string" ? row.result_recorded_at : null,
-    courtBooking: getEmptyCourtBooking(),
   }
 }
 
