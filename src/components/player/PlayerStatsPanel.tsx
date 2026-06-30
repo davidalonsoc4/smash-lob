@@ -8,6 +8,8 @@ type PlayerStatsPanelProps = {
   playerId: string
   leagueId: string
   seasonId: string
+  seasonIds?: string[]
+  scopeLabel?: string
   players: PlayerStatsPlayer[]
   matches: PlayerStatsMatch[]
   seasonMatches?: PlayerStatsMatch[]
@@ -125,6 +127,8 @@ export function PlayerStatsPanel({
   playerId,
   leagueId,
   seasonId,
+  seasonIds,
+  scopeLabel,
   players,
   matches,
   seasonMatches = matches,
@@ -202,6 +206,7 @@ export function PlayerStatsPanel({
   const mvpSummary = getPlayerMvpSummary({
     leagueId,
     seasonId,
+    seasonIds,
     matches: seasonMatches,
     playerId,
   })
@@ -219,6 +224,11 @@ export function PlayerStatsPanel({
             {t.playerStats.title}
           </p>
           <p className="mt-1 text-xl font-black">{t.playerStats.subtitle}</p>
+          {scopeLabel ? (
+            <p className="mt-1 text-xs font-semibold text-neutral-500">
+              {scopeLabel}
+            </p>
+          ) : null}
         </div>
 
         <div className="rounded-2xl bg-neutral-950 px-3 py-2 text-right text-white">

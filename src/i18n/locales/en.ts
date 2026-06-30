@@ -284,7 +284,10 @@ export const en = {
   playerProfile: {
     backToRanking: "← Back to ranking",
     notFound: "Player not found",
-    description: "Public stats for the player within the active season.",
+    description: "Public stats for the player within the selected season.",
+    scopeSelectorTitle: "Season",
+    scopeSelectorDescription:
+      "Choose one season or view the player historical total.",
     seasonStats: "Season stats",
     playerMatches: "Player matches",
     futureTitle: "History and trends",
@@ -309,6 +312,29 @@ export const en = {
     toughestRound: "Toughest round",
   },
 
+  help: {
+    title: "Help and basics",
+    description: "A quick guide for new league players.",
+    starPointsTitle: "Star Points",
+    starPointsDescription:
+      "A Star Point is the deciding point played when a game reaches 40-40. Instead of using advantages, one single point is played: whoever wins it wins the game.",
+    starPointsTip:
+      "Before the serve, the receiving pair chooses the side. Then the point is played normally and the game is recorded as usual.",
+    tieBreakTitle: "Tie-breaks",
+    tieBreakDescription:
+      "A tie-break is played when a set reaches 6-6. The first side to 7 points wins, as long as they lead by at least 2 points. At 6-6 in the tie-break, play continues until one side has a two-point lead.",
+    tieBreakTip:
+      "The set result is recorded as 7-6 for the pair that wins the tie-break. The app does not need the detailed tie-break points.",
+    threeSetsTitle: "Why all 3 sets are mandatory",
+    threeSetsDescription:
+      "This league plays all 3 sets so every match gives the same amount of sets and opportunities. It makes the individual ranking fairer: a pair can lose the match but still fight for the third set, score points, improve game difference and keep the match meaningful until the end.",
+    threeSetsBalance:
+      "This format reduces the impact of one bad set, rewards consistency and makes every round comparable because all players compete for the same volume of sets and games.",
+    futureTitle: "Later",
+    futureDescription:
+      "This section can be expanded with more rules, FAQs and concepts for new players.",
+  },
+
   leagues: {
     activeLeague: "Active league",
   },
@@ -316,6 +342,9 @@ export const en = {
   settings: {
     title: "Settings",
     description: "Manage your app preferences.",
+    helpTitle: "Help and basics",
+    helpDescription:
+      "Review Star Points, tie-breaks and the 3-set format.",
     backToProfile: "← Back to profile",
     profileShortcutDescription: "Change the active league, language and app preferences.",
     leagueTitle: "League",

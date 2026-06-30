@@ -1,35 +1,120 @@
 "use client"
 
 import Link from "next/link"
+import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
+import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useMatchData } from "@/context/MatchDataProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import {
+  getPlayerScopeStats,
+  getPlayerSeasonScopes,
+  getPlayersForSeasonScope,
+} from "@/lib/playerHistory"
+
+function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null }) {
+  const value = match.resultRecordedAt ?? match.scheduledAt
+
+  if (!value) {
+    return 0
+  }
+
+  const time = new Date(value).getTime()
+
+  return Number.isNaN(time) ? 0 : time
+}
 
 export default function ProfilePage() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
-  const { activeLeague, activeSeason, players, matches } =
-    useCurrentLeagueData()
+  const { matches: allMatches } = useMatchData()
+  const { seasons, seasonPlayers, playerProfiles } = useSeasonSettings()
+  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const [selectedScopeId, setSelectedScopeId] = useState(activeSeason.id)
 
-  const isSeasonClosed = activeSeason.status === "finished"
-  const player = players.find((item) => item.id === currentUserId)
-  const playerMatches = matches.filter(
-    (match) =>
-      match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
+  const player = playerProfiles.find(
+    (item) => item.id === currentUserId && item.leagueId === activeLeague.id
   )
+
+  const leagueMatches = useMemo(
+    () => allMatches.filter((match) => match.leagueId === activeLeague.id),
+    [activeLeague.id, allMatches]
+  )
+
+  const seasonScopes = useMemo(() => {
+    if (!player) {
+      return []
+    }
+
+    return getPlayerSeasonScopes({
+      leagueId: activeLeague.id,
+      playerId: player.id,
+      activeSeasonId: activeSeason.id,
+      seasons,
+      seasonPlayers,
+      matches: leagueMatches,
+    })
+  }, [activeLeague.id, activeSeason.id, leagueMatches, player, seasonPlayers, seasons])
+
+
+  const selectedScope =
+    seasonScopes.find((scope) => scope.id === selectedScopeId) ?? seasonScopes[0]
+  const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id]
+  const selectedMatches = leagueMatches.filter((match) =>
+    selectedSeasonIds.includes(match.seasonId)
+  )
+  const selectedPlayers = getPlayersForSeasonScope({
+    leagueId: activeLeague.id,
+    seasonIds: selectedSeasonIds,
+    playerProfiles,
+    seasonPlayers,
+    matches: leagueMatches,
+  })
+  const selectedStats = player
+    ? getPlayerScopeStats({
+        playerId: player.id,
+        seasonIds: selectedSeasonIds,
+        matches: leagueMatches,
+      })
+    : null
+  const selectedSeason = selectedScope?.isTotal
+    ? null
+    : seasons.find((season) => season.id === selectedScope?.id) ?? activeSeason
+  const showNextMatch = Boolean(
+    selectedSeason && selectedSeason.status !== "finished" && !selectedScope?.isTotal
+  )
+  const playerMatches = player
+    ? selectedMatches.filter(
+        (match) => match.teamA.includes(player.id) || match.teamB.includes(player.id)
+      )
+    : []
   const nextMatches = playerMatches
     .filter((match) => match.status !== "finished")
     .sort((firstMatch, secondMatch) => firstMatch.round - secondMatch.round)
   const recentFinishedMatches = playerMatches
     .filter((match) => match.status === "finished")
-    .sort((firstMatch, secondMatch) => secondMatch.round - firstMatch.round)
+    .sort((firstMatch, secondMatch) => {
+      const timeDiff = getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch)
 
-  if (!player) {
+      if (timeDiff !== 0) {
+        return timeDiff
+      }
+
+      if (secondMatch.seasonId !== firstMatch.seasonId) {
+        return secondMatch.seasonId.localeCompare(firstMatch.seasonId)
+      }
+
+      return secondMatch.round - firstMatch.round
+    })
+
+  if (!player || !selectedStats || !selectedScope) {
     return (
       <div className="space-y-5">
         <header className="pt-2">
@@ -60,7 +145,7 @@ export default function ProfilePage() {
     <div className="space-y-5">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {activeSeason.name}
+          {activeLeague.name} · {selectedScope.label}
         </p>
 
         <div className="mt-3 flex items-center gap-3">
@@ -76,16 +161,24 @@ export default function ProfilePage() {
         </p>
       </header>
 
+      <PlayerSeasonScopeSelector
+        title={t.playerProfile.scopeSelectorTitle}
+        description={t.playerProfile.scopeSelectorDescription}
+        value={selectedScope.id}
+        scopes={seasonScopes}
+        onChange={setSelectedScopeId}
+      />
+
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           label={t.profile.points}
-          value={player.points}
+          value={selectedStats.points}
           helper={t.common.pointsShort}
         />
 
         <StatCard
           label={t.ranking.gamesDiff}
-          value={`${player.gamesDiff > 0 ? "+" : ""}${player.gamesDiff}`}
+          value={`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
           helper={t.ranking.diff}
         />
       </div>
@@ -93,20 +186,21 @@ export default function ProfilePage() {
       <PlayerStatsPanel
         playerId={player.id}
         leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        players={players}
+        seasonId={selectedSeasonIds[0] ?? activeSeason.id}
+        seasonIds={selectedSeasonIds}
+        scopeLabel={selectedScope.label}
+        players={selectedPlayers}
         matches={playerMatches}
-        seasonMatches={matches}
+        seasonMatches={selectedMatches}
       />
 
-
-      {!isSeasonClosed ? (
+      {showNextMatch ? (
         <PlayerMatchesList
           playerId={player.id}
           title={t.profile.nextMatch}
           matches={nextMatches}
-          players={players}
-          seasonMatches={matches}
+          players={selectedPlayers}
+          seasonMatches={selectedMatches}
           limit={1}
           emptyMessage={t.profile.noUpcomingMatches}
         />
@@ -116,8 +210,8 @@ export default function ProfilePage() {
         playerId={player.id}
         title={t.profile.recentResults}
         matches={recentFinishedMatches}
-        players={players}
-        seasonMatches={matches}
+        players={selectedPlayers}
+        seasonMatches={selectedMatches}
         limit={3}
         emptyMessage={t.profile.noRecentResults}
       />

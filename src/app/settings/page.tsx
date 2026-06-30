@@ -198,6 +198,22 @@ export default function SettingsPage() {
         </div>
       </AppCard>
 
+
+      <Link href="/help" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">{t.settings.helpTitle}</p>
+              <p className="mt-2 text-sm text-neutral-500">
+                {t.settings.helpDescription}
+              </p>
+            </div>
+
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
       {hasMultipleLeagues ? (
         <AppCard>
           <p className="font-bold">{t.settings.leagueTitle}</p>

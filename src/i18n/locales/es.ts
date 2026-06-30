@@ -302,7 +302,10 @@ export const es = {
     backToRanking: "← Volver al ranking",
     notFound: "Jugador no encontrado",
     description:
-      "Estadísticas públicas del jugador dentro de la temporada activa.",
+      "Estadísticas públicas del jugador dentro de la temporada seleccionada.",
+    scopeSelectorTitle: "Temporada",
+    scopeSelectorDescription:
+      "Elige una temporada concreta o consulta el total histórico del jugador.",
     seasonStats: "Estadísticas de temporada",
     playerMatches: "Partidos del jugador",
     futureTitle: "Historial y tendencias",
@@ -327,6 +330,30 @@ export const es = {
     toughestRound: "Jornada más dura",
   },
 
+  help: {
+    title: "Ayuda y conceptos básicos",
+    description:
+      "Una guía rápida para jugadores nuevos de la liga.",
+    starPointsTitle: "Star Points",
+    starPointsDescription:
+      "El Star Point es un punto decisivo que se juega cuando un juego llega a 40-40. En vez de seguir con ventajas, se juega un único punto: quien gana ese punto, gana el juego.",
+    starPointsTip:
+      "Antes de sacar, la pareja que resta elige el lado en el que quiere recibir. Después se juega el punto normal y el resultado se apunta como cualquier otro juego.",
+    tieBreakTitle: "Tie-breaks",
+    tieBreakDescription:
+      "El tie-break se juega cuando un set llega a 6-6. Gana el primer lado que llegue a 7 puntos con diferencia mínima de 2 puntos. Si queda 6-6 en el tie-break, se continúa hasta que alguien saque dos puntos de ventaja.",
+    tieBreakTip:
+      "En el resultado del set se registra como 7-6 para la pareja que gana el tie-break. No hace falta guardar el detalle de puntos del tie-break en la app.",
+    threeSetsTitle: "Por qué se juegan siempre 3 sets",
+    threeSetsDescription:
+      "En esta liga se juegan los 3 sets de forma obligatoria para que todos los partidos repartan la misma cantidad de sets y oportunidades. Así la clasificación individual es más justa: una pareja puede perder el partido, pero seguir peleando el tercer set para sumar puntos, mejorar diferencia de juegos y mantener emoción hasta el final.",
+    threeSetsBalance:
+      "Este formato reduce el peso de un mal set, premia la regularidad y hace que cada jornada aporte información comparable al ranking, porque todos los jugadores compiten por el mismo volumen de sets y juegos.",
+    futureTitle: "Más adelante",
+    futureDescription:
+      "Esta sección podrá ampliarse con más reglas, dudas frecuentes y conceptos para nuevos jugadores.",
+  },
+
   leagues: {
     activeLeague: "Liga activa",
   },
@@ -334,6 +361,9 @@ export const es = {
   settings: {
     title: "Ajustes",
     description: "Gestiona tus preferencias de la aplicación.",
+    helpTitle: "Ayuda y conceptos básicos",
+    helpDescription:
+      "Consulta cómo funcionan Star Points, tie-breaks y el formato de 3 sets.",
     backToProfile: "← Volver al perfil",
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",

@@ -340,36 +340,47 @@ export function getPlayerVotesReceived({
 export function getPlayerMvpSummary({
   leagueId,
   seasonId,
+  seasonIds,
   matches,
   playerId,
 }: {
   votes?: MvpVote[]
   manualSelections?: MvpManualSelection[]
   leagueId: string
-  seasonId: string
+  seasonId?: string
+  seasonIds?: string[]
   matches: MvpMatch[]
   playerId: string
 }): PlayerMvpSummary {
-  const roundMvpRounds = getCompletedRoundNumbers(matches, leagueId, seasonId).filter((round) => {
-    const roundMvp = getRoundMvpSelection({
+  const scopedSeasonIds = seasonIds ?? (seasonId ? [seasonId] : [])
+
+  const roundMvpRounds = scopedSeasonIds.flatMap((scopedSeasonId) =>
+    getCompletedRoundNumbers(matches, leagueId, scopedSeasonId)
+      .filter((round) => {
+        const roundMvp = getRoundMvpSelection({
+          leagueId,
+          seasonId: scopedSeasonId,
+          round,
+          matches,
+        })
+
+        return roundMvp?.playerIds.includes(playerId)
+      })
+  )
+  const seasonMvpCount = scopedSeasonIds.filter((scopedSeasonId) => {
+    const seasonMvp = getSeasonMvpSelection({
       leagueId,
-      seasonId,
-      round,
+      seasonId: scopedSeasonId,
       matches,
     })
 
-    return roundMvp?.playerIds.includes(playerId)
-  })
-  const seasonMvp = getSeasonMvpSelection({
-    leagueId,
-    seasonId,
-    matches,
-  })
+    return seasonMvp?.playerIds.includes(playerId)
+  }).length
 
   return {
     roundMvpCount: roundMvpRounds.length,
     roundMvpRounds,
-    seasonMvpCount: seasonMvp?.playerIds.includes(playerId) ? 1 : 0,
+    seasonMvpCount,
     votesReceived: 0,
   }
 }

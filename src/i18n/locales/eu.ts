@@ -299,7 +299,10 @@ export const eu = {
   playerProfile: {
     backToRanking: "← Rankingera itzuli",
     notFound: "Jokalaria ez da aurkitu",
-    description: "Jokalariaren estatistika publikoak denboraldi aktiboan.",
+    description: "Jokalariaren estatistika publikoak hautatutako denboraldian.",
+    scopeSelectorTitle: "Denboraldia",
+    scopeSelectorDescription:
+      "Aukeratu denboraldi bat edo ikusi jokalariaren historial osoa.",
     seasonStats: "Denboraldiko estatistikak",
     playerMatches: "Jokalariaren partidak",
     futureTitle: "Historiala eta joerak",
@@ -324,6 +327,29 @@ export const eu = {
     toughestRound: "Jardunaldirik zailena",
   },
 
+  help: {
+    title: "Laguntza eta oinarrizko kontzeptuak",
+    description: "Ligako jokalari berrientzako gida azkarra.",
+    starPointsTitle: "Star Points",
+    starPointsDescription:
+      "Star Point 40-40 dagoenean jokatzen den puntu erabakigarria da. Abantailarik gabe, puntu bakarra jokatzen da: puntua irabazten duenak jokoa irabazten du.",
+    starPointsTip:
+      "Sakearen aurretik, errestatzen duen bikoteak zein aldetan jaso nahi duen aukeratzen du. Ondoren puntua normaltasunez jokatzen da.",
+    tieBreakTitle: "Tie-breakak",
+    tieBreakDescription:
+      "Tie-breaka seta 6-6 dagoenean jokatzen da. 7 puntura lehen iristen denak irabazten du, gutxienez 2 puntuko aldearekin. 6-6 badago tie-breakean, bi puntuko aldea lortu arte jarraitzen da.",
+    tieBreakTip:
+      "Setaren emaitza 7-6 bezala gordetzen da tie-breaka irabazi duen bikotearentzat. Ez da beharrezkoa tie-breakeko puntu guztiak aplikazioan gordetzea.",
+    threeSetsTitle: "Zergatik jokatzen dira beti 3 set",
+    threeSetsDescription:
+      "Liga honetan 3 setak nahitaez jokatzen dira partida guztiek set eta aukera kopuru bera izan dezaten. Horrela sailkapen indibiduala bidezkoagoa da: bikote batek partida galdu arren, hirugarren seta borrokatu dezake puntuak lortzeko, jokoen diferentzia hobetzeko eta emozioa bukaerara arte mantentzeko.",
+    threeSetsBalance:
+      "Formatu honek set txar baten eragina murrizten du, erregulartasuna saritzen du eta jardunaldi guztiak alderagarriagoak egiten ditu.",
+    futureTitle: "Aurrerago",
+    futureDescription:
+      "Atal hau arau, galdera eta kontzeptu gehiagorekin zabaldu ahal izango da.",
+  },
+
   leagues: {
     activeLeague: "Liga aktiboa",
   },
@@ -331,6 +357,9 @@ export const eu = {
   settings: {
     title: "Ezarpenak",
     description: "Kudeatu aplikazioaren hobespenak.",
+    helpTitle: "Laguntza eta oinarrizko kontzeptuak",
+    helpDescription:
+      "Ikusi Star Points, tie-breakak eta 3 seteko formatua nola funtzionatzen duten.",
     backToProfile: "← Profilera itzuli",
     profileShortcutDescription:
       "Aldatu liga aktiboa, hizkuntza eta aplikazioaren hobespenak.",

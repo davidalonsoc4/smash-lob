@@ -47,10 +47,6 @@ export function RankingTable({ players }: RankingTableProps) {
 
               <div className="min-w-0">
                 <p className="truncate font-bold">{player.displayName}</p>
-                <p className="text-xs text-neutral-500">
-                  {player.gamesFor} {t.ranking.forShort} ·{" "}
-                  {player.gamesAgainst} {t.ranking.againstShort}
-                </p>
               </div>
             </div>
 
