@@ -21,8 +21,11 @@ export type ActivityEvent = {
   leagueId: string
   seasonId: string | null
   matchId: string | null
+  actorUserId: string | null
   actorEmail: string
   actorDisplayName: string | null
+  actorAvatarUrl: string | null
+  actorAvatarInitials: string | null
   type: ActivityEventType
   title: string
   description: string | null
@@ -31,7 +34,7 @@ export type ActivityEvent = {
 }
 
 const activitySelect =
-  "id,league_id,season_id,match_id,actor_email,actor_display_name,type,title,description,metadata,created_at"
+  "id,league_id,season_id,match_id,actor_user_id,actor_email,actor_display_name,type,title,description,metadata,created_at"
 
 function toActivityEventType(value: unknown): ActivityEventType {
   const type = String(value)
@@ -71,9 +74,16 @@ function mapActivityEvent(row: Record<string, unknown>): ActivityEvent {
     leagueId: String(row.league_id),
     seasonId: typeof row.season_id === "string" ? row.season_id : null,
     matchId: typeof row.match_id === "string" ? row.match_id : null,
+    actorUserId: typeof row.actor_user_id === "string" ? row.actor_user_id : null,
     actorEmail: String(row.actor_email ?? ""),
     actorDisplayName:
       typeof row.actor_display_name === "string" ? row.actor_display_name : null,
+    actorAvatarUrl:
+      typeof row.actor_avatar_url === "string" ? row.actor_avatar_url : null,
+    actorAvatarInitials:
+      typeof row.actor_avatar_initials === "string"
+        ? row.actor_avatar_initials
+        : null,
     type: toActivityEventType(row.type),
     title: String(row.title ?? "Actividad"),
     description: typeof row.description === "string" ? row.description : null,
@@ -103,9 +113,76 @@ export async function fetchSupabaseActivityEvents({
     throw error
   }
 
-  return (data ?? []).map((item) =>
+  const events = (data ?? []).map((item) =>
     mapActivityEvent(item as Record<string, unknown>)
   )
+  const actorUserIds = Array.from(
+    new Set(
+      events
+        .map((event) => event.actorUserId)
+        .filter((actorUserId): actorUserId is string => Boolean(actorUserId))
+    )
+  )
+
+  if (actorUserIds.length === 0) {
+    return events
+  }
+
+  const { data: memberships } = await supabase
+    .from("league_memberships")
+    .select("user_id,player_id")
+    .eq("league_id", leagueId)
+    .in("user_id", actorUserIds)
+
+  const playerIds = Array.from(
+    new Set(
+      (memberships ?? [])
+        .map((membership) => membership.player_id)
+        .filter((playerId): playerId is string => typeof playerId === "string")
+    )
+  )
+
+  if (playerIds.length === 0) {
+    return events
+  }
+
+  const { data: players } = await supabase
+    .from("players")
+    .select("id,avatar_initials,avatar_url")
+    .in("id", playerIds)
+
+  const playerById = new Map(
+    (players ?? []).map((player) => [
+      player.id,
+      {
+        avatarInitials: player.avatar_initials,
+        avatarUrl:
+          typeof player.avatar_url === "string" ? player.avatar_url : null,
+      },
+    ])
+  )
+  const playerIdByUserId = new Map(
+    (memberships ?? [])
+      .filter((membership) => typeof membership.player_id === "string")
+      .map((membership) => [membership.user_id, membership.player_id as string])
+  )
+
+  return events.map((event) => {
+    const playerId = event.actorUserId
+      ? playerIdByUserId.get(event.actorUserId)
+      : null
+    const player = playerId ? playerById.get(playerId) : null
+
+    if (!player) {
+      return event
+    }
+
+    return {
+      ...event,
+      actorAvatarUrl: player.avatarUrl,
+      actorAvatarInitials: player.avatarInitials,
+    }
+  })
 }
 
 export async function recordActivityEvent({

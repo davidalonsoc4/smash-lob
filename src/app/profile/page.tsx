@@ -124,6 +124,7 @@ export default function ProfilePage() {
         playerId={player.id}
         title={t.profile.nextMatch}
         matches={nextMatches}
+        players={players}
         limit={1}
         emptyMessage={t.profile.noUpcomingMatches}
       />
@@ -132,6 +133,7 @@ export default function ProfilePage() {
         playerId={player.id}
         title={t.profile.recentResults}
         matches={recentFinishedMatches}
+        players={players}
         limit={3}
         emptyMessage={t.profile.noRecentResults}
       />

@@ -84,6 +84,97 @@ function toStringArray(value: unknown) {
   return value.filter((item): item is string => typeof item === "string")
 }
 
+
+function toMatchSets(value: unknown) {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map((set) => {
+      if (typeof set !== "object" || set === null) {
+        return null
+      }
+
+      const item = set as Record<string, unknown>
+      const a = Number(item.a)
+      const b = Number(item.b)
+
+      if (!Number.isFinite(a) || !Number.isFinite(b)) {
+        return null
+      }
+
+      return { a, b }
+    })
+    .filter((set): set is { a: number; b: number } => Boolean(set))
+}
+
+function getResultSummaryFromMetadata({
+  pointsA,
+  pointsB,
+  sets,
+}: {
+  pointsA: unknown
+  pointsB: unknown
+  sets: unknown
+}) {
+  const parsedPointsA = Number(pointsA)
+  const parsedPointsB = Number(pointsB)
+  const parsedSets = toMatchSets(sets)
+
+  if (!Number.isFinite(parsedPointsA) || !Number.isFinite(parsedPointsB)) {
+    return null
+  }
+
+  const gamesSummary =
+    parsedSets.length > 0
+      ? parsedSets.map((set) => `${set.a}-${set.b}`).join(", ")
+      : "sin juegos registrados"
+
+  return `Sets ${parsedPointsA}-${parsedPointsB} · Juegos: ${gamesSummary}`
+}
+
+function getActivityDescription(event: ActivityEvent) {
+  const metadata = event.metadata
+  const round =
+    typeof metadata.round === "number" || typeof metadata.round === "string"
+      ? `Jornada ${metadata.round}`
+      : null
+
+  if (event.type === "match_result_updated") {
+    const previousResult = getResultSummaryFromMetadata({
+      pointsA: metadata.previousPointsA,
+      pointsB: metadata.previousPointsB,
+      sets: metadata.previousSets,
+    })
+    const currentResult = getResultSummaryFromMetadata({
+      pointsA: metadata.pointsA,
+      pointsB: metadata.pointsB,
+      sets: metadata.sets,
+    })
+
+    if (previousResult && currentResult) {
+      return [round, `${previousResult} → ${currentResult}`]
+        .filter(Boolean)
+        .join(" · ")
+    }
+  }
+
+  if (event.type === "match_result_saved") {
+    const currentResult = getResultSummaryFromMetadata({
+      pointsA: metadata.pointsA,
+      pointsB: metadata.pointsB,
+      sets: metadata.sets,
+    })
+
+    if (currentResult) {
+      return [round, currentResult].filter(Boolean).join(" · ")
+    }
+  }
+
+  return event.description
+}
+
 function isPersonalEvent({
   event,
   currentUserId,
@@ -285,6 +376,8 @@ export default function ActivityPage() {
                   <ActivityAvatar
                     name={event.actorDisplayName}
                     email={event.actorEmail}
+                    initials={event.actorAvatarInitials}
+                    imageUrl={event.actorAvatarUrl}
                   />
 
                   <div className="min-w-0 flex-1">
@@ -303,9 +396,9 @@ export default function ActivityPage() {
                       </p>
                     </div>
 
-                    {event.description ? (
+                    {getActivityDescription(event) ? (
                       <p className="mt-3 whitespace-pre-line text-sm text-neutral-600">
-                        {event.description}
+                        {getActivityDescription(event)}
                       </p>
                     ) : null}
                   </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -41,11 +42,15 @@ export default function PlayerPage() {
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
-          {player.displayName}
-        </h1>
+        <div className="mt-3 flex items-center gap-3">
+          <PlayerAvatar player={player} size="lg" />
 
-        <p className="mt-1 text-sm text-neutral-500">
+          <h1 className="min-w-0 text-3xl font-black tracking-tight">
+            {player.displayName}
+          </h1>
+        </div>
+
+        <p className="mt-3 text-sm text-neutral-500">
           {t.playerProfile.description}
         </p>
       </header>
