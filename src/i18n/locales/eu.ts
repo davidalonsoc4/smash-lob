@@ -99,6 +99,14 @@ export const eu = {
     settingsLabel: "Ezarpenak",
   },
 
+
+  courtBooking: {
+    expand: "Ikusi erreserba",
+    collapse: "Ezkutatu erreserba",
+    pendingPaymentSingular: "ordainketa pendiente",
+    pendingPaymentPlural: "ordainketa pendiente",
+  },
+
   nav: {
     home: "Hasiera",
     ranking: "Ranking",

@@ -293,7 +293,7 @@ export default function Home() {
         </section>
       ) : null}
 
-      {nextMatch ? (
+      {!isSeasonClosed && nextMatch ? (
         <section>
           <SectionHeader title={t.dashboard.nextMatch} />
 

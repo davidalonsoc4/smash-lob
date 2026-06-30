@@ -94,6 +94,14 @@ export const en = {
     settingsLabel: "Settings",
   },
 
+
+  courtBooking: {
+    expand: "View booking",
+    collapse: "Hide booking",
+    pendingPaymentSingular: "pending payment",
+    pendingPaymentPlural: "pending payments",
+  },
+
   nav: {
     home: "Home",
     ranking: "Ranking",

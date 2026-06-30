@@ -116,7 +116,7 @@ export function AppShell({ children }: AppShellProps) {
         <main
           className="px-4 pt-4"
           style={{
-            paddingBottom: "132px",
+            paddingBottom: "116px",
           }}
         >
           {children}

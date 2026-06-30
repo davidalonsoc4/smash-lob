@@ -99,6 +99,14 @@ export const es = {
     settingsLabel: "Ajustes",
   },
 
+
+  courtBooking: {
+    expand: "Ver reserva",
+    collapse: "Ocultar reserva",
+    pendingPaymentSingular: "pago pendiente",
+    pendingPaymentPlural: "pagos pendientes",
+  },
+
   nav: {
     home: "Inicio",
     ranking: "Ranking",

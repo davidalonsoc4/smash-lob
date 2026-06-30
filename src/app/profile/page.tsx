@@ -15,6 +15,7 @@ export default function ProfilePage() {
   const { activeLeague, activeSeason, players, matches } =
     useCurrentLeagueData()
 
+  const isSeasonClosed = activeSeason.status === "finished"
   const player = players.find((item) => item.id === currentUserId)
   const playerMatches = matches.filter(
     (match) =>
@@ -120,14 +121,16 @@ export default function ProfilePage() {
         </div>
       </AppCard>
 
-      <PlayerMatchesList
-        playerId={player.id}
-        title={t.profile.nextMatch}
-        matches={nextMatches}
-        players={players}
-        limit={1}
-        emptyMessage={t.profile.noUpcomingMatches}
-      />
+      {!isSeasonClosed ? (
+        <PlayerMatchesList
+          playerId={player.id}
+          title={t.profile.nextMatch}
+          matches={nextMatches}
+          players={players}
+          limit={1}
+          emptyMessage={t.profile.noUpcomingMatches}
+        />
+      ) : null}
 
       <PlayerMatchesList
         playerId={player.id}

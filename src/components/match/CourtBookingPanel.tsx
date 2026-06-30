@@ -8,6 +8,7 @@ import {
   useMatchData,
 } from "@/context/MatchDataProvider"
 import { formatMoney } from "@/lib/courtBooking"
+import { useI18n } from "@/i18n/I18nProvider"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type CourtBookingPanelProps = {
@@ -83,12 +84,14 @@ export function CourtBookingPanel({
   canManage,
   booking,
 }: CourtBookingPanelProps) {
+  const { t } = useI18n()
   const { updateCourtBooking, clearCourtBooking, markCourtBookingTransferAsPaid } =
     useMatchData()
   const participantIds = useMemo(
     () => Array.from(new Set([...teamA, ...teamB])),
     [teamA, teamB]
   )
+  const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(!booking.isReserved && canManage)
   const [reservationInputs, setReservationInputs] = useState(() =>
     getInitialReservationInputs({
@@ -111,6 +114,13 @@ export function CourtBookingPanel({
   const pendingCurrentUserTransfers = currentUserTransfers.filter(
     (transfer) => !transfer.isPaid
   )
+  const totalReservedAmount = booking.reservations.reduce(
+    (sum, reservation) => sum + reservation.amount,
+    0
+  )
+  const pendingTransfersCount = booking.transfers.filter(
+    (transfer) => !transfer.isPaid
+  ).length
 
   function updateReservationAmount(playerId: string, amount: string) {
     setReservationInputs((currentInputs) =>
@@ -203,25 +213,40 @@ export function CourtBookingPanel({
   return (
     <AppCard>
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="font-bold">Reserva de pista</p>
           <p className="mt-1 text-sm text-neutral-500">
             Controla quién ha reservado/pagado la pista y qué transferencias quedan pendientes.
           </p>
+          {booking.isReserved ? (
+            <p className="mt-2 text-xs font-bold text-neutral-500">
+              {formatMoney(totalReservedAmount)} · {pendingTransfersCount} {pendingTransfersCount === 1 ? t.courtBooking.pendingPaymentSingular : t.courtBooking.pendingPaymentPlural}
+            </p>
+          ) : null}
         </div>
 
-        {booking.isReserved ? (
-          <span className="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
-            Pista reservada
-          </span>
-        ) : (
-          <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-            Sin reserva
-          </span>
-        )}
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          {booking.isReserved ? (
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+              Pista reservada
+            </span>
+          ) : (
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+              Sin reserva
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsExpanded((currentValue) => !currentValue)}
+            className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 transition active:bg-neutral-200"
+          >
+            {isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}
+          </button>
+        </div>
       </div>
 
-      {!isEditing && booking.isReserved ? (
+      {isExpanded && !isEditing && booking.isReserved ? (
         <div className="mt-5 space-y-4">
           <div className="rounded-2xl bg-neutral-100 p-4 text-sm">
             <p className="font-black">
@@ -339,7 +364,7 @@ export function CourtBookingPanel({
         </div>
       ) : null}
 
-      {isEditing && canManage ? (
+      {isExpanded && isEditing && canManage ? (
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div className="rounded-2xl bg-neutral-100 p-4 text-sm">
             <p className="font-black">Importe pagado por cada jugador</p>
