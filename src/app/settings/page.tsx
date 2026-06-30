@@ -6,7 +6,6 @@ import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { LeagueSwitcher } from "@/components/league/LeagueSwitcher"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { LocalDataMaintenanceCard } from "@/components/settings/LocalDataMaintenanceCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -118,6 +117,9 @@ function AccountAvatarSettings() {
             {currentUser.displayName}
           </p>
           <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+            {session?.user?.email ?? t.settings.accountDescription}
+          </p>
+          <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-400">
             {avatarUrl ? t.settings.avatarCustomActive : t.settings.avatarInitialsFallback}
           </p>
         </div>
@@ -160,15 +162,13 @@ function AccountAvatarSettings() {
 
 export default function SettingsPage() {
   const { t } = useI18n()
-  const { data: session } = useSession()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const { isLeagueAdmin, isLeagueCreator, userLeagues } = useLeagueAccess()
+  const { isLeagueAdmin, userLeagues } = useLeagueAccess()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
-  const canMaintainLocalData = isLeagueCreator(activeLeague.id)
   const hasMultipleLeagues = userLeagues.length > 1
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <header className="pt-2">
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
@@ -186,9 +186,7 @@ export default function SettingsPage() {
       </header>
 
       <AppCard>
-        <p className="font-bold">{t.settings.languageTitle}</p>
-
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold">{t.settings.language}</p>
             <p className="mt-1 text-xs text-neutral-500">
@@ -211,7 +209,7 @@ export default function SettingsPage() {
       ) : null}
 
       {canAccessAdmin ? (
-        <Link href="/admin">
+        <Link href="/admin" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -228,19 +226,11 @@ export default function SettingsPage() {
       ) : null}
 
       <AppCard>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-bold">{t.settings.accountTitle}</p>
-            {session?.user?.email ? (
-              <p className="mt-1 truncate text-xs font-semibold text-neutral-500">
-                {session.user.email}
-              </p>
-            ) : (
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {t.settings.accountDescription}
-              </p>
-            )}
-          </div>
+        <div className="min-w-0">
+          <p className="font-bold">{t.settings.accountTitle}</p>
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
+            {t.settings.accountDescription}
+          </p>
         </div>
 
         <AccountAvatarSettings />
@@ -262,7 +252,6 @@ export default function SettingsPage() {
         </div>
       </AppCard>
 
-      {canMaintainLocalData ? <LocalDataMaintenanceCard /> : null}
 
       <button
         type="button"

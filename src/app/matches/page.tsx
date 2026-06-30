@@ -78,7 +78,7 @@ export default function MatchesPage() {
         </AppCard>
       ) : null}
 
-      <div className="space-y-6">
+      <div className="space-y-7">
         {rounds.map((round) => {
           const roundMatches = matches.filter(
             (match) => match.round === round.round
@@ -91,7 +91,7 @@ export default function MatchesPage() {
           }
 
           return (
-            <section key={round.id} className="space-y-3">
+            <section key={round.id} className="space-y-4">
               <div>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-black">{round.name}</h2>
@@ -110,7 +110,7 @@ export default function MatchesPage() {
                 ) : null}
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {roundMatches.map((match) => (
                   <MatchCard
                     key={match.id}
