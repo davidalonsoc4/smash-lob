@@ -38,31 +38,22 @@ export default function SettingsPage() {
         </p>
       </header>
 
-      <AppCard>
-        <p className="font-bold">{t.settings.leagueTitle}</p>
+      <Link
+        href="/league/new"
+        className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+      >
+        {t.settings.createNewLeague}
+      </Link>
 
-        {hasMultipleLeagues ? (
+      {hasMultipleLeagues ? (
+        <AppCard>
+          <p className="font-bold">{t.settings.leagueTitle}</p>
+
           <div className="mt-4">
             <LeagueSwitcher />
           </div>
-        ) : (
-          <div className="mt-4 rounded-2xl bg-neutral-100 p-4">
-            <p className="text-xs font-semibold text-neutral-500">
-              Liga activa
-            </p>
-            <p className="mt-1 text-sm font-black text-neutral-950">
-              {activeLeague.name}
-            </p>
-          </div>
-        )}
-
-        <Link
-          href="/league/new"
-          className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-        >
-          {t.settings.createNewLeague}
-        </Link>
-      </AppCard>
+        </AppCard>
+      ) : null}
 
       <AppCard>
         <p className="font-bold">{t.settings.languageTitle}</p>

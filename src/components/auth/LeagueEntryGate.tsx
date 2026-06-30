@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 type LeagueEntryGateProps = {
   children: ReactNode
@@ -30,7 +31,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   function handleJoinSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const normalizedInviteCode = inviteCode.trim().toUpperCase()
+    const normalizedInviteCode = normalizeInviteCode(inviteCode)
 
     if (!normalizedInviteCode) {
       setError(t.invites.invalidCode)

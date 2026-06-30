@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
 type FloatingInviteShareButtonProps = {
   inviteCode: string
@@ -34,20 +35,6 @@ function ShareIcon() {
   )
 }
 
-function getAppBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "")
-
-  if (configuredUrl) {
-    return configuredUrl
-  }
-
-  if (typeof window !== "undefined") {
-    return window.location.origin
-  }
-
-  return "https://smash-lob.vercel.app"
-}
-
 export function FloatingInviteShareButton({
   inviteCode,
   leagueName,
@@ -56,7 +43,7 @@ export function FloatingInviteShareButton({
 }: FloatingInviteShareButtonProps) {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const inviteUrl = `${getAppBaseUrl()}/invite/${encodeURIComponent(inviteCode)}`
+  const inviteUrl = getPublicInviteUrl(inviteCode)
   const title = `Invitación a ${leagueName}`
   const text = `Únete a ${leagueName} en Smash & Lob. Quedan ${unclaimedCount} jugador${
     unclaimedCount === 1 ? "" : "es"

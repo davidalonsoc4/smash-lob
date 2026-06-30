@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useI18n } from "@/i18n/I18nProvider"
+import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 export default function ManualInvitePage() {
   const { t } = useI18n()
@@ -15,7 +16,7 @@ export default function ManualInvitePage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const normalizedInviteCode = inviteCode.trim().toUpperCase()
+    const normalizedInviteCode = normalizeInviteCode(inviteCode)
 
     if (!normalizedInviteCode) {
       setError(t.invites.invalidCode)

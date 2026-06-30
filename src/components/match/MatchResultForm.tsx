@@ -4,7 +4,6 @@ import { FormEvent, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getTeamDisplayName } from "@/lib/players"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type MatchResultFormProps = {
@@ -91,6 +90,39 @@ function getInitialSetInputs(initialSets?: { a: number; b: number }[]) {
       b: String(initialSet.b),
     }
   })
+}
+
+function getPlayerDisplayName(playerId: string, players?: PlayerProfile[]) {
+  return players?.find((player) => player.id === playerId)?.displayName ?? playerId
+}
+
+function TeamNameStack({
+  label,
+  team,
+  players,
+}: {
+  label: string
+  team: string[]
+  players?: PlayerProfile[]
+}) {
+  return (
+    <div className="rounded-2xl bg-white p-3 shadow-sm">
+      <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+        {label}
+      </p>
+      <div className="mt-2 space-y-1">
+        {team.map((playerId) => (
+          <p
+            key={playerId}
+            className="truncate text-sm font-black text-neutral-950"
+            title={getPlayerDisplayName(playerId, players)}
+          >
+            {getPlayerDisplayName(playerId, players)}
+          </p>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function MatchResultForm({
@@ -187,74 +219,77 @@ export function MatchResultForm({
           </p>
         </div>
 
-        <div className="mt-5 rounded-2xl bg-neutral-100 p-3 text-sm">
-          <div className="grid grid-cols-[minmax(0,1fr)_repeat(3,minmax(48px,58px))_34px] items-center gap-2">
-            <div />
+        <div className="mt-5 rounded-3xl bg-neutral-100 p-3">
+          <div className="grid grid-cols-2 gap-2">
+            <TeamNameStack label="Pareja A" team={teamA} players={players} />
+            <TeamNameStack label="Pareja B" team={teamB} players={players} />
+          </div>
 
-            {sets.map((set, index) => (
-              <p
-                key={index}
-                className="text-center text-[10px] font-black uppercase text-neutral-500"
-              >
-                {t.matchResult.set} {index + 1}
+          <div className="mt-4 rounded-2xl bg-white p-3 shadow-sm">
+            <div className="grid grid-cols-[50px_repeat(3,minmax(46px,1fr))_42px] items-center gap-2">
+              <div />
+
+              {sets.map((set, index) => (
+                <p
+                  key={index}
+                  className="text-center text-[10px] font-black uppercase text-neutral-500"
+                >
+                  {t.matchResult.set} {index + 1}
+                </p>
+              ))}
+
+              <p className="text-center text-[10px] font-black uppercase text-neutral-500">
+                {t.common.pointsShort}
               </p>
-            ))}
 
-            <p className="text-center text-[10px] font-black uppercase text-neutral-500">
-              {t.common.pointsShort}
-            </p>
+              <p className="text-xs font-black text-neutral-500">A</p>
 
-            <p className="truncate pr-1 text-xs font-black">
-              {getTeamDisplayName(teamA, players)}
-            </p>
+              {sets.map((set, index) => (
+                <label key={index}>
+                  <span className="sr-only">
+                    {t.matchResult.teamA} {t.matchResult.set} {index + 1}
+                  </span>
 
-            {sets.map((set, index) => (
-              <label key={index}>
-                <span className="sr-only">
-                  {t.matchResult.teamA} {t.matchResult.set} {index + 1}
-                </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={7}
+                    value={set.a}
+                    disabled={isSaving}
+                    onChange={(event) =>
+                      updateSet(index, "a", event.target.value)
+                    }
+                    className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
+                  />
+                </label>
+              ))}
 
-                <input
-                  type="number"
-                  min={0}
-                  max={7}
-                  value={set.a}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    updateSet(index, "a", event.target.value)
-                  }
-                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
-                />
-              </label>
-            ))}
+              <p className="text-center text-lg font-black">{pointsA}</p>
 
-            <p className="text-center text-lg font-black">{pointsA}</p>
+              <p className="text-xs font-black text-neutral-500">B</p>
 
-            <p className="truncate pr-1 text-xs font-black">
-              {getTeamDisplayName(teamB, players)}
-            </p>
+              {sets.map((set, index) => (
+                <label key={index}>
+                  <span className="sr-only">
+                    {t.matchResult.teamB} {t.matchResult.set} {index + 1}
+                  </span>
 
-            {sets.map((set, index) => (
-              <label key={index}>
-                <span className="sr-only">
-                  {t.matchResult.teamB} {t.matchResult.set} {index + 1}
-                </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={7}
+                    value={set.b}
+                    disabled={isSaving}
+                    onChange={(event) =>
+                      updateSet(index, "b", event.target.value)
+                    }
+                    className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
+                  />
+                </label>
+              ))}
 
-                <input
-                  type="number"
-                  min={0}
-                  max={7}
-                  value={set.b}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    updateSet(index, "b", event.target.value)
-                  }
-                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
-                />
-              </label>
-            ))}
-
-            <p className="text-center text-lg font-black">{pointsB}</p>
+              <p className="text-center text-lg font-black">{pointsB}</p>
+            </div>
           </div>
         </div>
 

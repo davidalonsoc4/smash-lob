@@ -7,6 +7,7 @@ import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { League } from "@/data/fakeData"
+import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 type InviteFlowProps = {
   code: string
@@ -14,6 +15,7 @@ type InviteFlowProps = {
 
 export function InviteFlow({ code }: InviteFlowProps) {
   const { t } = useI18n()
+  const normalizedCode = normalizeInviteCode(code)
   const router = useRouter()
   const { setActiveLeagueId } = useActiveLeague()
   const {
@@ -24,7 +26,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
     claimPlayer,
   } = useLeagueAccess()
   const [league, setLeague] = useState<League | null>(() =>
-    getLeagueByInviteCode(code)
+    getLeagueByInviteCode(normalizedCode)
   )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +36,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
   useEffect(() => {
     let isMounted = true
 
-    resolveLeagueInvite(code).then((resolvedLeague) => {
+    resolveLeagueInvite(normalizedCode).then((resolvedLeague) => {
       if (!isMounted) {
         return
       }
@@ -46,7 +48,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
     return () => {
       isMounted = false
     }
-  }, [code, resolveLeagueInvite])
+  }, [normalizedCode, resolveLeagueInvite])
 
   if (isLoading) {
     return (

@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation"
 import { useState } from "react"
+import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
@@ -153,6 +154,19 @@ export default function MatchDetailPage() {
         roundEndsAt={round?.endsAt ?? null}
         canManage={canManageMatch}
       />
+
+      {match.status === "scheduled" && match.scheduledAt ? (
+        <AddToCalendarButton
+          leagueName={activeLeague.name}
+          seasonName={activeSeason.name}
+          round={match.round}
+          teamA={match.teamA}
+          teamB={match.teamB}
+          players={players}
+          scheduledAt={match.scheduledAt}
+          location={match.location}
+        />
+      ) : null}
 
       {canEnterResult ? (
         <MatchResultForm
