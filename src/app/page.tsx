@@ -140,12 +140,6 @@ export default function Home() {
                 </div>
               </div>
 
-              <p className="mt-4 text-sm leading-relaxed text-neutral-600">
-                {t.dashboard.closedSeasonHistoricalDescription.replace(
-                  "{seasonName}",
-                  activeSeason.name
-                )}
-              </p>
 
               {canManageSeason ? (
                 <Link
@@ -160,12 +154,6 @@ export default function Home() {
         ) : (
           <AppCard>
             <p className="font-bold text-neutral-950">{t.dashboard.closedSeasonTitle}</p>
-            <p className="mt-2 text-sm text-neutral-500">
-              {t.dashboard.closedSeasonHistoricalDescription.replace(
-                "{seasonName}",
-                activeSeason.name
-              )}
-            </p>
             {canManageSeason ? (
               <Link
                 href="/admin/season"

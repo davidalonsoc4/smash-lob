@@ -103,59 +103,54 @@ function AccountAvatarSettings() {
   }
 
   return (
-    <div className="mt-5 rounded-2xl bg-neutral-100 p-4">
-      <p className="font-bold">{t.settings.accountSettingsTitle}</p>
-      <p className="mt-1 text-xs text-neutral-500">
-        {t.settings.accountSettingsDescription}
-      </p>
-
-      <div className="mt-4 flex items-center gap-4">
+    <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="flex items-center gap-3">
         <PlayerAvatar
           player={{
             ...currentUser,
             avatarUrl,
           }}
-          size="lg"
+          size="md"
         />
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-black">
+          <p className="truncate text-sm font-black text-neutral-950">
             {currentUser.displayName}
           </p>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
             {avatarUrl ? t.settings.avatarCustomActive : t.settings.avatarInitialsFallback}
           </p>
         </div>
       </div>
 
-      <label className="mt-4 block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-black text-neutral-800">
-        {isSaving ? t.common.saving : t.settings.uploadAvatar}
-        <input
-          type="file"
-          accept="image/*"
-          disabled={isSaving}
-          onChange={handleFileChange}
-          className="sr-only"
-        />
-      </label>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <label className="block rounded-2xl bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-800 shadow-sm">
+          {isSaving ? t.common.saving : t.settings.uploadAvatar}
+          <input
+            type="file"
+            accept="image/*"
+            disabled={isSaving}
+            onChange={handleFileChange}
+            className="sr-only"
+          />
+        </label>
 
-      {avatarUrl ? (
         <button
           type="button"
           onClick={() => saveAvatar(null)}
-          disabled={isSaving}
-          className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+          disabled={isSaving || !avatarUrl}
+          className="rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-300"
         >
           {t.settings.removeAvatar}
         </button>
-      ) : null}
+      </div>
 
       {error ? (
-        <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>
+        <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>
       ) : null}
 
       {saved ? (
-        <p className="mt-3 text-xs font-semibold text-neutral-600">
+        <p className="mt-2 text-xs font-semibold text-neutral-600">
           {t.settings.avatarSaved}
         </p>
       ) : null}
@@ -233,25 +228,24 @@ export default function SettingsPage() {
       ) : null}
 
       <AppCard>
-        <p className="font-bold">{t.settings.accountTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          {t.settings.accountDescription}
-        </p>
-
-        {session?.user?.email ? (
-          <div className="mt-4 rounded-2xl bg-neutral-100 p-4">
-            <p className="text-xs font-semibold text-neutral-500">
-              {t.settings.connectedEmail}
-            </p>
-            <p className="mt-1 text-sm font-black text-neutral-900">
-              {session.user.email}
-            </p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-bold">{t.settings.accountTitle}</p>
+            {session?.user?.email ? (
+              <p className="mt-1 truncate text-xs font-semibold text-neutral-500">
+                {session.user.email}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                {t.settings.accountDescription}
+              </p>
+            )}
           </div>
-        ) : null}
+        </div>
 
         <AccountAvatarSettings />
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-3 grid gap-2">
           <Link
             href="/invite"
             className="block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"

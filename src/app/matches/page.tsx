@@ -55,22 +55,26 @@ export default function MatchesPage() {
       </header>
 
       {isSeasonClosed ? (
-        <AppCard>
-          <p className="font-bold">{t.dashboard.closedSeasonTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
-            {t.matches.closedSeasonHistoricalDescription.replace(
-              "{seasonName}",
-              activeSeason.name
-            )}
-          </p>
-          {canManageSeason ? (
-            <Link
-              href="/admin/season"
-              className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-            >
-              {t.dashboard.createSeason}
-            </Link>
-          ) : null}
+        <AppCard className="border border-neutral-200 bg-neutral-50/80 px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                {t.dashboard.closedSeasonTitle}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-neutral-600">
+                {activeSeason.name}
+              </p>
+            </div>
+
+            {canManageSeason ? (
+              <Link
+                href="/admin/season"
+                className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+              >
+                {t.dashboard.createSeason}
+              </Link>
+            ) : null}
+          </div>
         </AppCard>
       ) : null}
 
