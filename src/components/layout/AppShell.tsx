@@ -13,6 +13,10 @@ type AppShellProps = {
   children: ReactNode
 }
 
+type InviteFloatingControlsProps = {
+  offsetForSettingsButton: boolean
+}
+
 function SettingsIcon() {
   return (
     <svg
@@ -39,41 +43,48 @@ function SettingsIcon() {
   )
 }
 
-export function AppShell({ children }: AppShellProps) {
-  const { t } = useI18n()
-  const pathname = usePathname()
+function InviteFloatingControls({
+  offsetForSettingsButton,
+}: InviteFloatingControlsProps) {
   const { getLeagueInviteCode, isPlayerClaimed } = useLeagueAccess()
   const { activeLeague, players } = useCurrentLeagueData()
-
-  const shouldShowSettingsButton =
-    pathname !== "/settings" &&
-    pathname !== "/league/new" &&
-    !pathname.startsWith("/admin") &&
-    pathname !== "/invite" &&
-    !pathname.startsWith("/invite/")
-  const shouldShowBottomNav =
-    pathname !== "/invite" &&
-    !pathname.startsWith("/invite/") &&
-    pathname !== "/league/new"
   const unclaimedPlayers = players.filter(
     (player) => !isPlayerClaimed(activeLeague.id, player.id)
   )
   const inviteCode = getLeagueInviteCode(activeLeague.id)
-  const shouldShowInviteButton =
-    Boolean(inviteCode) &&
-    unclaimedPlayers.length > 0 &&
-    pathname !== "/league/new" &&
-    pathname !== "/invite" &&
-    !pathname.startsWith("/invite/")
+
+  if (!inviteCode || unclaimedPlayers.length === 0) {
+    return null
+  }
+
+  return (
+    <FloatingInviteShareButton
+      inviteCode={inviteCode}
+      leagueName={activeLeague.name}
+      unclaimedCount={unclaimedPlayers.length}
+      offsetForSettingsButton={offsetForSettingsButton}
+    />
+  )
+}
+
+export function AppShell({ children }: AppShellProps) {
+  const { t } = useI18n()
+  const pathname = usePathname()
+  const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
+  const isNewLeagueRoute = pathname === "/league/new"
+  const shouldShowSettingsButton =
+    pathname !== "/settings" &&
+    !isNewLeagueRoute &&
+    !pathname.startsWith("/admin") &&
+    !isInviteRoute
+  const shouldShowBottomNav = !isInviteRoute && !isNewLeagueRoute
+  const shouldShowInviteButton = !isInviteRoute && !isNewLeagueRoute
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-950">
       <div className="mx-auto min-h-screen max-w-md bg-neutral-50">
         {shouldShowInviteButton ? (
-          <FloatingInviteShareButton
-            inviteCode={inviteCode}
-            leagueName={activeLeague.name}
-            unclaimedCount={unclaimedPlayers.length}
+          <InviteFloatingControls
             offsetForSettingsButton={shouldShowSettingsButton}
           />
         ) : null}
