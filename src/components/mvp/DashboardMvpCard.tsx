@@ -78,16 +78,22 @@ export function DashboardMvpCard({
         matches,
       })
     : null
-  const seasonMvp = getSeasonMvpSelection({
-    leagueId,
-    seasonId,
-    matches,
-  })
+  const seasonMvp = isSeasonClosed
+    ? getSeasonMvpSelection({
+        leagueId,
+        seasonId,
+        matches,
+      })
+    : null
   const latestRoundMvpPlayers = getPlayersByIds(
     players,
     latestRoundMvp?.playerIds ?? []
   )
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
+
+  if (!latestRoundMvp && !seasonMvp) {
+    return null
+  }
 
   return (
     <section>
@@ -95,7 +101,7 @@ export function DashboardMvpCard({
         <div>
           <h2 className="text-lg font-black tracking-tight">MVP</h2>
           <p className="text-sm text-neutral-500">
-            Destacados automáticos de la temporada.
+            Último reconocimiento confirmado.
           </p>
         </div>
 
@@ -110,7 +116,7 @@ export function DashboardMvpCard({
       </div>
 
       <AppCard>
-        <div className="grid grid-cols-2 gap-3">
+        <div className={`grid gap-3 ${isSeasonClosed && seasonMvp ? "grid-cols-2" : "grid-cols-1"}`}>
           <MvpCompactItem
             label="Última jornada"
             players={latestRoundMvpPlayers}
@@ -121,15 +127,17 @@ export function DashboardMvpCard({
             }
           />
 
-          <MvpCompactItem
-            label={isSeasonClosed ? "MVP final" : "MVP temporada"}
-            players={seasonMvpPlayers}
-            helper={
-              seasonMvp
-                ? `${seasonMvp.votes} MVPs de jornada${seasonMvp.tied ? " · empate" : ""}`
-                : "Pendiente"
-            }
-          />
+          {isSeasonClosed ? (
+            <MvpCompactItem
+              label="MVP final"
+              players={seasonMvpPlayers}
+              helper={
+                seasonMvp
+                  ? `${seasonMvp.votes} MVPs de jornada${seasonMvp.tied ? " · empate" : ""}`
+                  : "Pendiente"
+              }
+            />
+          ) : null}
         </div>
       </AppCard>
     </section>

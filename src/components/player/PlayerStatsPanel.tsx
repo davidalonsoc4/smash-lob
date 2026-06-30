@@ -57,6 +57,10 @@ function getTeamGames(match: PlayerStatsMatch, team: "A" | "B") {
 
 function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
   return Array.from(relationStats.values()).sort((a, b) => {
+    const diffA = a.gamesFor - a.gamesAgainst
+    const diffB = b.gamesFor - b.gamesAgainst
+
+    if (diffB !== diffA) return diffB - diffA
     if (b.wins !== a.wins) return b.wins - a.wins
     if (b.matches !== a.matches) return b.matches - a.matches
     return a.playerId.localeCompare(b.playerId)
@@ -188,6 +192,9 @@ export function PlayerStatsPanel({
   const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0
   const gamesDiff = gamesFor - gamesAgainst
   const bestPartner = getBestRelation(partnerStats)
+  const bestPartnerDiff = bestPartner
+    ? bestPartner.gamesFor - bestPartner.gamesAgainst
+    : 0
   const toughestRival = getToughestRival(rivalStats)
   const toughestRivalDiff = toughestRival
     ? toughestRival.gamesFor - toughestRival.gamesAgainst
@@ -275,7 +282,7 @@ export function PlayerStatsPanel({
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
             {bestPartner
-              ? `${bestPartner.wins}-${bestPartner.matches - bestPartner.wins} ${t.playerStats.record}`
+              ? `${formatSignedNumber(bestPartnerDiff)} ${t.ranking.diff}`
               : emptyValue}
           </p>
         </div>
@@ -308,7 +315,7 @@ export function PlayerStatsPanel({
             {bestMatch ? `${t.matches.round} ${bestMatch.round}` : emptyValue}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            {bestMatch ? formatSignedNumber(bestMatch.diff) : emptyValue}
+            {bestMatch ? `${formatSignedNumber(bestMatch.diff)} ${t.ranking.diff}` : emptyValue}
           </p>
         </div>
 
@@ -320,7 +327,7 @@ export function PlayerStatsPanel({
             {toughestMatch ? `${t.matches.round} ${toughestMatch.round}` : emptyValue}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            {toughestMatch ? formatSignedNumber(toughestMatch.diff) : emptyValue}
+            {toughestMatch ? `${formatSignedNumber(toughestMatch.diff)} ${t.ranking.diff}` : emptyValue}
           </p>
         </div>
       </div>
