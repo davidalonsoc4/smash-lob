@@ -10,6 +10,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { APP_VERSION } from "@/lib/appVersion"
 
 export default function SettingsPage() {
   const { t } = useI18n()
@@ -128,6 +129,10 @@ export default function SettingsPage() {
       >
         {t.auth.signOut}
       </button>
+
+      <p className="pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300">
+        Smash & Lob {APP_VERSION}
+      </p>
     </div>
   )
 }
