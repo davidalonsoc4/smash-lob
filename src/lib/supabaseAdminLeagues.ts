@@ -9,6 +9,44 @@ function normalizeLocations(locations: string[]) {
   return Array.from(new Set(cleanLocations))
 }
 
+
+export async function updateSupabaseLeagueDetails({
+  leagueId,
+  name,
+  description,
+}: {
+  leagueId: string
+  name: string
+  description: string
+}) {
+  const cleanName = name.trim()
+  const cleanDescription = description.trim()
+
+  if (!cleanName) {
+    throw new Error("El nombre de la liga no puede estar vacío")
+  }
+
+  const { data, error } = await supabase
+    .from("leagues")
+    .update({
+      name: cleanName,
+      description: cleanDescription,
+    })
+    .eq("id", leagueId)
+    .select("id,name,description")
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return {
+    leagueId: data.id,
+    name: data.name,
+    description: data.description ?? "",
+  }
+}
+
 export async function updateSupabaseLeagueLocations({
   leagueId,
   locations,

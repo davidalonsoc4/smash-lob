@@ -8,9 +8,21 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 
-type AdminLeagueFormProps = {
+type LeagueDetailsFormProps = {
+  leagueId: string
+  initialName: string
+  initialDescription: string
+}
+
+type LeagueLocationsFormProps = {
   leagueId: string
   initialLocations: string[]
+}
+
+type DeleteLeagueCardProps = {
+  leagueId: string
+  leagueName: string
+  onDeleteLeague: (leagueId: string) => Promise<boolean>
 }
 
 function normalizeLocation(value: string) {
@@ -23,12 +35,115 @@ function hasLocation(locations: string[], location: string) {
   )
 }
 
+function LeagueDetailsForm({
+  leagueId,
+  initialName,
+  initialDescription,
+}: LeagueDetailsFormProps) {
+  const { updateLeagueDetails } = useLeagueAccess()
+  const [name, setName] = useState(initialName)
+  const [description, setDescription] = useState(initialDescription)
+  const [saved, setSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  const cleanName = name.trim()
+  const cleanDescription = description.trim()
+  const canSave = cleanName.length > 0 && !isSaving
 
-type DeleteLeagueCardProps = {
-  leagueId: string
-  leagueName: string
-  onDeleteLeague: (leagueId: string) => Promise<boolean>
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!canSave) {
+      return
+    }
+
+    setIsSaving(true)
+    setSaved(false)
+    setError(null)
+
+    const updated = await updateLeagueDetails(leagueId, {
+      name: cleanName,
+      description: cleanDescription,
+    })
+
+    setIsSaving(false)
+
+    if (!updated) {
+      setError(
+        "No se han podido guardar los datos de la liga en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    setSaved(true)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <AppCard>
+        <p className="font-bold">Datos de la liga</p>
+        <p className="mt-2 text-sm text-neutral-500">
+          Edita el nombre y la descripción que ven los jugadores.
+        </p>
+
+        <div className="mt-5 space-y-4">
+          <label className="block">
+            <span className="text-sm font-semibold text-neutral-700">
+              Nombre de la liga
+            </span>
+            <input
+              value={name}
+              disabled={isSaving}
+              onChange={(event) => {
+                setName(event.target.value)
+                setSaved(false)
+                setError(null)
+              }}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-neutral-700">
+              Descripción
+            </span>
+            <textarea
+              value={description}
+              disabled={isSaving}
+              rows={3}
+              onChange={(event) => {
+                setDescription(event.target.value)
+                setSaved(false)
+                setError(null)
+              }}
+              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          disabled={!canSave}
+          className="mt-5 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        >
+          {isSaving ? "Guardando..." : "Guardar datos de liga"}
+        </button>
+
+        {error ? (
+          <p className="mt-3 text-center text-sm font-semibold text-red-600">
+            {error}
+          </p>
+        ) : null}
+
+        {saved ? (
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+            Datos de liga guardados.
+          </p>
+        ) : null}
+      </AppCard>
+    </form>
+  )
 }
 
 function DeleteLeagueCard({
@@ -108,10 +223,10 @@ function DeleteLeagueCard({
   )
 }
 
-function AdminLeagueForm({
+function LeagueLocationsForm({
   leagueId,
   initialLocations,
-}: AdminLeagueFormProps) {
+}: LeagueLocationsFormProps) {
   const { t } = useI18n()
   const { updateLeagueLocations } = useLeagueAccess()
 
@@ -315,8 +430,15 @@ export default function AdminLeaguePage() {
         </p>
       </header>
 
-      <AdminLeagueForm
-        key={activeLeague.id}
+      <LeagueDetailsForm
+        key={`${activeLeague.id}-details`}
+        leagueId={activeLeague.id}
+        initialName={activeLeague.name}
+        initialDescription={activeLeague.description}
+      />
+
+      <LeagueLocationsForm
+        key={`${activeLeague.id}-locations`}
         leagueId={activeLeague.id}
         initialLocations={activeLeague.locations}
       />

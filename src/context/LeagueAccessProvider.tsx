@@ -16,6 +16,7 @@ import { upsertAppUser } from "@/lib/supabaseUsers"
 import {
   deleteSupabaseLeague,
   regenerateSupabaseLeagueInviteCode,
+  updateSupabaseLeagueDetails,
   updateSupabaseLeagueLocations,
 } from "@/lib/supabaseAdminLeagues"
 import {
@@ -61,6 +62,7 @@ type LeagueAccessContextValue = {
   getLeagueInviteCode: (leagueId: string) => string
   isPlayerClaimed: (leagueId: string, playerId: string) => boolean
   regenerateLeagueInviteCode: (leagueId: string) => Promise<string | null>
+  updateLeagueDetails: (leagueId: string, details: { name: string; description: string }) => Promise<boolean>
   updateLeagueLocations: (leagueId: string, locations: string[]) => Promise<boolean>
   deleteLeague: (leagueId: string) => Promise<boolean>
   getLeagueByInviteCode: (code: string) => League | null
@@ -666,6 +668,67 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [inviteCodeOverrides, leagues, userDisplayName, userId]
   )
 
+  const updateLeagueDetails = useCallback(
+    async (leagueId: string, details: { name: string; description: string }) => {
+      const name = details.name.trim()
+      const description = details.description.trim()
+
+      if (!name) {
+        return false
+      }
+
+      if (isSupabaseBackedId(leagueId)) {
+        try {
+          const result = await updateSupabaseLeagueDetails({
+            leagueId,
+            name,
+            description,
+          })
+
+          setLeagues((currentLeagues) => {
+            const nextLeagues = currentLeagues.map((league) =>
+              league.id === result.leagueId
+                ? {
+                    ...league,
+                    name: result.name,
+                    description: result.description,
+                  }
+                : league
+            )
+
+            persistLeagues(nextLeagues)
+
+            return nextLeagues
+          })
+
+          return true
+        } catch (error) {
+          recordSupabaseError("update-league-details", error)
+          return false
+        }
+      }
+
+      setLeagues((currentLeagues) => {
+        const nextLeagues = currentLeagues.map((league) =>
+          league.id === leagueId
+            ? {
+                ...league,
+                name,
+                description,
+              }
+            : league
+        )
+
+        persistLeagues(nextLeagues)
+
+        return nextLeagues
+      })
+
+      return true
+    },
+    []
+  )
+
   const updateLeagueLocations = useCallback(
     async (leagueId: string, locations: string[]) => {
       const normalizedLocations = Array.from(
@@ -946,6 +1009,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       getLeagueInviteCode,
       isPlayerClaimed,
       regenerateLeagueInviteCode,
+      updateLeagueDetails,
       updateLeagueLocations,
       deleteLeague,
       getLeagueByInviteCode,
@@ -967,6 +1031,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       getUnclaimedPlayersForLeague,
       isPlayerClaimed,
       regenerateLeagueInviteCode,
+      updateLeagueDetails,
       updateLeagueLocations,
       resolveLeagueInvite,
       isLeagueAdmin,

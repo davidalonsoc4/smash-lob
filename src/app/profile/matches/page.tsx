@@ -17,8 +17,8 @@ type MatchFilter =
   | "postponed"
 
 const validFilters: MatchFilter[] = [
-  "all",
   "finished",
+  "all",
   "pending",
   "scheduled",
   "scheduling",
@@ -36,12 +36,12 @@ export default function ProfileMatchesPage() {
   const queryFilter = searchParams.get("status")
   const activeFilter = validFilters.includes(queryFilter as MatchFilter)
     ? (queryFilter as MatchFilter)
-    : "all"
+    : "finished"
   const player = players.find((item) => item.id === currentUserId)
 
   const filterOptions: { value: MatchFilter; label: string }[] = [
-    { value: "all", label: t.profile.filterAll },
     { value: "finished", label: t.profile.filterFinished },
+    { value: "all", label: t.profile.filterAll },
     { value: "pending", label: t.profile.filterPending },
     { value: "scheduled", label: t.profile.filterScheduled },
     { value: "scheduling", label: t.profile.filterUnscheduled },

@@ -22,6 +22,10 @@ function LeagueInviteCard({
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const invitePath = `/invite/${encodeURIComponent(inviteCode)}`
+  const appBaseUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    "https://smash-lob.vercel.app"
+  const inviteUrl = `${appBaseUrl}${invitePath}`
 
   async function copyValue(value: string, type: "code" | "link") {
     await navigator.clipboard.writeText(value)
@@ -77,12 +81,12 @@ function LeagueInviteCard({
             {t.adminPanel.inviteLinkLabel}
           </p>
           <p className="mt-1 break-all text-sm font-black text-neutral-950">
-            {invitePath}
+            {inviteUrl}
           </p>
           <button
             type="button"
             onClick={() =>
-              copyValue(`${window.location.origin}${invitePath}`, "link")
+              copyValue(inviteUrl, "link")
             }
             className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-black text-neutral-800 shadow-sm"
           >
