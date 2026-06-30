@@ -3,8 +3,10 @@ import { upsertAppUser } from "@/lib/supabaseUsers"
 
 export type ActivityEventType =
   | "match_scheduled"
+  | "match_schedule_updated"
   | "match_postponed"
   | "match_result_saved"
+  | "match_result_updated"
   | "match_result_cleared"
   | "court_booking_updated"
   | "court_booking_cleared"
@@ -36,8 +38,10 @@ function toActivityEventType(value: unknown): ActivityEventType {
 
   if (
     type === "match_scheduled" ||
+    type === "match_schedule_updated" ||
     type === "match_postponed" ||
     type === "match_result_saved" ||
+    type === "match_result_updated" ||
     type === "match_result_cleared" ||
     type === "court_booking_updated" ||
     type === "court_booking_cleared" ||
@@ -131,10 +135,20 @@ export async function recordActivityEvent({
     return null
   }
 
-  const actor = await upsertAppUser({
-    email: normalizedActorEmail,
-    displayName: actorDisplayName,
-  })
+  let actorUserId: string | null = null
+  let safeActorDisplayName = actorDisplayName ?? normalizedActorEmail
+
+  try {
+    const actor = await upsertAppUser({
+      email: normalizedActorEmail,
+      displayName: actorDisplayName,
+    })
+
+    actorUserId = actor.id
+    safeActorDisplayName = actor.display_name ?? safeActorDisplayName
+  } catch {
+    actorUserId = null
+  }
 
   const { data, error } = await supabase
     .from("activity_events")
@@ -142,10 +156,9 @@ export async function recordActivityEvent({
       league_id: leagueId,
       season_id: seasonId ?? null,
       match_id: matchId ?? null,
-      actor_user_id: actor.id,
+      actor_user_id: actorUserId,
       actor_email: normalizedActorEmail,
-      actor_display_name:
-        actor.display_name ?? actorDisplayName ?? normalizedActorEmail,
+      actor_display_name: safeActorDisplayName,
       type,
       title,
       description: description ?? null,

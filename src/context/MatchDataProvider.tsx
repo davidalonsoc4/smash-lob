@@ -373,7 +373,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
   }, [])
 
   const recordMatchActivity = useCallback(
-    ({
+    async ({
       match,
       type,
       title,
@@ -390,17 +390,21 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         return
       }
 
-      recordActivityEvent({
-        leagueId: match.leagueId,
-        seasonId: match.seasonId,
-        matchId: match.id,
-        actorEmail,
-        actorDisplayName,
-        type,
-        title,
-        description,
-        metadata,
-      }).catch((error) => recordSupabaseError("record-activity", error))
+      try {
+        await recordActivityEvent({
+          leagueId: match.leagueId,
+          seasonId: match.seasonId,
+          matchId: match.id,
+          actorEmail,
+          actorDisplayName,
+          type,
+          title,
+          description,
+          metadata,
+        })
+      } catch (error) {
+        recordSupabaseError("record-activity", error)
+      }
     },
     [actorDisplayName, actorEmail]
   )
@@ -480,10 +484,18 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        recordMatchActivity({
+        const wasAlreadyScheduled = Boolean(
+          currentMatch.scheduledAt || currentMatch.status === "scheduled"
+        )
+
+        await recordMatchActivity({
           match: updatedMatch,
-          type: "match_scheduled",
-          title: "Partido programado",
+          type: wasAlreadyScheduled
+            ? "match_schedule_updated"
+            : "match_scheduled",
+          title: wasAlreadyScheduled
+            ? "Programación modificada"
+            : "Partido programado",
           description: getActivityMatchDescription(
             updatedMatch,
             [updatedMatch.dateLabel, updatedMatch.location]
@@ -491,6 +503,8 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
               .join(" · ")
           ),
           metadata: {
+            previousScheduledAt: currentMatch.scheduledAt,
+            previousLocation: currentMatch.location,
             scheduledAt: updatedMatch.scheduledAt,
             location: updatedMatch.location,
           },
@@ -531,7 +545,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        recordMatchActivity({
+        await recordMatchActivity({
           match: updatedMatch,
           type: "match_postponed",
           title: "Partido aplazado",
@@ -576,15 +590,34 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        recordMatchActivity({
+        const wasAlreadyFinished = Boolean(
+          currentMatch.status === "finished" ||
+            currentMatch.resultRecordedAt ||
+            currentMatch.pointsA !== null ||
+            currentMatch.pointsB !== null ||
+            currentMatch.sets.length > 0
+        )
+        const previousResultSummary = getResultSummary(currentMatch)
+        const currentResultSummary = getResultSummary(updatedMatch)
+
+        await recordMatchActivity({
           match: updatedMatch,
-          type: "match_result_saved",
-          title: "Resultado registrado",
+          type: wasAlreadyFinished
+            ? "match_result_updated"
+            : "match_result_saved",
+          title: wasAlreadyFinished
+            ? "Resultado modificado"
+            : "Resultado registrado",
           description: getActivityMatchDescription(
             updatedMatch,
-            getResultSummary(updatedMatch)
+            wasAlreadyFinished
+              ? `${previousResultSummary} → ${currentResultSummary}`
+              : currentResultSummary
           ),
           metadata: {
+            previousPointsA: currentMatch.pointsA,
+            previousPointsB: currentMatch.pointsB,
+            previousSets: currentMatch.sets,
             pointsA: updatedMatch.pointsA,
             pointsB: updatedMatch.pointsB,
             sets: updatedMatch.sets,
@@ -626,7 +659,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        recordMatchActivity({
+        await recordMatchActivity({
           match: updatedMatch,
           type: "match_result_cleared",
           title: "Resultado limpiado",
@@ -677,7 +710,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        recordMatchActivity({
+        await recordMatchActivity({
           match: updatedMatch,
           type: "court_booking_updated",
           title: "Reserva de pista actualizada",
@@ -731,7 +764,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        recordMatchActivity({
+        await recordMatchActivity({
           match: updatedMatch,
           type: "court_booking_cleared",
           title: "Reserva de pista eliminada",
@@ -785,7 +818,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           (transfer) => transfer.id === transferId
         )
 
-        recordMatchActivity({
+        await recordMatchActivity({
           match: updatedMatch,
           type: "court_booking_payment_paid",
           title: "Pago de pista marcado como pagado",

@@ -32,8 +32,10 @@ function getActorLabel(event: ActivityEvent) {
 function getTypeLabel(type: ActivityEvent["type"]) {
   const labels: Record<ActivityEvent["type"], string> = {
     match_scheduled: "Programación",
+    match_schedule_updated: "Programación",
     match_postponed: "Aplazamiento",
     match_result_saved: "Resultado",
+    match_result_updated: "Resultado",
     match_result_cleared: "Resultado",
     court_booking_updated: "Reserva",
     court_booking_cleared: "Reserva",
@@ -52,6 +54,7 @@ export default function ActivityPage() {
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
   const hasEvents = events.length > 0
 
   useEffect(() => {
@@ -92,7 +95,7 @@ export default function ActivityPage() {
     return () => {
       isMounted = false
     }
-  }, [activeLeague.id])
+  }, [activeLeague.id, refreshKey])
 
   const groupedEvents = useMemo(() => events, [events])
 
@@ -113,7 +116,18 @@ export default function ActivityPage() {
       </header>
 
       <section>
-        <SectionHeader title="Muro de actividad" />
+        <SectionHeader
+          title="Muro de actividad"
+          action={
+            <button
+              type="button"
+              onClick={() => setRefreshKey((current) => current + 1)}
+              className="text-sm font-semibold text-neutral-600"
+            >
+              Actualizar
+            </button>
+          }
+        />
 
         {isLoading ? (
           <AppCard>
@@ -134,7 +148,7 @@ export default function ActivityPage() {
           <AppCard>
             <p className="font-bold">Aún no hay actividad</p>
             <p className="mt-2 text-sm text-neutral-500">
-              Cuando alguien programe un partido, registre un resultado, aplace una jornada o actualice una reserva, aparecerá aquí.
+              Cuando alguien programe un partido, registre o modifique un resultado, aplace una jornada o actualice una reserva, aparecerá aquí.
             </p>
           </AppCard>
         ) : null}
