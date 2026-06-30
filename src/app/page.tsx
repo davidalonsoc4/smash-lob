@@ -57,7 +57,7 @@ export default function Home() {
         </p>
 
         <div className="mt-2 flex items-center gap-3">
-          <LeagueLogo league={activeLeague} size="md" />
+          <LeagueLogo league={activeLeague} size="lg" />
 
           <h1 className="min-w-0 text-3xl font-black tracking-tight">
             {activeLeague.name}
@@ -71,14 +71,11 @@ export default function Home() {
 
       {isSeasonClosed ? (
         leader ? (
-          <AppCard className="relative overflow-hidden bg-neutral-950 p-0 text-white">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10" />
-            <div className="pointer-events-none absolute -bottom-16 -left-10 h-36 w-36 rounded-full bg-white/5" />
-
-            <div className="relative p-4">
-              <div className="flex items-start justify-between gap-3">
+          <AppCard className="overflow-hidden p-0">
+            <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-4 py-3 text-white">
+              <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-neutral-400">
+                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
                     {t.dashboard.closedSeasonTitle}
                   </p>
                   <h2 className="mt-1 text-xl font-black tracking-tight">
@@ -89,55 +86,61 @@ export default function Home() {
                   </h2>
                 </div>
 
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-lg font-black">
-                  1
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-black text-neutral-950">
+                  1º
                 </div>
               </div>
+            </div>
 
-              <div className="mt-4 flex items-center gap-3 rounded-3xl border border-white/10 bg-white/10 p-3 backdrop-blur">
+            <div className="p-4">
+              <div className="flex items-center gap-3">
                 <PlayerAvatar
                   player={leader}
                   size="lg"
-                  className="border-2 border-white bg-white text-neutral-950"
+                  className="border border-neutral-200 bg-white"
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-2xl font-black">
+                  <p className="truncate text-2xl font-black text-neutral-950">
                     {leader.displayName}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-neutral-300">
+                  <p className="mt-1 text-sm font-bold text-neutral-500">
                     {t.dashboard.finalChampion}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-2xl bg-white/10 px-2 py-2">
-                  <p className="text-lg font-black">{leader.points}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2.5">
+                  <p className="text-lg font-black text-neutral-950">
+                    {leader.points}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
                     {t.common.pointsShort}
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-white/10 px-2 py-2">
-                  <p className="text-lg font-black">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2.5">
+                  <p className="text-lg font-black text-neutral-950">
                     {leader.gamesDiff > 0 ? "+" : ""}
                     {leader.gamesDiff}
                   </p>
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
                     {t.ranking.diff}
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-white/10 px-2 py-2">
-                  <p className="text-lg font-black">{leader.gamesFor}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2.5">
+                  <p className="text-lg font-black text-neutral-950">
+                    {leader.gamesFor}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
                     {t.ranking.forShort}
                   </p>
                 </div>
               </div>
 
-              <p className="mt-3 text-xs leading-relaxed text-neutral-400">
+              <p className="mt-4 text-sm leading-relaxed text-neutral-600">
                 {t.dashboard.closedSeasonHistoricalDescription.replace(
                   "{seasonName}",
                   activeSeason.name
@@ -147,7 +150,7 @@ export default function Home() {
               {canManageSeason ? (
                 <Link
                   href="/admin/season"
-                  className="mt-4 block rounded-2xl bg-white px-4 py-3 text-center text-sm font-black text-neutral-950"
+                  className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
                 >
                   {t.dashboard.createSeason}
                 </Link>
@@ -156,7 +159,7 @@ export default function Home() {
           </AppCard>
         ) : (
           <AppCard>
-            <p className="font-bold">{t.dashboard.closedSeasonTitle}</p>
+            <p className="font-bold text-neutral-950">{t.dashboard.closedSeasonTitle}</p>
             <p className="mt-2 text-sm text-neutral-500">
               {t.dashboard.closedSeasonHistoricalDescription.replace(
                 "{seasonName}",
@@ -175,23 +178,25 @@ export default function Home() {
         )
       ) : null}
 
-      <div className={`grid gap-3 ${isSeasonClosed ? "grid-cols-1" : "grid-cols-2"}`}>
-        {!isSeasonClosed && leader ? (
-          <StatCard
-            label={t.dashboard.leader}
-            value={leader.displayName}
-            helper={`${leader.points} ${t.common.pointsShort} · ${
-              leader.gamesDiff > 0 ? "+" : ""
-            }${leader.gamesDiff} ${t.ranking.diff.toLowerCase()}`}
-          />
-        ) : null}
+      {!isSeasonClosed ? (
+        <div className="grid grid-cols-2 gap-3">
+          {leader ? (
+            <StatCard
+              label={t.dashboard.leader}
+              value={leader.displayName}
+              helper={`${leader.points} ${t.common.pointsShort} · ${
+                leader.gamesDiff > 0 ? "+" : ""
+              }${leader.gamesDiff} ${t.ranking.diff.toLowerCase()}`}
+            />
+          ) : null}
 
-        <StatCard
-          label={t.dashboard.rounds}
-          value={`${activeSeason.completedRounds}/${activeSeason.totalRounds}`}
-          helper={t.dashboard.regularLeague}
-        />
-      </div>
+          <StatCard
+            label={t.dashboard.rounds}
+            value={`${activeSeason.completedRounds}/${activeSeason.totalRounds}`}
+            helper={t.dashboard.regularLeague}
+          />
+        </div>
+      ) : null}
 
       <section>
         <SectionHeader

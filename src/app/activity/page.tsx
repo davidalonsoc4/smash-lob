@@ -338,6 +338,7 @@ export default function ActivityPage() {
     () => readLastActivityError()
   )
 
+
   useEffect(() => {
     let isMounted = true
 
@@ -537,67 +538,74 @@ export default function ActivityPage() {
 
       {effectiveScope === "admin" && canAccessAdmin ? (
         <section className="space-y-5">
-          <AppCard>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-bold">{t.activity.notificationSettingsTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  {t.activity.notificationSettingsDescription}
-                </p>
+          <AppCard className="p-0">
+            <div className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-bold text-neutral-950">
+                    {t.activity.notificationSettingsTitle}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-neutral-500">
+                    {areSettingsExpanded
+                      ? t.activity.notificationSettingsDescription
+                      : t.activity.notificationSettingsCollapsedHint}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setAreSettingsExpanded((current) => !current)}
+                  aria-expanded={areSettingsExpanded}
+                  className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+                >
+                  {areSettingsExpanded
+                    ? t.activity.hideNotificationSettings
+                    : t.activity.showNotificationSettings}
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setAreSettingsExpanded((current) => !current)}
-                className="shrink-0 rounded-2xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
-              >
-                {areSettingsExpanded
-                  ? t.activity.hideNotificationSettings
-                  : t.activity.showNotificationSettings}
-              </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
                 <p className="text-lg font-black text-neutral-950">
                   {activitySettingsSummary.activity_only}
                 </p>
                 <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
                   {t.activity.modeActivityOnlyShort}
                 </p>
-              </div>
-              <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+                </div>
+                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
                 <p className="text-lg font-black text-neutral-950">
                   {activitySettingsSummary.personal}
                 </p>
                 <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
                   {t.activity.modePersonalShort}
                 </p>
-              </div>
-              <div className="rounded-2xl bg-neutral-950 p-3 text-center text-white">
+                </div>
+                <div className="rounded-2xl bg-neutral-950 p-3 text-center text-white">
                 <p className="text-lg font-black">
                   {activitySettingsSummary.notify}
                 </p>
                 <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-white/70">
                   {t.activity.modeNotifyShort}
                 </p>
+                </div>
               </div>
+
+              {areSettingsExpanded ? (
+                <p className="mt-3 text-xs font-semibold text-neutral-500">
+                  {t.activity.notificationFutureHint}
+                </p>
+              ) : null}
             </div>
 
-            <p className="mt-3 text-xs font-semibold text-neutral-500">
-              {areSettingsExpanded
-                ? t.activity.notificationFutureHint
-                : t.activity.notificationSettingsCollapsedHint}
-            </p>
-
             {areSettingsExpanded ? (
-              <>
+              <div className="border-t border-neutral-100 p-4">
                 {isSettingsLoading ? (
-                  <p className="mt-4 text-sm font-semibold text-neutral-500">
+                  <p className="text-sm font-semibold text-neutral-500">
                     {t.activity.loading}
                   </p>
                 ) : (
-                  <div className="mt-4 space-y-4">
+                  <div className="space-y-4">
                     <div className="rounded-2xl bg-neutral-100 p-3">
                       <p className="text-sm font-black text-neutral-950">
                         {t.activity.pushPreparationTitle}
@@ -676,16 +684,16 @@ export default function ActivityPage() {
                 >
                   {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
                 </button>
-              </>
+              </div>
             ) : null}
 
             {settingsMessage ? (
-              <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+              <p className="border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-neutral-600">
                 {settingsMessage}
               </p>
             ) : null}
             {settingsError ? (
-              <p className="mt-3 text-center text-sm font-semibold text-red-600">
+              <p className="border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-red-600">
                 {settingsError}
               </p>
             ) : null}
