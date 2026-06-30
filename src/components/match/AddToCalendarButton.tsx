@@ -1,6 +1,5 @@
 "use client"
 
-import { AppCard } from "@/components/ui/AppCard"
 import { getTeamDisplayName } from "@/lib/players"
 import type { PlayerProfile } from "@/data/fakeData"
 
@@ -15,8 +14,45 @@ type AddToCalendarButtonProps = {
   location: string | null
 }
 
-function toGoogleCalendarDate(value: Date) {
-  return value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z")
+const eventDurationMinutes = 120
+const calendarTimeZone = "Europe/Madrid"
+
+function pad(value: number) {
+  return String(value).padStart(2, "0")
+}
+
+function parseScheduleAsLocalDate(value: string) {
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/
+  )
+
+  if (!match) {
+    return null
+  }
+
+  const [, year, month, day, hour, minute, second = "00"] = match
+  const date = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  )
+
+  if (Number.isNaN(date.getTime())) {
+    return null
+  }
+
+  return date
+}
+
+function toGoogleCalendarFloatingDate(value: Date) {
+  return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(
+    value.getDate()
+  )}T${pad(value.getHours())}${pad(value.getMinutes())}${pad(
+    value.getSeconds()
+  )}`
 }
 
 function getGoogleCalendarUrl({
@@ -33,19 +69,22 @@ function getGoogleCalendarUrl({
     return null
   }
 
-  const start = new Date(scheduledAt)
+  const start = parseScheduleAsLocalDate(scheduledAt)
 
-  if (Number.isNaN(start.getTime())) {
+  if (!start) {
     return null
   }
 
-  const end = new Date(start.getTime() + 90 * 60 * 1000)
+  const end = new Date(start.getTime() + eventDurationMinutes * 60 * 1000)
   const teamAName = getTeamDisplayName(teamA, players)
   const teamBName = getTeamDisplayName(teamB, players)
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: `${leagueName}: ${teamAName} vs ${teamBName}`,
-    dates: `${toGoogleCalendarDate(start)}/${toGoogleCalendarDate(end)}`,
+    dates: `${toGoogleCalendarFloatingDate(start)}/${toGoogleCalendarFloatingDate(
+      end
+    )}`,
+    ctz: calendarTimeZone,
     details: `${leagueName} - ${seasonName}\nJornada ${round}\n${teamAName} vs ${teamBName}`,
   })
 
@@ -64,20 +103,13 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
   }
 
   return (
-    <AppCard>
-      <p className="font-bold">Añadir al calendario</p>
-      <p className="mt-2 text-sm text-neutral-500">
-        Crea el evento en Google Calendar con la fecha, hora, ubicación y parejas del partido.
-      </p>
-
-      <a
-        href={calendarUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-      >
-        Añadir a Google Calendar
-      </a>
-    </AppCard>
+    <a
+      href={calendarUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+    >
+      Añadir a Google Calendar
+    </a>
   )
 }

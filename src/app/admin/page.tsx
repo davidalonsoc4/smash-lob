@@ -206,20 +206,6 @@ export default function AdminPage() {
           </AppCard>
         </Link>
 
-        <Link href="/admin/users">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Gestión de usuarios</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  Cambia nombres, convierte usuarios en admin o desvincula cuentas.
-                </p>
-              </div>
-
-              <span className="text-xl">&gt;</span>
-            </div>
-          </AppCard>
-        </Link>
       </div>
 
       <AdminInviteCard leagueId={activeLeague.id} />

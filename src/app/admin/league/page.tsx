@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
+import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -442,6 +443,9 @@ export default function AdminLeaguePage() {
         leagueId={activeLeague.id}
         initialLocations={activeLeague.locations}
       />
+
+
+      <LeagueUsersManagementPanel leagueId={activeLeague.id} />
 
       {canDeleteLeague ? (
         <DeleteLeagueCard

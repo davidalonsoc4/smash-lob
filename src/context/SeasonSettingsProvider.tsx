@@ -652,7 +652,6 @@ export function SeasonSettingsProvider({
     })
   }
 
-
   const updatePlayerProfile = useCallback(
     ({
       playerId,

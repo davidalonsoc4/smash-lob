@@ -153,20 +153,21 @@ export default function MatchDetailPage() {
         roundStartsAt={round?.startsAt ?? null}
         roundEndsAt={round?.endsAt ?? null}
         canManage={canManageMatch}
+        calendarAction={
+          match.status === "scheduled" && match.scheduledAt ? (
+            <AddToCalendarButton
+              leagueName={activeLeague.name}
+              seasonName={activeSeason.name}
+              round={match.round}
+              teamA={match.teamA}
+              teamB={match.teamB}
+              players={players}
+              scheduledAt={match.scheduledAt}
+              location={match.location}
+            />
+          ) : null
+        }
       />
-
-      {match.status === "scheduled" && match.scheduledAt ? (
-        <AddToCalendarButton
-          leagueName={activeLeague.name}
-          seasonName={activeSeason.name}
-          round={match.round}
-          teamA={match.teamA}
-          teamB={match.teamB}
-          players={players}
-          scheduledAt={match.scheduledAt}
-          location={match.location}
-        />
-      ) : null}
 
       {canEnterResult ? (
         <MatchResultForm

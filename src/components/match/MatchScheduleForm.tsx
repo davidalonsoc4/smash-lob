@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useMemo, useState } from "react"
+import { type FormEvent, type ReactNode, useMemo, useState } from "react"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds"
@@ -15,6 +15,7 @@ type MatchScheduleFormProps = {
   roundStartsAt: string | null
   roundEndsAt: string | null
   canManage: boolean
+  calendarAction?: ReactNode
 }
 
 const otherLocationValue = "__other__"
@@ -29,6 +30,7 @@ export function MatchScheduleForm({
   roundStartsAt,
   roundEndsAt,
   canManage,
+  calendarAction,
 }: MatchScheduleFormProps) {
   const { t } = useI18n()
   const { updateMatchSchedule, postponeMatch } = useMatchData()
@@ -245,6 +247,8 @@ export function MatchScheduleForm({
               <p className="mt-1 text-neutral-600">
                 {location ?? t.matches.missingSchedule}
               </p>
+
+              {calendarAction ? calendarAction : null}
             </>
           ) : (
             <>
@@ -260,12 +264,6 @@ export function MatchScheduleForm({
               </p>
             </>
           )}
-
-          {!isFinished ? (
-            <p className="mt-3 text-xs font-semibold text-neutral-500">
-              {t.matchDetail.calendarFutureDescription}
-            </p>
-          ) : null}
         </div>
       ) : null}
 
