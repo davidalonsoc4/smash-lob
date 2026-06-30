@@ -6,6 +6,7 @@ import { AuthSessionProvider } from "@/context/AuthSessionProvider"
 import { CurrentUserProvider } from "@/context/CurrentUserProvider"
 import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
+import { MvpProvider } from "@/context/MvpProvider"
 import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
 import { AppShell } from "@/components/layout/AppShell"
 import { I18nProvider } from "@/i18n/I18nProvider"
@@ -54,13 +55,15 @@ export default function RootLayout({
               <SeasonSettingsProvider>
                 <MatchDataProvider>
                   <LeagueAccessProvider>
-                    <ActiveLeagueProvider>
-                      <CurrentUserProvider>
-                        <LeagueEntryGate>
-                          <AppShell>{children}</AppShell>
-                        </LeagueEntryGate>
-                      </CurrentUserProvider>
-                    </ActiveLeagueProvider>
+                    <MvpProvider>
+                      <ActiveLeagueProvider>
+                        <CurrentUserProvider>
+                          <LeagueEntryGate>
+                            <AppShell>{children}</AppShell>
+                          </LeagueEntryGate>
+                        </CurrentUserProvider>
+                      </ActiveLeagueProvider>
+                    </MvpProvider>
                   </LeagueAccessProvider>
                 </MatchDataProvider>
               </SeasonSettingsProvider>

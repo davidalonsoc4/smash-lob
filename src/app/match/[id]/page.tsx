@@ -7,6 +7,7 @@ import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
+import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -147,6 +148,17 @@ export default function MatchDetailPage() {
         pointsB={match.pointsB}
         sets={match.sets}
       />
+
+      {match.status === "finished" ? (
+        <MvpVotingCard
+          leagueId={activeLeague.id}
+          seasonId={activeSeason.id}
+          round={match.round}
+          currentUserId={currentUserId}
+          players={players}
+          matches={matches}
+        />
+      ) : null}
 
       {hasRoundWindow ? (
         <AppCard>

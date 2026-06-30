@@ -4,6 +4,7 @@ import Link from "next/link"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
+import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { StatCard } from "@/components/ui/StatCard"
@@ -21,6 +22,7 @@ export default function Home() {
     activeLeague,
     activeSeason,
     players,
+    matches,
     lastMatch,
     nextMatch,
   } = useCurrentLeagueData()
@@ -185,6 +187,15 @@ export default function Home() {
           />
         </div>
       ) : null}
+
+      <DashboardMvpCard
+        leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
+        isSeasonClosed={isSeasonClosed}
+        canManage={canManageSeason}
+        players={players}
+        matches={matches}
+      />
 
       <section>
         <SectionHeader

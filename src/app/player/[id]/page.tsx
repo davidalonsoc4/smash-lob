@@ -4,6 +4,7 @@ import { useParams } from "next/navigation"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
+import { PlayerMvpPanel } from "@/components/mvp/PlayerMvpPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { StatCard } from "@/components/ui/StatCard"
@@ -106,6 +107,14 @@ export default function PlayerPage() {
         playerId={player.id}
         players={players}
         matches={matches}
+      />
+
+      <PlayerMvpPanel
+        leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
+        playerId={player.id}
+        matches={matches}
+        players={players}
       />
 
       <PlayerMatchesList

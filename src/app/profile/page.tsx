@@ -4,6 +4,7 @@ import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
+import { PlayerMvpPanel } from "@/components/mvp/PlayerMvpPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -126,6 +127,14 @@ export default function ProfilePage() {
         playerId={player.id}
         players={players}
         matches={playerMatches}
+      />
+
+      <PlayerMvpPanel
+        leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
+        playerId={player.id}
+        matches={matches}
+        players={players}
       />
 
       {!isSeasonClosed ? (
