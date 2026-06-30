@@ -106,6 +106,7 @@ export default function ProfilePage() {
         playerId={player.id}
         matches={matches}
         players={players}
+        isSeasonClosed={isSeasonClosed}
       />
 
       {!isSeasonClosed ? (

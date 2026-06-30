@@ -64,11 +64,14 @@ export default function AdminMvpPage() {
     activeLeague.id,
     activeSeason.id
   )
-  const seasonMvp = getSeasonMvpSelection({
-    leagueId: activeLeague.id,
-    seasonId: activeSeason.id,
-    matches,
-  })
+  const isSeasonClosed = activeSeason.status === "finished"
+  const seasonMvp = isSeasonClosed
+    ? getSeasonMvpSelection({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        matches,
+      })
+    : null
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
 
   if (!canAccessAdmin) {
@@ -105,26 +108,28 @@ export default function AdminMvpPage() {
         </h1>
 
         <p className="mt-1 text-sm text-neutral-500">
-          Consulta los MVPs automáticos de jornada y el MVP final de temporada.
+          Consulta los MVPs automáticos de jornada. El MVP final solo se mostrará cuando la temporada esté cerrada.
         </p>
       </header>
 
-      <AppCard>
-        <p className="font-bold">MVP final de temporada</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          Se calcula automáticamente con el jugador que más MVPs de jornada acumula. Si hay empate, la app mantiene co-MVPs en vez de inventar un desempate.
-        </p>
+      {isSeasonClosed ? (
+        <AppCard>
+          <p className="font-bold">MVP final de temporada</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            Se calcula automáticamente con el jugador que más MVPs de jornada acumula. Si hay empate, la app mantiene co-MVPs en vez de inventar un desempate.
+          </p>
 
-        <MvpPlayerLine
-          label={seasonMvp?.tied ? "Empate actual" : "Resultado actual"}
-          players={seasonMvpPlayers}
-          helper={
-            seasonMvp
-              ? `${seasonMvp.votes} MVPs de jornada acumulados${seasonMvp.tied ? " · co-MVPs" : ""}`
-              : "Todavía no hay jornadas completas suficientes"
-          }
-        />
-      </AppCard>
+          <MvpPlayerLine
+            label={seasonMvp?.tied ? "Empate final" : "Resultado final"}
+            players={seasonMvpPlayers}
+            helper={
+              seasonMvp
+                ? `${seasonMvp.votes} MVPs de jornada acumulados${seasonMvp.tied ? " · co-MVPs" : ""}`
+                : "No hay MVP final disponible"
+            }
+          />
+        </AppCard>
+      ) : null}
 
       <AppCard>
         <p className="font-bold">MVPs por jornada</p>

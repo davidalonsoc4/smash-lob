@@ -55,6 +55,12 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     personalScope: "match_participants",
     pushReady: true,
   },
+  round_mvp_awarded: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
   court_booking_updated: {
     category: "court",
     defaultMode: "notify",

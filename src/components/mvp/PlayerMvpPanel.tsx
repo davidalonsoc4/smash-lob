@@ -13,6 +13,7 @@ type PlayerMvpPanelProps = {
   playerId: string
   matches: MvpMatch[]
   players: MvpPlayer[]
+  isSeasonClosed: boolean
 }
 
 export function PlayerMvpPanel({
@@ -20,6 +21,7 @@ export function PlayerMvpPanel({
   seasonId,
   playerId,
   matches,
+  isSeasonClosed,
 }: PlayerMvpPanelProps) {
   const summary = getPlayerMvpSummary({
     leagueId,
@@ -27,6 +29,7 @@ export function PlayerMvpPanel({
     matches,
     playerId,
   })
+  const showFinalMvp = isSeasonClosed && summary.seasonMvpCount > 0
 
   return (
     <AppCard>
@@ -36,23 +39,25 @@ export function PlayerMvpPanel({
           <p className="mt-1 text-xl font-black">Reconocimientos</p>
         </div>
 
-        {summary.seasonMvpCount > 0 ? (
+        {showFinalMvp ? (
           <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
             MVP final
           </span>
         ) : null}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm">
+      <div className={`mt-4 grid gap-2 text-center text-sm ${isSeasonClosed ? "grid-cols-2" : "grid-cols-1"}`}>
         <div className="rounded-xl bg-neutral-100 p-3">
           <p className="font-black">{summary.roundMvpCount}</p>
           <p className="mt-1 text-xs text-neutral-500">MVPs de jornada</p>
         </div>
 
-        <div className="rounded-xl bg-neutral-100 p-3">
-          <p className="font-black">{summary.seasonMvpCount}</p>
-          <p className="mt-1 text-xs text-neutral-500">MVP final</p>
-        </div>
+        {isSeasonClosed ? (
+          <div className="rounded-xl bg-neutral-100 p-3">
+            <p className="font-black">{summary.seasonMvpCount}</p>
+            <p className="mt-1 text-xs text-neutral-500">MVP final</p>
+          </div>
+        ) : null}
       </div>
 
       {summary.roundMvpRounds.length > 0 ? (

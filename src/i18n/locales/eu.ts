@@ -481,9 +481,9 @@ export const eu = {
       "Jokalari guztiek partida banaketa orekatua izango dute. Xehetasuna hurrengo urratsean konfiguratuko dugu.",
     manualCalendar: "Eskuzko egutegia",
     manualCalendarDescription:
-      "Jardunaldiak eta bikoteak eskuz konfiguratzeko aukera emango du. Geroago definituko dugu.",
+      "Denboraldia sortu aurretik jardunaldiak eta bikoteak eskuz konfiguratzeko aukera ematen du.",
     manualCalendarBlocked:
-      "Eskuzko egutegia oraindik ez dago erabilgarri. Jarraitzeko, hautatu egutegi orekatua.",
+      "Bete eskuzko egutegiko zabalgarri guztiak jarraitzeko.",
     startSeason: "Denboraldia hasi",
     seasonFinished: "Denboraldia amaituta.",
     seasonStarted: "Denboraldi berria sortuta.",
@@ -599,6 +599,7 @@ export const eu = {
       match_result_saved: "Emaitza",
       match_result_updated: "Emaitza",
       match_result_cleared: "Emaitza",
+      round_mvp_awarded: "MVP",
       court_booking_updated: "Erreserba",
       court_booking_cleared: "Erreserba",
       court_booking_payment_paid: "Ordainketa",

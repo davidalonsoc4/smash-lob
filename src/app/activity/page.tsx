@@ -211,6 +211,10 @@ function isPersonalEvent({
     return false
   }
 
+  if (getActivityEventDefinition(event.type).personalScope === "league_wide") {
+    return true
+  }
+
   if (event.matchId && currentUserMatchIds.has(event.matchId)) {
     return true
   }
@@ -252,8 +256,8 @@ function ActivityEventCard({
   })
 
   return (
-    <AppCard>
-      <div className="flex gap-3">
+    <AppCard className="p-3">
+      <div className="flex gap-2.5">
         <ActivityAvatar
           name={event.actorDisplayName}
           email={event.actorEmail}
@@ -264,27 +268,27 @@ function ActivityEventCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-sm font-black text-neutral-950">
+              <p className="truncate text-[13px] font-black text-neutral-950">
                 {event.title}
               </p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
+              <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                 {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
               </p>
             </div>
 
-            <p className="shrink-0 text-xs font-semibold text-neutral-400">
+            <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
               {formatActivityDate(event.createdAt)}
             </p>
           </div>
 
           {description ? (
-            <p className="mt-3 whitespace-pre-line text-sm text-neutral-600">
+            <p className="mt-2 whitespace-pre-line text-xs leading-snug text-neutral-600">
               {description}
             </p>
           ) : null}
 
           {showMetadata ? (
-            <div className="mt-3 space-y-2 rounded-2xl bg-neutral-100 p-3">
+            <div className="mt-2 space-y-2 rounded-2xl bg-neutral-100 p-2.5">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
                 {t.activity.adminMetadata}
               </p>

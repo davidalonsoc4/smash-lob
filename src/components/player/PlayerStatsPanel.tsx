@@ -258,7 +258,7 @@ export function PlayerStatsPanel({
             {mvpSummary.roundMvpCount}
           </p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {mvpSummary.seasonMvpCount > 0 ? "MVP final" : "temporada"}
+            jornada
           </p>
         </div>
       </div>
@@ -275,7 +275,7 @@ export function PlayerStatsPanel({
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
             {bestPartner
-              ? `${bestPartner.wins}/${bestPartner.matches} ${t.profile.wins.toLowerCase()}`
+              ? `${bestPartner.wins}-${bestPartner.matches - bestPartner.wins} ${t.playerStats.record}`
               : emptyValue}
           </p>
         </div>

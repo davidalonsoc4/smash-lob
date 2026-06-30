@@ -11,6 +11,7 @@ import {
 import { useSession } from "next-auth/react"
 import { allMatches } from "@/data/fakeData"
 import { generateBalancedCalendar } from "@/lib/calendar"
+import { getRoundMvpSelection } from "@/lib/mvp"
 import {
   buildCourtBooking,
   getEmptyCourtBooking,
@@ -595,14 +596,25 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       }
 
       try {
+        const previousRoundMvp = getRoundMvpSelection({
+          leagueId: currentMatch.leagueId,
+          seasonId: currentMatch.seasonId,
+          round: currentMatch.round,
+          matches,
+        })
         const updatedMatch = await finishSupabaseMatch({
           matchId,
           result,
         })
+        const nextMatches = replaceMatch(matches, updatedMatch)
+        const nextRoundMvp = getRoundMvpSelection({
+          leagueId: updatedMatch.leagueId,
+          seasonId: updatedMatch.seasonId,
+          round: updatedMatch.round,
+          matches: nextMatches,
+        })
 
-        setMatches((currentMatches) =>
-          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
-        )
+        setMatches(() => persistNextMatches(nextMatches))
 
         const wasAlreadyFinished = Boolean(
           currentMatch.status === "finished" ||
@@ -637,6 +649,27 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             sets: updatedMatch.sets,
           },
         })
+
+        if (!previousRoundMvp && nextRoundMvp) {
+          await recordMatchActivity({
+            match: updatedMatch,
+            type: "round_mvp_awarded",
+            title: `MVP de Jornada ${updatedMatch.round} decidido`,
+            description: getActivityMatchDescription(
+              updatedMatch,
+              `Pareja MVP automática · ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos · ${nextRoundMvp.gamesDiff ?? 0} dif.`
+            ),
+            metadata: {
+              round: updatedMatch.round,
+              playerIds: nextRoundMvp.playerIds,
+              gamesFor: nextRoundMvp.gamesFor,
+              gamesAgainst: nextRoundMvp.gamesAgainst,
+              gamesDiff: nextRoundMvp.gamesDiff,
+              setsFor: nextRoundMvp.setsFor,
+              setsAgainst: nextRoundMvp.setsAgainst,
+            },
+          })
+        }
 
         return true
       } catch (error) {

@@ -64,7 +64,7 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
-  }) => Season;
+  }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
 type SeasonSettingsProviderProps = {
@@ -574,44 +574,46 @@ export function SeasonSettingsProvider({
       totalRounds: Math.max(totalPlayers - 1, 1),
       completedRounds: 0,
     };
+    const existingPlayerIds = new Set(
+      seasonData.playerProfiles.map((player) => player.id),
+    );
+    const existingSlugs = new Set(
+      seasonData.playerProfiles.map((player) => player.slug),
+    );
+    const newPlayers = cleanNewPlayerNames.map((playerName, index) => {
+      const baseId = `${seasonId}-player-${index + 1}`;
+      const baseSlug = slugifyName(playerName);
+      let id = baseId;
+      let slug = baseSlug;
+      let suffix = 2;
+
+      while (existingPlayerIds.has(id)) {
+        id = `${baseId}-${suffix}`;
+        suffix += 1;
+      }
+
+      suffix = 2;
+      while (existingSlugs.has(slug)) {
+        slug = `${baseSlug}-${suffix}`;
+        suffix += 1;
+      }
+
+      existingPlayerIds.add(id);
+      existingSlugs.add(slug);
+
+      return {
+        id,
+        leagueId,
+        slug,
+        displayName: playerName,
+        avatarInitials: getInitials(playerName),
+      };
+    });
+    const newPlayerIds = newPlayers.map((player) => player.id);
+    const finalPlayerIds = [...uniquePlayerIds, ...newPlayerIds];
 
     setSeasonData((currentSeasonData) => {
       const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId];
-      const existingPlayerIds = new Set(
-        currentSeasonData.playerProfiles.map((player) => player.id),
-      );
-      const existingSlugs = new Set(
-        currentSeasonData.playerProfiles.map((player) => player.slug),
-      );
-      const newPlayers = cleanNewPlayerNames.map((playerName, index) => {
-        const baseId = `${seasonId}-player-${index + 1}`;
-        const baseSlug = slugifyName(playerName);
-        let id = baseId;
-        let slug = baseSlug;
-        let suffix = 2;
-
-        while (existingPlayerIds.has(id)) {
-          id = `${baseId}-${suffix}`;
-          suffix += 1;
-        }
-
-        suffix = 2;
-        while (existingSlugs.has(slug)) {
-          slug = `${baseSlug}-${suffix}`;
-          suffix += 1;
-        }
-
-        existingPlayerIds.add(id);
-        existingSlugs.add(slug);
-
-        return {
-          id,
-          leagueId,
-          slug,
-          displayName: playerName,
-          avatarInitials: getInitials(playerName),
-        };
-      });
       const nextSeasonData = {
         seasons: [
           ...currentSeasonData.seasons.map((season) =>
@@ -627,13 +629,9 @@ export function SeasonSettingsProvider({
         playerProfiles: [...currentSeasonData.playerProfiles, ...newPlayers],
         seasonPlayers: [
           ...currentSeasonData.seasonPlayers,
-          ...uniquePlayerIds.map((playerId) => ({
+          ...finalPlayerIds.map((playerId) => ({
             seasonId,
             playerId,
-          })),
-          ...newPlayers.map((player) => ({
-            seasonId,
-            playerId: player.id,
           })),
         ],
         activeSeasonIds: {
@@ -656,7 +654,7 @@ export function SeasonSettingsProvider({
       requiresThreeSets,
     });
 
-    return newSeason;
+    return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };
   }
 
   function updateSeasonRoundSettings(settings: SeasonRoundSettings) {

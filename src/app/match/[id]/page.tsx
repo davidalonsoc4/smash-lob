@@ -120,9 +120,12 @@ export default function MatchDetailPage() {
   const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
     currentUserId
   )
-  const canManageMatch =
-    isMatchParticipant || isLeagueAdmin(activeLeague.id)
-  const canEnterResult = canManageMatch && match.status === "scheduled"
+  const isAdmin = isLeagueAdmin(activeLeague.id)
+  const canManageMatch = isMatchParticipant || isAdmin
+  const canEnterResult =
+    canManageMatch &&
+    (match.status === "scheduled" ||
+      (isAdmin && (match.status === "scheduling" || match.status === "postponed")))
   const canEditResult = canManageMatch && match.status === "finished"
 
   return (
@@ -269,7 +272,7 @@ export default function MatchDetailPage() {
               {t.matchResult.editButton}
             </button>
 
-            {isLeagueAdmin(activeLeague.id) ? (
+            {isAdmin ? (
               <button
                 type="button"
                 onClick={handleClearResult}
@@ -303,7 +306,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {match.status === "scheduling" ? (
+      {match.status === "scheduling" && !canEnterResult ? (
         <AppCard>
           <p className="font-bold">{t.matchResult.pendingScheduleTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">
@@ -312,7 +315,7 @@ export default function MatchDetailPage() {
         </AppCard>
       ) : null}
 
-      {match.status === "postponed" ? (
+      {match.status === "postponed" && !canEnterResult ? (
         <AppCard>
           <p className="font-bold">{t.matchResult.postponedTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">

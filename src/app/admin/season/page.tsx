@@ -20,6 +20,13 @@ import {
   startSupabaseSeason,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons"
+import {
+  generateManualCalendar,
+  getNewPlayerToken,
+  resolveManualCalendarDraft,
+  type ManualCalendarMatchDraft,
+} from "@/lib/calendar"
+import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { recordActivityEvent } from "@/lib/activity"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
@@ -35,6 +42,107 @@ type SeasonPlayerSummary = {
   displayName: string
   avatarInitials?: string | null
   avatarUrl?: string | null
+}
+
+type ManualCalendarTeamKey = "teamA" | "teamB"
+
+type ManualCalendarRoundDraft = {
+  round: number
+  matches: {
+    teamA: string[]
+    teamB: string[]
+  }[]
+}
+
+function getTotalRoundCount(playerCount: number) {
+  return Math.max(playerCount - 1, 1)
+}
+
+function getMatchesPerRound(playerCount: number) {
+  return Math.max(playerCount / 4, 1)
+}
+
+function createEmptyManualCalendar(playerCount: number): ManualCalendarRoundDraft[] {
+  return Array.from({ length: getTotalRoundCount(playerCount) }, (_, roundIndex) => ({
+    round: roundIndex + 1,
+    matches: Array.from({ length: getMatchesPerRound(playerCount) }, () => ({
+      teamA: ["", ""],
+      teamB: ["", ""],
+    })),
+  }))
+}
+
+function getManualCalendarMatches(
+  manualCalendar: ManualCalendarRoundDraft[]
+): ManualCalendarMatchDraft[] {
+  return manualCalendar.flatMap((round) =>
+    round.matches.map((match) => ({
+      round: round.round,
+      teamA: match.teamA,
+      teamB: match.teamB,
+    }))
+  )
+}
+
+function isManualCalendarComplete({
+  manualCalendar,
+  validPlayerValues,
+}: {
+  manualCalendar: ManualCalendarRoundDraft[]
+  validPlayerValues: Set<string>
+}) {
+  return manualCalendar.every((round) => {
+    const roundPlayerIds = round.matches.flatMap((match) => [
+      ...match.teamA,
+      ...match.teamB,
+    ])
+
+    return (
+      roundPlayerIds.length > 0 &&
+      roundPlayerIds.every(
+        (playerId) => playerId.length > 0 && validPlayerValues.has(playerId)
+      ) &&
+      new Set(roundPlayerIds).size === roundPlayerIds.length
+    )
+  })
+}
+
+function updateManualCalendarSlot({
+  manualCalendar,
+  roundIndex,
+  matchIndex,
+  teamKey,
+  playerIndex,
+  value,
+}: {
+  manualCalendar: ManualCalendarRoundDraft[]
+  roundIndex: number
+  matchIndex: number
+  teamKey: ManualCalendarTeamKey
+  playerIndex: number
+  value: string
+}) {
+  return manualCalendar.map((round, currentRoundIndex) => {
+    if (currentRoundIndex !== roundIndex) {
+      return round
+    }
+
+    return {
+      ...round,
+      matches: round.matches.map((match, currentMatchIndex) => {
+        if (currentMatchIndex !== matchIndex) {
+          return match
+        }
+
+        return {
+          ...match,
+          [teamKey]: match[teamKey].map((playerId, currentPlayerIndex) =>
+            currentPlayerIndex === playerIndex ? value : playerId
+          ),
+        }
+      }),
+    }
+  })
 }
 
 function isSupabaseBackedId(id: string) {
@@ -484,7 +592,7 @@ function NewSeasonForm({
   const { data: session } = useSession()
   const { hydrateSeasonSnapshot, playerProfiles, seasons, startNewSeason } =
     useSeasonSettings()
-  const { hydrateMatches } = useMatchData()
+  const { createSeasonMatches, hydrateMatches } = useMatchData()
   const { getLeagueInviteCode } = useLeagueAccess()
   const leaguePlayers = playerProfiles.filter(
     (player) => player.leagueId === activeLeagueId
@@ -502,6 +610,9 @@ function NewSeasonForm({
   )
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([])
   const [calendarMode, setCalendarMode] = useState<CalendarMode>("balanced")
+  const [manualCalendar, setManualCalendar] = useState<ManualCalendarRoundDraft[]>(
+    () => createEmptyManualCalendar(defaultPlayerCount)
+  )
   const [roundWindowMode, setRoundWindowMode] =
     useState<RoundWindowMode>("none")
   const [seasonStartsAt, setSeasonStartsAt] = useState("")
@@ -532,6 +643,30 @@ function NewSeasonForm({
   const cleanNewPlayerNames = visibleNewPlayerNames.map((playerName) =>
     playerName.trim()
   )
+  const manualPlayerOptions = [
+    ...selectedPlayerIds.map((playerId) => {
+      const player = leaguePlayers.find((item) => item.id === playerId)
+
+      return {
+        value: playerId,
+        label: player?.displayName ?? playerId,
+      }
+    }),
+    ...visibleNewPlayerNames.map((playerName, index) => ({
+      value: getNewPlayerToken(index),
+      label: playerName.trim() || `Sustituto ${index + 1}`,
+    })),
+  ]
+  const validManualPlayerValues = new Set(
+    manualPlayerOptions.map((option) => option.value)
+  )
+  const manualCalendarMatches = getManualCalendarMatches(manualCalendar)
+  const isManualCalendarReady =
+    calendarMode !== "manual" ||
+    isManualCalendarComplete({
+      manualCalendar,
+      validPlayerValues: validManualPlayerValues,
+    })
   const hasValidPlayers =
     allowedPlayerCounts.includes(playerCount) &&
     selectedPlayerIds.length <= playerCount &&
@@ -541,7 +676,7 @@ function NewSeasonForm({
     !isSaving &&
     newSeasonName.trim().length > 0 &&
     hasValidPlayers &&
-    calendarMode === "balanced" &&
+    isManualCalendarReady &&
     (roundWindowMode === "none" ||
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
@@ -558,6 +693,7 @@ function NewSeasonForm({
         Math.max(nextCount - Math.min(selectedPlayerIds.length, nextCount), 0)
       )
     )
+    setManualCalendar(createEmptyManualCalendar(nextCount))
     setFeedback(null)
   }
 
@@ -585,6 +721,8 @@ function NewSeasonForm({
       return
     }
 
+    const manualMatches =
+      calendarMode === "manual" ? manualCalendarMatches : undefined
     const settings = {
       leagueId: activeLeagueId,
       name: newSeasonName.trim(),
@@ -594,6 +732,7 @@ function NewSeasonForm({
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
+      manualMatches,
     }
 
     setIsSaving(true)
@@ -618,7 +757,30 @@ function NewSeasonForm({
         return
       }
     } else {
-      startNewSeason(settings)
+      const result = startNewSeason(settings)
+
+      if (calendarMode === "manual" && manualMatches) {
+        const resolvedManualMatches = resolveManualCalendarDraft({
+          matches: manualMatches,
+          newPlayerIds: result.newPlayerIds,
+        })
+        const localManualMatches = generateManualCalendar({
+          leagueId: activeLeagueId,
+          seasonId: result.season.id,
+          matches: resolvedManualMatches,
+        }).map((match) => ({
+          ...match,
+          courtBooking: getEmptyCourtBooking(),
+        }))
+
+        hydrateMatches(localManualMatches)
+      } else {
+        createSeasonMatches({
+          leagueId: activeLeagueId,
+          seasonId: result.season.id,
+          playerIds: result.playerIds,
+        })
+      }
     }
 
     try {
@@ -628,11 +790,12 @@ function NewSeasonForm({
         ...getActorFromSession(session),
         type: "season_created",
         title: "Nueva temporada creada",
-        description: `${settings.name} creada con ${playerCount} jugadores y calendario generado.`,
+        description: `${settings.name} creada con ${playerCount} jugadores y calendario ${calendarMode === "manual" ? "manual" : "equilibrado"}.`,
         metadata: {
           playerCount,
           existingPlayerIds: selectedPlayerIds,
           newPlayerNames: cleanNewPlayerNames,
+          calendarMode,
         },
       })
     } catch {
@@ -834,9 +997,100 @@ function NewSeasonForm({
         </div>
 
         {calendarMode === "manual" ? (
-          <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-            {t.adminSeason.manualCalendarBlocked}
-          </p>
+          <div className="mt-5 space-y-4">
+            <div className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm text-neutral-700">
+              <p className="font-black">
+                {getTotalRoundCount(playerCount)} jornadas · {getMatchesPerRound(playerCount)} {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"} por jornada
+              </p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Elige manualmente la Pareja A y la Pareja B de cada partido. Cada desplegable usa los jugadores seleccionados para la nueva temporada.
+              </p>
+            </div>
+
+            {manualCalendar.map((round, roundIndex) => (
+              <div
+                key={round.round}
+                className="rounded-2xl border border-neutral-200 p-3"
+              >
+                <p className="font-black">Jornada {round.round}</p>
+
+                <div className="mt-3 space-y-4">
+                  {round.matches.map((manualMatch, matchIndex) => {
+                    const selectedRoundPlayerIds = [
+                      ...manualMatch.teamA,
+                      ...manualMatch.teamB,
+                    ].filter(Boolean)
+                    const hasDuplicatePlayers =
+                      new Set(selectedRoundPlayerIds).size !== selectedRoundPlayerIds.length
+
+                    return (
+                      <div
+                        key={`${round.round}-${matchIndex}`}
+                        className="rounded-2xl bg-neutral-100 p-3"
+                      >
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className="text-sm font-black">
+                            Partido {matchIndex + 1}
+                          </p>
+                          {hasDuplicatePlayers ? (
+                            <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800">
+                              Revisa duplicados
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {(["teamA", "teamB"] as ManualCalendarTeamKey[]).map((teamKey) => (
+                            <div key={teamKey} className="rounded-2xl bg-white p-3">
+                              <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                                {teamKey === "teamA" ? "Pareja A" : "Pareja B"}
+                              </p>
+
+                              <div className="mt-2 space-y-2">
+                                {manualMatch[teamKey].map((playerId, playerIndex) => (
+                                  <select
+                                    key={`${teamKey}-${playerIndex}`}
+                                    value={playerId}
+                                    onChange={(event) => {
+                                      setManualCalendar((currentCalendar) =>
+                                        updateManualCalendarSlot({
+                                          manualCalendar: currentCalendar,
+                                          roundIndex,
+                                          matchIndex,
+                                          teamKey,
+                                          playerIndex,
+                                          value: event.target.value,
+                                        })
+                                      )
+                                      setFeedback(null)
+                                    }}
+                                    className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
+                                  >
+                                    <option value="">Jugador {playerIndex + 1}</option>
+                                    {manualPlayerOptions.map((option) => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {!isManualCalendarReady ? (
+              <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                Completa todos los desplegables sin repetir jugador dentro de la misma jornada para poder crear la temporada.
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </AppCard>
 

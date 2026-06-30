@@ -455,9 +455,9 @@ export const en = {
       "All players will have a balanced match distribution. We will configure the details in the next step.",
     manualCalendar: "Manual calendar",
     manualCalendarDescription:
-      "This will allow rounds and pairings to be configured by hand. We will define it later.",
+      "Configure rounds and pairings manually before creating the season.",
     manualCalendarBlocked:
-      "Manual calendar is not available yet. Select balanced calendar to continue.",
+      "Complete every manual calendar dropdown to continue.",
     startSeason: "Start season",
     seasonFinished: "Season finished.",
     seasonStarted: "New season created.",
@@ -571,6 +571,7 @@ export const en = {
       match_result_saved: "Result",
       match_result_updated: "Result",
       match_result_cleared: "Result",
+      round_mvp_awarded: "MVP",
       court_booking_updated: "Booking",
       court_booking_cleared: "Booking",
       court_booking_payment_paid: "Payment",

@@ -17,6 +17,7 @@ export default function PlayerPage() {
   const { activeLeague, activeSeason, players, matches } =
     useCurrentLeagueData()
 
+  const isSeasonClosed = activeSeason.status === "finished"
   const player = players.find(
     (item) => item.slug === params.id || item.id === params.id
   )
@@ -86,6 +87,7 @@ export default function PlayerPage() {
         playerId={player.id}
         matches={matches}
         players={players}
+        isSeasonClosed={isSeasonClosed}
       />
 
       <PlayerMatchesList

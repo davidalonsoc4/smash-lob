@@ -485,9 +485,9 @@ export const es = {
       "Todos los jugadores tendrán una distribución compensada de partidos. Configuraremos el detalle en el siguiente paso.",
     manualCalendar: "Calendario manual",
     manualCalendarDescription:
-      "Permitirá configurar jornadas y emparejamientos a mano. Lo definiremos más adelante.",
+      "Permite configurar jornadas y emparejamientos a mano antes de crear la temporada.",
     manualCalendarBlocked:
-      "El calendario manual todavía no está disponible. Selecciona calendario equilibrado para continuar.",
+      "Completa todos los desplegables del calendario manual para continuar.",
     startSeason: "Comenzar temporada",
     seasonFinished: "Temporada finalizada.",
     seasonStarted: "Nueva temporada creada.",
@@ -603,6 +603,7 @@ export const es = {
       match_result_saved: "Resultado",
       match_result_updated: "Resultado",
       match_result_cleared: "Resultado",
+      round_mvp_awarded: "MVP",
       court_booking_updated: "Reserva",
       court_booking_cleared: "Reserva",
       court_booking_payment_paid: "Pago",

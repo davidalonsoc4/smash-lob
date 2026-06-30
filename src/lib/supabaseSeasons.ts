@@ -1,5 +1,10 @@
 import { supabase } from "@/lib/supabase"
-import { generateBalancedCalendar } from "@/lib/calendar"
+import {
+  generateBalancedCalendar,
+  generateManualCalendar,
+  resolveManualCalendarDraft,
+  type ManualCalendarMatchDraft,
+} from "@/lib/calendar"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
   RoundWindowMode,
@@ -157,6 +162,7 @@ export async function startSupabaseSeason({
   seasonStartsAt,
   roundWindowDays,
   requiresThreeSets,
+  manualMatches,
 }: {
   leagueId: string
   activeSeasonId: string
@@ -167,6 +173,7 @@ export async function startSupabaseSeason({
   seasonStartsAt: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
+  manualMatches?: ManualCalendarMatchDraft[]
 }): Promise<{
   matches: MatchData[]
   seasonSnapshot: SeasonSnapshot
@@ -245,11 +252,24 @@ export async function startSupabaseSeason({
     }
   }
 
-  const seasonMatches = generateBalancedCalendar({
-    leagueId,
-    seasonId: season.id,
-    playerIds: finalPlayerIds,
-  })
+  const resolvedManualMatches = manualMatches
+    ? resolveManualCalendarDraft({
+        matches: manualMatches,
+        newPlayerIds: (newPlayers ?? []).map((player) => player.id),
+      })
+    : []
+  const seasonMatches =
+    resolvedManualMatches.length > 0
+      ? generateManualCalendar({
+          leagueId,
+          seasonId: season.id,
+          matches: resolvedManualMatches,
+        })
+      : generateBalancedCalendar({
+          leagueId,
+          seasonId: season.id,
+          playerIds: finalPlayerIds,
+        })
 
   const { data: matchesData, error: matchesError } =
     seasonMatches.length > 0
