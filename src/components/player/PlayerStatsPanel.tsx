@@ -114,7 +114,7 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
   let bestMatch: { round: number; diff: number } | null = null
   let toughestMatch: { round: number; diff: number } | null = null
 
-  finishedMatches.forEach((match) => {
+  for (const match of finishedMatches) {
     const isTeamA = match.teamA.includes(playerId)
     const ownTeam = isTeamA ? match.teamA : match.teamB
     const opponentTeam = isTeamA ? match.teamB : match.teamA
@@ -149,7 +149,7 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
     if (!toughestMatch || gamesDiff < toughestMatch.diff) {
       toughestMatch = { round: match.round, diff: gamesDiff }
     }
-  })
+  }
 
   const matchesPlayed = finishedMatches.length
   const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0
