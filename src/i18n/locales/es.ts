@@ -310,6 +310,20 @@ export const es = {
       "Más adelante aquí se mostrarán mejores parejas, rivales más frecuentes y evolución del ranking.",
   },
 
+  playerStats: {
+    title: "Estadísticas avanzadas",
+    subtitle: "Rendimiento de temporada",
+    winRate: "% victoria",
+    record: "balance",
+    setsBalance: "Balance de sets",
+    gamesBalance: "Balance de juegos",
+    bestPartner: "Mejor compañero",
+    frequentRival: "Rival más frecuente",
+    bestRound: "Mejor jornada",
+    roundShort: "J",
+    toughestRound: "Jornada más dura",
+  },
+
   leagues: {
     activeLeague: "Liga activa",
   },

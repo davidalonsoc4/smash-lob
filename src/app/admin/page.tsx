@@ -202,8 +202,8 @@ export default function AdminPage() {
         </p>
       </header>
 
-      <div className="space-y-3">
-        <Link href="/admin/league">
+      <div className="space-y-4">
+        <Link href="/admin/league" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -218,7 +218,7 @@ export default function AdminPage() {
           </AppCard>
         </Link>
 
-        <Link href="/admin/season">
+        <Link href="/admin/season" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div>

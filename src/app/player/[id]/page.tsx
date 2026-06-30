@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
+import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { StatCard } from "@/components/ui/StatCard"
@@ -15,7 +16,6 @@ export default function PlayerPage() {
   const { activeLeague, activeSeason, players, matches } =
     useCurrentLeagueData()
 
-  const isSeasonClosed = activeSeason.status === "finished"
   const player = players.find(
     (item) => item.slug === params.id || item.id === params.id
   )
@@ -102,6 +102,12 @@ export default function PlayerPage() {
         </div>
       </AppCard>
 
+      <PlayerStatsPanel
+        playerId={player.id}
+        players={players}
+        matches={matches}
+      />
+
       <PlayerMatchesList
         playerId={player.id}
         title={t.playerProfile.playerMatches}
@@ -109,14 +115,6 @@ export default function PlayerPage() {
         players={players}
       />
 
-      {!isSeasonClosed ? (
-        <AppCard>
-          <p className="font-bold">{t.playerProfile.futureTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
-            {t.playerProfile.futureDescription}
-          </p>
-        </AppCard>
-      ) : null}
     </div>
   )
 }

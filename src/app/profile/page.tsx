@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
+import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -120,6 +121,12 @@ export default function ProfilePage() {
           </div>
         </div>
       </AppCard>
+
+      <PlayerStatsPanel
+        playerId={player.id}
+        players={players}
+        matches={playerMatches}
+      />
 
       {!isSeasonClosed ? (
         <PlayerMatchesList

@@ -292,6 +292,20 @@ export const en = {
       "Later this will show best partners, most frequent rivals and ranking evolution.",
   },
 
+  playerStats: {
+    title: "Advanced stats",
+    subtitle: "Season performance",
+    winRate: "Win rate",
+    record: "record",
+    setsBalance: "Sets balance",
+    gamesBalance: "Games balance",
+    bestPartner: "Best partner",
+    frequentRival: "Most frequent rival",
+    bestRound: "Best round",
+    roundShort: "R",
+    toughestRound: "Toughest round",
+  },
+
   leagues: {
     activeLeague: "Active league",
   },

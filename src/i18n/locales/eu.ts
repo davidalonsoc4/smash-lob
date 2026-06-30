@@ -307,6 +307,20 @@ export const eu = {
       "Aurrerago hemen bikote onenak, aurkari ohikoenak eta rankingaren bilakaera erakutsiko dira.",
   },
 
+  playerStats: {
+    title: "Estatistika aurreratuak",
+    subtitle: "Denboraldiko errendimendua",
+    winRate: "Garaipen %",
+    record: "balantzea",
+    setsBalance: "Seten balantzea",
+    gamesBalance: "Jokoen balantzea",
+    bestPartner: "Bikoterik onena",
+    frequentRival: "Aurkari ohikoena",
+    bestRound: "Jardunaldirik onena",
+    roundShort: "J",
+    toughestRound: "Jardunaldirik zailena",
+  },
+
   leagues: {
     activeLeague: "Liga aktiboa",
   },
