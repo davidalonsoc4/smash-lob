@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase"
+import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { generateBalancedCalendar } from "@/lib/calendar"
+import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
   RoundWindowMode,
   SeasonRoundSettings,
@@ -7,9 +9,6 @@ import type {
 } from "@/context/SeasonSettingsProvider"
 import type { PlayerProfile, Season, SeasonPlayer } from "@/data/fakeData"
 import type { MatchData, MatchStatus } from "@/context/MatchDataProvider"
-
-const matchSelect =
-  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
 
 function initials(name: string) {
   return (
@@ -131,6 +130,7 @@ function mapMatch(row: Record<string, unknown>): MatchData {
     location: typeof row.location === "string" ? row.location : null,
     resultRecordedAt:
       typeof row.result_recorded_at === "string" ? row.result_recorded_at : null,
+    courtBooking: getEmptyCourtBooking(),
   }
 }
 
@@ -361,7 +361,7 @@ export async function startSupabaseSeason({
   ]
 
   return {
-    matches: (matchesData ?? []).map((match) => mapMatch(match)),
+    matches: (matchesData ?? []).map((match) => mapSupabaseMatch(match)),
     seasonSnapshot: {
       seasons,
       playerProfiles,

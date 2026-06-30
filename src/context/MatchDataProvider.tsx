@@ -11,13 +11,41 @@ import {
 import { allMatches } from "@/data/fakeData"
 import { generateBalancedCalendar } from "@/lib/calendar"
 import {
+  buildCourtBooking,
+  getEmptyCourtBooking,
+  markCourtBookingTransferPaid,
+  normalizeCourtBooking,
+} from "@/lib/courtBooking"
+import {
   finishSupabaseMatch,
   formatScheduleDateLabel,
   postponeSupabaseMatch,
+  updateSupabaseCourtBooking,
   updateSupabaseMatchSchedule,
 } from "@/lib/supabaseMatches"
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed"
+
+export type CourtBookingReservation = {
+  playerId: string
+  amount: number
+}
+
+export type CourtBookingTransfer = {
+  id: string
+  fromPlayerId: string
+  toPlayerId: string
+  amount: number
+  isPaid: boolean
+  paidAt: string | null
+}
+
+export type CourtBooking = {
+  isReserved: boolean
+  reservations: CourtBookingReservation[]
+  transfers: CourtBookingTransfer[]
+  updatedAt: string | null
+}
 
 export type MatchData = {
   id: string
@@ -34,6 +62,7 @@ export type MatchData = {
   dateLabel: string | null
   location: string | null
   resultRecordedAt: string | null
+  courtBooking: CourtBooking
 }
 
 type MatchScheduleInput = {
@@ -43,6 +72,11 @@ type MatchScheduleInput = {
 
 type MatchResultInput = {
   sets: { a: number; b: number }[]
+}
+
+type CourtBookingInput = {
+  participantIds: string[]
+  reservations: CourtBookingReservation[]
 }
 
 type MatchDataContextValue = {
@@ -59,6 +93,15 @@ type MatchDataContextValue = {
   ) => Promise<boolean>
   postponeMatch: (matchId: string) => Promise<boolean>
   finishMatch: (matchId: string, result: MatchResultInput) => Promise<boolean>
+  updateCourtBooking: (
+    matchId: string,
+    bookingInput: CourtBookingInput
+  ) => Promise<boolean>
+  clearCourtBooking: (matchId: string) => Promise<boolean>
+  markCourtBookingTransferAsPaid: (
+    matchId: string,
+    transferId: string
+  ) => Promise<boolean>
 }
 
 type MatchDataProviderProps = {
@@ -88,6 +131,7 @@ function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
     dateLabel: match.dateLabel,
     location: match.location,
     resultRecordedAt: match.resultRecordedAt ?? null,
+    courtBooking: getEmptyCourtBooking(),
   }
 }
 
@@ -95,13 +139,18 @@ function getInitialMatches() {
   return allMatches.map(normalizeMatch)
 }
 
-function sanitizePostponedMatch(match: MatchData): MatchData {
-  if (match.status !== "postponed") {
-    return match
+function sanitizeMatch(match: MatchData): MatchData {
+  const cleanMatch = {
+    ...match,
+    courtBooking: normalizeCourtBooking(match.courtBooking),
+  }
+
+  if (cleanMatch.status !== "postponed") {
+    return cleanMatch
   }
 
   return {
-    ...match,
+    ...cleanMatch,
     scheduledAt: null,
     dateLabel: null,
     location: null,
@@ -149,9 +198,10 @@ function parseStoredMatches(value: string | null): MatchData[] | null {
         location: storedMatch.location ?? initialMatch.location,
         resultRecordedAt:
           storedMatch.resultRecordedAt ?? initialMatch.resultRecordedAt,
+        courtBooking: normalizeCourtBooking(storedMatch.courtBooking),
       }
 
-      return sanitizePostponedMatch(mergedMatch)
+      return sanitizeMatch(mergedMatch)
     })
     const extraMatches = parsed.filter((storedMatch: Partial<MatchData>) => {
       return (
@@ -160,7 +210,7 @@ function parseStoredMatches(value: string | null): MatchData[] | null {
       )
     }) as MatchData[]
 
-    return [...mergedInitialMatches, ...extraMatches.map(sanitizePostponedMatch)]
+    return [...mergedInitialMatches, ...extraMatches.map(sanitizeMatch)]
   } catch {
     return null
   }
@@ -170,7 +220,7 @@ function mergeMatches(current: MatchData[], incoming: MatchData[]) {
   const items = new Map(current.map((match) => [match.id, match]))
 
   incoming.forEach((match) => {
-    items.set(match.id, match)
+    items.set(match.id, sanitizeMatch(match))
   })
 
   return Array.from(items.values())
@@ -180,11 +230,11 @@ function replaceMatch(currentMatches: MatchData[], updatedMatch: MatchData) {
   const exists = currentMatches.some((match) => match.id === updatedMatch.id)
 
   if (!exists) {
-    return [...currentMatches, updatedMatch]
+    return [...currentMatches, sanitizeMatch(updatedMatch)]
   }
 
   return currentMatches.map((match) =>
-    match.id === updatedMatch.id ? updatedMatch : match
+    match.id === updatedMatch.id ? sanitizeMatch(updatedMatch) : match
   )
 }
 
@@ -297,7 +347,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         leagueId,
         seasonId,
         playerIds,
-      })
+      }).map((match) => ({
+        ...match,
+        courtBooking: getEmptyCourtBooking(),
+      }))
 
       setMatches((currentMatches) => {
         const existingIds = new Set(currentMatches.map((match) => match.id))
@@ -426,6 +479,133 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches, persistNextMatches]
   )
 
+  const updateCourtBooking = useCallback(
+    async (matchId: string, bookingInput: CourtBookingInput) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
+
+      if (!currentMatch) {
+        return false
+      }
+
+      const booking = buildCourtBooking({
+        participantIds: bookingInput.participantIds,
+        reservations: bookingInput.reservations,
+        previousTransfers: currentMatch.courtBooking.transfers,
+      })
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? { ...match, courtBooking: booking } : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await updateSupabaseCourtBooking({
+          matchId,
+          booking,
+        })
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
+
+        return true
+      } catch (error) {
+        recordSupabaseError("update-court-booking", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
+
+  const clearCourtBooking = useCallback(
+    async (matchId: string) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
+
+      if (!currentMatch) {
+        return false
+      }
+
+      const booking = getEmptyCourtBooking()
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? { ...match, courtBooking: booking } : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await updateSupabaseCourtBooking({
+          matchId,
+          booking,
+        })
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
+
+        return true
+      } catch (error) {
+        recordSupabaseError("clear-court-booking", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
+
+  const markCourtBookingTransferAsPaid = useCallback(
+    async (matchId: string, transferId: string) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
+
+      if (!currentMatch) {
+        return false
+      }
+
+      const booking = markCourtBookingTransferPaid({
+        booking: currentMatch.courtBooking,
+        transferId,
+      })
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? { ...match, courtBooking: booking } : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await updateSupabaseCourtBooking({
+          matchId,
+          booking,
+        })
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
+
+        return true
+      } catch (error) {
+        recordSupabaseError("mark-court-booking-transfer-paid", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
+
   const value = useMemo(
     () => ({
       matches,
@@ -434,13 +614,19 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       updateMatchSchedule,
       postponeMatch,
       finishMatch,
+      updateCourtBooking,
+      clearCourtBooking,
+      markCourtBookingTransferAsPaid,
     }),
     [
+      clearCourtBooking,
       createSeasonMatches,
       finishMatch,
       hydrateMatches,
+      markCourtBookingTransferAsPaid,
       matches,
       postponeMatch,
+      updateCourtBooking,
       updateMatchSchedule,
     ]
   )

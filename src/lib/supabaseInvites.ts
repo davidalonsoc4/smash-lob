@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase"
+import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { upsertAppUser } from "@/lib/supabaseUsers"
+import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
   RoundWindowMode,
   SeasonRoundSettings,
@@ -58,9 +60,6 @@ export type SupabaseInviteSnapshot = {
   matches: MatchData[]
   seasonSnapshot: SeasonSnapshot
 }
-
-const matchSelect =
-  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
 
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase()
@@ -154,6 +153,7 @@ function mapMatch(match: SupabaseMatchRow): MatchData {
     dateLabel: match.date_label,
     location: match.location,
     resultRecordedAt: match.result_recorded_at,
+    courtBooking: getEmptyCourtBooking(),
   }
 }
 
@@ -271,7 +271,7 @@ export async function fetchSupabaseInviteSnapshot(
     role: toRole(membership.role),
   }))
   const matches: MatchData[] = ((matchesResult.data ?? []) as SupabaseMatchRow[])
-    .map(mapMatch)
+    .map((match) => mapSupabaseMatch(match))
 
   return {
     league,

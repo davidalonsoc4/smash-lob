@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { isSuperuserEmail } from "@/lib/superuser"
 import { generateBalancedCalendar } from "@/lib/calendar"
+import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
   RoundWindowMode,
   SeasonRoundSettings,
@@ -215,9 +216,7 @@ export async function createSupabaseLeague({
               result_recorded_at: match.resultRecordedAt,
             }))
           )
-          .select(
-            "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
-          )
+          .select(matchSelect)
       : { data: [], error: null }
 
   if (matchesError) throw matchesError
@@ -286,27 +285,9 @@ export async function createSupabaseLeague({
     displayName: player.display_name,
     avatarInitials: player.avatar_initials,
   }))
-  const matches: MatchData[] = (matchesData ?? []).map((match) => ({
-    id: match.id,
-    leagueId: match.league_id,
-    seasonId: match.season_id,
-    round: match.round,
-    status:
-      match.status === "finished" ||
-      match.status === "scheduled" ||
-      match.status === "postponed"
-        ? match.status
-        : "scheduling",
-    teamA: Array.isArray(match.team_a) ? match.team_a : [],
-    teamB: Array.isArray(match.team_b) ? match.team_b : [],
-    pointsA: match.points_a,
-    pointsB: match.points_b,
-    sets: Array.isArray(match.sets) ? match.sets : [],
-    scheduledAt: match.scheduled_at,
-    dateLabel: match.date_label,
-    location: match.location,
-    resultRecordedAt: match.result_recorded_at,
-  }))
+  const matches: MatchData[] = (matchesData ?? []).map((match) =>
+    mapSupabaseMatch(match)
+  )
 
   return {
     league: leagueResult,
@@ -482,9 +463,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       .in("league_id", leagueIds),
     supabase
       .from("matches")
-      .select(
-        "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
-      )
+      .select(matchSelect)
       .in("league_id", leagueIds),
     supabase
       .from("league_memberships")
@@ -533,27 +512,9 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
   }))
-  const matches: MatchData[] = (matchesResult.data ?? []).map((match) => ({
-    id: match.id,
-    leagueId: match.league_id,
-    seasonId: match.season_id,
-    round: match.round,
-    status:
-      match.status === "finished" ||
-      match.status === "scheduled" ||
-      match.status === "postponed"
-        ? match.status
-        : "scheduling",
-    teamA: Array.isArray(match.team_a) ? match.team_a : [],
-    teamB: Array.isArray(match.team_b) ? match.team_b : [],
-    pointsA: match.points_a,
-    pointsB: match.points_b,
-    sets: Array.isArray(match.sets) ? match.sets : [],
-    scheduledAt: match.scheduled_at,
-    dateLabel: match.date_label,
-    location: match.location,
-    resultRecordedAt: match.result_recorded_at,
-  }))
+  const matches: MatchData[] = (matchesResult.data ?? []).map((match) =>
+    mapSupabaseMatch(match)
+  )
   const memberships: UserLeagueMembership[] = (
     leagueMembershipsResult.data ?? []
   ).map((membership) => ({

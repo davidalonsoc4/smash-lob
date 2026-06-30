@@ -1,8 +1,15 @@
 import { supabase } from "@/lib/supabase"
-import type { MatchData, MatchStatus } from "@/context/MatchDataProvider"
+import { normalizeCourtBooking } from "@/lib/courtBooking"
+import type {
+  CourtBooking,
+  CourtBookingReservation,
+  CourtBookingTransfer,
+  MatchData,
+  MatchStatus,
+} from "@/context/MatchDataProvider"
 
-const matchSelect =
-  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
+export const matchSelect =
+  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at,court_reserved,booking_reservations,booking_transfers,booking_updated_at"
 
 type MatchSet = {
   a: number
@@ -54,7 +61,81 @@ function toStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string")
 }
 
-function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
+function toCourtBookingReservations(value: unknown): CourtBookingReservation[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map((item) => {
+      if (typeof item !== "object" || item === null) {
+        return null
+      }
+
+      const reservation = item as Record<string, unknown>
+      const playerId = String(reservation.playerId ?? reservation.player_id ?? "")
+      const amount = Number(reservation.amount)
+
+      if (!playerId || !Number.isFinite(amount)) {
+        return null
+      }
+
+      return { playerId, amount }
+    })
+    .filter((item): item is CourtBookingReservation => Boolean(item))
+}
+
+function toCourtBookingTransfers(value: unknown): CourtBookingTransfer[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map((item) => {
+      if (typeof item !== "object" || item === null) {
+        return null
+      }
+
+      const transfer = item as Record<string, unknown>
+      const id = String(transfer.id ?? "")
+      const fromPlayerId = String(
+        transfer.fromPlayerId ?? transfer.from_player_id ?? ""
+      )
+      const toPlayerId = String(transfer.toPlayerId ?? transfer.to_player_id ?? "")
+      const amount = Number(transfer.amount)
+
+      if (!id || !fromPlayerId || !toPlayerId || !Number.isFinite(amount)) {
+        return null
+      }
+
+      return {
+        id,
+        fromPlayerId,
+        toPlayerId,
+        amount,
+        isPaid: Boolean(transfer.isPaid ?? transfer.is_paid),
+        paidAt:
+          typeof transfer.paidAt === "string"
+            ? transfer.paidAt
+            : typeof transfer.paid_at === "string"
+              ? transfer.paid_at
+              : null,
+      }
+    })
+    .filter((item): item is CourtBookingTransfer => Boolean(item))
+}
+
+function mapCourtBooking(row: Record<string, unknown>): CourtBooking {
+  return normalizeCourtBooking({
+    isReserved: Boolean(row.court_reserved),
+    reservations: toCourtBookingReservations(row.booking_reservations),
+    transfers: toCourtBookingTransfers(row.booking_transfers),
+    updatedAt:
+      typeof row.booking_updated_at === "string" ? row.booking_updated_at : null,
+  })
+}
+
+export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
   return {
     id: String(match.id),
     leagueId: String(match.league_id),
@@ -74,6 +155,7 @@ function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
       typeof match.result_recorded_at === "string"
         ? match.result_recorded_at
         : null,
+    courtBooking: mapCourtBooking(match),
   }
 }
 
@@ -169,6 +251,32 @@ export async function finishSupabaseMatch({
       points_a: points.pointsA,
       points_b: points.pointsB,
       result_recorded_at: resultRecordedAt,
+    })
+    .eq("id", matchId)
+    .select(matchSelect)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return mapSupabaseMatch(data)
+}
+
+export async function updateSupabaseCourtBooking({
+  matchId,
+  booking,
+}: {
+  matchId: string
+  booking: CourtBooking
+}) {
+  const { data, error } = await supabase
+    .from("matches")
+    .update({
+      court_reserved: booking.isReserved,
+      booking_reservations: booking.reservations,
+      booking_transfers: booking.transfers,
+      booking_updated_at: booking.updatedAt,
     })
     .eq("id", matchId)
     .select(matchSelect)

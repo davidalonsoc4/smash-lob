@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation"
 import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
+import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
@@ -168,6 +169,18 @@ export default function MatchDetailPage() {
           ) : null
         }
       />
+
+      {match.status === "scheduled" ? (
+        <CourtBookingPanel
+          matchId={match.id}
+          teamA={match.teamA}
+          teamB={match.teamB}
+          players={players}
+          currentUserId={currentUserId}
+          canManage={canManageMatch}
+          booking={match.courtBooking}
+        />
+      ) : null}
 
       {canEnterResult ? (
         <MatchResultForm
