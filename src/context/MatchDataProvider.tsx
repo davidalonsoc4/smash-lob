@@ -350,7 +350,8 @@ function getActivityMatchDescription(match: MatchData, extra?: string | null) {
 
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const { data: session } = useSession()
-  const actorEmail = session?.user?.email?.trim().toLowerCase() ?? null
+  const actorEmail =
+    session?.user?.email?.trim().toLowerCase() || "usuario@smash-lob.local"
   const actorDisplayName = session?.user?.name ?? null
   const [matches, setMatches] = useState<MatchData[]>(getInitialMatches)
 
@@ -386,7 +387,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       description?: string | null
       metadata?: Record<string, unknown>
     }) => {
-      if (!actorEmail || !isSupabaseBackedMatch(match.id)) {
+      if (!isSupabaseBackedMatch(match.id)) {
         return
       }
 
@@ -400,7 +401,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           type,
           title,
           description,
-          metadata,
+          metadata: {
+            ...(metadata ?? {}),
+            actorEmailFallbackUsed: actorEmail === "usuario@smash-lob.local",
+          },
         })
       } catch (error) {
         recordSupabaseError("record-activity", error)

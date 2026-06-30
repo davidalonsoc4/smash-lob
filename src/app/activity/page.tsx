@@ -49,12 +49,39 @@ function getTypeLabel(type: ActivityEvent["type"]) {
   return labels[type]
 }
 
+function readLastActivityError() {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  const storedError = window.localStorage.getItem("smash-lob-last-supabase-error")
+
+  if (!storedError) {
+    return null
+  }
+
+  try {
+    const parsedError = JSON.parse(storedError) as { action?: string; message?: string }
+
+    if (parsedError.action === "record-activity") {
+      return parsedError.message ?? storedError
+    }
+  } catch {
+    return storedError
+  }
+
+  return null
+}
+
 export default function ActivityPage() {
   const { activeLeague } = useCurrentLeagueData()
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [lastActivityError, setLastActivityError] = useState<string | null>(
+    () => readLastActivityError()
+  )
   const hasEvents = events.length > 0
 
   useEffect(() => {
@@ -121,7 +148,10 @@ export default function ActivityPage() {
           action={
             <button
               type="button"
-              onClick={() => setRefreshKey((current) => current + 1)}
+              onClick={() => {
+                setLastActivityError(readLastActivityError())
+                setRefreshKey((current) => current + 1)
+              }}
               className="text-sm font-semibold text-neutral-600"
             >
               Actualizar
@@ -149,6 +179,15 @@ export default function ActivityPage() {
             <p className="font-bold">Aún no hay actividad</p>
             <p className="mt-2 text-sm text-neutral-500">
               Cuando alguien programe un partido, registre o modifique un resultado, aplace una jornada o actualice una reserva, aparecerá aquí.
+            </p>
+          </AppCard>
+        ) : null}
+
+        {!isLoading && !error && !hasEvents && lastActivityError ? (
+          <AppCard>
+            <p className="font-bold text-orange-800">Último error al registrar actividad</p>
+            <p className="mt-2 break-words text-xs font-semibold text-neutral-500">
+              {lastActivityError}
             </p>
           </AppCard>
         ) : null}
