@@ -379,34 +379,28 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
 
   const isSuperuser =
     Boolean(user.is_superuser) || isSuperuserEmail(normalizedEmail)
-  const membershipsQuery = supabase
+  const { data: ownMembershipRows, error: ownMembershipError } = await supabase
     .from("league_memberships")
-    .select("league_id,player_id,role")
+    .select("league_id,player_id,role,user_id")
+    .eq("user_id", user.id)
 
-  if (!isSuperuser) {
-    membershipsQuery.eq("user_id", user.id)
-  }
+  if (ownMembershipError) throw ownMembershipError
 
-  const { data: membershipRows, error: membershipError } =
-    await membershipsQuery
-
-  if (membershipError) throw membershipError
-
-  const memberships = (membershipRows ?? []).map((membership) => ({
+  const ownMemberships = (ownMembershipRows ?? []).map((membership) => ({
     userId: normalizedEmail,
     leagueId: membership.league_id,
     playerId: membership.player_id ?? "",
     role: toRole(membership.role),
   }))
   const accessibleLeagueIds = new Set(
-    memberships.map((membership) => membership.leagueId)
+    ownMemberships.map((membership) => membership.leagueId)
   )
 
   if (!isSuperuser && accessibleLeagueIds.size === 0) {
     return {
       isSuperuser,
       leagues: [],
-      memberships,
+      memberships: ownMemberships,
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -448,7 +442,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     return {
       isSuperuser,
       leagues,
-      memberships,
+      memberships: ownMemberships,
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -466,6 +460,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     seasonPlayersResult,
     settingsResult,
     matchesResult,
+    leagueMembershipsResult,
   ] = await Promise.all([
     supabase
       .from("seasons")
@@ -491,6 +486,10 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
         "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at"
       )
       .in("league_id", leagueIds),
+    supabase
+      .from("league_memberships")
+      .select("user_id,league_id,player_id,role")
+      .in("league_id", leagueIds),
   ])
 
   if (seasonsResult.error) throw seasonsResult.error
@@ -498,6 +497,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   if (seasonPlayersResult.error) throw seasonPlayersResult.error
   if (settingsResult.error) throw settingsResult.error
   if (matchesResult.error) throw matchesResult.error
+  if (leagueMembershipsResult.error) throw leagueMembershipsResult.error
 
   const seasons: Season[] = (seasonsResult.data ?? []).map((season) => ({
     id: season.id,
@@ -553,6 +553,17 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     dateLabel: match.date_label,
     location: match.location,
     resultRecordedAt: match.result_recorded_at,
+  }))
+  const memberships: UserLeagueMembership[] = (
+    leagueMembershipsResult.data ?? []
+  ).map((membership) => ({
+    userId:
+      membership.user_id === user.id
+        ? normalizedEmail
+        : `__claimed__:${membership.user_id}`,
+    leagueId: membership.league_id,
+    playerId: membership.player_id ?? "",
+    role: toRole(membership.role),
   }))
 
   return {

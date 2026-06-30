@@ -3,6 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { type ReactNode } from "react"
+import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { BottomNav } from "./BottomNav"
 
@@ -39,6 +42,8 @@ function SettingsIcon() {
 export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
   const pathname = usePathname()
+  const { getLeagueInviteCode, isPlayerClaimed } = useLeagueAccess()
+  const { activeLeague, players } = useCurrentLeagueData()
 
   const shouldShowSettingsButton =
     pathname !== "/settings" &&
@@ -50,10 +55,29 @@ export function AppShell({ children }: AppShellProps) {
     pathname !== "/invite" &&
     !pathname.startsWith("/invite/") &&
     pathname !== "/league/new"
+  const unclaimedPlayers = players.filter(
+    (player) => !isPlayerClaimed(activeLeague.id, player.id)
+  )
+  const inviteCode = getLeagueInviteCode(activeLeague.id)
+  const shouldShowInviteButton =
+    Boolean(inviteCode) &&
+    unclaimedPlayers.length > 0 &&
+    pathname !== "/league/new" &&
+    pathname !== "/invite" &&
+    !pathname.startsWith("/invite/")
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-950">
       <div className="mx-auto min-h-screen max-w-md bg-neutral-50">
+        {shouldShowInviteButton ? (
+          <FloatingInviteShareButton
+            inviteCode={inviteCode}
+            leagueName={activeLeague.name}
+            unclaimedCount={unclaimedPlayers.length}
+            offsetForSettingsButton={shouldShowSettingsButton}
+          />
+        ) : null}
+
         {shouldShowSettingsButton ? (
           <Link
             href="/settings"

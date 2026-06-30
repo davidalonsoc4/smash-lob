@@ -15,8 +15,10 @@ export default function SettingsPage() {
   const { t } = useI18n()
   const { data: session } = useSession()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { isLeagueAdmin, isLeagueCreator, userLeagues } = useLeagueAccess()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const canMaintainLocalData = isLeagueCreator(activeLeague.id)
+  const hasMultipleLeagues = userLeagues.length > 1
 
   return (
     <div className="space-y-5">
@@ -39,9 +41,20 @@ export default function SettingsPage() {
       <AppCard>
         <p className="font-bold">{t.settings.leagueTitle}</p>
 
-        <div className="mt-4">
-          <LeagueSwitcher />
-        </div>
+        {hasMultipleLeagues ? (
+          <div className="mt-4">
+            <LeagueSwitcher />
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl bg-neutral-100 p-4">
+            <p className="text-xs font-semibold text-neutral-500">
+              Liga activa
+            </p>
+            <p className="mt-1 text-sm font-black text-neutral-950">
+              {activeLeague.name}
+            </p>
+          </div>
+        )}
 
         <Link
           href="/league/new"
@@ -108,7 +121,7 @@ export default function SettingsPage() {
         </Link>
       </AppCard>
 
-      <LocalDataMaintenanceCard />
+      {canMaintainLocalData ? <LocalDataMaintenanceCard /> : null}
 
       <AppCard>
         <p className="font-bold">{t.settings.futureTitle}</p>

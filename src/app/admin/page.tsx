@@ -1,136 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 
-function LeagueInviteCard({
-  inviteCode,
-  leagueName,
-  onRegenerate,
-}: {
-  inviteCode: string
-  leagueName: string
-  onRegenerate: () => Promise<string | null>
-}) {
-  const { t } = useI18n()
-  const [copiedValue, setCopiedValue] = useState<"code" | "link" | null>(null)
-  const [isRegenerating, setIsRegenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const invitePath = `/invite/${encodeURIComponent(inviteCode)}`
-  const appBaseUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    "https://smash-lob.vercel.app"
-  const inviteUrl = `${appBaseUrl}${invitePath}`
-
-  async function copyValue(value: string, type: "code" | "link") {
-    await navigator.clipboard.writeText(value)
-    setCopiedValue(type)
-    setError(null)
-    window.setTimeout(() => setCopiedValue(null), 1800)
-  }
-
-  async function handleRegenerate() {
-    setIsRegenerating(true)
-    setCopiedValue(null)
-    setError(null)
-
-    const nextCode = await onRegenerate()
-
-    setIsRegenerating(false)
-
-    if (!nextCode) {
-      setError(
-        "No se ha podido regenerar la invitación en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
-      )
-    }
-  }
-
-  return (
-    <AppCard>
-      <p className="font-bold">{t.adminPanel.inviteTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
-        {t.adminPanel.inviteDescription}
-      </p>
-
-      <div className="mt-4 space-y-3">
-        <div className="rounded-2xl bg-neutral-100 p-4">
-          <p className="text-xs font-semibold text-neutral-500">
-            {t.adminPanel.inviteCodeLabel}
-          </p>
-          <p className="mt-1 break-all text-lg font-black text-neutral-950">
-            {inviteCode}
-          </p>
-          <button
-            type="button"
-            onClick={() => copyValue(inviteCode, "code")}
-            className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-black text-neutral-800 shadow-sm"
-          >
-            {copiedValue === "code"
-              ? t.adminPanel.inviteCopied
-              : t.adminPanel.copyCode}
-          </button>
-        </div>
-
-        <div className="rounded-2xl bg-neutral-100 p-4">
-          <p className="text-xs font-semibold text-neutral-500">
-            {t.adminPanel.inviteLinkLabel}
-          </p>
-          <p className="mt-1 break-all text-sm font-black text-neutral-950">
-            {inviteUrl}
-          </p>
-          <button
-            type="button"
-            onClick={() =>
-              copyValue(inviteUrl, "link")
-            }
-            className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-black text-neutral-800 shadow-sm"
-          >
-            {copiedValue === "link"
-              ? t.adminPanel.inviteCopied
-              : t.adminPanel.copyLink}
-          </button>
-        </div>
-      </div>
-
-      <p className="mt-4 text-xs font-semibold text-neutral-500">
-        {t.adminPanel.inviteHelper.replace("{leagueName}", leagueName)}
-      </p>
-
-      <button
-        type="button"
-        onClick={handleRegenerate}
-        disabled={isRegenerating}
-        className="mt-4 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
-      >
-        {isRegenerating ? "Regenerando..." : t.adminPanel.regenerateInviteCode}
-      </button>
-
-      {error ? (
-        <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>
-      ) : null}
-
-      <p className="mt-2 text-xs font-semibold text-neutral-500">
-        {t.adminPanel.regenerateInviteCodeDescription}
-      </p>
-    </AppCard>
-  )
-}
-
 export default function AdminPage() {
   const { t } = useI18n()
-  const {
-    getLeagueInviteCode,
-    isLeagueAdmin,
-    regenerateLeagueInviteCode,
-  } = useLeagueAccess()
+  const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
-  const inviteCode = getLeagueInviteCode(activeLeague.id)
 
   if (!canAccessAdmin) {
     return (
@@ -203,11 +84,13 @@ export default function AdminPage() {
         </Link>
       </div>
 
-      <LeagueInviteCard
-        inviteCode={inviteCode}
-        leagueName={activeLeague.name}
-        onRegenerate={() => regenerateLeagueInviteCode(activeLeague.id)}
-      />
+      <AppCard>
+        <p className="font-bold">Invitaciones</p>
+        <p className="mt-2 text-sm text-neutral-500">
+          El enlace de invitación ahora está en el botón flotante de compartir.
+          Solo aparece mientras queden jugadores sin vincular en la temporada activa.
+        </p>
+      </AppCard>
 
       <AppCard>
         <p className="font-bold">{t.adminPanel.futureTitle}</p>
