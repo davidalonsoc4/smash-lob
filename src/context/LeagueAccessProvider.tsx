@@ -18,12 +18,14 @@ import {
   regenerateSupabaseLeagueInviteCode,
   updateSupabaseLeagueDetails,
   updateSupabaseLeagueLocations,
+  updateSupabaseLeagueLogo,
 } from "@/lib/supabaseAdminLeagues"
 import {
   fetchSupabaseLeagueUsers,
   unlinkSupabaseLeagueMembership,
   updateSupabaseLeagueMembershipRole,
   updateSupabasePlayerDisplayName,
+  updateSupabasePlayerAvatar,
   type LeagueUserManagementPlayer,
 } from "@/lib/supabaseAdminUsers"
 import {
@@ -70,6 +72,7 @@ type LeagueAccessContextValue = {
   isPlayerClaimed: (leagueId: string, playerId: string) => boolean
   regenerateLeagueInviteCode: (leagueId: string) => Promise<string | null>
   updateLeagueDetails: (leagueId: string, details: { name: string; description: string }) => Promise<boolean>
+  updateLeagueLogo: (leagueId: string, logoUrl: string | null) => Promise<boolean>
   updateLeagueLocations: (leagueId: string, locations: string[]) => Promise<boolean>
   deleteLeague: (leagueId: string) => Promise<boolean>
   fetchLeagueUsers: (leagueId: string) => Promise<LeagueUserManagementPlayer[]>
@@ -86,6 +89,11 @@ type LeagueAccessContextValue = {
     leagueId: string,
     playerId: string,
     displayName: string
+  ) => Promise<boolean>
+  updateLeaguePlayerAvatar: (
+    leagueId: string,
+    playerId: string,
+    avatarUrl: string | null
   ) => Promise<boolean>
   getLeagueByInviteCode: (code: string) => League | null
   resolveLeagueInvite: (code: string) => Promise<League | null>
@@ -212,7 +220,10 @@ function isValidStoredLeague(league: unknown): league is League {
     typeof item.inviteCode === "string" &&
     (item.joinMode === "closed" || item.joinMode === "open") &&
     Array.isArray(item.locations) &&
-    item.locations.every((location) => typeof location === "string")
+    item.locations.every((location) => typeof location === "string") &&
+    (typeof item.logoUrl === "undefined" ||
+      item.logoUrl === null ||
+      typeof item.logoUrl === "string")
   )
 }
 
@@ -763,6 +774,57 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     []
   )
 
+  const updateLeagueLogo = useCallback(
+    async (leagueId: string, logoUrl: string | null) => {
+      if (isSupabaseBackedId(leagueId)) {
+        try {
+          const result = await updateSupabaseLeagueLogo({
+            leagueId,
+            logoUrl,
+          })
+
+          setLeagues((currentLeagues) => {
+            const nextLeagues = currentLeagues.map((league) =>
+              league.id === result.leagueId
+                ? {
+                    ...league,
+                    logoUrl: result.logoUrl,
+                  }
+                : league
+            )
+
+            persistLeagues(nextLeagues)
+
+            return nextLeagues
+          })
+
+          return true
+        } catch (error) {
+          recordSupabaseError("update-league-logo", error)
+          return false
+        }
+      }
+
+      setLeagues((currentLeagues) => {
+        const nextLeagues = currentLeagues.map((league) =>
+          league.id === leagueId
+            ? {
+                ...league,
+                logoUrl,
+              }
+            : league
+        )
+
+        persistLeagues(nextLeagues)
+
+        return nextLeagues
+      })
+
+      return true
+    },
+    []
+  )
+
   const updateLeagueLocations = useCallback(
     async (leagueId: string, locations: string[]) => {
       const normalizedLocations = Array.from(
@@ -973,6 +1035,26 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [updatePlayerProfile]
   )
 
+  const updateLeaguePlayerAvatar = useCallback(
+    async (leagueId: string, playerId: string, avatarUrl: string | null) => {
+      try {
+        const result = await updateSupabasePlayerAvatar({
+          leagueId,
+          playerId,
+          avatarUrl,
+        })
+
+        updatePlayerProfile(result)
+
+        return true
+      } catch (error) {
+        recordSupabaseError("update-league-player-avatar", error)
+        return false
+      }
+    },
+    [updatePlayerProfile]
+  )
+
   const getLeagueByInviteCode = useCallback(
     (code: string) => {
       const normalizedCode = normalizeInviteCode(code)
@@ -1141,12 +1223,14 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       isPlayerClaimed,
       regenerateLeagueInviteCode,
       updateLeagueDetails,
+      updateLeagueLogo,
       updateLeagueLocations,
       deleteLeague,
       fetchLeagueUsers,
       updateLeagueUserRole,
       unlinkLeaguePlayerAccount,
       updateLeaguePlayerName,
+      updateLeaguePlayerAvatar,
       getLeagueByInviteCode,
       resolveLeagueInvite,
       getUnclaimedPlayersForLeague,
@@ -1164,6 +1248,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueUserRole,
       unlinkLeaguePlayerAccount,
       updateLeaguePlayerName,
+      updateLeaguePlayerAvatar,
       getLeagueByInviteCode,
       getLeagueInviteCode,
       getMembershipForLeague,
@@ -1171,6 +1256,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       isPlayerClaimed,
       regenerateLeagueInviteCode,
       updateLeagueDetails,
+      updateLeagueLogo,
       updateLeagueLocations,
       resolveLeagueInvite,
       isLeagueAdmin,

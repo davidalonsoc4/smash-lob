@@ -5,6 +5,7 @@ export type SupabaseAppUser = {
   id: string
   email: string
   display_name: string | null
+  avatar_url: string | null
   is_superuser: boolean
 }
 
@@ -19,7 +20,7 @@ export async function upsertAppUser({
   const shouldBeSuperuser = isSuperuserEmail(normalizedEmail)
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
-    .select("is_superuser")
+    .select("is_superuser,avatar_url")
     .eq("email", normalizedEmail)
     .maybeSingle()
 
@@ -33,11 +34,12 @@ export async function upsertAppUser({
       {
         email: normalizedEmail,
         display_name: displayName ?? null,
+        avatar_url: existingUser?.avatar_url ?? null,
         is_superuser: Boolean(existingUser?.is_superuser) || shouldBeSuperuser,
       },
       { onConflict: "email" }
     )
-    .select("id,email,display_name,is_superuser")
+    .select("id,email,display_name,avatar_url,is_superuser")
     .single()
 
   if (error) {

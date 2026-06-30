@@ -42,6 +42,7 @@ type SeasonSettingsContextValue = {
     playerId: string
     displayName: string
     avatarInitials: string
+    avatarUrl?: string | null
   }) => void
   hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void
   finishActiveSeason: (leagueId: string) => void
@@ -148,7 +149,10 @@ function isValidPlayerProfile(value: unknown): value is PlayerProfile {
     typeof item.leagueId === "string" &&
     typeof item.slug === "string" &&
     typeof item.displayName === "string" &&
-    typeof item.avatarInitials === "string"
+    typeof item.avatarInitials === "string" &&
+    (typeof item.avatarUrl === "undefined" ||
+      item.avatarUrl === null ||
+      typeof item.avatarUrl === "string")
   )
 }
 
@@ -657,10 +661,12 @@ export function SeasonSettingsProvider({
       playerId,
       displayName,
       avatarInitials,
+      avatarUrl,
     }: {
       playerId: string
       displayName: string
       avatarInitials: string
+      avatarUrl?: string | null
     }) => {
       setSeasonData((currentSeasonData) => {
         const nextSeasonData = {
@@ -671,6 +677,7 @@ export function SeasonSettingsProvider({
                   ...player,
                   displayName,
                   avatarInitials,
+                  avatarUrl: typeof avatarUrl === "undefined" ? player.avatarUrl ?? null : avatarUrl,
                 }
               : player
           ),

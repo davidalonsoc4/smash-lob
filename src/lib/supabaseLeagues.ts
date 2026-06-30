@@ -91,7 +91,7 @@ async function insertLeagueWithAvailableSlug({
         join_mode: "closed",
         created_by_user_id: creatorUserId,
       })
-      .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations")
+      .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url")
       .single()
 
     if (!leagueError && league) {
@@ -172,7 +172,7 @@ export async function createSupabaseLeague({
         avatar_initials: initials(name),
       }))
     )
-    .select("id,league_id,slug,display_name,avatar_initials")
+    .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
 
   if (playersError) throw playersError
 
@@ -269,6 +269,7 @@ export async function createSupabaseLeague({
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: toLocations(league.locations),
+    logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }
   const seasonResult: Season = {
     id: season.id,
@@ -284,6 +285,7 @@ export async function createSupabaseLeague({
     slug: player.slug,
     displayName: player.display_name,
     avatarInitials: player.avatar_initials,
+    avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
   }))
   const matches: MatchData[] = (matchesData ?? []).map((match) =>
     mapSupabaseMatch(match)
@@ -396,7 +398,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id,locations"
+      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url"
     )
 
   if (!isSuperuser) {
@@ -416,6 +418,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? ("open" as const) : ("closed" as const),
     locations: toLocations(league.locations),
+    logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }))
   const leagueIds = leagues.map((league) => league.id)
 
@@ -449,7 +452,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       .in("league_id", leagueIds),
     supabase
       .from("players")
-      .select("id,league_id,slug,display_name,avatar_initials")
+      .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
       .in("league_id", leagueIds),
     supabase
       .from("season_players")
@@ -493,6 +496,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       slug: player.slug,
       displayName: player.display_name,
       avatarInitials: player.avatar_initials,
+      avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
     })
   )
   const seasonPlayers: SeasonPlayer[] = (

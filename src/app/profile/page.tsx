@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatCard } from "@/components/ui/StatCard"
@@ -60,11 +61,15 @@ export default function ProfilePage() {
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
-          {player.displayName}
-        </h1>
+        <div className="mt-3 flex items-center gap-3">
+          <PlayerAvatar player={player} size="lg" />
 
-        <p className="mt-1 text-sm text-neutral-500">
+          <h1 className="min-w-0 text-3xl font-black tracking-tight">
+            {player.displayName}
+          </h1>
+        </div>
+
+        <p className="mt-3 text-sm text-neutral-500">
           {t.profile.description}
         </p>
       </header>
@@ -119,7 +124,6 @@ export default function ProfilePage() {
         playerId={player.id}
         title={t.profile.nextMatch}
         matches={nextMatches}
-        players={players}
         limit={1}
         emptyMessage={t.profile.noUpcomingMatches}
       />
@@ -128,7 +132,6 @@ export default function ProfilePage() {
         playerId={player.id}
         title={t.profile.recentResults}
         matches={recentFinishedMatches}
-        players={players}
         limit={3}
         emptyMessage={t.profile.noRecentResults}
       />

@@ -26,6 +26,7 @@ type SupabaseLeagueRow = {
   join_mode: string
   active_season_id: string | null
   locations: unknown
+  logo_url?: string | null
 }
 
 type SupabaseMatchRow = {
@@ -134,6 +135,7 @@ function mapLeague(league: SupabaseLeagueRow): League {
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: toLocations(league.locations),
+    logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }
 }
 
@@ -161,7 +163,7 @@ async function fetchLeagueByInviteCode(code: string) {
   const normalizedCode = normalizeInviteCode(code)
   const { data: directLeague, error: directLeagueError } = await supabase
     .from("leagues")
-    .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations")
+    .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url")
     .eq("invite_code", normalizedCode)
     .maybeSingle()
 
@@ -195,7 +197,7 @@ export async function fetchSupabaseInviteSnapshot(
         .eq("league_id", league.id),
       supabase
         .from("players")
-        .select("id,league_id,slug,display_name,avatar_initials")
+        .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
         .eq("league_id", league.id),
       supabase
         .from("season_settings")
@@ -244,6 +246,7 @@ export async function fetchSupabaseInviteSnapshot(
       slug: player.slug,
       displayName: player.display_name,
       avatarInitials: player.avatar_initials,
+      avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
     })
   )
   const seasonPlayers: SeasonPlayer[] = (seasonPlayerRows ?? []).map(

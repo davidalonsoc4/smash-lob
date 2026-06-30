@@ -316,12 +316,20 @@ function getLocalClearedResultMatch(match: MatchData): MatchData {
   }
 }
 
-function getResultSummary(match: MatchData) {
-  if (match.pointsA === null || match.pointsB === null) {
-    return "Resultado guardado"
+function getSetsSummary(sets: { a: number; b: number }[]) {
+  if (sets.length === 0) {
+    return "sin juegos registrados"
   }
 
-  return `Resultado ${match.pointsA}-${match.pointsB}`
+  return sets.map((set) => `${set.a}-${set.b}`).join(", ")
+}
+
+function getResultSummary(match: MatchData) {
+  if (match.pointsA === null || match.pointsB === null) {
+    return "Resultado sin puntos registrados"
+  }
+
+  return `Sets ${match.pointsA}-${match.pointsB} · Juegos: ${getSetsSummary(match.sets)}`
 }
 
 function getBookingTotal(match: MatchData) {
@@ -402,6 +410,8 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           title,
           description,
           metadata: {
+            participantIds: [...match.teamA, ...match.teamB],
+            round: match.round,
             ...(metadata ?? {}),
             actorEmailFallbackUsed: actorEmail === "usuario@smash-lob.local",
           },

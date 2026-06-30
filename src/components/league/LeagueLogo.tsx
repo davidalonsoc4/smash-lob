@@ -1,0 +1,49 @@
+import type { League } from "@/data/fakeData"
+
+type LeagueLogoProps = {
+  league?: Pick<League, "name" | "logoUrl"> | null
+  size?: "sm" | "md" | "lg"
+  className?: string
+}
+
+const sizeClasses = {
+  sm: "h-9 w-9 text-xs",
+  md: "h-12 w-12 text-sm",
+  lg: "h-16 w-16 text-lg",
+}
+
+function getLeagueInitials(name?: string | null) {
+  return (
+    name
+      ?.trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "SL"
+  )
+}
+
+export function LeagueLogo({
+  league,
+  size = "md",
+  className = "",
+}: LeagueLogoProps) {
+  return (
+    <div
+      className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-950 font-black text-white shadow-sm ${className}`}
+      aria-hidden="true"
+    >
+      {league?.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={league.logoUrl}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span>{getLeagueInitials(league?.name)}</span>
+      )}
+    </div>
+  )
+}

@@ -33,7 +33,7 @@ export async function updateSupabaseLeagueDetails({
       description: cleanDescription,
     })
     .eq("id", leagueId)
-    .select("id,name,description")
+    .select("id,name,description,logo_url")
     .single()
 
   if (error) {
@@ -44,6 +44,31 @@ export async function updateSupabaseLeagueDetails({
     leagueId: data.id,
     name: data.name,
     description: data.description ?? "",
+    logoUrl: typeof data.logo_url === "string" ? data.logo_url : null,
+  }
+}
+
+export async function updateSupabaseLeagueLogo({
+  leagueId,
+  logoUrl,
+}: {
+  leagueId: string
+  logoUrl: string | null
+}) {
+  const { data, error } = await supabase
+    .from("leagues")
+    .update({ logo_url: logoUrl })
+    .eq("id", leagueId)
+    .select("id,logo_url")
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return {
+    leagueId: data.id,
+    logoUrl: typeof data.logo_url === "string" ? data.logo_url : null,
   }
 }
 

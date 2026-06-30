@@ -4,11 +4,14 @@ import { useEffect, useMemo, useState } from "react"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
+
+type ActivityScope = "all" | "mine"
 
 function formatActivityDate(value: string) {
   const date = new Date(value)
@@ -73,16 +76,50 @@ function readLastActivityError() {
   return null
 }
 
+function toStringArray(value: unknown) {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((item): item is string => typeof item === "string")
+}
+
+function isPersonalEvent({
+  event,
+  currentUserId,
+  currentUserMatchIds,
+}: {
+  event: ActivityEvent
+  currentUserId: string
+  currentUserMatchIds: Set<string>
+}) {
+  if (event.matchId && currentUserMatchIds.has(event.matchId)) {
+    return true
+  }
+
+  const metadata = event.metadata
+  const directPlayerIds = [
+    metadata.playerId,
+    metadata.targetPlayerId,
+    metadata.fromPlayerId,
+    metadata.toPlayerId,
+  ].filter((value): value is string => typeof value === "string")
+  const participantIds = toStringArray(metadata.participantIds)
+
+  return [...directPlayerIds, ...participantIds].includes(currentUserId)
+}
+
 export default function ActivityPage() {
-  const { activeLeague } = useCurrentLeagueData()
+  const { currentUserId } = useCurrentUser()
+  const { activeLeague, matches } = useCurrentLeagueData()
   const [events, setEvents] = useState<ActivityEvent[]>([])
+  const [scope, setScope] = useState<ActivityScope>("all")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [lastActivityError, setLastActivityError] = useState<string | null>(
     () => readLastActivityError()
   )
-  const hasEvents = events.length > 0
 
   useEffect(() => {
     let isMounted = true
@@ -94,7 +131,7 @@ export default function ActivityPage() {
       try {
         const activityEvents = await fetchSupabaseActivityEvents({
           leagueId: activeLeague.id,
-          limit: 80,
+          limit: 120,
         })
 
         if (!isMounted) {
@@ -124,7 +161,30 @@ export default function ActivityPage() {
     }
   }, [activeLeague.id, refreshKey])
 
-  const groupedEvents = useMemo(() => events, [events])
+  const currentUserMatchIds = useMemo(() => {
+    return new Set(
+      matches
+        .filter(
+          (match) =>
+            match.teamA.includes(currentUserId) ||
+            match.teamB.includes(currentUserId)
+        )
+        .map((match) => match.id)
+    )
+  }, [currentUserId, matches])
+  const personalEvents = useMemo(
+    () =>
+      events.filter((event) =>
+        isPersonalEvent({
+          event,
+          currentUserId,
+          currentUserMatchIds,
+        })
+      ),
+    [currentUserId, currentUserMatchIds, events]
+  )
+  const visibleEvents = scope === "mine" ? personalEvents : events
+  const hasEvents = visibleEvents.length > 0
 
   return (
     <div className="space-y-5">
@@ -138,13 +198,34 @@ export default function ActivityPage() {
         </h1>
 
         <p className="mt-1 text-sm text-neutral-500">
-          Últimos cambios importantes de la liga: partidos, resultados, reservas y pagos.
+          Cambios importantes de la liga y de tus partidos.
         </p>
       </header>
 
+      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-neutral-100 p-1">
+        <button
+          type="button"
+          onClick={() => setScope("all")}
+          className={`rounded-xl px-3 py-2 text-sm font-black ${
+            scope === "all" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
+          }`}
+        >
+          General
+        </button>
+        <button
+          type="button"
+          onClick={() => setScope("mine")}
+          className={`rounded-xl px-3 py-2 text-sm font-black ${
+            scope === "mine" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
+          }`}
+        >
+          Personal
+        </button>
+      </div>
+
       <section>
         <SectionHeader
-          title="Muro de actividad"
+          title={scope === "mine" ? "Actividad personal" : "Muro de actividad"}
           action={
             <button
               type="button"
@@ -176,9 +257,13 @@ export default function ActivityPage() {
 
         {!isLoading && !error && !hasEvents ? (
           <AppCard>
-            <p className="font-bold">Aún no hay actividad</p>
+            <p className="font-bold">
+              {scope === "mine" ? "Aún no tienes actividad" : "Aún no hay actividad"}
+            </p>
             <p className="mt-2 text-sm text-neutral-500">
-              Cuando alguien programe un partido, registre o modifique un resultado, aplace una jornada o actualice una reserva, aparecerá aquí.
+              {scope === "mine"
+                ? "Aquí aparecerán cambios relacionados con tus partidos, reservas y pagos."
+                : "Cuando alguien programe un partido, registre o modifique un resultado, aplace una jornada o actualice una reserva, aparecerá aquí."}
             </p>
           </AppCard>
         ) : null}
@@ -194,7 +279,7 @@ export default function ActivityPage() {
 
         {hasEvents ? (
           <div className="space-y-3">
-            {groupedEvents.map((event) => (
+            {visibleEvents.map((event) => (
               <AppCard key={event.id}>
                 <div className="flex gap-3">
                   <ActivityAvatar
@@ -219,7 +304,7 @@ export default function ActivityPage() {
                     </div>
 
                     {event.description ? (
-                      <p className="mt-3 text-sm text-neutral-600">
+                      <p className="mt-3 whitespace-pre-line text-sm text-neutral-600">
                         {event.description}
                       </p>
                     ) : null}

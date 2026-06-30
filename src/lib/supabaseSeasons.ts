@@ -103,6 +103,7 @@ function mapPlayer(row: {
   slug: string
   display_name: string
   avatar_initials: string
+  avatar_url?: string | null
 }): PlayerProfile {
   return {
     id: row.id,
@@ -110,6 +111,7 @@ function mapPlayer(row: {
     slug: row.slug,
     displayName: row.display_name,
     avatarInitials: row.avatar_initials,
+    avatarUrl: typeof row.avatar_url === "string" ? row.avatar_url : null,
   }
 }
 
@@ -255,7 +257,7 @@ export async function startSupabaseSeason({
               avatar_initials: initials(playerName),
             }))
           )
-          .select("id,league_id,slug,display_name,avatar_initials")
+          .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
       : { data: [], error: null }
 
   if (playersError) {

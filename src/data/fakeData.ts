@@ -9,6 +9,7 @@ export type League = {
   inviteCode: string
   joinMode: "closed" | "open"
   locations: string[]
+  logoUrl?: string | null
 }
 
 export type Season = {
@@ -26,6 +27,7 @@ export type PlayerProfile = {
   slug: string
   displayName: string
   avatarInitials: string
+  avatarUrl?: string | null
 }
 
 export type LeagueMember = {

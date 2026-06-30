@@ -1,18 +1,26 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { ChangeEvent, FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
+import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { resizeImageFileToDataUrl } from "@/lib/clientImages"
 
 type LeagueDetailsFormProps = {
   leagueId: string
   initialName: string
   initialDescription: string
+}
+
+type LeagueLogoFormProps = {
+  leagueId: string
+  leagueName: string
+  initialLogoUrl?: string | null
 }
 
 type LeagueLocationsFormProps = {
@@ -144,6 +152,119 @@ function LeagueDetailsForm({
         ) : null}
       </AppCard>
     </form>
+  )
+}
+
+function LeagueLogoForm({
+  leagueId,
+  leagueName,
+  initialLogoUrl,
+}: LeagueLogoFormProps) {
+  const { updateLeagueLogo } = useLeagueAccess()
+  const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function saveLogo(nextLogoUrl: string | null) {
+    setIsSaving(true)
+    setSaved(false)
+    setError(null)
+
+    const updated = await updateLeagueLogo(leagueId, nextLogoUrl)
+
+    setIsSaving(false)
+
+    if (!updated) {
+      setError(
+        "No se ha podido guardar el logo de la liga. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    setLogoUrl(nextLogoUrl)
+    setSaved(true)
+  }
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const dataUrl = await resizeImageFileToDataUrl({
+        file,
+        maxSize: 512,
+      })
+
+      await saveLogo(dataUrl)
+    } catch (imageError) {
+      setError(
+        imageError instanceof Error
+          ? imageError.message
+          : "No se ha podido procesar la imagen."
+      )
+    } finally {
+      event.target.value = ""
+    }
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Logo de la liga</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Sube una imagen cuadrada o recortable. Se verá en el inicio y en zonas de identificación de la liga.
+      </p>
+
+      <div className="mt-5 flex items-center gap-4">
+        <LeagueLogo
+          league={{ name: leagueName, logoUrl }}
+          size="lg"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black">{leagueName}</p>
+          <p className="mt-1 text-xs text-neutral-500">
+            {logoUrl ? "Logo personalizado activo." : "Se usan iniciales si no hay logo."}
+          </p>
+        </div>
+      </div>
+
+      <label className="mt-5 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white">
+        {isSaving ? "Guardando..." : "Subir logo"}
+        <input
+          type="file"
+          accept="image/*"
+          disabled={isSaving}
+          onChange={handleFileChange}
+          className="sr-only"
+        />
+      </label>
+
+      {logoUrl ? (
+        <button
+          type="button"
+          onClick={() => saveLogo(null)}
+          disabled={isSaving}
+          className="mt-3 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+        >
+          Quitar logo
+        </button>
+      ) : null}
+
+      {error ? (
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+
+      {saved ? (
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+          Logo guardado.
+        </p>
+      ) : null}
+    </AppCard>
   )
 }
 
@@ -381,7 +502,6 @@ function LeagueLocationsForm({
       </AppCard>
     </form>
   )
-
 }
 
 export default function AdminLeaguePage() {
@@ -437,12 +557,18 @@ export default function AdminLeaguePage() {
         initialDescription={activeLeague.description}
       />
 
+      <LeagueLogoForm
+        key={`${activeLeague.id}-logo`}
+        leagueId={activeLeague.id}
+        leagueName={activeLeague.name}
+        initialLogoUrl={activeLeague.logoUrl}
+      />
+
       <LeagueLocationsForm
         key={`${activeLeague.id}-locations`}
         leagueId={activeLeague.id}
         initialLocations={activeLeague.locations}
       />
-
 
       <LeagueUsersManagementPanel leagueId={activeLeague.id} />
 

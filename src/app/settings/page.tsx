@@ -1,16 +1,138 @@
 "use client"
 
+import { ChangeEvent, useState } from "react"
 import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { LeagueSwitcher } from "@/components/league/LeagueSwitcher"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { LocalDataMaintenanceCard } from "@/components/settings/LocalDataMaintenanceCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION } from "@/lib/appVersion"
+import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+
+function AccountAvatarSettings() {
+  const { currentUser } = useCurrentUser()
+  const { updateLeaguePlayerAvatar } = useLeagueAccess()
+  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function saveAvatar(nextAvatarUrl: string | null) {
+    setIsSaving(true)
+    setSaved(false)
+    setError(null)
+
+    const updated = await updateLeaguePlayerAvatar(
+      currentUser.leagueId,
+      currentUser.id,
+      nextAvatarUrl
+    )
+
+    setIsSaving(false)
+
+    if (!updated) {
+      setError(
+        "No se ha podido guardar la imagen. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    setAvatarUrl(nextAvatarUrl)
+    setSaved(true)
+  }
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const dataUrl = await resizeImageFileToDataUrl({
+        file,
+        maxSize: 512,
+      })
+
+      await saveAvatar(dataUrl)
+    } catch (imageError) {
+      setError(
+        imageError instanceof Error
+          ? imageError.message
+          : "No se ha podido procesar la imagen."
+      )
+    } finally {
+      event.target.value = ""
+    }
+  }
+
+  return (
+    <div className="mt-5 rounded-2xl bg-neutral-100 p-4">
+      <p className="font-bold">Ajustes de cuenta</p>
+      <p className="mt-1 text-xs text-neutral-500">
+        Personaliza la imagen que se muestra en tu perfil de esta liga.
+      </p>
+
+      <div className="mt-4 flex items-center gap-4">
+        <PlayerAvatar
+          player={{
+            ...currentUser,
+            avatarUrl,
+          }}
+          size="lg"
+        />
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-black">
+            {currentUser.displayName}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500">
+            {avatarUrl ? "Imagen personalizada activa." : "Se usan tus iniciales si no subes imagen."}
+          </p>
+        </div>
+      </div>
+
+      <label className="mt-4 block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-black text-neutral-800">
+        {isSaving ? "Guardando..." : "Subir imagen"}
+        <input
+          type="file"
+          accept="image/*"
+          disabled={isSaving}
+          onChange={handleFileChange}
+          className="sr-only"
+        />
+      </label>
+
+      {avatarUrl ? (
+        <button
+          type="button"
+          onClick={() => saveAvatar(null)}
+          disabled={isSaving}
+          className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+        >
+          Quitar imagen
+        </button>
+      ) : null}
+
+      {error ? (
+        <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>
+      ) : null}
+
+      {saved ? (
+        <p className="mt-3 text-xs font-semibold text-neutral-600">
+          Imagen guardada.
+        </p>
+      ) : null}
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { t } = useI18n()
@@ -84,7 +206,7 @@ export default function SettingsPage() {
       <AppCard>
         <p className="font-bold">Cuenta e invitaciones</p>
         <p className="mt-2 text-sm text-neutral-500">
-          Gestiona tu sesión y accede a nuevas ligas por invitación.
+          Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.
         </p>
 
         {session?.user?.email ? (
@@ -97,6 +219,8 @@ export default function SettingsPage() {
             </p>
           </div>
         ) : null}
+
+        <AccountAvatarSettings />
 
         <div className="mt-4 space-y-3">
           <Link

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import type { LeagueMemberRole } from "@/data/fakeData"
@@ -129,15 +130,26 @@ function PlayerUserCard({
   return (
     <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-lg font-black">{item.displayName}</p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">
+        <div className="flex min-w-0 items-start gap-3">
+          <PlayerAvatar
+            player={{
+              displayName: item.displayName,
+              avatarInitials: item.avatarInitials,
+              avatarUrl: item.avatarUrl,
+            }}
+            size="md"
+          />
+
+          <div className="min-w-0">
+            <p className="truncate text-lg font-black">{item.displayName}</p>
+            <p className="mt-1 text-xs font-semibold text-neutral-500">
             {item.linkedUserEmail
               ? item.linkedUserDisplayName
                 ? `${item.linkedUserDisplayName} · ${item.linkedUserEmail}`
                 : item.linkedUserEmail
               : "Este jugador todavía no tiene cuenta vinculada."}
-          </p>
+            </p>
+          </div>
         </div>
 
         <span

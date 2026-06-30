@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -49,9 +50,13 @@ export default function Home() {
           {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
-          {activeLeague.name}
-        </h1>
+        <div className="mt-2 flex items-center gap-3">
+          <LeagueLogo league={activeLeague} size="md" />
+
+          <h1 className="min-w-0 text-3xl font-black tracking-tight">
+            {activeLeague.name}
+          </h1>
+        </div>
 
         <p className="mt-1 text-sm text-neutral-500">
           {activeLeague.description} · {t.common.individualRanking}

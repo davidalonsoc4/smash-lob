@@ -5,6 +5,7 @@ export type LeagueUserManagementPlayer = {
   playerId: string
   displayName: string
   avatarInitials: string
+  avatarUrl: string | null
   linkedUserId: string | null
   linkedUserEmail: string | null
   linkedUserDisplayName: string | null
@@ -36,7 +37,7 @@ export async function fetchSupabaseLeagueUsers(
     await Promise.all([
       supabase
         .from("players")
-        .select("id,display_name,avatar_initials")
+        .select("id,display_name,avatar_initials,avatar_url")
         .eq("league_id", leagueId)
         .order("display_name", { ascending: true }),
       supabase
@@ -93,6 +94,7 @@ export async function fetchSupabaseLeagueUsers(
       playerId: player.id,
       displayName: player.display_name,
       avatarInitials: player.avatar_initials,
+      avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
       linkedUserId: membership?.user_id ?? null,
       linkedUserEmail: linkedUser?.email ?? null,
       linkedUserDisplayName: linkedUser?.display_name ?? null,
@@ -184,7 +186,7 @@ export async function updateSupabasePlayerDisplayName({
     })
     .eq("league_id", leagueId)
     .eq("id", playerId)
-    .select("id,display_name,avatar_initials")
+    .select("id,display_name,avatar_initials,avatar_url")
     .single()
 
   if (error) throw error
@@ -193,5 +195,33 @@ export async function updateSupabasePlayerDisplayName({
     playerId: data.id,
     displayName: data.display_name,
     avatarInitials: data.avatar_initials,
+    avatarUrl: typeof data.avatar_url === "string" ? data.avatar_url : null,
+  }
+}
+
+export async function updateSupabasePlayerAvatar({
+  leagueId,
+  playerId,
+  avatarUrl,
+}: {
+  leagueId: string
+  playerId: string
+  avatarUrl: string | null
+}) {
+  const { data, error } = await supabase
+    .from("players")
+    .update({ avatar_url: avatarUrl })
+    .eq("league_id", leagueId)
+    .eq("id", playerId)
+    .select("id,display_name,avatar_initials,avatar_url")
+    .single()
+
+  if (error) throw error
+
+  return {
+    playerId: data.id,
+    displayName: data.display_name,
+    avatarInitials: data.avatar_initials,
+    avatarUrl: typeof data.avatar_url === "string" ? data.avatar_url : null,
   }
 }
