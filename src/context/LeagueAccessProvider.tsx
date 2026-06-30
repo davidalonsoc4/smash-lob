@@ -20,6 +20,13 @@ import {
   updateSupabaseLeagueLocations,
 } from "@/lib/supabaseAdminLeagues"
 import {
+  fetchSupabaseLeagueUsers,
+  unlinkSupabaseLeagueMembership,
+  updateSupabaseLeagueMembershipRole,
+  updateSupabasePlayerDisplayName,
+  type LeagueUserManagementPlayer,
+} from "@/lib/supabaseAdminUsers"
+import {
   createSupabaseLeague,
   fetchSupabaseLeagueSnapshot,
 } from "@/lib/supabaseLeagues"
@@ -65,6 +72,18 @@ type LeagueAccessContextValue = {
   updateLeagueDetails: (leagueId: string, details: { name: string; description: string }) => Promise<boolean>
   updateLeagueLocations: (leagueId: string, locations: string[]) => Promise<boolean>
   deleteLeague: (leagueId: string) => Promise<boolean>
+  fetchLeagueUsers: (leagueId: string) => Promise<LeagueUserManagementPlayer[]>
+  updateLeagueUserRole: (
+    leagueId: string,
+    playerId: string,
+    role: Extract<LeagueMemberRole, "admin" | "player">
+  ) => Promise<boolean>
+  unlinkLeaguePlayerAccount: (leagueId: string, playerId: string) => Promise<boolean>
+  updateLeaguePlayerName: (
+    leagueId: string,
+    playerId: string,
+    displayName: string
+  ) => Promise<boolean>
   getLeagueByInviteCode: (code: string) => League | null
   resolveLeagueInvite: (code: string) => Promise<League | null>
   getUnclaimedPlayersForLeague: (leagueId: string) => PlayerProfile[]
@@ -360,7 +379,7 @@ function recordSupabaseError(action: string, error: unknown) {
 export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const { data: session } = useSession()
   const { hydrateMatches } = useMatchData()
-  const { hydrateSeasonSnapshot, playerProfiles } = useSeasonSettings()
+  const { hydrateSeasonSnapshot, playerProfiles, updatePlayerProfile } = useSeasonSettings()
   const userId = normalizeUserId(session?.user?.email)
   const userDisplayName = session?.user?.name
   const [hasDatabaseSuperuserAccess, setHasDatabaseSuperuserAccess] =
@@ -597,6 +616,21 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       userMemberships.find((membership) => membership.leagueId === leagueId) ??
       null,
     [userMemberships]
+  )
+
+  const canManageLeague = useCallback(
+    (leagueId: string) => {
+      if (isSuperuser) {
+        return true
+      }
+
+      const membership = userMemberships.find(
+        (item) => item.leagueId === leagueId
+      )
+
+      return Boolean(membership && adminRoles.includes(membership.role))
+    },
+    [isSuperuser, userMemberships]
   )
 
   const regenerateLeagueInviteCode = useCallback(
@@ -842,6 +876,198 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [memberships, persistMemberships, userDisplayName, userId]
   )
 
+
+
+  const fetchLeagueUsers = useCallback(
+    async (leagueId: string) => {
+      if (!canManageLeague(leagueId)) {
+        return []
+      }
+
+      if (!isSupabaseBackedId(leagueId)) {
+        return playerProfiles
+          .filter((player) => player.leagueId === leagueId)
+          .map((player) => {
+            const membership = memberships.find(
+              (item) =>
+                item.leagueId === leagueId && item.playerId === player.id
+            )
+
+            return {
+              playerId: player.id,
+              displayName: player.displayName,
+              avatarInitials: player.avatarInitials,
+              linkedUserId: membership?.userId ?? null,
+              linkedUserEmail:
+                membership && !membership.userId.startsWith("__claimed__:")
+                  ? membership.userId
+                  : null,
+              linkedUserDisplayName: null,
+              role: membership?.role ?? null,
+            }
+          })
+      }
+
+      try {
+        return await fetchSupabaseLeagueUsers(leagueId)
+      } catch (error) {
+        recordSupabaseError("fetch-league-users", error)
+        return []
+      }
+    },
+    [canManageLeague, memberships, playerProfiles]
+  )
+
+  const updateLeagueUserRole = useCallback(
+    async (
+      leagueId: string,
+      playerId: string,
+      role: Extract<LeagueMemberRole, "admin" | "player">
+    ) => {
+      if (!canManageLeague(leagueId)) {
+        return false
+      }
+
+      const membership = memberships.find(
+        (item) => item.leagueId === leagueId && item.playerId === playerId
+      )
+
+      if (!membership || membership.role === "creator") {
+        return false
+      }
+
+      if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
+        try {
+          const result = await updateSupabaseLeagueMembershipRole({
+            leagueId,
+            playerId,
+            role,
+          })
+
+          setMemberships((currentMemberships) => {
+            const nextMemberships = currentMemberships.map((item) =>
+              item.leagueId === result.leagueId && item.playerId === result.playerId
+                ? {
+                    ...item,
+                    role: result.role,
+                  }
+                : item
+            )
+
+            window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+
+            return nextMemberships
+          })
+
+          return true
+        } catch (error) {
+          recordSupabaseError("update-league-user-role", error)
+          return false
+        }
+      }
+
+      setMemberships((currentMemberships) => {
+        const nextMemberships = currentMemberships.map((item) =>
+          item.leagueId === leagueId && item.playerId === playerId
+            ? {
+                ...item,
+                role,
+              }
+            : item
+        )
+
+        window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+
+        return nextMemberships
+      })
+
+      return true
+    },
+    [canManageLeague, memberships]
+  )
+
+  const unlinkLeaguePlayerAccount = useCallback(
+    async (leagueId: string, playerId: string) => {
+      if (!canManageLeague(leagueId)) {
+        return false
+      }
+
+      const membership = memberships.find(
+        (item) => item.leagueId === leagueId && item.playerId === playerId
+      )
+
+      if (!membership || membership.role === "creator") {
+        return false
+      }
+
+      if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
+        try {
+          await unlinkSupabaseLeagueMembership({ leagueId, playerId })
+        } catch (error) {
+          recordSupabaseError("unlink-league-player-account", error)
+          return false
+        }
+      }
+
+      setMemberships((currentMemberships) => {
+        const nextMemberships = currentMemberships.filter(
+          (item) =>
+            !(item.leagueId === leagueId && item.playerId === playerId)
+        )
+
+        window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+
+        return nextMemberships
+      })
+
+      return true
+    },
+    [canManageLeague, memberships]
+  )
+
+  const updateLeaguePlayerName = useCallback(
+    async (leagueId: string, playerId: string, displayName: string) => {
+      const cleanDisplayName = displayName.trim()
+
+      if (!canManageLeague(leagueId) || !cleanDisplayName) {
+        return false
+      }
+
+      if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
+        try {
+          const result = await updateSupabasePlayerDisplayName({
+            leagueId,
+            playerId,
+            displayName: cleanDisplayName,
+          })
+
+          updatePlayerProfile(result)
+
+          return true
+        } catch (error) {
+          recordSupabaseError("update-league-player-name", error)
+          return false
+        }
+      }
+
+      const avatarInitials = cleanDisplayName
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase() || "JG"
+
+      updatePlayerProfile({
+        playerId,
+        displayName: cleanDisplayName,
+        avatarInitials,
+      })
+
+      return true
+    },
+    [canManageLeague, updatePlayerProfile]
+  )
+
   const getLeagueByInviteCode = useCallback(
     (code: string) => {
       const normalizedCode = normalizeInviteCode(code)
@@ -1012,6 +1238,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueDetails,
       updateLeagueLocations,
       deleteLeague,
+      fetchLeagueUsers,
+      updateLeagueUserRole,
+      unlinkLeaguePlayerAccount,
+      updateLeaguePlayerName,
       getLeagueByInviteCode,
       resolveLeagueInvite,
       getUnclaimedPlayersForLeague,
@@ -1025,6 +1255,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       createLeague,
       claimPlayer,
       deleteLeague,
+      fetchLeagueUsers,
+      updateLeagueUserRole,
+      unlinkLeaguePlayerAccount,
+      updateLeaguePlayerName,
       getLeagueByInviteCode,
       getLeagueInviteCode,
       getMembershipForLeague,

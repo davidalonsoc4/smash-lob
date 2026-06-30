@@ -38,6 +38,11 @@ type SeasonSettingsContextValue = {
   getSeasonPlayers: (seasonId: string) => SeasonPlayer[]
   getSeasonRoundSettings: (seasonId: string) => SeasonRoundSettings
   updateSeasonRoundSettings: (settings: SeasonRoundSettings) => void
+  updatePlayerProfile: (player: {
+    playerId: string
+    displayName: string
+    avatarInitials: string
+  }) => void
   hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void
   finishActiveSeason: (leagueId: string) => void
   createInitialSeasonForLeague: (settings: {
@@ -647,6 +652,39 @@ export function SeasonSettingsProvider({
     })
   }
 
+
+  const updatePlayerProfile = useCallback(
+    ({
+      playerId,
+      displayName,
+      avatarInitials,
+    }: {
+      playerId: string
+      displayName: string
+      avatarInitials: string
+    }) => {
+      setSeasonData((currentSeasonData) => {
+        const nextSeasonData = {
+          ...currentSeasonData,
+          playerProfiles: currentSeasonData.playerProfiles.map((player) =>
+            player.id === playerId
+              ? {
+                  ...player,
+                  displayName,
+                  avatarInitials,
+                }
+              : player
+          ),
+        }
+
+        persistSeasonData(nextSeasonData)
+
+        return nextSeasonData
+      })
+    },
+    []
+  )
+
   const hydrateSeasonSnapshot = useCallback((snapshot: SeasonSnapshot) => {
     setSeasonData((currentSeasonData) => {
       const nextSeasonData = {
@@ -691,6 +729,7 @@ export function SeasonSettingsProvider({
     getSeasonPlayers,
     getSeasonRoundSettings,
     updateSeasonRoundSettings,
+    updatePlayerProfile,
     hydrateSeasonSnapshot,
     finishActiveSeason,
     createInitialSeasonForLeague,
