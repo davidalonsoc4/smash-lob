@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard"
 import { AppCard } from "@/components/ui/AppCard"
@@ -12,7 +13,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getTeamDisplayName } from "@/lib/players"
+import { getRoundMvpPlayerIds } from "@/lib/mvp"
 
 export default function Home() {
   const { t } = useI18n()
@@ -29,6 +30,22 @@ export default function Home() {
 
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonClosed = activeSeason.status === "finished"
+  const lastMatchHighlightedPlayerIds = lastMatch
+    ? getRoundMvpPlayerIds({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        round: lastMatch.round,
+        matches,
+      })
+    : []
+  const nextMatchHighlightedPlayerIds = nextMatch
+    ? getRoundMvpPlayerIds({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        round: nextMatch.round,
+        matches,
+      })
+    : []
 
   const rankingPlayers = [...players].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
@@ -259,16 +276,22 @@ export default function Home() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-bold">
-                    {getTeamDisplayName(lastMatch.teamA, players)}
-                  </p>
+                  <TeamPlayers
+                    playerIds={lastMatch.teamA}
+                    players={players}
+                    highlightedPlayerIds={lastMatchHighlightedPlayerIds}
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                  />
                   <p className="text-xl font-black">{lastMatch.pointsA}</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-bold">
-                    {getTeamDisplayName(lastMatch.teamB, players)}
-                  </p>
+                  <TeamPlayers
+                    playerIds={lastMatch.teamB}
+                    players={players}
+                    highlightedPlayerIds={lastMatchHighlightedPlayerIds}
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                  />
                   <p className="text-xl font-black">{lastMatch.pointsB}</p>
                 </div>
               </div>
@@ -307,13 +330,19 @@ export default function Home() {
               </div>
 
               <div className="space-y-2">
-                <p className="font-bold">
-                  {getTeamDisplayName(nextMatch.teamA, players)}
-                </p>
+                <TeamPlayers
+                  playerIds={nextMatch.teamA}
+                  players={players}
+                  highlightedPlayerIds={nextMatchHighlightedPlayerIds}
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                />
                 <p className="text-sm text-neutral-500">{t.common.versus}</p>
-                <p className="font-bold">
-                  {getTeamDisplayName(nextMatch.teamB, players)}
-                </p>
+                <TeamPlayers
+                  playerIds={nextMatch.teamB}
+                  players={players}
+                  highlightedPlayerIds={nextMatchHighlightedPlayerIds}
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                />
               </div>
 
               <div className="mt-4 rounded-xl border border-dashed border-neutral-300 p-3">

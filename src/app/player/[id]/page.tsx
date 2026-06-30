@@ -73,8 +73,11 @@ export default function PlayerPage() {
 
       <PlayerStatsPanel
         playerId={player.id}
+        leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
         players={players}
         matches={matches}
+        seasonMatches={matches}
       />
 
       <PlayerMvpPanel
@@ -90,6 +93,7 @@ export default function PlayerPage() {
         title={t.playerProfile.playerMatches}
         matches={matches}
         players={players}
+        seasonMatches={matches}
       />
 
     </div>

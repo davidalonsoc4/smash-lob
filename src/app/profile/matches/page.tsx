@@ -132,6 +132,7 @@ export default function ProfileMatchesPage() {
         title={t.profile.filteredMatches}
         matches={filteredMatches}
         players={players}
+        seasonMatches={matches}
         emptyMessage={t.profile.noFilteredMatches}
       />
     </div>

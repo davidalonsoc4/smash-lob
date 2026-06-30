@@ -11,6 +11,7 @@ type MatchScoreboardProps = {
   pointsA: number | null
   pointsB: number | null
   sets: { a: number; b: number }[]
+  highlightedPlayerIds?: string[]
 }
 
 export function MatchScoreboard({
@@ -20,6 +21,7 @@ export function MatchScoreboard({
   pointsA,
   pointsB,
   sets,
+  highlightedPlayerIds = [],
 }: MatchScoreboardProps) {
   const { t } = useI18n()
   const isFinished = pointsA !== null && pointsB !== null
@@ -32,7 +34,11 @@ export function MatchScoreboard({
             <p className="text-sm text-neutral-500">
               {t.matchDetail.teamA}
             </p>
-            <TeamPlayers playerIds={teamA} players={players} />
+            <TeamPlayers
+              playerIds={teamA}
+              players={players}
+              highlightedPlayerIds={highlightedPlayerIds}
+            />
           </div>
 
           {isFinished ? (
@@ -47,7 +53,11 @@ export function MatchScoreboard({
             <p className="text-sm text-neutral-500">
               {t.matchDetail.teamB}
             </p>
-            <TeamPlayers playerIds={teamB} players={players} />
+            <TeamPlayers
+              playerIds={teamB}
+              players={players}
+              highlightedPlayerIds={highlightedPlayerIds}
+            />
           </div>
 
           {isFinished ? (

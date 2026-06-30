@@ -2,13 +2,16 @@
 
 import Link from "next/link"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
+import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getTeamDisplayName } from "@/lib/players"
+import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type PlayerMatch = {
   id: string
+  leagueId: string
+  seasonId: string
   round: number
   status: string
   teamA: string[]
@@ -27,6 +30,7 @@ type PlayerMatchesListProps = {
   players?: PlayerProfile[]
   limit?: number
   emptyMessage?: string
+  seasonMatches?: PlayerMatch[]
 }
 
 export function PlayerMatchesList({
@@ -36,6 +40,7 @@ export function PlayerMatchesList({
   players,
   limit,
   emptyMessage,
+  seasonMatches = matches,
 }: PlayerMatchesListProps) {
   const { t } = useI18n()
 
@@ -61,6 +66,12 @@ export function PlayerMatchesList({
         {visibleMatches.map((match) => {
           const isFinished = match.status === "finished"
           const isPostponed = match.status === "postponed"
+          const highlightedPlayerIds = getRoundMvpPlayerIds({
+            leagueId: match.leagueId,
+            seasonId: match.seasonId,
+            round: match.round,
+            matches: seasonMatches,
+          })
 
           const scheduleTitle = isPostponed
             ? t.matches.pendingReschedule
@@ -83,9 +94,12 @@ export function PlayerMatchesList({
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-bold">
-                      {getTeamDisplayName(match.teamA, players)}
-                    </p>
+                    <TeamPlayers
+                      playerIds={match.teamA}
+                      players={players}
+                      highlightedPlayerIds={highlightedPlayerIds}
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                    />
 
                     {isFinished ? (
                       <p className="text-xl font-black">{match.pointsA}</p>
@@ -93,9 +107,12 @@ export function PlayerMatchesList({
                   </div>
 
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-bold">
-                      {getTeamDisplayName(match.teamB, players)}
-                    </p>
+                    <TeamPlayers
+                      playerIds={match.teamB}
+                      players={players}
+                      highlightedPlayerIds={highlightedPlayerIds}
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                    />
 
                     {isFinished ? (
                       <p className="text-xl font-black">{match.pointsB}</p>

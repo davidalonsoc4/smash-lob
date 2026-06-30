@@ -2,11 +2,15 @@
 
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getPlayerMvpSummary } from "@/lib/mvp"
 
 type PlayerStatsPanelProps = {
   playerId: string
+  leagueId: string
+  seasonId: string
   players: PlayerStatsPlayer[]
   matches: PlayerStatsMatch[]
+  seasonMatches?: PlayerStatsMatch[]
 }
 
 type PlayerStatsPlayer = {
@@ -16,6 +20,8 @@ type PlayerStatsPlayer = {
 
 type PlayerStatsMatch = {
   id: string
+  leagueId: string
+  seasonId: string
   round: number
   status: string
   teamA: string[]
@@ -111,7 +117,14 @@ function getDisplayName(playerId: string, players: PlayerStatsPlayer[]) {
   return players.find((player) => player.id === playerId)?.displayName ?? playerId
 }
 
-export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPanelProps) {
+export function PlayerStatsPanel({
+  playerId,
+  leagueId,
+  seasonId,
+  players,
+  matches,
+  seasonMatches = matches,
+}: PlayerStatsPanelProps) {
   const { t } = useI18n()
   const finishedMatches = matches.filter(
     (match) =>
@@ -179,6 +192,16 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
   const toughestRivalDiff = toughestRival
     ? toughestRival.gamesFor - toughestRival.gamesAgainst
     : 0
+  const mvpSummary = getPlayerMvpSummary({
+    leagueId,
+    seasonId,
+    matches: seasonMatches,
+    playerId,
+  })
+  const setsTotal = setsFor + setsAgainst
+  const gamesTotal = gamesFor + gamesAgainst
+  const setsWinRate = setsTotal > 0 ? (setsFor / setsTotal) * 100 : 0
+  const gamesForRate = gamesTotal > 0 ? (gamesFor / gamesTotal) * 100 : 0
   const emptyValue = "—"
 
   return (
@@ -202,13 +225,16 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+      <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
         <div className="rounded-2xl bg-neutral-100 p-3">
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.setsBalance}
           </p>
           <p className="mt-1 text-lg font-black">
             {setsFor}-{setsAgainst}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
+            {formatPercentage(setsWinRate)} {t.playerStats.wonPercentage}
           </p>
         </div>
 
@@ -220,7 +246,19 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
             {gamesFor}-{gamesAgainst}
           </p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {formatSignedNumber(gamesDiff)} {t.ranking.diff}
+            {formatSignedNumber(gamesDiff)} {t.ranking.diff} · {formatPercentage(gamesForRate)} {t.playerStats.forPercentage}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-neutral-100 p-3">
+          <p className="text-xs font-semibold text-neutral-500">
+            {t.playerStats.mvpWon}
+          </p>
+          <p className="mt-1 text-lg font-black">
+            {mvpSummary.roundMvpCount}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
+            {mvpSummary.seasonMvpCount > 0 ? "MVP final" : "temporada"}
           </p>
         </div>
       </div>

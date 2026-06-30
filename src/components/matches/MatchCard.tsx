@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getTeamDisplayName } from "@/lib/players"
 import type { PlayerProfile } from "@/data/fakeData"
 import { MatchStatusBadge } from "./MatchStatusBadge"
 
@@ -25,6 +25,7 @@ type MatchCardProps = {
   roundStartsAt: string | null
   roundEndsAt: string | null
   headerMode?: "round" | "match-date"
+  highlightedPlayerIds?: string[]
 }
 
 export function MatchCard({
@@ -33,6 +34,7 @@ export function MatchCard({
   roundStartsAt,
   roundEndsAt,
   headerMode = "round",
+  highlightedPlayerIds = [],
 }: MatchCardProps) {
   const { t } = useI18n()
   const isFinished = match.status === "finished"
@@ -86,7 +88,12 @@ export function MatchCard({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-bold">{getTeamDisplayName(match.teamA, players)}</p>
+            <TeamPlayers
+              playerIds={match.teamA}
+              players={players}
+              highlightedPlayerIds={highlightedPlayerIds}
+              className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+            />
 
             {isFinished ? (
               <p className="text-xl font-black">{match.pointsA}</p>
@@ -94,7 +101,12 @@ export function MatchCard({
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="font-bold">{getTeamDisplayName(match.teamB, players)}</p>
+            <TeamPlayers
+              playerIds={match.teamB}
+              players={players}
+              highlightedPlayerIds={highlightedPlayerIds}
+              className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+            />
 
             {isFinished ? (
               <p className="text-xl font-black">{match.pointsB}</p>

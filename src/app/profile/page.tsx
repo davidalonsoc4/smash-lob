@@ -93,8 +93,11 @@ export default function ProfilePage() {
 
       <PlayerStatsPanel
         playerId={player.id}
+        leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
         players={players}
         matches={playerMatches}
+        seasonMatches={matches}
       />
 
       <PlayerMvpPanel
@@ -111,6 +114,7 @@ export default function ProfilePage() {
           title={t.profile.nextMatch}
           matches={nextMatches}
           players={players}
+          seasonMatches={matches}
           limit={1}
           emptyMessage={t.profile.noUpcomingMatches}
         />
@@ -121,6 +125,7 @@ export default function ProfilePage() {
         title={t.profile.recentResults}
         matches={recentFinishedMatches}
         players={players}
+        seasonMatches={matches}
         limit={3}
         emptyMessage={t.profile.noRecentResults}
       />

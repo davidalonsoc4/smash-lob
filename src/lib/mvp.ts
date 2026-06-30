@@ -1,5 +1,5 @@
 export type MvpScope = "round" | "season"
-export type MvpSelectionSource = "manual" | "votes"
+export type MvpSelectionSource = "automatic" | "manual" | "votes"
 
 export type MvpVote = {
   leagueId: string
@@ -20,12 +20,16 @@ export type MvpManualSelection = {
 }
 
 export type MvpMatch = {
+  id?: string
   leagueId: string
   seasonId: string
   round: number
   status: string
   teamA: string[]
   teamB: string[]
+  pointsA: number | null
+  pointsB: number | null
+  sets: { a: number; b: number }[]
 }
 
 export type MvpPlayer = {
@@ -41,8 +45,15 @@ export type MvpResult = {
   scope: MvpScope
   round: number | null
   playerId: string
+  playerIds: string[]
   source: MvpSelectionSource
   votes: number
+  gamesFor?: number
+  gamesAgainst?: number
+  gamesDiff?: number
+  setsFor?: number
+  setsAgainst?: number
+  tied?: boolean
 }
 
 export type MvpVoteRow = {
@@ -63,30 +74,100 @@ type MvpLookup = {
   round?: number | null
 }
 
+type RoundMvpCandidate = {
+  playerIds: string[]
+  gamesFor: number
+  gamesAgainst: number
+  gamesDiff: number
+  setsFor: number
+  setsAgainst: number
+  matchId: string
+}
+
 function belongsToLeagueSeason(item: MvpLookup, leagueId: string, seasonId: string) {
   return item.leagueId === leagueId && item.seasonId === seasonId
 }
 
-function getManualSelection({
-  manualSelections,
-  leagueId,
-  seasonId,
-  scope,
-  round,
-}: {
-  manualSelections: MvpManualSelection[]
-  leagueId: string
-  seasonId: string
-  scope: MvpScope
-  round: number | null
-}) {
-  return manualSelections.find(
-    (selection) =>
-      selection.leagueId === leagueId &&
-      selection.seasonId === seasonId &&
-      selection.scope === scope &&
-      selection.round === round
+function getTeamGames(match: MvpMatch, team: "A" | "B") {
+  return match.sets.reduce((total, set) => total + (team === "A" ? set.a : set.b), 0)
+}
+
+function getTeamSetPoints(match: MvpMatch, team: "A" | "B") {
+  if (team === "A" && match.pointsA !== null) {
+    return match.pointsA
+  }
+
+  if (team === "B" && match.pointsB !== null) {
+    return match.pointsB
+  }
+
+  return match.sets.filter((set) => (team === "A" ? set.a > set.b : set.b > set.a)).length
+}
+
+function getRoundMatches(matches: MvpMatch[], leagueId: string, seasonId: string, round: number) {
+  return matches.filter(
+    (match) =>
+      match.leagueId === leagueId &&
+      match.seasonId === seasonId &&
+      match.round === round
   )
+}
+
+function isRoundComplete(matches: MvpMatch[], leagueId: string, seasonId: string, round: number) {
+  const roundMatches = getRoundMatches(matches, leagueId, seasonId, round)
+
+  return roundMatches.length > 0 && roundMatches.every((match) => match.status === "finished")
+}
+
+function getRoundWinnerCandidate(match: MvpMatch): RoundMvpCandidate | null {
+  if (match.status !== "finished") {
+    return null
+  }
+
+  const setsA = getTeamSetPoints(match, "A")
+  const setsB = getTeamSetPoints(match, "B")
+
+  if (setsA === setsB) {
+    return null
+  }
+
+  const winningTeam = setsA > setsB ? "A" : "B"
+  const gamesFor = getTeamGames(match, winningTeam)
+  const gamesAgainst = getTeamGames(match, winningTeam === "A" ? "B" : "A")
+
+  return {
+    playerIds: winningTeam === "A" ? match.teamA : match.teamB,
+    gamesFor,
+    gamesAgainst,
+    gamesDiff: gamesFor - gamesAgainst,
+    setsFor: winningTeam === "A" ? setsA : setsB,
+    setsAgainst: winningTeam === "A" ? setsB : setsA,
+    matchId: match.id ?? `${match.round}-${match.teamA.join("-")}-${match.teamB.join("-")}`,
+  }
+}
+
+function sortRoundMvpCandidates(firstCandidate: RoundMvpCandidate, secondCandidate: RoundMvpCandidate) {
+  if (secondCandidate.gamesDiff !== firstCandidate.gamesDiff) {
+    return secondCandidate.gamesDiff - firstCandidate.gamesDiff
+  }
+
+  if (secondCandidate.setsFor !== firstCandidate.setsFor) {
+    return secondCandidate.setsFor - firstCandidate.setsFor
+  }
+
+  if (firstCandidate.setsAgainst !== secondCandidate.setsAgainst) {
+    return firstCandidate.setsAgainst - secondCandidate.setsAgainst
+  }
+
+  if (secondCandidate.gamesFor !== firstCandidate.gamesFor) {
+    return secondCandidate.gamesFor - firstCandidate.gamesFor
+  }
+
+  if (firstCandidate.gamesAgainst !== secondCandidate.gamesAgainst) {
+    return firstCandidate.gamesAgainst - secondCandidate.gamesAgainst
+  }
+
+  return firstCandidate.playerIds.join("|").localeCompare(secondCandidate.playerIds.join("|"))
 }
 
 function sortVoteRows(firstRow: MvpVoteRow, secondRow: MvpVoteRow) {
@@ -107,6 +188,20 @@ export function getRoundPlayerIds(matches: MvpMatch[], round: number) {
   )
 }
 
+export function getCompletedRoundNumbers(matches: MvpMatch[], leagueId: string, seasonId: string) {
+  const roundNumbers = Array.from(
+    new Set(
+      matches
+        .filter((match) => belongsToLeagueSeason(match, leagueId, seasonId))
+        .map((match) => match.round)
+    )
+  )
+
+  return roundNumbers
+    .filter((round) => isRoundComplete(matches, leagueId, seasonId, round))
+    .sort((firstRound, secondRound) => firstRound - secondRound)
+}
+
 export function getFinishedRoundNumbers(matches: MvpMatch[]) {
   return Array.from(
     new Set(
@@ -117,108 +212,37 @@ export function getFinishedRoundNumbers(matches: MvpMatch[]) {
   ).sort((firstRound, secondRound) => firstRound - secondRound)
 }
 
+export function getLatestCompletedRound(matches: MvpMatch[], leagueId: string, seasonId: string) {
+  return getCompletedRoundNumbers(matches, leagueId, seasonId).at(-1) ?? null
+}
+
 export function getLatestFinishedRound(matches: MvpMatch[]) {
   return getFinishedRoundNumbers(matches).at(-1) ?? null
 }
 
-export function getRoundVoteRows({
-  votes,
-  leagueId,
-  seasonId,
-  round,
-}: {
-  votes: MvpVote[]
-  leagueId: string
-  seasonId: string
-  round: number
-}) {
-  const votesByPlayerId = new Map<string, number>()
-
-  votes
-    .filter(
-      (vote) =>
-        vote.leagueId === leagueId &&
-        vote.seasonId === seasonId &&
-        vote.round === round
-    )
-    .forEach((vote) => {
-      votesByPlayerId.set(
-        vote.selectedPlayerId,
-        (votesByPlayerId.get(vote.selectedPlayerId) ?? 0) + 1
-      )
-    })
-
-  return Array.from(votesByPlayerId.entries())
-    .map(([playerId, voteCount]) => ({
-      playerId,
-      votes: voteCount,
-    }))
-    .sort(sortVoteRows)
-}
-
-export function getPlayerRoundVote({
-  votes,
-  leagueId,
-  seasonId,
-  round,
-  voterPlayerId,
-}: {
-  votes: MvpVote[]
-  leagueId: string
-  seasonId: string
-  round: number
-  voterPlayerId: string
-}) {
-  return votes.find(
-    (vote) =>
-      vote.leagueId === leagueId &&
-      vote.seasonId === seasonId &&
-      vote.round === round &&
-      vote.voterPlayerId === voterPlayerId
-  )
-}
-
 export function getRoundMvpSelection({
-  votes,
-  manualSelections,
   leagueId,
   seasonId,
   round,
+  matches,
 }: {
-  votes: MvpVote[]
-  manualSelections: MvpManualSelection[]
+  votes?: MvpVote[]
+  manualSelections?: MvpManualSelection[]
   leagueId: string
   seasonId: string
   round: number
+  matches: MvpMatch[]
 }): MvpResult | null {
-  const manualSelection = getManualSelection({
-    manualSelections,
-    leagueId,
-    seasonId,
-    scope: "round",
-    round,
-  })
-
-  if (manualSelection) {
-    const voteRows = getRoundVoteRows({ votes, leagueId, seasonId, round })
-    const manualPlayerVotes =
-      voteRows.find((row) => row.playerId === manualSelection.selectedPlayerId)
-        ?.votes ?? 0
-
-    return {
-      leagueId,
-      seasonId,
-      scope: "round",
-      round,
-      playerId: manualSelection.selectedPlayerId,
-      source: "manual",
-      votes: manualPlayerVotes,
-    }
+  if (!isRoundComplete(matches, leagueId, seasonId, round)) {
+    return null
   }
 
-  const topVoteRow = getRoundVoteRows({ votes, leagueId, seasonId, round })[0]
+  const topCandidate = getRoundMatches(matches, leagueId, seasonId, round)
+    .map(getRoundWinnerCandidate)
+    .filter((candidate): candidate is RoundMvpCandidate => Boolean(candidate))
+    .sort(sortRoundMvpCandidates)[0]
 
-  if (!topVoteRow) {
+  if (!topCandidate) {
     return null
   }
 
@@ -227,90 +251,70 @@ export function getRoundMvpSelection({
     seasonId,
     scope: "round",
     round,
-    playerId: topVoteRow.playerId,
-    source: "votes",
-    votes: topVoteRow.votes,
+    playerId: topCandidate.playerIds[0],
+    playerIds: topCandidate.playerIds,
+    source: "automatic",
+    votes: 1,
+    gamesFor: topCandidate.gamesFor,
+    gamesAgainst: topCandidate.gamesAgainst,
+    gamesDiff: topCandidate.gamesDiff,
+    setsFor: topCandidate.setsFor,
+    setsAgainst: topCandidate.setsAgainst,
   }
 }
 
 export function getSeasonMvpSelection({
-  votes,
-  manualSelections,
   leagueId,
   seasonId,
   matches,
 }: {
-  votes: MvpVote[]
-  manualSelections: MvpManualSelection[]
+  votes?: MvpVote[]
+  manualSelections?: MvpManualSelection[]
   leagueId: string
   seasonId: string
   matches: MvpMatch[]
 }): MvpResult | null {
-  const manualSelection = getManualSelection({
-    manualSelections,
-    leagueId,
-    seasonId,
-    scope: "season",
-    round: null,
-  })
-
-  if (manualSelection) {
-    const votesReceived = getPlayerVotesReceived({
-      votes,
-      leagueId,
-      seasonId,
-      playerId: manualSelection.selectedPlayerId,
-    })
-
-    return {
-      leagueId,
-      seasonId,
-      scope: "season",
-      round: null,
-      playerId: manualSelection.selectedPlayerId,
-      source: "manual",
-      votes: votesReceived,
-    }
-  }
-
   const roundMvpCounts = new Map<string, number>()
-  const finishedRounds = getFinishedRoundNumbers(matches)
+  const completedRounds = getCompletedRoundNumbers(matches, leagueId, seasonId)
 
-  finishedRounds.forEach((round) => {
+  completedRounds.forEach((round) => {
     const roundMvp = getRoundMvpSelection({
-      votes,
-      manualSelections,
       leagueId,
       seasonId,
       round,
+      matches,
     })
 
-    if (!roundMvp) {
-      return
-    }
-
-    roundMvpCounts.set(
-      roundMvp.playerId,
-      (roundMvpCounts.get(roundMvp.playerId) ?? 0) + 1
-    )
+    roundMvp?.playerIds.forEach((playerId) => {
+      roundMvpCounts.set(playerId, (roundMvpCounts.get(playerId) ?? 0) + 1)
+    })
   })
 
-  const topRoundMvpRow = Array.from(roundMvpCounts.entries())
+  const rows = Array.from(roundMvpCounts.entries())
     .map(([playerId, voteCount]) => ({ playerId, votes: voteCount }))
-    .sort(sortVoteRows)[0]
+    .sort(sortVoteRows)
 
-  if (!topRoundMvpRow) {
+  const topCount = rows[0]?.votes ?? 0
+
+  if (topCount === 0) {
     return null
   }
+
+  const topPlayerIds = rows
+    .filter((row) => row.votes === topCount)
+    .map((row) => row.playerId)
+    .sort((firstPlayerId, secondPlayerId) => firstPlayerId.localeCompare(secondPlayerId))
 
   return {
     leagueId,
     seasonId,
     scope: "season",
     round: null,
-    playerId: topRoundMvpRow.playerId,
-    source: "votes",
-    votes: topRoundMvpRow.votes,
+    playerId: topPlayerIds[0],
+    playerIds: topPlayerIds,
+    source: "automatic",
+    votes: topCount,
+    tied: topPlayerIds.length > 1,
   }
 }
 
@@ -334,34 +338,29 @@ export function getPlayerVotesReceived({
 }
 
 export function getPlayerMvpSummary({
-  votes,
-  manualSelections,
   leagueId,
   seasonId,
   matches,
   playerId,
 }: {
-  votes: MvpVote[]
-  manualSelections: MvpManualSelection[]
+  votes?: MvpVote[]
+  manualSelections?: MvpManualSelection[]
   leagueId: string
   seasonId: string
   matches: MvpMatch[]
   playerId: string
 }): PlayerMvpSummary {
-  const roundMvpRounds = getFinishedRoundNumbers(matches).filter((round) => {
+  const roundMvpRounds = getCompletedRoundNumbers(matches, leagueId, seasonId).filter((round) => {
     const roundMvp = getRoundMvpSelection({
-      votes,
-      manualSelections,
       leagueId,
       seasonId,
       round,
+      matches,
     })
 
-    return roundMvp?.playerId === playerId
+    return roundMvp?.playerIds.includes(playerId)
   })
   const seasonMvp = getSeasonMvpSelection({
-    votes,
-    manualSelections,
     leagueId,
     seasonId,
     matches,
@@ -370,13 +369,8 @@ export function getPlayerMvpSummary({
   return {
     roundMvpCount: roundMvpRounds.length,
     roundMvpRounds,
-    seasonMvpCount: seasonMvp?.playerId === playerId ? 1 : 0,
-    votesReceived: getPlayerVotesReceived({
-      votes,
-      leagueId,
-      seasonId,
-      playerId,
-    }),
+    seasonMvpCount: seasonMvp?.playerIds.includes(playerId) ? 1 : 0,
+    votesReceived: 0,
   }
 }
 
@@ -388,6 +382,34 @@ export function getPlayerById(players: MvpPlayer[], playerId: string | null) {
   return players.find((player) => player.id === playerId) ?? null
 }
 
+export function getPlayersByIds(players: MvpPlayer[], playerIds: string[]) {
+  return playerIds
+    .map((playerId) => getPlayerById(players, playerId))
+    .filter((player): player is MvpPlayer => Boolean(player))
+}
+
+export function getRoundMvpPlayerIds({
+  leagueId,
+  seasonId,
+  round,
+  matches,
+}: {
+  leagueId: string
+  seasonId: string
+  round: number
+  matches: MvpMatch[]
+}) {
+  return getRoundMvpSelection({ leagueId, seasonId, round, matches })?.playerIds ?? []
+}
+
 export function getSeasonVotes(votes: MvpVote[], leagueId: string, seasonId: string) {
   return votes.filter((vote) => belongsToLeagueSeason(vote, leagueId, seasonId))
+}
+
+export function getRoundVoteRows() {
+  return [] as MvpVoteRow[]
+}
+
+export function getPlayerRoundVote() {
+  return undefined
 }

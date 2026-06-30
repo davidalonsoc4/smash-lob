@@ -4,64 +4,49 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
-  getFinishedRoundNumbers,
-  getPlayerById,
+  getCompletedRoundNumbers,
+  getPlayersByIds,
   getRoundMvpSelection,
-  getRoundPlayerIds,
-  getRoundVoteRows,
   getSeasonMvpSelection,
   type MvpPlayer,
 } from "@/lib/mvp"
 
-function PlayerSelect({
-  value,
-  players,
-  placeholder,
-  onChange,
-}: {
-  value: string
-  players: MvpPlayer[]
-  placeholder: string
-  onChange: (playerId: string | null) => void
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(event) => onChange(event.target.value || null)}
-      className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-neutral-950"
-    >
-      <option value="">{placeholder}</option>
-      {players.map((player) => (
-        <option key={player.id} value={player.id}>
-          {player.displayName}
-        </option>
-      ))}
-    </select>
-  )
-}
-
-function SelectedMvpLine({
+function MvpPlayerLine({
   label,
-  player,
+  players,
   helper,
 }: {
   label: string
-  player: MvpPlayer | null
+  players: MvpPlayer[]
   helper: string
 }) {
   return (
     <div className="mt-4 flex items-center gap-3 rounded-2xl bg-neutral-100 p-3">
-      <PlayerAvatar player={player} size="md" />
+      <div className="flex -space-x-2">
+        {players.length > 0 ? (
+          players.slice(0, 4).map((player) => (
+            <PlayerAvatar
+              key={player.id}
+              player={player}
+              size="md"
+              className="border-2 border-neutral-100"
+            />
+          ))
+        ) : (
+          <PlayerAvatar player={null} size="md" />
+        )}
+      </div>
       <div className="min-w-0">
         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-500">
           {label}
         </p>
         <p className="truncate text-base font-black text-neutral-950">
-          {player?.displayName ?? "Pendiente"}
+          {players.length > 0
+            ? players.map((player) => player.displayName).join(" / ")
+            : "Pendiente"}
         </p>
         <p className="text-xs font-semibold text-neutral-500">{helper}</p>
       </div>
@@ -73,24 +58,18 @@ export default function AdminMvpPage() {
   const { t } = useI18n()
   const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason, players, matches } = useCurrentLeagueData()
-  const { votes, manualSelections, setManualMvpSelection } = useMvp()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
-  const finishedRounds = getFinishedRoundNumbers(matches)
-  const seasonManualSelection = manualSelections.find(
-    (selection) =>
-      selection.leagueId === activeLeague.id &&
-      selection.seasonId === activeSeason.id &&
-      selection.scope === "season" &&
-      selection.round === null
+  const completedRounds = getCompletedRoundNumbers(
+    matches,
+    activeLeague.id,
+    activeSeason.id
   )
   const seasonMvp = getSeasonMvpSelection({
-    votes,
-    manualSelections,
     leagueId: activeLeague.id,
     seasonId: activeSeason.id,
     matches,
   })
-  const seasonMvpPlayer = getPlayerById(players, seasonMvp?.playerId ?? null)
+  const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
 
   if (!canAccessAdmin) {
     return (
@@ -126,40 +105,23 @@ export default function AdminMvpPage() {
         </h1>
 
         <p className="mt-1 text-sm text-neutral-500">
-          Gestiona el MVP por jornada, el MVP final y las votaciones de los jugadores.
+          Consulta los MVPs automáticos de jornada y el MVP final de temporada.
         </p>
       </header>
 
       <AppCard>
         <p className="font-bold">MVP final de temporada</p>
         <p className="mt-2 text-sm text-neutral-500">
-          Puedes dejarlo en automático para que salga del histórico de MVPs de jornada o fijarlo manualmente.
+          Se calcula automáticamente con el jugador que más MVPs de jornada acumula. Si hay empate, la app mantiene co-MVPs en vez de inventar un desempate.
         </p>
 
-        <SelectedMvpLine
-          label="Resultado actual"
-          player={seasonMvpPlayer}
+        <MvpPlayerLine
+          label={seasonMvp?.tied ? "Empate actual" : "Resultado actual"}
+          players={seasonMvpPlayers}
           helper={
             seasonMvp
-              ? seasonMvp.source === "manual"
-                ? "Selección manual del admin"
-                : `${seasonMvp.votes} MVPs de jornada acumulados`
-              : "Todavía no hay datos suficientes"
-          }
-        />
-
-        <PlayerSelect
-          value={seasonManualSelection?.selectedPlayerId ?? ""}
-          players={players}
-          placeholder="Automático por MVPs de jornada"
-          onChange={(selectedPlayerId) =>
-            setManualMvpSelection({
-              leagueId: activeLeague.id,
-              seasonId: activeSeason.id,
-              scope: "season",
-              round: null,
-              selectedPlayerId,
-            })
+              ? `${seasonMvp.votes} MVPs de jornada acumulados${seasonMvp.tied ? " · co-MVPs" : ""}`
+              : "Todavía no hay jornadas completas suficientes"
           }
         />
       </AppCard>
@@ -167,40 +129,22 @@ export default function AdminMvpPage() {
       <AppCard>
         <p className="font-bold">MVPs por jornada</p>
         <p className="mt-2 text-sm text-neutral-500">
-          Revisa las votaciones y fuerza un MVP manual si el admin quiere corregir o cerrar la jornada.
+          El MVP de jornada se calcula al registrar el último resultado pendiente de esa jornada. Gana la pareja vencedora con mejor diferencia de juegos.
         </p>
 
-        {finishedRounds.length > 0 ? (
+        {completedRounds.length > 0 ? (
           <div className="mt-4 space-y-4">
-            {finishedRounds.map((round) => {
-              const candidateIds = getRoundPlayerIds(matches, round)
-              const candidates = candidateIds
-                .map((playerId) => getPlayerById(players, playerId))
-                .filter((player): player is MvpPlayer => Boolean(player))
-              const manualSelection = manualSelections.find(
-                (selection) =>
-                  selection.leagueId === activeLeague.id &&
-                  selection.seasonId === activeSeason.id &&
-                  selection.scope === "round" &&
-                  selection.round === round
-              )
+            {completedRounds.map((round) => {
               const roundMvp = getRoundMvpSelection({
-                votes,
-                manualSelections,
                 leagueId: activeLeague.id,
                 seasonId: activeSeason.id,
                 round,
+                matches,
               })
-              const roundMvpPlayer = getPlayerById(
+              const roundMvpPlayers = getPlayersByIds(
                 players,
-                roundMvp?.playerId ?? null
+                roundMvp?.playerIds ?? []
               )
-              const voteRows = getRoundVoteRows({
-                votes,
-                leagueId: activeLeague.id,
-                seasonId: activeSeason.id,
-                round,
-              })
 
               return (
                 <div
@@ -211,74 +155,33 @@ export default function AdminMvpPage() {
                     <div>
                       <p className="font-black">Jornada {round}</p>
                       <p className="mt-1 text-xs font-semibold text-neutral-500">
-                        {voteRows.length} jugadores con votos
+                        Jornada completa
                       </p>
                     </div>
 
                     <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-                      {roundMvp?.source === "manual" ? "Admin" : "Auto"}
+                      Auto
                     </span>
                   </div>
 
-                  <SelectedMvpLine
-                    label="MVP actual"
-                    player={roundMvpPlayer}
+                  <MvpPlayerLine
+                    label="MVP de jornada"
+                    players={roundMvpPlayers}
                     helper={
                       roundMvp
-                        ? `${roundMvp.votes} votos · ${
-                            roundMvp.source === "manual" ? "manual" : "votación"
-                          }`
-                        : "Pendiente de votos o selección manual"
+                        ? `${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`
+                        : "Pendiente"
                     }
                   />
-
-                  <PlayerSelect
-                    value={manualSelection?.selectedPlayerId ?? ""}
-                    players={candidates}
-                    placeholder="Automático por votos"
-                    onChange={(selectedPlayerId) =>
-                      setManualMvpSelection({
-                        leagueId: activeLeague.id,
-                        seasonId: activeSeason.id,
-                        scope: "round",
-                        round,
-                        selectedPlayerId,
-                      })
-                    }
-                  />
-
-                  {voteRows.length > 0 ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {voteRows.map((row) => {
-                        const player = getPlayerById(players, row.playerId)
-
-                        return (
-                          <span
-                            key={row.playerId}
-                            className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700"
-                          >
-                            {player?.displayName ?? row.playerId}: {row.votes}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  ) : null}
                 </div>
               )
             })}
           </div>
         ) : (
           <p className="mt-4 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-500">
-            No hay jornadas finalizadas todavía.
+            No hay jornadas completas todavía.
           </p>
         )}
-      </AppCard>
-
-      <AppCard>
-        <p className="font-bold">Histórico de MVPs</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          Este bloque queda preparado como histórico de la temporada actual. Cuando cambies de temporada, cada una conservará sus MVPs por separado.
-        </p>
       </AppCard>
     </div>
   )

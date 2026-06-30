@@ -239,7 +239,7 @@ export default function AdminPage() {
               <div>
                 <p className="font-bold">Administrar MVP</p>
                 <p className="mt-2 text-sm text-neutral-500">
-                  Gestiona votos, MVPs de jornada y MVP final de temporada.
+                  Consulta MVPs automáticos de jornada y MVP final de temporada.
                 </p>
               </div>
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { AppCard } from "@/components/ui/AppCard"
-import { useMvp } from "@/context/MvpProvider"
 import {
   getPlayerMvpSummary,
   type MvpMatch,
@@ -22,10 +21,7 @@ export function PlayerMvpPanel({
   playerId,
   matches,
 }: PlayerMvpPanelProps) {
-  const { votes, manualSelections } = useMvp()
   const summary = getPlayerMvpSummary({
-    votes,
-    manualSelections,
     leagueId,
     seasonId,
     matches,
@@ -47,20 +43,15 @@ export function PlayerMvpPanel({
         ) : null}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
+      <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm">
         <div className="rounded-xl bg-neutral-100 p-3">
           <p className="font-black">{summary.roundMvpCount}</p>
-          <p className="mt-1 text-xs text-neutral-500">Jornadas</p>
-        </div>
-
-        <div className="rounded-xl bg-neutral-100 p-3">
-          <p className="font-black">{summary.votesReceived}</p>
-          <p className="mt-1 text-xs text-neutral-500">Votos</p>
+          <p className="mt-1 text-xs text-neutral-500">MVPs de jornada</p>
         </div>
 
         <div className="rounded-xl bg-neutral-100 p-3">
           <p className="font-black">{summary.seasonMvpCount}</p>
-          <p className="mt-1 text-xs text-neutral-500">Final</p>
+          <p className="mt-1 text-xs text-neutral-500">MVP final</p>
         </div>
       </div>
 
@@ -71,7 +62,7 @@ export function PlayerMvpPanel({
               key={round}
               className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white"
             >
-              MVP J{round}
+              MVP Jornada {round}
             </span>
           ))}
         </div>

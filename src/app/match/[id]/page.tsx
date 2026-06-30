@@ -16,6 +16,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchDetailPage() {
@@ -110,6 +111,12 @@ export default function MatchDetailPage() {
 
   const roundWindowText = getRoundWindowText()
   const roundStatusText = getRoundStatusText()
+  const roundMvpPlayerIds = getRoundMvpPlayerIds({
+    leagueId: activeLeague.id,
+    seasonId: activeSeason.id,
+    round: match.round,
+    matches,
+  })
   const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
     currentUserId
   )
@@ -147,6 +154,7 @@ export default function MatchDetailPage() {
         pointsA={match.pointsA}
         pointsB={match.pointsB}
         sets={match.sets}
+        highlightedPlayerIds={roundMvpPlayerIds}
       />
 
       {match.status === "finished" ? (

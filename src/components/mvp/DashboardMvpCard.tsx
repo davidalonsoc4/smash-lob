@@ -3,10 +3,9 @@
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { useMvp } from "@/context/MvpProvider"
 import {
-  getLatestFinishedRound,
-  getPlayerById,
+  getLatestCompletedRound,
+  getPlayersByIds,
   getRoundMvpSelection,
   getSeasonMvpSelection,
   type MvpMatch,
@@ -24,11 +23,11 @@ type DashboardMvpCardProps = {
 
 function MvpCompactItem({
   label,
-  player,
+  players,
   helper,
 }: {
   label: string
-  player: MvpPlayer | null
+  players: MvpPlayer[]
   helper: string
 }) {
   return (
@@ -36,12 +35,21 @@ function MvpCompactItem({
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
         {label}
       </p>
-      {player ? (
+      {players.length > 0 ? (
         <div className="mt-2 flex items-center gap-2">
-          <PlayerAvatar player={player} size="sm" />
+          <div className="flex -space-x-2">
+            {players.slice(0, 3).map((player) => (
+              <PlayerAvatar
+                key={player.id}
+                player={player}
+                size="sm"
+                className="border-2 border-neutral-100"
+              />
+            ))}
+          </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-black text-neutral-950">
-              {player.displayName}
+              {players.map((player) => player.displayName).join(" / ")}
             </p>
             <p className="text-xs font-semibold text-neutral-500">{helper}</p>
           </div>
@@ -61,29 +69,25 @@ export function DashboardMvpCard({
   players,
   matches,
 }: DashboardMvpCardProps) {
-  const { votes, manualSelections } = useMvp()
-  const latestFinishedRound = getLatestFinishedRound(matches)
-  const latestRoundMvp = latestFinishedRound
+  const latestCompletedRound = getLatestCompletedRound(matches, leagueId, seasonId)
+  const latestRoundMvp = latestCompletedRound
     ? getRoundMvpSelection({
-        votes,
-        manualSelections,
         leagueId,
         seasonId,
-        round: latestFinishedRound,
+        round: latestCompletedRound,
+        matches,
       })
     : null
   const seasonMvp = getSeasonMvpSelection({
-    votes,
-    manualSelections,
     leagueId,
     seasonId,
     matches,
   })
-  const latestRoundMvpPlayer = getPlayerById(
+  const latestRoundMvpPlayers = getPlayersByIds(
     players,
-    latestRoundMvp?.playerId ?? null
+    latestRoundMvp?.playerIds ?? []
   )
-  const seasonMvpPlayer = getPlayerById(players, seasonMvp?.playerId ?? null)
+  const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
 
   return (
     <section>
@@ -91,7 +95,7 @@ export function DashboardMvpCard({
         <div>
           <h2 className="text-lg font-black tracking-tight">MVP</h2>
           <p className="text-sm text-neutral-500">
-            Votaciones y destacados de la temporada.
+            Destacados automáticos de la temporada.
           </p>
         </div>
 
@@ -109,22 +113,20 @@ export function DashboardMvpCard({
         <div className="grid grid-cols-2 gap-3">
           <MvpCompactItem
             label="Última jornada"
-            player={latestRoundMvpPlayer}
+            players={latestRoundMvpPlayers}
             helper={
-              latestFinishedRound
-                ? `J${latestFinishedRound} · ${latestRoundMvp?.votes ?? 0} votos`
-                : "Sin jornadas cerradas"
+              latestCompletedRound && latestRoundMvp
+                ? `Jornada ${latestCompletedRound} · ${latestRoundMvp.gamesDiff ?? 0} dif.`
+                : "Sin jornadas completas"
             }
           />
 
           <MvpCompactItem
             label={isSeasonClosed ? "MVP final" : "MVP temporada"}
-            player={seasonMvpPlayer}
+            players={seasonMvpPlayers}
             helper={
               seasonMvp
-                ? seasonMvp.source === "manual"
-                  ? "Selección admin"
-                  : `${seasonMvp.votes} MVPs de jornada`
+                ? `${seasonMvp.votes} MVPs de jornada${seasonMvp.tied ? " · empate" : ""}`
                 : "Pendiente"
             }
           />

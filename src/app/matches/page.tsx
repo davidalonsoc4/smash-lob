@@ -6,6 +6,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchesPage() {
@@ -119,6 +120,12 @@ export default function MatchesPage() {
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"
+                    highlightedPlayerIds={getRoundMvpPlayerIds({
+                      leagueId: activeLeague.id,
+                      seasonId: activeSeason.id,
+                      round: match.round,
+                      matches,
+                    })}
                   />
                 ))}
               </div>
