@@ -105,6 +105,8 @@ export const en = {
 
   dashboard: {
     winner: "Winner",
+    seasonWinner: "Winner of {seasonName}",
+    finalChampion: "Final league champion",
     leader: "Leader",
     rounds: "Rounds",
     regularLeague: "Regular season",

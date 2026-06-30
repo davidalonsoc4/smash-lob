@@ -110,6 +110,8 @@ export const eu = {
 
   dashboard: {
     winner: "Irabazlea",
+    seasonWinner: "{seasonName} denboraldiko irabazlea",
+    finalChampion: "Ligako azken txapelduna",
     leader: "Liderra",
     rounds: "Jardunaldiak",
     regularLeague: "Liga erregularra",

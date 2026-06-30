@@ -110,6 +110,8 @@ export const es = {
 
   dashboard: {
     winner: "Ganador",
+    seasonWinner: "Ganador de {seasonName}",
+    finalChampion: "Campeón final de la liga",
     leader: "Líder",
     rounds: "Jornadas",
     regularLeague: "Liga regular",
