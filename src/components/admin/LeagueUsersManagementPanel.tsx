@@ -1,13 +1,16 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import type { LeagueMemberRole } from "@/data/fakeData"
 import type { LeagueUserManagementPlayer } from "@/lib/supabaseAdminUsers"
+import { recordActivityEvent } from "@/lib/activity"
 
 type PlayerUserCardProps = {
+  leagueId: string
   item: LeagueUserManagementPlayer
   currentUserId: string | null
   onChangeRole: (
@@ -20,6 +23,14 @@ type PlayerUserCardProps = {
 
 type LeagueUsersManagementPanelProps = {
   leagueId: string
+}
+
+
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
+  return {
+    actorEmail: session?.user?.email ?? "system@smash-lob.local",
+    actorDisplayName: session?.user?.name ?? null,
+  }
 }
 
 function getRoleLabel(role: LeagueUserManagementPlayer["role"]) {
@@ -37,12 +48,14 @@ function getRoleClassName(role: LeagueUserManagementPlayer["role"]) {
 }
 
 function PlayerUserCard({
+  leagueId,
   item,
   currentUserId,
   onChangeRole,
   onUnlink,
   onRename,
 }: PlayerUserCardProps) {
+  const { data: session } = useSession()
   const [displayName, setDisplayName] = useState(item.displayName)
   const [isSavingName, setIsSavingName] = useState(false)
   const [isUpdatingRole, setIsUpdatingRole] = useState(false)
@@ -76,6 +89,23 @@ function PlayerUserCard({
       return
     }
 
+    try {
+      await recordActivityEvent({
+        leagueId,
+        ...getActorFromSession(session),
+        type: "player_name_updated",
+        title: "Nombre de jugador actualizado",
+        description: `${item.displayName} ahora se llama ${cleanDisplayName}.`,
+        metadata: {
+          targetPlayerId: item.playerId,
+          previousDisplayName: item.displayName,
+          nextDisplayName: cleanDisplayName,
+        },
+      })
+    } catch {
+      // El nombre ya está guardado; la actividad es auxiliar.
+    }
+
     setSavedMessage("Nombre actualizado.")
   }
 
@@ -93,6 +123,27 @@ function PlayerUserCard({
     if (!saved) {
       setError("No se ha podido cambiar el rol del usuario.")
       return
+    }
+
+    try {
+      await recordActivityEvent({
+        leagueId,
+        ...getActorFromSession(session),
+        type: "player_role_updated",
+        title: nextRole === "admin" ? "Admin añadido" : "Admin retirado",
+        description:
+          nextRole === "admin"
+            ? `${item.displayName} ahora tiene permisos de admin.`
+            : `${item.displayName} deja de tener permisos de admin.`,
+        metadata: {
+          targetPlayerId: item.playerId,
+          targetPlayerName: item.displayName,
+          previousRole: item.role,
+          nextRole,
+        },
+      })
+    } catch {
+      // El rol ya está guardado; la actividad es auxiliar.
     }
 
     setSavedMessage(
@@ -122,6 +173,23 @@ function PlayerUserCard({
     if (!saved) {
       setError("No se ha podido desvincular la cuenta.")
       return
+    }
+
+    try {
+      await recordActivityEvent({
+        leagueId,
+        ...getActorFromSession(session),
+        type: "player_unlinked",
+        title: "Cuenta desvinculada",
+        description: `${item.displayName} ya no tiene una cuenta vinculada en esta liga.`,
+        metadata: {
+          targetPlayerId: item.playerId,
+          targetPlayerName: item.displayName,
+          linkedUserEmail: item.linkedUserEmail,
+        },
+      })
+    } catch {
+      // La cuenta ya está desvinculada; la actividad es auxiliar.
     }
 
     setSavedMessage("Cuenta desvinculada.")
@@ -342,6 +410,7 @@ export function LeagueUsersManagementPanel({
           ? items.map((item) => (
               <PlayerUserCard
                 key={`${item.playerId}:${item.displayName}:${item.linkedUserId ?? "free"}:${item.role ?? "none"}`}
+                leagueId={leagueId}
                 item={item}
                 currentUserId={userId}
                 onChangeRole={handleChangeRole}

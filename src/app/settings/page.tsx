@@ -15,9 +15,19 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION } from "@/lib/appVersion"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+import { recordActivityEvent } from "@/lib/activity"
+
+
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
+  return {
+    actorEmail: session?.user?.email ?? "system@smash-lob.local",
+    actorDisplayName: session?.user?.name ?? null,
+  }
+}
 
 function AccountAvatarSettings() {
   const { currentUser } = useCurrentUser()
+  const { data: session } = useSession()
   const { updateLeaguePlayerAvatar } = useLeagueAccess()
   const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
   const [isSaving, setIsSaving] = useState(false)
@@ -45,6 +55,26 @@ function AccountAvatarSettings() {
     }
 
     setAvatarUrl(nextAvatarUrl)
+
+    try {
+      await recordActivityEvent({
+        leagueId: currentUser.leagueId,
+        ...getActorFromSession(session),
+        type: "player_avatar_updated",
+        title: nextAvatarUrl ? "Imagen de perfil actualizada" : "Imagen de perfil eliminada",
+        description: nextAvatarUrl
+          ? `${currentUser.displayName} ha actualizado su imagen de perfil.`
+          : `${currentUser.displayName} ha eliminado su imagen de perfil.`,
+        metadata: {
+          targetPlayerId: currentUser.id,
+          targetPlayerName: currentUser.displayName,
+          hasAvatar: Boolean(nextAvatarUrl),
+        },
+      })
+    } catch {
+      // La imagen ya está guardada; la actividad es auxiliar.
+    }
+
     setSaved(true)
   }
 

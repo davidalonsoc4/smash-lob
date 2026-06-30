@@ -13,8 +13,15 @@ export type ActivityEventType =
   | "court_booking_payment_paid"
   | "league_created"
   | "league_updated"
+  | "league_logo_updated"
+  | "league_locations_updated"
+  | "league_invite_regenerated"
   | "season_finished"
   | "season_created"
+  | "player_name_updated"
+  | "player_avatar_updated"
+  | "player_role_updated"
+  | "player_unlinked"
   | "user_updated"
 
 export type ActivityEvent = {
@@ -58,8 +65,15 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "court_booking_payment_paid" ||
     type === "league_created" ||
     type === "league_updated" ||
+    type === "league_logo_updated" ||
+    type === "league_locations_updated" ||
+    type === "league_invite_regenerated" ||
     type === "season_finished" ||
     type === "season_created" ||
+    type === "player_name_updated" ||
+    type === "player_avatar_updated" ||
+    type === "player_role_updated" ||
+    type === "player_unlinked" ||
     type === "user_updated"
   ) {
     return type

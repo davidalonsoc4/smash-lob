@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
 import { AppCard } from "@/components/ui/AppCard"
@@ -10,21 +11,25 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+import { recordActivityEvent } from "@/lib/activity"
 
 type LeagueDetailsFormProps = {
   leagueId: string
+  seasonId: string | null
   initialName: string
   initialDescription: string
 }
 
 type LeagueLogoFormProps = {
   leagueId: string
+  seasonId: string | null
   leagueName: string
   initialLogoUrl?: string | null
 }
 
 type LeagueLocationsFormProps = {
   leagueId: string
+  seasonId: string | null
   initialLocations: string[]
 }
 
@@ -32,6 +37,13 @@ type DeleteLeagueCardProps = {
   leagueId: string
   leagueName: string
   onDeleteLeague: (leagueId: string) => Promise<boolean>
+}
+
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
+  return {
+    actorEmail: session?.user?.email ?? "system@smash-lob.local",
+    actorDisplayName: session?.user?.name ?? null,
+  }
 }
 
 function normalizeLocation(value: string) {
@@ -46,9 +58,11 @@ function hasLocation(locations: string[], location: string) {
 
 function LeagueDetailsForm({
   leagueId,
+  seasonId,
   initialName,
   initialDescription,
 }: LeagueDetailsFormProps) {
+  const { data: session } = useSession()
   const { updateLeagueDetails } = useLeagueAccess()
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
@@ -83,6 +97,25 @@ function LeagueDetailsForm({
         "No se han podido guardar los datos de la liga en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
       )
       return
+    }
+
+    try {
+      await recordActivityEvent({
+        leagueId,
+        seasonId,
+        ...getActorFromSession(session),
+        type: "league_updated",
+        title: "Datos de liga actualizados",
+        description: `La liga ha pasado a llamarse ${cleanName}.`,
+        metadata: {
+          previousName: initialName,
+          nextName: cleanName,
+          previousDescription: initialDescription,
+          nextDescription: cleanDescription,
+        },
+      })
+    } catch {
+      // Los datos ya están guardados; la actividad es auxiliar.
     }
 
     setSaved(true)
@@ -157,9 +190,11 @@ function LeagueDetailsForm({
 
 function LeagueLogoForm({
   leagueId,
+  seasonId,
   leagueName,
   initialLogoUrl,
 }: LeagueLogoFormProps) {
+  const { data: session } = useSession()
   const { updateLeagueLogo } = useLeagueAccess()
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
   const [isSaving, setIsSaving] = useState(false)
@@ -183,6 +218,26 @@ function LeagueLogoForm({
     }
 
     setLogoUrl(nextLogoUrl)
+
+    try {
+      await recordActivityEvent({
+        leagueId,
+        seasonId,
+        ...getActorFromSession(session),
+        type: "league_logo_updated",
+        title: nextLogoUrl ? "Logo de liga actualizado" : "Logo de liga eliminado",
+        description: nextLogoUrl
+          ? "Se ha actualizado el logo de la liga."
+          : "Se ha eliminado el logo personalizado de la liga.",
+        metadata: {
+          hadPreviousLogo: Boolean(logoUrl),
+          hasLogo: Boolean(nextLogoUrl),
+        },
+      })
+    } catch {
+      // El logo ya está guardado; la actividad es auxiliar.
+    }
+
     setSaved(true)
   }
 
@@ -347,8 +402,10 @@ function DeleteLeagueCard({
 
 function LeagueLocationsForm({
   leagueId,
+  seasonId,
   initialLocations,
 }: LeagueLocationsFormProps) {
+  const { data: session } = useSession()
   const { t } = useI18n()
   const { updateLeagueLocations } = useLeagueAccess()
 
@@ -401,6 +458,23 @@ function LeagueLocationsForm({
         "No se han podido guardar los lugares en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
       )
       return
+    }
+
+    try {
+      await recordActivityEvent({
+        leagueId,
+        seasonId,
+        ...getActorFromSession(session),
+        type: "league_locations_updated",
+        title: "Lugares actualizados",
+        description: `La liga tiene ${locations.length} lugar${locations.length === 1 ? "" : "es"} habitual${locations.length === 1 ? "" : "es"}.`,
+        metadata: {
+          previousLocations: initialLocations,
+          nextLocations: locations,
+        },
+      })
+    } catch {
+      // Los lugares ya están guardados; la actividad es auxiliar.
     }
 
     setSaved(true)
@@ -553,6 +627,7 @@ export default function AdminLeaguePage() {
       <LeagueDetailsForm
         key={`${activeLeague.id}-details`}
         leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
         initialName={activeLeague.name}
         initialDescription={activeLeague.description}
       />
@@ -560,6 +635,7 @@ export default function AdminLeaguePage() {
       <LeagueLogoForm
         key={`${activeLeague.id}-logo`}
         leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
         leagueName={activeLeague.name}
         initialLogoUrl={activeLeague.logoUrl}
       />
@@ -567,6 +643,7 @@ export default function AdminLeaguePage() {
       <LeagueLocationsForm
         key={`${activeLeague.id}-locations`}
         leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
         initialLocations={activeLeague.locations}
       />
 

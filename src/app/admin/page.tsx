@@ -2,15 +2,26 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
+import { recordActivityEvent } from "@/lib/activity"
+
+
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
+  return {
+    actorEmail: session?.user?.email ?? "system@smash-lob.local",
+    actorDisplayName: session?.user?.name ?? null,
+  }
+}
 
 function AdminInviteCard({ leagueId }: { leagueId: string }) {
   const { getLeagueInviteCode, regenerateLeagueInviteCode } = useLeagueAccess()
+  const { data: session } = useSession()
   const [inviteCode, setInviteCode] = useState(() =>
     getLeagueInviteCode(leagueId)
   )
@@ -58,6 +69,22 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
     }
 
     setInviteCode(nextInviteCode)
+
+    try {
+      await recordActivityEvent({
+        leagueId,
+        ...getActorFromSession(session),
+        type: "league_invite_regenerated",
+        title: "Invitación regenerada",
+        description: "Se ha generado un nuevo código de invitación para la liga. Los enlaces anteriores dejan de ser válidos.",
+        metadata: {
+          inviteCode: nextInviteCode,
+        },
+      })
+    } catch {
+      // La invitación ya está regenerada; la actividad es auxiliar.
+    }
+
     setCopiedLabel("Código regenerado")
     window.setTimeout(() => setCopiedLabel(null), 1800)
   }
