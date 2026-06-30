@@ -5,14 +5,24 @@ import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
+import {
+  activityEventTypes,
+  fetchLeagueActivitySettings,
+  getActivityDeliveryMode,
+  mergeWithDefaultActivitySettings,
+  updateLeagueActivitySettings,
+  type ActivityDeliveryMode,
+  type LeagueActivitySettings,
+} from "@/lib/activitySettings"
 
-type ActivityScope = "all" | "mine"
+type ActivityScope = "all" | "mine" | "admin"
 
 function formatActivityDate(value: string) {
   const date = new Date(value)
@@ -64,7 +74,6 @@ function toStringArray(value: unknown) {
 
   return value.filter((item): item is string => typeof item === "string")
 }
-
 
 function toMatchSets(value: unknown) {
   if (!Array.isArray(value)) {
@@ -187,11 +196,19 @@ function isPersonalEvent({
   event,
   currentUserId,
   currentUserMatchIds,
+  activitySettings,
 }: {
   event: ActivityEvent
   currentUserId: string
   currentUserMatchIds: Set<string>
+  activitySettings: LeagueActivitySettings
 }) {
+  const deliveryMode = getActivityDeliveryMode(activitySettings, event.type)
+
+  if (deliveryMode === "activity_only") {
+    return false
+  }
+
   if (event.matchId && currentUserMatchIds.has(event.matchId)) {
     return true
   }
@@ -208,13 +225,110 @@ function isPersonalEvent({
   return [...directPlayerIds, ...participantIds].includes(currentUserId)
 }
 
+function stringifyMetadata(metadata: Record<string, unknown>) {
+  try {
+    return JSON.stringify(metadata, null, 2)
+  } catch {
+    return "{}"
+  }
+}
+
+function ActivityEventCard({
+  event,
+  showMetadata = false,
+}: {
+  event: ActivityEvent
+  showMetadata?: boolean
+}) {
+  const { t } = useI18n()
+  const description = getActivityDescription({
+    event,
+    roundLabel: t.activity.round,
+    setsLabel: t.activity.sets,
+    gamesLabel: t.activity.games,
+    noGamesLabel: t.activity.noGames,
+  })
+
+  return (
+    <AppCard>
+      <div className="flex gap-3">
+        <ActivityAvatar
+          name={event.actorDisplayName}
+          email={event.actorEmail}
+          initials={event.actorAvatarInitials}
+          imageUrl={event.actorAvatarUrl}
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-neutral-950">
+                {event.title}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
+              </p>
+            </div>
+
+            <p className="shrink-0 text-xs font-semibold text-neutral-400">
+              {formatActivityDate(event.createdAt)}
+            </p>
+          </div>
+
+          {description ? (
+            <p className="mt-3 whitespace-pre-line text-sm text-neutral-600">
+              {description}
+            </p>
+          ) : null}
+
+          {showMetadata ? (
+            <div className="mt-3 space-y-2 rounded-2xl bg-neutral-100 p-3">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                {t.activity.adminMetadata}
+              </p>
+              <p className="break-all text-xs font-semibold text-neutral-500">
+                {t.activity.adminEventType}: {event.type}
+              </p>
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words text-xs font-semibold text-neutral-600">
+                {stringifyMetadata(event.metadata)}
+              </pre>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </AppCard>
+  )
+}
+
+function DeliveryModeLabel({ mode }: { mode: ActivityDeliveryMode }) {
+  const { t } = useI18n()
+
+  if (mode === "notify") {
+    return <>{t.activity.modeNotify}</>
+  }
+
+  if (mode === "personal") {
+    return <>{t.activity.modePersonal}</>
+  }
+
+  return <>{t.activity.modeActivityOnly}</>
+}
+
 export default function ActivityPage() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
+  const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, matches } = useCurrentLeagueData()
+  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [scope, setScope] = useState<ActivityScope>("all")
+  const [activitySettings, setActivitySettings] = useState<LeagueActivitySettings>({})
+  const [draftSettings, setDraftSettings] = useState<LeagueActivitySettings>({})
   const [isLoading, setIsLoading] = useState(true)
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true)
+  const [isSettingsSaving, setIsSettingsSaving] = useState(false)
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [lastActivityError, setLastActivityError] = useState<string | null>(
@@ -231,7 +345,7 @@ export default function ActivityPage() {
       try {
         const activityEvents = await fetchSupabaseActivityEvents({
           leagueId: activeLeague.id,
-          limit: 120,
+          limit: 160,
         })
 
         if (!isMounted) {
@@ -259,6 +373,45 @@ export default function ActivityPage() {
     }
   }, [activeLeague.id, refreshKey, t.activity.loadErrorDescription])
 
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadSettings() {
+      setIsSettingsLoading(true)
+      setSettingsError(null)
+      setSettingsMessage(null)
+
+      try {
+        const settings = await fetchLeagueActivitySettings(activeLeague.id)
+
+        if (!isMounted) {
+          return
+        }
+
+        setActivitySettings(settings)
+        setDraftSettings(settings)
+      } catch {
+        if (!isMounted) {
+          return
+        }
+
+        setActivitySettings({})
+        setDraftSettings({})
+        setSettingsError(t.activity.settingsLoadError)
+      } finally {
+        if (isMounted) {
+          setIsSettingsLoading(false)
+        }
+      }
+    }
+
+    loadSettings()
+
+    return () => {
+      isMounted = false
+    }
+  }, [activeLeague.id, t.activity.settingsLoadError])
+
   const currentUserMatchIds = useMemo(() => {
     return new Set(
       matches
@@ -270,6 +423,7 @@ export default function ActivityPage() {
         .map((match) => match.id)
     )
   }, [currentUserId, matches])
+
   const personalEvents = useMemo(
     () =>
       events.filter((event) =>
@@ -277,12 +431,41 @@ export default function ActivityPage() {
           event,
           currentUserId,
           currentUserMatchIds,
+          activitySettings,
         })
       ),
-    [currentUserId, currentUserMatchIds, events]
+    [activitySettings, currentUserId, currentUserMatchIds, events]
   )
-  const visibleEvents = scope === "mine" ? personalEvents : events
+
+  const effectiveScope: ActivityScope = canAccessAdmin ? scope : scope === "admin" ? "all" : scope
+  const visibleEvents = effectiveScope === "mine" ? personalEvents : events
   const hasEvents = visibleEvents.length > 0
+  const normalizedDraftSettings = mergeWithDefaultActivitySettings(draftSettings)
+
+  async function saveActivitySettings() {
+    if (!canAccessAdmin || isSettingsSaving) {
+      return
+    }
+
+    setIsSettingsSaving(true)
+    setSettingsError(null)
+    setSettingsMessage(null)
+
+    try {
+      const savedSettings = await updateLeagueActivitySettings({
+        leagueId: activeLeague.id,
+        settings: normalizedDraftSettings,
+      })
+
+      setActivitySettings(savedSettings)
+      setDraftSettings(savedSettings)
+      setSettingsMessage(t.activity.settingsSaved)
+    } catch {
+      setSettingsError(t.activity.settingsSaveError)
+    } finally {
+      setIsSettingsSaving(false)
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -300,12 +483,12 @@ export default function ActivityPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-neutral-100 p-1">
+      <div className={`grid gap-2 rounded-2xl bg-neutral-100 p-1 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
         <button
           type="button"
           onClick={() => setScope("all")}
           className={`rounded-xl px-3 py-2 text-sm font-black ${
-            scope === "all" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
+            effectiveScope === "all" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
           {t.activity.general}
@@ -314,119 +497,214 @@ export default function ActivityPage() {
           type="button"
           onClick={() => setScope("mine")}
           className={`rounded-xl px-3 py-2 text-sm font-black ${
-            scope === "mine" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
+            effectiveScope === "mine" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
           {t.activity.personal}
         </button>
+        {canAccessAdmin ? (
+          <button
+            type="button"
+            onClick={() => setScope("admin")}
+            className={`rounded-xl px-3 py-2 text-sm font-black ${
+              effectiveScope === "admin" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
+            }`}
+          >
+            {t.activity.admin}
+          </button>
+        ) : null}
       </div>
 
-      <section>
-        <SectionHeader
-          title={scope === "mine" ? t.activity.personalTitle : t.activity.wallTitle}
-          action={
+      {effectiveScope === "admin" && canAccessAdmin ? (
+        <section className="space-y-5">
+          <AppCard>
+            <p className="font-bold">{t.activity.notificationSettingsTitle}</p>
+            <p className="mt-2 text-sm text-neutral-500">
+              {t.activity.notificationSettingsDescription}
+            </p>
+            <p className="mt-2 text-xs font-semibold text-neutral-500">
+              {t.activity.notificationFutureHint}
+            </p>
+
+            {isSettingsLoading ? (
+              <p className="mt-4 text-sm font-semibold text-neutral-500">
+                {t.activity.loading}
+              </p>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {activityEventTypes.map((eventType) => (
+                  <div
+                    key={eventType}
+                    className="rounded-2xl border border-neutral-200 p-3"
+                  >
+                    <p className="text-sm font-black text-neutral-950">
+                      {t.activity.labels[eventType]}
+                    </p>
+                    <p className="mt-1 break-all text-xs font-semibold text-neutral-400">
+                      {eventType}
+                    </p>
+                    <select
+                      value={normalizedDraftSettings[eventType]}
+                      onChange={(event) => {
+                        const mode = event.target.value as ActivityDeliveryMode
+                        setDraftSettings((currentSettings) => ({
+                          ...currentSettings,
+                          [eventType]: mode,
+                        }))
+                        setSettingsMessage(null)
+                      }}
+                      className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
+                    >
+                      <option value="activity_only">{t.activity.modeActivityOnly}</option>
+                      <option value="personal">{t.activity.modePersonal}</option>
+                      <option value="notify">{t.activity.modeNotify}</option>
+                    </select>
+                    <p className="mt-2 text-xs text-neutral-500">
+                      <DeliveryModeLabel mode={normalizedDraftSettings[eventType]} />
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <button
               type="button"
-              onClick={() => {
-                setLastActivityError(readLastActivityError())
-                setRefreshKey((current) => current + 1)
-              }}
-              className="text-sm font-semibold text-neutral-600"
+              onClick={saveActivitySettings}
+              disabled={isSettingsLoading || isSettingsSaving}
+              className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
             >
-              {t.activity.refresh}
+              {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
             </button>
-          }
-        />
 
-        {isLoading ? (
-          <AppCard>
-            <p className="text-sm font-semibold text-neutral-500">
-              {t.activity.loading}
-            </p>
+            {settingsMessage ? (
+              <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+                {settingsMessage}
+              </p>
+            ) : null}
+            {settingsError ? (
+              <p className="mt-3 text-center text-sm font-semibold text-red-600">
+                {settingsError}
+              </p>
+            ) : null}
           </AppCard>
-        ) : null}
 
-        {error ? (
-          <AppCard>
-            <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
-            <p className="mt-2 text-sm text-neutral-500">{error}</p>
-          </AppCard>
-        ) : null}
-
-        {!isLoading && !error && !hasEvents ? (
-          <AppCard>
-            <p className="font-bold">
-              {scope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
+          <section>
+            <SectionHeader
+              title={t.activity.adminTitle}
+              action={
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLastActivityError(readLastActivityError())
+                    setRefreshKey((current) => current + 1)
+                  }}
+                  className="text-sm font-semibold text-neutral-600"
+                >
+                  {t.activity.refresh}
+                </button>
+              }
+            />
+            <p className="mb-3 text-sm text-neutral-500">
+              {t.activity.adminDescription}
             </p>
-            <p className="mt-2 text-sm text-neutral-500">
-              {scope === "mine"
-                ? t.activity.emptyPersonalDescription
-                : t.activity.emptyGeneralDescription}
-            </p>
-          </AppCard>
-        ) : null}
 
-        {!isLoading && !error && !hasEvents && lastActivityError ? (
-          <AppCard>
-            <p className="font-bold text-orange-800">{t.activity.lastErrorTitle}</p>
-            <p className="mt-2 break-words text-xs font-semibold text-neutral-500">
-              {lastActivityError}
-            </p>
-          </AppCard>
-        ) : null}
-
-        {hasEvents ? (
-          <div className="space-y-3">
-            {visibleEvents.map((event) => (
-              <AppCard key={event.id}>
-                <div className="flex gap-3">
-                  <ActivityAvatar
-                    name={event.actorDisplayName}
-                    email={event.actorEmail}
-                    initials={event.actorAvatarInitials}
-                    imageUrl={event.actorAvatarUrl}
-                  />
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-neutral-950">
-                          {event.title}
-                        </p>
-                        <p className="mt-1 text-xs font-semibold text-neutral-500">
-                          {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
-                        </p>
-                      </div>
-
-                      <p className="shrink-0 text-xs font-semibold text-neutral-400">
-                        {formatActivityDate(event.createdAt)}
-                      </p>
-                    </div>
-
-                    {getActivityDescription({
-                      event,
-                      roundLabel: t.activity.round,
-                      setsLabel: t.activity.sets,
-                      gamesLabel: t.activity.games,
-                      noGamesLabel: t.activity.noGames,
-                    }) ? (
-                      <p className="mt-3 whitespace-pre-line text-sm text-neutral-600">
-                        {getActivityDescription({
-                          event,
-                          roundLabel: t.activity.round,
-                          setsLabel: t.activity.sets,
-                          gamesLabel: t.activity.games,
-                          noGamesLabel: t.activity.noGames,
-                        })}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
+            {isLoading ? (
+              <AppCard>
+                <p className="text-sm font-semibold text-neutral-500">
+                  {t.activity.loading}
+                </p>
               </AppCard>
-            ))}
-          </div>
-        ) : null}
-      </section>
+            ) : null}
+
+            {error ? (
+              <AppCard>
+                <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
+                <p className="mt-2 text-sm text-neutral-500">{error}</p>
+              </AppCard>
+            ) : null}
+
+            {!isLoading && !error && events.length === 0 ? (
+              <AppCard>
+                <p className="font-bold">{t.activity.emptyGeneralTitle}</p>
+                <p className="mt-2 text-sm text-neutral-500">
+                  {t.activity.emptyGeneralDescription}
+                </p>
+              </AppCard>
+            ) : null}
+
+            {events.length > 0 ? (
+              <div className="space-y-3">
+                {events.map((event) => (
+                  <ActivityEventCard key={event.id} event={event} showMetadata />
+                ))}
+              </div>
+            ) : null}
+          </section>
+        </section>
+      ) : (
+        <section>
+          <SectionHeader
+            title={effectiveScope === "mine" ? t.activity.personalTitle : t.activity.wallTitle}
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setLastActivityError(readLastActivityError())
+                  setRefreshKey((current) => current + 1)
+                }}
+                className="text-sm font-semibold text-neutral-600"
+              >
+                {t.activity.refresh}
+              </button>
+            }
+          />
+
+          {isLoading ? (
+            <AppCard>
+              <p className="text-sm font-semibold text-neutral-500">
+                {t.activity.loading}
+              </p>
+            </AppCard>
+          ) : null}
+
+          {error ? (
+            <AppCard>
+              <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
+              <p className="mt-2 text-sm text-neutral-500">{error}</p>
+            </AppCard>
+          ) : null}
+
+          {!isLoading && !error && !hasEvents ? (
+            <AppCard>
+              <p className="font-bold">
+                {effectiveScope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
+              </p>
+              <p className="mt-2 text-sm text-neutral-500">
+                {effectiveScope === "mine"
+                  ? t.activity.emptyPersonalDescription
+                  : t.activity.emptyGeneralDescription}
+              </p>
+            </AppCard>
+          ) : null}
+
+          {!isLoading && !error && !hasEvents && lastActivityError ? (
+            <AppCard>
+              <p className="font-bold text-orange-800">{t.activity.lastErrorTitle}</p>
+              <p className="mt-2 break-words text-xs font-semibold text-neutral-500">
+                {lastActivityError}
+              </p>
+            </AppCard>
+          ) : null}
+
+          {hasEvents ? (
+            <div className="space-y-3">
+              {visibleEvents.map((event) => (
+                <ActivityEventCard key={event.id} event={event} />
+              ))}
+            </div>
+          ) : null}
+        </section>
+      )}
     </div>
   )
 }

@@ -1224,11 +1224,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
   const isLeagueCreator = useCallback(
     (leagueId: string) => {
+      if (isSuperuser) {
+        return true
+      }
+
       const membership = getMembershipForLeague(leagueId)
 
       return membership?.role === "creator"
     },
-    [getMembershipForLeague]
+    [getMembershipForLeague, isSuperuser]
   )
 
   const value = useMemo(

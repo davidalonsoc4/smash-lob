@@ -492,6 +492,26 @@ export const en = {
     noGames: "no games recorded",
     sets: "Sets",
     games: "Games",
+    admin: "Admin",
+    adminTitle: "Full audit",
+    adminDescription:
+      "Complete admin view with every event and its internal data.",
+    adminMetadata: "Internal data",
+    adminEventType: "Event type",
+    notificationSettingsTitle: "Activity alerts",
+    notificationSettingsDescription:
+      "Choose which events stay only in the wall, which count as personal, and which should generate an alert once notifications are enabled.",
+    notificationFutureHint:
+      "For now this organizes Activity and prepares the settings for future push notifications.",
+    modeActivityOnly: "General activity only",
+    modePersonal: "Personal activity when it affects the player",
+    modeNotify: "Notify later",
+    saveNotificationSettings: "Save alert settings",
+    settingsSaved: "Alert settings saved.",
+    settingsLoadError:
+      "Alert settings could not be loaded. Run the activity_settings SQL or check Supabase.",
+    settingsSaveError:
+      "Alert settings could not be saved. Check Supabase or permissions.",
     labels: {
       match_scheduled: "Schedule",
       match_schedule_updated: "Schedule",

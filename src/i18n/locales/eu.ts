@@ -520,6 +520,26 @@ export const eu = {
     noGames: "ez dago jokorik erregistratuta",
     sets: "Setak",
     games: "Jokoak",
+    admin: "Admin",
+    adminTitle: "Auditoria osoa",
+    adminDescription:
+      "Adminentzako ikuspegi osoa, gertaera guztiak eta barne-datuak erakutsita.",
+    adminMetadata: "Barne-datuak",
+    adminEventType: "Gertaera mota",
+    notificationSettingsTitle: "Jarduera abisuak",
+    notificationSettingsDescription:
+      "Aukeratu zein gertaera geldituko diren horman bakarrik, zein izango diren pertsonalak eta zeinek sortuko duten abisua jakinarazpenak aktibatzean.",
+    notificationFutureHint:
+      "Oraingoz Jarduera antolatzen du eta etorkizuneko push jakinarazpenetarako konfigurazioa prestatzen du.",
+    modeActivityOnly: "Jarduera orokorra bakarrik",
+    modePersonal: "Jarduera pertsonala jokalariari eragiten badio",
+    modeNotify: "Gero abisatu",
+    saveNotificationSettings: "Abisu konfigurazioa gorde",
+    settingsSaved: "Abisu konfigurazioa gordeta.",
+    settingsLoadError:
+      "Ezin izan da abisu konfigurazioa kargatu. Exekutatu activity_settings SQL-a edo begiratu Supabase.",
+    settingsSaveError:
+      "Ezin izan da abisu konfigurazioa gorde. Begiratu Supabase edo baimenak.",
     labels: {
       match_scheduled: "Programazioa",
       match_schedule_updated: "Programazioa",

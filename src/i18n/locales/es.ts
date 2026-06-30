@@ -524,6 +524,26 @@ export const es = {
     noGames: "sin juegos registrados",
     sets: "Sets",
     games: "Juegos",
+    admin: "Admin",
+    adminTitle: "Auditoría completa",
+    adminDescription:
+      "Vista completa para administradores con todos los eventos y sus datos internos.",
+    adminMetadata: "Datos internos",
+    adminEventType: "Tipo de evento",
+    notificationSettingsTitle: "Avisos de actividad",
+    notificationSettingsDescription:
+      "Define qué eventos se quedan solo en el muro, cuáles cuentan como personales y cuáles deberán generar aviso cuando activemos notificaciones.",
+    notificationFutureHint:
+      "De momento esto ordena Actividad y deja preparada la configuración para futuras notificaciones push.",
+    modeActivityOnly: "Solo actividad general",
+    modePersonal: "Actividad personal si afecta al jugador",
+    modeNotify: "Notificable más adelante",
+    saveNotificationSettings: "Guardar configuración de avisos",
+    settingsSaved: "Configuración de avisos guardada.",
+    settingsLoadError:
+      "No se ha podido cargar la configuración de avisos. Ejecuta el SQL de activity_settings o revisa Supabase.",
+    settingsSaveError:
+      "No se ha podido guardar la configuración de avisos. Revisa Supabase o los permisos.",
     labels: {
       match_scheduled: "Programación",
       match_schedule_updated: "Programación",

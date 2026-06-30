@@ -11,6 +11,11 @@ const sizeClasses = {
   md: "h-12 w-12 text-sm",
   lg: "h-16 w-16 text-lg",
 }
+const imagePaddingClasses = {
+  sm: "p-1",
+  md: "p-1.5",
+  lg: "p-2",
+}
 
 function getLeagueInitials(name?: string | null) {
   return (
@@ -29,21 +34,28 @@ export function LeagueLogo({
   size = "md",
   className = "",
 }: LeagueLogoProps) {
+  if (league?.logoUrl) {
+    return (
+      <div
+        className={`${sizeClasses[size]} ${imagePaddingClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-neutral-200 shadow-sm ${className}`}
+        aria-hidden="true"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={league.logoUrl}
+          alt=""
+          className="h-full w-full object-contain"
+        />
+      </div>
+    )
+  }
+
   return (
     <div
       className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-950 font-black text-white shadow-sm ${className}`}
       aria-hidden="true"
     >
-      {league?.logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={league.logoUrl}
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span>{getLeagueInitials(league?.name)}</span>
-      )}
+      <span>{getLeagueInitials(league?.name)}</span>
     </div>
   )
 }
