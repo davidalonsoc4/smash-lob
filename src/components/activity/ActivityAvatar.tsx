@@ -1,0 +1,36 @@
+type ActivityAvatarProps = {
+  name?: string | null
+  email?: string | null
+}
+
+function getInitials(value: string) {
+  const cleanValue = value.trim()
+
+  if (!cleanValue) {
+    return "SL"
+  }
+
+  const namePart = cleanValue.includes("@")
+    ? cleanValue.split("@")[0].replace(/[._-]+/g, " ")
+    : cleanValue
+
+  const initials = namePart
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+
+  return initials || "SL"
+}
+
+export function ActivityAvatar({ name, email }: ActivityAvatarProps) {
+  const label = name || email || "Smash & Lob"
+
+  return (
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white shadow-sm">
+      {getInitials(label)}
+    </div>
+  )
+}

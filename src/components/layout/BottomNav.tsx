@@ -35,6 +35,11 @@ export function BottomNav() {
         currentPathname.startsWith("/match"),
     },
     {
+      href: "/activity",
+      label: "Actividad",
+      isActive: (currentPathname) => currentPathname.startsWith("/activity"),
+    },
+    {
       href: "/profile",
       label: t.nav.profile,
       isActive: (currentPathname) => currentPathname.startsWith("/profile"),
@@ -50,7 +55,7 @@ export function BottomNav() {
       }}
     >
       <div
-        className="grid w-full grid-cols-4 gap-2 bg-white px-3"
+        className="grid w-full grid-cols-5 gap-2 bg-white px-3"
         style={{
           minHeight: "96px",
           paddingTop: "12px",
@@ -66,8 +71,8 @@ export function BottomNav() {
               href={item.href}
               className={
                 isActive
-                  ? "flex items-center justify-center rounded-3xl bg-neutral-950 px-2 text-center text-sm font-black text-white shadow-sm"
-                  : "flex items-center justify-center rounded-3xl bg-white px-2 text-center text-sm font-black text-neutral-500 transition active:bg-neutral-100"
+                  ? "flex items-center justify-center rounded-3xl bg-neutral-950 px-1 text-center text-xs font-black text-white shadow-sm"
+                  : "flex items-center justify-center rounded-3xl bg-white px-1 text-center text-xs font-black text-neutral-500 transition active:bg-neutral-100"
               }
               style={{
                 minHeight: "72px",

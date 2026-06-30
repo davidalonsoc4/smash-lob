@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react"
+import { useSession } from "next-auth/react"
 import { allMatches } from "@/data/fakeData"
 import { generateBalancedCalendar } from "@/lib/calendar"
 import {
@@ -16,6 +17,7 @@ import {
   markCourtBookingTransferPaid,
   normalizeCourtBooking,
 } from "@/lib/courtBooking"
+import { recordActivityEvent, type ActivityEventType } from "@/lib/activity"
 import {
   clearSupabaseMatchResult,
   finishSupabaseMatch,
@@ -314,7 +316,42 @@ function getLocalClearedResultMatch(match: MatchData): MatchData {
   }
 }
 
+function getResultSummary(match: MatchData) {
+  if (match.pointsA === null || match.pointsB === null) {
+    return "Resultado guardado"
+  }
+
+  return `Resultado ${match.pointsA}-${match.pointsB}`
+}
+
+function getBookingTotal(match: MatchData) {
+  return match.courtBooking.reservations.reduce(
+    (total, reservation) => total + reservation.amount,
+    0
+  )
+}
+
+function formatActivityMoney(value: number) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+  }).format(value)
+}
+
+function getActivityMatchDescription(match: MatchData, extra?: string | null) {
+  const parts = [`Jornada ${match.round}`]
+
+  if (extra) {
+    parts.push(extra)
+  }
+
+  return parts.join(" · ")
+}
+
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
+  const { data: session } = useSession()
+  const actorEmail = session?.user?.email?.trim().toLowerCase() ?? null
+  const actorDisplayName = session?.user?.name ?? null
   const [matches, setMatches] = useState<MatchData[]>(getInitialMatches)
 
   useEffect(() => {
@@ -334,6 +371,39 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     window.localStorage.setItem(storageKey, JSON.stringify(nextMatches))
     return nextMatches
   }, [])
+
+  const recordMatchActivity = useCallback(
+    ({
+      match,
+      type,
+      title,
+      description,
+      metadata,
+    }: {
+      match: MatchData
+      type: ActivityEventType
+      title: string
+      description?: string | null
+      metadata?: Record<string, unknown>
+    }) => {
+      if (!actorEmail || !isSupabaseBackedMatch(match.id)) {
+        return
+      }
+
+      recordActivityEvent({
+        leagueId: match.leagueId,
+        seasonId: match.seasonId,
+        matchId: match.id,
+        actorEmail,
+        actorDisplayName,
+        type,
+        title,
+        description,
+        metadata,
+      }).catch((error) => recordSupabaseError("record-activity", error))
+    },
+    [actorDisplayName, actorEmail]
+  )
 
   const hydrateMatches = useCallback(
     (incomingMatches: MatchData[]) => {
@@ -410,13 +480,29 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "match_scheduled",
+          title: "Partido programado",
+          description: getActivityMatchDescription(
+            updatedMatch,
+            [updatedMatch.dateLabel, updatedMatch.location]
+              .filter(Boolean)
+              .join(" · ")
+          ),
+          metadata: {
+            scheduledAt: updatedMatch.scheduledAt,
+            location: updatedMatch.location,
+          },
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("update-match-schedule", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const postponeMatch = useCallback(
@@ -445,13 +531,20 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "match_postponed",
+          title: "Partido aplazado",
+          description: getActivityMatchDescription(updatedMatch),
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("postpone-match", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const finishMatch = useCallback(
@@ -483,13 +576,28 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "match_result_saved",
+          title: "Resultado registrado",
+          description: getActivityMatchDescription(
+            updatedMatch,
+            getResultSummary(updatedMatch)
+          ),
+          metadata: {
+            pointsA: updatedMatch.pointsA,
+            pointsB: updatedMatch.pointsB,
+            sets: updatedMatch.sets,
+          },
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("finish-match", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const clearMatchResult = useCallback(
@@ -518,13 +626,20 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "match_result_cleared",
+          title: "Resultado limpiado",
+          description: getActivityMatchDescription(updatedMatch),
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("clear-match-result", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const updateCourtBooking = useCallback(
@@ -562,13 +677,27 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "court_booking_updated",
+          title: "Reserva de pista actualizada",
+          description: getActivityMatchDescription(
+            updatedMatch,
+            `Total pista: ${formatActivityMoney(getBookingTotal(updatedMatch))}`
+          ),
+          metadata: {
+            reservations: updatedMatch.courtBooking.reservations,
+            transfers: updatedMatch.courtBooking.transfers,
+          },
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("update-court-booking", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const clearCourtBooking = useCallback(
@@ -602,13 +731,20 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "court_booking_cleared",
+          title: "Reserva de pista eliminada",
+          description: getActivityMatchDescription(updatedMatch),
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("clear-court-booking", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const markCourtBookingTransferAsPaid = useCallback(
@@ -645,13 +781,32 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
+        const paidTransfer = updatedMatch.courtBooking.transfers.find(
+          (transfer) => transfer.id === transferId
+        )
+
+        recordMatchActivity({
+          match: updatedMatch,
+          type: "court_booking_payment_paid",
+          title: "Pago de pista marcado como pagado",
+          description: getActivityMatchDescription(
+            updatedMatch,
+            paidTransfer
+              ? `${formatActivityMoney(paidTransfer.amount)} marcado como pagado`
+              : null
+          ),
+          metadata: {
+            transferId,
+          },
+        })
+
         return true
       } catch (error) {
         recordSupabaseError("mark-court-booking-transfer-paid", error)
         return false
       }
     },
-    [matches, persistNextMatches]
+    [matches, persistNextMatches, recordMatchActivity]
   )
 
   const value = useMemo(

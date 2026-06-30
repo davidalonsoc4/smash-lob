@@ -49,11 +49,6 @@ function PlayerUserCard({
   const [savedMessage, setSavedMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    setDisplayName(item.displayName)
-    setSavedMessage(null)
-    setError(null)
-  }, [item.displayName, item.playerId])
 
   const cleanDisplayName = displayName.trim()
   const canSaveName =
@@ -334,7 +329,7 @@ export function LeagueUsersManagementPanel({
         {!isLoading && items.length > 0
           ? items.map((item) => (
               <PlayerUserCard
-                key={item.playerId}
+                key={`${item.playerId}:${item.displayName}:${item.linkedUserId ?? "free"}:${item.role ?? "none"}`}
                 item={item}
                 currentUserId={userId}
                 onChangeRole={handleChangeRole}
