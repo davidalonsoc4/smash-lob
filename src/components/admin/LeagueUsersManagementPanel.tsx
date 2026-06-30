@@ -132,7 +132,7 @@ function PlayerUserCard({
   }
 
   return (
-    <AppCard>
+    <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-lg font-black">{item.displayName}</p>
@@ -175,7 +175,7 @@ function PlayerUserCard({
           type="button"
           onClick={handleSaveName}
           disabled={!canSaveName || isSavingName}
-          className="w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
+          className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
         >
           {isSavingName ? "Guardando..." : "Guardar nombre"}
         </button>
@@ -206,11 +206,11 @@ function PlayerUserCard({
           </button>
         </div>
       ) : item.role === "creator" ? (
-        <p className="mt-4 rounded-2xl bg-neutral-100 p-3 text-xs font-semibold text-neutral-500">
+        <p className="mt-4 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
           El creador no se puede degradar ni desvincular desde este panel.
         </p>
       ) : isCurrentUser ? (
-        <p className="mt-4 rounded-2xl bg-neutral-100 p-3 text-xs font-semibold text-neutral-500">
+        <p className="mt-4 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
           No puedes quitarte tus propios permisos ni desvincular tu propia cuenta.
         </p>
       ) : null}
@@ -224,7 +224,7 @@ function PlayerUserCard({
       {error ? (
         <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
       ) : null}
-    </AppCard>
+    </div>
   )
 }
 
@@ -305,47 +305,45 @@ export function LeagueUsersManagementPanel({
   }
 
   return (
-    <section className="space-y-3">
-      <AppCard>
-        <p className="font-bold">Jugadores y usuarios</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos
-          de administración. Estos jugadores pertenecen a la liga; cada temporada
-          decide cuáles participan.
-        </p>
-        <p className="mt-3 text-xs font-semibold text-neutral-500">
-          Total: {items.length} · Vinculados: {linkedCount} · Sin vincular:{" "}
-          {unlinkedCount}
-        </p>
-      </AppCard>
+    <AppCard>
+      <p className="font-bold">Jugadores y usuarios</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos
+        de administración. Estos jugadores pertenecen a la liga; cada temporada
+        decide cuáles participan.
+      </p>
+      <p className="mt-3 text-xs font-semibold text-neutral-500">
+        Total: {items.length} · Vinculados: {linkedCount} · Sin vincular:{" "}
+        {unlinkedCount}
+      </p>
 
-      {isLoading ? (
-        <AppCard>
-          <p className="font-bold">Cargando usuarios...</p>
-        </AppCard>
-      ) : null}
+      <div className="mt-5 space-y-3">
+        {isLoading ? (
+          <div className="rounded-2xl bg-neutral-100 p-4">
+            <p className="font-bold">Cargando usuarios...</p>
+          </div>
+        ) : null}
 
-      {!isLoading && loadError ? (
-        <AppCard>
-          <p className="font-bold">No hay usuarios para mostrar</p>
-          <p className="mt-2 text-sm text-neutral-500">{loadError}</p>
-        </AppCard>
-      ) : null}
+        {!isLoading && loadError ? (
+          <div className="rounded-2xl bg-neutral-100 p-4">
+            <p className="font-bold">No hay usuarios para mostrar</p>
+            <p className="mt-2 text-sm text-neutral-500">{loadError}</p>
+          </div>
+        ) : null}
 
-      {!isLoading && items.length > 0 ? (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <PlayerUserCard
-              key={item.playerId}
-              item={item}
-              currentUserId={userId}
-              onChangeRole={handleChangeRole}
-              onUnlink={handleUnlink}
-              onRename={handleRename}
-            />
-          ))}
-        </div>
-      ) : null}
-    </section>
+        {!isLoading && items.length > 0
+          ? items.map((item) => (
+              <PlayerUserCard
+                key={item.playerId}
+                item={item}
+                currentUserId={userId}
+                onChangeRole={handleChangeRole}
+                onUnlink={handleUnlink}
+                onRename={handleRename}
+              />
+            ))
+          : null}
+      </div>
+    </AppCard>
   )
 }

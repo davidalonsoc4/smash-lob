@@ -286,7 +286,7 @@ function LeagueLocationsForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit}>
       <AppCard>
         <p className="font-bold">{t.adminLeague.locationsTitle}</p>
         <p className="mt-2 text-sm text-neutral-500">
@@ -306,7 +306,7 @@ function LeagueLocationsForm({
                   type="button"
                   onClick={() => handleRemoveLocation(location)}
                   disabled={isSaving}
-                  className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800"
+                  className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
                 >
                   {t.adminLeague.removeLocation}
                 </button>
@@ -320,13 +320,11 @@ function LeagueLocationsForm({
             </div>
           )}
         </div>
-      </AppCard>
 
-      <AppCard>
-        <p className="font-bold">{t.adminLeague.addLocationTitle}</p>
+        <div className="mt-6 rounded-2xl bg-neutral-100 p-4">
+          <p className="font-bold">{t.adminLeague.addLocationTitle}</p>
 
-        <div className="mt-4 space-y-3">
-          <label className="block">
+          <label className="mt-4 block">
             <span className="text-sm font-semibold text-neutral-700">
               {t.adminLeague.locationName}
             </span>
@@ -340,13 +338,13 @@ function LeagueLocationsForm({
                 setError(null)
               }}
               placeholder={t.adminLeague.locationPlaceholder}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
 
           {normalizedNewLocation.length > 0 &&
           hasLocation(locations, normalizedNewLocation) ? (
-            <p className="text-xs font-semibold text-red-600">
+            <p className="mt-2 text-xs font-semibold text-red-600">
               {t.adminLeague.duplicatedLocation}
             </p>
           ) : null}
@@ -355,34 +353,35 @@ function LeagueLocationsForm({
             type="button"
             onClick={handleAddLocation}
             disabled={!canAdd || isSaving}
-            className="w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
+            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
           >
             {t.adminLeague.addLocation}
           </button>
         </div>
+
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="mt-5 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        >
+          {isSaving ? "Guardando..." : t.adminLeague.save}
+        </button>
+
+        {error ? (
+          <p className="mt-3 text-center text-sm font-semibold text-red-600">
+            {error}
+          </p>
+        ) : null}
+
+        {saved ? (
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+            {t.adminLeague.saved}
+          </p>
+        ) : null}
       </AppCard>
-
-      <button
-        type="submit"
-        disabled={isSaving}
-        className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
-      >
-        {isSaving ? "Guardando..." : t.adminLeague.save}
-      </button>
-
-      {error ? (
-        <p className="text-center text-sm font-semibold text-red-600">
-          {error}
-        </p>
-      ) : null}
-
-      {saved ? (
-        <p className="text-center text-sm font-semibold text-neutral-600">
-          {t.adminLeague.saved}
-        </p>
-      ) : null}
     </form>
   )
+
 }
 
 export default function AdminLeaguePage() {

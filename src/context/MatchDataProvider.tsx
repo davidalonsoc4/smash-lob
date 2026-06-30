@@ -17,6 +17,7 @@ import {
   normalizeCourtBooking,
 } from "@/lib/courtBooking"
 import {
+  clearSupabaseMatchResult,
   finishSupabaseMatch,
   formatScheduleDateLabel,
   postponeSupabaseMatch,
@@ -93,6 +94,7 @@ type MatchDataContextValue = {
   ) => Promise<boolean>
   postponeMatch: (matchId: string) => Promise<boolean>
   finishMatch: (matchId: string, result: MatchResultInput) => Promise<boolean>
+  clearMatchResult: (matchId: string) => Promise<boolean>
   updateCourtBooking: (
     matchId: string,
     bookingInput: CourtBookingInput
@@ -301,6 +303,17 @@ function getLocalFinishedMatch(
   }
 }
 
+function getLocalClearedResultMatch(match: MatchData): MatchData {
+  return {
+    ...match,
+    status: match.scheduledAt ? "scheduled" : "scheduling",
+    sets: [],
+    pointsA: null,
+    pointsB: null,
+    resultRecordedAt: null,
+  }
+}
+
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const [matches, setMatches] = useState<MatchData[]>(getInitialMatches)
 
@@ -479,6 +492,41 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches, persistNextMatches]
   )
 
+  const clearMatchResult = useCallback(
+    async (matchId: string) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
+
+      if (!currentMatch) {
+        return false
+      }
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? getLocalClearedResultMatch(match) : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await clearSupabaseMatchResult(matchId)
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
+
+        return true
+      } catch (error) {
+        recordSupabaseError("clear-match-result", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches]
+  )
+
   const updateCourtBooking = useCallback(
     async (matchId: string, bookingInput: CourtBookingInput) => {
       const currentMatch = matches.find((match) => match.id === matchId)
@@ -614,12 +662,14 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       updateMatchSchedule,
       postponeMatch,
       finishMatch,
+      clearMatchResult,
       updateCourtBooking,
       clearCourtBooking,
       markCourtBookingTransferAsPaid,
     }),
     [
       clearCourtBooking,
+      clearMatchResult,
       createSeasonMatches,
       finishMatch,
       hydrateMatches,

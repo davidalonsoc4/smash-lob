@@ -12,6 +12,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useMatchData } from "@/context/MatchDataProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { formatShortDate } from "@/lib/rounds"
@@ -20,10 +21,13 @@ export default function MatchDetailPage() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
+  const { clearMatchResult } = useMatchData()
   const params = useParams<{ id: string }>()
   const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
     useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
+  const [isClearingResult, setIsClearingResult] = useState(false)
+  const [clearResultError, setClearResultError] = useState<string | null>(null)
 
   const match = matches.find((item) => item.id === params.id)
   const round = match
@@ -70,6 +74,37 @@ export default function MatchDetailPage() {
         </AppCard>
       </div>
     )
+  }
+
+
+  async function handleClearResult() {
+    if (!match || isClearingResult) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      "¿Seguro que quieres limpiar el resultado? El partido volverá a quedar pendiente de resultado y se eliminarán los sets guardados."
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsClearingResult(true)
+    setClearResultError(null)
+
+    const cleared = await clearMatchResult(match.id)
+
+    setIsClearingResult(false)
+
+    if (!cleared) {
+      setClearResultError(
+        "No se ha podido limpiar el resultado. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    setIsEditingResult(false)
   }
 
   const roundWindowText = getRoundWindowText()
@@ -202,15 +237,35 @@ export default function MatchDetailPage() {
                 {t.matchResult.registeredDescription}
               </p>
             </div>
+          </div>
 
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setIsEditingResult(true)}
-              className="shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800"
+              disabled={isClearingResult}
+              className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
             >
               {t.matchResult.editButton}
             </button>
+
+            {isLeagueAdmin(activeLeague.id) ? (
+              <button
+                type="button"
+                onClick={handleClearResult}
+                disabled={isClearingResult}
+                className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+              >
+                {isClearingResult ? "Limpiando..." : "Limpiar resultado"}
+              </button>
+            ) : null}
           </div>
+
+          {clearResultError ? (
+            <p className="mt-3 text-sm font-semibold text-red-600">
+              {clearResultError}
+            </p>
+          ) : null}
         </AppCard>
       ) : null}
 

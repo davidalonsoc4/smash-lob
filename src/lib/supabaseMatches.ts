@@ -263,6 +263,40 @@ export async function finishSupabaseMatch({
   return mapSupabaseMatch(data)
 }
 
+
+export async function clearSupabaseMatchResult(matchId: string) {
+  const { data: currentMatch, error: currentError } = await supabase
+    .from("matches")
+    .select("scheduled_at")
+    .eq("id", matchId)
+    .single()
+
+  if (currentError) {
+    throw currentError
+  }
+
+  const nextStatus = currentMatch?.scheduled_at ? "scheduled" : "scheduling"
+
+  const { data, error } = await supabase
+    .from("matches")
+    .update({
+      status: nextStatus,
+      sets: [],
+      points_a: null,
+      points_b: null,
+      result_recorded_at: null,
+    })
+    .eq("id", matchId)
+    .select(matchSelect)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return mapSupabaseMatch(data)
+}
+
 export async function updateSupabaseCourtBooking({
   matchId,
   booking,
