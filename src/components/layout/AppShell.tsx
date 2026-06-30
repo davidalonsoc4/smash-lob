@@ -46,8 +46,14 @@ function SettingsIcon() {
 function InviteFloatingControls({
   offsetForSettingsButton,
 }: InviteFloatingControlsProps) {
-  const { getLeagueInviteCode, isPlayerClaimed } = useLeagueAccess()
+  const { getLeagueInviteCode, isLeagueAdmin, isPlayerClaimed } =
+    useLeagueAccess()
   const { activeLeague, players } = useCurrentLeagueData()
+
+  if (!isLeagueAdmin(activeLeague.id)) {
+    return null
+  }
+
   const unclaimedPlayers = players.filter(
     (player) => !isPlayerClaimed(activeLeague.id, player.id)
   )
