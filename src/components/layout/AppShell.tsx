@@ -103,7 +103,7 @@ export function AppShell({ children }: AppShellProps) {
             className="z-50 flex items-center justify-center rounded-full bg-neutral-200 text-neutral-700 shadow-sm transition active:scale-[0.96] active:bg-neutral-300"
             style={{
               position: "fixed",
-              top: "32px",
+              top: "22px",
               right: "max(22px, calc((100vw - 448px) / 2 + 22px))",
               width: "30px",
               height: "30px",

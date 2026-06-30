@@ -32,16 +32,19 @@ export default function RankingPage() {
 
       {isSeasonClosed ? (
         <AppCard>
-          <p className="font-bold">Temporada cerrada</p>
+          <p className="font-bold">{t.dashboard.closedSeasonTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            Este ranking queda como histórico de {activeSeason.name}.
+            {t.ranking.closedSeasonHistoricalDescription.replace(
+              "{seasonName}",
+              activeSeason.name
+            )}
           </p>
           {canManageSeason ? (
             <Link
               href="/admin/season"
               className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
             >
-              Crear nueva temporada
+              {t.dashboard.createSeason}
             </Link>
           ) : null}
         </AppCard>

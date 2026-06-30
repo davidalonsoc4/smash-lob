@@ -17,6 +17,8 @@ export const en = {
   auth: {
     subtitle: "Private league",
     title: "Smash & Lob",
+    closedSeasonHistoricalDescription:
+      "This ranking remains as the history for {seasonName}.",
     description: "Sign in with Google to access your leagues, matches and results.",
     signInWithGoogle: "Sign in with Google",
     signOut: "Sign out",
@@ -102,6 +104,7 @@ export const en = {
   },
 
   dashboard: {
+    winner: "Winner",
     leader: "Leader",
     rounds: "Rounds",
     regularLeague: "Regular season",
@@ -112,6 +115,8 @@ export const en = {
     addSchedule: "Add date, time and place",
     playersCanSchedule: "The players involved in the match can complete the schedule.",
     closedSeasonTitle: "Season closed",
+    closedSeasonHistoricalDescription:
+      "You are viewing the history for {seasonName}. The league is pending a new active season.",
     closedSeasonDescription:
       "The league has no active season right now. You can view the history until a new one is created.",
     createSeason: "Create new season",
@@ -162,6 +167,8 @@ export const en = {
     pendingReschedule: "New date pending",
     missingSchedule: "Missing date, time and place",
     needsReschedule: "This match needs to be rescheduled",
+    closedSeasonHistoricalDescription:
+      "These are the historical matches for {seasonName}.",
     noMatches: "There are no matches in this season.",
   },
 
@@ -398,7 +405,9 @@ export const en = {
     statusFinished: "Finished",
     finishTitle: "Close active season",
     finishDescription:
-      "When closed, editable settings will be hidden and this screen will prepare the next season.",
+      "When closed, the season will remain as history and you will return to the league summary. A new season will not be created automatically.",
+    finishConfirmMessage:
+      "Are you sure you want to close this season? A new season will not be created automatically and the league will remain pending a new season.",
     finishSeason: "Finish season",
     newSeasonTitle: "Start new season",
     newSeasonDescription:
@@ -412,13 +421,25 @@ export const en = {
     seasonPlayersDescription:
       "Choose league players and fill gaps with new names pending link.",
     calendarTitle: "Calendar",
-    calendarDescription: "For now, only a balanced calendar can be created.",
+    calendarDescription:
+      "Choose how the rounds for the new season will be generated.",
     balancedCalendar: "Balanced calendar",
     balancedCalendarDescription:
       "All players will have a balanced match distribution. We will configure the details in the next step.",
+    manualCalendar: "Manual calendar",
+    manualCalendarDescription:
+      "This will allow rounds and pairings to be configured by hand. We will define it later.",
+    manualCalendarBlocked:
+      "Manual calendar is not available yet. Select balanced calendar to continue.",
     startSeason: "Start season",
     seasonFinished: "Season finished.",
     seasonStarted: "New season created.",
+    inviteTitle: "Invitation link",
+    inviteDescription:
+      "Copy this link to send it to new players or substitutes in {leagueName}.",
+    copyInviteLink: "Copy invitation link",
+    inviteCopied: "Link copied",
+    inviteCopyError: "The link could not be copied.",
     save: "Save settings",
     saved: "Settings saved.",
   },

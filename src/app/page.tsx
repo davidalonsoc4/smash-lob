@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -70,25 +71,52 @@ export default function Home() {
 
       {isSeasonClosed ? (
         <AppCard>
-          <p className="font-bold">Temporada cerrada</p>
+          <p className="font-bold">{t.dashboard.closedSeasonTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            Estás viendo el histórico de {activeSeason.name}. La liga queda pendiente de crear una nueva temporada activa.
+            {t.dashboard.closedSeasonHistoricalDescription.replace(
+              "{seasonName}",
+              activeSeason.name
+            )}
           </p>
           {canManageSeason ? (
             <Link
               href="/admin/season"
               className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
             >
-              Crear nueva temporada
+              {t.dashboard.createSeason}
             </Link>
           ) : null}
+        </AppCard>
+      ) : null}
+
+      {isSeasonClosed && leader ? (
+        <AppCard className="bg-neutral-950 text-white">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-400">
+            {t.dashboard.winner}
+          </p>
+          <div className="mt-3 flex items-center gap-3">
+            <PlayerAvatar
+              player={leader}
+              size="md"
+              className="bg-white text-neutral-950"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-2xl font-black">
+                {leader.displayName}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-neutral-300">
+                {leader.points} {t.common.pointsShort} · {leader.gamesDiff > 0 ? "+" : ""}
+                {leader.gamesDiff} {t.ranking.diff.toLowerCase()}
+              </p>
+            </div>
+          </div>
         </AppCard>
       ) : null}
 
       <div className="grid grid-cols-2 gap-3">
         {leader ? (
           <StatCard
-            label={t.dashboard.leader}
+            label={isSeasonClosed ? t.dashboard.winner : t.dashboard.leader}
             value={leader.displayName}
             helper={`${leader.points} ${t.common.pointsShort} · ${
               leader.gamesDiff > 0 ? "+" : ""

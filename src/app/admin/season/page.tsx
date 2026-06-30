@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
@@ -20,11 +21,14 @@ import {
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons"
 import { recordActivityEvent } from "@/lib/activity"
+import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
 const allowedPlayerCounts = [4, 8, 12, 16]
 const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error"
 const supabaseUuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+type CalendarMode = "balanced" | "manual"
 
 type SeasonPlayerSummary = {
   id: string
@@ -77,6 +81,61 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
     actorEmail: session?.user?.email ?? "system@smash-lob.local",
     actorDisplayName: session?.user?.name ?? null,
   }
+}
+
+function InviteLinkCard({
+  inviteCode,
+  leagueName,
+}: {
+  inviteCode: string
+  leagueName: string
+}) {
+  const { t } = useI18n()
+  const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const inviteUrl = getPublicInviteUrl(inviteCode)
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(inviteUrl)
+      setCopied(true)
+      setError(null)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setError(t.adminSeason.inviteCopyError)
+    }
+  }
+
+  if (!inviteCode) {
+    return null
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">{t.adminSeason.inviteTitle}</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        {t.adminSeason.inviteDescription.replace("{leagueName}", leagueName)}
+      </p>
+
+      <div className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3 text-xs font-semibold text-neutral-600 break-all">
+        {inviteUrl}
+      </div>
+
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+      >
+        {copied ? t.adminSeason.inviteCopied : t.adminSeason.copyInviteLink}
+      </button>
+
+      {error ? (
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  )
 }
 
 function ActiveSeasonSettingsForm({
@@ -318,6 +377,7 @@ function FinishSeasonPanel({
   activeSeasonId: string
 }) {
   const { t } = useI18n()
+  const router = useRouter()
   const { data: session } = useSession()
   const { finishActiveSeason, hydrateSeasonSnapshot } = useSeasonSettings()
   const [feedback, setFeedback] = useState<string | null>(null)
@@ -326,6 +386,12 @@ function FinishSeasonPanel({
 
   async function handleFinishSeason() {
     if (isSaving) {
+      return
+    }
+
+    const confirmed = window.confirm(t.adminSeason.finishConfirmMessage)
+
+    if (!confirmed) {
       return
     }
 
@@ -369,6 +435,7 @@ function FinishSeasonPanel({
 
     setFeedback(t.adminSeason.seasonFinished)
     setIsSaving(false)
+    router.push("/")
   }
 
   return (
@@ -404,10 +471,12 @@ function FinishSeasonPanel({
 
 function NewSeasonForm({
   activeLeagueId,
+  activeLeagueName,
   activeSeasonId,
   currentPlayers,
 }: {
   activeLeagueId: string
+  activeLeagueName: string
   activeSeasonId: string
   currentPlayers: SeasonPlayerSummary[]
 }) {
@@ -416,6 +485,7 @@ function NewSeasonForm({
   const { hydrateSeasonSnapshot, playerProfiles, seasons, startNewSeason } =
     useSeasonSettings()
   const { hydrateMatches } = useMatchData()
+  const { getLeagueInviteCode } = useLeagueAccess()
   const leaguePlayers = playerProfiles.filter(
     (player) => player.leagueId === activeLeagueId
   )
@@ -431,14 +501,16 @@ function NewSeasonForm({
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount)
   )
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([])
+  const [calendarMode, setCalendarMode] = useState<CalendarMode>("balanced")
   const [roundWindowMode, setRoundWindowMode] =
-    useState<RoundWindowMode>("fixed-days")
+    useState<RoundWindowMode>("none")
   const [seasonStartsAt, setSeasonStartsAt] = useState("")
   const [roundWindowDays, setRoundWindowDays] = useState("15")
   const [requiresThreeSets, setRequiresThreeSets] = useState(true)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const inviteCode = getLeagueInviteCode(activeLeagueId)
 
   const parsedRoundWindowDays = Number(roundWindowDays)
   const isFixedDaysMode = roundWindowMode === "fixed-days"
@@ -469,6 +541,7 @@ function NewSeasonForm({
     !isSaving &&
     newSeasonName.trim().length > 0 &&
     hasValidPlayers &&
+    calendarMode === "balanced" &&
     (roundWindowMode === "none" ||
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
@@ -726,12 +799,45 @@ function NewSeasonForm({
           {t.adminSeason.calendarDescription}
         </p>
 
-        <div className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3">
-          <p className="text-sm font-black">{t.adminSeason.balancedCalendar}</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            {t.adminSeason.balancedCalendarDescription}
-          </p>
+        <div className="mt-5 space-y-3">
+          {(["balanced", "manual"] as CalendarMode[]).map((mode) => (
+            <label
+              key={mode}
+              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-4"
+            >
+              <input
+                type="radio"
+                name="calendarMode"
+                value={mode}
+                checked={calendarMode === mode}
+                onChange={() => {
+                  setCalendarMode(mode)
+                  setFeedback(null)
+                }}
+                className="mt-1"
+              />
+
+              <span>
+                <span className="block text-sm font-black">
+                  {mode === "balanced"
+                    ? t.adminSeason.balancedCalendar
+                    : t.adminSeason.manualCalendar}
+                </span>
+                <span className="mt-1 block text-xs text-neutral-500">
+                  {mode === "balanced"
+                    ? t.adminSeason.balancedCalendarDescription
+                    : t.adminSeason.manualCalendarDescription}
+                </span>
+              </span>
+            </label>
+          ))}
         </div>
+
+        {calendarMode === "manual" ? (
+          <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+            {t.adminSeason.manualCalendarBlocked}
+          </p>
+        ) : null}
       </AppCard>
 
       <AppCard>
@@ -859,6 +965,13 @@ function NewSeasonForm({
           {feedback}
         </p>
       ) : null}
+
+      {feedback && inviteCode ? (
+        <InviteLinkCard
+          inviteCode={inviteCode}
+          leagueName={activeLeagueName}
+        />
+      ) : null}
     </form>
   )
 }
@@ -937,6 +1050,7 @@ export default function AdminSeasonPage() {
         <NewSeasonForm
           key={`${activeSeason.id}-new`}
           activeLeagueId={activeLeague.id}
+          activeLeagueName={activeLeague.name}
           activeSeasonId={activeSeason.id}
           currentPlayers={players}
         />

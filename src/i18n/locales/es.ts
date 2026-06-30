@@ -109,6 +109,7 @@ export const es = {
   },
 
   dashboard: {
+    winner: "Ganador",
     leader: "Líder",
     rounds: "Jornadas",
     regularLeague: "Liga regular",
@@ -120,6 +121,8 @@ export const es = {
     playersCanSchedule:
       "Los jugadores del partido podrán completar la programación.",
     closedSeasonTitle: "Temporada cerrada",
+    closedSeasonHistoricalDescription:
+      "Estás viendo el histórico de {seasonName}. La liga queda pendiente de crear una nueva temporada activa.",
     closedSeasonDescription:
       "La liga no tiene una temporada activa ahora mismo. Puedes consultar el histórico hasta que se cree una nueva.",
     createSeason: "Crear nueva temporada",
@@ -127,6 +130,8 @@ export const es = {
 
   ranking: {
     subtitle: "Clasificación general",
+    closedSeasonHistoricalDescription:
+      "Este ranking queda como histórico de {seasonName}.",
     description: "Ordenado por puntos, diferencia de juegos y juegos a favor.",
     gamesDiff: "Dif. juegos",
     gamesFor: "Juegos a favor",
@@ -171,6 +176,8 @@ export const es = {
     pendingReschedule: "Pendiente de nueva fecha",
     missingSchedule: "Falta añadir hora, fecha y lugar",
     needsReschedule: "Hay que reprogramar este partido",
+    closedSeasonHistoricalDescription:
+      "Estos son los partidos históricos de {seasonName}.",
     noMatches: "No hay partidos en esta temporada.",
   },
 
@@ -428,7 +435,9 @@ export const es = {
     statusFinished: "Finalizada",
     finishTitle: "Cerrar temporada activa",
     finishDescription:
-      "Al terminarla se ocultarán los ajustes editables y esta pantalla pasará a preparar la siguiente temporada.",
+      "Al cerrarla, la temporada quedará como histórico y volverás al resumen de la liga. No se creará una nueva automáticamente.",
+    finishConfirmMessage:
+      "¿Seguro que quieres cerrar esta temporada? No se creará otra automáticamente y la liga quedará pendiente de nueva temporada.",
     finishSeason: "Terminar temporada",
     newSeasonTitle: "Comenzar nueva temporada",
     newSeasonDescription:
@@ -442,13 +451,25 @@ export const es = {
     seasonPlayersDescription:
       "Elige jugadores de la liga y completa los huecos con nuevos nombres pendientes de vincular.",
     calendarTitle: "Calendario",
-    calendarDescription: "Por ahora solo se permite crear un calendario equilibrado.",
+    calendarDescription:
+      "Elige cómo se generarán las jornadas de la nueva temporada.",
     balancedCalendar: "Calendario equilibrado",
     balancedCalendarDescription:
       "Todos los jugadores tendrán una distribución compensada de partidos. Configuraremos el detalle en el siguiente paso.",
+    manualCalendar: "Calendario manual",
+    manualCalendarDescription:
+      "Permitirá configurar jornadas y emparejamientos a mano. Lo definiremos más adelante.",
+    manualCalendarBlocked:
+      "El calendario manual todavía no está disponible. Selecciona calendario equilibrado para continuar.",
     startSeason: "Comenzar temporada",
     seasonFinished: "Temporada finalizada.",
     seasonStarted: "Nueva temporada creada.",
+    inviteTitle: "Enlace de invitación",
+    inviteDescription:
+      "Copia este enlace para enviárselo a nuevos jugadores o sustitutos de {leagueName}.",
+    copyInviteLink: "Copiar enlace de invitación",
+    inviteCopied: "Enlace copiado",
+    inviteCopyError: "No se ha podido copiar el enlace.",
     save: "Guardar configuración",
     saved: "Configuración guardada.",
   },

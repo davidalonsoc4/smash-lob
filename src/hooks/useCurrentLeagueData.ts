@@ -14,13 +14,19 @@ import { buildSeasonRounds } from "@/lib/rounds"
 
 export function useCurrentLeagueData() {
   const { activeLeagueId } = useActiveLeague()
-  const { leagues, userLeagues } = useLeagueAccess()
+  const {
+    getMembershipForLeague,
+    isLeagueAdmin,
+    leagues,
+    userLeagues,
+  } = useLeagueAccess()
   const { matches: storedMatches } = useMatchData()
   const {
     getActiveSeasonByLeagueId: getStoredActiveSeasonByLeagueId,
     playerProfiles,
     seasonPlayers,
     getSeasonRoundSettings,
+    seasons,
   } = useSeasonSettings()
 
   const baseActiveLeague =
@@ -31,8 +37,33 @@ export function useCurrentLeagueData() {
   }
 
   const activeLeague = baseActiveLeague
+  const membership = getMembershipForLeague(activeLeague.id)
+  const canManageLeague = isLeagueAdmin(activeLeague.id)
+  const storedCurrentSeason = getStoredActiveSeasonByLeagueId(activeLeague.id)
+  const playerSeasonIds = new Set(
+    seasonPlayers
+      .filter((seasonPlayer) => seasonPlayer.playerId === membership?.playerId)
+      .map((seasonPlayer) => seasonPlayer.seasonId)
+  )
+  const playerParticipatesInStoredSeason = membership?.playerId
+    ? playerSeasonIds.has(storedCurrentSeason.id)
+    : true
+  const latestPlayerSeason = membership?.playerId
+    ? [...seasons]
+        .filter(
+          (season) =>
+            season.leagueId === activeLeague.id && playerSeasonIds.has(season.id)
+        )
+        .at(-1) ?? null
+    : null
 
-  const baseActiveSeason = getStoredActiveSeasonByLeagueId(activeLeague.id)
+  const baseActiveSeason =
+    !canManageLeague &&
+    membership?.playerId &&
+    !playerParticipatesInStoredSeason &&
+    latestPlayerSeason
+      ? latestPlayerSeason
+      : storedCurrentSeason
   const matches = getMatchesByLeagueAndSeason(
     storedMatches,
     activeLeague.id,

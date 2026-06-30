@@ -109,6 +109,7 @@ export const eu = {
   },
 
   dashboard: {
+    winner: "Irabazlea",
     leader: "Liderra",
     rounds: "Jardunaldiak",
     regularLeague: "Liga erregularra",
@@ -120,6 +121,8 @@ export const eu = {
     playersCanSchedule:
       "Partidako jokalariek programazioa osatu ahal izango dute.",
     closedSeasonTitle: "Denboraldia itxita",
+    closedSeasonHistoricalDescription:
+      "{seasonName} denboraldiaren historikoa ikusten ari zara. Liga denboraldi aktibo berri baten zain geratzen da.",
     closedSeasonDescription:
       "Ligak ez du denboraldi aktiborik une honetan. Historiala ikus dezakezu berria sortu arte.",
     createSeason: "Denboraldi berria sortu",
@@ -172,6 +175,8 @@ export const eu = {
     pendingReschedule: "Data berriaren zain",
     missingSchedule: "Data, ordua eta lekua falta dira",
     needsReschedule: "Partida hau berriro programatu behar da",
+    closedSeasonHistoricalDescription:
+      "Hauek dira {seasonName} denboraldiko partida historikoak.",
     noMatches: "Ez dago partidarik denboraldi honetan.",
   },
 
@@ -248,6 +253,8 @@ export const eu = {
   profile: {
     title: "Nire profila",
     subtitle: "Uneko erabiltzailea",
+    closedSeasonHistoricalDescription:
+      "Sailkapen hau {seasonName} denboraldiaren historiko gisa geratzen da.",
     description: "Zure estatistikak jokalari gisa denboraldi aktiboan.",
     notFound: "Ez da aurkitu uneko erabiltzaileari lotutako jokalaririk.",
     points: "Puntuak",
@@ -424,7 +431,9 @@ export const eu = {
     statusFinished: "Amaituta",
     finishTitle: "Denboraldi aktiboa itxi",
     finishDescription:
-      "Amaitzean, ezarpen editagarriak ezkutatuko dira eta pantaila honek hurrengo denboraldia prestatuko du.",
+      "Itxitakoan, denboraldia historiko gisa geratuko da eta ligaren laburpenera itzuliko zara. Ez da denboraldi berririk automatikoki sortuko.",
+    finishConfirmMessage:
+      "Ziur zaude denboraldi hau itxi nahi duzula? Ez da beste denboraldi bat automatikoki sortuko eta liga denboraldi berri baten zain geratuko da.",
     finishSeason: "Denboraldia amaitu",
     newSeasonTitle: "Denboraldi berria hasi",
     newSeasonDescription:
@@ -443,9 +452,20 @@ export const eu = {
     balancedCalendar: "Egutegi orekatua",
     balancedCalendarDescription:
       "Jokalari guztiek partida banaketa orekatua izango dute. Xehetasuna hurrengo urratsean konfiguratuko dugu.",
+    manualCalendar: "Eskuzko egutegia",
+    manualCalendarDescription:
+      "Jardunaldiak eta bikoteak eskuz konfiguratzeko aukera emango du. Geroago definituko dugu.",
+    manualCalendarBlocked:
+      "Eskuzko egutegia oraindik ez dago erabilgarri. Jarraitzeko, hautatu egutegi orekatua.",
     startSeason: "Denboraldia hasi",
     seasonFinished: "Denboraldia amaituta.",
     seasonStarted: "Denboraldi berria sortuta.",
+    inviteTitle: "Gonbidapen esteka",
+    inviteDescription:
+      "Kopiatu esteka hau {leagueName} ligako jokalari berriei edo ordezkoei bidaltzeko.",
+    copyInviteLink: "Gonbidapen esteka kopiatu",
+    inviteCopied: "Esteka kopiatuta",
+    inviteCopyError: "Ezin izan da esteka kopiatu.",
     save: "Konfigurazioa gorde",
     saved: "Konfigurazioa gordeta.",
   },
