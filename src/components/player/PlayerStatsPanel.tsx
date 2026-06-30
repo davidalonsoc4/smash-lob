@@ -29,6 +29,8 @@ type PlayerRelationStats = {
   playerId: string
   matches: number
   wins: number
+  gamesFor: number
+  gamesAgainst: number
 }
 
 function getTeamSetPoints(match: PlayerStatsMatch, team: "A" | "B") {
@@ -55,10 +57,14 @@ function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
   })[0]
 }
 
-function getMostFrequentRelation(relationStats: Map<string, PlayerRelationStats>) {
+function getToughestRival(relationStats: Map<string, PlayerRelationStats>) {
   return Array.from(relationStats.values()).sort((a, b) => {
+    const diffA = a.gamesFor - a.gamesAgainst
+    const diffB = b.gamesFor - b.gamesAgainst
+
+    if (diffA !== diffB) return diffA - diffB
+    if (b.gamesAgainst !== a.gamesAgainst) return b.gamesAgainst - a.gamesAgainst
     if (b.matches !== a.matches) return b.matches - a.matches
-    if (b.wins !== a.wins) return b.wins - a.wins
     return a.playerId.localeCompare(b.playerId)
   })[0]
 }
@@ -66,15 +72,21 @@ function getMostFrequentRelation(relationStats: Map<string, PlayerRelationStats>
 function upsertRelation(
   relationStats: Map<string, PlayerRelationStats>,
   playerId: string,
-  won: boolean
+  won: boolean,
+  gamesFor: number,
+  gamesAgainst: number
 ) {
   const current = relationStats.get(playerId) ?? {
     playerId,
     matches: 0,
     wins: 0,
+    gamesFor: 0,
+    gamesAgainst: 0,
   }
 
   current.matches += 1
+  current.gamesFor += gamesFor
+  current.gamesAgainst += gamesAgainst
 
   if (won) {
     current.wins += 1
@@ -89,6 +101,10 @@ function formatPercentage(value: number) {
   }
 
   return `${Math.round(value)}%`
+}
+
+function formatSignedNumber(value: number) {
+  return `${value > 0 ? "+" : ""}${value}`
 }
 
 function getDisplayName(playerId: string, players: PlayerStatsPlayer[]) {
@@ -138,9 +154,13 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
 
     ownTeam
       .filter((teammateId) => teammateId !== playerId)
-      .forEach((teammateId) => upsertRelation(partnerStats, teammateId, won))
+      .forEach((teammateId) =>
+        upsertRelation(partnerStats, teammateId, won, ownGames, opponentGames)
+      )
 
-    opponentTeam.forEach((opponentId) => upsertRelation(rivalStats, opponentId, won))
+    opponentTeam.forEach((opponentId) =>
+      upsertRelation(rivalStats, opponentId, won, ownGames, opponentGames)
+    )
 
     if (!bestMatch || gamesDiff > bestMatch.diff) {
       bestMatch = { round: match.round, diff: gamesDiff }
@@ -155,7 +175,10 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
   const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0
   const gamesDiff = gamesFor - gamesAgainst
   const bestPartner = getBestRelation(partnerStats)
-  const mostFrequentRival = getMostFrequentRelation(rivalStats)
+  const toughestRival = getToughestRival(rivalStats)
+  const toughestRivalDiff = toughestRival
+    ? toughestRival.gamesFor - toughestRival.gamesAgainst
+    : 0
   const emptyValue = "—"
 
   return (
@@ -197,7 +220,7 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
             {gamesFor}-{gamesAgainst}
           </p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {gamesDiff > 0 ? "+" : ""}{gamesDiff} {t.ranking.diff}
+            {formatSignedNumber(gamesDiff)} {t.ranking.diff}
           </p>
         </div>
       </div>
@@ -222,17 +245,17 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 p-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
-              {t.playerStats.frequentRival}
+              {t.playerStats.toughestRival}
             </p>
             <p className="mt-1 font-black">
-              {mostFrequentRival
-                ? getDisplayName(mostFrequentRival.playerId, players)
+              {toughestRival
+                ? getDisplayName(toughestRival.playerId, players)
                 : emptyValue}
             </p>
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
-            {mostFrequentRival
-              ? `${mostFrequentRival.matches} ${t.profile.matchesPlayed.toLowerCase()}`
+            {toughestRival
+              ? `${formatSignedNumber(toughestRivalDiff)} ${t.ranking.diff}`
               : emptyValue}
           </p>
         </div>
@@ -244,10 +267,10 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
             {t.playerStats.bestRound}
           </p>
           <p className="mt-1 font-black">
-            {bestMatch ? `${t.playerStats.roundShort}${bestMatch.round}` : emptyValue}
+            {bestMatch ? `${t.matches.round} ${bestMatch.round}` : emptyValue}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            {bestMatch ? `${bestMatch.diff > 0 ? "+" : ""}${bestMatch.diff}` : emptyValue}
+            {bestMatch ? formatSignedNumber(bestMatch.diff) : emptyValue}
           </p>
         </div>
 
@@ -256,12 +279,10 @@ export function PlayerStatsPanel({ playerId, players, matches }: PlayerStatsPane
             {t.playerStats.toughestRound}
           </p>
           <p className="mt-1 font-black">
-            {toughestMatch ? `${t.playerStats.roundShort}${toughestMatch.round}` : emptyValue}
+            {toughestMatch ? `${t.matches.round} ${toughestMatch.round}` : emptyValue}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            {toughestMatch
-              ? `${toughestMatch.diff > 0 ? "+" : ""}${toughestMatch.diff}`
-              : emptyValue}
+            {toughestMatch ? formatSignedNumber(toughestMatch.diff) : emptyValue}
           </p>
         </div>
       </div>

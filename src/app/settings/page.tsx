@@ -12,7 +12,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { APP_VERSION } from "@/lib/appVersion"
+import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
 
@@ -262,7 +262,7 @@ export default function SettingsPage() {
       </button>
 
       <p className="pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300">
-        Smash & Lob {APP_VERSION}
+        Smash & Lob {APP_VERSION_LABEL}
       </p>
     </div>
   )

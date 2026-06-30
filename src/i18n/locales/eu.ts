@@ -315,7 +315,7 @@ export const eu = {
     setsBalance: "Seten balantzea",
     gamesBalance: "Jokoen balantzea",
     bestPartner: "Bikoterik onena",
-    frequentRival: "Aurkari ohikoena",
+    toughestRival: "Aurkaririk gogorrena",
     bestRound: "Jardunaldirik onena",
     roundShort: "J",
     toughestRound: "Jardunaldirik zailena",

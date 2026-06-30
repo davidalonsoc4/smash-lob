@@ -91,38 +91,6 @@ export default function ProfilePage() {
         />
       </div>
 
-      <AppCard>
-        <div className="mb-4">
-          <p className="text-sm font-semibold text-neutral-500">
-            {t.profile.seasonSummary}
-          </p>
-          <p className="mt-1 text-xl font-black">{activeSeason.name}</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 text-center text-sm">
-          <div className="rounded-xl bg-neutral-100 p-3">
-            <p className="font-black">{player.matchesPlayed}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {t.profile.matchesPlayed}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-neutral-100 p-3">
-            <p className="font-black">{player.wins}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {t.profile.wins}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-neutral-100 p-3">
-            <p className="font-black">{player.losses}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {t.profile.losses}
-            </p>
-          </div>
-        </div>
-      </AppCard>
-
       <PlayerStatsPanel
         playerId={player.id}
         players={players}

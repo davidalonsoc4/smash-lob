@@ -318,7 +318,7 @@ export const es = {
     setsBalance: "Balance de sets",
     gamesBalance: "Balance de juegos",
     bestPartner: "Mejor compañero",
-    frequentRival: "Rival más frecuente",
+    toughestRival: "Rival más duro",
     bestRound: "Mejor jornada",
     roundShort: "J",
     toughestRound: "Jornada más dura",

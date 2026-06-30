@@ -300,7 +300,7 @@ export const en = {
     setsBalance: "Sets balance",
     gamesBalance: "Games balance",
     bestPartner: "Best partner",
-    frequentRival: "Most frequent rival",
+    toughestRival: "Toughest rival",
     bestRound: "Best round",
     roundShort: "R",
     toughestRound: "Toughest round",
