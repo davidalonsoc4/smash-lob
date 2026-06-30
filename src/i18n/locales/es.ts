@@ -1,13 +1,17 @@
 export const es = {
   common: {
     appName: "Smash & Lob",
-    season: "Temporada 2",
+    season: "Temporada",
     privateLeague: "Liga privada de pádel",
     individualRanking: "Ranking individual",
     pointsShort: "pts",
     back: "Volver",
     backToMatches: "← Volver a partidos",
     versus: "vs",
+    save: "Guardar",
+    saving: "Guardando...",
+    cancel: "Cancelar",
+    retry: "Volver a comprobar",
   },
 
   auth: {
@@ -25,46 +29,69 @@ export const es = {
   },
 
   onboarding: {
-    title: "Elige como empezar",
+    title: "Elige cómo empezar",
     description:
-      "Tu cuenta de Google esta lista. Ahora crea una liga o entra en una invitacion existente.",
+      "Tu cuenta de Google está lista. Ahora crea una liga o entra en una invitación existente.",
     createTitle: "Crear nueva liga",
     createDescription:
       "Crea una liga nueva con su primera temporada y sus jugadores iniciales.",
     createAction: "Crear liga",
     joinTitle: "Unirme a liga existente",
     joinDescription:
-      "Introduce el codigo que te ha pasado el administrador de la liga.",
-    joinAction: "Validar invitacion",
+      "Introduce el código que te ha pasado el administrador de la liga.",
+    joinAction: "Validar invitación",
   },
 
   invites: {
-    subtitle: "Invitacion privada",
+    subtitle: "Invitación privada",
     title: "Unirme a una liga",
     description:
       "Confirma la liga y reclama el jugador que te corresponde dentro de ella.",
-    codeLabel: "Codigo de invitacion",
+    loadingDescription:
+      "Comprobando invitación y cargando la liga desde la base de datos.",
+    checkingCode: "Comprobando código",
+    checkingCodeDescription:
+      "Estamos buscando la liga asociada a esta invitación.",
+    codeLabel: "Código de invitación",
     codePlaceholder: "SL-8KQ4-P7M2-X9RA",
-    invalidCode: "Codigo invalido.",
+    invalidCode: "Código inválido.",
     leagueNotFound: "Liga no encontrada.",
-    notFoundTitle: "Invitacion no encontrada",
+    notFoundTitle: "Invitación no encontrada",
     notFoundDescription:
-      "Revisa el enlace o pide al administrador un codigo nuevo.",
+      "Revisa el enlace o pide al administrador un código nuevo.",
     foundLeague: "Liga encontrada",
     closedMode: "Modo cerrado: jugadores predefinidos por el admin.",
-    openMode: "Modo abierto preparado para mas adelante.",
+    openMode: "Modo abierto preparado para más adelante.",
+    activeSeasonTitle: "Temporada activa",
+    activeSeasonDescription:
+      "Solo se pueden reclamar jugadores que pertenecen a la temporada activa.",
+    noActiveSeasonTitle: "Sin temporada activa",
+    noActiveSeasonDescription:
+      "La liga está pendiente de que el administrador cree una nueva temporada.",
     claimTitle: "Reclama tu jugador",
     claimDescription:
-      "Elige quien eres en esta liga. Solo podras reclamar un jugador por liga.",
+      "Elige quién eres en esta liga. Solo podrás reclamar un jugador por liga.",
+    claimActiveDescription:
+      "Estos son los jugadores pendientes de vincular en la temporada activa.",
+    claimableActivePlayers: "Jugadores pendientes en la temporada activa",
+    selectedPlayer: "Jugador seleccionado",
+    inactivePlayersHidden:
+      "Los jugadores de temporadas anteriores no aparecen aquí para evitar reclamaciones equivocadas.",
     selectPlayerError: "Selecciona un jugador para continuar.",
     playerAlreadyClaimed: "Jugador ya reclamado.",
     alreadyInLeague: "Ya perteneces a esta liga.",
     alreadyInLeagueDescription:
       "Tu cuenta ya tiene un jugador vinculado en esta liga.",
-    noPlayersAvailable: "No quedan jugadores sin reclamar en esta liga.",
+    noPlayersAvailable: "No quedan jugadores sin reclamar en esta temporada.",
     confirmClaim: "Confirmar y entrar",
+    claiming: "Guardando...",
     enterLeague: "Entrar en la liga",
     accessDenied: "No tienes permisos para ver esta liga.",
+    warningTitle: "Aviso de invitación",
+    timeoutError:
+      "La comprobación del código ha tardado demasiado. Revisa la conexión y vuelve a intentarlo.",
+    genericError:
+      "No se ha podido comprobar la invitación. Vuelve a intentarlo o pide un nuevo enlace al administrador.",
   },
 
   appHeader: {
@@ -76,6 +103,7 @@ export const es = {
     home: "Inicio",
     ranking: "Ranking",
     matches: "Partidos",
+    activity: "Actividad",
     player: "Jugador",
     profile: "Perfil",
   },
@@ -91,12 +119,15 @@ export const es = {
     addSchedule: "Añadir fecha, hora y lugar",
     playersCanSchedule:
       "Los jugadores del partido podrán completar la programación.",
+    closedSeasonTitle: "Temporada cerrada",
+    closedSeasonDescription:
+      "La liga no tiene una temporada activa ahora mismo. Puedes consultar el histórico hasta que se cree una nueva.",
+    createSeason: "Crear nueva temporada",
   },
 
   ranking: {
     subtitle: "Clasificación general",
-    description:
-      "Ordenado por puntos, diferencia de juegos y juegos a favor.",
+    description: "Ordenado por puntos, diferencia de juegos y juegos a favor.",
     gamesDiff: "Dif. juegos",
     gamesFor: "Juegos a favor",
     gamesAgainst: "Juegos en contra",
@@ -150,8 +181,7 @@ export const es = {
     teamB: "Pareja B",
     set: "Set",
     schedule: "Programación",
-    scheduleDescription:
-      "Fecha, hora y lugar acordados para este partido.",
+    scheduleDescription: "Fecha, hora y lugar acordados para este partido.",
     addScheduleTitle: "Añadir programación",
     addScheduleDescription:
       "Selecciona la fecha, la hora y el lugar del partido.",
@@ -164,8 +194,8 @@ export const es = {
     pendingScheduleDescription:
       "Los jugadores del partido deberán completar estos datos cuando lo acuerden.",
     addScheduleButton: "Añadir programación",
-    gamesA: "Games A",
-    gamesB: "Games B",
+    gamesA: "Juegos A",
+    gamesB: "Juegos B",
     pointsA: "Puntos A",
     pointsB: "Puntos B",
     editSchedule: "Editar programación",
@@ -205,8 +235,7 @@ export const es = {
     set: "Set",
     teamA: "Pareja A",
     teamB: "Pareja B",
-    invalidSet:
-      "Set no válido. Usa marcadores tipo 6-0, 6-4, 7-5 o 7-6.",
+    invalidSet: "Set no válido. Usa marcadores tipo 6-0, 6-4, 7-5 o 7-6.",
     save: "Guardar resultado",
     update: "Guardar cambios",
     cancelEdit: "Cancelar",
@@ -221,8 +250,7 @@ export const es = {
   profile: {
     title: "Mi perfil",
     subtitle: "Usuario actual",
-    description:
-      "Tus estadísticas como jugador dentro de la temporada activa.",
+    description: "Tus estadísticas como jugador dentro de la temporada activa.",
     notFound: "No se ha encontrado el jugador asociado al usuario actual.",
     points: "Puntos",
     seasonSummary: "Resumen de temporada",
@@ -271,8 +299,7 @@ export const es = {
 
   settings: {
     title: "Ajustes",
-    description:
-      "Gestiona tus preferencias de la aplicación.",
+    description: "Gestiona tus preferencias de la aplicación.",
     backToProfile: "← Volver al perfil",
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",
@@ -289,13 +316,22 @@ export const es = {
       "Configura el margen de jornadas, fechas y reglas básicas de la temporada activa.",
     languageTitle: "Idioma",
     language: "Idioma",
-    languageDescription:
-      "Cambia el idioma de la aplicación.",
+    languageDescription: "Cambia el idioma de la aplicación.",
     accountTitle: "Cuenta e invitaciones",
-    accountDescription:
-      "Más adelante esta sección conectará el usuario registrado, las invitaciones y las ligas a las que se una mediante enlace.",
+    accountDescription: "Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.",
+    accountSettingsTitle: "Ajustes de cuenta",
+    accountSettingsDescription:
+      "Personaliza la imagen que se muestra en tu perfil de esta liga.",
     connectedEmail: "Email conectado",
     joinNewExistingLeague: "Unirme a una nueva liga existente",
+    avatarCustomActive: "Imagen personalizada activa.",
+    avatarInitialsFallback: "Se usan tus iniciales si no subes imagen.",
+    uploadAvatar: "Subir imagen",
+    removeAvatar: "Quitar imagen",
+    avatarSaved: "Imagen guardada.",
+    avatarSaveError:
+      "No se ha podido guardar la imagen. Revisa Supabase o smash-lob-last-supabase-error.",
+    avatarProcessError: "No se ha podido procesar la imagen.",
     futureTitle: "Próximamente",
     futureDescription:
       "Aquí añadiremos modo claro/oscuro, gestión de cuenta, temporadas, ligas, invitaciones y cierre de sesión.",
@@ -305,27 +341,25 @@ export const es = {
     backToSettings: "← Volver a ajustes",
     backToAdmin: "← Volver al panel admin",
     title: "Panel de administrador",
-    description:
-      "Centraliza la gestión de la liga activa y sus configuraciones.",
+    description: "Centraliza la gestión de la liga activa y sus configuraciones.",
     leagueTitle: "Administrar liga",
-    leagueDescription:
-      "Configura los datos de la liga y sus lugares habituales.",
+    leagueDescription: "Configura los datos de la liga y sus lugares habituales.",
     seasonTitle: "Administrar temporada",
     seasonDescription:
       "Configura jornadas, ventanas y reglas básicas de la temporada activa.",
     inviteTitle: "Invitar jugadores",
     inviteDescription:
-      "Comparte este codigo o enlace con la cuenta de Google que quieras invitar.",
-    inviteCodeLabel: "Codigo",
+      "Comparte este código o enlace con la cuenta de Google que quieras invitar.",
+    inviteCodeLabel: "Código",
     inviteLinkLabel: "Enlace",
-    copyCode: "Copiar codigo",
+    copyCode: "Copiar código",
     copyLink: "Copiar enlace",
     inviteCopied: "Copiado",
     inviteHelper:
-      "Al entrar en {leagueName}, la persona invitada iniciara sesion con Google y reclamara uno de los jugadores sin vincular.",
-    regenerateInviteCode: "Regenerar codigo",
+      "Al entrar en {leagueName}, la persona invitada iniciará sesión con Google y reclamará uno de los jugadores sin vincular.",
+    regenerateInviteCode: "Regenerar código",
     regenerateInviteCodeDescription:
-      "El codigo anterior dejara de funcionar para nuevas invitaciones.",
+      "El código anterior dejará de funcionar para nuevas invitaciones.",
     futureTitle: "Próximas herramientas",
     futureDescription:
       "Aquí se agruparán jugadores, invitaciones, reglas, generación de jornadas, notificaciones y auditoría.",
@@ -338,8 +372,7 @@ export const es = {
   adminLeague: {
     backToSettings: "← Volver a ajustes",
     title: "Administrar liga",
-    description:
-      "Configura los datos básicos de la liga activa.",
+    description: "Configura los datos básicos de la liga activa.",
     locationsTitle: "Lugares habituales",
     locationsDescription:
       "Estos lugares aparecerán como selección rápida al programar partidos. Siempre seguirá existiendo la opción Otro.",
@@ -409,8 +442,7 @@ export const es = {
     seasonPlayersDescription:
       "Elige jugadores de la liga y completa los huecos con nuevos nombres pendientes de vincular.",
     calendarTitle: "Calendario",
-    calendarDescription:
-      "Por ahora solo se permite crear un calendario equilibrado.",
+    calendarDescription: "Por ahora solo se permite crear un calendario equilibrado.",
     balancedCalendar: "Calendario equilibrado",
     balancedCalendarDescription:
       "Todos los jugadores tendrán una distribución compensada de partidos. Configuraremos el detalle en el siguiente paso.",
@@ -447,9 +479,59 @@ export const es = {
     createError: "No se ha podido crear la liga con el usuario actual.",
   },
 
+  activity: {
+    title: "Actividad",
+    description: "Cambios importantes de la liga y de tus partidos.",
+    general: "General",
+    personal: "Personal",
+    personalTitle: "Actividad personal",
+    wallTitle: "Muro de actividad",
+    refresh: "Actualizar",
+    loading: "Cargando actividad...",
+    loadErrorTitle: "No se ha podido cargar",
+    loadErrorDescription:
+      "No se ha podido cargar la actividad. Revisa Supabase o vuelve a intentarlo.",
+    emptyGeneralTitle: "Aún no hay actividad",
+    emptyGeneralDescription:
+      "Cuando alguien programe un partido, registre o modifique un resultado, aplace una jornada o actualice una reserva, aparecerá aquí.",
+    emptyPersonalTitle: "Aún no tienes actividad",
+    emptyPersonalDescription:
+      "Aquí aparecerán cambios relacionados con tus partidos, reservas y pagos.",
+    lastErrorTitle: "Último error al registrar actividad",
+    actorFallback: "Usuario",
+    round: "Jornada",
+    noGames: "sin juegos registrados",
+    sets: "Sets",
+    games: "Juegos",
+    labels: {
+      match_scheduled: "Programación",
+      match_schedule_updated: "Programación",
+      match_postponed: "Aplazamiento",
+      match_result_saved: "Resultado",
+      match_result_updated: "Resultado",
+      match_result_cleared: "Resultado",
+      court_booking_updated: "Reserva",
+      court_booking_cleared: "Reserva",
+      court_booking_payment_paid: "Pago",
+      league_created: "Liga",
+      league_updated: "Liga",
+      league_logo_updated: "Liga",
+      league_locations_updated: "Liga",
+      league_invite_regenerated: "Invitación",
+      season_finished: "Temporada",
+      season_created: "Temporada",
+      player_name_updated: "Jugador",
+      player_avatar_updated: "Jugador",
+      player_role_updated: "Usuario",
+      player_unlinked: "Usuario",
+      user_updated: "Usuario",
+    },
+  },
+
   language: {
     current: "Español",
     switchToSpanish: "ES",
     switchToEnglish: "EN",
+    switchToBasque: "EU",
   },
 } as const

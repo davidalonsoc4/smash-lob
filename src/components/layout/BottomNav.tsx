@@ -36,7 +36,7 @@ export function BottomNav() {
     },
     {
       href: "/activity",
-      label: "Actividad",
+      label: t.nav.activity,
       isActive: (currentPathname) => currentPathname.startsWith("/activity"),
     },
     {

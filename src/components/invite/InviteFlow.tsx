@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import type { League } from "@/data/fakeData"
+import type { League, PlayerProfile } from "@/data/fakeData"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 type InviteFlowProps = {
@@ -26,12 +28,48 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
   })
 }
 
-function getInviteErrorMessage(error: unknown) {
+function getInviteErrorMessage({
+  error,
+  timeoutMessage,
+  fallbackMessage,
+}: {
+  error: unknown
+  timeoutMessage: string
+  fallbackMessage: string
+}) {
   if (error instanceof Error && error.message === "invite-timeout") {
-    return "La comprobación del código ha tardado demasiado. Revisa la conexión y vuelve a intentarlo."
+    return timeoutMessage
   }
 
-  return "No se ha podido comprobar la invitación. Vuelve a intentarlo o pide un nuevo enlace al administrador."
+  return fallbackMessage
+}
+
+function PlayerClaimButton({
+  player,
+  isSelected,
+  disabled,
+  onSelect,
+}: {
+  player: PlayerProfile
+  isSelected: boolean
+  disabled: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={disabled}
+      className={`flex min-h-16 items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-black disabled:opacity-50 ${
+        isSelected
+          ? "bg-neutral-950 text-white"
+          : "bg-neutral-100 text-neutral-800"
+      }`}
+    >
+      <PlayerAvatar player={player} size="sm" />
+      <span className="min-w-0 flex-1 truncate">{player.displayName}</span>
+    </button>
+  )
 }
 
 export function InviteFlow({ code }: InviteFlowProps) {
@@ -39,6 +77,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
   const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const router = useRouter()
   const { setActiveLeagueId } = useActiveLeague()
+  const { seasons } = useSeasonSettings()
   const {
     getLeagueByInviteCode,
     resolveLeagueInvite,
@@ -95,7 +134,13 @@ export function InviteFlow({ code }: InviteFlowProps) {
         }
 
         setLeague(localLeagueRef.current(normalizedCode))
-        setError(getInviteErrorMessage(loadError))
+        setError(
+          getInviteErrorMessage({
+            error: loadError,
+            timeoutMessage: t.invites.timeoutError,
+            fallbackMessage: t.invites.genericError,
+          })
+        )
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -108,7 +153,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
     return () => {
       isMounted = false
     }
-  }, [loadAttempt, normalizedCode, t.invites.invalidCode])
+  }, [loadAttempt, normalizedCode, t.invites.genericError, t.invites.invalidCode, t.invites.timeoutError])
 
   if (isLoading) {
     return (
@@ -118,14 +163,14 @@ export function InviteFlow({ code }: InviteFlowProps) {
             {t.invites.title}
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
-            Comprobando invitación y cargando la liga desde la base de datos.
+            {t.invites.loadingDescription}
           </p>
         </header>
 
         <AppCard>
-          <p className="font-bold">Comprobando código</p>
+          <p className="font-bold">{t.invites.checkingCode}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            Estamos buscando la liga asociada a esta invitación.
+            {t.invites.checkingCodeDescription}
           </p>
         </AppCard>
       </div>
@@ -154,7 +199,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
             onClick={() => setLoadAttempt((currentAttempt) => currentAttempt + 1)}
             className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
           >
-            Volver a comprobar
+            {t.common.retry}
           </button>
         </AppCard>
       </div>
@@ -162,7 +207,15 @@ export function InviteFlow({ code }: InviteFlowProps) {
   }
 
   const existingMembership = getMembershipForLeague(league.id)
-  const unclaimedPlayers = getUnclaimedPlayersForLeague(league.id)
+  const activeSeason = league.activeSeasonId
+    ? seasons.find((season) => season.id === league.activeSeasonId)
+    : null
+  const unclaimedPlayers = activeSeason
+    ? getUnclaimedPlayersForLeague(league.id)
+    : []
+  const selectedPlayer = unclaimedPlayers.find(
+    (player) => player.id === selectedPlayerId
+  )
 
   function handleEnterExistingLeague() {
     if (!league) {
@@ -229,16 +282,30 @@ export function InviteFlow({ code }: InviteFlowProps) {
         </p>
       </AppCard>
 
+      <AppCard>
+        <p className="font-bold">
+          {activeSeason ? t.invites.activeSeasonTitle : t.invites.noActiveSeasonTitle}
+        </p>
+        <p className="mt-1 text-xl font-black tracking-tight">
+          {activeSeason?.name ?? "—"}
+        </p>
+        <p className="mt-2 text-sm text-neutral-500">
+          {activeSeason
+            ? t.invites.activeSeasonDescription
+            : t.invites.noActiveSeasonDescription}
+        </p>
+      </AppCard>
+
       {error ? (
         <AppCard>
-          <p className="font-bold">Aviso de invitación</p>
+          <p className="font-bold">{t.invites.warningTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">{error}</p>
           <button
             type="button"
             onClick={() => setLoadAttempt((currentAttempt) => currentAttempt + 1)}
             className="mt-4 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
           >
-            Volver a comprobar
+            {t.common.retry}
           </button>
         </AppCard>
       ) : null}
@@ -261,29 +328,49 @@ export function InviteFlow({ code }: InviteFlowProps) {
         <AppCard>
           <p className="font-bold">{t.invites.claimTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            {t.invites.claimDescription}
+            {activeSeason
+              ? t.invites.claimActiveDescription
+              : t.invites.claimDescription}
           </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          {selectedPlayer ? (
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3">
+              <p className="text-xs font-semibold text-neutral-500">
+                {t.invites.selectedPlayer}
+              </p>
+              <div className="mt-2 flex items-center gap-3">
+                <PlayerAvatar player={selectedPlayer} size="sm" />
+                <p className="min-w-0 flex-1 truncate text-sm font-black">
+                  {selectedPlayer.displayName}
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+            {t.invites.claimableActivePlayers}
+          </p>
+
+          <div className="mt-3 grid gap-2">
             {unclaimedPlayers.map((player) => (
-              <button
+              <PlayerClaimButton
                 key={player.id}
-                type="button"
-                onClick={() => {
+                player={player}
+                isSelected={selectedPlayerId === player.id}
+                disabled={isClaiming}
+                onSelect={() => {
                   setSelectedPlayerId(player.id)
                   setError(null)
                 }}
-                disabled={isClaiming}
-                className={`rounded-2xl px-4 py-3 text-left text-sm font-black disabled:opacity-50 ${
-                  selectedPlayerId === player.id
-                    ? "bg-neutral-950 text-white"
-                    : "bg-neutral-100 text-neutral-800"
-                }`}
-              >
-                {player.displayName}
-              </button>
+              />
             ))}
           </div>
+
+          {unclaimedPlayers.length > 0 ? (
+            <p className="mt-4 text-xs font-semibold text-neutral-500">
+              {t.invites.inactivePlayersHidden}
+            </p>
+          ) : null}
 
           {unclaimedPlayers.length === 0 ? (
             <p className="mt-4 text-sm font-semibold text-red-600">
@@ -301,7 +388,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
             disabled={!selectedPlayerId || isClaiming}
             className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
           >
-            {isClaiming ? "Guardando..." : t.invites.confirmClaim}
+            {isClaiming ? t.invites.claiming : t.invites.confirmClaim}
           </button>
         </AppCard>
       )}

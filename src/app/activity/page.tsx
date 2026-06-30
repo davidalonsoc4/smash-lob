@@ -6,6 +6,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
+import { useI18n } from "@/i18n/I18nProvider"
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
@@ -28,36 +29,8 @@ function formatActivityDate(value: string) {
   }).format(date)
 }
 
-function getActorLabel(event: ActivityEvent) {
-  return event.actorDisplayName || event.actorEmail || "Usuario"
-}
-
-function getTypeLabel(type: ActivityEvent["type"]) {
-  const labels: Record<ActivityEvent["type"], string> = {
-    match_scheduled: "Programación",
-    match_schedule_updated: "Programación",
-    match_postponed: "Aplazamiento",
-    match_result_saved: "Resultado",
-    match_result_updated: "Resultado",
-    match_result_cleared: "Resultado",
-    court_booking_updated: "Reserva",
-    court_booking_cleared: "Reserva",
-    court_booking_payment_paid: "Pago",
-    league_created: "Liga",
-    league_updated: "Liga",
-    league_logo_updated: "Liga",
-    league_locations_updated: "Liga",
-    league_invite_regenerated: "Invitación",
-    season_finished: "Temporada",
-    season_created: "Temporada",
-    player_name_updated: "Jugador",
-    player_avatar_updated: "Jugador",
-    player_role_updated: "Usuario",
-    player_unlinked: "Usuario",
-    user_updated: "Usuario",
-  }
-
-  return labels[type]
+function getActorLabel(event: ActivityEvent, fallback: string) {
+  return event.actorDisplayName || event.actorEmail || fallback
 }
 
 function readLastActivityError() {
@@ -121,10 +94,16 @@ function getResultSummaryFromMetadata({
   pointsA,
   pointsB,
   sets,
+  setsLabel,
+  gamesLabel,
+  noGamesLabel,
 }: {
   pointsA: unknown
   pointsB: unknown
   sets: unknown
+  setsLabel: string
+  gamesLabel: string
+  noGamesLabel: string
 }) {
   const parsedPointsA = Number(pointsA)
   const parsedPointsB = Number(pointsB)
@@ -137,16 +116,28 @@ function getResultSummaryFromMetadata({
   const gamesSummary =
     parsedSets.length > 0
       ? parsedSets.map((set) => `${set.a}-${set.b}`).join(", ")
-      : "sin juegos registrados"
+      : noGamesLabel
 
-  return `Sets ${parsedPointsA}-${parsedPointsB} · Juegos: ${gamesSummary}`
+  return `${setsLabel} ${parsedPointsA}-${parsedPointsB} · ${gamesLabel}: ${gamesSummary}`
 }
 
-function getActivityDescription(event: ActivityEvent) {
+function getActivityDescription({
+  event,
+  roundLabel,
+  setsLabel,
+  gamesLabel,
+  noGamesLabel,
+}: {
+  event: ActivityEvent
+  roundLabel: string
+  setsLabel: string
+  gamesLabel: string
+  noGamesLabel: string
+}) {
   const metadata = event.metadata
   const round =
     typeof metadata.round === "number" || typeof metadata.round === "string"
-      ? `Jornada ${metadata.round}`
+      ? `${roundLabel} ${metadata.round}`
       : null
 
   if (event.type === "match_result_updated") {
@@ -154,11 +145,17 @@ function getActivityDescription(event: ActivityEvent) {
       pointsA: metadata.previousPointsA,
       pointsB: metadata.previousPointsB,
       sets: metadata.previousSets,
+      setsLabel,
+      gamesLabel,
+      noGamesLabel,
     })
     const currentResult = getResultSummaryFromMetadata({
       pointsA: metadata.pointsA,
       pointsB: metadata.pointsB,
       sets: metadata.sets,
+      setsLabel,
+      gamesLabel,
+      noGamesLabel,
     })
 
     if (previousResult && currentResult) {
@@ -173,6 +170,9 @@ function getActivityDescription(event: ActivityEvent) {
       pointsA: metadata.pointsA,
       pointsB: metadata.pointsB,
       sets: metadata.sets,
+      setsLabel,
+      gamesLabel,
+      noGamesLabel,
     })
 
     if (currentResult) {
@@ -209,6 +209,7 @@ function isPersonalEvent({
 }
 
 export default function ActivityPage() {
+  const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { activeLeague, matches } = useCurrentLeagueData()
   const [events, setEvents] = useState<ActivityEvent[]>([])
@@ -243,9 +244,7 @@ export default function ActivityPage() {
           return
         }
 
-        setError(
-          "No se ha podido cargar la actividad. Revisa Supabase o vuelve a intentarlo."
-        )
+        setError(t.activity.loadErrorDescription)
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -258,7 +257,7 @@ export default function ActivityPage() {
     return () => {
       isMounted = false
     }
-  }, [activeLeague.id, refreshKey])
+  }, [activeLeague.id, refreshKey, t.activity.loadErrorDescription])
 
   const currentUserMatchIds = useMemo(() => {
     return new Set(
@@ -293,11 +292,11 @@ export default function ActivityPage() {
         </p>
 
         <h1 className="mt-1 text-3xl font-black tracking-tight">
-          Actividad
+          {t.activity.title}
         </h1>
 
         <p className="mt-1 text-sm text-neutral-500">
-          Cambios importantes de la liga y de tus partidos.
+          {t.activity.description}
         </p>
       </header>
 
@@ -309,7 +308,7 @@ export default function ActivityPage() {
             scope === "all" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
-          General
+          {t.activity.general}
         </button>
         <button
           type="button"
@@ -318,13 +317,13 @@ export default function ActivityPage() {
             scope === "mine" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
-          Personal
+          {t.activity.personal}
         </button>
       </div>
 
       <section>
         <SectionHeader
-          title={scope === "mine" ? "Actividad personal" : "Muro de actividad"}
+          title={scope === "mine" ? t.activity.personalTitle : t.activity.wallTitle}
           action={
             <button
               type="button"
@@ -334,7 +333,7 @@ export default function ActivityPage() {
               }}
               className="text-sm font-semibold text-neutral-600"
             >
-              Actualizar
+              {t.activity.refresh}
             </button>
           }
         />
@@ -342,14 +341,14 @@ export default function ActivityPage() {
         {isLoading ? (
           <AppCard>
             <p className="text-sm font-semibold text-neutral-500">
-              Cargando actividad...
+              {t.activity.loading}
             </p>
           </AppCard>
         ) : null}
 
         {error ? (
           <AppCard>
-            <p className="font-bold text-red-700">No se ha podido cargar</p>
+            <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
             <p className="mt-2 text-sm text-neutral-500">{error}</p>
           </AppCard>
         ) : null}
@@ -357,19 +356,19 @@ export default function ActivityPage() {
         {!isLoading && !error && !hasEvents ? (
           <AppCard>
             <p className="font-bold">
-              {scope === "mine" ? "Aún no tienes actividad" : "Aún no hay actividad"}
+              {scope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
             </p>
             <p className="mt-2 text-sm text-neutral-500">
               {scope === "mine"
-                ? "Aquí aparecerán cambios relacionados con tus partidos, reservas y pagos."
-                : "Cuando alguien programe un partido, registre o modifique un resultado, aplace una jornada o actualice una reserva, aparecerá aquí."}
+                ? t.activity.emptyPersonalDescription
+                : t.activity.emptyGeneralDescription}
             </p>
           </AppCard>
         ) : null}
 
         {!isLoading && !error && !hasEvents && lastActivityError ? (
           <AppCard>
-            <p className="font-bold text-orange-800">Último error al registrar actividad</p>
+            <p className="font-bold text-orange-800">{t.activity.lastErrorTitle}</p>
             <p className="mt-2 break-words text-xs font-semibold text-neutral-500">
               {lastActivityError}
             </p>
@@ -395,7 +394,7 @@ export default function ActivityPage() {
                           {event.title}
                         </p>
                         <p className="mt-1 text-xs font-semibold text-neutral-500">
-                          {getActorLabel(event)} · {getTypeLabel(event.type)}
+                          {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
                         </p>
                       </div>
 
@@ -404,9 +403,21 @@ export default function ActivityPage() {
                       </p>
                     </div>
 
-                    {getActivityDescription(event) ? (
+                    {getActivityDescription({
+                      event,
+                      roundLabel: t.activity.round,
+                      setsLabel: t.activity.sets,
+                      gamesLabel: t.activity.games,
+                      noGamesLabel: t.activity.noGames,
+                    }) ? (
                       <p className="mt-3 whitespace-pre-line text-sm text-neutral-600">
-                        {getActivityDescription(event)}
+                        {getActivityDescription({
+                          event,
+                          roundLabel: t.activity.round,
+                          setsLabel: t.activity.sets,
+                          gamesLabel: t.activity.games,
+                          noGamesLabel: t.activity.noGames,
+                        })}
                       </p>
                     ) : null}
                   </div>

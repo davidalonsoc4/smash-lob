@@ -393,8 +393,12 @@ function recordSupabaseError(action: string, error: unknown) {
 export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const { data: session } = useSession()
   const { hydrateMatches } = useMatchData()
-  const { hydrateSeasonSnapshot, playerProfiles, updatePlayerProfile } =
-    useSeasonSettings()
+  const {
+    hydrateSeasonSnapshot,
+    playerProfiles,
+    seasonPlayers,
+    updatePlayerProfile,
+  } = useSeasonSettings()
   const userId = normalizeUserId(session?.user?.email)
   const userDisplayName = session?.user?.name
   const [hasDatabaseSuperuserAccess, setHasDatabaseSuperuserAccess] =
@@ -1113,13 +1117,29 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           .filter((membership) => membership.leagueId === leagueId)
           .map((membership) => membership.playerId)
       )
-
-      return playerProfiles.filter(
-        (player) =>
-          player.leagueId === leagueId && !claimedPlayerIds.has(player.id)
+      const league = leagues.find((item) => item.id === leagueId)
+      const activeSeasonId = league?.activeSeasonId ?? ""
+      const activeSeasonPlayerIds = new Set(
+        activeSeasonId
+          ? seasonPlayers
+              .filter((seasonPlayer) => seasonPlayer.seasonId === activeSeasonId)
+              .map((seasonPlayer) => seasonPlayer.playerId)
+          : []
       )
+
+      return playerProfiles.filter((player) => {
+        if (player.leagueId !== leagueId || claimedPlayerIds.has(player.id)) {
+          return false
+        }
+
+        if (activeSeasonPlayerIds.size > 0) {
+          return activeSeasonPlayerIds.has(player.id)
+        }
+
+        return true
+      })
     },
-    [memberships, playerProfiles]
+    [leagues, memberships, playerProfiles, seasonPlayers]
   )
 
   const claimPlayer = useCallback(

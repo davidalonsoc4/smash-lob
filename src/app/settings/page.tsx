@@ -26,6 +26,7 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
 }
 
 function AccountAvatarSettings() {
+  const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { data: session } = useSession()
   const { updateLeaguePlayerAvatar } = useLeagueAccess()
@@ -48,9 +49,7 @@ function AccountAvatarSettings() {
     setIsSaving(false)
 
     if (!updated) {
-      setError(
-        "No se ha podido guardar la imagen. Revisa Supabase o smash-lob-last-supabase-error."
-      )
+      setError(t.settings.avatarSaveError)
       return
     }
 
@@ -96,7 +95,7 @@ function AccountAvatarSettings() {
       setError(
         imageError instanceof Error
           ? imageError.message
-          : "No se ha podido procesar la imagen."
+          : t.settings.avatarProcessError
       )
     } finally {
       event.target.value = ""
@@ -105,9 +104,9 @@ function AccountAvatarSettings() {
 
   return (
     <div className="mt-5 rounded-2xl bg-neutral-100 p-4">
-      <p className="font-bold">Ajustes de cuenta</p>
+      <p className="font-bold">{t.settings.accountSettingsTitle}</p>
       <p className="mt-1 text-xs text-neutral-500">
-        Personaliza la imagen que se muestra en tu perfil de esta liga.
+        {t.settings.accountSettingsDescription}
       </p>
 
       <div className="mt-4 flex items-center gap-4">
@@ -124,13 +123,13 @@ function AccountAvatarSettings() {
             {currentUser.displayName}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            {avatarUrl ? "Imagen personalizada activa." : "Se usan tus iniciales si no subes imagen."}
+            {avatarUrl ? t.settings.avatarCustomActive : t.settings.avatarInitialsFallback}
           </p>
         </div>
       </div>
 
       <label className="mt-4 block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-black text-neutral-800">
-        {isSaving ? "Guardando..." : "Subir imagen"}
+        {isSaving ? t.common.saving : t.settings.uploadAvatar}
         <input
           type="file"
           accept="image/*"
@@ -147,7 +146,7 @@ function AccountAvatarSettings() {
           disabled={isSaving}
           className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
         >
-          Quitar imagen
+          {t.settings.removeAvatar}
         </button>
       ) : null}
 
@@ -157,7 +156,7 @@ function AccountAvatarSettings() {
 
       {saved ? (
         <p className="mt-3 text-xs font-semibold text-neutral-600">
-          Imagen guardada.
+          {t.settings.avatarSaved}
         </p>
       ) : null}
     </div>
@@ -234,9 +233,9 @@ export default function SettingsPage() {
       ) : null}
 
       <AppCard>
-        <p className="font-bold">Cuenta e invitaciones</p>
+        <p className="font-bold">{t.settings.accountTitle}</p>
         <p className="mt-2 text-sm text-neutral-500">
-          Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.
+          {t.settings.accountDescription}
         </p>
 
         {session?.user?.email ? (
