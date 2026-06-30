@@ -430,12 +430,23 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     fetchSupabaseLeagueSnapshot(userId)
       .then((snapshot) => {
         setHasDatabaseSuperuserAccess(snapshot.isSuperuser)
-        setLeagues((currentLeagues) =>
-          mergeLeagues(currentLeagues, snapshot.leagues)
-        )
-        setMemberships((currentMemberships) =>
-          mergeMemberships(currentMemberships, snapshot.memberships)
-        )
+        const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : []
+        const nextLeagues = mergeLeagues(fallbackLeagues, snapshot.leagues)
+
+        persistLeagues(nextLeagues)
+        setMemberships(() => {
+          const fallbackMemberships = isDemoDataEnabled()
+            ? defaultUserLeagueMemberships
+            : []
+          const nextMemberships = mergeMemberships(
+            fallbackMemberships,
+            snapshot.memberships
+          )
+
+          window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+
+          return nextMemberships
+        })
         hydrateMatches(snapshot.matches)
         hydrateSeasonSnapshot(snapshot.seasonSnapshot)
       })

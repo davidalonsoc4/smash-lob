@@ -39,23 +39,6 @@ export default function SettingsPage() {
         </p>
       </header>
 
-      <Link
-        href="/league/new"
-        className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-      >
-        {t.settings.createNewLeague}
-      </Link>
-
-      {hasMultipleLeagues ? (
-        <AppCard>
-          <p className="font-bold">{t.settings.leagueTitle}</p>
-
-          <div className="mt-4">
-            <LeagueSwitcher />
-          </div>
-        </AppCard>
-      ) : null}
-
       <AppCard>
         <p className="font-bold">{t.settings.languageTitle}</p>
 
@@ -70,6 +53,16 @@ export default function SettingsPage() {
           <LanguageSwitcher />
         </div>
       </AppCard>
+
+      {hasMultipleLeagues ? (
+        <AppCard>
+          <p className="font-bold">{t.settings.leagueTitle}</p>
+
+          <div className="mt-4">
+            <LeagueSwitcher />
+          </div>
+        </AppCard>
+      ) : null}
 
       {canAccessAdmin ? (
         <Link href="/admin">
@@ -89,9 +82,9 @@ export default function SettingsPage() {
       ) : null}
 
       <AppCard>
-        <p className="font-bold">{t.settings.accountTitle}</p>
+        <p className="font-bold">Cuenta e invitaciones</p>
         <p className="mt-2 text-sm text-neutral-500">
-          {t.settings.accountDescription}
+          Gestiona tu sesión y accede a nuevas ligas por invitación.
         </p>
 
         {session?.user?.email ? (
@@ -105,22 +98,24 @@ export default function SettingsPage() {
           </div>
         ) : null}
 
-        <Link
-          href="/invite"
-          className="mt-4 block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
-        >
-          {t.settings.joinNewExistingLeague}
-        </Link>
+        <div className="mt-4 space-y-3">
+          <Link
+            href="/invite"
+            className="block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
+          >
+            {t.settings.joinNewExistingLeague}
+          </Link>
+
+          <Link
+            href="/league/new"
+            className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+          >
+            {t.settings.createNewLeague}
+          </Link>
+        </div>
       </AppCard>
 
       {canMaintainLocalData ? <LocalDataMaintenanceCard /> : null}
-
-      <AppCard>
-        <p className="font-bold">{t.settings.futureTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
-          {t.settings.futureDescription}
-        </p>
-      </AppCard>
 
       <button
         type="button"

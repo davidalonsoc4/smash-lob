@@ -90,10 +90,8 @@ export function FloatingInviteShareButton({
       className="z-50"
       style={{
         position: "fixed",
-        top: "32px",
-        right: offsetForSettingsButton
-          ? "max(60px, calc((100vw - 448px) / 2 + 60px))"
-          : "max(22px, calc((100vw - 448px) / 2 + 22px))",
+        top: offsetForSettingsButton ? "70px" : "32px",
+        right: "max(22px, calc((100vw - 448px) / 2 + 22px))",
       }}
     >
       <button
