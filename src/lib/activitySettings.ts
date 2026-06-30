@@ -2,56 +2,168 @@ import { supabase } from "@/lib/supabase"
 import type { ActivityEventType } from "@/lib/activity"
 
 export type ActivityDeliveryMode = "activity_only" | "personal" | "notify"
+export type ActivityEventCategory = "match" | "court" | "season" | "league" | "player"
+export type ActivityPersonalScope =
+  | "match_participants"
+  | "target_player"
+  | "league_wide"
+  | "admin_only"
+
+export type ActivityEventDefinition = {
+  category: ActivityEventCategory
+  defaultMode: ActivityDeliveryMode
+  personalScope: ActivityPersonalScope
+  pushReady: boolean
+}
 
 export type LeagueActivitySettings = Partial<Record<ActivityEventType, ActivityDeliveryMode>>
 
-export const activityEventTypes: ActivityEventType[] = [
-  "match_scheduled",
-  "match_schedule_updated",
-  "match_postponed",
-  "match_result_saved",
-  "match_result_updated",
-  "match_result_cleared",
-  "court_booking_updated",
-  "court_booking_cleared",
-  "court_booking_payment_paid",
-  "league_created",
-  "league_updated",
-  "league_logo_updated",
-  "league_locations_updated",
-  "league_invite_regenerated",
-  "season_finished",
-  "season_created",
-  "player_name_updated",
-  "player_avatar_updated",
-  "player_role_updated",
-  "player_unlinked",
-  "user_updated",
+export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDefinition> = {
+  match_scheduled: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_schedule_updated: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_postponed: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_result_saved: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_result_updated: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_result_cleared: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  court_booking_updated: {
+    category: "court",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  court_booking_cleared: {
+    category: "court",
+    defaultMode: "personal",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  court_booking_payment_paid: {
+    category: "court",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  league_created: {
+    category: "league",
+    defaultMode: "activity_only",
+    personalScope: "league_wide",
+    pushReady: false,
+  },
+  league_updated: {
+    category: "league",
+    defaultMode: "activity_only",
+    personalScope: "league_wide",
+    pushReady: false,
+  },
+  league_logo_updated: {
+    category: "league",
+    defaultMode: "activity_only",
+    personalScope: "league_wide",
+    pushReady: false,
+  },
+  league_locations_updated: {
+    category: "league",
+    defaultMode: "activity_only",
+    personalScope: "league_wide",
+    pushReady: false,
+  },
+  league_invite_regenerated: {
+    category: "league",
+    defaultMode: "activity_only",
+    personalScope: "admin_only",
+    pushReady: false,
+  },
+  season_finished: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
+  season_created: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
+  player_name_updated: {
+    category: "player",
+    defaultMode: "personal",
+    personalScope: "target_player",
+    pushReady: true,
+  },
+  player_avatar_updated: {
+    category: "player",
+    defaultMode: "personal",
+    personalScope: "target_player",
+    pushReady: true,
+  },
+  player_role_updated: {
+    category: "player",
+    defaultMode: "personal",
+    personalScope: "target_player",
+    pushReady: true,
+  },
+  player_unlinked: {
+    category: "player",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
+  user_updated: {
+    category: "player",
+    defaultMode: "personal",
+    personalScope: "target_player",
+    pushReady: true,
+  },
+}
+
+export const activityEventTypes = Object.keys(
+  activityEventDefinitions
+) as ActivityEventType[]
+
+export const activityEventCategories: ActivityEventCategory[] = [
+  "match",
+  "court",
+  "season",
+  "league",
+  "player",
 ]
 
-export const defaultLeagueActivitySettings: Record<ActivityEventType, ActivityDeliveryMode> = {
-  match_scheduled: "personal",
-  match_schedule_updated: "personal",
-  match_postponed: "personal",
-  match_result_saved: "personal",
-  match_result_updated: "personal",
-  match_result_cleared: "personal",
-  court_booking_updated: "personal",
-  court_booking_cleared: "personal",
-  court_booking_payment_paid: "personal",
-  league_created: "activity_only",
-  league_updated: "activity_only",
-  league_logo_updated: "activity_only",
-  league_locations_updated: "activity_only",
-  league_invite_regenerated: "activity_only",
-  season_finished: "notify",
-  season_created: "notify",
-  player_name_updated: "personal",
-  player_avatar_updated: "personal",
-  player_role_updated: "personal",
-  player_unlinked: "personal",
-  user_updated: "personal",
-}
+export const defaultLeagueActivitySettings: Record<ActivityEventType, ActivityDeliveryMode> =
+  activityEventTypes.reduce((settings, eventType) => {
+    settings[eventType] = activityEventDefinitions[eventType].defaultMode
+    return settings
+  }, {} as Record<ActivityEventType, ActivityDeliveryMode>)
 
 function isActivityDeliveryMode(value: unknown): value is ActivityDeliveryMode {
   return value === "activity_only" || value === "personal" || value === "notify"
@@ -74,6 +186,10 @@ function normalizeSettings(value: unknown): LeagueActivitySettings {
   })
 
   return settings
+}
+
+export function getActivityEventDefinition(eventType: ActivityEventType) {
+  return activityEventDefinitions[eventType]
 }
 
 export function getActivityDeliveryMode(

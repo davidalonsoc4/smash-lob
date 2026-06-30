@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useMemo, useState } from "react"
+import { FormEvent, useMemo, useRef, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -142,6 +142,7 @@ export function MatchResultForm({
   const [sets, setSets] = useState<SetInput[]>(
     getInitialSetInputs(initialSets)
   )
+  const scoreInputRefs = useRef<Array<HTMLInputElement | null>>([])
   const [isSaving, setIsSaving] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -160,18 +161,47 @@ export function MatchResultForm({
       ? setWinners.every(Boolean)
       : completedSets.length > 0 && !hasInvalidTouchedSet)
 
+  function focusNextScoreInput(fieldIndex: number) {
+    const nextInput = scoreInputRefs.current[fieldIndex + 1]
+
+    if (!nextInput) {
+      return
+    }
+
+    window.setTimeout(() => {
+      nextInput.focus()
+      nextInput.select()
+    }, 0)
+  }
+
+  function sanitizeScoreInput(value: string) {
+    const lastValidDigit = value
+      .split("")
+      .reverse()
+      .find((character) => /^[0-7]$/.test(character))
+
+    return lastValidDigit ?? ""
+  }
+
   function updateSet(index: number, team: "a" | "b", value: string) {
+    const cleanValue = sanitizeScoreInput(value)
+    const fieldIndex = index * 2 + (team === "a" ? 0 : 1)
+
     setSets((currentSets) =>
       currentSets.map((set, setIndex) =>
         setIndex === index
           ? {
               ...set,
-              [team]: value,
+              [team]: cleanValue,
             }
           : set
       )
     )
     setActionError(null)
+
+    if (cleanValue) {
+      focusNextScoreInput(fieldIndex)
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -251,9 +281,13 @@ export function MatchResultForm({
                   </span>
 
                   <input
-                    type="number"
-                    min={0}
-                    max={7}
+                    ref={(element) => {
+                      scoreInputRefs.current[index * 2] = element
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-7]*"
+                    maxLength={1}
                     value={set.a}
                     disabled={isSaving}
                     onChange={(event) =>
@@ -275,9 +309,13 @@ export function MatchResultForm({
                   </span>
 
                   <input
-                    type="number"
-                    min={0}
-                    max={7}
+                    ref={(element) => {
+                      scoreInputRefs.current[index * 2 + 1] = element
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-7]*"
+                    maxLength={1}
                     value={set.b}
                     disabled={isSaving}
                     onChange={(event) =>

@@ -13,9 +13,11 @@ import {
   type ActivityEvent,
 } from "@/lib/activity"
 import {
+  activityEventCategories,
   activityEventTypes,
   fetchLeagueActivitySettings,
   getActivityDeliveryMode,
+  getActivityEventDefinition,
   mergeWithDefaultActivitySettings,
   updateLeagueActivitySettings,
   type ActivityDeliveryMode,
@@ -327,6 +329,7 @@ export default function ActivityPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSettingsLoading, setIsSettingsLoading] = useState(true)
   const [isSettingsSaving, setIsSettingsSaving] = useState(false)
+  const [areSettingsExpanded, setAreSettingsExpanded] = useState(false)
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null)
   const [settingsError, setSettingsError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -441,6 +444,23 @@ export default function ActivityPage() {
   const visibleEvents = effectiveScope === "mine" ? personalEvents : events
   const hasEvents = visibleEvents.length > 0
   const normalizedDraftSettings = mergeWithDefaultActivitySettings(draftSettings)
+  const activitySettingsSummary = useMemo(() => {
+    return activityEventTypes.reduce(
+      (summary, eventType) => {
+        summary[normalizedDraftSettings[eventType]] += 1
+        return summary
+      },
+      { activity_only: 0, personal: 0, notify: 0 } as Record<ActivityDeliveryMode, number>
+    )
+  }, [normalizedDraftSettings])
+  const activityEventGroups = useMemo(() => {
+    return activityEventCategories.map((category) => ({
+      category,
+      eventTypes: activityEventTypes.filter(
+        (eventType) => getActivityEventDefinition(eventType).category === category
+      ),
+    }))
+  }, [])
 
   async function saveActivitySettings() {
     if (!canAccessAdmin || isSettingsSaving) {
@@ -518,63 +538,146 @@ export default function ActivityPage() {
       {effectiveScope === "admin" && canAccessAdmin ? (
         <section className="space-y-5">
           <AppCard>
-            <p className="font-bold">{t.activity.notificationSettingsTitle}</p>
-            <p className="mt-2 text-sm text-neutral-500">
-              {t.activity.notificationSettingsDescription}
-            </p>
-            <p className="mt-2 text-xs font-semibold text-neutral-500">
-              {t.activity.notificationFutureHint}
-            </p>
-
-            {isSettingsLoading ? (
-              <p className="mt-4 text-sm font-semibold text-neutral-500">
-                {t.activity.loading}
-              </p>
-            ) : (
-              <div className="mt-4 space-y-3">
-                {activityEventTypes.map((eventType) => (
-                  <div
-                    key={eventType}
-                    className="rounded-2xl border border-neutral-200 p-3"
-                  >
-                    <p className="text-sm font-black text-neutral-950">
-                      {t.activity.labels[eventType]}
-                    </p>
-                    <p className="mt-1 break-all text-xs font-semibold text-neutral-400">
-                      {eventType}
-                    </p>
-                    <select
-                      value={normalizedDraftSettings[eventType]}
-                      onChange={(event) => {
-                        const mode = event.target.value as ActivityDeliveryMode
-                        setDraftSettings((currentSettings) => ({
-                          ...currentSettings,
-                          [eventType]: mode,
-                        }))
-                        setSettingsMessage(null)
-                      }}
-                      className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
-                    >
-                      <option value="activity_only">{t.activity.modeActivityOnly}</option>
-                      <option value="personal">{t.activity.modePersonal}</option>
-                      <option value="notify">{t.activity.modeNotify}</option>
-                    </select>
-                    <p className="mt-2 text-xs text-neutral-500">
-                      <DeliveryModeLabel mode={normalizedDraftSettings[eventType]} />
-                    </p>
-                  </div>
-                ))}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-bold">{t.activity.notificationSettingsTitle}</p>
+                <p className="mt-2 text-sm text-neutral-500">
+                  {t.activity.notificationSettingsDescription}
+                </p>
               </div>
-            )}
 
-            <button
-              type="button"
-              onClick={saveActivitySettings}
-              disabled={isSettingsLoading || isSettingsSaving}
-              className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
-            >
-              {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
-            </button>
+              <button
+                type="button"
+                onClick={() => setAreSettingsExpanded((current) => !current)}
+                className="shrink-0 rounded-2xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
+              >
+                {areSettingsExpanded
+                  ? t.activity.hideNotificationSettings
+                  : t.activity.showNotificationSettings}
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+                <p className="text-lg font-black text-neutral-950">
+                  {activitySettingsSummary.activity_only}
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                  {t.activity.modeActivityOnlyShort}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+                <p className="text-lg font-black text-neutral-950">
+                  {activitySettingsSummary.personal}
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                  {t.activity.modePersonalShort}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-neutral-950 p-3 text-center text-white">
+                <p className="text-lg font-black">
+                  {activitySettingsSummary.notify}
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-white/70">
+                  {t.activity.modeNotifyShort}
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-3 text-xs font-semibold text-neutral-500">
+              {areSettingsExpanded
+                ? t.activity.notificationFutureHint
+                : t.activity.notificationSettingsCollapsedHint}
+            </p>
+
+            {areSettingsExpanded ? (
+              <>
+                {isSettingsLoading ? (
+                  <p className="mt-4 text-sm font-semibold text-neutral-500">
+                    {t.activity.loading}
+                  </p>
+                ) : (
+                  <div className="mt-4 space-y-4">
+                    <div className="rounded-2xl bg-neutral-100 p-3">
+                      <p className="text-sm font-black text-neutral-950">
+                        {t.activity.pushPreparationTitle}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold text-neutral-500">
+                        {t.activity.pushPreparationDescription}
+                      </p>
+                    </div>
+
+                    {activityEventGroups.map((group) => (
+                      <section key={group.category} className="space-y-3">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+                          {t.activity.categoryLabels[group.category]}
+                        </p>
+
+                        {group.eventTypes.map((eventType) => {
+                          const definition = getActivityEventDefinition(eventType)
+
+                          return (
+                            <div
+                              key={eventType}
+                              className="rounded-2xl border border-neutral-200 p-3"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-black text-neutral-950">
+                                    {t.activity.labels[eventType]}
+                                  </p>
+                                  <p className="mt-1 break-all text-xs font-semibold text-neutral-400">
+                                    {eventType}
+                                  </p>
+                                </div>
+                                {definition.pushReady ? (
+                                  <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+                                    {t.activity.pushReady}
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              <p className="mt-2 text-xs font-semibold text-neutral-500">
+                                {t.activity.personalScopeLabel}: {t.activity.personalScopeLabels[definition.personalScope]}
+                              </p>
+
+                              <select
+                                value={normalizedDraftSettings[eventType]}
+                                onChange={(event) => {
+                                  const mode = event.target.value as ActivityDeliveryMode
+                                  setDraftSettings((currentSettings) => ({
+                                    ...currentSettings,
+                                    [eventType]: mode,
+                                  }))
+                                  setSettingsMessage(null)
+                                }}
+                                className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
+                              >
+                                <option value="activity_only">{t.activity.modeActivityOnly}</option>
+                                <option value="personal">{t.activity.modePersonal}</option>
+                                <option value="notify">{t.activity.modeNotify}</option>
+                              </select>
+                              <p className="mt-2 text-xs text-neutral-500">
+                                <DeliveryModeLabel mode={normalizedDraftSettings[eventType]} />
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </section>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={saveActivitySettings}
+                  disabled={isSettingsLoading || isSettingsSaving}
+                  className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+                >
+                  {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
+                </button>
+              </>
+            ) : null}
 
             {settingsMessage ? (
               <p className="mt-3 text-center text-sm font-semibold text-neutral-600">

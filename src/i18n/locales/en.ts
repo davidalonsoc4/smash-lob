@@ -504,10 +504,35 @@ export const en = {
     notificationSettingsDescription:
       "Choose which events stay only in the wall, which count as personal, and which should generate an alert once notifications are enabled.",
     notificationFutureHint:
-      "For now this organizes Activity and prepares the settings for future push notifications.",
+      "For now this organizes Activity, decides what enters Personal, and classifies each event for future push notifications.",
+    notificationSettingsCollapsedHint:
+      "The panel stays collapsed so the audit trail remains visible. Open it only when you want to change alerts.",
+    showNotificationSettings: "Configure",
+    hideNotificationSettings: "Collapse",
     modeActivityOnly: "General activity only",
     modePersonal: "Personal activity when it affects the player",
     modeNotify: "Notify later",
+    modeActivityOnlyShort: "General",
+    modePersonalShort: "Personal",
+    modeNotifyShort: "Alert",
+    pushPreparationTitle: "Push base ready",
+    pushPreparationDescription:
+      "Events marked as notifiable do not send push yet, but they are already separated so alerts can be generated when we add the notification service.",
+    pushReady: "Push",
+    personalScopeLabel: "Personal scope",
+    categoryLabels: {
+      match: "Matches",
+      court: "Booking and payments",
+      season: "Seasons",
+      league: "League",
+      player: "Players and users",
+    },
+    personalScopeLabels: {
+      match_participants: "Match players",
+      target_player: "Affected player",
+      league_wide: "Whole league",
+      admin_only: "Admin management only",
+    },
     saveNotificationSettings: "Save alert settings",
     settingsSaved: "Alert settings saved.",
     settingsLoadError:

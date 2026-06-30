@@ -536,10 +536,35 @@ export const es = {
     notificationSettingsDescription:
       "Define qué eventos se quedan solo en el muro, cuáles cuentan como personales y cuáles deberán generar aviso cuando activemos notificaciones.",
     notificationFutureHint:
-      "De momento esto ordena Actividad y deja preparada la configuración para futuras notificaciones push.",
+      "De momento esto ordena Actividad, decide qué entra en Personal y deja cada evento clasificado para futuras notificaciones push.",
+    notificationSettingsCollapsedHint:
+      "El panel queda plegado para dejar visible la auditoría. Despliégalo solo cuando quieras cambiar avisos.",
+    showNotificationSettings: "Configurar",
+    hideNotificationSettings: "Plegar",
     modeActivityOnly: "Solo actividad general",
     modePersonal: "Actividad personal si afecta al jugador",
     modeNotify: "Notificable más adelante",
+    modeActivityOnlyShort: "General",
+    modePersonalShort: "Personal",
+    modeNotifyShort: "Aviso",
+    pushPreparationTitle: "Base preparada para push",
+    pushPreparationDescription:
+      "Los eventos marcados como notificables todavía no envían push, pero ya quedan separados para generar avisos cuando añadamos el servicio de notificaciones.",
+    pushReady: "Push",
+    personalScopeLabel: "Ámbito personal",
+    categoryLabels: {
+      match: "Partidos",
+      court: "Reserva y pagos",
+      season: "Temporadas",
+      league: "Liga",
+      player: "Jugadores y usuarios",
+    },
+    personalScopeLabels: {
+      match_participants: "Jugadores del partido",
+      target_player: "Jugador afectado",
+      league_wide: "Toda la liga",
+      admin_only: "Solo gestión admin",
+    },
     saveNotificationSettings: "Guardar configuración de avisos",
     settingsSaved: "Configuración de avisos guardada.",
     settingsLoadError:

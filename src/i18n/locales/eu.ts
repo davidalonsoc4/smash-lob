@@ -532,10 +532,35 @@ export const eu = {
     notificationSettingsDescription:
       "Aukeratu zein gertaera geldituko diren horman bakarrik, zein izango diren pertsonalak eta zeinek sortuko duten abisua jakinarazpenak aktibatzean.",
     notificationFutureHint:
-      "Oraingoz Jarduera antolatzen du eta etorkizuneko push jakinarazpenetarako konfigurazioa prestatzen du.",
+      "Oraingoz Jarduera antolatzen du, Pertsonalean zer sartzen den erabakitzen du eta gertaera bakoitza etorkizuneko push jakinarazpenetarako sailkatzen du.",
+    notificationSettingsCollapsedHint:
+      "Panela tolestuta geratzen da auditoria ikusgai uzteko. Ireki abisuak aldatu nahi dituzunean bakarrik.",
+    showNotificationSettings: "Konfiguratu",
+    hideNotificationSettings: "Tolestu",
     modeActivityOnly: "Jarduera orokorra bakarrik",
     modePersonal: "Jarduera pertsonala jokalariari eragiten badio",
     modeNotify: "Gero abisatu",
+    modeActivityOnlyShort: "Orokorra",
+    modePersonalShort: "Pertsonala",
+    modeNotifyShort: "Abisua",
+    pushPreparationTitle: "Push oinarria prest",
+    pushPreparationDescription:
+      "Abisagarri markatutako gertaerek oraindik ez dute push bidaltzen, baina bereizita gelditzen dira jakinarazpen zerbitzua gehitzean abisuak sortzeko.",
+    pushReady: "Push",
+    personalScopeLabel: "Eremu pertsonala",
+    categoryLabels: {
+      match: "Partidak",
+      court: "Erreserba eta ordainketak",
+      season: "Denboraldiak",
+      league: "Liga",
+      player: "Jokalariak eta erabiltzaileak",
+    },
+    personalScopeLabels: {
+      match_participants: "Partidako jokalariak",
+      target_player: "Eragindako jokalaria",
+      league_wide: "Liga osoa",
+      admin_only: "Admin kudeaketa bakarrik",
+    },
     saveNotificationSettings: "Abisu konfigurazioa gorde",
     settingsSaved: "Abisu konfigurazioa gordeta.",
     settingsLoadError:
