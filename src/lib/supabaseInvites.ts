@@ -201,11 +201,9 @@ export async function fetchSupabaseInviteSnapshot(
       playerProfiles,
       seasonPlayers,
       seasonSettings,
-      activeSeasonIds: league.activeSeasonId
-        ? {
-            [league.id]: league.activeSeasonId,
-          }
-        : {},
+      activeSeasonIds: {
+        [league.id]: league.activeSeasonId,
+      },
     },
   }
 }

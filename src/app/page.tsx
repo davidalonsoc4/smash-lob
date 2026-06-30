@@ -7,6 +7,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getTeamDisplayName } from "@/lib/players"
@@ -14,6 +15,7 @@ import { getTeamDisplayName } from "@/lib/players"
 export default function Home() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
+  const { isLeagueAdmin } = useLeagueAccess()
   const {
     activeLeague,
     activeSeason,
@@ -21,6 +23,9 @@ export default function Home() {
     lastMatch,
     nextMatch,
   } = useCurrentLeagueData()
+
+  const canManageSeason = isLeagueAdmin(activeLeague.id)
+  const isSeasonClosed = activeSeason.status === "finished"
 
   const rankingPlayers = [...players].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
@@ -62,6 +67,23 @@ export default function Home() {
           {activeLeague.description} · {t.common.individualRanking}
         </p>
       </header>
+
+      {isSeasonClosed ? (
+        <AppCard>
+          <p className="font-bold">Temporada cerrada</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            Estás viendo el histórico de {activeSeason.name}. La liga queda pendiente de crear una nueva temporada activa.
+          </p>
+          {canManageSeason ? (
+            <Link
+              href="/admin/season"
+              className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+            >
+              Crear nueva temporada
+            </Link>
+          ) : null}
+        </AppCard>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3">
         {leader ? (

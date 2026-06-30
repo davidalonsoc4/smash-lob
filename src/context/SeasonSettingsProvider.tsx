@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   createContext,
@@ -6,7 +6,7 @@ import {
   useCallback,
   useEffect,
   useState,
-} from "react"
+} from "react";
 import {
   leagues,
   playerProfiles as defaultPlayerProfiles,
@@ -16,84 +16,85 @@ import {
   type PlayerProfile,
   type Season,
   type SeasonPlayer,
-} from "@/data/fakeData"
+} from "@/data/fakeData";
 
-export type RoundWindowMode = "none" | "fixed-days"
+export type RoundWindowMode = "none" | "fixed-days";
 
 export type SeasonRoundSettings = {
-  leagueId: string
-  seasonId: string
-  roundWindowMode: RoundWindowMode
-  seasonStartsAt: string | null
-  roundWindowDays: number | null
-  requiresThreeSets: boolean
-}
+  leagueId: string;
+  seasonId: string;
+  roundWindowMode: RoundWindowMode;
+  seasonStartsAt: string | null;
+  roundWindowDays: number | null;
+  requiresThreeSets: boolean;
+};
 
 type SeasonSettingsContextValue = {
-  seasons: Season[]
-  playerProfiles: PlayerProfile[]
-  seasonPlayers: SeasonPlayer[]
-  seasonSettings: SeasonRoundSettings[]
-  getActiveSeasonByLeagueId: (leagueId: string) => Season
-  getSeasonPlayers: (seasonId: string) => SeasonPlayer[]
-  getSeasonRoundSettings: (seasonId: string) => SeasonRoundSettings
-  updateSeasonRoundSettings: (settings: SeasonRoundSettings) => void
+  seasons: Season[];
+  playerProfiles: PlayerProfile[];
+  seasonPlayers: SeasonPlayer[];
+  seasonSettings: SeasonRoundSettings[];
+  getActiveSeasonByLeagueId: (leagueId: string) => Season;
+  getSeasonPlayers: (seasonId: string) => SeasonPlayer[];
+  getSeasonRoundSettings: (seasonId: string) => SeasonRoundSettings;
+  updateSeasonRoundSettings: (settings: SeasonRoundSettings) => void;
   updatePlayerProfile: (player: {
-    playerId: string
-    displayName: string
-    avatarInitials: string
-    avatarUrl?: string | null
-  }) => void
-  hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void
-  finishActiveSeason: (leagueId: string) => void
+    playerId: string;
+    displayName: string;
+    avatarInitials: string;
+    avatarUrl?: string | null;
+  }) => void;
+  hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void;
+  finishActiveSeason: (leagueId: string) => void;
   createInitialSeasonForLeague: (settings: {
-    leagueId: string
-    seasonName: string
-    playerNames: string[]
-    roundWindowMode: RoundWindowMode
-    seasonStartsAt: string | null
-    roundWindowDays: number | null
-    requiresThreeSets: boolean
-  }) => { seasonId: string; playerIds: string[] }
+    leagueId: string;
+    seasonName: string;
+    playerNames: string[];
+    roundWindowMode: RoundWindowMode;
+    seasonStartsAt: string | null;
+    roundWindowDays: number | null;
+    requiresThreeSets: boolean;
+  }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
-    leagueId: string
-    name: string
-    playerIds: string[]
-    newPlayerNames: string[]
-    roundWindowMode: RoundWindowMode
-    seasonStartsAt: string | null
-    roundWindowDays: number | null
-    requiresThreeSets: boolean
-  }) => Season
-}
+    leagueId: string;
+    name: string;
+    playerIds: string[];
+    newPlayerNames: string[];
+    roundWindowMode: RoundWindowMode;
+    seasonStartsAt: string | null;
+    roundWindowDays: number | null;
+    requiresThreeSets: boolean;
+  }) => Season;
+};
 
 type SeasonSettingsProviderProps = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
-const SeasonSettingsContext =
-  createContext<SeasonSettingsContextValue | null>(null)
+const SeasonSettingsContext = createContext<SeasonSettingsContextValue | null>(
+  null,
+);
 
-const storageKey = "smash-lob-season-round-settings"
-const seasonDataStorageKey = "smash-lob-season-data"
+const storageKey = "smash-lob-season-round-settings";
+const seasonDataStorageKey = "smash-lob-season-data";
 
 type SeasonDataState = {
-  seasons: Season[]
-  playerProfiles: PlayerProfile[]
-  seasonPlayers: SeasonPlayer[]
-  activeSeasonIds: Record<string, string>
-}
+  seasons: Season[];
+  playerProfiles: PlayerProfile[];
+  seasonPlayers: SeasonPlayer[];
+  activeSeasonIds: Record<string, string>;
+};
 
 export type SeasonSnapshot = {
-  seasons: Season[]
-  playerProfiles: PlayerProfile[]
-  seasonPlayers: SeasonPlayer[]
-  seasonSettings: SeasonRoundSettings[]
-  activeSeasonIds: Record<string, string>
-}
+  seasons: Season[];
+  playerProfiles: PlayerProfile[];
+  seasonPlayers: SeasonPlayer[];
+  seasonSettings: SeasonRoundSettings[];
+  activeSeasonIds: Record<string, string>;
+};
 
 function normalizeSettings(
-  settings: (typeof seasonRoundSettings)[number]
+  settings: (typeof seasonRoundSettings)[number],
 ): SeasonRoundSettings {
   return {
     leagueId: settings.leagueId,
@@ -102,11 +103,11 @@ function normalizeSettings(
     seasonStartsAt: settings.seasonStartsAt,
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
-  }
+  };
 }
 
 function getDefaultSettings() {
-  return seasonRoundSettings.map(normalizeSettings)
+  return seasonRoundSettings.map(normalizeSettings);
 }
 
 function getDefaultSeasonData(): SeasonDataState {
@@ -115,17 +116,17 @@ function getDefaultSeasonData(): SeasonDataState {
     playerProfiles: defaultPlayerProfiles,
     seasonPlayers: defaultSeasonPlayers,
     activeSeasonIds: Object.fromEntries(
-      leagues.map((league) => [league.id, league.activeSeasonId])
+      leagues.map((league) => [league.id, league.activeSeasonId]),
     ),
-  }
+  };
 }
 
 function isValidSeason(value: unknown): value is Season {
   if (typeof value !== "object" || value === null) {
-    return false
+    return false;
   }
 
-  const item = value as Record<string, unknown>
+  const item = value as Record<string, unknown>;
 
   return (
     typeof item.id === "string" &&
@@ -134,15 +135,15 @@ function isValidSeason(value: unknown): value is Season {
     (item.status === "active" || item.status === "finished") &&
     typeof item.totalRounds === "number" &&
     typeof item.completedRounds === "number"
-  )
+  );
 }
 
 function isValidPlayerProfile(value: unknown): value is PlayerProfile {
   if (typeof value !== "object" || value === null) {
-    return false
+    return false;
   }
 
-  const item = value as Record<string, unknown>
+  const item = value as Record<string, unknown>;
 
   return (
     typeof item.id === "string" &&
@@ -153,56 +154,56 @@ function isValidPlayerProfile(value: unknown): value is PlayerProfile {
     (typeof item.avatarUrl === "undefined" ||
       item.avatarUrl === null ||
       typeof item.avatarUrl === "string")
-  )
+  );
 }
 
 function isValidSeasonPlayer(value: unknown): value is SeasonPlayer {
   if (typeof value !== "object" || value === null) {
-    return false
+    return false;
   }
 
-  const item = value as Record<string, unknown>
+  const item = value as Record<string, unknown>;
 
-  return typeof item.seasonId === "string" && typeof item.playerId === "string"
+  return typeof item.seasonId === "string" && typeof item.playerId === "string";
 }
 
 function readSeasonData(): SeasonDataState {
   if (typeof window === "undefined") {
-    return getDefaultSeasonData()
+    return getDefaultSeasonData();
   }
 
-  const storedValue = window.localStorage.getItem(seasonDataStorageKey)
+  const storedValue = window.localStorage.getItem(seasonDataStorageKey);
 
   if (!storedValue) {
-    return getDefaultSeasonData()
+    return getDefaultSeasonData();
   }
 
   try {
-    const parsedValue = JSON.parse(storedValue)
+    const parsedValue = JSON.parse(storedValue);
 
     if (typeof parsedValue !== "object" || parsedValue === null) {
-      return getDefaultSeasonData()
+      return getDefaultSeasonData();
     }
 
-    const item = parsedValue as Record<string, unknown>
+    const item = parsedValue as Record<string, unknown>;
     const seasons = Array.isArray(item.seasons)
       ? item.seasons.filter(isValidSeason)
-      : defaultSeasons
+      : defaultSeasons;
     const playerProfiles = Array.isArray(item.playerProfiles)
       ? item.playerProfiles.filter(isValidPlayerProfile)
-      : defaultPlayerProfiles
+      : defaultPlayerProfiles;
     const seasonPlayers = Array.isArray(item.seasonPlayers)
       ? item.seasonPlayers.filter(isValidSeasonPlayer)
-      : defaultSeasonPlayers
+      : defaultSeasonPlayers;
     const activeSeasonIds =
       typeof item.activeSeasonIds === "object" && item.activeSeasonIds !== null
         ? Object.fromEntries(
             Object.entries(item.activeSeasonIds).filter(
               ([leagueId, seasonId]) =>
-                typeof leagueId === "string" && typeof seasonId === "string"
-            )
+                typeof leagueId === "string" && typeof seasonId === "string",
+            ),
           )
-        : getDefaultSeasonData().activeSeasonIds
+        : getDefaultSeasonData().activeSeasonIds;
 
     return {
       seasons: seasons.length > 0 ? seasons : defaultSeasons,
@@ -210,38 +211,40 @@ function readSeasonData(): SeasonDataState {
         playerProfiles.length > 0 ? playerProfiles : defaultPlayerProfiles,
       seasonPlayers,
       activeSeasonIds: activeSeasonIds as Record<string, string>,
-    }
+    };
   } catch {
-    return getDefaultSeasonData()
+    return getDefaultSeasonData();
   }
 }
 
 function persistSeasonData(seasonData: SeasonDataState) {
-  window.localStorage.setItem(seasonDataStorageKey, JSON.stringify(seasonData))
+  window.localStorage.setItem(seasonDataStorageKey, JSON.stringify(seasonData));
 }
 
-function parseStoredSettings(value: string | null): SeasonRoundSettings[] | null {
+function parseStoredSettings(
+  value: string | null,
+): SeasonRoundSettings[] | null {
   if (!value) {
-    return null
+    return null;
   }
 
   try {
-    const parsed = JSON.parse(value)
+    const parsed = JSON.parse(value);
 
     if (!Array.isArray(parsed)) {
-      return null
+      return null;
     }
 
-    const defaultSettings = getDefaultSettings()
+    const defaultSettings = getDefaultSettings();
 
     const mergedSettings = defaultSettings.map((defaultSetting) => {
       const storedSetting = parsed.find(
         (item: Partial<SeasonRoundSettings>) =>
-          item.seasonId === defaultSetting.seasonId
-      ) as Partial<SeasonRoundSettings> | undefined
+          item.seasonId === defaultSetting.seasonId,
+      ) as Partial<SeasonRoundSettings> | undefined;
 
       if (!storedSetting) {
-        return defaultSetting
+        return defaultSetting;
       }
 
       return {
@@ -249,14 +252,14 @@ function parseStoredSettings(value: string | null): SeasonRoundSettings[] | null
         ...storedSetting,
         requiresThreeSets:
           storedSetting.requiresThreeSets ?? defaultSetting.requiresThreeSets,
-      }
-    })
+      };
+    });
 
     const extraSettings = parsed
       .filter((storedSetting) => {
         return !mergedSettings.some(
-          (setting) => setting.seasonId === storedSetting.seasonId
-        )
+          (setting) => setting.seasonId === storedSetting.seasonId,
+        );
       })
       .map((storedSetting: Partial<SeasonRoundSettings>) => ({
         leagueId: storedSetting.leagueId ?? "",
@@ -265,11 +268,11 @@ function parseStoredSettings(value: string | null): SeasonRoundSettings[] | null
         seasonStartsAt: storedSetting.seasonStartsAt ?? null,
         roundWindowDays: storedSetting.roundWindowDays ?? null,
         requiresThreeSets: storedSetting.requiresThreeSets ?? true,
-      }))
+      }));
 
-    return [...mergedSettings, ...extraSettings]
+    return [...mergedSettings, ...extraSettings];
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -281,45 +284,50 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     seasonStartsAt: null,
     roundWindowDays: null,
     requiresThreeSets: true,
-  }
+  };
 }
 
 function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
-  const items = new Map(current.map((item) => [item.id, item]))
+  const items = new Map(current.map((item) => [item.id, item]));
 
   incoming.forEach((item) => {
-    items.set(item.id, item)
-  })
+    items.set(item.id, item);
+  });
 
-  return Array.from(items.values())
+  return Array.from(items.values());
 }
 
-function mergeSeasonPlayers(
-  current: SeasonPlayer[],
-  incoming: SeasonPlayer[]
-) {
+function mergeSeasonPlayers(current: SeasonPlayer[], incoming: SeasonPlayer[]) {
   const items = new Map(
-    current.map((item) => [`${item.seasonId}:${item.playerId}`, item])
-  )
+    current.map((item) => [`${item.seasonId}:${item.playerId}`, item]),
+  );
 
   incoming.forEach((item) => {
-    items.set(`${item.seasonId}:${item.playerId}`, item)
-  })
+    items.set(`${item.seasonId}:${item.playerId}`, item);
+  });
 
-  return Array.from(items.values())
+  return Array.from(items.values());
 }
 
 function mergeSettings(
   current: SeasonRoundSettings[],
-  incoming: SeasonRoundSettings[]
+  incoming: SeasonRoundSettings[],
 ) {
-  const items = new Map(current.map((item) => [item.seasonId, item]))
+  const items = new Map(current.map((item) => [item.seasonId, item]));
 
   incoming.forEach((item) => {
-    items.set(item.seasonId, item)
-  })
+    items.set(item.seasonId, item);
+  });
 
-  return Array.from(items.values())
+  return Array.from(items.values());
+}
+
+function getLatestLeagueSeason(seasons: Season[], leagueId: string) {
+  const leagueSeasons = seasons.filter(
+    (season) => season.leagueId === leagueId,
+  );
+
+  return leagueSeasons[leagueSeasons.length - 1] ?? null;
 }
 
 function slugifyName(name: string) {
@@ -331,7 +339,7 @@ function slugifyName(name: string) {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "jugador"
-  )
+  );
 }
 
 function getInitials(name: string) {
@@ -341,67 +349,79 @@ function getInitials(name: string) {
     .slice(0, 2)
     .map((part) => part[0])
     .join("")
-    .toUpperCase()
+    .toUpperCase();
 
-  return initials || "JG"
+  return initials || "JG";
 }
 
 export function SeasonSettingsProvider({
   children,
 }: SeasonSettingsProviderProps) {
   const [seasonSettings, setSeasonSettings] =
-    useState<SeasonRoundSettings[]>(getDefaultSettings)
-  const [seasonData, setSeasonData] = useState<SeasonDataState>(readSeasonData)
+    useState<SeasonRoundSettings[]>(getDefaultSettings);
+  const [seasonData, setSeasonData] = useState<SeasonDataState>(readSeasonData);
 
   useEffect(() => {
     const storedSettings = parseStoredSettings(
-      window.localStorage.getItem(storageKey)
-    )
+      window.localStorage.getItem(storageKey),
+    );
 
     if (storedSettings) {
       window.setTimeout(() => {
-        setSeasonSettings(storedSettings)
-      }, 0)
+        setSeasonSettings(storedSettings);
+      }, 0);
     }
-  }, [])
+  }, []);
 
   function getSeasonRoundSettings(seasonId: string) {
     return (
       seasonSettings.find((settings) => settings.seasonId === seasonId) ??
       createFallbackSettings(seasonId)
-    )
+    );
   }
 
   function getActiveSeasonByLeagueId(leagueId: string) {
-    const activeSeasonId = seasonData.activeSeasonIds[leagueId]
-    const activeSeason = seasonData.seasons.find(
-      (season) => season.id === activeSeasonId && season.leagueId === leagueId
-    )
+    const activeSeasonId = seasonData.activeSeasonIds[leagueId];
+    const activeSeason = activeSeasonId
+      ? seasonData.seasons.find(
+          (season) =>
+            season.id === activeSeasonId && season.leagueId === leagueId,
+        )
+      : null;
 
-    if (activeSeason) {
-      return activeSeason
+    if (activeSeason?.status === "active") {
+      return activeSeason;
     }
 
-    const fallbackSeason = seasonData.seasons.find(
-      (season) => season.leagueId === leagueId
-    )
+    const activeFallbackSeason = seasonData.seasons.find(
+      (season) => season.leagueId === leagueId && season.status === "active",
+    );
 
-    if (!fallbackSeason) {
-      throw new Error(`Active season not found for league: ${leagueId}`)
+    if (activeFallbackSeason) {
+      return activeFallbackSeason;
     }
 
-    return fallbackSeason
+    const latestSeason = getLatestLeagueSeason(seasonData.seasons, leagueId);
+
+    if (!latestSeason) {
+      throw new Error(`Active season not found for league: ${leagueId}`);
+    }
+
+    return latestSeason;
   }
 
   function getSeasonPlayers(seasonId: string) {
     return seasonData.seasonPlayers.filter(
-      (seasonPlayer) => seasonPlayer.seasonId === seasonId
-    )
+      (seasonPlayer) => seasonPlayer.seasonId === seasonId,
+    );
   }
 
   function finishActiveSeason(leagueId: string) {
     setSeasonData((currentSeasonData) => {
-      const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId]
+      const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId];
+      const nextActiveSeasonIds = { ...currentSeasonData.activeSeasonIds };
+      delete nextActiveSeasonIds[leagueId];
+
       const nextSeasonData = {
         ...currentSeasonData,
         seasons: currentSeasonData.seasons.map((season) =>
@@ -410,14 +430,15 @@ export function SeasonSettingsProvider({
                 ...season,
                 status: "finished" as const,
               }
-            : season
+            : season,
         ),
-      }
+        activeSeasonIds: nextActiveSeasonIds,
+      };
 
-      persistSeasonData(nextSeasonData)
+      persistSeasonData(nextSeasonData);
 
-      return nextSeasonData
-    })
+      return nextSeasonData;
+    });
   }
 
   function createInitialSeasonForLeague({
@@ -429,18 +450,18 @@ export function SeasonSettingsProvider({
     roundWindowDays,
     requiresThreeSets,
   }: {
-    leagueId: string
-    seasonName: string
-    playerNames: string[]
-    roundWindowMode: RoundWindowMode
-    seasonStartsAt: string | null
-    roundWindowDays: number | null
-    requiresThreeSets: boolean
+    leagueId: string;
+    seasonName: string;
+    playerNames: string[];
+    roundWindowMode: RoundWindowMode;
+    seasonStartsAt: string | null;
+    roundWindowDays: number | null;
+    requiresThreeSets: boolean;
   }) {
-    const seasonId = `${leagueId}-season-${Date.now()}`
+    const seasonId = `${leagueId}-season-${Date.now()}`;
     const cleanPlayerNames = playerNames
       .map((playerName) => playerName.trim())
-      .filter(Boolean)
+      .filter(Boolean);
     const newSeason: Season = {
       id: seasonId,
       leagueId,
@@ -448,33 +469,33 @@ export function SeasonSettingsProvider({
       status: "active",
       totalRounds: Math.max(cleanPlayerNames.length - 1, 1),
       completedRounds: 0,
-    }
+    };
     const existingPlayerIds = new Set(
-      seasonData.playerProfiles.map((player) => player.id)
-    )
+      seasonData.playerProfiles.map((player) => player.id),
+    );
     const existingSlugs = new Set(
-      seasonData.playerProfiles.map((player) => player.slug)
-    )
+      seasonData.playerProfiles.map((player) => player.slug),
+    );
     const newPlayers = cleanPlayerNames.map((playerName, index) => {
-      const baseId = `${leagueId}-player-${index + 1}`
-      const baseSlug = slugifyName(playerName)
-      let id = baseId
-      let slug = baseSlug
-      let suffix = 2
+      const baseId = `${leagueId}-player-${index + 1}`;
+      const baseSlug = slugifyName(playerName);
+      let id = baseId;
+      let slug = baseSlug;
+      let suffix = 2;
 
       while (existingPlayerIds.has(id)) {
-        id = `${baseId}-${suffix}`
-        suffix += 1
+        id = `${baseId}-${suffix}`;
+        suffix += 1;
       }
 
-      suffix = 2
+      suffix = 2;
       while (existingSlugs.has(slug)) {
-        slug = `${baseSlug}-${suffix}`
-        suffix += 1
+        slug = `${baseSlug}-${suffix}`;
+        suffix += 1;
       }
 
-      existingPlayerIds.add(id)
-      existingSlugs.add(slug)
+      existingPlayerIds.add(id);
+      existingSlugs.add(slug);
 
       return {
         id,
@@ -482,9 +503,9 @@ export function SeasonSettingsProvider({
         slug,
         displayName: playerName,
         avatarInitials: getInitials(playerName),
-      }
-    })
-    const playerIds = newPlayers.map((player) => player.id)
+      };
+    });
+    const playerIds = newPlayers.map((player) => player.id);
 
     setSeasonData((currentSeasonData) => {
       const nextSeasonData = {
@@ -501,12 +522,12 @@ export function SeasonSettingsProvider({
           ...currentSeasonData.activeSeasonIds,
           [leagueId]: seasonId,
         },
-      }
+      };
 
-      persistSeasonData(nextSeasonData)
+      persistSeasonData(nextSeasonData);
 
-      return nextSeasonData
-    })
+      return nextSeasonData;
+    });
 
     updateSeasonRoundSettings({
       leagueId,
@@ -515,9 +536,9 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
-    })
+    });
 
-    return { seasonId, playerIds }
+    return { seasonId, playerIds };
   }
 
   function startNewSeason({
@@ -530,21 +551,21 @@ export function SeasonSettingsProvider({
     roundWindowDays,
     requiresThreeSets,
   }: {
-    leagueId: string
-    name: string
-    playerIds: string[]
-    newPlayerNames: string[]
-    roundWindowMode: RoundWindowMode
-    seasonStartsAt: string | null
-    roundWindowDays: number | null
-    requiresThreeSets: boolean
+    leagueId: string;
+    name: string;
+    playerIds: string[];
+    newPlayerNames: string[];
+    roundWindowMode: RoundWindowMode;
+    seasonStartsAt: string | null;
+    roundWindowDays: number | null;
+    requiresThreeSets: boolean;
   }) {
-    const seasonId = `${leagueId}-season-${Date.now()}`
-    const uniquePlayerIds = Array.from(new Set(playerIds))
+    const seasonId = `${leagueId}-season-${Date.now()}`;
+    const uniquePlayerIds = Array.from(new Set(playerIds));
     const cleanNewPlayerNames = newPlayerNames
       .map((playerName) => playerName.trim())
-      .filter(Boolean)
-    const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length
+      .filter(Boolean);
+    const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length;
     const newSeason: Season = {
       id: seasonId,
       leagueId,
@@ -552,36 +573,36 @@ export function SeasonSettingsProvider({
       status: "active",
       totalRounds: Math.max(totalPlayers - 1, 1),
       completedRounds: 0,
-    }
+    };
 
     setSeasonData((currentSeasonData) => {
-      const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId]
+      const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId];
       const existingPlayerIds = new Set(
-        currentSeasonData.playerProfiles.map((player) => player.id)
-      )
+        currentSeasonData.playerProfiles.map((player) => player.id),
+      );
       const existingSlugs = new Set(
-        currentSeasonData.playerProfiles.map((player) => player.slug)
-      )
+        currentSeasonData.playerProfiles.map((player) => player.slug),
+      );
       const newPlayers = cleanNewPlayerNames.map((playerName, index) => {
-        const baseId = `${seasonId}-player-${index + 1}`
-        const baseSlug = slugifyName(playerName)
-        let id = baseId
-        let slug = baseSlug
-        let suffix = 2
+        const baseId = `${seasonId}-player-${index + 1}`;
+        const baseSlug = slugifyName(playerName);
+        let id = baseId;
+        let slug = baseSlug;
+        let suffix = 2;
 
         while (existingPlayerIds.has(id)) {
-          id = `${baseId}-${suffix}`
-          suffix += 1
+          id = `${baseId}-${suffix}`;
+          suffix += 1;
         }
 
-        suffix = 2
+        suffix = 2;
         while (existingSlugs.has(slug)) {
-          slug = `${baseSlug}-${suffix}`
-          suffix += 1
+          slug = `${baseSlug}-${suffix}`;
+          suffix += 1;
         }
 
-        existingPlayerIds.add(id)
-        existingSlugs.add(slug)
+        existingPlayerIds.add(id);
+        existingSlugs.add(slug);
 
         return {
           id,
@@ -589,8 +610,8 @@ export function SeasonSettingsProvider({
           slug,
           displayName: playerName,
           avatarInitials: getInitials(playerName),
-        }
-      })
+        };
+      });
       const nextSeasonData = {
         seasons: [
           ...currentSeasonData.seasons.map((season) =>
@@ -599,7 +620,7 @@ export function SeasonSettingsProvider({
                   ...season,
                   status: "finished" as const,
                 }
-              : season
+              : season,
           ),
           newSeason,
         ],
@@ -619,12 +640,12 @@ export function SeasonSettingsProvider({
           ...currentSeasonData.activeSeasonIds,
           [leagueId]: seasonId,
         },
-      }
+      };
 
-      persistSeasonData(nextSeasonData)
+      persistSeasonData(nextSeasonData);
 
-      return nextSeasonData
-    })
+      return nextSeasonData;
+    });
 
     updateSeasonRoundSettings({
       leagueId,
@@ -633,27 +654,27 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
-    })
+    });
 
-    return newSeason
+    return newSeason;
   }
 
   function updateSeasonRoundSettings(settings: SeasonRoundSettings) {
     setSeasonSettings((currentSettings) => {
       const exists = currentSettings.some(
-        (item) => item.seasonId === settings.seasonId
-      )
+        (item) => item.seasonId === settings.seasonId,
+      );
 
       const nextSettings = exists
         ? currentSettings.map((item) =>
-            item.seasonId === settings.seasonId ? settings : item
+            item.seasonId === settings.seasonId ? settings : item,
           )
-        : [...currentSettings, settings]
+        : [...currentSettings, settings];
 
-      window.localStorage.setItem(storageKey, JSON.stringify(nextSettings))
+      window.localStorage.setItem(storageKey, JSON.stringify(nextSettings));
 
-      return nextSettings
-    })
+      return nextSettings;
+    });
   }
 
   const updatePlayerProfile = useCallback(
@@ -663,10 +684,10 @@ export function SeasonSettingsProvider({
       avatarInitials,
       avatarUrl,
     }: {
-      playerId: string
-      displayName: string
-      avatarInitials: string
-      avatarUrl?: string | null
+      playerId: string;
+      displayName: string;
+      avatarInitials: string;
+      avatarUrl?: string | null;
     }) => {
       setSeasonData((currentSeasonData) => {
         const nextSeasonData = {
@@ -677,19 +698,22 @@ export function SeasonSettingsProvider({
                   ...player,
                   displayName,
                   avatarInitials,
-                  avatarUrl: typeof avatarUrl === "undefined" ? player.avatarUrl ?? null : avatarUrl,
+                  avatarUrl:
+                    typeof avatarUrl === "undefined"
+                      ? (player.avatarUrl ?? null)
+                      : avatarUrl,
                 }
-              : player
+              : player,
           ),
-        }
+        };
 
-        persistSeasonData(nextSeasonData)
+        persistSeasonData(nextSeasonData);
 
-        return nextSeasonData
-      })
+        return nextSeasonData;
+      });
     },
-    []
-  )
+    [],
+  );
 
   const hydrateSeasonSnapshot = useCallback((snapshot: SeasonSnapshot) => {
     setSeasonData((currentSeasonData) => {
@@ -697,34 +721,36 @@ export function SeasonSettingsProvider({
         seasons: mergeById(currentSeasonData.seasons, snapshot.seasons),
         playerProfiles: mergeById(
           currentSeasonData.playerProfiles,
-          snapshot.playerProfiles
+          snapshot.playerProfiles,
         ),
         seasonPlayers: mergeSeasonPlayers(
           currentSeasonData.seasonPlayers,
-          snapshot.seasonPlayers
+          snapshot.seasonPlayers,
         ),
-        activeSeasonIds: {
-          ...currentSeasonData.activeSeasonIds,
-          ...snapshot.activeSeasonIds,
-        },
-      }
+        activeSeasonIds: Object.fromEntries(
+          Object.entries({
+            ...currentSeasonData.activeSeasonIds,
+            ...snapshot.activeSeasonIds,
+          }).filter(([, seasonId]) => Boolean(seasonId)),
+        ),
+      };
 
-      persistSeasonData(nextSeasonData)
+      persistSeasonData(nextSeasonData);
 
-      return nextSeasonData
-    })
+      return nextSeasonData;
+    });
 
     setSeasonSettings((currentSettings) => {
       const nextSettings = mergeSettings(
         currentSettings,
-        snapshot.seasonSettings
-      )
+        snapshot.seasonSettings,
+      );
 
-      window.localStorage.setItem(storageKey, JSON.stringify(nextSettings))
+      window.localStorage.setItem(storageKey, JSON.stringify(nextSettings));
 
-      return nextSettings
-    })
-  }, [])
+      return nextSettings;
+    });
+  }, []);
 
   const value = {
     seasons: seasonData.seasons,
@@ -740,23 +766,23 @@ export function SeasonSettingsProvider({
     finishActiveSeason,
     createInitialSeasonForLeague,
     startNewSeason,
-  }
+  };
 
   return (
     <SeasonSettingsContext.Provider value={value}>
       {children}
     </SeasonSettingsContext.Provider>
-  )
+  );
 }
 
 export function useSeasonSettings() {
-  const context = useContext(SeasonSettingsContext)
+  const context = useContext(SeasonSettingsContext);
 
   if (!context) {
     throw new Error(
-      "useSeasonSettings must be used inside SeasonSettingsProvider"
-    )
+      "useSeasonSettings must be used inside SeasonSettingsProvider",
+    );
   }
 
-  return context
+  return context;
 }

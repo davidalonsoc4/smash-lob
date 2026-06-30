@@ -13,6 +13,7 @@ export type ActivityEventType =
   | "court_booking_payment_paid"
   | "league_created"
   | "league_updated"
+  | "season_finished"
   | "season_created"
   | "user_updated"
 
@@ -57,6 +58,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "court_booking_payment_paid" ||
     type === "league_created" ||
     type === "league_updated" ||
+    type === "season_finished" ||
     type === "season_created" ||
     type === "user_updated"
   ) {

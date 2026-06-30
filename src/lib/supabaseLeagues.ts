@@ -542,9 +542,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       seasonPlayers,
       seasonSettings,
       activeSeasonIds: Object.fromEntries(
-        leagues
-          .filter((league) => league.activeSeasonId)
-          .map((league) => [league.id, league.activeSeasonId])
+        leagues.map((league) => [league.id, league.activeSeasonId])
       ),
     },
   }

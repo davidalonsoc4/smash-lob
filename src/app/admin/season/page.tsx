@@ -1,6 +1,8 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -17,8 +19,9 @@ import {
   startSupabaseSeason,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons"
+import { recordActivityEvent } from "@/lib/activity"
 
-const allowedPlayerCounts = [8, 12, 16]
+const allowedPlayerCounts = [4, 8, 12, 16]
 const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error"
 const supabaseUuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -26,7 +29,8 @@ const supabaseUuidPattern =
 type SeasonPlayerSummary = {
   id: string
   displayName: string
-  avatarInitials?: string
+  avatarInitials?: string | null
+  avatarUrl?: string | null
 }
 
 function isSupabaseBackedId(id: string) {
@@ -50,9 +54,29 @@ function recordSupabaseError(action: string, error: unknown) {
 }
 
 function resizePlayerNames(currentNames: string[], nextCount: number) {
-  return Array.from({ length: nextCount }, (_, index) => {
-    return currentNames[index] ?? `Jugador ${index + 1}`
-  })
+  return Array.from({ length: nextCount }, (_, index) => currentNames[index] ?? "")
+}
+
+function getNextPlayerCount(currentCount: number) {
+  return (
+    allowedPlayerCounts.find((count) => count >= Math.max(currentCount, 4)) ??
+    allowedPlayerCounts[allowedPlayerCounts.length - 1]
+  )
+}
+
+function getDefaultNewSeasonName({
+  seasonCount,
+}: {
+  seasonCount: number
+}) {
+  return `Temporada ${seasonCount + 1}`
+}
+
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
+  return {
+    actorEmail: session?.user?.email ?? "system@smash-lob.local",
+    actorDisplayName: session?.user?.name ?? null,
+  }
 }
 
 function ActiveSeasonSettingsForm({
@@ -261,9 +285,7 @@ function SeasonPlayersStatus({
               className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-4 py-3"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-black text-neutral-700">
-                  {player.avatarInitials ?? player.displayName.slice(0, 2)}
-                </div>
+                <PlayerAvatar player={player} size="sm" className="bg-white text-neutral-700" />
                 <p className="truncate text-sm font-black">
                   {player.displayName}
                 </p>
@@ -296,7 +318,8 @@ function FinishSeasonPanel({
   activeSeasonId: string
 }) {
   const { t } = useI18n()
-  const { finishActiveSeason } = useSeasonSettings()
+  const { data: session } = useSession()
+  const { finishActiveSeason, hydrateSeasonSnapshot } = useSeasonSettings()
   const [feedback, setFeedback] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -312,10 +335,12 @@ function FinishSeasonPanel({
 
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
-        await finishSupabaseActiveSeason({
+        const seasonSnapshot = await finishSupabaseActiveSeason({
           leagueId: activeLeagueId,
           seasonId: activeSeasonId,
         })
+
+        hydrateSeasonSnapshot(seasonSnapshot)
       } catch (supabaseError) {
         recordSupabaseError("finish-active-season", supabaseError)
         setError(
@@ -327,6 +352,21 @@ function FinishSeasonPanel({
     }
 
     finishActiveSeason(activeLeagueId)
+
+    try {
+      await recordActivityEvent({
+        leagueId: activeLeagueId,
+        seasonId: activeSeasonId,
+        ...getActorFromSession(session),
+        type: "season_finished",
+        title: "Temporada cerrada",
+        description:
+          "La temporada se ha cerrado. La liga queda pendiente de crear una nueva temporada activa.",
+      })
+    } catch {
+      // El cierre no debe fallar si el registro de actividad no entra.
+    }
+
     setFeedback(t.adminSeason.seasonFinished)
     setIsSaving(false)
   }
@@ -372,16 +412,23 @@ function NewSeasonForm({
   currentPlayers: SeasonPlayerSummary[]
 }) {
   const { t } = useI18n()
-  const { hydrateSeasonSnapshot, playerProfiles, startNewSeason } =
+  const { data: session } = useSession()
+  const { hydrateSeasonSnapshot, playerProfiles, seasons, startNewSeason } =
     useSeasonSettings()
   const { hydrateMatches } = useMatchData()
   const leaguePlayers = playerProfiles.filter(
     (player) => player.leagueId === activeLeagueId
   )
-  const [newSeasonName, setNewSeasonName] = useState("")
-  const [playerCount, setPlayerCount] = useState(8)
+  const leagueSeasonCount = seasons.filter(
+    (season) => season.leagueId === activeLeagueId
+  ).length
+  const defaultPlayerCount = getNextPlayerCount(currentPlayers.length)
+  const [newSeasonName, setNewSeasonName] = useState(
+    getDefaultNewSeasonName({ seasonCount: leagueSeasonCount })
+  )
+  const [playerCount, setPlayerCount] = useState(defaultPlayerCount)
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
-    currentPlayers.map((player) => player.id).slice(0, 8)
+    currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount)
   )
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([])
   const [roundWindowMode, setRoundWindowMode] =
@@ -395,6 +442,16 @@ function NewSeasonForm({
 
   const parsedRoundWindowDays = Number(roundWindowDays)
   const isFixedDaysMode = roundWindowMode === "fixed-days"
+  const selectedPlayerIdSet = useMemo(
+    () => new Set(selectedPlayerIds),
+    [selectedPlayerIds]
+  )
+  const continuingPlayers = leaguePlayers.filter((player) =>
+    selectedPlayerIdSet.has(player.id)
+  )
+  const removedPlayers = currentPlayers.filter(
+    (player) => !selectedPlayerIdSet.has(player.id)
+  )
   const newPlayerSlotCount = Math.max(playerCount - selectedPlayerIds.length, 0)
   const visibleNewPlayerNames = resizePlayerNames(
     newPlayerNames,
@@ -425,7 +482,7 @@ function NewSeasonForm({
     setNewPlayerNames((currentNames) =>
       resizePlayerNames(
         currentNames,
-        Math.max(nextCount - selectedPlayerIds.length, 0)
+        Math.max(nextCount - Math.min(selectedPlayerIds.length, nextCount), 0)
       )
     )
     setFeedback(null)
@@ -491,6 +548,24 @@ function NewSeasonForm({
       startNewSeason(settings)
     }
 
+    try {
+      await recordActivityEvent({
+        leagueId: activeLeagueId,
+        seasonId: undefined,
+        ...getActorFromSession(session),
+        type: "season_created",
+        title: "Nueva temporada creada",
+        description: `${settings.name} creada con ${playerCount} jugadores y calendario generado.`,
+        metadata: {
+          playerCount,
+          existingPlayerIds: selectedPlayerIds,
+          newPlayerNames: cleanNewPlayerNames,
+        },
+      })
+    } catch {
+      // La temporada ya está creada; la actividad es auxiliar.
+    }
+
     setNewSeasonName("")
     setFeedback(t.adminSeason.seasonStarted)
     setIsSaving(false)
@@ -503,6 +578,13 @@ function NewSeasonForm({
         <p className="mt-2 text-sm text-neutral-500">
           {t.adminSeason.newSeasonDescription}
         </p>
+
+        <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-black">No hay temporada activa.</p>
+          <p className="mt-1">
+            Confirma quién continúa, quita bajas, añade sustitutos y se generarán las jornadas de la nueva temporada.
+          </p>
+        </div>
 
         <div className="mt-5 space-y-4">
           <label className="block">
@@ -551,9 +633,23 @@ function NewSeasonForm({
           {t.adminSeason.seasonPlayersDescription}
         </p>
 
-        <div className="mt-5 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+          <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+            <p className="text-xs font-semibold text-neutral-500">Seleccionados</p>
+            <p className="text-lg font-black">{selectedPlayerIds.length}/{playerCount}</p>
+          </div>
+          <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+            <p className="text-xs font-semibold text-neutral-500">Sustitutos</p>
+            <p className="text-lg font-black">{newPlayerSlotCount}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {leaguePlayers.map((player) => {
             const isSelected = selectedPlayerIds.includes(player.id)
+            const wasInPreviousSeason = currentPlayers.some(
+              (currentPlayer) => currentPlayer.id === player.id
+            )
             const isDisabled = !isSelected && selectedPlayerIds.length >= playerCount
 
             return (
@@ -562,36 +658,63 @@ function NewSeasonForm({
                 type="button"
                 onClick={() => toggleExistingPlayer(player.id)}
                 disabled={isDisabled}
-                className={`rounded-2xl px-4 py-3 text-left text-sm font-black disabled:opacity-40 ${
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black disabled:opacity-40 ${
                   isSelected
                     ? "bg-neutral-950 text-white"
                     : "bg-neutral-100 text-neutral-800"
                 }`}
               >
-                {player.displayName}
+                <PlayerAvatar
+                  player={player}
+                  size="sm"
+                  className={isSelected ? "bg-white text-neutral-900" : ""}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{player.displayName}</span>
+                  <span className={`mt-0.5 block text-xs ${isSelected ? "text-neutral-300" : "text-neutral-500"}`}>
+                    {isSelected
+                      ? "Continúa"
+                      : wasInPreviousSeason
+                        ? "Baja esta temporada"
+                        : "Jugador de la liga"}
+                  </span>
+                </span>
               </button>
             )
           })}
         </div>
 
+        {continuingPlayers.length > 0 ? (
+          <p className="mt-4 text-xs font-semibold text-neutral-500">
+            Continúan: {continuingPlayers.map((player) => player.displayName).join(", ")}
+          </p>
+        ) : null}
+
+        {removedPlayers.length > 0 ? (
+          <p className="mt-2 text-xs font-semibold text-amber-700">
+            No entran en la nueva temporada: {removedPlayers.map((player) => player.displayName).join(", ")}
+          </p>
+        ) : null}
+
         {newPlayerSlotCount > 0 ? (
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {visibleNewPlayerNames.map((playerName, index) => (
-            <label key={index} className="block">
-              <span className="text-xs font-semibold text-neutral-500">
-                {t.adminSeason.newPlayerName} {index + 1}
-              </span>
-              <input
-                value={playerName}
-                onChange={(event) => {
-                  const nextNames = [...visibleNewPlayerNames]
-                  nextNames[index] = event.target.value
-                  setNewPlayerNames(nextNames)
-                  setFeedback(null)
-                }}
-                className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
-              />
-            </label>
+              <label key={index} className="block">
+                <span className="text-xs font-semibold text-neutral-500">
+                  {t.adminSeason.newPlayerName} {index + 1}
+                </span>
+                <input
+                  value={playerName}
+                  placeholder={`Sustituto ${index + 1}`}
+                  onChange={(event) => {
+                    const nextNames = [...visibleNewPlayerNames]
+                    nextNames[index] = event.target.value
+                    setNewPlayerNames(nextNames)
+                    setFeedback(null)
+                  }}
+                  className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                />
+              </label>
             ))}
           </div>
         ) : null}

@@ -45,6 +45,7 @@ function getTypeLabel(type: ActivityEvent["type"]) {
     court_booking_payment_paid: "Pago",
     league_created: "Liga",
     league_updated: "Liga",
+    season_finished: "Temporada",
     season_created: "Temporada",
     user_updated: "Usuario",
   }

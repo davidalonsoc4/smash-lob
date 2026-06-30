@@ -110,18 +110,40 @@ export async function updateSupabaseSeasonRoundSettings(
 }
 
 export async function finishSupabaseActiveSeason({
+  leagueId,
   seasonId,
 }: {
   leagueId: string
   seasonId: string
-}) {
-  const { error } = await supabase
+}): Promise<SeasonSnapshot> {
+  const { data: season, error } = await supabase
     .from("seasons")
     .update({ status: "finished" })
     .eq("id", seasonId)
+    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .single()
 
   if (error) {
     throw error
+  }
+
+  const { error: leagueUpdateError } = await supabase
+    .from("leagues")
+    .update({ active_season_id: null })
+    .eq("id", leagueId)
+
+  if (leagueUpdateError) {
+    throw leagueUpdateError
+  }
+
+  return {
+    seasons: [mapSeason(season)],
+    playerProfiles: [],
+    seasonPlayers: [],
+    seasonSettings: [],
+    activeSeasonIds: {
+      [leagueId]: "",
+    },
   }
 }
 
@@ -155,12 +177,14 @@ export async function startSupabaseSeason({
     .filter(Boolean)
   const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length
 
-  const { data: finishedSeason, error: finishError } = await supabase
-    .from("seasons")
-    .update({ status: "finished" })
-    .eq("id", activeSeasonId)
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
-    .maybeSingle()
+  const { data: finishedSeason, error: finishError } = activeSeasonId
+    ? await supabase
+        .from("seasons")
+        .update({ status: "finished" })
+        .eq("id", activeSeasonId)
+        .select("id,league_id,name,status,total_rounds,completed_rounds")
+        .maybeSingle()
+    : { data: null, error: null }
 
   if (finishError) {
     throw finishError

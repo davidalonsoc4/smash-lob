@@ -1,15 +1,20 @@
 "use client"
 
+import Link from "next/link"
 import { MatchCard } from "@/components/matches/MatchCard"
 import { AppCard } from "@/components/ui/AppCard"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchesPage() {
   const { t } = useI18n()
+  const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason, rounds, players, matches } =
     useCurrentLeagueData()
+  const canManageSeason = isLeagueAdmin(activeLeague.id)
+  const isSeasonClosed = activeSeason.status === "finished"
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
     if (!round.startsAt || !round.endsAt) {
@@ -48,6 +53,23 @@ export default function MatchesPage() {
           {t.matches.description}
         </p>
       </header>
+
+      {isSeasonClosed ? (
+        <AppCard>
+          <p className="font-bold">Temporada cerrada</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            Estos son los partidos históricos de {activeSeason.name}.
+          </p>
+          {canManageSeason ? (
+            <Link
+              href="/admin/season"
+              className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+            >
+              Crear nueva temporada
+            </Link>
+          ) : null}
+        </AppCard>
+      ) : null}
 
       <div className="space-y-6">
         {rounds.map((round) => {
