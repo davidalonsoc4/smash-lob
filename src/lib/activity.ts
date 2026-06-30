@@ -33,6 +33,12 @@ export type ActivityEvent = {
   createdAt: string
 }
 
+type LeagueActorProfile = {
+  displayName: string | null
+  avatarInitials: string | null
+  avatarUrl: string | null
+}
+
 const activitySelect =
   "id,league_id,season_id,match_id,actor_user_id,actor_email,actor_display_name,type,title,description,metadata,created_at"
 
@@ -68,6 +74,10 @@ function toRecord(value: unknown): Record<string, unknown> {
   return {}
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ""
+}
+
 function mapActivityEvent(row: Record<string, unknown>): ActivityEvent {
   return {
     id: String(row.id),
@@ -95,6 +105,143 @@ function mapActivityEvent(row: Record<string, unknown>): ActivityEvent {
   }
 }
 
+function applyLeagueActorProfile(
+  event: ActivityEvent,
+  profile: LeagueActorProfile | null
+) {
+  if (!profile) {
+    return event
+  }
+
+  return {
+    ...event,
+    actorDisplayName: profile.displayName ?? event.actorDisplayName,
+    actorAvatarUrl: profile.avatarUrl,
+    actorAvatarInitials: profile.avatarInitials,
+  }
+}
+
+async function fetchUsersByEmail(emails: string[]) {
+  const cleanEmails = Array.from(new Set(emails.map(normalizeEmail).filter(Boolean)))
+
+  if (cleanEmails.length === 0) {
+    return new Map<string, string>()
+  }
+
+  const { data } = await supabase
+    .from("app_users")
+    .select("id,email")
+    .in("email", cleanEmails)
+
+  return new Map(
+    (data ?? [])
+      .filter(
+        (user) => typeof user.id === "string" && typeof user.email === "string"
+      )
+      .map((user) => [normalizeEmail(user.email), user.id as string])
+  )
+}
+
+async function fetchLeagueActorProfiles({
+  leagueId,
+  userIds,
+}: {
+  leagueId: string
+  userIds: string[]
+}) {
+  const cleanUserIds = Array.from(new Set(userIds.filter(Boolean)))
+
+  if (cleanUserIds.length === 0) {
+    return new Map<string, LeagueActorProfile>()
+  }
+
+  const { data: memberships } = await supabase
+    .from("league_memberships")
+    .select("user_id,player_id")
+    .eq("league_id", leagueId)
+    .in("user_id", cleanUserIds)
+
+  const playerIds = Array.from(
+    new Set(
+      (memberships ?? [])
+        .map((membership) => membership.player_id)
+        .filter((playerId): playerId is string => typeof playerId === "string")
+    )
+  )
+
+  if (playerIds.length === 0) {
+    return new Map<string, LeagueActorProfile>()
+  }
+
+  const { data: players } = await supabase
+    .from("players")
+    .select("id,display_name,avatar_initials,avatar_url")
+    .in("id", playerIds)
+
+  const playerById = new Map(
+    (players ?? []).map((player) => [
+      player.id,
+      {
+        displayName:
+          typeof player.display_name === "string" ? player.display_name : null,
+        avatarInitials:
+          typeof player.avatar_initials === "string"
+            ? player.avatar_initials
+            : null,
+        avatarUrl:
+          typeof player.avatar_url === "string" ? player.avatar_url : null,
+      },
+    ])
+  )
+
+  const profileByUserId = new Map<string, LeagueActorProfile>()
+
+  ;(memberships ?? []).forEach((membership) => {
+    if (
+      typeof membership.user_id !== "string" ||
+      typeof membership.player_id !== "string"
+    ) {
+      return
+    }
+
+    const player = playerById.get(membership.player_id)
+
+    if (player) {
+      profileByUserId.set(membership.user_id, player)
+    }
+  })
+
+  return profileByUserId
+}
+
+async function resolveLeagueActorProfile({
+  leagueId,
+  actorUserId,
+  actorEmail,
+}: {
+  leagueId: string
+  actorUserId: string | null
+  actorEmail: string
+}) {
+  let resolvedActorUserId = actorUserId
+
+  if (!resolvedActorUserId) {
+    const usersByEmail = await fetchUsersByEmail([actorEmail])
+    resolvedActorUserId = usersByEmail.get(normalizeEmail(actorEmail)) ?? null
+  }
+
+  if (!resolvedActorUserId) {
+    return null
+  }
+
+  const profilesByUserId = await fetchLeagueActorProfiles({
+    leagueId,
+    userIds: [resolvedActorUserId],
+  })
+
+  return profilesByUserId.get(resolvedActorUserId) ?? null
+}
+
 export async function fetchSupabaseActivityEvents({
   leagueId,
   limit = 50,
@@ -116,72 +263,39 @@ export async function fetchSupabaseActivityEvents({
   const events = (data ?? []).map((item) =>
     mapActivityEvent(item as Record<string, unknown>)
   )
+  const usersByEmail = await fetchUsersByEmail(
+    events
+      .filter((event) => !event.actorUserId)
+      .map((event) => event.actorEmail)
+  )
   const actorUserIds = Array.from(
     new Set(
       events
-        .map((event) => event.actorUserId)
+        .map(
+          (event) =>
+            event.actorUserId ?? usersByEmail.get(normalizeEmail(event.actorEmail))
+        )
         .filter((actorUserId): actorUserId is string => Boolean(actorUserId))
     )
   )
 
-  if (actorUserIds.length === 0) {
+  const profilesByUserId = await fetchLeagueActorProfiles({
+    leagueId,
+    userIds: actorUserIds,
+  })
+
+  if (profilesByUserId.size === 0) {
     return events
   }
-
-  const { data: memberships } = await supabase
-    .from("league_memberships")
-    .select("user_id,player_id")
-    .eq("league_id", leagueId)
-    .in("user_id", actorUserIds)
-
-  const playerIds = Array.from(
-    new Set(
-      (memberships ?? [])
-        .map((membership) => membership.player_id)
-        .filter((playerId): playerId is string => typeof playerId === "string")
-    )
-  )
-
-  if (playerIds.length === 0) {
-    return events
-  }
-
-  const { data: players } = await supabase
-    .from("players")
-    .select("id,avatar_initials,avatar_url")
-    .in("id", playerIds)
-
-  const playerById = new Map(
-    (players ?? []).map((player) => [
-      player.id,
-      {
-        avatarInitials: player.avatar_initials,
-        avatarUrl:
-          typeof player.avatar_url === "string" ? player.avatar_url : null,
-      },
-    ])
-  )
-  const playerIdByUserId = new Map(
-    (memberships ?? [])
-      .filter((membership) => typeof membership.player_id === "string")
-      .map((membership) => [membership.user_id, membership.player_id as string])
-  )
 
   return events.map((event) => {
-    const playerId = event.actorUserId
-      ? playerIdByUserId.get(event.actorUserId)
-      : null
-    const player = playerId ? playerById.get(playerId) : null
+    const actorUserId =
+      event.actorUserId ?? usersByEmail.get(normalizeEmail(event.actorEmail)) ?? null
 
-    if (!player) {
-      return event
-    }
-
-    return {
-      ...event,
-      actorAvatarUrl: player.avatarUrl,
-      actorAvatarInitials: player.avatarInitials,
-    }
+    return applyLeagueActorProfile(
+      event,
+      actorUserId ? profilesByUserId.get(actorUserId) ?? null : null
+    )
   })
 }
 
@@ -206,7 +320,7 @@ export async function recordActivityEvent({
   description?: string | null
   metadata?: Record<string, unknown>
 }) {
-  const normalizedActorEmail = actorEmail.trim().toLowerCase()
+  const normalizedActorEmail = normalizeEmail(actorEmail)
 
   if (!normalizedActorEmail) {
     return null
@@ -225,6 +339,18 @@ export async function recordActivityEvent({
     safeActorDisplayName = actor.display_name ?? safeActorDisplayName
   } catch {
     actorUserId = null
+  }
+
+  try {
+    const leagueProfile = await resolveLeagueActorProfile({
+      leagueId,
+      actorUserId,
+      actorEmail: normalizedActorEmail,
+    })
+
+    safeActorDisplayName = leagueProfile?.displayName ?? safeActorDisplayName
+  } catch {
+    // El evento se registra igualmente con el nombre de cuenta como fallback.
   }
 
   const { data, error } = await supabase
@@ -248,5 +374,17 @@ export async function recordActivityEvent({
     throw error
   }
 
-  return mapActivityEvent(data as Record<string, unknown>)
+  const event = mapActivityEvent(data as Record<string, unknown>)
+
+  try {
+    const leagueProfile = await resolveLeagueActorProfile({
+      leagueId,
+      actorUserId: event.actorUserId,
+      actorEmail: event.actorEmail,
+    })
+
+    return applyLeagueActorProfile(event, leagueProfile)
+  } catch {
+    return event
+  }
 }
