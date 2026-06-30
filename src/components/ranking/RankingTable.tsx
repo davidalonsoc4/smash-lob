@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type RankingPlayer = {
@@ -11,6 +12,8 @@ type RankingPlayer = {
   gamesDiff: number
   gamesFor: number
   gamesAgainst: number
+  avatarInitials?: string | null
+  avatarUrl?: string | null
 }
 
 type RankingTableProps = {
@@ -36,12 +39,14 @@ export function RankingTable({ players }: RankingTableProps) {
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-sm font-black">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-black">
                 {index + 1}
               </div>
 
-              <div>
-                <p className="font-bold">{player.displayName}</p>
+              <PlayerAvatar player={player} size="sm" />
+
+              <div className="min-w-0">
+                <p className="truncate font-bold">{player.displayName}</p>
                 <p className="text-xs text-neutral-500">
                   {player.gamesFor} {t.ranking.forShort} ·{" "}
                   {player.gamesAgainst} {t.ranking.againstShort}
