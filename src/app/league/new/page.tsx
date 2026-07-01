@@ -47,7 +47,7 @@ export default function NewLeaguePage() {
 
   if (!canCreateLeagues) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
@@ -62,7 +62,7 @@ export default function NewLeaguePage() {
 
         <AppCard>
           <p className="font-bold">No tienes permisos para crear ligas</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-stone-500">
             Tu cuenta puede jugar y administrar las ligas donde tengas permisos, pero no crear ligas nuevas.
           </p>
         </AppCard>
@@ -71,7 +71,7 @@ export default function NewLeaguePage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
@@ -84,16 +84,16 @@ export default function NewLeaguePage() {
         </p>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-3">
         <AppCard>
           <p className="font-bold">Datos de la liga</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-stone-500">
             Primero crea la liga. Después configurarás la Temporada 1 con sus jugadores, jornadas y reglas.
           </p>
 
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="text-sm font-semibold text-neutral-700">
+              <span className="text-sm font-semibold text-stone-700">
                 {t.newLeague.leagueName}
               </span>
               <input
@@ -104,12 +104,12 @@ export default function NewLeaguePage() {
                 }}
                 disabled={isCreating}
                 placeholder={t.newLeague.leagueNamePlaceholder}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
 
             <label className="block">
-              <span className="text-sm font-semibold text-neutral-700">
+              <span className="text-sm font-semibold text-stone-700">
                 {t.newLeague.leagueDescription}
               </span>
               <textarea
@@ -118,7 +118,7 @@ export default function NewLeaguePage() {
                 disabled={isCreating}
                 placeholder={t.newLeague.leagueDescriptionPlaceholder}
                 rows={3}
-                className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
           </div>
@@ -133,7 +133,7 @@ export default function NewLeaguePage() {
         <button
           type="submit"
           disabled={!canCreate || isCreating}
-          className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+          className="w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
         >
           {isCreating ? "Creando liga..." : t.newLeague.create}
         </button>

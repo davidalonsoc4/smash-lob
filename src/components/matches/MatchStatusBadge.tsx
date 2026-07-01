@@ -17,19 +17,19 @@ export function MatchStatusBadge({ status }: MatchStatusBadgeProps) {
   }
 
   const classNameByStatus: Record<string, string> = {
-    finished: "border-neutral-300 bg-neutral-50 text-neutral-700",
+    finished: "border-stone-300 bg-stone-100 text-stone-700",
     scheduled: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    scheduling: "border-neutral-200 bg-neutral-50 text-neutral-600",
+    scheduling: "border-stone-200 bg-stone-50 text-stone-600",
     postponed: "border-orange-200 bg-orange-50 text-orange-900",
   }
 
   return (
-    <p
-      className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.08em] ${
-        classNameByStatus[status] ?? "border-neutral-200 bg-neutral-50 text-neutral-600"
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] ${
+        classNameByStatus[status] ?? "border-stone-200 bg-stone-50 text-stone-600"
       }`}
     >
       {labelByStatus[status] ?? status}
-    </p>
+    </span>
   )
 }

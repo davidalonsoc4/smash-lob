@@ -337,18 +337,18 @@ function InviteLinkCard({
   return (
     <AppCard>
       <p className="font-bold">{t.adminSeason.inviteTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         {t.adminSeason.inviteDescription.replace("{leagueName}", leagueName)}
       </p>
 
-      <div className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3 text-xs font-semibold text-neutral-600 break-all">
+      <div className="mt-4 rounded-xl bg-stone-100 px-4 py-2.5 text-xs font-semibold text-stone-600 break-all">
         {inviteUrl}
       </div>
 
       <button
         type="button"
         onClick={handleCopy}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+        className="mt-3 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white"
       >
         {copied ? t.adminSeason.inviteCopied : t.adminSeason.copyInviteLink}
       </button>
@@ -474,7 +474,7 @@ function RoundManagementPanel({
   return (
     <AppCard>
       <p className="font-bold">Gestión de jornadas</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         Control manual para activar, finalizar, reabrir o mover la jornada
         activa cuando haga falta.
       </p>
@@ -485,14 +485,14 @@ function RoundManagementPanel({
             key={round.id}
             type="button"
             onClick={() => setSelectedRound(round.round)}
-            className={`rounded-2xl px-2 py-3 text-xs font-black ${
+            className={`rounded-xl px-2 py-2.5 text-xs font-black ${
               selectedRound === round.round
-                ? "bg-neutral-950 text-white"
+                ? "bg-stone-950 text-white"
                 : round.status === "active"
                   ? "bg-emerald-100 text-emerald-900"
                   : round.status === "completed"
-                    ? "bg-neutral-200 text-neutral-600"
-                    : "bg-neutral-100 text-neutral-700"
+                    ? "bg-neutral-200 text-stone-600"
+                    : "bg-stone-100 text-stone-700"
             }`}
           >
             <span className="block">J{round.round}</span>
@@ -507,12 +507,12 @@ function RoundManagementPanel({
         ))}
       </div>
 
-      <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
-          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+      <div className="mt-4 rounded-xl bg-stone-100 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-2.5">
+          <span className="text-xs font-black uppercase tracking-wide text-stone-500">
             Jornada seleccionada
           </span>
-          <span className="text-sm font-black text-neutral-950">
+          <span className="text-sm font-black text-stone-950">
             Jornada {selectedRound}
           </span>
         </div>
@@ -522,7 +522,7 @@ function RoundManagementPanel({
             type="button"
             onClick={() => activateRound(selectedRound)}
             disabled={isSaving}
-            className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+            className="rounded-xl bg-stone-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300"
           >
             Activar
           </button>
@@ -530,7 +530,7 @@ function RoundManagementPanel({
             type="button"
             onClick={() => finishRound(selectedRound)}
             disabled={isSaving}
-            className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+            className="rounded-xl bg-stone-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300"
           >
             Finalizar
           </button>
@@ -538,7 +538,7 @@ function RoundManagementPanel({
             type="button"
             onClick={() => reopenRound(selectedRound)}
             disabled={isSaving}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+            className="rounded-xl bg-white px-3 py-2.5 text-xs font-black text-stone-800 disabled:text-stone-300"
           >
             Reabrir
           </button>
@@ -551,7 +551,7 @@ function RoundManagementPanel({
               })
             }
             disabled={isSaving}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+            className="rounded-xl bg-white px-3 py-2.5 text-xs font-black text-stone-800 disabled:text-stone-300"
           >
             Modo automático
           </button>
@@ -562,7 +562,7 @@ function RoundManagementPanel({
             type="button"
             onClick={() => activateRound(previousRound)}
             disabled={isSaving || previousRound === activeRound?.round}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+            className="rounded-xl bg-white px-3 py-2.5 text-xs font-black text-stone-800 disabled:text-stone-300"
           >
             Jornada anterior
           </button>
@@ -570,7 +570,7 @@ function RoundManagementPanel({
             type="button"
             onClick={() => activateRound(nextRound)}
             disabled={isSaving || nextRound === activeRound?.round}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+            className="rounded-xl bg-white px-3 py-2.5 text-xs font-black text-stone-800 disabled:text-stone-300"
           >
             Siguiente jornada
           </button>
@@ -584,7 +584,7 @@ function RoundManagementPanel({
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-4 text-center text-sm font-semibold text-stone-600">
           {feedback}
         </p>
       ) : null}
@@ -651,7 +651,7 @@ function RoundOrderPanel({
   return (
     <AppCard>
       <p className="font-bold">Orden de jornadas</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         Reordena las jornadas si el calendario ya creado no encaja. Al guardar,
         los partidos se renumeran con el nuevo orden.
       </p>
@@ -660,13 +660,13 @@ function RoundOrderPanel({
         {roundOrder.map((round, index) => (
           <div
             key={`${round}-${index}`}
-            className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-4 py-3"
+            className="flex items-center justify-between gap-3 rounded-xl bg-stone-100 px-4 py-2.5"
           >
             <div className="min-w-0">
-              <p className="text-sm font-black text-neutral-950">
+              <p className="text-sm font-black text-stone-950">
                 Posición {index + 1}
               </p>
-              <p className="text-xs font-semibold text-neutral-500">
+              <p className="text-xs font-semibold text-stone-500">
                 Jornada {round}
               </p>
             </div>
@@ -684,7 +684,7 @@ function RoundOrderPanel({
                   )
                 }
                 disabled={isSaving || index === 0}
-                className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30"
+                className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-stone-700 disabled:opacity-30"
               >
                 ↑
               </button>
@@ -700,7 +700,7 @@ function RoundOrderPanel({
                   )
                 }
                 disabled={isSaving || index === roundOrder.length - 1}
-                className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30"
+                className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-stone-700 disabled:opacity-30"
               >
                 ↓
               </button>
@@ -718,7 +718,7 @@ function RoundOrderPanel({
             setError(null);
           }}
           disabled={isSaving || !hasChanges}
-          className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+          className="rounded-xl bg-stone-100 px-4 py-2.5 text-sm font-black text-stone-800 disabled:text-stone-300"
         >
           Restaurar
         </button>
@@ -726,7 +726,7 @@ function RoundOrderPanel({
           type="button"
           onClick={handleSave}
           disabled={isSaving || !hasChanges}
-          className="rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+          className="rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
         >
           {isSaving ? "Guardando..." : "Guardar orden"}
         </button>
@@ -739,7 +739,7 @@ function RoundOrderPanel({
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-4 text-center text-sm font-semibold text-stone-600">
           {feedback}
         </p>
       ) : null}
@@ -760,7 +760,7 @@ function SeasonPlayersStatus({
   return (
     <AppCard>
       <p className="font-bold">{t.adminSeason.activePlayersTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         {t.adminSeason.activePlayersDescription}
       </p>
 
@@ -771,13 +771,13 @@ function SeasonPlayersStatus({
           return (
             <div
               key={player.id}
-              className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-xl bg-stone-100 px-4 py-2.5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <PlayerAvatar
                   player={player}
                   size="sm"
-                  className="bg-white text-neutral-700"
+                  className="bg-white text-stone-700"
                 />
                 <p className="truncate text-sm font-black">
                   {player.displayName}
@@ -858,7 +858,7 @@ function SeasonPlayerNamesPanel({
   return (
     <AppCard>
       <p className="font-bold">Nombres de jugadores</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         Corrige nombres mal escritos sin recrear la temporada ni tocar el
         calendario ya generado.
       </p>
@@ -872,13 +872,13 @@ function SeasonPlayerNamesPanel({
           return (
             <div
               key={player.id}
-              className="rounded-2xl bg-neutral-100 p-3"
+              className="rounded-xl bg-stone-100 p-3"
             >
               <div className="flex items-center gap-3">
                 <PlayerAvatar
                   player={player}
                   size="sm"
-                  className="bg-white text-neutral-700"
+                  className="bg-white text-stone-700"
                 />
                 <input
                   value={draftName}
@@ -890,13 +890,13 @@ function SeasonPlayerNamesPanel({
                     setError(null);
                     setFeedback(null);
                   }}
-                  className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+                  className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-black text-stone-950 outline-none focus:border-neutral-400"
                 />
                 <button
                   type="button"
                   onClick={() => handleSave(player)}
                   disabled={Boolean(savingPlayerId) || !hasChanges || !draftName.trim()}
-                  className="shrink-0 rounded-2xl bg-neutral-950 px-4 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+                  className="shrink-0 rounded-xl bg-stone-950 px-4 py-2.5 text-xs font-black text-white disabled:bg-neutral-300"
                 >
                   {isSavingPlayer ? "..." : "Guardar"}
                 </button>
@@ -913,7 +913,7 @@ function SeasonPlayerNamesPanel({
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-4 text-center text-sm font-semibold text-stone-600">
           {feedback}
         </p>
       ) : null}
@@ -993,7 +993,7 @@ function FinishSeasonPanel({
   return (
     <AppCard>
       <p className="font-bold">{t.adminSeason.finishTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         {t.adminSeason.finishDescription}
       </p>
 
@@ -1001,7 +1001,7 @@ function FinishSeasonPanel({
         type="button"
         onClick={handleFinishSeason}
         disabled={isSaving}
-        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-4 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : t.adminSeason.finishSeason}
       </button>
@@ -1013,7 +1013,7 @@ function FinishSeasonPanel({
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-4 text-center text-sm font-semibold text-stone-600">
           {feedback}
         </p>
       ) : null}
@@ -1090,7 +1090,7 @@ function StartSeasonPanel({
   return (
     <AppCard>
       <p className="font-bold">Comenzar temporada</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         La temporada está creada, pero todavía no está activa. Al comenzar se
         desbloquean la programación de partidos y el registro de resultados.
       </p>
@@ -1099,7 +1099,7 @@ function StartSeasonPanel({
         type="button"
         onClick={handleStartSeason}
         disabled={isSaving}
-        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-4 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : "Comenzar temporada"}
       </button>
@@ -1183,7 +1183,7 @@ function ReopenSeasonPanel({
   return (
     <AppCard>
       <p className="font-bold">Reabrir temporada pasada</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         Úsalo solo si la temporada se cerró por error o necesitas corregir algún
         resultado. La temporada volverá a estar activa.
       </p>
@@ -1192,7 +1192,7 @@ function ReopenSeasonPanel({
         type="button"
         onClick={handleReopenSeason}
         disabled={isSaving}
-        className="mt-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300"
+        className="mt-4 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-black text-stone-950 ring-1 ring-neutral-200 disabled:text-stone-300"
       >
         {isSaving ? "Guardando..." : "Reabrir temporada pasada"}
       </button>
@@ -1305,21 +1305,21 @@ function SeasonDangerZone({
   return (
     <AppCard>
       <p className="font-bold">Zona de eliminación</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         Permite borrar jornadas o temporadas completas si el calendario se creó
         mal. Es una acción destructiva.
       </p>
 
-      <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+      <div className="mt-4 rounded-xl bg-stone-100 p-3">
         <label className="block">
-          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+          <span className="text-xs font-black uppercase tracking-wide text-stone-500">
             Jornada a eliminar
           </span>
           <select
             value={selectedRound}
             onChange={(event) => setSelectedRound(Number(event.target.value))}
             disabled={isSaving}
-            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none"
+            className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-black text-stone-950 outline-none"
           >
             {Array.from({ length: totalRounds }, (_, index) => index + 1).map(
               (round) => (
@@ -1335,7 +1335,7 @@ function SeasonDangerZone({
           type="button"
           onClick={handleDeleteRound}
           disabled={isSaving}
-          className="mt-3 w-full rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+          className="mt-3 w-full rounded-xl bg-red-50 px-4 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
         >
           Eliminar jornada
         </button>
@@ -1345,7 +1345,7 @@ function SeasonDangerZone({
         type="button"
         onClick={handleDeleteSeason}
         disabled={isSaving}
-        className="mt-3 w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white disabled:bg-red-200"
+        className="mt-3 w-full rounded-xl bg-red-600 px-4 py-2.5 text-sm font-black text-white disabled:bg-red-200"
       >
         Eliminar temporada completa
       </button>
@@ -1357,7 +1357,7 @@ function SeasonDangerZone({
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-4 text-center text-sm font-semibold text-stone-600">
           {feedback}
         </p>
       ) : null}
@@ -1692,17 +1692,17 @@ function NewSeasonForm({
   }
 
   return (
-    <form onSubmit={handleStartSeason} className="space-y-5">
+    <form onSubmit={handleStartSeason} className="space-y-3">
       <AppCard>
         <p className="font-bold">{t.adminSeason.newSeasonTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-stone-500">
           {isFirstLeagueSeason
             ? "Configura la Temporada 1 con sus jugadores, calendario y reglas antes de abrir invitaciones."
             : t.adminSeason.newSeasonDescription}
         </p>
 
         {!isFirstLeagueSeason ? (
-          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="mt-4 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
             <p className="font-black">No hay temporada activa.</p>
             <p className="mt-1">
               Confirma quién continúa, quita bajas, añade sustitutos y se
@@ -1714,7 +1714,7 @@ function NewSeasonForm({
 
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="text-sm font-semibold text-neutral-700">
+            <span className="text-sm font-semibold text-stone-700">
               {t.adminSeason.newSeasonName}
             </span>
 
@@ -1725,12 +1725,12 @@ function NewSeasonForm({
                 setFeedback(null);
               }}
               placeholder={t.adminSeason.newSeasonNamePlaceholder}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400"
             />
           </label>
 
           <div>
-            <p className="text-sm font-semibold text-neutral-700">
+            <p className="text-sm font-semibold text-stone-700">
               {t.adminSeason.playerCount}
             </p>
             <div className="mt-2 grid grid-cols-3 gap-2">
@@ -1739,10 +1739,10 @@ function NewSeasonForm({
                   key={count}
                   type="button"
                   onClick={() => handlePlayerCountChange(count)}
-                  className={`rounded-2xl px-4 py-3 text-sm font-black ${
+                  className={`rounded-xl px-4 py-2.5 text-sm font-black ${
                     playerCount === count
-                      ? "bg-neutral-950 text-white"
-                      : "bg-neutral-100 text-neutral-800"
+                      ? "bg-stone-950 text-white"
+                      : "bg-stone-100 text-stone-800"
                   }`}
                 >
                   {count}
@@ -1755,30 +1755,30 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.seasonPlayersTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-stone-500">
           {isFirstLeagueSeason
             ? "Añade los jugadores que formarán parte de esta primera temporada."
             : t.adminSeason.seasonPlayersDescription}
         </p>
 
         {canLinkSelfPlayer ? (
-          <div className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3 text-xs font-semibold text-neutral-600">
+          <div className="mt-4 rounded-xl bg-stone-100 px-4 py-2.5 text-xs font-semibold text-stone-600">
             Marca qué jugador eres tú para vincular automáticamente tu cuenta,
             tu perfil y tu foto en esta liga.
           </div>
         ) : null}
 
         <div className="mt-4 grid grid-cols-2 gap-2 text-center">
-          <div className="rounded-2xl bg-neutral-100 px-4 py-3">
-            <p className="text-xs font-semibold text-neutral-500">
+          <div className="rounded-xl bg-stone-100 px-4 py-2.5">
+            <p className="text-xs font-semibold text-stone-500">
               Seleccionados
             </p>
             <p className="text-lg font-black">
               {selectedPlayerIds.length}/{playerCount}
             </p>
           </div>
-          <div className="rounded-2xl bg-neutral-100 px-4 py-3">
-            <p className="text-xs font-semibold text-neutral-500">
+          <div className="rounded-xl bg-stone-100 px-4 py-2.5">
+            <p className="text-xs font-semibold text-stone-500">
               {isFirstLeagueSeason ? "Jugadores" : "Sustitutos"}
             </p>
             <p className="text-lg font-black">{newPlayerSlotCount}</p>
@@ -1800,21 +1800,21 @@ function NewSeasonForm({
                 type="button"
                 onClick={() => toggleExistingPlayer(player.id)}
                 disabled={isDisabled}
-                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black disabled:opacity-40 ${
+                className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-left text-sm font-black disabled:opacity-40 ${
                   isSelected
-                    ? "bg-neutral-950 text-white"
-                    : "bg-neutral-100 text-neutral-800"
+                    ? "bg-stone-950 text-white"
+                    : "bg-stone-100 text-stone-800"
                 }`}
               >
                 <PlayerAvatar
                   player={player}
                   size="sm"
-                  className={isSelected ? "bg-white text-neutral-900" : ""}
+                  className={isSelected ? "bg-white text-stone-900" : ""}
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{player.displayName}</span>
                   <span
-                    className={`mt-0.5 block text-xs ${isSelected ? "text-neutral-300" : "text-neutral-500"}`}
+                    className={`mt-0.5 block text-xs ${isSelected ? "text-stone-300" : "text-stone-500"}`}
                   >
                     {isFirstLeagueSeason
                       ? "Jugador"
@@ -1833,10 +1833,10 @@ function NewSeasonForm({
                     }}
                     className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${
                       selectedSelfPlayerValue === player.id
-                        ? "bg-amber-300 text-neutral-950"
+                        ? "bg-amber-300 text-stone-950"
                         : isSelected
                           ? "bg-white/10 text-white"
-                          : "bg-white text-neutral-700"
+                          : "bg-white text-stone-700"
                     }`}
                   >
                     {selectedSelfPlayerValue === player.id ? "Yo" : "Soy yo"}
@@ -1848,7 +1848,7 @@ function NewSeasonForm({
         </div>
 
         {!isFirstLeagueSeason && continuingPlayers.length > 0 ? (
-          <p className="mt-4 text-xs font-semibold text-neutral-500">
+          <p className="mt-4 text-xs font-semibold text-stone-500">
             Continúan:{" "}
             {continuingPlayers.map((player) => player.displayName).join(", ")}
           </p>
@@ -1865,7 +1865,7 @@ function NewSeasonForm({
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {visibleNewPlayerNames.map((playerName, index) => (
               <label key={index} className="block">
-                <span className="text-xs font-semibold text-neutral-500">
+                <span className="text-xs font-semibold text-stone-500">
                   {t.adminSeason.newPlayerName} {index + 1}
                 </span>
                 <div className="mt-1 flex gap-2">
@@ -1882,7 +1882,7 @@ function NewSeasonForm({
                       setNewPlayerNames(nextNames);
                       setFeedback(null);
                     }}
-                    className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                    className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400"
                   />
                   {canLinkSelfPlayer ? (
                     <button
@@ -1891,10 +1891,10 @@ function NewSeasonForm({
                         setSelfPlayerValue(getNewPlayerToken(index));
                         setFeedback(null);
                       }}
-                      className={`shrink-0 rounded-2xl px-3 py-2 text-xs font-black ${
+                      className={`shrink-0 rounded-xl px-3 py-2 text-xs font-black ${
                         selectedSelfPlayerValue === getNewPlayerToken(index)
-                          ? "bg-amber-300 text-neutral-950"
-                          : "bg-neutral-100 text-neutral-700"
+                          ? "bg-amber-300 text-stone-950"
+                          : "bg-stone-100 text-stone-700"
                       }`}
                     >
                       {selectedSelfPlayerValue === getNewPlayerToken(index)
@@ -1911,7 +1911,7 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.calendarTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-stone-500">
           {t.adminSeason.calendarDescription}
         </p>
 
@@ -1919,7 +1919,7 @@ function NewSeasonForm({
           {(["balanced", "manual"] as CalendarMode[]).map((mode) => (
             <label
               key={mode}
-              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-4"
+              className="flex items-start gap-3 rounded-xl border border-stone-200 p-3"
             >
               <input
                 type="radio"
@@ -1939,7 +1939,7 @@ function NewSeasonForm({
                     ? t.adminSeason.balancedCalendar
                     : t.adminSeason.manualCalendar}
                 </span>
-                <span className="mt-1 block text-xs text-neutral-500">
+                <span className="mt-1 block text-xs text-stone-500">
                   {mode === "balanced"
                     ? t.adminSeason.balancedCalendarDescription
                     : t.adminSeason.manualCalendarDescription}
@@ -1951,14 +1951,14 @@ function NewSeasonForm({
 
         {calendarMode === "manual" ? (
           <div className="mt-5 space-y-4">
-            <div className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm text-neutral-700">
+            <div className="rounded-xl bg-stone-100 px-4 py-2.5 text-sm text-stone-700">
               <p className="font-black">
                 {getTotalRoundCount(playerCount)} jornadas ·{" "}
                 {getMatchesPerRound(playerCount)}{" "}
                 {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"}{" "}
                 por jornada
               </p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
+              <p className="mt-1 text-xs font-semibold text-stone-500">
                 Elige manualmente la Pareja A y la Pareja B de cada partido.
                 Cada desplegable viene preseleccionado con el calendario
                 automático, pero puedes editarlo.
@@ -1972,7 +1972,7 @@ function NewSeasonForm({
                   });
                   setFeedback(null);
                 }}
-                className="mt-3 w-full rounded-2xl bg-white px-4 py-2.5 text-xs font-black text-neutral-800 shadow-sm"
+                className="mt-3 w-full rounded-xl bg-white px-4 py-2.5 text-xs font-black text-stone-800 shadow-sm"
               >
                 Restaurar calendario automático
               </button>
@@ -1981,7 +1981,7 @@ function NewSeasonForm({
             {manualCalendar.map((round, roundIndex) => (
               <div
                 key={round.round}
-                className="rounded-2xl border border-neutral-200 p-3"
+                className="rounded-xl border border-stone-200 p-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-black">Jornada {round.round}</p>
@@ -1998,7 +1998,7 @@ function NewSeasonForm({
                         )
                       }
                       disabled={roundIndex === 0}
-                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30"
+                      className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-700 disabled:opacity-30"
                     >
                       ↑
                     </button>
@@ -2014,7 +2014,7 @@ function NewSeasonForm({
                         )
                       }
                       disabled={roundIndex === manualCalendar.length - 1}
-                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30"
+                      className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-700 disabled:opacity-30"
                     >
                       ↓
                     </button>
@@ -2034,7 +2034,7 @@ function NewSeasonForm({
                     return (
                       <div
                         key={`${round.round}-${matchIndex}`}
-                        className="rounded-2xl bg-neutral-100 p-3"
+                        className="rounded-xl bg-stone-100 p-3"
                       >
                         <div className="mb-3 flex items-center justify-between gap-3">
                           <p className="text-sm font-black">
@@ -2052,9 +2052,9 @@ function NewSeasonForm({
                             (teamKey) => (
                               <div
                                 key={teamKey}
-                                className="rounded-2xl bg-white p-3"
+                                className="rounded-xl bg-white p-3"
                               >
-                                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                                <p className="text-[10px] font-black uppercase tracking-wide text-stone-500">
                                   {teamKey === "teamA"
                                     ? "Pareja A"
                                     : "Pareja B"}
@@ -2079,7 +2079,7 @@ function NewSeasonForm({
                                           );
                                           setFeedback(null);
                                         }}
-                                        className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
+                                        className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-bold text-stone-950 outline-none"
                                       >
                                         <option value="">
                                           Jugador {playerIndex + 1}
@@ -2108,7 +2108,7 @@ function NewSeasonForm({
             ))}
 
             {!isManualCalendarReady ? (
-              <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+              <p className="rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800">
                 Completa todos los desplegables sin repetir jugador dentro de la
                 misma jornada para poder crear la temporada.
               </p>
@@ -2119,11 +2119,11 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.resultRulesTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-stone-500">
           {t.adminSeason.resultRulesDescription}
         </p>
 
-        <label className="mt-5 flex items-start gap-3 rounded-2xl border border-neutral-200 p-4">
+        <label className="mt-5 flex items-start gap-3 rounded-xl border border-stone-200 p-3">
           <input
             type="checkbox"
             checked={requiresThreeSets}
@@ -2138,7 +2138,7 @@ function NewSeasonForm({
             <span className="block text-sm font-black">
               {t.adminSeason.requireThreeSetsTitle}
             </span>
-            <span className="mt-1 block text-xs text-neutral-500">
+            <span className="mt-1 block text-xs text-stone-500">
               {t.adminSeason.requireThreeSetsDescription}
             </span>
           </span>
@@ -2147,7 +2147,7 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.roundWindowTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-stone-500">
           {t.adminSeason.newRoundWindowDescription}
         </p>
 
@@ -2155,7 +2155,7 @@ function NewSeasonForm({
           {(["none", "fixed-days"] as RoundWindowMode[]).map((mode) => (
             <label
               key={mode}
-              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-4"
+              className="flex items-start gap-3 rounded-xl border border-stone-200 p-3"
             >
               <input
                 type="radio"
@@ -2175,7 +2175,7 @@ function NewSeasonForm({
                     ? t.adminSeason.noWindowTitle
                     : t.adminSeason.fixedDaysTitle}
                 </span>
-                <span className="mt-1 block text-xs text-neutral-500">
+                <span className="mt-1 block text-xs text-stone-500">
                   {mode === "none"
                     ? t.adminSeason.noWindowDescription
                     : t.adminSeason.fixedDaysDescription}
@@ -2188,7 +2188,7 @@ function NewSeasonForm({
         {isFixedDaysMode ? (
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="text-sm font-semibold text-neutral-700">
+              <span className="text-sm font-semibold text-stone-700">
                 {t.adminSeason.seasonStartDate}
               </span>
 
@@ -2199,12 +2199,12 @@ function NewSeasonForm({
                   setSeasonStartsAt(event.target.value);
                   setFeedback(null);
                 }}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
 
             <label className="block">
-              <span className="text-sm font-semibold text-neutral-700">
+              <span className="text-sm font-semibold text-stone-700">
                 {t.adminSeason.daysPerRound}
               </span>
 
@@ -2216,7 +2216,7 @@ function NewSeasonForm({
                   setRoundWindowDays(event.target.value);
                   setFeedback(null);
                 }}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
           </div>
@@ -2226,7 +2226,7 @@ function NewSeasonForm({
       <button
         type="submit"
         disabled={!canStartSeason}
-        className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : "Crear temporada"}
       </button>
@@ -2238,7 +2238,7 @@ function NewSeasonForm({
       ) : null}
 
       {feedback ? (
-        <p className="text-center text-sm font-semibold text-neutral-600">
+        <p className="text-center text-sm font-semibold text-stone-600">
           {feedback}
         </p>
       ) : null}
@@ -2265,7 +2265,7 @@ export default function AdminSeasonPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
@@ -2276,7 +2276,7 @@ export default function AdminSeasonPage() {
 
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-stone-500">
             {t.adminPanel.accessDeniedDescription}
           </p>
         </AppCard>
@@ -2285,11 +2285,11 @@ export default function AdminSeasonPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-4 text-sm font-medium text-stone-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
@@ -2301,7 +2301,7 @@ export default function AdminSeasonPage() {
               : t.adminSeason.newSeasonTitle}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-stone-500">
           {isActiveSeason
             ? t.adminSeason.description
             : isUpcomingSeason

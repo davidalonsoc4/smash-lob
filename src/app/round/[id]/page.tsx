@@ -31,11 +31,11 @@ export default function RoundDetailPage() {
     })
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/matches" label="Volver" />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-4 text-sm font-medium text-stone-500">
           {activeLeague.name}
         </p>
         <h1 className="mt-1 sl-page-title">
@@ -48,7 +48,7 @@ export default function RoundDetailPage() {
 
       {roundMatches.length === 0 ? (
         <AppCard>
-          <p className="text-sm font-semibold text-neutral-500">
+          <p className="text-sm font-semibold text-stone-500">
             No hay partidos para esta jornada.
           </p>
         </AppCard>
@@ -67,7 +67,7 @@ export default function RoundDetailPage() {
           return (
             <section key={match.id} className="space-y-2">
               {season ? (
-                <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-neutral-400">
+                <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-stone-400">
                   {season.name}
                 </p>
               ) : null}

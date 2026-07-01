@@ -34,7 +34,7 @@ export default function LeaguesPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label="Volver" />
 
@@ -82,26 +82,26 @@ export default function LeaguesPage() {
                   handleEnterLeague(league.id);
                 }
               }}
-              className={`sl-action-card cursor-pointer rounded-2xl border bg-white p-3 pr-8 text-left transition ${
+              className={`sl-action-card cursor-pointer rounded-xl border bg-white p-3 pr-8 text-left transition ${
                 isActive
-                  ? "border-neutral-950 ring-2 ring-neutral-950"
-                  : "border-neutral-200"
+                  ? "border-stone-950 ring-2 ring-stone-950"
+                  : "border-stone-200"
               }`}
             >
               <div className="flex items-start gap-3">
                 <LeagueLogo league={league} size="md" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-base font-black text-neutral-950">
+                    <p className="truncate text-base font-black text-stone-950">
                       {league.name}
                     </p>
                     {isActive ? (
-                      <span className="sl-tiny-label border-neutral-950 bg-neutral-950 text-white">
+                      <span className="sl-tiny-label border-stone-950 bg-stone-950 text-white">
                         Actual
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-0.5 line-clamp-1 text-xs font-semibold text-neutral-500">
+                  <p className="mt-0.5 line-clamp-1 text-xs font-semibold text-stone-500">
                     {league.description || "Sin descripción"}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -117,28 +117,28 @@ export default function LeaguesPage() {
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3 text-[11px]">
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-stone-100 pt-3 text-[11px]">
                 <div>
-                  <p className="font-black uppercase tracking-[0.1em] text-neutral-400">
+                  <p className="font-black uppercase tracking-[0.1em] text-stone-400">
                     Jugadores
                   </p>
-                  <p className="mt-0.5 font-black text-neutral-950">
+                  <p className="mt-0.5 font-black text-stone-950">
                     {seasonPlayerCount || "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="font-black uppercase tracking-[0.1em] text-neutral-400">
+                  <p className="font-black uppercase tracking-[0.1em] text-stone-400">
                     Partidos
                   </p>
-                  <p className="mt-0.5 font-black text-neutral-950">
+                  <p className="mt-0.5 font-black text-stone-950">
                     {finishedMatches}/{seasonMatches.length || 0}
                   </p>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-black uppercase tracking-[0.1em] text-neutral-400">
+                  <p className="font-black uppercase tracking-[0.1em] text-stone-400">
                     Líder
                   </p>
-                  <p className="mt-0.5 truncate font-black text-neutral-950">
+                  <p className="mt-0.5 truncate font-black text-stone-950">
                     {leader?.displayName ?? "-"}
                   </p>
                 </div>
@@ -152,14 +152,14 @@ export default function LeaguesPage() {
         <div className="grid gap-2">
           <Link
             href="/invite"
-            className="sl-secondary-action block rounded-2xl px-4 py-3 text-center text-sm font-black"
+            className="sl-secondary-action block rounded-xl px-4 py-2.5 text-center text-sm font-black"
           >
             Unirme con invitación
           </Link>
           {canCreateLeagues ? (
             <Link
               href="/league/new"
-              className="sl-primary-action block rounded-2xl px-4 py-3 text-center text-sm font-black"
+              className="sl-primary-action block rounded-xl px-4 py-2.5 text-center text-sm font-black"
             >
               Crear nueva liga
             </Link>

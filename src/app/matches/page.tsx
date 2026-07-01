@@ -49,9 +49,9 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <header className="pt-2">
-        <p className="text-sm font-medium text-neutral-500">
+        <p className="text-sm font-medium text-stone-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
@@ -65,18 +65,18 @@ export default function MatchesPage() {
       </header>
 
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_10px_rgba(15,23,42,0.05)]">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white px-3 py-2 shadow-[0_1px_10px_rgba(15,23,42,0.05)]">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-400">
           Filtro
         </p>
 
-        <div className="flex rounded-full border border-neutral-200 bg-neutral-50 p-1">
+        <div className="flex rounded-full border border-stone-200 bg-stone-50 p-1">
           <Link
             href="/matches"
             className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
               activeScope === "all"
-                ? "bg-neutral-950 text-white shadow-sm"
-                : "text-neutral-500"
+                ? "bg-stone-950 text-white shadow-sm"
+                : "text-stone-500"
             }`}
           >
             Todos
@@ -85,8 +85,8 @@ export default function MatchesPage() {
             href="/matches?scope=mine"
             className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
               activeScope === "mine"
-                ? "bg-neutral-950 text-white shadow-sm"
-                : "text-neutral-500"
+                ? "bg-stone-950 text-white shadow-sm"
+                : "text-stone-500"
             }`}
           >
             Mis partidos
@@ -95,17 +95,17 @@ export default function MatchesPage() {
       </div>
 
       {isSeasonUpcoming ? (
-        <AppCard className="border border-neutral-200 bg-neutral-50/80 px-4 py-3">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+        <AppCard className="border border-stone-200 bg-stone-50/80 px-4 py-2.5">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-500">
             Temporada próximamente
           </p>
-          <p className="mt-1 text-sm font-semibold text-neutral-600">
+          <p className="mt-1 text-sm font-semibold text-stone-600">
             La temporada está creada, pero todavía no ha comenzado. Los partidos se desbloquearán al comenzar la temporada.
           </p>
           {canManageSeason ? (
             <Link
               href="/admin/season"
-              className="sl-primary-action mt-3 inline-flex rounded-2xl px-3 py-2 text-xs font-black"
+              className="sl-primary-action mt-3 inline-flex rounded-xl px-3 py-2 text-xs font-black"
             >
               Administrar temporada
             </Link>
@@ -114,7 +114,7 @@ export default function MatchesPage() {
       ) : null}
 
       {isSeasonClosed ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-500">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-500">
           <span className="min-w-0 truncate">
             Temporada terminada · {activeSeason.name}
           </span>
@@ -122,7 +122,7 @@ export default function MatchesPage() {
           {canManageSeason ? (
             <Link
               href="/admin/season"
-              className="shrink-0 font-black text-neutral-900 underline-offset-4 active:underline"
+              className="shrink-0 font-black text-stone-900 underline-offset-4 active:underline"
             >
               Gestionar
             </Link>
@@ -130,7 +130,7 @@ export default function MatchesPage() {
         </div>
       ) : null}
 
-      <div className="space-y-5">
+      <div className="space-y-3">
         {rounds.map((round) => {
           const roundMatches = visibleMatches.filter(
             (match) => match.round === round.round
@@ -162,7 +162,7 @@ export default function MatchesPage() {
                 ) : null}
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {roundMatches.map((match) => (
                   <MatchCard
                     key={match.id}

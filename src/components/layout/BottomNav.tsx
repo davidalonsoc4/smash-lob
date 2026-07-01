@@ -48,20 +48,10 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-neutral-200 bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.08)]"
-      style={{
-        minHeight: "72px",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-stone-200 bg-white/95 backdrop-blur"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div
-        className="grid w-full grid-cols-5 gap-2 bg-white px-3"
-        style={{
-          minHeight: "72px",
-          paddingTop: "7px",
-          paddingBottom: "7px",
-        }}
-      >
+      <div className="grid min-h-[60px] w-full grid-cols-5 gap-1 px-2 py-2">
         {navItems.map((item) => {
           const isActive = item.isActive(pathname)
 
@@ -71,12 +61,9 @@ export function BottomNav() {
               href={item.href}
               className={
                 isActive
-                  ? "flex items-center justify-center rounded-xl bg-neutral-950 px-1 text-center text-[11px] font-black text-white shadow-sm"
-                  : "flex items-center justify-center rounded-xl bg-white px-1 text-center text-[11px] font-black text-neutral-500 transition active:bg-neutral-100"
+                  ? "flex items-center justify-center rounded-lg bg-stone-950 px-1 text-center text-[11px] font-black text-white"
+                  : "flex items-center justify-center rounded-lg px-1 text-center text-[11px] font-black text-stone-500 transition active:bg-stone-100"
               }
-              style={{
-                minHeight: "52px",
-              }}
             >
               {item.label}
             </Link>

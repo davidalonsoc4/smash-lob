@@ -119,9 +119,9 @@ export default function ProfilePage() {
 
   if (!player || !selectedStats || !selectedScope) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <header className="pt-2">
-          <p className="text-sm font-medium text-neutral-500">
+          <p className="text-sm font-medium text-stone-500">
             {activeLeague.name} · {activeSeason.name}
           </p>
 
@@ -136,7 +136,7 @@ export default function ProfilePage() {
 
         <AppCard>
           <p className="font-bold">{t.profile.placeholderTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-stone-500">
             {t.profile.placeholderDescription}
           </p>
         </AppCard>
@@ -145,9 +145,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <header className="pt-2">
-        <p className="text-sm font-medium text-neutral-500">
+        <p className="text-sm font-medium text-stone-500">
           {activeLeague.name} · {selectedScope.label}
         </p>
 
@@ -228,7 +228,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-bold">{t.profile.matchHistoryTitle}</p>
-              <p className="mt-2 text-sm text-neutral-500">
+              <p className="mt-2 text-sm text-stone-500">
                 {t.profile.matchHistoryDescription}
               </p>
             </div>

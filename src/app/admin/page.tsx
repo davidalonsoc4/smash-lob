@@ -92,41 +92,41 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
   return (
     <AppCard>
       <p className="font-bold">Invitaciones</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-stone-500">
         Comparte el código o el enlace completo para que otro jugador pueda
         entrar en la liga y vincularse a su perfil.
       </p>
 
       <div className="mt-4 space-y-3">
-        <div className="rounded-2xl bg-neutral-100 p-4">
-          <p className="text-xs font-semibold uppercase text-neutral-500">
+        <div className="rounded-xl bg-stone-100 p-3">
+          <p className="text-xs font-semibold uppercase text-stone-500">
             Código de invitación
           </p>
-          <p className="mt-1 break-all text-sm font-black text-neutral-950">
+          <p className="mt-1 break-all text-sm font-black text-stone-950">
             {inviteCode || "Sin código disponible"}
           </p>
           <button
             type="button"
             onClick={() => copyValue(inviteCode, "Código copiado")}
             disabled={!inviteCode}
-            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="mt-3 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-black text-stone-800 disabled:text-stone-400"
           >
             Copiar código
           </button>
         </div>
 
-        <div className="rounded-2xl bg-neutral-100 p-4">
-          <p className="text-xs font-semibold uppercase text-neutral-500">
+        <div className="rounded-xl bg-stone-100 p-3">
+          <p className="text-xs font-semibold uppercase text-stone-500">
             Enlace de invitación
           </p>
-          <p className="mt-1 break-all text-sm font-black text-neutral-950">
+          <p className="mt-1 break-all text-sm font-black text-stone-950">
             {inviteUrl || "Sin enlace disponible"}
           </p>
           <button
             type="button"
             onClick={() => copyValue(inviteUrl, "Enlace copiado")}
             disabled={!inviteUrl}
-            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="mt-3 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-black text-stone-800 disabled:text-stone-400"
           >
             Copiar enlace
           </button>
@@ -137,13 +137,13 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         type="button"
         onClick={handleRegenerate}
         disabled={isRegenerating}
-        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-4 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isRegenerating ? "Regenerando..." : "Regenerar invitación"}
       </button>
 
       {copiedLabel ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-3 text-center text-sm font-semibold text-stone-600">
           {copiedLabel}
         </p>
       ) : null}
@@ -165,7 +165,7 @@ export default function AdminPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
@@ -176,7 +176,7 @@ export default function AdminPage() {
 
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-stone-500">
             {t.adminPanel.accessDeniedDescription}
           </p>
         </AppCard>
@@ -185,11 +185,11 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-4 text-sm font-medium text-stone-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
@@ -202,13 +202,13 @@ export default function AdminPage() {
         </p>
       </header>
 
-      <div className="space-y-5">
+      <div className="space-y-3">
         <Link href="/admin/league" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold">{t.adminPanel.leagueTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-2 text-sm text-stone-500">
                   {t.adminPanel.leagueDescription}
                 </p>
               </div>
@@ -223,7 +223,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold">{t.adminPanel.seasonTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-2 text-sm text-stone-500">
                   {t.adminPanel.seasonDescription}
                 </p>
               </div>
@@ -238,7 +238,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold">Administrar MVP</p>
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-2 text-sm text-stone-500">
                   Consulta los MVPs automáticos de cada jornada.
                 </p>
               </div>
@@ -253,7 +253,7 @@ export default function AdminPage() {
 
       <AppCard>
         <p className="font-bold">{t.adminPanel.futureTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-stone-500">
           {t.adminPanel.futureDescription}
         </p>
       </AppCard>
