@@ -194,8 +194,24 @@ export default function HelpPage() {
             description="No es punto de oro directo en cada 40-40. En los dos primeros 40-40 se juega con el sistema clásico de ventajas. Si el juego llega a un tercer 40-40, se juega un punto decisivo: quien gana ese punto, gana el juego."
           />
           <MiniCard
-            title="Tie-break"
-            description="Con 6-6 se juega tie-break. En la app se apunta el set como 7-6 para la pareja que lo gana."
+            title="Cuándo se juega el tie-break"
+            description="Si el set llega a 6-6, se juega un tie-break para decidir quién gana ese set. En la app se apunta como 7-6 para la pareja ganadora."
+          />
+          <MiniCard
+            title="Desde dónde se saca"
+            description="Empieza sacando el jugador al que le toque por el orden normal de saque. Ese primer punto se saca desde el lado derecho. Después, el siguiente jugador saca dos puntos: primero desde el lado izquierdo y luego desde el derecho."
+          />
+          <MiniCard
+            title="Cómo rota el saque"
+            description="Tras el primer punto, cada jugador saca dos puntos seguidos, manteniendo el orden normal de saque entre las cuatro personas. En cada turno de dos puntos se alterna izquierda y derecha."
+          />
+          <MiniCard
+            title="Cambios de lado"
+            description="Las parejas cambian de lado cada 6 puntos jugados: por ejemplo 3-3, 6-0, 6-6, 9-3. También se cambia de lado al terminar el tie-break si corresponde por el orden del partido."
+          />
+          <MiniCard
+            title="Cómo se gana"
+            description="Gana la primera pareja que llega a 7 puntos con al menos 2 de diferencia. Si queda 6-6, se sigue jugando hasta que alguien gane por dos: 8-6, 9-7, 10-8, etc."
           />
         </div>
       </HelpBlock>
