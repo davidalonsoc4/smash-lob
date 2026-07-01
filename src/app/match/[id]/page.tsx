@@ -138,14 +138,14 @@ export default function MatchDetailPage() {
         </p>
 
         <div className="mt-1 flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-black tracking-tight">
+          <h1 className="sl-page-title">
             {t.matchDetail.title}
           </h1>
 
           <MatchStatusBadge status={match.status} />
         </div>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 sl-page-subtitle">
           {t.matches.round} {match.round}
         </p>
       </header>

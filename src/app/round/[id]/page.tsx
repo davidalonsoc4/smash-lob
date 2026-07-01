@@ -38,10 +38,10 @@ export default function RoundDetailPage() {
         <p className="mt-4 text-sm font-medium text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 sl-page-title">
           Jornada {Number.isFinite(round) ? round : "—"}
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 sl-page-subtitle">
           Partidos y resultados de la jornada seleccionada.
         </p>
       </header>

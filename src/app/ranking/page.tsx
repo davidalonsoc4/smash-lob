@@ -14,17 +14,17 @@ export default function RankingPage() {
   const isSeasonClosed = activeSeason.status === "finished"
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 sl-page-title">
           {t.common.individualRanking}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 sl-page-subtitle">
           {t.ranking.description}
         </p>
       </header>

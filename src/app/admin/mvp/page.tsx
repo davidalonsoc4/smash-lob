@@ -79,7 +79,7 @@ export default function AdminMvpPage() {
       <div className="space-y-5">
         <header className="pt-2">
           <BackButton fallbackHref="/admin" label={t.common.back} />
-          <h1 className="mt-4 text-3xl font-black tracking-tight">
+          <h1 className="mt-4 sl-page-title">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -103,11 +103,11 @@ export default function AdminMvpPage() {
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 sl-page-title">
           Administrar MVP
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 sl-page-subtitle">
           Consulta los MVPs automáticos de jornada. El MVP final solo se mostrará cuando la temporada esté cerrada.
         </p>
       </header>

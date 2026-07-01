@@ -51,11 +51,11 @@ export default function NewLeaguePage() {
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-4 text-3xl font-black tracking-tight">
+          <h1 className="mt-4 sl-page-title">
             {t.newLeague.title}
           </h1>
 
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 sl-page-subtitle">
             La creación de ligas está limitada a usuarios autorizados. Puedes unirte a una liga existente con un código de invitación.
           </p>
         </header>
@@ -75,11 +75,11 @@ export default function NewLeaguePage() {
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <h1 className="mt-4 text-3xl font-black tracking-tight">
+        <h1 className="mt-4 sl-page-title">
           {t.newLeague.title}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 sl-page-subtitle">
           {t.newLeague.description}
         </p>
       </header>

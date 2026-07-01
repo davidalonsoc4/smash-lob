@@ -17,16 +17,16 @@ export function MatchStatusBadge({ status }: MatchStatusBadgeProps) {
   }
 
   const classNameByStatus: Record<string, string> = {
-    finished: "bg-neutral-950 text-white",
-    scheduled: "bg-neutral-100 text-neutral-800",
-    scheduling: "bg-neutral-100 text-neutral-800",
-    postponed: "bg-orange-100 text-orange-900",
+    finished: "border-neutral-300 bg-neutral-50 text-neutral-700",
+    scheduled: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    scheduling: "border-neutral-200 bg-neutral-50 text-neutral-600",
+    postponed: "border-orange-200 bg-orange-50 text-orange-900",
   }
 
   return (
     <p
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-        classNameByStatus[status] ?? "bg-neutral-100 text-neutral-800"
+      className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.08em] ${
+        classNameByStatus[status] ?? "border-neutral-200 bg-neutral-50 text-neutral-600"
       }`}
     >
       {labelByStatus[status] ?? status}

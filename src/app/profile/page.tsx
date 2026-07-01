@@ -119,13 +119,13 @@ export default function ProfilePage() {
 
   if (!player || !selectedStats || !selectedScope) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <p className="text-sm font-medium text-neutral-500">
             {activeLeague.name} · {activeSeason.name}
           </p>
 
-          <h1 className="mt-1 text-3xl font-black tracking-tight">
+          <h1 className="mt-1 sl-page-title">
             {t.profile.title}
           </h1>
         </header>
@@ -145,7 +145,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {selectedScope.label}
@@ -154,12 +154,12 @@ export default function ProfilePage() {
         <div className="mt-3 flex items-center gap-3">
           <PlayerAvatar player={player} size="lg" />
 
-          <h1 className="min-w-0 text-3xl font-black tracking-tight">
+          <h1 className="min-w-0 sl-page-title">
             {player.displayName}
           </h1>
         </div>
 
-        <p className="mt-3 text-sm text-neutral-500">
+        <p className="mt-3 sl-page-subtitle">
           {t.profile.description}
         </p>
       </header>
@@ -224,7 +224,7 @@ export default function ProfilePage() {
       />
 
       <Link href="/profile/matches">
-        <AppCard className="transition active:scale-[0.99]">
+        <AppCard className="sl-action-card pr-8 transition">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-bold">{t.profile.matchHistoryTitle}</p>
@@ -232,8 +232,6 @@ export default function ProfilePage() {
                 {t.profile.matchHistoryDescription}
               </p>
             </div>
-
-            <span className="text-xl">&gt;</span>
           </div>
         </AppCard>
       </Link>
