@@ -391,6 +391,7 @@ export const es = {
     connectedEmail: "Email conectado",
     joinNewExistingLeague: "Unirme a una nueva liga existente",
     avatarCustomActive: "Imagen personalizada activa.",
+    avatarGoogleFallback: "Se usa tu imagen de Google por defecto.",
     avatarInitialsFallback: "Se usan tus iniciales si no subes imagen.",
     uploadAvatar: "Subir imagen",
     removeAvatar: "Quitar imagen",

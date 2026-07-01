@@ -88,6 +88,7 @@ async function insertLeagueWithAvailableSlug({
 export async function createSupabaseLeague({
   creatorEmail,
   creatorName,
+  creatorAvatarUrl,
   leagueName,
   leagueDescription,
   leagueSlug,
@@ -95,6 +96,7 @@ export async function createSupabaseLeague({
 }: {
   creatorEmail: string
   creatorName?: string | null
+  creatorAvatarUrl?: string | null
   leagueName: string
   leagueDescription: string
   leagueSlug: string
@@ -104,6 +106,7 @@ export async function createSupabaseLeague({
   const creator = await upsertAppUser({
     email: normalizedCreatorEmail,
     displayName: creatorName,
+    avatarUrl: creatorAvatarUrl,
   })
   const league = await insertLeagueWithAvailableSlug({
     leagueSlug,

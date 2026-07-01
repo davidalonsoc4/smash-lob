@@ -370,6 +370,7 @@ export const en = {
     connectedEmail: "Connected email",
     joinNewExistingLeague: "Join another existing league",
     avatarCustomActive: "Custom image active.",
+    avatarGoogleFallback: "Your Google image is used by default.",
     avatarInitialsFallback: "Your initials are used if you do not upload an image.",
     uploadAvatar: "Upload image",
     removeAvatar: "Remove image",

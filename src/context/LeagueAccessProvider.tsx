@@ -434,6 +434,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   } = useSeasonSettings();
   const userId = normalizeUserId(session?.user?.email);
   const userDisplayName = session?.user?.name;
+  const userGoogleAvatarUrl = session?.user?.image ?? null;
   const [isSuperuserFromDb, setIsSuperuserFromDb] = useState(false);
   const [canCreateLeaguesFromDb, setCanCreateLeaguesFromDb] = useState(false);
   const isSuperuser = Boolean(userId) && isSuperuserFromDb;
@@ -483,6 +484,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         const appUser = await upsertAppUser({
           email: userId as string,
           displayName: userDisplayName,
+          avatarUrl: userGoogleAvatarUrl,
         });
 
         if (!isCancelled) {
@@ -541,7 +543,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     return () => {
       isCancelled = true;
     };
-  }, [hydrateMatches, hydrateSeasonSnapshot, userDisplayName, userId]);
+  }, [hydrateMatches, hydrateSeasonSnapshot, userDisplayName, userGoogleAvatarUrl, userId]);
 
   const persistMemberships = useCallback(
     (nextMemberships: UserLeagueMembership[]) => {
@@ -593,6 +595,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         const result = await createSupabaseLeague({
           creatorEmail: userId,
           creatorName: userDisplayName,
+          creatorAvatarUrl: userGoogleAvatarUrl,
           leagueName: name,
           leagueDescription: description,
           leagueSlug: slug,
@@ -647,6 +650,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       hydrateSeasonSnapshot,
       leagues,
       userDisplayName,
+      userGoogleAvatarUrl,
       userId,
     ],
   );
@@ -982,7 +986,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return true;
     },
-    [memberships, persistMemberships, userDisplayName, userId],
+    [memberships, persistMemberships, userDisplayName, userGoogleAvatarUrl, userId],
   );
 
   const fetchLeagueUsers = useCallback(async (leagueId: string) => {
@@ -1234,6 +1238,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           const result = await claimSupabasePlayer({
             email: userId,
             displayName: userDisplayName,
+            avatarUrl: userGoogleAvatarUrl,
             leagueId,
             playerId,
           });
@@ -1262,7 +1267,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return { ok: true, membership };
     },
-    [memberships, persistMemberships, userDisplayName, userId],
+    [memberships, persistMemberships, userDisplayName, userGoogleAvatarUrl, userId],
   );
 
   const linkCurrentUserToLeaguePlayer = useCallback(

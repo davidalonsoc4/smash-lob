@@ -190,7 +190,7 @@ function LeagueIdentityForm({
     <form onSubmit={handleSubmitDetails}>
       <AppCard>
         <p className="font-bold">Datos de la liga</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           Edita el nombre, la descripción y el logo que ven los jugadores.
         </p>
 
@@ -461,7 +461,7 @@ function LeagueLocationsForm({
     <form onSubmit={handleSubmit}>
       <AppCard>
         <p className="font-bold">{t.adminLeague.locationsTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           {t.adminLeague.locationsDescription}
         </p>
 
@@ -564,18 +564,18 @@ export default function AdminLeaguePage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-4">
+      <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-3 text-2xl font-black tracking-tight">
+          <h1 className="mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
 
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
             {t.adminPanel.accessDeniedDescription}
           </p>
         </AppCard>
@@ -584,19 +584,19 @@ export default function AdminLeaguePage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="compact-page space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
+        <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="mt-0.5 text-xl font-black tracking-tight">
           {t.adminLeague.title}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
           {t.adminLeague.description}
         </p>
       </header>

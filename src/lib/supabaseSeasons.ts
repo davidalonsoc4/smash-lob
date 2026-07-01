@@ -381,6 +381,7 @@ export async function startSupabaseSeason({
   selfPlayerValue,
   currentUserEmail,
   currentUserDisplayName,
+  currentUserAvatarUrl,
 }: {
   leagueId: string;
   activeSeasonId: string | null;
@@ -395,6 +396,7 @@ export async function startSupabaseSeason({
   selfPlayerValue?: string | null;
   currentUserEmail?: string | null;
   currentUserDisplayName?: string | null;
+  currentUserAvatarUrl?: string | null;
 }): Promise<{
   matches: MatchData[];
   seasonSnapshot: SeasonSnapshot;
@@ -411,6 +413,7 @@ export async function startSupabaseSeason({
     ? await upsertAppUser({
         email: normalizedCurrentUserEmail,
         displayName: currentUserDisplayName,
+        avatarUrl: currentUserAvatarUrl,
       })
     : null;
   const selectedNewPlayerIndex = selfPlayerValue

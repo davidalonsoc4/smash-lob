@@ -260,11 +260,13 @@ export async function fetchSupabaseInviteSnapshot(
 export async function claimSupabasePlayer({
   email,
   displayName,
+  avatarUrl,
   leagueId,
   playerId,
 }: {
   email: string
   displayName?: string | null
+  avatarUrl?: string | null
   leagueId: string
   playerId: string
 }): Promise<ClaimPlayerResult> {
@@ -272,6 +274,7 @@ export async function claimSupabasePlayer({
   const user = await upsertAppUser({
     email: normalizedEmail,
     displayName,
+    avatarUrl,
   })
 
   const { data: existingUserMembership, error: existingUserMembershipError } =

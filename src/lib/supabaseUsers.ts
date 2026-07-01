@@ -9,12 +9,41 @@ export type SupabaseAppUser = {
   can_create_leagues: boolean
 }
 
+function normalizeAvatarUrl(value: string | null | undefined) {
+  const cleanValue = value?.trim()
+
+  return cleanValue ? cleanValue : null
+}
+
+function isCustomUploadedAvatar(value: string | null | undefined) {
+  return normalizeAvatarUrl(value)?.startsWith("data:image/") ?? false
+}
+
+function resolveStoredAvatarUrl({
+  existingAvatarUrl,
+  googleAvatarUrl,
+}: {
+  existingAvatarUrl?: string | null
+  googleAvatarUrl?: string | null
+}) {
+  const cleanExistingAvatarUrl = normalizeAvatarUrl(existingAvatarUrl)
+  const cleanGoogleAvatarUrl = normalizeAvatarUrl(googleAvatarUrl)
+
+  if (isCustomUploadedAvatar(cleanExistingAvatarUrl)) {
+    return cleanExistingAvatarUrl
+  }
+
+  return cleanGoogleAvatarUrl ?? cleanExistingAvatarUrl ?? null
+}
+
 export async function upsertAppUser({
   email,
   displayName,
+  avatarUrl,
 }: {
   email: string
   displayName?: string | null
+  avatarUrl?: string | null
 }) {
   const normalizedEmail = email.trim().toLowerCase()
   const { data: existingUser, error: existingUserError } = await supabase
@@ -33,7 +62,10 @@ export async function upsertAppUser({
       {
         email: normalizedEmail,
         display_name: displayName ?? null,
-        avatar_url: existingUser?.avatar_url ?? null,
+        avatar_url: resolveStoredAvatarUrl({
+          existingAvatarUrl: existingUser?.avatar_url,
+          googleAvatarUrl: avatarUrl,
+        }),
         is_superuser: Boolean(existingUser?.is_superuser),
         can_create_leagues: Boolean(existingUser?.can_create_leagues),
       },

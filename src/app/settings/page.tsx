@@ -23,15 +23,33 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   }
 }
 
+function normalizeAvatarUrl(value: string | null | undefined) {
+  const cleanValue = value?.trim()
+
+  return cleanValue ? cleanValue : null
+}
+
+function isCustomUploadedAvatar(value: string | null | undefined) {
+  return normalizeAvatarUrl(value)?.startsWith("data:image/") ?? false
+}
+
 function AccountAvatarSettings() {
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { data: session } = useSession()
+  const googleAvatarUrl = normalizeAvatarUrl(session?.user?.image)
   const { updateLeaguePlayerAvatar } = useLeagueAccess()
   const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const effectiveAvatarUrl = normalizeAvatarUrl(avatarUrl) ?? googleAvatarUrl
+  const isUsingCustomAvatar = isCustomUploadedAvatar(avatarUrl)
+  const avatarStatusLabel = isUsingCustomAvatar
+    ? t.settings.avatarCustomActive
+    : effectiveAvatarUrl
+      ? t.settings.avatarGoogleFallback
+      : t.settings.avatarInitialsFallback
 
   async function saveAvatar(nextAvatarUrl: string | null) {
     setIsSaving(true)
@@ -106,7 +124,7 @@ function AccountAvatarSettings() {
         <PlayerAvatar
           player={{
             ...currentUser,
-            avatarUrl,
+            avatarUrl: effectiveAvatarUrl,
           }}
           size="md"
         />
@@ -119,7 +137,7 @@ function AccountAvatarSettings() {
             {session?.user?.email ?? t.settings.accountDescription}
           </p>
           <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-400">
-            {avatarUrl ? t.settings.avatarCustomActive : t.settings.avatarInitialsFallback}
+            {avatarStatusLabel}
           </p>
         </div>
       </div>
@@ -138,8 +156,8 @@ function AccountAvatarSettings() {
 
         <button
           type="button"
-          onClick={() => saveAvatar(null)}
-          disabled={isSaving || !avatarUrl}
+          onClick={() => saveAvatar(googleAvatarUrl)}
+          disabled={isSaving || !isUsingCustomAvatar}
           className="rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-300"
         >
           {t.settings.removeAvatar}
@@ -173,19 +191,19 @@ export default function SettingsPage() {
   const hasLeagues = userLeagues.length > 0
 
   return (
-    <div className="space-y-5">
-      <header className="pt-2">
+    <div className="compact-page space-y-3">
+      <header className="pt-1">
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="mt-0.5 text-xl font-black tracking-tight">
           {t.settings.title}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
           {t.settings.description}
         </p>
       </header>
@@ -209,7 +227,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-bold">{t.settings.helpTitle}</p>
-              <p className="mt-2 text-sm text-neutral-500">
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
                 {t.settings.helpDescription}
               </p>
             </div>
@@ -234,13 +252,13 @@ export default function SettingsPage() {
               role="switch"
               aria-checked={isAdminViewEnabled}
               onClick={() => setAdminViewEnabled(!isAdminViewEnabled)}
-              className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
                 isAdminViewEnabled ? "bg-neutral-950" : "bg-neutral-300"
               }`}
             >
               <span
-                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
-                  isAdminViewEnabled ? "left-7" : "left-1"
+                className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                  isAdminViewEnabled ? "left-6" : "left-1"
                 }`}
               />
             </button>
@@ -254,7 +272,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold">Mis ligas</p>
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
                   Liga activa: {activeLeague.name}. Cambia de liga desde una
                   pantalla propia con resumen de cada competición.
                 </p>
@@ -272,7 +290,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold">{t.settings.adminPanelTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
                   {t.settings.adminPanelDescription}
                 </p>
               </div>

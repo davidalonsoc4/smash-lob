@@ -386,6 +386,7 @@ export const eu = {
     connectedEmail: "Lotutako emaila",
     joinNewExistingLeague: "Lehendik dagoen beste liga batera sartu",
     avatarCustomActive: "Irudi pertsonalizatua aktibo.",
+    avatarGoogleFallback: "Googleko zure irudia erabiltzen da lehenespenez.",
     avatarInitialsFallback: "Irudirik igotzen ez baduzu, zure inizialak erabiliko dira.",
     uploadAvatar: "Irudia igo",
     removeAvatar: "Irudia kendu",

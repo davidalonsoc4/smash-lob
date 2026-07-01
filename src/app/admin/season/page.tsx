@@ -337,7 +337,7 @@ function InviteLinkCard({
   return (
     <AppCard>
       <p className="font-bold">{t.adminSeason.inviteTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         {t.adminSeason.inviteDescription.replace("{leagueName}", leagueName)}
       </p>
 
@@ -474,7 +474,7 @@ function RoundManagementPanel({
   return (
     <AppCard>
       <p className="font-bold">Gestión de jornadas</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         Control manual para activar, finalizar, reabrir o mover la jornada
         activa cuando haga falta.
       </p>
@@ -651,7 +651,7 @@ function RoundOrderPanel({
   return (
     <AppCard>
       <p className="font-bold">Orden de jornadas</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         Reordena las jornadas si el calendario ya creado no encaja. Al guardar,
         los partidos se renumeran con el nuevo orden.
       </p>
@@ -760,7 +760,7 @@ function SeasonPlayersStatus({
   return (
     <AppCard>
       <p className="font-bold">{t.adminSeason.activePlayersTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         {t.adminSeason.activePlayersDescription}
       </p>
 
@@ -858,7 +858,7 @@ function SeasonPlayerNamesPanel({
   return (
     <AppCard>
       <p className="font-bold">Nombres de jugadores</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         Corrige nombres mal escritos sin recrear la temporada ni tocar el
         calendario ya generado.
       </p>
@@ -993,7 +993,7 @@ function FinishSeasonPanel({
   return (
     <AppCard>
       <p className="font-bold">{t.adminSeason.finishTitle}</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         {t.adminSeason.finishDescription}
       </p>
 
@@ -1090,7 +1090,7 @@ function StartSeasonPanel({
   return (
     <AppCard>
       <p className="font-bold">Comenzar temporada</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         La temporada está creada, pero todavía no está activa. Al comenzar se
         desbloquean la programación de partidos y el registro de resultados.
       </p>
@@ -1183,7 +1183,7 @@ function ReopenSeasonPanel({
   return (
     <AppCard>
       <p className="font-bold">Reabrir temporada pasada</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         Úsalo solo si la temporada se cerró por error o necesitas corregir algún
         resultado. La temporada volverá a estar activa.
       </p>
@@ -1305,7 +1305,7 @@ function SeasonDangerZone({
   return (
     <AppCard>
       <p className="font-bold">Zona de eliminación</p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-1 text-xs font-semibold text-neutral-500">
         Permite borrar jornadas o temporadas completas si el calendario se creó
         mal. Es una acción destructiva.
       </p>
@@ -1593,6 +1593,7 @@ function NewSeasonForm({
       selfPlayerValue: selectedSelfPlayerValue,
       currentUserEmail: userId,
       currentUserDisplayName: session?.user?.name ?? null,
+      currentUserAvatarUrl: session?.user?.image ?? null,
     };
 
     setIsSaving(true);
@@ -1692,10 +1693,10 @@ function NewSeasonForm({
   }
 
   return (
-    <form onSubmit={handleStartSeason} className="space-y-4">
+    <form onSubmit={handleStartSeason} className="compact-page space-y-3">
       <AppCard>
         <p className="font-bold">{t.adminSeason.newSeasonTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           {isFirstLeagueSeason
             ? "Configura la Temporada 1 con sus jugadores, calendario y reglas antes de abrir invitaciones."
             : t.adminSeason.newSeasonDescription}
@@ -1755,7 +1756,7 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.seasonPlayersTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           {isFirstLeagueSeason
             ? "Añade los jugadores que formarán parte de esta primera temporada."
             : t.adminSeason.seasonPlayersDescription}
@@ -1911,7 +1912,7 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.calendarTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           {t.adminSeason.calendarDescription}
         </p>
 
@@ -2119,7 +2120,7 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.resultRulesTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           {t.adminSeason.resultRulesDescription}
         </p>
 
@@ -2147,7 +2148,7 @@ function NewSeasonForm({
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.roundWindowTitle}</p>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
           {t.adminSeason.newRoundWindowDescription}
         </p>
 
@@ -2265,18 +2266,18 @@ export default function AdminSeasonPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-4">
+      <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-3 text-2xl font-black tracking-tight">
+          <h1 className="mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
 
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
             {t.adminPanel.accessDeniedDescription}
           </p>
         </AppCard>
@@ -2285,15 +2286,15 @@ export default function AdminSeasonPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="compact-page space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
+        <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="mt-0.5 text-xl font-black tracking-tight">
           {isActiveSeason
             ? t.adminSeason.title
             : isUpcomingSeason
@@ -2301,7 +2302,7 @@ export default function AdminSeasonPage() {
               : t.adminSeason.newSeasonTitle}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
           {isActiveSeason
             ? t.adminSeason.description
             : isUpcomingSeason
