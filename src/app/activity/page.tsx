@@ -268,34 +268,34 @@ function ActivityEventCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-black text-stone-950">
+              <p className="truncate text-[13px] font-black text-neutral-950">
                 {event.title}
               </p>
-              <p className="mt-0.5 text-[11px] font-semibold text-stone-500">
+              <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                 {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
               </p>
             </div>
 
-            <p className="shrink-0 text-[11px] font-semibold text-stone-400">
+            <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
               {formatActivityDate(event.createdAt)}
             </p>
           </div>
 
           {description ? (
-            <p className="mt-2 whitespace-pre-line text-xs leading-snug text-stone-600">
+            <p className="mt-2 whitespace-pre-line text-xs leading-snug text-neutral-600">
               {description}
             </p>
           ) : null}
 
           {showMetadata ? (
-            <div className="mt-2 space-y-2 rounded-xl bg-stone-100 p-2.5">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-500">
+            <div className="mt-2 space-y-2 rounded-2xl bg-neutral-100 p-2.5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
                 {t.activity.adminMetadata}
               </p>
-              <p className="break-all text-xs font-semibold text-stone-500">
+              <p className="break-all text-xs font-semibold text-neutral-500">
                 {t.activity.adminEventType}: {event.type}
               </p>
-              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words text-xs font-semibold text-stone-600">
+              <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words text-xs font-semibold text-neutral-600">
                 {stringifyMetadata(event.metadata)}
               </pre>
             </div>
@@ -493,9 +493,9 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <header className="pt-2">
-        <p className="text-sm font-medium text-stone-500">
+        <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name}
         </p>
 
@@ -508,12 +508,12 @@ export default function ActivityPage() {
         </p>
       </header>
 
-      <div className={`grid gap-2 rounded-xl bg-stone-100 p-1 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
+      <div className={`grid gap-2 rounded-2xl bg-neutral-100 p-1 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
         <button
           type="button"
           onClick={() => setScope("all")}
           className={`rounded-xl px-3 py-2 text-sm font-black ${
-            effectiveScope === "all" ? "bg-white text-stone-950 shadow-sm" : "text-stone-500"
+            effectiveScope === "all" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
           {t.activity.general}
@@ -522,7 +522,7 @@ export default function ActivityPage() {
           type="button"
           onClick={() => setScope("mine")}
           className={`rounded-xl px-3 py-2 text-sm font-black ${
-            effectiveScope === "mine" ? "bg-white text-stone-950 shadow-sm" : "text-stone-500"
+            effectiveScope === "mine" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
           {t.activity.personal}
@@ -532,7 +532,7 @@ export default function ActivityPage() {
             type="button"
             onClick={() => setScope("admin")}
             className={`rounded-xl px-3 py-2 text-sm font-black ${
-              effectiveScope === "admin" ? "bg-white text-stone-950 shadow-sm" : "text-stone-500"
+              effectiveScope === "admin" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
             }`}
           >
             {t.activity.admin}
@@ -541,15 +541,15 @@ export default function ActivityPage() {
       </div>
 
       {effectiveScope === "admin" && canAccessAdmin ? (
-        <section className="space-y-3">
+        <section className="space-y-5">
           <AppCard className="p-0">
-            <div className="p-3">
+            <div className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-bold text-stone-950">
+                  <p className="font-bold text-neutral-950">
                     {t.activity.notificationSettingsTitle}
                   </p>
-                  <p className="mt-1 text-xs font-semibold text-stone-500">
+                  <p className="mt-1 text-xs font-semibold text-neutral-500">
                     {areSettingsExpanded
                       ? t.activity.notificationSettingsDescription
                       : t.activity.notificationSettingsCollapsedHint}
@@ -560,7 +560,7 @@ export default function ActivityPage() {
                   type="button"
                   onClick={() => setAreSettingsExpanded((current) => !current)}
                   aria-expanded={areSettingsExpanded}
-                  className="shrink-0 rounded-xl bg-stone-950 px-3 py-2 text-xs font-black text-white"
+                  className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
                 >
                   {areSettingsExpanded
                     ? t.activity.hideNotificationSettings
@@ -569,23 +569,23 @@ export default function ActivityPage() {
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="rounded-xl bg-stone-100 p-3 text-center">
-                <p className="text-lg font-black text-stone-950">
+                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+                <p className="text-lg font-black text-neutral-950">
                   {activitySettingsSummary.activity_only}
                 </p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-stone-500">
+                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
                   {t.activity.modeActivityOnlyShort}
                 </p>
                 </div>
-                <div className="rounded-xl bg-stone-100 p-3 text-center">
-                <p className="text-lg font-black text-stone-950">
+                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+                <p className="text-lg font-black text-neutral-950">
                   {activitySettingsSummary.personal}
                 </p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-stone-500">
+                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
                   {t.activity.modePersonalShort}
                 </p>
                 </div>
-                <div className="rounded-xl bg-stone-950 p-3 text-center text-white">
+                <div className="rounded-2xl bg-neutral-950 p-3 text-center text-white">
                 <p className="text-lg font-black">
                   {activitySettingsSummary.notify}
                 </p>
@@ -596,32 +596,32 @@ export default function ActivityPage() {
               </div>
 
               {areSettingsExpanded ? (
-                <p className="mt-3 text-xs font-semibold text-stone-500">
+                <p className="mt-3 text-xs font-semibold text-neutral-500">
                   {t.activity.notificationFutureHint}
                 </p>
               ) : null}
             </div>
 
             {areSettingsExpanded ? (
-              <div className="border-t border-stone-100 p-3">
+              <div className="border-t border-neutral-100 p-4">
                 {isSettingsLoading ? (
-                  <p className="text-sm font-semibold text-stone-500">
+                  <p className="text-sm font-semibold text-neutral-500">
                     {t.activity.loading}
                   </p>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="rounded-xl bg-stone-100 p-3">
-                      <p className="text-sm font-black text-stone-950">
+                  <div className="space-y-4">
+                    <div className="rounded-2xl bg-neutral-100 p-3">
+                      <p className="text-sm font-black text-neutral-950">
                         {t.activity.pushPreparationTitle}
                       </p>
-                      <p className="mt-1 text-xs font-semibold text-stone-500">
+                      <p className="mt-1 text-xs font-semibold text-neutral-500">
                         {t.activity.pushPreparationDescription}
                       </p>
                     </div>
 
                     {activityEventGroups.map((group) => (
                       <section key={group.category} className="space-y-3">
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-400">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
                           {t.activity.categoryLabels[group.category]}
                         </p>
 
@@ -631,25 +631,25 @@ export default function ActivityPage() {
                           return (
                             <div
                               key={eventType}
-                              className="rounded-xl border border-stone-200 p-3"
+                              className="rounded-2xl border border-neutral-200 p-3"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <p className="text-sm font-black text-stone-950">
+                                  <p className="text-sm font-black text-neutral-950">
                                     {t.activity.labels[eventType]}
                                   </p>
-                                  <p className="mt-1 break-all text-xs font-semibold text-stone-400">
+                                  <p className="mt-1 break-all text-xs font-semibold text-neutral-400">
                                     {eventType}
                                   </p>
                                 </div>
                                 {definition.pushReady ? (
-                                  <span className="shrink-0 rounded-full bg-stone-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+                                  <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
                                     {t.activity.pushReady}
                                   </span>
                                 ) : null}
                               </div>
 
-                              <p className="mt-2 text-xs font-semibold text-stone-500">
+                              <p className="mt-2 text-xs font-semibold text-neutral-500">
                                 {t.activity.personalScopeLabel}: {t.activity.personalScopeLabels[definition.personalScope]}
                               </p>
 
@@ -663,13 +663,13 @@ export default function ActivityPage() {
                                   }))
                                   setSettingsMessage(null)
                                 }}
-                                className="mt-3 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-bold text-stone-950 outline-none"
+                                className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
                               >
                                 <option value="activity_only">{t.activity.modeActivityOnly}</option>
                                 <option value="personal">{t.activity.modePersonal}</option>
                                 <option value="notify">{t.activity.modeNotify}</option>
                               </select>
-                              <p className="mt-2 text-xs text-stone-500">
+                              <p className="mt-2 text-xs text-neutral-500">
                                 <DeliveryModeLabel mode={normalizedDraftSettings[eventType]} />
                               </p>
                             </div>
@@ -684,7 +684,7 @@ export default function ActivityPage() {
                   type="button"
                   onClick={saveActivitySettings}
                   disabled={isSettingsLoading || isSettingsSaving}
-                  className="mt-4 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+                  className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
                 >
                   {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
                 </button>
@@ -692,12 +692,12 @@ export default function ActivityPage() {
             ) : null}
 
             {settingsMessage ? (
-              <p className="border-t border-stone-100 px-4 py-2.5 text-center text-sm font-semibold text-stone-600">
+              <p className="border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-neutral-600">
                 {settingsMessage}
               </p>
             ) : null}
             {settingsError ? (
-              <p className="border-t border-stone-100 px-4 py-2.5 text-center text-sm font-semibold text-red-600">
+              <p className="border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-red-600">
                 {settingsError}
               </p>
             ) : null}
@@ -713,19 +713,19 @@ export default function ActivityPage() {
                     setLastActivityError(readLastActivityError())
                     setRefreshKey((current) => current + 1)
                   }}
-                  className="text-sm font-semibold text-stone-600"
+                  className="text-sm font-semibold text-neutral-600"
                 >
                   {t.activity.refresh}
                 </button>
               }
             />
-            <p className="mb-3 text-sm text-stone-500">
+            <p className="mb-3 text-sm text-neutral-500">
               {t.activity.adminDescription}
             </p>
 
             {isLoading ? (
               <AppCard>
-                <p className="text-sm font-semibold text-stone-500">
+                <p className="text-sm font-semibold text-neutral-500">
                   {t.activity.loading}
                 </p>
               </AppCard>
@@ -734,14 +734,14 @@ export default function ActivityPage() {
             {error ? (
               <AppCard>
                 <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
-                <p className="mt-2 text-sm text-stone-500">{error}</p>
+                <p className="mt-2 text-sm text-neutral-500">{error}</p>
               </AppCard>
             ) : null}
 
             {!isLoading && !error && events.length === 0 ? (
               <AppCard>
                 <p className="font-bold">{t.activity.emptyGeneralTitle}</p>
-                <p className="mt-2 text-sm text-stone-500">
+                <p className="mt-2 text-sm text-neutral-500">
                   {t.activity.emptyGeneralDescription}
                 </p>
               </AppCard>
@@ -767,7 +767,7 @@ export default function ActivityPage() {
                   setLastActivityError(readLastActivityError())
                   setRefreshKey((current) => current + 1)
                 }}
-                className="text-sm font-semibold text-stone-600"
+                className="text-sm font-semibold text-neutral-600"
               >
                 {t.activity.refresh}
               </button>
@@ -776,7 +776,7 @@ export default function ActivityPage() {
 
           {isLoading ? (
             <AppCard>
-              <p className="text-sm font-semibold text-stone-500">
+              <p className="text-sm font-semibold text-neutral-500">
                 {t.activity.loading}
               </p>
             </AppCard>
@@ -785,7 +785,7 @@ export default function ActivityPage() {
           {error ? (
             <AppCard>
               <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
-              <p className="mt-2 text-sm text-stone-500">{error}</p>
+              <p className="mt-2 text-sm text-neutral-500">{error}</p>
             </AppCard>
           ) : null}
 
@@ -794,7 +794,7 @@ export default function ActivityPage() {
               <p className="font-bold">
                 {effectiveScope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
               </p>
-              <p className="mt-2 text-sm text-stone-500">
+              <p className="mt-2 text-sm text-neutral-500">
                 {effectiveScope === "mine"
                   ? t.activity.emptyPersonalDescription
                   : t.activity.emptyGeneralDescription}
@@ -805,7 +805,7 @@ export default function ActivityPage() {
           {!isLoading && !error && !hasEvents && lastActivityError ? (
             <AppCard>
               <p className="font-bold text-orange-800">{t.activity.lastErrorTitle}</p>
-              <p className="mt-2 break-words text-xs font-semibold text-stone-500">
+              <p className="mt-2 break-words text-xs font-semibold text-neutral-500">
                 {lastActivityError}
               </p>
             </AppCard>

@@ -36,25 +36,25 @@ function SettingsSection({
   children,
 }: SettingsSectionProps) {
   return (
-    <section className="space-y-2">
+    <section className="space-y-3">
       <div>
         {eyebrow ? (
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-stone-400">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="mt-1 text-[15px] font-black tracking-tight text-stone-950">
+        <h2 className="mt-1 text-lg font-black tracking-tight text-neutral-950">
           {title}
         </h2>
         {description ? (
-          <p className="mt-0.5 text-xs font-semibold leading-snug text-stone-500">
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
             {description}
           </p>
         ) : null}
       </div>
 
       <AppCard className="p-0">
-        <div className="divide-y divide-stone-100">{children}</div>
+        <div className="divide-y divide-neutral-100">{children}</div>
       </AppCard>
     </section>
   );
@@ -80,24 +80,24 @@ function SettingsRow({
   tone = "default",
 }: SettingsRowProps) {
   const content = (
-    <div className="flex items-center justify-between gap-3 p-3">
+    <div className="flex items-center justify-between gap-3 p-4">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p
             className={`text-sm font-black ${
-              tone === "danger" ? "text-red-700" : "text-stone-950"
+              tone === "danger" ? "text-red-700" : "text-neutral-950"
             }`}
           >
             {title}
           </p>
           {meta ? (
-            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-stone-500">
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
               {meta}
             </span>
           ) : null}
         </div>
         {description ? (
-          <p className="mt-0.5 text-xs font-semibold leading-snug text-stone-500">
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
             {description}
           </p>
         ) : null}
@@ -108,7 +108,7 @@ function SettingsRow({
         <span
           aria-hidden="true"
           className={`text-lg font-black ${
-            tone === "primary" ? "text-stone-950" : "text-stone-300"
+            tone === "primary" ? "text-neutral-950" : "text-neutral-300"
           }`}
         >
           &gt;
@@ -208,7 +208,7 @@ function AccountAvatarSettings() {
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3">
+    <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
       <div className="flex items-center gap-3">
         <PlayerAvatar
           player={{
@@ -219,13 +219,13 @@ function AccountAvatarSettings() {
         />
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-black text-stone-950">
+          <p className="truncate text-sm font-black text-neutral-950">
             {currentUser.displayName}
           </p>
-          <p className="mt-0.5 truncate text-xs font-semibold text-stone-500">
+          <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
             {session?.user?.email ?? t.settings.accountDescription}
           </p>
-          <p className="mt-0.5 truncate text-[11px] font-semibold text-stone-400">
+          <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-400">
             {avatarUrl
               ? t.settings.avatarCustomActive
               : "Se mostrará el icono genérico si no subes imagen."}
@@ -234,7 +234,7 @@ function AccountAvatarSettings() {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="block rounded-xl bg-white px-3 py-2 text-center text-xs font-black text-stone-800 ">
+        <label className="block rounded-2xl bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-800 shadow-sm">
           {isSaving ? t.common.saving : t.settings.uploadAvatar}
           <input
             type="file"
@@ -249,7 +249,7 @@ function AccountAvatarSettings() {
           type="button"
           onClick={() => saveAvatar(null)}
           disabled={isSaving || !avatarUrl}
-          className="rounded-xl bg-white px-3 py-2 text-xs font-black text-stone-800  disabled:text-stone-300"
+          className="rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-300"
         >
           {t.settings.removeAvatar}
         </button>
@@ -286,7 +286,7 @@ function AdminViewSwitch({
       }`}
     >
       <span
-        className={`absolute top-1 h-6 w-6 rounded-full bg-white  transition ${
+        className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
           checked ? "left-7" : "left-1"
         }`}
       />
@@ -312,23 +312,23 @@ export default function SettingsPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
-        <div className="mt-4 rounded-3xl border border-stone-200 bg-white p-4 shadow-[0_2px_12px_rgba(15,23,42,0.06)]">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-stone-400">
+        <div className="mt-4 rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_2px_12px_rgba(15,23,42,0.06)]">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
             Ajustes
           </p>
-          <h1 className="mt-1 text-3xl font-black tracking-tight text-stone-950">
+          <h1 className="mt-1 text-3xl font-black tracking-tight text-neutral-950">
             Organiza tu cuenta
           </h1>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-stone-500">
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
             Gestiona cuenta, ligas, preferencias y herramientas de administración
             desde una pantalla más compacta.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-neutral-700">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
               {activeLeague.name}
             </span>
-            <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-neutral-700">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
               {activeSeason.name}
             </span>
           </div>
@@ -356,7 +356,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="rounded-xl bg-red-50 px-4 py-2 text-xs font-black text-red-700"
+              className="rounded-2xl bg-red-50 px-4 py-2.5 text-xs font-black text-red-700"
             >
               Salir
             </button>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
             title="Crear nuevas ligas"
             description="Esta cuenta puede participar en ligas, pero no tiene permiso para crear ligas nuevas."
             action={
-              <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-stone-500">
+              <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
                 No disponible
               </span>
             }

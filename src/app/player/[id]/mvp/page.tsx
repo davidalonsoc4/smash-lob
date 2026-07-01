@@ -40,11 +40,11 @@ export default function PlayerMvpMatchesPage() {
     : []
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref={player ? `/player/${player.slug}` : "/ranking"} label="Volver" />
 
-        <p className="mt-4 text-sm font-medium text-stone-500">
+        <p className="mt-4 text-sm font-medium text-neutral-500">
           {activeLeague.name}
         </p>
 
@@ -62,7 +62,7 @@ export default function PlayerMvpMatchesPage() {
       </header>
 
       <AppCard>
-        <p className="text-sm font-semibold text-stone-500">
+        <p className="text-sm font-semibold text-neutral-500">
           Aquí aparecen los partidos en los que este jugador formó parte de la pareja MVP de la jornada.
         </p>
         <p className="mt-2 text-2xl font-black">{mvpMatches.length}</p>
@@ -70,7 +70,7 @@ export default function PlayerMvpMatchesPage() {
 
       {mvpMatches.length === 0 ? (
         <AppCard>
-          <p className="text-sm font-semibold text-stone-500">
+          <p className="text-sm font-semibold text-neutral-500">
             Todavía no hay partidos MVP para este jugador.
           </p>
         </AppCard>

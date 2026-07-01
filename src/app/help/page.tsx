@@ -26,14 +26,14 @@ function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
   return (
     <AppCard className="space-y-3">
       {eyebrow ? (
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="text-xl font-black tracking-tight text-stone-950">
+      <h2 className="text-xl font-black tracking-tight text-neutral-950">
         {title}
       </h2>
-      <div className="space-y-3 text-sm leading-relaxed text-stone-600">
+      <div className="space-y-3 text-sm leading-relaxed text-neutral-600">
         {children}
       </div>
     </AppCard>
@@ -42,9 +42,9 @@ function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
 
 function MiniCard({ title, description }: MiniCardProps) {
   return (
-    <div className="rounded-xl bg-stone-100 px-4 py-2.5">
-      <p className="text-sm font-black text-stone-950">{title}</p>
-      <p className="mt-1 text-xs font-semibold leading-relaxed text-stone-500">
+    <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+      <p className="text-sm font-black text-neutral-950">{title}</p>
+      <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
         {description}
       </p>
     </div>
@@ -53,12 +53,12 @@ function MiniCard({ title, description }: MiniCardProps) {
 
 function SummaryItem({ label, title, description }: SummaryItemProps) {
   return (
-    <div className="rounded-xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-neutral-100">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-stone-400">
+    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-neutral-100">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
         {label}
       </p>
-      <p className="mt-1 text-sm font-black text-stone-950">{title}</p>
-      <p className="mt-1 text-xs font-semibold leading-relaxed text-stone-500">
+      <p className="mt-1 text-sm font-black text-neutral-950">{title}</p>
+      <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
         {description}
       </p>
     </div>
@@ -67,9 +67,9 @@ function SummaryItem({ label, title, description }: SummaryItemProps) {
 
 function RuleRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-stone-100 py-2.5 last:border-b-0">
-      <p className="text-sm font-black text-stone-900">{label}</p>
-      <p className="max-w-[62%] text-right text-sm font-semibold text-stone-500">
+    <div className="flex items-start justify-between gap-4 border-b border-neutral-100 py-3 last:border-b-0">
+      <p className="text-sm font-black text-neutral-900">{label}</p>
+      <p className="max-w-[62%] text-right text-sm font-semibold text-neutral-500">
         {value}
       </p>
     </div>
@@ -81,11 +81,11 @@ export default function HelpPage() {
   const { activeLeague, activeSeason } = useCurrentLeagueData()
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-stone-500">
+        <p className="mt-4 text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
@@ -93,20 +93,20 @@ export default function HelpPage() {
           Ayuda y conceptos básicos
         </h1>
 
-        <p className="mt-2 text-sm leading-relaxed text-stone-500">
+        <p className="mt-2 text-sm leading-relaxed text-neutral-500">
           Guía rápida para entender el formato de la liga, la puntuación, los estados de los partidos y los MVPs.
         </p>
       </header>
 
-      <AppCard className="space-y-3">
+      <AppCard className="space-y-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-400">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
             Resumen rápido
           </p>
-          <h2 className="mt-2 text-xl font-black tracking-tight text-stone-950">
+          <h2 className="mt-2 text-xl font-black tracking-tight text-neutral-950">
             Lo importante de un vistazo
           </h2>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-stone-500">
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
             Smash & Lob está pensada para una liga individual aunque los partidos se jueguen por parejas. La clasificación premia la regularidad durante toda la temporada.
           </p>
         </div>
@@ -148,7 +148,7 @@ export default function HelpPage() {
       </HelpBlock>
 
       <HelpBlock eyebrow="Puntuación" title="Cómo se suman los puntos">
-        <div className="rounded-xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
+        <div className="rounded-2xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
           <RuleRow label="Partido 3-0" value="3 puntos para cada jugador de la pareja ganadora" />
           <RuleRow label="Partido 2-1" value="2 puntos para la pareja ganadora y 1 para la perdedora" />
           <RuleRow label="Desempates" value="Primero puntos, después juegos y diferencia de juegos" />
@@ -179,7 +179,7 @@ export default function HelpPage() {
       </HelpBlock>
 
       <HelpBlock eyebrow="Partidos" title="Estados de un partido">
-        <div className="rounded-xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
+        <div className="rounded-2xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
           <RuleRow label="Sin fecha" value="El partido existe, pero todavía no está cerrado cuándo se juega" />
           <RuleRow label="Programado" value="Tiene fecha, hora o lugar asignado" />
           <RuleRow label="Aplazado" value="Se ha marcado como pendiente de recolocar" />
@@ -220,7 +220,7 @@ export default function HelpPage() {
         <p>
           El MVP de jornada se calcula automáticamente cuando todos los partidos de esa jornada están terminados. El MVP de temporada sale de los MVPs de jornada acumulados.
         </p>
-        <p className="rounded-xl bg-stone-100 p-3 text-xs font-bold text-stone-600">
+        <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
           Si hay empate real, la app puede mostrar MVP compartido.
         </p>
       </HelpBlock>

@@ -24,7 +24,7 @@ function MvpPlayerLine({
   helper: string
 }) {
   return (
-    <div className="mt-4 flex items-center gap-3 rounded-xl bg-stone-100 p-3">
+    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-neutral-100 p-3">
       <div className="flex -space-x-2">
         {players.length > 0 ? (
           players.slice(0, 4).map((player) => (
@@ -32,7 +32,7 @@ function MvpPlayerLine({
               key={player.id}
               player={player}
               size="md"
-              className="border-2 border-stone-100"
+              className="border-2 border-neutral-100"
             />
           ))
         ) : (
@@ -40,15 +40,15 @@ function MvpPlayerLine({
         )}
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-stone-500">
+        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-500">
           {label}
         </p>
-        <p className="truncate text-base font-black text-stone-950">
+        <p className="truncate text-base font-black text-neutral-950">
           {players.length > 0
             ? players.map((player) => player.displayName).join(" / ")
             : "Pendiente"}
         </p>
-        <p className="text-xs font-semibold text-stone-500">{helper}</p>
+        <p className="text-xs font-semibold text-neutral-500">{helper}</p>
       </div>
     </div>
   )
@@ -76,7 +76,7 @@ export default function AdminMvpPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-5">
         <header className="pt-2">
           <BackButton fallbackHref="/admin" label={t.common.back} />
           <h1 className="mt-4 sl-page-title">
@@ -86,7 +86,7 @@ export default function AdminMvpPage() {
 
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-2 text-sm text-neutral-500">
             {t.adminPanel.accessDeniedDescription}
           </p>
         </AppCard>
@@ -95,11 +95,11 @@ export default function AdminMvpPage() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-stone-500">
+        <p className="mt-4 text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
@@ -115,7 +115,7 @@ export default function AdminMvpPage() {
       {isSeasonClosed ? (
         <AppCard>
           <p className="font-bold">MVP final de temporada</p>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-2 text-sm text-neutral-500">
             Se calcula automáticamente con el jugador que más MVPs de jornada acumula. Si hay empate, la app mantiene co-MVPs en vez de inventar un desempate.
           </p>
 
@@ -133,7 +133,7 @@ export default function AdminMvpPage() {
 
       <AppCard>
         <p className="font-bold">MVPs por jornada</p>
-        <p className="mt-2 text-sm text-stone-500">
+        <p className="mt-2 text-sm text-neutral-500">
           El MVP de jornada se calcula al registrar el último resultado pendiente de esa jornada. Gana la pareja vencedora con mejor diferencia de juegos.
         </p>
 
@@ -154,17 +154,17 @@ export default function AdminMvpPage() {
               return (
                 <div
                   key={round}
-                  className="rounded-xl border border-stone-200 p-3"
+                  className="rounded-2xl border border-neutral-200 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-black">Jornada {round}</p>
-                      <p className="mt-1 text-xs font-semibold text-stone-500">
+                      <p className="mt-1 text-xs font-semibold text-neutral-500">
                         Jornada completa
                       </p>
                     </div>
 
-                    <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-700">
+                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
                       Auto
                     </span>
                   </div>
@@ -183,7 +183,7 @@ export default function AdminMvpPage() {
             })}
           </div>
         ) : (
-          <p className="mt-4 rounded-xl bg-stone-100 p-3 text-sm font-semibold text-stone-500">
+          <p className="mt-4 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-500">
             No hay jornadas completas todavía.
           </p>
         )}

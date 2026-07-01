@@ -110,7 +110,7 @@ export default function PlayerPage() {
 
   if (!player || !selectedStats || !selectedScope) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-5">
         <header className="pt-2">
           <BackButton fallbackHref="/ranking" label={t.common.back} />
         </header>
@@ -123,11 +123,11 @@ export default function PlayerPage() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref="/ranking" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-stone-500">
+        <p className="mt-4 text-sm font-medium text-neutral-500">
           {activeLeague.name} · {selectedScope.label}
         </p>
 

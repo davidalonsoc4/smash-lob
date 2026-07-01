@@ -14,9 +14,9 @@ export default function RankingPage() {
   const isSeasonClosed = activeSeason.status === "finished"
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <header className="pt-2">
-        <p className="text-sm font-medium text-stone-500">
+        <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
@@ -30,7 +30,7 @@ export default function RankingPage() {
       </header>
 
       {isSeasonClosed ? (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-500">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-500">
           <span className="min-w-0 truncate">
             Temporada terminada · {activeSeason.name}
           </span>
@@ -38,7 +38,7 @@ export default function RankingPage() {
           {canManageSeason ? (
             <Link
               href="/admin/season"
-              className="shrink-0 font-black text-stone-900 underline-offset-4 active:underline"
+              className="shrink-0 font-black text-neutral-900 underline-offset-4 active:underline"
             >
               Gestionar
             </Link>

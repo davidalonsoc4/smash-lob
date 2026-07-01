@@ -88,24 +88,24 @@ function PlayerAwardCard({
 
   return (
     <AppCard className="overflow-hidden p-0">
-      <div className="border-b border-stone-100 bg-white px-3 py-3">
+      <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-4 py-3 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-stone-400">
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
               {eyebrow}
             </p>
-            <h2 className="mt-1 text-lg font-black tracking-tight text-stone-950">
+            <h2 className="mt-1 text-xl font-black tracking-tight">
               {title}
             </h2>
           </div>
 
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-950 text-sm font-black text-white">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-black text-neutral-950">
             {badge}
           </div>
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-4">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-3">
             {players.slice(0, 3).map((player) => (
@@ -118,14 +118,14 @@ function PlayerAwardCard({
                 <PlayerAvatar
                   player={player}
                   size="lg"
-                  className="border-2 border-white bg-stone-950 text-white"
+                  className="border-2 border-white bg-neutral-950 text-white"
                 />
               </Link>
             ))}
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-black text-stone-950">
+            <p className="truncate text-2xl font-black text-neutral-950">
               {players.map((player, index) => (
                 <span key={player.id}>
                   <Link
@@ -144,21 +144,21 @@ function PlayerAwardCard({
             inlineStatHref ? (
               <Link
                 href={inlineStatHref}
-                className="sl-action-card shrink-0 rounded-xl bg-white px-3 py-2 pr-7 text-center transition"
+                className="sl-action-card shrink-0 rounded-2xl bg-white px-4 py-3 pr-8 text-center transition"
               >
-                <p className="text-base font-black text-stone-950">
+                <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-stone-500">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
                   {inlineStat.label}
                 </p>
               </Link>
             ) : (
-              <div className="shrink-0 rounded-xl bg-stone-100 px-3 py-2 text-center">
-                <p className="text-base font-black text-stone-950">
+              <div className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center">
+                <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-stone-500">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
                   {inlineStat.label}
                 </p>
               </div>
@@ -167,13 +167,13 @@ function PlayerAwardCard({
         </div>
 
         {stats && stats.length > 0 ? (
-          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
             {stats.map((stat) => (
-              <div key={stat.label} className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1.5">
-                <p className="text-base font-black text-stone-950">
+              <div key={stat.label} className="rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-2">
+                <p className="text-lg font-black text-neutral-950">
                   {stat.value}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-stone-500">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
                   {stat.label}
                 </p>
               </div>
@@ -327,7 +327,7 @@ export default function Home() {
   }
 
   return (
-    <div className="grid gap-1.5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeSeason.name}
@@ -347,14 +347,14 @@ export default function Home() {
       </header>
 
       {isSeasonUpcoming ? (
-        <AppCard className="border border-stone-200 bg-stone-50">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-stone-500">
+        <AppCard className="border border-neutral-200 bg-neutral-50/80">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
             Temporada próximamente
           </p>
-          <p className="mt-1 text-sm font-black text-stone-950">
+          <p className="mt-2 font-bold text-neutral-950">
             {activeSeason.name} está creada, pero todavía no ha comenzado.
           </p>
-          <p className="mt-1 text-xs font-semibold text-stone-500">
+          <p className="mt-2 text-sm text-neutral-500">
             Mientras esté en este estado no se pueden programar partidos ni registrar resultados.
           </p>
 
@@ -364,7 +364,7 @@ export default function Home() {
                 type="button"
                 onClick={handleStartUpcomingSeason}
                 disabled={isStartingSeason}
-                className="sl-primary-action mt-3 block w-full rounded-xl px-4 py-2.5 text-center text-sm font-black disabled:bg-stone-300"
+                className="sl-primary-action mt-4 block w-full rounded-2xl px-4 py-3 text-center text-sm font-black disabled:bg-neutral-300"
               >
                 {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
               </button>
@@ -381,7 +381,7 @@ export default function Home() {
 
       {isSeasonClosed ? (
         leader ? (
-          <div className="grid gap-1.5">
+          <div className="space-y-4">
             <PlayerAwardCard
               eyebrow={t.dashboard.closedSeasonTitle}
               title={t.dashboard.seasonWinner.replace(
@@ -418,7 +418,7 @@ export default function Home() {
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="sl-primary-action block rounded-xl px-4 py-2.5 text-center text-sm font-black"
+                className="sl-primary-action block rounded-2xl px-4 py-3 text-center text-sm font-black"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -430,7 +430,7 @@ export default function Home() {
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="sl-primary-action mt-3 block rounded-xl px-4 py-2.5 text-center text-sm font-black"
+                className="sl-primary-action mt-4 block rounded-2xl px-4 py-3 text-center text-sm font-black"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -440,7 +440,7 @@ export default function Home() {
       ) : null}
 
       {!isSeasonClosed && !isSeasonUpcoming ? (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <StatCard
             label={t.dashboard.leader}
             value={hasMeaningfulResults && leader ? leader.displayName : "-"}
@@ -493,22 +493,22 @@ export default function Home() {
           />
 
           <AppCard>
-            <div className="grid gap-1.5">
+            <div className="space-y-3">
               {rankingPreviewPlayers.map((player, index) => (
                 <div
                   key={player.id}
-                  className={`flex items-center justify-between gap-3 rounded-lg py-1.5 pl-2 pr-2 ${
+                  className={`flex items-center justify-between gap-3 rounded-2xl py-1.5 pl-2 pr-3 ${
                     player.id === currentUserId ? "bg-neutral-100" : ""
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-100 text-xs font-black">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-sm font-bold">
                       {rankingPreviewStart + index + 1}
                     </div>
 
                     <div>
-                      <p className="text-sm font-black">{player.displayName}</p>
-                      <p className="text-[11px] font-semibold text-stone-500">
+                      <p className="font-semibold">{player.displayName}</p>
+                      <p className="text-xs text-neutral-500">
                         {t.ranking.gamesDiff}:{" "}
                         {player.gamesDiff > 0 ? "+" : ""}
                         {player.gamesDiff}
@@ -516,7 +516,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <p className="min-w-6 text-right text-base font-black">
+                  <p className="min-w-6 text-right text-lg font-black">
                     {player.points}
                   </p>
                 </div>
@@ -531,24 +531,24 @@ export default function Home() {
           <SectionHeader title={t.dashboard.lastMatch} />
 
           <Link href={`/match/${lastMatch.id}`}>
-            <AppCard className="sl-action-card pr-8 transition">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-[11px] font-black uppercase tracking-[0.1em] text-stone-400">
+            <AppCard className="transition active:scale-[0.99]">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold text-neutral-500">
                   {t.matches.round} {lastMatch.round}
                 </p>
 
                 <MatchStatusBadge status={lastMatch.status} />
               </div>
 
-              <div className="grid gap-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between gap-4">
                   <TeamPlayers
                     playerIds={lastMatch.teamA}
                     players={players}
                     highlightedPlayerIds={lastMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-sm font-black"
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
                   />
-                  <p className="text-lg font-black">{lastMatch.pointsA}</p>
+                  <p className="text-xl font-black">{lastMatch.pointsA}</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
@@ -556,24 +556,24 @@ export default function Home() {
                     playerIds={lastMatch.teamB}
                     players={players}
                     highlightedPlayerIds={lastMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-sm font-black"
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
                   />
-                  <p className="text-lg font-black">{lastMatch.pointsB}</p>
+                  <p className="text-xl font-black">{lastMatch.pointsB}</p>
                 </div>
               </div>
 
-              <div className="mt-2 flex gap-1 text-[11px] font-bold text-stone-600">
+              <div className="mt-4 flex gap-2 text-sm text-neutral-600">
                 {lastMatch.sets.map((set, index) => (
                   <span
                     key={index}
-                    className="rounded-md border border-stone-200 bg-stone-50 px-1.5 py-0.5"
+                    className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"
                   >
                     {set.a}-{set.b}
                   </span>
                 ))}
               </div>
 
-              <p className="mt-3 text-[11px] font-semibold text-stone-500">
+              <p className="mt-3 text-xs text-neutral-500">
                 {lastMatch.dateLabel} · {lastMatch.location}
               </p>
             </AppCard>
@@ -586,32 +586,32 @@ export default function Home() {
           <SectionHeader title={t.dashboard.nextMatch} />
 
           <Link href={`/match/${nextMatch.id}`}>
-            <AppCard className="sl-action-card pr-8 transition">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-[11px] font-black uppercase tracking-[0.1em] text-stone-400">
+            <AppCard className="transition active:scale-[0.99]">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold text-neutral-500">
                   {t.matches.round} {nextMatch.round}
                 </p>
 
                 <MatchStatusBadge status={nextMatch.status} />
               </div>
 
-              <div className="grid gap-1.5">
+              <div className="space-y-2">
                 <TeamPlayers
                   playerIds={nextMatch.teamA}
                   players={players}
                   highlightedPlayerIds={nextMatchHighlightedPlayerIds}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-sm font-black"
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
                 />
                 <p className="text-sm text-neutral-500">{t.common.versus}</p>
                 <TeamPlayers
                   playerIds={nextMatch.teamB}
                   players={players}
                   highlightedPlayerIds={nextMatchHighlightedPlayerIds}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-sm font-black"
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
                 />
               </div>
 
-              <div className="mt-2 rounded-lg border border-dashed border-stone-300 bg-stone-50 px-2.5 py-2">
+              <div className="mt-4 rounded-xl border border-dashed border-neutral-300 p-3">
                 <p className="text-sm font-semibold">
                   {nextMatch.dateLabel ??
                     (nextMatch.status === "postponed"
@@ -619,7 +619,7 @@ export default function Home() {
                       : t.dashboard.addSchedule)}
                 </p>
 
-                <p className="mt-1 text-[11px] font-semibold text-stone-500">
+                <p className="mt-1 text-xs text-neutral-500">
                   {nextMatch.location ??
                     (nextMatch.status === "postponed"
                       ? t.matches.needsReschedule

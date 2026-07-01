@@ -26,7 +26,17 @@ function formatSigned(value: number) {
 }
 
 function getPositionLabel(index: number) {
-  return `${index + 1}`
+  if (index === 0) return "1º"
+  if (index === 1) return "2º"
+  if (index === 2) return "3º"
+  return `${index + 1}º`
+}
+
+function getMedalClass(index: number) {
+  if (index === 0) return "bg-neutral-950 text-white"
+  if (index === 1) return "bg-neutral-200 text-neutral-950"
+  if (index === 2) return "bg-neutral-100 text-neutral-900"
+  return "bg-white text-neutral-500"
 }
 
 export function RankingTable({ players }: RankingTableProps) {
@@ -41,55 +51,49 @@ export function RankingTable({ players }: RankingTableProps) {
   return (
     <section className="space-y-2">
       <AppCard className="overflow-hidden p-0">
-        <div className="grid grid-cols-[minmax(0,1fr)_2.4rem_2.8rem_3rem] items-center gap-1 border-b border-stone-100 bg-stone-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.11em] text-stone-400">
+        <div className="grid grid-cols-[minmax(0,1fr)_3rem_3rem_2.7rem] items-center gap-1 border-b border-neutral-100 bg-neutral-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
           <span>Jugador</span>
           <span className="text-right">Pts</span>
           <span className="text-right">Dif</span>
-          <span className="text-right">J</span>
+          <span className="text-right">Juegos</span>
         </div>
 
-        <div className="divide-y divide-stone-100">
+        <div className="divide-y divide-neutral-100">
           {sortedPlayers.map((player, index) => (
             <Link
               key={player.id}
               href={`/player/${player.slug}`}
-              aria-label={`${index + 1}º ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
-              className="grid grid-cols-[minmax(0,1fr)_2.4rem_2.8rem_3rem] items-center gap-1 px-3 py-2 transition hover:bg-stone-50 active:bg-stone-100"
+              aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
+              className="grid grid-cols-[minmax(0,1fr)_3rem_3rem_2.7rem] items-center gap-1 px-3 py-2.5 transition active:bg-neutral-50"
             >
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${
-                    index === 0
-                      ? "bg-stone-950 text-white"
-                      : index < 3
-                        ? "bg-stone-100 text-stone-950"
-                        : "bg-white text-stone-400"
-                  }`}
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-[11px] font-black ${getMedalClass(index)}`}
                 >
                   {getPositionLabel(index)}
-                </span>
+                </div>
 
                 <PlayerAvatar player={player} size="sm" />
 
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black leading-tight text-stone-950">
+                  <p className="truncate text-sm font-black leading-tight text-neutral-950">
                     {player.displayName}
                   </p>
-                  <p className="mt-0.5 text-[10px] font-semibold text-stone-400">
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-400">
                     {player.gamesFor} favor · {player.gamesAgainst} contra
                   </p>
                 </div>
               </div>
 
-              <p className="text-right text-base font-black leading-none text-stone-950">
+              <p className="text-right text-lg font-black leading-none text-neutral-950">
                 {player.points}
               </p>
 
-              <p className="text-right text-sm font-black text-stone-800">
+              <p className="text-right text-sm font-black text-neutral-800">
                 {formatSigned(player.gamesDiff)}
               </p>
 
-              <p className="text-right text-[11px] font-bold leading-tight text-stone-500">
+              <p className="text-right text-[11px] font-bold leading-tight text-neutral-500">
                 {player.gamesFor}-{player.gamesAgainst}
               </p>
             </Link>
@@ -97,8 +101,8 @@ export function RankingTable({ players }: RankingTableProps) {
         </div>
       </AppCard>
 
-      <p className="px-1 text-[11px] font-semibold text-stone-400">
-        Pts = sets ganados · Dif = diferencia de juegos · J = juegos a favor-contra
+      <p className="px-1 text-[11px] font-semibold text-neutral-400">
+        Pts = sets ganados · Dif = diferencia de juegos · Juegos = a favor-en contra
       </p>
     </section>
   )

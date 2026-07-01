@@ -190,25 +190,25 @@ function LeagueIdentityForm({
     <form onSubmit={handleSubmitDetails}>
       <AppCard>
         <p className="font-bold">Datos de la liga</p>
-        <p className="mt-2 text-sm text-stone-500">
+        <p className="mt-2 text-sm text-neutral-500">
           Edita el nombre, la descripción y el logo que ven los jugadores.
         </p>
 
-        <div className="mt-5 flex items-center gap-3 rounded-xl bg-stone-100 p-3">
+        <div className="mt-5 flex items-center gap-4 rounded-2xl bg-neutral-100 p-4">
           <LeagueLogo
             league={{ name: previewLeagueName, logoUrl }}
             size="lg"
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black">{previewLeagueName}</p>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-neutral-500">
               {logoUrl ? "Logo personalizado activo." : "Se usan iniciales si no hay logo."}
             </p>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <label className="block rounded-xl bg-stone-950 px-4 py-2.5 text-center text-sm font-black text-white">
+          <label className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white">
             {isSavingLogo ? "Guardando..." : "Subir logo"}
             <input
               type="file"
@@ -223,7 +223,7 @@ function LeagueIdentityForm({
             type="button"
             onClick={() => saveLogo(null)}
             disabled={!logoUrl || isSavingLogo}
-            className="rounded-xl bg-stone-100 px-4 py-2.5 text-sm font-black text-stone-800 disabled:text-stone-400"
+            className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
           >
             Quitar logo
           </button>
@@ -236,14 +236,14 @@ function LeagueIdentityForm({
         ) : null}
 
         {logoSaved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-stone-600">
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
             Logo guardado.
           </p>
         ) : null}
 
-        <div className="mt-5 space-y-4 border-t border-stone-100 pt-5">
+        <div className="mt-5 space-y-4 border-t border-neutral-100 pt-5">
           <label className="block">
-            <span className="text-sm font-semibold text-stone-700">
+            <span className="text-sm font-semibold text-neutral-700">
               Nombre de la liga
             </span>
             <input
@@ -254,12 +254,12 @@ function LeagueIdentityForm({
                 setDetailsSaved(false)
                 setDetailsError(null)
               }}
-              className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-stone-100"
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
 
           <label className="block">
-            <span className="text-sm font-semibold text-stone-700">
+            <span className="text-sm font-semibold text-neutral-700">
               Descripción
             </span>
             <textarea
@@ -271,7 +271,7 @@ function LeagueIdentityForm({
                 setDetailsSaved(false)
                 setDetailsError(null)
               }}
-              className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-stone-100"
+              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
         </div>
@@ -279,7 +279,7 @@ function LeagueIdentityForm({
         <button
           type="submit"
           disabled={!canSaveDetails}
-          className="mt-5 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="mt-5 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
         >
           {isSavingDetails ? "Guardando..." : "Guardar datos de liga"}
         </button>
@@ -291,7 +291,7 @@ function LeagueIdentityForm({
         ) : null}
 
         {detailsSaved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-stone-600">
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
             Datos de liga guardados.
           </p>
         ) : null}
@@ -357,7 +357,7 @@ function DeleteLeagueCard({
             setError(null)
           }}
           placeholder={leagueName}
-          className="mt-2 w-full rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-red-400 disabled:bg-red-100"
+          className="mt-2 w-full rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-red-400 disabled:bg-red-100"
         />
       </label>
 
@@ -365,7 +365,7 @@ function DeleteLeagueCard({
         type="button"
         onClick={handleDelete}
         disabled={!canDelete || isDeleting}
-        className="mt-4 w-full rounded-xl bg-red-700 px-4 py-2.5 text-sm font-black text-white disabled:bg-red-200"
+        className="mt-4 w-full rounded-2xl bg-red-700 px-4 py-3 text-sm font-black text-white disabled:bg-red-200"
       >
         {isDeleting ? "Eliminando..." : "Eliminar liga definitivamente"}
       </button>
@@ -461,7 +461,7 @@ function LeagueLocationsForm({
     <form onSubmit={handleSubmit}>
       <AppCard>
         <p className="font-bold">{t.adminLeague.locationsTitle}</p>
-        <p className="mt-2 text-sm text-stone-500">
+        <p className="mt-2 text-sm text-neutral-500">
           {t.adminLeague.locationsDescription}
         </p>
 
@@ -470,7 +470,7 @@ function LeagueLocationsForm({
             locations.map((location) => (
               <div
                 key={location}
-                className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 p-3"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 p-4"
               >
                 <p className="text-sm font-bold">{location}</p>
 
@@ -478,26 +478,26 @@ function LeagueLocationsForm({
                   type="button"
                   onClick={() => handleRemoveLocation(location)}
                   disabled={isSaving}
-                  className="rounded-full bg-stone-100 px-3 py-2 text-xs font-black text-stone-800 disabled:text-stone-400"
+                  className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
                 >
                   {t.adminLeague.removeLocation}
                 </button>
               </div>
             ))
           ) : (
-            <div className="rounded-xl border border-dashed border-stone-300 p-3">
-              <p className="text-sm font-semibold text-stone-500">
+            <div className="rounded-2xl border border-dashed border-neutral-300 p-4">
+              <p className="text-sm font-semibold text-neutral-500">
                 {t.adminLeague.emptyLocations}
               </p>
             </div>
           )}
         </div>
 
-        <div className="mt-6 rounded-xl bg-stone-100 p-3">
+        <div className="mt-6 rounded-2xl bg-neutral-100 p-4">
           <p className="font-bold">{t.adminLeague.addLocationTitle}</p>
 
           <label className="mt-4 block">
-            <span className="text-sm font-semibold text-stone-700">
+            <span className="text-sm font-semibold text-neutral-700">
               {t.adminLeague.locationName}
             </span>
 
@@ -510,7 +510,7 @@ function LeagueLocationsForm({
                 setError(null)
               }}
               placeholder={t.adminLeague.locationPlaceholder}
-              className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-stone-100"
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
 
@@ -525,7 +525,7 @@ function LeagueLocationsForm({
             type="button"
             onClick={handleAddLocation}
             disabled={!canAdd || isSaving}
-            className="mt-3 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-black text-stone-800 disabled:bg-neutral-200 disabled:text-stone-400"
+            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
           >
             {t.adminLeague.addLocation}
           </button>
@@ -534,7 +534,7 @@ function LeagueLocationsForm({
         <button
           type="submit"
           disabled={isSaving}
-          className="mt-5 w-full rounded-xl bg-stone-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="mt-5 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
         >
           {isSaving ? "Guardando..." : t.adminLeague.save}
         </button>
@@ -546,7 +546,7 @@ function LeagueLocationsForm({
         ) : null}
 
         {saved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-stone-600">
+          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
             {t.adminLeague.saved}
           </p>
         ) : null}
@@ -564,7 +564,7 @@ export default function AdminLeaguePage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-5">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
@@ -575,7 +575,7 @@ export default function AdminLeaguePage() {
 
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-2 text-sm text-neutral-500">
             {t.adminPanel.accessDeniedDescription}
           </p>
         </AppCard>
@@ -584,11 +584,11 @@ export default function AdminLeaguePage() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-stone-500">
+        <p className="mt-4 text-sm font-medium text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
