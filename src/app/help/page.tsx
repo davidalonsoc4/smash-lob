@@ -16,6 +16,12 @@ type MiniCardProps = {
   description: string
 }
 
+type SummaryItemProps = {
+  label: string
+  title: string
+  description: string
+}
+
 function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
   return (
     <AppCard className="space-y-3">
@@ -38,6 +44,20 @@ function MiniCard({ title, description }: MiniCardProps) {
   return (
     <div className="rounded-2xl bg-neutral-100 px-4 py-3">
       <p className="text-sm font-black text-neutral-950">{title}</p>
+      <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
+        {description}
+      </p>
+    </div>
+  )
+}
+
+function SummaryItem({ label, title, description }: SummaryItemProps) {
+  return (
+    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-neutral-100">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-black text-neutral-950">{title}</p>
       <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
         {description}
       </p>
@@ -74,20 +94,40 @@ export default function HelpPage() {
         </h1>
 
         <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-          Guía rápida para entender cómo se juega la liga, cómo se puntúa y qué significa cada estado dentro de Smash & Lob.
+          Guía rápida para entender el formato de la liga, la puntuación, los estados de los partidos y los MVPs.
         </p>
       </header>
 
-      <AppCard className="bg-neutral-950 text-white">
-        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
-          Resumen rápido
-        </p>
-        <h2 className="mt-2 text-2xl font-black tracking-tight">
-          Ganas puntos ganando sets, no solo partidos.
-        </h2>
-        <p className="mt-3 text-sm font-semibold leading-relaxed text-neutral-300">
-          Cada jugador suma de forma individual. Tu pareja cambia, tus rivales cambian y la clasificación premia la regularidad durante toda la temporada.
-        </p>
+      <AppCard className="space-y-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+            Resumen rápido
+          </p>
+          <h2 className="mt-2 text-xl font-black tracking-tight text-neutral-950">
+            Lo importante de un vistazo
+          </h2>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
+            Smash & Lob está pensada para una liga individual aunque los partidos se jueguen por parejas. La clasificación premia la regularidad durante toda la temporada.
+          </p>
+        </div>
+
+        <div className="grid gap-3">
+          <SummaryItem
+            label="1"
+            title="Cada jugador suma sus propios puntos"
+            description="No hay parejas fijas. Lo que consigas en cada partido se añade a tu clasificación individual."
+          />
+          <SummaryItem
+            label="2"
+            title="Los sets son la base del ranking"
+            description="Un 3-0 reparte 3 puntos a la pareja ganadora. Un 2-1 reparte 2 puntos a la ganadora y 1 a la perdedora."
+          />
+          <SummaryItem
+            label="3"
+            title="Los juegos ayudan a desempatar"
+            description="Si dos jugadores empatan a puntos, cuentan los juegos ganados, perdidos y la diferencia de juegos."
+          />
+        </div>
       </AppCard>
 
       <HelpBlock eyebrow="Formato" title="Cómo funciona una temporada">
@@ -151,7 +191,7 @@ export default function HelpPage() {
         <div className="grid gap-3">
           <MiniCard
             title="Star Point"
-            description="En 40-40 se juega un punto decisivo. Quien gana ese punto, gana el juego. La pareja que resta elige lado."
+            description="No es punto de oro directo en cada 40-40. En los dos primeros 40-40 se juega con el sistema clásico de ventajas. Si el juego llega a un tercer 40-40, se juega un punto decisivo: quien gana ese punto, gana el juego."
           />
           <MiniCard
             title="Tie-break"
