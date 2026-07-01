@@ -1,64 +1,171 @@
-"use client"
+"use client";
 
-import { ChangeEvent, useState } from "react"
-import Link from "next/link"
-import { signOut, useSession } from "next-auth/react"
-import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
-import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { AppCard } from "@/components/ui/AppCard"
-import { BackButton } from "@/components/ui/BackButton"
-import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
-import { useI18n } from "@/i18n/I18nProvider"
-import { APP_VERSION_LABEL } from "@/lib/appVersion"
-import { resizeImageFileToDataUrl } from "@/lib/clientImages"
-import { recordActivityEvent } from "@/lib/activity"
-
+import { type ChangeEvent, type ReactNode, useState } from "react";
+import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { PlayerAvatar } from "@/components/player/PlayerAvatar";
+import { AppCard } from "@/components/ui/AppCard";
+import { BackButton } from "@/components/ui/BackButton";
+import { useCurrentUser } from "@/context/CurrentUserProvider";
+import { useLeagueAccess } from "@/context/LeagueAccessProvider";
+import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import { useI18n } from "@/i18n/I18nProvider";
+import { recordActivityEvent } from "@/lib/activity";
+import { APP_VERSION_LABEL } from "@/lib/appVersion";
+import { resizeImageFileToDataUrl } from "@/lib/clientImages";
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   return {
     actorEmail: session?.user?.email ?? "system@smash-lob.local",
     actorDisplayName: session?.user?.name ?? null,
+  };
+}
+
+type SettingsSectionProps = {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  children: ReactNode;
+};
+
+function SettingsSection({
+  eyebrow,
+  title,
+  description,
+  children,
+}: SettingsSectionProps) {
+  return (
+    <section className="space-y-3">
+      <div>
+        {eyebrow ? (
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h2 className="mt-1 text-lg font-black tracking-tight text-neutral-950">
+          {title}
+        </h2>
+        {description ? (
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
+            {description}
+          </p>
+        ) : null}
+      </div>
+
+      <AppCard className="p-0">
+        <div className="divide-y divide-neutral-100">{children}</div>
+      </AppCard>
+    </section>
+  );
+}
+
+type SettingsRowProps = {
+  title: string;
+  description?: string;
+  meta?: string;
+  href?: string;
+  action?: ReactNode;
+  children?: ReactNode;
+  tone?: "default" | "primary" | "danger";
+};
+
+function SettingsRow({
+  title,
+  description,
+  meta,
+  href,
+  action,
+  children,
+  tone = "default",
+}: SettingsRowProps) {
+  const content = (
+    <div className="flex items-center justify-between gap-3 p-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p
+            className={`text-sm font-black ${
+              tone === "danger" ? "text-red-700" : "text-neutral-950"
+            }`}
+          >
+            {title}
+          </p>
+          {meta ? (
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+              {meta}
+            </span>
+          ) : null}
+        </div>
+        {description ? (
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
+            {description}
+          </p>
+        ) : null}
+        {children}
+      </div>
+
+      {action ?? (
+        <span
+          aria-hidden="true"
+          className={`text-lg font-black ${
+            tone === "primary" ? "text-neutral-950" : "text-neutral-300"
+          }`}
+        >
+          &gt;
+        </span>
+      )}
+    </div>
+  );
+
+  if (!href) {
+    return content;
   }
+
+  return (
+    <Link href={href} className="block transition active:scale-[0.99]">
+      {content}
+    </Link>
+  );
 }
 
 function AccountAvatarSettings() {
-  const { t } = useI18n()
-  const { currentUser } = useCurrentUser()
-  const { data: session } = useSession()
-  const { updateLeaguePlayerAvatar } = useLeagueAccess()
-  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { t } = useI18n();
+  const { currentUser } = useCurrentUser();
+  const { data: session } = useSession();
+  const { updateLeaguePlayerAvatar } = useLeagueAccess();
+  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function saveAvatar(nextAvatarUrl: string | null) {
-    setIsSaving(true)
-    setSaved(false)
-    setError(null)
+    setIsSaving(true);
+    setSaved(false);
+    setError(null);
 
     const updated = await updateLeaguePlayerAvatar(
       currentUser.leagueId,
       currentUser.id,
-      nextAvatarUrl
-    )
+      nextAvatarUrl,
+    );
 
-    setIsSaving(false)
+    setIsSaving(false);
 
     if (!updated) {
-      setError(t.settings.avatarSaveError)
-      return
+      setError(t.settings.avatarSaveError);
+      return;
     }
 
-    setAvatarUrl(nextAvatarUrl)
+    setAvatarUrl(nextAvatarUrl);
 
     try {
       await recordActivityEvent({
         leagueId: currentUser.leagueId,
         ...getActorFromSession(session),
         type: "player_avatar_updated",
-        title: nextAvatarUrl ? "Imagen de perfil actualizada" : "Imagen de perfil eliminada",
+        title: nextAvatarUrl
+          ? "Imagen de perfil actualizada"
+          : "Imagen de perfil eliminada",
         description: nextAvatarUrl
           ? `${currentUser.displayName} ha actualizado su imagen de perfil.`
           : `${currentUser.displayName} ha eliminado su imagen de perfil.`,
@@ -67,41 +174,41 @@ function AccountAvatarSettings() {
           targetPlayerName: currentUser.displayName,
           hasAvatar: Boolean(nextAvatarUrl),
         },
-      })
+      });
     } catch {
       // La imagen ya está guardada; la actividad es auxiliar.
     }
 
-    setSaved(true)
+    setSaved(true);
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
 
     if (!file) {
-      return
+      return;
     }
 
     try {
       const dataUrl = await resizeImageFileToDataUrl({
         file,
         maxSize: 512,
-      })
+      });
 
-      await saveAvatar(dataUrl)
+      await saveAvatar(dataUrl);
     } catch (imageError) {
       setError(
         imageError instanceof Error
           ? imageError.message
-          : t.settings.avatarProcessError
-      )
+          : t.settings.avatarProcessError,
+      );
     } finally {
-      event.target.value = ""
+      event.target.value = "";
     }
   }
 
   return (
-    <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
       <div className="flex items-center gap-3">
         <PlayerAvatar
           player={{
@@ -119,7 +226,9 @@ function AccountAvatarSettings() {
             {session?.user?.email ?? t.settings.accountDescription}
           </p>
           <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-400">
-            {avatarUrl ? t.settings.avatarCustomActive : t.settings.avatarInitialsFallback}
+            {avatarUrl
+              ? t.settings.avatarCustomActive
+              : "Se mostrará el icono genérico si no subes imagen."}
           </p>
         </div>
       </div>
@@ -156,174 +265,202 @@ function AccountAvatarSettings() {
         </p>
       ) : null}
     </div>
-  )
+  );
+}
+
+function AdminViewSwitch({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+        checked ? "bg-neutral-950" : "bg-neutral-300"
+      }`}
+    >
+      <span
+        className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
+          checked ? "left-7" : "left-1"
+        }`}
+      />
+    </button>
+  );
 }
 
 export default function SettingsPage() {
-  const { t } = useI18n()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { t } = useI18n();
+  const { activeLeague, activeSeason } = useCurrentLeagueData();
   const {
     canCreateLeagues,
     hasLeagueAdminRole,
     isAdminViewEnabled,
     setAdminViewEnabled,
     userLeagues,
-  } = useLeagueAccess()
-  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
-  const hasLeagues = userLeagues.length > 0
+  } = useLeagueAccess();
+  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id);
+  const hasLeagues = userLeagues.length > 0;
 
   return (
     <div className="space-y-6">
       <header className="pt-2">
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
-        <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
-        </p>
+        <div className="mt-4 rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_2px_12px_rgba(15,23,42,0.06)]">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+            Ajustes
+          </p>
+          <h1 className="mt-1 text-3xl font-black tracking-tight text-neutral-950">
+            Organiza tu cuenta
+          </h1>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
+            Gestiona cuenta, ligas, preferencias y herramientas de administración
+            desde una pantalla más compacta.
+          </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
-          {t.settings.title}
-        </h1>
-
-        <p className="mt-1 text-sm text-neutral-500">
-          {t.settings.description}
-        </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+              {activeLeague.name}
+            </span>
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+              {activeSeason.name}
+            </span>
+          </div>
+        </div>
       </header>
 
-      <AppCard>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">{t.settings.language}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {t.settings.languageDescription}
-            </p>
-          </div>
+      <SettingsSection
+        eyebrow="Cuenta"
+        title="Perfil y sesión"
+        description="Tu imagen es de cuenta y se reutiliza en las ligas donde tengas un jugador vinculado."
+      >
+        <SettingsRow
+          title="Imagen y cuenta conectada"
+          description="Sube o elimina tu imagen de perfil. El email conectado aparece debajo del nombre."
+          action={null}
+        >
+          <AccountAvatarSettings />
+        </SettingsRow>
 
-          <LanguageSwitcher />
-        </div>
-      </AppCard>
-
-
-      <Link href="/help" className="block">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">{t.settings.helpTitle}</p>
-              <p className="mt-2 text-sm text-neutral-500">
-                {t.settings.helpDescription}
-              </p>
-            </div>
-
-            <span className="text-xl">&gt;</span>
-          </div>
-        </AppCard>
-      </Link>
-
-      {canAccessAdmin ? (
-        <AppCard>
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="font-bold">Vista admin</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Desactívala para ver Inicio, Ranking, Partidos y Actividad como un jugador normal. Los ajustes y el panel admin siguen disponibles.
-              </p>
-            </div>
-
+        <SettingsRow
+          title={t.auth.signOut}
+          description="Cierra la sesión de Google en este dispositivo."
+          tone="danger"
+          action={
             <button
               type="button"
-              role="switch"
-              aria-checked={isAdminViewEnabled}
-              onClick={() => setAdminViewEnabled(!isAdminViewEnabled)}
-              className={`relative h-8 w-14 shrink-0 rounded-full transition ${
-                isAdminViewEnabled ? "bg-neutral-950" : "bg-neutral-300"
-              }`}
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="rounded-2xl bg-red-50 px-4 py-2.5 text-xs font-black text-red-700"
             >
-              <span
-                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
-                  isAdminViewEnabled ? "left-7" : "left-1"
-                }`}
-              />
+              Salir
             </button>
-          </div>
-        </AppCard>
-      ) : null}
+          }
+        />
+      </SettingsSection>
 
-      {hasLeagues ? (
-        <Link href="/leagues" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Mis ligas</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  Liga activa: {activeLeague.name}. Cambia de liga desde una
-                  pantalla propia con resumen de cada competición.
-                </p>
-              </div>
+      <SettingsSection
+        eyebrow="Ligas"
+        title="Acceso y cambio de liga"
+        description="Todo lo relacionado con entrar, cambiar o crear ligas queda agrupado aquí."
+      >
+        {hasLeagues ? (
+          <SettingsRow
+            href="/leagues"
+            title="Mis ligas"
+            description="Selecciona la liga activa desde una pantalla con resumen de cada competición."
+            meta={activeLeague.name}
+          />
+        ) : null}
 
-              <span className="text-xl">&gt;</span>
-            </div>
-          </AppCard>
-        </Link>
-      ) : null}
+        <SettingsRow
+          href="/invite"
+          title={t.settings.joinNewExistingLeague}
+          description="Usa un código o enlace de invitación para entrar en una liga existente."
+        />
+
+        {canCreateLeagues ? (
+          <SettingsRow
+            href="/league/new"
+            title={t.settings.createNewLeague}
+            description="Crea una liga nueva y después configura su primera temporada."
+            tone="primary"
+          />
+        ) : (
+          <SettingsRow
+            title="Crear nuevas ligas"
+            description="Esta cuenta puede participar en ligas, pero no tiene permiso para crear ligas nuevas."
+            action={
+              <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                No disponible
+              </span>
+            }
+          />
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        eyebrow="Preferencias"
+        title="Idioma y ayuda"
+        description="Ajustes generales de uso y acceso rápido a las normas básicas."
+      >
+        <SettingsRow
+          title={t.settings.language}
+          description={t.settings.languageDescription}
+          action={<LanguageSwitcher />}
+        />
+
+        <SettingsRow
+          href="/help"
+          title={t.settings.helpTitle}
+          description={t.settings.helpDescription}
+        />
+      </SettingsSection>
 
       {canAccessAdmin ? (
-        <Link href="/admin" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">{t.settings.adminPanelTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  {t.settings.adminPanelDescription}
-                </p>
-              </div>
+        <SettingsSection
+          eyebrow="Administración"
+          title="Herramientas de admin"
+          description="Opciones visibles solo para creadores, admins de liga o superadmin."
+        >
+          <SettingsRow
+            title="Vista admin"
+            description="Desactívala para revisar Inicio, Ranking, Partidos y Actividad como un jugador normal. Ajustes y admin siguen disponibles."
+            meta={isAdminViewEnabled ? "Activa" : "Oculta"}
+            action={
+              <AdminViewSwitch
+                checked={isAdminViewEnabled}
+                onChange={setAdminViewEnabled}
+              />
+            }
+          />
 
-              <span className="text-xl">&gt;</span>
-            </div>
-          </AppCard>
-        </Link>
+          <SettingsRow
+            href="/admin"
+            title={t.settings.adminPanelTitle}
+            description={t.settings.adminPanelDescription}
+          />
+        </SettingsSection>
       ) : null}
 
-      <AppCard>
-        <div className="min-w-0">
-          <p className="font-bold">{t.settings.accountTitle}</p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {t.settings.accountDescription}
+      <AppCard className="bg-neutral-950 text-white">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-black">Smash & Lob</p>
+            <p className="mt-1 text-xs font-semibold text-neutral-400">
+              Versión instalada de la aplicación.
+            </p>
+          </div>
+          <p className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+            {APP_VERSION_LABEL}
           </p>
         </div>
-
-        <AccountAvatarSettings />
-
-        <div className="mt-3 grid gap-2">
-          <Link
-            href="/invite"
-            className="block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
-          >
-            {t.settings.joinNewExistingLeague}
-          </Link>
-
-          {canCreateLeagues ? (
-            <Link
-              href="/league/new"
-              className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-            >
-              {t.settings.createNewLeague}
-            </Link>
-          ) : null}
-        </div>
       </AppCard>
-
-
-      <button
-        type="button"
-        onClick={() => signOut({ callbackUrl: "/" })}
-        className="w-full rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700"
-      >
-        {t.auth.signOut}
-      </button>
-
-      <p className="pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300">
-        {APP_VERSION_LABEL}
-      </p>
     </div>
-  )
+  );
 }
