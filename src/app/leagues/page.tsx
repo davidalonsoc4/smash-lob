@@ -42,8 +42,7 @@ export default function LeaguesPage() {
           Mis ligas
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Selecciona la liga en la que quieres entrar. Sustituye al antiguo
-          desplegable de liga activa en Ajustes.
+          Selecciona la liga en la que quieres entrar.
         </p>
       </header>
 
@@ -71,7 +70,24 @@ export default function LeaguesPage() {
           const isAdmin = hasLeagueAdminRole(league.id);
 
           return (
-            <AppCard key={league.id} className={isActive ? "ring-2 ring-neutral-950" : ""}>
+            <article
+              key={league.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Entrar en ${league.name}`}
+              onClick={() => handleEnterLeague(league.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleEnterLeague(league.id);
+                }
+              }}
+              className={`cursor-pointer rounded-2xl border bg-white p-4 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${
+                isActive
+                  ? "border-neutral-950 ring-2 ring-neutral-950"
+                  : "border-neutral-200 hover:border-neutral-300"
+              }`}
+            >
               <div className="flex items-start gap-3">
                 <LeagueLogo league={league} size="lg" />
                 <div className="min-w-0 flex-1">
@@ -85,10 +101,10 @@ export default function LeaguesPage() {
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 line-clamp-2 text-xs font-semibold text-neutral-500">
+                  <p className="mt-1 line-clamp-1 text-xs font-semibold text-neutral-500">
                     {league.description || "Sin descripción"}
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
                       {getSeasonStatusLabel(season.status)}
                     </span>
@@ -97,45 +113,40 @@ export default function LeaguesPage() {
                         Admin
                       </span>
                     ) : null}
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                      Toca para entrar
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-2xl bg-neutral-100 px-3 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
                     Jugadores
                   </p>
-                  <p className="mt-1 text-lg font-black text-neutral-950">
+                  <p className="mt-0.5 text-base font-black text-neutral-950">
                     {seasonPlayerCount || "-"}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-neutral-100 px-3 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
                     Partidos
                   </p>
-                  <p className="mt-1 text-lg font-black text-neutral-950">
+                  <p className="mt-0.5 text-base font-black text-neutral-950">
                     {finishedMatches}/{seasonMatches.length || 0}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-neutral-100 px-3 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
                     Líder
                   </p>
-                  <p className="mt-1 truncate text-sm font-black text-neutral-950">
+                  <p className="mt-0.5 truncate text-xs font-black text-neutral-950">
                     {leader?.displayName ?? "-"}
                   </p>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => handleEnterLeague(league.id)}
-                className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
-              >
-                {isActive ? "Entrar en liga actual" : "Entrar en esta liga"}
-              </button>
-            </AppCard>
+            </article>
           );
         })}
       </div>

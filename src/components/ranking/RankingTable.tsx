@@ -24,6 +24,13 @@ function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
 }
 
+function getPositionLabel(index: number) {
+  if (index === 0) return "1º"
+  if (index === 1) return "2º"
+  if (index === 2) return "3º"
+  return `${index + 1}º`
+}
+
 export function RankingTable({ players }: RankingTableProps) {
   const { t } = useI18n()
 
@@ -35,35 +42,64 @@ export function RankingTable({ players }: RankingTableProps) {
 
   return (
     <div className="space-y-2">
-      {sortedPlayers.map((player, index) => (
-        <Link
-          key={player.id}
-          href={`/player/${player.slug}`}
-          className="block rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm transition active:scale-[0.99]"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black">
-              {index + 1}
-            </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_3.2rem_3.2rem_2.7rem_2.7rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+        <span>Jugador</span>
+        <span className="text-right">Pts</span>
+        <span className="text-right">Dif</span>
+        <span className="text-right">JF</span>
+        <span className="text-right">JC</span>
+      </div>
 
-            <PlayerAvatar player={player} size="sm" />
+      <div className="space-y-1.5">
+        {sortedPlayers.map((player, index) => (
+          <Link
+            key={player.id}
+            href={`/player/${player.slug}`}
+            aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
+            className="grid grid-cols-[minmax(0,1fr)_3.2rem_3.2rem_2.7rem_2.7rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-800">
+                {getPositionLabel(index)}
+              </div>
 
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black">{player.displayName}</p>
-              <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-500">
-                {formatSigned(player.gamesDiff)} {t.ranking.diff} · {player.gamesFor} {t.ranking.gamesFor} · {player.gamesAgainst} {t.ranking.gamesAgainst}
+              <PlayerAvatar player={player} size="sm" />
+
+              <p className="min-w-0 truncate text-sm font-black text-neutral-950">
+                {player.displayName}
               </p>
             </div>
 
-            <div className="shrink-0 text-right">
-              <p className="text-xl font-black leading-none">{player.points}</p>
-              <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">
-                {t.common.pointsShort}
+            <div className="text-right">
+              <p className="text-lg font-black leading-none text-neutral-950">
+                {player.points}
               </p>
             </div>
-          </div>
-        </Link>
-      ))}
+
+            <div className="text-right">
+              <p className="text-sm font-black text-neutral-900">
+                {formatSigned(player.gamesDiff)}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-xs font-bold text-neutral-600">
+                {player.gamesFor}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-xs font-bold text-neutral-600">
+                {player.gamesAgainst}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <p className="px-1 text-[11px] font-semibold text-neutral-400">
+        Pts = sets ganados · Dif = diferencia de juegos · JF/JC = juegos a favor/en contra
+      </p>
     </div>
   )
 }
