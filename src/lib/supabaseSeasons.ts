@@ -38,8 +38,10 @@ function slug(name: string) {
   )
 }
 
-function toSeasonStatus(status: unknown): "active" | "finished" {
-  return status === "finished" ? "finished" : "active"
+function toSeasonStatus(status: unknown): "upcoming" | "active" | "finished" {
+  if (status === "finished") return "finished"
+  if (status === "upcoming") return "upcoming"
+  return "active"
 }
 
 function mapSeason(row: {
@@ -152,6 +154,150 @@ export async function finishSupabaseActiveSeason({
   }
 }
 
+
+export async function startSupabaseExistingSeason({
+  leagueId,
+  seasonId,
+}: {
+  leagueId: string
+  seasonId: string
+}): Promise<SeasonSnapshot> {
+  const { error: finishOtherActiveError } = await supabase
+    .from("seasons")
+    .update({ status: "finished" })
+    .eq("league_id", leagueId)
+    .eq("status", "active")
+    .neq("id", seasonId)
+
+  if (finishOtherActiveError) {
+    throw finishOtherActiveError
+  }
+
+  const { data: season, error } = await supabase
+    .from("seasons")
+    .update({ status: "active" })
+    .eq("id", seasonId)
+    .eq("league_id", leagueId)
+    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  const { error: leagueUpdateError } = await supabase
+    .from("leagues")
+    .update({ active_season_id: seasonId })
+    .eq("id", leagueId)
+
+  if (leagueUpdateError) {
+    throw leagueUpdateError
+  }
+
+  return {
+    seasons: [mapSeason(season)],
+    playerProfiles: [],
+    seasonPlayers: [],
+    seasonSettings: [],
+    activeSeasonIds: {
+      [leagueId]: seasonId,
+    },
+  }
+}
+
+export async function deleteSupabaseSeason({
+  leagueId,
+  seasonId,
+}: {
+  leagueId: string
+  seasonId: string
+}): Promise<SeasonSnapshot> {
+  const { error: matchesError } = await supabase
+    .from("matches")
+    .delete()
+    .eq("season_id", seasonId)
+
+  if (matchesError) {
+    throw matchesError
+  }
+
+  const { error: seasonPlayersError } = await supabase
+    .from("season_players")
+    .delete()
+    .eq("season_id", seasonId)
+
+  if (seasonPlayersError) {
+    throw seasonPlayersError
+  }
+
+  const { error: settingsError } = await supabase
+    .from("season_settings")
+    .delete()
+    .eq("season_id", seasonId)
+
+  if (settingsError) {
+    throw settingsError
+  }
+
+  const { error: seasonError } = await supabase
+    .from("seasons")
+    .delete()
+    .eq("id", seasonId)
+    .eq("league_id", leagueId)
+
+  if (seasonError) {
+    throw seasonError
+  }
+
+  const { data: fallbackSeason, error: fallbackError } = await supabase
+    .from("seasons")
+    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .eq("league_id", leagueId)
+    .limit(1)
+    .maybeSingle()
+
+  if (fallbackError) {
+    throw fallbackError
+  }
+
+  const { error: leagueUpdateError } = await supabase
+    .from("leagues")
+    .update({ active_season_id: fallbackSeason?.id ?? null })
+    .eq("id", leagueId)
+
+  if (leagueUpdateError) {
+    throw leagueUpdateError
+  }
+
+  return {
+    seasons: fallbackSeason ? [mapSeason(fallbackSeason)] : [],
+    playerProfiles: [],
+    seasonPlayers: [],
+    seasonSettings: [],
+    activeSeasonIds: {
+      [leagueId]: fallbackSeason?.id ?? "",
+    },
+  }
+}
+
+export async function deleteSupabaseRoundMatches({
+  seasonId,
+  round,
+}: {
+  seasonId: string
+  round: number
+}) {
+  const { error } = await supabase
+    .from("matches")
+    .delete()
+    .eq("season_id", seasonId)
+    .eq("round", round)
+
+  if (error) {
+    throw error
+  }
+}
+
 export async function startSupabaseSeason({
   leagueId,
   activeSeasonId,
@@ -202,7 +348,7 @@ export async function startSupabaseSeason({
     .insert({
       league_id: leagueId,
       name,
-      status: "active",
+      status: "upcoming",
       total_rounds: Math.max(totalPlayers - 1, 1),
       completed_rounds: 0,
     })

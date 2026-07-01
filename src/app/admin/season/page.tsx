@@ -16,7 +16,10 @@ import {
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
+  deleteSupabaseRoundMatches,
+  deleteSupabaseSeason,
   finishSupabaseActiveSeason,
+  startSupabaseExistingSeason,
   startSupabaseSeason,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons"
@@ -577,6 +580,256 @@ function FinishSeasonPanel({
   )
 }
 
+
+function StartSeasonPanel({
+  activeLeagueId,
+  activeSeasonId,
+}: {
+  activeLeagueId: string
+  activeSeasonId: string
+}) {
+  const router = useRouter()
+  const { data: session } = useSession()
+  const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings()
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleStartSeason() {
+    if (isSaving) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      "¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados."
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+
+    if (isSupabaseBackedId(activeSeasonId)) {
+      try {
+        const snapshot = await startSupabaseExistingSeason({
+          leagueId: activeLeagueId,
+          seasonId: activeSeasonId,
+        })
+
+        hydrateSeasonSnapshot(snapshot)
+      } catch (supabaseError) {
+        recordSupabaseError("start-existing-season", supabaseError)
+        setError(
+          "No se ha podido comenzar la temporada en Supabase. Revisa smash-lob-last-supabase-error."
+        )
+        setIsSaving(false)
+        return
+      }
+    }
+
+    startSeason(activeLeagueId, activeSeasonId)
+
+    try {
+      await recordActivityEvent({
+        leagueId: activeLeagueId,
+        seasonId: activeSeasonId,
+        ...getActorFromSession(session),
+        type: "season_created",
+        title: "Temporada comenzada",
+        description: "La temporada ha pasado de próximamente a activa.",
+      })
+    } catch {
+      // La temporada ya ha comenzado; la actividad es auxiliar.
+    }
+
+    setIsSaving(false)
+    router.push("/")
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Comenzar temporada</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        La temporada está creada, pero todavía no está activa. Al comenzar se desbloquean la programación de partidos y el registro de resultados.
+      </p>
+
+      <button
+        type="button"
+        onClick={handleStartSeason}
+        disabled={isSaving}
+        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+      >
+        {isSaving ? "Guardando..." : "Comenzar temporada"}
+      </button>
+
+      {error ? (
+        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  )
+}
+
+function SeasonDangerZone({
+  activeLeagueId,
+  activeSeasonId,
+  totalRounds,
+}: {
+  activeLeagueId: string
+  activeSeasonId: string
+  totalRounds: number
+}) {
+  const router = useRouter()
+  const { deleteSeason, hydrateSeasonSnapshot } = useSeasonSettings()
+  const { deleteRoundMatches, deleteSeasonMatches } = useMatchData()
+  const [selectedRound, setSelectedRound] = useState(1)
+  const [error, setError] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+
+  async function handleDeleteRound() {
+    if (isSaving) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      `¿Eliminar la Jornada ${selectedRound}? Se borrarán sus partidos y resultados.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+    setFeedback(null)
+
+    if (isSupabaseBackedId(activeSeasonId)) {
+      try {
+        await deleteSupabaseRoundMatches({
+          seasonId: activeSeasonId,
+          round: selectedRound,
+        })
+      } catch (supabaseError) {
+        recordSupabaseError("delete-round-matches", supabaseError)
+        setError(
+          "No se ha podido eliminar la jornada en Supabase. Revisa smash-lob-last-supabase-error."
+        )
+        setIsSaving(false)
+        return
+      }
+    }
+
+    deleteRoundMatches(activeSeasonId, selectedRound)
+    setFeedback(`Jornada ${selectedRound} eliminada.`)
+    setIsSaving(false)
+  }
+
+  async function handleDeleteSeason() {
+    if (isSaving) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      "¿Eliminar la temporada completa? Se borrarán sus jornadas, partidos y resultados."
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+    setFeedback(null)
+
+    if (isSupabaseBackedId(activeSeasonId)) {
+      try {
+        const snapshot = await deleteSupabaseSeason({
+          leagueId: activeLeagueId,
+          seasonId: activeSeasonId,
+        })
+
+        hydrateSeasonSnapshot(snapshot)
+      } catch (supabaseError) {
+        recordSupabaseError("delete-season", supabaseError)
+        setError(
+          "No se ha podido eliminar la temporada en Supabase. Revisa smash-lob-last-supabase-error."
+        )
+        setIsSaving(false)
+        return
+      }
+    }
+
+    deleteSeason(activeLeagueId, activeSeasonId)
+    deleteSeasonMatches(activeSeasonId)
+    setIsSaving(false)
+    router.push("/")
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Zona de eliminación</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Permite borrar jornadas o temporadas completas si el calendario se creó mal. Es una acción destructiva.
+      </p>
+
+      <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+        <label className="block">
+          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+            Jornada a eliminar
+          </span>
+          <select
+            value={selectedRound}
+            onChange={(event) => setSelectedRound(Number(event.target.value))}
+            disabled={isSaving}
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none"
+          >
+            {Array.from({ length: totalRounds }, (_, index) => index + 1).map(
+              (round) => (
+                <option key={round} value={round}>
+                  Jornada {round}
+                </option>
+              )
+            )}
+          </select>
+        </label>
+
+        <button
+          type="button"
+          onClick={handleDeleteRound}
+          disabled={isSaving}
+          className="mt-3 w-full rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+        >
+          Eliminar jornada
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleDeleteSeason}
+        disabled={isSaving}
+        className="mt-3 w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white disabled:bg-red-200"
+      >
+        Eliminar temporada completa
+      </button>
+
+      {error ? (
+        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+
+      {feedback ? (
+        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+          {feedback}
+        </p>
+      ) : null}
+    </AppCard>
+  )
+}
+
 function NewSeasonForm({
   activeLeagueId,
   activeLeagueName,
@@ -790,7 +1043,7 @@ function NewSeasonForm({
         ...getActorFromSession(session),
         type: "season_created",
         title: "Nueva temporada creada",
-        description: `${settings.name} creada con ${playerCount} jugadores y calendario ${calendarMode === "manual" ? "manual" : "equilibrado"}.`,
+        description: `${settings.name} creada en estado próximamente con ${playerCount} jugadores y calendario ${calendarMode === "manual" ? "manual" : "equilibrado"}.`,
         metadata: {
           playerCount,
           existingPlayerIds: selectedPlayerIds,
@@ -803,7 +1056,7 @@ function NewSeasonForm({
     }
 
     setNewSeasonName("")
-    setFeedback(t.adminSeason.seasonStarted)
+    setFeedback("Temporada creada. Puedes comenzarla cuando esté todo preparado.")
     setIsSaving(false)
   }
 
@@ -818,7 +1071,7 @@ function NewSeasonForm({
         <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <p className="font-black">No hay temporada activa.</p>
           <p className="mt-1">
-            Confirma quién continúa, quita bajas, añade sustitutos y se generarán las jornadas de la nueva temporada.
+            Confirma quién continúa, quita bajas, añade sustitutos y se generarán las jornadas de la nueva temporada, pero quedará en estado próximamente hasta que pulses Comenzar temporada.
           </p>
         </div>
 
@@ -1205,7 +1458,7 @@ function NewSeasonForm({
         disabled={!canStartSeason}
         className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
       >
-        {isSaving ? "Guardando..." : t.adminSeason.startSeason}
+        {isSaving ? "Guardando..." : "Crear temporada"}
       </button>
 
       {error ? (
@@ -1237,6 +1490,7 @@ export default function AdminSeasonPage() {
     useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
   const isActiveSeason = activeSeason.status === "active"
+  const isUpcomingSeason = activeSeason.status === "upcoming"
 
   if (!canAccessAdmin) {
     return (
@@ -1271,13 +1525,17 @@ export default function AdminSeasonPage() {
         <h1 className="mt-1 text-3xl font-black tracking-tight">
           {isActiveSeason
             ? t.adminSeason.title
-            : t.adminSeason.newSeasonTitle}
+            : isUpcomingSeason
+              ? "Temporada próximamente"
+              : t.adminSeason.newSeasonTitle}
         </h1>
 
         <p className="mt-1 text-sm text-neutral-500">
           {isActiveSeason
             ? t.adminSeason.description
-            : t.adminSeason.finishedDescription}
+            : isUpcomingSeason
+              ? "La temporada está creada. Comiénzala cuando esté preparada para jugarse."
+              : t.adminSeason.finishedDescription}
         </p>
       </header>
 
@@ -1298,6 +1556,37 @@ export default function AdminSeasonPage() {
           <FinishSeasonPanel
             activeLeagueId={activeLeague.id}
             activeSeasonId={activeSeason.id}
+          />
+
+          <SeasonDangerZone
+            activeLeagueId={activeLeague.id}
+            activeSeasonId={activeSeason.id}
+            totalRounds={activeSeason.totalRounds}
+          />
+        </>
+      ) : isUpcomingSeason ? (
+        <>
+          <StartSeasonPanel
+            activeLeagueId={activeLeague.id}
+            activeSeasonId={activeSeason.id}
+          />
+
+          <ActiveSeasonSettingsForm
+            key={activeSeason.id}
+            activeLeagueId={activeLeague.id}
+            activeSeasonId={activeSeason.id}
+            roundSettings={roundSettings}
+          />
+
+          <SeasonPlayersStatus
+            activeLeagueId={activeLeague.id}
+            players={players}
+          />
+
+          <SeasonDangerZone
+            activeLeagueId={activeLeague.id}
+            activeSeasonId={activeSeason.id}
+            totalRounds={activeSeason.totalRounds}
           />
         </>
       ) : (

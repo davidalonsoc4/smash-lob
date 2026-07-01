@@ -153,7 +153,7 @@ export async function createSupabaseLeague({
     .insert({
       league_id: league.id,
       name: seasonName,
-      status: "active",
+      status: "upcoming",
       total_rounds: Math.max(cleanNames.length - 1, 1),
       completed_rounds: 0,
     })
@@ -275,17 +275,23 @@ export async function createSupabaseLeague({
     id: season.id,
     leagueId: season.league_id,
     name: season.name,
-    status: season.status === "finished" ? "finished" : "active",
+    status: season.status === "finished" ? "finished" : season.status === "upcoming" ? "upcoming" : "active",
     totalRounds: season.total_rounds,
     completedRounds: season.completed_rounds,
   }
-  const playerProfiles: PlayerProfile[] = (players ?? []).map((player) => ({
+  const playerProfiles: PlayerProfile[] = (players ?? []).map((player, index) => ({
     id: player.id,
     leagueId: player.league_id,
     slug: player.slug,
     displayName: player.display_name,
     avatarInitials: player.avatar_initials,
-    avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
+    userId: index === 0 ? creator.id : null,
+    avatarUrl:
+      index === 0 && typeof creator.avatar_url === "string"
+        ? creator.avatar_url
+        : typeof player.avatar_url === "string"
+          ? player.avatar_url
+          : null,
   }))
   const matches: MatchData[] = (matchesData ?? []).map((match) =>
     mapSupabaseMatch(match)
@@ -481,23 +487,64 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   if (matchesResult.error) throw matchesResult.error
   if (leagueMembershipsResult.error) throw leagueMembershipsResult.error
 
+  const linkedUserIds = Array.from(
+    new Set(
+      (leagueMembershipsResult.data ?? [])
+        .map((membership) => membership.user_id)
+        .filter((userId): userId is string => typeof userId === "string")
+    )
+  )
+  const { data: linkedUsers, error: linkedUsersError } =
+    linkedUserIds.length > 0
+      ? await supabase
+          .from("app_users")
+          .select("id,email,display_name,avatar_url")
+          .in("id", linkedUserIds)
+      : { data: [], error: null }
+
+  if (linkedUsersError) throw linkedUsersError
+
+  const linkedUsersById = new Map(
+    (linkedUsers ?? []).map((user) => [
+      user.id,
+      {
+        email: user.email,
+        displayName: user.display_name,
+        avatarUrl: typeof user.avatar_url === "string" ? user.avatar_url : null,
+      },
+    ])
+  )
+  const membershipByPlayerId = new Map(
+    (leagueMembershipsResult.data ?? [])
+      .filter((membership) => typeof membership.player_id === "string")
+      .map((membership) => [membership.player_id as string, membership])
+  )
+
   const seasons: Season[] = (seasonsResult.data ?? []).map((season) => ({
     id: season.id,
     leagueId: season.league_id,
     name: season.name,
-    status: season.status === "finished" ? "finished" : "active",
+    status: season.status === "finished" ? "finished" : season.status === "upcoming" ? "upcoming" : "active",
     totalRounds: season.total_rounds,
     completedRounds: season.completed_rounds,
   }))
   const playerProfiles: PlayerProfile[] = (playersResult.data ?? []).map(
-    (player) => ({
-      id: player.id,
-      leagueId: player.league_id,
-      slug: player.slug,
-      displayName: player.display_name,
-      avatarInitials: player.avatar_initials,
-      avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
-    })
+    (player) => {
+      const membership = membershipByPlayerId.get(player.id)
+      const linkedUser = membership?.user_id
+        ? linkedUsersById.get(membership.user_id)
+        : null
+
+      return {
+        id: player.id,
+        leagueId: player.league_id,
+        slug: player.slug,
+        displayName: player.display_name,
+        avatarInitials: player.avatar_initials,
+        userId: membership?.user_id ?? null,
+        avatarUrl: linkedUser?.avatarUrl ?? (typeof player.avatar_url === "string" ? player.avatar_url : null),
+      }
+    }
   )
   const seasonPlayers: SeasonPlayer[] = (
     seasonPlayersResult.data ?? []

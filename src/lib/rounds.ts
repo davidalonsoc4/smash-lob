@@ -5,14 +5,10 @@ type Season = {
   id: string
   leagueId: string
   totalRounds: number
+  status?: "upcoming" | "active" | "finished"
 }
 
-export type SeasonRoundStatus =
-  | "no-window"
-  | "upcoming"
-  | "active"
-  | "overdue"
-  | "completed"
+export type SeasonRoundStatus = "upcoming" | "active" | "completed"
 
 export type SeasonRound = {
   id: string
@@ -90,43 +86,63 @@ function getRoundWindow({
   }
 }
 
+function isRoundCompleted(matches: MatchData[], round: number) {
+  const roundMatches = matches.filter((match) => match.round === round)
+
+  return (
+    roundMatches.length > 0 &&
+    roundMatches.every((match) => match.status === "finished")
+  )
+}
+
+function getFirstOpenRound(matches: MatchData[], totalRounds: number) {
+  for (let round = 1; round <= totalRounds; round += 1) {
+    if (!isRoundCompleted(matches, round)) {
+      return round
+    }
+  }
+
+  return null
+}
+
 function getRoundStatus({
   round,
+  season,
+  settings,
   matches,
   startsAt,
   endsAt,
 }: {
   round: number
+  season: Season
+  settings: SeasonRoundSettings
   matches: MatchData[]
   startsAt: string | null
   endsAt: string | null
 }): SeasonRoundStatus {
-  const roundMatches = matches.filter((match) => match.round === round)
-  const hasMatches = roundMatches.length > 0
-  const isCompleted =
-    hasMatches && roundMatches.every((match) => match.status === "finished")
-
-  if (isCompleted) {
+  if (isRoundCompleted(matches, round)) {
     return "completed"
   }
 
-  if (!startsAt || !endsAt) {
-    return "no-window"
-  }
-
-  const today = new Date()
-  const startDate = parseLocalDate(startsAt)
-  const endDate = endOfDay(parseLocalDate(endsAt))
-
-  if (today < startDate) {
+  if (season.status === "upcoming" || season.status === "finished") {
     return "upcoming"
   }
 
-  if (today > endDate) {
-    return "overdue"
+  if (settings.roundWindowMode === "fixed-days" && startsAt && endsAt) {
+    const today = new Date()
+    const startDate = parseLocalDate(startsAt)
+    const endDate = endOfDay(parseLocalDate(endsAt))
+
+    if (today >= startDate && today <= endDate) {
+      return "active"
+    }
+
+    return "upcoming"
   }
 
-  return "active"
+  return getFirstOpenRound(matches, season.totalRounds) === round
+    ? "active"
+    : "upcoming"
 }
 
 export function buildSeasonRounds({
@@ -143,6 +159,8 @@ export function buildSeasonRounds({
     const { startsAt, endsAt } = getRoundWindow({ round, settings })
     const status = getRoundStatus({
       round,
+      season,
+      settings,
       matches,
       startsAt,
       endsAt,

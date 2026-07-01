@@ -43,9 +43,12 @@ type SeasonSettingsContextValue = {
     displayName: string;
     avatarInitials: string;
     avatarUrl?: string | null;
+    userId?: string | null;
   }) => void;
   hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void;
   finishActiveSeason: (leagueId: string) => void;
+  startSeason: (leagueId: string, seasonId: string) => void;
+  deleteSeason: (leagueId: string, seasonId: string) => void;
   createInitialSeasonForLeague: (settings: {
     leagueId: string;
     seasonName: string;
@@ -121,6 +124,10 @@ function getDefaultSeasonData(): SeasonDataState {
   };
 }
 
+function isSeasonStatus(value: unknown): value is Season["status"] {
+  return value === "upcoming" || value === "active" || value === "finished";
+}
+
 function isValidSeason(value: unknown): value is Season {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -132,7 +139,7 @@ function isValidSeason(value: unknown): value is Season {
     typeof item.id === "string" &&
     typeof item.leagueId === "string" &&
     typeof item.name === "string" &&
-    (item.status === "active" || item.status === "finished") &&
+    isSeasonStatus(item.status) &&
     typeof item.totalRounds === "number" &&
     typeof item.completedRounds === "number"
   );
@@ -151,6 +158,9 @@ function isValidPlayerProfile(value: unknown): value is PlayerProfile {
     typeof item.slug === "string" &&
     typeof item.displayName === "string" &&
     typeof item.avatarInitials === "string" &&
+    (typeof item.userId === "undefined" ||
+      item.userId === null ||
+      typeof item.userId === "string") &&
     (typeof item.avatarUrl === "undefined" ||
       item.avatarUrl === null ||
       typeof item.avatarUrl === "string")
@@ -382,15 +392,15 @@ export function SeasonSettingsProvider({
 
   function getActiveSeasonByLeagueId(leagueId: string) {
     const activeSeasonId = seasonData.activeSeasonIds[leagueId];
-    const activeSeason = activeSeasonId
+    const pointedSeason = activeSeasonId
       ? seasonData.seasons.find(
           (season) =>
             season.id === activeSeasonId && season.leagueId === leagueId,
         )
       : null;
 
-    if (activeSeason?.status === "active") {
-      return activeSeason;
+    if (pointedSeason) {
+      return pointedSeason;
     }
 
     const activeFallbackSeason = seasonData.seasons.find(
@@ -399,6 +409,14 @@ export function SeasonSettingsProvider({
 
     if (activeFallbackSeason) {
       return activeFallbackSeason;
+    }
+
+    const upcomingFallbackSeason = seasonData.seasons.find(
+      (season) => season.leagueId === leagueId && season.status === "upcoming",
+    );
+
+    if (upcomingFallbackSeason) {
+      return upcomingFallbackSeason;
     }
 
     const latestSeason = getLatestLeagueSeason(seasonData.seasons, leagueId);
@@ -441,6 +459,76 @@ export function SeasonSettingsProvider({
     });
   }
 
+  function startSeason(leagueId: string, seasonId: string) {
+    setSeasonData((currentSeasonData) => {
+      const nextSeasonData = {
+        ...currentSeasonData,
+        seasons: currentSeasonData.seasons.map((season) =>
+          season.id === seasonId
+            ? {
+                ...season,
+                status: "active" as const,
+              }
+            : season.leagueId === leagueId && season.status === "active"
+              ? {
+                  ...season,
+                  status: "finished" as const,
+                }
+              : season,
+        ),
+        activeSeasonIds: {
+          ...currentSeasonData.activeSeasonIds,
+          [leagueId]: seasonId,
+        },
+      };
+
+      persistSeasonData(nextSeasonData);
+
+      return nextSeasonData;
+    });
+  }
+
+  function deleteSeason(leagueId: string, seasonId: string) {
+    setSeasonData((currentSeasonData) => {
+      const remainingSeasons = currentSeasonData.seasons.filter(
+        (season) => season.id !== seasonId,
+      );
+      const fallbackSeason = getLatestLeagueSeason(remainingSeasons, leagueId);
+      const nextActiveSeasonIds = { ...currentSeasonData.activeSeasonIds };
+
+      if (nextActiveSeasonIds[leagueId] === seasonId) {
+        if (fallbackSeason) {
+          nextActiveSeasonIds[leagueId] = fallbackSeason.id;
+        } else {
+          delete nextActiveSeasonIds[leagueId];
+        }
+      }
+
+      const nextSeasonData = {
+        seasons: remainingSeasons,
+        playerProfiles: currentSeasonData.playerProfiles,
+        seasonPlayers: currentSeasonData.seasonPlayers.filter(
+          (seasonPlayer) => seasonPlayer.seasonId !== seasonId,
+        ),
+        activeSeasonIds: nextActiveSeasonIds,
+      };
+
+      persistSeasonData(nextSeasonData);
+
+      return nextSeasonData;
+    });
+
+    setSeasonSettings((currentSettings) => {
+      const nextSettings = currentSettings.filter(
+        (settings) => settings.seasonId !== seasonId,
+      );
+
+      window.localStorage.setItem(storageKey, JSON.stringify(nextSettings));
+
+      return nextSettings;
+    });
+  }
+
   function createInitialSeasonForLeague({
     leagueId,
     seasonName,
@@ -466,7 +554,7 @@ export function SeasonSettingsProvider({
       id: seasonId,
       leagueId,
       name: seasonName,
-      status: "active",
+      status: "upcoming",
       totalRounds: Math.max(cleanPlayerNames.length - 1, 1),
       completedRounds: 0,
     };
@@ -570,7 +658,7 @@ export function SeasonSettingsProvider({
       id: seasonId,
       leagueId,
       name,
-      status: "active",
+      status: "upcoming",
       totalRounds: Math.max(totalPlayers - 1, 1),
       completedRounds: 0,
     };
@@ -613,19 +701,8 @@ export function SeasonSettingsProvider({
     const finalPlayerIds = [...uniquePlayerIds, ...newPlayerIds];
 
     setSeasonData((currentSeasonData) => {
-      const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId];
       const nextSeasonData = {
-        seasons: [
-          ...currentSeasonData.seasons.map((season) =>
-            season.id === activeSeasonId
-              ? {
-                  ...season,
-                  status: "finished" as const,
-                }
-              : season,
-          ),
-          newSeason,
-        ],
+        seasons: [...currentSeasonData.seasons, newSeason],
         playerProfiles: [...currentSeasonData.playerProfiles, ...newPlayers],
         seasonPlayers: [
           ...currentSeasonData.seasonPlayers,
@@ -681,28 +758,42 @@ export function SeasonSettingsProvider({
       displayName,
       avatarInitials,
       avatarUrl,
+      userId,
     }: {
       playerId: string;
       displayName: string;
       avatarInitials: string;
       avatarUrl?: string | null;
+      userId?: string | null;
     }) => {
       setSeasonData((currentSeasonData) => {
+        const targetPlayer = currentSeasonData.playerProfiles.find(
+          (player) => player.id === playerId,
+        );
+        const linkedUserId = userId ?? targetPlayer?.userId ?? null;
         const nextSeasonData = {
           ...currentSeasonData,
-          playerProfiles: currentSeasonData.playerProfiles.map((player) =>
-            player.id === playerId
-              ? {
-                  ...player,
-                  displayName,
-                  avatarInitials,
-                  avatarUrl:
-                    typeof avatarUrl === "undefined"
-                      ? (player.avatarUrl ?? null)
-                      : avatarUrl,
-                }
-              : player,
-          ),
+          playerProfiles: currentSeasonData.playerProfiles.map((player) => {
+            const isDirectTarget = player.id === playerId;
+            const isSameLinkedUser = Boolean(
+              linkedUserId && player.userId === linkedUserId,
+            );
+
+            if (!isDirectTarget && !isSameLinkedUser) {
+              return player;
+            }
+
+            return {
+              ...player,
+              displayName: isDirectTarget ? displayName : player.displayName,
+              avatarInitials: isDirectTarget ? avatarInitials : player.avatarInitials,
+              avatarUrl:
+                typeof avatarUrl === "undefined"
+                  ? (player.avatarUrl ?? null)
+                  : avatarUrl,
+              userId: linkedUserId ?? player.userId,
+            };
+          }),
         };
 
         persistSeasonData(nextSeasonData);
@@ -762,6 +853,8 @@ export function SeasonSettingsProvider({
     updatePlayerProfile,
     hydrateSeasonSnapshot,
     finishActiveSeason,
+    startSeason,
+    deleteSeason,
     createInitialSeasonForLeague,
     startNewSeason,
   };

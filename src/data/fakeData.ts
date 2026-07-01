@@ -16,7 +16,7 @@ export type Season = {
   id: string
   leagueId: string
   name: string
-  status: "active" | "finished"
+  status: "upcoming" | "active" | "finished"
   totalRounds: number
   completedRounds: number
 }
@@ -28,6 +28,7 @@ export type PlayerProfile = {
   displayName: string
   avatarInitials: string
   avatarUrl?: string | null
+  userId?: string | null
 }
 
 export type LeagueMember = {

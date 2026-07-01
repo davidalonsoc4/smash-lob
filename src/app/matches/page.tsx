@@ -16,6 +16,7 @@ export default function MatchesPage() {
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonClosed = activeSeason.status === "finished"
+  const isSeasonUpcoming = activeSeason.status === "upcoming"
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
     if (!round.startsAt || !round.endsAt) {
@@ -29,10 +30,8 @@ export default function MatchesPage() {
 
   function getRoundStatusText(round: (typeof rounds)[number]) {
     const labelByStatus = {
-      "no-window": "",
       upcoming: t.rounds.statusUpcoming,
       active: t.rounds.statusActive,
-      overdue: t.rounds.statusOverdue,
       completed: t.rounds.statusCompleted,
     }
 
@@ -54,6 +53,25 @@ export default function MatchesPage() {
           {t.matches.description}
         </p>
       </header>
+
+      {isSeasonUpcoming ? (
+        <AppCard className="border border-neutral-200 bg-neutral-50/80 px-4 py-3">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+            Temporada próximamente
+          </p>
+          <p className="mt-1 text-sm font-semibold text-neutral-600">
+            La temporada está creada, pero todavía no ha comenzado. Los partidos se desbloquearán al comenzar la temporada.
+          </p>
+          {canManageSeason ? (
+            <Link
+              href="/admin/season"
+              className="mt-3 inline-flex rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+            >
+              Administrar temporada
+            </Link>
+          ) : null}
+        </AppCard>
+      ) : null}
 
       {isSeasonClosed ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 px-4 py-3">

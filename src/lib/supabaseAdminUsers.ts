@@ -59,13 +59,13 @@ export async function fetchSupabaseLeagueUsers(
 
   const usersById = new Map<
     string,
-    { email: string; display_name: string | null }
+    { email: string; display_name: string | null; avatar_url: string | null }
   >()
 
   if (userIds.length > 0) {
     const { data: users, error: usersError } = await supabase
       .from("app_users")
-      .select("id,email,display_name")
+      .select("id,email,display_name,avatar_url")
       .in("id", userIds)
 
     if (usersError) throw usersError
@@ -74,6 +74,7 @@ export async function fetchSupabaseLeagueUsers(
       usersById.set(user.id, {
         email: user.email,
         display_name: user.display_name,
+        avatar_url: typeof user.avatar_url === "string" ? user.avatar_url : null,
       })
     })
   }
@@ -94,7 +95,7 @@ export async function fetchSupabaseLeagueUsers(
       playerId: player.id,
       displayName: player.display_name,
       avatarInitials: player.avatar_initials,
-      avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
+      avatarUrl: linkedUser?.avatar_url ?? (typeof player.avatar_url === "string" ? player.avatar_url : null),
       linkedUserId: membership?.user_id ?? null,
       linkedUserEmail: linkedUser?.email ?? null,
       linkedUserDisplayName: linkedUser?.display_name ?? null,
@@ -208,9 +209,27 @@ export async function updateSupabasePlayerAvatar({
   playerId: string
   avatarUrl: string | null
 }) {
+  const { data: membership, error: membershipError } = await supabase
+    .from("league_memberships")
+    .select("user_id")
+    .eq("league_id", leagueId)
+    .eq("player_id", playerId)
+    .maybeSingle()
+
+  if (membershipError) throw membershipError
+
+  if (membership?.user_id) {
+    const { error: userError } = await supabase
+      .from("app_users")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", membership.user_id)
+
+    if (userError) throw userError
+  }
+
   const { data, error } = await supabase
     .from("players")
-    .update({ avatar_url: avatarUrl })
+    .update({ avatar_url: membership?.user_id ? null : avatarUrl })
     .eq("league_id", leagueId)
     .eq("id", playerId)
     .select("id,display_name,avatar_initials,avatar_url")
@@ -222,6 +241,7 @@ export async function updateSupabasePlayerAvatar({
     playerId: data.id,
     displayName: data.display_name,
     avatarInitials: data.avatar_initials,
-    avatarUrl: typeof data.avatar_url === "string" ? data.avatar_url : null,
+    avatarUrl,
+    userId: membership?.user_id ?? null,
   }
 }

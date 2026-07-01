@@ -98,6 +98,8 @@ type MatchDataContextValue = {
   postponeMatch: (matchId: string) => Promise<boolean>
   finishMatch: (matchId: string, result: MatchResultInput) => Promise<boolean>
   clearMatchResult: (matchId: string) => Promise<boolean>
+  deleteSeasonMatches: (seasonId: string) => void
+  deleteRoundMatches: (seasonId: string, round: number) => void
   updateCourtBooking: (
     matchId: string,
     bookingInput: CourtBookingInput
@@ -722,6 +724,31 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches, persistNextMatches, recordMatchActivity]
   )
 
+
+  const deleteSeasonMatches = useCallback(
+    (seasonId: string) => {
+      setMatches((currentMatches) =>
+        persistNextMatches(
+          currentMatches.filter((match) => match.seasonId !== seasonId)
+        )
+      )
+    },
+    [persistNextMatches]
+  )
+
+  const deleteRoundMatches = useCallback(
+    (seasonId: string, round: number) => {
+      setMatches((currentMatches) =>
+        persistNextMatches(
+          currentMatches.filter(
+            (match) => !(match.seasonId === seasonId && match.round === round)
+          )
+        )
+      )
+    },
+    [persistNextMatches]
+  )
+
   const updateCourtBooking = useCallback(
     async (matchId: string, bookingInput: CourtBookingInput) => {
       const currentMatch = matches.find((match) => match.id === matchId)
@@ -898,6 +925,8 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       postponeMatch,
       finishMatch,
       clearMatchResult,
+      deleteSeasonMatches,
+      deleteRoundMatches,
       updateCourtBooking,
       clearCourtBooking,
       markCourtBookingTransferAsPaid,
@@ -906,6 +935,8 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       clearCourtBooking,
       clearMatchResult,
       createSeasonMatches,
+      deleteRoundMatches,
+      deleteSeasonMatches,
       finishMatch,
       hydrateMatches,
       markCourtBookingTransferAsPaid,

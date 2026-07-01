@@ -50,14 +50,13 @@ export default function MatchDetailPage() {
   }
 
   function getRoundStatusText() {
-    if (!round || round.status === "no-window") {
+    if (!round) {
       return ""
     }
 
     const labelByStatus = {
       upcoming: t.rounds.statusUpcoming,
       active: t.rounds.statusActive,
-      overdue: t.rounds.statusOverdue,
       completed: t.rounds.statusCompleted,
     }
 
@@ -121,7 +120,8 @@ export default function MatchDetailPage() {
     currentUserId
   )
   const isAdmin = isLeagueAdmin(activeLeague.id)
-  const canManageMatch = isMatchParticipant || isAdmin
+  const isSeasonUpcoming = activeSeason.status === "upcoming"
+  const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
   const canEnterResult =
     canManageMatch &&
     (match.status === "scheduled" ||
@@ -149,6 +149,15 @@ export default function MatchDetailPage() {
           {t.matches.round} {match.round}
         </p>
       </header>
+
+      {isSeasonUpcoming ? (
+        <AppCard>
+          <p className="font-bold">Temporada próximamente</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            Esta temporada ya está creada, pero todavía no ha comenzado. No se pueden programar partidos ni registrar resultados hasta que un admin pulse Comenzar temporada.
+          </p>
+        </AppCard>
+      ) : null}
 
       <MatchScoreboard
         teamA={match.teamA}
