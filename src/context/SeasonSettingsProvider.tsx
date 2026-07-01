@@ -27,6 +27,8 @@ export type SeasonRoundSettings = {
   seasonStartsAt: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
+  manualActiveRound: number | null;
+  manualCompletedRounds: number[];
 };
 
 type SeasonSettingsContextValue = {
@@ -106,6 +108,16 @@ function normalizeSettings(
     seasonStartsAt: settings.seasonStartsAt,
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
+    manualActiveRound:
+      typeof (settings as Partial<SeasonRoundSettings>).manualActiveRound === "number"
+        ? (settings as Partial<SeasonRoundSettings>).manualActiveRound ?? null
+        : null,
+    manualCompletedRounds: Array.isArray(
+      (settings as Partial<SeasonRoundSettings>).manualCompletedRounds,
+    )
+      ? ((settings as Partial<SeasonRoundSettings>).manualCompletedRounds ?? [])
+          .filter((round): round is number => typeof round === "number")
+      : [],
   };
 }
 
@@ -278,6 +290,15 @@ function parseStoredSettings(
         seasonStartsAt: storedSetting.seasonStartsAt ?? null,
         roundWindowDays: storedSetting.roundWindowDays ?? null,
         requiresThreeSets: storedSetting.requiresThreeSets ?? true,
+        manualActiveRound:
+          typeof storedSetting.manualActiveRound === "number"
+            ? storedSetting.manualActiveRound
+            : null,
+        manualCompletedRounds: Array.isArray(storedSetting.manualCompletedRounds)
+          ? storedSetting.manualCompletedRounds.filter(
+              (round): round is number => typeof round === "number",
+            )
+          : [],
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -294,6 +315,8 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     seasonStartsAt: null,
     roundWindowDays: null,
     requiresThreeSets: true,
+    manualActiveRound: null,
+    manualCompletedRounds: [],
   };
 }
 
@@ -422,7 +445,14 @@ export function SeasonSettingsProvider({
     const latestSeason = getLatestLeagueSeason(seasonData.seasons, leagueId);
 
     if (!latestSeason) {
-      throw new Error(`Active season not found for league: ${leagueId}`);
+      return {
+        id: `${leagueId}-season-draft`,
+        leagueId,
+        name: "Sin temporada",
+        status: "finished" as const,
+        totalRounds: 0,
+        completedRounds: 0,
+      };
     }
 
     return latestSeason;
@@ -624,6 +654,8 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
+      manualActiveRound: null,
+      manualCompletedRounds: [],
     });
 
     return { seasonId, playerIds };
@@ -729,6 +761,8 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
+      manualActiveRound: null,
+      manualCompletedRounds: [],
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

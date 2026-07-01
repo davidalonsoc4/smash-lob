@@ -75,6 +75,8 @@ export type SeasonRoundSettings = {
   seasonStartsAt: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
+  manualActiveRound: number | null
+  manualCompletedRounds: number[]
 }
 
 export const currentUserId = "davo"
@@ -371,6 +373,8 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     seasonStartsAt: "2026-06-14",
     roundWindowDays: 15,
     requiresThreeSets: true,
+    manualActiveRound: null,
+    manualCompletedRounds: [],
   },
   {
     leagueId: "league-work",
@@ -379,6 +383,8 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     seasonStartsAt: "2026-06-18",
     roundWindowDays: 15,
     requiresThreeSets: true,
+    manualActiveRound: null,
+    manualCompletedRounds: [],
   },
 ]
 

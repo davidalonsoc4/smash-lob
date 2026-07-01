@@ -1335,7 +1335,7 @@ function NewSeasonForm({
       try {
         const result = await startSupabaseSeason({
           ...settings,
-          activeSeasonId: isSupabaseBackedId(activeSeasonId) ? activeSeasonId : null,
+          activeSeasonId: activeSeasonId && isSupabaseBackedId(activeSeasonId) ? activeSeasonId : null,
         })
 
         hydrateSeasonSnapshot(result.seasonSnapshot)

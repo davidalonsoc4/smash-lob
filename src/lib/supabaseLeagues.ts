@@ -321,6 +321,8 @@ export async function createSupabaseLeague({
           seasonStartsAt,
           roundWindowDays,
           requiresThreeSets,
+          manualActiveRound: null,
+          manualCompletedRounds: [],
         },
       ],
       activeSeasonIds: {
@@ -467,7 +469,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets"
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds"
       )
       .in("league_id", leagueIds),
     supabase
@@ -562,6 +564,15 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     seasonStartsAt: settings.season_starts_at,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
+    manualActiveRound:
+      typeof settings.manual_active_round === "number"
+        ? settings.manual_active_round
+        : null,
+    manualCompletedRounds: Array.isArray(settings.manual_completed_rounds)
+      ? settings.manual_completed_rounds.filter(
+          (round): round is number => typeof round === "number"
+        )
+      : [],
   }))
   const matches: MatchData[] = (matchesResult.data ?? []).map((match) =>
     mapSupabaseMatch(match)

@@ -14,6 +14,13 @@ import type {
 import type { PlayerProfile, Season, SeasonPlayer } from "@/data/fakeData"
 import type { MatchData } from "@/context/MatchDataProvider"
 
+const supabaseUuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isSupabaseBackedId(id: string) {
+  return supabaseUuidPattern.test(id)
+}
+
 function initials(name: string) {
   return (
     name
@@ -90,6 +97,8 @@ export async function updateSupabaseSeasonRoundSettings(
     season_starts_at: settings.seasonStartsAt,
     round_window_days: settings.roundWindowDays,
     requires_three_sets: settings.requiresThreeSets,
+    manual_active_round: settings.manualActiveRound,
+    manual_completed_rounds: settings.manualCompletedRounds,
   }
 
   const { data, error } = await supabase
@@ -311,7 +320,7 @@ export async function startSupabaseSeason({
   manualMatches,
 }: {
   leagueId: string
-  activeSeasonId: string
+  activeSeasonId: string | null
   name: string
   playerIds: string[]
   newPlayerNames: string[]
@@ -330,7 +339,10 @@ export async function startSupabaseSeason({
     .filter(Boolean)
   const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length
 
-  const { data: finishedSeason, error: finishError } = activeSeasonId
+  const shouldFinishCurrentSeason = Boolean(
+    activeSeasonId && isSupabaseBackedId(activeSeasonId)
+  )
+  const { data: finishedSeason, error: finishError } = shouldFinishCurrentSeason
     ? await supabase
         .from("seasons")
         .update({ status: "finished" })
@@ -454,6 +466,8 @@ export async function startSupabaseSeason({
       season_starts_at: seasonStartsAt,
       round_window_days: roundWindowDays,
       requires_three_sets: requiresThreeSets,
+      manual_active_round: null,
+      manual_completed_rounds: [],
     })
 
   if (settingsError) {
@@ -486,6 +500,8 @@ export async function startSupabaseSeason({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
+      manualActiveRound: null,
+      manualCompletedRounds: [],
     },
   ]
 
