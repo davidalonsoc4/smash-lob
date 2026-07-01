@@ -53,6 +53,7 @@ type ClaimResult =
 type LeagueAccessContextValue = {
   userId: string | null;
   isSuperuser: boolean;
+  canCreateLeagues: boolean;
   isAdminViewEnabled: boolean;
   setAdminViewEnabled: (enabled: boolean) => void;
   leagues: League[];
@@ -434,7 +435,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const userId = normalizeUserId(session?.user?.email);
   const userDisplayName = session?.user?.name;
   const [isSuperuserFromDb, setIsSuperuserFromDb] = useState(false);
+  const [canCreateLeaguesFromDb, setCanCreateLeaguesFromDb] = useState(false);
   const isSuperuser = Boolean(userId) && isSuperuserFromDb;
+  const canCreateLeagues = Boolean(userId) && canCreateLeaguesFromDb;
   const [isAdminViewEnabled, setIsAdminViewEnabledState] = useState(
     readStoredAdminViewEnabled,
   );
@@ -484,6 +487,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
         if (!isCancelled) {
           setIsSuperuserFromDb(Boolean(appUser.is_superuser));
+          setCanCreateLeaguesFromDb(Boolean(appUser.can_create_leagues));
         }
 
         const snapshot = await fetchSupabaseLeagueSnapshot(userId as string);
@@ -493,6 +497,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         }
 
         setIsSuperuserFromDb(snapshot.isSuperuser);
+        setCanCreateLeaguesFromDb(snapshot.canCreateLeagues);
 
         const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : [];
         const nextLeagues = mergeLeagues(fallbackLeagues, snapshot.leagues);
@@ -565,7 +570,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
   const createLeague = useCallback(
     async ({ name, description }: { name: string; description: string }) => {
-      if (!userId) {
+      if (!userId || !canCreateLeagues) {
         return null;
       }
 
@@ -637,6 +642,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       }
     },
     [
+      canCreateLeagues,
       getLeagueInviteCode,
       hydrateSeasonSnapshot,
       leagues,
@@ -1343,6 +1349,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     () => ({
       userId,
       isSuperuser,
+      canCreateLeagues,
       isAdminViewEnabled,
       setAdminViewEnabled,
       leagues,
@@ -1397,6 +1404,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       hasLeagueAdminRole,
       isLeagueCreator,
       isSuperuser,
+      canCreateLeagues,
       isAdminViewEnabled,
       setAdminViewEnabled,
       leagues,

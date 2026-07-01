@@ -163,6 +163,7 @@ export default function SettingsPage() {
   const { t } = useI18n()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const {
+    canCreateLeagues,
     hasLeagueAdminRole,
     isAdminViewEnabled,
     setAdminViewEnabled,
@@ -300,12 +301,14 @@ export default function SettingsPage() {
             {t.settings.joinNewExistingLeague}
           </Link>
 
-          <Link
-            href="/league/new"
-            className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-          >
-            {t.settings.createNewLeague}
-          </Link>
+          {canCreateLeagues ? (
+            <Link
+              href="/league/new"
+              className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+            >
+              {t.settings.createNewLeague}
+            </Link>
+          ) : null}
         </div>
       </AppCard>
 

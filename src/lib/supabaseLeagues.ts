@@ -179,6 +179,7 @@ function toRole(role: unknown): LeagueMemberRole {
 export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   isSuperuser: boolean
   leagues: League[]
+  canCreateLeagues: boolean
   memberships: UserLeagueMembership[]
   matches: MatchData[]
   seasonSnapshot: SeasonSnapshot
@@ -186,13 +187,14 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   const normalizedEmail = email.trim().toLowerCase()
   const { data: user } = await supabase
     .from("app_users")
-    .select("id,email,is_superuser")
+    .select("id,email,is_superuser,can_create_leagues")
     .eq("email", normalizedEmail)
     .maybeSingle()
 
   if (!user) {
     return {
       isSuperuser: false,
+      canCreateLeagues: false,
       leagues: [],
       memberships: [],
       matches: [],
@@ -207,6 +209,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   }
 
   const isSuperuser = Boolean(user.is_superuser)
+  const canCreateLeagues = Boolean(user.can_create_leagues)
   const { data: ownMembershipRows, error: ownMembershipError } = await supabase
     .from("league_memberships")
     .select("league_id,player_id,role,user_id")
@@ -227,6 +230,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   if (!isSuperuser && accessibleLeagueIds.size === 0) {
     return {
       isSuperuser,
+      canCreateLeagues,
       leagues: [],
       memberships: isSuperuser ? [] : ownMemberships,
       matches: [],
@@ -270,6 +274,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   if (leagueIds.length === 0) {
     return {
       isSuperuser,
+      canCreateLeagues,
       leagues,
       memberships: isSuperuser ? [] : ownMemberships,
       matches: [],
@@ -421,6 +426,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
 
   return {
     isSuperuser,
+    canCreateLeagues,
     leagues,
     memberships,
     matches,

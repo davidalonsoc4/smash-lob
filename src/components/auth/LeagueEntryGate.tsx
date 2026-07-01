@@ -18,13 +18,13 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { data: session } = useSession()
-  const { userLeagues } = useLeagueAccess()
+  const { canCreateLeagues, userLeagues } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isNewLeagueRoute = pathname === "/league/new"
 
-  if (isInviteRoute || isNewLeagueRoute || userLeagues.length > 0) {
+  if (isInviteRoute || (isNewLeagueRoute && canCreateLeagues) || userLeagues.length > 0) {
     return children
   }
 
@@ -56,18 +56,20 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
           </p>
         </header>
 
-        <AppCard>
-          <p className="font-bold">{t.onboarding.createTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
-            {t.onboarding.createDescription}
-          </p>
-          <Link
-            href="/league/new"
-            className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-          >
-            {t.onboarding.createAction}
-          </Link>
-        </AppCard>
+        {canCreateLeagues ? (
+          <AppCard>
+            <p className="font-bold">{t.onboarding.createTitle}</p>
+            <p className="mt-2 text-sm text-neutral-500">
+              {t.onboarding.createDescription}
+            </p>
+            <Link
+              href="/league/new"
+              className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+            >
+              {t.onboarding.createAction}
+            </Link>
+          </AppCard>
+        ) : null}
 
         <AppCard>
           <p className="font-bold">{t.onboarding.joinTitle}</p>

@@ -219,6 +219,8 @@ export default function ProfilePage() {
         seasonMatches={selectedMatches}
         limit={3}
         emptyMessage={t.profile.noRecentResults}
+        actionHref="/matches?scope=mine"
+        actionLabel="Ver todo"
       />
 
       <Link href="/profile/matches">

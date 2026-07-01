@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
 import { AppCard } from "@/components/ui/AppCard"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -11,12 +13,20 @@ import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchesPage() {
   const { t } = useI18n()
+  const searchParams = useSearchParams()
+  const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason, rounds, players, matches } =
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonClosed = activeSeason.status === "finished"
   const isSeasonUpcoming = activeSeason.status === "upcoming"
+  const activeScope = searchParams.get("scope") === "mine" ? "mine" : "all"
+  const visibleMatches = matches.filter((match) =>
+    activeScope === "mine"
+      ? match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
+      : true
+  )
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
     if (!round.startsAt || !round.endsAt) {
@@ -53,6 +63,36 @@ export default function MatchesPage() {
           {t.matches.description}
         </p>
       </header>
+
+
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white/80 px-3 py-2 shadow-sm">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+          Filtro
+        </p>
+
+        <div className="flex rounded-full bg-neutral-100 p-1">
+          <Link
+            href="/matches"
+            className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
+              activeScope === "all"
+                ? "bg-neutral-950 text-white shadow-sm"
+                : "text-neutral-500"
+            }`}
+          >
+            Todos
+          </Link>
+          <Link
+            href="/matches?scope=mine"
+            className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
+              activeScope === "mine"
+                ? "bg-neutral-950 text-white shadow-sm"
+                : "text-neutral-500"
+            }`}
+          >
+            Mis partidos
+          </Link>
+        </div>
+      </div>
 
       {isSeasonUpcoming ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 px-4 py-3">
@@ -99,7 +139,7 @@ export default function MatchesPage() {
 
       <div className="space-y-7">
         {rounds.map((round) => {
-          const roundMatches = matches.filter(
+          const roundMatches = visibleMatches.filter(
             (match) => match.round === round.round
           )
           const roundWindowText = getRoundWindowText(round)
@@ -151,9 +191,11 @@ export default function MatchesPage() {
           )
         })}
 
-        {matches.length === 0 ? (
+        {visibleMatches.length === 0 ? (
           <AppCard>
-            <p className="font-bold">{t.matches.noMatches}</p>
+            <p className="font-bold">
+              {activeScope === "mine" ? "Todavía no tienes partidos en esta temporada." : t.matches.noMatches}
+            </p>
           </AppCard>
         ) : null}
       </div>

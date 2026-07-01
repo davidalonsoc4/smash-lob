@@ -12,13 +12,13 @@ export default function NewLeaguePage() {
   const { t } = useI18n()
   const router = useRouter()
   const { setActiveLeagueId } = useActiveLeague()
-  const { createLeague } = useLeagueAccess()
+  const { canCreateLeagues, createLeague } = useLeagueAccess()
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
-  const canCreate = leagueName.trim().length > 0
+  const canCreate = canCreateLeagues && leagueName.trim().length > 0
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -43,6 +43,31 @@ export default function NewLeaguePage() {
 
     setActiveLeagueId(league.id)
     router.push("/admin/season")
+  }
+
+  if (!canCreateLeagues) {
+    return (
+      <div className="space-y-5">
+        <header className="pt-2">
+          <BackButton fallbackHref="/settings" label={t.common.back} />
+
+          <h1 className="mt-4 text-3xl font-black tracking-tight">
+            {t.newLeague.title}
+          </h1>
+
+          <p className="mt-1 text-sm text-neutral-500">
+            La creación de ligas está limitada a usuarios autorizados. Puedes unirte a una liga existente con un código de invitación.
+          </p>
+        </header>
+
+        <AppCard>
+          <p className="font-bold">No tienes permisos para crear ligas</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            Tu cuenta puede jugar y administrar las ligas donde tengas permisos, pero no crear ligas nuevas.
+          </p>
+        </AppCard>
+      </div>
+    )
   }
 
   return (

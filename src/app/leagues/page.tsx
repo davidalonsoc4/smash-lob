@@ -20,7 +20,7 @@ function getSeasonStatusLabel(status: "upcoming" | "active" | "finished") {
 export default function LeaguesPage() {
   const router = useRouter();
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
-  const { hasLeagueAdminRole, userLeagues } = useLeagueAccess();
+  const { canCreateLeagues, hasLeagueAdminRole, userLeagues } = useLeagueAccess();
   const { matches } = useMatchData();
   const {
     getActiveSeasonByLeagueId,
@@ -148,12 +148,14 @@ export default function LeaguesPage() {
           >
             Unirme con invitación
           </Link>
-          <Link
-            href="/league/new"
-            className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-          >
-            Crear nueva liga
-          </Link>
+          {canCreateLeagues ? (
+            <Link
+              href="/league/new"
+              className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+            >
+              Crear nueva liga
+            </Link>
+          ) : null}
         </div>
       </AppCard>
     </div>

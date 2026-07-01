@@ -31,6 +31,8 @@ type PlayerMatchesListProps = {
   limit?: number
   emptyMessage?: string
   seasonMatches?: PlayerMatch[]
+  actionHref?: string
+  actionLabel?: string
 }
 
 export function PlayerMatchesList({
@@ -41,6 +43,8 @@ export function PlayerMatchesList({
   limit,
   emptyMessage,
   seasonMatches = matches,
+  actionHref,
+  actionLabel,
 }: PlayerMatchesListProps) {
   const { t } = useI18n()
 
@@ -52,7 +56,17 @@ export function PlayerMatchesList({
 
   return (
     <section>
-      <h2 className="mb-3 text-lg font-black">{title}</h2>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-black">{title}</h2>
+        {actionHref && actionLabel ? (
+          <Link
+            href={actionHref}
+            className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700"
+          >
+            {actionLabel}
+          </Link>
+        ) : null}
+      </div>
 
       {visibleMatches.length === 0 ? (
         <AppCard>
@@ -62,7 +76,7 @@ export function PlayerMatchesList({
         </AppCard>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {visibleMatches.map((match) => {
           const isFinished = match.status === "finished"
           const isPostponed = match.status === "postponed"
