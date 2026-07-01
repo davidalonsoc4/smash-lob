@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import {
+  buildUserAvatarLookup,
+  resolvePlayerAvatarUrl,
+} from "@/lib/avatarResolution"
 import type {
   RoundWindowMode,
   SeasonRoundSettings,
@@ -160,15 +164,46 @@ export async function fetchSupabaseInviteSnapshot(
 
   if (membershipsError) throw membershipsError
 
+  const { data: avatarUsers, error: avatarUsersError } = await supabase
+    .from("app_users")
+    .select("id,email,display_name,avatar_url")
+
+  if (avatarUsersError) throw avatarUsersError
+
+  const userAvatarLookup = buildUserAvatarLookup(
+    (avatarUsers ?? []).map((user) => ({
+      id: user.id,
+      email: user.email,
+      displayName: user.display_name,
+      avatarUrl: typeof user.avatar_url === "string" ? user.avatar_url : null,
+    }))
+  )
+  const membershipByPlayerId = new Map(
+    (membershipRows ?? [])
+      .filter((membership) => typeof membership.player_id === "string")
+      .map((membership) => [membership.player_id as string, membership])
+  )
+
   const playerProfiles: PlayerProfile[] = (playersResult.data ?? []).map(
-    (player) => ({
-      id: player.id,
-      leagueId: player.league_id,
-      slug: player.slug,
-      displayName: player.display_name,
-      avatarInitials: player.avatar_initials,
-      avatarUrl: typeof player.avatar_url === "string" ? player.avatar_url : null,
-    })
+    (player) => {
+      const membership = membershipByPlayerId.get(player.id)
+
+      return {
+        id: player.id,
+        leagueId: player.league_id,
+        slug: player.slug,
+        displayName: player.display_name,
+        avatarInitials: player.avatar_initials,
+        userId: membership?.user_id ?? null,
+        avatarUrl: resolvePlayerAvatarUrl({
+          linkedUserId: membership?.user_id ?? null,
+          playerDisplayName: player.display_name,
+          playerAvatarUrl:
+            typeof player.avatar_url === "string" ? player.avatar_url : null,
+          users: userAvatarLookup,
+        }),
+      }
+    }
   )
   const seasonPlayers: SeasonPlayer[] = (seasonPlayerRows ?? []).map(
     (seasonPlayer) => ({

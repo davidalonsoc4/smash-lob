@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import {
+  buildUserAvatarLookup,
+  resolvePlayerAvatarUrl,
+} from "@/lib/avatarResolution"
 import type {
   SeasonRoundSettings,
   SeasonSnapshot,
@@ -322,32 +326,19 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   if (matchesResult.error) throw matchesResult.error
   if (leagueMembershipsResult.error) throw leagueMembershipsResult.error
 
-  const linkedUserIds = Array.from(
-    new Set(
-      (leagueMembershipsResult.data ?? [])
-        .map((membership) => membership.user_id)
-        .filter((userId): userId is string => typeof userId === "string")
-    )
-  )
-  const { data: linkedUsers, error: linkedUsersError } =
-    linkedUserIds.length > 0
-      ? await supabase
-          .from("app_users")
-          .select("id,email,display_name,avatar_url")
-          .in("id", linkedUserIds)
-      : { data: [], error: null }
+  const { data: avatarUsers, error: avatarUsersError } = await supabase
+    .from("app_users")
+    .select("id,email,display_name,avatar_url")
 
-  if (linkedUsersError) throw linkedUsersError
+  if (avatarUsersError) throw avatarUsersError
 
-  const linkedUsersById = new Map(
-    (linkedUsers ?? []).map((user) => [
-      user.id,
-      {
-        email: user.email,
-        displayName: user.display_name,
-        avatarUrl: typeof user.avatar_url === "string" ? user.avatar_url : null,
-      },
-    ])
+  const userAvatarLookup = buildUserAvatarLookup(
+    (avatarUsers ?? []).map((user) => ({
+      id: user.id,
+      email: user.email,
+      displayName: user.display_name,
+      avatarUrl: typeof user.avatar_url === "string" ? user.avatar_url : null,
+    }))
   )
   const membershipByPlayerId = new Map(
     (leagueMembershipsResult.data ?? [])
@@ -366,10 +357,6 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   const playerProfiles: PlayerProfile[] = (playersResult.data ?? []).map(
     (player) => {
       const membership = membershipByPlayerId.get(player.id)
-      const linkedUser = membership?.user_id
-        ? linkedUsersById.get(membership.user_id)
-        : null
-
       return {
         id: player.id,
         leagueId: player.league_id,
@@ -377,7 +364,13 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
         displayName: player.display_name,
         avatarInitials: player.avatar_initials,
         userId: membership?.user_id ?? null,
-        avatarUrl: linkedUser?.avatarUrl ?? (typeof player.avatar_url === "string" ? player.avatar_url : null),
+        avatarUrl: resolvePlayerAvatarUrl({
+          linkedUserId: membership?.user_id ?? null,
+          playerDisplayName: player.display_name,
+          playerAvatarUrl:
+            typeof player.avatar_url === "string" ? player.avatar_url : null,
+          users: userAvatarLookup,
+        }),
       }
     }
   )
