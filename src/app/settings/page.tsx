@@ -448,19 +448,9 @@ export default function SettingsPage() {
         </SettingsSection>
       ) : null}
 
-      <AppCard className="bg-neutral-950 text-white">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-black">Smash & Lob</p>
-            <p className="mt-1 text-xs font-semibold text-neutral-400">
-              Versión instalada de la aplicación.
-            </p>
-          </div>
-          <p className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white">
-            {APP_VERSION_LABEL}
-          </p>
-        </div>
-      </AppCard>
+      <p className="pb-4 text-center text-xs font-semibold text-neutral-600">
+        {APP_VERSION_LABEL}
+      </p>
     </div>
   );
 }
