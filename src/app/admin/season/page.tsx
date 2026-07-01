@@ -995,6 +995,99 @@ function StartSeasonPanel({
   );
 }
 
+function ReopenSeasonPanel({
+  activeLeagueId,
+  activeSeasonId,
+}: {
+  activeLeagueId: string;
+  activeSeasonId: string;
+}) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings();
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleReopenSeason() {
+    if (isSaving) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "¿Reabrir esta temporada? Volverá a estar activa para poder corregir partidos o resultados.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    if (isSupabaseBackedId(activeSeasonId)) {
+      try {
+        const snapshot = await startSupabaseExistingSeason({
+          leagueId: activeLeagueId,
+          seasonId: activeSeasonId,
+        });
+
+        hydrateSeasonSnapshot(snapshot);
+      } catch (supabaseError) {
+        recordSupabaseError("reopen-finished-season", supabaseError);
+        setError(
+          "No se ha podido reabrir la temporada en Supabase. Revisa smash-lob-last-supabase-error.",
+        );
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    startSeason(activeLeagueId, activeSeasonId);
+
+    try {
+      await recordActivityEvent({
+        leagueId: activeLeagueId,
+        seasonId: activeSeasonId,
+        ...getActorFromSession(session),
+        type: "season_created",
+        title: "Temporada reabierta",
+        description:
+          "La temporada se ha reabierto manualmente para corregir partidos o resultados.",
+      });
+    } catch {
+      // La reapertura no debe fallar si el registro de actividad no entra.
+    }
+
+    setIsSaving(false);
+    router.push("/admin/season");
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Reabrir temporada pasada</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Úsalo solo si la temporada se cerró por error o necesitas corregir algún
+        resultado. La temporada volverá a estar activa.
+      </p>
+
+      <button
+        type="button"
+        onClick={handleReopenSeason}
+        disabled={isSaving}
+        className="mt-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300"
+      >
+        {isSaving ? "Guardando..." : "Reabrir temporada pasada"}
+      </button>
+
+      {error ? (
+        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
 function SeasonDangerZone({
   activeLeagueId,
   activeSeasonId,
@@ -2149,13 +2242,20 @@ export default function AdminSeasonPage() {
           />
         </>
       ) : (
-        <NewSeasonForm
-          key={`${activeSeason.id}-new`}
-          activeLeagueId={activeLeague.id}
-          activeLeagueName={activeLeague.name}
-          activeSeasonId={activeSeason.id}
-          currentPlayers={players}
-        />
+        <>
+          <ReopenSeasonPanel
+            activeLeagueId={activeLeague.id}
+            activeSeasonId={activeSeason.id}
+          />
+
+          <NewSeasonForm
+            key={`${activeSeason.id}-new`}
+            activeLeagueId={activeLeague.id}
+            activeLeagueName={activeLeague.name}
+            activeSeasonId={activeSeason.id}
+            currentPlayers={players}
+          />
+        </>
       )}
     </div>
   );

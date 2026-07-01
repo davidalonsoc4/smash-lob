@@ -139,9 +139,22 @@ export async function finishSupabaseActiveSeason({
   leagueId: string;
   seasonId: string;
 }): Promise<SeasonSnapshot> {
+  const { data: currentSeason, error: currentSeasonError } = await supabase
+    .from("seasons")
+    .select("total_rounds")
+    .eq("id", seasonId)
+    .single();
+
+  if (currentSeasonError) {
+    throw currentSeasonError;
+  }
+
   const { data: season, error } = await supabase
     .from("seasons")
-    .update({ status: "finished" })
+    .update({
+      status: "finished",
+      completed_rounds: currentSeason.total_rounds,
+    })
     .eq("id", seasonId)
     .select("id,league_id,name,status,total_rounds,completed_rounds")
     .single();

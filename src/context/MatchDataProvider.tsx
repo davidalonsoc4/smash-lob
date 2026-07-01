@@ -18,6 +18,7 @@ import {
   markCourtBookingTransferPaid,
   normalizeCourtBooking,
 } from "@/lib/courtBooking"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { recordActivityEvent, type ActivityEventType } from "@/lib/activity"
 import {
   clearSupabaseMatchResult,
@@ -27,6 +28,7 @@ import {
   updateSupabaseCourtBooking,
   updateSupabaseMatchSchedule,
 } from "@/lib/supabaseMatches"
+import { finishSupabaseActiveSeason } from "@/lib/supabaseSeasons"
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed"
 
@@ -365,6 +367,7 @@ function getActivityMatchDescription(match: MatchData, extra?: string | null) {
 
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const { data: session } = useSession()
+  const { finishSeason, hydrateSeasonSnapshot, seasons } = useSeasonSettings()
   const actorEmail =
     session?.user?.email?.trim().toLowerCase() || "usuario@smash-lob.local"
   const actorDisplayName = session?.user?.name ?? null
@@ -677,13 +680,60 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           })
         }
 
+        const targetSeason = seasons.find(
+          (season) => season.id === updatedMatch.seasonId
+        )
+        const seasonMatches = nextMatches.filter(
+          (match) => match.seasonId === updatedMatch.seasonId
+        )
+        const shouldAutoFinishSeason = Boolean(
+          targetSeason?.status === "active" &&
+            updatedMatch.round === targetSeason.totalRounds &&
+            seasonMatches.length > 0 &&
+            seasonMatches.every((match) => match.status === "finished")
+        )
+
+        if (shouldAutoFinishSeason) {
+          try {
+            const seasonSnapshot = await finishSupabaseActiveSeason({
+              leagueId: updatedMatch.leagueId,
+              seasonId: updatedMatch.seasonId,
+            })
+
+            hydrateSeasonSnapshot(seasonSnapshot)
+          } catch (seasonError) {
+            recordSupabaseError("auto-finish-season", seasonError)
+          }
+
+          finishSeason(updatedMatch.leagueId, updatedMatch.seasonId)
+
+          await recordMatchActivity({
+            match: updatedMatch,
+            type: "season_finished",
+            title: "Temporada cerrada automáticamente",
+            description:
+              "La temporada se ha cerrado al completarse todos los partidos de la última jornada.",
+            metadata: {
+              automatic: true,
+              totalRounds: targetSeason?.totalRounds ?? updatedMatch.round,
+            },
+          })
+        }
+
         return true
       } catch (error) {
         recordSupabaseError("finish-match", error)
         return false
       }
     },
-    [matches, persistNextMatches, recordMatchActivity]
+    [
+      finishSeason,
+      hydrateSeasonSnapshot,
+      matches,
+      persistNextMatches,
+      recordMatchActivity,
+      seasons,
+    ]
   )
 
   const clearMatchResult = useCallback(

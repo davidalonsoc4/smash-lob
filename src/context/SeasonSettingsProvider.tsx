@@ -49,6 +49,7 @@ type SeasonSettingsContextValue = {
   }) => void;
   hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void;
   finishActiveSeason: (leagueId: string) => void;
+  finishSeason: (leagueId: string, seasonId: string) => void;
   startSeason: (leagueId: string, seasonId: string) => void;
   deleteSeason: (leagueId: string, seasonId: string) => void;
   createInitialSeasonForLeague: (settings: {
@@ -464,9 +465,42 @@ export function SeasonSettingsProvider({
     );
   }
 
+  function finishSeason(leagueId: string, seasonId: string) {
+    setSeasonData((currentSeasonData) => {
+      const nextActiveSeasonIds = { ...currentSeasonData.activeSeasonIds };
+
+      if (nextActiveSeasonIds[leagueId] === seasonId) {
+        delete nextActiveSeasonIds[leagueId];
+      }
+
+      const nextSeasonData = {
+        ...currentSeasonData,
+        seasons: currentSeasonData.seasons.map((season) =>
+          season.id === seasonId
+            ? {
+                ...season,
+                status: "finished" as const,
+                completedRounds: season.totalRounds,
+              }
+            : season,
+        ),
+        activeSeasonIds: nextActiveSeasonIds,
+      };
+
+      persistSeasonData(nextSeasonData);
+
+      return nextSeasonData;
+    });
+  }
+
   function finishActiveSeason(leagueId: string) {
     setSeasonData((currentSeasonData) => {
       const activeSeasonId = currentSeasonData.activeSeasonIds[leagueId];
+
+      if (!activeSeasonId) {
+        return currentSeasonData;
+      }
+
       const nextActiveSeasonIds = { ...currentSeasonData.activeSeasonIds };
       delete nextActiveSeasonIds[leagueId];
 
@@ -477,6 +511,7 @@ export function SeasonSettingsProvider({
             ? {
                 ...season,
                 status: "finished" as const,
+                completedRounds: season.totalRounds,
               }
             : season,
         ),
@@ -887,6 +922,7 @@ export function SeasonSettingsProvider({
     updatePlayerProfile,
     hydrateSeasonSnapshot,
     finishActiveSeason,
+    finishSeason,
     startSeason,
     deleteSeason,
     createInitialSeasonForLeague,
