@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase"
-import { isSuperuserEmail } from "@/lib/superuser"
 
 export type SupabaseAppUser = {
   id: string
@@ -17,7 +16,6 @@ export async function upsertAppUser({
   displayName?: string | null
 }) {
   const normalizedEmail = email.trim().toLowerCase()
-  const shouldBeSuperuser = isSuperuserEmail(normalizedEmail)
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
     .select("is_superuser,avatar_url")
@@ -35,7 +33,7 @@ export async function upsertAppUser({
         email: normalizedEmail,
         display_name: displayName ?? null,
         avatar_url: existingUser?.avatar_url ?? null,
-        is_superuser: Boolean(existingUser?.is_superuser) || shouldBeSuperuser,
+        is_superuser: Boolean(existingUser?.is_superuser),
       },
       { onConflict: "email" }
     )

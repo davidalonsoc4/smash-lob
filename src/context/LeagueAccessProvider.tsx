@@ -36,7 +36,6 @@ import {
   claimSupabasePlayer,
   fetchSupabaseInviteSnapshot,
 } from "@/lib/supabaseInvites"
-import { isSuperuserEmail } from "@/lib/superuser"
 import {
   defaultUserLeagueMemberships,
   leagueMembers,
@@ -395,7 +394,8 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   } = useSeasonSettings()
   const userId = normalizeUserId(session?.user?.email)
   const userDisplayName = session?.user?.name
-  const isSuperuser = Boolean(userId) && isSuperuserEmail(userId)
+  const [isSuperuserFromDb, setIsSuperuserFromDb] = useState(false)
+  const isSuperuser = Boolean(userId) && isSuperuserFromDb
   const [leagues, setLeagues] = useState<League[]>(readStoredLeagues)
   const [memberships, setMemberships] = useState<UserLeagueMembership[]>(
     readStoredMemberships
@@ -422,19 +422,27 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       return
     }
 
-    upsertAppUser({
-      email: userId,
-      displayName: userDisplayName,
-    }).catch(() => undefined)
-  }, [userDisplayName, userId])
+    let isCancelled = false
 
-  useEffect(() => {
-    if (!userId) {
-      return
-    }
+    async function hydrateSupabaseAccess() {
+      try {
+        const appUser = await upsertAppUser({
+          email: userId as string,
+          displayName: userDisplayName,
+        })
 
-    fetchSupabaseLeagueSnapshot(userId)
-      .then((snapshot) => {
+        if (!isCancelled) {
+          setIsSuperuserFromDb(Boolean(appUser.is_superuser))
+        }
+
+        const snapshot = await fetchSupabaseLeagueSnapshot(userId as string)
+
+        if (isCancelled) {
+          return
+        }
+
+        setIsSuperuserFromDb(snapshot.isSuperuser)
+
         const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : []
         const nextLeagues = mergeLeagues(fallbackLeagues, snapshot.leagues)
 
@@ -454,8 +462,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         })
         hydrateMatches(snapshot.matches)
         hydrateSeasonSnapshot(snapshot.seasonSnapshot)
-      })
-      .catch((error) => {
+      } catch (error) {
         const details =
           typeof error === "object" && error !== null
             ? error
@@ -467,8 +474,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
             createdAt: new Date().toISOString(),
           })
         )
-      })
-  }, [hydrateMatches, hydrateSeasonSnapshot, userId])
+      }
+    }
+
+    hydrateSupabaseAccess()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [hydrateMatches, hydrateSeasonSnapshot, userDisplayName, userId])
 
   const persistMemberships = useCallback(
     (nextMemberships: UserLeagueMembership[]) => {

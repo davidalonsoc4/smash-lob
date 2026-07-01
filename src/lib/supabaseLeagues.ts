@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
-import { isSuperuserEmail } from "@/lib/superuser"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
   SeasonRoundSettings,
@@ -109,8 +108,7 @@ export async function createSupabaseLeague({
     inviteCode,
     creatorUserId: creator.id,
   })
-  const creatorIsSuperuser =
-    Boolean(creator.is_superuser) || isSuperuserEmail(normalizedCreatorEmail)
+  const creatorIsSuperuser = Boolean(creator.is_superuser)
 
   if (!creatorIsSuperuser) {
     const { error: membershipError } = await supabase
@@ -204,7 +202,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     }
   }
 
-  const isSuperuser = isSuperuserEmail(normalizedEmail)
+  const isSuperuser = Boolean(user.is_superuser)
   const { data: ownMembershipRows, error: ownMembershipError } = await supabase
     .from("league_memberships")
     .select("league_id,player_id,role,user_id")

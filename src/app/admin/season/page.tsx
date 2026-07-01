@@ -490,23 +490,14 @@ function RoundManagementPanel({
       </div>
 
       <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
-        <label className="block">
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
             Jornada seleccionada
           </span>
-          <select
-            value={selectedRound}
-            onChange={(event) => setSelectedRound(Number(event.target.value))}
-            disabled={isSaving}
-            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none"
-          >
-            {rounds.map((round) => (
-              <option key={round.id} value={round.round}>
-                Jornada {round.round}
-              </option>
-            ))}
-          </select>
-        </label>
+          <span className="text-sm font-black text-neutral-950">
+            Jornada {selectedRound}
+          </span>
+        </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
