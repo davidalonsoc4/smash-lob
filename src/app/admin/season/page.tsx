@@ -341,14 +341,14 @@ function InviteLinkCard({
         {t.adminSeason.inviteDescription.replace("{leagueName}", leagueName)}
       </p>
 
-      <div className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3 text-xs font-semibold text-neutral-600 break-all">
+      <div className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold text-neutral-600 break-all">
         {inviteUrl}
       </div>
 
       <button
         type="button"
         onClick={handleCopy}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
       >
         {copied ? t.adminSeason.inviteCopied : t.adminSeason.copyInviteLink}
       </button>
@@ -479,7 +479,7 @@ function RoundManagementPanel({
         activa cuando haga falta.
       </p>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         {rounds.map((round) => (
           <button
             key={round.id}
@@ -507,8 +507,8 @@ function RoundManagementPanel({
         ))}
       </div>
 
-      <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
+      <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2.5">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
             Jornada seleccionada
           </span>
@@ -578,13 +578,13 @@ function RoundManagementPanel({
       </div>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
           {feedback}
         </p>
       ) : null}
@@ -656,11 +656,11 @@ function RoundOrderPanel({
         los partidos se renumeran con el nuevo orden.
       </p>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 space-y-2">
         {roundOrder.map((round, index) => (
           <div
             key={`${round}-${index}`}
-            className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-4 py-3"
+            className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-3 py-2.5"
           >
             <div className="min-w-0">
               <p className="text-sm font-black text-neutral-950">
@@ -709,7 +709,7 @@ function RoundOrderPanel({
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => {
@@ -718,7 +718,7 @@ function RoundOrderPanel({
             setError(null);
           }}
           disabled={isSaving || !hasChanges}
-          className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+          className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300"
         >
           Restaurar
         </button>
@@ -726,20 +726,20 @@ function RoundOrderPanel({
           type="button"
           onClick={handleSave}
           disabled={isSaving || !hasChanges}
-          className="rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+          className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
         >
           {isSaving ? "Guardando..." : "Guardar orden"}
         </button>
       </div>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
           {feedback}
         </p>
       ) : null}
@@ -764,14 +764,14 @@ function SeasonPlayersStatus({
         {t.adminSeason.activePlayersDescription}
       </p>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 space-y-2">
         {players.map((player) => {
           const isClaimed = isPlayerClaimed(activeLeagueId, player.id);
 
           return (
             <div
               key={player.id}
-              className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-3 py-2.5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <PlayerAvatar
@@ -863,7 +863,7 @@ function SeasonPlayerNamesPanel({
         calendario ya generado.
       </p>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 space-y-2">
         {players.map((player) => {
           const draftName = draftNames[player.id] ?? player.displayName;
           const hasChanges = draftName.trim() !== player.displayName;
@@ -890,13 +890,13 @@ function SeasonPlayerNamesPanel({
                     setError(null);
                     setFeedback(null);
                   }}
-                  className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+                  className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
                 />
                 <button
                   type="button"
                   onClick={() => handleSave(player)}
                   disabled={Boolean(savingPlayerId) || !hasChanges || !draftName.trim()}
-                  className="shrink-0 rounded-2xl bg-neutral-950 px-4 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+                  className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300"
                 >
                   {isSavingPlayer ? "..." : "Guardar"}
                 </button>
@@ -907,13 +907,13 @@ function SeasonPlayerNamesPanel({
       </div>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
           {feedback}
         </p>
       ) : null}
@@ -1001,19 +1001,19 @@ function FinishSeasonPanel({
         type="button"
         onClick={handleFinishSeason}
         disabled={isSaving}
-        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : t.adminSeason.finishSeason}
       </button>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
           {feedback}
         </p>
       ) : null}
@@ -1099,13 +1099,13 @@ function StartSeasonPanel({
         type="button"
         onClick={handleStartSeason}
         disabled={isSaving}
-        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : "Comenzar temporada"}
       </button>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
@@ -1192,13 +1192,13 @@ function ReopenSeasonPanel({
         type="button"
         onClick={handleReopenSeason}
         disabled={isSaving}
-        className="mt-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300"
+        className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300"
       >
         {isSaving ? "Guardando..." : "Reabrir temporada pasada"}
       </button>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
@@ -1310,7 +1310,7 @@ function SeasonDangerZone({
         mal. Es una acción destructiva.
       </p>
 
-      <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+      <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
         <label className="block">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
             Jornada a eliminar
@@ -1319,7 +1319,7 @@ function SeasonDangerZone({
             value={selectedRound}
             onChange={(event) => setSelectedRound(Number(event.target.value))}
             disabled={isSaving}
-            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none"
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none"
           >
             {Array.from({ length: totalRounds }, (_, index) => index + 1).map(
               (round) => (
@@ -1335,7 +1335,7 @@ function SeasonDangerZone({
           type="button"
           onClick={handleDeleteRound}
           disabled={isSaving}
-          className="mt-3 w-full rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+          className="mt-3 w-full rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
         >
           Eliminar jornada
         </button>
@@ -1345,19 +1345,19 @@ function SeasonDangerZone({
         type="button"
         onClick={handleDeleteSeason}
         disabled={isSaving}
-        className="mt-3 w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white disabled:bg-red-200"
+        className="mt-3 w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200"
       >
         Eliminar temporada completa
       </button>
 
       {error ? (
-        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
         </p>
       ) : null}
 
       {feedback ? (
-        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
           {feedback}
         </p>
       ) : null}
@@ -1692,7 +1692,7 @@ function NewSeasonForm({
   }
 
   return (
-    <form onSubmit={handleStartSeason} className="space-y-5">
+    <form onSubmit={handleStartSeason} className="space-y-4">
       <AppCard>
         <p className="font-bold">{t.adminSeason.newSeasonTitle}</p>
         <p className="mt-2 text-sm text-neutral-500">
@@ -1702,7 +1702,7 @@ function NewSeasonForm({
         </p>
 
         {!isFirstLeagueSeason ? (
-          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
             <p className="font-black">No hay temporada activa.</p>
             <p className="mt-1">
               Confirma quién continúa, quita bajas, añade sustitutos y se
@@ -1712,7 +1712,7 @@ function NewSeasonForm({
           </div>
         ) : null}
 
-        <div className="mt-5 space-y-4">
+        <div className="mt-4 space-y-4">
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
               {t.adminSeason.newSeasonName}
@@ -1725,7 +1725,7 @@ function NewSeasonForm({
                 setFeedback(null);
               }}
               placeholder={t.adminSeason.newSeasonNamePlaceholder}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
             />
           </label>
 
@@ -1739,7 +1739,7 @@ function NewSeasonForm({
                   key={count}
                   type="button"
                   onClick={() => handlePlayerCountChange(count)}
-                  className={`rounded-2xl px-4 py-3 text-sm font-black ${
+                  className={`rounded-2xl px-3 py-2.5 text-sm font-black ${
                     playerCount === count
                       ? "bg-neutral-950 text-white"
                       : "bg-neutral-100 text-neutral-800"
@@ -1762,14 +1762,14 @@ function NewSeasonForm({
         </p>
 
         {canLinkSelfPlayer ? (
-          <div className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3 text-xs font-semibold text-neutral-600">
+          <div className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold text-neutral-600">
             Marca qué jugador eres tú para vincular automáticamente tu cuenta,
             tu perfil y tu foto en esta liga.
           </div>
         ) : null}
 
-        <div className="mt-4 grid grid-cols-2 gap-2 text-center">
-          <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+        <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+          <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
             <p className="text-xs font-semibold text-neutral-500">
               Seleccionados
             </p>
@@ -1777,7 +1777,7 @@ function NewSeasonForm({
               {selectedPlayerIds.length}/{playerCount}
             </p>
           </div>
-          <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+          <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
             <p className="text-xs font-semibold text-neutral-500">
               {isFirstLeagueSeason ? "Jugadores" : "Sustitutos"}
             </p>
@@ -1785,7 +1785,7 @@ function NewSeasonForm({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {leaguePlayers.map((player) => {
             const isSelected = selectedPlayerIds.includes(player.id);
             const wasInPreviousSeason = currentPlayers.some(
@@ -1800,7 +1800,7 @@ function NewSeasonForm({
                 type="button"
                 onClick={() => toggleExistingPlayer(player.id)}
                 disabled={isDisabled}
-                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black disabled:opacity-40 ${
+                className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-black disabled:opacity-40 ${
                   isSelected
                     ? "bg-neutral-950 text-white"
                     : "bg-neutral-100 text-neutral-800"
@@ -1848,7 +1848,7 @@ function NewSeasonForm({
         </div>
 
         {!isFirstLeagueSeason && continuingPlayers.length > 0 ? (
-          <p className="mt-4 text-xs font-semibold text-neutral-500">
+          <p className="mt-3 text-xs font-semibold text-neutral-500">
             Continúan:{" "}
             {continuingPlayers.map((player) => player.displayName).join(", ")}
           </p>
@@ -1862,7 +1862,7 @@ function NewSeasonForm({
         ) : null}
 
         {newPlayerSlotCount > 0 ? (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {visibleNewPlayerNames.map((playerName, index) => (
               <label key={index} className="block">
                 <span className="text-xs font-semibold text-neutral-500">
@@ -1882,7 +1882,7 @@ function NewSeasonForm({
                       setNewPlayerNames(nextNames);
                       setFeedback(null);
                     }}
-                    className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                    className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
                   />
                   {canLinkSelfPlayer ? (
                     <button
@@ -1915,11 +1915,11 @@ function NewSeasonForm({
           {t.adminSeason.calendarDescription}
         </p>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-4 space-y-3">
           {(["balanced", "manual"] as CalendarMode[]).map((mode) => (
             <label
               key={mode}
-              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-4"
+              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-3"
             >
               <input
                 type="radio"
@@ -1950,8 +1950,8 @@ function NewSeasonForm({
         </div>
 
         {calendarMode === "manual" ? (
-          <div className="mt-5 space-y-4">
-            <div className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm text-neutral-700">
+          <div className="mt-4 space-y-4">
+            <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
                 {getTotalRoundCount(playerCount)} jornadas ·{" "}
                 {getMatchesPerRound(playerCount)}{" "}
@@ -1972,7 +1972,7 @@ function NewSeasonForm({
                   });
                   setFeedback(null);
                 }}
-                className="mt-3 w-full rounded-2xl bg-white px-4 py-2.5 text-xs font-black text-neutral-800 shadow-sm"
+                className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm"
               >
                 Restaurar calendario automático
               </button>
@@ -2108,7 +2108,7 @@ function NewSeasonForm({
             ))}
 
             {!isManualCalendarReady ? (
-              <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+              <p className="rounded-2xl bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-800">
                 Completa todos los desplegables sin repetir jugador dentro de la
                 misma jornada para poder crear la temporada.
               </p>
@@ -2123,7 +2123,7 @@ function NewSeasonForm({
           {t.adminSeason.resultRulesDescription}
         </p>
 
-        <label className="mt-5 flex items-start gap-3 rounded-2xl border border-neutral-200 p-4">
+        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
           <input
             type="checkbox"
             checked={requiresThreeSets}
@@ -2151,11 +2151,11 @@ function NewSeasonForm({
           {t.adminSeason.newRoundWindowDescription}
         </p>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-4 space-y-3">
           {(["none", "fixed-days"] as RoundWindowMode[]).map((mode) => (
             <label
               key={mode}
-              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-4"
+              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-3"
             >
               <input
                 type="radio"
@@ -2186,7 +2186,7 @@ function NewSeasonForm({
         </div>
 
         {isFixedDaysMode ? (
-          <div className="mt-5 space-y-4">
+          <div className="mt-4 space-y-4">
             <label className="block">
               <span className="text-sm font-semibold text-neutral-700">
                 {t.adminSeason.seasonStartDate}
@@ -2199,7 +2199,7 @@ function NewSeasonForm({
                   setSeasonStartsAt(event.target.value);
                   setFeedback(null);
                 }}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
 
@@ -2216,7 +2216,7 @@ function NewSeasonForm({
                   setRoundWindowDays(event.target.value);
                   setFeedback(null);
                 }}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
           </div>
@@ -2226,7 +2226,7 @@ function NewSeasonForm({
       <button
         type="submit"
         disabled={!canStartSeason}
-        className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : "Crear temporada"}
       </button>
@@ -2265,11 +2265,11 @@ export default function AdminSeasonPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-4 text-3xl font-black tracking-tight">
+          <h1 className="mt-3 text-2xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -2285,15 +2285,15 @@ export default function AdminSeasonPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {isActiveSeason
             ? t.adminSeason.title
             : isUpcomingSeason

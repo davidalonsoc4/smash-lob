@@ -40,7 +40,7 @@ export function LeagueSwitcher() {
         id="league-switcher"
         value={activeLeagueId}
         onChange={(event) => setActiveLeagueId(event.target.value)}
-        className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-bold text-neutral-900 shadow-sm"
+        className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold text-neutral-900 shadow-sm"
       >
         {selectableLeagues.map((league) => (
           <option key={league.id} value={league.id}>

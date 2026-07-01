@@ -43,12 +43,12 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
 
   return (
     <main className="min-h-screen bg-neutral-100 px-4 py-6 text-neutral-950">
-      <div className="mx-auto max-w-md space-y-5">
+      <div className="mx-auto max-w-md space-y-4">
         <header className="pt-8">
           <p className="text-sm font-medium text-neutral-500">
             {session?.user?.email}
           </p>
-          <h1 className="mt-1 text-3xl font-black tracking-tight">
+          <h1 className="mt-1 text-2xl font-black tracking-tight">
             {t.onboarding.title}
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
@@ -64,7 +64,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
             </p>
             <Link
               href="/league/new"
-              className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+              className="mt-3 block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
             >
               {t.onboarding.createAction}
             </Link>
@@ -77,7 +77,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
             {t.onboarding.joinDescription}
           </p>
 
-          <form onSubmit={handleJoinSubmit} className="mt-4 space-y-3">
+          <form onSubmit={handleJoinSubmit} className="mt-3 space-y-3">
             <label className="block">
               <span className="text-sm font-semibold text-neutral-700">
                 {t.invites.codeLabel}
@@ -89,7 +89,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
                   setError(null)
                 }}
                 placeholder={t.invites.codePlaceholder}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold uppercase text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold uppercase text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
 
@@ -99,7 +99,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
 
             <button
               type="submit"
-              className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+              className="w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
             >
               {t.onboarding.joinAction}
             </button>
@@ -109,7 +109,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 shadow-sm"
+          className="w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm"
         >
           {t.auth.signOut}
         </button>

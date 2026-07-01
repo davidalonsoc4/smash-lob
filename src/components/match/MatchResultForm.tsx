@@ -249,13 +249,13 @@ export function MatchResultForm({
           </p>
         </div>
 
-        <div className="mt-5 rounded-3xl bg-neutral-100 p-3">
+        <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
           <div className="grid grid-cols-2 gap-2">
             <TeamNameStack label="Pareja A" team={teamA} players={players} />
             <TeamNameStack label="Pareja B" team={teamB} players={players} />
           </div>
 
-          <div className="mt-4 rounded-2xl bg-white p-3 shadow-sm">
+          <div className="mt-3 rounded-2xl bg-white p-3 shadow-sm">
             <div className="grid grid-cols-[50px_repeat(3,minmax(46px,1fr))_42px] items-center gap-2">
               <div />
 
@@ -345,18 +345,18 @@ export function MatchResultForm({
         </div>
 
         {actionError ? (
-          <p className="mt-4 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+          <p className="mt-3 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
             {actionError}
           </p>
         ) : null}
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-4 flex gap-3">
           {mode === "edit" && onCancel ? (
             <button
               type="button"
               onClick={onCancel}
               disabled={isSaving}
-              className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+              className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
             >
               {t.matchResult.cancelEdit}
             </button>
@@ -365,7 +365,7 @@ export function MatchResultForm({
           <button
             type="submit"
             disabled={!canSave}
-            className="flex-1 rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+            className="flex-1 rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
           >
             {isSaving
               ? "Guardando..."

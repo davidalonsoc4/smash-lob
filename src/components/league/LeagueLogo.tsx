@@ -7,10 +7,10 @@ type LeagueLogoProps = {
 }
 
 const sizeClasses = {
-  sm: "h-10 w-10 text-xs",
-  md: "h-14 w-14 text-sm",
-  lg: "h-[72px] w-[72px] text-lg",
-  xl: "h-24 w-24 text-xl",
+  sm: "h-8 w-8 text-[11px]",
+  md: "h-11 w-11 text-sm",
+  lg: "h-14 w-14 text-base",
+  xl: "h-20 w-20 text-lg",
 }
 
 function getLeagueInitials(name?: string | null) {
@@ -33,14 +33,14 @@ export function LeagueLogo({
   if (league?.logoUrl) {
     return (
       <div
-        className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 shadow-sm ${className}`}
+        className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent ${className}`}
         aria-hidden="true"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={league.logoUrl}
           alt=""
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain drop-shadow-sm"
         />
       </div>
     )
@@ -48,7 +48,7 @@ export function LeagueLogo({
 
   return (
     <div
-      className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-950 font-black text-white shadow-sm ${className}`}
+      className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-950 font-black text-white shadow-sm ${className}`}
       aria-hidden="true"
     >
       <span>{getLeagueInitials(league?.name)}</span>

@@ -21,8 +21,8 @@ function ShareIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        width: "14px",
-        height: "14px",
+        width: "13px",
+        height: "13px",
         display: "block",
       }}
     >
@@ -90,10 +90,10 @@ export function FloatingInviteShareButton({
       className="z-50"
       style={{
         position: "fixed",
-        top: "22px",
+        top: "16px",
         right: offsetForSettingsButton
-          ? "max(60px, calc((100vw - 448px) / 2 + 60px))"
-          : "max(22px, calc((100vw - 448px) / 2 + 22px))",
+          ? "max(50px, calc((100vw - 448px) / 2 + 50px))"
+          : "max(16px, calc((100vw - 448px) / 2 + 16px))",
       }}
     >
       <button
@@ -103,21 +103,21 @@ export function FloatingInviteShareButton({
         title={copied ? "Enlace copiado" : "Compartir invitación"}
         className="flex items-center justify-center rounded-full bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800"
         style={{
-          width: "30px",
-          height: "30px",
+          width: "28px",
+          height: "28px",
         }}
       >
         <ShareIcon />
       </button>
 
       {copied ? (
-        <div className="absolute right-0 mt-2 w-max max-w-[220px] rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white shadow-sm">
+        <div className="absolute right-0 mt-2 w-max max-w-[220px] rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white shadow-sm">
           Enlace copiado
         </div>
       ) : null}
 
       {error ? (
-        <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700 shadow-sm">
+        <div className="absolute right-0 mt-2 w-56 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700 shadow-sm">
           {error}
         </div>
       ) : null}

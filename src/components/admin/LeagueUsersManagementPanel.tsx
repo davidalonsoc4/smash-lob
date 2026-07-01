@@ -196,7 +196,7 @@ function PlayerUserCard({
   }
 
   return (
-    <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <PlayerAvatar
@@ -229,7 +229,7 @@ function PlayerUserCard({
         </span>
       </div>
 
-      <div className="mt-5 space-y-3">
+      <div className="mt-4 space-y-3">
         <label className="block">
           <span className="text-sm font-semibold text-neutral-700">
             Nombre visible del jugador
@@ -242,7 +242,7 @@ function PlayerUserCard({
               setSavedMessage(null)
               setError(null)
             }}
-            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
           />
         </label>
 
@@ -250,19 +250,19 @@ function PlayerUserCard({
           type="button"
           onClick={handleSaveName}
           disabled={!canSaveName || isSavingName}
-          className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
+          className="w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
         >
           {isSavingName ? "Guardando..." : "Guardar nombre"}
         </button>
       </div>
 
       {canManageLink ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
             onClick={handleChangeRole}
             disabled={isUpdatingRole || isUnlinking}
-            className="rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+            className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
           >
             {isUpdatingRole
               ? "Guardando..."
@@ -275,17 +275,17 @@ function PlayerUserCard({
             type="button"
             onClick={handleUnlink}
             disabled={isUpdatingRole || isUnlinking}
-            className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+            className="rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
           >
             {isUnlinking ? "Desvinculando..." : "Desvincular cuenta"}
           </button>
         </div>
       ) : item.role === "creator" ? (
-        <p className="mt-4 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
+        <p className="mt-3 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
           El creador no se puede degradar ni desvincular desde este panel.
         </p>
       ) : isCurrentUser ? (
-        <p className="mt-4 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
+        <p className="mt-3 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
           No puedes quitarte tus propios permisos ni desvincular tu propia cuenta.
         </p>
       ) : null}
@@ -392,15 +392,15 @@ export function LeagueUsersManagementPanel({
         {unlinkedCount}
       </p>
 
-      <div className="mt-5 space-y-3">
+      <div className="mt-4 space-y-3">
         {isLoading ? (
-          <div className="rounded-2xl bg-neutral-100 p-4">
+          <div className="rounded-2xl bg-neutral-100 p-3">
             <p className="font-bold">Cargando usuarios...</p>
           </div>
         ) : null}
 
         {!isLoading && loadError ? (
-          <div className="rounded-2xl bg-neutral-100 p-4">
+          <div className="rounded-2xl bg-neutral-100 p-3">
             <p className="font-bold">No hay usuarios para mostrar</p>
             <p className="mt-2 text-sm text-neutral-500">{loadError}</p>
           </div>

@@ -34,11 +34,11 @@ export default function LeaguesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label="Volver" />
 
-        <h1 className="mt-4 text-3xl font-black tracking-tight">
+        <h1 className="mt-3 text-2xl font-black tracking-tight">
           Mis ligas
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
@@ -82,7 +82,7 @@ export default function LeaguesPage() {
                   handleEnterLeague(league.id);
                 }
               }}
-              className={`cursor-pointer rounded-2xl border bg-white p-4 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${
+              className={`cursor-pointer rounded-2xl border bg-white p-3 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${
                 isActive
                   ? "border-neutral-950 ring-2 ring-neutral-950"
                   : "border-neutral-200 hover:border-neutral-300"
@@ -155,14 +155,14 @@ export default function LeaguesPage() {
         <div className="grid gap-2">
           <Link
             href="/invite"
-            className="block rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
+            className="block rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
           >
             Unirme con invitación
           </Link>
           {canCreateLeagues ? (
             <Link
               href="/league/new"
-              className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+              className="block rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
             >
               Crear nueva liga
             </Link>

@@ -9,15 +9,15 @@ type PlayerAvatarProps = {
 }
 
 const sizeClasses = {
-  sm: "h-8 w-8",
-  md: "h-11 w-11",
-  lg: "h-16 w-16",
+  sm: "h-7 w-7",
+  md: "h-10 w-10",
+  lg: "h-14 w-14",
 }
 
 const iconSizeClasses = {
-  sm: "h-4 w-4",
+  sm: "h-3.5 w-3.5",
   md: "h-5 w-5",
-  lg: "h-8 w-8",
+  lg: "h-7 w-7",
 }
 
 function hasImage(player?: PlayerAvatarProps["player"]) {
@@ -51,7 +51,7 @@ export function PlayerAvatar({
 }: PlayerAvatarProps) {
   return (
     <div
-      className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 ring-1 ring-neutral-200 shadow-sm ${className}`}
+      className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 ring-1 ring-neutral-200 ${className}`}
       aria-hidden="true"
     >
       {hasImage(player) ? (

@@ -33,17 +33,17 @@ export function LocalDataMaintenanceCard() {
         No borra nada de Supabase; solo limpia la caché de este navegador.
       </p>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-3">
         <button
           type="button"
           onClick={handleShowLastError}
-          className="w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
+          className="w-full rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800"
         >
           Ver último error de Supabase
         </button>
 
         {lastError ? (
-          <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-2xl bg-neutral-950 p-4 text-xs font-semibold text-white">
+          <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-2xl bg-neutral-950 p-3 text-xs font-semibold text-white">
             {lastError}
           </pre>
         ) : null}
@@ -51,7 +51,7 @@ export function LocalDataMaintenanceCard() {
         <button
           type="button"
           onClick={handleClearLocalData}
-          className={`w-full rounded-2xl px-4 py-3 text-sm font-black ${
+          className={`w-full rounded-2xl px-3 py-2.5 text-sm font-black ${
             isConfirming
               ? "bg-red-600 text-white"
               : "bg-red-50 text-red-700"

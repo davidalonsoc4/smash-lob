@@ -29,8 +29,8 @@ function SettingsIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        width: "14px",
-        height: "14px",
+        width: "13px",
+        height: "13px",
         display: "block",
       }}
     >
@@ -88,8 +88,8 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowInviteButton = !isInviteRoute && !isNewLeagueRoute
 
   return (
-    <div className="min-h-screen bg-neutral-100 text-neutral-950">
-      <div className="mx-auto min-h-screen max-w-md bg-neutral-50">
+    <div className="min-h-screen bg-stone-200 text-neutral-950">
+      <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
 
         {shouldShowInviteButton ? (
@@ -103,13 +103,13 @@ export function AppShell({ children }: AppShellProps) {
             href="/settings"
             aria-label={t.appHeader.settingsLabel}
             title={t.appHeader.settingsLabel}
-            className="z-50 flex items-center justify-center rounded-full bg-neutral-200 text-neutral-700 shadow-sm transition active:scale-[0.96] active:bg-neutral-300"
+            className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
-              top: "22px",
-              right: "max(22px, calc((100vw - 448px) / 2 + 22px))",
-              width: "30px",
-              height: "30px",
+              top: "16px",
+              right: "max(16px, calc((100vw - 448px) / 2 + 16px))",
+              width: "28px",
+              height: "28px",
             }}
           >
             <SettingsIcon />
@@ -117,9 +117,9 @@ export function AppShell({ children }: AppShellProps) {
         ) : null}
 
         <main
-          className="px-4 pt-4"
+          className="px-3 pt-3"
           style={{
-            paddingBottom: "116px",
+            paddingBottom: "96px",
           }}
         >
           {children}

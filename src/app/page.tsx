@@ -88,24 +88,24 @@ function PlayerAwardCard({
 
   return (
     <AppCard className="overflow-hidden p-0">
-      <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-4 py-3 text-white">
+      <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-3 py-2.5 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
               {eyebrow}
             </p>
-            <h2 className="mt-1 text-xl font-black tracking-tight">
+            <h2 className="mt-1 text-lg font-black tracking-tight">
               {title}
             </h2>
           </div>
 
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-black text-neutral-950">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-base font-black text-neutral-950">
             {badge}
           </div>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-3">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-3">
             {players.slice(0, 3).map((player) => (
@@ -125,7 +125,7 @@ function PlayerAwardCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-2xl font-black text-neutral-950">
+            <p className="truncate text-lg font-black tracking-tight text-neutral-950">
               {players.map((player, index) => (
                 <span key={player.id}>
                   <Link
@@ -144,7 +144,7 @@ function PlayerAwardCard({
             inlineStatHref ? (
               <Link
                 href={inlineStatHref}
-                className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center transition active:scale-[0.97]"
+                className="shrink-0 rounded-xl bg-neutral-100 px-3 py-2.5 text-center transition active:scale-[0.97]"
               >
                 <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
@@ -154,7 +154,7 @@ function PlayerAwardCard({
                 </p>
               </Link>
             ) : (
-              <div className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center">
+              <div className="shrink-0 rounded-xl bg-neutral-100 px-3 py-2.5 text-center">
                 <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
                 </p>
@@ -167,9 +167,9 @@ function PlayerAwardCard({
         </div>
 
         {stats && stats.length > 0 ? (
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             {stats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl bg-neutral-100 px-2 py-2.5">
+              <div key={stat.label} className="rounded-xl bg-neutral-100 px-2 py-2.5">
                 <p className="text-lg font-black text-neutral-950">
                   {stat.value}
                 </p>
@@ -327,21 +327,21 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-5">
-      <header className="pt-2">
-        <p className="text-sm font-medium text-neutral-500">
+    <div className="space-y-4">
+      <header className="pt-1">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
           {activeSeason.name}
         </p>
 
-        <div className="mt-2 flex items-center gap-3">
+        <div className="mt-1.5 flex items-center gap-2.5">
           <LeagueLogo league={activeLeague} size="lg" />
 
-          <h1 className="min-w-0 text-3xl font-black tracking-tight">
+          <h1 className="min-w-0 text-2xl font-black tracking-tight">
             {activeLeague.name}
           </h1>
         </div>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-xs leading-5 text-neutral-500">
           {activeLeague.description} · {t.common.individualRanking}
         </p>
       </header>
@@ -364,7 +364,7 @@ export default function Home() {
                 type="button"
                 onClick={handleStartUpcomingSeason}
                 disabled={isStartingSeason}
-                className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-300"
+                className="mt-3 block w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300"
               >
                 {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
               </button>
@@ -418,7 +418,7 @@ export default function Home() {
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+                className="block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -430,7 +430,7 @@ export default function Home() {
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+                className="mt-3 block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -497,7 +497,7 @@ export default function Home() {
               {rankingPreviewPlayers.map((player, index) => (
                 <div
                   key={player.id}
-                  className={`flex items-center justify-between gap-3 rounded-2xl py-1.5 pl-2 pr-3 ${
+                  className={`flex items-center justify-between gap-3 rounded-xl py-1.5 pl-2 pr-3 ${
                     player.id === currentUserId ? "bg-neutral-100" : ""
                   }`}
                 >
@@ -541,7 +541,7 @@ export default function Home() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-3">
                   <TeamPlayers
                     playerIds={lastMatch.teamA}
                     players={players}
@@ -551,7 +551,7 @@ export default function Home() {
                   <p className="text-xl font-black">{lastMatch.pointsA}</p>
                 </div>
 
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-3">
                   <TeamPlayers
                     playerIds={lastMatch.teamB}
                     players={players}
@@ -562,7 +562,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-2 text-sm text-neutral-600">
+              <div className="mt-3 flex gap-2 text-sm text-neutral-600">
                 {lastMatch.sets.map((set, index) => (
                   <span
                     key={index}
@@ -611,7 +611,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="mt-4 rounded-xl border border-dashed border-neutral-300 p-3">
+              <div className="mt-3 rounded-xl border border-dashed border-neutral-300 p-3">
                 <p className="text-sm font-semibold">
                   {nextMatch.dateLabel ??
                     (nextMatch.status === "postponed"

@@ -119,13 +119,13 @@ export default function ProfilePage() {
 
   if (!player || !selectedStats || !selectedScope) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <p className="text-sm font-medium text-neutral-500">
             {activeLeague.name} · {activeSeason.name}
           </p>
 
-          <h1 className="mt-1 text-3xl font-black tracking-tight">
+          <h1 className="mt-1 text-2xl font-black tracking-tight">
             {t.profile.title}
           </h1>
         </header>
@@ -145,7 +145,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {selectedScope.label}
@@ -154,7 +154,7 @@ export default function ProfilePage() {
         <div className="mt-3 flex items-center gap-3">
           <PlayerAvatar player={player} size="lg" />
 
-          <h1 className="min-w-0 text-3xl font-black tracking-tight">
+          <h1 className="min-w-0 text-2xl font-black tracking-tight">
             {player.displayName}
           </h1>
         </div>

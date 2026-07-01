@@ -97,8 +97,8 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         entrar en la liga y vincularse a su perfil.
       </p>
 
-      <div className="mt-4 space-y-3">
-        <div className="rounded-2xl bg-neutral-100 p-4">
+      <div className="mt-3 space-y-3">
+        <div className="rounded-2xl bg-neutral-100 p-3">
           <p className="text-xs font-semibold uppercase text-neutral-500">
             Código de invitación
           </p>
@@ -109,13 +109,13 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
             type="button"
             onClick={() => copyValue(inviteCode, "Código copiado")}
             disabled={!inviteCode}
-            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
           >
             Copiar código
           </button>
         </div>
 
-        <div className="rounded-2xl bg-neutral-100 p-4">
+        <div className="rounded-2xl bg-neutral-100 p-3">
           <p className="text-xs font-semibold uppercase text-neutral-500">
             Enlace de invitación
           </p>
@@ -126,7 +126,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
             type="button"
             onClick={() => copyValue(inviteUrl, "Enlace copiado")}
             disabled={!inviteUrl}
-            className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
           >
             Copiar enlace
           </button>
@@ -137,7 +137,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         type="button"
         onClick={handleRegenerate}
         disabled={isRegenerating}
-        className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isRegenerating ? "Regenerando..." : "Regenerar invitación"}
       </button>
@@ -165,11 +165,11 @@ export default function AdminPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-4 text-3xl font-black tracking-tight">
+          <h1 className="mt-3 text-2xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -185,15 +185,15 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {t.adminPanel.title}
         </h1>
 
@@ -202,7 +202,7 @@ export default function AdminPage() {
         </p>
       </header>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         <Link href="/admin/league" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">

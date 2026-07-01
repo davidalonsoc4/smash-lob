@@ -182,7 +182,7 @@ export function MatchScheduleForm({
   }
 
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-bold">{getTitle()}</p>
@@ -240,7 +240,7 @@ export function MatchScheduleForm({
       </div>
 
       {!isEditing ? (
-        <div className="mt-4 rounded-2xl bg-neutral-100 p-4 text-sm">
+        <div className="mt-3 rounded-2xl bg-neutral-100 p-3 text-sm">
           {hasSchedule ? (
             <>
               <p className="font-bold">{dateLabel ?? t.matches.pendingDate}</p>
@@ -268,13 +268,13 @@ export function MatchScheduleForm({
       ) : null}
 
       {actionError ? (
-        <p className="mt-4 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+        <p className="mt-3 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
           {actionError}
         </p>
       ) : null}
 
       {canManage && isEditing ? (
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
               {t.matchDetail.scheduleDateLabel}
@@ -285,12 +285,12 @@ export function MatchScheduleForm({
               value={scheduledAtValue}
               onChange={(event) => setScheduledAtValue(event.target.value)}
               disabled={isSaving}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
 
           {isOutsideRoundWindow ? (
-            <div className="rounded-2xl bg-orange-100 p-4 text-sm text-orange-900">
+            <div className="rounded-2xl bg-orange-100 p-3 text-sm text-orange-900">
               <p className="font-black">{t.rounds.outsideWindowTitle}</p>
               <p className="mt-1 text-xs font-semibold">
                 {t.rounds.outsideWindowDescription}
@@ -307,7 +307,7 @@ export function MatchScheduleForm({
               value={selectedLocation}
               onChange={(event) => setSelectedLocation(event.target.value)}
               disabled={isSaving}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             >
               <option value="">
                 {t.matchDetail.scheduleLocationPlaceholder}
@@ -336,7 +336,7 @@ export function MatchScheduleForm({
                 onChange={(event) => setCustomLocation(event.target.value)}
                 disabled={isSaving}
                 placeholder={t.matchDetail.customLocationPlaceholder}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
           ) : null}
@@ -348,7 +348,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={handleCancel}
                   disabled={isSaving}
-                  className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+                  className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
                 >
                   {t.matchDetail.cancelScheduleEdit}
                 </button>
@@ -357,7 +357,7 @@ export function MatchScheduleForm({
               <button
                 type="submit"
                 disabled={!canSave}
-                className="flex-1 rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+                className="flex-1 rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
               >
                 {isSaving
                   ? "Guardando..."
@@ -372,7 +372,7 @@ export function MatchScheduleForm({
                 type="button"
                 onClick={handlePostpone}
                 disabled={!canPostpone}
-                className="w-full rounded-2xl bg-orange-100 px-4 py-3 text-sm font-black text-orange-900 disabled:text-orange-300"
+                className="w-full rounded-2xl bg-orange-100 px-3 py-2.5 text-sm font-black text-orange-900 disabled:text-orange-300"
               >
                 {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
               </button>

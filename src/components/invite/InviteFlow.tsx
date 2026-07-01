@@ -157,9 +157,9 @@ export function InviteFlow({ code }: InviteFlowProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
-          <h1 className="text-3xl font-black tracking-tight">
+          <h1 className="text-2xl font-black tracking-tight">
             {t.invites.title}
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
@@ -179,9 +179,9 @@ export function InviteFlow({ code }: InviteFlowProps) {
 
   if (!league) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
-          <h1 className="text-3xl font-black tracking-tight">
+          <h1 className="text-2xl font-black tracking-tight">
             {t.invites.notFoundTitle}
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
@@ -197,7 +197,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
           <button
             type="button"
             onClick={() => setLoadAttempt((currentAttempt) => currentAttempt + 1)}
-            className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+            className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
           >
             {t.common.retry}
           </button>
@@ -254,12 +254,12 @@ export function InviteFlow({ code }: InviteFlowProps) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {t.invites.subtitle}
         </p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {t.invites.title}
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
@@ -275,7 +275,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
           {league.name}
         </h2>
         <p className="mt-2 text-sm text-neutral-500">{league.description}</p>
-        <p className="mt-4 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800">
+        <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800">
           {league.joinMode === "closed"
             ? t.invites.closedMode
             : t.invites.openMode}
@@ -303,7 +303,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
           <button
             type="button"
             onClick={() => setLoadAttempt((currentAttempt) => currentAttempt + 1)}
-            className="mt-4 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
+            className="mt-3 w-full rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800"
           >
             {t.common.retry}
           </button>
@@ -319,7 +319,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
           <button
             type="button"
             onClick={handleEnterExistingLeague}
-            className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+            className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
           >
             {t.invites.enterLeague}
           </button>
@@ -334,7 +334,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
           </p>
 
           {selectedPlayer ? (
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3">
+            <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-3">
               <p className="text-xs font-semibold text-neutral-500">
                 {t.invites.selectedPlayer}
               </p>
@@ -347,7 +347,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
             </div>
           ) : null}
 
-          <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+          <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
             {t.invites.claimableActivePlayers}
           </p>
 
@@ -367,26 +367,26 @@ export function InviteFlow({ code }: InviteFlowProps) {
           </div>
 
           {unclaimedPlayers.length > 0 ? (
-            <p className="mt-4 text-xs font-semibold text-neutral-500">
+            <p className="mt-3 text-xs font-semibold text-neutral-500">
               {t.invites.inactivePlayersHidden}
             </p>
           ) : null}
 
           {unclaimedPlayers.length === 0 ? (
-            <p className="mt-4 text-sm font-semibold text-red-600">
+            <p className="mt-3 text-sm font-semibold text-red-600">
               {t.invites.noPlayersAvailable}
             </p>
           ) : null}
 
           {error ? (
-            <p className="mt-4 text-sm font-semibold text-red-600">{error}</p>
+            <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
           ) : null}
 
           <button
             type="button"
             onClick={handleClaim}
             disabled={!selectedPlayerId || isClaiming}
-            className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+            className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
           >
             {isClaiming ? t.invites.claiming : t.invites.confirmClaim}
           </button>

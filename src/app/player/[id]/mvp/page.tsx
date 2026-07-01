@@ -40,18 +40,18 @@ export default function PlayerMvpMatchesPage() {
     : []
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref={player ? `/player/${player.slug}` : "/ranking"} label="Volver" />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name}
         </p>
 
         <div className="mt-3 flex items-center gap-3">
           {player ? <PlayerAvatar player={player} size="lg" /> : null}
           <div className="min-w-0">
-            <h1 className="text-3xl font-black tracking-tight">
+            <h1 className="text-2xl font-black tracking-tight">
               MVPs de jornada
             </h1>
             <p className="mt-1 text-sm text-neutral-500">

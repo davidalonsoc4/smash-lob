@@ -247,8 +247,8 @@ export function CourtBookingPanel({
       </div>
 
       {isExpanded && !isEditing && booking.isReserved ? (
-        <div className="mt-5 space-y-4">
-          <div className="rounded-2xl bg-neutral-100 p-4 text-sm">
+        <div className="mt-4 space-y-4">
+          <div className="rounded-2xl bg-neutral-100 p-3 text-sm">
             <p className="font-black">
               Total pista: {formatMoney(
                 booking.reservations.reduce(
@@ -311,7 +311,7 @@ export function CourtBookingPanel({
                         type="button"
                         onClick={() => handleMarkPaid(transfer.id)}
                         disabled={isSaving}
-                        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+                        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
                       >
                         {isSaving ? "Guardando..." : "Marcar como pagado"}
                       </button>
@@ -321,7 +321,7 @@ export function CourtBookingPanel({
               })}
             </div>
           ) : (
-            <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-900">
+            <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
               <p className="font-black">No hay pagos pendientes.</p>
               <p className="mt-1 text-xs font-semibold">
                 El importe queda compensado entre las personas que reservaron.
@@ -330,7 +330,7 @@ export function CourtBookingPanel({
           )}
 
           {pendingCurrentUserTransfers.length > 0 ? (
-            <div className="rounded-2xl bg-orange-100 p-4 text-sm text-orange-900">
+            <div className="rounded-2xl bg-orange-100 p-3 text-sm text-orange-900">
               <p className="font-black">Tienes pagos pendientes</p>
               <div className="mt-2 space-y-1">
                 {pendingCurrentUserTransfers.map((transfer) => (
@@ -347,7 +347,7 @@ export function CourtBookingPanel({
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800"
+                className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800"
               >
                 Editar reserva
               </button>
@@ -355,7 +355,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={handleClearBooking}
                 disabled={isSaving}
-                className="flex-1 rounded-2xl bg-red-100 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+                className="flex-1 rounded-2xl bg-red-100 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
               >
                 Quitar reserva
               </button>
@@ -365,8 +365,8 @@ export function CourtBookingPanel({
       ) : null}
 
       {isExpanded && isEditing && canManage ? (
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          <div className="rounded-2xl bg-neutral-100 p-4 text-sm">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div className="rounded-2xl bg-neutral-100 p-3 text-sm">
             <p className="font-black">Importe pagado por cada jugador</p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
               Deja a 0 o vacío quien no haya reservado. La app calcula las transferencias mínimas.
@@ -379,7 +379,7 @@ export function CourtBookingPanel({
                 <span className="text-sm font-semibold text-neutral-700">
                   {getPlayerName(input.playerId, players)}
                 </span>
-                <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
+                <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
                   <input
                     inputMode="decimal"
                     value={input.amount}
@@ -396,7 +396,7 @@ export function CourtBookingPanel({
             ))}
           </div>
 
-          <div className="rounded-2xl bg-neutral-100 p-4 text-sm">
+          <div className="rounded-2xl bg-neutral-100 p-3 text-sm">
             <p className="font-bold">Total informado: {formatMoney(totalAmount)}</p>
           </div>
 
@@ -412,7 +412,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
-                className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+                className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
               >
                 Cancelar
               </button>
@@ -421,7 +421,7 @@ export function CourtBookingPanel({
             <button
               type="submit"
               disabled={!canSave}
-              className="flex-1 rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+              className="flex-1 rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
             >
               {isSaving ? "Guardando..." : "Guardar reserva"}
             </button>

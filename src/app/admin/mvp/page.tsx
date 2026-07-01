@@ -24,7 +24,7 @@ function MvpPlayerLine({
   helper: string
 }) {
   return (
-    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-neutral-100 p-3">
+    <div className="mt-3 flex items-center gap-3 rounded-2xl bg-neutral-100 p-3">
       <div className="flex -space-x-2">
         {players.length > 0 ? (
           players.slice(0, 4).map((player) => (
@@ -76,10 +76,10 @@ export default function AdminMvpPage() {
 
   if (!canAccessAdmin) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <BackButton fallbackHref="/admin" label={t.common.back} />
-          <h1 className="mt-4 text-3xl font-black tracking-tight">
+          <h1 className="mt-3 text-2xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -95,15 +95,15 @@ export default function AdminMvpPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           Administrar MVP
         </h1>
 
@@ -138,7 +138,7 @@ export default function AdminMvpPage() {
         </p>
 
         {completedRounds.length > 0 ? (
-          <div className="mt-4 space-y-4">
+          <div className="mt-3 space-y-4">
             {completedRounds.map((round) => {
               const roundMvp = getRoundMvpSelection({
                 leagueId: activeLeague.id,
@@ -183,7 +183,7 @@ export default function AdminMvpPage() {
             })}
           </div>
         ) : (
-          <p className="mt-4 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-500">
+          <p className="mt-3 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-500">
             No hay jornadas completas todavía.
           </p>
         )}

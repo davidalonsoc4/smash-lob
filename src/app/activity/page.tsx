@@ -493,13 +493,13 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {t.activity.title}
         </h1>
 
@@ -541,9 +541,9 @@ export default function ActivityPage() {
       </div>
 
       {effectiveScope === "admin" && canAccessAdmin ? (
-        <section className="space-y-5">
+        <section className="space-y-4">
           <AppCard className="p-0">
-            <div className="p-4">
+            <div className="p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-bold text-neutral-950">
@@ -603,7 +603,7 @@ export default function ActivityPage() {
             </div>
 
             {areSettingsExpanded ? (
-              <div className="border-t border-neutral-100 p-4">
+              <div className="border-t border-neutral-100 p-3">
                 {isSettingsLoading ? (
                   <p className="text-sm font-semibold text-neutral-500">
                     {t.activity.loading}
@@ -684,7 +684,7 @@ export default function ActivityPage() {
                   type="button"
                   onClick={saveActivitySettings}
                   disabled={isSettingsLoading || isSettingsSaving}
-                  className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+                  className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
                 >
                   {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
                 </button>
@@ -692,12 +692,12 @@ export default function ActivityPage() {
             ) : null}
 
             {settingsMessage ? (
-              <p className="border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-neutral-600">
+              <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-neutral-600">
                 {settingsMessage}
               </p>
             ) : null}
             {settingsError ? (
-              <p className="border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-red-600">
+              <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-red-600">
                 {settingsError}
               </p>
             ) : null}

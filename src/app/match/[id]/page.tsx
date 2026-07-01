@@ -65,7 +65,7 @@ export default function MatchDetailPage() {
 
   if (!match) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <BackButton fallbackHref="/matches" label={t.common.back} />
         </header>
@@ -129,16 +129,16 @@ export default function MatchDetailPage() {
   const canEditResult = canManageMatch && match.status === "finished"
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/matches" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
         <div className="mt-1 flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-black tracking-tight">
+          <h1 className="text-2xl font-black tracking-tight">
             {t.matchDetail.title}
           </h1>
 
@@ -201,7 +201,7 @@ export default function MatchDetailPage() {
           </div>
 
           {isPostponed ? (
-            <div className="mt-4 rounded-2xl bg-orange-100 p-4 text-sm text-orange-900">
+            <div className="mt-3 rounded-2xl bg-orange-100 p-3 text-sm text-orange-900">
               <p className="font-black">{t.rounds.postponedWindowTitle}</p>
               <p className="mt-1 text-xs font-semibold">
                 {t.rounds.postponedWindowDescription}
@@ -271,12 +271,12 @@ export default function MatchDetailPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setIsEditingResult(true)}
               disabled={isClearingResult}
-              className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+              className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
             >
               {t.matchResult.editButton}
             </button>
@@ -286,7 +286,7 @@ export default function MatchDetailPage() {
                 type="button"
                 onClick={handleClearResult}
                 disabled={isClearingResult}
-                className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:text-red-300"
+                className="rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
               >
                 {isClearingResult ? "Limpiando..." : "Limpiar resultado"}
               </button>

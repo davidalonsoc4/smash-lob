@@ -259,7 +259,7 @@ export function PlayerStatsPanel({
 
       {isExpanded ? (
         <>
-          <div className="mt-4 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
+          <div className="mt-3 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-300">
               {t.playerStats.winRate}
             </p>
@@ -269,7 +269,7 @@ export function PlayerStatsPanel({
             </p>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+          <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
         <div className="rounded-2xl bg-neutral-100 p-3 text-center">
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.setsBalance}
@@ -307,8 +307,8 @@ export function PlayerStatsPanel({
         </Link>
       </div>
 
-      <div className="mt-4 space-y-3">
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 p-3">
+      <div className="mt-3 space-y-3">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 p-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
               {t.playerStats.bestPartner}
@@ -331,7 +331,7 @@ export function PlayerStatsPanel({
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 p-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
               {t.playerStats.toughestRival}
@@ -355,7 +355,7 @@ export function PlayerStatsPanel({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+      <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         {bestMatch ? (
           <Link
             href={`/round/${bestMatch.round}?seasonId=${encodeURIComponent(bestMatch.seasonId)}`}

@@ -31,14 +31,14 @@ export default function RoundDetailPage() {
     })
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/matches" label="Volver" />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           Jornada {Number.isFinite(round) ? round : "—"}
         </h1>
         <p className="mt-1 text-sm text-neutral-500">

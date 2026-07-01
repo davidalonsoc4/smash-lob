@@ -42,7 +42,7 @@ function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
 
 function MiniCard({ title, description }: MiniCardProps) {
   return (
-    <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+    <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
       <p className="text-sm font-black text-neutral-950">{title}</p>
       <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
         {description}
@@ -53,7 +53,7 @@ function MiniCard({ title, description }: MiniCardProps) {
 
 function SummaryItem({ label, title, description }: SummaryItemProps) {
   return (
-    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-neutral-100">
+    <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-neutral-100">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
         {label}
       </p>
@@ -67,7 +67,7 @@ function SummaryItem({ label, title, description }: SummaryItemProps) {
 
 function RuleRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-neutral-100 py-3 last:border-b-0">
+    <div className="flex items-start justify-between gap-3 border-b border-neutral-100 py-3 last:border-b-0">
       <p className="text-sm font-black text-neutral-900">{label}</p>
       <p className="max-w-[62%] text-right text-sm font-semibold text-neutral-500">
         {value}
@@ -81,15 +81,15 @@ export default function HelpPage() {
   const { activeLeague, activeSeason } = useCurrentLeagueData()
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           Ayuda y conceptos básicos
         </h1>
 

@@ -101,7 +101,7 @@ function AccountAvatarSettings() {
   }
 
   return (
-    <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
       <div className="flex items-center gap-3">
         <PlayerAvatar
           player={{
@@ -173,7 +173,7 @@ export default function SettingsPage() {
   const hasLeagues = userLeagues.length > 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
@@ -181,7 +181,7 @@ export default function SettingsPage() {
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {t.settings.title}
         </h1>
 
@@ -221,7 +221,7 @@ export default function SettingsPage() {
 
       {canAccessAdmin ? (
         <AppCard>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-bold">Vista admin</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -296,7 +296,7 @@ export default function SettingsPage() {
         <div className="mt-3 grid gap-2">
           <Link
             href="/invite"
-            className="block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
+            className="block w-full rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
           >
             {t.settings.joinNewExistingLeague}
           </Link>
@@ -304,7 +304,7 @@ export default function SettingsPage() {
           {canCreateLeagues ? (
             <Link
               href="/league/new"
-              className="block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
+              className="block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
             >
               {t.settings.createNewLeague}
             </Link>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
       <button
         type="button"
         onClick={() => signOut({ callbackUrl: "/" })}
-        className="w-full rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700"
+        className="w-full rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700"
       >
         {t.auth.signOut}
       </button>

@@ -77,7 +77,7 @@ export default function ProfileMatchesPage() {
 
   if (!player) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         <header className="pt-2">
           <BackButton fallbackHref="/profile" label={t.common.back} />
         </header>
@@ -90,15 +90,15 @@ export default function ProfileMatchesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
-        <p className="mt-4 text-sm font-medium text-neutral-500">
+        <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {t.profile.matchHistoryTitle}
         </h1>
 
@@ -107,7 +107,7 @@ export default function ProfileMatchesPage() {
         </p>
       </header>
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
         <p className="text-sm font-black text-neutral-700">
           {t.profile.filterLabel}
         </p>
@@ -117,7 +117,7 @@ export default function ProfileMatchesPage() {
           onChange={(event) =>
             handleFilterChange(event.target.value as MatchFilter)
           }
-          className="min-w-40 rounded-full border border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-black text-neutral-900 outline-none"
+          className="min-w-40 rounded-full border border-neutral-200 bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-900 outline-none"
         >
           {filterOptions.map((option) => (
             <option key={option.value} value={option.value}>

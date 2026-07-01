@@ -27,9 +27,9 @@ export function MatchScoreboard({
   const isFinished = pointsA !== null && pointsB !== null
 
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm text-neutral-500">
               {t.matchDetail.teamA}
@@ -48,7 +48,7 @@ export function MatchScoreboard({
 
         <div className="border-t border-neutral-200" />
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm text-neutral-500">
               {t.matchDetail.teamB}
@@ -67,7 +67,7 @@ export function MatchScoreboard({
       </div>
 
       {sets.length > 0 ? (
-        <div className="mt-5 flex gap-2">
+        <div className="mt-4 flex gap-2">
           {sets.map((set, index) => (
             <div
               key={index}

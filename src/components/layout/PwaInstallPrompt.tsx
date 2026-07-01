@@ -116,12 +116,12 @@ export function PwaInstallPrompt() {
       style={{
         left: "max(0px, calc((100vw - 448px) / 2))",
         right: "max(0px, calc((100vw - 448px) / 2))",
-        bottom: "86px",
+        bottom: "76px",
       }}
     >
-      <div className="mx-auto max-w-md rounded-3xl border border-neutral-200 bg-white p-3 shadow-xl">
+      <div className="mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-3 shadow-lg">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-neutral-950 text-sm font-black text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-sm font-black text-white">
             S&L
           </div>
 
@@ -140,7 +140,7 @@ export function PwaInstallPrompt() {
                 <button
                   type="button"
                   onClick={handleInstall}
-                  className="rounded-2xl bg-neutral-950 px-4 py-2 text-xs font-black text-white"
+                  className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
                 >
                   Instalar
                 </button>
@@ -149,7 +149,7 @@ export function PwaInstallPrompt() {
               <button
                 type="button"
                 onClick={dismiss}
-                className="rounded-2xl bg-neutral-100 px-4 py-2 text-xs font-black text-neutral-700"
+                className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
               >
                 Ahora no
               </button>

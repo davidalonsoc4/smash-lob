@@ -115,7 +115,7 @@ export function MatchCard({
         </div>
 
         {isFinished ? (
-          <div className="mt-4 flex gap-2 text-sm text-neutral-600">
+          <div className="mt-3 flex gap-2 text-sm text-neutral-600">
             {match.sets.map((set, index) => (
               <span
                 key={index}
@@ -126,7 +126,7 @@ export function MatchCard({
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-dashed border-neutral-300 p-3">
+          <div className="mt-3 rounded-xl border border-dashed border-neutral-300 p-3">
             <p className="text-sm font-semibold">{scheduleTitle}</p>
 
             <p className="mt-1 text-xs text-neutral-500">

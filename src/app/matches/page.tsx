@@ -49,13 +49,13 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 text-3xl font-black tracking-tight">
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
           {t.matches.subtitle}
         </h1>
 
@@ -95,7 +95,7 @@ export default function MatchesPage() {
       </div>
 
       {isSeasonUpcoming ? (
-        <AppCard className="border border-neutral-200 bg-neutral-50/80 px-4 py-3">
+        <AppCard className="border border-neutral-200 bg-neutral-50/80 px-3 py-2.5">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
             Temporada próximamente
           </p>
@@ -162,7 +162,7 @@ export default function MatchesPage() {
                 ) : null}
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {roundMatches.map((match) => (
                   <MatchCard
                     key={match.id}

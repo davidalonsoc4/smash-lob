@@ -44,7 +44,7 @@ export function AuthGate({ children }: AuthGateProps) {
           <p className="text-sm font-medium text-neutral-500">
             {t.auth.subtitle}
           </p>
-          <h1 className="mt-1 text-3xl font-black tracking-tight text-neutral-950">
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-neutral-950">
             {t.auth.title}
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
@@ -56,7 +56,7 @@ export function AuthGate({ children }: AuthGateProps) {
             onClick={() =>
               signIn("google", { callbackUrl: isInviteRoute ? pathname : "/" })
             }
-            className="mt-6 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+            className="mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
           >
             {t.auth.signInWithGoogle}
           </button>

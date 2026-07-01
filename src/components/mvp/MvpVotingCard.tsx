@@ -49,7 +49,7 @@ export function MvpVotingCard({
       </div>
 
       {roundMvpPlayers.length > 0 && roundMvp ? (
-        <div className="mt-4 flex items-center gap-3 rounded-2xl bg-neutral-950 p-3 text-white">
+        <div className="mt-3 flex items-center gap-3 rounded-2xl bg-neutral-950 p-3 text-white">
           <div className="flex -space-x-2">
             {roundMvpPlayers.map((player) => (
               <PlayerAvatar
@@ -73,7 +73,7 @@ export function MvpVotingCard({
           </div>
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-600">
+        <div className="mt-3 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-600">
           Pendiente hasta que la jornada esté completa.
         </div>
       )}
