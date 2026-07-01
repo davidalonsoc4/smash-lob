@@ -330,6 +330,19 @@ function getBaseRole(leagueId: string, playerId: string): LeagueMemberRole {
   );
 }
 
+
+function getInitials(name: string) {
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return initials || "JG";
+}
+
 function slugifyLeagueName(name: string) {
   return (
     name
@@ -1051,11 +1064,27 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
   const updateLeaguePlayerName = useCallback(
     async (leagueId: string, playerId: string, displayName: string) => {
+      const cleanName = displayName.trim();
+
+      if (!cleanName) {
+        return false;
+      }
+
+      if (!isSupabaseBackedId(leagueId) || !isSupabaseBackedId(playerId)) {
+        updatePlayerProfile({
+          playerId,
+          displayName: cleanName,
+          avatarInitials: getInitials(cleanName),
+        });
+
+        return true;
+      }
+
       try {
         const result = await updateSupabasePlayerDisplayName({
           leagueId,
           playerId,
-          displayName,
+          displayName: cleanName,
         });
 
         updatePlayerProfile(result);

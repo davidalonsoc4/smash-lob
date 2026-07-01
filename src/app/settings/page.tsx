@@ -4,7 +4,6 @@ import { ChangeEvent, useState } from "react"
 import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
-import { LeagueSwitcher } from "@/components/league/LeagueSwitcher"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -170,7 +169,7 @@ export default function SettingsPage() {
     userLeagues,
   } = useLeagueAccess()
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
-  const hasMultipleLeagues = userLeagues.length > 1
+  const hasLeagues = userLeagues.length > 0
 
   return (
     <div className="space-y-6">
@@ -248,14 +247,22 @@ export default function SettingsPage() {
         </AppCard>
       ) : null}
 
-      {hasMultipleLeagues ? (
-        <AppCard>
-          <p className="font-bold">{t.settings.leagueTitle}</p>
+      {hasLeagues ? (
+        <Link href="/leagues" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Mis ligas</p>
+                <p className="mt-2 text-sm text-neutral-500">
+                  Liga activa: {activeLeague.name}. Cambia de liga desde una
+                  pantalla propia con resumen de cada competición.
+                </p>
+              </div>
 
-          <div className="mt-4">
-            <LeagueSwitcher />
-          </div>
-        </AppCard>
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
       ) : null}
 
       {canAccessAdmin ? (

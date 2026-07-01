@@ -803,6 +803,124 @@ function SeasonPlayersStatus({
   );
 }
 
+function SeasonPlayerNamesPanel({
+  activeLeagueId,
+  players,
+}: {
+  activeLeagueId: string;
+  players: SeasonPlayerSummary[];
+}) {
+  const { updateLeaguePlayerName } = useLeagueAccess();
+  const [draftNames, setDraftNames] = useState<Record<string, string>>(() =>
+    Object.fromEntries(players.map((player) => [player.id, player.displayName])),
+  );
+  const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  async function handleSave(player: SeasonPlayerSummary) {
+    if (savingPlayerId) {
+      return;
+    }
+
+    const nextName = (draftNames[player.id] ?? "").trim();
+
+    if (!nextName || nextName === player.displayName) {
+      return;
+    }
+
+    setSavingPlayerId(player.id);
+    setError(null);
+    setFeedback(null);
+
+    const updated = await updateLeaguePlayerName(
+      activeLeagueId,
+      player.id,
+      nextName,
+    );
+
+    setSavingPlayerId(null);
+
+    if (!updated) {
+      setError(
+        "No se ha podido cambiar el nombre del jugador. Revisa Supabase o smash-lob-last-supabase-error.",
+      );
+      return;
+    }
+
+    setFeedback(`${player.displayName} actualizado a ${nextName}.`);
+  }
+
+  if (players.length === 0) {
+    return null;
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Nombres de jugadores</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Corrige nombres mal escritos sin recrear la temporada ni tocar el
+        calendario ya generado.
+      </p>
+
+      <div className="mt-4 space-y-2">
+        {players.map((player) => {
+          const draftName = draftNames[player.id] ?? player.displayName;
+          const hasChanges = draftName.trim() !== player.displayName;
+          const isSavingPlayer = savingPlayerId === player.id;
+
+          return (
+            <div
+              key={player.id}
+              className="rounded-2xl bg-neutral-100 p-3"
+            >
+              <div className="flex items-center gap-3">
+                <PlayerAvatar
+                  player={player}
+                  size="sm"
+                  className="bg-white text-neutral-700"
+                />
+                <input
+                  value={draftName}
+                  onChange={(event) => {
+                    setDraftNames((currentNames) => ({
+                      ...currentNames,
+                      [player.id]: event.target.value,
+                    }));
+                    setError(null);
+                    setFeedback(null);
+                  }}
+                  className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleSave(player)}
+                  disabled={Boolean(savingPlayerId) || !hasChanges || !draftName.trim()}
+                  className="shrink-0 rounded-2xl bg-neutral-950 px-4 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+                >
+                  {isSavingPlayer ? "..." : "Guardar"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {error ? (
+        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+
+      {feedback ? (
+        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+          {feedback}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
 function FinishSeasonPanel({
   activeLeagueId,
   activeSeasonId,
@@ -2140,6 +2258,10 @@ export default function AdminSeasonPage() {
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id);
   const isActiveSeason = activeSeason.status === "active";
   const isUpcomingSeason = activeSeason.status === "upcoming";
+  const canReopenFinishedSeason =
+    activeSeason.status === "finished" &&
+    activeSeason.totalRounds > 0 &&
+    matches.length > 0;
 
   if (!canAccessAdmin) {
     return (
@@ -2207,6 +2329,11 @@ export default function AdminSeasonPage() {
             players={players}
           />
 
+          <SeasonPlayerNamesPanel
+            activeLeagueId={activeLeague.id}
+            players={players}
+          />
+
           <FinishSeasonPanel
             activeLeagueId={activeLeague.id}
             activeSeasonId={activeSeason.id}
@@ -2235,6 +2362,11 @@ export default function AdminSeasonPage() {
             players={players}
           />
 
+          <SeasonPlayerNamesPanel
+            activeLeagueId={activeLeague.id}
+            players={players}
+          />
+
           <SeasonDangerZone
             activeLeagueId={activeLeague.id}
             activeSeasonId={activeSeason.id}
@@ -2243,10 +2375,19 @@ export default function AdminSeasonPage() {
         </>
       ) : (
         <>
-          <ReopenSeasonPanel
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-          />
+          {canReopenFinishedSeason ? (
+            <>
+              <ReopenSeasonPanel
+                activeLeagueId={activeLeague.id}
+                activeSeasonId={activeSeason.id}
+              />
+
+              <SeasonPlayerNamesPanel
+                activeLeagueId={activeLeague.id}
+                players={players}
+              />
+            </>
+          ) : null}
 
           <NewSeasonForm
             key={`${activeSeason.id}-new`}
