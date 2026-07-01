@@ -67,6 +67,9 @@ export default function ProfilePage() {
   const selectedScope =
     seasonScopes.find((scope) => scope.id === selectedScopeId) ?? seasonScopes[0]
   const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id]
+  const leagueSeasonCount = seasons.filter(
+    (season) => season.leagueId === activeLeague.id
+  ).length
   const selectedMatches = leagueMatches.filter((match) =>
     selectedSeasonIds.includes(match.seasonId)
   )
@@ -161,13 +164,15 @@ export default function ProfilePage() {
         </p>
       </header>
 
-      <PlayerSeasonScopeSelector
-        title={t.playerProfile.scopeSelectorTitle}
-        description={t.playerProfile.scopeSelectorDescription}
-        value={selectedScope.id}
-        scopes={seasonScopes}
-        onChange={setSelectedScopeId}
-      />
+      {leagueSeasonCount > 1 ? (
+        <PlayerSeasonScopeSelector
+          title={t.playerProfile.scopeSelectorTitle}
+          description={t.playerProfile.scopeSelectorDescription}
+          value={selectedScope.id}
+          scopes={seasonScopes}
+          onChange={setSelectedScopeId}
+        />
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3">
         <StatCard

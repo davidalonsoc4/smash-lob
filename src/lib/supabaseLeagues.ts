@@ -1,10 +1,8 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { isSuperuserEmail } from "@/lib/superuser"
-import { generateBalancedCalendar } from "@/lib/calendar"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import type {
-  RoundWindowMode,
   SeasonRoundSettings,
   SeasonSnapshot,
 } from "@/context/SeasonSettingsProvider"
@@ -17,30 +15,6 @@ import type {
   UserLeagueMembership,
 } from "@/data/fakeData"
 import type { MatchData } from "@/context/MatchDataProvider"
-
-function initials(name: string) {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "JG"
-  )
-}
-
-function slug(name: string) {
-  return (
-    name
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "item"
-  )
-}
 
 type SupabaseErrorLike = {
   code?: string
@@ -115,12 +89,6 @@ export async function createSupabaseLeague({
   leagueDescription,
   leagueSlug,
   inviteCode,
-  seasonName,
-  playerNames,
-  roundWindowMode,
-  seasonStartsAt,
-  roundWindowDays,
-  requiresThreeSets,
 }: {
   creatorEmail: string
   creatorName?: string | null
@@ -128,15 +96,8 @@ export async function createSupabaseLeague({
   leagueDescription: string
   leagueSlug: string
   inviteCode: string
-  seasonName: string
-  playerNames: string[]
-  roundWindowMode: RoundWindowMode
-  seasonStartsAt: string | null
-  roundWindowDays: number | null
-  requiresThreeSets: boolean
 }) {
   const normalizedCreatorEmail = creatorEmail.trim().toLowerCase()
-  const cleanNames = playerNames.map((name) => name.trim()).filter(Boolean)
   const creator = await upsertAppUser({
     email: normalizedCreatorEmail,
     displayName: creatorName,
@@ -148,98 +109,13 @@ export async function createSupabaseLeague({
     inviteCode,
     creatorUserId: creator.id,
   })
-  const { data: season, error: seasonError } = await supabase
-    .from("seasons")
-    .insert({
-      league_id: league.id,
-      name: seasonName,
-      status: "upcoming",
-      total_rounds: Math.max(cleanNames.length - 1, 1),
-      completed_rounds: 0,
-    })
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
-    .single()
-
-  if (seasonError) throw seasonError
-
-  const { data: players, error: playersError } = await supabase
-    .from("players")
-    .insert(
-      cleanNames.map((name, index) => ({
-        league_id: league.id,
-        slug: `${slug(name)}-${index + 1}`,
-        display_name: name,
-        avatar_initials: initials(name),
-      }))
-    )
-    .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
-
-  if (playersError) throw playersError
-
-  if ((players ?? []).length > 0) {
-    const { error: seasonPlayersError } = await supabase
-      .from("season_players")
-      .insert(
-        (players ?? []).map((player) => ({
-          season_id: season.id,
-          player_id: player.id,
-        }))
-      )
-
-    if (seasonPlayersError) throw seasonPlayersError
-  }
-
-  const seasonMatches = generateBalancedCalendar({
-    leagueId: league.id,
-    seasonId: season.id,
-    playerIds: (players ?? []).map((player) => player.id),
-  })
-
-  const { data: matchesData, error: matchesError } =
-    seasonMatches.length > 0
-      ? await supabase
-          .from("matches")
-          .insert(
-            seasonMatches.map((match) => ({
-              league_id: match.leagueId,
-              season_id: match.seasonId,
-              round: match.round,
-              status: match.status,
-              team_a: match.teamA,
-              team_b: match.teamB,
-              points_a: match.pointsA,
-              points_b: match.pointsB,
-              sets: match.sets,
-              scheduled_at: match.scheduledAt,
-              date_label: match.dateLabel,
-              location: match.location,
-              result_recorded_at: match.resultRecordedAt,
-            }))
-          )
-          .select(matchSelect)
-      : { data: [], error: null }
-
-  if (matchesError) throw matchesError
-
-  const { error: settingsError } = await supabase
-    .from("season_settings")
-    .insert({
-      season_id: season.id,
-      league_id: league.id,
-      round_window_mode: roundWindowMode,
-      season_starts_at: seasonStartsAt,
-      round_window_days: roundWindowDays,
-      requires_three_sets: requiresThreeSets,
-    })
-
-  if (settingsError) throw settingsError
 
   const { error: membershipError } = await supabase
     .from("league_memberships")
     .insert({
       user_id: creator.id,
       league_id: league.id,
-      player_id: players?.[0]?.id ?? null,
+      player_id: null,
       role: "creator",
     })
 
@@ -253,84 +129,38 @@ export async function createSupabaseLeague({
 
   if (inviteError) throw inviteError
 
-  const { error: leagueUpdateError } = await supabase
-    .from("leagues")
-    .update({ active_season_id: season.id })
-    .eq("id", league.id)
-
-  if (leagueUpdateError) throw leagueUpdateError
-
   const leagueResult: League = {
     id: league.id,
     slug: league.slug,
     name: league.name,
     description: league.description ?? "",
-    activeSeasonId: season.id,
+    activeSeasonId: league.active_season_id ?? "",
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: toLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }
-  const seasonResult: Season = {
-    id: season.id,
-    leagueId: season.league_id,
-    name: season.name,
-    status: season.status === "finished" ? "finished" : season.status === "upcoming" ? "upcoming" : "active",
-    totalRounds: season.total_rounds,
-    completedRounds: season.completed_rounds,
-  }
-  const playerProfiles: PlayerProfile[] = (players ?? []).map((player, index) => ({
-    id: player.id,
-    leagueId: player.league_id,
-    slug: player.slug,
-    displayName: player.display_name,
-    avatarInitials: player.avatar_initials,
-    userId: index === 0 ? creator.id : null,
-    avatarUrl:
-      index === 0 && typeof creator.avatar_url === "string"
-        ? creator.avatar_url
-        : typeof player.avatar_url === "string"
-          ? player.avatar_url
-          : null,
-  }))
-  const matches: MatchData[] = (matchesData ?? []).map((match) =>
-    mapSupabaseMatch(match)
-  )
 
   return {
     league: leagueResult,
     membership: {
       userId: normalizedCreatorEmail,
       leagueId: league.id,
-      playerId: players?.[0]?.id ?? "",
+      playerId: "",
       role: "creator" as const,
     },
-    matches,
     seasonSnapshot: {
-      seasons: [seasonResult],
-      playerProfiles,
-      seasonPlayers: (players ?? []).map((player) => ({
-        seasonId: season.id,
-        playerId: player.id,
-      })),
-      seasonSettings: [
-        {
-          leagueId: league.id,
-          seasonId: season.id,
-          roundWindowMode,
-          seasonStartsAt,
-          roundWindowDays,
-          requiresThreeSets,
-          manualActiveRound: null,
-          manualCompletedRounds: [],
-        },
-      ],
+      seasons: [],
+      playerProfiles: [],
+      seasonPlayers: [],
+      seasonSettings: [],
       activeSeasonIds: {
-        [league.id]: season.id,
+        [league.id]: "",
       },
     },
   }
 }
+
 
 function toRole(role: unknown): LeagueMemberRole {
   return role === "creator" || role === "admin" || role === "player"

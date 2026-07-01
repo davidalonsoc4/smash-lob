@@ -100,6 +100,10 @@ type MatchDataContextValue = {
   clearMatchResult: (matchId: string) => Promise<boolean>
   deleteSeasonMatches: (seasonId: string) => void
   deleteRoundMatches: (seasonId: string, round: number) => void
+  reorderSeasonRounds: (settings: {
+    seasonId: string
+    roundOrder: number[]
+  }) => void
   updateCourtBooking: (
     matchId: string,
     bookingInput: CourtBookingInput
@@ -749,6 +753,40 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [persistNextMatches]
   )
 
+  const reorderSeasonRounds = useCallback(
+    ({
+      seasonId,
+      roundOrder,
+    }: {
+      seasonId: string
+      roundOrder: number[]
+    }) => {
+      const nextRoundByCurrentRound = new Map(
+        roundOrder.map((round, index) => [round, index + 1])
+      )
+
+      setMatches((currentMatches) =>
+        persistNextMatches(
+          currentMatches.map((match) => {
+            if (match.seasonId !== seasonId) {
+              return match
+            }
+
+            const nextRound = nextRoundByCurrentRound.get(match.round)
+
+            return typeof nextRound === "number"
+              ? {
+                  ...match,
+                  round: nextRound,
+                }
+              : match
+          })
+        )
+      )
+    },
+    [persistNextMatches]
+  )
+
   const updateCourtBooking = useCallback(
     async (matchId: string, bookingInput: CourtBookingInput) => {
       const currentMatch = matches.find((match) => match.id === matchId)
@@ -927,6 +965,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       clearMatchResult,
       deleteSeasonMatches,
       deleteRoundMatches,
+      reorderSeasonRounds,
       updateCourtBooking,
       clearCourtBooking,
       markCourtBookingTransferAsPaid,
@@ -942,6 +981,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       markCourtBookingTransferAsPaid,
       matches,
       postponeMatch,
+      reorderSeasonRounds,
       updateCourtBooking,
       updateMatchSchedule,
     ]

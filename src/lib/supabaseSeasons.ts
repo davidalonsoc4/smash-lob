@@ -307,6 +307,48 @@ export async function deleteSupabaseRoundMatches({
   }
 }
 
+
+export async function updateSupabaseSeasonRoundOrder({
+  seasonId,
+  roundOrder,
+}: {
+  seasonId: string
+  roundOrder: number[]
+}) {
+  const nextRoundByCurrentRound = new Map(
+    roundOrder.map((round, index) => [round, index + 1])
+  )
+  const { data: matches, error } = await supabase
+    .from("matches")
+    .select("id,round")
+    .eq("season_id", seasonId)
+
+  if (error) {
+    throw error
+  }
+
+  const updates = (matches ?? [])
+    .map((match) => ({
+      id: match.id,
+      round: nextRoundByCurrentRound.get(match.round),
+    }))
+    .filter(
+      (match): match is { id: string; round: number } =>
+        typeof match.id === "string" && typeof match.round === "number"
+    )
+
+  for (const match of updates) {
+    const { error: updateError } = await supabase
+      .from("matches")
+      .update({ round: match.round })
+      .eq("id", match.id)
+
+    if (updateError) {
+      throw updateError
+    }
+  }
+}
+
 export async function startSupabaseSeason({
   leagueId,
   activeSeasonId,

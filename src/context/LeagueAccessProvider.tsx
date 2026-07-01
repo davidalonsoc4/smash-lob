@@ -46,7 +46,6 @@ import {
   type PlayerProfile,
   type UserLeagueMembership,
 } from "@/data/fakeData"
-import type { RoundWindowMode } from "@/context/SeasonSettingsProvider"
 
 type ClaimResult =
   | { ok: true; membership: UserLeagueMembership }
@@ -60,12 +59,6 @@ type LeagueAccessContextValue = {
   createLeague: (settings: {
     name: string
     description: string
-    seasonName: string
-    playerNames: string[]
-    roundWindowMode: RoundWindowMode
-    seasonStartsAt: string | null
-    roundWindowDays: number | null
-    requiresThreeSets: boolean
   }) => Promise<League | null>
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null
   getLeagueInviteCode: (leagueId: string) => string
@@ -510,21 +503,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     async ({
       name,
       description,
-      seasonName,
-      playerNames,
-      roundWindowMode,
-      seasonStartsAt,
-      roundWindowDays,
-      requiresThreeSets,
     }: {
       name: string
       description: string
-      seasonName: string
-      playerNames: string[]
-      roundWindowMode: RoundWindowMode
-      seasonStartsAt: string | null
-      roundWindowDays: number | null
-      requiresThreeSets: boolean
     }) => {
       if (!userId) {
         return null
@@ -553,12 +534,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           leagueDescription: description,
           leagueSlug: slug,
           inviteCode,
-          seasonName,
-          playerNames,
-          roundWindowMode,
-          seasonStartsAt,
-          roundWindowDays,
-          requiresThreeSets,
         })
 
         setLeagues((currentLeagues) => {
@@ -577,7 +552,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
           return nextMemberships
         })
-        hydrateMatches(result.matches)
         hydrateSeasonSnapshot(result.seasonSnapshot)
 
         return result.league
@@ -599,7 +573,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     },
     [
       getLeagueInviteCode,
-      hydrateMatches,
       hydrateSeasonSnapshot,
       leagues,
       userDisplayName,

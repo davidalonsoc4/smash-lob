@@ -120,12 +120,18 @@ function getRoundStatus({
   startsAt: string | null
   endsAt: string | null
 }): SeasonRoundStatus {
-  if (isRoundCompleted(matches, round)) {
+  const manuallyCompletedRounds = settings.manualCompletedRounds ?? []
+
+  if (manuallyCompletedRounds.includes(round) || isRoundCompleted(matches, round)) {
     return "completed"
   }
 
   if (season.status === "upcoming" || season.status === "finished") {
     return "upcoming"
+  }
+
+  if (typeof settings.manualActiveRound === "number") {
+    return settings.manualActiveRound === round ? "active" : "upcoming"
   }
 
   if (settings.roundWindowMode === "fixed-days" && startsAt && endsAt) {

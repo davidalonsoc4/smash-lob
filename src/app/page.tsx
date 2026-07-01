@@ -48,12 +48,14 @@ function PlayerAwardCard({
   players,
   badge,
   stats,
+  inlineStat,
 }: {
   eyebrow: string
   title: string
   players: AwardPlayer[]
   badge: string
-  stats: { label: string; value: string | number }[]
+  stats?: { label: string; value: string | number }[]
+  inlineStat?: { label: string; value: string | number }
 }) {
   const firstPlayer = players[0]
 
@@ -97,24 +99,34 @@ function PlayerAwardCard({
             <p className="truncate text-2xl font-black text-neutral-950">
               {players.map((player) => player.displayName).join(" / ")}
             </p>
-            <p className="mt-1 text-sm font-bold text-neutral-500">
-              {players.length > 1 ? "Reconocimiento compartido" : "Reconocimiento final"}
-            </p>
           </div>
-        </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          {stats.map((stat) => (
-            <div key={stat.label} className="rounded-2xl bg-neutral-100 px-2 py-2.5">
+          {inlineStat ? (
+            <div className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center">
               <p className="text-lg font-black text-neutral-950">
-                {stat.value}
+                {inlineStat.value}
               </p>
               <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
-                {stat.label}
+                {inlineStat.label}
               </p>
             </div>
-          ))}
+          ) : null}
         </div>
+
+        {stats && stats.length > 0 ? (
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded-2xl bg-neutral-100 px-2 py-2.5">
+                <p className="text-lg font-black text-neutral-950">
+                  {stat.value}
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </AppCard>
   )
@@ -129,6 +141,7 @@ export default function Home() {
     activeSeason,
     players,
     matches,
+    rounds,
     lastMatch,
     nextMatch,
   } = useCurrentLeagueData()
@@ -181,6 +194,16 @@ export default function Home() {
       })
     : null
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
+  const hasMeaningfulResults = rankingPlayers.some(
+    (player) =>
+      player.points > 0 ||
+      player.gamesFor > 0 ||
+      player.gamesDiff !== 0 ||
+      player.matchesPlayed > 0
+  )
+  const activeRound = rounds.find((round) => round.status === "active")
+  const nextRound = rounds.find((round) => round.status === "upcoming")
+  const dashboardRound = activeRound ?? nextRound ?? null
 
   return (
     <div className="space-y-5">
@@ -252,14 +275,7 @@ export default function Home() {
                 title={`MVP de ${activeSeason.name}`}
                 players={seasonMvpPlayers}
                 badge="★"
-                stats={[
-                  { label: "MVPs", value: seasonMvp.votes },
-                  {
-                    label: "Estado",
-                    value: seasonMvp.tied ? "Empate" : "Final",
-                  },
-                  { label: "Jornadas", value: activeSeason.totalRounds },
-                ]}
+                inlineStat={{ label: "MVPs", value: seasonMvp.votes }}
               />
             ) : null}
 
@@ -289,20 +305,28 @@ export default function Home() {
 
       {!isSeasonClosed && !isSeasonUpcoming ? (
         <div className="grid grid-cols-2 gap-3">
-          {leader ? (
-            <StatCard
-              label={t.dashboard.leader}
-              value={leader.displayName}
-              helper={`${leader.points} ${t.common.pointsShort} · ${
-                leader.gamesDiff > 0 ? "+" : ""
-              }${leader.gamesDiff} ${t.ranking.diff.toLowerCase()}`}
-            />
-          ) : null}
+          <StatCard
+            label={t.dashboard.leader}
+            value={hasMeaningfulResults && leader ? leader.displayName : "-"}
+            helper={
+              hasMeaningfulResults && leader
+                ? `${leader.points} ${t.common.pointsShort} · ${
+                    leader.gamesDiff > 0 ? "+" : ""
+                  }${leader.gamesDiff} ${t.ranking.diff.toLowerCase()}`
+                : "Sin resultados"
+            }
+          />
 
           <StatCard
             label={t.dashboard.rounds}
-            value={`${activeSeason.completedRounds}/${activeSeason.totalRounds}`}
-            helper={t.dashboard.regularLeague}
+            value={dashboardRound ? `Jornada ${dashboardRound.round}` : "-"}
+            helper={
+              dashboardRound
+                ? dashboardRound.status === "active"
+                  ? "Activa"
+                  : "Próxima"
+                : t.dashboard.regularLeague
+            }
           />
         </div>
       ) : null}
