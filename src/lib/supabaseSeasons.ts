@@ -1,24 +1,31 @@
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase";
 import {
   generateBalancedCalendar,
   generateManualCalendar,
+  getNewPlayerIndexFromToken,
   resolveManualCalendarDraft,
   type ManualCalendarMatchDraft,
-} from "@/lib/calendar"
-import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+} from "@/lib/calendar";
+import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches";
+import { upsertAppUser } from "@/lib/supabaseUsers";
 import type {
   RoundWindowMode,
   SeasonRoundSettings,
   SeasonSnapshot,
-} from "@/context/SeasonSettingsProvider"
-import type { PlayerProfile, Season, SeasonPlayer } from "@/data/fakeData"
-import type { MatchData } from "@/context/MatchDataProvider"
+} from "@/context/SeasonSettingsProvider";
+import type {
+  PlayerProfile,
+  Season,
+  SeasonPlayer,
+  UserLeagueMembership,
+} from "@/data/fakeData";
+import type { MatchData } from "@/context/MatchDataProvider";
 
 const supabaseUuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isSupabaseBackedId(id: string) {
-  return supabaseUuidPattern.test(id)
+  return supabaseUuidPattern.test(id);
 }
 
 function initials(name: string) {
@@ -30,7 +37,7 @@ function initials(name: string) {
       .map((part) => part[0])
       .join("")
       .toUpperCase() || "JG"
-  )
+  );
 }
 
 function slug(name: string) {
@@ -42,22 +49,22 @@ function slug(name: string) {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "jugador"
-  )
+  );
 }
 
 function toSeasonStatus(status: unknown): "upcoming" | "active" | "finished" {
-  if (status === "finished") return "finished"
-  if (status === "upcoming") return "upcoming"
-  return "active"
+  if (status === "finished") return "finished";
+  if (status === "upcoming") return "upcoming";
+  return "active";
 }
 
 function mapSeason(row: {
-  id: string
-  league_id: string
-  name: string
-  status: unknown
-  total_rounds: number
-  completed_rounds: number
+  id: string;
+  league_id: string;
+  name: string;
+  status: unknown;
+  total_rounds: number;
+  completed_rounds: number;
 }): Season {
   return {
     id: row.id,
@@ -66,16 +73,16 @@ function mapSeason(row: {
     status: toSeasonStatus(row.status),
     totalRounds: row.total_rounds,
     completedRounds: row.completed_rounds,
-  }
+  };
 }
 
 function mapPlayer(row: {
-  id: string
-  league_id: string
-  slug: string
-  display_name: string
-  avatar_initials: string
-  avatar_url?: string | null
+  id: string;
+  league_id: string;
+  slug: string;
+  display_name: string;
+  avatar_initials: string;
+  avatar_url?: string | null;
 }): PlayerProfile {
   return {
     id: row.id,
@@ -84,11 +91,11 @@ function mapPlayer(row: {
     displayName: row.display_name,
     avatarInitials: row.avatar_initials,
     avatarUrl: typeof row.avatar_url === "string" ? row.avatar_url : null,
-  }
+  };
 }
 
 export async function updateSupabaseSeasonRoundSettings(
-  settings: SeasonRoundSettings
+  settings: SeasonRoundSettings,
 ) {
   const payload = {
     league_id: settings.leagueId,
@@ -99,29 +106,29 @@ export async function updateSupabaseSeasonRoundSettings(
     requires_three_sets: settings.requiresThreeSets,
     manual_active_round: settings.manualActiveRound,
     manual_completed_rounds: settings.manualCompletedRounds,
-  }
+  };
 
   const { data, error } = await supabase
     .from("season_settings")
     .update(payload)
     .eq("season_id", settings.seasonId)
     .select("season_id")
-    .maybeSingle()
+    .maybeSingle();
 
   if (error) {
-    throw error
+    throw error;
   }
 
   if (data) {
-    return
+    return;
   }
 
   const { error: insertError } = await supabase
     .from("season_settings")
-    .insert(payload)
+    .insert(payload);
 
   if (insertError) {
-    throw insertError
+    throw insertError;
   }
 }
 
@@ -129,27 +136,27 @@ export async function finishSupabaseActiveSeason({
   leagueId,
   seasonId,
 }: {
-  leagueId: string
-  seasonId: string
+  leagueId: string;
+  seasonId: string;
 }): Promise<SeasonSnapshot> {
   const { data: season, error } = await supabase
     .from("seasons")
     .update({ status: "finished" })
     .eq("id", seasonId)
     .select("id,league_id,name,status,total_rounds,completed_rounds")
-    .single()
+    .single();
 
   if (error) {
-    throw error
+    throw error;
   }
 
   const { error: leagueUpdateError } = await supabase
     .from("leagues")
     .update({ active_season_id: null })
-    .eq("id", leagueId)
+    .eq("id", leagueId);
 
   if (leagueUpdateError) {
-    throw leagueUpdateError
+    throw leagueUpdateError;
   }
 
   return {
@@ -160,26 +167,25 @@ export async function finishSupabaseActiveSeason({
     activeSeasonIds: {
       [leagueId]: "",
     },
-  }
+  };
 }
-
 
 export async function startSupabaseExistingSeason({
   leagueId,
   seasonId,
 }: {
-  leagueId: string
-  seasonId: string
+  leagueId: string;
+  seasonId: string;
 }): Promise<SeasonSnapshot> {
   const { error: finishOtherActiveError } = await supabase
     .from("seasons")
     .update({ status: "finished" })
     .eq("league_id", leagueId)
     .eq("status", "active")
-    .neq("id", seasonId)
+    .neq("id", seasonId);
 
   if (finishOtherActiveError) {
-    throw finishOtherActiveError
+    throw finishOtherActiveError;
   }
 
   const { data: season, error } = await supabase
@@ -188,19 +194,19 @@ export async function startSupabaseExistingSeason({
     .eq("id", seasonId)
     .eq("league_id", leagueId)
     .select("id,league_id,name,status,total_rounds,completed_rounds")
-    .single()
+    .single();
 
   if (error) {
-    throw error
+    throw error;
   }
 
   const { error: leagueUpdateError } = await supabase
     .from("leagues")
     .update({ active_season_id: seasonId })
-    .eq("id", leagueId)
+    .eq("id", leagueId);
 
   if (leagueUpdateError) {
-    throw leagueUpdateError
+    throw leagueUpdateError;
   }
 
   return {
@@ -211,51 +217,51 @@ export async function startSupabaseExistingSeason({
     activeSeasonIds: {
       [leagueId]: seasonId,
     },
-  }
+  };
 }
 
 export async function deleteSupabaseSeason({
   leagueId,
   seasonId,
 }: {
-  leagueId: string
-  seasonId: string
+  leagueId: string;
+  seasonId: string;
 }): Promise<SeasonSnapshot> {
   const { error: matchesError } = await supabase
     .from("matches")
     .delete()
-    .eq("season_id", seasonId)
+    .eq("season_id", seasonId);
 
   if (matchesError) {
-    throw matchesError
+    throw matchesError;
   }
 
   const { error: seasonPlayersError } = await supabase
     .from("season_players")
     .delete()
-    .eq("season_id", seasonId)
+    .eq("season_id", seasonId);
 
   if (seasonPlayersError) {
-    throw seasonPlayersError
+    throw seasonPlayersError;
   }
 
   const { error: settingsError } = await supabase
     .from("season_settings")
     .delete()
-    .eq("season_id", seasonId)
+    .eq("season_id", seasonId);
 
   if (settingsError) {
-    throw settingsError
+    throw settingsError;
   }
 
   const { error: seasonError } = await supabase
     .from("seasons")
     .delete()
     .eq("id", seasonId)
-    .eq("league_id", leagueId)
+    .eq("league_id", leagueId);
 
   if (seasonError) {
-    throw seasonError
+    throw seasonError;
   }
 
   const { data: fallbackSeason, error: fallbackError } = await supabase
@@ -263,19 +269,19 @@ export async function deleteSupabaseSeason({
     .select("id,league_id,name,status,total_rounds,completed_rounds")
     .eq("league_id", leagueId)
     .limit(1)
-    .maybeSingle()
+    .maybeSingle();
 
   if (fallbackError) {
-    throw fallbackError
+    throw fallbackError;
   }
 
   const { error: leagueUpdateError } = await supabase
     .from("leagues")
     .update({ active_season_id: fallbackSeason?.id ?? null })
-    .eq("id", leagueId)
+    .eq("id", leagueId);
 
   if (leagueUpdateError) {
-    throw leagueUpdateError
+    throw leagueUpdateError;
   }
 
   return {
@@ -286,45 +292,44 @@ export async function deleteSupabaseSeason({
     activeSeasonIds: {
       [leagueId]: fallbackSeason?.id ?? "",
     },
-  }
+  };
 }
 
 export async function deleteSupabaseRoundMatches({
   seasonId,
   round,
 }: {
-  seasonId: string
-  round: number
+  seasonId: string;
+  round: number;
 }) {
   const { error } = await supabase
     .from("matches")
     .delete()
     .eq("season_id", seasonId)
-    .eq("round", round)
+    .eq("round", round);
 
   if (error) {
-    throw error
+    throw error;
   }
 }
-
 
 export async function updateSupabaseSeasonRoundOrder({
   seasonId,
   roundOrder,
 }: {
-  seasonId: string
-  roundOrder: number[]
+  seasonId: string;
+  roundOrder: number[];
 }) {
   const nextRoundByCurrentRound = new Map(
-    roundOrder.map((round, index) => [round, index + 1])
-  )
+    roundOrder.map((round, index) => [round, index + 1]),
+  );
   const { data: matches, error } = await supabase
     .from("matches")
     .select("id,round")
-    .eq("season_id", seasonId)
+    .eq("season_id", seasonId);
 
   if (error) {
-    throw error
+    throw error;
   }
 
   const updates = (matches ?? [])
@@ -334,17 +339,17 @@ export async function updateSupabaseSeasonRoundOrder({
     }))
     .filter(
       (match): match is { id: string; round: number } =>
-        typeof match.id === "string" && typeof match.round === "number"
-    )
+        typeof match.id === "string" && typeof match.round === "number",
+    );
 
   for (const match of updates) {
     const { error: updateError } = await supabase
       .from("matches")
       .update({ round: match.round })
-      .eq("id", match.id)
+      .eq("id", match.id);
 
     if (updateError) {
-      throw updateError
+      throw updateError;
     }
   }
 }
@@ -360,30 +365,48 @@ export async function startSupabaseSeason({
   roundWindowDays,
   requiresThreeSets,
   manualMatches,
+  selfPlayerValue,
+  currentUserEmail,
+  currentUserDisplayName,
 }: {
-  leagueId: string
-  activeSeasonId: string | null
-  name: string
-  playerIds: string[]
-  newPlayerNames: string[]
-  roundWindowMode: RoundWindowMode
-  seasonStartsAt: string | null
-  roundWindowDays: number | null
-  requiresThreeSets: boolean
-  manualMatches?: ManualCalendarMatchDraft[]
+  leagueId: string;
+  activeSeasonId: string | null;
+  name: string;
+  playerIds: string[];
+  newPlayerNames: string[];
+  roundWindowMode: RoundWindowMode;
+  seasonStartsAt: string | null;
+  roundWindowDays: number | null;
+  requiresThreeSets: boolean;
+  manualMatches?: ManualCalendarMatchDraft[];
+  selfPlayerValue?: string | null;
+  currentUserEmail?: string | null;
+  currentUserDisplayName?: string | null;
 }): Promise<{
-  matches: MatchData[]
-  seasonSnapshot: SeasonSnapshot
+  matches: MatchData[];
+  seasonSnapshot: SeasonSnapshot;
+  linkedMembership: UserLeagueMembership | null;
 }> {
-  const uniquePlayerIds = Array.from(new Set(playerIds))
+  const uniquePlayerIds = Array.from(new Set(playerIds));
   const cleanNewPlayerNames = newPlayerNames
     .map((playerName) => playerName.trim())
-    .filter(Boolean)
-  const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length
+    .filter(Boolean);
+  const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length;
+  const normalizedCurrentUserEmail =
+    currentUserEmail?.trim().toLowerCase() || null;
+  const currentUser = normalizedCurrentUserEmail
+    ? await upsertAppUser({
+        email: normalizedCurrentUserEmail,
+        displayName: currentUserDisplayName,
+      })
+    : null;
+  const selectedNewPlayerIndex = selfPlayerValue
+    ? getNewPlayerIndexFromToken(selfPlayerValue)
+    : null;
 
   const shouldFinishCurrentSeason = Boolean(
-    activeSeasonId && isSupabaseBackedId(activeSeasonId)
-  )
+    activeSeasonId && isSupabaseBackedId(activeSeasonId),
+  );
   const { data: finishedSeason, error: finishError } = shouldFinishCurrentSeason
     ? await supabase
         .from("seasons")
@@ -391,10 +414,10 @@ export async function startSupabaseSeason({
         .eq("id", activeSeasonId)
         .select("id,league_id,name,status,total_rounds,completed_rounds")
         .maybeSingle()
-    : { data: null, error: null }
+    : { data: null, error: null };
 
   if (finishError) {
-    throw finishError
+    throw finishError;
   }
 
   const { data: season, error: seasonError } = await supabase
@@ -407,10 +430,10 @@ export async function startSupabaseSeason({
       completed_rounds: 0,
     })
     .select("id,league_id,name,status,total_rounds,completed_rounds")
-    .single()
+    .single();
 
   if (seasonError) {
-    throw seasonError
+    throw seasonError;
   }
 
   const { data: newPlayers, error: playersError } =
@@ -423,19 +446,69 @@ export async function startSupabaseSeason({
               slug: `${slug(playerName)}-${Date.now()}-${index + 1}`,
               display_name: playerName,
               avatar_initials: initials(playerName),
-            }))
+              avatar_url:
+                selectedNewPlayerIndex === index
+                  ? (currentUser?.avatar_url ?? null)
+                  : null,
+            })),
           )
           .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
-      : { data: [], error: null }
+      : { data: [], error: null };
 
   if (playersError) {
-    throw playersError
+    throw playersError;
   }
 
   const finalPlayerIds = [
     ...uniquePlayerIds,
     ...(newPlayers ?? []).map((player) => player.id),
-  ]
+  ];
+  const selectedSelfPlayerId = selfPlayerValue
+    ? selectedNewPlayerIndex === null
+      ? selfPlayerValue
+      : ((newPlayers ?? [])[selectedNewPlayerIndex]?.id ?? null)
+    : null;
+  let linkedMembershipRole: UserLeagueMembership["role"] = "creator";
+
+  if (currentUser && selectedSelfPlayerId) {
+    if (currentUser.avatar_url) {
+      await supabase
+        .from("players")
+        .update({ avatar_url: currentUser.avatar_url })
+        .eq("id", selectedSelfPlayerId)
+        .is("avatar_url", null);
+    }
+
+    const { data: existingMembership, error: existingMembershipError } =
+      await supabase
+        .from("league_memberships")
+        .select("role")
+        .eq("user_id", currentUser.id)
+        .eq("league_id", leagueId)
+        .maybeSingle();
+
+    if (existingMembershipError) {
+      throw existingMembershipError;
+    }
+
+    linkedMembershipRole = existingMembership?.role ?? "creator";
+
+    const { error: membershipError } = await supabase
+      .from("league_memberships")
+      .upsert(
+        {
+          user_id: currentUser.id,
+          league_id: leagueId,
+          player_id: selectedSelfPlayerId,
+          role: linkedMembershipRole,
+        },
+        { onConflict: "user_id,league_id" },
+      );
+
+    if (membershipError) {
+      throw membershipError;
+    }
+  }
 
   if (finalPlayerIds.length > 0) {
     const { error: seasonPlayersError } = await supabase
@@ -444,11 +517,11 @@ export async function startSupabaseSeason({
         finalPlayerIds.map((playerId) => ({
           season_id: season.id,
           player_id: playerId,
-        }))
-      )
+        })),
+      );
 
     if (seasonPlayersError) {
-      throw seasonPlayersError
+      throw seasonPlayersError;
     }
   }
 
@@ -457,7 +530,7 @@ export async function startSupabaseSeason({
         matches: manualMatches,
         newPlayerIds: (newPlayers ?? []).map((player) => player.id),
       })
-    : []
+    : [];
   const seasonMatches =
     resolvedManualMatches.length > 0
       ? generateManualCalendar({
@@ -469,7 +542,7 @@ export async function startSupabaseSeason({
           leagueId,
           seasonId: season.id,
           playerIds: finalPlayerIds,
-        })
+        });
 
   const { data: matchesData, error: matchesError } =
     seasonMatches.length > 0
@@ -490,13 +563,13 @@ export async function startSupabaseSeason({
               date_label: match.dateLabel,
               location: match.location,
               result_recorded_at: match.resultRecordedAt,
-            }))
+            })),
           )
           .select(matchSelect)
-      : { data: [], error: null }
+      : { data: [], error: null };
 
   if (matchesError) {
-    throw matchesError
+    throw matchesError;
   }
 
   const { error: settingsError } = await supabase
@@ -510,30 +583,30 @@ export async function startSupabaseSeason({
       requires_three_sets: requiresThreeSets,
       manual_active_round: null,
       manual_completed_rounds: [],
-    })
+    });
 
   if (settingsError) {
-    throw settingsError
+    throw settingsError;
   }
 
   const { error: leagueUpdateError } = await supabase
     .from("leagues")
     .update({ active_season_id: season.id })
-    .eq("id", leagueId)
+    .eq("id", leagueId);
 
   if (leagueUpdateError) {
-    throw leagueUpdateError
+    throw leagueUpdateError;
   }
 
   const seasons: Season[] = [
     ...(finishedSeason ? [mapSeason(finishedSeason)] : []),
     mapSeason(season),
-  ]
-  const playerProfiles = (newPlayers ?? []).map(mapPlayer)
+  ];
+  const playerProfiles = (newPlayers ?? []).map(mapPlayer);
   const seasonPlayers: SeasonPlayer[] = finalPlayerIds.map((playerId) => ({
     seasonId: season.id,
     playerId,
-  }))
+  }));
   const seasonSettings: SeasonRoundSettings[] = [
     {
       leagueId,
@@ -545,10 +618,21 @@ export async function startSupabaseSeason({
       manualActiveRound: null,
       manualCompletedRounds: [],
     },
-  ]
+  ];
+
+  const linkedMembership: UserLeagueMembership | null =
+    normalizedCurrentUserEmail && selectedSelfPlayerId
+      ? {
+          userId: normalizedCurrentUserEmail,
+          leagueId,
+          playerId: selectedSelfPlayerId,
+          role: linkedMembershipRole,
+        }
+      : null;
 
   return {
     matches: (matchesData ?? []).map((match) => mapSupabaseMatch(match)),
+    linkedMembership,
     seasonSnapshot: {
       seasons,
       playerProfiles,
@@ -558,5 +642,5 @@ export async function startSupabaseSeason({
         [leagueId]: season.id,
       },
     },
-  }
+  };
 }
