@@ -24,6 +24,7 @@ import {
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons"
 import {
+  generateBalancedCalendar,
   generateManualCalendar,
   getNewPlayerToken,
   resolveManualCalendarDraft,
@@ -32,6 +33,7 @@ import {
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { recordActivityEvent } from "@/lib/activity"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
+import { buildSeasonRounds } from "@/lib/rounds"
 
 const allowedPlayerCounts = [4, 8, 12, 16]
 const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error"
@@ -73,6 +75,79 @@ function createEmptyManualCalendar(playerCount: number): ManualCalendarRoundDraf
       teamB: ["", ""],
     })),
   }))
+}
+
+function getDraftPlayerValues({
+  selectedPlayerIds,
+  playerCount,
+}: {
+  selectedPlayerIds: string[]
+  playerCount: number
+}) {
+  const selectedValues = selectedPlayerIds.slice(0, playerCount)
+  const missingSlots = Math.max(playerCount - selectedValues.length, 0)
+
+  return [
+    ...selectedValues,
+    ...Array.from({ length: missingSlots }, (_, index) => getNewPlayerToken(index)),
+  ]
+}
+
+function createBalancedManualCalendar(playerValues: string[]): ManualCalendarRoundDraft[] {
+  const balancedMatches = generateBalancedCalendar({
+    leagueId: "manual-draft",
+    seasonId: "manual-draft-season",
+    playerIds: playerValues,
+  })
+
+  if (balancedMatches.length === 0) {
+    return createEmptyManualCalendar(playerValues.length)
+  }
+
+  return Array.from({ length: getTotalRoundCount(playerValues.length) }, (_, roundIndex) => {
+    const round = roundIndex + 1
+    const roundMatches = balancedMatches.filter((match) => match.round === round)
+
+    return {
+      round,
+      matches: roundMatches.map((match) => ({
+        teamA: match.teamA,
+        teamB: match.teamB,
+      })),
+    }
+  })
+}
+
+function normalizeManualCalendarRoundOrder(
+  manualCalendar: ManualCalendarRoundDraft[]
+): ManualCalendarRoundDraft[] {
+  return manualCalendar.map((round, index) => ({
+    ...round,
+    round: index + 1,
+  }))
+}
+
+function moveManualCalendarRound({
+  manualCalendar,
+  roundIndex,
+  direction,
+}: {
+  manualCalendar: ManualCalendarRoundDraft[]
+  roundIndex: number
+  direction: -1 | 1
+}) {
+  const nextIndex = roundIndex + direction
+
+  if (nextIndex < 0 || nextIndex >= manualCalendar.length) {
+    return manualCalendar
+  }
+
+  const nextCalendar = [...manualCalendar]
+  const currentRound = nextCalendar[roundIndex]
+  nextCalendar[roundIndex] = nextCalendar[nextIndex]
+  nextCalendar[nextIndex] = currentRound
+
+  return normalizeManualCalendarRoundOrder(nextCalendar)
 }
 
 function getManualCalendarMatches(
@@ -297,6 +372,8 @@ function ActiveSeasonSettingsForm({
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets: roundSettings.requiresThreeSets,
+      manualActiveRound: roundSettings.manualActiveRound,
+      manualCompletedRounds: roundSettings.manualCompletedRounds,
     }
 
     setIsSaving(true)
@@ -427,6 +504,242 @@ function ActiveSeasonSettingsForm({
     </form>
   )
 }
+
+function RoundManagementPanel({
+  activeLeagueId,
+  activeSeason,
+  roundSettings,
+  matches,
+}: {
+  activeLeagueId: string
+  activeSeason: {
+    id: string
+    leagueId: string
+    totalRounds: number
+    status?: "upcoming" | "active" | "finished"
+  }
+  roundSettings: SeasonRoundSettings
+  matches: ReturnType<typeof useCurrentLeagueData>["matches"]
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings()
+  const rounds = buildSeasonRounds({
+    season: activeSeason,
+    settings: roundSettings,
+    matches,
+  })
+  const activeRound = rounds.find((round) => round.status === "active")
+  const firstUpcomingRound = rounds.find((round) => round.status === "upcoming")
+  const defaultSelectedRound = activeRound?.round ?? firstUpcomingRound?.round ?? 1
+  const [selectedRound, setSelectedRound] = useState(defaultSelectedRound)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<string | null>(null)
+
+  async function persistRoundSettings(nextSettings: SeasonRoundSettings) {
+    setIsSaving(true)
+    setError(null)
+    setFeedback(null)
+
+    if (isSupabaseBackedId(activeSeason.id)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings)
+      } catch (supabaseError) {
+        recordSupabaseError("update-round-management", supabaseError)
+        setError(
+          "No se ha podido guardar la gestión de jornadas en Supabase. Revisa smash-lob-last-supabase-error."
+        )
+        setIsSaving(false)
+        return
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings)
+    setFeedback("Gestión de jornadas actualizada.")
+    setIsSaving(false)
+  }
+
+  function getBaseSettings() {
+    return {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      seasonId: activeSeason.id,
+      manualCompletedRounds: roundSettings.manualCompletedRounds ?? [],
+    }
+  }
+
+  function activateRound(round: number) {
+    const nextCompletedRounds = (roundSettings.manualCompletedRounds ?? []).filter(
+      (completedRound) => completedRound !== round
+    )
+
+    return persistRoundSettings({
+      ...getBaseSettings(),
+      manualActiveRound: round,
+      manualCompletedRounds: nextCompletedRounds,
+    })
+  }
+
+  function finishRound(round: number) {
+    const nextCompletedRounds = Array.from(
+      new Set([...(roundSettings.manualCompletedRounds ?? []), round])
+    ).sort((firstRound, secondRound) => firstRound - secondRound)
+    const nextOpenRound = Array.from(
+      { length: activeSeason.totalRounds },
+      (_, index) => index + 1
+    ).find((candidateRound) => !nextCompletedRounds.includes(candidateRound))
+
+    return persistRoundSettings({
+      ...getBaseSettings(),
+      manualActiveRound: nextOpenRound ?? null,
+      manualCompletedRounds: nextCompletedRounds,
+    })
+  }
+
+  function reopenRound(round: number) {
+    return persistRoundSettings({
+      ...getBaseSettings(),
+      manualActiveRound: round,
+      manualCompletedRounds: (roundSettings.manualCompletedRounds ?? []).filter(
+        (completedRound) => completedRound !== round
+      ),
+    })
+  }
+
+  const previousRound = Math.max((activeRound?.round ?? selectedRound) - 1, 1)
+  const nextRound = Math.min(
+    (activeRound?.round ?? selectedRound) + 1,
+    activeSeason.totalRounds
+  )
+
+  return (
+    <AppCard>
+      <p className="font-bold">Gestión de jornadas</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Control manual para activar, finalizar, reabrir o mover la jornada activa cuando haga falta.
+      </p>
+
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+        {rounds.map((round) => (
+          <button
+            key={round.id}
+            type="button"
+            onClick={() => setSelectedRound(round.round)}
+            className={`rounded-2xl px-2 py-3 text-xs font-black ${
+              selectedRound === round.round
+                ? "bg-neutral-950 text-white"
+                : round.status === "active"
+                  ? "bg-emerald-100 text-emerald-900"
+                  : round.status === "completed"
+                    ? "bg-neutral-200 text-neutral-600"
+                    : "bg-neutral-100 text-neutral-700"
+            }`}
+          >
+            <span className="block">J{round.round}</span>
+            <span className="mt-1 block text-[10px] uppercase tracking-wide opacity-70">
+              {round.status === "active"
+                ? "Activa"
+                : round.status === "completed"
+                  ? "Finalizada"
+                  : "Próxima"}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+        <label className="block">
+          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+            Jornada seleccionada
+          </span>
+          <select
+            value={selectedRound}
+            onChange={(event) => setSelectedRound(Number(event.target.value))}
+            disabled={isSaving}
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-950 outline-none"
+          >
+            {rounds.map((round) => (
+              <option key={round.id} value={round.round}>
+                Jornada {round.round}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => activateRound(selectedRound)}
+            disabled={isSaving}
+            className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+          >
+            Activar
+          </button>
+          <button
+            type="button"
+            onClick={() => finishRound(selectedRound)}
+            disabled={isSaving}
+            className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+          >
+            Finalizar
+          </button>
+          <button
+            type="button"
+            onClick={() => reopenRound(selectedRound)}
+            disabled={isSaving}
+            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+          >
+            Reabrir
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              persistRoundSettings({
+                ...getBaseSettings(),
+                manualActiveRound: null,
+              })
+            }
+            disabled={isSaving}
+            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+          >
+            Modo automático
+          </button>
+        </div>
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => activateRound(previousRound)}
+            disabled={isSaving || previousRound === activeRound?.round}
+            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+          >
+            Jornada anterior
+          </button>
+          <button
+            type="button"
+            onClick={() => activateRound(nextRound)}
+            disabled={isSaving || nextRound === activeRound?.round}
+            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+          >
+            Siguiente jornada
+          </button>
+        </div>
+      </div>
+
+      {error ? (
+        <p className="mt-4 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+
+      {feedback ? (
+        <p className="mt-4 text-center text-sm font-semibold text-neutral-600">
+          {feedback}
+        </p>
+      ) : null}
+    </AppCard>
+  )
+}
+
 
 function SeasonPlayersStatus({
   activeLeagueId,
@@ -864,7 +1177,15 @@ function NewSeasonForm({
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([])
   const [calendarMode, setCalendarMode] = useState<CalendarMode>("balanced")
   const [manualCalendar, setManualCalendar] = useState<ManualCalendarRoundDraft[]>(
-    () => createEmptyManualCalendar(defaultPlayerCount)
+    () =>
+      createBalancedManualCalendar(
+        getDraftPlayerValues({
+          selectedPlayerIds: currentPlayers
+            .map((player) => player.id)
+            .slice(0, defaultPlayerCount),
+          playerCount: defaultPlayerCount,
+        })
+      )
   )
   const [roundWindowMode, setRoundWindowMode] =
     useState<RoundWindowMode>("none")
@@ -935,34 +1256,52 @@ function NewSeasonForm({
         Number.isFinite(parsedRoundWindowDays) &&
         parsedRoundWindowDays >= 1))
 
+  function refreshManualCalendarFromPlayers({
+    selectedIds,
+    count,
+  }: {
+    selectedIds: string[]
+    count: number
+  }) {
+    setManualCalendar(
+      createBalancedManualCalendar(
+        getDraftPlayerValues({
+          selectedPlayerIds: selectedIds,
+          playerCount: count,
+        })
+      )
+    )
+  }
+
   function handlePlayerCountChange(nextCount: number) {
     setPlayerCount(nextCount)
-    setSelectedPlayerIds((currentPlayerIds) =>
-      currentPlayerIds.slice(0, nextCount)
-    )
+    const nextSelectedPlayerIds = selectedPlayerIds.slice(0, nextCount)
+
+    setSelectedPlayerIds(nextSelectedPlayerIds)
     setNewPlayerNames((currentNames) =>
       resizePlayerNames(
         currentNames,
-        Math.max(nextCount - Math.min(selectedPlayerIds.length, nextCount), 0)
+        Math.max(nextCount - Math.min(nextSelectedPlayerIds.length, nextCount), 0)
       )
     )
-    setManualCalendar(createEmptyManualCalendar(nextCount))
+    refreshManualCalendarFromPlayers({
+      selectedIds: nextSelectedPlayerIds,
+      count: nextCount,
+    })
     setFeedback(null)
   }
 
   function toggleExistingPlayer(playerId: string) {
-    setSelectedPlayerIds((currentPlayerIds) => {
-      if (currentPlayerIds.includes(playerId)) {
-        return currentPlayerIds.filter(
-          (currentPlayerId) => currentPlayerId !== playerId
-        )
-      }
+    const nextSelectedPlayerIds = selectedPlayerIds.includes(playerId)
+      ? selectedPlayerIds.filter((currentPlayerId) => currentPlayerId !== playerId)
+      : selectedPlayerIds.length >= playerCount
+        ? selectedPlayerIds
+        : [...selectedPlayerIds, playerId]
 
-      if (currentPlayerIds.length >= playerCount) {
-        return currentPlayerIds
-      }
-
-      return [...currentPlayerIds, playerId]
+    setSelectedPlayerIds(nextSelectedPlayerIds)
+    refreshManualCalendarFromPlayers({
+      selectedIds: nextSelectedPlayerIds,
+      count: playerCount,
     })
     setFeedback(null)
   }
@@ -996,7 +1335,7 @@ function NewSeasonForm({
       try {
         const result = await startSupabaseSeason({
           ...settings,
-          activeSeasonId,
+          activeSeasonId: isSupabaseBackedId(activeSeasonId) ? activeSeasonId : null,
         })
 
         hydrateSeasonSnapshot(result.seasonSnapshot)
@@ -1256,8 +1595,21 @@ function NewSeasonForm({
                 {getTotalRoundCount(playerCount)} jornadas · {getMatchesPerRound(playerCount)} {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"} por jornada
               </p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Elige manualmente la Pareja A y la Pareja B de cada partido. Cada desplegable usa los jugadores seleccionados para la nueva temporada.
+                Elige manualmente la Pareja A y la Pareja B de cada partido. Cada desplegable viene preseleccionado con el calendario automático, pero puedes editarlo.
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  refreshManualCalendarFromPlayers({
+                    selectedIds: selectedPlayerIds,
+                    count: playerCount,
+                  })
+                  setFeedback(null)
+                }}
+                className="mt-3 w-full rounded-2xl bg-white px-4 py-2.5 text-xs font-black text-neutral-800 shadow-sm"
+              >
+                Restaurar calendario automático
+              </button>
             </div>
 
             {manualCalendar.map((round, roundIndex) => (
@@ -1265,7 +1617,43 @@ function NewSeasonForm({
                 key={round.round}
                 className="rounded-2xl border border-neutral-200 p-3"
               >
-                <p className="font-black">Jornada {round.round}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-black">Jornada {round.round}</p>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setManualCalendar((currentCalendar) =>
+                          moveManualCalendarRound({
+                            manualCalendar: currentCalendar,
+                            roundIndex,
+                            direction: -1,
+                          })
+                        )
+                      }
+                      disabled={roundIndex === 0}
+                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setManualCalendar((currentCalendar) =>
+                          moveManualCalendarRound({
+                            manualCalendar: currentCalendar,
+                            roundIndex,
+                            direction: 1,
+                          })
+                        )
+                      }
+                      disabled={roundIndex === manualCalendar.length - 1}
+                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
 
                 <div className="mt-3 space-y-4">
                   {round.matches.map((manualMatch, matchIndex) => {
@@ -1486,7 +1874,7 @@ function NewSeasonForm({
 export default function AdminSeasonPage() {
   const { t } = useI18n()
   const { isLeagueAdmin } = useLeagueAccess()
-  const { activeLeague, activeSeason, roundSettings, players } =
+  const { activeLeague, activeSeason, roundSettings, players, matches } =
     useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
   const isActiveSeason = activeSeason.status === "active"
@@ -1546,6 +1934,13 @@ export default function AdminSeasonPage() {
             activeLeagueId={activeLeague.id}
             activeSeasonId={activeSeason.id}
             roundSettings={roundSettings}
+          />
+
+          <RoundManagementPanel
+            activeLeagueId={activeLeague.id}
+            activeSeason={activeSeason}
+            roundSettings={roundSettings}
+            matches={matches}
           />
 
           <SeasonPlayersStatus

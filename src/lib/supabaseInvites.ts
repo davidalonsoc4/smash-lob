@@ -118,7 +118,7 @@ export async function fetchSupabaseInviteSnapshot(
       supabase
         .from("season_settings")
         .select(
-          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets"
+          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds"
         )
         .eq("league_id", league.id),
       supabase.from("matches").select(matchSelect).eq("league_id", league.id),
@@ -133,7 +133,12 @@ export async function fetchSupabaseInviteSnapshot(
     id: season.id,
     leagueId: season.league_id,
     name: season.name,
-    status: season.status === "finished" ? "finished" : "active",
+    status:
+      season.status === "finished"
+        ? "finished"
+        : season.status === "upcoming"
+          ? "upcoming"
+          : "active",
     totalRounds: season.total_rounds,
     completedRounds: season.completed_rounds,
   }))
@@ -180,6 +185,15 @@ export async function fetchSupabaseInviteSnapshot(
     seasonStartsAt: settings.season_starts_at,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
+    manualActiveRound:
+      typeof settings.manual_active_round === "number"
+        ? settings.manual_active_round
+        : null,
+    manualCompletedRounds: Array.isArray(settings.manual_completed_rounds)
+      ? settings.manual_completed_rounds.filter(
+          (round: unknown): round is number => typeof round === "number"
+        )
+      : [],
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

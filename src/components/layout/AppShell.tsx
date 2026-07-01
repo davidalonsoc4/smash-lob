@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
+import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -89,6 +90,8 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-950">
       <div className="mx-auto min-h-screen max-w-md bg-neutral-50">
+        <PwaInstallPrompt />
+
         {shouldShowInviteButton ? (
           <InviteFloatingControls
             offsetForSettingsButton={shouldShowSettingsButton}
