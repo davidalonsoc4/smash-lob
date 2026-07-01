@@ -56,12 +56,12 @@ export function PlayerMatchesList({
 
   return (
     <section>
-      <div className="mb-2 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-lg font-black">{title}</h2>
         {actionHref && actionLabel ? (
           <Link
             href={actionHref}
-            className="sl-action-link shrink-0 rounded-full px-3 py-1.5 text-xs font-black"
+            className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700"
           >
             {actionLabel}
           </Link>
@@ -70,13 +70,13 @@ export function PlayerMatchesList({
 
       {visibleMatches.length === 0 ? (
         <AppCard>
-          <p className="text-xs font-black uppercase tracking-[0.12em] text-neutral-400">
+          <p className="text-sm font-semibold text-neutral-500">
             {emptyMessage ?? t.matches.noMatches}
           </p>
         </AppCard>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {visibleMatches.map((match) => {
           const isFinished = match.status === "finished"
           const isPostponed = match.status === "postponed"
@@ -97,8 +97,8 @@ export function PlayerMatchesList({
 
           return (
             <Link key={match.id} href={`/match/${match.id}`}>
-              <AppCard className="sl-action-card p-3 pr-8 transition">
-                <div className="mb-2 flex items-center justify-between gap-3">
+              <AppCard className="transition active:scale-[0.99]">
+                <div className="mb-3 flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-neutral-500">
                     {t.matches.round} {match.round}
                   </p>
@@ -112,11 +112,11 @@ export function PlayerMatchesList({
                       playerIds={match.teamA}
                       players={players}
                       highlightedPlayerIds={highlightedPlayerIds}
-                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-sm font-black"
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
                     />
 
                     {isFinished ? (
-                      <p className="text-xl font-black leading-none">{match.pointsA}</p>
+                      <p className="text-xl font-black">{match.pointsA}</p>
                     ) : null}
                   </div>
 
@@ -125,31 +125,31 @@ export function PlayerMatchesList({
                       playerIds={match.teamB}
                       players={players}
                       highlightedPlayerIds={highlightedPlayerIds}
-                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-sm font-black"
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
                     />
 
                     {isFinished ? (
-                      <p className="text-xl font-black leading-none">{match.pointsB}</p>
+                      <p className="text-xl font-black">{match.pointsB}</p>
                     ) : null}
                   </div>
                 </div>
 
                 {isFinished ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5 text-xs font-bold text-neutral-600">
+                  <div className="mt-4 flex gap-2 text-sm text-neutral-600">
                     {match.sets.map((set, index) => (
                       <span
                         key={index}
-                        className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"
+                        className="rounded-lg bg-neutral-100 px-2 py-1"
                       >
                         {set.a}-{set.b}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-2.5">
+                  <div className="mt-4 rounded-xl border border-dashed border-neutral-300 p-3">
                     <p className="text-sm font-semibold">{scheduleTitle}</p>
 
-                    <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+                    <p className="mt-1 text-xs text-neutral-500">
                       {scheduleDescription}
                     </p>
                   </div>

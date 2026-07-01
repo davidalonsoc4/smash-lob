@@ -144,7 +144,7 @@ function PlayerAwardCard({
             inlineStatHref ? (
               <Link
                 href={inlineStatHref}
-                className="sl-action-card shrink-0 rounded-2xl bg-white px-4 py-3 pr-8 text-center transition"
+                className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center transition active:scale-[0.97]"
               >
                 <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
@@ -169,7 +169,7 @@ function PlayerAwardCard({
         {stats && stats.length > 0 ? (
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
             {stats.map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-2">
+              <div key={stat.label} className="rounded-2xl bg-neutral-100 px-2 py-2.5">
                 <p className="text-lg font-black text-neutral-950">
                   {stat.value}
                 </p>
@@ -327,7 +327,7 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeSeason.name}
@@ -336,12 +336,12 @@ export default function Home() {
         <div className="mt-2 flex items-center gap-3">
           <LeagueLogo league={activeLeague} size="lg" />
 
-          <h1 className="min-w-0 sl-page-title">
+          <h1 className="min-w-0 text-3xl font-black tracking-tight">
             {activeLeague.name}
           </h1>
         </div>
 
-        <p className="mt-1 sl-page-subtitle">
+        <p className="mt-1 text-sm text-neutral-500">
           {activeLeague.description} · {t.common.individualRanking}
         </p>
       </header>
@@ -364,7 +364,7 @@ export default function Home() {
                 type="button"
                 onClick={handleStartUpcomingSeason}
                 disabled={isStartingSeason}
-                className="sl-primary-action mt-4 block w-full rounded-2xl px-4 py-3 text-center text-sm font-black disabled:bg-neutral-300"
+                className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-300"
               >
                 {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
               </button>
@@ -418,7 +418,7 @@ export default function Home() {
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="sl-primary-action block rounded-2xl px-4 py-3 text-center text-sm font-black"
+                className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -430,7 +430,7 @@ export default function Home() {
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="sl-primary-action mt-4 block rounded-2xl px-4 py-3 text-center text-sm font-black"
+                className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -485,7 +485,7 @@ export default function Home() {
             action={
               <Link
                 href="/ranking"
-                className="sl-action-link rounded-full px-3 py-1.5 text-xs font-black"
+                className="text-sm font-semibold text-neutral-600"
               >
                 {t.dashboard.viewAll}
               </Link>
@@ -566,7 +566,7 @@ export default function Home() {
                 {lastMatch.sets.map((set, index) => (
                   <span
                     key={index}
-                    className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1"
+                    className="rounded-lg bg-neutral-100 px-2 py-1"
                   >
                     {set.a}-{set.b}
                   </span>

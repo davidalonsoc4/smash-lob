@@ -50,16 +50,16 @@ export function BottomNav() {
     <nav
       className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-neutral-200 bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.08)]"
       style={{
-        minHeight: "72px",
+        minHeight: "84px",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
       <div
         className="grid w-full grid-cols-5 gap-2 bg-white px-3"
         style={{
-          minHeight: "72px",
-          paddingTop: "7px",
-          paddingBottom: "7px",
+          minHeight: "84px",
+          paddingTop: "8px",
+          paddingBottom: "8px",
         }}
       >
         {navItems.map((item) => {
@@ -71,11 +71,11 @@ export function BottomNav() {
               href={item.href}
               className={
                 isActive
-                  ? "flex items-center justify-center rounded-xl bg-neutral-950 px-1 text-center text-[11px] font-black text-white shadow-sm"
-                  : "flex items-center justify-center rounded-xl bg-white px-1 text-center text-[11px] font-black text-neutral-500 transition active:bg-neutral-100"
+                  ? "flex items-center justify-center rounded-2xl bg-neutral-950 px-1 text-center text-xs font-black text-white shadow-sm"
+                  : "flex items-center justify-center rounded-2xl bg-white px-1 text-center text-xs font-black text-neutral-500 transition active:bg-neutral-100"
               }
               style={{
-                minHeight: "52px",
+                minHeight: "62px",
               }}
             >
               {item.label}

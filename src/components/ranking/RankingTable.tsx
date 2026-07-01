@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type RankingPlayer = {
@@ -32,13 +31,6 @@ function getPositionLabel(index: number) {
   return `${index + 1}º`
 }
 
-function getMedalClass(index: number) {
-  if (index === 0) return "bg-neutral-950 text-white"
-  if (index === 1) return "bg-neutral-200 text-neutral-950"
-  if (index === 2) return "bg-neutral-100 text-neutral-900"
-  return "bg-white text-neutral-500"
-}
-
 export function RankingTable({ players }: RankingTableProps) {
   const { t } = useI18n()
 
@@ -49,61 +41,65 @@ export function RankingTable({ players }: RankingTableProps) {
   })
 
   return (
-    <section className="space-y-2">
-      <AppCard className="overflow-hidden p-0">
-        <div className="grid grid-cols-[minmax(0,1fr)_3rem_3rem_2.7rem] items-center gap-1 border-b border-neutral-100 bg-neutral-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
-          <span>Jugador</span>
-          <span className="text-right">Pts</span>
-          <span className="text-right">Dif</span>
-          <span className="text-right">Juegos</span>
-        </div>
+    <div className="space-y-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_3.2rem_3.2rem_2.7rem_2.7rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+        <span>Jugador</span>
+        <span className="text-right">Pts</span>
+        <span className="text-right">Dif</span>
+        <span className="text-right">JF</span>
+        <span className="text-right">JC</span>
+      </div>
 
-        <div className="divide-y divide-neutral-100">
-          {sortedPlayers.map((player, index) => (
-            <Link
-              key={player.id}
-              href={`/player/${player.slug}`}
-              aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
-              className="grid grid-cols-[minmax(0,1fr)_3rem_3rem_2.7rem] items-center gap-1 px-3 py-2.5 transition active:bg-neutral-50"
-            >
-              <div className="flex min-w-0 items-center gap-2.5">
-                <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-[11px] font-black ${getMedalClass(index)}`}
-                >
-                  {getPositionLabel(index)}
-                </div>
-
-                <PlayerAvatar player={player} size="sm" />
-
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black leading-tight text-neutral-950">
-                    {player.displayName}
-                  </p>
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-400">
-                    {player.gamesFor} favor · {player.gamesAgainst} contra
-                  </p>
-                </div>
+      <div className="space-y-1.5">
+        {sortedPlayers.map((player, index) => (
+          <Link
+            key={player.id}
+            href={`/player/${player.slug}`}
+            aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
+            className="grid grid-cols-[minmax(0,1fr)_3.2rem_3.2rem_2.7rem_2.7rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-800">
+                {getPositionLabel(index)}
               </div>
 
-              <p className="text-right text-lg font-black leading-none text-neutral-950">
+              <PlayerAvatar player={player} size="sm" />
+
+              <p className="min-w-0 truncate text-sm font-black text-neutral-950">
+                {player.displayName}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-lg font-black leading-none text-neutral-950">
                 {player.points}
               </p>
+            </div>
 
-              <p className="text-right text-sm font-black text-neutral-800">
+            <div className="text-right">
+              <p className="text-sm font-black text-neutral-900">
                 {formatSigned(player.gamesDiff)}
               </p>
+            </div>
 
-              <p className="text-right text-[11px] font-bold leading-tight text-neutral-500">
-                {player.gamesFor}-{player.gamesAgainst}
+            <div className="text-right">
+              <p className="text-xs font-bold text-neutral-600">
+                {player.gamesFor}
               </p>
-            </Link>
-          ))}
-        </div>
-      </AppCard>
+            </div>
+
+            <div className="text-right">
+              <p className="text-xs font-bold text-neutral-600">
+                {player.gamesAgainst}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
 
       <p className="px-1 text-[11px] font-semibold text-neutral-400">
-        Pts = sets ganados · Dif = diferencia de juegos · Juegos = a favor-en contra
+        Pts = sets ganados · Dif = diferencia de juegos · JF/JC = juegos a favor/en contra
       </p>
-    </section>
+    </div>
   )
 }

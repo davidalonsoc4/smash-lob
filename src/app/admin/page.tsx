@@ -169,7 +169,7 @@ export default function AdminPage() {
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-4 sl-page-title">
+          <h1 className="mt-4 text-3xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -193,11 +193,11 @@ export default function AdminPage() {
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 sl-page-title">
+        <h1 className="mt-1 text-3xl font-black tracking-tight">
           {t.adminPanel.title}
         </h1>
 
-        <p className="mt-1 sl-page-subtitle">
+        <p className="mt-1 text-sm text-neutral-500">
           {t.adminPanel.description}
         </p>
       </header>

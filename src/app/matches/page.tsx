@@ -49,28 +49,28 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <header className="pt-2">
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 sl-page-title">
+        <h1 className="mt-1 text-3xl font-black tracking-tight">
           {t.matches.subtitle}
         </h1>
 
-        <p className="mt-1 sl-page-subtitle">
+        <p className="mt-1 text-sm text-neutral-500">
           {t.matches.description}
         </p>
       </header>
 
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_10px_rgba(15,23,42,0.05)]">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white/80 px-3 py-2 shadow-sm">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
           Filtro
         </p>
 
-        <div className="flex rounded-full border border-neutral-200 bg-neutral-50 p-1">
+        <div className="flex rounded-full bg-neutral-100 p-1">
           <Link
             href="/matches"
             className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
@@ -105,7 +105,7 @@ export default function MatchesPage() {
           {canManageSeason ? (
             <Link
               href="/admin/season"
-              className="sl-primary-action mt-3 inline-flex rounded-2xl px-3 py-2 text-xs font-black"
+              className="mt-3 inline-flex rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
             >
               Administrar temporada
             </Link>
@@ -130,7 +130,7 @@ export default function MatchesPage() {
         </div>
       ) : null}
 
-      <div className="space-y-5">
+      <div className="space-y-7">
         {rounds.map((round) => {
           const roundMatches = visibleMatches.filter(
             (match) => match.round === round.round
@@ -143,26 +143,26 @@ export default function MatchesPage() {
           }
 
           return (
-            <section key={round.id} className="space-y-3">
+            <section key={round.id} className="space-y-4">
               <div>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-black">{round.name}</h2>
 
                   {roundStatusText ? (
-                    <span className="sl-quiet-label rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.08em]">
+                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
                       {roundStatusText}
                     </span>
                   ) : null}
                 </div>
 
                 {roundWindowText ? (
-                  <p className="mt-1 sl-page-subtitle">
+                  <p className="mt-1 text-sm text-neutral-500">
                     {roundWindowText}
                   </p>
                 ) : null}
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {roundMatches.map((match) => (
                   <MatchCard
                     key={match.id}

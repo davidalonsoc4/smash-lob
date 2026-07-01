@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "0.7.29",
+  "version": "0.7.26",
   "private": true,
   "scripts": {
     "dev": "next dev",

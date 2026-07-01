@@ -499,11 +499,11 @@ export default function ActivityPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-1 sl-page-title">
+        <h1 className="mt-1 text-3xl font-black tracking-tight">
           {t.activity.title}
         </h1>
 
-        <p className="mt-1 sl-page-subtitle">
+        <p className="mt-1 text-sm text-neutral-500">
           {t.activity.description}
         </p>
       </header>

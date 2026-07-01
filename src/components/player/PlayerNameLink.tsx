@@ -14,7 +14,7 @@ export function PlayerNameLink({ playerId, players }: PlayerNameLinkProps) {
   return (
     <Link
       href={href}
-      className="font-black underline decoration-neutral-300 decoration-1 underline-offset-4 transition active:decoration-neutral-950"
+      className="font-black underline-offset-4 active:underline"
     >
       {getPlayerDisplayName(playerId, players)}
     </Link>

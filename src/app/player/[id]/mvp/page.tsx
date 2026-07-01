@@ -51,10 +51,10 @@ export default function PlayerMvpMatchesPage() {
         <div className="mt-3 flex items-center gap-3">
           {player ? <PlayerAvatar player={player} size="lg" /> : null}
           <div className="min-w-0">
-            <h1 className="sl-page-title">
+            <h1 className="text-3xl font-black tracking-tight">
               MVPs de jornada
             </h1>
-            <p className="mt-1 sl-page-subtitle">
+            <p className="mt-1 text-sm text-neutral-500">
               {player ? player.displayName : "Jugador no encontrado"}
             </p>
           </div>

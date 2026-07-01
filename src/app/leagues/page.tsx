@@ -34,19 +34,19 @@ export default function LeaguesPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label="Volver" />
 
-        <h1 className="mt-4 sl-page-title">
+        <h1 className="mt-4 text-3xl font-black tracking-tight">
           Mis ligas
         </h1>
-        <p className="mt-1 sl-page-subtitle">
+        <p className="mt-1 text-sm text-neutral-500">
           Selecciona la liga en la que quieres entrar.
         </p>
       </header>
 
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {userLeagues.map((league) => {
           const season = getActiveSeasonByLeagueId(league.id);
           const seasonMatches = matches.filter(
@@ -82,63 +82,66 @@ export default function LeaguesPage() {
                   handleEnterLeague(league.id);
                 }
               }}
-              className={`sl-action-card cursor-pointer rounded-2xl border bg-white p-3 pr-8 text-left transition ${
+              className={`cursor-pointer rounded-2xl border bg-white p-4 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${
                 isActive
                   ? "border-neutral-950 ring-2 ring-neutral-950"
-                  : "border-neutral-200"
+                  : "border-neutral-200 hover:border-neutral-300"
               }`}
             >
               <div className="flex items-start gap-3">
-                <LeagueLogo league={league} size="md" />
+                <LeagueLogo league={league} size="lg" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-base font-black text-neutral-950">
+                    <p className="truncate text-lg font-black text-neutral-950">
                       {league.name}
                     </p>
                     {isActive ? (
-                      <span className="sl-tiny-label border-neutral-950 bg-neutral-950 text-white">
+                      <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
                         Actual
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-0.5 line-clamp-1 text-xs font-semibold text-neutral-500">
+                  <p className="mt-1 line-clamp-1 text-xs font-semibold text-neutral-500">
                     {league.description || "Sin descripción"}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="sl-tiny-label">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
                       {getSeasonStatusLabel(season.status)}
                     </span>
                     {isAdmin ? (
-                      <span className="sl-tiny-label border-amber-200 bg-amber-50 text-amber-800">
+                      <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
                         Admin
                       </span>
                     ) : null}
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                      Toca para entrar
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3 text-[11px]">
-                <div>
-                  <p className="font-black uppercase tracking-[0.1em] text-neutral-400">
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
                     Jugadores
                   </p>
-                  <p className="mt-0.5 font-black text-neutral-950">
+                  <p className="mt-0.5 text-base font-black text-neutral-950">
                     {seasonPlayerCount || "-"}
                   </p>
                 </div>
-                <div>
-                  <p className="font-black uppercase tracking-[0.1em] text-neutral-400">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
                     Partidos
                   </p>
-                  <p className="mt-0.5 font-black text-neutral-950">
+                  <p className="mt-0.5 text-base font-black text-neutral-950">
                     {finishedMatches}/{seasonMatches.length || 0}
                   </p>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-black uppercase tracking-[0.1em] text-neutral-400">
+                <div className="rounded-2xl bg-neutral-100 px-2 py-2">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
                     Líder
                   </p>
-                  <p className="mt-0.5 truncate font-black text-neutral-950">
+                  <p className="mt-0.5 truncate text-xs font-black text-neutral-950">
                     {leader?.displayName ?? "-"}
                   </p>
                 </div>
@@ -152,14 +155,14 @@ export default function LeaguesPage() {
         <div className="grid gap-2">
           <Link
             href="/invite"
-            className="sl-secondary-action block rounded-2xl px-4 py-3 text-center text-sm font-black"
+            className="block rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
           >
             Unirme con invitación
           </Link>
           {canCreateLeagues ? (
             <Link
               href="/league/new"
-              className="sl-primary-action block rounded-2xl px-4 py-3 text-center text-sm font-black"
+              className="block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
             >
               Crear nueva liga
             </Link>

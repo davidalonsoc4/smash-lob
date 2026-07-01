@@ -134,12 +134,12 @@ export default function PlayerPage() {
         <div className="mt-3 flex items-center gap-3">
           <PlayerAvatar player={player} size="lg" />
 
-          <h1 className="min-w-0 sl-page-title">
+          <h1 className="min-w-0 text-3xl font-black tracking-tight">
             {player.displayName}
           </h1>
         </div>
 
-        <p className="mt-3 sl-page-subtitle">
+        <p className="mt-3 text-sm text-neutral-500">
           {t.playerProfile.description}
         </p>
       </header>

@@ -89,7 +89,7 @@ export default function HelpPage() {
           {activeLeague.name} · {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 sl-page-title">
+        <h1 className="mt-1 text-3xl font-black tracking-tight">
           Ayuda y conceptos básicos
         </h1>
 

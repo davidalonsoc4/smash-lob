@@ -98,11 +98,11 @@ export default function ProfileMatchesPage() {
           {activeLeague.name} - {activeSeason.name}
         </p>
 
-        <h1 className="mt-1 sl-page-title">
+        <h1 className="mt-1 text-3xl font-black tracking-tight">
           {t.profile.matchHistoryTitle}
         </h1>
 
-        <p className="mt-1 sl-page-subtitle">
+        <p className="mt-1 text-sm text-neutral-500">
           {t.profile.matchHistoryPageDescription}
         </p>
       </header>
