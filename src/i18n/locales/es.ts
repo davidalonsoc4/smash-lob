@@ -328,6 +328,8 @@ export const es = {
     bestRound: "Mejor jornada",
     roundShort: "J",
     toughestRound: "Jornada más dura",
+    showDetails: "Mostrar",
+    hideDetails: "Ocultar",
   },
 
   help: {
@@ -496,7 +498,7 @@ export const es = {
     finishConfirmMessage:
       "¿Seguro que quieres cerrar esta temporada? No se creará otra automáticamente y la liga quedará pendiente de nueva temporada.",
     finishSeason: "Terminar temporada",
-    newSeasonTitle: "Comenzar nueva temporada",
+    newSeasonTitle: "Crear nueva temporada",
     newSeasonDescription:
       "Cada temporada guarda sus propios jugadores, calendario y reglas dentro de la misma liga.",
     newSeasonName: "Nombre de la temporada",

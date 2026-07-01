@@ -109,17 +109,21 @@ export async function createSupabaseLeague({
     inviteCode,
     creatorUserId: creator.id,
   })
+  const creatorIsSuperuser =
+    Boolean(creator.is_superuser) || isSuperuserEmail(normalizedCreatorEmail)
 
-  const { error: membershipError } = await supabase
-    .from("league_memberships")
-    .insert({
-      user_id: creator.id,
-      league_id: league.id,
-      player_id: null,
-      role: "creator",
-    })
+  if (!creatorIsSuperuser) {
+    const { error: membershipError } = await supabase
+      .from("league_memberships")
+      .insert({
+        user_id: creator.id,
+        league_id: league.id,
+        player_id: null,
+        role: "creator",
+      })
 
-  if (membershipError) throw membershipError
+    if (membershipError) throw membershipError
+  }
 
   const { error: inviteError } = await supabase.from("invites").insert({
     league_id: league.id,
@@ -143,12 +147,14 @@ export async function createSupabaseLeague({
 
   return {
     league: leagueResult,
-    membership: {
-      userId: normalizedCreatorEmail,
-      leagueId: league.id,
-      playerId: "",
-      role: "creator" as const,
-    },
+    membership: creatorIsSuperuser
+      ? null
+      : {
+          userId: normalizedCreatorEmail,
+          leagueId: league.id,
+          playerId: "",
+          role: "creator" as const,
+        },
     seasonSnapshot: {
       seasons: [],
       playerProfiles: [],
@@ -221,7 +227,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     return {
       isSuperuser,
       leagues: [],
-      memberships: ownMemberships,
+      memberships: isSuperuser ? [] : ownMemberships,
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -264,7 +270,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     return {
       isSuperuser,
       leagues,
-      memberships: ownMemberships,
+      memberships: isSuperuser ? [] : ownMemberships,
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -409,15 +415,19 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   )
   const memberships: UserLeagueMembership[] = (
     leagueMembershipsResult.data ?? []
-  ).map((membership) => ({
-    userId:
-      membership.user_id === user.id
-        ? normalizedEmail
-        : `__claimed__:${membership.user_id}`,
-    leagueId: membership.league_id,
-    playerId: membership.player_id ?? "",
-    role: toRole(membership.role),
-  }))
+  )
+    .map((membership) => ({
+      userId:
+        membership.user_id === user.id
+          ? normalizedEmail
+          : `__claimed__:${membership.user_id}`,
+      leagueId: membership.league_id,
+      playerId: membership.player_id ?? "",
+      role: toRole(membership.role),
+    }))
+    .filter(
+      (membership) => !(isSuperuser && membership.userId === normalizedEmail)
+    )
 
   return {
     isSuperuser,

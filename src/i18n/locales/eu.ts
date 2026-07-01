@@ -325,6 +325,8 @@ export const eu = {
     bestRound: "Jardunaldirik onena",
     roundShort: "J",
     toughestRound: "Jardunaldirik zailena",
+    showDetails: "Erakutsi",
+    hideDetails: "Ezkutatu",
   },
 
   help: {
@@ -491,7 +493,7 @@ export const eu = {
     finishConfirmMessage:
       "Ziur zaude denboraldi hau itxi nahi duzula? Ez da beste denboraldi bat automatikoki sortuko eta liga denboraldi berri baten zain geratuko da.",
     finishSeason: "Denboraldia amaitu",
-    newSeasonTitle: "Denboraldi berria hasi",
+    newSeasonTitle: "Denboraldi berria sortu",
     newSeasonDescription:
       "Denboraldi bakoitzak bere jokalariak, egutegia eta arauak gordetzen ditu liga berean.",
     newSeasonName: "Denboraldiaren izena",

@@ -36,7 +36,7 @@ import { recordActivityEvent } from "@/lib/activity"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
 import { buildSeasonRounds } from "@/lib/rounds"
 
-const allowedPlayerCounts = [4, 8, 12, 16]
+const allowedPlayerCounts = [8, 12, 16]
 const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error"
 const supabaseUuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -273,7 +273,7 @@ function resizePlayerNames(currentNames: string[], nextCount: number) {
 
 function getNextPlayerCount(currentCount: number) {
   return (
-    allowedPlayerCounts.find((count) => count >= Math.max(currentCount, 4)) ??
+    allowedPlayerCounts.find((count) => count >= Math.max(currentCount, 8)) ??
     allowedPlayerCounts[allowedPlayerCounts.length - 1]
   )
 }
@@ -1345,6 +1345,7 @@ function NewSeasonForm({
   const leagueSeasonCount = seasons.filter(
     (season) => season.leagueId === activeLeagueId
   ).length
+  const isFirstLeagueSeason = leagueSeasonCount === 0
   const defaultPlayerCount = getNextPlayerCount(currentPlayers.length)
   const [newSeasonName, setNewSeasonName] = useState(
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount })
@@ -1407,7 +1408,11 @@ function NewSeasonForm({
     }),
     ...visibleNewPlayerNames.map((playerName, index) => ({
       value: getNewPlayerToken(index),
-      label: playerName.trim() || `Sustituto ${index + 1}`,
+      label:
+        playerName.trim() ||
+        (isFirstLeagueSeason
+          ? `Jugador ${selectedPlayerIds.length + index + 1}`
+          : `Sustituto ${index + 1}`),
     })),
   ]
   const validManualPlayerValues = new Set(
@@ -1583,15 +1588,19 @@ function NewSeasonForm({
       <AppCard>
         <p className="font-bold">{t.adminSeason.newSeasonTitle}</p>
         <p className="mt-2 text-sm text-neutral-500">
-          {t.adminSeason.newSeasonDescription}
+          {isFirstLeagueSeason
+            ? "Configura la Temporada 1 con sus jugadores, calendario y reglas antes de abrir invitaciones."
+            : t.adminSeason.newSeasonDescription}
         </p>
 
-        <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <p className="font-black">No hay temporada activa.</p>
-          <p className="mt-1">
-            Confirma quién continúa, quita bajas, añade sustitutos y se generarán las jornadas de la nueva temporada, pero quedará en estado próximamente hasta que pulses Comenzar temporada.
-          </p>
-        </div>
+        {!isFirstLeagueSeason ? (
+          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-black">No hay temporada activa.</p>
+            <p className="mt-1">
+              Confirma quién continúa, quita bajas, añade sustitutos y se generarán las jornadas de la nueva temporada, pero quedará en estado próximamente hasta que pulses Comenzar temporada.
+            </p>
+          </div>
+        ) : null}
 
         <div className="mt-5 space-y-4">
           <label className="block">
@@ -1637,7 +1646,9 @@ function NewSeasonForm({
       <AppCard>
         <p className="font-bold">{t.adminSeason.seasonPlayersTitle}</p>
         <p className="mt-2 text-sm text-neutral-500">
-          {t.adminSeason.seasonPlayersDescription}
+          {isFirstLeagueSeason
+            ? "Añade los jugadores que formarán parte de esta primera temporada."
+            : t.adminSeason.seasonPlayersDescription}
         </p>
 
         <div className="mt-4 grid grid-cols-2 gap-2 text-center">
@@ -1646,7 +1657,7 @@ function NewSeasonForm({
             <p className="text-lg font-black">{selectedPlayerIds.length}/{playerCount}</p>
           </div>
           <div className="rounded-2xl bg-neutral-100 px-4 py-3">
-            <p className="text-xs font-semibold text-neutral-500">Sustitutos</p>
+            <p className="text-xs font-semibold text-neutral-500">{isFirstLeagueSeason ? "Jugadores" : "Sustitutos"}</p>
             <p className="text-lg font-black">{newPlayerSlotCount}</p>
           </div>
         </div>
@@ -1679,11 +1690,13 @@ function NewSeasonForm({
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{player.displayName}</span>
                   <span className={`mt-0.5 block text-xs ${isSelected ? "text-neutral-300" : "text-neutral-500"}`}>
-                    {isSelected
-                      ? "Continúa"
-                      : wasInPreviousSeason
-                        ? "Baja esta temporada"
-                        : "Jugador de la liga"}
+                    {isFirstLeagueSeason
+                      ? "Jugador"
+                      : isSelected
+                        ? "Continúa"
+                        : wasInPreviousSeason
+                          ? "Baja esta temporada"
+                          : "Jugador de la liga"}
                   </span>
                 </span>
               </button>
@@ -1691,13 +1704,13 @@ function NewSeasonForm({
           })}
         </div>
 
-        {continuingPlayers.length > 0 ? (
+        {!isFirstLeagueSeason && continuingPlayers.length > 0 ? (
           <p className="mt-4 text-xs font-semibold text-neutral-500">
             Continúan: {continuingPlayers.map((player) => player.displayName).join(", ")}
           </p>
         ) : null}
 
-        {removedPlayers.length > 0 ? (
+        {!isFirstLeagueSeason && removedPlayers.length > 0 ? (
           <p className="mt-2 text-xs font-semibold text-amber-700">
             No entran en la nueva temporada: {removedPlayers.map((player) => player.displayName).join(", ")}
           </p>
@@ -1712,7 +1725,7 @@ function NewSeasonForm({
                 </span>
                 <input
                   value={playerName}
-                  placeholder={`Sustituto ${index + 1}`}
+                  placeholder={isFirstLeagueSeason ? `Jugador ${selectedPlayerIds.length + index + 1}` : `Sustituto ${index + 1}`}
                   onChange={(event) => {
                     const nextNames = [...visibleNewPlayerNames]
                     nextNames[index] = event.target.value

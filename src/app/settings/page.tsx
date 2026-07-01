@@ -278,7 +278,7 @@ export default function SettingsPage() {
       </button>
 
       <p className="pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300">
-        Smash & Lob {APP_VERSION_LABEL}
+        {APP_VERSION_LABEL}
       </p>
     </div>
   )

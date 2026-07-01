@@ -310,6 +310,8 @@ export const en = {
     bestRound: "Best round",
     roundShort: "R",
     toughestRound: "Toughest round",
+    showDetails: "Show",
+    hideDetails: "Hide",
   },
 
   help: {
@@ -465,7 +467,7 @@ export const en = {
     finishConfirmMessage:
       "Are you sure you want to close this season? A new season will not be created automatically and the league will remain pending a new season.",
     finishSeason: "Finish season",
-    newSeasonTitle: "Start new season",
+    newSeasonTitle: "Create new season",
     newSeasonDescription:
       "Each season keeps its own players, calendar and rules inside the same league.",
     newSeasonName: "Season name",

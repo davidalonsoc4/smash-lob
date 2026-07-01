@@ -53,6 +53,7 @@ type ClaimResult =
 
 type LeagueAccessContextValue = {
   userId: string | null
+  isSuperuser: boolean
   leagues: League[]
   userMemberships: UserLeagueMembership[]
   userLeagues: League[]
@@ -543,15 +544,19 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
           return nextLeagues
         })
-        setMemberships((currentMemberships) => {
-          const nextMemberships = mergeMemberships(currentMemberships, [
-            result.membership,
-          ])
+        const createdMembership = result.membership
 
-          window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+        if (createdMembership) {
+          setMemberships((currentMemberships) => {
+            const nextMemberships = mergeMemberships(currentMemberships, [
+              createdMembership,
+            ])
 
-          return nextMemberships
-        })
+            window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+
+            return nextMemberships
+          })
+        }
         hydrateSeasonSnapshot(result.seasonSnapshot)
 
         return result.league
@@ -1211,6 +1216,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const value = useMemo(
     () => ({
       userId,
+      isSuperuser,
       leagues,
       userMemberships,
       userLeagues,
@@ -1258,6 +1264,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       resolveLeagueInvite,
       isLeagueAdmin,
       isLeagueCreator,
+      isSuperuser,
       leagues,
       userId,
       userLeagues,

@@ -19,13 +19,27 @@ const CurrentUserContext = createContext<CurrentUserContextValue | null>(null)
 
 export function CurrentUserProvider({ children }: CurrentUserProviderProps) {
   const { activeLeagueId } = useActiveLeague()
-  const { getMembershipForLeague } = useLeagueAccess()
+  const { getMembershipForLeague, isSuperuser } = useLeagueAccess()
   const { playerProfiles } = useSeasonSettings()
   const membership = getMembershipForLeague(activeLeagueId)
+  const linkedPlayer = membership?.playerId
+    ? playerProfiles.find((player) => player.id === membership.playerId)
+    : null
+  const superuserPlaceholder: PlayerProfile = {
+    id: "__superuser__",
+    leagueId: activeLeagueId,
+    slug: "superusuario",
+    displayName: "Superusuario",
+    avatarInitials: "SU",
+    avatarUrl: null,
+    userId: null,
+  }
   const currentUser =
-    playerProfiles.find((player) => player.id === membership?.playerId) ??
-    playerProfiles.find((player) => player.leagueId === activeLeagueId) ??
-    playerProfiles[0]
+    linkedPlayer ??
+    (isSuperuser
+      ? superuserPlaceholder
+      : playerProfiles.find((player) => player.leagueId === activeLeagueId) ??
+        playerProfiles[0])
 
   const value = useMemo(
     () => ({
