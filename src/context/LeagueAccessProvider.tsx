@@ -395,10 +395,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   } = useSeasonSettings()
   const userId = normalizeUserId(session?.user?.email)
   const userDisplayName = session?.user?.name
-  const [hasDatabaseSuperuserAccess, setHasDatabaseSuperuserAccess] =
-    useState(false)
-  const isSuperuser = Boolean(userId) &&
-    (isSuperuserEmail(userId) || hasDatabaseSuperuserAccess)
+  const isSuperuser = Boolean(userId) && isSuperuserEmail(userId)
   const [leagues, setLeagues] = useState<League[]>(readStoredLeagues)
   const [memberships, setMemberships] = useState<UserLeagueMembership[]>(
     readStoredMemberships
@@ -438,7 +435,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
     fetchSupabaseLeagueSnapshot(userId)
       .then((snapshot) => {
-        setHasDatabaseSuperuserAccess(snapshot.isSuperuser)
         const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : []
         const nextLeagues = mergeLeagues(fallbackLeagues, snapshot.leagues)
 
@@ -460,7 +456,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         hydrateSeasonSnapshot(snapshot.seasonSnapshot)
       })
       .catch((error) => {
-        setHasDatabaseSuperuserAccess(false)
         const details =
           typeof error === "object" && error !== null
             ? error

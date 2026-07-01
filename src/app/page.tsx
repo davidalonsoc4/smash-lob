@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { useSession } from "next-auth/react"
+import { useState } from "react"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard"
@@ -10,6 +12,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -18,6 +21,23 @@ import {
   getSeasonMvpSelection,
   getPlayersByIds,
 } from "@/lib/mvp"
+import { recordActivityEvent } from "@/lib/activity"
+import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons"
+
+
+const supabaseUuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isSupabaseBackedId(id: string) {
+  return supabaseUuidPattern.test(id)
+}
+
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
+  return {
+    actorEmail: session?.user?.email ?? "system@smash-lob.local",
+    actorDisplayName: session?.user?.name ?? null,
+  }
+}
 
 type AwardPlayer = {
   id: string
@@ -134,6 +154,10 @@ function PlayerAwardCard({
 
 export default function Home() {
   const { t } = useI18n()
+  const { data: session } = useSession()
+  const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings()
+  const [isStartingSeason, setIsStartingSeason] = useState(false)
+  const [startSeasonError, setStartSeasonError] = useState<string | null>(null)
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const {
@@ -205,6 +229,70 @@ export default function Home() {
   const nextRound = rounds.find((round) => round.status === "upcoming")
   const dashboardRound = activeRound ?? nextRound ?? null
 
+  async function handleStartUpcomingSeason() {
+    if (isStartingSeason || !isSeasonUpcoming || !canManageSeason) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      "¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados."
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsStartingSeason(true)
+    setStartSeasonError(null)
+
+    if (isSupabaseBackedId(activeSeason.id)) {
+      try {
+        const snapshot = await startSupabaseExistingSeason({
+          leagueId: activeLeague.id,
+          seasonId: activeSeason.id,
+        })
+
+        hydrateSeasonSnapshot(snapshot)
+      } catch (supabaseError) {
+        const details =
+          typeof supabaseError === "object" && supabaseError !== null
+            ? supabaseError
+            : { message: String(supabaseError) }
+
+        window.localStorage.setItem(
+          "smash-lob-last-supabase-error",
+          JSON.stringify({
+            action: "start-upcoming-season-home",
+            ...details,
+            createdAt: new Date().toISOString(),
+          })
+        )
+        setStartSeasonError(
+          "No se ha podido comenzar la temporada en Supabase. Revisa smash-lob-last-supabase-error."
+        )
+        setIsStartingSeason(false)
+        return
+      }
+    }
+
+    startSeason(activeLeague.id, activeSeason.id)
+
+    try {
+      await recordActivityEvent({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        ...getActorFromSession(session),
+        type: "season_created",
+        title: "Temporada comenzada",
+        description: "La temporada ha pasado de próximamente a activa.",
+      })
+    } catch {
+      // La temporada ya ha comenzado; la actividad es auxiliar.
+    }
+
+    setIsStartingSeason(false)
+  }
+
   return (
     <div className="space-y-5">
       <header className="pt-2">
@@ -238,12 +326,22 @@ export default function Home() {
           </p>
 
           {canManageSeason ? (
-            <Link
-              href="/admin/season"
-              className="mt-4 block rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white"
-            >
-              Comenzar temporada
-            </Link>
+            <>
+              <button
+                type="button"
+                onClick={handleStartUpcomingSeason}
+                disabled={isStartingSeason}
+                className="mt-4 block w-full rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-300"
+              >
+                {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
+              </button>
+
+              {startSeasonError ? (
+                <p className="mt-3 text-center text-sm font-semibold text-red-600">
+                  {startSeasonError}
+                </p>
+              ) : null}
+            </>
           ) : null}
         </AppCard>
       ) : null}

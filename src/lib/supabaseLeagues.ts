@@ -204,8 +204,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     }
   }
 
-  const isSuperuser =
-    Boolean(user.is_superuser) || isSuperuserEmail(normalizedEmail)
+  const isSuperuser = isSuperuserEmail(normalizedEmail)
   const { data: ownMembershipRows, error: ownMembershipError } = await supabase
     .from("league_memberships")
     .select("league_id,player_id,role,user_id")
