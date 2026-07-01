@@ -557,9 +557,9 @@ function LeagueLocationsForm({
 
 export default function AdminLeaguePage() {
   const { t } = useI18n()
-  const { deleteLeague, isLeagueAdmin, isLeagueCreator } = useLeagueAccess()
+  const { deleteLeague, hasLeagueAdminRole, isLeagueCreator } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const canDeleteLeague = isLeagueCreator(activeLeague.id)
 
   if (!canAccessAdmin) {

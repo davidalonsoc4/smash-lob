@@ -53,6 +53,8 @@ type ClaimResult =
 type LeagueAccessContextValue = {
   userId: string | null;
   isSuperuser: boolean;
+  isAdminViewEnabled: boolean;
+  setAdminViewEnabled: (enabled: boolean) => void;
   leagues: League[];
   userMemberships: UserLeagueMembership[];
   userLeagues: League[];
@@ -104,6 +106,7 @@ type LeagueAccessContextValue = {
   linkCurrentUserToLeaguePlayer: (leagueId: string, playerId: string) => void;
   canAccessLeague: (leagueId: string) => boolean;
   isLeagueAdmin: (leagueId: string) => boolean;
+  hasLeagueAdminRole: (leagueId: string) => boolean;
   isLeagueCreator: (leagueId: string) => boolean;
 };
 
@@ -114,6 +117,7 @@ type LeagueAccessProviderProps = {
 const storageKey = "smash-lob-user-league-memberships";
 const leaguesStorageKey = "smash-lob-leagues";
 const inviteCodesStorageKey = "smash-lob-league-invite-codes";
+const adminViewStorageKey = "smash-lob-admin-view-enabled";
 const adminRoles: LeagueMemberRole[] = ["creator", "admin"];
 const LeagueAccessContext = createContext<LeagueAccessContextValue | null>(
   null,
@@ -145,6 +149,15 @@ function normalizeUserId(email: string | null | undefined) {
 
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase();
+}
+
+
+function readStoredAdminViewEnabled() {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  return window.localStorage.getItem(adminViewStorageKey) !== "false";
 }
 
 function readStoredInviteCodes() {
@@ -409,6 +422,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const userDisplayName = session?.user?.name;
   const [isSuperuserFromDb, setIsSuperuserFromDb] = useState(false);
   const isSuperuser = Boolean(userId) && isSuperuserFromDb;
+  const [isAdminViewEnabled, setIsAdminViewEnabledState] = useState(
+    readStoredAdminViewEnabled,
+  );
+  const setAdminViewEnabled = useCallback((enabled: boolean) => {
+    setIsAdminViewEnabledState(enabled);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(adminViewStorageKey, String(enabled));
+    }
+  }, []);
   const [leagues, setLeagues] = useState<League[]>(readStoredLeagues);
   const [memberships, setMemberships] = useState<UserLeagueMembership[]>(
     readStoredMemberships,
@@ -1252,7 +1274,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [getMembershipForLeague, isSuperuser],
   );
 
-  const isLeagueAdmin = useCallback(
+  const hasLeagueAdminRole = useCallback(
     (leagueId: string) => {
       if (isSuperuser) {
         return true;
@@ -1265,8 +1287,18 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [getMembershipForLeague, isSuperuser],
   );
 
+  const isLeagueAdmin = useCallback(
+    (leagueId: string) =>
+      isAdminViewEnabled && hasLeagueAdminRole(leagueId),
+    [hasLeagueAdminRole, isAdminViewEnabled],
+  );
+
   const isLeagueCreator = useCallback(
     (leagueId: string) => {
+      if (!isAdminViewEnabled) {
+        return false;
+      }
+
       if (isSuperuser) {
         return true;
       }
@@ -1275,13 +1307,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return membership?.role === "creator";
     },
-    [getMembershipForLeague, isSuperuser],
+    [getMembershipForLeague, isAdminViewEnabled, isSuperuser],
   );
 
   const value = useMemo(
     () => ({
       userId,
       isSuperuser,
+      isAdminViewEnabled,
+      setAdminViewEnabled,
       leagues,
       userMemberships,
       userLeagues,
@@ -1306,6 +1340,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       linkCurrentUserToLeaguePlayer,
       canAccessLeague,
       isLeagueAdmin,
+      hasLeagueAdminRole,
       isLeagueCreator,
     }),
     [
@@ -1330,8 +1365,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueLocations,
       resolveLeagueInvite,
       isLeagueAdmin,
+      hasLeagueAdminRole,
       isLeagueCreator,
       isSuperuser,
+      isAdminViewEnabled,
+      setAdminViewEnabled,
       leagues,
       userId,
       userLeagues,

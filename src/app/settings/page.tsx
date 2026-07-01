@@ -163,8 +163,13 @@ function AccountAvatarSettings() {
 export default function SettingsPage() {
   const { t } = useI18n()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const { isLeagueAdmin, userLeagues } = useLeagueAccess()
-  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const {
+    hasLeagueAdminRole,
+    isAdminViewEnabled,
+    setAdminViewEnabled,
+    userLeagues,
+  } = useLeagueAccess()
+  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const hasMultipleLeagues = userLeagues.length > 1
 
   return (
@@ -213,6 +218,35 @@ export default function SettingsPage() {
           </div>
         </AppCard>
       </Link>
+
+      {canAccessAdmin ? (
+        <AppCard>
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="font-bold">Vista admin</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Desactívala para ver Inicio, Ranking, Partidos y Actividad como un jugador normal. Los ajustes y el panel admin siguen disponibles.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isAdminViewEnabled}
+              onClick={() => setAdminViewEnabled(!isAdminViewEnabled)}
+              className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+                isAdminViewEnabled ? "bg-neutral-950" : "bg-neutral-300"
+              }`}
+            >
+              <span
+                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
+                  isAdminViewEnabled ? "left-7" : "left-1"
+                }`}
+              />
+            </button>
+          </div>
+        </AppCard>
+      ) : null}
 
       {hasMultipleLeagues ? (
         <AppCard>

@@ -159,9 +159,9 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 
 export default function AdminPage() {
   const { t } = useI18n()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { hasLeagueAdminRole } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
 
   if (!canAccessAdmin) {
     return (

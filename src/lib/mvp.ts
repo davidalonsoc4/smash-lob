@@ -34,6 +34,7 @@ export type MvpMatch = {
 
 export type MvpPlayer = {
   id: string
+  slug?: string
   displayName: string
   avatarInitials?: string | null
   avatarUrl?: string | null
@@ -54,6 +55,7 @@ export type MvpResult = {
   setsFor?: number
   setsAgainst?: number
   tied?: boolean
+  matchId?: string
 }
 
 export type MvpVoteRow = {
@@ -260,6 +262,7 @@ export function getRoundMvpSelection({
     gamesDiff: topCandidate.gamesDiff,
     setsFor: topCandidate.setsFor,
     setsAgainst: topCandidate.setsAgainst,
+    matchId: topCandidate.matchId,
   }
 }
 
@@ -383,6 +386,53 @@ export function getPlayerMvpSummary({
     seasonMvpCount,
     votesReceived: 0,
   }
+}
+
+export function getPlayerRoundMvpMatches({
+  leagueId,
+  seasonIds,
+  matches,
+  playerId,
+}: {
+  leagueId: string
+  seasonIds: string[]
+  matches: MvpMatch[]
+  playerId: string
+}) {
+  return seasonIds.flatMap((seasonId) =>
+    getCompletedRoundNumbers(matches, leagueId, seasonId)
+      .map((round) => {
+        const roundMvp = getRoundMvpSelection({
+          leagueId,
+          seasonId,
+          round,
+          matches,
+        })
+
+        if (!roundMvp?.playerIds.includes(playerId) || !roundMvp.matchId) {
+          return null
+        }
+
+        const match = matches.find((item) => item.id === roundMvp.matchId)
+
+        if (!match) {
+          return null
+        }
+
+        return {
+          seasonId,
+          round,
+          mvp: roundMvp,
+          match,
+        }
+      })
+      .filter((item): item is {
+        seasonId: string
+        round: number
+        mvp: MvpResult
+        match: MvpMatch
+      } => Boolean(item))
+  )
 }
 
 export function getPlayerById(players: MvpPlayer[], playerId: string | null) {

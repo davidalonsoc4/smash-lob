@@ -2134,10 +2134,10 @@ function NewSeasonForm({
 
 export default function AdminSeasonPage() {
   const { t } = useI18n();
-  const { isLeagueAdmin } = useLeagueAccess();
+  const { hasLeagueAdminRole } = useLeagueAccess();
   const { activeLeague, activeSeason, roundSettings, players, matches } =
     useCurrentLeagueData();
-  const canAccessAdmin = isLeagueAdmin(activeLeague.id);
+  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id);
   const isActiveSeason = activeSeason.status === "active";
   const isUpcomingSeason = activeSeason.status === "upcoming";
 

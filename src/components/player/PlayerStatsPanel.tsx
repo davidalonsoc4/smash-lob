@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -18,6 +19,7 @@ type PlayerStatsPanelProps = {
 
 type PlayerStatsPlayer = {
   id: string
+  slug?: string
   displayName: string
 }
 
@@ -120,8 +122,18 @@ function formatSignedNumber(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
 }
 
+function getPlayer(playerId: string, players: PlayerStatsPlayer[]) {
+  return players.find((player) => player.id === playerId) ?? null
+}
+
 function getDisplayName(playerId: string, players: PlayerStatsPlayer[]) {
-  return players.find((player) => player.id === playerId)?.displayName ?? playerId
+  return getPlayer(playerId, players)?.displayName ?? playerId
+}
+
+function getPlayerHref(playerId: string, players: PlayerStatsPlayer[]) {
+  const player = getPlayer(playerId, players)
+
+  return `/player/${player?.slug ?? playerId}`
 }
 
 export function PlayerStatsPanel({
@@ -149,8 +161,8 @@ export function PlayerStatsPanel({
   let gamesAgainst = 0
   let wins = 0
   let losses = 0
-  let bestMatch: { round: number; diff: number } | null = null
-  let toughestMatch: { round: number; diff: number } | null = null
+  let bestMatch: { seasonId: string; round: number; diff: number } | null = null
+  let toughestMatch: { seasonId: string; round: number; diff: number } | null = null
 
   for (const match of finishedMatches) {
     const isTeamA = match.teamA.includes(playerId)
@@ -185,11 +197,11 @@ export function PlayerStatsPanel({
     )
 
     if (!bestMatch || gamesDiff > bestMatch.diff) {
-      bestMatch = { round: match.round, diff: gamesDiff }
+      bestMatch = { seasonId: match.seasonId, round: match.round, diff: gamesDiff }
     }
 
     if (!toughestMatch || gamesDiff < toughestMatch.diff) {
-      toughestMatch = { round: match.round, diff: gamesDiff }
+      toughestMatch = { seasonId: match.seasonId, round: match.round, diff: gamesDiff }
     }
   }
 
@@ -216,6 +228,7 @@ export function PlayerStatsPanel({
   const setsWinRate = setsTotal > 0 ? (setsFor / setsTotal) * 100 : 0
   const gamesForRate = gamesTotal > 0 ? (gamesFor / gamesTotal) * 100 : 0
   const emptyValue = "—"
+  const mvpHref = getPlayerHref(playerId, players) + "/mvp"
 
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -281,14 +294,17 @@ export function PlayerStatsPanel({
           </p>
         </div>
 
-        <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+        <Link
+          href={mvpHref}
+          className="rounded-2xl bg-neutral-100 p-3 text-center transition active:scale-[0.99]"
+        >
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.mvpWon}
           </p>
           <p className="mt-1 text-lg font-black">
             {mvpSummary.roundMvpCount}
           </p>
-        </div>
+        </Link>
       </div>
 
       <div className="mt-4 space-y-3">
@@ -297,9 +313,16 @@ export function PlayerStatsPanel({
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
               {t.playerStats.bestPartner}
             </p>
-            <p className="mt-1 font-black">
-              {bestPartner ? getDisplayName(bestPartner.playerId, players) : emptyValue}
-            </p>
+            {bestPartner ? (
+              <Link
+                href={getPlayerHref(bestPartner.playerId, players)}
+                className="mt-1 block font-black underline-offset-2 active:underline"
+              >
+                {getDisplayName(bestPartner.playerId, players)}
+              </Link>
+            ) : (
+              <p className="mt-1 font-black">{emptyValue}</p>
+            )}
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
             {bestPartner
@@ -313,11 +336,16 @@ export function PlayerStatsPanel({
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
               {t.playerStats.toughestRival}
             </p>
-            <p className="mt-1 font-black">
-              {toughestRival
-                ? getDisplayName(toughestRival.playerId, players)
-                : emptyValue}
-            </p>
+            {toughestRival ? (
+              <Link
+                href={getPlayerHref(toughestRival.playerId, players)}
+                className="mt-1 block font-black underline-offset-2 active:underline"
+              >
+                {getDisplayName(toughestRival.playerId, players)}
+              </Link>
+            ) : (
+              <p className="mt-1 font-black">{emptyValue}</p>
+            )}
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
             {toughestRival
@@ -328,29 +356,55 @@ export function PlayerStatsPanel({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-2xl bg-neutral-50 p-3">
-          <p className="text-xs font-semibold text-neutral-500">
-            {t.playerStats.bestRound}
-          </p>
-          <p className="mt-1 font-black">
-            {bestMatch ? `${t.matches.round} ${bestMatch.round}` : emptyValue}
-          </p>
-          <p className="mt-1 text-xs text-neutral-500">
-            {bestMatch ? `${formatSignedNumber(bestMatch.diff)} ${t.ranking.diff}` : emptyValue}
-          </p>
-        </div>
+        {bestMatch ? (
+          <Link
+            href={`/round/${bestMatch.round}?seasonId=${encodeURIComponent(bestMatch.seasonId)}`}
+            className="rounded-2xl bg-neutral-50 p-3 transition active:scale-[0.99]"
+          >
+            <p className="text-xs font-semibold text-neutral-500">
+              {t.playerStats.bestRound}
+            </p>
+            <p className="mt-1 font-black">
+              {`${t.matches.round} ${bestMatch.round}`}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {`${formatSignedNumber(bestMatch.diff)} ${t.ranking.diff}`}
+            </p>
+          </Link>
+        ) : (
+          <div className="rounded-2xl bg-neutral-50 p-3">
+            <p className="text-xs font-semibold text-neutral-500">
+              {t.playerStats.bestRound}
+            </p>
+            <p className="mt-1 font-black">{emptyValue}</p>
+            <p className="mt-1 text-xs text-neutral-500">{emptyValue}</p>
+          </div>
+        )}
 
-        <div className="rounded-2xl bg-neutral-50 p-3">
-          <p className="text-xs font-semibold text-neutral-500">
-            {t.playerStats.toughestRound}
-          </p>
-          <p className="mt-1 font-black">
-            {toughestMatch ? `${t.matches.round} ${toughestMatch.round}` : emptyValue}
-          </p>
-          <p className="mt-1 text-xs text-neutral-500">
-            {toughestMatch ? `${formatSignedNumber(toughestMatch.diff)} ${t.ranking.diff}` : emptyValue}
-          </p>
-        </div>
+        {toughestMatch ? (
+          <Link
+            href={`/round/${toughestMatch.round}?seasonId=${encodeURIComponent(toughestMatch.seasonId)}`}
+            className="rounded-2xl bg-neutral-50 p-3 transition active:scale-[0.99]"
+          >
+            <p className="text-xs font-semibold text-neutral-500">
+              {t.playerStats.toughestRound}
+            </p>
+            <p className="mt-1 font-black">
+              {`${t.matches.round} ${toughestMatch.round}`}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {`${formatSignedNumber(toughestMatch.diff)} ${t.ranking.diff}`}
+            </p>
+          </Link>
+        ) : (
+          <div className="rounded-2xl bg-neutral-50 p-3">
+            <p className="text-xs font-semibold text-neutral-500">
+              {t.playerStats.toughestRound}
+            </p>
+            <p className="mt-1 font-black">{emptyValue}</p>
+            <p className="mt-1 text-xs text-neutral-500">{emptyValue}</p>
+          </div>
+        )}
       </div>
         </>
       ) : null}

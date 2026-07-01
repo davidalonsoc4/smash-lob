@@ -41,6 +41,7 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
 
 type AwardPlayer = {
   id: string
+  slug?: string
   displayName: string
   avatarInitials?: string | null
   avatarUrl?: string | null
@@ -69,6 +70,7 @@ function PlayerAwardCard({
   badge,
   stats,
   inlineStat,
+  inlineStatHref,
 }: {
   eyebrow: string
   title: string
@@ -76,6 +78,7 @@ function PlayerAwardCard({
   badge: string
   stats?: { label: string; value: string | number }[]
   inlineStat?: { label: string; value: string | number }
+  inlineStatHref?: string
 }) {
   const firstPlayer = players[0]
 
@@ -106,30 +109,60 @@ function PlayerAwardCard({
         <div className="flex items-center gap-3">
           <div className="flex -space-x-3">
             {players.slice(0, 3).map((player) => (
-              <PlayerAvatar
+              <Link
                 key={player.id}
-                player={player}
-                size="lg"
-                className="border-2 border-white bg-neutral-950 text-white"
-              />
+                href={`/player/${player.slug ?? player.id}`}
+                aria-label={`Ver perfil de ${player.displayName}`}
+                className="rounded-full transition active:scale-[0.97]"
+              >
+                <PlayerAvatar
+                  player={player}
+                  size="lg"
+                  className="border-2 border-white bg-neutral-950 text-white"
+                />
+              </Link>
             ))}
           </div>
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-2xl font-black text-neutral-950">
-              {players.map((player) => player.displayName).join(" / ")}
+              {players.map((player, index) => (
+                <span key={player.id}>
+                  <Link
+                    href={`/player/${player.slug ?? player.id}`}
+                    className="underline-offset-2 active:underline"
+                  >
+                    {player.displayName}
+                  </Link>
+                  {index < players.length - 1 ? " / " : ""}
+                </span>
+              ))}
             </p>
           </div>
 
           {inlineStat ? (
-            <div className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center">
-              <p className="text-lg font-black text-neutral-950">
-                {inlineStat.value}
-              </p>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
-                {inlineStat.label}
-              </p>
-            </div>
+            inlineStatHref ? (
+              <Link
+                href={inlineStatHref}
+                className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center transition active:scale-[0.97]"
+              >
+                <p className="text-lg font-black text-neutral-950">
+                  {inlineStat.value}
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                  {inlineStat.label}
+                </p>
+              </Link>
+            ) : (
+              <div className="shrink-0 rounded-2xl bg-neutral-100 px-4 py-3 text-center">
+                <p className="text-lg font-black text-neutral-950">
+                  {inlineStat.value}
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                  {inlineStat.label}
+                </p>
+              </div>
+            )
           ) : null}
         </div>
 
@@ -374,6 +407,11 @@ export default function Home() {
                 players={seasonMvpPlayers}
                 badge="★"
                 inlineStat={{ label: "MVPs", value: seasonMvp.votes }}
+                inlineStatHref={
+                  seasonMvpPlayers[0]
+                    ? `/player/${seasonMvpPlayers[0].slug ?? seasonMvpPlayers[0].id}/mvp`
+                    : undefined
+                }
               />
             ) : null}
 

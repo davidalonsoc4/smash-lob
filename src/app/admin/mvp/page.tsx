@@ -56,9 +56,9 @@ function MvpPlayerLine({
 
 export default function AdminMvpPage() {
   const { t } = useI18n()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { hasLeagueAdminRole } = useLeagueAccess()
   const { activeLeague, activeSeason, players, matches } = useCurrentLeagueData()
-  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const completedRounds = getCompletedRoundNumbers(
     matches,
     activeLeague.id,

@@ -20,6 +20,10 @@ type RankingTableProps = {
   players: RankingPlayer[]
 }
 
+function formatSigned(value: number) {
+  return `${value > 0 ? "+" : ""}${value}`
+}
+
 export function RankingTable({ players }: RankingTableProps) {
   const { t } = useI18n()
 
@@ -30,54 +34,31 @@ export function RankingTable({ players }: RankingTableProps) {
   })
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {sortedPlayers.map((player, index) => (
         <Link
           key={player.id}
           href={`/player/${player.slug}`}
-          className="block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition active:scale-[0.99]"
+          className="block rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm transition active:scale-[0.99]"
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-black">
-                {index + 1}
-              </div>
-
-              <PlayerAvatar player={player} size="sm" />
-
-              <div className="min-w-0">
-                <p className="truncate font-bold">{player.displayName}</p>
-              </div>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black">
+              {index + 1}
             </div>
 
-            <div className="text-right">
-              <p className="text-2xl font-black">{player.points}</p>
-              <p className="text-xs text-neutral-500">
+            <PlayerAvatar player={player} size="sm" />
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-black">{player.displayName}</p>
+              <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-500">
+                {formatSigned(player.gamesDiff)} {t.ranking.diff} · {player.gamesFor} {t.ranking.gamesFor} · {player.gamesAgainst} {t.ranking.gamesAgainst}
+              </p>
+            </div>
+
+            <div className="shrink-0 text-right">
+              <p className="text-xl font-black leading-none">{player.points}</p>
+              <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">
                 {t.common.pointsShort}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
-            <div className="rounded-xl bg-neutral-100 p-2">
-              <p className="font-bold">
-                {player.gamesDiff > 0 ? "+" : ""}
-                {player.gamesDiff}
-              </p>
-              <p className="text-xs text-neutral-500">{t.ranking.diff}</p>
-            </div>
-
-            <div className="rounded-xl bg-neutral-100 p-2">
-              <p className="font-bold">{player.gamesFor}</p>
-              <p className="text-xs text-neutral-500">
-                {t.ranking.gamesFor}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-neutral-100 p-2">
-              <p className="font-bold">{player.gamesAgainst}</p>
-              <p className="text-xs text-neutral-500">
-                {t.ranking.gamesAgainst}
               </p>
             </div>
           </div>
