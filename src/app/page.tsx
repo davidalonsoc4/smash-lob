@@ -9,6 +9,7 @@ import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { AppCard } from "@/components/ui/AppCard"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -578,7 +579,7 @@ export default function Home() {
           <SectionHeader title="Mi último partido" />
 
           <Link href={`/match/${lastMatch.id}`} className="block">
-            <AppCard className="relative border-neutral-300 bg-white pr-14 transition active:scale-[0.99]">
+            <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
                   {t.matches.round} {lastMatch.round}
@@ -587,14 +588,9 @@ export default function Home() {
                 <MatchStatusBadge status={lastMatch.status} />
               </div>
 
-              <span
-                aria-hidden="true"
-                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100 text-xl font-black leading-none text-neutral-500"
-              >
-                ›
-              </span>
+              <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
 
-              <div className="space-y-1.5">
+              <div className="space-y-1 pr-11">
                 <div className="flex items-center justify-between gap-3">
                   <TeamPlayers
                     playerIds={lastMatch.teamA}
@@ -616,7 +612,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
+              <div className="mt-2 flex gap-1.5 pr-11 text-xs font-bold text-neutral-600">
                 {lastMatch.sets.map((set, index) => (
                   <span
                     key={index}
@@ -627,7 +623,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <p className="mt-2 truncate text-[11px] font-semibold text-neutral-500">
+              <p className="mt-1.5 truncate pr-11 text-[11px] font-semibold text-neutral-500">
                 {lastMatch.dateLabel} · {lastMatch.location}
               </p>
             </AppCard>
@@ -640,7 +636,7 @@ export default function Home() {
           <SectionHeader title="Mi próximo partido" />
 
           <Link href={`/match/${nextMatch.id}`} className="block">
-            <AppCard className="relative border-neutral-300 bg-white pr-14 transition active:scale-[0.99]">
+            <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
                   {t.matches.round} {nextMatch.round}
@@ -649,14 +645,9 @@ export default function Home() {
                 <MatchStatusBadge status={nextMatch.status} />
               </div>
 
-              <span
-                aria-hidden="true"
-                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100 text-xl font-black leading-none text-neutral-500"
-              >
-                ›
-              </span>
+              <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
 
-              <div className="space-y-1.5">
+              <div className="space-y-1 pr-11">
                 <TeamPlayers
                   playerIds={nextMatch.teamA}
                   players={players}
@@ -672,7 +663,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2 pr-11">
                 <p className="text-xs font-black text-neutral-800">
                   {nextMatch.dateLabel ??
                     (nextMatch.status === "postponed"

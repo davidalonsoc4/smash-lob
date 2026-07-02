@@ -199,7 +199,7 @@ export function MatchScheduleForm({
                 type="button"
                 onClick={() => setIsEditing(true)}
                 disabled={isSaving}
-                className="rounded-full bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
+                className="inline-flex h-8 items-center rounded-full bg-neutral-950 px-3 text-[11px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
               >
                 {t.matchDetail.rescheduleButton}
               </button>
@@ -210,7 +210,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="rounded-full bg-neutral-100 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 disabled:text-neutral-400"
+                    className="inline-flex h-8 items-center rounded-full border border-neutral-200 bg-white px-3 text-[11px] font-black text-neutral-800 transition active:bg-neutral-100 disabled:text-neutral-400"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -219,7 +219,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="rounded-full bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
+                    className="inline-flex h-8 items-center rounded-full bg-neutral-950 px-3 text-[11px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
                   >
                     {t.matchDetail.addScheduleButton}
                   </button>
@@ -229,7 +229,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={handlePostpone}
                   disabled={!canPostpone}
-                  className="rounded-full bg-orange-100 px-2.5 py-1.5 text-[11px] font-black text-orange-900 disabled:text-orange-300"
+                  className="inline-flex h-8 items-center rounded-full border border-orange-200 bg-orange-50 px-3 text-[11px] font-black text-orange-900 transition active:bg-orange-100 disabled:text-orange-300"
                 >
                   {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
                 </button>
@@ -375,7 +375,7 @@ export function MatchScheduleForm({
               type="button"
               onClick={handlePostpone}
               disabled={!canPostpone}
-              className="w-full rounded-xl bg-orange-100 px-3 py-2 text-sm font-black text-orange-900 disabled:text-orange-300"
+              className="w-full rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-black text-orange-900 disabled:text-orange-300"
             >
               {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
             </button>

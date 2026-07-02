@@ -324,8 +324,9 @@ export default function ActivityPage() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
-  const { activeLeague, matches } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, matches } = useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const isSeasonClosed = activeSeason.status === "finished"
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [scope, setScope] = useState<ActivityScope>("all")
   const [activitySettings, setActivitySettings] = useState<LeagueActivitySettings>({})
@@ -495,8 +496,13 @@ export default function ActivityPage() {
   return (
     <div className="space-y-4">
       <header className="pt-2">
-        <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
+          <span>{activeLeague.name} · {activeSeason.name}</span>
+          {isSeasonClosed ? (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+              Terminada
+            </span>
+          ) : null}
         </p>
 
         <h1 className="mt-1 text-2xl font-black tracking-tight">

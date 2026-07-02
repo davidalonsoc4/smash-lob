@@ -6,6 +6,7 @@ import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   const { seasons, seasonPlayers, playerProfiles } = useSeasonSettings()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const [selectedScopeId, setSelectedScopeId] = useState(activeSeason.id)
+  const isSeasonClosed = activeSeason.status === "finished"
 
   const player = playerProfiles.find(
     (item) => item.id === currentUserId && item.leagueId === activeLeague.id
@@ -83,10 +85,15 @@ export default function ProfilePage() {
 
   if (!player || !selectedStats || !selectedScope) {
     return (
-      <div className="space-y-4">
-        <header className="pt-2">
-          <p className="text-sm font-medium text-neutral-500">
-            {activeLeague.name} · {activeSeason.name}
+      <div className="space-y-3">
+        <header className="pt-1">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
+            <span>{activeLeague.name} · {activeSeason.name}</span>
+            {isSeasonClosed ? (
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+                Terminada
+              </span>
+            ) : null}
           </p>
 
           <h1 className="mt-1 text-2xl font-black tracking-tight">
@@ -109,21 +116,26 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-4">
-      <header className="pt-2">
-        <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {selectedScope.label}
+    <div className="space-y-3">
+      <header className="pt-1">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
+          <span>{activeLeague.name} · {selectedScope.label}</span>
+          {isSeasonClosed ? (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+              Terminada
+            </span>
+          ) : null}
         </p>
 
-        <div className="mt-3 flex items-center gap-3">
-          <PlayerAvatar player={player} size="lg" />
+        <div className="mt-2 flex items-center gap-2.5">
+          <PlayerAvatar player={player} size="md" />
 
           <h1 className="min-w-0 text-2xl font-black tracking-tight">
             {player.displayName}
           </h1>
         </div>
 
-        <p className="mt-3 text-sm text-neutral-500">
+        <p className="mt-1.5 text-xs font-semibold leading-5 text-neutral-500">
           {t.profile.description}
         </p>
       </header>
@@ -138,7 +150,7 @@ export default function ProfilePage() {
         />
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <StatCard
           label={t.profile.points}
           value={selectedStats.points}
@@ -165,16 +177,16 @@ export default function ProfilePage() {
 
 
       <Link href="/profile/matches">
-        <AppCard className="transition active:scale-[0.99]">
+        <AppCard className="p-2.5 transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">{t.profile.matchHistoryTitle}</p>
-              <p className="mt-2 text-sm text-neutral-500">
+            <div className="min-w-0">
+              <p className="font-black">{t.profile.matchHistoryTitle}</p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
                 {t.profile.matchHistoryDescription}
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>

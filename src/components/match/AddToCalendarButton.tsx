@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo, useState } from "react"
 import { getTeamDisplayName } from "@/lib/players"
 import type { PlayerProfile } from "@/data/fakeData"
 
@@ -47,7 +48,7 @@ function parseScheduleAsLocalDate(value: string) {
   return date
 }
 
-function toGoogleCalendarFloatingDate(value: Date) {
+function toCalendarFloatingDate(value: Date) {
   return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(
     value.getDate()
   )}T${pad(value.getHours())}${pad(value.getMinutes())}${pad(
@@ -55,7 +56,23 @@ function toGoogleCalendarFloatingDate(value: Date) {
   )}`
 }
 
-function getGoogleCalendarUrl({
+function toUtcCalendarDate(value: Date) {
+  return `${value.getUTCFullYear()}${pad(value.getUTCMonth() + 1)}${pad(
+    value.getUTCDate()
+  )}T${pad(value.getUTCHours())}${pad(value.getUTCMinutes())}${pad(
+    value.getUTCSeconds()
+  )}Z`
+}
+
+function escapeIcsText(value: string) {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n")
+}
+
+function getCalendarData({
   leagueName,
   seasonName,
   round,
@@ -78,38 +95,85 @@ function getGoogleCalendarUrl({
   const end = new Date(start.getTime() + eventDurationMinutes * 60 * 1000)
   const teamAName = getTeamDisplayName(teamA, players)
   const teamBName = getTeamDisplayName(teamB, players)
-  const params = new URLSearchParams({
+  const title = `${leagueName}: ${teamAName} vs ${teamBName}`
+  const description = `${leagueName} - ${seasonName}\nJornada ${round}\n${teamAName} vs ${teamBName}`
+  const googleParams = new URLSearchParams({
     action: "TEMPLATE",
-    text: `${leagueName}: ${teamAName} vs ${teamBName}`,
-    dates: `${toGoogleCalendarFloatingDate(start)}/${toGoogleCalendarFloatingDate(
-      end
-    )}`,
+    text: title,
+    dates: `${toCalendarFloatingDate(start)}/${toCalendarFloatingDate(end)}`,
     ctz: calendarTimeZone,
-    details: `${leagueName} - ${seasonName}\nJornada ${round}\n${teamAName} vs ${teamBName}`,
+    details: description,
   })
 
   if (location) {
-    params.set("location", location)
+    googleParams.set("location", location)
   }
 
-  return `https://calendar.google.com/calendar/render?${params.toString()}`
+  const icsLines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Smash & Lob//Match Calendar//ES",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${encodeURIComponent(`${leagueName}-${seasonName}-${round}-${teamAName}-${teamBName}`)}@smash-lob`,
+    `DTSTAMP:${toUtcCalendarDate(new Date())}`,
+    `DTSTART;TZID=${calendarTimeZone}:${toCalendarFloatingDate(start)}`,
+    `DTEND;TZID=${calendarTimeZone}:${toCalendarFloatingDate(end)}`,
+    `SUMMARY:${escapeIcsText(title)}`,
+    `DESCRIPTION:${escapeIcsText(description)}`,
+    location ? `LOCATION:${escapeIcsText(location)}` : null,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].filter((line): line is string => Boolean(line))
+
+  return {
+    googleUrl: `https://calendar.google.com/calendar/render?${googleParams.toString()}`,
+    icsUrl: `data:text/calendar;charset=utf-8,${encodeURIComponent(icsLines.join("\r\n"))}`,
+    fileName: `smash-lob-jornada-${round}.ics`,
+  }
 }
 
 export function AddToCalendarButton(props: AddToCalendarButtonProps) {
-  const calendarUrl = getGoogleCalendarUrl(props)
+  const [isOpen, setIsOpen] = useState(false)
+  const calendarData = useMemo(() => getCalendarData(props), [props])
 
-  if (!calendarUrl) {
+  if (!calendarData) {
     return null
   }
 
   return (
-    <a
-      href={calendarUrl}
-      target="_blank"
-      rel="noreferrer"
-      className="mt-2 block w-full rounded-xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white"
-    >
-      Añadir a Google Calendar
-    </a>
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white transition active:scale-[0.99]"
+      >
+        <span>Añadir al calendario</span>
+        <span aria-hidden="true" className="text-sm leading-none">
+          {isOpen ? "−" : "+"}
+        </span>
+      </button>
+
+      {isOpen ? (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <a
+            href={calendarData.googleUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
+          >
+            Google
+          </a>
+          <a
+            href={calendarData.icsUrl}
+            download={calendarData.fileName}
+            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
+          >
+            Móvil / iCal
+          </a>
+        </div>
+      ) : null}
+    </div>
   )
 }
