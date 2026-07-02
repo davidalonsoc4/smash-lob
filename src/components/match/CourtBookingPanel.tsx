@@ -91,7 +91,7 @@ export function CourtBookingPanel({
     () => Array.from(new Set([...teamA, ...teamB])),
     [teamA, teamB]
   )
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(!booking.isReserved && canManage)
   const [isEditing, setIsEditing] = useState(!booking.isReserved && canManage)
   const [reservationInputs, setReservationInputs] = useState(() =>
     getInitialReservationInputs({
@@ -214,24 +214,24 @@ export function CourtBookingPanel({
     <AppCard>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-bold">Reserva de pista</p>
-          <p className="mt-1 text-sm text-neutral-500">
-            Controla quién ha reservado/pagado la pista y qué transferencias quedan pendientes.
+          <p className="text-base font-black text-neutral-950">Reserva de pista</p>
+          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+            Reserva, pagos y transferencias pendientes.
           </p>
           {booking.isReserved ? (
-            <p className="mt-2 text-xs font-bold text-neutral-500">
+            <p className="mt-1 text-xs font-black text-neutral-600">
               {formatMoney(totalReservedAmount)} · {pendingTransfersCount} {pendingTransfersCount === 1 ? t.courtBooking.pendingPaymentSingular : t.courtBooking.pendingPaymentPlural}
             </p>
           ) : null}
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
           {booking.isReserved ? (
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-800">
               Pista reservada
             </span>
           ) : (
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-black text-neutral-700">
               Sin reserva
             </span>
           )}
@@ -239,7 +239,7 @@ export function CourtBookingPanel({
           <button
             type="button"
             onClick={() => setIsExpanded((currentValue) => !currentValue)}
-            className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 transition active:bg-neutral-200"
+            className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-black text-neutral-700 transition active:bg-neutral-200"
           >
             {isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}
           </button>
@@ -247,8 +247,8 @@ export function CourtBookingPanel({
       </div>
 
       {isExpanded && !isEditing && booking.isReserved ? (
-        <div className="mt-4 space-y-4">
-          <div className="rounded-2xl bg-neutral-100 p-3 text-sm">
+        <div className="mt-3 space-y-3">
+          <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-black">
               Total pista: {formatMoney(
                 booking.reservations.reduce(
@@ -257,7 +257,7 @@ export function CourtBookingPanel({
                 )
               )}
             </p>
-            <div className="mt-3 space-y-2">
+            <div className="mt-2 space-y-1.5">
               {booking.reservations.map((reservation) => (
                 <p key={reservation.playerId} className="text-neutral-700">
                   <span className="font-bold">
@@ -279,7 +279,7 @@ export function CourtBookingPanel({
                 return (
                   <div
                     key={transfer.id}
-                    className="rounded-2xl border border-neutral-200 p-3 text-sm"
+                    className="rounded-lg border border-neutral-200 px-2.5 py-2 text-sm"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -296,7 +296,7 @@ export function CourtBookingPanel({
                       </div>
 
                       <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
                           transfer.isPaid
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-orange-100 text-orange-900"
@@ -311,7 +311,7 @@ export function CourtBookingPanel({
                         type="button"
                         onClick={() => handleMarkPaid(transfer.id)}
                         disabled={isSaving}
-                        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+                        className="mt-2 w-full rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300"
                       >
                         {isSaving ? "Guardando..." : "Marcar como pagado"}
                       </button>
@@ -321,7 +321,7 @@ export function CourtBookingPanel({
               })}
             </div>
           ) : (
-            <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
+            <div className="rounded-lg bg-emerald-50 px-2.5 py-2 text-sm text-emerald-900">
               <p className="font-black">No hay pagos pendientes.</p>
               <p className="mt-1 text-xs font-semibold">
                 El importe queda compensado entre las personas que reservaron.
@@ -330,7 +330,7 @@ export function CourtBookingPanel({
           )}
 
           {pendingCurrentUserTransfers.length > 0 ? (
-            <div className="rounded-2xl bg-orange-100 p-3 text-sm text-orange-900">
+            <div className="rounded-lg bg-orange-100 px-2.5 py-2 text-sm text-orange-900">
               <p className="font-black">Tienes pagos pendientes</p>
               <div className="mt-2 space-y-1">
                 {pendingCurrentUserTransfers.map((transfer) => (
@@ -343,11 +343,11 @@ export function CourtBookingPanel({
           ) : null}
 
           {canManage ? (
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800"
+                className="flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800"
               >
                 Editar reserva
               </button>
@@ -355,7 +355,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={handleClearBooking}
                 disabled={isSaving}
-                className="flex-1 rounded-2xl bg-red-100 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
+                className="flex-1 rounded-xl bg-red-100 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300"
               >
                 Quitar reserva
               </button>
@@ -365,21 +365,21 @@ export function CourtBookingPanel({
       ) : null}
 
       {isExpanded && isEditing && canManage ? (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div className="rounded-2xl bg-neutral-100 p-3 text-sm">
+        <form onSubmit={handleSubmit} className="mt-3 space-y-3">
+          <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-black">Importe pagado por cada jugador</p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
               Deja a 0 o vacío quien no haya reservado. La app calcula las transferencias mínimas.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             {reservationInputs.map((input) => (
               <label key={input.playerId} className="block">
                 <span className="text-sm font-semibold text-neutral-700">
                   {getPlayerName(input.playerId, players)}
                 </span>
-                <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+                <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
                   <input
                     inputMode="decimal"
                     value={input.amount}
@@ -396,23 +396,23 @@ export function CourtBookingPanel({
             ))}
           </div>
 
-          <div className="rounded-2xl bg-neutral-100 p-3 text-sm">
+          <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-bold">Total informado: {formatMoney(totalAmount)}</p>
           </div>
 
           {error ? (
-            <p className="rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+            <p className="rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
               {error}
             </p>
           ) : null}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {booking.isReserved ? (
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
-                className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+                className="flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
               >
                 Cancelar
               </button>
@@ -421,7 +421,7 @@ export function CourtBookingPanel({
             <button
               type="submit"
               disabled={!canSave}
-              className="flex-1 rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+              className="flex-1 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300"
             >
               {isSaving ? "Guardando..." : "Guardar reserva"}
             </button>

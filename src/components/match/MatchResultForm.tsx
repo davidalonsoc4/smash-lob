@@ -106,11 +106,11 @@ function TeamNameStack({
   players?: PlayerProfile[]
 }) {
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-sm">
+    <div className="rounded-lg bg-white px-2.5 py-2 shadow-sm">
       <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
         {label}
       </p>
-      <div className="mt-2 space-y-1">
+      <div className="mt-1 space-y-0.5">
         {team.map((playerId) => (
           <p
             key={playerId}
@@ -237,10 +237,10 @@ export function MatchResultForm({
     <AppCard>
       <form onSubmit={handleSubmit}>
         <div>
-          <p className="font-bold">
+          <p className="text-base font-black">
             {mode === "edit" ? t.matchResult.editTitle : t.matchResult.title}
           </p>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
             {mode === "edit"
               ? t.matchResult.editDescription
               : requiresThreeSets
@@ -249,14 +249,14 @@ export function MatchResultForm({
           </p>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+        <div className="mt-3 rounded-xl bg-neutral-100 p-2.5">
           <div className="grid grid-cols-2 gap-2">
             <TeamNameStack label="Pareja A" team={teamA} players={players} />
             <TeamNameStack label="Pareja B" team={teamB} players={players} />
           </div>
 
-          <div className="mt-3 rounded-2xl bg-white p-3 shadow-sm">
-            <div className="grid grid-cols-[50px_repeat(3,minmax(46px,1fr))_42px] items-center gap-2">
+          <div className="mt-2 rounded-xl bg-white p-2.5 shadow-sm">
+            <div className="grid grid-cols-[34px_repeat(3,minmax(38px,1fr))_34px] items-center gap-1.5">
               <div />
 
               {sets.map((set, index) => (
@@ -293,7 +293,7 @@ export function MatchResultForm({
                     onChange={(event) =>
                       updateSet(index, "a", event.target.value)
                     }
-                    className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
+                    className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
                   />
                 </label>
               ))}
@@ -321,7 +321,7 @@ export function MatchResultForm({
                     onChange={(event) =>
                       updateSet(index, "b", event.target.value)
                     }
-                    className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-2 text-center text-base font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
+                    className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
                   />
                 </label>
               ))}
@@ -331,7 +331,7 @@ export function MatchResultForm({
           </div>
         </div>
 
-        <div className="mt-3 space-y-1">
+        <div className="mt-2 space-y-1">
           {sets.map((set, index) => {
             const winner = getSetWinner(set)
             const showError = isTouched(set) && !winner
@@ -345,18 +345,18 @@ export function MatchResultForm({
         </div>
 
         {actionError ? (
-          <p className="mt-3 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+          <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
             {actionError}
           </p>
         ) : null}
 
-        <div className="mt-4 flex gap-3">
+        <div className="mt-3 flex gap-2">
           {mode === "edit" && onCancel ? (
             <button
               type="button"
               onClick={onCancel}
               disabled={isSaving}
-              className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+              className="flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
             >
               {t.matchResult.cancelEdit}
             </button>
@@ -365,7 +365,7 @@ export function MatchResultForm({
           <button
             type="submit"
             disabled={!canSave}
-            className="flex-1 rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+            className="flex-1 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300"
           >
             {isSaving
               ? "Guardando..."

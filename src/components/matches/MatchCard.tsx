@@ -77,8 +77,8 @@ export function MatchCard({
 
   return (
     <Link href={`/match/${match.id}`} className="block">
-      <AppCard className="relative pr-8 transition active:scale-[0.99]">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <AppCard className="relative pr-14 transition active:scale-[0.99]">
+        <div className="mb-2 flex items-center justify-between gap-3">
           <p className="min-w-0 text-sm font-semibold text-neutral-500">
             {headerText}
           </p>
@@ -88,22 +88,22 @@ export function MatchCard({
 
         <span
           aria-hidden="true"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-xl font-black leading-none text-neutral-400"
+          className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100 text-xl font-black leading-none text-neutral-500"
         >
           ›
         </span>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-3">
             <TeamPlayers
               playerIds={match.teamA}
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
-              className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+              className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
             />
 
             {isFinished ? (
-              <p className="text-xl font-black">{match.pointsA}</p>
+              <p className="min-w-6 text-right text-lg font-black">{match.pointsA}</p>
             ) : null}
           </div>
 
@@ -112,38 +112,38 @@ export function MatchCard({
               playerIds={match.teamB}
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
-              className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+              className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
             />
 
             {isFinished ? (
-              <p className="text-xl font-black">{match.pointsB}</p>
+              <p className="min-w-6 text-right text-lg font-black">{match.pointsB}</p>
             ) : null}
           </div>
         </div>
 
         {isFinished ? (
-          <div className="mt-3 flex gap-2 text-sm text-neutral-600">
+          <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
             {match.sets.map((set, index) => (
               <span
                 key={index}
-                className="rounded-lg bg-neutral-100 px-2 py-1"
+                className="rounded-md bg-neutral-100 px-1.5 py-0.5"
               >
                 {set.a}-{set.b}
               </span>
             ))}
           </div>
         ) : (
-          <div className="mt-3 rounded-xl border border-dashed border-neutral-300 p-3">
-            <p className="text-sm font-semibold">{scheduleTitle}</p>
+          <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+            <p className="text-xs font-black text-neutral-800">{scheduleTitle}</p>
 
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
               {scheduleDescription}
             </p>
           </div>
         )}
 
         {isPostponed && hasRoundWindow ? (
-          <div className="mt-3 rounded-xl bg-orange-100 p-3 text-xs font-semibold text-orange-900">
+          <div className="mt-2 rounded-lg bg-orange-100 px-2.5 py-2 text-xs font-semibold text-orange-900">
             {t.rounds.postponedWindowWarning}
           </div>
         ) : null}

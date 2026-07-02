@@ -107,7 +107,7 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
       href={calendarUrl}
       target="_blank"
       rel="noreferrer"
-      className="mt-3 block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+      className="mt-2 block w-full rounded-xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white"
     >
       Añadir a Google Calendar
     </a>

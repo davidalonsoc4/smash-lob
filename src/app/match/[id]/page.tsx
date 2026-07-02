@@ -129,31 +129,33 @@ export default function MatchDetailPage() {
   const canEditResult = canManageMatch && match.status === "finished"
 
   return (
-    <div className="space-y-4">
-      <header className="pt-2">
+    <div className="space-y-3">
+      <header className="pt-1">
         <BackButton fallbackHref="/matches" label={t.common.back} />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {activeSeason.name}
-        </p>
+        <div className="mt-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
+              {activeLeague.name} · {activeSeason.name}
+            </p>
 
-        <div className="mt-1 flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-black tracking-tight">
-            {t.matchDetail.title}
-          </h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">
+              {t.matchDetail.title}
+            </h1>
+
+            <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
+              {t.matches.round} {match.round}
+            </p>
+          </div>
 
           <MatchStatusBadge status={match.status} />
         </div>
-
-        <p className="mt-1 text-sm text-neutral-500">
-          {t.matches.round} {match.round}
-        </p>
       </header>
 
       {isSeasonUpcoming ? (
         <AppCard>
-          <p className="font-bold">Temporada próximamente</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="font-black">Temporada próximamente</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             Esta temporada ya está creada, pero todavía no ha comenzado. No se pueden programar partidos ni registrar resultados hasta que un admin pulse Comenzar temporada.
           </p>
         </AppCard>
@@ -182,28 +184,28 @@ export default function MatchDetailPage() {
 
       {hasRoundWindow ? (
         <AppCard>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-bold">{t.rounds.officialWindow}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-black">{t.rounds.officialWindow}</p>
 
               {roundWindowText ? (
-                <p className="mt-2 text-sm text-neutral-600">
+                <p className="mt-0.5 text-xs font-semibold text-neutral-600">
                   {roundWindowText}
                 </p>
               ) : null}
             </div>
 
             {roundStatusText ? (
-              <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+              <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-black text-neutral-700">
                 {roundStatusText}
               </span>
             ) : null}
           </div>
 
           {isPostponed ? (
-            <div className="mt-3 rounded-2xl bg-orange-100 p-3 text-sm text-orange-900">
+            <div className="mt-2 rounded-lg bg-orange-100 p-2 text-xs text-orange-900">
               <p className="font-black">{t.rounds.postponedWindowTitle}</p>
-              <p className="mt-1 text-xs font-semibold">
+              <p className="mt-0.5 font-semibold">
                 {t.rounds.postponedWindowDescription}
               </p>
             </div>
@@ -262,21 +264,19 @@ export default function MatchDetailPage() {
 
       {canEditResult && !isEditingResult ? (
         <AppCard>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-bold">{t.matchResult.registeredTitle}</p>
-              <p className="mt-2 text-sm text-neutral-500">
-                {t.matchResult.registeredDescription}
-              </p>
-            </div>
+          <div>
+            <p className="font-black">{t.matchResult.registeredTitle}</p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+              {t.matchResult.registeredDescription}
+            </p>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setIsEditingResult(true)}
               disabled={isClearingResult}
-              className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+              className="rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
             >
               {t.matchResult.editButton}
             </button>
@@ -286,7 +286,7 @@ export default function MatchDetailPage() {
                 type="button"
                 onClick={handleClearResult}
                 disabled={isClearingResult}
-                className="rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
+                className="rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300"
               >
                 {isClearingResult ? "Limpiando..." : "Limpiar resultado"}
               </button>
@@ -294,7 +294,7 @@ export default function MatchDetailPage() {
           </div>
 
           {clearResultError ? (
-            <p className="mt-3 text-sm font-semibold text-red-600">
+            <p className="mt-2 text-xs font-semibold text-red-600">
               {clearResultError}
             </p>
           ) : null}
@@ -317,8 +317,8 @@ export default function MatchDetailPage() {
 
       {match.status === "scheduling" && !canEnterResult ? (
         <AppCard>
-          <p className="font-bold">{t.matchResult.pendingScheduleTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="font-black">{t.matchResult.pendingScheduleTitle}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {t.matchResult.pendingScheduleDescription}
           </p>
         </AppCard>
@@ -326,8 +326,8 @@ export default function MatchDetailPage() {
 
       {match.status === "postponed" && !canEnterResult ? (
         <AppCard>
-          <p className="font-bold">{t.matchResult.postponedTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="font-black">{t.matchResult.postponedTitle}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {t.matchResult.postponedDescription}
           </p>
         </AppCard>

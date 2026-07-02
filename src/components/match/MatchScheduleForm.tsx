@@ -182,24 +182,24 @@ export function MatchScheduleForm({
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-neutral-200 bg-white p-3 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-bold">{getTitle()}</p>
+        <div className="min-w-0">
+          <p className="text-base font-black text-neutral-950">{getTitle()}</p>
 
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
             {getDescription()}
           </p>
         </div>
 
         {canManage && !isEditing && !isFinished ? (
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
             {isPostponed ? (
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
                 disabled={isSaving}
-                className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                className="rounded-full bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
               >
                 {t.matchDetail.rescheduleButton}
               </button>
@@ -210,7 +210,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
+                    className="rounded-full bg-neutral-100 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 disabled:text-neutral-400"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -219,7 +219,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="rounded-full bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                    className="rounded-full bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
                   >
                     {t.matchDetail.addScheduleButton}
                   </button>
@@ -229,7 +229,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={handlePostpone}
                   disabled={!canPostpone}
-                  className="rounded-full bg-orange-100 px-3 py-2 text-xs font-black text-orange-900 disabled:text-orange-300"
+                  className="rounded-full bg-orange-100 px-2.5 py-1.5 text-[11px] font-black text-orange-900 disabled:text-orange-300"
                 >
                   {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
                 </button>
@@ -240,11 +240,13 @@ export function MatchScheduleForm({
       </div>
 
       {!isEditing ? (
-        <div className="mt-3 rounded-2xl bg-neutral-100 p-3 text-sm">
+        <div className="mt-2 rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
           {hasSchedule ? (
             <>
-              <p className="font-bold">{dateLabel ?? t.matches.pendingDate}</p>
-              <p className="mt-1 text-neutral-600">
+              <p className="font-black text-neutral-950">
+                {dateLabel ?? t.matches.pendingDate}
+              </p>
+              <p className="mt-0.5 text-xs font-semibold text-neutral-600">
                 {location ?? t.matches.missingSchedule}
               </p>
 
@@ -252,12 +254,12 @@ export function MatchScheduleForm({
             </>
           ) : (
             <>
-              <p className="font-bold">
+              <p className="font-black text-neutral-950">
                 {isPostponed
                   ? t.matches.pendingReschedule
                   : t.matches.pendingDate}
               </p>
-              <p className="mt-1 text-neutral-600">
+              <p className="mt-0.5 text-xs font-semibold text-neutral-600">
                 {isPostponed
                   ? t.matches.needsReschedule
                   : t.matchDetail.noScheduleDescription}
@@ -268,66 +270,59 @@ export function MatchScheduleForm({
       ) : null}
 
       {actionError ? (
-        <p className="mt-3 rounded-2xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+        <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
           {actionError}
         </p>
       ) : null}
 
       {canManage && isEditing ? (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <label className="block">
-            <span className="text-sm font-semibold text-neutral-700">
-              {t.matchDetail.scheduleDateLabel}
-            </span>
+        <form onSubmit={handleSubmit} className="mt-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {t.matchDetail.scheduleDateLabel}
+              </span>
 
-            <input
-              type="datetime-local"
-              value={scheduledAtValue}
-              onChange={(event) => setScheduledAtValue(event.target.value)}
-              disabled={isSaving}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
+              <input
+                type="datetime-local"
+                value={scheduledAtValue}
+                onChange={(event) => setScheduledAtValue(event.target.value)}
+                disabled={isSaving}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
 
-          {isOutsideRoundWindow ? (
-            <div className="rounded-2xl bg-orange-100 p-3 text-sm text-orange-900">
-              <p className="font-black">{t.rounds.outsideWindowTitle}</p>
-              <p className="mt-1 text-xs font-semibold">
-                {t.rounds.outsideWindowDescription}
-              </p>
-            </div>
-          ) : null}
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {t.matchDetail.scheduleLocation}
+              </span>
 
-          <label className="block">
-            <span className="text-sm font-semibold text-neutral-700">
-              {t.matchDetail.scheduleLocation}
-            </span>
-
-            <select
-              value={selectedLocation}
-              onChange={(event) => setSelectedLocation(event.target.value)}
-              disabled={isSaving}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            >
-              <option value="">
-                {t.matchDetail.scheduleLocationPlaceholder}
-              </option>
-
-              {availableLocations.map((availableLocation) => (
-                <option key={availableLocation} value={availableLocation}>
-                  {availableLocation}
+              <select
+                value={selectedLocation}
+                onChange={(event) => setSelectedLocation(event.target.value)}
+                disabled={isSaving}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              >
+                <option value="">
+                  {t.matchDetail.scheduleLocationPlaceholder}
                 </option>
-              ))}
 
-              <option value={otherLocationValue}>
-                {t.matchDetail.otherLocation}
-              </option>
-            </select>
-          </label>
+                {availableLocations.map((availableLocation) => (
+                  <option key={availableLocation} value={availableLocation}>
+                    {availableLocation}
+                  </option>
+                ))}
+
+                <option value={otherLocationValue}>
+                  {t.matchDetail.otherLocation}
+                </option>
+              </select>
+            </label>
+          </div>
 
           {selectedLocation === otherLocationValue ? (
             <label className="block">
-              <span className="text-sm font-semibold text-neutral-700">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
                 {t.matchDetail.customLocation}
               </span>
 
@@ -336,48 +331,55 @@ export function MatchScheduleForm({
                 onChange={(event) => setCustomLocation(event.target.value)}
                 disabled={isSaving}
                 placeholder={t.matchDetail.customLocationPlaceholder}
-                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
           ) : null}
 
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              {(hasSchedule || isPostponed) && !isFinished ? (
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="flex-1 rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
-                >
-                  {t.matchDetail.cancelScheduleEdit}
-                </button>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={!canSave}
-                className="flex-1 rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
-              >
-                {isSaving
-                  ? "Guardando..."
-                  : hasSchedule || isPostponed
-                    ? t.matchDetail.saveScheduleChanges
-                    : t.matchDetail.saveSchedule}
-              </button>
+          {isOutsideRoundWindow ? (
+            <div className="rounded-lg bg-orange-100 p-2 text-xs text-orange-900">
+              <p className="font-black">{t.rounds.outsideWindowTitle}</p>
+              <p className="mt-0.5 font-semibold">
+                {t.rounds.outsideWindowDescription}
+              </p>
             </div>
+          ) : null}
 
-            {canPostpone ? (
+          <div className="flex gap-2">
+            {(hasSchedule || isPostponed) && !isFinished ? (
               <button
                 type="button"
-                onClick={handlePostpone}
-                disabled={!canPostpone}
-                className="w-full rounded-2xl bg-orange-100 px-3 py-2.5 text-sm font-black text-orange-900 disabled:text-orange-300"
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
               >
-                {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
+                {t.matchDetail.cancelScheduleEdit}
               </button>
             ) : null}
+
+            <button
+              type="submit"
+              disabled={!canSave}
+              className="flex-1 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300"
+            >
+              {isSaving
+                ? "Guardando..."
+                : hasSchedule || isPostponed
+                  ? t.matchDetail.saveScheduleChanges
+                  : t.matchDetail.saveSchedule}
+            </button>
           </div>
+
+          {canPostpone ? (
+            <button
+              type="button"
+              onClick={handlePostpone}
+              disabled={!canPostpone}
+              className="w-full rounded-xl bg-orange-100 px-3 py-2 text-sm font-black text-orange-900 disabled:text-orange-300"
+            >
+              {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
+            </button>
+          ) : null}
         </form>
       ) : null}
     </section>

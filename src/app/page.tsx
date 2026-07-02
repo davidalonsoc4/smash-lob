@@ -74,7 +74,7 @@ function PlayerAwardCard({
   inlineStatHref,
   cardHref,
 }: {
-  eyebrow: string
+  eyebrow?: string
   title: string
   players: AwardPlayer[]
   badge: string
@@ -99,10 +99,12 @@ function PlayerAwardCard({
       <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-3 py-2.5 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
-              {eyebrow}
-            </p>
-            <h2 className="mt-1 text-lg font-black tracking-tight">
+            {eyebrow ? (
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
+                {eyebrow}
+              </p>
+            ) : null}
+            <h2 className={`${eyebrow ? "mt-1" : ""} text-lg font-black tracking-tight`}>
               {title}
             </h2>
           </div>
@@ -429,7 +431,6 @@ export default function Home() {
         leader ? (
           <div className="space-y-4">
             <PlayerAwardCard
-              eyebrow={t.dashboard.closedSeasonTitle}
               title={t.dashboard.seasonWinner.replace(
                 "{seasonName}",
                 activeSeason.name
@@ -449,7 +450,6 @@ export default function Home() {
 
             {seasonMvp ? (
               <PlayerAwardCard
-                eyebrow="MVP final"
                 title={`MVP de ${activeSeason.name}`}
                 players={seasonMvpPlayers}
                 badge="★"
@@ -578,9 +578,9 @@ export default function Home() {
           <SectionHeader title="Mi último partido" />
 
           <Link href={`/match/${lastMatch.id}`} className="block">
-            <AppCard className="relative pr-8 transition active:scale-[0.99]">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="min-w-0 text-sm font-semibold text-neutral-500">
+            <AppCard className="relative border-neutral-300 bg-white pr-14 transition active:scale-[0.99]">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
                   {t.matches.round} {lastMatch.round}
                 </p>
 
@@ -589,20 +589,20 @@ export default function Home() {
 
               <span
                 aria-hidden="true"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl font-black leading-none text-neutral-400"
+                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100 text-xl font-black leading-none text-neutral-500"
               >
                 ›
               </span>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-3">
                   <TeamPlayers
                     playerIds={lastMatch.teamA}
                     players={players}
                     highlightedPlayerIds={lastMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                   />
-                  <p className="text-xl font-black">{lastMatch.pointsA}</p>
+                  <p className="min-w-6 text-right text-lg font-black">{lastMatch.pointsA}</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -610,24 +610,24 @@ export default function Home() {
                     playerIds={lastMatch.teamB}
                     players={players}
                     highlightedPlayerIds={lastMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                   />
-                  <p className="text-xl font-black">{lastMatch.pointsB}</p>
+                  <p className="min-w-6 text-right text-lg font-black">{lastMatch.pointsB}</p>
                 </div>
               </div>
 
-              <div className="mt-3 flex gap-2 text-sm text-neutral-600">
+              <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
                 {lastMatch.sets.map((set, index) => (
                   <span
                     key={index}
-                    className="rounded-lg bg-neutral-100 px-2 py-1"
+                    className="rounded-md bg-neutral-100 px-1.5 py-0.5"
                   >
                     {set.a}-{set.b}
                   </span>
                 ))}
               </div>
 
-              <p className="mt-3 text-xs text-neutral-500">
+              <p className="mt-2 truncate text-[11px] font-semibold text-neutral-500">
                 {lastMatch.dateLabel} · {lastMatch.location}
               </p>
             </AppCard>
@@ -640,9 +640,9 @@ export default function Home() {
           <SectionHeader title="Mi próximo partido" />
 
           <Link href={`/match/${nextMatch.id}`} className="block">
-            <AppCard className="relative pr-8 transition active:scale-[0.99]">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="min-w-0 text-sm font-semibold text-neutral-500">
+            <AppCard className="relative border-neutral-300 bg-white pr-14 transition active:scale-[0.99]">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
                   {t.matches.round} {nextMatch.round}
                 </p>
 
@@ -651,36 +651,36 @@ export default function Home() {
 
               <span
                 aria-hidden="true"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl font-black leading-none text-neutral-400"
+                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-100 text-xl font-black leading-none text-neutral-500"
               >
                 ›
               </span>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <TeamPlayers
                   playerIds={nextMatch.teamA}
                   players={players}
                   highlightedPlayerIds={nextMatchHighlightedPlayerIds}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
-                <p className="text-sm text-neutral-500">{t.common.versus}</p>
+                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">{t.common.versus}</p>
                 <TeamPlayers
                   playerIds={nextMatch.teamB}
                   players={players}
                   highlightedPlayerIds={nextMatchHighlightedPlayerIds}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-1 text-base font-bold"
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
               </div>
 
-              <div className="mt-3 rounded-xl border border-dashed border-neutral-300 p-3">
-                <p className="text-sm font-semibold">
+              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+                <p className="text-xs font-black text-neutral-800">
                   {nextMatch.dateLabel ??
                     (nextMatch.status === "postponed"
                       ? t.matches.pendingReschedule
                       : t.dashboard.addSchedule)}
                 </p>
 
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                   {nextMatch.location ??
                     (nextMatch.status === "postponed"
                       ? t.matches.needsReschedule
