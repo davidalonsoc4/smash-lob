@@ -578,22 +578,21 @@ export default function Home() {
           <SectionHeader title="Mi último partido" />
 
           <Link href={`/match/${lastMatch.id}`} className="block">
-            <AppCard className="transition active:scale-[0.99]">
+            <AppCard className="relative pr-8 transition active:scale-[0.99]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-sm font-semibold text-neutral-500">
                   {t.matches.round} {lastMatch.round}
                 </p>
 
-                <div className="flex shrink-0 items-center gap-2">
-                  <MatchStatusBadge status={lastMatch.status} />
-                  <span
-                    aria-hidden="true"
-                    className="text-lg font-black leading-none text-neutral-400"
-                  >
-                    ›
-                  </span>
-                </div>
+                <MatchStatusBadge status={lastMatch.status} />
               </div>
+
+              <span
+                aria-hidden="true"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl font-black leading-none text-neutral-400"
+              >
+                ›
+              </span>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
@@ -641,22 +640,21 @@ export default function Home() {
           <SectionHeader title="Mi próximo partido" />
 
           <Link href={`/match/${nextMatch.id}`} className="block">
-            <AppCard className="transition active:scale-[0.99]">
+            <AppCard className="relative pr-8 transition active:scale-[0.99]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-sm font-semibold text-neutral-500">
                   {t.matches.round} {nextMatch.round}
                 </p>
 
-                <div className="flex shrink-0 items-center gap-2">
-                  <MatchStatusBadge status={nextMatch.status} />
-                  <span
-                    aria-hidden="true"
-                    className="text-lg font-black leading-none text-neutral-400"
-                  >
-                    ›
-                  </span>
-                </div>
+                <MatchStatusBadge status={nextMatch.status} />
               </div>
+
+              <span
+                aria-hidden="true"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl font-black leading-none text-neutral-400"
+              >
+                ›
+              </span>
 
               <div className="space-y-2">
                 <TeamPlayers

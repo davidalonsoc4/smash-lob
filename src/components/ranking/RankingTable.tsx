@@ -11,7 +11,7 @@ type RankingPlayer = {
   points: number
   gamesDiff: number
   gamesFor: number
-  gamesAgainst: number
+  matchesPlayed: number
   avatarInitials?: string | null
   avatarUrl?: string | null
 }
@@ -42,12 +42,11 @@ export function RankingTable({ players }: RankingTableProps) {
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_3.2rem_3.2rem_2.7rem_2.7rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+      <div className="grid grid-cols-[minmax(0,1fr)_2.4rem_3.1rem_3.1rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
         <span>Jugador</span>
-        <span className="text-right">Pts</span>
+        <span className="text-right">J</span>
         <span className="text-right">Dif</span>
-        <span className="text-right">JF</span>
-        <span className="text-right">JC</span>
+        <span className="text-right">PTS</span>
       </div>
 
       <div className="space-y-1.5">
@@ -56,7 +55,7 @@ export function RankingTable({ players }: RankingTableProps) {
             key={player.id}
             href={`/player/${player.slug}`}
             aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
-            className="grid grid-cols-[minmax(0,1fr)_3.2rem_3.2rem_2.7rem_2.7rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
+            className="grid grid-cols-[minmax(0,1fr)_2.4rem_3.1rem_3.1rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
           >
             <div className="flex min-w-0 items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-800">
@@ -71,8 +70,8 @@ export function RankingTable({ players }: RankingTableProps) {
             </div>
 
             <div className="text-right">
-              <p className="text-lg font-black leading-none text-neutral-950">
-                {player.points}
+              <p className="text-xs font-bold text-neutral-600">
+                {player.matchesPlayed}
               </p>
             </div>
 
@@ -83,14 +82,8 @@ export function RankingTable({ players }: RankingTableProps) {
             </div>
 
             <div className="text-right">
-              <p className="text-xs font-bold text-neutral-600">
-                {player.gamesFor}
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p className="text-xs font-bold text-neutral-600">
-                {player.gamesAgainst}
+              <p className="text-lg font-black leading-none text-neutral-950">
+                {player.points}
               </p>
             </div>
           </Link>
@@ -98,7 +91,7 @@ export function RankingTable({ players }: RankingTableProps) {
       </div>
 
       <p className="px-1 text-[11px] font-semibold text-neutral-400">
-        Pts = sets ganados · Dif = diferencia de juegos · JF/JC = juegos a favor/en contra
+        J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados
       </p>
     </div>
   )

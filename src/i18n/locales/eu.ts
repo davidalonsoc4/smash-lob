@@ -110,7 +110,7 @@ export const eu = {
   nav: {
     home: "Hasiera",
     ranking: "Ranking",
-    matches: "Partidak",
+    matches: "Egutegia",
     activity: "Jarduera",
     player: "Jokalaria",
     profile: "Profila",
@@ -141,7 +141,7 @@ export const eu = {
   ranking: {
     subtitle: "Sailkapen orokorra",
     description:
-      "Puntuen, joko-diferentziaren eta aldeko jokoen arabera ordenatuta.",
+      "PTS, joko-diferentziaren eta berdinketan aldeko jokoen arabera ordenatuta.",
     gamesDiff: "Jokoen dif.",
     gamesFor: "Aldeko jokoak",
     gamesAgainst: "Kontrako jokoak",
@@ -187,6 +187,8 @@ export const eu = {
     needsReschedule: "Partida hau berriro programatu behar da",
     closedSeasonHistoricalDescription:
       "Hauek dira {seasonName} denboraldiko partida historikoak.",
+    scopeAll: "Denak",
+    scopeMineShort: "Nireak",
     noMatches: "Ez dago partidarik denboraldi honetan.",
   },
 

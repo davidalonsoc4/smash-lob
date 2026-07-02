@@ -105,7 +105,7 @@ export const en = {
   nav: {
     home: "Home",
     ranking: "Ranking",
-    matches: "Matches",
+    matches: "Calendar",
     activity: "Activity",
     player: "Player",
     profile: "Profile",
@@ -134,7 +134,7 @@ export const en = {
 
   ranking: {
     subtitle: "Overall standings",
-    description: "Sorted by points, game difference and games for.",
+    description: "Sorted by PTS, game difference and games for as a tiebreaker.",
     gamesDiff: "Game diff.",
     gamesFor: "Games for",
     gamesAgainst: "Games against",
@@ -179,6 +179,8 @@ export const en = {
     needsReschedule: "This match needs to be rescheduled",
     closedSeasonHistoricalDescription:
       "These are the historical matches for {seasonName}.",
+    scopeAll: "All",
+    scopeMineShort: "Mine",
     noMatches: "There are no matches in this season.",
   },
 

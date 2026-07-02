@@ -110,7 +110,7 @@ export const es = {
   nav: {
     home: "Inicio",
     ranking: "Ranking",
-    matches: "Partidos",
+    matches: "Calendario",
     activity: "Actividad",
     player: "Jugador",
     profile: "Perfil",
@@ -142,7 +142,7 @@ export const es = {
     subtitle: "Clasificación general",
     closedSeasonHistoricalDescription:
       "Este ranking queda como histórico de {seasonName}.",
-    description: "Ordenado por puntos, diferencia de juegos y juegos a favor.",
+    description: "Ordenado por PTS, diferencia de juegos y juegos a favor en caso de empate.",
     gamesDiff: "Dif. juegos",
     gamesFor: "Juegos a favor",
     gamesAgainst: "Juegos en contra",
@@ -188,6 +188,8 @@ export const es = {
     needsReschedule: "Hay que reprogramar este partido",
     closedSeasonHistoricalDescription:
       "Estos son los partidos históricos de {seasonName}.",
+    scopeAll: "Todos",
+    scopeMineShort: "Míos",
     noMatches: "No hay partidos en esta temporada.",
   },
 

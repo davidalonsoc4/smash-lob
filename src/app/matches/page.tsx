@@ -70,31 +70,27 @@ export default function MatchesPage() {
       </header>
 
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white/80 px-3 py-2 shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
-          Filtro
-        </p>
-
-        <div className="flex rounded-full bg-neutral-100 p-1">
+      <div className="flex justify-end">
+        <div className="inline-flex rounded-full bg-neutral-100 p-0.5">
           <Link
             href="/matches"
-            className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
+            className={`rounded-full px-3 py-1 text-[11px] font-black transition ${
               activeScope === "all"
                 ? "bg-neutral-950 text-white shadow-sm"
                 : "text-neutral-500"
             }`}
           >
-            Todos
+            {t.matches.scopeAll}
           </Link>
           <Link
             href="/matches?scope=mine"
-            className={`rounded-full px-3 py-1.5 text-xs font-black transition ${
+            className={`rounded-full px-3 py-1 text-[11px] font-black transition ${
               activeScope === "mine"
                 ? "bg-neutral-950 text-white shadow-sm"
                 : "text-neutral-500"
             }`}
           >
-            Mis partidos
+            {t.matches.scopeMineShort}
           </Link>
         </div>
       </div>
