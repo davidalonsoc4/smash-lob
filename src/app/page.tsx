@@ -574,7 +574,7 @@ export default function Home() {
         </section>
       ) : null}
 
-      {lastMatch && !isSeasonUpcoming ? (
+      {lastMatch && !isSeasonClosed && !isSeasonUpcoming ? (
         <section>
           <SectionHeader title="Mi último partido" />
 

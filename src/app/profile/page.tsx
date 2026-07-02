@@ -7,7 +7,6 @@ import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScope
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
-import { StatCard } from "@/components/ui/StatCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -151,17 +150,23 @@ export default function ProfilePage() {
       ) : null}
 
       <div className="grid grid-cols-2 gap-2">
-        <StatCard
-          label={t.profile.points}
-          value={selectedStats.points}
-          helper={t.common.pointsShort}
-        />
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+          <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
+            {t.profile.points}
+          </p>
+          <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
+            {selectedStats.points}
+          </p>
+        </div>
 
-        <StatCard
-          label={t.ranking.gamesDiff}
-          value={`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
-          helper={t.ranking.diff}
-        />
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+          <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
+            {t.ranking.gamesDiff}
+          </p>
+          <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
+            {`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
+          </p>
+        </div>
       </div>
 
       <PlayerStatsPanel
