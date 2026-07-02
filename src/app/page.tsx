@@ -22,6 +22,7 @@ import {
   getPlayersByIds,
 } from "@/lib/mvp"
 import { recordActivityEvent } from "@/lib/activity"
+import { getLastMatch, getNextMatch } from "@/lib/leagues"
 import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons"
 
 
@@ -71,6 +72,7 @@ function PlayerAwardCard({
   stats,
   inlineStat,
   inlineStatHref,
+  cardHref,
 }: {
   eyebrow: string
   title: string
@@ -79,15 +81,21 @@ function PlayerAwardCard({
   stats?: { label: string; value: string | number }[]
   inlineStat?: { label: string; value: string | number }
   inlineStatHref?: string
+  cardHref?: string
 }) {
   const firstPlayer = players[0]
+  const isWholeCardClickable = Boolean(cardHref)
 
   if (!firstPlayer) {
     return null
   }
 
-  return (
-    <AppCard className="overflow-hidden p-0">
+  const cardContent = (
+    <AppCard
+      className={`overflow-hidden p-0 ${
+        isWholeCardClickable ? "transition active:scale-[0.99]" : ""
+      }`}
+    >
       <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-3 py-2.5 text-white">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -99,8 +107,18 @@ function PlayerAwardCard({
             </h2>
           </div>
 
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-base font-black text-neutral-950">
-            {badge}
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-base font-black text-neutral-950">
+              {badge}
+            </div>
+            {isWholeCardClickable ? (
+              <span
+                aria-hidden="true"
+                className="text-xl font-black leading-none text-white/70"
+              >
+                ›
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -108,32 +126,46 @@ function PlayerAwardCard({
       <div className="p-3">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-3">
-            {players.slice(0, 3).map((player) => (
-              <Link
-                key={player.id}
-                href={`/player/${player.slug ?? player.id}`}
-                aria-label={`Ver perfil de ${player.displayName}`}
-                className="rounded-full transition active:scale-[0.97]"
-              >
+            {players.slice(0, 3).map((player) => {
+              const avatar = (
                 <PlayerAvatar
                   player={player}
                   size="lg"
                   className="border-2 border-white bg-neutral-950 text-white"
                 />
-              </Link>
-            ))}
+              )
+
+              return isWholeCardClickable ? (
+                <div key={player.id} className="rounded-full">
+                  {avatar}
+                </div>
+              ) : (
+                <Link
+                  key={player.id}
+                  href={`/player/${player.slug ?? player.id}`}
+                  aria-label={`Ver perfil de ${player.displayName}`}
+                  className="rounded-full transition active:scale-[0.97]"
+                >
+                  {avatar}
+                </Link>
+              )
+            })}
           </div>
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-black tracking-tight text-neutral-950">
               {players.map((player, index) => (
                 <span key={player.id}>
-                  <Link
-                    href={`/player/${player.slug ?? player.id}`}
-                    className="underline-offset-2 active:underline"
-                  >
-                    {player.displayName}
-                  </Link>
+                  {isWholeCardClickable ? (
+                    player.displayName
+                  ) : (
+                    <Link
+                      href={`/player/${player.slug ?? player.id}`}
+                      className="underline-offset-2 active:underline"
+                    >
+                      {player.displayName}
+                    </Link>
+                  )}
                   {index < players.length - 1 ? " / " : ""}
                 </span>
               ))}
@@ -141,7 +173,7 @@ function PlayerAwardCard({
           </div>
 
           {inlineStat ? (
-            inlineStatHref ? (
+            inlineStatHref && !isWholeCardClickable ? (
               <Link
                 href={inlineStatHref}
                 className="shrink-0 rounded-xl bg-neutral-100 px-3 py-2.5 text-center transition active:scale-[0.97]"
@@ -183,7 +215,18 @@ function PlayerAwardCard({
       </div>
     </AppCard>
   )
+
+  if (cardHref) {
+    return (
+      <Link href={cardHref} className="block">
+        {cardContent}
+      </Link>
+    )
+  }
+
+  return cardContent
 }
+
 
 export default function Home() {
   const { t } = useI18n()
@@ -199,13 +242,16 @@ export default function Home() {
     players,
     matches,
     rounds,
-    lastMatch,
-    nextMatch,
   } = useCurrentLeagueData()
 
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonClosed = activeSeason.status === "finished"
   const isSeasonUpcoming = activeSeason.status === "upcoming"
+  const currentUserMatches = matches.filter(
+    (match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
+  )
+  const lastMatch = getLastMatch(currentUserMatches)
+  const nextMatch = getNextMatch(currentUserMatches)
   const lastMatchHighlightedPlayerIds = lastMatch
     ? getRoundMvpPlayerIds({
         leagueId: activeLeague.id,
@@ -390,6 +436,7 @@ export default function Home() {
               )}
               players={[leader]}
               badge="1º"
+              cardHref={`/player/${leader.slug ?? leader.id}`}
               stats={[
                 { label: t.common.pointsShort, value: leader.points },
                 {
@@ -407,7 +454,7 @@ export default function Home() {
                 players={seasonMvpPlayers}
                 badge="★"
                 inlineStat={{ label: "MVPs", value: seasonMvp.votes }}
-                inlineStatHref={
+                cardHref={
                   seasonMvpPlayers[0]
                     ? `/player/${seasonMvpPlayers[0].slug ?? seasonMvpPlayers[0].id}/mvp`
                     : undefined
@@ -528,16 +575,24 @@ export default function Home() {
 
       {lastMatch && !isSeasonUpcoming ? (
         <section>
-          <SectionHeader title={t.dashboard.lastMatch} />
+          <SectionHeader title="Mi último partido" />
 
-          <Link href={`/match/${lastMatch.id}`}>
+          <Link href={`/match/${lastMatch.id}`} className="block">
             <AppCard className="transition active:scale-[0.99]">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-neutral-500">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-sm font-semibold text-neutral-500">
                   {t.matches.round} {lastMatch.round}
                 </p>
 
-                <MatchStatusBadge status={lastMatch.status} />
+                <div className="flex shrink-0 items-center gap-2">
+                  <MatchStatusBadge status={lastMatch.status} />
+                  <span
+                    aria-hidden="true"
+                    className="text-lg font-black leading-none text-neutral-400"
+                  >
+                    ›
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -583,16 +638,24 @@ export default function Home() {
 
       {!isSeasonClosed && !isSeasonUpcoming && nextMatch ? (
         <section>
-          <SectionHeader title={t.dashboard.nextMatch} />
+          <SectionHeader title="Mi próximo partido" />
 
-          <Link href={`/match/${nextMatch.id}`}>
+          <Link href={`/match/${nextMatch.id}`} className="block">
             <AppCard className="transition active:scale-[0.99]">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-neutral-500">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-sm font-semibold text-neutral-500">
                   {t.matches.round} {nextMatch.round}
                 </p>
 
-                <MatchStatusBadge status={nextMatch.status} />
+                <div className="flex shrink-0 items-center gap-2">
+                  <MatchStatusBadge status={nextMatch.status} />
+                  <span
+                    aria-hidden="true"
+                    className="text-lg font-black leading-none text-neutral-400"
+                  >
+                    ›
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-2">

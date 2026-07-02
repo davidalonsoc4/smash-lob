@@ -62,10 +62,17 @@ export default function PlayerMvpMatchesPage() {
       </header>
 
       <AppCard>
-        <p className="text-sm font-semibold text-neutral-500">
-          Aquí aparecen los partidos en los que este jugador formó parte de la pareja MVP de la jornada.
-        </p>
-        <p className="mt-2 text-2xl font-black">{mvpMatches.length}</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="min-w-0 text-sm font-semibold leading-relaxed text-neutral-500">
+            Aquí aparecen los partidos en los que este jugador formó parte de la pareja MVP de la jornada.
+          </p>
+          <div className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
+            <p className="text-xl font-black leading-none">{mvpMatches.length}</p>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-300">
+              MVPs
+            </p>
+          </div>
+        </div>
       </AppCard>
 
       {mvpMatches.length === 0 ? (

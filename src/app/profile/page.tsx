@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
@@ -18,18 +17,6 @@ import {
   getPlayerSeasonScopes,
   getPlayersForSeasonScope,
 } from "@/lib/playerHistory"
-
-function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null }) {
-  const value = match.resultRecordedAt ?? match.scheduledAt
-
-  if (!value) {
-    return 0
-  }
-
-  const time = new Date(value).getTime()
-
-  return Number.isNaN(time) ? 0 : time
-}
 
 export default function ProfilePage() {
   const { t } = useI18n()
@@ -87,35 +74,12 @@ export default function ProfilePage() {
         matches: leagueMatches,
       })
     : null
-  const selectedSeason = selectedScope?.isTotal
-    ? null
-    : seasons.find((season) => season.id === selectedScope?.id) ?? activeSeason
-  const showNextMatch = Boolean(
-    selectedSeason && selectedSeason.status !== "finished" && !selectedScope?.isTotal
-  )
   const playerMatches = player
     ? selectedMatches.filter(
         (match) => match.teamA.includes(player.id) || match.teamB.includes(player.id)
       )
     : []
-  const nextMatches = playerMatches
-    .filter((match) => match.status !== "finished")
-    .sort((firstMatch, secondMatch) => firstMatch.round - secondMatch.round)
-  const recentFinishedMatches = playerMatches
-    .filter((match) => match.status === "finished")
-    .sort((firstMatch, secondMatch) => {
-      const timeDiff = getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch)
 
-      if (timeDiff !== 0) {
-        return timeDiff
-      }
-
-      if (secondMatch.seasonId !== firstMatch.seasonId) {
-        return secondMatch.seasonId.localeCompare(firstMatch.seasonId)
-      }
-
-      return secondMatch.round - firstMatch.round
-    })
 
   if (!player || !selectedStats || !selectedScope) {
     return (
@@ -199,29 +163,6 @@ export default function ProfilePage() {
         seasonMatches={selectedMatches}
       />
 
-      {showNextMatch ? (
-        <PlayerMatchesList
-          playerId={player.id}
-          title={t.profile.nextMatch}
-          matches={nextMatches}
-          players={selectedPlayers}
-          seasonMatches={selectedMatches}
-          limit={1}
-          emptyMessage={t.profile.noUpcomingMatches}
-        />
-      ) : null}
-
-      <PlayerMatchesList
-        playerId={player.id}
-        title={t.profile.recentResults}
-        matches={recentFinishedMatches}
-        players={selectedPlayers}
-        seasonMatches={selectedMatches}
-        limit={3}
-        emptyMessage={t.profile.noRecentResults}
-        actionHref="/matches?scope=mine"
-        actionLabel="Ver todo"
-      />
 
       <Link href="/profile/matches">
         <AppCard className="transition active:scale-[0.99]">

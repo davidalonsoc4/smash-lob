@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPlayerMvpSummary } from "@/lib/mvp"
@@ -230,36 +229,23 @@ export function PlayerStatsPanel({
   const emptyValue = "—"
   const mvpHref = getPlayerHref(playerId, players) + "/mvp"
 
-  const [isExpanded, setIsExpanded] = useState(false)
-
   return (
     <AppCard>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-neutral-500">
-            {t.playerStats.title}
+      <div>
+        <p className="text-sm font-semibold text-neutral-500">
+          {t.playerStats.title}
+        </p>
+        <p className="mt-1 whitespace-nowrap text-lg font-black tracking-tight">
+          {t.playerStats.subtitle}
+        </p>
+        {scopeLabel ? (
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
+            {scopeLabel}
           </p>
-          <p className="mt-1 text-xl font-black">{t.playerStats.subtitle}</p>
-          {scopeLabel ? (
-            <p className="mt-1 text-xs font-semibold text-neutral-500">
-              {scopeLabel}
-            </p>
-          ) : null}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setIsExpanded((current) => !current)}
-          className="shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800"
-          aria-expanded={isExpanded}
-        >
-          {isExpanded ? t.playerStats.hideDetails : t.playerStats.showDetails}
-        </button>
+        ) : null}
       </div>
 
-      {isExpanded ? (
-        <>
-          <div className="mt-3 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
+      <div className="mt-3 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-300">
               {t.playerStats.winRate}
             </p>
@@ -406,8 +392,6 @@ export function PlayerStatsPanel({
           </div>
         )}
       </div>
-        </>
-      ) : null}
     </AppCard>
   )
 }

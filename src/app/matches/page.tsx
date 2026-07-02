@@ -51,8 +51,13 @@ export default function MatchesPage() {
   return (
     <div className="space-y-4">
       <header className="pt-2">
-        <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {activeSeason.name}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
+          <span>{activeLeague.name} · {activeSeason.name}</span>
+          {isSeasonClosed ? (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+              Terminada
+            </span>
+          ) : null}
         </p>
 
         <h1 className="mt-1 text-2xl font-black tracking-tight">
@@ -113,22 +118,6 @@ export default function MatchesPage() {
         </AppCard>
       ) : null}
 
-      {isSeasonClosed ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-500">
-          <span className="min-w-0 truncate">
-            Temporada terminada · {activeSeason.name}
-          </span>
-
-          {canManageSeason ? (
-            <Link
-              href="/admin/season"
-              className="shrink-0 font-black text-neutral-900 underline-offset-4 active:underline"
-            >
-              Gestionar
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
 
       <div className="space-y-7">
         {rounds.map((round) => {

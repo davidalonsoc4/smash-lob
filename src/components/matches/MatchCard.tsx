@@ -78,12 +78,20 @@ export function MatchCard({
   return (
     <Link href={`/match/${match.id}`} className="block">
       <AppCard className="transition active:scale-[0.99]">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-semibold text-neutral-500">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="min-w-0 text-sm font-semibold text-neutral-500">
             {headerText}
           </p>
 
-          <MatchStatusBadge status={match.status} />
+          <div className="flex shrink-0 items-center gap-2">
+            <MatchStatusBadge status={match.status} />
+            <span
+              aria-hidden="true"
+              className="text-lg font-black leading-none text-neutral-400"
+            >
+              ›
+            </span>
+          </div>
         </div>
 
         <div className="space-y-2">
