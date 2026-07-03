@@ -62,20 +62,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
   if (typeof value === "string") {
-    const name = value.trim();
+    const cleanValue = value.trim();
 
-    if (!name) {
+    if (!cleanValue) {
       return null;
     }
 
+    const parsedLocation = parseStoredLocationObject(cleanValue);
+
+    if (parsedLocation) {
+      return parsedLocation;
+    }
+
     return {
-      id: createLocationId({ name }),
-      name,
+      id: createLocationId({ name: cleanValue }),
+      name: cleanValue,
       address: null,
       detail: null,
       googlePlaceId: null,
       googlePlaceName: null,
-      googleMapsUrl: null,
+      googleMapsUrl: normalizeMapsUrl(cleanValue),
       latitude: null,
       longitude: null,
     };
@@ -119,14 +125,30 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
 }
 
 export function normalizeLeagueLocations(value: unknown): LeagueLocation[] {
-  if (!Array.isArray(value)) {
+  let rawLocations = value;
+
+  if (typeof rawLocations === "string") {
+    const cleanValue = rawLocations.trim();
+
+    if (cleanValue.startsWith("[") && cleanValue.endsWith("]")) {
+      try {
+        rawLocations = JSON.parse(cleanValue);
+      } catch {
+        rawLocations = [cleanValue];
+      }
+    } else {
+      rawLocations = [cleanValue];
+    }
+  }
+
+  if (!Array.isArray(rawLocations)) {
     return [];
   }
 
   const seen = new Set<string>();
   const locations: LeagueLocation[] = [];
 
-  value.forEach((item) => {
+  rawLocations.forEach((item) => {
     const location = normalizeLeagueLocation(item);
 
     if (!location) {
@@ -267,7 +289,9 @@ export function getLeagueLocationLabel(location: LeagueLocation) {
 }
 
 export function getLeagueLocationCompactText(location: LeagueLocation) {
-  return [location.name, location.detail]
+  const normalizedLocation = normalizeLeagueLocation(location) ?? location;
+
+  return [normalizedLocation.name, normalizedLocation.detail]
     .filter((item): item is string => Boolean(item?.trim()))
     .join(" · ");
 }
@@ -355,6 +379,7 @@ export function findLeagueLocationByScheduleLocation({
     return null;
   }
 
+  const normalizedLocations = normalizeLeagueLocations(locations);
   const parsedLocation = parseStoredLocationObject(cleanScheduleLocation);
   const normalizedCandidates = [
     cleanScheduleLocation,
@@ -368,7 +393,7 @@ export function findLeagueLocationByScheduleLocation({
     .map((item) => item.trim().toLowerCase());
 
   return (
-    locations.find((location) => {
+    normalizedLocations.find((location) => {
       const locationCandidates = [
         location.id,
         location.name,

@@ -10,6 +10,7 @@ import {
   getLeagueLocationSubtitle,
   getLeagueLocationWazeUrl,
   getScheduleLocationFallbackText,
+  normalizeLeagueLocations,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
@@ -44,13 +45,18 @@ export function MatchScheduleForm({
   const { t } = useI18n();
   const { updateMatchSchedule, postponeMatch } = useMatchData();
 
+  const normalizedAvailableLocations = useMemo(
+    () => normalizeLeagueLocations(availableLocations),
+    [availableLocations],
+  );
+
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
   const hasSchedule =
     !isPostponed && Boolean(scheduledAt || dateLabel || location);
 
   const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
-    locations: availableLocations,
+    locations: normalizedAvailableLocations,
     scheduleLocation: location,
   });
 
@@ -356,7 +362,7 @@ export function MatchScheduleForm({
                   {t.matchDetail.scheduleLocationPlaceholder}
                 </option>
 
-                {availableLocations.map((availableLocation) => (
+                {normalizedAvailableLocations.map((availableLocation) => (
                   <option
                     key={availableLocation.id}
                     value={availableLocation.id}
