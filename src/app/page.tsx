@@ -593,6 +593,61 @@ export default function Home() {
         </section>
       ) : null}
 
+      {!isSeasonClosed && !isSeasonUpcoming && nextMatch ? (
+        <section>
+          <SectionHeader title="Mi próximo partido" />
+
+          <Link href={`/match/${nextMatch.id}`} className="block">
+            <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
+                  {t.matches.round} {nextMatch.round}
+                </p>
+
+                <MatchStatusBadge status={nextMatch.status} />
+              </div>
+
+              <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
+
+              <div className="space-y-1 pr-11">
+                <TeamPlayers
+                  playerIds={nextMatch.teamA}
+                  players={players}
+                  highlightedPlayerIds={nextMatchHighlightedPlayerIds}
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                />
+                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  {t.common.versus}
+                </p>
+                <TeamPlayers
+                  playerIds={nextMatch.teamB}
+                  players={players}
+                  highlightedPlayerIds={nextMatchHighlightedPlayerIds}
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                />
+              </div>
+
+              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2 pr-11">
+                <p className="text-xs font-black text-neutral-800">
+                  {nextMatch.dateLabel ??
+                    (nextMatch.status === "postponed"
+                      ? t.matches.pendingReschedule
+                      : t.dashboard.addSchedule)}
+                </p>
+
+                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  {nextMatchLocation
+                    ? getLeagueLocationCompactText(nextMatchLocation)
+                    : (getScheduleLocationFallbackText(nextMatch.location) ??
+                      (nextMatch.status === "postponed"
+                        ? t.matches.needsReschedule
+                        : t.dashboard.playersCanSchedule))}
+                </p>
+              </div>
+            </AppCard>
+          </Link>
+        </section>
+      ) : null}
       {lastMatch && !isSeasonClosed && !isSeasonUpcoming ? (
         <section>
           <SectionHeader title="Mi último partido" />
@@ -657,61 +712,6 @@ export default function Home() {
         </section>
       ) : null}
 
-      {!isSeasonClosed && !isSeasonUpcoming && nextMatch ? (
-        <section>
-          <SectionHeader title="Mi próximo partido" />
-
-          <Link href={`/match/${nextMatch.id}`} className="block">
-            <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
-                  {t.matches.round} {nextMatch.round}
-                </p>
-
-                <MatchStatusBadge status={nextMatch.status} />
-              </div>
-
-              <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
-
-              <div className="space-y-1 pr-11">
-                <TeamPlayers
-                  playerIds={nextMatch.teamA}
-                  players={players}
-                  highlightedPlayerIds={nextMatchHighlightedPlayerIds}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                />
-                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                  {t.common.versus}
-                </p>
-                <TeamPlayers
-                  playerIds={nextMatch.teamB}
-                  players={players}
-                  highlightedPlayerIds={nextMatchHighlightedPlayerIds}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                />
-              </div>
-
-              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2 pr-11">
-                <p className="text-xs font-black text-neutral-800">
-                  {nextMatch.dateLabel ??
-                    (nextMatch.status === "postponed"
-                      ? t.matches.pendingReschedule
-                      : t.dashboard.addSchedule)}
-                </p>
-
-                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                  {nextMatchLocation
-                    ? getLeagueLocationCompactText(nextMatchLocation)
-                    : (getScheduleLocationFallbackText(nextMatch.location) ??
-                      (nextMatch.status === "postponed"
-                        ? t.matches.needsReschedule
-                        : t.dashboard.playersCanSchedule))}
-                </p>
-              </div>
-            </AppCard>
-          </Link>
-        </section>
-      ) : null}
     </div>
   );
 }
