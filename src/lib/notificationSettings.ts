@@ -6,6 +6,7 @@ export type NotificationPreferenceKey =
   | "season_events"
   | "booking_i_owe"
   | "booking_paid_to_me"
+  | "round_in_play"
 
 export type NotificationPreferences = Record<NotificationPreferenceKey, boolean>
 
@@ -33,6 +34,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
       "match_result_saved",
       "match_result_updated",
       "match_result_cleared",
+      "match_result_missing_reminder",
     ],
   },
   {
@@ -55,6 +57,13 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     description:
       "Alguien que te debía una transferencia de pista la marca como pagada.",
     eventTypes: ["court_booking_payment_paid"],
+  },
+  {
+    key: "round_in_play",
+    title: "Jornadas en juego",
+    description:
+      "Aviso cuando una jornada empieza a jugarse, aunque no participes en ese partido.",
+    eventTypes: ["round_in_play"],
   },
 ]
 

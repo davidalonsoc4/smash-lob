@@ -26,8 +26,10 @@ type PlayerMatch = {
   pointsA: number | null;
   pointsB: number | null;
   sets: { a: number; b: number }[];
+  scheduledAt?: string | null;
   dateLabel: string | null;
   location: string | null;
+  resultRecordedAt?: string | null;
 };
 
 type PlayerMatchesListProps = {
@@ -119,7 +121,11 @@ export function PlayerMatchesList({
                     {t.matches.round} {match.round}
                   </p>
 
-                  <MatchStatusBadge status={match.status} />
+                  <MatchStatusBadge
+                    status={match.status}
+                    scheduledAt={match.scheduledAt ?? null}
+                    resultRecordedAt={match.resultRecordedAt ?? null}
+                  />
                 </div>
 
                 <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />

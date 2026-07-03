@@ -14,6 +14,8 @@ type RoundSectionProps = {
     pointsA: number | null
     pointsB: number | null
     sets: { a: number; b: number }[]
+    scheduledAt?: string | null
+    resultRecordedAt?: string | null
     dateLabel: string | null
     location: string | null
   }[]

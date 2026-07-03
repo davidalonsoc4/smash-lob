@@ -604,7 +604,11 @@ export default function Home() {
                   {t.matches.round} {nextMatch.round}
                 </p>
 
-                <MatchStatusBadge status={nextMatch.status} />
+                <MatchStatusBadge
+                  status={nextMatch.status}
+                  scheduledAt={nextMatch.scheduledAt}
+                  resultRecordedAt={nextMatch.resultRecordedAt}
+                />
               </div>
 
               <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
@@ -659,7 +663,11 @@ export default function Home() {
                   {t.matches.round} {lastMatch.round}
                 </p>
 
-                <MatchStatusBadge status={lastMatch.status} />
+                <MatchStatusBadge
+                  status={lastMatch.status}
+                  scheduledAt={lastMatch.scheduledAt}
+                  resultRecordedAt={lastMatch.resultRecordedAt}
+                />
               </div>
 
               <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />

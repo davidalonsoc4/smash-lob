@@ -8,6 +8,8 @@ export type ActivityEventType =
   | "match_result_saved"
   | "match_result_updated"
   | "match_result_cleared"
+  | "match_result_missing_reminder"
+  | "round_in_play"
   | "round_mvp_awarded"
   | "court_booking_updated"
   | "court_booking_cleared"
@@ -63,6 +65,8 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_result_saved" ||
     type === "match_result_updated" ||
     type === "match_result_cleared" ||
+    type === "match_result_missing_reminder" ||
+    type === "round_in_play" ||
     type === "round_mvp_awarded" ||
     type === "court_booking_updated" ||
     type === "court_booking_cleared" ||

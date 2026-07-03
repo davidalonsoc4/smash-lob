@@ -25,6 +25,7 @@ type MatchCardProps = {
     pointsB: number | null;
     sets: { a: number; b: number }[];
     scheduledAt?: string | null;
+    resultRecordedAt?: string | null;
     dateLabel: string | null;
     location: string | null;
   };
@@ -99,7 +100,11 @@ export function MatchCard({
             {headerText}
           </p>
 
-          <MatchStatusBadge status={match.status} />
+          <MatchStatusBadge
+            status={match.status}
+            scheduledAt={match.scheduledAt ?? null}
+            resultRecordedAt={match.resultRecordedAt ?? null}
+          />
         </div>
 
         <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />

@@ -161,7 +161,11 @@ export default function MatchDetailPage() {
             </p>
           </div>
 
-          <MatchStatusBadge status={match.status} />
+          <MatchStatusBadge
+            status={match.status}
+            scheduledAt={match.scheduledAt}
+            resultRecordedAt={match.resultRecordedAt}
+          />
         </div>
       </header>
 
