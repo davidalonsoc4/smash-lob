@@ -79,6 +79,12 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     personalScope: "match_participants",
     pushReady: true,
   },
+  court_booking_payment_reminder: {
+    category: "court",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
   league_created: {
     category: "league",
     defaultMode: "activity_only",

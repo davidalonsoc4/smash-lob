@@ -110,8 +110,12 @@ export function CourtBookingPanel({
   booking,
 }: CourtBookingPanelProps) {
   const { t } = useI18n()
-  const { updateCourtBooking, clearCourtBooking, markCourtBookingTransferAsPaid } =
-    useMatchData()
+  const {
+    updateCourtBooking,
+    clearCourtBooking,
+    markCourtBookingTransferAsPaid,
+    sendCourtBookingPaymentReminder,
+  } = useMatchData()
   const participantIds = useMemo(() => {
     const ids = Array.from(new Set([...teamA, ...teamB]))
 
@@ -138,6 +142,7 @@ export function CourtBookingPanel({
   )
   const [isPayerSelectorOpen, setIsPayerSelectorOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const selectedReservationInputs = reservationInputs.filter((input) =>
@@ -266,6 +271,25 @@ export function CourtBookingPanel({
     setIsPayerSelectorOpen(false)
     setIsExpanded(true)
     setIsEditing(true)
+  }
+
+  async function handleSendReminder() {
+    if (!canManage || isSendingReminder || pendingTransfersCount === 0) {
+      return
+    }
+
+    setIsSendingReminder(true)
+    setError(null)
+
+    const sent = await sendCourtBookingPaymentReminder(matchId)
+
+    setIsSendingReminder(false)
+
+    if (!sent) {
+      setError(
+        "No se ha podido mandar el recordatorio. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+    }
   }
 
   async function handleMarkPaid(transferId: string) {
@@ -431,22 +455,35 @@ export function CourtBookingPanel({
           ) : null}
 
           {canManage ? (
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm active:bg-neutral-100"
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                onClick={handleClearBooking}
-                disabled={isSaving}
-                className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 text-[11px] font-black text-red-700 disabled:text-red-300"
-              >
-                Quitar
-              </button>
+            <div className="space-y-2">
+              {pendingTransfersCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleSendReminder}
+                  disabled={isSendingReminder}
+                  className="w-full rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[11px] font-black text-orange-900 shadow-sm disabled:text-orange-300"
+                >
+                  {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
+                </button>
+              ) : null}
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm active:bg-neutral-100"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearBooking}
+                  disabled={isSaving}
+                  className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 text-[11px] font-black text-red-700 disabled:text-red-300"
+                >
+                  Quitar
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

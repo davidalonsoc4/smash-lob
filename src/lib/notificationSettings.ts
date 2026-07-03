@@ -46,8 +46,8 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     key: "booking_i_owe",
     title: "Pagos pendientes de pista",
     description:
-      "Una reserva indica que tienes que pagar tu parte a otro jugador.",
-    eventTypes: ["court_booking_updated"],
+      "Una reserva indica que tienes que pagar tu parte a otro jugador o recibes un recordatorio de pago.",
+    eventTypes: ["court_booking_updated", "court_booking_payment_reminder"],
   },
   {
     key: "booking_paid_to_me",

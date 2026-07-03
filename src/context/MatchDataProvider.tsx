@@ -29,6 +29,7 @@ import {
   updateSupabaseMatchSchedule,
 } from "@/lib/supabaseMatches"
 import { finishSupabaseActiveSeason } from "@/lib/supabaseSeasons"
+import { getScheduleLocationFallbackText } from "@/lib/leagueLocations"
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed"
 
@@ -115,6 +116,7 @@ type MatchDataContextValue = {
     matchId: string,
     transferId: string
   ) => Promise<boolean>
+  sendCourtBookingPaymentReminder: (matchId: string) => Promise<boolean>
 }
 
 type MatchDataProviderProps = {
@@ -522,7 +524,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             : "Partido programado",
           description: getActivityMatchDescription(
             updatedMatch,
-            [updatedMatch.dateLabel, updatedMatch.location]
+            [
+              updatedMatch.dateLabel,
+              getScheduleLocationFallbackText(updatedMatch.location),
+            ]
               .filter(Boolean)
               .join(" · ")
           ),
@@ -875,7 +880,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         await recordMatchActivity({
           match: updatedMatch,
           type: "court_booking_updated",
-          title: "Reserva de pista actualizada",
+          title: "Tienes pagos pendientes",
           description: getActivityMatchDescription(
             updatedMatch,
             `Total pista: ${formatActivityMoney(getBookingTotal(updatedMatch))}`
@@ -983,11 +988,11 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         await recordMatchActivity({
           match: updatedMatch,
           type: "court_booking_payment_paid",
-          title: "Pago de pista marcado como pagado",
+          title: "Pago de pista recibido",
           description: getActivityMatchDescription(
             updatedMatch,
             paidTransfer
-              ? `${formatActivityMoney(paidTransfer.amount)} marcado como pagado`
+              ? `${formatActivityMoney(paidTransfer.amount)} pagado`
               : null
           ),
           metadata: {
@@ -1005,6 +1010,48 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches, persistNextMatches, recordMatchActivity]
   )
 
+
+  const sendCourtBookingPaymentReminder = useCallback(
+    async (matchId: string) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
+
+      if (!currentMatch || !currentMatch.courtBooking.isReserved) {
+        return false
+      }
+
+      const pendingTransfers = currentMatch.courtBooking.transfers.filter(
+        (transfer) => !transfer.isPaid
+      )
+
+      if (pendingTransfers.length === 0 || !isSupabaseBackedMatch(matchId)) {
+        return false
+      }
+
+      try {
+        await recordMatchActivity({
+          match: currentMatch,
+          type: "court_booking_payment_reminder",
+          title: "Tienes pagos pendientes",
+          description: getActivityMatchDescription(
+            currentMatch,
+            "Recordatorio de pago de reserva"
+          ),
+          metadata: {
+            reservations: currentMatch.courtBooking.reservations,
+            transfers: currentMatch.courtBooking.transfers,
+            reminder: true,
+          },
+        })
+
+        return true
+      } catch (error) {
+        recordSupabaseError("send-court-booking-payment-reminder", error)
+        return false
+      }
+    },
+    [matches, recordMatchActivity]
+  )
+
   const value = useMemo(
     () => ({
       matches,
@@ -1020,6 +1067,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       updateCourtBooking,
       clearCourtBooking,
       markCourtBookingTransferAsPaid,
+      sendCourtBookingPaymentReminder,
     }),
     [
       clearCourtBooking,
@@ -1031,6 +1079,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       hydrateMatches,
       markCourtBookingTransferAsPaid,
       matches,
+      sendCourtBookingPaymentReminder,
       postponeMatch,
       reorderSeasonRounds,
       updateCourtBooking,
