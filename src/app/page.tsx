@@ -16,6 +16,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import type { MatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   getRoundMvpPlayerIds,
@@ -28,7 +29,9 @@ import {
   getLeagueLocationCompactText,
   getScheduleLocationFallbackText,
 } from "@/lib/leagueLocations";
-import { getLastMatch, getNextMatch } from "@/lib/leagues";
+import { getNextMatch } from "@/lib/leagues";
+import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
+import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
 import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons";
 
 const supabaseUuidPattern =
@@ -67,6 +70,60 @@ function formatWinPercentage(player: DashboardPlayer) {
   }
 
   return `${Math.round((player.wins / player.matchesPlayed) * 100)}%`;
+}
+
+
+function getMatchRelevantTime(match: MatchData) {
+  const scheduledDate = parseMatchScheduleDate(match.scheduledAt);
+
+  if (scheduledDate) {
+    return scheduledDate.getTime();
+  }
+
+  if (match.resultRecordedAt) {
+    const resultTime = new Date(match.resultRecordedAt).getTime();
+
+    if (!Number.isNaN(resultTime)) {
+      return resultTime;
+    }
+  }
+
+  return Number.NEGATIVE_INFINITY;
+}
+
+function isPlayedOrPendingResult(match: MatchData, now: Date) {
+  const displayStatus = getMatchDisplayStatus({
+    status: match.status,
+    scheduledAt: match.scheduledAt,
+    resultRecordedAt: match.resultRecordedAt,
+    now,
+  });
+
+  return displayStatus === "finished" || displayStatus === "result_pending";
+}
+
+function getLastPlayedOrPendingMatch(matches: MatchData[], now = new Date()) {
+  return [...matches]
+    .filter((match) => isPlayedOrPendingResult(match, now))
+    .sort((a, b) => {
+      const timeDiff = getMatchRelevantTime(b) - getMatchRelevantTime(a);
+
+      if (timeDiff !== 0) {
+        return timeDiff;
+      }
+
+      return b.round - a.round;
+    })[0];
+}
+
+function buildMatchMetaText({
+  match,
+  locationText,
+}: {
+  match: MatchData;
+  locationText?: string | null;
+}) {
+  return [match.dateLabel, locationText].filter(Boolean).join(" · ");
 }
 
 function PlayerAwardCard({
@@ -246,6 +303,7 @@ export default function Home() {
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
+  const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const { currentUserId } = useCurrentUser();
   const { isLeagueAdmin } = useLeagueAccess();
   const { activeLeague, activeSeason, players, matches, rounds } =
@@ -259,14 +317,37 @@ export default function Home() {
       match.teamA.includes(currentUserId) ||
       match.teamB.includes(currentUserId),
   );
-  const lastMatch = getLastMatch(currentUserMatches);
+  const now = new Date();
+  const personalLastMatch = getLastPlayedOrPendingMatch(currentUserMatches, now);
+  const leagueLastMatch = getLastPlayedOrPendingMatch(matches, now);
   const nextMatch = getNextMatch(currentUserMatches);
   const leagueNextMatch = getNextMatch(matches);
-  const selectedNextMatch = nextMatchScope === "mine" ? nextMatch : leagueNextMatch;
-  const lastMatchLocation = lastMatch
+  const shouldShowNextMatchScopeSwitch = Boolean(
+    leagueNextMatch && nextMatch && leagueNextMatch.id !== nextMatch.id,
+  );
+  const effectiveNextMatchScope = shouldShowNextMatchScopeSwitch
+    ? nextMatchScope
+    : leagueNextMatch
+      ? "league"
+      : "mine";
+  const selectedNextMatch =
+    effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
+  const shouldShowLastMatchScopeSwitch = Boolean(
+    leagueLastMatch &&
+      personalLastMatch &&
+      leagueLastMatch.id !== personalLastMatch.id,
+  );
+  const effectiveLastMatchScope = shouldShowLastMatchScopeSwitch
+    ? lastMatchScope
+    : leagueLastMatch
+      ? "league"
+      : "mine";
+  const selectedLastMatch =
+    effectiveLastMatchScope === "mine" ? personalLastMatch : leagueLastMatch;
+  const selectedLastMatchLocation = selectedLastMatch
     ? findLeagueLocationByScheduleLocation({
         locations: activeLeague.locations,
-        scheduleLocation: lastMatch.location,
+        scheduleLocation: selectedLastMatch.location,
       })
     : null;
   const selectedNextMatchLocation = selectedNextMatch
@@ -275,11 +356,11 @@ export default function Home() {
         scheduleLocation: selectedNextMatch.location,
       })
     : null;
-  const lastMatchHighlightedPlayerIds = lastMatch
+  const selectedLastMatchHighlightedPlayerIds = selectedLastMatch
     ? getRoundMvpPlayerIds({
         leagueId: activeLeague.id,
         seasonId: activeSeason.id,
-        round: lastMatch.round,
+        round: selectedLastMatch.round,
         matches,
       })
     : [];
@@ -291,6 +372,20 @@ export default function Home() {
         matches,
       })
     : [];
+  const selectedLastMatchFallbackLocation = selectedLastMatch
+    ? getScheduleLocationFallbackText(selectedLastMatch.location)
+    : null;
+  const selectedLastMatchMetaText = selectedLastMatch
+    ? buildMatchMetaText({
+        match: selectedLastMatch,
+        locationText: selectedLastMatchLocation
+          ? getLeagueLocationCompactText(selectedLastMatchLocation)
+          : selectedLastMatchFallbackLocation,
+      })
+    : "";
+  const selectedLastMatchHasResult =
+    selectedLastMatch?.status === "finished" ||
+    Boolean(selectedLastMatch?.sets.length);
 
   const rankingPlayers = [...players].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
@@ -600,35 +695,37 @@ export default function Home() {
         <section>
           <SectionHeader
             title={
-              nextMatchScope === "mine" ? "Mi próximo partido" : "Próximo partido"
+              effectiveNextMatchScope === "mine"
+                ? "Mi próximo partido"
+                : "Próximo partido"
             }
             action={
-              <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-500">
-                <button
-                  type="button"
-                  onClick={() => setNextMatchScope("league")}
-                  disabled={!leagueNextMatch}
-                  className={`rounded-full px-2.5 py-1 transition disabled:opacity-40 ${
-                    nextMatchScope === "league"
-                      ? "bg-white text-neutral-950 shadow-sm"
-                      : "text-neutral-500"
-                  }`}
-                >
-                  Liga
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNextMatchScope("mine")}
-                  disabled={!nextMatch}
-                  className={`rounded-full px-2.5 py-1 transition disabled:opacity-40 ${
-                    nextMatchScope === "mine"
-                      ? "bg-white text-neutral-950 shadow-sm"
-                      : "text-neutral-500"
-                  }`}
-                >
-                  Mío
-                </button>
-              </div>
+              shouldShowNextMatchScopeSwitch ? (
+                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-500">
+                  <button
+                    type="button"
+                    onClick={() => setNextMatchScope("league")}
+                    className={`rounded-full px-2.5 py-1 transition ${
+                      effectiveNextMatchScope === "league"
+                        ? "bg-white text-neutral-950 shadow-sm"
+                        : "text-neutral-500"
+                    }`}
+                  >
+                    Liga
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNextMatchScope("mine")}
+                    className={`rounded-full px-2.5 py-1 transition ${
+                      effectiveNextMatchScope === "mine"
+                        ? "bg-white text-neutral-950 shadow-sm"
+                        : "text-neutral-500"
+                    }`}
+                  >
+                    Mío
+                  </button>
+                </div>
+              ) : null
             }
           />
 
@@ -695,69 +792,126 @@ export default function Home() {
           )}
         </section>
       ) : null}
-      {lastMatch && !isSeasonClosed && !isSeasonUpcoming ? (
+      {selectedLastMatch && !isSeasonClosed && !isSeasonUpcoming ? (
         <section>
-          <SectionHeader title="Mi último partido" />
+          <SectionHeader
+            title={
+              effectiveLastMatchScope === "mine"
+                ? "Mi último partido"
+                : "Último partido"
+            }
+            action={
+              shouldShowLastMatchScopeSwitch ? (
+                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-500">
+                  <button
+                    type="button"
+                    onClick={() => setLastMatchScope("league")}
+                    className={`rounded-full px-2.5 py-1 transition ${
+                      effectiveLastMatchScope === "league"
+                        ? "bg-white text-neutral-950 shadow-sm"
+                        : "text-neutral-500"
+                    }`}
+                  >
+                    Liga
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLastMatchScope("mine")}
+                    className={`rounded-full px-2.5 py-1 transition ${
+                      effectiveLastMatchScope === "mine"
+                        ? "bg-white text-neutral-950 shadow-sm"
+                        : "text-neutral-500"
+                    }`}
+                  >
+                    Mío
+                  </button>
+                </div>
+              ) : null
+            }
+          />
 
-          <Link href={`/match/${lastMatch.id}`} className="block">
+          <Link href={`/match/${selectedLastMatch.id}`} className="block">
             <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
-                  {t.matches.round} {lastMatch.round}
+                  {t.matches.round} {selectedLastMatch.round}
                 </p>
 
                 <MatchStatusBadge
-                  status={lastMatch.status}
-                  scheduledAt={lastMatch.scheduledAt}
-                  resultRecordedAt={lastMatch.resultRecordedAt}
+                  status={selectedLastMatch.status}
+                  scheduledAt={selectedLastMatch.scheduledAt}
+                  resultRecordedAt={selectedLastMatch.resultRecordedAt}
                 />
               </div>
 
               <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
 
-              <div className="space-y-1 pr-11">
-                <div className="flex items-center justify-between gap-3">
+              {selectedLastMatchHasResult ? (
+                <>
+                  <div className="space-y-1 pr-11">
+                    <div className="flex items-center justify-between gap-3">
+                      <TeamPlayers
+                        playerIds={selectedLastMatch.teamA}
+                        players={players}
+                        highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                        className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                      />
+                      <p className="min-w-6 text-right text-lg font-black">
+                        {selectedLastMatch.pointsA}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <TeamPlayers
+                        playerIds={selectedLastMatch.teamB}
+                        players={players}
+                        highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                        className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                      />
+                      <p className="min-w-6 text-right text-lg font-black">
+                        {selectedLastMatch.pointsB}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedLastMatch.sets.length > 0 ? (
+                    <div className="mt-2 flex gap-1.5 pr-11 text-xs font-bold text-neutral-600">
+                      {selectedLastMatch.sets.map((set, index) => (
+                        <span
+                          key={index}
+                          className="rounded-md bg-neutral-100 px-1.5 py-0.5"
+                        >
+                          {set.a}-{set.b}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div className="space-y-1 pr-11">
                   <TeamPlayers
-                    playerIds={lastMatch.teamA}
+                    playerIds={selectedLastMatch.teamA}
                     players={players}
-                    highlightedPlayerIds={lastMatchHighlightedPlayerIds}
+                    highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
                     className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                   />
-                  <p className="min-w-6 text-right text-lg font-black">
-                    {lastMatch.pointsA}
+                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                    {t.common.versus}
                   </p>
-                </div>
-
-                <div className="flex items-center justify-between gap-3">
                   <TeamPlayers
-                    playerIds={lastMatch.teamB}
+                    playerIds={selectedLastMatch.teamB}
                     players={players}
-                    highlightedPlayerIds={lastMatchHighlightedPlayerIds}
+                    highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
                     className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                   />
-                  <p className="min-w-6 text-right text-lg font-black">
-                    {lastMatch.pointsB}
-                  </p>
                 </div>
-              </div>
+              )}
 
-              <div className="mt-2 flex gap-1.5 pr-11 text-xs font-bold text-neutral-600">
-                {lastMatch.sets.map((set, index) => (
-                  <span
-                    key={index}
-                    className="rounded-md bg-neutral-100 px-1.5 py-0.5"
-                  >
-                    {set.a}-{set.b}
-                  </span>
-                ))}
-              </div>
-
-              <p className="mt-1.5 truncate pr-11 text-[11px] font-semibold text-neutral-500">
-                {lastMatch.dateLabel} ·{" "}
-                {lastMatchLocation
-                  ? getLeagueLocationCompactText(lastMatchLocation)
-                  : getScheduleLocationFallbackText(lastMatch.location)}
-              </p>
+              {selectedLastMatchMetaText ? (
+                <p className="mt-1.5 truncate pr-11 text-[11px] font-semibold text-neutral-500">
+                  {selectedLastMatchMetaText}
+                </p>
+              ) : null}
             </AppCard>
           </Link>
         </section>
