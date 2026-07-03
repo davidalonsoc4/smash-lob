@@ -1,4 +1,5 @@
 import type { MatchStatus } from "@/context/MatchDataProvider";
+import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
 
 export type MatchDisplayStatus = MatchStatus | "in_progress" | "result_pending";
 
@@ -7,17 +8,7 @@ export const MATCH_IN_PROGRESS_WINDOW_MS =
   MATCH_IN_PROGRESS_WINDOW_MINUTES * 60 * 1000;
 
 function parseScheduledAt(scheduledAt: string | null | undefined) {
-  if (!scheduledAt) {
-    return null;
-  }
-
-  const parsedDate = new Date(scheduledAt);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  return parsedDate;
+  return parseMatchScheduleDate(scheduledAt);
 }
 
 export function getMatchDisplayStatus({

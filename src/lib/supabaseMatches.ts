@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase"
+import { dateTimeLocalToUtcIso, parseMatchScheduleDate } from "@/lib/matchScheduleTime"
 import { normalizeCourtBooking } from "@/lib/courtBooking"
 import type {
   CourtBooking,
@@ -170,9 +171,9 @@ function calculateResultPoints(sets: MatchSet[]) {
 }
 
 export function formatScheduleDateLabel(scheduledAt: string) {
-  const date = new Date(scheduledAt)
+  const date = parseMatchScheduleDate(scheduledAt)
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     return scheduledAt
   }
 
@@ -194,12 +195,14 @@ export async function updateSupabaseMatchSchedule({
   scheduledAt: string
   location: string
 }) {
+  const storedScheduledAt = dateTimeLocalToUtcIso(scheduledAt)
+
   const { data, error } = await supabase
     .from("matches")
     .update({
       status: "scheduled",
-      scheduled_at: scheduledAt,
-      date_label: formatScheduleDateLabel(scheduledAt),
+      scheduled_at: storedScheduledAt,
+      date_label: formatScheduleDateLabel(storedScheduledAt),
       location,
     })
     .eq("id", matchId)

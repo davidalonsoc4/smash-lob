@@ -20,6 +20,7 @@ import {
 } from "@/lib/courtBooking"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { recordActivityEvent, type ActivityEventType } from "@/lib/activity"
+import { dateTimeLocalToUtcIso } from "@/lib/matchScheduleTime"
 import {
   clearSupabaseMatchResult,
   finishSupabaseMatch,
@@ -280,8 +281,8 @@ function getLocalScheduledMatch(
   return {
     ...match,
     status: match.status === "finished" ? "finished" : "scheduled",
-    scheduledAt: schedule.scheduledAt,
-    dateLabel: formatScheduleDateLabel(schedule.scheduledAt),
+    scheduledAt: dateTimeLocalToUtcIso(schedule.scheduledAt),
+    dateLabel: formatScheduleDateLabel(dateTimeLocalToUtcIso(schedule.scheduledAt)),
     location: schedule.location,
   }
 }

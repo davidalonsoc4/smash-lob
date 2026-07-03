@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { getTeamDisplayName } from "@/lib/players"
+import { parseMatchScheduleDate, toCalendarFloatingDate } from "@/lib/matchScheduleTime"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type AddToCalendarButtonProps = {
@@ -19,60 +20,6 @@ type AddToCalendarButtonProps = {
 const eventDurationMinutes = 120
 const calendarTimeZone = "Europe/Madrid"
 
-function pad(value: number) {
-  return String(value).padStart(2, "0")
-}
-
-function parseScheduleAsLocalDate(value: string) {
-  const match = value.match(
-    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/
-  )
-
-  if (!match) {
-    return null
-  }
-
-  const [, year, month, day, hour, minute, second = "00"] = match
-  const date = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second)
-  )
-
-  if (Number.isNaN(date.getTime())) {
-    return null
-  }
-
-  return date
-}
-
-function toCalendarFloatingDate(value: Date) {
-  return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(
-    value.getDate()
-  )}T${pad(value.getHours())}${pad(value.getMinutes())}${pad(
-    value.getSeconds()
-  )}`
-}
-
-function toUtcCalendarDate(value: Date) {
-  return `${value.getUTCFullYear()}${pad(value.getUTCMonth() + 1)}${pad(
-    value.getUTCDate()
-  )}T${pad(value.getUTCHours())}${pad(value.getUTCMinutes())}${pad(
-    value.getUTCSeconds()
-  )}Z`
-}
-
-function escapeIcsText(value: string) {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,")
-    .replace(/\r?\n/g, "\\n")
-}
-
 function getCalendarData({
   leagueName,
   seasonName,
@@ -87,7 +34,7 @@ function getCalendarData({
     return null
   }
 
-  const start = parseScheduleAsLocalDate(scheduledAt)
+  const start = parseMatchScheduleDate(scheduledAt)
 
   if (!start) {
     return null
@@ -110,28 +57,8 @@ function getCalendarData({
     googleParams.set("location", location)
   }
 
-  const icsLines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Smash & Lob//Match Calendar//ES",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "BEGIN:VEVENT",
-    `UID:${encodeURIComponent(`${leagueName}-${seasonName}-${round}-${teamAName}-${teamBName}`)}@smash-lob`,
-    `DTSTAMP:${toUtcCalendarDate(new Date())}`,
-    `DTSTART;TZID=${calendarTimeZone}:${toCalendarFloatingDate(start)}`,
-    `DTEND;TZID=${calendarTimeZone}:${toCalendarFloatingDate(end)}`,
-    `SUMMARY:${escapeIcsText(title)}`,
-    `DESCRIPTION:${escapeIcsText(description)}`,
-    location ? `LOCATION:${escapeIcsText(location)}` : null,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].filter((line): line is string => Boolean(line))
-
   return {
     googleUrl: `https://calendar.google.com/calendar/render?${googleParams.toString()}`,
-    icsUrl: `data:text/calendar;charset=utf-8,${encodeURIComponent(icsLines.join("\r\n"))}`,
-    fileName: `smash-lob-jornada-${round}.ics`,
   }
 }
 

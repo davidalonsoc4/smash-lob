@@ -17,6 +17,10 @@ import {
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
+import {
+  dateTimeLocalToUtcIso,
+  formatScheduleForDateTimeInput,
+} from "@/lib/matchScheduleTime";
 
 type MatchScheduleFormProps = {
   matchId: string;
@@ -76,7 +80,7 @@ export function MatchScheduleForm({
     canManage && !hasSchedule && !isPostponed && !isFinished,
   );
   const [scheduledAtValue, setScheduledAtValue] = useState(
-    hasSchedule ? (scheduledAt ?? "") : "",
+    hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
   );
   const [selectedLocation, setSelectedLocation] =
     useState(initialLocationValue);
@@ -159,7 +163,7 @@ export function MatchScheduleForm({
     setActionError(null);
 
     const saved = await updateMatchSchedule(matchId, {
-      scheduledAt: scheduledAtValue,
+      scheduledAt: dateTimeLocalToUtcIso(scheduledAtValue),
       location: finalLocation,
     });
 
@@ -180,7 +184,9 @@ export function MatchScheduleForm({
       return;
     }
 
-    setScheduledAtValue(hasSchedule ? (scheduledAt ?? "") : "");
+    setScheduledAtValue(
+      hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
+    );
     setSelectedLocation(initialLocationValue);
     setSelectedCourt(scheduledLeagueLocation?.selectedCourt ?? "");
     setCustomLocation(
