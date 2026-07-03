@@ -8,6 +8,8 @@ import {
 } from "@/data/fakeData"
 import type { MatchData } from "@/context/MatchDataProvider"
 import { calculateSeasonRanking } from "@/lib/ranking"
+import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
+import { parseMatchScheduleDate } from "@/lib/matchScheduleTime"
 
 function findRequired<T>(
   items: T[],
@@ -65,14 +67,14 @@ export function getPlayersBySeasonId(
   })
 }
 
+function getMatchDate(match: MatchData) {
+  return parseMatchScheduleDate(match.scheduledAt)
+}
+
 function getMatchTime(match: MatchData) {
-  if (!match.scheduledAt) {
-    return Number.NEGATIVE_INFINITY
-  }
+  const scheduledDate = getMatchDate(match)
 
-  const time = new Date(match.scheduledAt).getTime()
-
-  return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time
+  return scheduledDate ? scheduledDate.getTime() : Number.NEGATIVE_INFINITY
 }
 
 export function getLastMatch(matches: MatchData[]) {
@@ -89,7 +91,42 @@ export function getLastMatch(matches: MatchData[]) {
     })[0]
 }
 
+function getNextMatchPriority(match: MatchData, now: Date) {
+  const displayStatus = getMatchDisplayStatus({
+    status: match.status,
+    scheduledAt: match.scheduledAt,
+    resultRecordedAt: match.resultRecordedAt,
+    now,
+  })
+
+  if (displayStatus === "in_progress") {
+    return 0
+  }
+
+  if (match.status === "scheduled") {
+    const scheduledDate = getMatchDate(match)
+
+    if (scheduledDate && scheduledDate.getTime() >= now.getTime()) {
+      return 1
+    }
+
+    return 5
+  }
+
+  if (match.status === "scheduling") {
+    return 2
+  }
+
+  if (match.status === "postponed") {
+    return 3
+  }
+
+  return 9
+}
+
 export function getNextMatch(matches: MatchData[]) {
+  const now = new Date()
+
   return [...matches]
     .filter(
       (match) =>
@@ -97,5 +134,24 @@ export function getNextMatch(matches: MatchData[]) {
         match.status === "scheduled" ||
         match.status === "postponed"
     )
-    .sort((a, b) => a.round - b.round)[0]
+    .sort((a, b) => {
+      const priorityDiff =
+        getNextMatchPriority(a, now) - getNextMatchPriority(b, now)
+
+      if (priorityDiff !== 0) {
+        return priorityDiff
+      }
+
+      const aTime = getMatchTime(a)
+      const bTime = getMatchTime(b)
+
+      if (aTime !== bTime) {
+        if (aTime === Number.NEGATIVE_INFINITY) return 1
+        if (bTime === Number.NEGATIVE_INFINITY) return -1
+
+        return aTime - bTime
+      }
+
+      return a.round - b.round
+    })[0]
 }
