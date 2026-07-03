@@ -653,6 +653,7 @@ export const en = {
       round_mvp_awarded: "MVP",
       court_booking_updated: "Booking",
       court_booking_cleared: "Booking",
+      court_booking_payment_reminder: "Reminder",
       court_booking_payment_paid: "Payment",
       league_created: "League",
       league_updated: "League",

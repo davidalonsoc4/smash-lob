@@ -665,6 +665,7 @@ export const es = {
       round_mvp_awarded: "MVP",
       court_booking_updated: "Reserva",
       court_booking_cleared: "Reserva",
+      court_booking_payment_reminder: "Recordatorio",
       court_booking_payment_paid: "Pago",
       league_created: "Liga",
       league_updated: "Liga",

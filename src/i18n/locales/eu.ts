@@ -658,6 +658,7 @@ export const eu = {
       round_mvp_awarded: "MVP",
       court_booking_updated: "Erreserba",
       court_booking_cleared: "Erreserba",
+      court_booking_payment_reminder: "Oroigarria",
       court_booking_payment_paid: "Ordainketa",
       league_created: "Liga",
       league_updated: "Liga",
