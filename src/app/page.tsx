@@ -126,6 +126,59 @@ function buildMatchMetaText({
   return [match.dateLabel, locationText].filter(Boolean).join(" · ");
 }
 
+function isNextMatchCandidate(match: MatchData, now: Date) {
+  const displayStatus = getMatchDisplayStatus({
+    status: match.status,
+    scheduledAt: match.scheduledAt,
+    resultRecordedAt: match.resultRecordedAt,
+    now,
+  });
+
+  return (
+    match.status === "scheduling" ||
+    match.status === "postponed" ||
+    displayStatus === "scheduled" ||
+    displayStatus === "in_progress"
+  );
+}
+
+function shouldShowScopeSwitch({
+  leagueMatch,
+  personalMatch,
+  candidateCount,
+}: {
+  leagueMatch?: MatchData;
+  personalMatch?: MatchData;
+  candidateCount: number;
+}) {
+  return Boolean(leagueMatch && personalMatch && candidateCount > 1);
+}
+
+function getCollapsedScope({
+  leagueMatch,
+  personalMatch,
+  candidateCount,
+}: {
+  leagueMatch?: MatchData;
+  personalMatch?: MatchData;
+  candidateCount: number;
+}): "league" | "mine" {
+  if (
+    leagueMatch &&
+    personalMatch &&
+    leagueMatch.id === personalMatch.id &&
+    candidateCount <= 1
+  ) {
+    return "mine";
+  }
+
+  if (leagueMatch) {
+    return "league";
+  }
+
+  return "mine";
+}
+
 function PlayerAwardCard({
   eyebrow,
   title,
@@ -322,26 +375,38 @@ export default function Home() {
   const leagueLastMatch = getLastPlayedOrPendingMatch(matches, now);
   const nextMatch = getNextMatch(currentUserMatches);
   const leagueNextMatch = getNextMatch(matches);
-  const shouldShowNextMatchScopeSwitch = Boolean(
-    leagueNextMatch && nextMatch && leagueNextMatch.id !== nextMatch.id,
-  );
+  const nextMatchCandidateCount = matches.filter((match) =>
+    isNextMatchCandidate(match, now),
+  ).length;
+  const lastMatchCandidateCount = matches.filter((match) =>
+    isPlayedOrPendingResult(match, now),
+  ).length;
+  const shouldShowNextMatchScopeSwitch = shouldShowScopeSwitch({
+    leagueMatch: leagueNextMatch,
+    personalMatch: nextMatch,
+    candidateCount: nextMatchCandidateCount,
+  });
   const effectiveNextMatchScope = shouldShowNextMatchScopeSwitch
     ? nextMatchScope
-    : leagueNextMatch
-      ? "league"
-      : "mine";
+    : getCollapsedScope({
+        leagueMatch: leagueNextMatch,
+        personalMatch: nextMatch,
+        candidateCount: nextMatchCandidateCount,
+      });
   const selectedNextMatch =
     effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
-  const shouldShowLastMatchScopeSwitch = Boolean(
-    leagueLastMatch &&
-      personalLastMatch &&
-      leagueLastMatch.id !== personalLastMatch.id,
-  );
+  const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
+    leagueMatch: leagueLastMatch,
+    personalMatch: personalLastMatch,
+    candidateCount: lastMatchCandidateCount,
+  });
   const effectiveLastMatchScope = shouldShowLastMatchScopeSwitch
     ? lastMatchScope
-    : leagueLastMatch
-      ? "league"
-      : "mine";
+    : getCollapsedScope({
+        leagueMatch: leagueLastMatch,
+        personalMatch: personalLastMatch,
+        candidateCount: lastMatchCandidateCount,
+      });
   const selectedLastMatch =
     effectiveLastMatchScope === "mine" ? personalLastMatch : leagueLastMatch;
   const selectedLastMatchLocation = selectedLastMatch
