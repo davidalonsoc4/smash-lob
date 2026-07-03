@@ -13,6 +13,11 @@ import {
   type ActivityEvent,
 } from "@/lib/activity"
 import {
+  getLeagueLocationScheduleText,
+  getScheduleLocationFallbackText,
+  normalizeLeagueLocation,
+} from "@/lib/leagueLocations"
+import {
   activityEventCategories,
   activityEventTypes,
   fetchLeagueActivitySettings,
@@ -132,6 +137,62 @@ function getResultSummaryFromMetadata({
   return `${setsLabel} ${parsedPointsA}-${parsedPointsB} · ${gamesLabel}: ${gamesSummary}`
 }
 
+function formatActivityScheduleDate(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) {
+    return null
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return null
+  }
+
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date)
+}
+
+function getActivityLocationText(value: unknown) {
+  if (typeof value === "string") {
+    const fallbackText = getScheduleLocationFallbackText(value)
+
+    return fallbackText && fallbackText !== "Ubicación en Maps" ? fallbackText : fallbackText
+  }
+
+  const normalizedLocation = normalizeLeagueLocation(value)
+
+  if (!normalizedLocation) {
+    return null
+  }
+
+  return getLeagueLocationScheduleText(normalizedLocation)
+}
+
+function getActivityScheduleDescription({
+  event,
+  round,
+}: {
+  event: ActivityEvent
+  round: string | null
+}) {
+  const metadata = event.metadata
+  const dateText =
+    formatActivityScheduleDate(metadata.scheduledAt) ??
+    formatActivityScheduleDate(metadata.nextScheduledAt)
+  const locationText = getActivityLocationText(
+    metadata.location ?? metadata.nextLocation
+  )
+  const parts = [round, dateText, locationText].filter(
+    (item): item is string => Boolean(item?.trim())
+  )
+
+  return parts.length > 0 ? parts.join(" · ") : null
+}
+
 function getActivityDescription({
   event,
   roundLabel,
@@ -188,6 +249,18 @@ function getActivityDescription({
 
     if (currentResult) {
       return [round, currentResult].filter(Boolean).join(" · ")
+    }
+  }
+
+  if (
+    event.type === "match_scheduled" ||
+    event.type === "match_schedule_updated" ||
+    event.type === "round_in_play"
+  ) {
+    const scheduleDescription = getActivityScheduleDescription({ event, round })
+
+    if (scheduleDescription) {
+      return scheduleDescription
     }
   }
 
