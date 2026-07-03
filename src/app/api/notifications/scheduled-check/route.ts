@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabaseServer";
 import { dispatchPushForActivityEvent } from "@/lib/serverPushDispatch";
 import {
+  getDueMatchResultReminderHours,
   isMatchInProgressWindow,
-  isMatchResultReminderDue,
+  type ResultReminderHour,
 } from "@/lib/matchLifecycle";
 import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
 
@@ -85,15 +86,18 @@ async function hasExistingRoundInPlayEvent({
 async function hasExistingResultReminderEvent({
   supabase,
   matchId,
+  reminderHour,
 }: {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
   matchId: string;
+  reminderHour: ResultReminderHour;
 }) {
   const { data, error } = await supabase
     .from("activity_events")
     .select("id")
     .eq("match_id", matchId)
     .eq("type", "match_result_missing_reminder")
+    .contains("metadata", { reminderHour })
     .limit(1);
 
   if (error) {
@@ -226,7 +230,10 @@ export async function GET(request: Request) {
 
   const activeMatches = matches.filter((match) => activeSeasonById.has(match.season_id));
   const roundCandidates = new Map<string, MatchRow>();
-  const resultReminderCandidates: MatchRow[] = [];
+  const resultReminderCandidates: {
+    match: MatchRow;
+    reminderHours: ResultReminderHour[];
+  }[] = [];
 
   activeMatches.forEach((match) => {
     if (
@@ -245,15 +252,15 @@ export async function GET(request: Request) {
       }
     }
 
-    if (
-      isMatchResultReminderDue({
-        status: match.status,
-        scheduledAt: match.scheduled_at,
-        resultRecordedAt: match.result_recorded_at,
-        now,
-      })
-    ) {
-      resultReminderCandidates.push(match);
+    const dueReminderHours = getDueMatchResultReminderHours({
+      status: match.status,
+      scheduledAt: match.scheduled_at,
+      resultRecordedAt: match.result_recorded_at,
+      now,
+    });
+
+    if (dueReminderHours.length > 0) {
+      resultReminderCandidates.push({ match, reminderHours: dueReminderHours });
     }
   });
 
@@ -290,13 +297,23 @@ export async function GET(request: Request) {
     eventIds.push(eventId);
   }
 
-  for (const match of resultReminderCandidates) {
-    const alreadySent = await hasExistingResultReminderEvent({
-      supabase,
-      matchId: match.id,
-    });
+  for (const { match, reminderHours } of resultReminderCandidates) {
+    let reminderHourToSend: ResultReminderHour | null = null;
 
-    if (alreadySent) {
+    for (const reminderHour of reminderHours) {
+      const alreadySent = await hasExistingResultReminderEvent({
+        supabase,
+        matchId: match.id,
+        reminderHour,
+      });
+
+      if (!alreadySent) {
+        reminderHourToSend = reminderHour;
+        break;
+      }
+    }
+
+    if (!reminderHourToSend) {
       continue;
     }
 
@@ -305,10 +322,10 @@ export async function GET(request: Request) {
       match,
       type: "match_result_missing_reminder",
       title: "Falta el resultado",
-      description:
-        "Han pasado 2 horas desde la hora programada y todavía no hay resultado registrado.",
+      description: `No olvides registrar el resultado de tu partido de la Jornada ${match.round}.`,
       metadata: {
         round: match.round,
+        reminderHour: reminderHourToSend,
         participantIds: getParticipantIds(match),
         scheduledAt: match.scheduled_at,
         location: match.location,

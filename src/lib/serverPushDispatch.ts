@@ -298,7 +298,11 @@ function getNotificationBody(
   }
 
   if (event.type === "match_result_missing_reminder") {
-    return "Han pasado 2 horas desde la hora programada. Registrad el resultado cuando podáis.";
+    const round = toRecord(event.metadata).round;
+
+    return typeof round === "number"
+      ? `No olvides registrar el resultado de tu partido de la Jornada ${round}.`
+      : "No olvides registrar el resultado de tu partido.";
   }
 
   const actor = event.actor_display_name || event.actor_email || "Smash & Lob";
