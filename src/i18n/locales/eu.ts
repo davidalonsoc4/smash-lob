@@ -221,6 +221,8 @@ export const eu = {
     scheduleDateLabel: "Data eta ordua",
     scheduleLocation: "Lekua",
     scheduleLocationPlaceholder: "Aukeratu lekua",
+    scheduleCourt: "Pista",
+    scheduleCourtPlaceholder: "Aukeratu pista",
     otherLocation: "Beste bat",
     customLocation: "Maps kokapena",
     customLocationPlaceholder:
@@ -442,7 +444,7 @@ export const eu = {
     description: "Konfiguratu liga aktiboaren oinarrizko datuak.",
     locationsTitle: "Ohiko lekuak",
     locationsDescription:
-      "Konfiguratu lekuak izen pertsonalizatuarekin, Maps kokapenarekin eta aukerako xehetasunarekin partidak programatzeko, nabigazioa irekitzeko eta egutegian kokapena gordetzeko.",
+      "Konfiguratu herria, Maps kokapena eta pista kopurua duten lekuak partidak programatzeko, nabigazioa irekitzeko eta kokapena egutegian gordetzeko.",
     emptyLocations:
       "Ez dago ohiko lekurik konfiguratuta. Partidak programatzean Beste bat aukera erabil daiteke.",
     addLocationTitle: "Lekua gehitu",
@@ -453,10 +455,13 @@ export const eu = {
     googleLocation: "Maps kokapena",
     googleLocationPlaceholder:
       "Adibidez: Lasesarre kiroldegia, Barakaldo edo Maps URLa",
-    address: "Xehetasuna",
-    addressPlaceholder: "Aukerakoa: 1. pista, eskuineko pista...",
+    courts: "Pistak",
+    courtsPlaceholder: "Adibidea: 4",
     duplicatedLocation: "Leku hori dagoeneko zerrendan dago.",
     addLocation: "Lekua gehitu",
+    editLocation: "Editatu",
+    saveLocation: "Gorde lekua",
+    cancelLocationEdit: "Utzi",
     removeLocation: "Kendu",
     openMaps: "Nola iritsi",
     searchMaps: "Probatu Maps-en",

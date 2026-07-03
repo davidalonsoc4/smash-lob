@@ -219,6 +219,8 @@ export const en = {
     scheduleDateLabel: "Date and time",
     scheduleLocation: "Place",
     scheduleLocationPlaceholder: "Select a place",
+    scheduleCourt: "Court",
+    scheduleCourtPlaceholder: "Select court",
     otherLocation: "Other",
     customLocation: "Maps location",
     customLocationPlaceholder:
@@ -437,7 +439,7 @@ export const en = {
     description: "Configure the active league basic details.",
     locationsTitle: "Usual places",
     locationsDescription:
-      "Configure places with a custom name, Maps location and optional detail for scheduling matches, navigation and calendar location.",
+      "Configure places with town, Maps location and court count to schedule matches, open navigation and save the location in calendar.",
     emptyLocations:
       "No usual places configured. When scheduling matches, the Other option can be used.",
     addLocationTitle: "Add place",
@@ -448,10 +450,13 @@ export const en = {
     googleLocation: "Maps location",
     googleLocationPlaceholder:
       "Example: Lasesarre Sports Centre, Barakaldo or Maps URL",
-    address: "Detail",
-    addressPlaceholder: "Optional: Court 1, right-side court...",
+    courts: "Courts",
+    courtsPlaceholder: "Example: 4",
     duplicatedLocation: "That place is already in the list.",
     addLocation: "Add place",
+    editLocation: "Edit",
+    saveLocation: "Save place",
+    cancelLocationEdit: "Cancel",
     removeLocation: "Remove",
     openMaps: "How to get there",
     searchMaps: "Test in Maps",

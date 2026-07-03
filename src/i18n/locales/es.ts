@@ -226,6 +226,8 @@ export const es = {
     scheduleDateLabel: "Fecha y hora",
     scheduleLocation: "Lugar",
     scheduleLocationPlaceholder: "Selecciona un lugar",
+    scheduleCourt: "Pista",
+    scheduleCourtPlaceholder: "Selecciona pista",
     otherLocation: "Otro",
     customLocation: "Ubicación en Maps",
     customLocationPlaceholder:
@@ -448,7 +450,7 @@ export const es = {
     description: "Configura los datos básicos de la liga activa.",
     locationsTitle: "Lugares habituales",
     locationsDescription:
-      "Configura lugares con nombre propio, ubicación en Maps y detalle opcional para programar partidos, abrir navegación y guardar la ubicación en el calendario.",
+      "Configura lugares con localidad, ubicación en Maps y número de pistas para programar partidos, abrir navegación y guardar la ubicación en el calendario.",
     emptyLocations:
       "No hay lugares habituales configurados. Al programar partidos se podrá usar la opción Otro.",
     addLocationTitle: "Añadir lugar",
@@ -459,10 +461,13 @@ export const es = {
     googleLocation: "Ubicación en Maps",
     googleLocationPlaceholder:
       "Ejemplo: Polideportivo de Lasesarre, Barakaldo o URL de Maps",
-    address: "Detalle",
-    addressPlaceholder: "Opcional: Pista 1, pista de la derecha...",
+    courts: "Pistas",
+    courtsPlaceholder: "Ejemplo: 4",
     duplicatedLocation: "Ese lugar ya está en la lista.",
     addLocation: "Añadir lugar",
+    editLocation: "Editar",
+    saveLocation: "Guardar lugar",
+    cancelLocationEdit: "Cancelar",
     removeLocation: "Quitar",
     openMaps: "Cómo llegar",
     searchMaps: "Probar en Maps",

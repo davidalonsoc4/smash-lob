@@ -24,10 +24,13 @@ type LeagueLocationsEditorProps = {
     townPlaceholder: string;
     googleLocation: string;
     googleLocationPlaceholder: string;
-    address: string;
-    addressPlaceholder: string;
+    courts: string;
+    courtsPlaceholder: string;
     duplicatedLocation: string;
     addLocation: string;
+    editLocation: string;
+    saveLocation: string;
+    cancelLocationEdit: string;
     removeLocation: string;
     openMaps: string;
     searchMaps: string;
@@ -133,6 +136,7 @@ function loadGoogleMapsPlaces() {
 function hasSameLocation(
   locations: LeagueLocation[],
   location: LeagueLocation,
+  ignoredLocationId?: string | null,
 ) {
   const newPlaceId = location.googlePlaceId?.toLowerCase();
   const newName = location.name.trim().toLowerCase();
@@ -141,6 +145,10 @@ function hasSameLocation(
   const newMapsUrl = location.googleMapsUrl?.trim().toLowerCase() ?? "";
 
   return locations.some((item) => {
+    if (ignoredLocationId && item.id === ignoredLocationId) {
+      return false;
+    }
+
     if (newPlaceId && item.googlePlaceId?.toLowerCase() === newPlaceId) {
       return true;
     }
@@ -170,6 +178,12 @@ function getPlaceLocation(place: GooglePlaceResultLike): SelectedGooglePlace {
   };
 }
 
+function getCourtCountInputValue(location: LeagueLocation) {
+  return location.courtCount && location.courtCount > 0
+    ? String(location.courtCount)
+    : "";
+}
+
 export function LeagueLocationsEditor({
   locations,
   onChange,
@@ -178,10 +192,13 @@ export function LeagueLocationsEditor({
 }: LeagueLocationsEditorProps) {
   const googleInputRef = useRef<HTMLInputElement | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(
+    null,
+  );
   const [name, setName] = useState("");
   const [townInput, setTownInput] = useState("");
   const [googleInput, setGoogleInput] = useState("");
-  const [detailInput, setDetailInput] = useState("");
+  const [courtCountInput, setCourtCountInput] = useState("");
   const [selectedGooglePlace, setSelectedGooglePlace] =
     useState<SelectedGooglePlace | null>(null);
   const [autocompleteReady, setAutocompleteReady] = useState(false);
@@ -189,8 +206,10 @@ export function LeagueLocationsEditor({
     useState(false);
   const [duplicated, setDuplicated] = useState(false);
 
+  const isFormOpen = isAdding || Boolean(editingLocationId);
+
   useEffect(() => {
-    if (!googleMapsApiKey || !googleInputRef.current || !isAdding) {
+    if (!googleMapsApiKey || !googleInputRef.current || !isFormOpen) {
       return;
     }
 
@@ -257,7 +276,7 @@ export function LeagueLocationsEditor({
     return () => {
       isMounted = false;
     };
-  }, [isAdding]);
+  }, [isFormOpen]);
 
   const sortedLocations = useMemo(
     () => sortLeagueLocationsByOptionLabel(locations),
@@ -265,7 +284,7 @@ export function LeagueLocationsEditor({
   );
   const cleanName = name.trim();
   const cleanTown = townInput.trim();
-  const cleanDetail = detailInput.trim();
+  const cleanCourtCount = courtCountInput.trim();
   const cleanSearchText = googleInput.trim();
   const typedMapsUrl = normalizeMapsUrl(cleanSearchText);
   const isTypedMapsUrl = Boolean(typedMapsUrl);
@@ -283,7 +302,8 @@ export function LeagueLocationsEditor({
         name: resolvedName,
         town: cleanTown,
         address: resolvedAddress,
-        detail: cleanDetail,
+        courtCount: cleanCourtCount ? Number.parseInt(cleanCourtCount, 10) : null,
+        selectedCourt: null,
         googlePlaceId: selectedGooglePlace?.googlePlaceId ?? null,
         googlePlaceName: selectedGooglePlace?.googlePlaceName ?? null,
         googleMapsUrl: resolvedMapsUrl,
@@ -291,7 +311,7 @@ export function LeagueLocationsEditor({
         longitude: selectedGooglePlace?.longitude ?? null,
       }),
     [
-      cleanDetail,
+      cleanCourtCount,
       cleanTown,
       resolvedAddress,
       resolvedMapsUrl,
@@ -300,15 +320,44 @@ export function LeagueLocationsEditor({
     ],
   );
 
-  const canAdd = Boolean(draftLocation) && !disabled;
+  const canSaveDraft = Boolean(draftLocation) && !disabled;
 
   function resetForm() {
     setName("");
     setTownInput("");
     setGoogleInput("");
-    setDetailInput("");
+    setCourtCountInput("");
     setSelectedGooglePlace(null);
+    setEditingLocationId(null);
     setDuplicated(false);
+  }
+
+  function startAdding() {
+    resetForm();
+    setIsAdding(true);
+  }
+
+  function startEditing(location: LeagueLocation) {
+    setIsAdding(false);
+    setEditingLocationId(location.id);
+    setName(location.name);
+    setTownInput(location.town ?? "");
+    setGoogleInput(location.address ?? location.googlePlaceName ?? location.googleMapsUrl ?? "");
+    setCourtCountInput(getCourtCountInputValue(location));
+    setSelectedGooglePlace({
+      googlePlaceId: location.googlePlaceId ?? null,
+      googlePlaceName: location.googlePlaceName ?? null,
+      address: location.address ?? null,
+      googleMapsUrl: location.googleMapsUrl ?? null,
+      latitude: location.latitude ?? null,
+      longitude: location.longitude ?? null,
+    });
+    setDuplicated(false);
+  }
+
+  function closeForm() {
+    resetForm();
+    setIsAdding(false);
   }
 
   function handleGoogleInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -323,23 +372,45 @@ export function LeagueLocationsEditor({
     }
   }
 
-  function handleAddLocation() {
+  function handleCourtCountChange(event: ChangeEvent<HTMLInputElement>) {
+    const digitsOnly = event.target.value.replace(/[^0-9]/g, "").slice(0, 2);
+
+    setCourtCountInput(digitsOnly);
+    setDuplicated(false);
+  }
+
+  function handleSaveLocation() {
     if (!draftLocation) {
       return;
     }
 
-    if (hasSameLocation(locations, draftLocation)) {
+    const locationToSave = editingLocationId
+      ? { ...draftLocation, id: editingLocationId }
+      : draftLocation;
+
+    if (hasSameLocation(locations, locationToSave, editingLocationId)) {
       setDuplicated(true);
       return;
     }
 
-    onChange([...locations, draftLocation]);
-    resetForm();
-    setIsAdding(false);
+    if (editingLocationId) {
+      onChange(
+        locations.map((location) =>
+          location.id === editingLocationId ? locationToSave : location,
+        ),
+      );
+    } else {
+      onChange([...locations, locationToSave]);
+    }
+
+    closeForm();
   }
 
   function handleRemoveLocation(locationId: string) {
     onChange(locations.filter((location) => location.id !== locationId));
+    if (editingLocationId === locationId) {
+      closeForm();
+    }
     setDuplicated(false);
   }
 
@@ -362,14 +433,24 @@ export function LeagueLocationsEditor({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleRemoveLocation(location.id)}
-                  disabled={disabled}
-                  className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 disabled:text-neutral-400"
-                >
-                  {copy.removeLocation}
-                </button>
+                <div className="flex shrink-0 items-center gap-1 rounded-full bg-neutral-100 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => startEditing(location)}
+                    disabled={disabled}
+                    className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                  >
+                    {copy.editLocation}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLocation(location.id)}
+                    disabled={disabled}
+                    className="rounded-full px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-400"
+                  >
+                    {copy.removeLocation}
+                  </button>
+                </div>
               </div>
 
               <a
@@ -391,21 +472,34 @@ export function LeagueLocationsEditor({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => {
-          setIsAdding((current) => !current);
-          setDuplicated(false);
-        }}
-        disabled={disabled}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm transition active:scale-[0.99] disabled:bg-neutral-200 disabled:text-neutral-400"
-      >
-        <span>{isAdding ? "−" : "+"}</span>
-        <span>{copy.addLocationTitle}</span>
-      </button>
+      {!isFormOpen ? (
+        <button
+          type="button"
+          onClick={startAdding}
+          disabled={disabled}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm transition active:scale-[0.99] disabled:bg-neutral-200 disabled:text-neutral-400"
+        >
+          <span>+</span>
+          <span>{copy.addLocationTitle}</span>
+        </button>
+      ) : null}
 
-      {isAdding ? (
+      {isFormOpen ? (
         <div className="rounded-xl bg-neutral-100 p-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-sm font-black text-neutral-950">
+              {editingLocationId ? copy.editLocation : copy.addLocationTitle}
+            </p>
+            <button
+              type="button"
+              onClick={closeForm}
+              disabled={disabled}
+              className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 shadow-sm disabled:text-neutral-400"
+            >
+              {copy.cancelLocationEdit}
+            </button>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
@@ -440,35 +534,35 @@ export function LeagueLocationsEditor({
             </label>
           </div>
 
-          <label className="mt-3 block">
-            <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-              {copy.googleLocation}
-            </span>
-            <input
-              ref={googleInputRef}
-              value={googleInput}
-              disabled={disabled}
-              onChange={handleGoogleInputChange}
-              placeholder={copy.googleLocationPlaceholder}
-              className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
+          <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px]">
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {copy.googleLocation}
+              </span>
+              <input
+                ref={googleInputRef}
+                value={googleInput}
+                disabled={disabled}
+                onChange={handleGoogleInputChange}
+                placeholder={copy.googleLocationPlaceholder}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
 
-          <label className="mt-3 block">
-            <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-              {copy.address}
-            </span>
-            <input
-              value={detailInput}
-              disabled={disabled}
-              onChange={(event) => {
-                setDetailInput(event.target.value);
-                setDuplicated(false);
-              }}
-              placeholder={copy.addressPlaceholder}
-              className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {copy.courts}
+              </span>
+              <input
+                value={courtCountInput}
+                disabled={disabled}
+                onChange={handleCourtCountChange}
+                inputMode="numeric"
+                placeholder={copy.courtsPlaceholder}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
+          </div>
 
           {!googleMapsApiKey && !autocompleteReady ? (
             <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
@@ -507,11 +601,11 @@ export function LeagueLocationsEditor({
 
             <button
               type="button"
-              onClick={handleAddLocation}
-              disabled={!canAdd}
+              onClick={handleSaveLocation}
+              disabled={!canSaveDraft}
               className="rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
             >
-              {copy.addLocation}
+              {editingLocationId ? copy.saveLocation : copy.addLocation}
             </button>
           </div>
         </div>

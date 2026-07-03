@@ -3,7 +3,10 @@ export type LeagueLocation = {
   name: string;
   town?: string | null;
   address?: string | null;
+  /** Legacy field from v0.7.37 and earlier. Kept only to read old data safely. */
   detail?: string | null;
+  courtCount?: number | null;
+  selectedCourt?: string | null;
   googlePlaceId?: string | null;
   googlePlaceName?: string | null;
   googleMapsUrl?: string | null;
@@ -41,6 +44,21 @@ function cleanNullableNumber(value: unknown) {
   return value;
 }
 
+function cleanNullablePositiveInteger(value: unknown) {
+  const parsedValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number.parseInt(value, 10)
+        : Number.NaN;
+
+  if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+    return null;
+  }
+
+  return Math.min(Math.floor(parsedValue), 99);
+}
+
 function createLocationId({
   name,
   town,
@@ -61,6 +79,26 @@ function createLocationId({
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function cleanSelectedCourt(value: unknown) {
+  const cleanValue = cleanNullableString(value);
+
+  if (!cleanValue) {
+    return null;
+  }
+
+  return cleanValue;
+}
+
+export function getLeagueLocationCourts(location: LeagueLocation) {
+  const courtCount = cleanNullablePositiveInteger(location.courtCount);
+
+  if (!courtCount) {
+    return [];
+  }
+
+  return Array.from({ length: courtCount }, (_, index) => `Pista ${index + 1}`);
 }
 
 export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
@@ -85,6 +123,8 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
       town: null,
       address: mapsUrl ? null : cleanValue,
       detail: null,
+      courtCount: null,
+      selectedCourt: null,
       googlePlaceId: null,
       googlePlaceName: null,
       googleMapsUrl: mapsUrl,
@@ -111,6 +151,12 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
     cleanNullableString(value.locality) ??
     cleanNullableString(value.city);
   const detail = cleanNullableString(value.detail);
+  const courtCount = cleanNullablePositiveInteger(
+    value.courtCount ?? value.courts ?? value.court_count,
+  );
+  const selectedCourt = cleanSelectedCourt(
+    value.selectedCourt ?? value.court ?? value.courtName,
+  );
   const googlePlaceId = cleanNullableString(value.googlePlaceId);
   const googlePlaceName = cleanNullableString(value.googlePlaceName);
   const googleMapsUrl =
@@ -127,6 +173,8 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
     town,
     address,
     detail,
+    courtCount,
+    selectedCourt,
     googlePlaceId,
     googlePlaceName,
     googleMapsUrl,
@@ -186,13 +234,14 @@ export function createLeagueLocation({
   name,
   town,
   address,
-  detail,
+  courtCount,
+  selectedCourt,
   googlePlaceId,
   googlePlaceName,
   googleMapsUrl,
   latitude,
   longitude,
-}: Omit<LeagueLocation, "id">): LeagueLocation | null {
+}: Omit<LeagueLocation, "id" | "detail">): LeagueLocation | null {
   const cleanName = cleanString(name);
 
   if (!cleanName) {
@@ -203,7 +252,6 @@ export function createLeagueLocation({
   const rawCleanAddress = cleanNullableString(address);
   const mapsUrlFromAddress = normalizeMapsUrl(rawCleanAddress);
   const cleanAddress = mapsUrlFromAddress ? null : rawCleanAddress;
-  const cleanDetail = cleanNullableString(detail);
   const cleanGooglePlaceId = cleanNullableString(googlePlaceId);
   const cleanGooglePlaceName = cleanNullableString(googlePlaceName);
   const cleanGoogleMapsUrl =
@@ -219,7 +267,9 @@ export function createLeagueLocation({
     name: cleanName,
     town: cleanTown,
     address: cleanAddress,
-    detail: cleanDetail,
+    detail: null,
+    courtCount: cleanNullablePositiveInteger(courtCount),
+    selectedCourt: cleanSelectedCourt(selectedCourt),
     googlePlaceId: cleanGooglePlaceId,
     googlePlaceName: cleanGooglePlaceName,
     googleMapsUrl: cleanGoogleMapsUrl,
@@ -239,8 +289,12 @@ function getLocationPlaceText(location: LeagueLocation) {
 }
 
 export function getLeagueLocationSubtitle(location: LeagueLocation) {
+  const placeText = getLocationPlaceText(location);
+  const courts = getLeagueLocationCourts(location);
+  const courtText = courts.length > 0 ? `${courts.length} pista${courts.length === 1 ? "" : "s"}` : null;
+
   return (
-    [location.detail, getLocationPlaceText(location)]
+    [placeText, courtText]
       .filter((item): item is string => Boolean(item?.trim()))
       .join(" · ") || "Ubicación manual"
   );
@@ -324,7 +378,10 @@ export function sortLeagueLocationsByOptionLabel(locations: LeagueLocation[]) {
 export function getLeagueLocationCompactText(location: LeagueLocation) {
   const normalizedLocation = normalizeLeagueLocation(location) ?? location;
 
-  return [normalizedLocation.name, normalizedLocation.detail]
+  return [
+    getLeagueLocationOptionLabel(normalizedLocation),
+    normalizedLocation.selectedCourt,
+  ]
     .filter((item): item is string => Boolean(item?.trim()))
     .join(" · ");
 }
@@ -341,7 +398,7 @@ export function getScheduleLocationFallbackText(
   const parsedLocation = parseStoredLocationObject(cleanScheduleLocation);
 
   if (parsedLocation) {
-    return getLeagueLocationLabel(parsedLocation);
+    return getLeagueLocationCompactText(parsedLocation);
   }
 
   if (normalizeMapsUrl(cleanScheduleLocation)) {
@@ -363,10 +420,9 @@ export function getLeagueLocationCalendarText(
   }
 
   const parts = [
-    resolvedLocation.name,
-    resolvedLocation.detail,
+    getLeagueLocationOptionLabel(resolvedLocation),
+    resolvedLocation.selectedCourt,
     getLocationPlaceText(resolvedLocation),
-    resolvedLocation.town,
   ].filter((item): item is string => Boolean(item?.trim()));
 
   return parts.join(" - ");
@@ -413,6 +469,20 @@ export function getScheduleLocationMapsUrl(
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanScheduleLocation)}`;
 }
 
+export function createScheduledLeagueLocationValue(
+  location: LeagueLocation,
+  selectedCourt?: string | null,
+) {
+  const normalizedLocation = normalizeLeagueLocation(location) ?? location;
+  const cleanCourt = cleanSelectedCourt(selectedCourt);
+
+  return JSON.stringify({
+    ...normalizedLocation,
+    selectedCourt: cleanCourt,
+    detail: null,
+  });
+}
+
 export function findLeagueLocationByScheduleLocation({
   locations,
   scheduleLocation,
@@ -433,7 +503,6 @@ export function findLeagueLocationByScheduleLocation({
     parsedLocation?.id,
     parsedLocation?.name,
     parsedLocation?.town,
-    parsedLocation?.detail,
     parsedLocation?.address,
     parsedLocation?.googlePlaceName,
     parsedLocation?.googleMapsUrl,
@@ -441,25 +510,29 @@ export function findLeagueLocationByScheduleLocation({
     .filter((item): item is string => Boolean(item))
     .map((item) => item.trim().toLowerCase());
 
-  return (
-    normalizedLocations.find((location) => {
-      const locationCandidates = [
-        location.id,
-        location.name,
-        location.town,
-        location.detail,
-        location.address,
-        location.googlePlaceName,
-        location.googleMapsUrl,
-      ]
-        .filter((item): item is string => Boolean(item))
-        .map((item) => item.trim().toLowerCase());
+  const matchedLocation = normalizedLocations.find((location) => {
+    const locationCandidates = [
+      location.id,
+      location.name,
+      location.town,
+      location.address,
+      location.googlePlaceName,
+      location.googleMapsUrl,
+    ]
+      .filter((item): item is string => Boolean(item))
+      .map((item) => item.trim().toLowerCase());
 
-      return locationCandidates.some((candidate) =>
-        normalizedCandidates.includes(candidate),
-      );
-    }) ??
-    parsedLocation ??
-    null
-  );
+    return locationCandidates.some((candidate) =>
+      normalizedCandidates.includes(candidate),
+    );
+  });
+
+  if (matchedLocation) {
+    return {
+      ...matchedLocation,
+      selectedCourt: parsedLocation?.selectedCourt ?? null,
+    };
+  }
+
+  return parsedLocation ?? null;
 }

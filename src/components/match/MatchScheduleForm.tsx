@@ -4,7 +4,9 @@ import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
+  createScheduledLeagueLocationValue,
   findLeagueLocationByScheduleLocation,
+  getLeagueLocationCourts,
   getLeagueLocationMapsUrl,
   getLeagueLocationOptionLabel,
   getLeagueLocationSubtitle,
@@ -78,25 +80,45 @@ export function MatchScheduleForm({
   );
   const [selectedLocation, setSelectedLocation] =
     useState(initialLocationValue);
+  const [selectedCourt, setSelectedCourt] = useState(
+    scheduledLeagueLocation?.selectedCourt ?? "",
+  );
   const [customLocation, setCustomLocation] = useState(
     hasSchedule && location && !scheduledLeagueLocation ? location : "",
   );
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const selectedLeagueLocation = normalizedAvailableLocations.find(
+    (availableLocation) => availableLocation.id === selectedLocation,
+  );
+  const selectedLocationCourts = selectedLeagueLocation
+    ? getLeagueLocationCourts(selectedLeagueLocation)
+    : [];
+  const shouldSelectCourt = selectedLocationCourts.length > 0;
+
   const finalLocation = useMemo(() => {
     if (selectedLocation === otherLocationValue) {
       return customLocation.trim();
     }
 
-    return selectedLocation.trim();
-  }, [customLocation, selectedLocation]);
+    const leagueLocation = normalizedAvailableLocations.find(
+      (availableLocation) => availableLocation.id === selectedLocation,
+    );
+
+    if (!leagueLocation) {
+      return selectedLocation.trim();
+    }
+
+    return createScheduledLeagueLocationValue(leagueLocation, selectedCourt);
+  }, [customLocation, normalizedAvailableLocations, selectedCourt, selectedLocation]);
 
   const canSave =
     canManage &&
     !isSaving &&
     scheduledAtValue.trim().length > 0 &&
-    finalLocation.length > 0;
+    finalLocation.length > 0 &&
+    (!shouldSelectCourt || selectedCourt.trim().length > 0);
   const canPostpone = canManage && !isSaving && !isFinished && !isPostponed;
 
   const isOutsideRoundWindow =
@@ -108,14 +130,28 @@ export function MatchScheduleForm({
     });
 
   const displayedLocationName = scheduledLeagueLocation
-    ? scheduledLeagueLocation.name
+    ? getLeagueLocationOptionLabel(scheduledLeagueLocation)
     : getScheduleLocationFallbackText(location);
   const displayedLocationSubtitle = scheduledLeagueLocation
-    ? getLeagueLocationSubtitle(scheduledLeagueLocation)
+    ? [scheduledLeagueLocation.selectedCourt, getLeagueLocationSubtitle(scheduledLeagueLocation)]
+        .filter((item): item is string => Boolean(item?.trim()))
+        .join(" · ")
     : null;
   const directionsUrl = scheduledLeagueLocation
     ? getLeagueLocationMapsUrl(scheduledLeagueLocation)
     : getScheduleLocationMapsUrl(location);
+
+  function handleLocationChange(value: string) {
+    setSelectedLocation(value);
+    setActionError(null);
+
+    const nextLocation = normalizedAvailableLocations.find(
+      (availableLocation) => availableLocation.id === value,
+    );
+    const nextCourts = nextLocation ? getLeagueLocationCourts(nextLocation) : [];
+
+    setSelectedCourt(nextCourts.length === 1 ? nextCourts[0] : "");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -151,6 +187,7 @@ export function MatchScheduleForm({
 
     setScheduledAtValue(hasSchedule ? (scheduledAt ?? "") : "");
     setSelectedLocation(initialLocationValue);
+    setSelectedCourt(scheduledLeagueLocation?.selectedCourt ?? "");
     setCustomLocation(
       hasSchedule && location && !scheduledLeagueLocation ? location : "",
     );
@@ -179,6 +216,7 @@ export function MatchScheduleForm({
 
     setScheduledAtValue("");
     setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
+    setSelectedCourt("");
     setCustomLocation("");
     setIsEditing(false);
   }
@@ -350,7 +388,7 @@ export function MatchScheduleForm({
 
                 <select
                   value={selectedLocation}
-                  onChange={(event) => setSelectedLocation(event.target.value)}
+                  onChange={(event) => handleLocationChange(event.target.value)}
                   disabled={isSaving}
                   className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
                 >
@@ -374,6 +412,28 @@ export function MatchScheduleForm({
               </label>
             ) : null}
           </div>
+
+          {shouldSelectCourt ? (
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {t.matchDetail.scheduleCourt}
+              </span>
+
+              <select
+                value={selectedCourt}
+                onChange={(event) => setSelectedCourt(event.target.value)}
+                disabled={isSaving}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              >
+                <option value="">{t.matchDetail.scheduleCourtPlaceholder}</option>
+                {selectedLocationCourts.map((court) => (
+                  <option key={court} value={court}>
+                    {court}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
           {selectedLocation === otherLocationValue ? (
             <label className="block">
