@@ -170,6 +170,19 @@ export default function NotificationSettingsPage() {
     await savePreferences(defaultNotificationPreferences)
   }
 
+  async function disableAll() {
+    const disabledPreferences = notificationPreferenceDefinitions.reduce(
+      (nextPreferences, definition) => {
+        nextPreferences[definition.key] = false
+        return nextPreferences
+      },
+      {} as NotificationPreferences
+    )
+
+    setPreferences(disabledPreferences)
+    await savePreferences(disabledPreferences)
+  }
+
   async function enablePushOnThisDevice() {
     if (!canRequestPush || isSaving) {
       return
@@ -316,8 +329,8 @@ export default function NotificationSettingsPage() {
       </AppCard>
 
       <AppCard className="p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-sm font-black text-neutral-950">
               Tipos de aviso
             </p>
@@ -326,14 +339,24 @@ export default function NotificationSettingsPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={enableAll}
-            disabled={isSaving}
-            className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300"
-          >
-            Activar todo
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={disableAll}
+              disabled={isLoading || isSaving}
+              className="rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-300"
+            >
+              Desactivar todo
+            </button>
+            <button
+              type="button"
+              onClick={enableAll}
+              disabled={isLoading || isSaving}
+              className="rounded-xl bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
+            >
+              Activar todo
+            </button>
+          </div>
         </div>
 
         <div className="mt-3 space-y-2">
