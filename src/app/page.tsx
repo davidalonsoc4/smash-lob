@@ -1,72 +1,72 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { LeagueLogo } from "@/components/league/LeagueLogo";
-import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
-import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
-import { PlayerAvatar } from "@/components/player/PlayerAvatar";
-import { TeamPlayers } from "@/components/player/TeamPlayers";
-import { AppCard } from "@/components/ui/AppCard";
-import { ClickableChevron } from "@/components/ui/ClickableChevron";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { StatCard } from "@/components/ui/StatCard";
-import { useCurrentUser } from "@/context/CurrentUserProvider";
-import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
-import { useLeagueAccess } from "@/context/LeagueAccessProvider";
-import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
-import { useI18n } from "@/i18n/I18nProvider";
+import Link from "next/link"
+import { useSession } from "next-auth/react"
+import { useState } from "react"
+import { LeagueLogo } from "@/components/league/LeagueLogo"
+import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
+import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { TeamPlayers } from "@/components/player/TeamPlayers"
+import { AppCard } from "@/components/ui/AppCard"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
+import { SectionHeader } from "@/components/ui/SectionHeader"
+import { StatCard } from "@/components/ui/StatCard"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
+import { useI18n } from "@/i18n/I18nProvider"
 import {
   getRoundMvpPlayerIds,
   getSeasonMvpSelection,
   getPlayersByIds,
-} from "@/lib/mvp";
-import { recordActivityEvent } from "@/lib/activity";
+} from "@/lib/mvp"
+import { recordActivityEvent } from "@/lib/activity"
 import {
   findLeagueLocationByScheduleLocation,
-  getLeagueLocationCompactText,
   getScheduleLocationFallbackText,
-} from "@/lib/leagueLocations";
-import { getLastMatch, getNextMatch } from "@/lib/leagues";
-import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons";
+} from "@/lib/leagueLocations"
+import { getLastMatch, getNextMatch } from "@/lib/leagues"
+import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons"
+
 
 const supabaseUuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function isSupabaseBackedId(id: string) {
-  return supabaseUuidPattern.test(id);
+  return supabaseUuidPattern.test(id)
 }
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   return {
     actorEmail: session?.user?.email ?? "system@smash-lob.local",
     actorDisplayName: session?.user?.name ?? null,
-  };
+  }
 }
 
 type AwardPlayer = {
-  id: string;
-  slug?: string;
-  displayName: string;
-  avatarInitials?: string | null;
-  avatarUrl?: string | null;
-};
+  id: string
+  slug?: string
+  displayName: string
+  avatarInitials?: string | null
+  avatarUrl?: string | null
+}
 
 type DashboardPlayer = AwardPlayer & {
-  points: number;
-  gamesDiff: number;
-  gamesFor: number;
-  matchesPlayed: number;
-  wins: number;
-};
+  points: number
+  gamesDiff: number
+  gamesFor: number
+  matchesPlayed: number
+  wins: number
+}
 
 function formatWinPercentage(player: DashboardPlayer) {
   if (player.matchesPlayed === 0) {
-    return "0%";
+    return "0%"
   }
 
-  return `${Math.round((player.wins / player.matchesPlayed) * 100)}%`;
+  return `${Math.round((player.wins / player.matchesPlayed) * 100)}%`
 }
 
 function PlayerAwardCard({
@@ -79,20 +79,20 @@ function PlayerAwardCard({
   inlineStatHref,
   cardHref,
 }: {
-  eyebrow?: string;
-  title: string;
-  players: AwardPlayer[];
-  badge: string;
-  stats?: { label: string; value: string | number }[];
-  inlineStat?: { label: string; value: string | number };
-  inlineStatHref?: string;
-  cardHref?: string;
+  eyebrow?: string
+  title: string
+  players: AwardPlayer[]
+  badge: string
+  stats?: { label: string; value: string | number }[]
+  inlineStat?: { label: string; value: string | number }
+  inlineStatHref?: string
+  cardHref?: string
 }) {
-  const firstPlayer = players[0];
-  const isWholeCardClickable = Boolean(cardHref);
+  const firstPlayer = players[0]
+  const isWholeCardClickable = Boolean(cardHref)
 
   if (!firstPlayer) {
-    return null;
+    return null
   }
 
   const cardContent = (
@@ -109,9 +109,7 @@ function PlayerAwardCard({
                 {eyebrow}
               </p>
             ) : null}
-            <h2
-              className={`${eyebrow ? "mt-1" : ""} text-lg font-black tracking-tight`}
-            >
+            <h2 className={`${eyebrow ? "mt-1" : ""} text-lg font-black tracking-tight`}>
               {title}
             </h2>
           </div>
@@ -142,7 +140,7 @@ function PlayerAwardCard({
                   size="lg"
                   className="border-2 border-white bg-neutral-950 text-white"
                 />
-              );
+              )
 
               return isWholeCardClickable ? (
                 <div key={player.id} className="rounded-full">
@@ -157,7 +155,7 @@ function PlayerAwardCard({
                 >
                   {avatar}
                 </Link>
-              );
+              )
             })}
           </div>
 
@@ -210,10 +208,7 @@ function PlayerAwardCard({
         {stats && stats.length > 0 ? (
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-xl bg-neutral-100 px-2 py-2.5"
-              >
+              <div key={stat.label} className="rounded-xl bg-neutral-100 px-2 py-2.5">
                 <p className="text-lg font-black text-neutral-950">
                   {stat.value}
                 </p>
@@ -226,52 +221,56 @@ function PlayerAwardCard({
         ) : null}
       </div>
     </AppCard>
-  );
+  )
 
   if (cardHref) {
     return (
       <Link href={cardHref} className="block">
         {cardContent}
       </Link>
-    );
+    )
   }
 
-  return cardContent;
+  return cardContent
 }
 
-export default function Home() {
-  const { t } = useI18n();
-  const { data: session } = useSession();
-  const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings();
-  const [isStartingSeason, setIsStartingSeason] = useState(false);
-  const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
-  const { currentUserId } = useCurrentUser();
-  const { isLeagueAdmin } = useLeagueAccess();
-  const { activeLeague, activeSeason, players, matches, rounds } =
-    useCurrentLeagueData();
 
-  const canManageSeason = isLeagueAdmin(activeLeague.id);
-  const isSeasonClosed = activeSeason.status === "finished";
-  const isSeasonUpcoming = activeSeason.status === "upcoming";
+export default function Home() {
+  const { t } = useI18n()
+  const { data: session } = useSession()
+  const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings()
+  const [isStartingSeason, setIsStartingSeason] = useState(false)
+  const [startSeasonError, setStartSeasonError] = useState<string | null>(null)
+  const { currentUserId } = useCurrentUser()
+  const { isLeagueAdmin } = useLeagueAccess()
+  const {
+    activeLeague,
+    activeSeason,
+    players,
+    matches,
+    rounds,
+  } = useCurrentLeagueData()
+
+  const canManageSeason = isLeagueAdmin(activeLeague.id)
+  const isSeasonClosed = activeSeason.status === "finished"
+  const isSeasonUpcoming = activeSeason.status === "upcoming"
   const currentUserMatches = matches.filter(
-    (match) =>
-      match.teamA.includes(currentUserId) ||
-      match.teamB.includes(currentUserId),
-  );
-  const lastMatch = getLastMatch(currentUserMatches);
-  const nextMatch = getNextMatch(currentUserMatches);
+    (match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
+  )
+  const lastMatch = getLastMatch(currentUserMatches)
+  const nextMatch = getNextMatch(currentUserMatches)
   const lastMatchLocation = lastMatch
     ? findLeagueLocationByScheduleLocation({
         locations: activeLeague.locations,
         scheduleLocation: lastMatch.location,
       })
-    : null;
+    : null
   const nextMatchLocation = nextMatch
     ? findLeagueLocationByScheduleLocation({
         locations: activeLeague.locations,
         scheduleLocation: nextMatch.location,
       })
-    : null;
+    : null
   const lastMatchHighlightedPlayerIds = lastMatch
     ? getRoundMvpPlayerIds({
         leagueId: activeLeague.id,
@@ -279,7 +278,7 @@ export default function Home() {
         round: lastMatch.round,
         matches,
       })
-    : [];
+    : []
   const nextMatchHighlightedPlayerIds = nextMatch
     ? getRoundMvpPlayerIds({
         leagueId: activeLeague.id,
@@ -287,76 +286,76 @@ export default function Home() {
         round: nextMatch.round,
         matches,
       })
-    : [];
+    : []
 
   const rankingPlayers = [...players].sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
-    if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff;
-    return b.gamesFor - a.gamesFor;
-  });
+    if (b.points !== a.points) return b.points - a.points
+    if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff
+    return b.gamesFor - a.gamesFor
+  })
 
-  const leader = rankingPlayers[0];
+  const leader = rankingPlayers[0]
   const currentUserRankingIndex = rankingPlayers.findIndex(
-    (player) => player.id === currentUserId,
-  );
+    (player) => player.id === currentUserId
+  )
   const rankingPreviewStart =
     currentUserRankingIndex <= 0
       ? 0
       : currentUserRankingIndex >= rankingPlayers.length - 1
         ? Math.max(0, rankingPlayers.length - 3)
-        : currentUserRankingIndex - 1;
+        : currentUserRankingIndex - 1
   const rankingPreviewPlayers =
     currentUserRankingIndex === -1
       ? rankingPlayers.slice(0, 3)
-      : rankingPlayers.slice(rankingPreviewStart, rankingPreviewStart + 3);
+      : rankingPlayers.slice(rankingPreviewStart, rankingPreviewStart + 3)
   const seasonMvp = isSeasonClosed
     ? getSeasonMvpSelection({
         leagueId: activeLeague.id,
         seasonId: activeSeason.id,
         matches,
       })
-    : null;
-  const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? []);
+    : null
+  const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
   const hasMeaningfulResults = rankingPlayers.some(
     (player) =>
       player.points > 0 ||
       player.gamesFor > 0 ||
       player.gamesDiff !== 0 ||
-      player.matchesPlayed > 0,
-  );
-  const activeRound = rounds.find((round) => round.status === "active");
-  const nextRound = rounds.find((round) => round.status === "upcoming");
-  const dashboardRound = activeRound ?? nextRound ?? null;
+      player.matchesPlayed > 0
+  )
+  const activeRound = rounds.find((round) => round.status === "active")
+  const nextRound = rounds.find((round) => round.status === "upcoming")
+  const dashboardRound = activeRound ?? nextRound ?? null
 
   async function handleStartUpcomingSeason() {
     if (isStartingSeason || !isSeasonUpcoming || !canManageSeason) {
-      return;
+      return
     }
 
     const confirmed = window.confirm(
-      "¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados.",
-    );
+      "¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados."
+    )
 
     if (!confirmed) {
-      return;
+      return
     }
 
-    setIsStartingSeason(true);
-    setStartSeasonError(null);
+    setIsStartingSeason(true)
+    setStartSeasonError(null)
 
     if (isSupabaseBackedId(activeSeason.id)) {
       try {
         const snapshot = await startSupabaseExistingSeason({
           leagueId: activeLeague.id,
           seasonId: activeSeason.id,
-        });
+        })
 
-        hydrateSeasonSnapshot(snapshot);
+        hydrateSeasonSnapshot(snapshot)
       } catch (supabaseError) {
         const details =
           typeof supabaseError === "object" && supabaseError !== null
             ? supabaseError
-            : { message: String(supabaseError) };
+            : { message: String(supabaseError) }
 
         window.localStorage.setItem(
           "smash-lob-last-supabase-error",
@@ -364,17 +363,17 @@ export default function Home() {
             action: "start-upcoming-season-home",
             ...details,
             createdAt: new Date().toISOString(),
-          }),
-        );
+          })
+        )
         setStartSeasonError(
-          "No se ha podido comenzar la temporada en Supabase. Revisa smash-lob-last-supabase-error.",
-        );
-        setIsStartingSeason(false);
-        return;
+          "No se ha podido comenzar la temporada en Supabase. Revisa smash-lob-last-supabase-error."
+        )
+        setIsStartingSeason(false)
+        return
       }
     }
 
-    startSeason(activeLeague.id, activeSeason.id);
+    startSeason(activeLeague.id, activeSeason.id)
 
     try {
       await recordActivityEvent({
@@ -384,12 +383,12 @@ export default function Home() {
         type: "season_created",
         title: "Temporada comenzada",
         description: "La temporada ha pasado de próximamente a activa.",
-      });
+      })
     } catch {
       // La temporada ya ha comenzado; la actividad es auxiliar.
     }
 
-    setIsStartingSeason(false);
+    setIsStartingSeason(false)
   }
 
   return (
@@ -421,8 +420,7 @@ export default function Home() {
             {activeSeason.name} está creada, pero todavía no ha comenzado.
           </p>
           <p className="mt-2 text-sm text-neutral-500">
-            Mientras esté en este estado no se pueden programar partidos ni
-            registrar resultados.
+            Mientras esté en este estado no se pueden programar partidos ni registrar resultados.
           </p>
 
           {canManageSeason ? (
@@ -452,7 +450,7 @@ export default function Home() {
             <PlayerAwardCard
               title={t.dashboard.seasonWinner.replace(
                 "{seasonName}",
-                activeSeason.name,
+                activeSeason.name
               )}
               players={[leader]}
               badge="1º"
@@ -492,9 +490,7 @@ export default function Home() {
           </div>
         ) : (
           <AppCard>
-            <p className="font-bold text-neutral-950">
-              {t.dashboard.closedSeasonTitle}
-            </p>
+            <p className="font-bold text-neutral-950">{t.dashboard.closedSeasonTitle}</p>
             {canManageSeason ? (
               <Link
                 href="/admin/season"
@@ -577,7 +573,8 @@ export default function Home() {
                     <div>
                       <p className="font-semibold">{player.displayName}</p>
                       <p className="text-xs text-neutral-500">
-                        {t.ranking.gamesDiff}: {player.gamesDiff > 0 ? "+" : ""}
+                        {t.ranking.gamesDiff}:{" "}
+                        {player.gamesDiff > 0 ? "+" : ""}
                         {player.gamesDiff}
                       </p>
                     </div>
@@ -617,9 +614,7 @@ export default function Home() {
                     highlightedPlayerIds={lastMatchHighlightedPlayerIds}
                     className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                   />
-                  <p className="min-w-6 text-right text-lg font-black">
-                    {lastMatch.pointsA}
-                  </p>
+                  <p className="min-w-6 text-right text-lg font-black">{lastMatch.pointsA}</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -629,9 +624,7 @@ export default function Home() {
                     highlightedPlayerIds={lastMatchHighlightedPlayerIds}
                     className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                   />
-                  <p className="min-w-6 text-right text-lg font-black">
-                    {lastMatch.pointsB}
-                  </p>
+                  <p className="min-w-6 text-right text-lg font-black">{lastMatch.pointsB}</p>
                 </div>
               </div>
 
@@ -647,10 +640,7 @@ export default function Home() {
               </div>
 
               <p className="mt-1.5 truncate pr-11 text-[11px] font-semibold text-neutral-500">
-                {lastMatch.dateLabel} ·{" "}
-                {lastMatchLocation
-                  ? getLeagueLocationCompactText(lastMatchLocation)
-                  : getScheduleLocationFallbackText(lastMatch.location)}
+                {lastMatch.dateLabel} · {lastMatchLocation?.name ?? getScheduleLocationFallbackText(lastMatch.location)}
               </p>
             </AppCard>
           </Link>
@@ -680,9 +670,7 @@ export default function Home() {
                   highlightedPlayerIds={nextMatchHighlightedPlayerIds}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
-                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                  {t.common.versus}
-                </p>
+                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">{t.common.versus}</p>
                 <TeamPlayers
                   playerIds={nextMatch.teamB}
                   players={players}
@@ -700,12 +688,11 @@ export default function Home() {
                 </p>
 
                 <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                  {nextMatchLocation
-                    ? getLeagueLocationCompactText(nextMatchLocation)
-                    : (getScheduleLocationFallbackText(nextMatch.location) ??
-                      (nextMatch.status === "postponed"
-                        ? t.matches.needsReschedule
-                        : t.dashboard.playersCanSchedule))}
+                  {nextMatchLocation?.name ??
+                    getScheduleLocationFallbackText(nextMatch.location) ??
+                    (nextMatch.status === "postponed"
+                      ? t.matches.needsReschedule
+                      : t.dashboard.playersCanSchedule)}
                 </p>
               </div>
             </AppCard>
@@ -713,5 +700,5 @@ export default function Home() {
         </section>
       ) : null}
     </div>
-  );
+  )
 }
