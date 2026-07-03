@@ -50,25 +50,14 @@ function getInitialReservationInputs({
 function getInitialSelectedPayerIds({
   participantIds,
   reservations,
-  currentUserId,
 }: {
   participantIds: string[]
   reservations: CourtBookingReservation[]
   currentUserId: string
 }) {
-  const reservedBy = reservations
+  return reservations
     .map((reservation) => reservation.playerId)
     .filter((playerId) => participantIds.includes(playerId))
-
-  if (reservedBy.length > 0) {
-    return reservedBy
-  }
-
-  if (participantIds.includes(currentUserId)) {
-    return [currentUserId]
-  }
-
-  return participantIds.slice(0, 1)
 }
 
 function parseAmount(value: string) {
@@ -181,6 +170,9 @@ export function CourtBookingPanel({
     (transfer) => !transfer.isPaid
   ).length
   const payerSummary = getPayerSummary(selectedPayerIds, players)
+  const hasMultipleSelectedPayers = selectedReservationInputs.length > 1
+  const singleReservationInput =
+    selectedReservationInputs.length === 1 ? selectedReservationInputs[0] : null
 
   function updateReservationAmount(playerId: string, amount: string) {
     setReservationInputs((currentInputs) =>
@@ -199,9 +191,7 @@ export function CourtBookingPanel({
   function togglePayer(playerId: string) {
     setSelectedPayerIds((currentIds) => {
       if (currentIds.includes(playerId)) {
-        return currentIds.length === 1
-          ? currentIds
-          : currentIds.filter((currentId) => currentId !== playerId)
+        return currentIds.filter((currentId) => currentId !== playerId)
       }
 
       return [...currentIds, playerId]
@@ -478,80 +468,151 @@ export function CourtBookingPanel({
 
       {isExpanded && isEditing && canManage ? (
         <form onSubmit={handleSubmit} className="mt-2 space-y-2">
-          <div className="rounded-xl border border-neutral-200 bg-white p-2 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setIsPayerSelectorOpen((currentValue) => !currentValue)}
-              className="flex w-full items-center justify-between gap-2 text-left"
-            >
-              <span className="min-w-0">
-                <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                  Pagó la reserva
-                </span>
-                <span className="block truncate text-sm font-black text-neutral-950">
-                  {payerSummary}
-                </span>
-              </span>
-              <span className="inline-flex h-7 shrink-0 items-center rounded-lg bg-neutral-100 px-2.5 text-[11px] font-black text-neutral-700">
-                Cambiar
-              </span>
-            </button>
+          {!hasMultipleSelectedPayers ? (
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPayerSelectorOpen((currentValue) => !currentValue)}
+                  className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-left shadow-sm"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                      Pagó la reserva
+                    </span>
+                    <span className="block truncate text-sm font-black text-neutral-950">
+                      {payerSummary}
+                    </span>
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-sm font-black text-neutral-400">
+                    {isPayerSelectorOpen ? "⌃" : "⌄"}
+                  </span>
+                </button>
 
-            {isPayerSelectorOpen ? (
-              <div className="mt-2 grid grid-cols-2 gap-1.5">
-                {participantIds.map((playerId) => {
-                  const isSelected = selectedPayerIds.includes(playerId)
-
-                  return (
-                    <button
-                      key={playerId}
-                      type="button"
-                      onClick={() => togglePayer(playerId)}
-                      disabled={isSaving}
-                      className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
-                        isSelected
-                          ? "border-neutral-950 bg-neutral-950 text-white"
-                          : "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
-                      } disabled:opacity-60`}
-                    >
-                      <span className="block truncate">{getPlayerName(playerId, players)}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="space-y-1.5">
-            {selectedReservationInputs.map((input) => (
-              <label
-                key={input.playerId}
-                className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-2.5 py-2 shadow-sm"
-              >
-                <span className="min-w-0 truncate text-sm font-black text-neutral-800">
-                  {getPlayerName(input.playerId, players)}
-                </span>
-                <div className="flex w-28 shrink-0 items-center gap-1.5 rounded-lg bg-neutral-100 px-2 py-1.5">
+                <label className="flex min-w-0 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-2.5 py-2 shadow-sm">
                   <input
                     inputMode="decimal"
-                    value={input.amount}
-                    disabled={isSaving}
-                    onChange={(event) =>
-                      updateReservationAmount(input.playerId, event.target.value)
-                    }
+                    value={singleReservationInput?.amount ?? ""}
+                    disabled={isSaving || !singleReservationInput}
+                    onChange={(event) => {
+                      if (!singleReservationInput) {
+                        return
+                      }
+
+                      updateReservationAmount(
+                        singleReservationInput.playerId,
+                        event.target.value
+                      )
+                    }}
                     placeholder="0,00"
-                    className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-400"
+                    className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-300"
                   />
                   <span className="text-xs font-black text-neutral-500">€</span>
-                </div>
-              </label>
-            ))}
-          </div>
+                </label>
+              </div>
 
-          <div className="flex items-center justify-between gap-2 rounded-xl bg-neutral-100 px-2.5 py-2 text-sm">
-            <p className="font-bold text-neutral-700">Total informado</p>
-            <p className="font-black text-neutral-950">{formatMoney(totalAmount)}</p>
-          </div>
+              {isPayerSelectorOpen ? (
+                <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-neutral-200 bg-white p-2 shadow-sm">
+                  {participantIds.map((playerId) => {
+                    const isSelected = selectedPayerIds.includes(playerId)
+
+                    return (
+                      <button
+                        key={playerId}
+                        type="button"
+                        onClick={() => togglePayer(playerId)}
+                        disabled={isSaving}
+                        className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
+                          isSelected
+                            ? "border-neutral-950 bg-neutral-950 text-white"
+                            : "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
+                        } disabled:opacity-60`}
+                      >
+                        <span className="block truncate">{getPlayerName(playerId, players)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl border border-neutral-200 bg-white p-2 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setIsPayerSelectorOpen((currentValue) => !currentValue)}
+                  className="flex w-full items-center justify-between gap-2 text-left"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                      Pagaron la reserva
+                    </span>
+                    <span className="block truncate text-sm font-black text-neutral-950">
+                      {payerSummary}
+                    </span>
+                  </span>
+                  <span className="inline-flex h-7 shrink-0 items-center rounded-lg bg-neutral-100 px-2.5 text-[11px] font-black text-neutral-700">
+                    Cambiar
+                  </span>
+                </button>
+
+                {isPayerSelectorOpen ? (
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    {participantIds.map((playerId) => {
+                      const isSelected = selectedPayerIds.includes(playerId)
+
+                      return (
+                        <button
+                          key={playerId}
+                          type="button"
+                          onClick={() => togglePayer(playerId)}
+                          disabled={isSaving}
+                          className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
+                            isSelected
+                              ? "border-neutral-950 bg-neutral-950 text-white"
+                              : "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
+                          } disabled:opacity-60`}
+                        >
+                          <span className="block truncate">{getPlayerName(playerId, players)}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="space-y-1.5">
+                {selectedReservationInputs.map((input) => (
+                  <label
+                    key={input.playerId}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-2.5 py-2 shadow-sm"
+                  >
+                    <span className="min-w-0 truncate text-sm font-black text-neutral-800">
+                      {getPlayerName(input.playerId, players)}
+                    </span>
+                    <div className="flex w-28 shrink-0 items-center gap-1.5 rounded-lg bg-neutral-100 px-2 py-1.5">
+                      <input
+                        inputMode="decimal"
+                        value={input.amount}
+                        disabled={isSaving}
+                        onChange={(event) =>
+                          updateReservationAmount(input.playerId, event.target.value)
+                        }
+                        placeholder="0,00"
+                        className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-400"
+                      />
+                      <span className="text-xs font-black text-neutral-500">€</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between gap-2 rounded-xl bg-neutral-100 px-2.5 py-2 text-sm">
+                <p className="font-bold text-neutral-700">Total informado</p>
+                <p className="font-black text-neutral-950">{formatMoney(totalAmount)}</p>
+              </div>
+            </>
+          )}
 
           {error ? (
             <p className="rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">

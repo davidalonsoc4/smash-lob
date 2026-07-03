@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { getTeamDisplayName } from "@/lib/players"
 import type { PlayerProfile } from "@/data/fakeData"
 
@@ -136,7 +136,6 @@ function getCalendarData({
 }
 
 export function AddToCalendarButton(props: AddToCalendarButtonProps) {
-  const [isOpen, setIsOpen] = useState(false)
   const calendarData = useMemo(() => getCalendarData(props), [props])
 
   if (!calendarData) {
@@ -145,36 +144,13 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
 
   return (
     <div className={props.className ?? "mt-2"}>
-      <button
-        type="button"
-        onClick={() => setIsOpen((currentValue) => !currentValue)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-black text-neutral-800 transition active:scale-[0.99]"
+      <a
+        href={calendarData.icsUrl}
+        download={calendarData.fileName}
+        className="block w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
       >
-        <span>Añadir al calendario</span>
-        <span aria-hidden="true" className="text-sm leading-none">
-          {isOpen ? "−" : "+"}
-        </span>
-      </button>
-
-      {isOpen ? (
-        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <a
-            href={calendarData.googleUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
-          >
-            Google
-          </a>
-          <a
-            href={calendarData.icsUrl}
-            download={calendarData.fileName}
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
-          >
-            Móvil / iCal
-          </a>
-        </div>
-      ) : null}
+        Añadir al calendario
+      </a>
     </div>
   )
 }
