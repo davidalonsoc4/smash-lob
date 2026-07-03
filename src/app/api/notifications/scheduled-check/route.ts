@@ -142,7 +142,42 @@ async function createActivityEvent({
   return (data as ActivityInsertResult).id;
 }
 
-export async function GET() {
+function getProvidedCronSecret(request: Request) {
+  const authorization = request.headers.get("authorization")?.trim() ?? "";
+  const bearerPrefix = "Bearer ";
+
+  if (authorization.startsWith(bearerPrefix)) {
+    return authorization.slice(bearerPrefix.length).trim();
+  }
+
+  const headerSecret = request.headers.get("x-cron-secret")?.trim();
+
+  if (headerSecret) {
+    return headerSecret;
+  }
+
+  const url = new URL(request.url);
+  return url.searchParams.get("secret")?.trim() ?? "";
+}
+
+function isAuthorizedCronRequest(request: Request) {
+  const expectedSecret = process.env.CRON_SECRET?.trim();
+
+  if (!expectedSecret) {
+    return true;
+  }
+
+  return getProvidedCronSecret(request) === expectedSecret;
+}
+
+export async function GET(request: Request) {
+  if (!isAuthorizedCronRequest(request)) {
+    return NextResponse.json(
+      { ok: false, reason: "invalid_cron_secret" },
+      { status: 401 },
+    );
+  }
+
   const supabase = createSupabaseServiceClient();
 
   if (!supabase) {
