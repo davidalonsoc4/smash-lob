@@ -1075,7 +1075,7 @@ function StartSeasonPanel({
         leagueId: activeLeagueId,
         seasonId: activeSeasonId,
         ...getActorFromSession(session),
-        type: "season_created",
+        type: "season_started",
         title: "Temporada comenzada",
         description: "La temporada ha pasado de próximamente a activa.",
       });
@@ -1167,7 +1167,7 @@ function ReopenSeasonPanel({
         leagueId: activeLeagueId,
         seasonId: activeSeasonId,
         ...getActorFromSession(session),
-        type: "season_created",
+        type: "season_started",
         title: "Temporada reabierta",
         description:
           "La temporada se ha reabierto manualmente para corregir partidos o resultados.",

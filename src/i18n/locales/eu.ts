@@ -665,6 +665,7 @@ export const eu = {
       league_locations_updated: "Liga",
       league_invite_regenerated: "Gonbidapena",
       season_finished: "Denboraldia",
+      season_started: 'Denboraldia',
       season_created: "Denboraldia",
       player_name_updated: "Jokalaria",
       player_avatar_updated: "Jokalaria",

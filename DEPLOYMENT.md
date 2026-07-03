@@ -80,3 +80,36 @@ set is_superuser = true,
 ```
 
 El código también evita degradar a `false` un usuario que ya tenga `is_superuser = true` en Supabase.
+
+## Notificaciones push
+
+Para activar las notificaciones push añadidas en la `v0.7.45`:
+
+1. Ejecuta en Supabase el script:
+
+```txt
+supabase/v0.7.45_push_notifications.sql
+```
+
+2. Instala dependencias después de copiar los archivos:
+
+```bash
+npm install
+```
+
+3. Genera claves VAPID:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+4. Añade en local y Vercel:
+
+```env
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:tu-email@example.com
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+En iPhone/iPad, las notificaciones web necesitan usar la app como PWA instalada en la pantalla de inicio. En Android funciona desde navegador/PWA compatible con Push API.

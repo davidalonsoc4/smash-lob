@@ -660,6 +660,7 @@ export const en = {
       league_locations_updated: "League",
       league_invite_regenerated: "Invitation",
       season_finished: "Season",
+      season_started: 'Season',
       season_created: "Season",
       player_name_updated: "Player",
       player_avatar_updated: "Player",

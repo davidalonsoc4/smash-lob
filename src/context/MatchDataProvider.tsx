@@ -992,6 +992,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           ),
           metadata: {
             transferId,
+            paidTransfer: paidTransfer ?? null,
           },
         })
 

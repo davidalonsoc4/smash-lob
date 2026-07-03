@@ -222,6 +222,22 @@ export default function SettingsPage() {
       </AppCard>
 
 
+      <Link href="/settings/notifications" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Notificaciones</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Activa push y elige qué avisos quieres recibir en este dispositivo.
+              </p>
+            </div>
+
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
+
       <Link href="/help" className="block">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">

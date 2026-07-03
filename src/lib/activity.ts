@@ -19,6 +19,7 @@ export type ActivityEventType =
   | "league_invite_regenerated"
   | "season_finished"
   | "season_created"
+  | "season_started"
   | "player_name_updated"
   | "player_avatar_updated"
   | "player_role_updated"
@@ -72,6 +73,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "league_invite_regenerated" ||
     type === "season_finished" ||
     type === "season_created" ||
+    type === "season_started" ||
     type === "player_name_updated" ||
     type === "player_avatar_updated" ||
     type === "player_role_updated" ||
@@ -137,6 +139,22 @@ function applyLeagueActorProfile(
     actorAvatarUrl: profile.avatarUrl,
     actorAvatarInitials: profile.avatarInitials,
   }
+}
+
+function queueActivityPushDispatch(eventId: string) {
+  if (typeof window === "undefined" || !eventId) {
+    return
+  }
+
+  window.setTimeout(() => {
+    void fetch("/api/notifications/dispatch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ eventId }),
+    }).catch(() => null)
+  }, 0)
 }
 
 async function fetchUsersByEmail(emails: string[]) {
@@ -393,6 +411,8 @@ export async function recordActivityEvent({
   }
 
   const event = mapActivityEvent(data as Record<string, unknown>)
+
+  queueActivityPushDispatch(event.id)
 
   try {
     const leagueProfile = await resolveLeagueActorProfile({

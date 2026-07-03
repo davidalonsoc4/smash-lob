@@ -121,6 +121,12 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     personalScope: "league_wide",
     pushReady: true,
   },
+  season_started: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
   player_name_updated: {
     category: "player",
     defaultMode: "personal",

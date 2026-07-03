@@ -672,6 +672,7 @@ export const es = {
       league_locations_updated: "Liga",
       league_invite_regenerated: "Invitación",
       season_finished: "Temporada",
+      season_started: 'Temporada',
       season_created: "Temporada",
       player_name_updated: "Jugador",
       player_avatar_updated: "Jugador",
