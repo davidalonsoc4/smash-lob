@@ -33,6 +33,7 @@ type LeagueLocationsEditorProps = {
     removeLocation: string
     openMaps: string
     openWaze: string
+    searchMaps: string
     googleApiMissing: string
   }
 }
@@ -248,19 +249,24 @@ export function LeagueLocationsEditor({
 
   const cleanName = name.trim()
   const cleanAddress = manualAddress.trim()
+  const cleanSearchText = googleInput.trim()
+  const resolvedName =
+    cleanName || selectedGooglePlace?.googlePlaceName || cleanSearchText
+  const resolvedAddress =
+    selectedGooglePlace?.address ?? (cleanAddress || cleanSearchText)
 
   const draftLocation = useMemo(
     () =>
       createLeagueLocation({
-        name: cleanName,
-        address: selectedGooglePlace?.address ?? cleanAddress,
+        name: resolvedName,
+        address: resolvedAddress,
         googlePlaceId: selectedGooglePlace?.googlePlaceId ?? null,
         googlePlaceName: selectedGooglePlace?.googlePlaceName ?? null,
         googleMapsUrl: selectedGooglePlace?.googleMapsUrl ?? null,
         latitude: selectedGooglePlace?.latitude ?? null,
         longitude: selectedGooglePlace?.longitude ?? null,
       }),
-    [cleanAddress, cleanName, selectedGooglePlace]
+    [resolvedAddress, resolvedName, selectedGooglePlace]
   )
 
   const canAdd = Boolean(draftLocation) && !disabled
@@ -386,7 +392,12 @@ export function LeagueLocationsEditor({
               ref={googleInputRef}
               value={googleInput}
               disabled={disabled}
-              onChange={handleGoogleInputChange}
+              onChange={(event) => {
+                handleGoogleInputChange(event)
+                if (!name.trim()) {
+                  setName(event.target.value)
+                }
+              }}
               placeholder={copy.googleLocationPlaceholder}
               className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
@@ -425,14 +436,30 @@ export function LeagueLocationsEditor({
           </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={handleAddLocation}
-          disabled={!canAdd}
-          className="mt-3 w-full rounded-xl bg-white px-3 py-2 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
-        >
-          {copy.addLocation}
-        </button>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <a
+            href={draftLocation ? getLeagueLocationMapsUrl(draftLocation) : undefined}
+            target="_blank"
+            rel="noreferrer"
+            aria-disabled={!draftLocation}
+            className={`rounded-xl border px-3 py-2 text-center text-sm font-black shadow-sm ${
+              draftLocation
+                ? "border-neutral-200 bg-white text-neutral-800"
+                : "pointer-events-none border-neutral-200 bg-neutral-200 text-neutral-400"
+            }`}
+          >
+            {copy.searchMaps}
+          </a>
+
+          <button
+            type="button"
+            onClick={handleAddLocation}
+            disabled={!canAdd}
+            className="rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
+          >
+            {copy.addLocation}
+          </button>
+        </div>
       </div>
     </div>
   )

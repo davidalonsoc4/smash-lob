@@ -452,6 +452,7 @@ function LeagueLocationsForm({
               removeLocation: t.adminLeague.removeLocation,
               openMaps: t.adminLeague.openMaps,
               openWaze: t.adminLeague.openWaze,
+              searchMaps: t.adminLeague.searchMaps,
               googleApiMissing: t.adminLeague.googleApiMissing,
             }}
           />
