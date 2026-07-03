@@ -27,9 +27,9 @@ export function MatchScoreboard({
   const isFinished = pointsA !== null && pointsB !== null
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-3 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3 rounded-lg bg-neutral-50 px-2.5 py-2">
+    <section className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2.5 rounded-lg bg-neutral-50 px-2.5 py-1.5">
           <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
               {t.matchDetail.teamA}
@@ -38,16 +38,16 @@ export function MatchScoreboard({
               playerIds={teamA}
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
-              className="mt-1 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+              className="mt-0.5 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
             />
           </div>
 
           {isFinished ? (
-            <p className="shrink-0 text-2xl font-black">{pointsA}</p>
+            <p className="shrink-0 text-xl font-black">{pointsA}</p>
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between gap-3 rounded-lg bg-neutral-50 px-2.5 py-2">
+        <div className="flex items-center justify-between gap-2.5 rounded-lg bg-neutral-50 px-2.5 py-1.5">
           <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
               {t.matchDetail.teamB}
@@ -56,22 +56,22 @@ export function MatchScoreboard({
               playerIds={teamB}
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
-              className="mt-1 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+              className="mt-0.5 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
             />
           </div>
 
           {isFinished ? (
-            <p className="shrink-0 text-2xl font-black">{pointsB}</p>
+            <p className="shrink-0 text-xl font-black">{pointsB}</p>
           ) : null}
         </div>
       </div>
 
       {sets.length > 0 ? (
-        <div className="mt-2 grid grid-cols-3 gap-1.5">
+        <div className="mt-1.5 grid grid-cols-3 gap-1.5">
           {sets.map((set, index) => (
             <div
               key={index}
-              className="rounded-lg bg-neutral-100 px-2 py-1.5 text-center"
+              className="rounded-lg bg-neutral-100 px-2 py-1 text-center"
             >
               <p className="text-[10px] font-black uppercase text-neutral-500">
                 {t.matchDetail.set} {index + 1}

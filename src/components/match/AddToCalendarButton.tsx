@@ -145,8 +145,9 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
   return (
     <div className={props.className ?? "mt-2"}>
       <a
-        href={calendarData.icsUrl}
-        download={calendarData.fileName}
+        href={calendarData.googleUrl}
+        target="_blank"
+        rel="noreferrer"
         className="block w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
       >
         Añadir al calendario

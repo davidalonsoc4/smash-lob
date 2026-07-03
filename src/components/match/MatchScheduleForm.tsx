@@ -9,7 +9,7 @@ import {
   getLeagueLocationCourts,
   getLeagueLocationMapsUrl,
   getLeagueLocationOptionLabel,
-  getLeagueLocationSubtitle,
+  getLeagueLocationScheduleText,
   getScheduleLocationFallbackText,
   getScheduleLocationMapsUrl,
   normalizeLeagueLocations,
@@ -129,14 +129,9 @@ export function MatchScheduleForm({
       endsAt: roundEndsAt,
     });
 
-  const displayedLocationName = scheduledLeagueLocation
-    ? getLeagueLocationOptionLabel(scheduledLeagueLocation)
+  const displayedLocationText = scheduledLeagueLocation
+    ? getLeagueLocationScheduleText(scheduledLeagueLocation)
     : getScheduleLocationFallbackText(location);
-  const displayedLocationSubtitle = scheduledLeagueLocation
-    ? [scheduledLeagueLocation.selectedCourt, getLeagueLocationSubtitle(scheduledLeagueLocation)]
-        .filter((item): item is string => Boolean(item?.trim()))
-        .join(" · ")
-    : null;
   const directionsUrl = scheduledLeagueLocation
     ? getLeagueLocationMapsUrl(scheduledLeagueLocation)
     : getScheduleLocationMapsUrl(location);
@@ -250,24 +245,24 @@ export function MatchScheduleForm({
   }
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-3 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+    <section className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-base font-black text-neutral-950">{getTitle()}</p>
+          <p className="text-sm font-black text-neutral-950">{getTitle()}</p>
 
-          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+          <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
             {getDescription()}
           </p>
         </div>
 
         {canManage && !isEditing && !isFinished ? (
-          <div className="flex shrink-0 items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5 shadow-sm">
+          <div className="flex shrink-0 items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 shadow-sm">
             {isPostponed ? (
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
                 disabled={isSaving}
-                className="inline-flex h-7 items-center rounded-lg bg-neutral-950 px-2.5 text-[11px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                className="inline-flex h-6 items-center rounded-md bg-neutral-950 px-2 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
               >
                 {t.matchDetail.rescheduleButton}
               </button>
@@ -278,7 +273,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="inline-flex h-7 items-center rounded-lg bg-white px-2.5 text-[11px] font-black text-neutral-900 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
+                    className="inline-flex h-6 items-center rounded-md bg-white px-2 text-[10px] font-black text-neutral-900 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -287,7 +282,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="inline-flex h-7 items-center rounded-lg bg-neutral-950 px-2.5 text-[11px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                    className="inline-flex h-6 items-center rounded-md bg-neutral-950 px-2 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
                   >
                     {t.matchDetail.addScheduleButton}
                   </button>
@@ -297,7 +292,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={handlePostpone}
                   disabled={!canPostpone}
-                  className="inline-flex h-7 items-center rounded-lg px-2.5 text-[11px] font-black text-neutral-700 transition active:bg-white disabled:text-neutral-300"
+                  className="inline-flex h-6 items-center rounded-md px-2 text-[10px] font-black text-neutral-700 transition active:bg-white disabled:text-neutral-300"
                 >
                   {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
                 </button>
@@ -308,22 +303,15 @@ export function MatchScheduleForm({
       </div>
 
       {!isEditing ? (
-        <div className="mt-2 rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
+        <div className="mt-2 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-sm">
           {hasSchedule ? (
             <>
               <p className="font-black text-neutral-950">
                 {dateLabel ?? t.matches.pendingDate}
               </p>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
-                <span>
-                  {displayedLocationName ?? t.matches.missingSchedule}
-                </span>
-                {displayedLocationSubtitle ? (
-                  <span className="text-neutral-400">
-                    · {displayedLocationSubtitle}
-                  </span>
-                ) : null}
-              </div>
+              <p className="mt-0.5 text-xs font-semibold text-neutral-600">
+                {displayedLocationText ?? t.matches.missingSchedule}
+              </p>
 
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {directionsUrl ? (
@@ -364,8 +352,8 @@ export function MatchScheduleForm({
       ) : null}
 
       {canManage && isEditing ? (
-        <form onSubmit={handleSubmit} className="mt-3 space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
                 {t.matchDetail.scheduleDateLabel}
@@ -376,7 +364,7 @@ export function MatchScheduleForm({
                 value={scheduledAtValue}
                 onChange={(event) => setScheduledAtValue(event.target.value)}
                 disabled={isSaving}
-                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
 
@@ -390,7 +378,7 @@ export function MatchScheduleForm({
                   value={selectedLocation}
                   onChange={(event) => handleLocationChange(event.target.value)}
                   disabled={isSaving}
-                  className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                  className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
                 >
                   <option value="">
                     {t.matchDetail.scheduleLocationPlaceholder}
@@ -423,7 +411,7 @@ export function MatchScheduleForm({
                 value={selectedCourt}
                 onChange={(event) => setSelectedCourt(event.target.value)}
                 disabled={isSaving}
-                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               >
                 <option value="">{t.matchDetail.scheduleCourtPlaceholder}</option>
                 {selectedLocationCourts.map((court) => (
@@ -446,7 +434,7 @@ export function MatchScheduleForm({
                 onChange={(event) => setCustomLocation(event.target.value)}
                 disabled={isSaving}
                 placeholder={t.matchDetail.customLocationPlaceholder}
-                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
           ) : null}
@@ -466,7 +454,7 @@ export function MatchScheduleForm({
                 type="button"
                 onClick={handleCancel}
                 disabled={isSaving}
-                className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
               >
                 {t.matchDetail.cancelScheduleEdit}
               </button>
@@ -475,7 +463,7 @@ export function MatchScheduleForm({
             <button
               type="submit"
               disabled={!canSave}
-              className="flex-1 rounded-lg bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300"
+              className="flex-1 rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300"
             >
               {isSaving
                 ? "Guardando..."
@@ -490,7 +478,7 @@ export function MatchScheduleForm({
               type="button"
               onClick={handlePostpone}
               disabled={!canPostpone}
-              className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-black text-neutral-700 shadow-sm disabled:text-neutral-300"
+              className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-700 shadow-sm disabled:text-neutral-300"
             >
               {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
             </button>

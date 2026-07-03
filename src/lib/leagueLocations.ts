@@ -375,6 +375,19 @@ export function sortLeagueLocationsByOptionLabel(locations: LeagueLocation[]) {
   );
 }
 
+
+export function getLeagueLocationScheduleText(location: LeagueLocation) {
+  const normalizedLocation = normalizeLeagueLocation(location) ?? location;
+  const placeText =
+    getLocationPlaceText(normalizedLocation) ??
+    normalizedLocation.googlePlaceName ??
+    normalizedLocation.name;
+
+  return [placeText, normalizedLocation.selectedCourt]
+    .filter((item): item is string => Boolean(item?.trim()))
+    .join(" · ");
+}
+
 export function getLeagueLocationCompactText(location: LeagueLocation) {
   const normalizedLocation = normalizeLeagueLocation(location) ?? location;
 
