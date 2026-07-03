@@ -247,6 +247,7 @@ export default function MatchDetailPage() {
               players={players}
               scheduledAt={match.scheduledAt}
               location={calendarLocation}
+              className="min-w-0"
             />
           ) : null
         }

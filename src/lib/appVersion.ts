@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.7.38";
+export const APP_VERSION = "0.7.39";
 export const APP_VERSION_LABEL = `Smash & Lob v${APP_VERSION}`;

@@ -5,12 +5,13 @@ import { useMatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   findLeagueLocationByScheduleLocation,
-  getLeagueLocationCompactText,
   getLeagueLocationMapsUrl,
+  getLeagueLocationOptionLabel,
   getLeagueLocationSubtitle,
-  getLeagueLocationWazeUrl,
   getScheduleLocationFallbackText,
+  getScheduleLocationMapsUrl,
   normalizeLeagueLocations,
+  sortLeagueLocationsByOptionLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
@@ -46,9 +47,10 @@ export function MatchScheduleForm({
   const { updateMatchSchedule, postponeMatch } = useMatchData();
 
   const normalizedAvailableLocations = useMemo(
-    () => normalizeLeagueLocations(availableLocations),
+    () => sortLeagueLocationsByOptionLabel(normalizeLeagueLocations(availableLocations)),
     [availableLocations],
   );
+  const hasAvailableLocations = normalizedAvailableLocations.length > 0;
 
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -64,7 +66,9 @@ export function MatchScheduleForm({
     ? scheduledLeagueLocation.id
     : hasSchedule && location
       ? otherLocationValue
-      : "";
+      : hasAvailableLocations
+        ? ""
+        : otherLocationValue;
 
   const [isEditing, setIsEditing] = useState(
     canManage && !hasSchedule && !isPostponed && !isFinished,
@@ -75,9 +79,7 @@ export function MatchScheduleForm({
   const [selectedLocation, setSelectedLocation] =
     useState(initialLocationValue);
   const [customLocation, setCustomLocation] = useState(
-    hasSchedule && location && !scheduledLeagueLocation
-      ? (getScheduleLocationFallbackText(location) ?? "")
-      : "",
+    hasSchedule && location && !scheduledLeagueLocation ? location : "",
   );
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -111,6 +113,9 @@ export function MatchScheduleForm({
   const displayedLocationSubtitle = scheduledLeagueLocation
     ? getLeagueLocationSubtitle(scheduledLeagueLocation)
     : null;
+  const directionsUrl = scheduledLeagueLocation
+    ? getLeagueLocationMapsUrl(scheduledLeagueLocation)
+    : getScheduleLocationMapsUrl(location);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -147,9 +152,7 @@ export function MatchScheduleForm({
     setScheduledAtValue(hasSchedule ? (scheduledAt ?? "") : "");
     setSelectedLocation(initialLocationValue);
     setCustomLocation(
-      hasSchedule && location && !scheduledLeagueLocation
-        ? (getScheduleLocationFallbackText(location) ?? "")
-        : "",
+      hasSchedule && location && !scheduledLeagueLocation ? location : "",
     );
     setActionError(null);
     setIsEditing(false);
@@ -175,7 +178,7 @@ export function MatchScheduleForm({
     }
 
     setScheduledAtValue("");
-    setSelectedLocation("");
+    setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
     setCustomLocation("");
     setIsEditing(false);
   }
@@ -284,28 +287,20 @@ export function MatchScheduleForm({
                 ) : null}
               </div>
 
-              {scheduledLeagueLocation ? (
-                <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {directionsUrl ? (
                   <a
-                    href={getLeagueLocationMapsUrl(scheduledLeagueLocation)}
+                    href={directionsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
+                    className="rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800"
                   >
-                    Maps
+                    {t.matchDetail.directionsButton}
                   </a>
-                  <a
-                    href={getLeagueLocationWazeUrl(scheduledLeagueLocation)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
-                  >
-                    Waze
-                  </a>
-                </div>
-              ) : null}
+                ) : null}
 
-              {calendarAction ? calendarAction : null}
+                {calendarAction ? calendarAction : null}
+              </div>
             </>
           ) : (
             <>
@@ -347,36 +342,37 @@ export function MatchScheduleForm({
               />
             </label>
 
-            <label className="block">
-              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-                {t.matchDetail.scheduleLocation}
-              </span>
+            {hasAvailableLocations ? (
+              <label className="block">
+                <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                  {t.matchDetail.scheduleLocation}
+                </span>
 
-              <select
-                value={selectedLocation}
-                onChange={(event) => setSelectedLocation(event.target.value)}
-                disabled={isSaving}
-                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-              >
-                <option value="">
-                  {t.matchDetail.scheduleLocationPlaceholder}
-                </option>
-
-                {normalizedAvailableLocations.map((availableLocation) => (
-                  <option
-                    key={availableLocation.id}
-                    value={availableLocation.id}
-                  >
-                    {getLeagueLocationCompactText(availableLocation) ||
-                      availableLocation.name}
+                <select
+                  value={selectedLocation}
+                  onChange={(event) => setSelectedLocation(event.target.value)}
+                  disabled={isSaving}
+                  className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                >
+                  <option value="">
+                    {t.matchDetail.scheduleLocationPlaceholder}
                   </option>
-                ))}
 
-                <option value={otherLocationValue}>
-                  {t.matchDetail.otherLocation}
-                </option>
-              </select>
-            </label>
+                  {normalizedAvailableLocations.map((availableLocation) => (
+                    <option
+                      key={availableLocation.id}
+                      value={availableLocation.id}
+                    >
+                      {getLeagueLocationOptionLabel(availableLocation)}
+                    </option>
+                  ))}
+
+                  <option value={otherLocationValue}>
+                    {t.matchDetail.otherLocation}
+                  </option>
+                </select>
+              </label>
+            ) : null}
           </div>
 
           {selectedLocation === otherLocationValue ? (

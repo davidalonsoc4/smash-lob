@@ -1,6 +1,7 @@
 export type LeagueLocation = {
   id: string;
   name: string;
+  town?: string | null;
   address?: string | null;
   detail?: string | null;
   googlePlaceId?: string | null;
@@ -42,10 +43,12 @@ function cleanNullableNumber(value: unknown) {
 
 function createLocationId({
   name,
+  town,
   googlePlaceId,
   address,
 }: {
   name: string;
+  town?: string | null;
   googlePlaceId?: string | null;
   address?: string | null;
 }) {
@@ -53,7 +56,7 @@ function createLocationId({
     return `google-${slugify(googlePlaceId).slice(0, 64) || Date.now()}`;
   }
 
-  return `${fallbackLocationPrefix}-${slugify(`${name}-${address ?? ""}`) || Date.now()}`;
+  return `${fallbackLocationPrefix}-${slugify(`${town ?? ""}-${name}-${address ?? ""}`) || Date.now()}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -74,14 +77,17 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
       return parsedLocation;
     }
 
+    const mapsUrl = normalizeMapsUrl(cleanValue);
+
     return {
-      id: createLocationId({ name: cleanValue }),
-      name: cleanValue,
-      address: null,
+      id: createLocationId({ name: mapsUrl ? "Ubicación en Maps" : cleanValue }),
+      name: mapsUrl ? "Ubicación en Maps" : cleanValue,
+      town: null,
+      address: mapsUrl ? null : cleanValue,
       detail: null,
       googlePlaceId: null,
       googlePlaceName: null,
-      googleMapsUrl: normalizeMapsUrl(cleanValue),
+      googleMapsUrl: mapsUrl,
       latitude: null,
       longitude: null,
     };
@@ -100,6 +106,10 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
   const rawAddress = cleanNullableString(value.address);
   const mapsUrlFromAddress = normalizeMapsUrl(rawAddress);
   const address = mapsUrlFromAddress ? null : rawAddress;
+  const town =
+    cleanNullableString(value.town) ??
+    cleanNullableString(value.locality) ??
+    cleanNullableString(value.city);
   const detail = cleanNullableString(value.detail);
   const googlePlaceId = cleanNullableString(value.googlePlaceId);
   const googlePlaceName = cleanNullableString(value.googlePlaceName);
@@ -109,11 +119,12 @@ export function normalizeLeagueLocation(value: unknown): LeagueLocation | null {
   const longitude = cleanNullableNumber(value.longitude);
   const id =
     cleanNullableString(value.id) ??
-    createLocationId({ name, googlePlaceId, address });
+    createLocationId({ name, town, googlePlaceId, address });
 
   return {
     id,
     name,
+    town,
     address,
     detail,
     googlePlaceId,
@@ -156,7 +167,8 @@ export function normalizeLeagueLocations(value: unknown): LeagueLocation[] {
     }
 
     const key = (
-      location.googlePlaceId ?? `${location.name}|${location.address ?? ""}`
+      location.googlePlaceId ??
+      `${location.town ?? ""}|${location.name}|${location.address ?? ""}|${location.googleMapsUrl ?? ""}`
     ).toLowerCase();
 
     if (seen.has(key)) {
@@ -172,6 +184,7 @@ export function normalizeLeagueLocations(value: unknown): LeagueLocation[] {
 
 export function createLeagueLocation({
   name,
+  town,
   address,
   detail,
   googlePlaceId,
@@ -186,6 +199,7 @@ export function createLeagueLocation({
     return null;
   }
 
+  const cleanTown = cleanNullableString(town);
   const rawCleanAddress = cleanNullableString(address);
   const mapsUrlFromAddress = normalizeMapsUrl(rawCleanAddress);
   const cleanAddress = mapsUrlFromAddress ? null : rawCleanAddress;
@@ -198,10 +212,12 @@ export function createLeagueLocation({
   return {
     id: createLocationId({
       name: cleanName,
+      town: cleanTown,
       address: cleanAddress,
       googlePlaceId: cleanGooglePlaceId,
     }),
     name: cleanName,
+    town: cleanTown,
     address: cleanAddress,
     detail: cleanDetail,
     googlePlaceId: cleanGooglePlaceId,
@@ -288,6 +304,23 @@ export function getLeagueLocationLabel(location: LeagueLocation) {
   );
 }
 
+export function getLeagueLocationOptionLabel(location: LeagueLocation) {
+  const name = getLeagueLocationLabel(location);
+  const town = location.town?.trim();
+
+  return town ? `${town} - ${name}` : name;
+}
+
+export function sortLeagueLocationsByOptionLabel(locations: LeagueLocation[]) {
+  return [...locations].sort((left, right) =>
+    getLeagueLocationOptionLabel(left).localeCompare(
+      getLeagueLocationOptionLabel(right),
+      "es",
+      { sensitivity: "base" },
+    ),
+  );
+}
+
 export function getLeagueLocationCompactText(location: LeagueLocation) {
   const normalizedLocation = normalizeLeagueLocation(location) ?? location;
 
@@ -311,6 +344,10 @@ export function getScheduleLocationFallbackText(
     return getLeagueLocationLabel(parsedLocation);
   }
 
+  if (normalizeMapsUrl(cleanScheduleLocation)) {
+    return "Ubicación en Maps";
+  }
+
   return cleanScheduleLocation;
 }
 
@@ -329,6 +366,7 @@ export function getLeagueLocationCalendarText(
     resolvedLocation.name,
     resolvedLocation.detail,
     getLocationPlaceText(resolvedLocation),
+    resolvedLocation.town,
   ].filter((item): item is string => Boolean(item?.trim()));
 
   return parts.join(" - ");
@@ -340,7 +378,9 @@ export function getLeagueLocationMapsUrl(location: LeagueLocation) {
   }
 
   const query = encodeURIComponent(
-    location.address ?? location.googlePlaceName ?? location.name,
+    location.address ??
+      location.googlePlaceName ??
+      [location.name, location.town].filter(Boolean).join(", "),
   );
   const placeId = location.googlePlaceId
     ? `&query_place_id=${encodeURIComponent(location.googlePlaceId)}`
@@ -349,21 +389,28 @@ export function getLeagueLocationMapsUrl(location: LeagueLocation) {
   return `https://www.google.com/maps/search/?api=1&query=${query}${placeId}`;
 }
 
-export function getLeagueLocationWazeUrl(location: LeagueLocation) {
-  if (
-    typeof location.latitude === "number" &&
-    typeof location.longitude === "number"
-  ) {
-    return `https://waze.com/ul?ll=${location.latitude},${location.longitude}&navigate=yes`;
+export function getScheduleLocationMapsUrl(
+  scheduleLocation: string | null | undefined,
+) {
+  const cleanScheduleLocation = scheduleLocation?.trim();
+
+  if (!cleanScheduleLocation) {
+    return null;
   }
 
-  const querySource =
-    location.address && !looksLikeUrl(location.address)
-      ? location.address
-      : (location.googlePlaceName ?? location.name);
-  const query = encodeURIComponent(querySource);
+  const parsedLocation = parseStoredLocationObject(cleanScheduleLocation);
 
-  return `https://waze.com/ul?q=${query}&navigate=yes`;
+  if (parsedLocation) {
+    return getLeagueLocationMapsUrl(parsedLocation);
+  }
+
+  const mapsUrl = normalizeMapsUrl(cleanScheduleLocation);
+
+  if (mapsUrl) {
+    return mapsUrl;
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanScheduleLocation)}`;
 }
 
 export function findLeagueLocationByScheduleLocation({
@@ -385,9 +432,11 @@ export function findLeagueLocationByScheduleLocation({
     cleanScheduleLocation,
     parsedLocation?.id,
     parsedLocation?.name,
+    parsedLocation?.town,
     parsedLocation?.detail,
     parsedLocation?.address,
     parsedLocation?.googlePlaceName,
+    parsedLocation?.googleMapsUrl,
   ]
     .filter((item): item is string => Boolean(item))
     .map((item) => item.trim().toLowerCase());
@@ -397,9 +446,11 @@ export function findLeagueLocationByScheduleLocation({
       const locationCandidates = [
         location.id,
         location.name,
+        location.town,
         location.detail,
         location.address,
         location.googlePlaceName,
+        location.googleMapsUrl,
       ]
         .filter((item): item is string => Boolean(item))
         .map((item) => item.trim().toLowerCase());

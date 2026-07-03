@@ -4,9 +4,10 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   createLeagueLocation,
   getLeagueLocationMapsUrl,
+  getLeagueLocationOptionLabel,
   getLeagueLocationSubtitle,
-  getLeagueLocationWazeUrl,
   normalizeMapsUrl,
+  sortLeagueLocationsByOptionLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 
@@ -19,6 +20,8 @@ type LeagueLocationsEditorProps = {
     addLocationTitle: string;
     locationName: string;
     locationPlaceholder: string;
+    town: string;
+    townPlaceholder: string;
     googleLocation: string;
     googleLocationPlaceholder: string;
     address: string;
@@ -27,7 +30,6 @@ type LeagueLocationsEditorProps = {
     addLocation: string;
     removeLocation: string;
     openMaps: string;
-    openWaze: string;
     searchMaps: string;
     googleApiMissing: string;
   };
@@ -134,15 +136,22 @@ function hasSameLocation(
 ) {
   const newPlaceId = location.googlePlaceId?.toLowerCase();
   const newName = location.name.trim().toLowerCase();
+  const newTown = location.town?.trim().toLowerCase() ?? "";
   const newAddress = location.address?.trim().toLowerCase() ?? "";
+  const newMapsUrl = location.googleMapsUrl?.trim().toLowerCase() ?? "";
 
   return locations.some((item) => {
     if (newPlaceId && item.googlePlaceId?.toLowerCase() === newPlaceId) {
       return true;
     }
 
+    if (newMapsUrl && item.googleMapsUrl?.trim().toLowerCase() === newMapsUrl) {
+      return true;
+    }
+
     return (
       item.name.trim().toLowerCase() === newName &&
+      (item.town?.trim().toLowerCase() ?? "") === newTown &&
       (item.address?.trim().toLowerCase() ?? "") === newAddress
     );
   });
@@ -170,6 +179,7 @@ export function LeagueLocationsEditor({
   const googleInputRef = useRef<HTMLInputElement | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState("");
+  const [townInput, setTownInput] = useState("");
   const [googleInput, setGoogleInput] = useState("");
   const [detailInput, setDetailInput] = useState("");
   const [selectedGooglePlace, setSelectedGooglePlace] =
@@ -249,7 +259,12 @@ export function LeagueLocationsEditor({
     };
   }, [isAdding]);
 
+  const sortedLocations = useMemo(
+    () => sortLeagueLocationsByOptionLabel(locations),
+    [locations],
+  );
   const cleanName = name.trim();
+  const cleanTown = townInput.trim();
   const cleanDetail = detailInput.trim();
   const cleanSearchText = googleInput.trim();
   const typedMapsUrl = normalizeMapsUrl(cleanSearchText);
@@ -266,6 +281,7 @@ export function LeagueLocationsEditor({
     () =>
       createLeagueLocation({
         name: resolvedName,
+        town: cleanTown,
         address: resolvedAddress,
         detail: cleanDetail,
         googlePlaceId: selectedGooglePlace?.googlePlaceId ?? null,
@@ -276,6 +292,7 @@ export function LeagueLocationsEditor({
       }),
     [
       cleanDetail,
+      cleanTown,
       resolvedAddress,
       resolvedMapsUrl,
       resolvedName,
@@ -287,6 +304,7 @@ export function LeagueLocationsEditor({
 
   function resetForm() {
     setName("");
+    setTownInput("");
     setGoogleInput("");
     setDetailInput("");
     setSelectedGooglePlace(null);
@@ -327,9 +345,9 @@ export function LeagueLocationsEditor({
 
   return (
     <div className="space-y-3">
-      {locations.length > 0 ? (
+      {sortedLocations.length > 0 ? (
         <div className="space-y-2">
-          {locations.map((location) => (
+          {sortedLocations.map((location) => (
             <div
               key={location.id}
               className="rounded-xl border border-neutral-200 bg-white p-3"
@@ -337,7 +355,7 @@ export function LeagueLocationsEditor({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-neutral-950">
-                    {location.name}
+                    {getLeagueLocationOptionLabel(location)}
                   </p>
                   <p className="mt-0.5 line-clamp-2 text-xs font-semibold leading-5 text-neutral-500">
                     {getLeagueLocationSubtitle(location)}
@@ -354,24 +372,14 @@ export function LeagueLocationsEditor({
                 </button>
               </div>
 
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <a
-                  href={getLeagueLocationMapsUrl(location)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
-                >
-                  {copy.openMaps}
-                </a>
-                <a
-                  href={getLeagueLocationWazeUrl(location)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
-                >
-                  {copy.openWaze}
-                </a>
-              </div>
+              <a
+                href={getLeagueLocationMapsUrl(location)}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 block rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
+              >
+                {copy.openMaps}
+              </a>
             </div>
           ))}
         </div>
@@ -390,9 +398,10 @@ export function LeagueLocationsEditor({
           setDuplicated(false);
         }}
         disabled={disabled}
-        className="flex w-full items-center justify-center rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm transition active:scale-[0.99] disabled:bg-neutral-200 disabled:text-neutral-400"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm transition active:scale-[0.99] disabled:bg-neutral-200 disabled:text-neutral-400"
       >
-        {isAdding ? "−" : "+"} {copy.addLocationTitle}
+        <span>{isAdding ? "−" : "+"}</span>
+        <span>{copy.addLocationTitle}</span>
       </button>
 
       {isAdding ? (
@@ -416,18 +425,34 @@ export function LeagueLocationsEditor({
 
             <label className="block">
               <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-                {copy.googleLocation}
+                {copy.town}
               </span>
               <input
-                ref={googleInputRef}
-                value={googleInput}
+                value={townInput}
                 disabled={disabled}
-                onChange={handleGoogleInputChange}
-                placeholder={copy.googleLocationPlaceholder}
+                onChange={(event) => {
+                  setTownInput(event.target.value);
+                  setDuplicated(false);
+                }}
+                placeholder={copy.townPlaceholder}
                 className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
           </div>
+
+          <label className="mt-3 block">
+            <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+              {copy.googleLocation}
+            </span>
+            <input
+              ref={googleInputRef}
+              value={googleInput}
+              disabled={disabled}
+              onChange={handleGoogleInputChange}
+              placeholder={copy.googleLocationPlaceholder}
+              className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+          </label>
 
           <label className="mt-3 block">
             <span className="text-xs font-black uppercase tracking-wide text-neutral-600">

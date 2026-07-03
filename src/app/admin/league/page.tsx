@@ -443,6 +443,8 @@ function LeagueLocationsForm({
               addLocationTitle: t.adminLeague.addLocationTitle,
               locationName: t.adminLeague.locationName,
               locationPlaceholder: t.adminLeague.locationPlaceholder,
+              town: t.adminLeague.town,
+              townPlaceholder: t.adminLeague.townPlaceholder,
               googleLocation: t.adminLeague.googleLocation,
               googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
               address: t.adminLeague.address,
@@ -451,7 +453,6 @@ function LeagueLocationsForm({
               addLocation: t.adminLeague.addLocation,
               removeLocation: t.adminLeague.removeLocation,
               openMaps: t.adminLeague.openMaps,
-              openWaze: t.adminLeague.openWaze,
               searchMaps: t.adminLeague.searchMaps,
               googleApiMissing: t.adminLeague.googleApiMissing,
             }}

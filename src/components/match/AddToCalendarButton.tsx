@@ -13,6 +13,7 @@ type AddToCalendarButtonProps = {
   players: PlayerProfile[]
   scheduledAt: string | null
   location: string | null
+  className?: string
 }
 
 const eventDurationMinutes = 120
@@ -143,11 +144,11 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
   }
 
   return (
-    <div className="mt-2">
+    <div className={props.className ?? "mt-2"}>
       <button
         type="button"
         onClick={() => setIsOpen((currentValue) => !currentValue)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white transition active:scale-[0.99]"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-black text-neutral-800 transition active:scale-[0.99]"
       >
         <span>Añadir al calendario</span>
         <span aria-hidden="true" className="text-sm leading-none">
@@ -156,7 +157,7 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
       </button>
 
       {isOpen ? (
-        <div className="mt-2 grid grid-cols-2 gap-2">
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <a
             href={calendarData.googleUrl}
             target="_blank"
