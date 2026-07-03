@@ -313,20 +313,22 @@ export function MatchScheduleForm({
                 {displayedLocationText ?? t.matches.missingSchedule}
               </p>
 
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {directionsUrl ? (
-                  <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800"
-                  >
-                    {t.matchDetail.directionsButton}
-                  </a>
-                ) : null}
+              {!isFinished && (directionsUrl || calendarAction) ? (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {directionsUrl ? (
+                    <a
+                      href={directionsUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800"
+                    >
+                      {t.matchDetail.directionsButton}
+                    </a>
+                  ) : null}
 
-                {calendarAction ? calendarAction : null}
-              </div>
+                  {calendarAction ? calendarAction : null}
+                </div>
+              ) : null}
             </>
           ) : (
             <>
