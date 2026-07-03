@@ -19,6 +19,7 @@ import type {
   UserLeagueMembership,
 } from "@/data/fakeData"
 import type { MatchData } from "@/context/MatchDataProvider"
+import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 
 type SupabaseLeagueRow = {
   id: string
@@ -57,14 +58,6 @@ function toRoundWindowMode(mode: unknown): RoundWindowMode {
   return mode === "fixed-days" ? "fixed-days" : "none"
 }
 
-function toLocations(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value.filter((location): location is string => typeof location === "string")
-}
-
 function mapLeague(league: SupabaseLeagueRow): League {
   return {
     id: league.id,
@@ -74,7 +67,7 @@ function mapLeague(league: SupabaseLeagueRow): League {
     activeSeasonId: league.active_season_id ?? "",
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? "open" : "closed",
-    locations: toLocations(league.locations),
+    locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }
 }

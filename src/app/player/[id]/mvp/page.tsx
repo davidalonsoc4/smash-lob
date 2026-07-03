@@ -97,6 +97,7 @@ export default function PlayerMvpMatchesPage() {
             roundStartsAt={null}
             roundEndsAt={null}
             highlightedPlayerIds={mvp.playerIds}
+            leagueLocations={activeLeague.locations}
           />
         ))}
       </div>

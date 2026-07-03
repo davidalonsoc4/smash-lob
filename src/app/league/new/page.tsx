@@ -2,11 +2,13 @@
 
 import { type FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
+import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import type { LeagueLocation } from "@/lib/leagueLocations"
 
 export default function NewLeaguePage() {
   const { t } = useI18n()
@@ -15,6 +17,7 @@ export default function NewLeaguePage() {
   const { canCreateLeagues, createLeague } = useLeagueAccess()
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
+  const [locations, setLocations] = useState<LeagueLocation[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
@@ -33,6 +36,7 @@ export default function NewLeaguePage() {
     const league = await createLeague({
       name: leagueName.trim(),
       description: leagueDescription.trim() || t.newLeague.defaultDescription,
+      locations,
     })
 
     if (!league) {
@@ -121,6 +125,40 @@ export default function NewLeaguePage() {
                 className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
             </label>
+          </div>
+        </AppCard>
+
+        <AppCard>
+          <p className="font-bold">{t.newLeague.locationsTitle}</p>
+          <p className="mt-2 text-sm text-neutral-500">
+            {t.newLeague.locationsDescription}
+          </p>
+
+          <div className="mt-4">
+            <LeagueLocationsEditor
+              locations={locations}
+              onChange={(nextLocations) => {
+                setLocations(nextLocations)
+                setError(null)
+              }}
+              disabled={isCreating}
+              copy={{
+                emptyLocations: t.adminLeague.emptyLocations,
+                addLocationTitle: t.adminLeague.addLocationTitle,
+                locationName: t.adminLeague.locationName,
+                locationPlaceholder: t.adminLeague.locationPlaceholder,
+                googleLocation: t.adminLeague.googleLocation,
+                googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
+                address: t.adminLeague.address,
+                addressPlaceholder: t.adminLeague.addressPlaceholder,
+                duplicatedLocation: t.adminLeague.duplicatedLocation,
+                addLocation: t.adminLeague.addLocation,
+                removeLocation: t.adminLeague.removeLocation,
+                openMaps: t.adminLeague.openMaps,
+                openWaze: t.adminLeague.openWaze,
+                googleApiMissing: t.adminLeague.googleApiMissing,
+              }}
+            />
           </div>
         </AppCard>
 

@@ -2,16 +2,17 @@
 
 import { createContext, useContext } from "react"
 import { leagues } from "@/data/fakeData"
+import type { LeagueLocation } from "@/lib/leagueLocations"
 
 export type LeagueSettings = {
   leagueId: string
-  locations: string[]
+  locations: LeagueLocation[]
 }
 
 type LeagueSettingsContextValue = {
   leagueSettings: LeagueSettings[]
   getLeagueSettings: (leagueId: string) => LeagueSettings
-  updateLeagueLocations: (leagueId: string, locations: string[]) => void
+  updateLeagueLocations: (leagueId: string, locations: LeagueLocation[]) => void
 }
 
 type LeagueSettingsProviderProps = {

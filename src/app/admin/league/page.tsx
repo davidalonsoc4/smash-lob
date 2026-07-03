@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
 import { AppCard } from "@/components/ui/AppCard"
@@ -12,6 +13,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
+import type { LeagueLocation } from "@/lib/leagueLocations"
 
 type LeagueIdentityFormProps = {
   leagueId: string
@@ -24,7 +26,7 @@ type LeagueIdentityFormProps = {
 type LeagueLocationsFormProps = {
   leagueId: string
   seasonId: string | null
-  initialLocations: string[]
+  initialLocations: LeagueLocation[]
 }
 
 type DeleteLeagueCardProps = {
@@ -38,16 +40,6 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
     actorEmail: session?.user?.email ?? "system@smash-lob.local",
     actorDisplayName: session?.user?.name ?? null,
   }
-}
-
-function normalizeLocation(value: string) {
-  return value.trim()
-}
-
-function hasLocation(locations: string[], location: string) {
-  return locations.some(
-    (item) => item.toLowerCase() === location.toLowerCase()
-  )
 }
 
 function LeagueIdentityForm({
@@ -387,37 +379,9 @@ function LeagueLocationsForm({
   const { updateLeagueLocations } = useLeagueAccess()
 
   const [locations, setLocations] = useState(initialLocations)
-  const [newLocation, setNewLocation] = useState("")
   const [saved, setSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const normalizedNewLocation = normalizeLocation(newLocation)
-  const canAdd =
-    normalizedNewLocation.length > 0 &&
-    !hasLocation(locations, normalizedNewLocation)
-
-  function handleAddLocation() {
-    if (!canAdd) {
-      return
-    }
-
-    setLocations((currentLocations) => [
-      ...currentLocations,
-      normalizedNewLocation,
-    ])
-    setNewLocation("")
-    setSaved(false)
-    setError(null)
-  }
-
-  function handleRemoveLocation(locationToRemove: string) {
-    setLocations((currentLocations) =>
-      currentLocations.filter((location) => location !== locationToRemove)
-    )
-    setSaved(false)
-    setError(null)
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -465,70 +429,32 @@ function LeagueLocationsForm({
           {t.adminLeague.locationsDescription}
         </p>
 
-        <div className="mt-4 space-y-3">
-          {locations.length > 0 ? (
-            locations.map((location) => (
-              <div
-                key={location}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 p-3"
-              >
-                <p className="text-sm font-bold">{location}</p>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemoveLocation(location)}
-                  disabled={isSaving}
-                  className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
-                >
-                  {t.adminLeague.removeLocation}
-                </button>
-              </div>
-            ))
-          ) : (
-            <div className="rounded-2xl border border-dashed border-neutral-300 p-3">
-              <p className="text-sm font-semibold text-neutral-500">
-                {t.adminLeague.emptyLocations}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-5 rounded-2xl bg-neutral-100 p-3">
-          <p className="font-bold">{t.adminLeague.addLocationTitle}</p>
-
-          <label className="mt-3 block">
-            <span className="text-sm font-semibold text-neutral-700">
-              {t.adminLeague.locationName}
-            </span>
-
-            <input
-              value={newLocation}
-              disabled={isSaving}
-              onChange={(event) => {
-                setNewLocation(event.target.value)
-                setSaved(false)
-                setError(null)
-              }}
-              placeholder={t.adminLeague.locationPlaceholder}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
-
-          {normalizedNewLocation.length > 0 &&
-          hasLocation(locations, normalizedNewLocation) ? (
-            <p className="mt-2 text-xs font-semibold text-red-600">
-              {t.adminLeague.duplicatedLocation}
-            </p>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={handleAddLocation}
-            disabled={!canAdd || isSaving}
-            className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
-          >
-            {t.adminLeague.addLocation}
-          </button>
+        <div className="mt-4">
+          <LeagueLocationsEditor
+            locations={locations}
+            onChange={(nextLocations) => {
+              setLocations(nextLocations)
+              setSaved(false)
+              setError(null)
+            }}
+            disabled={isSaving}
+            copy={{
+              emptyLocations: t.adminLeague.emptyLocations,
+              addLocationTitle: t.adminLeague.addLocationTitle,
+              locationName: t.adminLeague.locationName,
+              locationPlaceholder: t.adminLeague.locationPlaceholder,
+              googleLocation: t.adminLeague.googleLocation,
+              googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
+              address: t.adminLeague.address,
+              addressPlaceholder: t.adminLeague.addressPlaceholder,
+              duplicatedLocation: t.adminLeague.duplicatedLocation,
+              addLocation: t.adminLeague.addLocation,
+              removeLocation: t.adminLeague.removeLocation,
+              openMaps: t.adminLeague.openMaps,
+              openWaze: t.adminLeague.openWaze,
+              googleApiMissing: t.adminLeague.googleApiMissing,
+            }}
+          />
         </div>
 
         <button

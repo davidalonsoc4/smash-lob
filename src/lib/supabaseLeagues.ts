@@ -18,6 +18,7 @@ import type {
   UserLeagueMembership,
 } from "@/data/fakeData"
 import type { MatchData } from "@/context/MatchDataProvider"
+import { normalizeLeagueLocations, type LeagueLocation } from "@/lib/leagueLocations"
 
 type SupabaseErrorLike = {
   code?: string
@@ -32,26 +33,20 @@ function isUniqueViolation(error: unknown) {
   )
 }
 
-function toLocations(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value.filter((location): location is string => typeof location === "string")
-}
-
 async function insertLeagueWithAvailableSlug({
   leagueSlug,
   leagueName,
   leagueDescription,
   inviteCode,
   creatorUserId,
+  locations,
 }: {
   leagueSlug: string
   leagueName: string
   leagueDescription: string
   inviteCode: string
   creatorUserId: string
+  locations: LeagueLocation[]
 }) {
   let lastError: unknown = null
 
@@ -67,6 +62,7 @@ async function insertLeagueWithAvailableSlug({
         invite_code: inviteCode,
         join_mode: "closed",
         created_by_user_id: creatorUserId,
+        locations: normalizeLeagueLocations(locations),
       })
       .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url")
       .single()
@@ -93,6 +89,7 @@ export async function createSupabaseLeague({
   leagueDescription,
   leagueSlug,
   inviteCode,
+  locations,
 }: {
   creatorEmail: string
   creatorName?: string | null
@@ -101,6 +98,7 @@ export async function createSupabaseLeague({
   leagueDescription: string
   leagueSlug: string
   inviteCode: string
+  locations: LeagueLocation[]
 }) {
   const normalizedCreatorEmail = creatorEmail.trim().toLowerCase()
   const creator = await upsertAppUser({
@@ -114,6 +112,7 @@ export async function createSupabaseLeague({
     leagueDescription,
     inviteCode,
     creatorUserId: creator.id,
+    locations,
   })
   const creatorIsSuperuser = Boolean(creator.is_superuser)
 
@@ -146,7 +145,7 @@ export async function createSupabaseLeague({
     activeSeasonId: league.active_season_id ?? "",
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? "open" : "closed",
-    locations: toLocations(league.locations),
+    locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }
 
@@ -269,7 +268,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     activeSeasonId: league.active_season_id ?? "",
     inviteCode: league.invite_code,
     joinMode: league.join_mode === "open" ? ("open" as const) : ("closed" as const),
-    locations: toLocations(league.locations),
+    locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
   }))
   const leagueIds = leagues.map((league) => league.id)

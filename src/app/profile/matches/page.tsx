@@ -134,6 +134,7 @@ export default function ProfileMatchesPage() {
         players={players}
         seasonMatches={matches}
         emptyMessage={t.profile.noFilteredMatches}
+        leagueLocations={activeLeague.locations}
       />
     </div>
   )

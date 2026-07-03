@@ -77,6 +77,7 @@ export default function RoundDetailPage() {
                 roundStartsAt={null}
                 roundEndsAt={null}
                 highlightedPlayerIds={highlightedPlayerIds}
+                leagueLocations={activeLeague.locations}
               />
             </section>
           )

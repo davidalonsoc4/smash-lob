@@ -1,3 +1,5 @@
+import type { LeagueLocation } from "@/lib/leagueLocations"
+
 export type LeagueMemberRole = "creator" | "admin" | "player"
 
 export type League = {
@@ -8,7 +10,7 @@ export type League = {
   activeSeasonId: string
   inviteCode: string
   joinMode: "closed" | "open"
-  locations: string[]
+  locations: LeagueLocation[]
   logoUrl?: string | null
 }
 
@@ -92,7 +94,38 @@ export const leagues: League[] = [
     activeSeasonId: "season-2",
     inviteCode: "SL-8KQ4-P7M2-X9RA",
     joinMode: "closed",
-    locations: ["Padel Indoor", "Club Padel Norte", "Padel Derio"],
+    locations: [
+      {
+        id: "court-padel-indoor",
+        name: "Padel Indoor",
+        address: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      },
+      {
+        id: "court-club-padel-norte",
+        name: "Club Padel Norte",
+        address: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      },
+      {
+        id: "court-padel-derio",
+        name: "Padel Derio",
+        address: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      },
+    ],
   },
   {
     id: "league-work",
@@ -102,7 +135,38 @@ export const leagues: League[] = [
     activeSeasonId: "season-work-1",
     inviteCode: "WK-3T9Z-L6Q8-V2BN",
     joinMode: "closed",
-    locations: ["Club Padel Work", "Padel Indoor", "Club Padel Norte"],
+    locations: [
+      {
+        id: "court-club-padel-work",
+        name: "Club Padel Work",
+        address: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      },
+      {
+        id: "court-padel-indoor-work",
+        name: "Padel Indoor",
+        address: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      },
+      {
+        id: "court-club-padel-norte-work",
+        name: "Club Padel Norte",
+        address: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      },
+    ],
   },
 ]
 

@@ -162,6 +162,7 @@ export default function MatchesPage() {
                       round: match.round,
                       matches,
                     })}
+                    leagueLocations={activeLeague.locations}
                   />
                 ))}
               </div>

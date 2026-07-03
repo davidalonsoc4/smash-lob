@@ -17,6 +17,10 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
+import {
+  findLeagueLocationByScheduleLocation,
+  getLeagueLocationCalendarText,
+} from "@/lib/leagueLocations"
 import { formatShortDate } from "@/lib/rounds"
 
 export default function MatchDetailPage() {
@@ -128,6 +132,15 @@ export default function MatchDetailPage() {
       (isAdmin && (match.status === "scheduling" || match.status === "postponed")))
   const canEditResult = canManageMatch && match.status === "finished"
 
+  const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
+    locations: activeLeague.locations,
+    scheduleLocation: match.location,
+  })
+  const calendarLocation = getLeagueLocationCalendarText(
+    scheduledLeagueLocation,
+    match.location
+  )
+
   return (
     <div className="space-y-3">
       <header className="pt-1">
@@ -233,7 +246,7 @@ export default function MatchDetailPage() {
               teamB={match.teamB}
               players={players}
               scheduledAt={match.scheduledAt}
-              location={match.location}
+              location={calendarLocation}
             />
           ) : null
         }

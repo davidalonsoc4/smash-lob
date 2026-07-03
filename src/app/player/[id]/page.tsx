@@ -185,6 +185,7 @@ export default function PlayerPage() {
         matches={orderedPlayerMatches}
         players={selectedPlayers}
         seasonMatches={selectedMatches}
+        leagueLocations={activeLeague.locations}
       />
     </div>
   )

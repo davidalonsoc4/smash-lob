@@ -3,6 +3,13 @@
 import { type FormEvent, type ReactNode, useMemo, useState } from "react"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import {
+  findLeagueLocationByScheduleLocation,
+  getLeagueLocationMapsUrl,
+  getLeagueLocationSubtitle,
+  getLeagueLocationWazeUrl,
+  type LeagueLocation,
+} from "@/lib/leagueLocations"
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds"
 
 type MatchScheduleFormProps = {
@@ -11,7 +18,7 @@ type MatchScheduleFormProps = {
   scheduledAt: string | null
   dateLabel: string | null
   location: string | null
-  availableLocations: string[]
+  availableLocations: LeagueLocation[]
   roundStartsAt: string | null
   roundEndsAt: string | null
   canManage: boolean
@@ -39,12 +46,16 @@ export function MatchScheduleForm({
   const isPostponed = status === "postponed"
   const hasSchedule = !isPostponed && Boolean(scheduledAt || dateLabel || location)
 
-  const initialLocationValue =
-    hasSchedule && location && availableLocations.includes(location)
-      ? location
-      : hasSchedule && location
-        ? otherLocationValue
-        : ""
+  const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
+    locations: availableLocations,
+    scheduleLocation: location,
+  })
+
+  const initialLocationValue = scheduledLeagueLocation
+    ? scheduledLeagueLocation.id
+    : hasSchedule && location
+      ? otherLocationValue
+      : ""
 
   const [isEditing, setIsEditing] = useState(
     canManage && !hasSchedule && !isPostponed && !isFinished
@@ -55,9 +66,7 @@ export function MatchScheduleForm({
   const [selectedLocation, setSelectedLocation] =
     useState(initialLocationValue)
   const [customLocation, setCustomLocation] = useState(
-    hasSchedule && location && !availableLocations.includes(location)
-      ? location
-      : ""
+    hasSchedule && location && !scheduledLeagueLocation ? location : ""
   )
   const [isSaving, setIsSaving] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -84,6 +93,13 @@ export function MatchScheduleForm({
       startsAt: roundStartsAt,
       endsAt: roundEndsAt,
     })
+
+  const displayedLocationName = scheduledLeagueLocation
+    ? scheduledLeagueLocation.name
+    : location
+  const displayedLocationSubtitle = scheduledLeagueLocation
+    ? getLeagueLocationSubtitle(scheduledLeagueLocation)
+    : null
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -120,9 +136,7 @@ export function MatchScheduleForm({
     setScheduledAtValue(hasSchedule ? scheduledAt ?? "" : "")
     setSelectedLocation(initialLocationValue)
     setCustomLocation(
-      hasSchedule && location && !availableLocations.includes(location)
-        ? location
-        : ""
+      hasSchedule && location && !scheduledLeagueLocation ? location : ""
     )
     setActionError(null)
     setIsEditing(false)
@@ -246,9 +260,33 @@ export function MatchScheduleForm({
               <p className="font-black text-neutral-950">
                 {dateLabel ?? t.matches.pendingDate}
               </p>
-              <p className="mt-0.5 text-xs font-semibold text-neutral-600">
-                {location ?? t.matches.missingSchedule}
-              </p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
+                <span>{displayedLocationName ?? t.matches.missingSchedule}</span>
+                {displayedLocationSubtitle ? (
+                  <span className="text-neutral-400">· {displayedLocationSubtitle}</span>
+                ) : null}
+              </div>
+
+              {scheduledLeagueLocation ? (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <a
+                    href={getLeagueLocationMapsUrl(scheduledLeagueLocation)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
+                  >
+                    Maps
+                  </a>
+                  <a
+                    href={getLeagueLocationWazeUrl(scheduledLeagueLocation)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
+                  >
+                    Waze
+                  </a>
+                </div>
+              ) : null}
 
               {calendarAction ? calendarAction : null}
             </>
@@ -308,8 +346,10 @@ export function MatchScheduleForm({
                 </option>
 
                 {availableLocations.map((availableLocation) => (
-                  <option key={availableLocation} value={availableLocation}>
-                    {availableLocation}
+                  <option key={availableLocation.id} value={availableLocation.id}>
+                    {availableLocation.address
+                      ? `${availableLocation.name} · ${availableLocation.address}`
+                      : availableLocation.name}
                   </option>
                 ))}
 

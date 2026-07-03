@@ -23,6 +23,9 @@ import {
   getPlayersByIds,
 } from "@/lib/mvp"
 import { recordActivityEvent } from "@/lib/activity"
+import {
+  findLeagueLocationByScheduleLocation,
+} from "@/lib/leagueLocations"
 import { getLastMatch, getNextMatch } from "@/lib/leagues"
 import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons"
 
@@ -255,6 +258,18 @@ export default function Home() {
   )
   const lastMatch = getLastMatch(currentUserMatches)
   const nextMatch = getNextMatch(currentUserMatches)
+  const lastMatchLocation = lastMatch
+    ? findLeagueLocationByScheduleLocation({
+        locations: activeLeague.locations,
+        scheduleLocation: lastMatch.location,
+      })
+    : null
+  const nextMatchLocation = nextMatch
+    ? findLeagueLocationByScheduleLocation({
+        locations: activeLeague.locations,
+        scheduleLocation: nextMatch.location,
+      })
+    : null
   const lastMatchHighlightedPlayerIds = lastMatch
     ? getRoundMvpPlayerIds({
         leagueId: activeLeague.id,
@@ -624,7 +639,7 @@ export default function Home() {
               </div>
 
               <p className="mt-1.5 truncate pr-11 text-[11px] font-semibold text-neutral-500">
-                {lastMatch.dateLabel} · {lastMatch.location}
+                {lastMatch.dateLabel} · {lastMatchLocation?.name ?? lastMatch.location}
               </p>
             </AppCard>
           </Link>
@@ -672,7 +687,8 @@ export default function Home() {
                 </p>
 
                 <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                  {nextMatch.location ??
+                  {nextMatchLocation?.name ??
+                    nextMatch.location ??
                     (nextMatch.status === "postponed"
                       ? t.matches.needsReschedule
                       : t.dashboard.playersCanSchedule)}

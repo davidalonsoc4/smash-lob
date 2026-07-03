@@ -6,6 +6,10 @@ import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { AppCard } from "@/components/ui/AppCard"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useI18n } from "@/i18n/I18nProvider"
+import {
+  findLeagueLocationByScheduleLocation,
+  type LeagueLocation,
+} from "@/lib/leagueLocations"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import type { PlayerProfile } from "@/data/fakeData"
 
@@ -34,6 +38,7 @@ type PlayerMatchesListProps = {
   seasonMatches?: PlayerMatch[]
   actionHref?: string
   actionLabel?: string
+  leagueLocations?: LeagueLocation[]
 }
 
 export function PlayerMatchesList({
@@ -46,6 +51,7 @@ export function PlayerMatchesList({
   seasonMatches = matches,
   actionHref,
   actionLabel,
+  leagueLocations = [],
 }: PlayerMatchesListProps) {
   const { t } = useI18n()
 
@@ -88,13 +94,17 @@ export function PlayerMatchesList({
             matches: seasonMatches,
           })
 
+          const leagueLocation = findLeagueLocationByScheduleLocation({
+            locations: leagueLocations,
+            scheduleLocation: match.location,
+          })
           const scheduleTitle = isPostponed
             ? t.matches.pendingReschedule
             : match.dateLabel ?? t.matches.pendingDate
 
           const scheduleDescription = isPostponed
             ? t.matches.needsReschedule
-            : match.location ?? t.matches.missingSchedule
+            : leagueLocation?.name ?? match.location ?? t.matches.missingSchedule
 
           return (
             <Link key={match.id} href={`/match/${match.id}`} className="block">

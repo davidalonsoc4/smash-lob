@@ -6,6 +6,10 @@ import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { AppCard } from "@/components/ui/AppCard"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useI18n } from "@/i18n/I18nProvider"
+import {
+  findLeagueLocationByScheduleLocation,
+  type LeagueLocation,
+} from "@/lib/leagueLocations"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type MatchCardProps = {
@@ -27,6 +31,7 @@ type MatchCardProps = {
   roundEndsAt: string | null
   headerMode?: "round" | "match-date"
   highlightedPlayerIds?: string[]
+  leagueLocations?: LeagueLocation[]
 }
 
 export function MatchCard({
@@ -36,19 +41,24 @@ export function MatchCard({
   roundEndsAt,
   headerMode = "round",
   highlightedPlayerIds = [],
+  leagueLocations = [],
 }: MatchCardProps) {
   const { t } = useI18n()
   const isFinished = match.status === "finished"
   const isPostponed = match.status === "postponed"
   const hasRoundWindow = Boolean(roundStartsAt && roundEndsAt)
 
+  const leagueLocation = findLeagueLocationByScheduleLocation({
+    locations: leagueLocations,
+    scheduleLocation: match.location,
+  })
   const scheduleTitle = isPostponed
     ? t.matches.pendingReschedule
     : match.dateLabel ?? t.matches.pendingDate
 
   const scheduleDescription = isPostponed
     ? t.matches.needsReschedule
-    : match.location ?? t.matches.missingSchedule
+    : leagueLocation?.name ?? match.location ?? t.matches.missingSchedule
 
   function getPlayedDateLabel() {
     if (!match.scheduledAt) {

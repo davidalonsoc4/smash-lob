@@ -1,14 +1,6 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
-
-function normalizeLocations(locations: string[]) {
-  const cleanLocations = locations
-    .map((location) => location.trim())
-    .filter(Boolean)
-
-  return Array.from(new Set(cleanLocations))
-}
-
+import { normalizeLeagueLocations, type LeagueLocation } from "@/lib/leagueLocations"
 
 export async function updateSupabaseLeagueDetails({
   leagueId,
@@ -77,9 +69,9 @@ export async function updateSupabaseLeagueLocations({
   locations,
 }: {
   leagueId: string
-  locations: string[]
+  locations: LeagueLocation[]
 }) {
-  const normalizedLocations = normalizeLocations(locations)
+  const normalizedLocations = normalizeLeagueLocations(locations)
 
   const { data, error } = await supabase
     .from("leagues")
@@ -94,11 +86,7 @@ export async function updateSupabaseLeagueLocations({
 
   return {
     leagueId: data.id,
-    locations: Array.isArray(data.locations)
-      ? data.locations.filter(
-          (location): location is string => typeof location === "string"
-        )
-      : [],
+    locations: normalizeLeagueLocations(data.locations),
   }
 }
 

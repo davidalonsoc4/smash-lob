@@ -33,6 +33,10 @@ import {
   fetchSupabaseLeagueSnapshot,
 } from "@/lib/supabaseLeagues";
 import {
+  normalizeLeagueLocations,
+  type LeagueLocation,
+} from "@/lib/leagueLocations";
+import {
   claimSupabasePlayer,
   fetchSupabaseInviteSnapshot,
 } from "@/lib/supabaseInvites";
@@ -62,6 +66,7 @@ type LeagueAccessContextValue = {
   createLeague: (settings: {
     name: string;
     description: string;
+    locations: LeagueLocation[];
   }) => Promise<League | null>;
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null;
   getLeagueInviteCode: (leagueId: string) => string;
@@ -77,7 +82,7 @@ type LeagueAccessContextValue = {
   ) => Promise<boolean>;
   updateLeagueLocations: (
     leagueId: string,
-    locations: string[],
+    locations: LeagueLocation[],
   ) => Promise<boolean>;
   deleteLeague: (leagueId: string) => Promise<boolean>;
   fetchLeagueUsers: (leagueId: string) => Promise<LeagueUserManagementPlayer[]>;
@@ -222,27 +227,40 @@ function readStoredMemberships() {
   }
 }
 
-function isValidStoredLeague(league: unknown): league is League {
+function normalizeStoredLeague(league: unknown): League | null {
   if (typeof league !== "object" || league === null) {
-    return false;
+    return null;
   }
 
   const item = league as Record<string, unknown>;
 
-  return (
-    typeof item.id === "string" &&
-    typeof item.slug === "string" &&
-    typeof item.name === "string" &&
-    typeof item.description === "string" &&
-    typeof item.activeSeasonId === "string" &&
-    typeof item.inviteCode === "string" &&
-    (item.joinMode === "closed" || item.joinMode === "open") &&
-    Array.isArray(item.locations) &&
-    item.locations.every((location) => typeof location === "string") &&
-    (typeof item.logoUrl === "undefined" ||
-      item.logoUrl === null ||
-      typeof item.logoUrl === "string")
-  );
+  if (
+    typeof item.id !== "string" ||
+    typeof item.slug !== "string" ||
+    typeof item.name !== "string" ||
+    typeof item.description !== "string" ||
+    typeof item.activeSeasonId !== "string" ||
+    typeof item.inviteCode !== "string" ||
+    (item.joinMode !== "closed" && item.joinMode !== "open") ||
+    !Array.isArray(item.locations) ||
+    (typeof item.logoUrl !== "undefined" &&
+      item.logoUrl !== null &&
+      typeof item.logoUrl !== "string")
+  ) {
+    return null;
+  }
+
+  return {
+    id: item.id,
+    slug: item.slug,
+    name: item.name,
+    description: item.description,
+    activeSeasonId: item.activeSeasonId,
+    inviteCode: item.inviteCode,
+    joinMode: item.joinMode,
+    locations: normalizeLeagueLocations(item.locations),
+    logoUrl: typeof item.logoUrl === "string" ? item.logoUrl : null,
+  };
 }
 
 function readStoredLeagues() {
@@ -267,7 +285,8 @@ function readStoredLeagues() {
 
     const storedLeagues = uniqueLeaguesById(
       parsedValue
-        .filter(isValidStoredLeague)
+        .map(normalizeStoredLeague)
+        .filter((league): league is League => Boolean(league))
         .filter((league) => isPersistentLeagueId(league.id)),
     );
     const storedLeagueIds = new Set(storedLeagues.map((league) => league.id));
@@ -571,7 +590,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   );
 
   const createLeague = useCallback(
-    async ({ name, description }: { name: string; description: string }) => {
+    async ({
+      name,
+      description,
+      locations,
+    }: {
+      name: string;
+      description: string;
+      locations: LeagueLocation[];
+    }) => {
       if (!userId || !canCreateLeagues) {
         return null;
       }
@@ -600,6 +627,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           leagueDescription: description,
           leagueSlug: slug,
           inviteCode,
+          locations,
         });
 
         setLeagues((currentLeagues) => {
@@ -878,10 +906,8 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   );
 
   const updateLeagueLocations = useCallback(
-    async (leagueId: string, locations: string[]) => {
-      const normalizedLocations = Array.from(
-        new Set(locations.map((location) => location.trim()).filter(Boolean)),
-      );
+    async (leagueId: string, locations: LeagueLocation[]) => {
+      const normalizedLocations = normalizeLeagueLocations(locations);
 
       if (isSupabaseBackedId(leagueId)) {
         try {
