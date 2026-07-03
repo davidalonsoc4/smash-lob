@@ -37,21 +37,18 @@ export const eu = {
       "Sortu liga berri bat lehen denboraldiarekin eta hasierako jokalariekin.",
     createAction: "Liga sortu",
     joinTitle: "Lehendik dagoen ligara sartu",
-    joinDescription:
-      "Sartu ligako administratzaileak eman dizun kodea.",
+    joinDescription: "Sartu ligako administratzaileak eman dizun kodea.",
     joinAction: "Gonbidapena balioztatu",
   },
 
   invites: {
     subtitle: "Gonbidapen pribatua",
     title: "Liga batera sartu",
-    description:
-      "Berretsi liga eta erreklamatu zuri dagokizun jokalaria.",
+    description: "Berretsi liga eta erreklamatu zuri dagokizun jokalaria.",
     loadingDescription:
       "Gonbidapena egiaztatzen eta liga datu-basetik kargatzen.",
     checkingCode: "Kodea egiaztatzen",
-    checkingCodeDescription:
-      "Gonbidapen honi lotutako liga bilatzen ari gara.",
+    checkingCodeDescription: "Gonbidapen honi lotutako liga bilatzen ari gara.",
     codeLabel: "Gonbidapen kodea",
     codePlaceholder: "SL-8KQ4-P7M2-X9RA",
     invalidCode: "Kode baliogabea.",
@@ -60,7 +57,8 @@ export const eu = {
     notFoundDescription:
       "Begiratu esteka edo eskatu administratzaileari kode berri bat.",
     foundLeague: "Liga aurkituta",
-    closedMode: "Modu itxia: jokalariak administratzaileak aurrez definitu ditu.",
+    closedMode:
+      "Modu itxia: jokalariak administratzaileak aurrez definitu ditu.",
     openMode: "Modu irekia aurrerago erabiltzeko prestatuta.",
     activeSeasonTitle: "Denboraldi aktiboa",
     activeSeasonDescription:
@@ -82,7 +80,8 @@ export const eu = {
     alreadyInLeague: "Dagoeneko liga honetan zaude.",
     alreadyInLeagueDescription:
       "Zure kontuak dagoeneko jokalari bat lotuta dauka liga honetan.",
-    noPlayersAvailable: "Ez dago erreklamatu gabeko jokalaririk denboraldi honetan.",
+    noPlayersAvailable:
+      "Ez dago erreklamatu gabeko jokalaririk denboraldi honetan.",
     confirmClaim: "Berretsi eta sartu",
     claiming: "Gordetzen...",
     enterLeague: "Ligan sartu",
@@ -98,7 +97,6 @@ export const eu = {
     leagueSelectorLabel: "Liga aukeratu",
     settingsLabel: "Ezarpenak",
   },
-
 
   courtBooking: {
     expand: "Ikusi erreserba",
@@ -203,7 +201,8 @@ export const eu = {
     addScheduleTitle: "Programazioa gehitu",
     addScheduleDescription: "Aukeratu partidaren data, ordua eta lekua.",
     postponedTitle: "Partida atzeratuta",
-    postponedDescription: "Partida hau pendiente dago eta data berri bat behar du.",
+    postponedDescription:
+      "Partida hau pendiente dago eta data berri bat behar du.",
     noScheduleDescription: "Partida data eta leku berriaren zain dago.",
     pendingSchedule: "Data, ordua eta lekua pendiente",
     pendingScheduleDescription:
@@ -250,7 +249,8 @@ export const eu = {
     set: "Seta",
     teamA: "A bikotea",
     teamB: "B bikotea",
-    invalidSet: "Set baliogabea. Erabili 6-0, 6-4, 7-5 edo 7-6 moduko markagailuak.",
+    invalidSet:
+      "Set baliogabea. Erabili 6-0, 6-4, 7-5 edo 7-6 moduko markagailuak.",
     save: "Emaitza gorde",
     update: "Aldaketak gorde",
     cancelEdit: "Utzi",
@@ -389,7 +389,8 @@ export const eu = {
     joinNewExistingLeague: "Lehendik dagoen beste liga batera sartu",
     avatarCustomActive: "Irudi pertsonalizatua aktibo.",
     avatarGoogleFallback: "Googleko zure irudia erabiltzen da lehenespenez.",
-    avatarInitialsFallback: "Irudirik igotzen ez baduzu, zure inizialak erabiliko dira.",
+    avatarInitialsFallback:
+      "Irudirik igotzen ez baduzu, zure inizialak erabiliko dira.",
     uploadAvatar: "Irudia igo",
     removeAvatar: "Irudia kendu",
     avatarSaved: "Irudia gordeta.",
@@ -439,23 +440,25 @@ export const eu = {
     description: "Konfiguratu liga aktiboaren oinarrizko datuak.",
     locationsTitle: "Ohiko lekuak",
     locationsDescription:
-      "Konfiguratu lekuak izen pertsonalizatuarekin, helbidearekin eta Google erreferentziarekin partidak programatzeko, nabigazioan irekitzeko eta egutegian kokapena gordetzeko.",
+      "Konfiguratu lekuak izen pertsonalizatuarekin, Maps kokapenarekin eta aukerako xehetasunarekin partidak programatzeko, nabigazioa irekitzeko eta egutegian kokapena gordetzeko.",
     emptyLocations:
       "Ez dago ohiko lekurik konfiguratuta. Partidak programatzean Beste bat aukera erabil daiteke.",
     addLocationTitle: "Lekua gehitu",
     locationName: "Izen laburra",
     locationPlaceholder: "Adibidez: Lasesarre",
     googleLocation: "Maps kokapena",
-    googleLocationPlaceholder: "Adibidez: Lasesarre kiroldegia, Barakaldo",
-    address: "Helbidea edo xehetasunak",
-    addressPlaceholder: "Aukerakoa: helbide zehatza, pista, sarrera...",
+    googleLocationPlaceholder:
+      "Adibidez: Lasesarre kiroldegia, Barakaldo edo Maps URLa",
+    address: "Xehetasuna",
+    addressPlaceholder: "Aukerakoa: 1. pista, eskuineko pista...",
     duplicatedLocation: "Leku hori dagoeneko zerrendan dago.",
     addLocation: "Lekua gehitu",
     removeLocation: "Kendu",
     openMaps: "Maps",
     openWaze: "Waze",
     searchMaps: "Probatu Maps-en",
-    googleApiMissing: "Google Places gabe: idatzi lekua edo helbidea eta aplikazioak Maps/Waze bilaketa bidez irekiko du.",
+    googleApiMissing:
+      "Idatzi kokapena edo itsatsi Maps URLa. Aplikazioak Maps/Waze irekiko du erreferentzia horrekin.",
     save: "Aldaketak gorde",
     saved: "Konfigurazioa gordeta.",
   },
@@ -516,8 +519,7 @@ export const eu = {
     seasonPlayersDescription:
       "Aukeratu ligako jokalariak eta bete hutsuneak lotzeko pendiente dauden izen berriekin.",
     calendarTitle: "Egutegia",
-    calendarDescription:
-      "Oraingoz egutegi orekatua bakarrik sor daiteke.",
+    calendarDescription: "Oraingoz egutegi orekatua bakarrik sor daiteke.",
     balancedCalendar: "Egutegi orekatua",
     balancedCalendarDescription:
       "Jokalari guztiek partida banaketa orekatua izango dute. Xehetasuna hurrengo urratsean konfiguratuko dugu.",
@@ -547,7 +549,8 @@ export const eu = {
     leagueName: "Ligaren izena",
     leagueNamePlaceholder: "Adibidea: Ostegunetako liga",
     leagueDescription: "Deskribapena",
-    leagueDescriptionPlaceholder: "Adibidea: Lagunen arteko padel liga pribatua.",
+    leagueDescriptionPlaceholder:
+      "Adibidea: Lagunen arteko padel liga pribatua.",
     defaultDescription: "Padel liga pribatua.",
     locationsTitle: "Ohiko lekuak",
     locationsDescription:
@@ -669,4 +672,4 @@ export const eu = {
     switchToEnglish: "EN",
     switchToBasque: "EU",
   },
-} as const
+} as const;

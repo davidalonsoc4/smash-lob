@@ -1,157 +1,155 @@
-"use client"
+"use client";
 
-import {
-  type ChangeEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   createLeagueLocation,
   getLeagueLocationMapsUrl,
   getLeagueLocationSubtitle,
   getLeagueLocationWazeUrl,
+  normalizeMapsUrl,
   type LeagueLocation,
-} from "@/lib/leagueLocations"
+} from "@/lib/leagueLocations";
 
 type LeagueLocationsEditorProps = {
-  locations: LeagueLocation[]
-  onChange: (locations: LeagueLocation[]) => void
-  disabled?: boolean
+  locations: LeagueLocation[];
+  onChange: (locations: LeagueLocation[]) => void;
+  disabled?: boolean;
   copy: {
-    emptyLocations: string
-    addLocationTitle: string
-    locationName: string
-    locationPlaceholder: string
-    googleLocation: string
-    googleLocationPlaceholder: string
-    address: string
-    addressPlaceholder: string
-    duplicatedLocation: string
-    addLocation: string
-    removeLocation: string
-    openMaps: string
-    openWaze: string
-    searchMaps: string
-    googleApiMissing: string
-  }
-}
+    emptyLocations: string;
+    addLocationTitle: string;
+    locationName: string;
+    locationPlaceholder: string;
+    googleLocation: string;
+    googleLocationPlaceholder: string;
+    address: string;
+    addressPlaceholder: string;
+    duplicatedLocation: string;
+    addLocation: string;
+    removeLocation: string;
+    openMaps: string;
+    openWaze: string;
+    searchMaps: string;
+    googleApiMissing: string;
+  };
+};
 
 type SelectedGooglePlace = {
-  googlePlaceId: string | null
-  googlePlaceName: string | null
-  address: string | null
-  googleMapsUrl: string | null
-  latitude: number | null
-  longitude: number | null
-}
+  googlePlaceId: string | null;
+  googlePlaceName: string | null;
+  address: string | null;
+  googleMapsUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+};
 
 type GoogleLatLngLike = {
-  lat: () => number
-  lng: () => number
-}
+  lat: () => number;
+  lng: () => number;
+};
 
 type GooglePlaceResultLike = {
-  place_id?: string
-  name?: string
-  formatted_address?: string
-  url?: string
+  place_id?: string;
+  name?: string;
+  formatted_address?: string;
+  url?: string;
   geometry?: {
-    location?: GoogleLatLngLike
-  }
-}
+    location?: GoogleLatLngLike;
+  };
+};
 
 type GoogleAutocompleteLike = {
-  getPlace: () => GooglePlaceResultLike
-  setFields?: (fields: string[]) => void
-  addListener: (eventName: string, callback: () => void) => void
-}
+  getPlace: () => GooglePlaceResultLike;
+  setFields?: (fields: string[]) => void;
+  addListener: (eventName: string, callback: () => void) => void;
+};
 
 type GooglePlacesLike = {
   Autocomplete: new (
     input: HTMLInputElement,
-    options?: Record<string, unknown>
-  ) => GoogleAutocompleteLike
-}
+    options?: Record<string, unknown>,
+  ) => GoogleAutocompleteLike;
+};
 
 type GoogleMapsLike = {
   maps?: {
-    places?: GooglePlacesLike
-  }
-}
+    places?: GooglePlacesLike;
+  };
+};
 
 declare global {
   interface Window {
-    google?: GoogleMapsLike
-    __smashLobGoogleMapsPromise?: Promise<void>
+    google?: GoogleMapsLike;
+    __smashLobGoogleMapsPromise?: Promise<void>;
   }
 }
 
-const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-const googleMapsScriptId = "smash-lob-google-maps-places"
+const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const googleMapsScriptId = "smash-lob-google-maps-places";
 
 function loadGoogleMapsPlaces() {
   if (typeof window === "undefined") {
-    return Promise.reject(new Error("Window is not available"))
+    return Promise.reject(new Error("Window is not available"));
   }
 
   if (window.google?.maps?.places) {
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   if (window.__smashLobGoogleMapsPromise) {
-    return window.__smashLobGoogleMapsPromise
+    return window.__smashLobGoogleMapsPromise;
   }
 
   if (!googleMapsApiKey) {
-    return Promise.reject(new Error("Missing Google Maps API key"))
+    return Promise.reject(new Error("Missing Google Maps API key"));
   }
 
   window.__smashLobGoogleMapsPromise = new Promise<void>((resolve, reject) => {
-    const existingScript = document.getElementById(googleMapsScriptId)
+    const existingScript = document.getElementById(googleMapsScriptId);
 
     if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(), { once: true })
-      existingScript.addEventListener("error", () => reject(), { once: true })
-      return
+      existingScript.addEventListener("load", () => resolve(), { once: true });
+      existingScript.addEventListener("error", () => reject(), { once: true });
+      return;
     }
 
-    const script = document.createElement("script")
-    script.id = googleMapsScriptId
+    const script = document.createElement("script");
+    script.id = googleMapsScriptId;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      googleMapsApiKey
-    )}&libraries=places&v=weekly`
-    script.async = true
-    script.defer = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error("Could not load Google Maps"))
+      googleMapsApiKey,
+    )}&libraries=places&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Could not load Google Maps"));
 
-    document.head.appendChild(script)
-  })
+    document.head.appendChild(script);
+  });
 
-  return window.__smashLobGoogleMapsPromise
+  return window.__smashLobGoogleMapsPromise;
 }
 
-function hasSameLocation(locations: LeagueLocation[], location: LeagueLocation) {
-  const newPlaceId = location.googlePlaceId?.toLowerCase()
-  const newName = location.name.trim().toLowerCase()
-  const newAddress = location.address?.trim().toLowerCase() ?? ""
+function hasSameLocation(
+  locations: LeagueLocation[],
+  location: LeagueLocation,
+) {
+  const newPlaceId = location.googlePlaceId?.toLowerCase();
+  const newName = location.name.trim().toLowerCase();
+  const newAddress = location.address?.trim().toLowerCase() ?? "";
 
   return locations.some((item) => {
     if (newPlaceId && item.googlePlaceId?.toLowerCase() === newPlaceId) {
-      return true
+      return true;
     }
 
     return (
       item.name.trim().toLowerCase() === newName &&
       (item.address?.trim().toLowerCase() ?? "") === newAddress
-    )
-  })
+    );
+  });
 }
 
 function getPlaceLocation(place: GooglePlaceResultLike): SelectedGooglePlace {
-  const location = place.geometry?.location
+  const location = place.geometry?.location;
 
   return {
     googlePlaceId: place.place_id ?? null,
@@ -160,7 +158,7 @@ function getPlaceLocation(place: GooglePlaceResultLike): SelectedGooglePlace {
     googleMapsUrl: place.url ?? null,
     latitude: location ? location.lat() : null,
     longitude: location ? location.lng() : null,
-  }
+  };
 }
 
 export function LeagueLocationsEditor({
@@ -169,28 +167,33 @@ export function LeagueLocationsEditor({
   disabled = false,
   copy,
 }: LeagueLocationsEditorProps) {
-  const googleInputRef = useRef<HTMLInputElement | null>(null)
-  const [name, setName] = useState("")
-  const [googleInput, setGoogleInput] = useState("")
-  const [manualAddress, setManualAddress] = useState("")
+  const googleInputRef = useRef<HTMLInputElement | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [name, setName] = useState("");
+  const [googleInput, setGoogleInput] = useState("");
+  const [detailInput, setDetailInput] = useState("");
   const [selectedGooglePlace, setSelectedGooglePlace] =
-    useState<SelectedGooglePlace | null>(null)
-  const [autocompleteReady, setAutocompleteReady] = useState(false)
+    useState<SelectedGooglePlace | null>(null);
+  const [autocompleteReady, setAutocompleteReady] = useState(false);
   const [hasTriedLoadingAutocomplete, setHasTriedLoadingAutocomplete] =
-    useState(false)
-  const [duplicated, setDuplicated] = useState(false)
+    useState(false);
+  const [duplicated, setDuplicated] = useState(false);
 
   useEffect(() => {
-    if (!googleMapsApiKey || !googleInputRef.current) {
-      return
+    if (!googleMapsApiKey || !googleInputRef.current || !isAdding) {
+      return;
     }
 
-    let isMounted = true
+    let isMounted = true;
 
     loadGoogleMapsPlaces()
       .then(() => {
-        if (!isMounted || !googleInputRef.current || !window.google?.maps?.places) {
-          return
+        if (
+          !isMounted ||
+          !googleInputRef.current ||
+          !window.google?.maps?.places
+        ) {
+          return;
         }
 
         const autocomplete = new window.google.maps.places.Autocomplete(
@@ -203,8 +206,8 @@ export function LeagueLocationsEditor({
               "geometry",
               "url",
             ],
-          }
-        )
+          },
+        );
 
         autocomplete.setFields?.([
           "place_id",
@@ -212,96 +215,114 @@ export function LeagueLocationsEditor({
           "formatted_address",
           "geometry",
           "url",
-        ])
+        ]);
 
         autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace()
-          const nextGooglePlace = getPlaceLocation(place)
+          const place = autocomplete.getPlace();
+          const nextGooglePlace = getPlaceLocation(place);
 
-          setSelectedGooglePlace(nextGooglePlace)
+          setSelectedGooglePlace(nextGooglePlace);
           setGoogleInput(
-            nextGooglePlace.googlePlaceName ?? nextGooglePlace.address ?? ""
-          )
-          setManualAddress(nextGooglePlace.address ?? "")
+            nextGooglePlace.googlePlaceName ?? nextGooglePlace.address ?? "",
+          );
           setName((currentName) =>
             currentName.trim() || nextGooglePlace.googlePlaceName
               ? currentName.trim() || nextGooglePlace.googlePlaceName || ""
-              : currentName
-          )
-          setDuplicated(false)
-        })
+              : currentName,
+          );
+          setDuplicated(false);
+        });
 
-        setAutocompleteReady(true)
+        setAutocompleteReady(true);
       })
       .catch(() => {
-        setAutocompleteReady(false)
+        setAutocompleteReady(false);
       })
       .finally(() => {
         if (isMounted) {
-          setHasTriedLoadingAutocomplete(true)
+          setHasTriedLoadingAutocomplete(true);
         }
-      })
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [])
+      isMounted = false;
+    };
+  }, [isAdding]);
 
-  const cleanName = name.trim()
-  const cleanAddress = manualAddress.trim()
-  const cleanSearchText = googleInput.trim()
+  const cleanName = name.trim();
+  const cleanDetail = detailInput.trim();
+  const cleanSearchText = googleInput.trim();
+  const typedMapsUrl = normalizeMapsUrl(cleanSearchText);
+  const isTypedMapsUrl = Boolean(typedMapsUrl);
   const resolvedName =
-    cleanName || selectedGooglePlace?.googlePlaceName || cleanSearchText
+    cleanName ||
+    selectedGooglePlace?.googlePlaceName ||
+    (!isTypedMapsUrl ? cleanSearchText : "");
   const resolvedAddress =
-    selectedGooglePlace?.address ?? (cleanAddress || cleanSearchText)
+    selectedGooglePlace?.address ?? (!isTypedMapsUrl ? cleanSearchText : null);
+  const resolvedMapsUrl = selectedGooglePlace?.googleMapsUrl ?? typedMapsUrl;
 
   const draftLocation = useMemo(
     () =>
       createLeagueLocation({
         name: resolvedName,
         address: resolvedAddress,
+        detail: cleanDetail,
         googlePlaceId: selectedGooglePlace?.googlePlaceId ?? null,
         googlePlaceName: selectedGooglePlace?.googlePlaceName ?? null,
-        googleMapsUrl: selectedGooglePlace?.googleMapsUrl ?? null,
+        googleMapsUrl: resolvedMapsUrl,
         latitude: selectedGooglePlace?.latitude ?? null,
         longitude: selectedGooglePlace?.longitude ?? null,
       }),
-    [resolvedAddress, resolvedName, selectedGooglePlace]
-  )
+    [
+      cleanDetail,
+      resolvedAddress,
+      resolvedMapsUrl,
+      resolvedName,
+      selectedGooglePlace,
+    ],
+  );
 
-  const canAdd = Boolean(draftLocation) && !disabled
+  const canAdd = Boolean(draftLocation) && !disabled;
 
   function resetForm() {
-    setName("")
-    setGoogleInput("")
-    setManualAddress("")
-    setSelectedGooglePlace(null)
-    setDuplicated(false)
+    setName("");
+    setGoogleInput("");
+    setDetailInput("");
+    setSelectedGooglePlace(null);
+    setDuplicated(false);
   }
 
   function handleGoogleInputChange(event: ChangeEvent<HTMLInputElement>) {
-    setGoogleInput(event.target.value)
-    setSelectedGooglePlace(null)
-    setDuplicated(false)
+    const nextValue = event.target.value;
+
+    setGoogleInput(nextValue);
+    setSelectedGooglePlace(null);
+    setDuplicated(false);
+
+    if (!name.trim() && !normalizeMapsUrl(nextValue)) {
+      setName(nextValue);
+    }
   }
 
   function handleAddLocation() {
     if (!draftLocation) {
-      return
+      return;
     }
 
     if (hasSameLocation(locations, draftLocation)) {
-      setDuplicated(true)
-      return
+      setDuplicated(true);
+      return;
     }
 
-    onChange([...locations, draftLocation])
-    resetForm()
+    onChange([...locations, draftLocation]);
+    resetForm();
+    setIsAdding(false);
   }
 
   function handleRemoveLocation(locationId: string) {
-    onChange(locations.filter((location) => location.id !== locationId))
-    setDuplicated(false)
+    onChange(locations.filter((location) => location.id !== locationId));
+    setDuplicated(false);
   }
 
   return (
@@ -362,105 +383,114 @@ export function LeagueLocationsEditor({
         </div>
       )}
 
-      <div className="rounded-xl bg-neutral-100 p-3">
-        <p className="text-sm font-black text-neutral-950">
-          {copy.addLocationTitle}
-        </p>
+      <button
+        type="button"
+        onClick={() => {
+          setIsAdding((current) => !current);
+          setDuplicated(false);
+        }}
+        disabled={disabled}
+        className="flex w-full items-center justify-center rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm transition active:scale-[0.99] disabled:bg-neutral-200 disabled:text-neutral-400"
+      >
+        {isAdding ? "−" : "+"} {copy.addLocationTitle}
+      </button>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="block">
+      {isAdding ? (
+        <div className="rounded-xl bg-neutral-100 p-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {copy.locationName}
+              </span>
+              <input
+                value={name}
+                disabled={disabled}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setDuplicated(false);
+                }}
+                placeholder={copy.locationPlaceholder}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                {copy.googleLocation}
+              </span>
+              <input
+                ref={googleInputRef}
+                value={googleInput}
+                disabled={disabled}
+                onChange={handleGoogleInputChange}
+                placeholder={copy.googleLocationPlaceholder}
+                className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
+          </div>
+
+          <label className="mt-3 block">
             <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-              {copy.locationName}
+              {copy.address}
             </span>
             <input
-              value={name}
+              value={detailInput}
               disabled={disabled}
               onChange={(event) => {
-                setName(event.target.value)
-                setDuplicated(false)
+                setDetailInput(event.target.value);
+                setDuplicated(false);
               }}
-              placeholder={copy.locationPlaceholder}
+              placeholder={copy.addressPlaceholder}
               className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
           </label>
 
-          <label className="block">
-            <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-              {copy.googleLocation}
-            </span>
-            <input
-              ref={googleInputRef}
-              value={googleInput}
-              disabled={disabled}
-              onChange={(event) => {
-                handleGoogleInputChange(event)
-                if (!name.trim()) {
-                  setName(event.target.value)
-                }
-              }}
-              placeholder={copy.googleLocationPlaceholder}
-              className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-          </label>
+          {!googleMapsApiKey && !autocompleteReady ? (
+            <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
+              {copy.googleApiMissing}
+            </p>
+          ) : hasTriedLoadingAutocomplete && !autocompleteReady ? (
+            <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
+              {copy.googleApiMissing}
+            </p>
+          ) : null}
+
+          {duplicated ? (
+            <p className="mt-2 text-xs font-semibold text-red-600">
+              {copy.duplicatedLocation}
+            </p>
+          ) : null}
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <a
+              href={
+                draftLocation
+                  ? getLeagueLocationMapsUrl(draftLocation)
+                  : undefined
+              }
+              target="_blank"
+              rel="noreferrer"
+              aria-disabled={!draftLocation}
+              className={`rounded-xl border px-3 py-2 text-center text-sm font-black shadow-sm ${
+                draftLocation
+                  ? "border-neutral-200 bg-white text-neutral-800"
+                  : "pointer-events-none border-neutral-200 bg-neutral-200 text-neutral-400"
+              }`}
+            >
+              {copy.searchMaps}
+            </a>
+
+            <button
+              type="button"
+              onClick={handleAddLocation}
+              disabled={!canAdd}
+              className="rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
+            >
+              {copy.addLocation}
+            </button>
+          </div>
         </div>
-
-        <label className="mt-3 block">
-          <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-            {copy.address}
-          </span>
-          <input
-            value={manualAddress}
-            disabled={disabled || Boolean(selectedGooglePlace)}
-            onChange={(event) => {
-              setManualAddress(event.target.value)
-              setDuplicated(false)
-            }}
-            placeholder={copy.addressPlaceholder}
-            className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-          />
-        </label>
-
-        {!googleMapsApiKey && !autocompleteReady ? (
-          <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
-            {copy.googleApiMissing}
-          </p>
-        ) : hasTriedLoadingAutocomplete && !autocompleteReady ? (
-          <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
-            {copy.googleApiMissing}
-          </p>
-        ) : null}
-
-        {duplicated ? (
-          <p className="mt-2 text-xs font-semibold text-red-600">
-            {copy.duplicatedLocation}
-          </p>
-        ) : null}
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <a
-            href={draftLocation ? getLeagueLocationMapsUrl(draftLocation) : undefined}
-            target="_blank"
-            rel="noreferrer"
-            aria-disabled={!draftLocation}
-            className={`rounded-xl border px-3 py-2 text-center text-sm font-black shadow-sm ${
-              draftLocation
-                ? "border-neutral-200 bg-white text-neutral-800"
-                : "pointer-events-none border-neutral-200 bg-neutral-200 text-neutral-400"
-            }`}
-          >
-            {copy.searchMaps}
-          </a>
-
-          <button
-            type="button"
-            onClick={handleAddLocation}
-            disabled={!canAdd}
-            className="rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
-          >
-            {copy.addLocation}
-          </button>
-        </div>
-      </div>
+      ) : null}
     </div>
-  )
+  );
 }

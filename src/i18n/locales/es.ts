@@ -99,7 +99,6 @@ export const es = {
     settingsLabel: "Ajustes",
   },
 
-
   courtBooking: {
     expand: "Ver reserva",
     collapse: "Ocultar reserva",
@@ -142,7 +141,8 @@ export const es = {
     subtitle: "Clasificación general",
     closedSeasonHistoricalDescription:
       "Este ranking queda como histórico de {seasonName}.",
-    description: "Ordenado por PTS, diferencia de juegos y juegos a favor en caso de empate.",
+    description:
+      "Ordenado por PTS, diferencia de juegos y juegos a favor en caso de empate.",
     gamesDiff: "Dif. juegos",
     gamesFor: "Juegos a favor",
     gamesAgainst: "Juegos en contra",
@@ -336,8 +336,7 @@ export const es = {
 
   help: {
     title: "Ayuda y conceptos básicos",
-    description:
-      "Una guía rápida para jugadores nuevos de la liga.",
+    description: "Una guía rápida para jugadores nuevos de la liga.",
     starPointsTitle: "Star Points",
     starPointsDescription:
       "El Star Point es un punto decisivo que se juega cuando un juego llega a 40-40. En vez de seguir con ventajas, se juega un único punto: quien gana ese punto, gana el juego.",
@@ -386,7 +385,8 @@ export const es = {
     language: "Idioma",
     languageDescription: "Cambia el idioma de la aplicación.",
     accountTitle: "Cuenta e invitaciones",
-    accountDescription: "Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.",
+    accountDescription:
+      "Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.",
     accountSettingsTitle: "Ajustes de cuenta",
     accountSettingsDescription:
       "Personaliza la imagen que se muestra en tu perfil de esta liga.",
@@ -410,9 +410,11 @@ export const es = {
     backToSettings: "← Volver a ajustes",
     backToAdmin: "← Volver al panel admin",
     title: "Panel de administrador",
-    description: "Centraliza la gestión de la liga activa y sus configuraciones.",
+    description:
+      "Centraliza la gestión de la liga activa y sus configuraciones.",
     leagueTitle: "Administrar liga",
-    leagueDescription: "Configura los datos de la liga y sus lugares habituales.",
+    leagueDescription:
+      "Configura los datos de la liga y sus lugares habituales.",
     seasonTitle: "Administrar temporada",
     seasonDescription:
       "Configura jornadas, ventanas y reglas básicas de la temporada activa.",
@@ -444,23 +446,25 @@ export const es = {
     description: "Configura los datos básicos de la liga activa.",
     locationsTitle: "Lugares habituales",
     locationsDescription:
-      "Configura lugares con nombre propio, dirección y referencia de Google para programar partidos, abrir navegación y guardar la ubicación en el calendario.",
+      "Configura lugares con nombre propio, ubicación en Maps y detalle opcional para programar partidos, abrir navegación y guardar la ubicación en el calendario.",
     emptyLocations:
       "No hay lugares habituales configurados. Al programar partidos se podrá usar la opción Otro.",
     addLocationTitle: "Añadir lugar",
     locationName: "Nombre corto",
     locationPlaceholder: "Ejemplo: Lasesarre",
     googleLocation: "Ubicación en Maps",
-    googleLocationPlaceholder: "Ejemplo: Polideportivo de Lasesarre, Barakaldo",
-    address: "Dirección o detalle",
-    addressPlaceholder: "Opcional: dirección exacta, pista, acceso...",
+    googleLocationPlaceholder:
+      "Ejemplo: Polideportivo de Lasesarre, Barakaldo o URL de Maps",
+    address: "Detalle",
+    addressPlaceholder: "Opcional: Pista 1, pista de la derecha...",
     duplicatedLocation: "Ese lugar ya está en la lista.",
     addLocation: "Añadir lugar",
     removeLocation: "Quitar",
     openMaps: "Maps",
     openWaze: "Waze",
     searchMaps: "Probar en Maps",
-    googleApiMissing: "Sin Google Places: escribe el lugar o dirección y la app lo abrirá en Maps/Waze mediante búsqueda.",
+    googleApiMissing:
+      "Escribe una ubicación o pega una URL de Maps. La app abrirá Maps/Waze con esa referencia.",
     save: "Guardar cambios",
     saved: "Configuración guardada.",
   },
@@ -552,7 +556,8 @@ export const es = {
     leagueName: "Nombre de la liga",
     leagueNamePlaceholder: "Ejemplo: Liga de los jueves",
     leagueDescription: "Descripción",
-    leagueDescriptionPlaceholder: "Ejemplo: Liga privada de pádel entre amigos.",
+    leagueDescriptionPlaceholder:
+      "Ejemplo: Liga privada de pádel entre amigos.",
     defaultDescription: "Liga privada de pádel.",
     locationsTitle: "Lugares habituales",
     locationsDescription:
@@ -674,4 +679,4 @@ export const es = {
     switchToEnglish: "EN",
     switchToBasque: "EU",
   },
-} as const
+} as const;

@@ -19,7 +19,8 @@ export const en = {
     title: "Smash & Lob",
     closedSeasonHistoricalDescription:
       "This ranking remains as the history for {seasonName}.",
-    description: "Sign in with Google to access your leagues, matches and results.",
+    description:
+      "Sign in with Google to access your leagues, matches and results.",
     signInWithGoogle: "Sign in with Google",
     signOut: "Sign out",
     loadingTitle: "Checking session",
@@ -46,9 +47,11 @@ export const en = {
     subtitle: "Private invitation",
     title: "Join a league",
     description: "Confirm the league and claim the player that belongs to you.",
-    loadingDescription: "Checking invitation and loading the league from the database.",
+    loadingDescription:
+      "Checking invitation and loading the league from the database.",
     checkingCode: "Checking code",
-    checkingCodeDescription: "Looking for the league linked to this invitation.",
+    checkingCodeDescription:
+      "Looking for the league linked to this invitation.",
     codeLabel: "Invitation code",
     codePlaceholder: "SL-8KQ4-P7M2-X9RA",
     invalidCode: "Invalid code.",
@@ -59,7 +62,8 @@ export const en = {
     closedMode: "Closed mode: players are predefined by the admin.",
     openMode: "Open mode prepared for later.",
     activeSeasonTitle: "Active season",
-    activeSeasonDescription: "Only players in the active season can be claimed.",
+    activeSeasonDescription:
+      "Only players in the active season can be claimed.",
     noActiveSeasonTitle: "No active season",
     noActiveSeasonDescription:
       "The league is waiting for the admin to create a new season.",
@@ -94,7 +98,6 @@ export const en = {
     settingsLabel: "Settings",
   },
 
-
   courtBooking: {
     expand: "View booking",
     collapse: "Hide booking",
@@ -123,7 +126,8 @@ export const en = {
     lastMatch: "Last match",
     nextMatch: "Next match",
     addSchedule: "Add date, time and place",
-    playersCanSchedule: "The players involved in the match can complete the schedule.",
+    playersCanSchedule:
+      "The players involved in the match can complete the schedule.",
     closedSeasonTitle: "Season closed",
     closedSeasonHistoricalDescription:
       "You are viewing the history for {seasonName}. The league is pending a new active season.",
@@ -134,7 +138,8 @@ export const en = {
 
   ranking: {
     subtitle: "Overall standings",
-    description: "Sorted by PTS, game difference and games for as a tiebreaker.",
+    description:
+      "Sorted by PTS, game difference and games for as a tiebreaker.",
     gamesDiff: "Game diff.",
     gamesFor: "Games for",
     gamesAgainst: "Games against",
@@ -165,7 +170,8 @@ export const en = {
 
   matches: {
     subtitle: "League calendar",
-    description: "Fixed rounds created by the admin. Players schedule date, time and place.",
+    description:
+      "Fixed rounds created by the admin. Players schedule date, time and place.",
     round: "Round",
     finished: "Finished",
     scheduled: "Scheduled",
@@ -229,7 +235,8 @@ export const en = {
     title: "Record result",
     description:
       "Enter the three sets of the match. The app will calculate each team's points automatically.",
-    optionalSetsDescription: "Enter the played sets. Empty sets will be ignored on save.",
+    optionalSetsDescription:
+      "Enter the played sets. Empty sets will be ignored on save.",
     editTitle: "Edit result",
     editDescription:
       "Correct the match sets. The ranking will be recalculated automatically after saving.",
@@ -245,9 +252,11 @@ export const en = {
     update: "Save changes",
     cancelEdit: "Cancel",
     pendingScheduleTitle: "Result pending",
-    pendingScheduleDescription: "Schedule the match before recording the result.",
+    pendingScheduleDescription:
+      "Schedule the match before recording the result.",
     postponedTitle: "Result blocked",
-    postponedDescription: "Reschedule the postponed match before recording the result.",
+    postponedDescription:
+      "Reschedule the postponed match before recording the result.",
   },
 
   profile: {
@@ -266,7 +275,8 @@ export const en = {
     noUpcomingMatches: "You have no pending matches right now.",
     noRecentResults: "You do not have recorded results yet.",
     matchHistoryTitle: "Match history",
-    matchHistoryDescription: "Review all your season matches and filter by status.",
+    matchHistoryDescription:
+      "Review all your season matches and filter by status.",
     matchHistoryPageDescription:
       "All your matches in the active season, with quick status filters.",
     filteredMatches: "Matches",
@@ -347,10 +357,10 @@ export const en = {
     title: "Settings",
     description: "Manage your app preferences.",
     helpTitle: "Help and basics",
-    helpDescription:
-      "Review Star Points, tie-breaks and the 3-set format.",
+    helpDescription: "Review Star Points, tie-breaks and the 3-set format.",
     backToProfile: "← Back to profile",
-    profileShortcutDescription: "Change the active league, language and app preferences.",
+    profileShortcutDescription:
+      "Change the active league, language and app preferences.",
     leagueTitle: "League",
     createNewLeague: "Create new league",
     adminPanelTitle: "Admin panel",
@@ -373,7 +383,8 @@ export const en = {
     joinNewExistingLeague: "Join another existing league",
     avatarCustomActive: "Custom image active.",
     avatarGoogleFallback: "Your Google image is used by default.",
-    avatarInitialsFallback: "Your initials are used if you do not upload an image.",
+    avatarInitialsFallback:
+      "Your initials are used if you do not upload an image.",
     uploadAvatar: "Upload image",
     removeAvatar: "Remove image",
     avatarSaved: "Image saved.",
@@ -389,13 +400,16 @@ export const en = {
     backToSettings: "← Back to settings",
     backToAdmin: "← Back to admin panel",
     title: "Admin panel",
-    description: "Centralized management for the active league and its settings.",
+    description:
+      "Centralized management for the active league and its settings.",
     leagueTitle: "Manage league",
     leagueDescription: "Configure league details and usual places.",
     seasonTitle: "Manage season",
-    seasonDescription: "Configure rounds, windows and basic rules for the active season.",
+    seasonDescription:
+      "Configure rounds, windows and basic rules for the active season.",
     inviteTitle: "Invite players",
-    inviteDescription: "Share this code or link with the Google account you want to invite.",
+    inviteDescription:
+      "Share this code or link with the Google account you want to invite.",
     inviteCodeLabel: "Code",
     inviteLinkLabel: "Link",
     copyCode: "Copy code",
@@ -404,7 +418,8 @@ export const en = {
     inviteHelper:
       "When joining {leagueName}, the invited person signs in with Google and claims one of the unlinked players.",
     regenerateInviteCode: "Regenerate code",
-    regenerateInviteCodeDescription: "The previous code will stop working for new invitations.",
+    regenerateInviteCodeDescription:
+      "The previous code will stop working for new invitations.",
     futureTitle: "Upcoming tools",
     futureDescription:
       "Players, invitations, rules, round generation, notifications and audit will be grouped here.",
@@ -420,23 +435,25 @@ export const en = {
     description: "Configure the active league basic details.",
     locationsTitle: "Usual places",
     locationsDescription:
-      "These places will appear as quick options when scheduling matches. The Other option will always remain available.",
+      "Configure places with a custom name, Maps location and optional detail for scheduling matches, navigation and calendar location.",
     emptyLocations:
       "No usual places configured. When scheduling matches, the Other option can be used.",
     addLocationTitle: "Add place",
     locationName: "Short name",
     locationPlaceholder: "Example: Lasesarre",
     googleLocation: "Maps location",
-    googleLocationPlaceholder: "Example: Lasesarre Sports Centre, Barakaldo",
-    address: "Address or details",
-    addressPlaceholder: "Optional: exact address, court, access...",
+    googleLocationPlaceholder:
+      "Example: Lasesarre Sports Centre, Barakaldo or Maps URL",
+    address: "Detail",
+    addressPlaceholder: "Optional: Court 1, right-side court...",
     duplicatedLocation: "That place is already in the list.",
     addLocation: "Add place",
     removeLocation: "Remove",
     openMaps: "Maps",
     openWaze: "Waze",
     searchMaps: "Test in Maps",
-    googleApiMissing: "Without Google Places: type the place or address and the app will open it in Maps/Waze by search.",
+    googleApiMissing:
+      "Type a location or paste a Maps URL. The app will open Maps/Waze with that reference.",
     save: "Save changes",
     saved: "Settings saved.",
   },
@@ -444,16 +461,21 @@ export const en = {
   adminSeason: {
     backToSettings: "← Back to settings",
     title: "Manage season",
-    description: "Configure dates and windows that may change during the active season.",
+    description:
+      "Configure dates and windows that may change during the active season.",
     finishedDescription:
       "The current season is finished. Define what is needed to start a new one.",
     roundWindowTitle: "Round window",
-    roundWindowDescription: "Define whether each round has an official play window.",
-    newRoundWindowDescription: "This setting can be changed during the season if needed.",
+    roundWindowDescription:
+      "Define whether each round has an official play window.",
+    newRoundWindowDescription:
+      "This setting can be changed during the season if needed.",
     noWindowTitle: "No specific window",
-    noWindowDescription: "Rounds will not have an automatically calculated deadline.",
+    noWindowDescription:
+      "Rounds will not have an automatically calculated deadline.",
     fixedDaysTitle: "Fixed window per round",
-    fixedDaysDescription: "Each round will have the same number of days to be played.",
+    fixedDaysDescription:
+      "Each round will have the same number of days to be played.",
     fixedDaysSettings: "Fixed window settings",
     seasonStartDate: "Round 1 start date",
     daysPerRound: "Days per round",
@@ -468,7 +490,8 @@ export const en = {
     playerLinked: "Linked",
     playerPending: "Pending",
     lifecycleTitle: "Season lifecycle",
-    lifecycleDescription: "Finish the current season or open a new one with its own players.",
+    lifecycleDescription:
+      "Finish the current season or open a new one with its own players.",
     currentSeason: "Current season",
     statusActive: "Active",
     statusFinished: "Finished",
@@ -521,13 +544,15 @@ export const en = {
     leagueName: "League name",
     leagueNamePlaceholder: "Example: Thursday league",
     leagueDescription: "Description",
-    leagueDescriptionPlaceholder: "Example: Private padel league among friends.",
+    leagueDescriptionPlaceholder:
+      "Example: Private padel league among friends.",
     defaultDescription: "Private padel league.",
     locationsTitle: "Usual places",
     locationsDescription:
       "You can prepare the usual courts from the beginning. They will appear when scheduling matches and will be saved in the calendar.",
     seasonTitle: "First season",
-    seasonDescription: "Rules and participants belong to this season, not the whole league.",
+    seasonDescription:
+      "Rules and participants belong to this season, not the whole league.",
     seasonName: "Season name",
     playerCount: "Number of players",
     playersTitle: "Initial players",
@@ -551,7 +576,8 @@ export const en = {
     refresh: "Refresh",
     loading: "Loading activity...",
     loadErrorTitle: "Could not load",
-    loadErrorDescription: "Activity could not be loaded. Check Supabase or try again.",
+    loadErrorDescription:
+      "Activity could not be loaded. Check Supabase or try again.",
     emptyGeneralTitle: "No activity yet",
     emptyGeneralDescription:
       "When someone schedules a match, records or edits a result, postpones a round or updates a booking, it will appear here.",
@@ -641,4 +667,4 @@ export const en = {
     switchToEnglish: "EN",
     switchToBasque: "EU",
   },
-} as const
+} as const;

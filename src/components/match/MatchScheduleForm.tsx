@@ -1,31 +1,33 @@
-"use client"
+"use client";
 
-import { type FormEvent, type ReactNode, useMemo, useState } from "react"
-import { useMatchData } from "@/context/MatchDataProvider"
-import { useI18n } from "@/i18n/I18nProvider"
+import { type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { useMatchData } from "@/context/MatchDataProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   findLeagueLocationByScheduleLocation,
+  getLeagueLocationCompactText,
   getLeagueLocationMapsUrl,
   getLeagueLocationSubtitle,
   getLeagueLocationWazeUrl,
+  getScheduleLocationFallbackText,
   type LeagueLocation,
-} from "@/lib/leagueLocations"
-import { isDateTimeInsideRoundWindow } from "@/lib/rounds"
+} from "@/lib/leagueLocations";
+import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
 
 type MatchScheduleFormProps = {
-  matchId: string
-  status: string
-  scheduledAt: string | null
-  dateLabel: string | null
-  location: string | null
-  availableLocations: LeagueLocation[]
-  roundStartsAt: string | null
-  roundEndsAt: string | null
-  canManage: boolean
-  calendarAction?: ReactNode
-}
+  matchId: string;
+  status: string;
+  scheduledAt: string | null;
+  dateLabel: string | null;
+  location: string | null;
+  availableLocations: LeagueLocation[];
+  roundStartsAt: string | null;
+  roundEndsAt: string | null;
+  canManage: boolean;
+  calendarAction?: ReactNode;
+};
 
-const otherLocationValue = "__other__"
+const otherLocationValue = "__other__";
 
 export function MatchScheduleForm({
   matchId,
@@ -39,52 +41,55 @@ export function MatchScheduleForm({
   canManage,
   calendarAction,
 }: MatchScheduleFormProps) {
-  const { t } = useI18n()
-  const { updateMatchSchedule, postponeMatch } = useMatchData()
+  const { t } = useI18n();
+  const { updateMatchSchedule, postponeMatch } = useMatchData();
 
-  const isFinished = status === "finished"
-  const isPostponed = status === "postponed"
-  const hasSchedule = !isPostponed && Boolean(scheduledAt || dateLabel || location)
+  const isFinished = status === "finished";
+  const isPostponed = status === "postponed";
+  const hasSchedule =
+    !isPostponed && Boolean(scheduledAt || dateLabel || location);
 
   const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
     locations: availableLocations,
     scheduleLocation: location,
-  })
+  });
 
   const initialLocationValue = scheduledLeagueLocation
     ? scheduledLeagueLocation.id
     : hasSchedule && location
       ? otherLocationValue
-      : ""
+      : "";
 
   const [isEditing, setIsEditing] = useState(
-    canManage && !hasSchedule && !isPostponed && !isFinished
-  )
+    canManage && !hasSchedule && !isPostponed && !isFinished,
+  );
   const [scheduledAtValue, setScheduledAtValue] = useState(
-    hasSchedule ? scheduledAt ?? "" : ""
-  )
+    hasSchedule ? (scheduledAt ?? "") : "",
+  );
   const [selectedLocation, setSelectedLocation] =
-    useState(initialLocationValue)
+    useState(initialLocationValue);
   const [customLocation, setCustomLocation] = useState(
-    hasSchedule && location && !scheduledLeagueLocation ? location : ""
-  )
-  const [isSaving, setIsSaving] = useState(false)
-  const [actionError, setActionError] = useState<string | null>(null)
+    hasSchedule && location && !scheduledLeagueLocation
+      ? (getScheduleLocationFallbackText(location) ?? "")
+      : "",
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const finalLocation = useMemo(() => {
     if (selectedLocation === otherLocationValue) {
-      return customLocation.trim()
+      return customLocation.trim();
     }
 
-    return selectedLocation.trim()
-  }, [customLocation, selectedLocation])
+    return selectedLocation.trim();
+  }, [customLocation, selectedLocation]);
 
   const canSave =
     canManage &&
     !isSaving &&
     scheduledAtValue.trim().length > 0 &&
-    finalLocation.length > 0
-  const canPostpone = canManage && !isSaving && !isFinished && !isPostponed
+    finalLocation.length > 0;
+  const canPostpone = canManage && !isSaving && !isFinished && !isPostponed;
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -92,107 +97,109 @@ export function MatchScheduleForm({
       dateTimeValue: scheduledAtValue,
       startsAt: roundStartsAt,
       endsAt: roundEndsAt,
-    })
+    });
 
   const displayedLocationName = scheduledLeagueLocation
     ? scheduledLeagueLocation.name
-    : location
+    : getScheduleLocationFallbackText(location);
   const displayedLocationSubtitle = scheduledLeagueLocation
     ? getLeagueLocationSubtitle(scheduledLeagueLocation)
-    : null
+    : null;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
     if (!canManage || !canSave) {
-      return
+      return;
     }
 
-    setIsSaving(true)
-    setActionError(null)
+    setIsSaving(true);
+    setActionError(null);
 
     const saved = await updateMatchSchedule(matchId, {
       scheduledAt: scheduledAtValue,
       location: finalLocation,
-    })
+    });
 
-    setIsSaving(false)
+    setIsSaving(false);
 
     if (!saved) {
       setActionError(
-        "No se ha podido guardar el horario en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
-      )
-      return
+        "No se ha podido guardar el horario en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error.",
+      );
+      return;
     }
 
-    setIsEditing(false)
+    setIsEditing(false);
   }
 
   function handleCancel() {
     if (!canManage || isSaving) {
-      return
+      return;
     }
 
-    setScheduledAtValue(hasSchedule ? scheduledAt ?? "" : "")
-    setSelectedLocation(initialLocationValue)
+    setScheduledAtValue(hasSchedule ? (scheduledAt ?? "") : "");
+    setSelectedLocation(initialLocationValue);
     setCustomLocation(
-      hasSchedule && location && !scheduledLeagueLocation ? location : ""
-    )
-    setActionError(null)
-    setIsEditing(false)
+      hasSchedule && location && !scheduledLeagueLocation
+        ? (getScheduleLocationFallbackText(location) ?? "")
+        : "",
+    );
+    setActionError(null);
+    setIsEditing(false);
   }
 
   async function handlePostpone() {
     if (!canManage || isSaving) {
-      return
+      return;
     }
 
-    setIsSaving(true)
-    setActionError(null)
+    setIsSaving(true);
+    setActionError(null);
 
-    const saved = await postponeMatch(matchId)
+    const saved = await postponeMatch(matchId);
 
-    setIsSaving(false)
+    setIsSaving(false);
 
     if (!saved) {
       setActionError(
-        "No se ha podido aplazar el partido en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
-      )
-      return
+        "No se ha podido aplazar el partido en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error.",
+      );
+      return;
     }
 
-    setScheduledAtValue("")
-    setSelectedLocation("")
-    setCustomLocation("")
-    setIsEditing(false)
+    setScheduledAtValue("");
+    setSelectedLocation("");
+    setCustomLocation("");
+    setIsEditing(false);
   }
 
   function getTitle() {
     if (isPostponed) {
-      return t.matchDetail.postponedTitle
+      return t.matchDetail.postponedTitle;
     }
 
     if (hasSchedule) {
-      return t.matchDetail.schedule
+      return t.matchDetail.schedule;
     }
 
     return canManage
       ? t.matchDetail.addScheduleTitle
-      : t.matchDetail.pendingSchedule
+      : t.matchDetail.pendingSchedule;
   }
 
   function getDescription() {
     if (isPostponed) {
-      return t.matchDetail.postponedDescription
+      return t.matchDetail.postponedDescription;
     }
 
     if (hasSchedule) {
-      return t.matchDetail.scheduleDescription
+      return t.matchDetail.scheduleDescription;
     }
 
     return canManage
       ? t.matchDetail.addScheduleDescription
-      : t.matchDetail.pendingScheduleDescription
+      : t.matchDetail.pendingScheduleDescription;
   }
 
   return (
@@ -261,9 +268,13 @@ export function MatchScheduleForm({
                 {dateLabel ?? t.matches.pendingDate}
               </p>
               <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
-                <span>{displayedLocationName ?? t.matches.missingSchedule}</span>
+                <span>
+                  {displayedLocationName ?? t.matches.missingSchedule}
+                </span>
                 {displayedLocationSubtitle ? (
-                  <span className="text-neutral-400">· {displayedLocationSubtitle}</span>
+                  <span className="text-neutral-400">
+                    · {displayedLocationSubtitle}
+                  </span>
                 ) : null}
               </div>
 
@@ -346,10 +357,12 @@ export function MatchScheduleForm({
                 </option>
 
                 {availableLocations.map((availableLocation) => (
-                  <option key={availableLocation.id} value={availableLocation.id}>
-                    {availableLocation.address
-                      ? `${availableLocation.name} · ${availableLocation.address}`
-                      : availableLocation.name}
+                  <option
+                    key={availableLocation.id}
+                    value={availableLocation.id}
+                  >
+                    {getLeagueLocationCompactText(availableLocation) ||
+                      availableLocation.name}
                   </option>
                 ))}
 
@@ -423,5 +436,5 @@ export function MatchScheduleForm({
         </form>
       ) : null}
     </section>
-  )
+  );
 }
