@@ -1,46 +1,47 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
-import { TeamPlayers } from "@/components/player/TeamPlayers"
-import { AppCard } from "@/components/ui/AppCard"
-import { ClickableChevron } from "@/components/ui/ClickableChevron"
-import { useI18n } from "@/i18n/I18nProvider"
+import Link from "next/link";
+import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
+import { TeamPlayers } from "@/components/player/TeamPlayers";
+import { AppCard } from "@/components/ui/AppCard";
+import { ClickableChevron } from "@/components/ui/ClickableChevron";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   findLeagueLocationByScheduleLocation,
+  getLeagueLocationCompactText,
   getScheduleLocationFallbackText,
   type LeagueLocation,
-} from "@/lib/leagueLocations"
-import { getRoundMvpPlayerIds } from "@/lib/mvp"
-import type { PlayerProfile } from "@/data/fakeData"
+} from "@/lib/leagueLocations";
+import { getRoundMvpPlayerIds } from "@/lib/mvp";
+import type { PlayerProfile } from "@/data/fakeData";
 
 type PlayerMatch = {
-  id: string
-  leagueId: string
-  seasonId: string
-  round: number
-  status: string
-  teamA: string[]
-  teamB: string[]
-  pointsA: number | null
-  pointsB: number | null
-  sets: { a: number; b: number }[]
-  dateLabel: string | null
-  location: string | null
-}
+  id: string;
+  leagueId: string;
+  seasonId: string;
+  round: number;
+  status: string;
+  teamA: string[];
+  teamB: string[];
+  pointsA: number | null;
+  pointsB: number | null;
+  sets: { a: number; b: number }[];
+  dateLabel: string | null;
+  location: string | null;
+};
 
 type PlayerMatchesListProps = {
-  playerId: string
-  title: string
-  matches: PlayerMatch[]
-  players?: PlayerProfile[]
-  limit?: number
-  emptyMessage?: string
-  seasonMatches?: PlayerMatch[]
-  actionHref?: string
-  actionLabel?: string
-  leagueLocations?: LeagueLocation[]
-}
+  playerId: string;
+  title: string;
+  matches: PlayerMatch[];
+  players?: PlayerProfile[];
+  limit?: number;
+  emptyMessage?: string;
+  seasonMatches?: PlayerMatch[];
+  actionHref?: string;
+  actionLabel?: string;
+  leagueLocations?: LeagueLocation[];
+};
 
 export function PlayerMatchesList({
   playerId,
@@ -54,13 +55,13 @@ export function PlayerMatchesList({
   actionLabel,
   leagueLocations = [],
 }: PlayerMatchesListProps) {
-  const { t } = useI18n()
+  const { t } = useI18n();
 
   const playerMatches = matches.filter(
-    (match) => match.teamA.includes(playerId) || match.teamB.includes(playerId)
-  )
+    (match) => match.teamA.includes(playerId) || match.teamB.includes(playerId),
+  );
   const visibleMatches =
-    typeof limit === "number" ? playerMatches.slice(0, limit) : playerMatches
+    typeof limit === "number" ? playerMatches.slice(0, limit) : playerMatches;
 
   return (
     <section>
@@ -86,28 +87,29 @@ export function PlayerMatchesList({
 
       <div className="space-y-3">
         {visibleMatches.map((match) => {
-          const isFinished = match.status === "finished"
-          const isPostponed = match.status === "postponed"
+          const isFinished = match.status === "finished";
+          const isPostponed = match.status === "postponed";
           const highlightedPlayerIds = getRoundMvpPlayerIds({
             leagueId: match.leagueId,
             seasonId: match.seasonId,
             round: match.round,
             matches: seasonMatches,
-          })
+          });
 
           const leagueLocation = findLeagueLocationByScheduleLocation({
             locations: leagueLocations,
             scheduleLocation: match.location,
-          })
+          });
           const scheduleTitle = isPostponed
             ? t.matches.pendingReschedule
-            : match.dateLabel ?? t.matches.pendingDate
+            : (match.dateLabel ?? t.matches.pendingDate);
 
           const scheduleDescription = isPostponed
             ? t.matches.needsReschedule
-            : leagueLocation?.name ??
-              getScheduleLocationFallbackText(match.location) ??
-              t.matches.missingSchedule
+            : leagueLocation
+              ? getLeagueLocationCompactText(leagueLocation)
+              : (getScheduleLocationFallbackText(match.location) ??
+                t.matches.missingSchedule);
 
           return (
             <Link key={match.id} href={`/match/${match.id}`} className="block">
@@ -133,7 +135,9 @@ export function PlayerMatchesList({
                       />
 
                       {isFinished ? (
-                        <p className="min-w-6 text-right text-lg font-black">{match.pointsA}</p>
+                        <p className="min-w-6 text-right text-lg font-black">
+                          {match.pointsA}
+                        </p>
                       ) : null}
                     </div>
 
@@ -146,7 +150,9 @@ export function PlayerMatchesList({
                       />
 
                       {isFinished ? (
-                        <p className="min-w-6 text-right text-lg font-black">{match.pointsB}</p>
+                        <p className="min-w-6 text-right text-lg font-black">
+                          {match.pointsB}
+                        </p>
                       ) : null}
                     </div>
                   </div>
@@ -164,7 +170,9 @@ export function PlayerMatchesList({
                     </div>
                   ) : (
                     <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
-                      <p className="text-xs font-black text-neutral-800">{scheduleTitle}</p>
+                      <p className="text-xs font-black text-neutral-800">
+                        {scheduleTitle}
+                      </p>
 
                       <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                         {scheduleDescription}
@@ -174,9 +182,9 @@ export function PlayerMatchesList({
                 </div>
               </AppCard>
             </Link>
-          )
+          );
         })}
       </div>
     </section>
-  )
+  );
 }

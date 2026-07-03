@@ -1,39 +1,40 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
-import { TeamPlayers } from "@/components/player/TeamPlayers"
-import { AppCard } from "@/components/ui/AppCard"
-import { ClickableChevron } from "@/components/ui/ClickableChevron"
-import { useI18n } from "@/i18n/I18nProvider"
+import Link from "next/link";
+import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
+import { TeamPlayers } from "@/components/player/TeamPlayers";
+import { AppCard } from "@/components/ui/AppCard";
+import { ClickableChevron } from "@/components/ui/ClickableChevron";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   findLeagueLocationByScheduleLocation,
+  getLeagueLocationCompactText,
   getScheduleLocationFallbackText,
   type LeagueLocation,
-} from "@/lib/leagueLocations"
-import type { PlayerProfile } from "@/data/fakeData"
+} from "@/lib/leagueLocations";
+import type { PlayerProfile } from "@/data/fakeData";
 
 type MatchCardProps = {
   match: {
-    id: string
-    round: number
-    status: string
-    teamA: string[]
-    teamB: string[]
-    pointsA: number | null
-    pointsB: number | null
-    sets: { a: number; b: number }[]
-    scheduledAt?: string | null
-    dateLabel: string | null
-    location: string | null
-  }
-  players?: PlayerProfile[]
-  roundStartsAt: string | null
-  roundEndsAt: string | null
-  headerMode?: "round" | "match-date"
-  highlightedPlayerIds?: string[]
-  leagueLocations?: LeagueLocation[]
-}
+    id: string;
+    round: number;
+    status: string;
+    teamA: string[];
+    teamB: string[];
+    pointsA: number | null;
+    pointsB: number | null;
+    sets: { a: number; b: number }[];
+    scheduledAt?: string | null;
+    dateLabel: string | null;
+    location: string | null;
+  };
+  players?: PlayerProfile[];
+  roundStartsAt: string | null;
+  roundEndsAt: string | null;
+  headerMode?: "round" | "match-date";
+  highlightedPlayerIds?: string[];
+  leagueLocations?: LeagueLocation[];
+};
 
 export function MatchCard({
   match,
@@ -44,34 +45,35 @@ export function MatchCard({
   highlightedPlayerIds = [],
   leagueLocations = [],
 }: MatchCardProps) {
-  const { t } = useI18n()
-  const isFinished = match.status === "finished"
-  const isPostponed = match.status === "postponed"
-  const hasRoundWindow = Boolean(roundStartsAt && roundEndsAt)
+  const { t } = useI18n();
+  const isFinished = match.status === "finished";
+  const isPostponed = match.status === "postponed";
+  const hasRoundWindow = Boolean(roundStartsAt && roundEndsAt);
 
   const leagueLocation = findLeagueLocationByScheduleLocation({
     locations: leagueLocations,
     scheduleLocation: match.location,
-  })
+  });
   const scheduleTitle = isPostponed
     ? t.matches.pendingReschedule
-    : match.dateLabel ?? t.matches.pendingDate
+    : (match.dateLabel ?? t.matches.pendingDate);
 
   const scheduleDescription = isPostponed
     ? t.matches.needsReschedule
-    : leagueLocation?.name ??
-      getScheduleLocationFallbackText(match.location) ??
-      t.matches.missingSchedule
+    : leagueLocation
+      ? getLeagueLocationCompactText(leagueLocation)
+      : (getScheduleLocationFallbackText(match.location) ??
+        t.matches.missingSchedule);
 
   function getPlayedDateLabel() {
     if (!match.scheduledAt) {
-      return match.dateLabel ?? t.matches.played
+      return match.dateLabel ?? t.matches.played;
     }
 
-    const playedAt = new Date(match.scheduledAt)
+    const playedAt = new Date(match.scheduledAt);
 
     if (Number.isNaN(playedAt.getTime())) {
-      return match.dateLabel ?? t.matches.played
+      return match.dateLabel ?? t.matches.played;
     }
 
     return new Intl.DateTimeFormat("es-ES", {
@@ -79,15 +81,15 @@ export function MatchCard({
       month: "short",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(playedAt)
+    }).format(playedAt);
   }
 
   const headerText =
     headerMode === "round"
       ? `${t.matches.round} ${match.round}`
       : isFinished
-      ? getPlayedDateLabel()
-      : t.matches.pendingPlay
+        ? getPlayedDateLabel()
+        : t.matches.pendingPlay;
 
   return (
     <Link href={`/match/${match.id}`} className="block">
@@ -113,7 +115,9 @@ export function MatchCard({
               />
 
               {isFinished ? (
-                <p className="min-w-6 text-right text-lg font-black">{match.pointsA}</p>
+                <p className="min-w-6 text-right text-lg font-black">
+                  {match.pointsA}
+                </p>
               ) : null}
             </div>
 
@@ -126,7 +130,9 @@ export function MatchCard({
               />
 
               {isFinished ? (
-                <p className="min-w-6 text-right text-lg font-black">{match.pointsB}</p>
+                <p className="min-w-6 text-right text-lg font-black">
+                  {match.pointsB}
+                </p>
               ) : null}
             </div>
           </div>
@@ -144,7 +150,9 @@ export function MatchCard({
             </div>
           ) : (
             <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
-              <p className="text-xs font-black text-neutral-800">{scheduleTitle}</p>
+              <p className="text-xs font-black text-neutral-800">
+                {scheduleTitle}
+              </p>
 
               <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                 {scheduleDescription}
@@ -160,5 +168,5 @@ export function MatchCard({
         </div>
       </AppCard>
     </Link>
-  )
+  );
 }
