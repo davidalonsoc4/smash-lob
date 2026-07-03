@@ -169,6 +169,9 @@ export function CourtBookingPanel({
   const pendingTransfersCount = booking.transfers.filter(
     (transfer) => !transfer.isPaid
   ).length
+  const savedPayerNames = booking.reservations
+    .map((reservation) => getPlayerName(reservation.playerId, players))
+    .join(", ")
   const payerSummary = getPayerSummary(selectedPayerIds, players)
   const hasMultipleSelectedPayers = selectedReservationInputs.length > 1
   const singleReservationInput =
@@ -348,29 +351,12 @@ export function CourtBookingPanel({
       {isExpanded && !isEditing && booking.isReserved ? (
         <div className="mt-1.5 space-y-1.5">
           <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-black uppercase tracking-wide text-neutral-500">
-                Pagado inicialmente
-              </p>
-              <p className="text-xs font-black text-neutral-900">
-                {formatMoney(totalReservedAmount)}
-              </p>
-            </div>
-            <div className="mt-1 grid gap-1">
-              {booking.reservations.map((reservation) => (
-                <div
-                  key={reservation.playerId}
-                  className="flex items-center justify-between gap-2 rounded-lg bg-white px-2.5 py-1 text-xs"
-                >
-                  <p className="truncate font-bold text-neutral-800">
-                    {getPlayerName(reservation.playerId, players)}
-                  </p>
-                  <p className="shrink-0 font-black text-neutral-950">
-                    {formatMoney(reservation.amount)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p className="text-xs font-semibold leading-5 text-neutral-700">
+              <span className="font-black text-neutral-950">Pagado por:</span>{" "}
+              <span className="font-bold">
+                {savedPayerNames || "Sin pagador informado"}
+              </span>
+            </p>
           </div>
 
           {booking.transfers.length > 0 ? (
