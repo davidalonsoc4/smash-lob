@@ -378,6 +378,7 @@ function RoundManagementPanel({
   roundSettings: SeasonRoundSettings;
   matches: ReturnType<typeof useCurrentLeagueData>["matches"];
 }) {
+  const { reorderSeasonRounds } = useMatchData();
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const rounds = buildSeasonRounds({
     season: activeSeason,
@@ -392,8 +393,21 @@ function RoundManagementPanel({
     activeRound?.round ?? firstUpcomingRound?.round ?? 1;
   const [selectedRound, setSelectedRound] = useState(defaultSelectedRound);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingRoundOrder, setIsSavingRoundOrder] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const defaultRoundOrder = useMemo(
+    () =>
+      Array.from(
+        { length: activeSeason.totalRounds },
+        (_, index) => index + 1,
+      ),
+    [activeSeason.totalRounds],
+  );
+  const [roundOrder, setRoundOrder] = useState(defaultRoundOrder);
+  const hasRoundOrderChanges = roundOrder.some(
+    (round, index) => round !== index + 1,
+  );
 
   async function persistRoundSettings(nextSettings: SeasonRoundSettings) {
     setIsSaving(true);
@@ -465,6 +479,41 @@ function RoundManagementPanel({
     });
   }
 
+  async function handleSaveRoundOrder() {
+    if (isSavingRoundOrder || !hasRoundOrderChanges) {
+      return;
+    }
+
+    setIsSavingRoundOrder(true);
+    setError(null);
+    setFeedback(null);
+
+    if (isSupabaseBackedId(activeSeason.id)) {
+      try {
+        await updateSupabaseSeasonRoundOrder({
+          seasonId: activeSeason.id,
+          roundOrder,
+        });
+      } catch (supabaseError) {
+        recordSupabaseError("update-round-order", supabaseError);
+        setError(
+          "No se ha podido guardar el orden de jornadas en Supabase. Revisa smash-lob-last-supabase-error.",
+        );
+        setIsSavingRoundOrder(false);
+        return;
+      }
+    }
+
+    reorderSeasonRounds({
+      seasonId: activeSeason.id,
+      roundOrder,
+    });
+    setRoundOrder(defaultRoundOrder);
+    setFeedback("Gestión y orden de jornadas actualizados.");
+    setIsSavingRoundOrder(false);
+  }
+
+  const canEditRoundOrder = activeSeason.totalRounds > 1;
   const previousRound = Math.max((activeRound?.round ?? selectedRound) - 1, 1);
   const nextRound = Math.min(
     (activeRound?.round ?? selectedRound) + 1,
@@ -576,6 +625,105 @@ function RoundManagementPanel({
           </button>
         </div>
       </div>
+
+      {canEditRoundOrder ? (
+        <div className="mt-4 border-t border-neutral-200 pt-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-neutral-950">
+                Orden de jornadas
+              </p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Reordena el calendario sin salir de esta gestión. Al guardar,
+                los partidos se renumeran con el nuevo orden.
+              </p>
+            </div>
+            {hasRoundOrderChanges ? (
+              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+                Cambios
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {roundOrder.map((round, index) => (
+              <div
+                key={`${round}-${index}`}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-100 px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-black text-neutral-950">
+                    Posición {index + 1}
+                  </p>
+                  <p className="text-xs font-semibold text-neutral-500">
+                    Jornada {round}
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRoundOrder((currentOrder) =>
+                        moveRoundOrderItem({
+                          roundOrder: currentOrder,
+                          index,
+                          direction: -1,
+                        }),
+                      )
+                    }
+                    disabled={isSavingRoundOrder || index === 0}
+                    className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRoundOrder((currentOrder) =>
+                        moveRoundOrderItem({
+                          roundOrder: currentOrder,
+                          index,
+                          direction: 1,
+                        }),
+                      )
+                    }
+                    disabled={
+                      isSavingRoundOrder || index === roundOrder.length - 1
+                    }
+                    className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setRoundOrder(defaultRoundOrder);
+                setFeedback(null);
+                setError(null);
+              }}
+              disabled={isSavingRoundOrder || !hasRoundOrderChanges}
+              className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+            >
+              Restaurar
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveRoundOrder}
+              disabled={isSavingRoundOrder || !hasRoundOrderChanges}
+              className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+            >
+              {isSavingRoundOrder ? "Guardando..." : "Guardar orden"}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
@@ -810,7 +958,8 @@ function SeasonPlayerNamesPanel({
   activeLeagueId: string;
   players: SeasonPlayerSummary[];
 }) {
-  const { updateLeaguePlayerName } = useLeagueAccess();
+  const { t } = useI18n();
+  const { isPlayerClaimed, updateLeaguePlayerName } = useLeagueAccess();
   const [draftNames, setDraftNames] = useState<Record<string, string>>(() =>
     Object.fromEntries(players.map((player) => [player.id, player.displayName])),
   );
@@ -857,10 +1006,10 @@ function SeasonPlayerNamesPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Nombres de jugadores</p>
+      <p className="font-bold">Jugadores de temporada</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Corrige nombres mal escritos sin recrear la temporada ni tocar el
-        calendario ya generado.
+        Revisa quién está conectado o pendiente y corrige nombres sin recrear la
+        temporada ni tocar el calendario ya generado.
       </p>
 
       <div className="mt-3 space-y-2">
@@ -868,34 +1017,49 @@ function SeasonPlayerNamesPanel({
           const draftName = draftNames[player.id] ?? player.displayName;
           const hasChanges = draftName.trim() !== player.displayName;
           const isSavingPlayer = savingPlayerId === player.id;
+          const isClaimed = isPlayerClaimed(activeLeagueId, player.id);
 
           return (
-            <div
-              key={player.id}
-              className="rounded-2xl bg-neutral-100 p-3"
-            >
+            <div key={player.id} className="rounded-2xl bg-neutral-100 p-3">
               <div className="flex items-center gap-3">
                 <PlayerAvatar
                   player={player}
                   size="sm"
                   className="bg-white text-neutral-700"
                 />
-                <input
-                  value={draftName}
-                  onChange={(event) => {
-                    setDraftNames((currentNames) => ({
-                      ...currentNames,
-                      [player.id]: event.target.value,
-                    }));
-                    setError(null);
-                    setFeedback(null);
-                  }}
-                  className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
-                />
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                        isClaimed
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {isClaimed
+                        ? t.adminSeason.playerLinked
+                        : t.adminSeason.playerPending}
+                    </span>
+                  </div>
+                  <input
+                    value={draftName}
+                    onChange={(event) => {
+                      setDraftNames((currentNames) => ({
+                        ...currentNames,
+                        [player.id]: event.target.value,
+                      }));
+                      setError(null);
+                      setFeedback(null);
+                    }}
+                    className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => handleSave(player)}
-                  disabled={Boolean(savingPlayerId) || !hasChanges || !draftName.trim()}
+                  disabled={
+                    Boolean(savingPlayerId) || !hasChanges || !draftName.trim()
+                  }
                   className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300"
                 >
                   {isSavingPlayer ? "..." : "Guardar"}
@@ -1403,7 +1567,11 @@ function NewSeasonForm({
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
   );
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([]);
-  const [selfPlayerValue, setSelfPlayerValue] = useState<string | null>(null);
+  const [selfPlayerValue, setSelfPlayerValue] = useState<string | null>(() =>
+    leagueSeasonCount === 0 && userId && !isSuperuser
+      ? getNewPlayerToken(0)
+      : null,
+  );
   const [calendarMode, setCalendarMode] = useState<CalendarMode>("balanced");
   const [manualCalendar, setManualCalendar] = useState<
     ManualCalendarRoundDraft[]
@@ -1426,7 +1594,7 @@ function NewSeasonForm({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inviteCode = getLeagueInviteCode(activeLeagueId);
-  const canLinkSelfPlayer = Boolean(userId && !isSuperuser);
+  const canLinkSelfPlayer = Boolean(isFirstLeagueSeason && userId && !isSuperuser);
 
   const parsedRoundWindowDays = Number(roundWindowDays);
   const isFixedDaysMode = roundWindowMode === "fixed-days";
@@ -1533,7 +1701,14 @@ function NewSeasonForm({
       selectedIds: nextSelectedPlayerIds,
       count: nextCount,
     });
-    if (selfPlayerValue) {
+    if (isFirstLeagueSeason && userId && !isSuperuser) {
+      setSelfPlayerValue(
+        getDraftPlayerValues({
+          selectedPlayerIds: nextSelectedPlayerIds,
+          playerCount: nextCount,
+        })[0] ?? null,
+      );
+    } else if (selfPlayerValue) {
       const nextValidValues = new Set(
         getDraftPlayerValues({
           selectedPlayerIds: nextSelectedPlayerIds,
@@ -1562,7 +1737,14 @@ function NewSeasonForm({
       selectedIds: nextSelectedPlayerIds,
       count: playerCount,
     });
-    if (
+    if (isFirstLeagueSeason && userId && !isSuperuser) {
+      setSelfPlayerValue(
+        getDraftPlayerValues({
+          selectedPlayerIds: nextSelectedPlayerIds,
+          playerCount,
+        })[0] ?? null,
+      );
+    } else if (
       selfPlayerValue === playerId &&
       !nextSelectedPlayerIds.includes(playerId)
     ) {
@@ -1763,9 +1945,9 @@ function NewSeasonForm({
         </p>
 
         {canLinkSelfPlayer ? (
-          <div className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold text-neutral-600">
-            Marca qué jugador eres tú para vincular automáticamente tu cuenta,
-            tu perfil y tu foto en esta liga.
+          <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-900">
+            El primer jugador de la lista serás tú. Tu cuenta, perfil y foto se
+            vincularán automáticamente a ese jugador al crear la temporada.
           </div>
         ) : null}
 
@@ -1826,21 +2008,9 @@ function NewSeasonForm({
                           : "Jugador de la liga"}
                   </span>
                 </span>
-                {canLinkSelfPlayer && isSelected ? (
-                  <span
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setSelfPlayerValue(player.id);
-                    }}
-                    className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${
-                      selectedSelfPlayerValue === player.id
-                        ? "bg-amber-300 text-neutral-950"
-                        : isSelected
-                          ? "bg-white/10 text-white"
-                          : "bg-white text-neutral-700"
-                    }`}
-                  >
-                    {selectedSelfPlayerValue === player.id ? "Yo" : "Soy yo"}
+                {canLinkSelfPlayer && selectedSelfPlayerValue === player.id ? (
+                  <span className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-[10px] font-black text-neutral-950">
+                    Tú
                   </span>
                 ) : null}
               </button>
@@ -1866,44 +2036,34 @@ function NewSeasonForm({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {visibleNewPlayerNames.map((playerName, index) => (
               <label key={index} className="block">
-                <span className="text-xs font-semibold text-neutral-500">
-                  {t.adminSeason.newPlayerName} {index + 1}
-                </span>
-                <div className="mt-1 flex gap-2">
-                  <input
-                    value={playerName}
-                    placeholder={
-                      isFirstLeagueSeason
-                        ? `Jugador ${selectedPlayerIds.length + index + 1}`
-                        : `Sustituto ${index + 1}`
-                    }
-                    onChange={(event) => {
-                      const nextNames = [...visibleNewPlayerNames];
-                      nextNames[index] = event.target.value;
-                      setNewPlayerNames(nextNames);
-                      setFeedback(null);
-                    }}
-                    className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
-                  />
-                  {canLinkSelfPlayer ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelfPlayerValue(getNewPlayerToken(index));
-                        setFeedback(null);
-                      }}
-                      className={`shrink-0 rounded-2xl px-3 py-2 text-xs font-black ${
-                        selectedSelfPlayerValue === getNewPlayerToken(index)
-                          ? "bg-amber-300 text-neutral-950"
-                          : "bg-neutral-100 text-neutral-700"
-                      }`}
-                    >
-                      {selectedSelfPlayerValue === getNewPlayerToken(index)
-                        ? "Yo"
-                        : "Soy yo"}
-                    </button>
+                <span className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-500">
+                  <span>
+                    {t.adminSeason.newPlayerName} {index + 1}
+                  </span>
+                  {canLinkSelfPlayer &&
+                  selectedSelfPlayerValue === getNewPlayerToken(index) ? (
+                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 text-[10px] font-black text-neutral-950">
+                      Tú
+                    </span>
                   ) : null}
-                </div>
+                </span>
+                <input
+                  value={playerName}
+                  placeholder={
+                    isFirstLeagueSeason
+                      ? selectedSelfPlayerValue === getNewPlayerToken(index)
+                        ? "Tu nombre"
+                        : `Jugador ${selectedPlayerIds.length + index + 1}`
+                      : `Sustituto ${index + 1}`
+                  }
+                  onChange={(event) => {
+                    const nextNames = [...visibleNewPlayerNames];
+                    nextNames[index] = event.target.value;
+                    setNewPlayerNames(nextNames);
+                    setFeedback(null);
+                  }}
+                  className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                />
               </label>
             ))}
           </div>
@@ -2320,15 +2480,7 @@ export default function AdminSeasonPage() {
             matches={matches}
           />
 
-          <RoundOrderPanel
-            activeSeasonId={activeSeason.id}
-            totalRounds={activeSeason.totalRounds}
-          />
 
-          <SeasonPlayersStatus
-            activeLeagueId={activeLeague.id}
-            players={players}
-          />
 
           <SeasonPlayerNamesPanel
             activeLeagueId={activeLeague.id}
@@ -2353,15 +2505,7 @@ export default function AdminSeasonPage() {
             activeSeasonId={activeSeason.id}
           />
 
-          <RoundOrderPanel
-            activeSeasonId={activeSeason.id}
-            totalRounds={activeSeason.totalRounds}
-          />
 
-          <SeasonPlayersStatus
-            activeLeagueId={activeLeague.id}
-            players={players}
-          />
 
           <SeasonPlayerNamesPanel
             activeLeagueId={activeLeague.id}
