@@ -557,6 +557,13 @@ export const es = {
     manualCalendar: "Calendario manual",
     manualCalendarDescription:
       "Permite configurar jornadas y emparejamientos a mano antes de crear la temporada.",
+    calendarModeLabel: "Tipo de calendario",
+    manualCalendarSingleHelp:
+      "Elige manualmente la Pareja A y la Pareja B de cada jornada.",
+    manualCalendarDoubleHelp:
+      "Edita la primera vuelta manualmente; la segunda vuelta repetirá exactamente ese calendario.",
+    manualCalendarLongHelp:
+      "Configura manualmente todas las jornadas de la temporada larga.",
     manualCalendarBlocked:
       "Completa todos los desplegables del calendario manual para continuar.",
     startSeason: "Comenzar temporada",

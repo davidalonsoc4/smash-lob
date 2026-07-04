@@ -545,6 +545,13 @@ export const en = {
     manualCalendar: "Manual calendar",
     manualCalendarDescription:
       "Configure rounds and pairings manually before creating the season.",
+    calendarModeLabel: "Calendar type",
+    manualCalendarSingleHelp:
+      "Choose Pair A and Pair B manually for every round.",
+    manualCalendarDoubleHelp:
+      "Edit the first round block manually; the second block will repeat that calendar exactly.",
+    manualCalendarLongHelp:
+      "Configure every round of the long season manually.",
     manualCalendarBlocked:
       "Complete every manual calendar dropdown to continue.",
     startSeason: "Start season",

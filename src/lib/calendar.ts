@@ -115,6 +115,27 @@ function getBaseRoundCount(matches: { round: number }[]) {
   return Math.max(...matches.map((match) => match.round), 0)
 }
 
+function getUniquePlayerCount(matches: { teamA: string[]; teamB: string[] }[]) {
+  return new Set(matches.flatMap((match) => [...match.teamA, ...match.teamB])).size
+}
+
+function isAlreadyFullManualCalendar({
+  matches,
+  mode,
+}: {
+  matches: GeneratedMatch[]
+  mode: SeasonScheduleMode
+}) {
+  if (mode === "single") {
+    return true
+  }
+
+  const uniquePlayerCount = getUniquePlayerCount(matches)
+  const baseRoundCount = Math.max(uniquePlayerCount - 1, 1)
+
+  return getBaseRoundCount(matches) > baseRoundCount
+}
+
 function cloneMatchForRound({
   match,
   round,
@@ -298,6 +319,10 @@ export function generateManualCalendar({
       teamB: match.teamB,
     })
   )
+
+  if (isAlreadyFullManualCalendar({ matches: baseMatches, mode: scheduleMode })) {
+    return baseMatches
+  }
 
   return extendCalendarMatches({ baseMatches, mode: scheduleMode })
 }

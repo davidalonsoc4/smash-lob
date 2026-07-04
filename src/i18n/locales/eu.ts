@@ -551,6 +551,13 @@ export const eu = {
     manualCalendar: "Eskuzko egutegia",
     manualCalendarDescription:
       "Denboraldia sortu aurretik jardunaldiak eta bikoteak eskuz konfiguratzeko aukera ematen du.",
+    calendarModeLabel: "Egutegi mota",
+    manualCalendarSingleHelp:
+      "Aukeratu eskuz jardunaldi bakoitzeko A bikotea eta B bikotea.",
+    manualCalendarDoubleHelp:
+      "Editatu lehen itzulia eskuz; bigarren itzuliak egutegi hori berdin errepikatuko du.",
+    manualCalendarLongHelp:
+      "Konfiguratu eskuz denboraldi luzeko jardunaldi guztiak.",
     manualCalendarBlocked:
       "Bete eskuzko egutegiko zabalgarri guztiak jarraitzeko.",
     startSeason: "Denboraldia hasi",

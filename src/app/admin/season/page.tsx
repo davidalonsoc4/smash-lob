@@ -71,11 +71,27 @@ function getMatchesPerRound(playerCount: number) {
   return Math.max(playerCount / 4, 1);
 }
 
-function createEmptyManualCalendar(
-  playerCount: number,
-): ManualCalendarRoundDraft[] {
+function getManualCalendarDraftRoundCount({
+  playerCount,
+  scheduleMode,
+}: {
+  playerCount: number;
+  scheduleMode: SeasonScheduleMode;
+}) {
+  return scheduleMode === "extended"
+    ? getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode })
+    : getTotalRoundCount(playerCount);
+}
+
+function createEmptyManualCalendar({
+  playerCount,
+  scheduleMode,
+}: {
+  playerCount: number;
+  scheduleMode: SeasonScheduleMode;
+}): ManualCalendarRoundDraft[] {
   return Array.from(
-    { length: getTotalRoundCount(playerCount) },
+    { length: getManualCalendarDraftRoundCount({ playerCount, scheduleMode }) },
     (_, roundIndex) => ({
       round: roundIndex + 1,
       matches: Array.from({ length: getMatchesPerRound(playerCount) }, () => ({
@@ -106,19 +122,26 @@ function getDraftPlayerValues({
 
 function createBalancedManualCalendar(
   playerValues: string[],
+  scheduleMode: SeasonScheduleMode = "single",
 ): ManualCalendarRoundDraft[] {
   const balancedMatches = generateBalancedCalendar({
     leagueId: "manual-draft",
     seasonId: "manual-draft-season",
     playerIds: playerValues,
+    scheduleMode: scheduleMode === "extended" ? "extended" : "single",
   });
 
   if (balancedMatches.length === 0) {
-    return createEmptyManualCalendar(playerValues.length);
+    return createEmptyManualCalendar({ playerCount: playerValues.length, scheduleMode });
   }
 
   return Array.from(
-    { length: getTotalRoundCount(playerValues.length) },
+    {
+      length: getManualCalendarDraftRoundCount({
+        playerCount: playerValues.length,
+        scheduleMode,
+      }),
+    },
     (_, roundIndex) => {
       const round = roundIndex + 1;
       const roundMatches = balancedMatches.filter(
@@ -1607,6 +1630,7 @@ function NewSeasonForm({
           .slice(0, defaultPlayerCount),
         playerCount: defaultPlayerCount,
       }),
+      scheduleMode,
     ),
   );
   const [roundWindowMode, setRoundWindowMode] =
@@ -1697,9 +1721,11 @@ function NewSeasonForm({
   function refreshManualCalendarFromPlayers({
     selectedIds,
     count,
+    mode = scheduleMode,
   }: {
     selectedIds: string[];
     count: number;
+    mode?: SeasonScheduleMode;
   }) {
     setManualCalendar(
       createBalancedManualCalendar(
@@ -1707,6 +1733,7 @@ function NewSeasonForm({
           selectedPlayerIds: selectedIds,
           playerCount: count,
         }),
+        mode,
       ),
     );
   }
@@ -2135,6 +2162,11 @@ function NewSeasonForm({
                     type="button"
                     onClick={() => {
                       setScheduleMode(mode);
+                      refreshManualCalendarFromPlayers({
+                        selectedIds: selectedPlayerIds,
+                        count: playerCount,
+                        mode,
+                      });
                       setFeedback(null);
                     }}
                     className={`rounded-2xl border px-3 py-2.5 text-left transition ${
@@ -2171,39 +2203,27 @@ function NewSeasonForm({
           </div>
         </div>
 
-        <div className="mt-4 space-y-3">
-          {(["balanced", "manual"] as CalendarMode[]).map((mode) => (
-            <label
-              key={mode}
-              className="flex items-start gap-3 rounded-2xl border border-neutral-200 p-3"
-            >
-              <input
-                type="radio"
-                name="calendarMode"
-                value={mode}
-                checked={calendarMode === mode}
-                onChange={() => {
-                  setCalendarMode(mode);
-                  setFeedback(null);
-                }}
-                className="mt-1"
-              />
-
-              <span>
-                <span className="block text-sm font-black">
-                  {mode === "balanced"
-                    ? t.adminSeason.balancedCalendar
-                    : t.adminSeason.manualCalendar}
-                </span>
-                <span className="mt-1 block text-xs text-neutral-500">
-                  {mode === "balanced"
-                    ? t.adminSeason.balancedCalendarDescription
-                    : t.adminSeason.manualCalendarDescription}
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
+        <label className="mt-4 block rounded-2xl bg-neutral-100 p-3">
+          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+            {t.adminSeason.calendarModeLabel}
+          </span>
+          <select
+            value={calendarMode}
+            onChange={(event) => {
+              setCalendarMode(event.target.value as CalendarMode);
+              setFeedback(null);
+            }}
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+          >
+            <option value="balanced">{t.adminSeason.balancedCalendar}</option>
+            <option value="manual">{t.adminSeason.manualCalendar}</option>
+          </select>
+          <p className="mt-2 text-xs font-semibold text-neutral-500">
+            {calendarMode === "balanced"
+              ? t.adminSeason.balancedCalendarDescription
+              : t.adminSeason.manualCalendarDescription}
+          </p>
+        </label>
 
         {calendarMode === "manual" ? (
           <div className="mt-4 space-y-4">
@@ -2215,9 +2235,11 @@ function NewSeasonForm({
                 por jornada
               </p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Elige manualmente la Pareja A y la Pareja B de las jornadas base.
-                Si eliges doble vuelta o temporada larga, la segunda vuelta se
-                genera automáticamente a partir de este calendario.
+                {scheduleMode === "double"
+                  ? t.adminSeason.manualCalendarDoubleHelp
+                  : scheduleMode === "extended"
+                    ? t.adminSeason.manualCalendarLongHelp
+                    : t.adminSeason.manualCalendarSingleHelp}
               </p>
               <button
                 type="button"
@@ -2225,6 +2247,7 @@ function NewSeasonForm({
                   refreshManualCalendarFromPlayers({
                     selectedIds: selectedPlayerIds,
                     count: playerCount,
+                    mode: scheduleMode,
                   });
                   setFeedback(null);
                 }}
