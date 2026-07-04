@@ -177,13 +177,15 @@ export function formatScheduleDateLabel(scheduledAt: string) {
     return scheduledAt
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  const label = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date)
+
+  return label.charAt(0).toLocaleUpperCase("es-ES") + label.slice(1)
 }
 
 export async function updateSupabaseMatchSchedule({

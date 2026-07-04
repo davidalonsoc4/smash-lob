@@ -24,6 +24,7 @@ import {
   getPlayersByIds,
 } from "@/lib/mvp";
 import { recordActivityEvent } from "@/lib/activity";
+import { formatMoney } from "@/lib/courtBooking";
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
@@ -151,32 +152,66 @@ function shouldShowScopeSwitch({
   personalMatch?: MatchData;
   candidateCount: number;
 }) {
-  return Boolean(leagueMatch && personalMatch && candidateCount > 1);
+  return Boolean(
+    leagueMatch &&
+      personalMatch &&
+      leagueMatch.id !== personalMatch.id &&
+      candidateCount > 1,
+  );
 }
 
 function getCollapsedScope({
   leagueMatch,
-  personalMatch,
-  candidateCount,
+  personalMatch: _personalMatch,
+  candidateCount: _candidateCount,
 }: {
   leagueMatch?: MatchData;
   personalMatch?: MatchData;
   candidateCount: number;
 }): "league" | "mine" {
-  if (
-    leagueMatch &&
-    personalMatch &&
-    leagueMatch.id === personalMatch.id &&
-    candidateCount <= 1
-  ) {
-    return "mine";
-  }
-
   if (leagueMatch) {
     return "league";
   }
 
   return "mine";
+}
+
+function getPlayerNameById(players: AwardPlayer[], playerId: string) {
+  return players.find((player) => player.id === playerId)?.displayName ?? "otro jugador";
+}
+
+function getPendingPaymentItems({
+  matches,
+  currentUserId,
+  players,
+}: {
+  matches: MatchData[];
+  currentUserId: string;
+  players: AwardPlayer[];
+}) {
+  return matches
+    .flatMap((match) =>
+      match.courtBooking.transfers
+        .filter(
+          (transfer) =>
+            transfer.fromPlayerId === currentUserId && !transfer.isPaid,
+        )
+        .map((transfer) => ({
+          match,
+          transfer,
+          toPlayerName: getPlayerNameById(players, transfer.toPlayerId),
+        })),
+    )
+    .sort((left, right) => {
+      const leftTime = getMatchRelevantTime(left.match);
+      const rightTime = getMatchRelevantTime(right.match);
+
+      if (leftTime !== rightTime) {
+        return rightTime - leftTime;
+      }
+
+      return left.match.round - right.match.round;
+    });
 }
 
 function PlayerAwardCard({
@@ -451,6 +486,11 @@ export default function Home() {
   const selectedLastMatchHasResult =
     selectedLastMatch?.status === "finished" ||
     Boolean(selectedLastMatch?.sets.length);
+  const pendingPaymentItems = getPendingPaymentItems({
+    matches,
+    currentUserId,
+    players,
+  });
 
   const rankingPlayers = [...players].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
@@ -707,6 +747,40 @@ export default function Home() {
           players={players}
           matches={matches}
         />
+      ) : null}
+
+      {!isSeasonClosed && !isSeasonUpcoming && pendingPaymentItems.length > 0 ? (
+        <section>
+          <SectionHeader title="Pagos pendientes" />
+
+          <AppCard className="border-amber-200 bg-amber-50 p-3">
+            <div className="space-y-2">
+              {pendingPaymentItems.slice(0, 3).map(({ match, transfer, toPlayerName }) => (
+                <Link
+                  key={`${match.id}-${transfer.id}`}
+                  href={`/match/${match.id}`}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2 transition active:scale-[0.99]"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-wide text-amber-900">
+                      Jornada {match.round}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs font-semibold text-amber-800">
+                      Debes {formatMoney(transfer.amount)} a {toPlayerName}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-lg font-black text-amber-900">›</span>
+                </Link>
+              ))}
+            </div>
+
+            {pendingPaymentItems.length > 3 ? (
+              <p className="mt-2 text-center text-xs font-semibold text-amber-800">
+                +{pendingPaymentItems.length - 3} pago{pendingPaymentItems.length - 3 === 1 ? "" : "s"} pendiente{pendingPaymentItems.length - 3 === 1 ? "" : "s"} más
+              </p>
+            ) : null}
+          </AppCard>
+        </section>
       ) : null}
 
       {!isSeasonUpcoming ? (

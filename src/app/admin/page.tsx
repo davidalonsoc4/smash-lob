@@ -97,38 +97,31 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         entrar en la liga y vincularse a su perfil.
       </p>
 
-      <div className="mt-3 space-y-3">
-        <div className="rounded-2xl bg-neutral-100 p-3">
-          <p className="text-xs font-semibold uppercase text-neutral-500">
-            Código de invitación
-          </p>
-          <p className="mt-1 break-all text-sm font-black text-neutral-950">
-            {inviteCode || "Sin código disponible"}
-          </p>
+      <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
+        <p className="text-xs font-semibold uppercase text-neutral-500">
+          Código de invitación
+        </p>
+        <p className="mt-1 break-all text-sm font-black text-neutral-950">
+          {inviteCode || "Sin código disponible"}
+        </p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => copyValue(inviteCode, "Código copiado")}
             disabled={!inviteCode}
-            className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
           >
             Copiar código
           </button>
-        </div>
 
-        <div className="rounded-2xl bg-neutral-100 p-3">
-          <p className="text-xs font-semibold uppercase text-neutral-500">
-            Enlace de invitación
-          </p>
-          <p className="mt-1 break-all text-sm font-black text-neutral-950">
-            {inviteUrl || "Sin enlace disponible"}
-          </p>
           <button
             type="button"
-            onClick={() => copyValue(inviteUrl, "Enlace copiado")}
+            onClick={() => copyValue(inviteUrl, "URL copiada")}
             disabled={!inviteUrl}
-            className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
           >
-            Copiar enlace
+            Copiar URL
           </button>
         </div>
       </div>

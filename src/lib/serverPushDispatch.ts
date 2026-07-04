@@ -295,6 +295,43 @@ function getPendingTransferText({
     .join(" y ");
 }
 
+
+function getResultTextFromMetadata(event: ActivityEventRow) {
+  const metadata = toRecord(event.metadata);
+  const pointsA = Number(metadata.pointsA);
+  const pointsB = Number(metadata.pointsB);
+
+  if (!Number.isFinite(pointsA) || !Number.isFinite(pointsB)) {
+    return null;
+  }
+
+  const sets = Array.isArray(metadata.sets)
+    ? metadata.sets
+        .map((item) => {
+          const set = toRecord(item);
+          const a = Number(set.a);
+          const b = Number(set.b);
+
+          if (!Number.isFinite(a) || !Number.isFinite(b)) {
+            return null;
+          }
+
+          return `${a}-${b}`;
+        })
+        .filter((item): item is string => Boolean(item))
+    : [];
+  const round = metadata.round;
+  const roundText = typeof round === "number" || typeof round === "string"
+    ? `Jornada ${round}`
+    : null;
+  const resultText = `${pointsA}-${pointsB}`;
+  const setsText = sets.length > 0 ? ` · ${sets.join(", ")}` : "";
+
+  return [roundText, `${resultText}${setsText}`]
+    .filter((item): item is string => Boolean(item))
+    .join(": ");
+}
+
 function getNotificationTitle(event: ActivityEventRow) {
   if (
     event.type === "court_booking_updated" ||
@@ -313,6 +350,18 @@ function getNotificationTitle(event: ActivityEventRow) {
 
   if (event.type === "match_result_missing_reminder") {
     return "Falta el resultado";
+  }
+
+  if (event.type === "match_result_saved") {
+    return "Resultado registrado";
+  }
+
+  if (event.type === "match_result_updated") {
+    return "Resultado modificado";
+  }
+
+  if (event.type === "match_result_cleared") {
+    return "Resultado eliminado";
   }
 
   return event.title || "Smash & Lob";
@@ -362,6 +411,16 @@ function getNotificationBody(
     return typeof round === "number"
       ? `No olvides registrar el resultado de tu partido de la Jornada ${round}.`
       : "No olvides registrar el resultado de tu partido.";
+  }
+
+  if (event.type === "match_result_saved" || event.type === "match_result_updated") {
+    const resultText = getResultTextFromMetadata(event);
+
+    if (resultText) {
+      return event.type === "match_result_updated"
+        ? `Nuevo resultado: ${resultText}.`
+        : `Resultado: ${resultText}.`;
+    }
   }
 
   const actor = event.actor_display_name || event.actor_email || "Smash & Lob";

@@ -34,17 +34,34 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close()
 
-  const targetUrl = new URL(event.notification.data?.url || "/", self.location.origin).href
+  const targetUrl = new URL(
+    event.notification.data?.url || "/",
+    self.location.origin,
+  ).href
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      const existingClient = clients.find((client) => client.url === targetUrl)
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        const sameOriginClient = clients.find((client) => {
+          try {
+            return new URL(client.url).origin === self.location.origin
+          } catch {
+            return false
+          }
+        })
 
-      if (existingClient) {
-        return existingClient.focus()
-      }
+        if (sameOriginClient) {
+          if ("navigate" in sameOriginClient) {
+            return sameOriginClient.navigate(targetUrl).then((client) =>
+              client ? client.focus() : sameOriginClient.focus(),
+            )
+          }
 
-      return self.clients.openWindow(targetUrl)
-    })
+          return sameOriginClient.focus()
+        }
+
+        return self.clients.openWindow(targetUrl)
+      }),
   )
 })

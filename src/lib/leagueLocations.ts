@@ -432,6 +432,10 @@ export function getLeagueLocationCalendarText(
     return getScheduleLocationFallbackText(fallbackLocation);
   }
 
+  if (resolvedLocation.address && !looksLikeUrl(resolvedLocation.address)) {
+    return resolvedLocation.address;
+  }
+
   const parts = [
     getLeagueLocationOptionLabel(resolvedLocation),
     resolvedLocation.selectedCourt,

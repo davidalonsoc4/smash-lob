@@ -41,7 +41,7 @@ export function MatchStatusBadge({
 
   return (
     <p
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+      className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black leading-none ${
         classNameByStatus[displayStatus] ?? "bg-neutral-100 text-neutral-800"
       }`}
     >

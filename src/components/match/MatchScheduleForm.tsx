@@ -22,6 +22,16 @@ import {
   formatScheduleForDateTimeInput,
 } from "@/lib/matchScheduleTime";
 
+function capitalizeFirstLetter(value: string | null | undefined) {
+  const cleanValue = value?.trim();
+
+  if (!cleanValue) {
+    return value ?? null;
+  }
+
+  return cleanValue.charAt(0).toLocaleUpperCase("es-ES") + cleanValue.slice(1);
+}
+
 type MatchScheduleFormProps = {
   matchId: string;
   status: string;
@@ -313,7 +323,7 @@ export function MatchScheduleForm({
           {hasSchedule ? (
             <>
               <p className="font-black text-neutral-950">
-                {dateLabel ?? t.matches.pendingDate}
+                {capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
               </p>
               <p className="mt-0.5 text-xs font-semibold text-neutral-600">
                 {displayedLocationText ?? t.matches.missingSchedule}

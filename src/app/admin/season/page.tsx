@@ -315,16 +315,16 @@ function InviteLinkCard({
   leagueName: string;
 }) {
   const { t } = useI18n();
-  const [copied, setCopied] = useState(false);
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inviteUrl = getPublicInviteUrl(inviteCode);
 
-  async function handleCopy() {
+  async function handleCopy(value: string, label: string) {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
-      setCopied(true);
+      await navigator.clipboard.writeText(value);
+      setCopiedLabel(label);
       setError(null);
-      window.setTimeout(() => setCopied(false), 1800);
+      window.setTimeout(() => setCopiedLabel(null), 1800);
     } catch {
       setError(t.adminSeason.inviteCopyError);
     }
@@ -341,17 +341,38 @@ function InviteLinkCard({
         {t.adminSeason.inviteDescription.replace("{leagueName}", leagueName)}
       </p>
 
-      <div className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold text-neutral-600 break-all">
-        {inviteUrl}
+      <div className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5">
+        <p className="text-xs font-semibold uppercase text-neutral-500">
+          Código de invitación
+        </p>
+        <p className="mt-1 break-all text-sm font-black text-neutral-950">
+          {inviteCode}
+        </p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => handleCopy(inviteCode, "Código copiado")}
+            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800"
+          >
+            Copiar código
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCopy(inviteUrl, "URL copiada")}
+            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800"
+          >
+            Copiar URL
+          </button>
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
-      >
-        {copied ? t.adminSeason.inviteCopied : t.adminSeason.copyInviteLink}
-      </button>
+      {copiedLabel ? (
+        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+          {copiedLabel}
+        </p>
+      ) : null}
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">

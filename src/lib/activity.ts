@@ -52,8 +52,20 @@ type LeagueActorProfile = {
   avatarUrl: string | null
 }
 
+type AppActorProfile = {
+  displayName: string | null
+  avatarInitials: string | null
+  avatarUrl: string | null
+}
+
 const activitySelect =
   "id,league_id,season_id,match_id,actor_user_id,actor_email,actor_display_name,type,title,description,metadata,created_at"
+
+const superAdminEmails = new Set(["smashlobadmi@gmail.com", "smashlobadmin@gmail.com"])
+
+function isSuperAdminEmail(email: string | null | undefined) {
+  return superAdminEmails.has(normalizeEmail(email))
+}
 
 function toActivityEventType(value: unknown): ActivityEventType {
   const type = String(value)
@@ -147,6 +159,35 @@ function applyLeagueActorProfile(
   }
 }
 
+function applyAppActorProfile(
+  event: ActivityEvent,
+  profile: AppActorProfile | null,
+) {
+  if (!profile) {
+    return event
+  }
+
+  return {
+    ...event,
+    actorDisplayName: profile.displayName ?? event.actorDisplayName,
+    actorAvatarUrl: profile.avatarUrl ?? event.actorAvatarUrl,
+    actorAvatarInitials: profile.avatarInitials ?? event.actorAvatarInitials,
+  }
+}
+
+function applySuperAdminActorProfile(event: ActivityEvent) {
+  if (!isSuperAdminEmail(event.actorEmail)) {
+    return event
+  }
+
+  return {
+    ...event,
+    actorDisplayName: "Admin",
+    actorAvatarUrl: null,
+    actorAvatarInitials: "AD",
+  }
+}
+
 function queueActivityPushDispatch(eventId: string) {
   if (typeof window === "undefined" || !eventId) {
     return
@@ -175,12 +216,54 @@ async function fetchUsersByEmail(emails: string[]) {
     .select("id,email")
     .in("email", cleanEmails)
 
+  const rows = (data ?? []) as Record<string, unknown>[]
+
   return new Map(
-    (data ?? [])
+    rows
       .filter(
         (user) => typeof user.id === "string" && typeof user.email === "string"
       )
-      .map((user) => [normalizeEmail(user.email), user.id as string])
+      .map((user) => [normalizeEmail(user.email as string), user.id as string])
+  )
+}
+
+async function fetchAppActorProfiles(userIds: string[]) {
+  const cleanUserIds = Array.from(new Set(userIds.filter(Boolean)))
+
+  if (cleanUserIds.length === 0) {
+    return new Map<string, AppActorProfile>()
+  }
+
+  const { data } = await supabase
+    .from("app_users")
+    .select("id,email,display_name,avatar_url")
+    .in("id", cleanUserIds)
+
+  const rows = (data ?? []) as Record<string, unknown>[]
+
+  return new Map<string, AppActorProfile>(
+    rows
+      .filter((user) => typeof user.id === "string")
+      .map((user) => {
+        const email = typeof user.email === "string" ? user.email : null
+        const isAdmin = isSuperAdminEmail(email)
+
+        return [
+          user.id as string,
+          {
+            displayName: isAdmin
+              ? "Admin"
+              : typeof user.display_name === "string"
+                ? user.display_name
+                : null,
+            avatarInitials: isAdmin ? "AD" : null,
+            avatarUrl:
+              !isAdmin && typeof user.avatar_url === "string"
+                ? user.avatar_url
+                : null,
+          },
+        ] as const
+      }),
   )
 }
 
@@ -203,9 +286,10 @@ async function fetchLeagueActorProfiles({
     .eq("league_id", leagueId)
     .in("user_id", cleanUserIds)
 
+  const membershipRows = (memberships ?? []) as Record<string, unknown>[]
   const playerIds = Array.from(
     new Set(
-      (memberships ?? [])
+      membershipRows
         .map((membership) => membership.player_id)
         .filter((playerId): playerId is string => typeof playerId === "string")
     )
@@ -220,25 +304,28 @@ async function fetchLeagueActorProfiles({
     .select("id,display_name,avatar_initials,avatar_url")
     .in("id", playerIds)
 
-  const playerById = new Map(
-    (players ?? []).map((player) => [
-      player.id,
-      {
-        displayName:
-          typeof player.display_name === "string" ? player.display_name : null,
-        avatarInitials:
-          typeof player.avatar_initials === "string"
-            ? player.avatar_initials
-            : null,
-        avatarUrl:
-          typeof player.avatar_url === "string" ? player.avatar_url : null,
-      },
-    ])
+  const playerRows = (players ?? []) as Record<string, unknown>[]
+  const playerById = new Map<string, LeagueActorProfile>(
+    playerRows
+      .filter((player) => typeof player.id === "string")
+      .map((player) => [
+        player.id as string,
+        {
+          displayName:
+            typeof player.display_name === "string" ? player.display_name : null,
+          avatarInitials:
+            typeof player.avatar_initials === "string"
+              ? player.avatar_initials
+              : null,
+          avatarUrl:
+            typeof player.avatar_url === "string" ? player.avatar_url : null,
+        },
+      ])
   )
 
   const profileByUserId = new Map<string, LeagueActorProfile>()
 
-  ;(memberships ?? []).forEach((membership) => {
+  membershipRows.forEach((membership) => {
     if (
       typeof membership.user_id !== "string" ||
       typeof membership.player_id !== "string"
@@ -321,22 +408,30 @@ export async function fetchSupabaseActivityEvents({
     )
   )
 
-  const profilesByUserId = await fetchLeagueActorProfiles({
-    leagueId,
-    userIds: actorUserIds,
-  })
-
-  if (profilesByUserId.size === 0) {
-    return events
-  }
+  const [appProfilesByUserId, leagueProfilesByUserId] = await Promise.all([
+    fetchAppActorProfiles(actorUserIds),
+    fetchLeagueActorProfiles({
+      leagueId,
+      userIds: actorUserIds,
+    }),
+  ])
 
   return events.map((event) => {
     const actorUserId =
       event.actorUserId ?? usersByEmail.get(normalizeEmail(event.actorEmail)) ?? null
 
-    return applyLeagueActorProfile(
+    if (isSuperAdminEmail(event.actorEmail)) {
+      return applySuperAdminActorProfile(event)
+    }
+
+    const withAppProfile = applyAppActorProfile(
       event,
-      actorUserId ? profilesByUserId.get(actorUserId) ?? null : null
+      actorUserId ? appProfilesByUserId.get(actorUserId) ?? null : null,
+    )
+
+    return applyLeagueActorProfile(
+      withAppProfile,
+      actorUserId ? leagueProfilesByUserId.get(actorUserId) ?? null : null
     )
   })
 }
@@ -369,7 +464,9 @@ export async function recordActivityEvent({
   }
 
   let actorUserId: string | null = null
-  let safeActorDisplayName = actorDisplayName ?? normalizedActorEmail
+  let safeActorDisplayName = isSuperAdminEmail(normalizedActorEmail)
+    ? "Admin"
+    : actorDisplayName ?? normalizedActorEmail
 
   try {
     const actor = await upsertAppUser({
@@ -383,16 +480,18 @@ export async function recordActivityEvent({
     actorUserId = null
   }
 
-  try {
-    const leagueProfile = await resolveLeagueActorProfile({
-      leagueId,
-      actorUserId,
-      actorEmail: normalizedActorEmail,
-    })
+  if (!isSuperAdminEmail(normalizedActorEmail)) {
+    try {
+      const leagueProfile = await resolveLeagueActorProfile({
+        leagueId,
+        actorUserId,
+        actorEmail: normalizedActorEmail,
+      })
 
-    safeActorDisplayName = leagueProfile?.displayName ?? safeActorDisplayName
-  } catch {
-    // El evento se registra igualmente con el nombre de cuenta como fallback.
+      safeActorDisplayName = leagueProfile?.displayName ?? safeActorDisplayName
+    } catch {
+      // El evento se registra igualmente con el nombre de cuenta como fallback.
+    }
   }
 
   const { data, error } = await supabase
@@ -419,6 +518,10 @@ export async function recordActivityEvent({
   const event = mapActivityEvent(data as Record<string, unknown>)
 
   queueActivityPushDispatch(event.id)
+
+  if (isSuperAdminEmail(event.actorEmail)) {
+    return applySuperAdminActorProfile(event)
+  }
 
   try {
     const leagueProfile = await resolveLeagueActorProfile({

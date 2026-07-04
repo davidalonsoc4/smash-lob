@@ -26,6 +26,17 @@ const ActiveLeagueContext = createContext<ActiveLeagueContextValue | null>(null)
 
 const storageKey = "smash-lob-active-league"
 
+function forceHomeReload() {
+  window.setTimeout(() => {
+    if (window.location.pathname === "/") {
+      window.location.reload()
+      return
+    }
+
+    window.location.assign("/")
+  }, 0)
+}
+
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const { userLeagues, canAccessLeague } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
@@ -62,13 +73,20 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
       return
     }
 
+    if (leagueId === effectiveActiveLeagueId) {
+      forceHomeReload()
+      return
+    }
+
     setActiveLeagueIdState(leagueId)
     window.localStorage.setItem(storageKey, leagueId)
-  }, [canAccessLeague])
+    forceHomeReload()
+  }, [canAccessLeague, effectiveActiveLeagueId])
 
   const setActiveLeagueId = useCallback((leagueId: string) => {
     setActiveLeagueIdState(leagueId)
     window.localStorage.setItem(storageKey, leagueId)
+    forceHomeReload()
   }, [])
 
   const value = useMemo(
