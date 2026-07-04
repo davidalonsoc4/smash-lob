@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { defaultNotificationPreferences } from "@/lib/notificationSettings"
 
 export const runtime = "nodejs"
 
@@ -90,6 +91,22 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  const { data: existingPreferences } = await supabase
+    .from("notification_preferences")
+    .select("id")
+    .eq("league_id", leagueId)
+    .eq("user_email", email)
+    .maybeSingle()
+
+  if (!existingPreferences) {
+    await supabase.from("notification_preferences").insert({
+      league_id: leagueId,
+      user_email: email,
+      settings: defaultNotificationPreferences,
+      updated_at: new Date().toISOString(),
+    })
   }
 
   return NextResponse.json({ ok: true })

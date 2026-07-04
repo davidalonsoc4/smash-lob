@@ -4,6 +4,20 @@ export type PushSupportStatus =
   | "missing_public_key"
   | "permission_denied"
 
+export type PushAutoRegistrationResult =
+  | { ok: true }
+  | {
+      ok: false
+      reason:
+        | PushSupportStatus
+        | "permission_default"
+        | "auto_disabled"
+        | "missing_subscription"
+        | "subscribe_failed"
+    }
+
+const pushAutoDisabledStorageKey = "smash-lob-push-auto-disabled"
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
@@ -37,6 +51,27 @@ export function getPushSupportStatus(): PushSupportStatus {
   return "supported"
 }
 
+export function isPushAutoRegistrationDisabled() {
+  if (typeof window === "undefined") {
+    return false
+  }
+
+  return window.localStorage.getItem(pushAutoDisabledStorageKey) === "true"
+}
+
+export function setPushAutoRegistrationDisabled(disabled: boolean) {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  if (disabled) {
+    window.localStorage.setItem(pushAutoDisabledStorageKey, "true")
+    return
+  }
+
+  window.localStorage.removeItem(pushAutoDisabledStorageKey)
+}
+
 export async function getPushRegistration() {
   const registration = await navigator.serviceWorker.register("/sw.js")
   await navigator.serviceWorker.ready
@@ -46,6 +81,22 @@ export async function getPushRegistration() {
 export async function getExistingPushSubscription() {
   const registration = await getPushRegistration()
   return registration.pushManager.getSubscription()
+}
+
+async function createPushSubscription() {
+  const registration = await getPushRegistration()
+  const existingSubscription = await registration.pushManager.getSubscription()
+
+  if (existingSubscription) {
+    return existingSubscription
+  }
+
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as string
+    ),
+  })
 }
 
 export async function requestPushSubscription() {
@@ -61,21 +112,63 @@ export async function requestPushSubscription() {
     return { ok: false as const, reason: "permission_denied" as const }
   }
 
-  const registration = await getPushRegistration()
-  const existingSubscription = await registration.pushManager.getSubscription()
-
-  if (existingSubscription) {
-    return { ok: true as const, subscription: existingSubscription }
-  }
-
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(
-      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as string
-    ),
-  })
+  const subscription = await createPushSubscription()
 
   return { ok: true as const, subscription }
+}
+
+export async function ensurePushSubscriptionForLeague({
+  leagueId,
+  playerId,
+}: {
+  leagueId: string
+  playerId: string | null
+}): Promise<PushAutoRegistrationResult> {
+  const supportStatus = getPushSupportStatus()
+
+  if (supportStatus !== "supported") {
+    return { ok: false, reason: supportStatus }
+  }
+
+  if (isPushAutoRegistrationDisabled()) {
+    return { ok: false, reason: "auto_disabled" }
+  }
+
+  if (Notification.permission === "default") {
+    return { ok: false, reason: "permission_default" }
+  }
+
+  if (Notification.permission !== "granted") {
+    return { ok: false, reason: "permission_denied" }
+  }
+
+  try {
+    const subscription = await createPushSubscription()
+
+    if (!subscription) {
+      return { ok: false, reason: "missing_subscription" }
+    }
+
+    const response = await fetch("/api/notifications/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        leagueId,
+        playerId,
+        subscription: subscription.toJSON(),
+      }),
+    })
+
+    if (!response.ok) {
+      return { ok: false, reason: "subscribe_failed" }
+    }
+
+    return { ok: true }
+  } catch {
+    return { ok: false, reason: "subscribe_failed" }
+  }
 }
 
 export async function unsubscribeFromPush() {

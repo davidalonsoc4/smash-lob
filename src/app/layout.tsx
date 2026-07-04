@@ -8,6 +8,7 @@ import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
 import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
 import { AppShell } from "@/components/layout/AppShell"
+import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistration"
 import { I18nProvider } from "@/i18n/I18nProvider"
 import "./globals.css"
 
@@ -57,6 +58,7 @@ export default function RootLayout({
                     <ActiveLeagueProvider>
                       <CurrentUserProvider>
                         <LeagueEntryGate>
+                          <AutoPushRegistration />
                           <AppShell>{children}</AppShell>
                         </LeagueEntryGate>
                       </CurrentUserProvider>

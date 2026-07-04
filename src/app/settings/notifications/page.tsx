@@ -12,9 +12,11 @@ import {
   type NotificationPreferences,
 } from "@/lib/notificationSettings"
 import {
+  ensurePushSubscriptionForLeague,
   getExistingPushSubscription,
   getPushSupportStatus,
   requestPushSubscription,
+  setPushAutoRegistrationDisabled,
   unsubscribeFromPush,
   type PushSupportStatus,
 } from "@/lib/pushClient"
@@ -78,10 +80,12 @@ export default function NotificationSettingsPage() {
 
       try {
         if (nextSupportStatus === "supported") {
-          const existingSubscription = await getExistingPushSubscription()
-
+          const autoSyncResult = await ensurePushSubscriptionForLeague({
+            leagueId: activeLeague.id,
+            playerId: currentUserId,
+          })
           if (isMounted) {
-            setHasSubscription(Boolean(existingSubscription))
+            setHasSubscription(autoSyncResult.ok)
           }
         }
       } catch {
@@ -119,7 +123,7 @@ export default function NotificationSettingsPage() {
     return () => {
       isMounted = false
     }
-  }, [activeLeague.id])
+  }, [activeLeague.id, currentUserId])
 
   async function savePreferences(nextPreferences: NotificationPreferences) {
     setIsSaving(true)
@@ -217,6 +221,7 @@ export default function NotificationSettingsPage() {
         throw new Error("subscribe-failed")
       }
 
+      setPushAutoRegistrationDisabled(false)
       setHasSubscription(true)
       setMessage("Notificaciones activadas en este dispositivo.")
     } catch {
@@ -236,6 +241,7 @@ export default function NotificationSettingsPage() {
     setIsSaving(true)
     setError(null)
     setMessage(null)
+    setPushAutoRegistrationDisabled(true)
 
     try {
       const existingSubscription = await getExistingPushSubscription()
