@@ -1650,6 +1650,11 @@ function NewSeasonForm({
     playerCount,
     mode: scheduleMode,
   });
+  const manualCalendarVisibleRounds = manualCalendar.length;
+  const manualCalendarRepeatedRounds = Math.max(
+    totalSeasonRounds - manualCalendarVisibleRounds,
+    0,
+  );
   const selectedPlayerIdSet = useMemo(
     () => new Set(selectedPlayerIds),
     [selectedPlayerIds],
@@ -2203,33 +2208,38 @@ function NewSeasonForm({
           </div>
         </div>
 
-        <label className="mt-4 block rounded-2xl bg-neutral-100 p-3">
-          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
-            {t.adminSeason.calendarModeLabel}
-          </span>
-          <select
-            value={calendarMode}
-            onChange={(event) => {
-              setCalendarMode(event.target.value as CalendarMode);
-              setFeedback(null);
-            }}
-            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
-          >
-            <option value="balanced">{t.adminSeason.balancedCalendar}</option>
-            <option value="manual">{t.adminSeason.manualCalendar}</option>
-          </select>
+        <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+          <label className="block">
+            <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+              {t.adminSeason.calendarModeLabel}
+            </span>
+            <select
+              value={calendarMode}
+              onChange={(event) => {
+                setCalendarMode(event.target.value as CalendarMode);
+                setFeedback(null);
+              }}
+              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+            >
+              <option value="balanced">{t.adminSeason.balancedCalendar}</option>
+              <option value="manual">{t.adminSeason.manualCalendar}</option>
+            </select>
+          </label>
           <p className="mt-2 text-xs font-semibold text-neutral-500">
             {calendarMode === "balanced"
               ? t.adminSeason.balancedCalendarDescription
               : t.adminSeason.manualCalendarDescription}
           </p>
-        </label>
+        </div>
 
         {calendarMode === "manual" ? (
           <div className="mt-4 space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
-                {totalSeasonRounds} jornadas ·{" "}
+                {scheduleMode === "double" && manualCalendarRepeatedRounds > 0
+                  ? `${manualCalendarVisibleRounds} jornadas manuales + ${manualCalendarRepeatedRounds} repetidas`
+                  : `${manualCalendarVisibleRounds} jornadas manuales`}
+                {" · "}
                 {getMatchesPerRound(playerCount)}{" "}
                 {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"}{" "}
                 por jornada
