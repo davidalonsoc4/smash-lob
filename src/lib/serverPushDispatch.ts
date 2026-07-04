@@ -43,6 +43,11 @@ type LeagueMembershipRow = {
   player_id: string | null;
 };
 
+type MatchParticipantRow = {
+  team_a: string[] | null;
+  team_b: string[] | null;
+};
+
 type AppUserRow = {
   id: string;
   email: string | null;
@@ -125,18 +130,22 @@ function toTransfers(value: unknown) {
     );
 }
 
-function getTargetPlayerIds(event: ActivityEventRow) {
+function isMatchParticipantNotification(eventType: ActivityEventType) {
+  return (
+    eventType === "match_scheduled" ||
+    eventType === "match_schedule_updated" ||
+    eventType === "match_postponed" ||
+    eventType === "match_result_saved" ||
+    eventType === "match_result_updated" ||
+    eventType === "match_result_cleared" ||
+    eventType === "match_result_missing_reminder"
+  );
+}
+
+function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
   const metadata = toRecord(event.metadata);
 
-  if (
-    event.type === "match_scheduled" ||
-    event.type === "match_schedule_updated" ||
-    event.type === "match_postponed" ||
-    event.type === "match_result_saved" ||
-    event.type === "match_result_updated" ||
-    event.type === "match_result_cleared" ||
-    event.type === "match_result_missing_reminder"
-  ) {
+  if (isMatchParticipantNotification(event.type)) {
     return toStringArray(metadata.participantIds);
   }
 
@@ -161,6 +170,56 @@ function getTargetPlayerIds(event: ActivityEventRow) {
   }
 
   return [];
+}
+
+async function fetchMatchParticipantIds({
+  supabase,
+  event,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  event: ActivityEventRow;
+}) {
+  if (!event.match_id || !isMatchParticipantNotification(event.type)) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("matches")
+    .select("team_a,team_b")
+    .eq("id", event.match_id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  const match = data as MatchParticipantRow;
+
+  return [...toStringArray(match.team_a), ...toStringArray(match.team_b)];
+}
+
+async function getTargetPlayerIds({
+  supabase,
+  event,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  event: ActivityEventRow;
+}) {
+  const metadataTargetPlayerIds = getTargetPlayerIdsFromMetadata(event);
+
+  if (!isMatchParticipantNotification(event.type)) {
+    return metadataTargetPlayerIds;
+  }
+
+  const matchParticipantIds = await fetchMatchParticipantIds({ supabase, event });
+
+  return Array.from(
+    new Set([...metadataTargetPlayerIds, ...matchParticipantIds].filter(Boolean)),
+  );
 }
 
 function getExcludedPlayerIds(event: ActivityEventRow) {
@@ -329,7 +388,7 @@ async function getRecipients({
     .select("user_id,player_id")
     .eq("league_id", event.league_id);
 
-  const targetPlayerIds = getTargetPlayerIds(event);
+  const targetPlayerIds = await getTargetPlayerIds({ supabase, event });
 
   if (!isLeagueWideEvent(event.type)) {
     if (targetPlayerIds.length === 0) {
