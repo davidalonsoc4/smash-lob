@@ -2,9 +2,11 @@ import { supabase } from "@/lib/supabase";
 import {
   generateBalancedCalendar,
   generateManualCalendar,
+  getSeasonScheduleRoundCount,
   getNewPlayerIndexFromToken,
   resolveManualCalendarDraft,
   type ManualCalendarMatchDraft,
+  type SeasonScheduleMode,
 } from "@/lib/calendar";
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches";
 import { upsertAppUser } from "@/lib/supabaseUsers";
@@ -378,6 +380,7 @@ export async function startSupabaseSeason({
   roundWindowDays,
   requiresThreeSets,
   manualMatches,
+  scheduleMode = "single",
   selfPlayerValue,
   currentUserEmail,
   currentUserDisplayName,
@@ -393,6 +396,7 @@ export async function startSupabaseSeason({
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   manualMatches?: ManualCalendarMatchDraft[];
+  scheduleMode?: SeasonScheduleMode;
   selfPlayerValue?: string | null;
   currentUserEmail?: string | null;
   currentUserDisplayName?: string | null;
@@ -442,7 +446,10 @@ export async function startSupabaseSeason({
       league_id: leagueId,
       name,
       status: "upcoming",
-      total_rounds: Math.max(totalPlayers - 1, 1),
+      total_rounds: getSeasonScheduleRoundCount({
+        playerCount: totalPlayers,
+        mode: scheduleMode,
+      }),
       completed_rounds: 0,
     })
     .select("id,league_id,name,status,total_rounds,completed_rounds")
@@ -553,11 +560,13 @@ export async function startSupabaseSeason({
           leagueId,
           seasonId: season.id,
           matches: resolvedManualMatches,
+          scheduleMode,
         })
       : generateBalancedCalendar({
           leagueId,
           seasonId: season.id,
           playerIds: finalPlayerIds,
+          scheduleMode,
         });
 
   const { data: matchesData, error: matchesError } =

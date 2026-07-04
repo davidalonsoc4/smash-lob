@@ -12,6 +12,7 @@ export const es = {
     saving: "Guardando...",
     cancel: "Cancelar",
     retry: "Volver a comprobar",
+    active: "Seleccionado",
   },
 
   auth: {
@@ -536,7 +537,20 @@ export const es = {
       "Elige jugadores de la liga y completa los huecos con nuevos nombres pendientes de vincular.",
     calendarTitle: "Calendario",
     calendarDescription:
-      "Elige cómo se generarán las jornadas de la nueva temporada.",
+      "Elige duración y generación de jornadas para la nueva temporada.",
+    seasonLengthTitle: "Duración",
+    seasonLengthDescription:
+      "Define si la temporada tendrá una vuelta normal, una segunda vuelta exacta o una segunda vuelta remezclada.",
+    roundsShortLabel: "jornadas",
+    singleRoundCalendar: "Vuelta única",
+    singleRoundCalendarDescription:
+      "Como hasta ahora: con 8 jugadores se generan 7 jornadas.",
+    doubleRoundCalendar: "Doble vuelta",
+    doubleRoundCalendarDescription:
+      "Repite el calendario una segunda vez: con 8 jugadores se generan 14 jornadas.",
+    extendedCalendar: "Temporada larga",
+    extendedCalendarDescription:
+      "Añade una segunda vuelta remezclada, manteniendo parejas pero cambiando rivales cuando sea posible.",
     balancedCalendar: "Calendario equilibrado",
     balancedCalendarDescription:
       "Todos los jugadores tendrán una distribución compensada de partidos. Configuraremos el detalle en el siguiente paso.",

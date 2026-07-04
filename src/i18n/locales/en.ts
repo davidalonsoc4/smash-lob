@@ -12,6 +12,7 @@ export const en = {
     saving: "Saving...",
     cancel: "Cancel",
     retry: "Check again",
+    active: "Selected",
   },
 
   auth: {
@@ -524,7 +525,20 @@ export const en = {
       "Choose league players and fill gaps with new names pending link.",
     calendarTitle: "Calendar",
     calendarDescription:
-      "Choose how the rounds for the new season will be generated.",
+      "Choose the season length and how rounds will be generated.",
+    seasonLengthTitle: "Length",
+    seasonLengthDescription:
+      "Choose a normal single round, an exact second round, or a remixed long season.",
+    roundsShortLabel: "rounds",
+    singleRoundCalendar: "Single round",
+    singleRoundCalendarDescription:
+      "Current format: with 8 players it generates 7 rounds.",
+    doubleRoundCalendar: "Double round",
+    doubleRoundCalendarDescription:
+      "Repeats the calendar once: with 8 players it generates 14 rounds.",
+    extendedCalendar: "Long season",
+    extendedCalendarDescription:
+      "Adds a remixed second round, keeping pairs but changing opponents when possible.",
     balancedCalendar: "Balanced calendar",
     balancedCalendarDescription:
       "All players will have a balanced match distribution. We will configure the details in the next step.",

@@ -10,7 +10,7 @@ import {
 } from "react"
 import { useSession } from "next-auth/react"
 import { allMatches } from "@/data/fakeData"
-import { generateBalancedCalendar } from "@/lib/calendar"
+import { generateBalancedCalendar, type SeasonScheduleMode } from "@/lib/calendar"
 import { getRoundMvpSelection } from "@/lib/mvp"
 import {
   buildCourtBooking,
@@ -94,6 +94,7 @@ type MatchDataContextValue = {
     leagueId: string
     seasonId: string
     playerIds: string[]
+    scheduleMode?: SeasonScheduleMode
   }) => MatchData[]
   updateMatchSchedule: (
     matchId: string,
@@ -452,15 +453,18 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       leagueId,
       seasonId,
       playerIds,
+      scheduleMode = "single",
     }: {
       leagueId: string
       seasonId: string
       playerIds: string[]
+      scheduleMode?: SeasonScheduleMode
     }) => {
       const seasonMatches = generateBalancedCalendar({
         leagueId,
         seasonId,
         playerIds,
+        scheduleMode,
       }).map((match) => ({
         ...match,
         courtBooking: getEmptyCourtBooking(),

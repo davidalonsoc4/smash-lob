@@ -17,6 +17,10 @@ import {
   type Season,
   type SeasonPlayer,
 } from "@/data/fakeData";
+import {
+  getSeasonScheduleRoundCount,
+  type SeasonScheduleMode,
+} from "@/lib/calendar";
 
 export type RoundWindowMode = "none" | "fixed-days";
 
@@ -70,6 +74,7 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    scheduleMode?: SeasonScheduleMode;
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -705,6 +710,7 @@ export function SeasonSettingsProvider({
     seasonStartsAt,
     roundWindowDays,
     requiresThreeSets,
+    scheduleMode = "single",
   }: {
     leagueId: string;
     name: string;
@@ -714,6 +720,7 @@ export function SeasonSettingsProvider({
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    scheduleMode?: SeasonScheduleMode;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -726,7 +733,10 @@ export function SeasonSettingsProvider({
       leagueId,
       name,
       status: "upcoming",
-      totalRounds: Math.max(totalPlayers - 1, 1),
+      totalRounds: getSeasonScheduleRoundCount({
+        playerCount: totalPlayers,
+        mode: scheduleMode,
+      }),
       completedRounds: 0,
     };
     const existingPlayerIds = new Set(

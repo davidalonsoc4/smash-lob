@@ -27,10 +27,12 @@ import {
 import {
   generateBalancedCalendar,
   generateManualCalendar,
+  getSeasonScheduleRoundCount,
   getNewPlayerIndexFromToken,
   getNewPlayerToken,
   resolveManualCalendarDraft,
   type ManualCalendarMatchDraft,
+  type SeasonScheduleMode,
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import { recordActivityEvent } from "@/lib/activity";
@@ -1594,6 +1596,7 @@ function NewSeasonForm({
       : null,
   );
   const [calendarMode, setCalendarMode] = useState<CalendarMode>("balanced");
+  const [scheduleMode, setScheduleMode] = useState<SeasonScheduleMode>("single");
   const [manualCalendar, setManualCalendar] = useState<
     ManualCalendarRoundDraft[]
   >(() =>
@@ -1619,6 +1622,10 @@ function NewSeasonForm({
 
   const parsedRoundWindowDays = Number(roundWindowDays);
   const isFixedDaysMode = roundWindowMode === "fixed-days";
+  const totalSeasonRounds = getSeasonScheduleRoundCount({
+    playerCount,
+    mode: scheduleMode,
+  });
   const selectedPlayerIdSet = useMemo(
     () => new Set(selectedPlayerIds),
     [selectedPlayerIds],
@@ -1793,6 +1800,7 @@ function NewSeasonForm({
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
       manualMatches,
+      scheduleMode,
       selfPlayerValue: selectedSelfPlayerValue,
       currentUserEmail: userId,
       currentUserDisplayName: session?.user?.name ?? null,
@@ -1854,6 +1862,7 @@ function NewSeasonForm({
           leagueId: activeLeagueId,
           seasonId: result.season.id,
           matches: resolvedManualMatches,
+          scheduleMode,
         }).map((match) => ({
           ...match,
           courtBooking: getEmptyCourtBooking(),
@@ -1865,6 +1874,7 @@ function NewSeasonForm({
           leagueId: activeLeagueId,
           seasonId: result.season.id,
           playerIds: result.playerIds,
+          scheduleMode,
         });
       }
     }
@@ -1876,12 +1886,14 @@ function NewSeasonForm({
         ...getActorFromSession(session),
         type: "season_created",
         title: "Nueva temporada creada",
-        description: `${settings.name} creada en estado próximamente con ${playerCount} jugadores y calendario ${calendarMode === "manual" ? "manual" : "equilibrado"}.`,
+        description: `${settings.name} creada en estado próximamente con ${playerCount} jugadores, ${totalSeasonRounds} jornadas y calendario ${calendarMode === "manual" ? "manual" : "equilibrado"}.`,
         metadata: {
           playerCount,
           existingPlayerIds: selectedPlayerIds,
           newPlayerNames: cleanNewPlayerNames,
           calendarMode,
+          scheduleMode,
+          totalRounds: totalSeasonRounds,
         },
       });
     } catch {
@@ -2097,6 +2109,68 @@ function NewSeasonForm({
           {t.adminSeason.calendarDescription}
         </p>
 
+        <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-black">
+                {t.adminSeason.seasonLengthTitle}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                {t.adminSeason.seasonLengthDescription}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-neutral-700">
+              {totalSeasonRounds} {t.adminSeason.roundsShortLabel}
+            </span>
+          </div>
+
+          <div className="mt-3 grid gap-2">
+            {(["single", "double", "extended"] as SeasonScheduleMode[]).map(
+              (mode) => {
+                const isSelected = scheduleMode === mode;
+
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => {
+                      setScheduleMode(mode);
+                      setFeedback(null);
+                    }}
+                    className={`rounded-2xl border px-3 py-2.5 text-left transition ${
+                      isSelected
+                        ? "border-neutral-950 bg-white shadow-sm"
+                        : "border-transparent bg-white/60 text-neutral-600"
+                    }`}
+                  >
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-black">
+                        {mode === "single"
+                          ? t.adminSeason.singleRoundCalendar
+                          : mode === "double"
+                            ? t.adminSeason.doubleRoundCalendar
+                            : t.adminSeason.extendedCalendar}
+                      </span>
+                      {isSelected ? (
+                        <span className="rounded-full bg-neutral-950 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                          {t.common.active}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="mt-1 block text-xs font-semibold text-neutral-500">
+                      {mode === "single"
+                        ? t.adminSeason.singleRoundCalendarDescription
+                        : mode === "double"
+                          ? t.adminSeason.doubleRoundCalendarDescription
+                          : t.adminSeason.extendedCalendarDescription}
+                    </span>
+                  </button>
+                );
+              },
+            )}
+          </div>
+        </div>
+
         <div className="mt-4 space-y-3">
           {(["balanced", "manual"] as CalendarMode[]).map((mode) => (
             <label
@@ -2135,15 +2209,15 @@ function NewSeasonForm({
           <div className="mt-4 space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
-                {getTotalRoundCount(playerCount)} jornadas ·{" "}
+                {totalSeasonRounds} jornadas ·{" "}
                 {getMatchesPerRound(playerCount)}{" "}
                 {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"}{" "}
                 por jornada
               </p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Elige manualmente la Pareja A y la Pareja B de cada partido.
-                Cada desplegable viene preseleccionado con el calendario
-                automático, pero puedes editarlo.
+                Elige manualmente la Pareja A y la Pareja B de las jornadas base.
+                Si eliges doble vuelta o temporada larga, la segunda vuelta se
+                genera automáticamente a partir de este calendario.
               </p>
               <button
                 type="button"

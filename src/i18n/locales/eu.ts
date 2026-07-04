@@ -12,6 +12,7 @@ export const eu = {
     saving: "Gordetzen...",
     cancel: "Utzi",
     retry: "Berriro egiaztatu",
+    active: "Hautatuta",
   },
 
   auth: {
@@ -529,7 +530,21 @@ export const eu = {
     seasonPlayersDescription:
       "Aukeratu ligako jokalariak eta bete hutsuneak lotzeko pendiente dauden izen berriekin.",
     calendarTitle: "Egutegia",
-    calendarDescription: "Oraingoz egutegi orekatua bakarrik sor daiteke.",
+    calendarDescription:
+      "Aukeratu denboraldiaren iraupena eta jardunaldiak nola sortuko diren.",
+    seasonLengthTitle: "Iraupena",
+    seasonLengthDescription:
+      "Aukeratu itzuli bakarra, bigarren itzuli berdina edo denboraldi luze nahasiagoa.",
+    roundsShortLabel: "jardunaldi",
+    singleRoundCalendar: "Itzuli bakarra",
+    singleRoundCalendarDescription:
+      "Orain arte bezala: 8 jokalarirekin 7 jardunaldi sortzen dira.",
+    doubleRoundCalendar: "Itzuli bikoitza",
+    doubleRoundCalendarDescription:
+      "Egutegia bigarren aldiz errepikatzen du: 8 jokalarirekin 14 jardunaldi sortzen dira.",
+    extendedCalendar: "Denboraldi luzea",
+    extendedCalendarDescription:
+      "Bigarren itzuli nahasiagoa gehitzen du, bikoteak mantenduta baina aurkariak ahal denean aldatuta.",
     balancedCalendar: "Egutegi orekatua",
     balancedCalendarDescription:
       "Jokalari guztiek partida banaketa orekatua izango dute. Xehetasuna hurrengo urratsean konfiguratuko dugu.",
