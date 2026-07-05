@@ -5,7 +5,6 @@ import { MatchCard } from "@/components/matches/MatchCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
-import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
 
@@ -13,20 +12,15 @@ export default function RoundDetailPage() {
   const params = useParams<{ id: string }>()
   const round = Number(params.id)
   const { matches } = useMatchData()
-  const { seasons, playerProfiles } = useSeasonSettings()
-  const { activeLeague } = useCurrentLeagueData()
-  const leaguePlayers = playerProfiles.filter((player) => player.leagueId === activeLeague.id)
+  const { activeLeague, activeSeason, players: leaguePlayers } = useCurrentLeagueData()
   const roundMatches = matches
     .filter(
       (match) =>
         match.leagueId === activeLeague.id &&
+        match.seasonId === activeSeason.id &&
         match.round === round
     )
     .sort((firstMatch, secondMatch) => {
-      if (firstMatch.seasonId !== secondMatch.seasonId) {
-        return secondMatch.seasonId.localeCompare(firstMatch.seasonId)
-      }
-
       return firstMatch.id.localeCompare(secondMatch.id)
     })
 
@@ -56,30 +50,23 @@ export default function RoundDetailPage() {
 
       <div className="space-y-3">
         {roundMatches.map((match) => {
-          const season = seasons.find((item) => item.id === match.seasonId)
           const highlightedPlayerIds = getRoundMvpPlayerIds({
             leagueId: activeLeague.id,
-            seasonId: match.seasonId,
+            seasonId: activeSeason.id,
             round: match.round,
             matches,
           })
 
           return (
-            <section key={match.id} className="space-y-2">
-              {season ? (
-                <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-neutral-400">
-                  {season.name}
-                </p>
-              ) : null}
-              <MatchCard
-                match={match}
-                players={leaguePlayers}
-                roundStartsAt={null}
-                roundEndsAt={null}
-                highlightedPlayerIds={highlightedPlayerIds}
-                leagueLocations={activeLeague.locations}
-              />
-            </section>
+            <MatchCard
+              key={match.id}
+              match={match}
+              players={leaguePlayers}
+              roundStartsAt={null}
+              roundEndsAt={null}
+              highlightedPlayerIds={highlightedPlayerIds}
+              leagueLocations={activeLeague.locations}
+            />
           )
         })}
       </div>
