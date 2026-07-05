@@ -1012,7 +1012,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return true;
     },
-    [memberships, persistMemberships, userDisplayName, userGoogleAvatarUrl, userId],
+    [memberships, persistMemberships, userDisplayName, userId],
   );
 
   const fetchLeagueUsers = useCallback(async (leagueId: string) => {
@@ -1293,7 +1293,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return { ok: true, membership };
     },
-    [memberships, persistMemberships, userDisplayName, userId],
+    [memberships, persistMemberships, userDisplayName, userGoogleAvatarUrl, userId],
   );
 
   const linkCurrentUserToLeaguePlayer = useCallback(
