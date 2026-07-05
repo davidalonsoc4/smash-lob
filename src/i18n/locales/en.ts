@@ -309,6 +309,10 @@ export const en = {
       "Choose one season or view the player historical total.",
     seasonStats: "Season stats",
     playerMatches: "Player matches",
+    matchHistoryDescription:
+      "View all their matches for the season and filter by status.",
+    matchHistoryPageDescription:
+      "All their matches from the selected season, with quick status filters.",
     futureTitle: "History and trends",
     futureDescription:
       "Later this will show best partners, most frequent rivals and ranking evolution.",

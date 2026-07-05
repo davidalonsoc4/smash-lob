@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -19,6 +19,7 @@ import {
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
 import {
   dateTimeLocalToUtcIso,
+  formatNextFullHourForDateTimeInput,
   formatScheduleForDateTimeInput,
 } from "@/lib/matchScheduleTime";
 
@@ -92,6 +93,7 @@ export function MatchScheduleForm({
   const [scheduledAtValue, setScheduledAtValue] = useState(
     hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
   );
+  const hasInitializedDefaultSchedule = useRef(false);
   const [selectedLocation, setSelectedLocation] =
     useState(initialLocationValue);
   const [selectedCourt, setSelectedCourt] = useState(
@@ -102,6 +104,17 @@ export function MatchScheduleForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (hasInitializedDefaultSchedule.current || hasSchedule || !isEditing) {
+      return;
+    }
+
+    setScheduledAtValue((currentValue) =>
+      currentValue.trim() ? currentValue : formatNextFullHourForDateTimeInput(),
+    );
+    hasInitializedDefaultSchedule.current = true;
+  }, [hasSchedule, isEditing]);
 
   const selectedLeagueLocation = normalizedAvailableLocations.find(
     (availableLocation) => availableLocation.id === selectedLocation,

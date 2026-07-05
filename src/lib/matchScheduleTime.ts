@@ -78,6 +78,16 @@ export function formatScheduleForDateTimeInput(value: string | null | undefined)
 }
 
 
+export function formatNextFullHourForDateTimeInput(now = new Date()) {
+  const nextHour = new Date(now);
+  nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+
+  return `${nextHour.getFullYear()}-${pad(nextHour.getMonth() + 1)}-${pad(
+    nextHour.getDate(),
+  )}T${pad(nextHour.getHours())}:00`;
+}
+
+
 export function toCalendarFloatingDate(value: Date) {
   return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(
     value.getDate(),

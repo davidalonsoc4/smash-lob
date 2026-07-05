@@ -317,6 +317,10 @@ export const es = {
       "Elige una temporada concreta o consulta el total histórico del jugador.",
     seasonStats: "Estadísticas de temporada",
     playerMatches: "Partidos del jugador",
+    matchHistoryDescription:
+      "Consulta todos sus partidos de la temporada y filtra por estado.",
+    matchHistoryPageDescription:
+      "Todos sus partidos de la temporada seleccionada, con filtros rápidos por estado.",
     futureTitle: "Historial y tendencias",
     futureDescription:
       "Más adelante aquí se mostrarán mejores parejas, rivales más frecuentes y evolución del ranking.",

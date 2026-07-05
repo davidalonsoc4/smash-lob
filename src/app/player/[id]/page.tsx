@@ -1,13 +1,14 @@
 "use client"
 
+import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -17,18 +18,6 @@ import {
   getPlayerSeasonScopes,
   getPlayersForSeasonScope,
 } from "@/lib/playerHistory"
-
-function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null }) {
-  const value = match.resultRecordedAt ?? match.scheduledAt
-
-  if (!value) {
-    return 0
-  }
-
-  const time = new Date(value).getTime()
-
-  return Number.isNaN(time) ? 0 : time
-}
 
 export default function PlayerPage() {
   const { t } = useI18n()
@@ -94,20 +83,6 @@ export default function PlayerPage() {
         (match) => match.teamA.includes(player.id) || match.teamB.includes(player.id)
       )
     : []
-  const orderedPlayerMatches = [...playerMatches].sort((firstMatch, secondMatch) => {
-    const timeDiff = getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch)
-
-    if (timeDiff !== 0) {
-      return timeDiff
-    }
-
-    if (secondMatch.seasonId !== firstMatch.seasonId) {
-      return secondMatch.seasonId.localeCompare(firstMatch.seasonId)
-    }
-
-    return secondMatch.round - firstMatch.round
-  })
-
   if (!player || !selectedStats || !selectedScope) {
     return (
       <div className="space-y-4">
@@ -190,14 +165,20 @@ export default function PlayerPage() {
         seasonMatches={selectedMatches}
       />
 
-      <PlayerMatchesList
-        playerId={player.id}
-        title={t.playerProfile.playerMatches}
-        matches={orderedPlayerMatches}
-        players={selectedPlayers}
-        seasonMatches={selectedMatches}
-        leagueLocations={activeLeague.locations}
-      />
+      <Link href={`/player/${player.slug ?? player.id}/matches?scope=${selectedScope.id}`}>
+        <AppCard className="p-2.5 transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-black">{t.profile.matchHistoryTitle}</p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+                {t.playerProfile.matchHistoryDescription}
+              </p>
+            </div>
+
+            <ClickableChevron className="shrink-0" />
+          </div>
+        </AppCard>
+      </Link>
     </div>
   )
 }

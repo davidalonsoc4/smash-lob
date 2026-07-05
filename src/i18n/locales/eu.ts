@@ -314,6 +314,10 @@ export const eu = {
       "Aukeratu denboraldi bat edo ikusi jokalariaren historial osoa.",
     seasonStats: "Denboraldiko estatistikak",
     playerMatches: "Jokalariaren partidak",
+    matchHistoryDescription:
+      "Kontsultatu denboraldiko partida guztiak eta iragazi egoeraren arabera.",
+    matchHistoryPageDescription:
+      "Hautatutako denboraldiko partida guztiak, egoeraren araberako iragazki azkarrekin.",
     futureTitle: "Historiala eta joerak",
     futureDescription:
       "Aurrerago hemen bikote onenak, aurkari ohikoenak eta rankingaren bilakaera erakutsiko dira.",
