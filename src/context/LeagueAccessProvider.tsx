@@ -1012,7 +1012,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return true;
     },
-    [memberships, persistMemberships, userDisplayName, userId],
+    [memberships, persistMemberships, userDisplayName, userGoogleAvatarUrl, userId],
   );
 
   const fetchLeagueUsers = useCallback(async (leagueId: string) => {
