@@ -240,6 +240,7 @@ export default function MatchDetailPage() {
         roundStartsAt={round?.startsAt ?? null}
         roundEndsAt={round?.endsAt ?? null}
         canManage={canManageMatch}
+        canClearSchedule={isAdmin}
         calendarAction={
           match.status === "scheduled" && match.scheduledAt ? (
             <AddToCalendarButton

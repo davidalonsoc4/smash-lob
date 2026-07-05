@@ -238,6 +238,26 @@ export async function postponeSupabaseMatch(matchId: string) {
   return mapSupabaseMatch(data)
 }
 
+export async function clearSupabaseMatchSchedule(matchId: string) {
+  const { data, error } = await supabase
+    .from("matches")
+    .update({
+      status: "scheduling",
+      scheduled_at: null,
+      date_label: null,
+      location: null,
+    })
+    .eq("id", matchId)
+    .select(matchSelect)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return mapSupabaseMatch(data)
+}
+
 export async function finishSupabaseMatch({
   matchId,
   result,

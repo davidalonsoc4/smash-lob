@@ -217,6 +217,12 @@ export const en = {
     editSchedule: "Edit schedule",
     editScheduleButton: "Edit",
     postponeButton: "Postpone match",
+    clearScheduleButton: "Clear schedule",
+    clearScheduleConfirm:
+      "Are you sure you want to clear the schedule? The match will go back to having no date, time or place.",
+    clearScheduleError:
+      "The schedule could not be cleared. Check Supabase or the smash-lob-last-supabase-error value.",
+    clearingSchedule: "Clearing...",
     rescheduleButton: "Reschedule",
     scheduleFormDescription: "Add or edit the match date, time and place.",
     scheduleDateLabel: "Date and time",

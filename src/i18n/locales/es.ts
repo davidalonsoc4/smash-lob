@@ -223,6 +223,12 @@ export const es = {
     editSchedule: "Editar programación",
     editScheduleButton: "Editar",
     postponeButton: "Aplazar partido",
+    clearScheduleButton: "Quitar programación",
+    clearScheduleConfirm:
+      "¿Seguro que quieres quitar la programación? El partido volverá a quedar sin fecha, hora ni lugar.",
+    clearScheduleError:
+      "No se ha podido quitar la programación. Revisa Supabase o el valor smash-lob-last-supabase-error.",
+    clearingSchedule: "Quitando...",
     rescheduleButton: "Reprogramar",
     scheduleFormDescription:
       "Añade o modifica la fecha, hora y lugar del partido.",

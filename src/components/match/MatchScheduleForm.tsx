@@ -43,6 +43,7 @@ type MatchScheduleFormProps = {
   roundStartsAt: string | null;
   roundEndsAt: string | null;
   canManage: boolean;
+  canClearSchedule?: boolean;
   calendarAction?: ReactNode;
 };
 
@@ -58,10 +59,11 @@ export function MatchScheduleForm({
   roundStartsAt,
   roundEndsAt,
   canManage,
+  canClearSchedule = false,
   calendarAction,
 }: MatchScheduleFormProps) {
   const { t } = useI18n();
-  const { updateMatchSchedule, postponeMatch } = useMatchData();
+  const { updateMatchSchedule, postponeMatch, clearMatchSchedule } = useMatchData();
 
   const normalizedAvailableLocations = useMemo(
     () => sortLeagueLocationsByOptionLabel(normalizeLeagueLocations(availableLocations)),
@@ -147,6 +149,8 @@ export function MatchScheduleForm({
     finalLocation.length > 0 &&
     (!shouldSelectCourt || selectedCourt.trim().length > 0);
   const canPostpone = canManage && !isSaving && !isFinished && !isPostponed;
+  const canClearCurrentSchedule =
+    canClearSchedule && !isSaving && hasSchedule && !isFinished;
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -235,6 +239,36 @@ export function MatchScheduleForm({
       setActionError(
         "No se ha podido aplazar el partido en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error.",
       );
+      return;
+    }
+
+    setScheduledAtValue("");
+    setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
+    setSelectedCourt("");
+    setCustomLocation("");
+    setIsEditing(false);
+  }
+
+  async function handleClearSchedule() {
+    if (!canClearCurrentSchedule) {
+      return;
+    }
+
+    const confirmed = window.confirm(t.matchDetail.clearScheduleConfirm);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setActionError(null);
+
+    const saved = await clearMatchSchedule(matchId);
+
+    setIsSaving(false);
+
+    if (!saved) {
+      setActionError(t.matchDetail.clearScheduleError);
       return;
     }
 
@@ -357,6 +391,19 @@ export function MatchScheduleForm({
 
                   {calendarAction ? calendarAction : null}
                 </div>
+              ) : null}
+
+              {canClearCurrentSchedule ? (
+                <button
+                  type="button"
+                  onClick={handleClearSchedule}
+                  disabled={!canClearCurrentSchedule}
+                  className="mt-2 w-full rounded-xl border border-red-100 bg-red-50 px-2.5 py-2 text-xs font-black text-red-700 shadow-sm disabled:text-red-300"
+                >
+                  {isSaving
+                    ? t.matchDetail.clearingSchedule
+                    : t.matchDetail.clearScheduleButton}
+                </button>
               ) : null}
             </>
           ) : (
@@ -512,6 +559,19 @@ export function MatchScheduleForm({
               className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-700 shadow-sm disabled:text-neutral-300"
             >
               {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
+            </button>
+          ) : null}
+
+          {canClearCurrentSchedule ? (
+            <button
+              type="button"
+              onClick={handleClearSchedule}
+              disabled={!canClearCurrentSchedule}
+              className="w-full rounded-lg border border-red-100 bg-red-50 px-2.5 py-1.5 text-xs font-black text-red-700 shadow-sm disabled:text-red-300"
+            >
+              {isSaving
+                ? t.matchDetail.clearingSchedule
+                : t.matchDetail.clearScheduleButton}
             </button>
           ) : null}
         </form>

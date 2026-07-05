@@ -218,6 +218,12 @@ export const eu = {
     editSchedule: "Programazioa editatu",
     editScheduleButton: "Editatu",
     postponeButton: "Partida atzeratu",
+    clearScheduleButton: "Programazioa kendu",
+    clearScheduleConfirm:
+      "Ziur programazioa kendu nahi duzula? Partida data, ordua eta lekurik gabe geratuko da berriro.",
+    clearScheduleError:
+      "Ezin izan da programazioa kendu. Begiratu Supabase edo smash-lob-last-supabase-error balioa.",
+    clearingSchedule: "Kentzen...",
     rescheduleButton: "Berriro programatu",
     scheduleFormDescription:
       "Gehitu edo aldatu partidaren data, ordua eta lekua.",

@@ -24,6 +24,7 @@ import { recordActivityEvent, type ActivityEventType } from "@/lib/activity"
 import { dateTimeLocalToUtcIso } from "@/lib/matchScheduleTime"
 import {
   clearSupabaseMatchResult,
+  clearSupabaseMatchSchedule,
   finishSupabaseMatch,
   formatScheduleDateLabel,
   postponeSupabaseMatch,
@@ -102,6 +103,7 @@ type MatchDataContextValue = {
     schedule: MatchScheduleInput
   ) => Promise<boolean>
   postponeMatch: (matchId: string) => Promise<boolean>
+  clearMatchSchedule: (matchId: string) => Promise<boolean>
   finishMatch: (matchId: string, result: MatchResultInput) => Promise<boolean>
   clearMatchResult: (matchId: string) => Promise<boolean>
   deleteSeasonMatches: (seasonId: string) => void
@@ -298,6 +300,20 @@ function getLocalPostponedMatch(match: MatchData): MatchData {
   return {
     ...match,
     status: "postponed",
+    scheduledAt: null,
+    dateLabel: null,
+    location: null,
+  }
+}
+
+function getLocalClearedScheduleMatch(match: MatchData): MatchData {
+  if (match.status === "finished") {
+    return match
+  }
+
+  return {
+    ...match,
+    status: "scheduling",
     scheduledAt: null,
     dateLabel: null,
     location: null,
@@ -619,6 +635,55 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         return true
       } catch (error) {
         recordSupabaseError("postpone-match", error)
+        return false
+      }
+    },
+    [matches, persistNextMatches, recordMatchActivity]
+  )
+
+  const clearMatchSchedule = useCallback(
+    async (matchId: string) => {
+      const currentMatch = matches.find((match) => match.id === matchId)
+
+      if (!currentMatch || currentMatch.status === "finished") {
+        return false
+      }
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? getLocalClearedScheduleMatch(match) : match
+            )
+          )
+        )
+        return true
+      }
+
+      try {
+        const updatedMatch = await clearSupabaseMatchSchedule(matchId)
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch))
+        )
+
+        await recordMatchActivity({
+          match: updatedMatch,
+          type: "match_schedule_updated",
+          title: "Programación eliminada",
+          description: getActivityMatchDescription(updatedMatch, "Sin fecha, hora ni lugar"),
+          metadata: {
+            previousScheduledAt: currentMatch.scheduledAt,
+            previousLocation: currentMatch.location,
+            scheduledAt: null,
+            location: null,
+            scheduleCleared: true,
+          },
+        })
+
+        return true
+      } catch (error) {
+        recordSupabaseError("clear-match-schedule", error)
         return false
       }
     },
@@ -1108,6 +1173,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       createSeasonMatches,
       updateMatchSchedule,
       postponeMatch,
+      clearMatchSchedule,
       finishMatch,
       clearMatchResult,
       deleteSeasonMatches,
@@ -1121,6 +1187,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [
       clearCourtBooking,
       clearMatchResult,
+      clearMatchSchedule,
       createSeasonMatches,
       deleteRoundMatches,
       deleteSeasonMatches,
