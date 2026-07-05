@@ -1,3 +1,3 @@
-export const APP_VERSION = "0.7.67";
+export const APP_VERSION = "0.8.0-beta.1";
 
-export const APP_VERSION_LABEL = `v${APP_VERSION}`;
+export const APP_VERSION_LABEL = "v0.8 Beta";
