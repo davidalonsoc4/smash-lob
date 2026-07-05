@@ -1,11 +1,13 @@
 "use client"
 
-import { FormEvent, type ReactNode, useState } from "react"
+import { FormEvent, type ReactNode, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
+import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
 
@@ -18,13 +20,95 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { data: session } = useSession()
-  const { canCreateLeagues, userLeagues } = useLeagueAccess()
+  const { activeLeagueId } = useActiveLeague()
+  const { seasons } = useSeasonSettings()
+  const { canCreateLeagues, hasLeagueAdminRole, userLeagues } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isNewLeagueRoute = pathname === "/league/new"
+  const isSeasonSetupRoute = pathname === "/admin/season"
+  const activeLeague =
+    userLeagues.find((league) => league.id === activeLeagueId) ?? userLeagues[0]
+  const activeLeagueHasSeason = activeLeague
+    ? seasons.some((season) => season.leagueId === activeLeague.id)
+    : false
+  const canManageActiveLeagueSeason = activeLeague
+    ? hasLeagueAdminRole(activeLeague.id)
+    : false
+  const shouldRequireInitialSeason =
+    Boolean(activeLeague) && !activeLeagueHasSeason && !isInviteRoute && !isNewLeagueRoute
 
-  if (isInviteRoute || (isNewLeagueRoute && canCreateLeagues) || userLeagues.length > 0) {
+  useEffect(() => {
+    if (
+      !shouldRequireInitialSeason ||
+      !canManageActiveLeagueSeason ||
+      isSeasonSetupRoute
+    ) {
+      return
+    }
+
+    router.replace("/admin/season")
+  }, [
+    canManageActiveLeagueSeason,
+    isSeasonSetupRoute,
+    router,
+    shouldRequireInitialSeason,
+  ])
+
+  if (isInviteRoute || (isNewLeagueRoute && canCreateLeagues)) {
+    return children
+  }
+
+  if (shouldRequireInitialSeason) {
+    if (canManageActiveLeagueSeason && isSeasonSetupRoute) {
+      return children
+    }
+
+    return (
+      <main className="min-h-screen bg-neutral-100 px-4 py-6 text-neutral-950">
+        <div className="mx-auto max-w-md space-y-4">
+          <header className="pt-8">
+            <p className="text-sm font-medium text-neutral-500">
+              {activeLeague?.name}
+            </p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">
+              Crea la primera temporada
+            </h1>
+            <p className="mt-2 text-sm text-neutral-500">
+              Antes de usar la liga hay que configurar jugadores, calendario y reglas.
+            </p>
+          </header>
+
+          <AppCard>
+            {canManageActiveLeagueSeason ? (
+              <>
+                <p className="font-bold">Temporada obligatoria</p>
+                <p className="mt-2 text-sm text-neutral-500">
+                  La aplicación permanecerá bloqueada hasta crear la temporada inicial.
+                </p>
+                <Link
+                  href="/admin/season"
+                  className="mt-3 block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+                >
+                  Crear temporada
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="font-bold">Temporada pendiente</p>
+                <p className="mt-2 text-sm text-neutral-500">
+                  El administrador debe crear la primera temporada antes de que la liga esté disponible.
+                </p>
+              </>
+            )}
+          </AppCard>
+        </div>
+      </main>
+    )
+  }
+
+  if (userLeagues.length > 0) {
     return children
   }
 

@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation"
 import { type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
+import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { BottomNav } from "./BottomNav"
@@ -101,12 +103,19 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
 export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
   const pathname = usePathname()
+  const { activeLeagueId } = useActiveLeague()
+  const { seasons } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isNewLeagueRoute = pathname === "/league/new"
-  const shouldShowSettingsButton = true
-  const shouldShowNotificationsButton = true
-  const shouldShowBottomNav = !isInviteRoute && !isNewLeagueRoute
-  const shouldShowInviteButton = !isInviteRoute && !isNewLeagueRoute
+  const isInitialSeasonSetupRoute =
+    pathname === "/admin/season" &&
+    !seasons.some((season) => season.leagueId === activeLeagueId)
+  const shouldShowSettingsButton = !isInitialSeasonSetupRoute
+  const shouldShowNotificationsButton = !isInitialSeasonSetupRoute
+  const shouldShowBottomNav =
+    !isInviteRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
+  const shouldShowInviteButton =
+    !isInviteRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
   const inviteRightOffset = shouldShowSettingsButton
     ? shouldShowNotificationsButton
       ? 84
