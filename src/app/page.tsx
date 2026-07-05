@@ -191,8 +191,6 @@ function shouldShowScopeSwitch({
 
 function getCollapsedScope({
   leagueMatch,
-  personalMatch: _personalMatch,
-  candidateCount: _candidateCount,
 }: {
   leagueMatch?: MatchData;
   personalMatch?: MatchData;
