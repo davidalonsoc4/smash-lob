@@ -103,16 +103,8 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isNewLeagueRoute = pathname === "/league/new"
-  const shouldShowSettingsButton =
-    pathname !== "/settings" &&
-    !isNewLeagueRoute &&
-    !pathname.startsWith("/admin") &&
-    !isInviteRoute
-  const shouldShowNotificationsButton =
-    pathname !== "/notifications" &&
-    !isNewLeagueRoute &&
-    !pathname.startsWith("/admin") &&
-    !isInviteRoute
+  const shouldShowSettingsButton = true
+  const shouldShowNotificationsButton = true
   const shouldShowBottomNav = !isInviteRoute && !isNewLeagueRoute
   const shouldShowInviteButton = !isInviteRoute && !isNewLeagueRoute
   const inviteRightOffset = shouldShowSettingsButton
