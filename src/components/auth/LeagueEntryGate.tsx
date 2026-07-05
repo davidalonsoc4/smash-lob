@@ -27,6 +27,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isNewLeagueRoute = pathname === "/league/new"
+  const isLeaguesRoute = pathname === "/leagues"
   const isSeasonSetupRoute = pathname === "/admin/season"
   const activeLeague =
     userLeagues.find((league) => league.id === activeLeagueId) ?? userLeagues[0]
@@ -37,7 +38,11 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     ? hasLeagueAdminRole(activeLeague.id)
     : false
   const shouldRequireInitialSeason =
-    Boolean(activeLeague) && !activeLeagueHasSeason && !isInviteRoute && !isNewLeagueRoute
+    Boolean(activeLeague) &&
+    !activeLeagueHasSeason &&
+    !isInviteRoute &&
+    !isNewLeagueRoute &&
+    !isLeaguesRoute
 
   useEffect(() => {
     if (
@@ -56,7 +61,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     shouldRequireInitialSeason,
   ])
 
-  if (isInviteRoute || (isNewLeagueRoute && canCreateLeagues)) {
+  if (isInviteRoute || isLeaguesRoute || (isNewLeagueRoute && canCreateLeagues)) {
     return children
   }
 

@@ -11,9 +11,13 @@ import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { calculateSeasonRanking } from "@/lib/ranking";
 
-function getSeasonStatusLabel(status: "upcoming" | "active" | "finished") {
-  if (status === "active") return "Activa";
-  if (status === "upcoming") return "Próximamente";
+function getSeasonStatusLabel(season: {
+  status: "upcoming" | "active" | "finished";
+  totalRounds: number;
+}) {
+  if (season.totalRounds === 0) return "Sin temporada";
+  if (season.status === "active") return "Activa";
+  if (season.status === "upcoming") return "Próximamente";
   return "Terminada";
 }
 
@@ -106,7 +110,7 @@ export default function LeaguesPage() {
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
-                      {getSeasonStatusLabel(season.status)}
+                      {getSeasonStatusLabel(season)}
                     </span>
                     {isAdmin ? (
                       <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">

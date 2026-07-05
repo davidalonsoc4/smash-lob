@@ -1223,6 +1223,7 @@ function SeasonDangerZone({
   const router = useRouter();
   const { deleteSeason, hydrateSeasonSnapshot } = useSeasonSettings();
   const { deleteRoundMatches, deleteSeasonMatches } = useMatchData();
+  const { userLeagues } = useLeagueAccess();
   const [selectedRound, setSelectedRound] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -1304,7 +1305,7 @@ function SeasonDangerZone({
     deleteSeason(activeLeagueId, activeSeasonId);
     deleteSeasonMatches(activeSeasonId);
     setIsSaving(false);
-    router.push("/");
+    router.push(userLeagues.length > 0 ? "/leagues" : "/");
   }
 
   return (
