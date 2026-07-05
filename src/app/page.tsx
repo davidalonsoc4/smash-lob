@@ -739,29 +739,48 @@ export default function Home() {
 
       {!isSeasonClosed && !isSeasonUpcoming ? (
         <div className="grid grid-cols-2 gap-3">
-          <StatCard
-            label={t.dashboard.leader}
-            value={hasMeaningfulResults && leader ? leader.displayName : "-"}
-            helper={
-              hasMeaningfulResults && leader
+          <AppCard className="p-3">
+            <p className="text-xs font-semibold text-neutral-500">
+              {t.dashboard.leader}
+            </p>
+            {hasMeaningfulResults && leader ? (
+              <Link
+                href={`/player/${leader.slug ?? leader.id}`}
+                className="mt-1 block truncate text-xl font-black tracking-tight text-neutral-950 underline-offset-2 active:underline"
+              >
+                {leader.displayName}
+              </Link>
+            ) : (
+              <p className="mt-1 truncate text-xl font-black tracking-tight text-neutral-950">
+                -
+              </p>
+            )}
+            <p className="mt-1 truncate text-[11px] font-medium text-neutral-500">
+              {hasMeaningfulResults && leader
                 ? `${leader.points} ${t.common.pointsShort} · ${
                     leader.gamesDiff > 0 ? "+" : ""
                   }${leader.gamesDiff} ${t.ranking.diff.toLowerCase()}`
-                : "Sin resultados"
-            }
-          />
+                : "Sin resultados"}
+            </p>
+          </AppCard>
 
-          <StatCard
-            label={t.dashboard.rounds}
-            value={dashboardRound ? `Jornada ${dashboardRound.round}` : "-"}
-            helper={
-              dashboardRound
-                ? dashboardRound.status === "active"
-                  ? "Activa"
-                  : "Próxima"
-                : t.dashboard.regularLeague
-            }
-          />
+          {dashboardRound ? (
+            <Link href={`/round/${dashboardRound.round}`} className="block">
+              <StatCard
+                label={t.dashboard.rounds}
+                value={`Jornada ${dashboardRound.round}`}
+                helper={
+                  dashboardRound.status === "active" ? "Activa" : "Próxima"
+                }
+              />
+            </Link>
+          ) : (
+            <StatCard
+              label={t.dashboard.rounds}
+              value="-"
+              helper={t.dashboard.regularLeague}
+            />
+          )}
         </div>
       ) : null}
 
@@ -838,8 +857,13 @@ export default function Home() {
                       {rankingPreviewStart + index + 1}
                     </div>
 
-                    <div>
-                      <p className="font-semibold">{player.displayName}</p>
+                    <div className="min-w-0">
+                      <Link
+                        href={`/player/${player.slug ?? player.id}`}
+                        className="block truncate font-semibold text-neutral-950 underline-offset-2 active:underline"
+                      >
+                        {player.displayName}
+                      </Link>
                       <p className="text-xs text-neutral-500">
                         {t.ranking.gamesDiff}: {player.gamesDiff > 0 ? "+" : ""}
                         {player.gamesDiff}

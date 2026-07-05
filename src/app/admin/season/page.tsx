@@ -2328,12 +2328,17 @@ function NewSeasonForm({
 export default function AdminSeasonPage() {
   const { t } = useI18n();
   const { hasLeagueAdminRole } = useLeagueAccess();
+  const { seasons } = useSeasonSettings();
   const { activeLeague, activeSeason, roundSettings, players, matches } =
     useCurrentLeagueData();
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id);
   const isActiveSeason = activeSeason.status === "active";
   const isUpcomingSeason = activeSeason.status === "upcoming";
+  const hasCreatedLeagueSeason = seasons.some(
+    (season) => season.leagueId === activeLeague.id && season.totalRounds > 0,
+  );
   const canReopenFinishedSeason =
+    hasCreatedLeagueSeason &&
     activeSeason.status === "finished" &&
     activeSeason.totalRounds > 0 &&
     matches.length > 0;
