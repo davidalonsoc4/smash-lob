@@ -17,6 +17,7 @@ export type PushAutoRegistrationResult =
     }
 
 const pushAutoDisabledStorageKey = "smash-lob-push-auto-disabled"
+const pushAutoPermissionPromptedStorageKey = "smash-lob-push-auto-permission-prompted"
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
@@ -72,6 +73,22 @@ export function setPushAutoRegistrationDisabled(disabled: boolean) {
   window.localStorage.removeItem(pushAutoDisabledStorageKey)
 }
 
+export function hasPushAutoPermissionBeenPrompted() {
+  if (typeof window === "undefined") {
+    return false
+  }
+
+  return window.localStorage.getItem(pushAutoPermissionPromptedStorageKey) === "true"
+}
+
+export function setPushAutoPermissionPrompted() {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  window.localStorage.setItem(pushAutoPermissionPromptedStorageKey, "true")
+}
+
 export async function getPushRegistration() {
   const registration = await navigator.serviceWorker.register("/sw.js")
   await navigator.serviceWorker.ready
@@ -120,9 +137,11 @@ export async function requestPushSubscription() {
 export async function ensurePushSubscriptionForLeague({
   leagueId,
   playerId,
+  requestPermissionIfNeeded = false,
 }: {
   leagueId: string
   playerId: string | null
+  requestPermissionIfNeeded?: boolean
 }): Promise<PushAutoRegistrationResult> {
   const supportStatus = getPushSupportStatus()
 
@@ -135,7 +154,17 @@ export async function ensurePushSubscriptionForLeague({
   }
 
   if (Notification.permission === "default") {
-    return { ok: false, reason: "permission_default" }
+    if (!requestPermissionIfNeeded) {
+      return { ok: false, reason: "permission_default" }
+    }
+
+    setPushAutoPermissionPrompted()
+
+    const permission = await Notification.requestPermission()
+
+    if (permission !== "granted") {
+      return { ok: false, reason: "permission_denied" }
+    }
   }
 
   if (Notification.permission !== "granted") {
