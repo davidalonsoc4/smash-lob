@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useEffect, useMemo, useState } from "react"
-import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
@@ -16,12 +15,6 @@ import {
 } from "@/lib/activity"
 import { formatMoney } from "@/lib/courtBooking"
 import { getNotificationPreferenceKeyForEvent } from "@/lib/notificationSettings"
-
-const leagueLogoActorEmails = new Set([
-  "system@smash-lob.local",
-  "smashlobadmi@gmail.com",
-  "smashlobadmin@gmail.com",
-])
 
 type TransferLike = {
   fromPlayerId: string
@@ -106,17 +99,6 @@ function getNotificationUrl(event: ActivityEvent) {
   }
 
   return "/activity?scope=mine"
-}
-
-function shouldUseLeagueLogoForActor(event: ActivityEvent) {
-  const actorEmail = normalizeEmail(event.actorEmail)
-  const actorName = event.actorDisplayName?.trim().toLowerCase() ?? ""
-
-  return (
-    leagueLogoActorEmails.has(actorEmail) ||
-    actorName === "smash & lob" ||
-    actorName === "admin"
-  )
 }
 
 function isMatchParticipantNotification(event: ActivityEvent) {
@@ -362,47 +344,29 @@ function getNotificationBody({
 function NotificationCard({
   event,
   currentUserId,
-  leagueLogoUrl,
   players,
 }: {
   event: ActivityEvent
   currentUserId: string
-  leagueLogoUrl?: string | null
   players: { id: string; displayName: string }[]
 }) {
-  const useLeagueLogo = Boolean(leagueLogoUrl && shouldUseLeagueLogoForActor(event))
-  const avatarImageUrl = useLeagueLogo ? leagueLogoUrl : event.actorAvatarUrl
   const href = getNotificationUrl(event)
 
   return (
     <Link href={href} className="block">
-      <AppCard className="relative p-3 transition active:scale-[0.99]">
-        <div className="flex gap-2.5 pr-8">
-          <ActivityAvatar
-            name={event.actorDisplayName}
-            email={event.actorEmail}
-            initials={event.actorAvatarInitials}
-            imageUrl={avatarImageUrl}
-            imageFit={useLeagueLogo ? "contain" : "cover"}
-          />
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 text-sm font-black text-neutral-950">
-                {getNotificationTitle(event)}
-              </p>
-              <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
-                {formatNotificationDate(event.createdAt)}
-              </p>
-            </div>
-
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
-              {getNotificationBody({ event, currentUserId, players })}
-            </p>
-          </div>
+      <AppCard className="p-3 transition active:scale-[0.99]">
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 text-sm font-black text-neutral-950">
+            {getNotificationTitle(event)}
+          </p>
+          <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
+            {formatNotificationDate(event.createdAt)}
+          </p>
         </div>
 
-        <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+          {getNotificationBody({ event, currentUserId, players })}
+        </p>
       </AppCard>
     </Link>
   )
@@ -552,7 +516,6 @@ export default function NotificationsPage() {
               key={event.id}
               event={event}
               currentUserId={currentUserId}
-              leagueLogoUrl={activeLeague.logoUrl}
               players={players}
             />
           ))}
