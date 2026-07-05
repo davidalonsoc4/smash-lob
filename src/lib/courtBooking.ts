@@ -182,12 +182,14 @@ export function buildCourtBooking({
   }
 }
 
-export function markCourtBookingTransferPaid({
+export function setCourtBookingTransferPaidStatus({
   booking,
   transferId,
+  isPaid,
 }: {
   booking: CourtBooking
   transferId: string
+  isPaid: boolean
 }): CourtBooking {
   return {
     ...booking,
@@ -195,11 +197,25 @@ export function markCourtBookingTransferPaid({
       transfer.id === transferId
         ? {
             ...transfer,
-            isPaid: true,
-            paidAt: new Date().toISOString(),
+            isPaid,
+            paidAt: isPaid ? new Date().toISOString() : null,
           }
         : transfer
     ),
     updatedAt: new Date().toISOString(),
   }
+}
+
+export function markCourtBookingTransferPaid({
+  booking,
+  transferId,
+}: {
+  booking: CourtBooking
+  transferId: string
+}): CourtBooking {
+  return setCourtBookingTransferPaidStatus({
+    booking,
+    transferId,
+    isPaid: true,
+  })
 }

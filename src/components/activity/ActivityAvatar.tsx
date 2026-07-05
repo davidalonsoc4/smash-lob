@@ -3,6 +3,7 @@ type ActivityAvatarProps = {
   email?: string | null
   initials?: string | null
   imageUrl?: string | null
+  imageFit?: "cover" | "contain"
 }
 
 function getInitials(value: string) {
@@ -32,6 +33,7 @@ export function ActivityAvatar({
   email,
   initials,
   imageUrl,
+  imageFit = "cover",
 }: ActivityAvatarProps) {
   const label = name || email || "Smash & Lob"
 
@@ -39,7 +41,13 @@ export function ActivityAvatar({
     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-950 text-xs font-black text-white shadow-sm">
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+        <img
+          src={imageUrl}
+          alt=""
+          className={`h-full w-full ${
+            imageFit === "contain" ? "object-contain" : "object-cover"
+          }`}
+        />
       ) : (
         <span>{initials || getInitials(label)}</span>
       )}

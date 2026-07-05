@@ -304,6 +304,28 @@ function isPersonalEvent({
   return [...directPlayerIds, ...participantIds].includes(currentUserId)
 }
 
+
+const leagueLogoActorEmails = new Set([
+  "system@smash-lob.local",
+  "smashlobadmi@gmail.com",
+  "smashlobadmin@gmail.com",
+])
+
+function normalizeActorEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ""
+}
+
+function shouldUseLeagueLogoForActor(event: ActivityEvent) {
+  const actorEmail = normalizeActorEmail(event.actorEmail)
+  const actorName = event.actorDisplayName?.trim().toLowerCase() ?? ""
+
+  return (
+    leagueLogoActorEmails.has(actorEmail) ||
+    actorName === "smash & lob" ||
+    actorName === "admin"
+  )
+}
+
 function stringifyMetadata(metadata: Record<string, unknown>) {
   try {
     return JSON.stringify(metadata, null, 2)
@@ -314,9 +336,11 @@ function stringifyMetadata(metadata: Record<string, unknown>) {
 
 function ActivityEventCard({
   event,
+  leagueLogoUrl,
   showMetadata = false,
 }: {
   event: ActivityEvent
+  leagueLogoUrl?: string | null
   showMetadata?: boolean
 }) {
   const { t } = useI18n()
@@ -327,6 +351,8 @@ function ActivityEventCard({
     gamesLabel: t.activity.games,
     noGamesLabel: t.activity.noGames,
   })
+  const useLeagueLogo = Boolean(leagueLogoUrl && shouldUseLeagueLogoForActor(event))
+  const avatarImageUrl = useLeagueLogo ? leagueLogoUrl : event.actorAvatarUrl
 
   return (
     <AppCard className="p-3">
@@ -335,7 +361,8 @@ function ActivityEventCard({
           name={event.actorDisplayName}
           email={event.actorEmail}
           initials={event.actorAvatarInitials}
-          imageUrl={event.actorAvatarUrl}
+          imageUrl={avatarImageUrl}
+          imageFit={useLeagueLogo ? "contain" : "cover"}
         />
 
         <div className="min-w-0 flex-1">
@@ -829,7 +856,12 @@ export default function ActivityPage() {
             {events.length > 0 ? (
               <div className="space-y-3">
                 {events.map((event) => (
-                  <ActivityEventCard key={event.id} event={event} showMetadata />
+                  <ActivityEventCard
+                    key={event.id}
+                    event={event}
+                    leagueLogoUrl={activeLeague.logoUrl}
+                    showMetadata
+                  />
                 ))}
               </div>
             ) : null}
@@ -893,7 +925,11 @@ export default function ActivityPage() {
           {hasEvents ? (
             <div className="space-y-3">
               {visibleEvents.map((event) => (
-                <ActivityEventCard key={event.id} event={event} />
+                <ActivityEventCard
+                  key={event.id}
+                  event={event}
+                  leagueLogoUrl={activeLeague.logoUrl}
+                />
               ))}
             </div>
           ) : null}

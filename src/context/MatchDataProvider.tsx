@@ -12,10 +12,11 @@ import { useSession } from "next-auth/react"
 import { allMatches } from "@/data/fakeData"
 import { generateBalancedCalendar, type SeasonScheduleMode } from "@/lib/calendar"
 import { getRoundMvpSelection } from "@/lib/mvp"
+import { calculateSeasonRanking } from "@/lib/ranking"
 import {
   buildCourtBooking,
   getEmptyCourtBooking,
-  markCourtBookingTransferPaid,
+  setCourtBookingTransferPaidStatus,
   normalizeCourtBooking,
 } from "@/lib/courtBooking"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -114,9 +115,10 @@ type MatchDataContextValue = {
     bookingInput: CourtBookingInput
   ) => Promise<boolean>
   clearCourtBooking: (matchId: string) => Promise<boolean>
-  markCourtBookingTransferAsPaid: (
+  updateCourtBookingTransferPaymentStatus: (
     matchId: string,
-    transferId: string
+    transferId: string,
+    isPaid: boolean
   ) => Promise<boolean>
   sendCourtBookingPaymentReminder: (matchId: string) => Promise<boolean>
 }
@@ -359,6 +361,28 @@ function formatActivityMoney(value: number) {
   }).format(value)
 }
 
+
+function getSeasonWinnerName({
+  seasonId,
+  playerProfiles,
+  seasonPlayers,
+  matches,
+}: {
+  seasonId: string
+  playerProfiles: Parameters<typeof calculateSeasonRanking>[0]["playerProfiles"]
+  seasonPlayers: Parameters<typeof calculateSeasonRanking>[0]["seasonPlayers"]
+  matches: Parameters<typeof calculateSeasonRanking>[0]["matches"]
+}) {
+  return (
+    calculateSeasonRanking({
+      seasonId,
+      playerProfiles,
+      seasonPlayers,
+      matches,
+    })[0]?.displayName ?? null
+  )
+}
+
 function getActivityMatchDescription(match: MatchData, extra?: string | null) {
   const parts = [`Jornada ${match.round}`]
 
@@ -371,7 +395,13 @@ function getActivityMatchDescription(match: MatchData, extra?: string | null) {
 
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const { data: session } = useSession()
-  const { finishSeason, hydrateSeasonSnapshot, seasons } = useSeasonSettings()
+  const {
+    finishSeason,
+    hydrateSeasonSnapshot,
+    playerProfiles,
+    seasonPlayers,
+    seasons,
+  } = useSeasonSettings()
   const actorEmail =
     session?.user?.email?.trim().toLowerCase() || "usuario@smash-lob.local"
   const actorDisplayName = session?.user?.name ?? null
@@ -717,15 +747,24 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
           finishSeason(updatedMatch.leagueId, updatedMatch.seasonId)
 
+          const winnerName = getSeasonWinnerName({
+            seasonId: updatedMatch.seasonId,
+            playerProfiles,
+            seasonPlayers,
+            matches: nextMatches,
+          })
+
           await recordMatchActivity({
             match: updatedMatch,
             type: "season_finished",
-            title: "Temporada cerrada automáticamente",
-            description:
-              "La temporada se ha cerrado al completarse todos los partidos de la última jornada.",
+            title: "Temporada finalizada",
+            description: winnerName
+              ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+              : "La temporada ha finalizado.",
             metadata: {
               automatic: true,
               totalRounds: targetSeason?.totalRounds ?? updatedMatch.round,
+              winnerName,
             },
           })
         }
@@ -741,7 +780,9 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       hydrateSeasonSnapshot,
       matches,
       persistNextMatches,
+      playerProfiles,
       recordMatchActivity,
+      seasonPlayers,
       seasons,
     ]
   )
@@ -952,17 +993,18 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches, persistNextMatches, recordMatchActivity]
   )
 
-  const markCourtBookingTransferAsPaid = useCallback(
-    async (matchId: string, transferId: string) => {
+  const updateCourtBookingTransferPaymentStatus = useCallback(
+    async (matchId: string, transferId: string, isPaid: boolean) => {
       const currentMatch = matches.find((match) => match.id === matchId)
 
       if (!currentMatch) {
         return false
       }
 
-      const booking = markCourtBookingTransferPaid({
+      const booking = setCourtBookingTransferPaidStatus({
         booking: currentMatch.courtBooking,
         transferId,
+        isPaid,
       })
 
       if (!isSupabaseBackedMatch(matchId)) {
@@ -986,29 +1028,31 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(replaceMatch(currentMatches, updatedMatch))
         )
 
-        const paidTransfer = updatedMatch.courtBooking.transfers.find(
+        const updatedTransfer = updatedMatch.courtBooking.transfers.find(
           (transfer) => transfer.id === transferId
         )
 
-        await recordMatchActivity({
-          match: updatedMatch,
-          type: "court_booking_payment_paid",
-          title: "Pago de pista recibido",
-          description: getActivityMatchDescription(
-            updatedMatch,
-            paidTransfer
-              ? `${formatActivityMoney(paidTransfer.amount)} pagado`
-              : null
-          ),
-          metadata: {
-            transferId,
-            paidTransfer: paidTransfer ?? null,
-          },
-        })
+        if (isPaid) {
+          await recordMatchActivity({
+            match: updatedMatch,
+            type: "court_booking_payment_paid",
+            title: "Pago de pista recibido",
+            description: getActivityMatchDescription(
+              updatedMatch,
+              updatedTransfer
+                ? `${formatActivityMoney(updatedTransfer.amount)} pagado`
+                : null
+            ),
+            metadata: {
+              transferId,
+              paidTransfer: updatedTransfer ?? null,
+            },
+          })
+        }
 
         return true
       } catch (error) {
-        recordSupabaseError("mark-court-booking-transfer-paid", error)
+        recordSupabaseError("update-court-booking-transfer-payment-status", error)
         return false
       }
     },
@@ -1071,7 +1115,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       reorderSeasonRounds,
       updateCourtBooking,
       clearCourtBooking,
-      markCourtBookingTransferAsPaid,
+      updateCourtBookingTransferPaymentStatus,
       sendCourtBookingPaymentReminder,
     }),
     [
@@ -1082,7 +1126,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       deleteSeasonMatches,
       finishMatch,
       hydrateMatches,
-      markCourtBookingTransferAsPaid,
+      updateCourtBookingTransferPaymentStatus,
       matches,
       sendCourtBookingPaymentReminder,
       postponeMatch,

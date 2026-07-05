@@ -1134,9 +1134,11 @@ function SeasonPlayerNamesPanel({
 function FinishSeasonPanel({
   activeLeagueId,
   activeSeasonId,
+  winnerName,
 }: {
   activeLeagueId: string;
   activeSeasonId: string;
+  winnerName?: string | null;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -1187,9 +1189,13 @@ function FinishSeasonPanel({
         seasonId: activeSeasonId,
         ...getActorFromSession(session),
         type: "season_finished",
-        title: "Temporada cerrada",
-        description:
-          "La temporada se ha cerrado. La liga queda pendiente de crear una nueva temporada activa.",
+        title: "Temporada finalizada",
+        description: winnerName
+          ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+          : "La temporada ha finalizado.",
+        metadata: {
+          winnerName: winnerName ?? null,
+        },
       });
     } catch {
       // El cierre no debe fallar si el registro de actividad no entra.
@@ -1650,11 +1656,6 @@ function NewSeasonForm({
     playerCount,
     mode: scheduleMode,
   });
-  const manualCalendarVisibleRounds = manualCalendar.length;
-  const manualCalendarRepeatedRounds = Math.max(
-    totalSeasonRounds - manualCalendarVisibleRounds,
-    0,
-  );
   const selectedPlayerIdSet = useMemo(
     () => new Set(selectedPlayerIds),
     [selectedPlayerIds],
@@ -1918,7 +1919,7 @@ function NewSeasonForm({
         ...getActorFromSession(session),
         type: "season_created",
         title: "Nueva temporada creada",
-        description: `${settings.name} creada en estado próximamente con ${playerCount} jugadores, ${totalSeasonRounds} jornadas y calendario ${calendarMode === "manual" ? "manual" : "equilibrado"}.`,
+        description: `${playerCount} jugadores · ${totalSeasonRounds} jornadas.`,
         metadata: {
           playerCount,
           existingPlayerIds: selectedPlayerIds,
@@ -2208,38 +2209,33 @@ function NewSeasonForm({
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
-          <label className="block">
-            <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
-              {t.adminSeason.calendarModeLabel}
-            </span>
-            <select
-              value={calendarMode}
-              onChange={(event) => {
-                setCalendarMode(event.target.value as CalendarMode);
-                setFeedback(null);
-              }}
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
-            >
-              <option value="balanced">{t.adminSeason.balancedCalendar}</option>
-              <option value="manual">{t.adminSeason.manualCalendar}</option>
-            </select>
-          </label>
+        <label className="mt-4 block rounded-2xl bg-neutral-100 p-3">
+          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+            {t.adminSeason.calendarModeLabel}
+          </span>
+          <select
+            value={calendarMode}
+            onChange={(event) => {
+              setCalendarMode(event.target.value as CalendarMode);
+              setFeedback(null);
+            }}
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+          >
+            <option value="balanced">{t.adminSeason.balancedCalendar}</option>
+            <option value="manual">{t.adminSeason.manualCalendar}</option>
+          </select>
           <p className="mt-2 text-xs font-semibold text-neutral-500">
             {calendarMode === "balanced"
               ? t.adminSeason.balancedCalendarDescription
               : t.adminSeason.manualCalendarDescription}
           </p>
-        </div>
+        </label>
 
         {calendarMode === "manual" ? (
           <div className="mt-4 space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
-                {scheduleMode === "double" && manualCalendarRepeatedRounds > 0
-                  ? `${manualCalendarVisibleRounds} jornadas manuales + ${manualCalendarRepeatedRounds} repetidas`
-                  : `${manualCalendarVisibleRounds} jornadas manuales`}
-                {" · "}
+                {totalSeasonRounds} jornadas ·{" "}
                 {getMatchesPerRound(playerCount)}{" "}
                 {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"}{" "}
                 por jornada
@@ -2618,6 +2614,7 @@ export default function AdminSeasonPage() {
           <FinishSeasonPanel
             activeLeagueId={activeLeague.id}
             activeSeasonId={activeSeason.id}
+            winnerName={players[0]?.displayName ?? null}
           />
 
           <SeasonDangerZone

@@ -74,6 +74,35 @@ function formatWinPercentage(player: DashboardPlayer) {
 }
 
 
+
+function capitalizeFirstLetter(value: string | null | undefined) {
+  if (!value) {
+    return value
+  }
+
+  return value.charAt(0).toLocaleUpperCase("es-ES") + value.slice(1)
+}
+
+function areStringArraysEqual(left: string[], right: string[]) {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  )
+}
+
+function isSameMatch(left?: MatchData, right?: MatchData) {
+  if (!left || !right) {
+    return false
+  }
+
+  return (
+    left.id === right.id ||
+    (left.round === right.round &&
+      areStringArraysEqual(left.teamA, right.teamA) &&
+      areStringArraysEqual(left.teamB, right.teamB))
+  )
+}
+
 function getMatchRelevantTime(match: MatchData) {
   const scheduledDate = parseMatchScheduleDate(match.scheduledAt);
 
@@ -155,7 +184,7 @@ function shouldShowScopeSwitch({
   return Boolean(
     leagueMatch &&
       personalMatch &&
-      leagueMatch.id !== personalMatch.id &&
+      !isSameMatch(leagueMatch, personalMatch) &&
       candidateCount > 1,
   );
 }
@@ -905,7 +934,7 @@ export default function Home() {
 
                 <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2 pr-11">
                   <p className="text-xs font-black text-neutral-800">
-                    {selectedNextMatch.dateLabel ??
+                    {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
                       (selectedNextMatch.status === "postponed"
                         ? t.matches.pendingReschedule
                         : t.dashboard.addSchedule)}

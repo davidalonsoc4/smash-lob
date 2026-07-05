@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useMemo, useRef, useState } from "react"
+import { type FormEvent, type KeyboardEvent, useMemo, useRef, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -161,17 +161,25 @@ export function MatchResultForm({
       ? setWinners.every(Boolean)
       : completedSets.length > 0 && !hasInvalidTouchedSet)
 
-  function focusNextScoreInput(fieldIndex: number) {
-    const nextInput = scoreInputRefs.current[fieldIndex + 1]
+  function focusScoreInput(fieldIndex: number) {
+    const input = scoreInputRefs.current[fieldIndex]
 
-    if (!nextInput) {
+    if (!input) {
       return
     }
 
     window.setTimeout(() => {
-      nextInput.focus()
-      nextInput.select()
+      input.focus()
+      input.select()
     }, 0)
+  }
+
+  function focusNextScoreInput(fieldIndex: number) {
+    focusScoreInput(fieldIndex + 1)
+  }
+
+  function focusPreviousScoreInput(fieldIndex: number) {
+    focusScoreInput(fieldIndex - 1)
   }
 
   function sanitizeScoreInput(value: string) {
@@ -186,6 +194,7 @@ export function MatchResultForm({
   function updateSet(index: number, team: "a" | "b", value: string) {
     const cleanValue = sanitizeScoreInput(value)
     const fieldIndex = index * 2 + (team === "a" ? 0 : 1)
+    const previousValue = sets[index]?.[team] ?? ""
 
     setSets((currentSets) =>
       currentSets.map((set, setIndex) =>
@@ -201,7 +210,28 @@ export function MatchResultForm({
 
     if (cleanValue) {
       focusNextScoreInput(fieldIndex)
+      return
     }
+
+    if (previousValue) {
+      focusPreviousScoreInput(fieldIndex)
+    }
+  }
+
+  function handleScoreKeyDown(
+    event: KeyboardEvent<HTMLInputElement>,
+    fieldIndex: number
+  ) {
+    if (event.key !== "Backspace") {
+      return
+    }
+
+    if (event.currentTarget.value) {
+      return
+    }
+
+    event.preventDefault()
+    focusPreviousScoreInput(fieldIndex)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -293,6 +323,9 @@ export function MatchResultForm({
                     onChange={(event) =>
                       updateSet(index, "a", event.target.value)
                     }
+                    onKeyDown={(event) =>
+                      handleScoreKeyDown(event, index * 2)
+                    }
                     className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
                   />
                 </label>
@@ -320,6 +353,9 @@ export function MatchResultForm({
                     disabled={isSaving}
                     onChange={(event) =>
                       updateSet(index, "b", event.target.value)
+                    }
+                    onKeyDown={(event) =>
+                      handleScoreKeyDown(event, index * 2 + 1)
                     }
                     className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
                   />

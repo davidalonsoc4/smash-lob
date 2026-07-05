@@ -15,7 +15,7 @@ type AppShellProps = {
 }
 
 type InviteFloatingControlsProps = {
-  offsetForSettingsButton: boolean
+  rightOffsetPx: number
 }
 
 function SettingsIcon() {
@@ -44,9 +44,33 @@ function SettingsIcon() {
   )
 }
 
-function InviteFloatingControls({
-  offsetForSettingsButton,
-}: InviteFloatingControlsProps) {
+function NotificationsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{
+        width: "13px",
+        height: "13px",
+        display: "block",
+      }}
+    >
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  )
+}
+
+function getFloatingRight(offsetPx: number) {
+  return `max(${offsetPx}px, calc((100vw - 448px) / 2 + ${offsetPx}px))`
+}
+
+function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
   const { getLeagueInviteCode, isLeagueAdmin, isPlayerClaimed } =
     useLeagueAccess()
   const { activeLeague, players } = useCurrentLeagueData()
@@ -69,7 +93,7 @@ function InviteFloatingControls({
       inviteCode={inviteCode}
       leagueName={activeLeague.name}
       unclaimedCount={unclaimedPlayers.length}
-      offsetForSettingsButton={offsetForSettingsButton}
+      rightOffsetPx={rightOffsetPx}
     />
   )
 }
@@ -84,8 +108,20 @@ export function AppShell({ children }: AppShellProps) {
     !isNewLeagueRoute &&
     !pathname.startsWith("/admin") &&
     !isInviteRoute
+  const shouldShowNotificationsButton =
+    pathname !== "/notifications" &&
+    !isNewLeagueRoute &&
+    !pathname.startsWith("/admin") &&
+    !isInviteRoute
   const shouldShowBottomNav = !isInviteRoute && !isNewLeagueRoute
   const shouldShowInviteButton = !isInviteRoute && !isNewLeagueRoute
+  const inviteRightOffset = shouldShowSettingsButton
+    ? shouldShowNotificationsButton
+      ? 84
+      : 50
+    : shouldShowNotificationsButton
+      ? 50
+      : 16
 
   return (
     <div className="min-h-screen bg-stone-200 text-neutral-950">
@@ -93,9 +129,25 @@ export function AppShell({ children }: AppShellProps) {
         <PwaInstallPrompt />
 
         {shouldShowInviteButton ? (
-          <InviteFloatingControls
-            offsetForSettingsButton={shouldShowSettingsButton}
-          />
+          <InviteFloatingControls rightOffsetPx={inviteRightOffset} />
+        ) : null}
+
+        {shouldShowNotificationsButton ? (
+          <Link
+            href="/notifications"
+            aria-label="Notificaciones"
+            title="Notificaciones"
+            className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            style={{
+              position: "fixed",
+              top: "16px",
+              right: getFloatingRight(shouldShowSettingsButton ? 50 : 16),
+              width: "28px",
+              height: "28px",
+            }}
+          >
+            <NotificationsIcon />
+          </Link>
         ) : null}
 
         {shouldShowSettingsButton ? (
@@ -107,7 +159,7 @@ export function AppShell({ children }: AppShellProps) {
             style={{
               position: "fixed",
               top: "16px",
-              right: "max(16px, calc((100vw - 448px) / 2 + 16px))",
+              right: getFloatingRight(16),
               width: "28px",
               height: "28px",
             }}

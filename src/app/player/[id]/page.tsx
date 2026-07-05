@@ -8,7 +8,6 @@ import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScope
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { StatCard } from "@/components/ui/StatCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -38,6 +37,7 @@ export default function PlayerPage() {
   const { seasons, seasonPlayers, playerProfiles } = useSeasonSettings()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const [selectedScopeId, setSelectedScopeId] = useState(activeSeason.id)
+  const isSeasonClosed = activeSeason.status === "finished"
 
   const player = playerProfiles.find(
     (item) =>
@@ -123,23 +123,28 @@ export default function PlayerPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <header className="pt-2">
+    <div className="space-y-3">
+      <header className="pt-1">
         <BackButton fallbackHref="/ranking" label={t.common.back} />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {selectedScope.label}
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
+          <span>{activeLeague.name} · {selectedScope.label}</span>
+          {isSeasonClosed ? (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+              Terminada
+            </span>
+          ) : null}
         </p>
 
-        <div className="mt-3 flex items-center gap-3">
-          <PlayerAvatar player={player} size="lg" />
+        <div className="mt-2 flex items-center gap-2.5">
+          <PlayerAvatar player={player} size="md" />
 
           <h1 className="min-w-0 text-2xl font-black tracking-tight">
             {player.displayName}
           </h1>
         </div>
 
-        <p className="mt-3 text-sm text-neutral-500">
+        <p className="mt-1.5 text-xs font-semibold leading-5 text-neutral-500">
           {t.playerProfile.description}
         </p>
       </header>
@@ -154,18 +159,24 @@ export default function PlayerPage() {
         />
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          label={t.profile.points}
-          value={selectedStats.points}
-          helper={t.common.pointsShort}
-        />
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+          <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
+            {t.profile.points}
+          </p>
+          <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
+            {selectedStats.points}
+          </p>
+        </div>
 
-        <StatCard
-          label={t.ranking.gamesDiff}
-          value={`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
-          helper={t.ranking.diff}
-        />
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+          <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
+            {t.ranking.gamesDiff}
+          </p>
+          <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
+            {`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
+          </p>
+        </div>
       </div>
 
       <PlayerStatsPanel

@@ -333,6 +333,10 @@ function getResultTextFromMetadata(event: ActivityEventRow) {
 }
 
 function getNotificationTitle(event: ActivityEventRow) {
+  if (event.type === "season_finished") {
+    return "TEMPORADA FINALIZADA";
+  }
+
   if (
     event.type === "court_booking_updated" ||
     event.type === "court_booking_payment_reminder"
@@ -372,6 +376,28 @@ function getNotificationBody(
   recipient: NotificationRecipient | null,
   playerNamesById: Map<string, string>,
 ) {
+  if (event.type === "season_created") {
+    const metadata = toRecord(event.metadata);
+    const playerCount = toNumber(metadata.playerCount);
+    const totalRounds = toNumber(metadata.totalRounds);
+
+    if (playerCount > 0 && totalRounds > 0) {
+      return `${playerCount} jugadores · ${totalRounds} jornadas.`;
+    }
+  }
+
+  if (event.type === "season_finished") {
+    const metadata = toRecord(event.metadata);
+    const winnerName =
+      typeof metadata.winnerName === "string" && metadata.winnerName.trim()
+        ? metadata.winnerName.trim()
+        : null;
+
+    return winnerName
+      ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+      : "La temporada ha finalizado.";
+  }
+
   if (
     event.type === "court_booking_updated" ||
     event.type === "court_booking_payment_reminder"

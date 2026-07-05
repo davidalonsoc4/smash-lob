@@ -113,7 +113,7 @@ export function CourtBookingPanel({
   const {
     updateCourtBooking,
     clearCourtBooking,
-    markCourtBookingTransferAsPaid,
+    updateCourtBookingTransferPaymentStatus,
     sendCourtBookingPaymentReminder,
   } = useMatchData()
   const participantIds = useMemo(() => {
@@ -292,7 +292,7 @@ export function CourtBookingPanel({
     }
   }
 
-  async function handleMarkPaid(transferId: string) {
+  async function handleUpdatePaymentStatus(transferId: string, isPaid: boolean) {
     if (isSaving) {
       return
     }
@@ -300,13 +300,17 @@ export function CourtBookingPanel({
     setIsSaving(true)
     setError(null)
 
-    const saved = await markCourtBookingTransferAsPaid(matchId, transferId)
+    const saved = await updateCourtBookingTransferPaymentStatus(
+      matchId,
+      transferId,
+      isPaid
+    )
 
     setIsSaving(false)
 
     if (!saved) {
       setError(
-        "No se ha podido marcar el pago como realizado. Revisa Supabase o smash-lob-last-supabase-error."
+        "No se ha podido actualizar el estado del pago. Revisa Supabase o smash-lob-last-supabase-error."
       )
     }
   }
@@ -390,14 +394,17 @@ export function CourtBookingPanel({
               </p>
               {booking.transfers.map((transfer) => {
                 const isCurrentUserTransfer = transfer.fromPlayerId === currentUserId
-                const canMarkPaid = isCurrentUserTransfer && !transfer.isPaid
+                const isCurrentUserPayer = transfer.toPlayerId === currentUserId
+                const canCurrentUserMarkOwnDebtPaid =
+                  isCurrentUserTransfer && !transfer.isPaid && !isCurrentUserPayer
+                const canPayerManageTransfer = isCurrentUserPayer
 
                 return (
                   <div
                     key={transfer.id}
                     className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs"
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-bold leading-snug text-neutral-900">
                           {getPlayerName(transfer.fromPlayerId, players)} → {getPlayerName(transfer.toPlayerId, players)}
@@ -407,21 +414,45 @@ export function CourtBookingPanel({
                         </p>
                       </div>
 
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
-                          transfer.isPaid
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-orange-100 text-orange-900"
-                        }`}
-                      >
-                        {transfer.isPaid ? "Pagado" : "Pendiente"}
-                      </span>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+                            transfer.isPaid
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-orange-100 text-orange-900"
+                          }`}
+                        >
+                          {transfer.isPaid ? "Pagado" : "Pendiente"}
+                        </span>
+
+                        {canPayerManageTransfer ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdatePaymentStatus(
+                                transfer.id,
+                                !transfer.isPaid
+                              )
+                            }
+                            disabled={isSaving}
+                            className="rounded-md bg-neutral-950 px-2 py-1 text-[10px] font-black text-white disabled:bg-neutral-300"
+                          >
+                            {isSaving
+                              ? "..."
+                              : transfer.isPaid
+                                ? "No pagado"
+                                : "Pagado"}
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
 
-                    {canMarkPaid ? (
+                    {canCurrentUserMarkOwnDebtPaid ? (
                       <button
                         type="button"
-                        onClick={() => handleMarkPaid(transfer.id)}
+                        onClick={() =>
+                          handleUpdatePaymentStatus(transfer.id, true)
+                        }
                         disabled={isSaving}
                         className="mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
                       >

@@ -7,7 +7,7 @@ type FloatingInviteShareButtonProps = {
   inviteCode: string
   leagueName: string
   unclaimedCount: number
-  offsetForSettingsButton: boolean
+  rightOffsetPx: number
 }
 
 function ShareIcon() {
@@ -39,7 +39,7 @@ export function FloatingInviteShareButton({
   inviteCode,
   leagueName,
   unclaimedCount,
-  offsetForSettingsButton,
+  rightOffsetPx,
 }: FloatingInviteShareButtonProps) {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -91,9 +91,7 @@ export function FloatingInviteShareButton({
       style={{
         position: "fixed",
         top: "16px",
-        right: offsetForSettingsButton
-          ? "max(50px, calc((100vw - 448px) / 2 + 50px))"
-          : "max(16px, calc((100vw - 448px) / 2 + 16px))",
+        right: `max(${rightOffsetPx}px, calc((100vw - 448px) / 2 + ${rightOffsetPx}px))`,
       }}
     >
       <button
