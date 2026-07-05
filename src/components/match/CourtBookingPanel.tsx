@@ -435,13 +435,22 @@ export function CourtBookingPanel({
                               )
                             }
                             disabled={isSaving}
-                            className="rounded-md bg-neutral-950 px-2 py-1 text-[10px] font-black text-white disabled:bg-neutral-300"
+                            className={`whitespace-nowrap rounded-md border px-2 py-1 text-[10px] font-black transition disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-300 ${
+                              transfer.isPaid
+                                ? "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-800 active:bg-emerald-100"
+                            }`}
+                            aria-label={
+                              transfer.isPaid
+                                ? "Marcar transferencia como pendiente"
+                                : "Marcar transferencia como pagada"
+                            }
                           >
                             {isSaving
                               ? "..."
                               : transfer.isPaid
-                                ? "No pagado"
-                                : "Pagado"}
+                                ? "↩ Marcar pendiente"
+                                : "✓ Marcar pagado"}
                           </button>
                         ) : null}
                       </div>
@@ -456,7 +465,7 @@ export function CourtBookingPanel({
                         disabled={isSaving}
                         className="mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
                       >
-                        {isSaving ? "Guardando..." : "Marcar como pagado"}
+                        {isSaving ? "Guardando..." : "✓ Marcar como pagado"}
                       </button>
                     ) : null}
                   </div>
