@@ -934,27 +934,29 @@ export default function Home() {
                   />
                 </div>
 
-                <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <TeamPlayers
+                      playerIds={selectedNextMatch.teamA}
+                      players={players}
+                      highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                    />
+                    <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                      {t.common.versus}
+                    </p>
+                    <TeamPlayers
+                      playerIds={selectedNextMatch.teamB}
+                      players={players}
+                      highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                    />
+                  </div>
 
-                <div className="space-y-1 pr-11">
-                  <TeamPlayers
-                    playerIds={selectedNextMatch.teamA}
-                    players={players}
-                    highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                  />
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                    {t.common.versus}
-                  </p>
-                  <TeamPlayers
-                    playerIds={selectedNextMatch.teamB}
-                    players={players}
-                    highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                  />
+                  <ClickableChevron className="shrink-0" />
                 </div>
 
-                <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2 pr-11">
+                <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
                   <p className="text-xs font-black text-neutral-800">
                     {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
                       (selectedNextMatch.status === "postponed"
@@ -1034,38 +1036,40 @@ export default function Home() {
                 />
               </div>
 
-              <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
-
               {selectedLastMatchHasResult ? (
                 <>
-                  <div className="space-y-1 pr-11">
-                    <div className="flex items-center justify-between gap-3">
-                      <TeamPlayers
-                        playerIds={selectedLastMatch.teamA}
-                        players={players}
-                        highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                        className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                      />
-                      <p className="min-w-6 text-right text-lg font-black">
-                        {selectedLastMatch.pointsA}
-                      </p>
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <TeamPlayers
+                          playerIds={selectedLastMatch.teamA}
+                          players={players}
+                          highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                          className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                        />
+                        <p className="min-w-6 text-right text-lg font-black">
+                          {selectedLastMatch.pointsA}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3">
+                        <TeamPlayers
+                          playerIds={selectedLastMatch.teamB}
+                          players={players}
+                          highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                          className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                        />
+                        <p className="min-w-6 text-right text-lg font-black">
+                          {selectedLastMatch.pointsB}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-3">
-                      <TeamPlayers
-                        playerIds={selectedLastMatch.teamB}
-                        players={players}
-                        highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                        className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                      />
-                      <p className="min-w-6 text-right text-lg font-black">
-                        {selectedLastMatch.pointsB}
-                      </p>
-                    </div>
+                    <ClickableChevron className="shrink-0" />
                   </div>
 
                   {selectedLastMatch.sets.length > 0 ? (
-                    <div className="mt-2 flex gap-1.5 pr-11 text-xs font-bold text-neutral-600">
+                    <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
                       {selectedLastMatch.sets.map((set, index) => (
                         <span
                           key={index}
@@ -1078,27 +1082,31 @@ export default function Home() {
                   ) : null}
                 </>
               ) : (
-                <div className="space-y-1 pr-11">
-                  <TeamPlayers
-                    playerIds={selectedLastMatch.teamA}
-                    players={players}
-                    highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                  />
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                    {t.common.versus}
-                  </p>
-                  <TeamPlayers
-                    playerIds={selectedLastMatch.teamB}
-                    players={players}
-                    highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                  />
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <TeamPlayers
+                      playerIds={selectedLastMatch.teamA}
+                      players={players}
+                      highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                    />
+                    <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                      {t.common.versus}
+                    </p>
+                    <TeamPlayers
+                      playerIds={selectedLastMatch.teamB}
+                      players={players}
+                      highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                    />
+                  </div>
+
+                  <ClickableChevron className="shrink-0" />
                 </div>
               )}
 
               {selectedLastMatchMetaText ? (
-                <p className="mt-1.5 truncate pr-11 text-[11px] font-semibold text-neutral-500">
+                <p className="mt-1.5 truncate text-[11px] font-semibold text-neutral-500">
                   {selectedLastMatchMetaText}
                 </p>
               ) : null}

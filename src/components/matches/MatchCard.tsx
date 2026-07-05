@@ -107,39 +107,41 @@ export function MatchCard({
           />
         </div>
 
-        <ClickableChevron className="absolute right-3 top-1/2 -translate-y-1/2" />
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex items-center justify-between gap-3">
+                <TeamPlayers
+                  playerIds={match.teamA}
+                  players={players}
+                  highlightedPlayerIds={highlightedPlayerIds}
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                />
 
-        <div className="pr-11">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-3">
-              <TeamPlayers
-                playerIds={match.teamA}
-                players={players}
-                highlightedPlayerIds={highlightedPlayerIds}
-                className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-              />
+                {isFinished ? (
+                  <p className="min-w-6 text-right text-lg font-black">
+                    {match.pointsA}
+                  </p>
+                ) : null}
+              </div>
 
-              {isFinished ? (
-                <p className="min-w-6 text-right text-lg font-black">
-                  {match.pointsA}
-                </p>
-              ) : null}
+              <div className="flex items-center justify-between gap-3">
+                <TeamPlayers
+                  playerIds={match.teamB}
+                  players={players}
+                  highlightedPlayerIds={highlightedPlayerIds}
+                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                />
+
+                {isFinished ? (
+                  <p className="min-w-6 text-right text-lg font-black">
+                    {match.pointsB}
+                  </p>
+                ) : null}
+              </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <TeamPlayers
-                playerIds={match.teamB}
-                players={players}
-                highlightedPlayerIds={highlightedPlayerIds}
-                className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-              />
-
-              {isFinished ? (
-                <p className="min-w-6 text-right text-lg font-black">
-                  {match.pointsB}
-                </p>
-              ) : null}
-            </div>
+            <ClickableChevron className="shrink-0" />
           </div>
 
           {isFinished ? (
