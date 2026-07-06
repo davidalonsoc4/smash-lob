@@ -17,6 +17,7 @@ export type League = {
   locations: LeagueLocation[]
   logoUrl?: string | null
   statusColorsEnabled?: boolean
+  createdByUserId?: string | null
 }
 
 export type Season = {

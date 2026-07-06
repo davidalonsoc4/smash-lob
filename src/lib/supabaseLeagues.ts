@@ -66,7 +66,7 @@ async function insertLeagueWithAvailableSlug({
         locations: normalizeLeagueLocations(locations),
         status_colors_enabled: true,
       })
-      .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled")
+      .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,created_by_user_id")
       .single()
 
     if (!leagueError && league) {
@@ -150,6 +150,10 @@ export async function createSupabaseLeague({
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
     statusColorsEnabled: league.status_colors_enabled !== false,
+    createdByUserId:
+      typeof league.created_by_user_id === "string"
+        ? league.created_by_user_id
+        : null,
   }
 
   return {
@@ -252,7 +256,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled"
+      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,created_by_user_id"
     )
 
   if (!isSuperuser) {
@@ -274,6 +278,10 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
     statusColorsEnabled: league.status_colors_enabled !== false,
+    createdByUserId:
+      typeof league.created_by_user_id === "string"
+        ? league.created_by_user_id
+        : null,
   }))
   const leagueIds = leagues.map((league) => league.id)
 

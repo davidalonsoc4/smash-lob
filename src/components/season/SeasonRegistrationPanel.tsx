@@ -13,6 +13,7 @@ type SeasonRegistrationPanelProps = {
   players: PlayerProfile[]
   currentUserId: string
   canManage: boolean
+  organizerName?: string | null
   isSeasonUpcoming?: boolean
   onTogglePayment: (playerId: string, isPaid: boolean) => Promise<void> | void
 }
@@ -22,6 +23,7 @@ export function SeasonRegistrationPanel({
   players,
   currentUserId,
   canManage,
+  organizerName,
   isSeasonUpcoming = false,
   onTogglePayment,
 }: SeasonRegistrationPanelProps) {
@@ -137,7 +139,7 @@ export function SeasonRegistrationPanel({
             Pago pendiente
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
-            Debes {formatMoney(registrationFee.amount)} al organizador de la liga.
+            Debes {formatMoney(registrationFee.amount)} a {organizerName?.trim() || "el organizador de la liga"}.
           </p>
         </div>
       ) : null}

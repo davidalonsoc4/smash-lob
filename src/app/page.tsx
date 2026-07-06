@@ -430,11 +430,12 @@ export default function Home() {
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const { currentUserId } = useCurrentUser();
-  const { isLeagueAdmin } = useLeagueAccess();
+  const { isLeagueAdmin, hasLeagueAdminRole } = useLeagueAccess();
   const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
     useCurrentLeagueData();
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
+  const canManageRegistration = hasLeagueAdminRole(activeLeague.id);
   const isSeasonClosed = activeSeason.status === "finished";
   const isSeasonUpcoming = activeSeason.status === "upcoming";
   const currentUserMatches = matches.filter(
@@ -528,11 +529,15 @@ export default function Home() {
     currentUserId,
     players,
   });
+  const organizerPlayer = activeLeague.createdByUserId
+    ? players.find((player) => player.userId === activeLeague.createdByUserId)
+    : null;
+  const organizerName = organizerPlayer?.displayName ?? "organizador de la liga";
   const shouldShowRegistrationPanel =
     !isSeasonClosed &&
     roundSettings.registrationFee.enabled &&
     roundSettings.registrationFee.amount > 0 &&
-    (canManageSeason ||
+    (canManageRegistration ||
       roundSettings.registrationFee.payments.some(
         (payment) => payment.playerId === currentUserId,
       ));
@@ -864,7 +869,8 @@ export default function Home() {
             registrationFee={roundSettings.registrationFee}
             players={players}
             currentUserId={currentUserId}
-            canManage={canManageSeason}
+            canManage={canManageRegistration}
+            organizerName={organizerName}
             isSeasonUpcoming={isSeasonUpcoming}
             onTogglePayment={handleToggleRegistrationPayment}
           />
