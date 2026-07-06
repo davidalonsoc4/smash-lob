@@ -42,17 +42,18 @@ function AvailabilitySuggestionCard({
   const missingNames = suggestion.missingPlayerIds.map((playerId) =>
     getPlayerName(players, playerId),
   );
+  const missingLabel = missingNames.length > 0 ? `Faltan: ${missingNames.join(", ")}` : null;
 
   return (
     <button
       type="button"
       onClick={() => onSelectSuggestion(suggestion.dateTimeLocalValue)}
-      className="w-full rounded-xl border border-neutral-200 bg-white p-2 text-left shadow-sm transition active:scale-[0.99]"
+      className="group w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-2 text-left shadow-sm transition hover:border-neutral-400 hover:bg-neutral-50 active:scale-[0.99]"
       aria-label={`Seleccionar horario recomendado ${suggestion.dateLabel}, ${suggestion.timeLabel}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-black text-neutral-950">
+          <p className="truncate text-[11px] font-black text-neutral-500">
             {suggestion.dateLabel}
           </p>
           <p className="mt-0.5 text-sm font-black text-neutral-950">
@@ -60,24 +61,37 @@ function AvailabilitySuggestionCard({
           </p>
         </div>
 
-        <span
-          className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wide ${
-            isPerfectMatch
-              ? "bg-emerald-50 text-emerald-700"
-              : "bg-amber-50 text-amber-800"
-          }`}
-        >
-          {suggestion.coverage}/{totalPlayers}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wide ${
+              isPerfectMatch
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-amber-50 text-amber-800"
+            }`}
+          >
+            {suggestion.coverage}/{totalPlayers}
+          </span>
+          <span className="grid size-7 place-items-center rounded-full border border-neutral-200 bg-neutral-50 text-xs font-black text-neutral-700 transition group-hover:border-neutral-400 group-hover:bg-neutral-950 group-hover:text-white">
+            →
+          </span>
+        </div>
       </div>
 
-      <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
-        {isPerfectMatch
-          ? "Coinciden todos los jugadores. Toca para usar este horario."
-          : suggestion.isCommonForConfiguredPlayers
-            ? `Coinciden los ${suggestion.configuredPlayerCount} jugadores con disponibilidad. Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}. Toca para usarlo.`
-            : `Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}. Toca para usarlo.`}
-      </p>
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        {missingLabel ? (
+          <p className="min-w-0 truncate text-[11px] font-semibold text-neutral-500">
+            {missingLabel}
+          </p>
+        ) : (
+          <span className="text-[11px] font-semibold text-emerald-700">
+            Todos disponibles
+          </span>
+        )}
+
+        <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-neutral-500 group-hover:text-neutral-900">
+          Seleccionar
+        </span>
+      </div>
     </button>
   );
 }
@@ -95,6 +109,7 @@ export function MatchAvailabilitySuggestions({
   const [availabilities, setAvailabilities] = useState<PlayerAvailability[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasRemoteError, setHasRemoteError] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const playerIdsKey = playerIds.join("|");
   const uniquePlayerIds = useMemo(
     () => [...new Set(playerIdsKey.split("|").filter(Boolean))],
@@ -186,22 +201,21 @@ export function MatchAvailabilitySuggestions({
     (playerId) => !availabilities.some((item) => item.playerId === playerId),
   );
 
-  const [isExpanded, setIsExpanded] = useState(false);
   const handleSelectSuggestion = (dateTimeLocalValue: string) => {
     onUseSuggestion(dateTimeLocalValue);
     setIsExpanded(false);
   };
   const bestRecommendation = recommendations[0] ?? null;
   const summaryText = isLoading
-    ? "Calculando recomendaciones..."
+    ? "Calculando..."
     : bestRecommendation
-      ? `${recommendations.length} propuesta${recommendations.length === 1 ? "" : "s"}. Mejor opción: ${bestRecommendation.dateLabel}, ${bestRecommendation.timeLabel}.`
+      ? `${recommendations.length} propuesta${recommendations.length === 1 ? "" : "s"}. Mejor: ${bestRecommendation.dateLabel}, ${bestRecommendation.timeLabel}.`
       : playersWithoutAvailability.length > 0
-        ? "Faltan disponibilidades para proponer huecos completos."
-        : "Sin huecos comunes por ahora.";
+        ? "Faltan disponibilidades."
+        : "Sin huecos comunes.";
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
+    <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-2">
       <button
         type="button"
         onClick={() => setIsExpanded((currentValue) => !currentValue)}
@@ -212,7 +226,7 @@ export function MatchAvailabilitySuggestions({
           <p className="text-sm font-black text-neutral-950">
             Horarios recomendados
           </p>
-          <p className="mt-0.5 line-clamp-2 text-[11px] font-semibold leading-4 text-neutral-500">
+          <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold leading-4 text-neutral-500">
             {summaryText}
           </p>
         </div>
@@ -220,7 +234,7 @@ export function MatchAvailabilitySuggestions({
         <div className="flex shrink-0 items-center gap-1.5">
           {isLoading ? (
             <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-              Cargando
+              ...
             </span>
           ) : recommendations.length > 0 ? (
             <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
@@ -235,20 +249,16 @@ export function MatchAvailabilitySuggestions({
       </button>
 
       {isExpanded ? (
-        <div className="mt-2">
-          <p className="rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
-            La app cruza la disponibilidad semanal de los 4 jugadores y propone huecos de 2 horas.
-          </p>
-
+        <div className="mt-2 space-y-1.5">
           {hasRemoteError ? (
-            <p className="mt-2 rounded-lg bg-amber-50 p-2 text-[11px] font-bold text-amber-800">
-              No se ha podido cargar la disponibilidad remota. Se muestran datos guardados en este dispositivo si existen.
+            <p className="rounded-lg bg-amber-50 p-2 text-[11px] font-bold text-amber-800">
+              No se ha podido cargar la disponibilidad remota. Se muestran datos de este dispositivo si existen.
             </p>
           ) : null}
 
           {playersWithoutAvailability.length > 0 ? (
-            <p className="mt-2 rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
-              Falta disponibilidad de: {playersWithoutAvailability
+            <p className="rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
+              Sin disponibilidad: {playersWithoutAvailability
                 .map((playerId) => getPlayerName(players, playerId))
                 .join(", ")}
               .
@@ -256,7 +266,7 @@ export function MatchAvailabilitySuggestions({
           ) : null}
 
           {recommendations.length > 0 ? (
-            <div className="mt-2 grid gap-2">
+            <div className="grid gap-1.5">
               {recommendations.map((suggestion) => (
                 <AvailabilitySuggestionCard
                   key={`${suggestion.dateTimeLocalValue}-${suggestion.coverage}`}
@@ -268,8 +278,8 @@ export function MatchAvailabilitySuggestions({
               ))}
             </div>
           ) : (
-            <p className="mt-2 rounded-lg bg-white p-2 text-xs font-semibold leading-5 text-neutral-500">
-              Todavía no hay huecos comunes suficientes. Pide a los jugadores que completen su disponibilidad o prueba con otro horario manualmente.
+            <p className="rounded-lg bg-white p-2 text-xs font-semibold leading-5 text-neutral-500">
+              No hay huecos de 2 horas. Completa más disponibilidades o introduce el horario manualmente.
             </p>
           )}
         </div>

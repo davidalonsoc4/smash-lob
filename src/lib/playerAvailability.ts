@@ -428,6 +428,40 @@ function isFutureCandidate(dateTimeLocalValue: string) {
   return candidate.getTime() > now.getTime() + 30 * 60 * 1000;
 }
 
+
+function getCandidateStartMinutesFromSlots({
+  slots,
+  slotDurationMinutes,
+  stepMinutes,
+}: {
+  slots: AvailabilitySlot[];
+  slotDurationMinutes: number;
+  stepMinutes: number;
+}) {
+  const candidateStartMinutes = new Set<number>();
+
+  slots.forEach((slot) => {
+    const slotStart = timeToMinutes(slot.start);
+    const slotEnd = timeToMinutes(slot.end);
+    const latestStart = slotEnd - slotDurationMinutes;
+
+    if (latestStart < slotStart) {
+      return;
+    }
+
+    for (
+      let startMinutes = slotStart;
+      startMinutes <= latestStart;
+      startMinutes += stepMinutes
+    ) {
+      candidateStartMinutes.add(startMinutes);
+    }
+  });
+
+  return [...candidateStartMinutes].sort((a, b) => a - b);
+}
+
+
 function formatRecommendationDateLabel(date: Date) {
   const weekday = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",
@@ -531,25 +565,19 @@ export function buildAvailabilityRecommendations({
         date: dateValue,
       }),
     }));
-    const allStartMinutes = playerSlots.flatMap(({ slots }) =>
-      slots.map((slot) => timeToMinutes(slot.start)),
-    );
-    const allEndMinutes = playerSlots.flatMap(({ slots }) =>
-      slots.map((slot) => timeToMinutes(slot.end)),
-    );
+    const candidateStartMinutes = [
+      ...new Set(
+        playerSlots.flatMap(({ slots }) =>
+          getCandidateStartMinutesFromSlots({
+            slots,
+            slotDurationMinutes,
+            stepMinutes,
+          }),
+        ),
+      ),
+    ].sort((a, b) => a - b);
 
-    if (allStartMinutes.length === 0 || allEndMinutes.length === 0) {
-      return;
-    }
-
-    const minStart = Math.min(...allStartMinutes);
-    const maxEnd = Math.max(...allEndMinutes);
-
-    for (
-      let startMinutes = minStart;
-      startMinutes + slotDurationMinutes <= maxEnd;
-      startMinutes += stepMinutes
-    ) {
+    candidateStartMinutes.forEach((startMinutes) => {
       const endMinutes = startMinutes + slotDurationMinutes;
       const availablePlayerIds = playerSlots
         .filter(({ slots }) => isSlotCovered({ slots, startMinutes, endMinutes }))
@@ -564,7 +592,7 @@ export function buildAvailabilityRecommendations({
         availablePlayerIds.length >= Math.min(3, uniquePlayerIds.length);
 
       if (!isCompleteMatch && !isCommonForConfiguredPlayers && !hasUsefulPartialMatch) {
-        continue;
+        return;
       }
 
       const start = minutesToTime(startMinutes);
@@ -572,7 +600,7 @@ export function buildAvailabilityRecommendations({
       const dateTimeLocalValue = `${dateValue}T${start}`;
 
       if (!isFutureCandidate(dateTimeLocalValue)) {
-        continue;
+        return;
       }
 
       recommendations.push({
@@ -590,7 +618,7 @@ export function buildAvailabilityRecommendations({
           (playerId) => !availablePlayerIds.includes(playerId),
         ),
       });
-    }
+    });
   });
 
   return recommendations
