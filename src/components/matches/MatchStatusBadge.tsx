@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/i18n/I18nProvider"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
+import { getMatchStatusBadgeClassName } from "@/lib/statusStyles"
 
 type MatchStatusBadgeProps = {
   status: string
@@ -30,21 +31,8 @@ export function MatchStatusBadge({
     result_pending: t.matches.resultPending,
   }
 
-  const classNameByStatus: Record<string, string> = {
-    finished: "bg-neutral-950 text-white",
-    scheduled: "bg-neutral-100 text-neutral-800",
-    scheduling: "bg-neutral-100 text-neutral-800",
-    postponed: "bg-orange-100 text-orange-900",
-    in_progress: "bg-emerald-100 text-emerald-800",
-    result_pending: "bg-amber-100 text-amber-900",
-  }
-
   return (
-    <p
-      className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black leading-none ${
-        classNameByStatus[displayStatus] ?? "bg-neutral-100 text-neutral-800"
-      }`}
-    >
+    <p className={getMatchStatusBadgeClassName(displayStatus)}>
       {labelByStatus[displayStatus] ?? displayStatus}
     </p>
   )

@@ -10,6 +10,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { calculateSeasonRanking } from "@/lib/ranking";
+import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles";
 
 function getSeasonStatusLabel(season: {
   status: "upcoming" | "active" | "finished";
@@ -109,7 +110,7 @@ export default function LeaguesPage() {
                     {league.description || "Sin descripción"}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+                    <span className={getSeasonStatusBadgeClassName(season.status, season.totalRounds)}>
                       {getSeasonStatusLabel(season)}
                     </span>
                     {isAdmin ? (

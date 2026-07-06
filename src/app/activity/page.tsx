@@ -17,6 +17,7 @@ import {
   getScheduleLocationFallbackText,
   normalizeLeagueLocation,
 } from "@/lib/leagueLocations"
+import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 import {
   activityEventCategories,
   activityEventTypes,
@@ -599,7 +600,7 @@ export default function ActivityPage() {
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
           <span>{activeLeague.name} · {activeSeason.name}</span>
           {isSeasonClosed ? (
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+            <span className={getSeasonStatusBadgeClassName("finished")}>
               Terminada
             </span>
           ) : null}

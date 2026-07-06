@@ -4,6 +4,7 @@ import { useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { formatMoney } from "@/lib/courtBooking"
+import { getPaymentStatusBadgeClassName } from "@/lib/statusStyles"
 import type { PlayerProfile } from "@/data/fakeData"
 import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
 
@@ -66,7 +67,7 @@ export function SeasonRegistrationPanel({
             {formatMoney(registrationFee.amount)} por jugador
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-900">
+        <span className={getPaymentStatusBadgeClassName(paidCount === players.length)}>
           {paidCount}/{players.length} pagadas
         </span>
       </div>
@@ -93,13 +94,16 @@ export function SeasonRegistrationPanel({
                 <p className="truncate text-sm font-black text-neutral-950">
                   {player.displayName}
                 </p>
-                <p
-                  className={`mt-0.5 text-xs font-semibold ${
-                    isPaid ? "text-emerald-700" : "text-amber-700"
-                  }`}
-                >
-                  {isPaid ? "Pagada" : `Pendiente · ${formatMoney(registrationFee.amount)}`}
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className={getPaymentStatusBadgeClassName(isPaid)}>
+                    {isPaid ? "Pagada" : "Pendiente"}
+                  </span>
+                  {!isPaid ? (
+                    <span className="text-xs font-semibold text-neutral-500">
+                      {formatMoney(registrationFee.amount)}
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               {canEdit ? (

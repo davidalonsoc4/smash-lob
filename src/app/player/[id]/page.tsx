@@ -13,6 +13,7 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 import {
   getPlayerScopeStats,
   getPlayerSeasonScopes,
@@ -105,7 +106,7 @@ export default function PlayerPage() {
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
           <span>{activeLeague.name} · {selectedScope.label}</span>
           {isSeasonClosed ? (
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+            <span className={getSeasonStatusBadgeClassName("finished")}>
               Terminada
             </span>
           ) : null}

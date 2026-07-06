@@ -580,14 +580,14 @@ function RoundManagementPanel({
             key={round.id}
             type="button"
             onClick={() => setSelectedRound(round.round)}
-            className={`rounded-2xl px-2 py-3 text-xs font-black ${
+            className={`rounded-2xl px-2 py-3 text-xs font-black ring-1 transition ${
               selectedRound === round.round
-                ? "bg-neutral-950 text-white"
+                ? "bg-neutral-950 text-white ring-neutral-950"
                 : round.status === "active"
-                  ? "bg-emerald-100 text-emerald-900"
+                  ? "bg-emerald-50 text-emerald-800 ring-emerald-200/80"
                   : round.status === "completed"
-                    ? "bg-neutral-200 text-neutral-600"
-                    : "bg-neutral-100 text-neutral-700"
+                    ? "bg-neutral-950 text-white ring-neutral-950"
+                    : "bg-sky-50 text-sky-800 ring-sky-200/80"
             }`}
           >
             <span className="block">J{round.round}</span>

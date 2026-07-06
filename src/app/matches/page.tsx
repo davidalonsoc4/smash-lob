@@ -11,6 +11,10 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
+import {
+  getRoundStatusBadgeClassName,
+  getSeasonStatusBadgeClassName,
+} from "@/lib/statusStyles"
 
 export default function MatchesPage() {
   const { t } = useI18n()
@@ -60,7 +64,7 @@ export default function MatchesPage() {
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
           <span>{activeLeague.name} · {activeSeason.name}</span>
           {isSeasonClosed ? (
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+            <span className={getSeasonStatusBadgeClassName("finished")}>
               Terminada
             </span>
           ) : null}
@@ -140,7 +144,7 @@ export default function MatchesPage() {
                   <h2 className="text-xl font-black">{round.name}</h2>
 
                   {roundStatusText ? (
-                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+                    <span className={getRoundStatusBadgeClassName(round.status)}>
                       {roundStatusText}
                     </span>
                   ) : null}

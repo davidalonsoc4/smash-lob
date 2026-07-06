@@ -8,6 +8,10 @@ import {
   useMatchData,
 } from "@/context/MatchDataProvider"
 import { formatMoney } from "@/lib/courtBooking"
+import {
+  getBookingStatusBadgeClassName,
+  getPaymentStatusBadgeClassName,
+} from "@/lib/statusStyles"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { PlayerProfile } from "@/data/fakeData"
 
@@ -322,11 +326,11 @@ export function CourtBookingPanel({
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm font-black text-neutral-950">Reserva de pista</p>
             {booking.isReserved ? (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800">
+              <span className={getBookingStatusBadgeClassName(true)}>
                 Reservada
               </span>
             ) : (
-              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+              <span className={getBookingStatusBadgeClassName(false)}>
                 Sin reserva
               </span>
             )}
@@ -415,13 +419,7 @@ export function CourtBookingPanel({
                       </div>
 
                       <div className="flex shrink-0 items-center gap-1.5">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
-                            transfer.isPaid
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-orange-100 text-orange-900"
-                          }`}
-                        >
+                        <span className={getPaymentStatusBadgeClassName(transfer.isPaid)}>
                           {transfer.isPaid ? "Pagado" : "Pendiente"}
                         </span>
 
