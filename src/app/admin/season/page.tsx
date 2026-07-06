@@ -2394,7 +2394,7 @@ function NewSeasonForm({
       {feedback && inviteCode ? (
         <InviteLinkCard
           inviteCode={inviteCode}
-          leagueId={activeLeague.id}
+          leagueId={activeLeagueId}
           leagueName={activeLeagueName}
         />
       ) : null}
