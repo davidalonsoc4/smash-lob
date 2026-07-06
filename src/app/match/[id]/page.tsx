@@ -338,14 +338,6 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {match.status === "scheduling" && !canEnterResult ? (
-        <AppCard>
-          <p className="font-black">{t.matchResult.pendingScheduleTitle}</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            {t.matchResult.pendingScheduleDescription}
-          </p>
-        </AppCard>
-      ) : null}
 
       {match.status === "postponed" && !canEnterResult ? (
         <AppCard>

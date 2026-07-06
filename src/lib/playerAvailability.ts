@@ -429,6 +429,14 @@ function isFutureCandidate(dateTimeLocalValue: string) {
 }
 
 
+function getAlignedCandidateStartMinutes(slotStart: number, stepMinutes: number) {
+  if (stepMinutes <= 0) {
+    return slotStart;
+  }
+
+  return Math.ceil(slotStart / stepMinutes) * stepMinutes;
+}
+
 function getCandidateStartMinutesFromSlots({
   slots,
   slotDurationMinutes,
@@ -444,13 +452,17 @@ function getCandidateStartMinutesFromSlots({
     const slotStart = timeToMinutes(slot.start);
     const slotEnd = timeToMinutes(slot.end);
     const latestStart = slotEnd - slotDurationMinutes;
+    const firstCandidateStart = getAlignedCandidateStartMinutes(
+      slotStart,
+      stepMinutes,
+    );
 
-    if (latestStart < slotStart) {
+    if (latestStart < firstCandidateStart) {
       return;
     }
 
     for (
-      let startMinutes = slotStart;
+      let startMinutes = firstCandidateStart;
       startMinutes <= latestStart;
       startMinutes += stepMinutes
     ) {
@@ -531,7 +543,7 @@ export function buildAvailabilityRecommendations({
   startsAt,
   endsAt,
   slotDurationMinutes = 120,
-  stepMinutes = 30,
+  stepMinutes = 60,
   maxResults = 5,
 }: BuildAvailabilityRecommendationsParams): AvailabilityRecommendation[] {
   const uniquePlayerIds = [...new Set(playerIds)].filter(Boolean);
