@@ -150,7 +150,7 @@ export async function regenerateSupabaseLeagueInviteCode({
   })
 
   if (inviteError) {
-    throw inviteError
+    console.warn("No se ha podido guardar el histórico de invitación", inviteError)
   }
 
   return {

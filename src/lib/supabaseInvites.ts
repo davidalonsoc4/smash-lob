@@ -131,7 +131,36 @@ async function fetchLeagueByInviteCode(code: string) {
   return fetchLeagueById((invite as SupabaseInviteRow).league_id)
 }
 
-export async function fetchSupabaseInviteSnapshot(
+async function fetchSupabaseInviteSnapshotFromApi(
+  code: string
+): Promise<SupabaseInviteSnapshot | null> {
+  const normalizedCode = normalizeInviteCode(code)
+
+  if (!normalizedCode || typeof window === "undefined") {
+    return null
+  }
+
+  const response = await fetch(
+    `/api/invites/${encodeURIComponent(normalizedCode)}`,
+    { cache: "no-store" }
+  )
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(`invite-api-${response.status}`)
+  }
+
+  const payload = (await response.json()) as {
+    snapshot?: SupabaseInviteSnapshot | null
+  }
+
+  return payload.snapshot ?? null
+}
+
+async function fetchSupabaseInviteSnapshotDirect(
   code: string
 ): Promise<SupabaseInviteSnapshot | null> {
   const leagueRow = await fetchLeagueByInviteCode(code)
@@ -288,6 +317,16 @@ export async function fetchSupabaseInviteSnapshot(
         [league.id]: league.activeSeasonId,
       },
     },
+  }
+}
+
+export async function fetchSupabaseInviteSnapshot(
+  code: string
+): Promise<SupabaseInviteSnapshot | null> {
+  try {
+    return await fetchSupabaseInviteSnapshotFromApi(code)
+  } catch {
+    return fetchSupabaseInviteSnapshotDirect(code)
   }
 }
 
