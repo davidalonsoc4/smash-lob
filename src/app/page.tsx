@@ -36,6 +36,7 @@ import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
 import {
   ensureSeasonRegistrationPlayers,
+  getSeasonRegistrationPendingPayments,
   isSeasonRegistrationSettled,
   setSeasonRegistrationPaymentPaidStatus,
 } from "@/lib/seasonRegistration";
@@ -427,9 +428,10 @@ export default function Home() {
     useSeasonSettings();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
+  const [isSendingRegistrationReminder, setIsSendingRegistrationReminder] = useState(false);
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
-  const { currentUserId } = useCurrentUser();
+  const { currentUserId, currentUser } = useCurrentUser();
   const { isLeagueAdmin, hasLeagueAdminRole } = useLeagueAccess();
   const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
     useCurrentLeagueData();
@@ -533,8 +535,12 @@ export default function Home() {
     ? players.find((player) => player.userId === activeLeague.createdByUserId)
     : null;
   const organizerName = organizerPlayer?.displayName ?? "organizador de la liga";
+  const isCurrentUserLeagueCreator = Boolean(
+    activeLeague.createdByUserId &&
+      activeLeague.createdByUserId === currentUser.userId,
+  );
   const shouldShowRegistrationPanel =
-    !isSeasonClosed &&
+    isSeasonUpcoming &&
     roundSettings.registrationFee.enabled &&
     roundSettings.registrationFee.amount > 0 &&
     (canManageRegistration ||
@@ -571,6 +577,49 @@ export default function Home() {
     }
 
     updateSeasonRoundSettings(nextSettings);
+  }
+
+  async function handleSendRegistrationPaymentReminder() {
+    if (!isCurrentUserLeagueCreator || isSendingRegistrationReminder) {
+      return false;
+    }
+
+    const pendingPlayerIds = getSeasonRegistrationPendingPayments({
+      registrationFee: roundSettings.registrationFee,
+      playerIds: players.map((player) => player.id),
+    });
+
+    if (pendingPlayerIds.length === 0) {
+      return false;
+    }
+
+    setIsSendingRegistrationReminder(true);
+
+    try {
+      const actor = getActorFromSession(session);
+
+      await recordActivityEvent({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        actorEmail: actor.actorEmail,
+        actorDisplayName: actor.actorDisplayName,
+        type: "season_registration_payment_reminder",
+        title: "Recordatorio de inscripción",
+        description: `Inscripción pendiente · ${formatMoney(roundSettings.registrationFee.amount)}`,
+        metadata: {
+          amount: roundSettings.registrationFee.amount,
+          organizerName,
+          pendingPlayerIds,
+          pendingCount: pendingPlayerIds.length,
+        },
+      });
+
+      return true;
+    } catch {
+      return false;
+    } finally {
+      setIsSendingRegistrationReminder(false);
+    }
   }
 
   const rankingPlayers = [...players].sort((a, b) => {
@@ -872,7 +921,9 @@ export default function Home() {
             canManage={canManageRegistration}
             organizerName={organizerName}
             isSeasonUpcoming={isSeasonUpcoming}
+            canSendReminder={isCurrentUserLeagueCreator}
             onTogglePayment={handleToggleRegistrationPayment}
+            onSendReminder={handleSendRegistrationPaymentReminder}
           />
         </section>
       ) : null}

@@ -691,6 +691,7 @@ export const en = {
       court_booking_cleared: "Booking",
       court_booking_payment_paid: "Payment",
       court_booking_payment_reminder: "Reminder",
+      season_registration_payment_reminder: "Registration",
       league_created: "League",
       league_updated: "League",
       league_logo_updated: "League",

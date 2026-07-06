@@ -697,6 +697,7 @@ export const eu = {
       court_booking_cleared: "Erreserba",
       court_booking_payment_paid: "Ordainketa",
       court_booking_payment_reminder: "Gogorarazpena",
+      season_registration_payment_reminder: "Izen-ematea",
       league_created: "Liga",
       league_updated: "Liga",
       league_logo_updated: "Liga",

@@ -16,6 +16,7 @@ export type ActivityEventType =
   | "court_booking_cleared"
   | "court_booking_payment_paid"
   | "court_booking_payment_reminder"
+  | "season_registration_payment_reminder"
   | "league_created"
   | "league_updated"
   | "league_logo_updated"
@@ -86,6 +87,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "court_booking_cleared" ||
     type === "court_booking_payment_paid" ||
     type === "court_booking_payment_reminder" ||
+    type === "season_registration_payment_reminder" ||
     type === "league_created" ||
     type === "league_updated" ||
     type === "league_logo_updated" ||

@@ -171,6 +171,10 @@ function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
     return toPlayerId ? [toPlayerId] : [];
   }
 
+  if (event.type === "season_registration_payment_reminder") {
+    return toStringArray(metadata.pendingPlayerIds);
+  }
+
   return [];
 }
 
@@ -252,7 +256,8 @@ function getNotificationUrl(event: ActivityEventRow) {
     event.type === "season_created" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
-    event.type === "round_in_play"
+    event.type === "round_in_play" ||
+    event.type === "season_registration_payment_reminder"
   ) {
     return "/";
   }
@@ -350,6 +355,10 @@ function getNotificationTitle(event: ActivityEventRow) {
     return "Pago de pista recibido";
   }
 
+  if (event.type === "season_registration_payment_reminder") {
+    return "Recordatorio de inscripción";
+  }
+
   if (event.type === "round_in_play") {
     return "Jornada en juego";
   }
@@ -428,6 +437,19 @@ function getNotificationBody(
     if (fromPlayerId && amount > 0) {
       return `${getPlayerName(fromPlayerId, playerNamesById)} ha pagado ${formatMoney(amount)} de la reserva de pista.`;
     }
+  }
+
+  if (event.type === "season_registration_payment_reminder") {
+    const metadata = toRecord(event.metadata);
+    const amount = toNumber(metadata.amount);
+    const organizerName =
+      typeof metadata.organizerName === "string" && metadata.organizerName.trim()
+        ? metadata.organizerName.trim()
+        : "el organizador";
+
+    return amount > 0
+      ? `Recuerda saldar tu inscripción de ${formatMoney(amount)} con ${organizerName}.`
+      : `Recuerda saldar tu inscripción con ${organizerName}.`;
   }
 
   if (event.type === "round_in_play") {
@@ -665,6 +687,9 @@ function getRelevantPlayerIds(
   });
 
   toStringArray(metadata.participantIds).forEach((playerId) =>
+    playerIds.add(playerId),
+  );
+  toStringArray(metadata.pendingPlayerIds).forEach((playerId) =>
     playerIds.add(playerId),
   );
 

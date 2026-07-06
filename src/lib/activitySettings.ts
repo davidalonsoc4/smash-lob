@@ -103,6 +103,12 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     personalScope: "match_participants",
     pushReady: true,
   },
+  season_registration_payment_reminder: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
   league_created: {
     category: "league",
     defaultMode: "activity_only",

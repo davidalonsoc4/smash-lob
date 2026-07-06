@@ -20,6 +20,7 @@ export type NotificationPreferenceDefinition = {
 
 export const alwaysEnabledNotificationEventTypes: ActivityEventType[] = [
   "court_booking_payment_reminder",
+  "season_registration_payment_reminder",
 ]
 
 export const notificationPreferenceDefinitions: NotificationPreferenceDefinition[] = [

@@ -15,7 +15,9 @@ type SeasonRegistrationPanelProps = {
   canManage: boolean
   organizerName?: string | null
   isSeasonUpcoming?: boolean
+  canSendReminder?: boolean
   onTogglePayment: (playerId: string, isPaid: boolean) => Promise<void> | void
+  onSendReminder?: () => Promise<boolean> | boolean
 }
 
 export function SeasonRegistrationPanel({
@@ -25,9 +27,13 @@ export function SeasonRegistrationPanel({
   canManage,
   organizerName,
   isSeasonUpcoming = false,
+  canSendReminder = false,
   onTogglePayment,
+  onSendReminder,
 }: SeasonRegistrationPanelProps) {
   const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null)
+  const [isSendingReminder, setIsSendingReminder] = useState(false)
+  const [reminderMessage, setReminderMessage] = useState<string | null>(null)
 
   const paymentByPlayerId = useMemo(
     () =>
@@ -71,6 +77,26 @@ export function SeasonRegistrationPanel({
     }
   }
 
+  async function handleSendReminder() {
+    if (!canSendReminder || !onSendReminder || isSendingReminder) {
+      return
+    }
+
+    setIsSendingReminder(true)
+    setReminderMessage(null)
+
+    try {
+      const sent = await onSendReminder()
+      setReminderMessage(
+        sent
+          ? "Recordatorio enviado a los jugadores pendientes."
+          : "No se ha podido mandar el recordatorio.",
+      )
+    } finally {
+      setIsSendingReminder(false)
+    }
+  }
+
   return (
     <AppCard className="border-emerald-200 bg-emerald-50 p-3">
       <div className="flex items-start justify-between gap-3">
@@ -107,31 +133,50 @@ export function SeasonRegistrationPanel({
       )}
 
       {canManage ? (
-        <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-2xl bg-white/90 text-center">
-          <div className="border-r border-emerald-100 px-2 py-2">
-            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
-              Pendientes
-            </p>
-            <p className="text-sm font-black text-neutral-950">
-              {pendingPlayers.length}
-            </p>
+        <div className="mt-3 space-y-2">
+          <div className="grid grid-cols-3 overflow-hidden rounded-2xl bg-white/90 text-center">
+            <div className="border-r border-emerald-100 px-2 py-2">
+              <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                Pendientes
+              </p>
+              <p className="text-sm font-black text-neutral-950">
+                {pendingPlayers.length}
+              </p>
+            </div>
+            <div className="border-r border-emerald-100 px-2 py-2">
+              <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                Te deben
+              </p>
+              <p className="text-sm font-black text-neutral-950">
+                {formatMoney(pendingAmount)}
+              </p>
+            </div>
+            <div className="px-2 py-2">
+              <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                Total
+              </p>
+              <p className="text-sm font-black text-neutral-950">
+                {formatMoney(players.length * registrationFee.amount)}
+              </p>
+            </div>
           </div>
-          <div className="border-r border-emerald-100 px-2 py-2">
-            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
-              Te deben
+
+          {canSendReminder && pendingPlayers.length > 0 ? (
+            <button
+              type="button"
+              onClick={handleSendReminder}
+              disabled={isSendingReminder}
+              className="w-full rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black uppercase tracking-wide text-white transition active:scale-[0.99] disabled:opacity-40"
+            >
+              {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
+            </button>
+          ) : null}
+
+          {reminderMessage ? (
+            <p className="rounded-2xl bg-white/80 px-3 py-2 text-center text-xs font-semibold text-emerald-900">
+              {reminderMessage}
             </p>
-            <p className="text-sm font-black text-neutral-950">
-              {formatMoney(pendingAmount)}
-            </p>
-          </div>
-          <div className="px-2 py-2">
-            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
-              Total
-            </p>
-            <p className="text-sm font-black text-neutral-950">
-              {formatMoney(players.length * registrationFee.amount)}
-            </p>
-          </div>
+          ) : null}
         </div>
       ) : currentUserPayment && !currentUserPayment.isPaid ? (
         <div className="mt-3 rounded-2xl bg-white/90 px-3 py-2.5">

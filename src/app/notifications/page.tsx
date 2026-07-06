@@ -14,7 +14,10 @@ import {
   type ActivityEvent,
 } from "@/lib/activity"
 import { formatMoney } from "@/lib/courtBooking"
-import { getNotificationPreferenceKeyForEvent } from "@/lib/notificationSettings"
+import {
+  getNotificationPreferenceKeyForEvent,
+  isAlwaysEnabledNotificationEvent,
+} from "@/lib/notificationSettings"
 
 type TransferLike = {
   fromPlayerId: string
@@ -132,7 +135,10 @@ function isNotificationForCurrentUser({
   currentUserMatchIds: Set<string>
   currentUserEmail: string
 }) {
-  if (!getNotificationPreferenceKeyForEvent(event.type)) {
+  if (
+    !getNotificationPreferenceKeyForEvent(event.type) &&
+    !isAlwaysEnabledNotificationEvent(event.type)
+  ) {
     return false
   }
 
@@ -156,6 +162,10 @@ function isNotificationForCurrentUser({
       Boolean(event.matchId && currentUserMatchIds.has(event.matchId)) ||
       participantIds.includes(currentUserId)
     )
+  }
+
+  if (event.type === "season_registration_payment_reminder") {
+    return toStringArray(metadata.pendingPlayerIds).includes(currentUserId)
   }
 
   if (
@@ -238,6 +248,10 @@ function getNotificationTitle(event: ActivityEvent) {
     return "Pago de pista recibido"
   }
 
+  if (event.type === "season_registration_payment_reminder") {
+    return "Recordatorio de inscripción"
+  }
+
   if (event.type === "match_result_missing_reminder") {
     return "Falta el resultado"
   }
@@ -310,6 +324,18 @@ function getNotificationBody({
     if (fromPlayerId && Number.isFinite(amount) && amount > 0) {
       return `${getPlayerName(fromPlayerId, players)} ha pagado ${formatMoney(amount)} de la reserva de pista.`
     }
+  }
+
+  if (event.type === "season_registration_payment_reminder") {
+    const amount = Number(metadata.amount)
+    const organizerName =
+      typeof metadata.organizerName === "string" && metadata.organizerName.trim()
+        ? metadata.organizerName.trim()
+        : "el organizador"
+
+    return Number.isFinite(amount) && amount > 0
+      ? `Recuerda saldar tu inscripción de ${formatMoney(amount)} con ${organizerName}.`
+      : `Recuerda saldar tu inscripción con ${organizerName}.`
   }
 
   if (event.type === "match_result_saved" || event.type === "match_result_updated") {

@@ -703,6 +703,7 @@ export const es = {
       court_booking_cleared: "Reserva",
       court_booking_payment_paid: "Pago",
       court_booking_payment_reminder: "Recordatorio",
+      season_registration_payment_reminder: "Inscripción",
       league_created: "Liga",
       league_updated: "Liga",
       league_logo_updated: "Liga",
