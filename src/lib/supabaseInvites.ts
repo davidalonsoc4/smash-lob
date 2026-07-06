@@ -35,6 +35,13 @@ type SupabaseLeagueRow = {
   status_colors_enabled?: boolean | null
 }
 
+type SupabaseInviteRow = {
+  league_id: string
+}
+
+const leagueInviteSelect =
+  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled"
+
 type ClaimPlayerResult =
   | { ok: true; membership: UserLeagueMembership }
   | { ok: false; error: "already-in-league" | "player-already-claimed" }
@@ -75,11 +82,25 @@ function mapLeague(league: SupabaseLeagueRow): League {
   }
 }
 
+async function fetchLeagueById(leagueId: string) {
+  const { data, error } = await supabase
+    .from("leagues")
+    .select(leagueInviteSelect)
+    .eq("id", leagueId)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  return data ? (data as SupabaseLeagueRow) : null
+}
+
 async function fetchLeagueByInviteCode(code: string) {
   const normalizedCode = normalizeInviteCode(code)
   const { data: directLeague, error: directLeagueError } = await supabase
     .from("leagues")
-    .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled")
+    .select(leagueInviteSelect)
     .eq("invite_code", normalizedCode)
     .maybeSingle()
 
@@ -91,7 +112,23 @@ async function fetchLeagueByInviteCode(code: string) {
     return directLeague as SupabaseLeagueRow
   }
 
-  return null
+  const { data: invite, error: inviteError } = await supabase
+    .from("invites")
+    .select("league_id")
+    .eq("code", normalizedCode)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (inviteError) {
+    throw inviteError
+  }
+
+  if (!invite?.league_id) {
+    return null
+  }
+
+  return fetchLeagueById((invite as SupabaseInviteRow).league_id)
 }
 
 export async function fetchSupabaseInviteSnapshot(
