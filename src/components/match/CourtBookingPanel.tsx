@@ -185,7 +185,14 @@ export function CourtBookingPanel({
     (sum, reservation) => sum + reservation.amount,
     0
   )
-  const canSave = canManage && !isSaving && selectedAmountsAreValid
+  const isCurrentUserReservationPayer = booking.reservations.some(
+    (reservation) => reservation.playerId === currentUserId
+  )
+  const canCreateBooking = canManage && !booking.isReserved
+  const canManageExistingBooking =
+    canManage && booking.isReserved && isCurrentUserReservationPayer
+  const canManageBooking = canCreateBooking || canManageExistingBooking
+  const canSave = canManageBooking && !isSaving && selectedAmountsAreValid
   const currentUserTransfers = booking.transfers.filter(
     (transfer) => transfer.fromPlayerId === currentUserId
   )
@@ -263,7 +270,7 @@ export function CourtBookingPanel({
   }
 
   async function handleClearBooking() {
-    if (!canManage || isSaving) {
+    if (!canManageExistingBooking || isSaving) {
       return
     }
 
@@ -300,7 +307,11 @@ export function CourtBookingPanel({
   }
 
   async function handleSendReminder() {
-    if (!canManage || isSendingReminder || pendingTransfersCount === 0) {
+    if (
+      !canManageExistingBooking ||
+      isSendingReminder ||
+      pendingTransfersCount === 0
+    ) {
       return
     }
 
@@ -515,7 +526,7 @@ export function CourtBookingPanel({
             </div>
           ) : null}
 
-          {canManage ? (
+          {canManageExistingBooking ? (
             <div className="space-y-2">
               {pendingTransfersCount > 0 ? (
                 <button
@@ -550,7 +561,7 @@ export function CourtBookingPanel({
         </div>
       ) : null}
 
-      {isExpanded && isEditing && canManage ? (
+      {isExpanded && isEditing && canManageBooking ? (
         <form onSubmit={handleSubmit} className="mt-1.5 space-y-1.5">
           {!hasMultipleSelectedPayers ? (
             <div className="space-y-1.5">
