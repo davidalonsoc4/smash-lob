@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
@@ -29,12 +29,14 @@ export default function MatchDetailPage() {
   const { isLeagueAdmin } = useLeagueAccess()
   const { clearMatchResult } = useMatchData()
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
     useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [clearResultError, setClearResultError] = useState<string | null>(null)
 
+  const shouldFocusBooking = searchParams.get("focus") === "booking"
   const match = matches.find((item) => item.id === params.id)
   const round = match
     ? rounds.find((item) => item.round === match.round)
@@ -271,6 +273,7 @@ export default function MatchDetailPage() {
           currentUserId={currentUserId}
           canManage={canManageMatch}
           booking={match.courtBooking}
+          shouldFocusBooking={shouldFocusBooking}
         />
       ) : null}
 

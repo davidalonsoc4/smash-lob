@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent, useMemo, useState } from "react"
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import {
   type CourtBooking,
@@ -23,6 +23,7 @@ type CourtBookingPanelProps = {
   currentUserId: string
   canManage: boolean
   booking: CourtBooking
+  shouldFocusBooking?: boolean
 }
 
 type ReservationInput = {
@@ -112,6 +113,7 @@ export function CourtBookingPanel({
   currentUserId,
   canManage,
   booking,
+  shouldFocusBooking = false,
 }: CourtBookingPanelProps) {
   const { t } = useI18n()
   const {
@@ -129,7 +131,10 @@ export function CourtBookingPanel({
       return 0
     })
   }, [currentUserId, teamA, teamB])
-  const [isExpanded, setIsExpanded] = useState(!booking.isReserved && canManage)
+  const panelRef = useRef<HTMLDivElement | null>(null)
+  const [isExpanded, setIsExpanded] = useState(
+    shouldFocusBooking || (!booking.isReserved && canManage)
+  )
   const [isEditing, setIsEditing] = useState(!booking.isReserved && canManage)
   const [reservationInputs, setReservationInputs] = useState(() =>
     getInitialReservationInputs({
@@ -148,6 +153,23 @@ export function CourtBookingPanel({
   const [isSaving, setIsSaving] = useState(false)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!shouldFocusBooking) {
+      return
+    }
+
+    setIsExpanded(true)
+
+    const scrollTimeout = window.setTimeout(() => {
+      panelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    }, 80)
+
+    return () => window.clearTimeout(scrollTimeout)
+  }, [shouldFocusBooking])
 
   const selectedReservationInputs = reservationInputs.filter((input) =>
     selectedPayerIds.includes(input.playerId)
@@ -320,7 +342,8 @@ export function CourtBookingPanel({
   }
 
   return (
-    <AppCard className="p-2">
+    <div ref={panelRef} className="scroll-mt-4">
+      <AppCard className="p-2">
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -712,6 +735,7 @@ export function CourtBookingPanel({
           </div>
         </form>
       ) : null}
-    </AppCard>
+      </AppCard>
+    </div>
   )
 }

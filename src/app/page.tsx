@@ -886,7 +886,7 @@ export default function Home() {
               {pendingPaymentItems.slice(0, 3).map(({ match, transfer, toPlayerName }) => (
                 <Link
                   key={`${match.id}-${transfer.id}`}
-                  href={`/match/${match.id}`}
+                  href={`/match/${match.id}?focus=booking`}
                   className="flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2 transition active:scale-[0.99]"
                 >
                   <div className="min-w-0">
