@@ -1,7 +1,9 @@
 "use client";
 
 import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import type { PlayerProfile } from "@/data/fakeData";
 import { useMatchData } from "@/context/MatchDataProvider";
+import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   createScheduledLeagueLocationValue,
@@ -35,11 +37,15 @@ function capitalizeFirstLetter(value: string | null | undefined) {
 
 type MatchScheduleFormProps = {
   matchId: string;
+  leagueId: string;
+  seasonId: string;
   status: string;
   scheduledAt: string | null;
   dateLabel: string | null;
   location: string | null;
   availableLocations: LeagueLocation[];
+  playerIds: string[];
+  players: PlayerProfile[];
   roundStartsAt: string | null;
   roundEndsAt: string | null;
   canManage: boolean;
@@ -51,11 +57,15 @@ const otherLocationValue = "__other__";
 
 export function MatchScheduleForm({
   matchId,
+  leagueId,
+  seasonId,
   status,
   scheduledAt,
   dateLabel,
   location,
   availableLocations,
+  playerIds,
+  players,
   roundStartsAt,
   roundEndsAt,
   canManage,
@@ -431,6 +441,19 @@ export function MatchScheduleForm({
 
       {canManage && isEditing ? (
         <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
+          <MatchAvailabilitySuggestions
+            leagueId={leagueId}
+            seasonId={seasonId}
+            playerIds={playerIds}
+            players={players}
+            roundStartsAt={roundStartsAt}
+            roundEndsAt={roundEndsAt}
+            onUseSuggestion={(dateTimeLocalValue) => {
+              setScheduledAtValue(dateTimeLocalValue);
+              setActionError(null);
+            }}
+          />
+
           <div className="grid gap-2.5 sm:grid-cols-2">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-wide text-neutral-600">

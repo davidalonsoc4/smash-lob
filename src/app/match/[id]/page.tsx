@@ -232,11 +232,15 @@ export default function MatchDetailPage() {
 
       <MatchScheduleForm
         matchId={match.id}
+        leagueId={activeLeague.id}
+        seasonId={activeSeason.id}
         status={match.status}
         scheduledAt={match.scheduledAt}
         dateLabel={match.dateLabel}
         location={match.location}
         availableLocations={activeLeague.locations}
+        playerIds={[...match.teamA, ...match.teamB]}
+        players={players}
         roundStartsAt={round?.startsAt ?? null}
         roundEndsAt={round?.endsAt ?? null}
         canManage={canManageMatch}

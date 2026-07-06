@@ -288,3 +288,247 @@ export function countWeeklyAvailabilitySlots(weeklySlots: WeeklyAvailability) {
     0,
   );
 }
+
+export type AvailabilityRecommendation = {
+  date: string;
+  dateLabel: string;
+  timeLabel: string;
+  dateTimeLocalValue: string;
+  start: string;
+  end: string;
+  coverage: number;
+  availablePlayerIds: string[];
+  missingPlayerIds: string[];
+};
+
+type BuildAvailabilityRecommendationsParams = {
+  playerIds: string[];
+  availabilities: PlayerAvailability[];
+  startsAt: string | null;
+  endsAt: string | null;
+  slotDurationMinutes?: number;
+  stepMinutes?: number;
+  maxResults?: number;
+};
+
+const weekdayByDateIndex: WeekdayId[] = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+function minutesToTime(value: number) {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+function formatDateValue(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateValue(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function addDays(date: Date, days: number) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+
+  return result;
+}
+
+function getDateRange({
+  startsAt,
+  endsAt,
+}: {
+  startsAt: string | null;
+  endsAt: string | null;
+}) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = startsAt ? parseDateValue(startsAt) : today;
+  const endDate = endsAt ? parseDateValue(endsAt) : addDays(startDate, 21);
+  const safeStartDate = startDate < today ? today : startDate;
+
+  if (endDate < safeStartDate) {
+    return [];
+  }
+
+  const dates: Date[] = [];
+  const cursor = new Date(safeStartDate);
+
+  while (cursor <= endDate && dates.length < 35) {
+    dates.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return dates;
+}
+
+function getWeekdayIdForDate(date: Date) {
+  return weekdayByDateIndex[date.getDay()];
+}
+
+function getAvailabilitySlotsForDate({
+  availability,
+  date,
+}: {
+  availability: PlayerAvailability | null | undefined;
+  date: string;
+}) {
+  if (!availability) {
+    return [];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(availability.dateOverrides, date)) {
+    return normalizeAvailabilitySlots(availability.dateOverrides[date]);
+  }
+
+  const weekdayId = getWeekdayIdForDate(parseDateValue(date));
+
+  return normalizeAvailabilitySlots(availability.weeklySlots[weekdayId]);
+}
+
+function isSlotCovered({
+  slots,
+  startMinutes,
+  endMinutes,
+}: {
+  slots: AvailabilitySlot[];
+  startMinutes: number;
+  endMinutes: number;
+}) {
+  return slots.some(
+    (slot) =>
+      timeToMinutes(slot.start) <= startMinutes &&
+      timeToMinutes(slot.end) >= endMinutes,
+  );
+}
+
+function isFutureCandidate(dateTimeLocalValue: string) {
+  const candidate = new Date(dateTimeLocalValue);
+  const now = new Date();
+
+  return candidate.getTime() > now.getTime() + 30 * 60 * 1000;
+}
+
+function formatRecommendationDateLabel(date: Date) {
+  const weekday = new Intl.DateTimeFormat("es-ES", {
+    weekday: "long",
+  }).format(date);
+  const dayMonth = new Intl.DateTimeFormat("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date);
+  const capitalizedWeekday =
+    weekday.charAt(0).toLocaleUpperCase("es-ES") + weekday.slice(1);
+
+  return `${capitalizedWeekday}, ${dayMonth}`;
+}
+
+export function buildAvailabilityRecommendations({
+  playerIds,
+  availabilities,
+  startsAt,
+  endsAt,
+  slotDurationMinutes = 120,
+  stepMinutes = 30,
+  maxResults = 5,
+}: BuildAvailabilityRecommendationsParams): AvailabilityRecommendation[] {
+  const uniquePlayerIds = [...new Set(playerIds)].filter(Boolean);
+
+  if (uniquePlayerIds.length === 0) {
+    return [];
+  }
+
+  const availabilityByPlayerId = new Map(
+    availabilities.map((availability) => [availability.playerId, availability]),
+  );
+  const dates = getDateRange({ startsAt, endsAt });
+  const recommendations: AvailabilityRecommendation[] = [];
+
+  dates.forEach((date) => {
+    const dateValue = formatDateValue(date);
+    const playerSlots = uniquePlayerIds.map((playerId) => ({
+      playerId,
+      slots: getAvailabilitySlotsForDate({
+        availability: availabilityByPlayerId.get(playerId),
+        date: dateValue,
+      }),
+    }));
+    const allStartMinutes = playerSlots.flatMap(({ slots }) =>
+      slots.map((slot) => timeToMinutes(slot.start)),
+    );
+    const allEndMinutes = playerSlots.flatMap(({ slots }) =>
+      slots.map((slot) => timeToMinutes(slot.end)),
+    );
+
+    if (allStartMinutes.length === 0 || allEndMinutes.length === 0) {
+      return;
+    }
+
+    const minStart = Math.min(...allStartMinutes);
+    const maxEnd = Math.max(...allEndMinutes);
+
+    for (
+      let startMinutes = minStart;
+      startMinutes + slotDurationMinutes <= maxEnd;
+      startMinutes += stepMinutes
+    ) {
+      const endMinutes = startMinutes + slotDurationMinutes;
+      const availablePlayerIds = playerSlots
+        .filter(({ slots }) => isSlotCovered({ slots, startMinutes, endMinutes }))
+        .map(({ playerId }) => playerId);
+
+      if (availablePlayerIds.length < Math.min(3, uniquePlayerIds.length)) {
+        continue;
+      }
+
+      const start = minutesToTime(startMinutes);
+      const end = minutesToTime(endMinutes);
+      const dateTimeLocalValue = `${dateValue}T${start}`;
+
+      if (!isFutureCandidate(dateTimeLocalValue)) {
+        continue;
+      }
+
+      recommendations.push({
+        date: dateValue,
+        dateLabel: formatRecommendationDateLabel(date),
+        timeLabel: `${start} - ${end}`,
+        dateTimeLocalValue,
+        start,
+        end,
+        coverage: availablePlayerIds.length,
+        availablePlayerIds,
+        missingPlayerIds: uniquePlayerIds.filter(
+          (playerId) => !availablePlayerIds.includes(playerId),
+        ),
+      });
+    }
+  });
+
+  return recommendations
+    .sort((a, b) => {
+      if (b.coverage !== a.coverage) {
+        return b.coverage - a.coverage;
+      }
+
+      return a.dateTimeLocalValue.localeCompare(b.dateTimeLocalValue);
+    })
+    .slice(0, maxResults);
+}
