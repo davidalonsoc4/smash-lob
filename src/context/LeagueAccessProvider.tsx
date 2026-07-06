@@ -1130,7 +1130,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const unlinkLeaguePlayerAccount = useCallback(
     async (leagueId: string, playerId: string) => {
       try {
-        await unlinkSupabaseLeagueMembership({ leagueId, playerId });
+        if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
+          await unlinkSupabaseLeagueMembership({ leagueId, playerId });
+        }
 
         setMemberships((currentMemberships) => {
           const nextMemberships = currentMemberships.filter(

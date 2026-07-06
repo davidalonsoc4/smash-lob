@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
@@ -179,16 +180,55 @@ function AccountAvatarSettings() {
 
 export default function SettingsPage() {
   const { t } = useI18n()
+  const { currentUser } = useCurrentUser()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const {
     canCreateLeagues,
+    getMembershipForLeague,
     hasLeagueAdminRole,
     isAdminViewEnabled,
     setAdminViewEnabled,
+    unlinkLeaguePlayerAccount,
     userLeagues,
   } = useLeagueAccess()
+  const router = useRouter()
+  const activeMembership = getMembershipForLeague(activeLeague.id)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
+  const canSelfUnlink = Boolean(activeMembership && activeMembership.role !== "creator")
   const hasLeagues = userLeagues.length > 0
+  const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
+  const [unlinkLeagueError, setUnlinkLeagueError] = useState<string | null>(null)
+
+  async function handleUnlinkCurrentLeague() {
+    if (!canSelfUnlink || isUnlinkingLeague) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Vas a desvincularte de ${activeLeague.name}. Tu jugador quedará libre para poder reclamarlo de nuevo con una invitación. ¿Continuar?`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsUnlinkingLeague(true)
+    setUnlinkLeagueError(null)
+
+    const ok = await unlinkLeaguePlayerAccount(activeLeague.id, currentUser.id)
+
+    setIsUnlinkingLeague(false)
+
+    if (!ok) {
+      setUnlinkLeagueError(
+        "No se ha podido desvincular tu cuenta de esta liga. Revisa smash-lob-last-supabase-error.",
+      )
+      return
+    }
+
+    window.localStorage.removeItem("smash-lob-active-league")
+    router.replace("/leagues")
+  }
 
   return (
     <div className="compact-page space-y-3">
@@ -360,6 +400,28 @@ export default function SettingsPage() {
         </div>
       </AppCard>
 
+
+      {canSelfUnlink ? (
+        <AppCard className="border-red-100 bg-red-50">
+          <p className="font-bold text-red-950">Desvincularme de esta liga</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-red-700">
+            Saldrás de {activeLeague.name} y tu jugador quedará libre para poder
+            reclamarlo de nuevo con una invitación. No se borran partidos, resultados
+            ni temporadas.
+          </p>
+          <button
+            type="button"
+            onClick={handleUnlinkCurrentLeague}
+            disabled={isUnlinkingLeague}
+            className="mt-3 w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200"
+          >
+            {isUnlinkingLeague ? "Desvinculando..." : "Desvincularme de esta liga"}
+          </button>
+          {unlinkLeagueError ? (
+            <p className="mt-2 text-xs font-bold text-red-700">{unlinkLeagueError}</p>
+          ) : null}
+        </AppCard>
+      ) : null}
 
       <button
         type="button"

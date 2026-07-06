@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { LeagueRulesSummary } from "@/components/league/LeagueRulesSummary"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -254,7 +255,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     }
 
     if (!hasAcceptedRules) {
-      setError("Debes confirmar las reglas antes de vincular tu dispositivo a la temporada.")
+      setError("Debes confirmar el reglamento antes de vincular tu cuenta a la temporada.")
       return
     }
 
@@ -330,29 +331,21 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       {!existingMembership ? (
         <AppCard className={hasAcceptedRules ? "border-emerald-200 bg-emerald-50" : ""}>
           <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
-            Reglas de acceso
+            Reglas de la liga
           </p>
           <h2 className="mt-1 text-lg font-black tracking-tight">
-            Confirma las reglas antes de reclamar jugador
+            Confirma el reglamento antes de reclamar jugador
           </h2>
-          <div className="mt-3 space-y-2 text-sm font-semibold leading-5 text-neutral-600">
-            <p>
-              Al entrar aceptas participar en la temporada activa, respetar el calendario
-              acordado y registrar resultados reales cuando corresponda.
-            </p>
-            <p>
-              Si la temporada tiene inscripción, deberás saldar tu cuota antes de que
-              la liga comience.
-            </p>
-            {registrationFee?.enabled && registrationFee.amount > 0 ? (
-              <p className="rounded-2xl bg-white/80 px-3 py-2 text-neutral-700">
-                Inscripción: <strong>{registrationFee.amount.toFixed(2).replace(".", ",")} €</strong> por jugador.
-                {registrationFee.purpose ? ` ${registrationFee.purpose}` : " Se destinará a premios, bolas o gastos comunes de organización."}
-              </p>
-            ) : null}
-          </div>
+          <p className="mt-2 text-sm font-semibold leading-5 text-neutral-500">
+            La cuenta no se vinculará a ningún jugador hasta que aceptes estas reglas.
+          </p>
 
-          <label className="mt-4 flex items-start gap-3 rounded-2xl bg-white/80 px-3 py-3 text-sm font-black text-neutral-900">
+          <LeagueRulesSummary
+            registrationFee={registrationFee}
+            className="mt-3"
+          />
+
+          <label className="mt-4 flex items-start gap-3 rounded-2xl bg-white px-3 py-3 text-sm font-black text-neutral-900 ring-1 ring-neutral-100">
             <input
               type="checkbox"
               checked={hasAcceptedRules}
@@ -362,7 +355,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
               }}
               className="mt-1"
             />
-            <span>He leído y acepto las reglas de la temporada.</span>
+            <span>He leído y acepto el reglamento de la temporada.</span>
           </label>
         </AppCard>
       ) : null}
@@ -406,7 +399,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
 
           {!hasAcceptedRules ? (
             <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
-              Confirma primero las reglas para poder seleccionar tu jugador.
+              Confirma primero el reglamento para poder seleccionar tu jugador.
             </p>
           ) : null}
 

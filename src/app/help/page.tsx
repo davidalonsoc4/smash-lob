@@ -1,5 +1,6 @@
 "use client"
 
+import { LeagueRulesSummary } from "@/components/league/LeagueRulesSummary"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -78,7 +79,7 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 
 export default function HelpPage() {
   const { t } = useI18n()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData()
 
   return (
     <div className="space-y-4">
@@ -131,25 +132,8 @@ export default function HelpPage() {
       </AppCard>
 
 
-      <HelpBlock eyebrow="Reglas" title="Inscripción y compromisos de la liga">
-        <div className="grid gap-3">
-          <MiniCard
-            title="Inscripción de temporada"
-            description="Si la liga tiene cuota de inscripción, el administrador puede fijar el importe por jugador al crear la temporada y hacer seguimiento de quién la ha pagado."
-          />
-          <MiniCard
-            title="Responsabilidad de cada jugador"
-            description="Cada jugador debe revisar sus partidos, proponer disponibilidad y avisar cuanto antes si no puede jugar una jornada."
-          />
-          <MiniCard
-            title="Resultados"
-            description="El resultado debe registrarse cuando termine el partido. Si pasan varias horas sin resultado, la app puede enviar recordatorios a los jugadores."
-          />
-          <MiniCard
-            title="Reservas y pagos de pista"
-            description="La reserva de pista es información práctica de cada partido. Si alguien paga la pista completa, la app puede mostrar importes pendientes para que el resto los marque como pagados."
-          />
-        </div>
+      <HelpBlock eyebrow="Reglas" title="Reglamento oficial de la liga">
+        <LeagueRulesSummary registrationFee={roundSettings.registrationFee} />
       </HelpBlock>
 
       <HelpBlock eyebrow="Formato" title="Cómo funciona una temporada">
