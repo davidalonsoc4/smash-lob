@@ -79,7 +79,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const router = useRouter()
   const { setActiveLeagueId } = useActiveLeague()
-  const { seasons } = useSeasonSettings()
+  const { seasons, getSeasonRoundSettings } = useSeasonSettings()
   const {
     getLeagueByInviteCode,
     resolveLeagueInvite,
@@ -96,6 +96,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isClaiming, setIsClaiming] = useState(false)
+  const [hasAcceptedRules, setHasAcceptedRules] = useState(false)
   const [loadAttempt, setLoadAttempt] = useState(0)
 
   async function syncPushForInviteLeague(leagueId: string, playerId: string | null) {
@@ -129,6 +130,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       setIsLoading(true)
       setError(null)
       setSelectedPlayerId("")
+      setHasAcceptedRules(false)
       setLeague(localLeagueRef.current(normalizedCode))
 
       try {
@@ -224,6 +226,10 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const activeSeason = league.activeSeasonId
     ? seasons.find((season) => season.id === league.activeSeasonId)
     : null
+  const activeSeasonSettings = activeSeason
+    ? getSeasonRoundSettings(activeSeason.id)
+    : null
+  const registrationFee = activeSeasonSettings?.registrationFee ?? null
   const unclaimedPlayers = activeSeason
     ? getUnclaimedPlayersForLeague(league.id)
     : []
@@ -243,7 +249,16 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   }
 
   async function handleClaim() {
-    if (!league || !selectedPlayerId || isClaiming) {
+    if (!league || isClaiming) {
+      return
+    }
+
+    if (!hasAcceptedRules) {
+      setError("Debes confirmar las reglas antes de vincular tu dispositivo a la temporada.")
+      return
+    }
+
+    if (!selectedPlayerId) {
       setError(t.invites.selectPlayerError)
       return
     }
@@ -312,6 +327,46 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
         </p>
       </AppCard>
 
+      {!existingMembership ? (
+        <AppCard className={hasAcceptedRules ? "border-emerald-200 bg-emerald-50" : ""}>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+            Reglas de acceso
+          </p>
+          <h2 className="mt-1 text-lg font-black tracking-tight">
+            Confirma las reglas antes de reclamar jugador
+          </h2>
+          <div className="mt-3 space-y-2 text-sm font-semibold leading-5 text-neutral-600">
+            <p>
+              Al entrar aceptas participar en la temporada activa, respetar el calendario
+              acordado y registrar resultados reales cuando corresponda.
+            </p>
+            <p>
+              Si la temporada tiene inscripción, deberás saldar tu cuota antes de que
+              la liga comience.
+            </p>
+            {registrationFee?.enabled && registrationFee.amount > 0 ? (
+              <p className="rounded-2xl bg-white/80 px-3 py-2 text-neutral-700">
+                Inscripción: <strong>{registrationFee.amount.toFixed(2).replace(".", ",")} €</strong> por jugador.
+                {registrationFee.purpose ? ` ${registrationFee.purpose}` : " Se destinará a premios, bolas o gastos comunes de organización."}
+              </p>
+            ) : null}
+          </div>
+
+          <label className="mt-4 flex items-start gap-3 rounded-2xl bg-white/80 px-3 py-3 text-sm font-black text-neutral-900">
+            <input
+              type="checkbox"
+              checked={hasAcceptedRules}
+              onChange={(event) => {
+                setHasAcceptedRules(event.target.checked)
+                setError(null)
+              }}
+              className="mt-1"
+            />
+            <span>He leído y acepto las reglas de la temporada.</span>
+          </label>
+        </AppCard>
+      ) : null}
+
       {error ? (
         <AppCard>
           <p className="font-bold">{t.invites.warningTitle}</p>
@@ -349,7 +404,13 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
               : t.invites.claimDescription}
           </p>
 
-          {selectedPlayer ? (
+          {!hasAcceptedRules ? (
+            <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
+              Confirma primero las reglas para poder seleccionar tu jugador.
+            </p>
+          ) : null}
+
+          {hasAcceptedRules && selectedPlayer ? (
             <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-3">
               <p className="text-xs font-semibold text-neutral-500">
                 {t.invites.selectedPlayer}
@@ -363,32 +424,36 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             </div>
           ) : null}
 
-          <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
-            {t.invites.claimableActivePlayers}
-          </p>
+          {hasAcceptedRules ? (
+            <>
+              <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
+                {t.invites.claimableActivePlayers}
+              </p>
 
-          <div className="mt-3 grid gap-2">
-            {unclaimedPlayers.map((player) => (
-              <PlayerClaimButton
-                key={player.id}
-                player={player}
-                isSelected={selectedPlayerId === player.id}
-                disabled={isClaiming}
-                onSelect={() => {
-                  setSelectedPlayerId(player.id)
-                  setError(null)
-                }}
-              />
-            ))}
-          </div>
+              <div className="mt-3 grid gap-2">
+                {unclaimedPlayers.map((player) => (
+                  <PlayerClaimButton
+                    key={player.id}
+                    player={player}
+                    isSelected={selectedPlayerId === player.id}
+                    disabled={isClaiming}
+                    onSelect={() => {
+                      setSelectedPlayerId(player.id)
+                      setError(null)
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
 
-          {unclaimedPlayers.length > 0 ? (
+          {hasAcceptedRules && unclaimedPlayers.length > 0 ? (
             <p className="mt-3 text-xs font-semibold text-neutral-500">
               {t.invites.inactivePlayersHidden}
             </p>
           ) : null}
 
-          {unclaimedPlayers.length === 0 ? (
+          {hasAcceptedRules && unclaimedPlayers.length === 0 ? (
             <p className="mt-3 text-sm font-semibold text-red-600">
               {t.invites.noPlayersAvailable}
             </p>
@@ -401,7 +466,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
           <button
             type="button"
             onClick={handleClaim}
-            disabled={!selectedPlayerId || isClaiming}
+            disabled={!hasAcceptedRules || !selectedPlayerId || isClaiming}
             className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
           >
             {isClaiming ? t.invites.claiming : t.invites.confirmClaim}

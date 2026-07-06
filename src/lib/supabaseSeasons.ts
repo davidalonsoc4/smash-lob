@@ -385,6 +385,7 @@ export async function startSupabaseSeason({
   scheduleMode = "single",
   registrationFeeEnabled = false,
   registrationFeeAmount = 0,
+  registrationFeePurpose = "",
   selfPlayerValue,
   currentUserEmail,
   currentUserDisplayName,
@@ -403,6 +404,7 @@ export async function startSupabaseSeason({
   scheduleMode?: SeasonScheduleMode;
   registrationFeeEnabled?: boolean;
   registrationFeeAmount?: number;
+  registrationFeePurpose?: string;
   selfPlayerValue?: string | null;
   currentUserEmail?: string | null;
   currentUserDisplayName?: string | null;
@@ -617,6 +619,7 @@ export async function startSupabaseSeason({
       registration_fee: buildSeasonRegistrationFee({
         enabled: registrationFeeEnabled,
         amount: registrationFeeAmount,
+        purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
     });
@@ -656,6 +659,7 @@ export async function startSupabaseSeason({
       registrationFee: buildSeasonRegistrationFee({
         enabled: registrationFeeEnabled,
         amount: registrationFeeAmount,
+        purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
     },

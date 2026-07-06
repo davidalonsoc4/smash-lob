@@ -37,6 +37,7 @@ import {
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import { recordActivityEvent } from "@/lib/activity";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
+import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { buildSeasonRounds } from "@/lib/rounds";
 
 const allowedPlayerCounts = [8, 12, 16];
@@ -400,6 +401,7 @@ function InviteLinkCard({
           {copiedLabel}
         </p>
       ) : null}
+
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
@@ -1013,6 +1015,7 @@ function FinishSeasonPanel({
         {isSaving ? "Guardando..." : t.adminSeason.finishSeason}
       </button>
 
+
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
@@ -1031,9 +1034,11 @@ function FinishSeasonPanel({
 function StartSeasonPanel({
   activeLeagueId,
   activeSeasonId,
+  canStartBecauseRegistrationSettled,
 }: {
   activeLeagueId: string;
   activeSeasonId: string;
+  canStartBecauseRegistrationSettled: boolean;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -1043,6 +1048,13 @@ function StartSeasonPanel({
 
   async function handleStartSeason() {
     if (isSaving) {
+      return;
+    }
+
+    if (!canStartBecauseRegistrationSettled) {
+      setError(
+        "No se puede comenzar la temporada hasta que todas las inscripciones estén saldadas.",
+      );
       return;
     }
 
@@ -1105,11 +1117,17 @@ function StartSeasonPanel({
       <button
         type="button"
         onClick={handleStartSeason}
-        disabled={isSaving}
+        disabled={isSaving || !canStartBecauseRegistrationSettled}
         className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : "Comenzar temporada"}
       </button>
+
+      {!canStartBecauseRegistrationSettled ? (
+        <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
+          Hay inscripciones pendientes. La temporada no podrá comenzar hasta que se marquen como pagadas.
+        </p>
+      ) : null}
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
@@ -1438,6 +1456,9 @@ function NewSeasonForm({
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
+  const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
+    "Premios, bolas y gastos comunes de organización.",
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1638,6 +1659,7 @@ function NewSeasonForm({
       registrationFeeAmount: hasRegistrationFee
         ? parsedRegistrationFeeAmount
         : 0,
+      registrationFeePurpose: hasRegistrationFee ? registrationFeePurpose : "",
       selfPlayerValue: selectedSelfPlayerValue,
       currentUserEmail: userId,
       currentUserDisplayName: session?.user?.name ?? null,
@@ -1735,6 +1757,7 @@ function NewSeasonForm({
           registrationFeeAmount: hasRegistrationFee
             ? parsedRegistrationFeeAmount
             : 0,
+          registrationFeePurpose: hasRegistrationFee ? registrationFeePurpose : "",
         },
       });
     } catch {
@@ -1742,6 +1765,7 @@ function NewSeasonForm({
     }
 
     setNewSeasonName("");
+    setRegistrationFeePurpose("Premios, bolas y gastos comunes de organización.");
     setFeedback(
       "Temporada creada. Puedes comenzarla cuando esté todo preparado.",
     );
@@ -2291,6 +2315,27 @@ function NewSeasonForm({
             ) : null}
           </label>
         ) : null}
+
+        {hasRegistrationFee ? (
+          <label className="mt-4 block">
+            <span className="text-sm font-semibold text-neutral-700">
+              Destino de la inscripción
+            </span>
+            <textarea
+              value={registrationFeePurpose}
+              onChange={(event) => {
+                setRegistrationFeePurpose(event.target.value);
+                setFeedback(null);
+              }}
+              rows={3}
+              placeholder="Ejemplo: premios, bolas, bote final o gastos comunes de organización."
+              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold leading-5 text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+            />
+            <span className="mt-2 block text-xs font-semibold leading-5 text-neutral-500">
+              Esta explicación se mostrará a los jugadores junto al estado de sus pagos.
+            </span>
+          </label>
+        ) : null}
       </AppCard>
 
       <AppCard>
@@ -2441,6 +2486,11 @@ export default function AdminSeasonPage() {
     );
   }
 
+  const isRegistrationSettled = isSeasonRegistrationSettled({
+    registrationFee: roundSettings.registrationFee,
+    playerIds: players.map((player) => player.id),
+  });
+
   return (
     <div className="compact-page space-y-3">
       <header className="pt-2">
@@ -2500,6 +2550,7 @@ export default function AdminSeasonPage() {
           <StartSeasonPanel
             activeLeagueId={activeLeague.id}
             activeSeasonId={activeSeason.id}
+            canStartBecauseRegistrationSettled={isRegistrationSettled}
           />
 
 

@@ -36,6 +36,7 @@ import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
 import {
   ensureSeasonRegistrationPlayers,
+  isSeasonRegistrationSettled,
   setSeasonRegistrationPaymentPaidStatus,
 } from "@/lib/seasonRegistration";
 import {
@@ -529,13 +530,17 @@ export default function Home() {
   });
   const shouldShowRegistrationPanel =
     !isSeasonClosed &&
-    !isSeasonUpcoming &&
     roundSettings.registrationFee.enabled &&
     roundSettings.registrationFee.amount > 0 &&
     (canManageSeason ||
       roundSettings.registrationFee.payments.some(
         (payment) => payment.playerId === currentUserId,
       ));
+
+  const isRegistrationSettled = isSeasonRegistrationSettled({
+    registrationFee: roundSettings.registrationFee,
+    playerIds: players.map((player) => player.id),
+  });
 
   async function handleToggleRegistrationPayment(
     playerId: string,
@@ -604,6 +609,13 @@ export default function Home() {
 
   async function handleStartUpcomingSeason() {
     if (isStartingSeason || !isSeasonUpcoming || !canManageSeason) {
+      return;
+    }
+
+    if (!isRegistrationSettled) {
+      setStartSeasonError(
+        "No se puede comenzar la temporada hasta que todas las inscripciones estén saldadas.",
+      );
       return;
     }
 
@@ -704,11 +716,17 @@ export default function Home() {
               <button
                 type="button"
                 onClick={handleStartUpcomingSeason}
-                disabled={isStartingSeason}
+                disabled={isStartingSeason || !isRegistrationSettled}
                 className="mt-3 block w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300"
               >
                 {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
               </button>
+
+              {!isRegistrationSettled ? (
+                <p className="mt-3 text-center text-xs font-semibold text-amber-700">
+                  La temporada no puede comenzar hasta saldar todas las inscripciones.
+                </p>
+              ) : null}
 
               {startSeasonError ? (
                 <p className="mt-3 text-center text-sm font-semibold text-red-600">
@@ -847,6 +865,7 @@ export default function Home() {
             players={players}
             currentUserId={currentUserId}
             canManage={canManageSeason}
+            isSeasonUpcoming={isSeasonUpcoming}
             onTogglePayment={handleToggleRegistrationPayment}
           />
         </section>

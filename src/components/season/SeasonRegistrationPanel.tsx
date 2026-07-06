@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { formatMoney } from "@/lib/courtBooking"
@@ -13,6 +13,7 @@ type SeasonRegistrationPanelProps = {
   players: PlayerProfile[]
   currentUserId: string
   canManage: boolean
+  isSeasonUpcoming?: boolean
   onTogglePayment: (playerId: string, isPaid: boolean) => Promise<void> | void
 }
 
@@ -21,24 +22,34 @@ export function SeasonRegistrationPanel({
   players,
   currentUserId,
   canManage,
+  isSeasonUpcoming = false,
   onTogglePayment,
 }: SeasonRegistrationPanelProps) {
   const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null)
+
+  const paymentByPlayerId = useMemo(
+    () =>
+      new Map(
+        registrationFee.payments.map((payment) => [payment.playerId, payment]),
+      ),
+    [registrationFee.payments],
+  )
 
   if (!registrationFee.enabled || registrationFee.amount <= 0) {
     return null
   }
 
-  const paymentByPlayerId = new Map(
-    registrationFee.payments.map((payment) => [payment.playerId, payment]),
-  )
-  const paidCount = players.filter(
+  const paidPlayers = players.filter(
     (player) => paymentByPlayerId.get(player.id)?.isPaid,
-  ).length
+  )
+  const pendingPlayers = players.filter(
+    (player) => !paymentByPlayerId.get(player.id)?.isPaid,
+  )
+  const paidCount = paidPlayers.length
+  const pendingAmount = pendingPlayers.length * registrationFee.amount
   const currentUserPayment = paymentByPlayerId.get(currentUserId)
-  const visiblePlayers = canManage
-    ? players
-    : players.filter((player) => player.id === currentUserId)
+  const currentUserPlayer = players.find((player) => player.id === currentUserId)
+  const visiblePlayers = canManage ? players : currentUserPlayer ? [currentUserPlayer] : []
 
   if (!canManage && !currentUserPayment) {
     return null
@@ -71,6 +82,72 @@ export function SeasonRegistrationPanel({
           {paidCount}/{players.length} pagadas
         </span>
       </div>
+
+      {registrationFee.purpose ? (
+        <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-900">
+            Destino de la inscripción
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+            {registrationFee.purpose}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-emerald-900">
+            Destino de la inscripción
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+            La inscripción puede destinarse a premios, bolas, bote final, reservas
+            comunes u otros gastos de organización que defina el administrador.
+          </p>
+        </div>
+      )}
+
+      {canManage ? (
+        <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-2xl bg-white/90 text-center">
+          <div className="border-r border-emerald-100 px-2 py-2">
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+              Pendientes
+            </p>
+            <p className="text-sm font-black text-neutral-950">
+              {pendingPlayers.length}
+            </p>
+          </div>
+          <div className="border-r border-emerald-100 px-2 py-2">
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+              Te deben
+            </p>
+            <p className="text-sm font-black text-neutral-950">
+              {formatMoney(pendingAmount)}
+            </p>
+          </div>
+          <div className="px-2 py-2">
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+              Total
+            </p>
+            <p className="text-sm font-black text-neutral-950">
+              {formatMoney(players.length * registrationFee.amount)}
+            </p>
+          </div>
+        </div>
+      ) : currentUserPayment && !currentUserPayment.isPaid ? (
+        <div className="mt-3 rounded-2xl bg-white/90 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-amber-800">
+            Pago pendiente
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+            Debes {formatMoney(registrationFee.amount)} al organizador de la liga.
+          </p>
+        </div>
+      ) : null}
+
+      {isSeasonUpcoming && pendingPlayers.length > 0 ? (
+        <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
+          La temporada no podrá comenzar hasta que todas las inscripciones estén
+          saldadas.
+        </p>
+      ) : null}
 
       <div className="mt-3 space-y-2">
         {visiblePlayers.map((player) => {

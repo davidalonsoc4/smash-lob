@@ -73,6 +73,7 @@ type SeasonSettingsContextValue = {
     requiresThreeSets: boolean;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
+    registrationFeePurpose?: string;
   }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
     leagueId: string;
@@ -86,6 +87,7 @@ type SeasonSettingsContextValue = {
     scheduleMode?: SeasonScheduleMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
+    registrationFeePurpose?: string;
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -627,6 +629,7 @@ export function SeasonSettingsProvider({
     requiresThreeSets,
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
+    registrationFeePurpose = "",
   }: {
     leagueId: string;
     seasonName: string;
@@ -637,6 +640,7 @@ export function SeasonSettingsProvider({
     requiresThreeSets: boolean;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
+    registrationFeePurpose?: string;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const cleanPlayerNames = playerNames
@@ -721,6 +725,7 @@ export function SeasonSettingsProvider({
       registrationFee: buildSeasonRegistrationFee({
         enabled: registrationFeeEnabled,
         amount: registrationFeeAmount,
+        purpose: registrationFeePurpose,
         playerIds,
       }),
     });
@@ -740,6 +745,7 @@ export function SeasonSettingsProvider({
     scheduleMode = "single",
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
+    registrationFeePurpose = "",
   }: {
     leagueId: string;
     name: string;
@@ -752,6 +758,7 @@ export function SeasonSettingsProvider({
     scheduleMode?: SeasonScheduleMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
+    registrationFeePurpose?: string;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -842,6 +849,7 @@ export function SeasonSettingsProvider({
       registrationFee: buildSeasonRegistrationFee({
         enabled: registrationFeeEnabled,
         amount: registrationFeeAmount,
+        purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
     });
