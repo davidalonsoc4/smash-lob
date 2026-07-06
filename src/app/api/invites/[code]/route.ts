@@ -81,6 +81,36 @@ async function fetchLeagueByInviteCode(
 ) {
   const normalizedCode = normalizeInviteCode(code)
   const cleanLeagueIdHint = leagueIdHint?.trim() || null
+  const hintedLeague = cleanLeagueIdHint
+    ? await fetchLeagueById(supabase, cleanLeagueIdHint)
+    : null
+
+  if (
+    hintedLeague &&
+    normalizeInviteCode(hintedLeague.invite_code) === normalizedCode
+  ) {
+    return hintedLeague
+  }
+
+  if (hintedLeague) {
+    const { data: hintedInvite, error: hintedInviteError } = await supabase
+      .from("invites")
+      .select("league_id")
+      .eq("league_id", hintedLeague.id)
+      .eq("code", normalizedCode)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (hintedInviteError) {
+      throw hintedInviteError
+    }
+
+    if (hintedInvite?.league_id) {
+      return hintedLeague
+    }
+  }
+
   const { data: directLeague, error: directLeagueError } = await supabase
     .from("leagues")
     .select(leagueInviteSelect)
@@ -111,20 +141,10 @@ async function fetchLeagueByInviteCode(
     return fetchLeagueById(supabase, (invite as SupabaseInviteRow).league_id)
   }
 
-  if (!cleanLeagueIdHint) {
-    return null
-  }
-
-  const hintedLeague = await fetchLeagueById(supabase, cleanLeagueIdHint)
-
-  if (
-    hintedLeague &&
-    normalizeInviteCode(hintedLeague.invite_code) === normalizedCode
-  ) {
-    return hintedLeague
-  }
-
-  return null
+  // Fallback defensivo para enlaces generados durante la transición:
+  // si la URL incluye leagueId, ese enlace ya es una invitación privada.
+  // Evita que un código antiguo quede inutilizable si falló el histórico.
+  return hintedLeague
 }
 
 export async function GET(
