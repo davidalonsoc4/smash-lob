@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import {
@@ -14,6 +14,7 @@ export function AutoPushRegistration() {
   const membership = getMembershipForLeague(activeLeagueId)
   const playerId = membership?.playerId ?? null
   const lastSyncedKeyRef = useRef<string | null>(null)
+  const [retryTick, setRetryTick] = useState(0)
 
   useEffect(() => {
     if (!canAccessLeague(activeLeagueId)) {
@@ -49,7 +50,25 @@ export function AutoPushRegistration() {
     return () => {
       isCancelled = true
     }
-  }, [activeLeagueId, canAccessLeague, playerId])
+  }, [activeLeagueId, canAccessLeague, playerId, retryTick])
+
+  useEffect(() => {
+    function scheduleRetry() {
+      if (document.visibilityState === "visible") {
+        setRetryTick((currentTick) => currentTick + 1)
+      }
+    }
+
+    window.addEventListener("focus", scheduleRetry)
+    window.addEventListener("pageshow", scheduleRetry)
+    document.addEventListener("visibilitychange", scheduleRetry)
+
+    return () => {
+      window.removeEventListener("focus", scheduleRetry)
+      window.removeEventListener("pageshow", scheduleRetry)
+      document.removeEventListener("visibilitychange", scheduleRetry)
+    }
+  }, [])
 
   return null
 }

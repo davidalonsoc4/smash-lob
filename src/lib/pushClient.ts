@@ -158,9 +158,13 @@ export async function ensurePushSubscriptionForLeague({
       return { ok: false, reason: "permission_default" }
     }
 
-    setPushAutoPermissionPrompted()
-
     const permission = await Notification.requestPermission()
+
+    if (permission === "default") {
+      return { ok: false, reason: "permission_default" }
+    }
+
+    setPushAutoPermissionPrompted()
 
     if (permission !== "granted") {
       return { ok: false, reason: "permission_denied" }

@@ -10,6 +10,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { League, PlayerProfile } from "@/data/fakeData"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
+import { ensurePushSubscriptionForLeague } from "@/lib/pushClient"
 
 type InviteFlowProps = {
   code: string
@@ -96,6 +97,18 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isClaiming, setIsClaiming] = useState(false)
   const [loadAttempt, setLoadAttempt] = useState(0)
+
+  async function syncPushForInviteLeague(leagueId: string, playerId: string | null) {
+    try {
+      await ensurePushSubscriptionForLeague({
+        leagueId,
+        playerId,
+        requestPermissionIfNeeded: true,
+      })
+    } catch {
+      // Push setup must never block joining or entering a league.
+    }
+  }
 
   useEffect(() => {
     resolveLeagueInviteRef.current = resolveLeagueInvite
@@ -218,12 +231,13 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     (player) => player.id === selectedPlayerId
   )
 
-  function handleEnterExistingLeague() {
+  async function handleEnterExistingLeague() {
     if (!league) {
       return
     }
 
     window.localStorage.setItem("smash-lob-active-league", league.id)
+    await syncPushForInviteLeague(league.id, existingMembership?.playerId || null)
     setActiveLeagueId(league.id)
     router.push("/")
   }
@@ -250,6 +264,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       return
     }
 
+    await syncPushForInviteLeague(league.id, selectedPlayerId)
     setActiveLeagueId(league.id)
     router.push("/")
   }
