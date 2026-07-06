@@ -27,6 +27,44 @@ function getPlayerName(players: PlayerProfile[], playerId: string) {
   return players.find((player) => player.id === playerId)?.displayName ?? playerId;
 }
 
+function ChevronIcon({ isExpanded }: { isExpanded: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className={`size-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+      fill="none"
+    >
+      <path
+        d="M5 7.5 10 12.5 15 7.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="size-3.5"
+      fill="none"
+    >
+      <path
+        d="M7 4.5 12.5 10 7 15.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function AvailabilitySuggestionCard({
   suggestion,
   players,
@@ -71,8 +109,8 @@ function AvailabilitySuggestionCard({
           >
             {suggestion.coverage}/{totalPlayers}
           </span>
-          <span className="grid size-7 place-items-center rounded-full border border-neutral-200 bg-neutral-50 text-xs font-black text-neutral-700 transition group-hover:border-neutral-400 group-hover:bg-neutral-950 group-hover:text-white">
-            →
+          <span className="grid size-7 place-items-center rounded-full border border-neutral-200 bg-neutral-50 text-neutral-700 transition group-hover:border-neutral-400 group-hover:bg-neutral-950 group-hover:text-white">
+            <ArrowRightIcon />
           </span>
         </div>
       </div>
@@ -219,7 +257,7 @@ export function MatchAvailabilitySuggestions({
       <button
         type="button"
         onClick={() => setIsExpanded((currentValue) => !currentValue)}
-        className="flex w-full items-center justify-between gap-3 text-left"
+        className="group flex w-full items-center justify-between gap-3 text-left"
         aria-expanded={isExpanded}
       >
         <div className="min-w-0">
@@ -242,8 +280,8 @@ export function MatchAvailabilitySuggestions({
             </span>
           ) : null}
 
-          <span className="grid size-7 place-items-center rounded-full border border-neutral-200 bg-white text-sm font-black text-neutral-600 shadow-sm">
-            {isExpanded ? "⌃" : "⌄"}
+          <span className="grid size-7 place-items-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition group-hover:border-neutral-400 group-hover:text-neutral-950">
+            <ChevronIcon isExpanded={isExpanded} />
           </span>
         </div>
       </button>

@@ -118,7 +118,6 @@ export function MatchScheduleForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const schedulePanelRef = useRef<HTMLElement | null>(null);
 
   const applyAutomaticScheduledAtValue = useCallback(
     (nextValue: string) => {
@@ -348,10 +347,7 @@ export function MatchScheduleForm({
   }
 
   return (
-    <section
-      ref={schedulePanelRef}
-      className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]"
-    >
+    <section className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-black text-neutral-950">{getTitle()}</p>
@@ -488,9 +484,9 @@ export function MatchScheduleForm({
               setActionError(null);
 
               window.requestAnimationFrame(() => {
-                schedulePanelRef.current?.scrollIntoView({
+                window.scrollTo({
+                  top: 0,
                   behavior: "smooth",
-                  block: "start",
                 });
               });
             }}
