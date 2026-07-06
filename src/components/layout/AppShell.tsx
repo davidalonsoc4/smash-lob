@@ -72,6 +72,10 @@ function getFloatingRight(offsetPx: number) {
   return `max(${offsetPx}px, calc((100vw - 448px) / 2 + ${offsetPx}px))`
 }
 
+function getFloatingTop() {
+  return "max(16px, calc(env(safe-area-inset-top, 0px) + 12px))"
+}
+
 function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
   const { getLeagueInviteCode, isLeagueAdmin, isPlayerClaimed } =
     useLeagueAccess()
@@ -141,7 +145,7 @@ export function AppShell({ children }: AppShellProps) {
             className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
-              top: "16px",
+              top: getFloatingTop(),
               right: getFloatingRight(shouldShowSettingsButton ? 50 : 16),
               width: "28px",
               height: "28px",
@@ -159,7 +163,7 @@ export function AppShell({ children }: AppShellProps) {
             className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
-              top: "16px",
+              top: getFloatingTop(),
               right: getFloatingRight(16),
               width: "28px",
               height: "28px",
@@ -170,8 +174,9 @@ export function AppShell({ children }: AppShellProps) {
         ) : null}
 
         <main
-          className="px-3 pt-3"
+          className="px-3"
           style={{
+            paddingTop: "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
             paddingBottom: "96px",
           }}
         >
