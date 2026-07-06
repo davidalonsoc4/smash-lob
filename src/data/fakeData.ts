@@ -1,3 +1,7 @@
+import {
+  emptySeasonRegistrationFee,
+  type SeasonRegistrationFee,
+} from "@/lib/seasonRegistration"
 import type { LeagueLocation } from "@/lib/leagueLocations"
 
 export type LeagueMemberRole = "creator" | "admin" | "player"
@@ -79,6 +83,7 @@ export type SeasonRoundSettings = {
   requiresThreeSets: boolean
   manualActiveRound: number | null
   manualCompletedRounds: number[]
+  registrationFee: SeasonRegistrationFee
 }
 
 export const currentUserId = "davo"
@@ -439,6 +444,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     requiresThreeSets: true,
     manualActiveRound: null,
     manualCompletedRounds: [],
+    registrationFee: emptySeasonRegistrationFee,
   },
   {
     leagueId: "league-work",
@@ -449,6 +455,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     requiresThreeSets: true,
     manualActiveRound: null,
     manualCompletedRounds: [],
+    registrationFee: emptySeasonRegistrationFee,
   },
 ]
 

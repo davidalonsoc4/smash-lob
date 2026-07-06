@@ -9,6 +9,7 @@ import {
   type SeasonScheduleMode,
 } from "@/lib/calendar";
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches";
+import { buildSeasonRegistrationFee } from "@/lib/seasonRegistration";
 import { upsertAppUser } from "@/lib/supabaseUsers";
 import type {
   RoundWindowMode,
@@ -108,6 +109,7 @@ export async function updateSupabaseSeasonRoundSettings(
     requires_three_sets: settings.requiresThreeSets,
     manual_active_round: settings.manualActiveRound,
     manual_completed_rounds: settings.manualCompletedRounds,
+    registration_fee: settings.registrationFee,
   };
 
   const { data, error } = await supabase
@@ -381,6 +383,8 @@ export async function startSupabaseSeason({
   requiresThreeSets,
   manualMatches,
   scheduleMode = "single",
+  registrationFeeEnabled = false,
+  registrationFeeAmount = 0,
   selfPlayerValue,
   currentUserEmail,
   currentUserDisplayName,
@@ -397,6 +401,8 @@ export async function startSupabaseSeason({
   requiresThreeSets: boolean;
   manualMatches?: ManualCalendarMatchDraft[];
   scheduleMode?: SeasonScheduleMode;
+  registrationFeeEnabled?: boolean;
+  registrationFeeAmount?: number;
   selfPlayerValue?: string | null;
   currentUserEmail?: string | null;
   currentUserDisplayName?: string | null;
@@ -608,6 +614,11 @@ export async function startSupabaseSeason({
       requires_three_sets: requiresThreeSets,
       manual_active_round: null,
       manual_completed_rounds: [],
+      registration_fee: buildSeasonRegistrationFee({
+        enabled: registrationFeeEnabled,
+        amount: registrationFeeAmount,
+        playerIds: finalPlayerIds,
+      }),
     });
 
   if (settingsError) {
@@ -642,6 +653,11 @@ export async function startSupabaseSeason({
       requiresThreeSets,
       manualActiveRound: null,
       manualCompletedRounds: [],
+      registrationFee: buildSeasonRegistrationFee({
+        enabled: registrationFeeEnabled,
+        amount: registrationFeeAmount,
+        playerIds: finalPlayerIds,
+      }),
     },
   ];
 

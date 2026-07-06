@@ -21,6 +21,12 @@ import {
   getSeasonScheduleRoundCount,
   type SeasonScheduleMode,
 } from "@/lib/calendar";
+import {
+  buildSeasonRegistrationFee,
+  emptySeasonRegistrationFee,
+  normalizeSeasonRegistrationFee,
+  type SeasonRegistrationFee,
+} from "@/lib/seasonRegistration";
 
 export type RoundWindowMode = "none" | "fixed-days";
 
@@ -33,6 +39,7 @@ export type SeasonRoundSettings = {
   requiresThreeSets: boolean;
   manualActiveRound: number | null;
   manualCompletedRounds: number[];
+  registrationFee: SeasonRegistrationFee;
 };
 
 type SeasonSettingsContextValue = {
@@ -64,6 +71,8 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    registrationFeeEnabled?: boolean;
+    registrationFeeAmount?: number;
   }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
     leagueId: string;
@@ -75,6 +84,8 @@ type SeasonSettingsContextValue = {
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     scheduleMode?: SeasonScheduleMode;
+    registrationFeeEnabled?: boolean;
+    registrationFeeAmount?: number;
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -124,6 +135,9 @@ function normalizeSettings(
       ? ((settings as Partial<SeasonRoundSettings>).manualCompletedRounds ?? [])
           .filter((round): round is number => typeof round === "number")
       : [],
+    registrationFee: normalizeSeasonRegistrationFee(
+      (settings as Partial<SeasonRoundSettings>).registrationFee,
+    ),
   };
 }
 
@@ -305,6 +319,9 @@ function parseStoredSettings(
               (round): round is number => typeof round === "number",
             )
           : [],
+        registrationFee: normalizeSeasonRegistrationFee(
+          storedSetting.registrationFee,
+        ),
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -323,6 +340,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     requiresThreeSets: true,
     manualActiveRound: null,
     manualCompletedRounds: [],
+    registrationFee: emptySeasonRegistrationFee,
   };
 }
 
@@ -607,6 +625,8 @@ export function SeasonSettingsProvider({
     seasonStartsAt,
     roundWindowDays,
     requiresThreeSets,
+    registrationFeeEnabled = false,
+    registrationFeeAmount = 0,
   }: {
     leagueId: string;
     seasonName: string;
@@ -615,6 +635,8 @@ export function SeasonSettingsProvider({
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    registrationFeeEnabled?: boolean;
+    registrationFeeAmount?: number;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const cleanPlayerNames = playerNames
@@ -696,6 +718,11 @@ export function SeasonSettingsProvider({
       requiresThreeSets,
       manualActiveRound: null,
       manualCompletedRounds: [],
+      registrationFee: buildSeasonRegistrationFee({
+        enabled: registrationFeeEnabled,
+        amount: registrationFeeAmount,
+        playerIds,
+      }),
     });
 
     return { seasonId, playerIds };
@@ -711,6 +738,8 @@ export function SeasonSettingsProvider({
     roundWindowDays,
     requiresThreeSets,
     scheduleMode = "single",
+    registrationFeeEnabled = false,
+    registrationFeeAmount = 0,
   }: {
     leagueId: string;
     name: string;
@@ -721,6 +750,8 @@ export function SeasonSettingsProvider({
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     scheduleMode?: SeasonScheduleMode;
+    registrationFeeEnabled?: boolean;
+    registrationFeeAmount?: number;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -808,6 +839,11 @@ export function SeasonSettingsProvider({
       requiresThreeSets,
       manualActiveRound: null,
       manualCompletedRounds: [],
+      registrationFee: buildSeasonRegistrationFee({
+        enabled: registrationFeeEnabled,
+        amount: registrationFeeAmount,
+        playerIds: finalPlayerIds,
+      }),
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

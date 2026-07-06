@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import {
   buildUserAvatarLookup,
   resolvePlayerAvatarUrl,
@@ -313,7 +314,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds"
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds,registration_fee"
       )
       .in("league_id", leagueIds),
     supabase
@@ -406,6 +407,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
           (round): round is number => typeof round === "number"
         )
       : [],
+    registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
   }))
   const matches: MatchData[] = (matchesResult.data ?? []).map((match) =>
     mapSupabaseMatch(match)

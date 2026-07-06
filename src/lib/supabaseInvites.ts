@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase"
 import { upsertAppUser } from "@/lib/supabaseUsers"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import {
   buildUserAvatarLookup,
   resolvePlayerAvatarUrl,
@@ -115,7 +116,7 @@ export async function fetchSupabaseInviteSnapshot(
       supabase
         .from("season_settings")
         .select(
-          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds"
+          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds,registration_fee"
         )
         .eq("league_id", league.id),
       supabase.from("matches").select(matchSelect).eq("league_id", league.id),
@@ -222,6 +223,7 @@ export async function fetchSupabaseInviteSnapshot(
           (round: unknown): round is number => typeof round === "number"
         )
       : [],
+    registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

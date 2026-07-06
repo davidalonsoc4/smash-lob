@@ -8,6 +8,7 @@ import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
+import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -33,7 +34,14 @@ import {
 import { getNextMatch } from "@/lib/leagues";
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
-import { startSupabaseExistingSeason } from "@/lib/supabaseSeasons";
+import {
+  ensureSeasonRegistrationPlayers,
+  setSeasonRegistrationPaymentPaidStatus,
+} from "@/lib/seasonRegistration";
+import {
+  startSupabaseExistingSeason,
+  updateSupabaseSeasonRoundSettings,
+} from "@/lib/supabaseSeasons";
 
 const supabaseUuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -414,14 +422,15 @@ function PlayerAwardCard({
 export default function Home() {
   const { t } = useI18n();
   const { data: session } = useSession();
-  const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings } =
+    useSeasonSettings();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const { currentUserId } = useCurrentUser();
   const { isLeagueAdmin } = useLeagueAccess();
-  const { activeLeague, activeSeason, players, matches, rounds } =
+  const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
     useCurrentLeagueData();
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
@@ -518,6 +527,41 @@ export default function Home() {
     currentUserId,
     players,
   });
+  const shouldShowRegistrationPanel =
+    !isSeasonClosed &&
+    !isSeasonUpcoming &&
+    roundSettings.registrationFee.enabled &&
+    roundSettings.registrationFee.amount > 0 &&
+    (canManageSeason ||
+      roundSettings.registrationFee.payments.some(
+        (payment) => payment.playerId === currentUserId,
+      ));
+
+  async function handleToggleRegistrationPayment(
+    playerId: string,
+    isPaid: boolean,
+  ) {
+    const nextRegistrationFee = ensureSeasonRegistrationPlayers({
+      registrationFee: setSeasonRegistrationPaymentPaidStatus({
+        registrationFee: roundSettings.registrationFee,
+        playerId,
+        isPaid,
+      }),
+      playerIds: players.map((player) => player.id),
+    });
+    const nextSettings = {
+      ...roundSettings,
+      leagueId: activeLeague.id,
+      seasonId: activeSeason.id,
+      registrationFee: nextRegistrationFee,
+    };
+
+    if (isSupabaseBackedId(activeSeason.id)) {
+      await updateSupabaseSeasonRoundSettings(nextSettings);
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+  }
 
   const rankingPlayers = [...players].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
@@ -793,6 +837,19 @@ export default function Home() {
           players={players}
           matches={matches}
         />
+      ) : null}
+
+      {shouldShowRegistrationPanel ? (
+        <section>
+          <SectionHeader title="Inscripciones" />
+          <SeasonRegistrationPanel
+            registrationFee={roundSettings.registrationFee}
+            players={players}
+            currentUserId={currentUserId}
+            canManage={canManageSeason}
+            onTogglePayment={handleToggleRegistrationPayment}
+          />
+        </section>
       ) : null}
 
       {!isSeasonClosed && !isSeasonUpcoming && pendingPaymentItems.length > 0 ? (

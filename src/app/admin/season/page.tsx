@@ -1434,6 +1434,8 @@ function NewSeasonForm({
   const [seasonStartsAt, setSeasonStartsAt] = useState("");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
+  const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
+  const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1441,6 +1443,7 @@ function NewSeasonForm({
   const canLinkSelfPlayer = Boolean(isFirstLeagueSeason && userId && !isSuperuser);
 
   const parsedRoundWindowDays = Number(roundWindowDays);
+  const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
   const isFixedDaysMode = roundWindowMode === "fixed-days";
   const totalSeasonRounds = getSeasonScheduleRoundCount({
     playerCount,
@@ -1504,11 +1507,16 @@ function NewSeasonForm({
     selectedPlayerIds.length <= playerCount &&
     selectedPlayerIds.length + cleanNewPlayerNames.length === playerCount &&
     cleanNewPlayerNames.every(Boolean);
+  const hasValidRegistrationFee =
+    !hasRegistrationFee ||
+    (Number.isFinite(parsedRegistrationFeeAmount) &&
+      parsedRegistrationFeeAmount > 0);
   const canStartSeason =
     !isSaving &&
     newSeasonName.trim().length > 0 &&
     hasValidPlayers &&
     isManualCalendarReady &&
+    hasValidRegistrationFee &&
     (roundWindowMode === "none" ||
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
@@ -1624,6 +1632,10 @@ function NewSeasonForm({
       requiresThreeSets,
       manualMatches,
       scheduleMode,
+      registrationFeeEnabled: hasRegistrationFee,
+      registrationFeeAmount: hasRegistrationFee
+        ? parsedRegistrationFeeAmount
+        : 0,
       selfPlayerValue: selectedSelfPlayerValue,
       currentUserEmail: userId,
       currentUserDisplayName: session?.user?.name ?? null,
@@ -1717,6 +1729,10 @@ function NewSeasonForm({
           calendarMode,
           scheduleMode,
           totalRounds: totalSeasonRounds,
+          registrationFeeEnabled: hasRegistrationFee,
+          registrationFeeAmount: hasRegistrationFee
+            ? parsedRegistrationFeeAmount
+            : 0,
         },
       });
     } catch {
@@ -2218,6 +2234,61 @@ function NewSeasonForm({
             </span>
           </span>
         </label>
+      </AppCard>
+
+      <AppCard>
+        <p className="font-bold">Inscripción</p>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
+          Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.
+        </p>
+
+        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input
+            type="checkbox"
+            checked={hasRegistrationFee}
+            onChange={(event) => {
+              setHasRegistrationFee(event.target.checked);
+              setFeedback(null);
+            }}
+            className="mt-1"
+          />
+
+          <span>
+            <span className="block text-sm font-black">
+              Activar inscripción de temporada
+            </span>
+            <span className="mt-1 block text-xs text-neutral-500">
+              En HOME aparecerá un panel para consultar y gestionar los pagos.
+            </span>
+          </span>
+        </label>
+
+        {hasRegistrationFee ? (
+          <label className="mt-4 block">
+            <span className="text-sm font-semibold text-neutral-700">
+              Precio por jugador
+            </span>
+            <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
+              <input
+                type="number"
+                min={0}
+                step="0.5"
+                value={registrationFeeAmount}
+                onChange={(event) => {
+                  setRegistrationFeeAmount(event.target.value);
+                  setFeedback(null);
+                }}
+                className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
+              />
+              <span className="text-sm font-black text-neutral-500">€</span>
+            </div>
+            {!hasValidRegistrationFee ? (
+              <span className="mt-2 block text-xs font-semibold text-red-600">
+                Introduce un importe mayor que 0.
+              </span>
+            ) : null}
+          </label>
+        ) : null}
       </AppCard>
 
       <AppCard>
