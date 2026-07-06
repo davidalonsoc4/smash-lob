@@ -31,12 +31,12 @@ function AvailabilitySuggestionCard({
   suggestion,
   players,
   totalPlayers,
-  onUseSuggestion,
+  onSelectSuggestion,
 }: {
   suggestion: AvailabilityRecommendation;
   players: PlayerProfile[];
   totalPlayers: number;
-  onUseSuggestion: (dateTimeLocalValue: string) => void;
+  onSelectSuggestion: (dateTimeLocalValue: string) => void;
 }) {
   const isPerfectMatch = suggestion.coverage === totalPlayers;
   const missingNames = suggestion.missingPlayerIds.map((playerId) =>
@@ -44,7 +44,12 @@ function AvailabilitySuggestionCard({
   );
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-2 shadow-sm">
+    <button
+      type="button"
+      onClick={() => onSelectSuggestion(suggestion.dateTimeLocalValue)}
+      className="w-full rounded-xl border border-neutral-200 bg-white p-2 text-left shadow-sm transition active:scale-[0.99]"
+      aria-label={`Seleccionar horario recomendado ${suggestion.dateLabel}, ${suggestion.timeLabel}`}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="text-xs font-black text-neutral-950">
@@ -68,20 +73,12 @@ function AvailabilitySuggestionCard({
 
       <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
         {isPerfectMatch
-          ? "Coinciden todos los jugadores."
+          ? "Coinciden todos los jugadores. Toca para usar este horario."
           : suggestion.isCommonForConfiguredPlayers
-            ? `Coinciden los ${suggestion.configuredPlayerCount} jugadores con disponibilidad. Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}.`
-            : `Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}.`}
+            ? `Coinciden los ${suggestion.configuredPlayerCount} jugadores con disponibilidad. Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}. Toca para usarlo.`
+            : `Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}. Toca para usarlo.`}
       </p>
-
-      <button
-        type="button"
-        onClick={() => onUseSuggestion(suggestion.dateTimeLocalValue)}
-        className="mt-2 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white"
-      >
-        Usar este horario
-      </button>
-    </div>
+    </button>
   );
 }
 
@@ -190,6 +187,10 @@ export function MatchAvailabilitySuggestions({
   );
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const handleSelectSuggestion = (dateTimeLocalValue: string) => {
+    onUseSuggestion(dateTimeLocalValue);
+    setIsExpanded(false);
+  };
   const bestRecommendation = recommendations[0] ?? null;
   const summaryText = isLoading
     ? "Calculando recomendaciones..."
@@ -262,7 +263,7 @@ export function MatchAvailabilitySuggestions({
                   suggestion={suggestion}
                   players={players}
                   totalPlayers={uniquePlayerIds.length}
-                  onUseSuggestion={onUseSuggestion}
+                  onSelectSuggestion={handleSelectSuggestion}
                 />
               ))}
             </div>
