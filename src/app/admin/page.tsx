@@ -152,9 +152,12 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 
 export default function AdminPage() {
   const { t } = useI18n()
-  const { hasLeagueAdminRole } = useLeagueAccess()
+  const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
+  const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
+  const statusColorsEnabled = activeLeague.statusColorsEnabled !== false
 
   if (!canAccessAdmin) {
     return (
@@ -175,6 +178,28 @@ export default function AdminPage() {
         </AppCard>
       </div>
     )
+  }
+
+  async function handleStatusColorsToggle() {
+    if (isUpdatingStatusColors) {
+      return
+    }
+
+    setIsUpdatingStatusColors(true)
+    setStatusColorsError(null)
+
+    const ok = await updateLeagueStatusColorsEnabled(
+      activeLeague.id,
+      !statusColorsEnabled,
+    )
+
+    setIsUpdatingStatusColors(false)
+
+    if (!ok) {
+      setStatusColorsError(
+        "No se ha podido guardar el ajuste. Revisa Supabase o inténtalo de nuevo.",
+      )
+    }
   }
 
   return (
@@ -241,6 +266,43 @@ export default function AdminPage() {
           </AppCard>
         </Link>
       </div>
+
+
+      <AppCard>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-bold">Código de color</p>
+            <p className="mt-1 text-xs font-semibold text-neutral-500">
+              Activa colores suaves en etiquetas de estado, pagos y jornadas para
+              que la liga sea más fácil de leer. Si lo desactivas, las etiquetas
+              vuelven a una estética gris.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={statusColorsEnabled}
+            onClick={handleStatusColorsToggle}
+            disabled={isUpdatingStatusColors}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
+              statusColorsEnabled ? "bg-neutral-950" : "bg-neutral-300"
+            }`}
+          >
+            <span
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                statusColorsEnabled ? "left-6" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
+
+        {statusColorsError ? (
+          <p className="mt-3 text-xs font-semibold text-red-600">
+            {statusColorsError}
+          </p>
+        ) : null}
+      </AppCard>
 
       <AdminInviteCard leagueId={activeLeague.id} />
 

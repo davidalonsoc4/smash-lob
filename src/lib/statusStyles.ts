@@ -18,14 +18,14 @@ type SeasonDisplayStatus = "none" | "upcoming" | "active" | "finished"
 
 export function getStatusToneClassName(tone: string) {
   const classNameByTone: Record<string, string> = {
-    neutral: "bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200/70",
-    dark: "bg-neutral-950 text-white ring-1 ring-neutral-950",
-    blue: "bg-sky-50 text-sky-800 ring-1 ring-sky-200/80",
-    green: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80",
-    amber: "bg-amber-50 text-amber-800 ring-1 ring-amber-200/80",
-    orange: "bg-orange-50 text-orange-800 ring-1 ring-orange-200/80",
-    red: "bg-red-50 text-red-700 ring-1 ring-red-200/80",
-    gold: "bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200/80",
+    neutral: "status-tone-neutral bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200/70",
+    dark: "status-tone-dark bg-neutral-950 text-white ring-1 ring-neutral-950",
+    blue: "status-tone-blue bg-sky-50 text-sky-800 ring-1 ring-sky-200/80",
+    green: "status-tone-green bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80",
+    amber: "status-tone-amber bg-amber-50 text-amber-800 ring-1 ring-amber-200/80",
+    orange: "status-tone-orange bg-orange-50 text-orange-800 ring-1 ring-orange-200/80",
+    red: "status-tone-red bg-red-50 text-red-700 ring-1 ring-red-200/80",
+    gold: "status-tone-gold bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200/80",
   }
 
   return classNameByTone[tone] ?? classNameByTone.neutral

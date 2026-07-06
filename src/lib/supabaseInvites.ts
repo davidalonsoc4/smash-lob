@@ -32,6 +32,7 @@ type SupabaseLeagueRow = {
   active_season_id: string | null
   locations: unknown
   logo_url?: string | null
+  status_colors_enabled?: boolean | null
 }
 
 type ClaimPlayerResult =
@@ -70,6 +71,7 @@ function mapLeague(league: SupabaseLeagueRow): League {
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
+    statusColorsEnabled: league.status_colors_enabled !== false,
   }
 }
 
@@ -77,7 +79,7 @@ async function fetchLeagueByInviteCode(code: string) {
   const normalizedCode = normalizeInviteCode(code)
   const { data: directLeague, error: directLeagueError } = await supabase
     .from("leagues")
-    .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url")
+    .select("id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled")
     .eq("invite_code", normalizedCode)
     .maybeSingle()
 

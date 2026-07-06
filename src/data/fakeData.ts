@@ -16,6 +16,7 @@ export type League = {
   joinMode: "closed" | "open"
   locations: LeagueLocation[]
   logoUrl?: string | null
+  statusColorsEnabled?: boolean
 }
 
 export type Season = {

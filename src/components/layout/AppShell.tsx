@@ -108,6 +108,7 @@ export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
   const pathname = usePathname()
   const { activeLeagueId } = useActiveLeague()
+  const { leagues } = useLeagueAccess()
   const { seasons } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isNewLeagueRoute = pathname === "/league/new"
@@ -120,6 +121,8 @@ export function AppShell({ children }: AppShellProps) {
     !isInviteRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
   const shouldShowInviteButton =
     !isInviteRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
+  const activeLeague = leagues.find((league) => league.id === activeLeagueId)
+  const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
   const inviteRightOffset = shouldShowSettingsButton
     ? shouldShowNotificationsButton
       ? 84
@@ -129,7 +132,11 @@ export function AppShell({ children }: AppShellProps) {
       : 16
 
   return (
-    <div className="min-h-screen bg-stone-200 text-neutral-950">
+    <div
+      className={`min-h-screen bg-stone-200 text-neutral-950 ${
+        statusColorsEnabled ? "" : "status-colors-disabled"
+      }`}
+    >
       <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
 

@@ -90,6 +90,31 @@ export async function updateSupabaseLeagueLocations({
   }
 }
 
+
+export async function updateSupabaseLeagueStatusColorsEnabled({
+  leagueId,
+  enabled,
+}: {
+  leagueId: string
+  enabled: boolean
+}) {
+  const { data, error } = await supabase
+    .from("leagues")
+    .update({ status_colors_enabled: enabled })
+    .eq("id", leagueId)
+    .select("id,status_colors_enabled")
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return {
+    leagueId: data.id,
+    statusColorsEnabled: data.status_colors_enabled !== false,
+  }
+}
+
 export async function regenerateSupabaseLeagueInviteCode({
   leagueId,
   code,

@@ -19,6 +19,7 @@ import {
   updateSupabaseLeagueDetails,
   updateSupabaseLeagueLocations,
   updateSupabaseLeagueLogo,
+  updateSupabaseLeagueStatusColorsEnabled,
 } from "@/lib/supabaseAdminLeagues";
 import {
   fetchSupabaseLeagueUsers,
@@ -83,6 +84,10 @@ type LeagueAccessContextValue = {
   updateLeagueLocations: (
     leagueId: string,
     locations: LeagueLocation[],
+  ) => Promise<boolean>;
+  updateLeagueStatusColorsEnabled: (
+    leagueId: string,
+    enabled: boolean,
   ) => Promise<boolean>;
   deleteLeague: (leagueId: string) => Promise<boolean>;
   fetchLeagueUsers: (leagueId: string) => Promise<LeagueUserManagementPlayer[]>;
@@ -260,6 +265,7 @@ function normalizeStoredLeague(league: unknown): League | null {
     joinMode: item.joinMode,
     locations: normalizeLeagueLocations(item.locations),
     logoUrl: typeof item.logoUrl === "string" ? item.logoUrl : null,
+    statusColorsEnabled: item.statusColorsEnabled !== false,
   };
 }
 
@@ -958,6 +964,57 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [],
   );
 
+  const updateLeagueStatusColorsEnabled = useCallback(
+    async (leagueId: string, enabled: boolean) => {
+      if (isSupabaseBackedId(leagueId)) {
+        try {
+          const result = await updateSupabaseLeagueStatusColorsEnabled({
+            leagueId,
+            enabled,
+          });
+
+          setLeagues((currentLeagues) => {
+            const nextLeagues = currentLeagues.map((league) =>
+              league.id === result.leagueId
+                ? {
+                    ...league,
+                    statusColorsEnabled: result.statusColorsEnabled,
+                  }
+                : league,
+            );
+
+            persistLeagues(nextLeagues);
+
+            return nextLeagues;
+          });
+
+          return true;
+        } catch (error) {
+          recordSupabaseError("update-league-status-colors", error);
+          return false;
+        }
+      }
+
+      setLeagues((currentLeagues) => {
+        const nextLeagues = currentLeagues.map((league) =>
+          league.id === leagueId
+            ? {
+                ...league,
+                statusColorsEnabled: enabled,
+              }
+            : league,
+        );
+
+        persistLeagues(nextLeagues);
+
+        return nextLeagues;
+      });
+
+      return true;
+    },
+    [],
+  );
+
   const deleteLeague = useCallback(
     async (leagueId: string) => {
       if (!userId) {
@@ -1394,6 +1451,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueDetails,
       updateLeagueLogo,
       updateLeagueLocations,
+      updateLeagueStatusColorsEnabled,
       deleteLeague,
       fetchLeagueUsers,
       updateLeagueUserRole,
@@ -1430,6 +1488,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueDetails,
       updateLeagueLogo,
       updateLeagueLocations,
+      updateLeagueStatusColorsEnabled,
       resolveLeagueInvite,
       isLeagueAdmin,
       hasLeagueAdminRole,

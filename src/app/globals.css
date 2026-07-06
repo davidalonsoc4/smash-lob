@@ -169,3 +169,18 @@ textarea {
 .compact-page :where(textarea[rows="3"]) {
   min-height: 4.75rem;
 }
+
+.status-colors-disabled :where(
+  .status-tone-neutral,
+  .status-tone-dark,
+  .status-tone-blue,
+  .status-tone-green,
+  .status-tone-amber,
+  .status-tone-orange,
+  .status-tone-red,
+  .status-tone-gold
+) {
+  background-color: #f5f5f4 !important;
+  color: #525252 !important;
+  --tw-ring-color: rgb(212 212 212 / 0.85) !important;
+}
