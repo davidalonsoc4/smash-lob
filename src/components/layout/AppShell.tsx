@@ -77,8 +77,12 @@ function getFloatingTop() {
 }
 
 function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
-  const { getLeagueInviteCode, isLeagueAdmin, isPlayerClaimed } =
-    useLeagueAccess()
+  const {
+    getLeagueInviteCode,
+    isLeagueAdmin,
+    isPlayerClaimed,
+    regenerateLeagueInviteCode,
+  } = useLeagueAccess()
   const { activeLeague, players } = useCurrentLeagueData()
 
   if (!isLeagueAdmin(activeLeague.id)) {
@@ -90,16 +94,17 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
   )
   const inviteCode = getLeagueInviteCode(activeLeague.id)
 
-  if (!inviteCode || unclaimedPlayers.length === 0) {
+  if (unclaimedPlayers.length === 0) {
     return null
   }
 
   return (
     <FloatingInviteShareButton
-      inviteCode={inviteCode}
+      initialInviteCode={inviteCode}
       leagueName={activeLeague.name}
       unclaimedCount={unclaimedPlayers.length}
       rightOffsetPx={rightOffsetPx}
+      onGenerateInviteCode={() => regenerateLeagueInviteCode(activeLeague.id)}
     />
   )
 }

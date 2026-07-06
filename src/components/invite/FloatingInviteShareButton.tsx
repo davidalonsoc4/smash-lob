@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
 type FloatingInviteShareButtonProps = {
-  inviteCode: string
+  initialInviteCode: string
   leagueName: string
   unclaimedCount: number
   rightOffsetPx: number
+  onGenerateInviteCode: () => Promise<string | null>
 }
 
 function ShareIcon() {
@@ -36,39 +37,69 @@ function ShareIcon() {
 }
 
 export function FloatingInviteShareButton({
-  inviteCode,
+  initialInviteCode,
   leagueName,
   unclaimedCount,
   rightOffsetPx,
+  onGenerateInviteCode,
 }: FloatingInviteShareButtonProps) {
+  const [currentInviteCode, setCurrentInviteCode] = useState(initialInviteCode)
   const [copied, setCopied] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const inviteUrl = getPublicInviteUrl(inviteCode)
   const title = `Invitación a ${leagueName}`
   const text = `Únete a ${leagueName} en Smash & Lob. Quedan ${unclaimedCount} jugador${
     unclaimedCount === 1 ? "" : "es"
   } sin vincular.`
 
-  async function copyInviteUrl() {
+  useEffect(() => {
+    setCurrentInviteCode(initialInviteCode)
+  }, [initialInviteCode])
+
+  async function copyInviteUrl(inviteUrl: string) {
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setError(null)
     window.setTimeout(() => setCopied(false), 1800)
   }
 
+  async function getFreshInviteUrl() {
+    const nextInviteCode = await onGenerateInviteCode()
+
+    if (!nextInviteCode) {
+      throw new Error("invite-code-generation-failed")
+    }
+
+    setCurrentInviteCode(nextInviteCode)
+
+    return getPublicInviteUrl(nextInviteCode)
+  }
+
   async function handleShare() {
+    if (isGenerating) {
+      return
+    }
+
+    setIsGenerating(true)
+    setCopied(false)
+    setError(null)
+
+    let generatedInviteUrl: string | null = null
+
     try {
+      generatedInviteUrl = await getFreshInviteUrl()
+
       if (navigator.share) {
         await navigator.share({
           title,
           text,
-          url: inviteUrl,
+          url: generatedInviteUrl,
         })
         setError(null)
         return
       }
 
-      await copyInviteUrl()
+      await copyInviteUrl(generatedInviteUrl)
     } catch (shareError) {
       if (
         shareError instanceof DOMException &&
@@ -78,10 +109,17 @@ export function FloatingInviteShareButton({
       }
 
       try {
-        await copyInviteUrl()
+        const fallbackInviteUrl =
+          generatedInviteUrl ??
+          (currentInviteCode
+            ? getPublicInviteUrl(currentInviteCode)
+            : await getFreshInviteUrl())
+        await copyInviteUrl(fallbackInviteUrl)
       } catch {
-        setError("No se ha podido compartir ni copiar el enlace.")
+        setError("No se ha podido generar ni compartir la invitación.")
       }
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -97,9 +135,16 @@ export function FloatingInviteShareButton({
       <button
         type="button"
         onClick={handleShare}
+        disabled={isGenerating}
         aria-label="Compartir invitación"
-        title={copied ? "Enlace copiado" : "Compartir invitación"}
-        className="flex items-center justify-center rounded-full bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800"
+        title={
+          isGenerating
+            ? "Generando invitación"
+            : copied
+              ? "Enlace copiado"
+              : "Compartir invitación"
+        }
+        className="flex items-center justify-center rounded-full bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800 disabled:cursor-wait disabled:opacity-70"
         style={{
           width: "28px",
           height: "28px",
