@@ -237,6 +237,20 @@ export default function SettingsPage() {
         </AppCard>
       </Link>
 
+      <Link href="/availability" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Mi disponibilidad</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Define cuándo puedes jugar para futuras recomendaciones de horarios.
+              </p>
+            </div>
+
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
 
       <Link href="/help" className="block">
         <AppCard className="transition active:scale-[0.99]">

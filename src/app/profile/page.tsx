@@ -181,6 +181,20 @@ export default function ProfilePage() {
         seasonMatches={selectedMatches}
       />
 
+      <Link href="/availability">
+        <AppCard className="p-2.5 transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-black">Mi disponibilidad</p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+                Configura tus horarios habituales para que la app pueda recomendar fechas de partido.
+              </p>
+            </div>
+
+            <ClickableChevron className="shrink-0" />
+          </div>
+        </AppCard>
+      </Link>
 
       <Link href="/profile/matches">
         <AppCard className="p-2.5 transition active:scale-[0.99]">
