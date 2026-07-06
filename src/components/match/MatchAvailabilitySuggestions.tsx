@@ -189,57 +189,90 @@ export function MatchAvailabilitySuggestions({
     (playerId) => !availabilities.some((item) => item.playerId === playerId),
   );
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const bestRecommendation = recommendations[0] ?? null;
+  const summaryText = isLoading
+    ? "Calculando recomendaciones..."
+    : bestRecommendation
+      ? `${recommendations.length} propuesta${recommendations.length === 1 ? "" : "s"}. Mejor opción: ${bestRecommendation.dateLabel}, ${bestRecommendation.timeLabel}.`
+      : playersWithoutAvailability.length > 0
+        ? "Faltan disponibilidades para proponer huecos completos."
+        : "Sin huecos comunes por ahora.";
+
   return (
     <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
-      <div className="flex items-start justify-between gap-3">
+      <button
+        type="button"
+        onClick={() => setIsExpanded((currentValue) => !currentValue)}
+        className="flex w-full items-center justify-between gap-3 text-left"
+        aria-expanded={isExpanded}
+      >
         <div className="min-w-0">
           <p className="text-sm font-black text-neutral-950">
             Horarios recomendados
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
-            La app cruza la disponibilidad semanal de los 4 jugadores y propone huecos de 2 horas.
+          <p className="mt-0.5 line-clamp-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            {summaryText}
           </p>
         </div>
 
-        {isLoading ? (
-          <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-            Cargando
+        <div className="flex shrink-0 items-center gap-1.5">
+          {isLoading ? (
+            <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+              Cargando
+            </span>
+          ) : recommendations.length > 0 ? (
+            <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+              {recommendations.length}
+            </span>
+          ) : null}
+
+          <span className="grid size-7 place-items-center rounded-full border border-neutral-200 bg-white text-sm font-black text-neutral-600 shadow-sm">
+            {isExpanded ? "⌃" : "⌄"}
           </span>
-        ) : null}
-      </div>
-
-      {hasRemoteError ? (
-        <p className="mt-2 rounded-lg bg-amber-50 p-2 text-[11px] font-bold text-amber-800">
-          No se ha podido cargar la disponibilidad remota. Se muestran datos guardados en este dispositivo si existen.
-        </p>
-      ) : null}
-
-      {playersWithoutAvailability.length > 0 ? (
-        <p className="mt-2 rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
-          Falta disponibilidad de: {playersWithoutAvailability
-            .map((playerId) => getPlayerName(players, playerId))
-            .join(", ")}
-          .
-        </p>
-      ) : null}
-
-      {recommendations.length > 0 ? (
-        <div className="mt-2 grid gap-2">
-          {recommendations.map((suggestion) => (
-            <AvailabilitySuggestionCard
-              key={`${suggestion.dateTimeLocalValue}-${suggestion.coverage}`}
-              suggestion={suggestion}
-              players={players}
-              totalPlayers={uniquePlayerIds.length}
-              onUseSuggestion={onUseSuggestion}
-            />
-          ))}
         </div>
-      ) : (
-        <p className="mt-2 rounded-lg bg-white p-2 text-xs font-semibold leading-5 text-neutral-500">
-          Todavía no hay huecos comunes suficientes. Pide a los jugadores que completen su disponibilidad o prueba con otro horario manualmente.
-        </p>
-      )}
+      </button>
+
+      {isExpanded ? (
+        <div className="mt-2">
+          <p className="rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            La app cruza la disponibilidad semanal de los 4 jugadores y propone huecos de 2 horas.
+          </p>
+
+          {hasRemoteError ? (
+            <p className="mt-2 rounded-lg bg-amber-50 p-2 text-[11px] font-bold text-amber-800">
+              No se ha podido cargar la disponibilidad remota. Se muestran datos guardados en este dispositivo si existen.
+            </p>
+          ) : null}
+
+          {playersWithoutAvailability.length > 0 ? (
+            <p className="mt-2 rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
+              Falta disponibilidad de: {playersWithoutAvailability
+                .map((playerId) => getPlayerName(players, playerId))
+                .join(", ")}
+              .
+            </p>
+          ) : null}
+
+          {recommendations.length > 0 ? (
+            <div className="mt-2 grid gap-2">
+              {recommendations.map((suggestion) => (
+                <AvailabilitySuggestionCard
+                  key={`${suggestion.dateTimeLocalValue}-${suggestion.coverage}`}
+                  suggestion={suggestion}
+                  players={players}
+                  totalPlayers={uniquePlayerIds.length}
+                  onUseSuggestion={onUseSuggestion}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 rounded-lg bg-white p-2 text-xs font-semibold leading-5 text-neutral-500">
+              Todavía no hay huecos comunes suficientes. Pide a los jugadores que completen su disponibilidad o prueba con otro horario manualmente.
+            </p>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }
