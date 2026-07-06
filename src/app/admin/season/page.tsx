@@ -344,7 +344,7 @@ function InviteLinkCard({
   const { t } = useI18n();
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const inviteUrl = getPublicInviteUrl(inviteCode, { leagueId });
+  const inviteUrl = getPublicInviteUrl(inviteCode);
 
   async function handleCopy(value: string, label: string) {
     try {

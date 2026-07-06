@@ -7,21 +7,12 @@ export function getPublicAppBaseUrl() {
   )
 }
 
-export function getPublicInviteUrl(
-  inviteCode: string,
-  options?: { leagueId?: string | null }
-) {
+export function getPublicInviteUrl(inviteCode: string) {
   const inviteUrl = new URL(
     `${getPublicAppBaseUrl()}/invite/${encodeURIComponent(
       normalizeInviteCode(inviteCode)
     )}`
   )
-
-  const leagueId = options?.leagueId?.trim()
-
-  if (leagueId) {
-    inviteUrl.searchParams.set("leagueId", leagueId)
-  }
 
   return inviteUrl.toString()
 }
