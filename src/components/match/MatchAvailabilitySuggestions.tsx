@@ -5,6 +5,7 @@ import type { PlayerProfile } from "@/data/fakeData";
 import {
   buildAvailabilityRecommendations,
   findStoredPlayerAvailability,
+  getRecommendedDefaultDateTimeLocalValue,
   isSupabaseBackedAvailabilityId,
   type AvailabilityRecommendation,
   type PlayerAvailability,
@@ -19,6 +20,7 @@ type MatchAvailabilitySuggestionsProps = {
   roundStartsAt: string | null;
   roundEndsAt: string | null;
   onUseSuggestion: (dateTimeLocalValue: string) => void;
+  onDefaultSuggestionReady?: (dateTimeLocalValue: string) => void;
 };
 
 function getPlayerName(players: PlayerProfile[], playerId: string) {
@@ -67,7 +69,9 @@ function AvailabilitySuggestionCard({
       <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
         {isPerfectMatch
           ? "Coinciden todos los jugadores."
-          : `Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}.`}
+          : suggestion.isCommonForConfiguredPlayers
+            ? `Coinciden los ${suggestion.configuredPlayerCount} jugadores con disponibilidad. Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}.`
+            : `Falta${missingNames.length === 1 ? "" : "n"}: ${missingNames.join(", ")}.`}
       </p>
 
       <button
@@ -89,13 +93,15 @@ export function MatchAvailabilitySuggestions({
   roundStartsAt,
   roundEndsAt,
   onUseSuggestion,
+  onDefaultSuggestionReady,
 }: MatchAvailabilitySuggestionsProps) {
   const [availabilities, setAvailabilities] = useState<PlayerAvailability[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasRemoteError, setHasRemoteError] = useState(false);
+  const playerIdsKey = playerIds.join("|");
   const uniquePlayerIds = useMemo(
-    () => [...new Set(playerIds)].filter(Boolean),
-    [playerIds],
+    () => [...new Set(playerIdsKey.split("|").filter(Boolean))],
+    [playerIdsKey],
   );
   const isPersistentAvailability =
     isSupabaseBackedAvailabilityId(leagueId) &&
@@ -160,6 +166,25 @@ export function MatchAvailabilitySuggestions({
       }),
     [availabilities, roundEndsAt, roundStartsAt, uniquePlayerIds],
   );
+  const defaultDateTimeLocalValue = useMemo(
+    () =>
+      getRecommendedDefaultDateTimeLocalValue({
+        playerIds: uniquePlayerIds,
+        availabilities,
+        startsAt: roundStartsAt,
+        endsAt: roundEndsAt,
+      }),
+    [availabilities, roundEndsAt, roundStartsAt, uniquePlayerIds],
+  );
+
+  useEffect(() => {
+    if (!defaultDateTimeLocalValue) {
+      return;
+    }
+
+    onDefaultSuggestionReady?.(defaultDateTimeLocalValue);
+  }, [defaultDateTimeLocalValue, onDefaultSuggestionReady]);
+
   const playersWithoutAvailability = uniquePlayerIds.filter(
     (playerId) => !availabilities.some((item) => item.playerId === playerId),
   );

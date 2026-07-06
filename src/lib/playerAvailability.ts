@@ -297,6 +297,8 @@ export type AvailabilityRecommendation = {
   start: string;
   end: string;
   coverage: number;
+  configuredPlayerCount: number;
+  isCommonForConfiguredPlayers: boolean;
   availablePlayerIds: string[];
   missingPlayerIds: string[];
 };
@@ -440,6 +442,55 @@ function formatRecommendationDateLabel(date: Date) {
   return `${capitalizedWeekday}, ${dayMonth}`;
 }
 
+function hasAnyAvailabilitySlot(availability: PlayerAvailability) {
+  return (
+    countWeeklyAvailabilitySlots(availability.weeklySlots) > 0 ||
+    Object.values(availability.dateOverrides).some(
+      (slots) => normalizeAvailabilitySlots(slots).length > 0,
+    )
+  );
+}
+
+function getRecommendedDefaultCandidate(
+  recommendations: AvailabilityRecommendation[],
+  totalPlayers: number,
+) {
+  return (
+    recommendations.find((recommendation) => recommendation.coverage === totalPlayers) ??
+    recommendations.find(
+      (recommendation) => recommendation.isCommonForConfiguredPlayers,
+    ) ??
+    null
+  );
+}
+
+export function getRecommendedDefaultDateTimeLocalValue({
+  playerIds,
+  availabilities,
+  startsAt,
+  endsAt,
+}: BuildAvailabilityRecommendationsParams) {
+  const uniquePlayerIds = [...new Set(playerIds)].filter(Boolean);
+
+  if (uniquePlayerIds.length === 0) {
+    return null;
+  }
+
+  const recommendations = buildAvailabilityRecommendations({
+    playerIds: uniquePlayerIds,
+    availabilities,
+    startsAt,
+    endsAt,
+    maxResults: 20,
+  });
+  const defaultCandidate = getRecommendedDefaultCandidate(
+    recommendations,
+    uniquePlayerIds.length,
+  );
+
+  return defaultCandidate?.dateTimeLocalValue ?? null;
+}
+
 export function buildAvailabilityRecommendations({
   playerIds,
   availabilities,
@@ -458,6 +509,16 @@ export function buildAvailabilityRecommendations({
   const availabilityByPlayerId = new Map(
     availabilities.map((availability) => [availability.playerId, availability]),
   );
+  const configuredPlayerIds = uniquePlayerIds.filter((playerId) => {
+    const availability = availabilityByPlayerId.get(playerId);
+
+    return availability ? hasAnyAvailabilitySlot(availability) : false;
+  });
+
+  if (configuredPlayerIds.length === 0) {
+    return [];
+  }
+
   const dates = getDateRange({ startsAt, endsAt });
   const recommendations: AvailabilityRecommendation[] = [];
 
@@ -493,8 +554,16 @@ export function buildAvailabilityRecommendations({
       const availablePlayerIds = playerSlots
         .filter(({ slots }) => isSlotCovered({ slots, startMinutes, endMinutes }))
         .map(({ playerId }) => playerId);
+      const isCommonForConfiguredPlayers =
+        configuredPlayerIds.length > 0 &&
+        configuredPlayerIds.every((playerId) =>
+          availablePlayerIds.includes(playerId),
+        );
+      const isCompleteMatch = availablePlayerIds.length === uniquePlayerIds.length;
+      const hasUsefulPartialMatch =
+        availablePlayerIds.length >= Math.min(3, uniquePlayerIds.length);
 
-      if (availablePlayerIds.length < Math.min(3, uniquePlayerIds.length)) {
+      if (!isCompleteMatch && !isCommonForConfiguredPlayers && !hasUsefulPartialMatch) {
         continue;
       }
 
@@ -514,6 +583,8 @@ export function buildAvailabilityRecommendations({
         start,
         end,
         coverage: availablePlayerIds.length,
+        configuredPlayerCount: configuredPlayerIds.length,
+        isCommonForConfiguredPlayers,
         availablePlayerIds,
         missingPlayerIds: uniquePlayerIds.filter(
           (playerId) => !availablePlayerIds.includes(playerId),
@@ -524,6 +595,17 @@ export function buildAvailabilityRecommendations({
 
   return recommendations
     .sort((a, b) => {
+      const aIsComplete = a.coverage === uniquePlayerIds.length;
+      const bIsComplete = b.coverage === uniquePlayerIds.length;
+
+      if (aIsComplete !== bIsComplete) {
+        return aIsComplete ? -1 : 1;
+      }
+
+      if (a.isCommonForConfiguredPlayers !== b.isCommonForConfiguredPlayers) {
+        return a.isCommonForConfiguredPlayers ? -1 : 1;
+      }
+
       if (b.coverage !== a.coverage) {
         return b.coverage - a.coverage;
       }

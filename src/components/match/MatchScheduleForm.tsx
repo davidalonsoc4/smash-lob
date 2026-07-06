@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PlayerProfile } from "@/data/fakeData";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
@@ -106,6 +106,8 @@ export function MatchScheduleForm({
     hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
   );
   const hasInitializedDefaultSchedule = useRef(false);
+  const autoScheduledAtValueRef = useRef<string | null>(null);
+  const hasUserChangedScheduledAtRef = useRef(false);
   const [selectedLocation, setSelectedLocation] =
     useState(initialLocationValue);
   const [selectedCourt, setSelectedCourt] = useState(
@@ -117,16 +119,37 @@ export function MatchScheduleForm({
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const applyAutomaticScheduledAtValue = useCallback(
+    (nextValue: string) => {
+      if (hasSchedule || !isEditing || hasUserChangedScheduledAtRef.current) {
+        return;
+      }
+
+      setScheduledAtValue((currentValue) => {
+        const cleanCurrentValue = currentValue.trim();
+
+        if (
+          cleanCurrentValue &&
+          cleanCurrentValue !== autoScheduledAtValueRef.current
+        ) {
+          return currentValue;
+        }
+
+        autoScheduledAtValueRef.current = nextValue;
+        return nextValue;
+      });
+    },
+    [hasSchedule, isEditing],
+  );
+
   useEffect(() => {
     if (hasInitializedDefaultSchedule.current || hasSchedule || !isEditing) {
       return;
     }
 
-    setScheduledAtValue((currentValue) =>
-      currentValue.trim() ? currentValue : formatNextFullHourForDateTimeInput(),
-    );
+    applyAutomaticScheduledAtValue(formatNextFullHourForDateTimeInput());
     hasInitializedDefaultSchedule.current = true;
-  }, [hasSchedule, isEditing]);
+  }, [applyAutomaticScheduledAtValue, hasSchedule, isEditing]);
 
   const selectedLeagueLocation = normalizedAvailableLocations.find(
     (availableLocation) => availableLocation.id === selectedLocation,
@@ -230,6 +253,8 @@ export function MatchScheduleForm({
       hasSchedule && location && !scheduledLeagueLocation ? location : "",
     );
     setActionError(null);
+    autoScheduledAtValueRef.current = null;
+    hasUserChangedScheduledAtRef.current = false;
     setIsEditing(false);
   }
 
@@ -256,6 +281,8 @@ export function MatchScheduleForm({
     setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
     setSelectedCourt("");
     setCustomLocation("");
+    autoScheduledAtValueRef.current = null;
+    hasUserChangedScheduledAtRef.current = false;
     setIsEditing(false);
   }
 
@@ -286,6 +313,8 @@ export function MatchScheduleForm({
     setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
     setSelectedCourt("");
     setCustomLocation("");
+    autoScheduledAtValueRef.current = null;
+    hasUserChangedScheduledAtRef.current = false;
     setIsEditing(false);
   }
 
@@ -449,9 +478,12 @@ export function MatchScheduleForm({
             roundStartsAt={roundStartsAt}
             roundEndsAt={roundEndsAt}
             onUseSuggestion={(dateTimeLocalValue) => {
+              hasUserChangedScheduledAtRef.current = true;
+              autoScheduledAtValueRef.current = null;
               setScheduledAtValue(dateTimeLocalValue);
               setActionError(null);
             }}
+            onDefaultSuggestionReady={applyAutomaticScheduledAtValue}
           />
 
           <div className="grid gap-2.5 sm:grid-cols-2">
@@ -463,7 +495,11 @@ export function MatchScheduleForm({
               <input
                 type="datetime-local"
                 value={scheduledAtValue}
-                onChange={(event) => setScheduledAtValue(event.target.value)}
+                onChange={(event) => {
+                  hasUserChangedScheduledAtRef.current = true;
+                  autoScheduledAtValueRef.current = null;
+                  setScheduledAtValue(event.target.value);
+                }}
                 disabled={isSaving}
                 className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
