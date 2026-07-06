@@ -335,7 +335,7 @@ export const eu = {
     winRate: "Garaipenak",
     record: "balantzea",
     setsBalance: "Seten balantzea",
-    gamesBalance: "Jokoen balantzea",
+    gamesBalance: "Jokoak",
     mvpWon: "Irabazitako MVPak",
     wonPercentage: "irabazita",
     forPercentage: "alde",

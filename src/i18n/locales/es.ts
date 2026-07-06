@@ -338,7 +338,7 @@ export const es = {
     winRate: "Victorias",
     record: "balance",
     setsBalance: "Balance de sets",
-    gamesBalance: "Balance de juegos",
+    gamesBalance: "Juegos",
     mvpWon: "MVPs ganados",
     wonPercentage: "ganados",
     forPercentage: "a favor",

@@ -921,10 +921,6 @@ export default function Home() {
                       >
                         {player.displayName}
                       </Link>
-                      <p className="text-xs text-neutral-500">
-                        {t.ranking.gamesDiff}: {player.gamesDiff > 0 ? "+" : ""}
-                        {player.gamesDiff}
-                      </p>
                     </div>
                   </div>
 

@@ -305,13 +305,6 @@ export default function AdminPage() {
       </AppCard>
 
       <AdminInviteCard leagueId={activeLeague.id} />
-
-      <AppCard>
-        <p className="font-bold">{t.adminPanel.futureTitle}</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
-          {t.adminPanel.futureDescription}
-        </p>
-      </AppCard>
     </div>
   )
 }

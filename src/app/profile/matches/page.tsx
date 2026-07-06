@@ -174,9 +174,9 @@ export default function ProfileMatchesPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+      <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-neutral-200 bg-white px-2 py-2 shadow-sm">
         <label className="min-w-0">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
             Estado
           </span>
           <select
@@ -184,7 +184,7 @@ export default function ProfileMatchesPage() {
             onChange={(event) =>
               handleFilterChange(event.target.value as MatchFilter)
             }
-            className="mt-1 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-900 outline-none"
+            className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
           >
             {filterOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -195,13 +195,13 @@ export default function ProfileMatchesPage() {
         </label>
 
         <label className="min-w-0">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
             Orden
           </span>
           <select
             value={activeSort}
             onChange={(event) => handleSortChange(event.target.value as MatchSort)}
-            className="mt-1 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-900 outline-none"
+            className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>

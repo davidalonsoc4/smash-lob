@@ -206,7 +206,6 @@ export function PlayerStatsPanel({
 
   const matchesPlayed = finishedMatches.length
   const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0
-  const gamesDiff = gamesFor - gamesAgainst
   const bestPartner = getBestRelation(partnerStats)
   const bestPartnerDiff = bestPartner
     ? bestPartner.gamesFor - bestPartner.gamesAgainst
@@ -278,7 +277,7 @@ export function PlayerStatsPanel({
             {gamesFor}-{gamesAgainst}
           </p>
           <p className="mt-0.5 text-[11px] font-semibold leading-snug text-neutral-500">
-            {formatSignedNumber(gamesDiff)} {t.ranking.diff} · {formatPercentage(gamesForRate)} {t.playerStats.forPercentage}
+            {formatPercentage(gamesForRate)} {t.playerStats.forPercentage}
           </p>
         </div>
 

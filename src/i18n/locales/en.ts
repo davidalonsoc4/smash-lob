@@ -330,7 +330,7 @@ export const en = {
     winRate: "Wins",
     record: "record",
     setsBalance: "Sets balance",
-    gamesBalance: "Games balance",
+    gamesBalance: "Games",
     mvpWon: "MVPs won",
     wonPercentage: "won",
     forPercentage: "for",

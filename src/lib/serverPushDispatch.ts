@@ -1,6 +1,7 @@
 import { createSupabaseServiceClient } from "@/lib/supabaseServer";
 import {
   getNotificationPreferenceKeyForEvent,
+  isAlwaysEnabledNotificationEvent,
   normalizeNotificationPreferences,
 } from "@/lib/notificationSettings";
 import type { ActivityEventType } from "@/lib/activity";
@@ -579,9 +580,17 @@ async function filterByPreferences({
   eventType: ActivityEventType;
   recipients: NotificationRecipient[];
 }) {
+  if (recipients.length === 0) {
+    return [];
+  }
+
+  if (isAlwaysEnabledNotificationEvent(eventType)) {
+    return recipients;
+  }
+
   const preferenceKey = getNotificationPreferenceKeyForEvent(eventType);
 
-  if (!preferenceKey || recipients.length === 0) {
+  if (!preferenceKey) {
     return [];
   }
 
