@@ -130,6 +130,28 @@ export default function HelpPage() {
         </div>
       </AppCard>
 
+
+      <HelpBlock eyebrow="Reglas" title="Inscripción y compromisos de la liga">
+        <div className="grid gap-3">
+          <MiniCard
+            title="Inscripción de temporada"
+            description="Si la liga tiene cuota de inscripción, el administrador puede fijar el importe por jugador al crear la temporada y hacer seguimiento de quién la ha pagado."
+          />
+          <MiniCard
+            title="Responsabilidad de cada jugador"
+            description="Cada jugador debe revisar sus partidos, proponer disponibilidad y avisar cuanto antes si no puede jugar una jornada."
+          />
+          <MiniCard
+            title="Resultados"
+            description="El resultado debe registrarse cuando termine el partido. Si pasan varias horas sin resultado, la app puede enviar recordatorios a los jugadores."
+          />
+          <MiniCard
+            title="Reservas y pagos de pista"
+            description="La reserva de pista es información práctica de cada partido. Si alguien paga la pista completa, la app puede mostrar importes pendientes para que el resto los marque como pagados."
+          />
+        </div>
+      </HelpBlock>
+
       <HelpBlock eyebrow="Formato" title="Cómo funciona una temporada">
         <div className="grid gap-3">
           <MiniCard

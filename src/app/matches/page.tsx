@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getNextMatch } from "@/lib/leagues"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 
@@ -22,6 +23,11 @@ export default function MatchesPage() {
   const isSeasonClosed = activeSeason.status === "finished"
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const activeScope = searchParams.get("scope") === "mine" ? "mine" : "all"
+  const currentUserMatches = matches.filter(
+    (match) =>
+      match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId),
+  )
+  const currentUserNextMatch = getNextMatch(currentUserMatches)
   const visibleMatches = matches.filter((match) =>
     activeScope === "mine"
       ? match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
@@ -163,6 +169,7 @@ export default function MatchesPage() {
                       matches,
                     })}
                     leagueLocations={activeLeague.locations}
+                    showMissingScheduleHint={currentUserNextMatch?.id === match.id}
                   />
                 ))}
               </div>

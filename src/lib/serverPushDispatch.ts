@@ -138,7 +138,8 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_result_saved" ||
     eventType === "match_result_updated" ||
     eventType === "match_result_cleared" ||
-    eventType === "match_result_missing_reminder"
+    eventType === "match_result_missing_reminder" ||
+    eventType === "match_upcoming_reminder"
   );
 }
 
@@ -356,6 +357,10 @@ function getNotificationTitle(event: ActivityEventRow) {
     return "Falta el resultado";
   }
 
+  if (event.type === "match_upcoming_reminder") {
+    return "Próximo partido";
+  }
+
   if (event.type === "match_result_saved") {
     return "Resultado registrado";
   }
@@ -437,6 +442,18 @@ function getNotificationBody(
     return typeof round === "number"
       ? `No olvides registrar el resultado de tu partido de la Jornada ${round}.`
       : "No olvides registrar el resultado de tu partido.";
+  }
+
+  if (event.type === "match_upcoming_reminder") {
+    const metadata = toRecord(event.metadata);
+    const location =
+      typeof metadata.locationText === "string" && metadata.locationText.trim()
+        ? metadata.locationText.trim()
+        : null;
+
+    return location
+      ? `Prepárate para tu partido en ${location}.`
+      : "Prepárate para tu partido.";
   }
 
   if (event.type === "match_result_saved" || event.type === "match_result_updated") {

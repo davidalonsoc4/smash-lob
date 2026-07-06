@@ -107,6 +107,28 @@ async function hasExistingResultReminderEvent({
   return Boolean(data && data.length > 0);
 }
 
+async function hasExistingUpcomingReminderEvent({
+  supabase,
+  matchId,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  matchId: string;
+}) {
+  const { data, error } = await supabase
+    .from("activity_events")
+    .select("id")
+    .eq("match_id", matchId)
+    .eq("type", "match_upcoming_reminder")
+    .contains("metadata", { reminderMinutes: 120 })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data && data.length > 0);
+}
+
 async function createActivityEvent({
   supabase,
   match,
@@ -117,7 +139,10 @@ async function createActivityEvent({
 }: {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
   match: MatchRow;
-  type: "round_in_play" | "match_result_missing_reminder";
+  type:
+    | "round_in_play"
+    | "match_result_missing_reminder"
+    | "match_upcoming_reminder";
   title: string;
   description: string;
   metadata: Record<string, unknown>;
@@ -192,6 +217,7 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
+  const upcomingReminderWindowEndsAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
   const { data: scheduledMatches, error: matchesError } = await supabase
     .from("matches")
     .select(
@@ -199,7 +225,7 @@ export async function GET(request: Request) {
     )
     .eq("status", "scheduled")
     .not("scheduled_at", "is", null)
-    .lte("scheduled_at", now.toISOString())
+    .lte("scheduled_at", upcomingReminderWindowEndsAt.toISOString())
     .limit(500);
 
   if (matchesError) {
@@ -234,6 +260,7 @@ export async function GET(request: Request) {
     match: MatchRow;
     reminderHours: ResultReminderHour[];
   }[] = [];
+  const upcomingReminderCandidates: MatchRow[] = [];
 
   activeMatches.forEach((match) => {
     if (
@@ -249,6 +276,18 @@ export async function GET(request: Request) {
 
       if (!current || String(match.scheduled_at) < String(current.scheduled_at)) {
         roundCandidates.set(key, match);
+      }
+    }
+
+    if (match.scheduled_at) {
+      const scheduledTime = new Date(match.scheduled_at).getTime();
+
+      if (
+        Number.isFinite(scheduledTime) &&
+        scheduledTime > now.getTime() &&
+        scheduledTime <= upcomingReminderWindowEndsAt.getTime()
+      ) {
+        upcomingReminderCandidates.push(match);
       }
     }
 
@@ -290,6 +329,39 @@ export async function GET(request: Request) {
         participantIds: getParticipantIds(match),
         scheduledAt: match.scheduled_at,
         location: match.location,
+        automatic: true,
+      },
+    });
+
+    eventIds.push(eventId);
+  }
+
+  for (const match of upcomingReminderCandidates) {
+    const alreadySent = await hasExistingUpcomingReminderEvent({
+      supabase,
+      matchId: match.id,
+    });
+
+    if (alreadySent) {
+      continue;
+    }
+
+    const locationText = getScheduleLocationFallbackText(match.location);
+    const eventId = await createActivityEvent({
+      supabase,
+      match,
+      type: "match_upcoming_reminder",
+      title: "Próximo partido",
+      description: locationText
+        ? `Prepárate para tu partido en ${locationText}.`
+        : "Prepárate para tu partido.",
+      metadata: {
+        round: match.round,
+        reminderMinutes: 120,
+        participantIds: getParticipantIds(match),
+        scheduledAt: match.scheduled_at,
+        location: match.location,
+        locationText,
         automatic: true,
       },
     });

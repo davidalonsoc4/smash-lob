@@ -35,6 +35,7 @@ type MatchCardProps = {
   headerMode?: "round" | "match-date";
   highlightedPlayerIds?: string[];
   leagueLocations?: LeagueLocation[];
+  showMissingScheduleHint?: boolean;
 };
 
 export function MatchCard({
@@ -45,6 +46,7 @@ export function MatchCard({
   headerMode = "round",
   highlightedPlayerIds = [],
   leagueLocations = [],
+  showMissingScheduleHint = true,
 }: MatchCardProps) {
   const { t } = useI18n();
   const isFinished = match.status === "finished";
@@ -55,16 +57,28 @@ export function MatchCard({
     locations: leagueLocations,
     scheduleLocation: match.location,
   });
+  const hasScheduleDetails = Boolean(
+    match.scheduledAt || match.dateLabel || match.location,
+  );
+  const shouldShowScheduleDetails = Boolean(
+    !isFinished && (isPostponed || hasScheduleDetails || showMissingScheduleHint),
+  );
   const scheduleTitle = isPostponed
     ? t.matches.pendingReschedule
-    : (match.dateLabel ?? t.matches.pendingDate);
+    : match.dateLabel
+      ? match.dateLabel
+      : showMissingScheduleHint
+        ? t.dashboard.addSchedule
+        : t.matches.pendingDate;
 
   const scheduleDescription = isPostponed
     ? t.matches.needsReschedule
     : leagueLocation
       ? getLeagueLocationCompactText(leagueLocation)
       : (getScheduleLocationFallbackText(match.location) ??
-        t.matches.missingSchedule);
+        (showMissingScheduleHint
+          ? t.dashboard.playersCanSchedule
+          : t.matches.missingSchedule));
 
   function getPlayedDateLabel() {
     if (!match.scheduledAt) {
@@ -155,7 +169,7 @@ export function MatchCard({
                 </span>
               ))}
             </div>
-          ) : (
+          ) : shouldShowScheduleDetails ? (
             <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
               <p className="text-xs font-black text-neutral-800">
                 {scheduleTitle}
@@ -165,7 +179,7 @@ export function MatchCard({
                 {scheduleDescription}
               </p>
             </div>
-          )}
+          ) : null}
 
           {isPostponed && hasRoundWindow ? (
             <div className="mt-2 rounded-lg bg-orange-100 px-2.5 py-2 text-xs font-semibold text-orange-900">

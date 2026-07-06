@@ -23,7 +23,12 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     title: "Mi próximo partido",
     description:
       "Programación, cambios de fecha, lugar, pista o aplazamientos de partidos en los que juegas.",
-    eventTypes: ["match_scheduled", "match_schedule_updated", "match_postponed"],
+    eventTypes: [
+      "match_scheduled",
+      "match_schedule_updated",
+      "match_postponed",
+      "match_upcoming_reminder",
+    ],
   },
   {
     key: "my_match_result",

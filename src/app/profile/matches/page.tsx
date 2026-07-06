@@ -16,6 +16,8 @@ type MatchFilter =
   | "scheduling"
   | "postponed"
 
+type MatchSort = "recent" | "roundAsc" | "roundDesc"
+
 const validFilters: MatchFilter[] = [
   "finished",
   "all",
@@ -24,6 +26,43 @@ const validFilters: MatchFilter[] = [
   "scheduling",
   "postponed",
 ]
+
+const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"]
+
+function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null; round: number }) {
+  const value = match.resultRecordedAt ?? match.scheduledAt
+
+  if (!value) {
+    return 0
+  }
+
+  const time = new Date(value).getTime()
+
+  return Number.isNaN(time) ? 0 : time
+}
+
+function sortMatchesByOrder<T extends { resultRecordedAt?: string | null; scheduledAt?: string | null; round: number }>(
+  matches: T[],
+  sort: MatchSort,
+) {
+  return [...matches].sort((firstMatch, secondMatch) => {
+    if (sort === "roundAsc") {
+      return firstMatch.round - secondMatch.round
+    }
+
+    if (sort === "roundDesc") {
+      return secondMatch.round - firstMatch.round
+    }
+
+    const timeDiff = getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch)
+
+    if (timeDiff !== 0) {
+      return timeDiff
+    }
+
+    return secondMatch.round - firstMatch.round
+  })
+}
 
 export default function ProfileMatchesPage() {
   const { t } = useI18n()
@@ -34,9 +73,13 @@ export default function ProfileMatchesPage() {
     useCurrentLeagueData()
 
   const queryFilter = searchParams.get("status")
+  const querySort = searchParams.get("sort")
   const activeFilter = validFilters.includes(queryFilter as MatchFilter)
     ? (queryFilter as MatchFilter)
     : "finished"
+  const activeSort = validSorts.includes(querySort as MatchSort)
+    ? (querySort as MatchSort)
+    : "recent"
   const player = players.find((item) => item.id === currentUserId)
 
   const filterOptions: { value: MatchFilter; label: string }[] = [
@@ -47,15 +90,17 @@ export default function ProfileMatchesPage() {
     { value: "scheduling", label: t.profile.filterUnscheduled },
     { value: "postponed", label: t.profile.filterPostponed },
   ]
+  const sortOptions: { value: MatchSort; label: string }[] = [
+    { value: "recent", label: "Más recientes" },
+    { value: "roundAsc", label: "Jornada 1 → final" },
+    { value: "roundDesc", label: "Última jornada → primera" },
+  ]
 
-  const playerMatches = matches
-    .filter(
-      (match) =>
-        match.teamA.includes(currentUserId) ||
-        match.teamB.includes(currentUserId)
-    )
-    .sort((firstMatch, secondMatch) => secondMatch.round - firstMatch.round)
-  const filteredMatches = playerMatches.filter((match) => {
+  const playerMatches = matches.filter(
+    (match) =>
+      match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId),
+  )
+  const filteredMatches = sortMatchesByOrder(playerMatches.filter((match) => {
     if (activeFilter === "all") {
       return true
     }
@@ -65,14 +110,36 @@ export default function ProfileMatchesPage() {
     }
 
     return match.status === activeFilter
-  })
+  }), activeSort)
+
+  function buildHref({
+    filter = activeFilter,
+    sort = activeSort,
+  }: {
+    filter?: MatchFilter
+    sort?: MatchSort
+  }) {
+    const nextParams = new URLSearchParams()
+
+    if (filter !== "finished") {
+      nextParams.set("status", filter)
+    }
+
+    if (sort !== "recent") {
+      nextParams.set("sort", sort)
+    }
+
+    const query = nextParams.toString()
+
+    return query ? `/profile/matches?${query}` : "/profile/matches"
+  }
 
   function handleFilterChange(filter: MatchFilter) {
-    router.push(
-      filter === "finished"
-        ? "/profile/matches"
-        : `/profile/matches?status=${filter}`
-    )
+    router.push(buildHref({ filter }))
+  }
+
+  function handleSortChange(sort: MatchSort) {
+    router.push(buildHref({ sort }))
   }
 
   if (!player) {
@@ -107,24 +174,42 @@ export default function ProfileMatchesPage() {
         </p>
       </header>
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
-        <p className="text-sm font-black text-neutral-700">
-          {t.profile.filterLabel}
-        </p>
+      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+        <label className="min-w-0">
+          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            Estado
+          </span>
+          <select
+            value={activeFilter}
+            onChange={(event) =>
+              handleFilterChange(event.target.value as MatchFilter)
+            }
+            className="mt-1 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-900 outline-none"
+          >
+            {filterOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        <select
-          value={activeFilter}
-          onChange={(event) =>
-            handleFilterChange(event.target.value as MatchFilter)
-          }
-          className="min-w-40 rounded-full border border-neutral-200 bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-900 outline-none"
-        >
-          {filterOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <label className="min-w-0">
+          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            Orden
+          </span>
+          <select
+            value={activeSort}
+            onChange={(event) => handleSortChange(event.target.value as MatchSort)}
+            className="mt-1 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-900 outline-none"
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <PlayerMatchesList
