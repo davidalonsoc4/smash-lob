@@ -101,6 +101,7 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
   return (
     <FloatingInviteShareButton
       initialInviteCode={inviteCode}
+      leagueId={activeLeague.id}
       leagueName={activeLeague.name}
       unclaimedCount={unclaimedPlayers.length}
       rightOffsetPx={rightOffsetPx}

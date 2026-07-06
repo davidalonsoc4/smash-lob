@@ -13,6 +13,7 @@ import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 type InviteFlowProps = {
   code: string
+  leagueIdHint?: string | null
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
@@ -72,7 +73,7 @@ function PlayerClaimButton({
   )
 }
 
-export function InviteFlow({ code }: InviteFlowProps) {
+export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const { t } = useI18n()
   const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const router = useRouter()
@@ -119,7 +120,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
 
       try {
         const resolvedLeague = await withTimeout(
-          resolveLeagueInviteRef.current(normalizedCode),
+          resolveLeagueInviteRef.current(normalizedCode, leagueIdHint),
           12000
         )
 
@@ -153,7 +154,7 @@ export function InviteFlow({ code }: InviteFlowProps) {
     return () => {
       isMounted = false
     }
-  }, [loadAttempt, normalizedCode, t.invites.genericError, t.invites.invalidCode, t.invites.timeoutError])
+  }, [leagueIdHint, loadAttempt, normalizedCode, t.invites.genericError, t.invites.invalidCode, t.invites.timeoutError])
 
   if (isLoading) {
     return (

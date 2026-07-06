@@ -5,6 +5,7 @@ import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
 type FloatingInviteShareButtonProps = {
   initialInviteCode: string
+  leagueId: string
   leagueName: string
   unclaimedCount: number
   rightOffsetPx: number
@@ -38,6 +39,7 @@ function ShareIcon() {
 
 export function FloatingInviteShareButton({
   initialInviteCode,
+  leagueId,
   leagueName,
   unclaimedCount,
   rightOffsetPx,
@@ -72,7 +74,7 @@ export function FloatingInviteShareButton({
 
     setCurrentInviteCode(nextInviteCode)
 
-    return getPublicInviteUrl(nextInviteCode)
+    return getPublicInviteUrl(nextInviteCode, { leagueId })
   }
 
   async function handleShare() {
@@ -112,7 +114,7 @@ export function FloatingInviteShareButton({
         const fallbackInviteUrl =
           generatedInviteUrl ??
           (currentInviteCode
-            ? getPublicInviteUrl(currentInviteCode)
+            ? getPublicInviteUrl(currentInviteCode, { leagueId })
             : await getFreshInviteUrl())
         await copyInviteUrl(fallbackInviteUrl)
       } catch {

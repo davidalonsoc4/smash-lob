@@ -334,15 +334,17 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
 
 function InviteLinkCard({
   inviteCode,
+  leagueId,
   leagueName,
 }: {
   inviteCode: string;
+  leagueId: string;
   leagueName: string;
 }) {
   const { t } = useI18n();
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const inviteUrl = getPublicInviteUrl(inviteCode);
+  const inviteUrl = getPublicInviteUrl(inviteCode, { leagueId });
 
   async function handleCopy(value: string, label: string) {
     try {
@@ -2390,7 +2392,11 @@ function NewSeasonForm({
       ) : null}
 
       {feedback && inviteCode ? (
-        <InviteLinkCard inviteCode={inviteCode} leagueName={activeLeagueName} />
+        <InviteLinkCard
+          inviteCode={inviteCode}
+          leagueId={activeLeague.id}
+          leagueName={activeLeagueName}
+        />
       ) : null}
     </form>
   );

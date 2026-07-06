@@ -96,8 +96,12 @@ async function fetchLeagueById(leagueId: string) {
   return data ? (data as SupabaseLeagueRow) : null
 }
 
-async function fetchLeagueByInviteCode(code: string) {
+async function fetchLeagueByInviteCode(
+  code: string,
+  leagueIdHint?: string | null
+) {
   const normalizedCode = normalizeInviteCode(code)
+  const cleanLeagueIdHint = leagueIdHint?.trim() || null
   const { data: directLeague, error: directLeagueError } = await supabase
     .from("leagues")
     .select(leagueInviteSelect)
@@ -124,15 +128,29 @@ async function fetchLeagueByInviteCode(code: string) {
     throw inviteError
   }
 
-  if (!invite?.league_id) {
+  if (invite?.league_id) {
+    return fetchLeagueById((invite as SupabaseInviteRow).league_id)
+  }
+
+  if (!cleanLeagueIdHint) {
     return null
   }
 
-  return fetchLeagueById((invite as SupabaseInviteRow).league_id)
+  const hintedLeague = await fetchLeagueById(cleanLeagueIdHint)
+
+  if (
+    hintedLeague &&
+    normalizeInviteCode(hintedLeague.invite_code) === normalizedCode
+  ) {
+    return hintedLeague
+  }
+
+  return null
 }
 
 async function fetchSupabaseInviteSnapshotFromApi(
-  code: string
+  code: string,
+  leagueIdHint?: string | null
 ): Promise<SupabaseInviteSnapshot | null> {
   const normalizedCode = normalizeInviteCode(code)
 
@@ -140,10 +158,17 @@ async function fetchSupabaseInviteSnapshotFromApi(
     return null
   }
 
-  const response = await fetch(
+  const inviteUrl = new URL(
     `/api/invites/${encodeURIComponent(normalizedCode)}`,
-    { cache: "no-store" }
+    window.location.origin
   )
+  const cleanLeagueIdHint = leagueIdHint?.trim()
+
+  if (cleanLeagueIdHint) {
+    inviteUrl.searchParams.set("leagueId", cleanLeagueIdHint)
+  }
+
+  const response = await fetch(inviteUrl.toString(), { cache: "no-store" })
 
   if (response.status === 404) {
     return null
@@ -161,9 +186,10 @@ async function fetchSupabaseInviteSnapshotFromApi(
 }
 
 async function fetchSupabaseInviteSnapshotDirect(
-  code: string
+  code: string,
+  leagueIdHint?: string | null
 ): Promise<SupabaseInviteSnapshot | null> {
-  const leagueRow = await fetchLeagueByInviteCode(code)
+  const leagueRow = await fetchLeagueByInviteCode(code, leagueIdHint)
 
   if (!leagueRow) {
     return null
@@ -321,12 +347,13 @@ async function fetchSupabaseInviteSnapshotDirect(
 }
 
 export async function fetchSupabaseInviteSnapshot(
-  code: string
+  code: string,
+  leagueIdHint?: string | null
 ): Promise<SupabaseInviteSnapshot | null> {
   try {
-    return await fetchSupabaseInviteSnapshotFromApi(code)
+    return await fetchSupabaseInviteSnapshotFromApi(code, leagueIdHint)
   } catch {
-    return fetchSupabaseInviteSnapshotDirect(code)
+    return fetchSupabaseInviteSnapshotDirect(code, leagueIdHint)
   }
 }
 

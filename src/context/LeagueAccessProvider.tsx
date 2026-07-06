@@ -111,7 +111,10 @@ type LeagueAccessContextValue = {
     avatarUrl: string | null,
   ) => Promise<boolean>;
   getLeagueByInviteCode: (code: string) => League | null;
-  resolveLeagueInvite: (code: string) => Promise<League | null>;
+  resolveLeagueInvite: (
+    code: string,
+    leagueIdHint?: string | null,
+  ) => Promise<League | null>;
   getUnclaimedPlayersForLeague: (leagueId: string) => PlayerProfile[];
   claimPlayer: (leagueId: string, playerId: string) => Promise<ClaimResult>;
   linkCurrentUserToLeaguePlayer: (leagueId: string, playerId: string) => void;
@@ -1226,11 +1229,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   );
 
   const resolveLeagueInvite = useCallback(
-    async (code: string) => {
+    async (code: string, leagueIdHint?: string | null) => {
       const localLeague = getLeagueByInviteCode(code);
 
       try {
-        const snapshot = await fetchSupabaseInviteSnapshot(code);
+        const snapshot = await fetchSupabaseInviteSnapshot(code, leagueIdHint);
 
         if (!snapshot) {
           return localLeague;

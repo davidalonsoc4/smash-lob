@@ -29,8 +29,8 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inviteUrl = useMemo(
-    () => (inviteCode ? getPublicInviteUrl(inviteCode) : ""),
-    [inviteCode]
+    () => (inviteCode ? getPublicInviteUrl(inviteCode, { leagueId }) : ""),
+    [inviteCode, leagueId]
   )
 
   async function copyValue(value: string, label: string) {

@@ -127,6 +127,34 @@ export async function regenerateSupabaseLeagueInviteCode({
   displayName?: string | null
 }) {
   const normalizedCode = code.trim().toUpperCase()
+  if (typeof window !== "undefined") {
+    try {
+      const response = await fetch(
+        `/api/leagues/${encodeURIComponent(leagueId)}/invite`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: normalizedCode,
+            email,
+            displayName: displayName ?? null,
+          }),
+        }
+      )
+
+      if (response.ok) {
+        const payload = (await response.json()) as {
+          leagueId: string
+          inviteCode: string
+        }
+
+        return payload
+      }
+    } catch {
+      // Fall back to the direct Supabase client below.
+    }
+  }
+
   const user = await upsertAppUser({
     email,
     displayName,

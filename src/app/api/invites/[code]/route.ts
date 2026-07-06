@@ -76,9 +76,11 @@ async function fetchLeagueById(supabase: NonNullable<ReturnType<typeof createSup
 
 async function fetchLeagueByInviteCode(
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>,
-  code: string
+  code: string,
+  leagueIdHint?: string | null
 ) {
   const normalizedCode = normalizeInviteCode(code)
+  const cleanLeagueIdHint = leagueIdHint?.trim() || null
   const { data: directLeague, error: directLeagueError } = await supabase
     .from("leagues")
     .select(leagueInviteSelect)
@@ -105,19 +107,33 @@ async function fetchLeagueByInviteCode(
     throw inviteError
   }
 
-  if (!invite?.league_id) {
+  if (invite?.league_id) {
+    return fetchLeagueById(supabase, (invite as SupabaseInviteRow).league_id)
+  }
+
+  if (!cleanLeagueIdHint) {
     return null
   }
 
-  return fetchLeagueById(supabase, (invite as SupabaseInviteRow).league_id)
+  const hintedLeague = await fetchLeagueById(supabase, cleanLeagueIdHint)
+
+  if (
+    hintedLeague &&
+    normalizeInviteCode(hintedLeague.invite_code) === normalizedCode
+  ) {
+    return hintedLeague
+  }
+
+  return null
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params
   const normalizedCode = normalizeInviteCode(decodeURIComponent(code ?? ""))
+  const leagueIdHint = new URL(request.url).searchParams.get("leagueId")
 
   if (!normalizedCode) {
     return NextResponse.json({ error: "invalid_code" }, { status: 400 })
@@ -130,7 +146,11 @@ export async function GET(
   }
 
   try {
-    const leagueRow = await fetchLeagueByInviteCode(supabase, normalizedCode)
+    const leagueRow = await fetchLeagueByInviteCode(
+      supabase,
+      normalizedCode,
+      leagueIdHint
+    )
 
     if (!leagueRow) {
       return NextResponse.json({ snapshot: null }, { status: 404 })
