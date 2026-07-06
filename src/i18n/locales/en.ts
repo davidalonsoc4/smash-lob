@@ -684,6 +684,7 @@ export const en = {
       match_result_updated: "Result",
       match_result_cleared: "Result",
       match_result_missing_reminder: "Result",
+      match_upcoming_reminder: "Reminder",
       round_in_play: "Round",
       round_mvp_awarded: "MVP",
       court_booking_updated: "Booking",
