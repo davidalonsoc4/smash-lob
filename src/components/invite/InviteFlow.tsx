@@ -3,15 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { LeagueRulesSummary } from "@/components/league/LeagueRulesSummary"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { League, PlayerProfile } from "@/data/fakeData"
+import { formatMoney } from "@/lib/courtBooking"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
 import { ensurePushSubscriptionForLeague } from "@/lib/pushClient"
+import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
 
 type InviteFlowProps = {
   code: string
@@ -106,6 +107,86 @@ function InviteStep({
       >
         {label}
       </span>
+    </div>
+  )
+}
+
+function CompactRule({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
+      <p className="text-sm font-black text-neutral-950">{title}</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        {description}
+      </p>
+    </div>
+  )
+}
+
+function InviteRulesSummary({
+  registrationFee,
+  requiresThreeSets,
+}: {
+  registrationFee: SeasonRegistrationFee | null
+  requiresThreeSets: boolean
+}) {
+  const hasRegistrationFee = Boolean(
+    registrationFee?.enabled && registrationFee.amount > 0
+  )
+  const registrationAmountLabel = hasRegistrationFee
+    ? formatMoney(registrationFee?.amount ?? 0)
+    : "la cuota definida por la organización"
+  const registrationPurpose = registrationFee?.purpose.trim()
+
+  return (
+    <div className="mt-3 space-y-3">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-3">
+        <p className="text-sm font-black text-amber-950">
+          Inscripción antes del inicio
+        </p>
+        <p className="mt-1 text-xs font-bold leading-5 text-amber-900">
+          {hasRegistrationFee
+            ? `Debes abonar ${registrationAmountLabel} antes de que comience esta temporada. La app permite a la organización marcar el pago como realizado.`
+            : "Si la organización activa una cuota de inscripción, deberás abonarla antes de que comience esta temporada."}
+        </p>
+        {registrationPurpose ? (
+          <p className="mt-2 rounded-xl bg-white/70 px-2.5 py-2 text-xs font-bold text-amber-950">
+            Destino: {registrationPurpose}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="grid gap-2">
+        <CompactRule
+          title="Liga individual, partidos por parejas"
+          description="Reclamas tu jugador y sumas tus propios puntos, aunque cada partido se juegue en pareja."
+        />
+        <CompactRule
+          title="Calendario equilibrado"
+          description="La temporada busca que todos jueguen con todos y contra todos respetando el orden de jornadas."
+        />
+        <CompactRule
+          title="Puntuación por sets"
+          description={
+            requiresThreeSets
+              ? "Se juegan 3 sets obligatorios: un 3-0 reparte 3 puntos y un 2-1 reparte 2 puntos a la pareja ganadora y 1 a la perdedora."
+              : "Cada set ganado suma 1 punto. Si no se exigen 3 sets, solo cuentan los sets jugados y guardados."
+          }
+        />
+        <CompactRule
+          title="Compromiso y buena fe"
+          description="Los partidos están pensados para reservas de 2 horas. Si hay lesión o problema real de agenda, se recoloca sin bloquear la liga."
+        />
+        <CompactRule
+          title="Normas de juego"
+          description="Se juega con Star Point y tie-break a 6-6. Los juegos también importan porque desempatan el ranking."
+        />
+      </div>
     </div>
   )
 }
@@ -391,12 +472,12 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             Confirma el reglamento antes de reclamar jugador
           </h2>
           <p className="mt-2 text-sm font-semibold leading-5 text-neutral-500">
-            La cuenta no se vinculará a ningún jugador hasta que aceptes estas reglas.
+            La cuenta no se vinculará a ningún jugador hasta que aceptes este resumen de normas y compromisos.
           </p>
 
-          <LeagueRulesSummary
+          <InviteRulesSummary
             registrationFee={registrationFee}
-            className="mt-3"
+            requiresThreeSets={activeSeasonSettings?.requiresThreeSets ?? true}
           />
 
           <label className="mt-4 flex items-start gap-3 rounded-2xl bg-white px-3 py-3 text-sm font-black text-neutral-900 ring-1 ring-neutral-100">
