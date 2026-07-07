@@ -89,6 +89,45 @@ export const es = {
     enterLeague: "Entrar en la liga",
     accessDenied: "No tienes permisos para ver esta liga.",
     warningTitle: "Aviso de invitación",
+    acceptRulesError:
+      "Debes confirmar el reglamento antes de vincular tu cuenta a la temporada.",
+    stepsCode: "Código",
+    stepsRules: "Reglas",
+    stepsPlayer: "Jugador",
+    rulesEyebrow: "Reglas de la liga",
+    rulesTitle: "Confirma el reglamento antes de reclamar jugador",
+    rulesDescription:
+      "La cuenta no se vinculará a ningún jugador hasta que aceptes este resumen de normas y compromisos.",
+    acceptRulesLabel: "He leído y acepto el reglamento de la temporada.",
+    acceptRulesBeforeSelect:
+      "Confirma primero el reglamento para poder seleccionar tu jugador.",
+    rules: {
+      registrationTitle: "Inscripción antes del inicio",
+      registrationFallbackAmount: "la cuota definida por la organización",
+      registrationAmountPrefix: "Debes abonar",
+      registrationAmountSuffix:
+        "antes de que comience esta temporada. La app permite a la organización marcar el pago como realizado.",
+      registrationNoAmount:
+        "Si la organización activa una cuota de inscripción, deberás abonarla antes de que comience esta temporada.",
+      registrationPurposePrefix: "Destino:",
+      individualTitle: "Liga individual, partidos por parejas",
+      individualDescription:
+        "Reclamas tu jugador y sumas tus propios puntos, aunque cada partido se juegue en pareja.",
+      calendarTitle: "Calendario equilibrado",
+      calendarDescription:
+        "La temporada busca que todos jueguen con todos y contra todos respetando el orden de jornadas.",
+      scoringTitle: "Puntuación por sets",
+      scoringThreeSets:
+        "Se juegan 3 sets obligatorios: un 3-0 reparte 3 puntos y un 2-1 reparte 2 puntos a la pareja ganadora y 1 a la perdedora.",
+      scoringOptionalSets:
+        "Cada set ganado suma 1 punto. Si no se exigen 3 sets, solo cuentan los sets jugados y guardados.",
+      commitmentTitle: "Compromiso y buena fe",
+      commitmentDescription:
+        "Los partidos están pensados para reservas de 2 horas. Si hay lesión o problema real de agenda, se recoloca sin bloquear la liga.",
+      gameRulesTitle: "Normas de juego",
+      gameRulesDescription:
+        "Se juega con Star Point y tie-break a 6-6. Los juegos también importan porque desempatan el ranking.",
+    },
     timeoutError:
       "La comprobación del código ha tardado demasiado. Revisa la conexión y vuelve a intentarlo.",
     genericError:
@@ -354,6 +393,167 @@ export const es = {
   help: {
     title: "Ayuda y conceptos básicos",
     description: "Una guía rápida para jugadores nuevos de la liga.",
+    fullDescription:
+      "Guía rápida para entender el formato de la liga, la puntuación, los estados de los partidos y los MVPs.",
+    quickSummaryEyebrow: "Resumen rápido",
+    quickSummaryTitle: "Lo importante de un vistazo",
+    quickSummaryDescription:
+      "Smash & Lob está pensada para crear ligas individuales aunque los partidos se jueguen por parejas. La clasificación premia la regularidad durante toda la temporada.",
+    summaryOwnPointsTitle: "Cada jugador suma sus propios puntos",
+    summaryOwnPointsDescription:
+      "La app organiza una clasificación individual a partir de partidos jugados por parejas rotativas.",
+    summarySetsTitle: "Los sets son la base del ranking",
+    summarySetsThree:
+      "Un 3-0 reparte 3 puntos a la pareja ganadora. Un 2-1 reparte 2 puntos a la ganadora y 1 a la perdedora.",
+    summarySetsOptional:
+      "Cada set ganado suma 1 punto a cada jugador de la pareja que lo gana. Si se juegan menos de 3 sets, solo cuentan los sets guardados.",
+    summaryGamesTitle: "Los juegos ayudan a desempatar",
+    summaryGamesDescription:
+      "Si dos jugadores empatan a puntos, cuentan los juegos ganados, perdidos y la diferencia de juegos.",
+    tipsEyebrow: "Tips",
+    tipsTitle: "Tips / recomendaciones",
+    tipsIntro:
+      "Lo ideal es reservar 10/15 minutos antes del partido para entrar en ritmo, calentar bien y empezar con sensaciones reales de juego.",
+    tipsParallelTitle: "Peloteo en paralelo",
+    tipsParallelDescription:
+      "Cada jugador pelotea con el contrincante que tiene enfrente, sin cruzar bolas con la otra diagonal.",
+    tipsBackCourtTitle: "Fondo de pista",
+    tipsBackCourtDescription:
+      "Empezad con unos minutos desde el fondo, ambos buscando control, profundidad y ritmo.",
+    tipsNetDefenseTitle: "Red y defensa",
+    tipsNetDefenseDescription:
+      "Un jugador sube a red y trabaja ataque mientras el contrincante defiende desde el fondo. Después se cambian posiciones.",
+    tipsHighBallsTitle: "Bolas altas y remates",
+    tipsHighBallsDescription:
+      "Dedicad unos minutos a globos, víboras, bandejas y remates, cambiando posiciones para que todos pasen por cada rol.",
+    tipsBeforeServeTitle: "Antes del saque",
+    tipsBeforeServeDescription:
+      "Hidratación, se decide el sacador jugando un punto en el que todos tocan la bola al menos una vez, y empieza el partido.",
+    registrationEyebrow: "Inscripción",
+    registrationTitle: "Inscripción, fianza y material",
+    registrationFallbackAmount: "el importe definido por la organización",
+    registrationFeeTitle: "Cuota de temporada",
+    registrationFeeDescriptionSuffix:
+      "por persona. Si la temporada tiene cuota activa, la app permite controlar quién la tiene pagada.",
+    registrationFundTitle: "Fondo y fianza",
+    registrationFundDescription:
+      "La cuota funciona como fondo de compromiso para cubrir botes de bolas, premios y gastos comunes. El sobrante se puede reservar para la clausura o devolver al final.",
+    registrationBallsTitle: "Bolas nuevas",
+    registrationBallsDescription:
+      "La referencia recomendada es estrenar un bote de bolas nuevo en cada partido y organizar el reparto al inicio de la temporada.",
+    registrationPurposePrefix: "Destino indicado por la organización:",
+    formatEyebrow: "Formato",
+    formatTitle: "Cómo funciona una temporada",
+    formatRotatingPairsTitle: "Parejas rotativas",
+    formatRotatingPairsDescription:
+      "La temporada intenta que todos jueguen con todos y contra todos de forma equilibrada.",
+    formatRoundsTitle: "Jornadas",
+    formatRoundsDescription:
+      "Cada jornada contiene los partidos que tocan según el calendario de la temporada. Lo ideal es respetar el orden y las fechas acordadas por la organización.",
+    formatRankingTitle: "Clasificación individual",
+    formatRankingDescription:
+      "Aunque juegues en pareja, los puntos se suman a cada jugador por separado.",
+    formatCourtBookingTitle: "Reserva de pista",
+    formatCourtBookingDescription:
+      "El formato está pensado para exprimir una reserva de 2 horas, incluyendo calentamiento, partido e hidratación.",
+    formatGoodFaithTitle: "Buena fe y aplazamientos",
+    formatGoodFaithDescription:
+      "Si hay vacaciones, lesión o un problema real de agenda, el partido se recoloca intentando no bloquear el calendario.",
+    injuriesEyebrow: "Lesiones",
+    injuriesTitle: "Jugadores comodín",
+    injuriesRealTitle: "Solo para bajas reales",
+    injuriesRealDescription:
+      "Los comodines se reservan para lesiones o bajas de larga duración, no para suplencias aleatorias de última hora.",
+    injuriesAgreedTitle: "Acordados antes de empezar",
+    injuriesAgreedDescription:
+      "La organización puede fijar 1 o 2 comodines oficiales externos, de nivel medio similar y aceptados por el grupo.",
+    injuriesNoInheritedTitle: "Sin puntos heredados",
+    injuriesNoInheritedDescription:
+      "Los puntos que consiga el comodín no suman al jugador lesionado; sirven para que el calendario pueda seguir avanzando.",
+    scoringEyebrow: "Puntuación",
+    scoringTitle: "Cómo se suman los puntos",
+    scoringThreeNilLabel: "Partido 3-0",
+    scoringThreeNilValue: "3 puntos para cada jugador de la pareja ganadora",
+    scoringTwoOneLabel: "Partido 2-1",
+    scoringTwoOneValue:
+      "2 puntos para la pareja ganadora y 1 para la perdedora",
+    scoringEachSetLabel: "Cada set ganado",
+    scoringEachSetValue:
+      "1 punto para cada jugador de la pareja que gana ese set",
+    scoringPlayedSetsLabel: "Sets jugados",
+    scoringPlayedSetsValue:
+      "Solo cuentan los sets completados y guardados en el resultado",
+    scoringTiebreakLabel: "Desempates",
+    scoringTiebreakValue:
+      "Primero puntos, después juegos y diferencia de juegos",
+    scoringThreeSetsNote:
+      "El ranking mide sets ganados por jugador. Por eso incluso perdiendo un partido puedes sumar si peleas un set.",
+    scoringOptionalSetsNote:
+      "El ranking mide sets ganados por jugador. Si el partido se cierra antes de tres sets, la clasificación se calcula con los sets realmente jugados.",
+    scoringIncompleteSetNote:
+      "Si el tiempo de pista termina con el tercer set incompleto, la app no reparte medios puntos de forma automática. La organización debe decidir si se termina el set, se aplaza el cierre del partido o se aplica un ajuste manual fuera del resultado guardado.",
+    keyRuleEyebrow: "Regla clave",
+    keyRuleThreeSetsTitle: "Por qué se juegan siempre 3 sets",
+    keyRuleOptionalSetsTitle: "Qué pasa si no se exigen 3 sets",
+    keyRuleThreeSetsIntro:
+      "Jugar siempre 3 sets hace que todos los partidos repartan el mismo volumen de puntos y juegos. Así la clasificación es más justa y comparable.",
+    keyRuleOptionalSetsIntro:
+      "En esta temporada no es obligatorio completar tres sets. La app permite guardar únicamente los sets jugados y calcula la clasificación con esos datos.",
+    keyRuleFairTitle: "Más justo",
+    keyRuleFairDescription:
+      "Todos los jugadores compiten por la misma cantidad de sets.",
+    keyRuleEmotionTitle: "Más emoción",
+    keyRuleEmotionDescription:
+      "Aunque una pareja pierda los dos primeros sets, el tercero todavía cuenta.",
+    keyRuleConsistencyTitle: "Menos castigo por un mal set",
+    keyRuleConsistencyDescription:
+      "La regularidad pesa más que un inicio malo o un bajón puntual.",
+    keyRuleFlexTitle: "Más flexible",
+    keyRuleFlexDescription:
+      "Si falta tiempo o el partido termina antes, se pueden registrar solo los sets completados.",
+    keyRuleSetPointsTitle: "Puntos por set",
+    keyRuleSetPointsDescription:
+      "Cada set ganado suma 1 punto individual para los dos jugadores de la pareja.",
+    keyRuleGamesTiebreakTitle: "Desempates con juegos",
+    keyRuleGamesTiebreakDescription:
+      "Los juegos guardados siguen ayudando a ordenar la clasificación cuando hay empate a puntos.",
+    matchesEyebrow: "Partidos",
+    matchesTitle: "Estados de un partido",
+    matchesUnscheduledLabel: "Sin fecha",
+    matchesUnscheduledValue:
+      "El partido existe, pero todavía no está cerrado cuándo se juega",
+    matchesScheduledLabel: "Programado",
+    matchesScheduledValue: "Tiene fecha, hora o lugar asignado",
+    matchesPostponedLabel: "Aplazado",
+    matchesPostponedValue: "Se ha marcado como pendiente de recolocar",
+    matchesFinishedLabel: "Finalizado",
+    matchesFinishedValue: "Ya tiene resultado registrado",
+    padelEyebrow: "Pádel",
+    padelTitle: "Star Point y tie-break",
+    padelStarPointTitle: "Star Point",
+    padelStarPointDescription:
+      "No es punto de oro directo en cada 40-40. En los dos primeros 40-40 se juega con el sistema clásico de ventajas. Si el juego llega a un tercer 40-40, se juega un punto decisivo: quien gana ese punto, gana el juego.",
+    padelTieBreakWhenTitle: "Cuándo se juega el tie-break",
+    padelTieBreakWhenDescription:
+      "Si el set llega a 6-6, se juega un tie-break para decidir quién gana ese set. En la app se apunta como 7-6 para la pareja ganadora.",
+    padelTieBreakServeTitle: "Desde dónde se saca",
+    padelTieBreakServeDescription:
+      "Empieza sacando el jugador al que le toque por el orden normal de saque. Ese primer punto se saca desde el lado derecho. Después, el siguiente jugador saca dos puntos: primero desde el lado izquierdo y luego desde el derecho.",
+    padelServeRotationTitle: "Cómo rota el saque",
+    padelServeRotationDescription:
+      "Tras el primer punto, cada jugador saca dos puntos seguidos, manteniendo el orden normal de saque entre las cuatro personas. En cada turno de dos puntos se alterna izquierda y derecha.",
+    padelSideChangesTitle: "Cambios de lado",
+    padelSideChangesDescription:
+      "Las parejas cambian de lado cada 6 puntos jugados: por ejemplo 3-3, 6-0, 6-6, 9-3. También se cambia de lado al terminar el tie-break si corresponde por el orden del partido.",
+    padelHowToWinTitle: "Cómo se gana",
+    padelHowToWinDescription:
+      "Gana la primera pareja que llega a 7 puntos con al menos 2 de diferencia. Si queda 6-6, se sigue jugando hasta que alguien gane por dos: 8-6, 9-7, 10-8, etc.",
+    mvpEyebrow: "MVP",
+    mvpTitle: "Cómo funcionan los MVP",
+    mvpDescription:
+      "El MVP de jornada se calcula automáticamente cuando todos los partidos de esa jornada están terminados. Se premian las victorias más contundentes, dando prioridad a los sets ganados y después a la diferencia de juegos.",
+    mvpTip:
+      "Un 3-0 con mucha diferencia de juegos suele ser el resultado más fuerte. Si hay empate real, la app puede mostrar MVP compartido. El MVP de temporada sale de los MVPs de jornada acumulados.",
     starPointsTitle: "Star Points",
     starPointsDescription:
       "El Star Point es un punto decisivo que se juega cuando un juego llega a 40-40. En vez de seguir con ventajas, se juega un único punto: quien gana ese punto, gana el juego.",

@@ -88,6 +88,45 @@ export const eu = {
     enterLeague: "Ligan sartu",
     accessDenied: "Ez duzu liga hau ikusteko baimenik.",
     warningTitle: "Gonbidapen oharra",
+    acceptRulesError:
+      "Araudia berretsi behar duzu zure kontua denboraldiarekin lotu aurretik.",
+    stepsCode: "Kodea",
+    stepsRules: "Arauak",
+    stepsPlayer: "Jokalaria",
+    rulesEyebrow: "Ligako arauak",
+    rulesTitle: "Berretsi araudia jokalaria erreklamatu aurretik",
+    rulesDescription:
+      "Zure kontua ez da jokalari bati lotuko arauen eta konpromisoen laburpen hau onartu arte.",
+    acceptRulesLabel: "Denboraldiko araudia irakurri eta onartzen dut.",
+    acceptRulesBeforeSelect:
+      "Berretsi lehenik araudia zure jokalaria aukeratu ahal izateko.",
+    rules: {
+      registrationTitle: "Izen-ematea hasi aurretik",
+      registrationFallbackAmount: "antolakuntzak zehaztutako kuota",
+      registrationAmountPrefix: "Ordaindu behar duzu",
+      registrationAmountSuffix:
+        "denboraldi hau hasi aurretik. Appak antolakuntzari ordainketa eginda markatzeko aukera ematen dio.",
+      registrationNoAmount:
+        "Antolakuntzak izen-emate kuota aktibatzen badu, denboraldia hasi aurretik ordaindu beharko duzu.",
+      registrationPurposePrefix: "Helburua:",
+      individualTitle: "Banakako liga, binakako partidak",
+      individualDescription:
+        "Zure jokalaria erreklamatzen duzu eta zure puntuak pilatzen dituzu, nahiz eta partida bakoitza bikoteka jokatu.",
+      calendarTitle: "Egutegi orekatua",
+      calendarDescription:
+        "Denboraldiak denek denekin eta denen aurka jokatzea bilatzen du, jardunaldien ordena errespetatuta.",
+      scoringTitle: "Seten araberako puntuazioa",
+      scoringThreeSets:
+        "3 setak nahitaez jokatzen dira: 3-0 batek 3 puntu ematen ditu, eta 2-1 batek 2 puntu bikote irabazleari eta 1 galtzaileari.",
+      scoringOptionalSets:
+        "Irabazitako set bakoitzak puntu 1 ematen du. 3 set ez badira eskatzen, jokatutako eta gordetako setak bakarrik kontatzen dira.",
+      commitmentTitle: "Konpromisoa eta fede ona",
+      commitmentDescription:
+        "Partidak 2 orduko erreserbetarako pentsatuta daude. Lesioa edo benetako agenda arazoa badago, partida berriro kokatzen da liga blokeatu gabe.",
+      gameRulesTitle: "Joko arauak",
+      gameRulesDescription:
+        "Star Point erabiltzen da eta 6-6an tie-breaka jokatzen da. Jokoak ere garrantzitsuak dira rankingeko berdinketak hausten dituztelako.",
+    },
     timeoutError:
       "Kodea egiaztatzeak denbora gehiegi hartu du. Begiratu konexioa eta saiatu berriro.",
     genericError:
@@ -351,6 +390,167 @@ export const eu = {
   help: {
     title: "Laguntza eta oinarrizko kontzeptuak",
     description: "Ligako jokalari berrientzako gida azkarra.",
+    fullDescription:
+      "Liga formatua, puntuazioa, partiden egoerak eta MVPak ulertzeko gida azkarra.",
+    quickSummaryEyebrow: "Laburpen azkarra",
+    quickSummaryTitle: "Garrantzitsuena begirada batean",
+    quickSummaryDescription:
+      "Smash & Lob banakako ligak sortzeko pentsatuta dago, nahiz eta partidak bikoteka jokatu. Sailkapenak denboraldi osoko erregulartasuna saritzen du.",
+    summaryOwnPointsTitle: "Jokalari bakoitzak bere puntuak pilatzen ditu",
+    summaryOwnPointsDescription:
+      "Appak banakako sailkapena antolatzen du bikote aldakorrekin jokatutako partidetatik.",
+    summarySetsTitle: "Setak dira rankingaren oinarria",
+    summarySetsThree:
+      "3-0 batek 3 puntu ematen dizkio bikote irabazleari. 2-1 batek 2 puntu irabazleei eta 1 galtzaileei.",
+    summarySetsOptional:
+      "Irabazitako set bakoitzak puntu 1 ematen dio set hori irabazi duen bikoteko jokalari bakoitzari. 3 set baino gutxiago jokatzen badira, gordetako setak bakarrik kontatzen dira.",
+    summaryGamesTitle: "Jokoek berdinketak hausten laguntzen dute",
+    summaryGamesDescription:
+      "Bi jokalari puntutan berdinduta badaude, irabazitako jokoak, galdutako jokoak eta joko-diferentzia kontatzen dira.",
+    tipsEyebrow: "Aholkuak",
+    tipsTitle: "Aholkuak / gomendioak",
+    tipsIntro:
+      "Egokiena partidaren aurretik 10/15 minutu gordetzea da erritmoa hartzeko, ondo berotzeko eta benetako joko sentsazioekin hasteko.",
+    tipsParallelTitle: "Peloteoa paraleloan",
+    tipsParallelDescription:
+      "Jokalari bakoitzak aurrean duen aurkariarekin peloteatzen du, beste diagonalean pilotak gurutzatu gabe.",
+    tipsBackCourtTitle: "Atzeko pista",
+    tipsBackCourtDescription:
+      "Hasi minutu batzuk atzetik, biek kontrola, sakontasuna eta erritmoa bilatuz.",
+    tipsNetDefenseTitle: "Sarea eta defentsa",
+    tipsNetDefenseDescription:
+      "Jokalari bat sarera igotzen da eta erasoa lantzen du, aurkariak atzetik defendatzen duen bitartean. Ondoren posizioak aldatu.",
+    tipsHighBallsTitle: "Pilota altuak eta erremateak",
+    tipsHighBallsDescription:
+      "Minutu batzuk eskaini globo, vibora, bandeja eta erremateei, posizioak aldatuz denek rol guztiak egin ditzaten.",
+    tipsBeforeServeTitle: "Sakearen aurretik",
+    tipsBeforeServeDescription:
+      "Hidratatu, sakatzailea erabaki jokalari guztiek pilota gutxienez behin ukitzen duten puntu batekin, eta hasi partida.",
+    registrationEyebrow: "Izen-ematea",
+    registrationTitle: "Izen-ematea, fidantza eta materiala",
+    registrationFallbackAmount: "antolakuntzak zehaztutako zenbatekoa",
+    registrationFeeTitle: "Denboraldiko kuota",
+    registrationFeeDescriptionSuffix:
+      "pertsonako. Denboraldiak kuota aktiboa badu, appak nork ordaindu duen kontrolatzeko aukera ematen du.",
+    registrationFundTitle: "Funtsa eta fidantza",
+    registrationFundDescription:
+      "Kuotak konpromiso funts gisa funtzionatzen du pilota pote berriak, sariak eta gastu komunak estaltzeko. Soberakina amaierako ekitaldirako gorde edo bukaeran itzul daiteke.",
+    registrationBallsTitle: "Pilota berriak",
+    registrationBallsDescription:
+      "Gomendatutako erreferentzia partida bakoitzean pilota pote berri bat irekitzea eta banaketa denboraldi hasieran antolatzea da.",
+    registrationPurposePrefix: "Antolakuntzak adierazitako helburua:",
+    formatEyebrow: "Formatua",
+    formatTitle: "Nola funtzionatzen duen denboraldi batek",
+    formatRotatingPairsTitle: "Bikote aldakorrak",
+    formatRotatingPairsDescription:
+      "Denboraldiak denek denekin eta denen aurka modu orekatuan jokatzea bilatzen du.",
+    formatRoundsTitle: "Jardunaldiak",
+    formatRoundsDescription:
+      "Jardunaldi bakoitzak denboraldiko egutegiaren arabera dagozkion partidak ditu. Egokiena antolakuntzak adostutako ordena eta datak errespetatzea da.",
+    formatRankingTitle: "Banakako sailkapena",
+    formatRankingDescription:
+      "Bikoteka jokatu arren, puntuak jokalari bakoitzari bereizita gehitzen zaizkio.",
+    formatCourtBookingTitle: "Pistaren erreserba",
+    formatCourtBookingDescription:
+      "Formatua 2 orduko erreserba ahalik eta gehien aprobetxatzeko pentsatuta dago, beroketa, partida eta hidratazioa barne.",
+    formatGoodFaithTitle: "Fede ona eta atzerapenak",
+    formatGoodFaithDescription:
+      "Oporrak, lesioa edo benetako agenda arazoa badago, partida berriro kokatzen da egutegia blokeatu gabe.",
+    injuriesEyebrow: "Lesioak",
+    injuriesTitle: "Komodin jokalariak",
+    injuriesRealTitle: "Benetako bajetarako bakarrik",
+    injuriesRealDescription:
+      "Komodinak lesioetarako edo epe luzeko bajetarako gordetzen dira, ez azken orduko ordezko ausazkoetarako.",
+    injuriesAgreedTitle: "Hasi aurretik adostuak",
+    injuriesAgreedDescription:
+      "Antolakuntzak 1 edo 2 komodin ofizial kanpoko finka ditzake, antzeko maila ertainekoak eta taldeak onartutakoak.",
+    injuriesNoInheritedTitle: "Puntu heredaturik gabe",
+    injuriesNoInheritedDescription:
+      "Komodinak lortzen dituen puntuak ez zaizkio jokalari lesionatuari gehitzen; egutegiak aurrera egin dezan balio dute.",
+    scoringEyebrow: "Puntuazioa",
+    scoringTitle: "Nola gehitzen diren puntuak",
+    scoringThreeNilLabel: "3-0 partida",
+    scoringThreeNilValue: "3 puntu bikote irabazleko jokalari bakoitzarentzat",
+    scoringTwoOneLabel: "2-1 partida",
+    scoringTwoOneValue:
+      "2 puntu bikote irabazlearentzat eta 1 galtzailearentzat",
+    scoringEachSetLabel: "Irabazitako set bakoitza",
+    scoringEachSetValue:
+      "Puntu 1 set hori irabazten duen bikoteko jokalari bakoitzarentzat",
+    scoringPlayedSetsLabel: "Jokatutako setak",
+    scoringPlayedSetsValue:
+      "Osatutako eta emaitzan gordetako setak bakarrik kontatzen dira",
+    scoringTiebreakLabel: "Berdinketak",
+    scoringTiebreakValue:
+      "Lehenik puntuak, gero jokoak eta joko-diferentzia",
+    scoringThreeSetsNote:
+      "Rankingak jokalari bakoitzak irabazitako setak neurtzen ditu. Horregatik, partida galdu arren set bat borrokatuz puntuak lor ditzakezu.",
+    scoringOptionalSetsNote:
+      "Rankingak jokalari bakoitzak irabazitako setak neurtzen ditu. Partida hiru set baino lehen ixten bada, sailkapena benetan jokatutako setekin kalkulatzen da.",
+    scoringIncompleteSetNote:
+      "Pistako denbora hirugarren seta amaitu gabe bukatzen bada, appak ez ditu puntu erdiak automatikoki banatzen. Antolakuntzak erabaki behar du seta amaitu, partidaren itxiera atzeratu edo gordetako emaitzatik kanpo eskuzko doikuntza egin.",
+    keyRuleEyebrow: "Arau nagusia",
+    keyRuleThreeSetsTitle: "Zergatik jokatzen dira beti 3 set",
+    keyRuleOptionalSetsTitle: "Zer gertatzen da 3 set ez badira eskatzen",
+    keyRuleThreeSetsIntro:
+      "Beti 3 set jokatzeak partida guztiek puntu eta joko bolumen bera banatzea dakar. Horrela sailkapena bidezkoagoa eta alderagarriagoa da.",
+    keyRuleOptionalSetsIntro:
+      "Denboraldi honetan ez da nahitaezkoa hiru set osatzea. Appak jokatutako setak bakarrik gordetzeko aukera ematen du eta sailkapena datu horiekin kalkulatzen du.",
+    keyRuleFairTitle: "Bidezkoagoa",
+    keyRuleFairDescription:
+      "Jokalari guztiek set kopuru beragatik lehiatzen dute.",
+    keyRuleEmotionTitle: "Emozio gehiago",
+    keyRuleEmotionDescription:
+      "Bikote batek lehen bi setak galdu arren, hirugarrenak oraindik balio du.",
+    keyRuleConsistencyTitle: "Set txar baten zigor txikiagoa",
+    keyRuleConsistencyDescription:
+      "Erregulartasunak hasiera txar batek edo une bateko beherakadak baino pisu handiagoa du.",
+    keyRuleFlexTitle: "Malgutasun handiagoa",
+    keyRuleFlexDescription:
+      "Denbora falta bada edo partida lehenago bukatzen bada, osatutako setak bakarrik erregistratu daitezke.",
+    keyRuleSetPointsTitle: "Puntuak set bakoitzeko",
+    keyRuleSetPointsDescription:
+      "Irabazitako set bakoitzak puntu 1 ematen die bikoteko bi jokalariei.",
+    keyRuleGamesTiebreakTitle: "Jokoekin berdinketak haustea",
+    keyRuleGamesTiebreakDescription:
+      "Gordetako jokoek sailkapena ordenatzen laguntzen dute puntutan berdinketa dagoenean.",
+    matchesEyebrow: "Partidak",
+    matchesTitle: "Partida baten egoerak",
+    matchesUnscheduledLabel: "Datari gabe",
+    matchesUnscheduledValue:
+      "Partida existitzen da, baina oraindik ez dago itxita noiz jokatuko den",
+    matchesScheduledLabel: "Programatuta",
+    matchesScheduledValue: "Data, ordua edo lekua esleituta dauka",
+    matchesPostponedLabel: "Atzeratuta",
+    matchesPostponedValue: "Berriro kokatzeko pendiente markatu da",
+    matchesFinishedLabel: "Amaituta",
+    matchesFinishedValue: "Emaitza erregistratuta dauka",
+    padelEyebrow: "Padela",
+    padelTitle: "Star Point eta tie-breaka",
+    padelStarPointTitle: "Star Point",
+    padelStarPointDescription:
+      "Ez da urrezko puntua 40-40 bakoitzean. Lehen bi 40-40etan abantaila klasikoekin jokatzen da. Jokoa hirugarren 40-40ra iristen bada, puntu erabakigarri bat jokatzen da: puntu hori irabazten duenak jokoa irabazten du.",
+    padelTieBreakWhenTitle: "Noiz jokatzen den tie-breaka",
+    padelTieBreakWhenDescription:
+      "Seta 6-6ra iristen bada, tie-breaka jokatzen da seta nork irabazten duen erabakitzeko. Appan 7-6 gisa gordetzen da bikote irabazlearentzat.",
+    padelTieBreakServeTitle: "Nondik sakatzen den",
+    padelTieBreakServeDescription:
+      "Sake ordena arruntean dagokion jokalariak hasten du. Lehen puntu hori eskuineko aldetik sakatzen da. Ondoren, hurrengo jokalariak bi puntu sakatzen ditu: lehenik ezkerretik eta gero eskuinetik.",
+    padelServeRotationTitle: "Nola txandakatzen den sakea",
+    padelServeRotationDescription:
+      "Lehen puntuaren ondoren, jokalari bakoitzak bi puntu jarraian sakatzen ditu, lau pertsonen arteko sake ordena arrunta mantenduta. Bi puntuko txanda bakoitzean ezkerra eta eskuina txandakatzen dira.",
+    padelSideChangesTitle: "Alde aldaketak",
+    padelSideChangesDescription:
+      "Bikoteek aldeak aldatzen dituzte jokatutako 6 puntu bakoitzean: adibidez 3-3, 6-0, 6-6, 9-3. Tie-breaka bukatzean ere aldatzen da partidaren ordenak hala badagokio.",
+    padelHowToWinTitle: "Nola irabazten den",
+    padelHowToWinDescription:
+      "Gutxienez 2 puntuko aldearekin 7 puntura lehen iristen den bikoteak irabazten du. 6-6 badago, norbaitek bi puntuz irabazi arte jarraitzen da: 8-6, 9-7, 10-8, etab.",
+    mvpEyebrow: "MVP",
+    mvpTitle: "Nola funtzionatzen duten MVPek",
+    mvpDescription:
+      "Jardunaldiko MVP automatikoki kalkulatzen da jardunaldi horretako partida guztiak amaituta daudenean. Garaipenik sendoenak saritzen dira, lehenik irabazitako setak eta gero joko-diferentzia lehenetsita.",
+    mvpTip:
+      "Joko-diferentzia handiko 3-0 bat izan ohi da emaitzarik indartsuena. Berdinketa erreala badago, appak MVP partekatua erakuts dezake. Denboraldiko MVP jardunaldietako MVP metatuetatik ateratzen da.",
     starPointsTitle: "Star Points",
     starPointsDescription:
       "Star Point 40-40 dagoenean jokatzen den puntu erabakigarria da. Abantailarik gabe, puntu bakarra jokatzen da: puntua irabazten duenak jokoa irabazten du.",

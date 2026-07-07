@@ -135,56 +135,57 @@ function InviteRulesSummary({
   registrationFee: SeasonRegistrationFee | null
   requiresThreeSets: boolean
 }) {
+  const { t } = useI18n()
   const hasRegistrationFee = Boolean(
     registrationFee?.enabled && registrationFee.amount > 0
   )
   const registrationAmountLabel = hasRegistrationFee
     ? formatMoney(registrationFee?.amount ?? 0)
-    : "la cuota definida por la organización"
+    : t.invites.rules.registrationFallbackAmount
   const registrationPurpose = registrationFee?.purpose.trim()
 
   return (
     <div className="mt-3 space-y-3">
       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-3">
         <p className="text-sm font-black text-amber-950">
-          Inscripción antes del inicio
+          {t.invites.rules.registrationTitle}
         </p>
         <p className="mt-1 text-xs font-bold leading-5 text-amber-900">
           {hasRegistrationFee
-            ? `Debes abonar ${registrationAmountLabel} antes de que comience esta temporada. La app permite a la organización marcar el pago como realizado.`
-            : "Si la organización activa una cuota de inscripción, deberás abonarla antes de que comience esta temporada."}
+            ? `${t.invites.rules.registrationAmountPrefix} ${registrationAmountLabel} ${t.invites.rules.registrationAmountSuffix}`
+            : t.invites.rules.registrationNoAmount}
         </p>
         {registrationPurpose ? (
           <p className="mt-2 rounded-xl bg-white/70 px-2.5 py-2 text-xs font-bold text-amber-950">
-            Destino: {registrationPurpose}
+            {t.invites.rules.registrationPurposePrefix} {registrationPurpose}
           </p>
         ) : null}
       </div>
 
       <div className="grid gap-2">
         <CompactRule
-          title="Liga individual, partidos por parejas"
-          description="Reclamas tu jugador y sumas tus propios puntos, aunque cada partido se juegue en pareja."
+          title={t.invites.rules.individualTitle}
+          description={t.invites.rules.individualDescription}
         />
         <CompactRule
-          title="Calendario equilibrado"
-          description="La temporada busca que todos jueguen con todos y contra todos respetando el orden de jornadas."
+          title={t.invites.rules.calendarTitle}
+          description={t.invites.rules.calendarDescription}
         />
         <CompactRule
-          title="Puntuación por sets"
+          title={t.invites.rules.scoringTitle}
           description={
             requiresThreeSets
-              ? "Se juegan 3 sets obligatorios: un 3-0 reparte 3 puntos y un 2-1 reparte 2 puntos a la pareja ganadora y 1 a la perdedora."
-              : "Cada set ganado suma 1 punto. Si no se exigen 3 sets, solo cuentan los sets jugados y guardados."
+              ? t.invites.rules.scoringThreeSets
+              : t.invites.rules.scoringOptionalSets
           }
         />
         <CompactRule
-          title="Compromiso y buena fe"
-          description="Los partidos están pensados para reservas de 2 horas. Si hay lesión o problema real de agenda, se recoloca sin bloquear la liga."
+          title={t.invites.rules.commitmentTitle}
+          description={t.invites.rules.commitmentDescription}
         />
         <CompactRule
-          title="Normas de juego"
-          description="Se juega con Star Point y tie-break a 6-6. Los juegos también importan porque desempatan el ranking."
+          title={t.invites.rules.gameRulesTitle}
+          description={t.invites.rules.gameRulesDescription}
         />
       </div>
     </div>
@@ -372,7 +373,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     }
 
     if (!hasAcceptedRules) {
-      setError("Debes confirmar el reglamento antes de vincular tu cuenta a la temporada.")
+      setError(t.invites.acceptRulesError)
       return
     }
 
@@ -433,16 +434,16 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
 
       <AppCard className="p-2.5">
         <div className="flex items-center gap-2">
-          <InviteStep number={1} label="Código" isActive={false} isDone />
+          <InviteStep number={1} label={t.invites.stepsCode} isActive={false} isDone />
           <InviteStep
             number={2}
-            label="Reglas"
+            label={t.invites.stepsRules}
             isActive={currentStep === 2}
             isDone={hasAcceptedRules || Boolean(existingMembership)}
           />
           <InviteStep
             number={3}
-            label="Jugador"
+            label={t.invites.stepsPlayer}
             isActive={currentStep === 3 && !existingMembership}
             isDone={Boolean(existingMembership)}
           />
@@ -466,13 +467,13 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       {!existingMembership ? (
         <AppCard className={hasAcceptedRules ? "border-emerald-200 bg-emerald-50" : ""}>
           <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
-            Reglas de la liga
+            {t.invites.rulesEyebrow}
           </p>
           <h2 className="mt-1 text-lg font-black tracking-tight">
-            Confirma el reglamento antes de reclamar jugador
+            {t.invites.rulesTitle}
           </h2>
           <p className="mt-2 text-sm font-semibold leading-5 text-neutral-500">
-            La cuenta no se vinculará a ningún jugador hasta que aceptes este resumen de normas y compromisos.
+            {t.invites.rulesDescription}
           </p>
 
           <InviteRulesSummary
@@ -490,7 +491,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
               }}
               className="mt-1"
             />
-            <span>He leído y acepto el reglamento de la temporada.</span>
+            <span>{t.invites.acceptRulesLabel}</span>
           </label>
         </AppCard>
       ) : null}
@@ -534,7 +535,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
 
           {!hasAcceptedRules ? (
             <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
-              Confirma primero el reglamento para poder seleccionar tu jugador.
+              {t.invites.acceptRulesBeforeSelect}
             </p>
           ) : null}
 

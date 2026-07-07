@@ -92,11 +92,11 @@ export default function HelpPage() {
   )
   const registrationAmountLabel = hasRegistrationFee
     ? formatMoney(registrationFee.amount)
-    : "el importe definido por la organización"
+    : t.help.registrationFallbackAmount
   const registrationPurpose = registrationFee.purpose.trim()
   const setsSummaryDescription = requiresThreeSets
-    ? "Un 3-0 reparte 3 puntos a la pareja ganadora. Un 2-1 reparte 2 puntos a la ganadora y 1 a la perdedora."
-    : "Cada set ganado suma 1 punto a cada jugador de la pareja que lo gana. Si se juegan menos de 3 sets, solo cuentan los sets guardados."
+    ? t.help.summarySetsThree
+    : t.help.summarySetsOptional
 
   return (
     <div className="space-y-4">
@@ -108,253 +108,253 @@ export default function HelpPage() {
         </p>
 
         <h1 className="mt-1 text-2xl font-black tracking-tight">
-          Ayuda y conceptos básicos
+          {t.help.title}
         </h1>
 
         <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-          Guía rápida para entender el formato de la liga, la puntuación, los estados de los partidos y los MVPs.
+          {t.help.fullDescription}
         </p>
       </header>
 
       <AppCard className="space-y-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
-            Resumen rápido
+            {t.help.quickSummaryEyebrow}
           </p>
           <h2 className="mt-2 text-xl font-black tracking-tight text-neutral-950">
-            Lo importante de un vistazo
+            {t.help.quickSummaryTitle}
           </h2>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
-            Smash & Lob está pensada para crear ligas individuales aunque los partidos se jueguen por parejas. La clasificación premia la regularidad durante toda la temporada.
+            {t.help.quickSummaryDescription}
           </p>
         </div>
 
         <div className="grid gap-3">
           <SummaryItem
-            title="Cada jugador suma sus propios puntos"
-            description="La app organiza una clasificación individual a partir de partidos jugados por parejas rotativas."
+            title={t.help.summaryOwnPointsTitle}
+            description={t.help.summaryOwnPointsDescription}
           />
           <SummaryItem
-            title="Los sets son la base del ranking"
+            title={t.help.summarySetsTitle}
             description={setsSummaryDescription}
           />
           <SummaryItem
-            title="Los juegos ayudan a desempatar"
-            description="Si dos jugadores empatan a puntos, cuentan los juegos ganados, perdidos y la diferencia de juegos."
+            title={t.help.summaryGamesTitle}
+            description={t.help.summaryGamesDescription}
           />
         </div>
       </AppCard>
 
-      <HelpBlock eyebrow="Tips" title="Tips / recomendaciones">
+      <HelpBlock eyebrow={t.help.tipsEyebrow} title={t.help.tipsTitle}>
         <p>
-          Lo ideal es reservar 10/15 minutos antes del partido para entrar en ritmo, calentar bien y empezar con sensaciones reales de juego.
+          {t.help.tipsIntro}
         </p>
         <div className="grid gap-3">
           <MiniCard
-            title="Peloteo en paralelo"
-            description="Cada jugador pelotea con el contrincante que tiene enfrente, sin cruzar bolas con la otra diagonal."
+            title={t.help.tipsParallelTitle}
+            description={t.help.tipsParallelDescription}
           />
           <MiniCard
-            title="Fondo de pista"
-            description="Empezad con unos minutos desde el fondo, ambos buscando control, profundidad y ritmo."
+            title={t.help.tipsBackCourtTitle}
+            description={t.help.tipsBackCourtDescription}
           />
           <MiniCard
-            title="Red y defensa"
-            description="Un jugador sube a red y trabaja ataque mientras el contrincante defiende desde el fondo. Después se cambian posiciones."
+            title={t.help.tipsNetDefenseTitle}
+            description={t.help.tipsNetDefenseDescription}
           />
           <MiniCard
-            title="Bolas altas y remates"
-            description="Dedicad unos minutos a globos, víboras, bandejas y remates, cambiando posiciones para que todos pasen por cada rol."
+            title={t.help.tipsHighBallsTitle}
+            description={t.help.tipsHighBallsDescription}
           />
           <MiniCard
-            title="Antes del saque"
-            description="Hidratación, se decide el sacador jugando un punto en el que todos tocan la bola al menos una vez, y empieza el partido."
+            title={t.help.tipsBeforeServeTitle}
+            description={t.help.tipsBeforeServeDescription}
           />
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow="Inscripción" title="Inscripción, fianza y material">
+      <HelpBlock eyebrow={t.help.registrationEyebrow} title={t.help.registrationTitle}>
         <div className="grid gap-3">
           <MiniCard
-            title="Cuota de temporada"
-            description={`${registrationAmountLabel} por persona. Si la temporada tiene cuota activa, la app permite controlar quién la tiene pagada.`}
+            title={t.help.registrationFeeTitle}
+            description={`${registrationAmountLabel} ${t.help.registrationFeeDescriptionSuffix}`}
           />
           <MiniCard
-            title="Fondo y fianza"
-            description="La cuota funciona como fondo de compromiso para cubrir botes de bolas, premios y gastos comunes. El sobrante se puede reservar para la clausura o devolver al final."
+            title={t.help.registrationFundTitle}
+            description={t.help.registrationFundDescription}
           />
           <MiniCard
-            title="Bolas nuevas"
-            description="La referencia recomendada es estrenar un bote de bolas nuevo en cada partido y organizar el reparto al inicio de la temporada."
+            title={t.help.registrationBallsTitle}
+            description={t.help.registrationBallsDescription}
           />
         </div>
         {registrationPurpose ? (
           <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-            Destino indicado por la organización: {registrationPurpose}
+            {t.help.registrationPurposePrefix} {registrationPurpose}
           </p>
         ) : null}
       </HelpBlock>
 
-      <HelpBlock eyebrow="Formato" title="Cómo funciona una temporada">
+      <HelpBlock eyebrow={t.help.formatEyebrow} title={t.help.formatTitle}>
         <div className="grid gap-3">
           <MiniCard
-            title="Parejas rotativas"
-            description="La temporada intenta que todos jueguen con todos y contra todos de forma equilibrada."
+            title={t.help.formatRotatingPairsTitle}
+            description={t.help.formatRotatingPairsDescription}
           />
           <MiniCard
-            title="Jornadas"
-            description="Cada jornada contiene los partidos que tocan según el calendario de la temporada. Lo ideal es respetar el orden y las fechas acordadas por la organización."
+            title={t.help.formatRoundsTitle}
+            description={t.help.formatRoundsDescription}
           />
           <MiniCard
-            title="Clasificación individual"
-            description="Aunque juegues en pareja, los puntos se suman a cada jugador por separado."
+            title={t.help.formatRankingTitle}
+            description={t.help.formatRankingDescription}
           />
           <MiniCard
-            title="Reserva de pista"
-            description="El formato está pensado para exprimir una reserva de 2 horas, incluyendo calentamiento, partido e hidratación."
+            title={t.help.formatCourtBookingTitle}
+            description={t.help.formatCourtBookingDescription}
           />
           <MiniCard
-            title="Buena fe y aplazamientos"
-            description="Si hay vacaciones, lesión o un problema real de agenda, el partido se recoloca intentando no bloquear el calendario."
+            title={t.help.formatGoodFaithTitle}
+            description={t.help.formatGoodFaithDescription}
           />
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow="Lesiones" title="Jugadores comodín">
+      <HelpBlock eyebrow={t.help.injuriesEyebrow} title={t.help.injuriesTitle}>
         <div className="grid gap-3">
           <MiniCard
-            title="Solo para bajas reales"
-            description="Los comodines se reservan para lesiones o bajas de larga duración, no para suplencias aleatorias de última hora."
+            title={t.help.injuriesRealTitle}
+            description={t.help.injuriesRealDescription}
           />
           <MiniCard
-            title="Acordados antes de empezar"
-            description="La organización puede fijar 1 o 2 comodines oficiales externos, de nivel medio similar y aceptados por el grupo."
+            title={t.help.injuriesAgreedTitle}
+            description={t.help.injuriesAgreedDescription}
           />
           <MiniCard
-            title="Sin puntos heredados"
-            description="Los puntos que consiga el comodín no suman al jugador lesionado; sirven para que el calendario pueda seguir avanzando."
+            title={t.help.injuriesNoInheritedTitle}
+            description={t.help.injuriesNoInheritedDescription}
           />
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow="Puntuación" title="Cómo se suman los puntos">
+      <HelpBlock eyebrow={t.help.scoringEyebrow} title={t.help.scoringTitle}>
         <div className="rounded-2xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
           {requiresThreeSets ? (
             <>
-              <RuleRow label="Partido 3-0" value="3 puntos para cada jugador de la pareja ganadora" />
-              <RuleRow label="Partido 2-1" value="2 puntos para la pareja ganadora y 1 para la perdedora" />
+              <RuleRow label={t.help.scoringThreeNilLabel} value={t.help.scoringThreeNilValue} />
+              <RuleRow label={t.help.scoringTwoOneLabel} value={t.help.scoringTwoOneValue} />
             </>
           ) : (
             <>
-              <RuleRow label="Cada set ganado" value="1 punto para cada jugador de la pareja que gana ese set" />
-              <RuleRow label="Sets jugados" value="Solo cuentan los sets completados y guardados en el resultado" />
+              <RuleRow label={t.help.scoringEachSetLabel} value={t.help.scoringEachSetValue} />
+              <RuleRow label={t.help.scoringPlayedSetsLabel} value={t.help.scoringPlayedSetsValue} />
             </>
           )}
-          <RuleRow label="Desempates" value="Primero puntos, después juegos y diferencia de juegos" />
+          <RuleRow label={t.help.scoringTiebreakLabel} value={t.help.scoringTiebreakValue} />
         </div>
         <p>
           {requiresThreeSets
-            ? "El ranking mide sets ganados por jugador. Por eso incluso perdiendo un partido puedes sumar si peleas un set."
-            : "El ranking mide sets ganados por jugador. Si el partido se cierra antes de tres sets, la clasificación se calcula con los sets realmente jugados."}
+            ? t.help.scoringThreeSetsNote
+            : t.help.scoringOptionalSetsNote}
         </p>
         {requiresThreeSets ? (
           <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-            Si el tiempo de pista termina con el tercer set incompleto, la app no reparte medios puntos de forma automática. La organización debe decidir si se termina el set, se aplaza el cierre del partido o se aplica un ajuste manual fuera del resultado guardado.
+            {t.help.scoringIncompleteSetNote}
           </p>
         ) : null}
       </HelpBlock>
 
       <HelpBlock
-        eyebrow="Regla clave"
-        title={requiresThreeSets ? "Por qué se juegan siempre 3 sets" : "Qué pasa si no se exigen 3 sets"}
+        eyebrow={t.help.keyRuleEyebrow}
+        title={requiresThreeSets ? t.help.keyRuleThreeSetsTitle : t.help.keyRuleOptionalSetsTitle}
       >
         {requiresThreeSets ? (
           <>
             <p>
-              Jugar siempre 3 sets hace que todos los partidos repartan el mismo volumen de puntos y juegos. Así la clasificación es más justa y comparable.
+              {t.help.keyRuleThreeSetsIntro}
             </p>
             <div className="grid gap-2">
               <MiniCard
-                title="Más justo"
-                description="Todos los jugadores compiten por la misma cantidad de sets."
+                title={t.help.keyRuleFairTitle}
+                description={t.help.keyRuleFairDescription}
               />
               <MiniCard
-                title="Más emoción"
-                description="Aunque una pareja pierda los dos primeros sets, el tercero todavía cuenta."
+                title={t.help.keyRuleEmotionTitle}
+                description={t.help.keyRuleEmotionDescription}
               />
               <MiniCard
-                title="Menos castigo por un mal set"
-                description="La regularidad pesa más que un inicio malo o un bajón puntual."
+                title={t.help.keyRuleConsistencyTitle}
+                description={t.help.keyRuleConsistencyDescription}
               />
             </div>
           </>
         ) : (
           <>
             <p>
-              En esta temporada no es obligatorio completar tres sets. La app permite guardar únicamente los sets jugados y calcula la clasificación con esos datos.
+              {t.help.keyRuleOptionalSetsIntro}
             </p>
             <div className="grid gap-2">
               <MiniCard
-                title="Más flexible"
-                description="Si falta tiempo o el partido termina antes, se pueden registrar solo los sets completados."
+                title={t.help.keyRuleFlexTitle}
+                description={t.help.keyRuleFlexDescription}
               />
               <MiniCard
-                title="Puntos por set"
-                description="Cada set ganado suma 1 punto individual para los dos jugadores de la pareja."
+                title={t.help.keyRuleSetPointsTitle}
+                description={t.help.keyRuleSetPointsDescription}
               />
               <MiniCard
-                title="Desempates con juegos"
-                description="Los juegos guardados siguen ayudando a ordenar la clasificación cuando hay empate a puntos."
+                title={t.help.keyRuleGamesTiebreakTitle}
+                description={t.help.keyRuleGamesTiebreakDescription}
               />
             </div>
           </>
         )}
       </HelpBlock>
 
-      <HelpBlock eyebrow="Partidos" title="Estados de un partido">
+      <HelpBlock eyebrow={t.help.matchesEyebrow} title={t.help.matchesTitle}>
         <div className="rounded-2xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
-          <RuleRow label="Sin fecha" value="El partido existe, pero todavía no está cerrado cuándo se juega" />
-          <RuleRow label="Programado" value="Tiene fecha, hora o lugar asignado" />
-          <RuleRow label="Aplazado" value="Se ha marcado como pendiente de recolocar" />
-          <RuleRow label="Finalizado" value="Ya tiene resultado registrado" />
+          <RuleRow label={t.help.matchesUnscheduledLabel} value={t.help.matchesUnscheduledValue} />
+          <RuleRow label={t.help.matchesScheduledLabel} value={t.help.matchesScheduledValue} />
+          <RuleRow label={t.help.matchesPostponedLabel} value={t.help.matchesPostponedValue} />
+          <RuleRow label={t.help.matchesFinishedLabel} value={t.help.matchesFinishedValue} />
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow="Pádel" title="Star Point y tie-break">
+      <HelpBlock eyebrow={t.help.padelEyebrow} title={t.help.padelTitle}>
         <div className="grid gap-3">
           <MiniCard
-            title="Star Point"
-            description="No es punto de oro directo en cada 40-40. En los dos primeros 40-40 se juega con el sistema clásico de ventajas. Si el juego llega a un tercer 40-40, se juega un punto decisivo: quien gana ese punto, gana el juego."
+            title={t.help.padelStarPointTitle}
+            description={t.help.padelStarPointDescription}
           />
           <MiniCard
-            title="Cuándo se juega el tie-break"
-            description="Si el set llega a 6-6, se juega un tie-break para decidir quién gana ese set. En la app se apunta como 7-6 para la pareja ganadora."
+            title={t.help.padelTieBreakWhenTitle}
+            description={t.help.padelTieBreakWhenDescription}
           />
           <MiniCard
-            title="Desde dónde se saca"
-            description="Empieza sacando el jugador al que le toque por el orden normal de saque. Ese primer punto se saca desde el lado derecho. Después, el siguiente jugador saca dos puntos: primero desde el lado izquierdo y luego desde el derecho."
+            title={t.help.padelTieBreakServeTitle}
+            description={t.help.padelTieBreakServeDescription}
           />
           <MiniCard
-            title="Cómo rota el saque"
-            description="Tras el primer punto, cada jugador saca dos puntos seguidos, manteniendo el orden normal de saque entre las cuatro personas. En cada turno de dos puntos se alterna izquierda y derecha."
+            title={t.help.padelServeRotationTitle}
+            description={t.help.padelServeRotationDescription}
           />
           <MiniCard
-            title="Cambios de lado"
-            description="Las parejas cambian de lado cada 6 puntos jugados: por ejemplo 3-3, 6-0, 6-6, 9-3. También se cambia de lado al terminar el tie-break si corresponde por el orden del partido."
+            title={t.help.padelSideChangesTitle}
+            description={t.help.padelSideChangesDescription}
           />
           <MiniCard
-            title="Cómo se gana"
-            description="Gana la primera pareja que llega a 7 puntos con al menos 2 de diferencia. Si queda 6-6, se sigue jugando hasta que alguien gane por dos: 8-6, 9-7, 10-8, etc."
+            title={t.help.padelHowToWinTitle}
+            description={t.help.padelHowToWinDescription}
           />
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow="MVP" title="Cómo funcionan los MVP">
+      <HelpBlock eyebrow={t.help.mvpEyebrow} title={t.help.mvpTitle}>
         <p>
-          El MVP de jornada se calcula automáticamente cuando todos los partidos de esa jornada están terminados. Se premian las victorias más contundentes, dando prioridad a los sets ganados y después a la diferencia de juegos.
+          {t.help.mvpDescription}
         </p>
         <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-          Un 3-0 con mucha diferencia de juegos suele ser el resultado más fuerte. Si hay empate real, la app puede mostrar MVP compartido. El MVP de temporada sale de los MVPs de jornada acumulados.
+          {t.help.mvpTip}
         </p>
       </HelpBlock>
     </div>

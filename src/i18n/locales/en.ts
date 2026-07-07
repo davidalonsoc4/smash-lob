@@ -88,6 +88,45 @@ export const en = {
     enterLeague: "Enter league",
     accessDenied: "You do not have permission to view this league.",
     warningTitle: "Invitation notice",
+    acceptRulesError:
+      "You must confirm the rules before linking your account to the season.",
+    stepsCode: "Code",
+    stepsRules: "Rules",
+    stepsPlayer: "Player",
+    rulesEyebrow: "League rules",
+    rulesTitle: "Confirm the rules before claiming a player",
+    rulesDescription:
+      "Your account will not be linked to any player until you accept this summary of rules and commitments.",
+    acceptRulesLabel: "I have read and accept the season rules.",
+    acceptRulesBeforeSelect:
+      "Confirm the rules first to select your player.",
+    rules: {
+      registrationTitle: "Registration before the start",
+      registrationFallbackAmount: "the fee defined by the organization",
+      registrationAmountPrefix: "You must pay",
+      registrationAmountSuffix:
+        "before this season starts. The app lets the organization mark the payment as completed.",
+      registrationNoAmount:
+        "If the organization enables a registration fee, you must pay it before this season starts.",
+      registrationPurposePrefix: "Purpose:",
+      individualTitle: "Individual league, doubles matches",
+      individualDescription:
+        "You claim your player and earn your own points, even though every match is played in pairs.",
+      calendarTitle: "Balanced calendar",
+      calendarDescription:
+        "The season aims for everyone to play with and against everyone while respecting the round order.",
+      scoringTitle: "Set scoring",
+      scoringThreeSets:
+        "Three sets are mandatory: a 3-0 gives 3 points, and a 2-1 gives 2 points to the winning pair and 1 to the losing pair.",
+      scoringOptionalSets:
+        "Each set won is worth 1 point. If 3 sets are not required, only played and saved sets count.",
+      commitmentTitle: "Commitment and good faith",
+      commitmentDescription:
+        "Matches are designed for 2-hour bookings. If there is an injury or a real scheduling issue, the match is moved without blocking the league.",
+      gameRulesTitle: "Game rules",
+      gameRulesDescription:
+        "Matches use Star Point and a tie-break at 6-6. Games also matter because they break ranking ties.",
+    },
     timeoutError:
       "Checking the code took too long. Check your connection and try again.",
     genericError:
@@ -346,6 +385,164 @@ export const en = {
   help: {
     title: "Help and basics",
     description: "A quick guide for new league players.",
+    fullDescription:
+      "Quick guide to understand the league format, scoring, match statuses and MVPs.",
+    quickSummaryEyebrow: "Quick summary",
+    quickSummaryTitle: "The essentials at a glance",
+    quickSummaryDescription:
+      "Smash & Lob is designed to create individual leagues even though matches are played in pairs. The ranking rewards consistency throughout the season.",
+    summaryOwnPointsTitle: "Each player earns their own points",
+    summaryOwnPointsDescription:
+      "The app builds an individual ranking from matches played with rotating pairs.",
+    summarySetsTitle: "Sets are the basis of the ranking",
+    summarySetsThree:
+      "A 3-0 gives 3 points to the winning pair. A 2-1 gives 2 points to the winners and 1 to the losers.",
+    summarySetsOptional:
+      "Each set won gives 1 point to each player in the pair that wins it. If fewer than 3 sets are played, only saved sets count.",
+    summaryGamesTitle: "Games help break ties",
+    summaryGamesDescription:
+      "If two players are tied on points, games won, games lost and game difference are used.",
+    tipsEyebrow: "Tips",
+    tipsTitle: "Tips / recommendations",
+    tipsIntro:
+      "Ideally, reserve 10/15 minutes before the match to warm up, find rhythm and start with real match sensations.",
+    tipsParallelTitle: "Parallel rally",
+    tipsParallelDescription:
+      "Each player rallies with the opponent in front of them, without crossing balls with the other diagonal.",
+    tipsBackCourtTitle: "Back court",
+    tipsBackCourtDescription:
+      "Start with a few minutes from the back court, both players looking for control, depth and rhythm.",
+    tipsNetDefenseTitle: "Net and defense",
+    tipsNetDefenseDescription:
+      "One player moves to the net and attacks while the opponent defends from the back court. Then switch positions.",
+    tipsHighBallsTitle: "High balls and smashes",
+    tipsHighBallsDescription:
+      "Spend a few minutes on lobs, viboras, bandejas and smashes, switching positions so everyone goes through each role.",
+    tipsBeforeServeTitle: "Before the serve",
+    tipsBeforeServeDescription:
+      "Hydrate, decide the server by playing a point where everyone touches the ball at least once, and start the match.",
+    registrationEyebrow: "Registration",
+    registrationTitle: "Registration, deposit and material",
+    registrationFallbackAmount: "the amount defined by the organization",
+    registrationFeeTitle: "Season fee",
+    registrationFeeDescriptionSuffix:
+      "per person. If the season has an active fee, the app lets the organization track who has paid it.",
+    registrationFundTitle: "Fund and deposit",
+    registrationFundDescription:
+      "The fee works as a commitment fund to cover new balls, prizes and shared costs. Any surplus can be saved for the closing event or returned at the end.",
+    registrationBallsTitle: "New balls",
+    registrationBallsDescription:
+      "The recommended reference is to open a new ball can for every match and organize distribution at the start of the season.",
+    registrationPurposePrefix: "Purpose set by the organization:",
+    formatEyebrow: "Format",
+    formatTitle: "How a season works",
+    formatRotatingPairsTitle: "Rotating pairs",
+    formatRotatingPairsDescription:
+      "The season tries to make everyone play with and against everyone in a balanced way.",
+    formatRoundsTitle: "Rounds",
+    formatRoundsDescription:
+      "Each round contains the matches scheduled by the season calendar. Ideally, the agreed order and dates set by the organization are respected.",
+    formatRankingTitle: "Individual ranking",
+    formatRankingDescription:
+      "Even though you play in a pair, points are added to each player separately.",
+    formatCourtBookingTitle: "Court booking",
+    formatCourtBookingDescription:
+      "The format is designed to make the most of a 2-hour booking, including warm-up, match and hydration.",
+    formatGoodFaithTitle: "Good faith and postponements",
+    formatGoodFaithDescription:
+      "If there are holidays, an injury or a real scheduling issue, the match is moved while trying not to block the calendar.",
+    injuriesEyebrow: "Injuries",
+    injuriesTitle: "Wildcard players",
+    injuriesRealTitle: "Only for real absences",
+    injuriesRealDescription:
+      "Wildcard players are reserved for injuries or long-term absences, not random last-minute substitutes.",
+    injuriesAgreedTitle: "Agreed before starting",
+    injuriesAgreedDescription:
+      "The organization may define 1 or 2 official external wildcard players with a similar average level and accepted by the group.",
+    injuriesNoInheritedTitle: "No inherited points",
+    injuriesNoInheritedDescription:
+      "Points earned by a wildcard player do not count for the injured player; they only help the calendar keep moving.",
+    scoringEyebrow: "Scoring",
+    scoringTitle: "How points are added",
+    scoringThreeNilLabel: "3-0 match",
+    scoringThreeNilValue: "3 points for each player in the winning pair",
+    scoringTwoOneLabel: "2-1 match",
+    scoringTwoOneValue:
+      "2 points for the winning pair and 1 for the losing pair",
+    scoringEachSetLabel: "Each set won",
+    scoringEachSetValue: "1 point for each player in the pair that wins that set",
+    scoringPlayedSetsLabel: "Played sets",
+    scoringPlayedSetsValue: "Only completed and saved sets count",
+    scoringTiebreakLabel: "Tiebreakers",
+    scoringTiebreakValue: "First points, then games and game difference",
+    scoringThreeSetsNote:
+      "The ranking measures sets won by each player. That is why you can still score by fighting for a set even if you lose the match.",
+    scoringOptionalSetsNote:
+      "The ranking measures sets won by each player. If the match closes before three sets, the ranking is calculated with the sets actually played.",
+    scoringIncompleteSetNote:
+      "If court time ends with the third set unfinished, the app does not automatically split half-points. The organization must decide whether to finish the set, postpone the match closure or apply a manual adjustment outside the saved result.",
+    keyRuleEyebrow: "Key rule",
+    keyRuleThreeSetsTitle: "Why all 3 sets are played",
+    keyRuleOptionalSetsTitle: "What happens if 3 sets are not required",
+    keyRuleThreeSetsIntro:
+      "Playing all 3 sets makes every match distribute the same volume of points and games. That makes the ranking fairer and easier to compare.",
+    keyRuleOptionalSetsIntro:
+      "In this season it is not mandatory to complete three sets. The app lets players save only the played sets and calculates the ranking with that data.",
+    keyRuleFairTitle: "Fairer",
+    keyRuleFairDescription:
+      "All players compete for the same amount of sets.",
+    keyRuleEmotionTitle: "More tension",
+    keyRuleEmotionDescription:
+      "Even if a pair loses the first two sets, the third one still counts.",
+    keyRuleConsistencyTitle: "Less punishment for one bad set",
+    keyRuleConsistencyDescription:
+      "Consistency matters more than a bad start or a temporary dip.",
+    keyRuleFlexTitle: "More flexible",
+    keyRuleFlexDescription:
+      "If time runs out or the match ends earlier, only completed sets can be recorded.",
+    keyRuleSetPointsTitle: "Points per set",
+    keyRuleSetPointsDescription:
+      "Each set won gives 1 individual point to both players in the pair.",
+    keyRuleGamesTiebreakTitle: "Tiebreakers with games",
+    keyRuleGamesTiebreakDescription:
+      "Saved games still help order the ranking when players are tied on points.",
+    matchesEyebrow: "Matches",
+    matchesTitle: "Match statuses",
+    matchesUnscheduledLabel: "No date",
+    matchesUnscheduledValue:
+      "The match exists, but when it will be played is not closed yet",
+    matchesScheduledLabel: "Scheduled",
+    matchesScheduledValue: "It has a date, time or place assigned",
+    matchesPostponedLabel: "Postponed",
+    matchesPostponedValue: "It has been marked as pending reschedule",
+    matchesFinishedLabel: "Finished",
+    matchesFinishedValue: "It already has a recorded result",
+    padelEyebrow: "Padel",
+    padelTitle: "Star Point and tie-break",
+    padelStarPointTitle: "Star Point",
+    padelStarPointDescription:
+      "It is not a direct golden point at every 40-40. The first two 40-40s use classic advantages. If the game reaches a third 40-40, one deciding point is played: whoever wins it wins the game.",
+    padelTieBreakWhenTitle: "When the tie-break is played",
+    padelTieBreakWhenDescription:
+      "If a set reaches 6-6, a tie-break decides who wins that set. In the app it is recorded as 7-6 for the winning pair.",
+    padelTieBreakServeTitle: "Where to serve from",
+    padelTieBreakServeDescription:
+      "The player whose turn it is in the normal serving order starts. That first point is served from the right side. Then the next player serves two points: first from the left, then from the right.",
+    padelServeRotationTitle: "How serve rotates",
+    padelServeRotationDescription:
+      "After the first point, each player serves two consecutive points, keeping the normal serving order among the four players. Each two-point turn alternates left and right.",
+    padelSideChangesTitle: "Side changes",
+    padelSideChangesDescription:
+      "Pairs change sides every 6 points played: for example 3-3, 6-0, 6-6, 9-3. Sides also change after the tie-break if the normal match order requires it.",
+    padelHowToWinTitle: "How to win",
+    padelHowToWinDescription:
+      "The first pair to reach 7 points with at least 2 points of margin wins. At 6-6, play continues until someone wins by two: 8-6, 9-7, 10-8, etc.",
+    mvpEyebrow: "MVP",
+    mvpTitle: "How MVPs work",
+    mvpDescription:
+      "The round MVP is calculated automatically when all matches in that round are finished. The strongest wins are rewarded, prioritizing sets won and then game difference.",
+    mvpTip:
+      "A 3-0 with a large game difference is usually the strongest result. If there is a true tie, the app can show a shared MVP. The season MVP comes from accumulated round MVPs.",
     starPointsTitle: "Star Points",
     starPointsDescription:
       "A Star Point is the deciding point played when a game reaches 40-40. Instead of using advantages, one single point is played: whoever wins it wins the game.",
