@@ -40,6 +40,15 @@ const emptyWeeklyAvailability: WeeklyAvailability = {
   sunday: [],
 };
 
+type AvailabilityTemplateId = "weekday4" | "weekday5" | "weekend" | "empty";
+
+type AvailabilityTemplate = {
+  id: AvailabilityTemplateId;
+  label: string;
+  description: string;
+  weeklySlots: WeeklyAvailability;
+};
+
 function buildWeeklyAvailabilityFromDays({
   enabledWeekdays,
   slot,
@@ -53,6 +62,61 @@ function buildWeeklyAvailabilityFromDays({
       enabledWeekdays.includes(weekdayId) ? [{ ...slot }] : [],
     ]),
   ) as WeeklyAvailability;
+}
+
+const availabilityTemplates: AvailabilityTemplate[] = [
+  {
+    id: "weekday4",
+    label: "L-J",
+    description: "19:00-21:00",
+    weeklySlots: buildWeeklyAvailabilityFromDays({
+      enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday"],
+      slot: defaultSlot,
+    }),
+  },
+  {
+    id: "weekday5",
+    label: "L-V",
+    description: "19:00-21:00",
+    weeklySlots: buildWeeklyAvailabilityFromDays({
+      enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      slot: defaultSlot,
+    }),
+  },
+  {
+    id: "weekend",
+    label: "Finde",
+    description: "10:00-12:00",
+    weeklySlots: buildWeeklyAvailabilityFromDays({
+      enabledWeekdays: ["saturday", "sunday"],
+      slot: weekendSlot,
+    }),
+  },
+  {
+    id: "empty",
+    label: "Limpiar",
+    description: "Sin disponibilidad",
+    weeklySlots: emptyWeeklyAvailability,
+  },
+];
+
+function areSlotsEqual(firstSlots: AvailabilitySlot[], secondSlots: AvailabilitySlot[]) {
+  return (
+    firstSlots.length === secondSlots.length &&
+    firstSlots.every(
+      (slot, index) =>
+        slot.start === secondSlots[index]?.start &&
+        slot.end === secondSlots[index]?.end,
+    )
+  );
+}
+
+function getMatchingTemplateId(weeklySlots: WeeklyAvailability) {
+  return availabilityTemplates.find((template) =>
+    weekdayIds.every((weekdayId) =>
+      areSlotsEqual(weeklySlots[weekdayId], template.weeklySlots[weekdayId]),
+    ),
+  )?.id ?? null;
 }
 
 function formatUpdatedAt(value: string | null | undefined) {
@@ -294,6 +358,7 @@ export default function AvailabilityPage() {
     [availability.weeklySlots],
   );
   const slotCount = countWeeklyAvailabilitySlots(weeklySlots);
+  const activeTemplateId = getMatchingTemplateId(weeklySlots);
   const hasInvalidSlots = weekdayIds.some((weekdayId) =>
     weeklySlots[weekdayId].some((slot) => !isValidSlot(slot)),
   );
@@ -401,61 +466,51 @@ export default function AvailabilityPage() {
       </AppCard>
 
       <AppCard className="p-2.5">
-        <p className="text-sm font-black text-neutral-950">Rellenar rápido</p>
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          Usa una base habitual y ajusta debajo las excepciones de cada día.
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-black text-neutral-950">Rellenar rapido</p>
+            <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+              Elige una plantilla y ajusta debajo solo los dias que cambien.
+            </p>
+          </div>
+
+          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            {activeTemplateId ? "Plantilla" : "Personalizado"}
+          </span>
+        </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() =>
-              applyWeeklyTemplate(
-                buildWeeklyAvailabilityFromDays({
-                  enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday"],
-                  slot: defaultSlot,
-                }),
-              )
-            }
-            className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white"
-          >
-            L-J 19-21
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              applyWeeklyTemplate(
-                buildWeeklyAvailabilityFromDays({
-                  enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                  slot: defaultSlot,
-                }),
-              )
-            }
-            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800"
-          >
-            L-V 19-21
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              applyWeeklyTemplate(
-                buildWeeklyAvailabilityFromDays({
-                  enabledWeekdays: ["saturday", "sunday"],
-                  slot: weekendSlot,
-                }),
-              )
-            }
-            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800"
-          >
-            Finde 10-12
-          </button>
-          <button
-            type="button"
-            onClick={() => applyWeeklyTemplate(emptyWeeklyAvailability)}
-            className="rounded-2xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700"
-          >
-            Limpiar
-          </button>
+          {availabilityTemplates.map((template) => {
+            const isActiveTemplate = activeTemplateId === template.id;
+            const isEmptyTemplate = template.id === "empty";
+
+            return (
+              <button
+                key={template.id}
+                type="button"
+                aria-pressed={isActiveTemplate}
+                onClick={() => applyWeeklyTemplate(template.weeklySlots)}
+                className={`rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99] ${
+                  isActiveTemplate
+                    ? "bg-neutral-950 text-white shadow-sm"
+                    : isEmptyTemplate
+                      ? "bg-red-50 text-red-700"
+                      : "bg-neutral-100 text-neutral-800"
+                }`}
+              >
+                <span className="block text-xs font-black">
+                  {template.label}
+                </span>
+                <span
+                  className={`mt-0.5 block text-[11px] font-semibold ${
+                    isActiveTemplate ? "text-white/70" : "text-current opacity-60"
+                  }`}
+                >
+                  {template.description}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </AppCard>
 

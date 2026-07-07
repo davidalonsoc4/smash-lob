@@ -31,6 +31,8 @@ export default function MatchesPage() {
     (match) =>
       match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId),
   )
+  const allMatchesCount = matches.length
+  const myMatchesCount = currentUserMatches.length
   const currentUserNextMatch = getNextMatch(currentUserMatches)
   const visibleMatches = matches.filter((match) =>
     activeScope === "mine"
@@ -80,30 +82,57 @@ export default function MatchesPage() {
       </header>
 
 
-      <div className="flex justify-end">
-        <div className="inline-flex rounded-full bg-neutral-100 p-0.5">
+      <AppCard className="p-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-black text-neutral-950">
+              Vista del calendario
+            </p>
+            <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+              {activeScope === "mine"
+                ? "Solo tus partidos en esta temporada."
+                : "Todos los partidos de la liga."}
+            </p>
+          </div>
+
+          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            {visibleMatches.length}/{allMatchesCount}
+          </span>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <Link
             href="/matches"
-            className={`rounded-full px-3 py-1 text-[11px] font-black transition ${
+            className={`rounded-2xl px-3 py-2.5 text-center transition ${
               activeScope === "all"
                 ? "bg-neutral-950 text-white shadow-sm"
-                : "text-neutral-500"
+                : "bg-neutral-100 text-neutral-700"
             }`}
           >
-            {t.matches.scopeAll}
+            <span className="block text-xs font-black">
+              Liga completa
+            </span>
+            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "all" ? "text-white/70" : "text-neutral-500"}`}>
+              {allMatchesCount} partidos
+            </span>
           </Link>
           <Link
             href="/matches?scope=mine"
-            className={`rounded-full px-3 py-1 text-[11px] font-black transition ${
+            className={`rounded-2xl px-3 py-2.5 text-center transition ${
               activeScope === "mine"
                 ? "bg-neutral-950 text-white shadow-sm"
-                : "text-neutral-500"
+                : "bg-neutral-100 text-neutral-700"
             }`}
           >
-            {t.matches.scopeMineShort}
+            <span className="block text-xs font-black">
+              Mis partidos
+            </span>
+            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "mine" ? "text-white/70" : "text-neutral-500"}`}>
+              {myMatchesCount} partidos
+            </span>
           </Link>
         </div>
-      </div>
+      </AppCard>
 
       {isSeasonUpcoming ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 px-3 py-2.5">
