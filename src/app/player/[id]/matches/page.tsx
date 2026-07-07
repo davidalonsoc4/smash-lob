@@ -35,6 +35,8 @@ const validFilters: MatchFilter[] = [
 ]
 
 const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"]
+const defaultFilter: MatchFilter = "all"
+const defaultSort: MatchSort = "roundAsc"
 
 function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null }) {
   const value = match.resultRecordedAt ?? match.scheduledAt
@@ -93,10 +95,10 @@ export default function PlayerMatchesPage() {
   const querySort = searchParams.get("sort")
   const activeFilter = validFilters.includes(queryFilter as MatchFilter)
     ? (queryFilter as MatchFilter)
-    : "finished"
+    : defaultFilter
   const activeSort = validSorts.includes(querySort as MatchSort)
     ? (querySort as MatchSort)
-    : "recent"
+    : defaultSort
   const queryScopeId = searchParams.get("scope")
   const playerHref = `/player/${params.id}`
   const matchesHref = `/player/${params.id}/matches`
@@ -141,16 +143,16 @@ export default function PlayerMatchesPage() {
   })
 
   const filterOptions: { value: MatchFilter; label: string }[] = [
-    { value: "finished", label: t.profile.filterFinished },
     { value: "all", label: t.profile.filterAll },
+    { value: "finished", label: t.profile.filterFinished },
     { value: "pending", label: t.profile.filterPending },
     { value: "scheduled", label: t.profile.filterScheduled },
     { value: "scheduling", label: t.profile.filterUnscheduled },
     { value: "postponed", label: t.profile.filterPostponed },
   ]
   const sortOptions: { value: MatchSort; label: string }[] = [
-    { value: "recent", label: "Más recientes" },
     { value: "roundAsc", label: "Jornada 1 → final" },
+    { value: "recent", label: "Más recientes" },
     { value: "roundDesc", label: "Última jornada → primera" },
   ]
 
@@ -183,11 +185,11 @@ export default function PlayerMatchesPage() {
   }) {
     const nextParams = new URLSearchParams()
 
-    if (filter !== "finished") {
+    if (filter !== defaultFilter) {
       nextParams.set("status", filter)
     }
 
-    if (sort !== "recent") {
+    if (sort !== defaultSort) {
       nextParams.set("sort", sort)
     }
 

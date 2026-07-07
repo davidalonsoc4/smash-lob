@@ -159,9 +159,8 @@ export function CourtBookingPanel({
       return
     }
 
-    setIsExpanded(true)
-
     const scrollTimeout = window.setTimeout(() => {
+      setIsExpanded(true)
       panelRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",

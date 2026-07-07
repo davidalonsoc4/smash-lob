@@ -211,15 +211,21 @@ export default function AvailabilityPage() {
       userId,
     });
 
-    setAvailability(initialAvailability);
-    setMessage(null);
-    setError(null);
+    let isCancelled = false;
+    const resetTimeout = window.setTimeout(() => {
+      if (!isCancelled) {
+        setAvailability(initialAvailability);
+        setMessage(null);
+        setError(null);
+      }
+    }, 0);
 
     if (!isPersistentAvailability) {
-      return;
+      return () => {
+        isCancelled = true;
+        window.clearTimeout(resetTimeout);
+      };
     }
-
-    let isCancelled = false;
 
     async function hydrateAvailability() {
       setIsLoading(true);
@@ -254,6 +260,7 @@ export default function AvailabilityPage() {
 
     return () => {
       isCancelled = true;
+      window.clearTimeout(resetTimeout);
     };
   }, [activeLeague.id, activeSeason.id, currentUser.id, isPersistentAvailability, userId]);
 
@@ -322,7 +329,7 @@ export default function AvailabilityPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="pt-1">
-        <BackButton fallbackHref="/profile" label="Atrás" />
+        <BackButton fallbackHref="/profile" label="Volver" />
 
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name} · {activeSeason.name}

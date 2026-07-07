@@ -32,7 +32,8 @@ export function BottomNav() {
       label: t.nav.matches,
       isActive: (currentPathname) =>
         currentPathname === "/matches" ||
-        currentPathname.startsWith("/match"),
+        currentPathname.startsWith("/match") ||
+        currentPathname.startsWith("/round"),
     },
     {
       href: "/activity",

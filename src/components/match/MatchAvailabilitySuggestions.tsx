@@ -167,11 +167,18 @@ export function MatchAvailabilitySuggestions({
       )
       .filter((item): item is PlayerAvailability => Boolean(item));
 
-    setAvailabilities(storedAvailabilities);
-    setHasRemoteError(false);
+    const resetTimeout = window.setTimeout(() => {
+      if (!isCancelled) {
+        setAvailabilities(storedAvailabilities);
+        setHasRemoteError(false);
+      }
+    }, 0);
 
     if (!isPersistentAvailability || uniquePlayerIds.length === 0) {
-      return;
+      return () => {
+        isCancelled = true;
+        window.clearTimeout(resetTimeout);
+      };
     }
 
     async function hydrateAvailabilities() {
@@ -202,6 +209,7 @@ export function MatchAvailabilitySuggestions({
 
     return () => {
       isCancelled = true;
+      window.clearTimeout(resetTimeout);
     };
   }, [isPersistentAvailability, leagueId, seasonId, uniquePlayerIds]);
 

@@ -10,7 +10,6 @@ import {
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { League, LeagueMemberRole, PlayerProfile, Season, SeasonPlayer, UserLeagueMembership } from "@/data/fakeData"
-import type { MatchData } from "@/context/MatchDataProvider"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"

@@ -30,7 +30,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
   const [error, setError] = useState<string | null>(null)
   const inviteUrl = useMemo(
     () => (inviteCode ? getPublicInviteUrl(inviteCode) : ""),
-    [inviteCode, leagueId]
+    [inviteCode]
   )
 
   async function copyValue(value: string, label: string) {
@@ -243,6 +243,21 @@ export default function AdminPage() {
                 <p className="font-bold">{t.adminPanel.seasonTitle}</p>
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
                   {t.adminPanel.seasonDescription}
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+
+        <Link href="/admin/users" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Jugadores y usuarios</p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Revisa cuentas vinculadas, nombres visibles y permisos.
                 </p>
               </div>
 

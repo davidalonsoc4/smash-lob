@@ -335,11 +335,9 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
 
 function InviteLinkCard({
   inviteCode,
-  leagueId,
   leagueName,
 }: {
   inviteCode: string;
-  leagueId: string;
   leagueName: string;
 }) {
   const { t } = useI18n();
@@ -2439,7 +2437,6 @@ function NewSeasonForm({
       {feedback && inviteCode ? (
         <InviteLinkCard
           inviteCode={inviteCode}
-          leagueId={activeLeagueId}
           leagueName={activeLeagueName}
         />
       ) : null}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
 type FloatingInviteShareButtonProps = {
@@ -43,18 +43,15 @@ export function FloatingInviteShareButton({
   rightOffsetPx,
   onGenerateInviteCode,
 }: FloatingInviteShareButtonProps) {
-  const [currentInviteCode, setCurrentInviteCode] = useState(initialInviteCode)
+  const [generatedInviteCode, setGeneratedInviteCode] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const currentInviteCode = generatedInviteCode ?? initialInviteCode
   const title = `Invitación a ${leagueName}`
   const text = `Únete a ${leagueName} en Smash & Lob. Quedan ${unclaimedCount} jugador${
     unclaimedCount === 1 ? "" : "es"
   } sin vincular.`
-
-  useEffect(() => {
-    setCurrentInviteCode(initialInviteCode)
-  }, [initialInviteCode])
 
   async function copyInviteUrl(inviteUrl: string) {
     await navigator.clipboard.writeText(inviteUrl)
@@ -70,7 +67,7 @@ export function FloatingInviteShareButton({
       throw new Error("invite-code-generation-failed")
     }
 
-    setCurrentInviteCode(nextInviteCode)
+    setGeneratedInviteCode(nextInviteCode)
 
     return getPublicInviteUrl(nextInviteCode)
   }
