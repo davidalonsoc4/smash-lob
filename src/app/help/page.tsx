@@ -4,6 +4,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { formatMoney } from "@/lib/courtBooking"
 
 type HelpBlockProps = {
   eyebrow?: string
@@ -85,6 +86,14 @@ export default function HelpPage() {
   const { t } = useI18n()
   const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData()
   const requiresThreeSets = roundSettings.requiresThreeSets
+  const registrationFee = roundSettings.registrationFee
+  const hasRegistrationFee = Boolean(
+    registrationFee.enabled && registrationFee.amount > 0
+  )
+  const registrationAmountLabel = hasRegistrationFee
+    ? formatMoney(registrationFee.amount)
+    : "el importe definido por la organización"
+  const registrationPurpose = registrationFee.purpose.trim()
   const setsSummaryDescription = requiresThreeSets
     ? "Un 3-0 reparte 3 puntos a la pareja ganadora. Un 2-1 reparte 2 puntos a la ganadora y 1 a la perdedora."
     : "Cada set ganado suma 1 punto a cada jugador de la pareja que lo gana. Si se juegan menos de 3 sets, solo cuentan los sets guardados."
@@ -164,6 +173,28 @@ export default function HelpPage() {
         </div>
       </HelpBlock>
 
+      <HelpBlock eyebrow="Inscripción" title="Inscripción, fianza y material">
+        <div className="grid gap-3">
+          <MiniCard
+            title="Cuota de temporada"
+            description={`${registrationAmountLabel} por persona. Si la temporada tiene cuota activa, la app permite controlar quién la tiene pagada.`}
+          />
+          <MiniCard
+            title="Fondo y fianza"
+            description="La cuota funciona como fondo de compromiso para cubrir botes de bolas, premios y gastos comunes. El sobrante se puede reservar para la clausura o devolver al final."
+          />
+          <MiniCard
+            title="Bolas nuevas"
+            description="La referencia recomendada es estrenar un bote de bolas nuevo en cada partido y organizar el reparto al inicio de la temporada."
+          />
+        </div>
+        {registrationPurpose ? (
+          <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
+            Destino indicado por la organización: {registrationPurpose}
+          </p>
+        ) : null}
+      </HelpBlock>
+
       <HelpBlock eyebrow="Formato" title="Cómo funciona una temporada">
         <div className="grid gap-3">
           <MiniCard
@@ -172,11 +203,36 @@ export default function HelpPage() {
           />
           <MiniCard
             title="Jornadas"
-            description="Cada jornada contiene los partidos que tocan según el calendario de la temporada."
+            description="Cada jornada contiene los partidos que tocan según el calendario de la temporada. Lo ideal es respetar el orden y las fechas acordadas por la organización."
           />
           <MiniCard
             title="Clasificación individual"
             description="Aunque juegues en pareja, los puntos se suman a cada jugador por separado."
+          />
+          <MiniCard
+            title="Reserva de pista"
+            description="El formato está pensado para exprimir una reserva de 2 horas, incluyendo calentamiento, partido e hidratación."
+          />
+          <MiniCard
+            title="Buena fe y aplazamientos"
+            description="Si hay vacaciones, lesión o un problema real de agenda, el partido se recoloca intentando no bloquear el calendario."
+          />
+        </div>
+      </HelpBlock>
+
+      <HelpBlock eyebrow="Lesiones" title="Jugadores comodín">
+        <div className="grid gap-3">
+          <MiniCard
+            title="Solo para bajas reales"
+            description="Los comodines se reservan para lesiones o bajas de larga duración, no para suplencias aleatorias de última hora."
+          />
+          <MiniCard
+            title="Acordados antes de empezar"
+            description="La organización puede fijar 1 o 2 comodines oficiales externos, de nivel medio similar y aceptados por el grupo."
+          />
+          <MiniCard
+            title="Sin puntos heredados"
+            description="Los puntos que consiga el comodín no suman al jugador lesionado; sirven para que el calendario pueda seguir avanzando."
           />
         </div>
       </HelpBlock>
@@ -201,6 +257,11 @@ export default function HelpPage() {
             ? "El ranking mide sets ganados por jugador. Por eso incluso perdiendo un partido puedes sumar si peleas un set."
             : "El ranking mide sets ganados por jugador. Si el partido se cierra antes de tres sets, la clasificación se calcula con los sets realmente jugados."}
         </p>
+        {requiresThreeSets ? (
+          <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
+            Si el tiempo de pista termina con el tercer set incompleto, la app no reparte medios puntos de forma automática. La organización debe decidir si se termina el set, se aplaza el cierre del partido o se aplica un ajuste manual fuera del resultado guardado.
+          </p>
+        ) : null}
       </HelpBlock>
 
       <HelpBlock
@@ -290,10 +351,10 @@ export default function HelpPage() {
 
       <HelpBlock eyebrow="MVP" title="Cómo funcionan los MVP">
         <p>
-          El MVP de jornada se calcula automáticamente cuando todos los partidos de esa jornada están terminados. El MVP de temporada sale de los MVPs de jornada acumulados.
+          El MVP de jornada se calcula automáticamente cuando todos los partidos de esa jornada están terminados. Se premian las victorias más contundentes, dando prioridad a los sets ganados y después a la diferencia de juegos.
         </p>
         <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-          Si hay empate real, la app puede mostrar MVP compartido.
+          Un 3-0 con mucha diferencia de juegos suele ser el resultado más fuerte. Si hay empate real, la app puede mostrar MVP compartido. El MVP de temporada sale de los MVPs de jornada acumulados.
         </p>
       </HelpBlock>
     </div>
