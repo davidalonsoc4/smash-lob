@@ -181,7 +181,8 @@ export function MatchScheduleForm({
     scheduledAtValue.trim().length > 0 &&
     finalLocation.length > 0 &&
     (!shouldSelectCourt || selectedCourt.trim().length > 0);
-  const canPostpone = canManage && !isSaving && !isFinished && !isPostponed;
+  const canPostpone =
+    canManage && !isSaving && !isFinished && !isPostponed && hasSchedule;
   const canClearCurrentSchedule =
     canClearSchedule && !isSaving && hasSchedule && !isFinished;
 

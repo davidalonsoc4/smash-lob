@@ -31,8 +31,8 @@ function SettingsIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        width: "13px",
-        height: "13px",
+        width: "15px",
+        height: "15px",
         display: "block",
       }}
     >
@@ -57,8 +57,8 @@ function NotificationsIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        width: "13px",
-        height: "13px",
+        width: "15px",
+        height: "15px",
         display: "block",
       }}
     >
@@ -130,10 +130,10 @@ export function AppShell({ children }: AppShellProps) {
   const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
   const inviteRightOffset = shouldShowSettingsButton
     ? shouldShowNotificationsButton
-      ? 84
-      : 50
+      ? 100
+      : 58
     : shouldShowNotificationsButton
-      ? 50
+      ? 58
       : 16
 
   return (
@@ -158,9 +158,9 @@ export function AppShell({ children }: AppShellProps) {
             style={{
               position: "fixed",
               top: getFloatingTop(),
-              right: getFloatingRight(shouldShowSettingsButton ? 50 : 16),
-              width: "28px",
-              height: "28px",
+              right: getFloatingRight(shouldShowSettingsButton ? 58 : 16),
+              width: "34px",
+              height: "34px",
             }}
           >
             <NotificationsIcon />
@@ -177,8 +177,8 @@ export function AppShell({ children }: AppShellProps) {
               position: "fixed",
               top: getFloatingTop(),
               right: getFloatingRight(16),
-              width: "28px",
-              height: "28px",
+              width: "34px",
+              height: "34px",
             }}
           >
             <SettingsIcon />

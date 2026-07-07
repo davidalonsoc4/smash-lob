@@ -248,6 +248,10 @@ export default function SettingsPage() {
         </p>
       </header>
 
+      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        Preferencias
+      </p>
+
       <AppCard>
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -306,6 +310,10 @@ export default function SettingsPage() {
           </div>
         </AppCard>
       </Link>
+
+      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        Liga
+      </p>
 
       {canAccessAdmin ? (
         <AppCard>
@@ -371,6 +379,10 @@ export default function SettingsPage() {
         </Link>
       ) : null}
 
+      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        Cuenta
+      </p>
+
       <AppCard>
         <div className="min-w-0">
           <p className="font-bold">{t.settings.accountTitle}</p>
@@ -401,6 +413,10 @@ export default function SettingsPage() {
       </AppCard>
 
 
+      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        Zona sensible
+      </p>
+
       {canSelfUnlink ? (
         <AppCard className="border-red-100 bg-red-50">
           <p className="font-bold text-red-950">Desvincularme de esta liga</p>
@@ -426,7 +442,7 @@ export default function SettingsPage() {
       <button
         type="button"
         onClick={() => signOut({ callbackUrl: "/" })}
-        className="w-full rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700"
+        className="w-full rounded-2xl border border-red-100 bg-white px-3 py-2.5 text-sm font-black text-red-700 shadow-sm"
       >
         {t.auth.signOut}
       </button>

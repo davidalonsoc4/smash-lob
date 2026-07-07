@@ -25,19 +25,28 @@ type SummaryItemProps = {
 
 function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
   return (
-    <AppCard className="space-y-3">
-      {eyebrow ? (
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-          {eyebrow}
-        </p>
-      ) : null}
-      <h2 className="text-xl font-black tracking-tight text-neutral-950">
-        {title}
-      </h2>
-      <div className="space-y-3 text-sm leading-relaxed text-neutral-600">
+    <details className="group rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
+        <span className="min-w-0">
+          {eyebrow ? (
+            <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+              {eyebrow}
+            </span>
+          ) : null}
+          <span className="mt-0.5 block text-lg font-black tracking-tight text-neutral-950">
+            {title}
+          </span>
+        </span>
+
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-lg font-black text-neutral-500 transition group-open:rotate-45">
+          +
+        </span>
+      </summary>
+
+      <div className="space-y-3 border-t border-neutral-100 px-3 pb-3 pt-3 text-sm leading-relaxed text-neutral-600">
         {children}
       </div>
-    </AppCard>
+    </details>
   )
 }
 

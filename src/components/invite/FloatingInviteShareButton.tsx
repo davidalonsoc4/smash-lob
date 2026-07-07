@@ -22,8 +22,8 @@ function ShareIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        width: "13px",
-        height: "13px",
+        width: "15px",
+        height: "15px",
         display: "block",
       }}
     >
@@ -143,8 +143,8 @@ export function FloatingInviteShareButton({
         }
         className="flex items-center justify-center rounded-full bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800 disabled:cursor-wait disabled:opacity-70"
         style={{
-          width: "28px",
-          height: "28px",
+          width: "34px",
+          height: "34px",
         }}
       >
         <ShareIcon />

@@ -7,7 +7,67 @@ import { useI18n } from "@/i18n/I18nProvider"
 type NavItem = {
   href: string
   label: string
+  icon: "home" | "ranking" | "matches" | "activity" | "profile"
   isActive: (pathname: string) => boolean
+}
+
+function NavIcon({ icon }: { icon: NavItem["icon"] }) {
+  const commonProps = {
+    "aria-hidden": true,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2.2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: "h-4 w-4",
+  }
+
+  if (icon === "home") {
+    return (
+      <svg {...commonProps}>
+        <path d="M3 10.5 12 3l9 7.5" />
+        <path d="M5.5 9.5V21h13V9.5" />
+        <path d="M9.5 21v-6h5v6" />
+      </svg>
+    )
+  }
+
+  if (icon === "ranking") {
+    return (
+      <svg {...commonProps}>
+        <path d="M5 20V10" />
+        <path d="M12 20V4" />
+        <path d="M19 20v-7" />
+      </svg>
+    )
+  }
+
+  if (icon === "matches") {
+    return (
+      <svg {...commonProps}>
+        <path d="M7 3v4" />
+        <path d="M17 3v4" />
+        <path d="M4 8h16" />
+        <rect x="4" y="5" width="16" height="16" rx="3" />
+      </svg>
+    )
+  }
+
+  if (icon === "activity") {
+    return (
+      <svg {...commonProps}>
+        <path d="M4 13h4l2-6 4 12 2-6h4" />
+      </svg>
+    )
+  }
+
+  return (
+    <svg {...commonProps}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 21a7 7 0 0 1 14 0" />
+    </svg>
+  )
 }
 
 export function BottomNav() {
@@ -18,11 +78,13 @@ export function BottomNav() {
     {
       href: "/",
       label: t.nav.home,
+      icon: "home",
       isActive: (currentPathname) => currentPathname === "/",
     },
     {
       href: "/ranking",
       label: t.nav.ranking,
+      icon: "ranking",
       isActive: (currentPathname) =>
         currentPathname === "/ranking" ||
         currentPathname.startsWith("/player"),
@@ -30,6 +92,7 @@ export function BottomNav() {
     {
       href: "/matches",
       label: t.nav.matches,
+      icon: "matches",
       isActive: (currentPathname) =>
         currentPathname === "/matches" ||
         currentPathname.startsWith("/match") ||
@@ -38,11 +101,13 @@ export function BottomNav() {
     {
       href: "/activity",
       label: t.nav.activity,
+      icon: "activity",
       isActive: (currentPathname) => currentPathname.startsWith("/activity"),
     },
     {
       href: "/profile",
       label: t.nav.profile,
+      icon: "profile",
       isActive: (currentPathname) => currentPathname.startsWith("/profile"),
     },
   ]
@@ -72,14 +137,15 @@ export function BottomNav() {
               href={item.href}
               className={
                 isActive
-                  ? "flex items-center justify-center rounded-xl bg-neutral-950 px-1 text-center text-[11px] font-black text-white shadow-sm"
-                  : "flex items-center justify-center rounded-xl bg-transparent px-1 text-center text-[11px] font-black text-neutral-500 transition active:bg-neutral-100"
+                  ? "flex flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-center text-[10px] font-black text-white shadow-sm"
+                  : "flex flex-col items-center justify-center gap-0.5 rounded-xl bg-transparent px-1 text-center text-[10px] font-black text-neutral-500 transition active:bg-neutral-100"
               }
               style={{
-                minHeight: "48px",
+                minHeight: "52px",
               }}
             >
-              {item.label}
+              <NavIcon icon={item.icon} />
+              <span className="leading-none">{item.label}</span>
             </Link>
           )
         })}

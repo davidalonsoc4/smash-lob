@@ -39,6 +39,10 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+summary::-webkit-details-marker {
+  display: none;
+}
+
 button,
 input,
 select,
