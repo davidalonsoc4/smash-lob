@@ -1,6 +1,5 @@
 "use client"
 
-import { LeagueRulesSummary } from "@/components/league/LeagueRulesSummary"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -18,7 +17,6 @@ type MiniCardProps = {
 }
 
 type SummaryItemProps = {
-  label: string
   title: string
   description: string
 }
@@ -61,13 +59,10 @@ function MiniCard({ title, description }: MiniCardProps) {
   )
 }
 
-function SummaryItem({ label, title, description }: SummaryItemProps) {
+function SummaryItem({ title, description }: SummaryItemProps) {
   return (
     <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-neutral-100">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-black text-neutral-950">{title}</p>
+      <p className="text-sm font-black text-neutral-950">{title}</p>
       <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
         {description}
       </p>
@@ -89,6 +84,10 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 export default function HelpPage() {
   const { t } = useI18n()
   const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData()
+  const requiresThreeSets = roundSettings.requiresThreeSets
+  const setsSummaryDescription = requiresThreeSets
+    ? "Un 3-0 reparte 3 puntos a la pareja ganadora. Un 2-1 reparte 2 puntos a la ganadora y 1 a la perdedora."
+    : "Cada set ganado suma 1 punto a cada jugador de la pareja que lo gana. Si se juegan menos de 3 sets, solo cuentan los sets guardados."
 
   return (
     <div className="space-y-4">
@@ -117,39 +116,59 @@ export default function HelpPage() {
             Lo importante de un vistazo
           </h2>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
-            Smash & Lob está pensada para una liga individual aunque los partidos se jueguen por parejas. La clasificación premia la regularidad durante toda la temporada.
+            Smash & Lob está pensada para crear ligas individuales aunque los partidos se jueguen por parejas. La clasificación premia la regularidad durante toda la temporada.
           </p>
         </div>
 
         <div className="grid gap-3">
           <SummaryItem
-            label="1"
             title="Cada jugador suma sus propios puntos"
-            description="No hay parejas fijas. Lo que consigas en cada partido se añade a tu clasificación individual."
+            description="La app organiza una clasificación individual a partir de partidos jugados por parejas rotativas."
           />
           <SummaryItem
-            label="2"
             title="Los sets son la base del ranking"
-            description="Un 3-0 reparte 3 puntos a la pareja ganadora. Un 2-1 reparte 2 puntos a la ganadora y 1 a la perdedora."
+            description={setsSummaryDescription}
           />
           <SummaryItem
-            label="3"
             title="Los juegos ayudan a desempatar"
             description="Si dos jugadores empatan a puntos, cuentan los juegos ganados, perdidos y la diferencia de juegos."
           />
         </div>
       </AppCard>
 
-
-      <HelpBlock eyebrow="Reglas" title="Reglamento oficial de la liga">
-        <LeagueRulesSummary registrationFee={roundSettings.registrationFee} />
+      <HelpBlock eyebrow="Tips" title="Tips / recomendaciones">
+        <p>
+          Lo ideal es reservar 10/15 minutos antes del partido para entrar en ritmo, calentar bien y empezar con sensaciones reales de juego.
+        </p>
+        <div className="grid gap-3">
+          <MiniCard
+            title="Peloteo en paralelo"
+            description="Cada jugador pelotea con el contrincante que tiene enfrente, sin cruzar bolas con la otra diagonal."
+          />
+          <MiniCard
+            title="Fondo de pista"
+            description="Empezad con unos minutos desde el fondo, ambos buscando control, profundidad y ritmo."
+          />
+          <MiniCard
+            title="Red y defensa"
+            description="Un jugador sube a red y trabaja ataque mientras el contrincante defiende desde el fondo. Después se cambian posiciones."
+          />
+          <MiniCard
+            title="Bolas altas y remates"
+            description="Dedicad unos minutos a globos, víboras, bandejas y remates, cambiando posiciones para que todos pasen por cada rol."
+          />
+          <MiniCard
+            title="Antes del saque"
+            description="Hidratación, se decide el sacador jugando un punto en el que todos tocan la bola al menos una vez, y empieza el partido."
+          />
+        </div>
       </HelpBlock>
 
       <HelpBlock eyebrow="Formato" title="Cómo funciona una temporada">
         <div className="grid gap-3">
           <MiniCard
             title="Parejas rotativas"
-            description="No hay parejas fijas. La temporada intenta que todos jueguen con todos y contra todos de forma equilibrada."
+            description="La temporada intenta que todos jueguen con todos y contra todos de forma equilibrada."
           />
           <MiniCard
             title="Jornadas"
@@ -164,33 +183,71 @@ export default function HelpPage() {
 
       <HelpBlock eyebrow="Puntuación" title="Cómo se suman los puntos">
         <div className="rounded-2xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
-          <RuleRow label="Partido 3-0" value="3 puntos para cada jugador de la pareja ganadora" />
-          <RuleRow label="Partido 2-1" value="2 puntos para la pareja ganadora y 1 para la perdedora" />
+          {requiresThreeSets ? (
+            <>
+              <RuleRow label="Partido 3-0" value="3 puntos para cada jugador de la pareja ganadora" />
+              <RuleRow label="Partido 2-1" value="2 puntos para la pareja ganadora y 1 para la perdedora" />
+            </>
+          ) : (
+            <>
+              <RuleRow label="Cada set ganado" value="1 punto para cada jugador de la pareja que gana ese set" />
+              <RuleRow label="Sets jugados" value="Solo cuentan los sets completados y guardados en el resultado" />
+            </>
+          )}
           <RuleRow label="Desempates" value="Primero puntos, después juegos y diferencia de juegos" />
         </div>
         <p>
-          El ranking mide sets ganados por jugador. Por eso incluso perdiendo un partido puedes sumar si peleas un set.
+          {requiresThreeSets
+            ? "El ranking mide sets ganados por jugador. Por eso incluso perdiendo un partido puedes sumar si peleas un set."
+            : "El ranking mide sets ganados por jugador. Si el partido se cierra antes de tres sets, la clasificación se calcula con los sets realmente jugados."}
         </p>
       </HelpBlock>
 
-      <HelpBlock eyebrow="Regla clave" title="Por qué se juegan siempre 3 sets">
-        <p>
-          Jugar siempre 3 sets hace que todos los partidos repartan el mismo volumen de puntos y juegos. Así la clasificación es más justa y comparable.
-        </p>
-        <div className="grid gap-2">
-          <MiniCard
-            title="Más justo"
-            description="Todos los jugadores compiten por la misma cantidad de sets."
-          />
-          <MiniCard
-            title="Más emoción"
-            description="Aunque una pareja pierda los dos primeros sets, el tercero todavía cuenta."
-          />
-          <MiniCard
-            title="Menos castigo por un mal set"
-            description="La regularidad pesa más que un inicio malo o un bajón puntual."
-          />
-        </div>
+      <HelpBlock
+        eyebrow="Regla clave"
+        title={requiresThreeSets ? "Por qué se juegan siempre 3 sets" : "Qué pasa si no se exigen 3 sets"}
+      >
+        {requiresThreeSets ? (
+          <>
+            <p>
+              Jugar siempre 3 sets hace que todos los partidos repartan el mismo volumen de puntos y juegos. Así la clasificación es más justa y comparable.
+            </p>
+            <div className="grid gap-2">
+              <MiniCard
+                title="Más justo"
+                description="Todos los jugadores compiten por la misma cantidad de sets."
+              />
+              <MiniCard
+                title="Más emoción"
+                description="Aunque una pareja pierda los dos primeros sets, el tercero todavía cuenta."
+              />
+              <MiniCard
+                title="Menos castigo por un mal set"
+                description="La regularidad pesa más que un inicio malo o un bajón puntual."
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <p>
+              En esta temporada no es obligatorio completar tres sets. La app permite guardar únicamente los sets jugados y calcula la clasificación con esos datos.
+            </p>
+            <div className="grid gap-2">
+              <MiniCard
+                title="Más flexible"
+                description="Si falta tiempo o el partido termina antes, se pueden registrar solo los sets completados."
+              />
+              <MiniCard
+                title="Puntos por set"
+                description="Cada set ganado suma 1 punto individual para los dos jugadores de la pareja."
+              />
+              <MiniCard
+                title="Desempates con juegos"
+                description="Los juegos guardados siguen ayudando a ordenar la clasificación cuando hay empate a puntos."
+              />
+            </div>
+          </>
+        )}
       </HelpBlock>
 
       <HelpBlock eyebrow="Partidos" title="Estados de un partido">
