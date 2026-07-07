@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
-import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -532,30 +531,53 @@ export default function AdminLeaguePage() {
         </p>
       </header>
 
-      <LeagueIdentityForm
-        key={`${activeLeague.id}-identity`}
-        leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        initialName={activeLeague.name}
-        initialDescription={activeLeague.description}
-        initialLogoUrl={activeLeague.logoUrl}
-      />
+      <AppCard className="p-2.5">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-400">
+          Accesos rápidos
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <a href="#identidad" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+            Identidad
+          </a>
+          <a href="#lugares" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+            Lugares
+          </a>
+          {canDeleteLeague ? (
+            <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
+              Zona sensible
+            </a>
+          ) : null}
+        </div>
+      </AppCard>
 
-      <LeagueLocationsForm
-        key={`${activeLeague.id}-locations`}
-        leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        initialLocations={activeLeague.locations}
-      />
+      <div id="identidad">
+        <LeagueIdentityForm
+          key={`${activeLeague.id}-identity`}
+          leagueId={activeLeague.id}
+          seasonId={activeSeason.id}
+          initialName={activeLeague.name}
+          initialDescription={activeLeague.description}
+          initialLogoUrl={activeLeague.logoUrl}
+        />
+      </div>
 
-      <LeagueUsersManagementPanel leagueId={activeLeague.id} />
+      <div id="lugares">
+        <LeagueLocationsForm
+          key={`${activeLeague.id}-locations`}
+          leagueId={activeLeague.id}
+          seasonId={activeSeason.id}
+          initialLocations={activeLeague.locations}
+        />
+      </div>
 
       {canDeleteLeague ? (
-        <DeleteLeagueCard
-          leagueId={activeLeague.id}
-          leagueName={activeLeague.name}
-          onDeleteLeague={deleteLeague}
-        />
+        <div id="zona-sensible">
+          <DeleteLeagueCard
+            leagueId={activeLeague.id}
+            leagueName={activeLeague.name}
+            onDeleteLeague={deleteLeague}
+          />
+        </div>
       ) : null}
     </div>
   )

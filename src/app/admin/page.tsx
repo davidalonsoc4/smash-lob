@@ -220,6 +220,10 @@ export default function AdminPage() {
         </p>
       </header>
 
+      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        Gestionar
+      </p>
+
       <div className="compact-page space-y-3">
         <Link href="/admin/league" className="block">
           <AppCard className="transition active:scale-[0.99]">
@@ -282,6 +286,10 @@ export default function AdminPage() {
         </Link>
       </div>
 
+
+      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        Ajustes rápidos
+      </p>
 
       <AppCard>
         <div className="flex items-center justify-between gap-3">

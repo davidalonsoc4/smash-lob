@@ -29,6 +29,31 @@ import {
 } from "@/lib/supabasePlayerAvailability";
 
 const defaultSlot: AvailabilitySlot = { start: "19:00", end: "21:00" };
+const weekendSlot: AvailabilitySlot = { start: "10:00", end: "12:00" };
+const emptyWeeklyAvailability: WeeklyAvailability = {
+  monday: [],
+  tuesday: [],
+  wednesday: [],
+  thursday: [],
+  friday: [],
+  saturday: [],
+  sunday: [],
+};
+
+function buildWeeklyAvailabilityFromDays({
+  enabledWeekdays,
+  slot,
+}: {
+  enabledWeekdays: WeekdayId[];
+  slot: AvailabilitySlot;
+}) {
+  return Object.fromEntries(
+    weekdayIds.map((weekdayId) => [
+      weekdayId,
+      enabledWeekdays.includes(weekdayId) ? [{ ...slot }] : [],
+    ]),
+  ) as WeeklyAvailability;
+}
 
 function formatUpdatedAt(value: string | null | undefined) {
   if (!value) {
@@ -285,6 +310,15 @@ export default function AvailabilityPage() {
     }));
   }
 
+  function applyWeeklyTemplate(nextWeeklySlots: WeeklyAvailability) {
+    setMessage(null);
+    setError(null);
+    setAvailability((currentAvailability) => ({
+      ...currentAvailability,
+      weeklySlots: nextWeeklySlots,
+    }));
+  }
+
   async function saveAvailability() {
     setIsSaving(true);
     setMessage(null);
@@ -366,6 +400,65 @@ export default function AvailabilityPage() {
         </div>
       </AppCard>
 
+      <AppCard className="p-2.5">
+        <p className="text-sm font-black text-neutral-950">Rellenar rápido</p>
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+          Usa una base habitual y ajusta debajo las excepciones de cada día.
+        </p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              applyWeeklyTemplate(
+                buildWeeklyAvailabilityFromDays({
+                  enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday"],
+                  slot: defaultSlot,
+                }),
+              )
+            }
+            className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white"
+          >
+            L-J 19-21
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              applyWeeklyTemplate(
+                buildWeeklyAvailabilityFromDays({
+                  enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                  slot: defaultSlot,
+                }),
+              )
+            }
+            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800"
+          >
+            L-V 19-21
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              applyWeeklyTemplate(
+                buildWeeklyAvailabilityFromDays({
+                  enabledWeekdays: ["saturday", "sunday"],
+                  slot: weekendSlot,
+                }),
+              )
+            }
+            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800"
+          >
+            Finde 10-12
+          </button>
+          <button
+            type="button"
+            onClick={() => applyWeeklyTemplate(emptyWeeklyAvailability)}
+            className="rounded-2xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700"
+          >
+            Limpiar
+          </button>
+        </div>
+      </AppCard>
+
       {isLoading ? (
         <p className="rounded-2xl bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-500">
           Cargando disponibilidad guardada...
@@ -373,6 +466,9 @@ export default function AvailabilityPage() {
       ) : null}
 
       <div className="space-y-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Excepciones por día
+        </p>
         {weekdayIds.map((weekdayId) => (
           <DayAvailabilityEditor
             key={weekdayId}

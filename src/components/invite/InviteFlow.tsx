@@ -63,7 +63,7 @@ function PlayerClaimButton({
       type="button"
       onClick={onSelect}
       disabled={disabled}
-      className={`flex min-h-16 items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-black disabled:opacity-50 ${
+      className={`flex min-h-14 items-center gap-2 rounded-2xl px-2.5 py-2.5 text-left text-sm font-black disabled:opacity-50 ${
         isSelected
           ? "bg-neutral-950 text-white"
           : "bg-neutral-100 text-neutral-800"
@@ -72,6 +72,41 @@ function PlayerClaimButton({
       <PlayerAvatar player={player} size="sm" />
       <span className="min-w-0 flex-1 truncate">{player.displayName}</span>
     </button>
+  )
+}
+
+function InviteStep({
+  number,
+  label,
+  isActive,
+  isDone,
+}: {
+  number: number
+  label: string
+  isActive: boolean
+  isDone: boolean
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <span
+        className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${
+          isDone
+            ? "bg-emerald-600 text-white"
+            : isActive
+              ? "bg-neutral-950 text-white"
+              : "bg-neutral-100 text-neutral-400"
+        }`}
+      >
+        {isDone ? "✓" : number}
+      </span>
+      <span
+        className={`truncate text-[11px] font-black ${
+          isActive || isDone ? "text-neutral-900" : "text-neutral-400"
+        }`}
+      >
+        {label}
+      </span>
+    </div>
   )
 }
 
@@ -237,6 +272,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const selectedPlayer = unclaimedPlayers.find(
     (player) => player.id === selectedPlayerId
   )
+  const currentStep = existingMembership ? 3 : hasAcceptedRules ? 3 : 2
 
   async function handleEnterExistingLeague() {
     if (!league) {
@@ -312,6 +348,24 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             ? t.invites.closedMode
             : t.invites.openMode}
         </p>
+      </AppCard>
+
+      <AppCard className="p-2.5">
+        <div className="flex items-center gap-2">
+          <InviteStep number={1} label="Código" isActive={false} isDone />
+          <InviteStep
+            number={2}
+            label="Reglas"
+            isActive={currentStep === 2}
+            isDone={hasAcceptedRules || Boolean(existingMembership)}
+          />
+          <InviteStep
+            number={3}
+            label="Jugador"
+            isActive={currentStep === 3 && !existingMembership}
+            isDone={Boolean(existingMembership)}
+          />
+        </div>
       </AppCard>
 
       <AppCard>
@@ -423,7 +477,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
                 {t.invites.claimableActivePlayers}
               </p>
 
-              <div className="mt-3 grid gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 {unclaimedPlayers.map((player) => (
                   <PlayerClaimButton
                     key={player.id}

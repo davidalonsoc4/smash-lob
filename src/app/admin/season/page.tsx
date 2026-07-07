@@ -2514,59 +2514,120 @@ export default function AdminSeasonPage() {
         </p>
       </header>
 
+      <AppCard className="p-2.5">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-400">
+          Accesos rápidos
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {isActiveSeason ? (
+            <>
+              <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Jornadas
+              </a>
+              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Jugadores
+              </a>
+              <a href="#cierre" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Cierre
+              </a>
+              <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
+                Zona sensible
+              </a>
+            </>
+          ) : isUpcomingSeason ? (
+            <>
+              <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Comenzar
+              </a>
+              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Jugadores
+              </a>
+              <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
+                Zona sensible
+              </a>
+            </>
+          ) : (
+            <>
+              {canReopenFinishedSeason ? (
+                <a href="#reabrir" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                  Reabrir
+                </a>
+              ) : null}
+              <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
+                Crear temporada
+              </a>
+            </>
+          )}
+        </div>
+      </AppCard>
+
       {isActiveSeason ? (
         <>
-          <RoundManagementPanel
-            activeLeagueId={activeLeague.id}
-            activeSeason={activeSeason}
-            roundSettings={roundSettings}
-            matches={matches}
-          />
+          <div id="jornadas">
+            <RoundManagementPanel
+              activeLeagueId={activeLeague.id}
+              activeSeason={activeSeason}
+              roundSettings={roundSettings}
+              matches={matches}
+            />
+          </div>
 
 
 
-          <SeasonPlayerNamesPanel
-            activeLeagueId={activeLeague.id}
-            players={players}
-          />
+          <div id="jugadores">
+            <SeasonPlayerNamesPanel
+              activeLeagueId={activeLeague.id}
+              players={players}
+            />
+          </div>
 
-          <FinishSeasonPanel
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-            winnerName={players[0]?.displayName ?? null}
-          />
+          <div id="cierre">
+            <FinishSeasonPanel
+              activeLeagueId={activeLeague.id}
+              activeSeasonId={activeSeason.id}
+              winnerName={players[0]?.displayName ?? null}
+            />
+          </div>
 
-          <SeasonDangerZone
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-            totalRounds={activeSeason.totalRounds}
-          />
+          <div id="zona-sensible">
+            <SeasonDangerZone
+              activeLeagueId={activeLeague.id}
+              activeSeasonId={activeSeason.id}
+              totalRounds={activeSeason.totalRounds}
+            />
+          </div>
         </>
       ) : isUpcomingSeason ? (
         <>
-          <StartSeasonPanel
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-            canStartBecauseRegistrationSettled={isRegistrationSettled}
-          />
+          <div id="inicio-temporada">
+            <StartSeasonPanel
+              activeLeagueId={activeLeague.id}
+              activeSeasonId={activeSeason.id}
+              canStartBecauseRegistrationSettled={isRegistrationSettled}
+            />
+          </div>
 
 
 
-          <SeasonPlayerNamesPanel
-            activeLeagueId={activeLeague.id}
-            players={players}
-          />
+          <div id="jugadores">
+            <SeasonPlayerNamesPanel
+              activeLeagueId={activeLeague.id}
+              players={players}
+            />
+          </div>
 
-          <SeasonDangerZone
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-            totalRounds={activeSeason.totalRounds}
-          />
+          <div id="zona-sensible">
+            <SeasonDangerZone
+              activeLeagueId={activeLeague.id}
+              activeSeasonId={activeSeason.id}
+              totalRounds={activeSeason.totalRounds}
+            />
+          </div>
         </>
       ) : (
         <>
           {canReopenFinishedSeason ? (
-            <>
+            <div id="reabrir" className="space-y-3">
               <ReopenSeasonPanel
                 activeLeagueId={activeLeague.id}
                 activeSeasonId={activeSeason.id}
@@ -2576,16 +2637,18 @@ export default function AdminSeasonPage() {
                 activeLeagueId={activeLeague.id}
                 players={players}
               />
-            </>
+            </div>
           ) : null}
 
-          <NewSeasonForm
-            key={`${activeSeason.id}-new`}
-            activeLeagueId={activeLeague.id}
-            activeLeagueName={activeLeague.name}
-            activeSeasonId={activeSeason.id}
-            currentPlayers={players}
-          />
+          <div id="nueva-temporada">
+            <NewSeasonForm
+              key={`${activeSeason.id}-new`}
+              activeLeagueId={activeLeague.id}
+              activeLeagueName={activeLeague.name}
+              activeSeasonId={activeSeason.id}
+              currentPlayers={players}
+            />
+          </div>
         </>
       )}
     </div>
