@@ -985,10 +985,10 @@ export default function Home() {
 
           <AppCard className="border-amber-200 bg-amber-50 p-3">
             <div className="space-y-2">
-              {pendingPaymentGroups.map(({ latestMatch, toPlayerId, toPlayerName, totalAmount, count }) => (
+              {pendingPaymentGroups.map(({ toPlayerId, toPlayerName, totalAmount, count }) => (
                 <Link
                   key={toPlayerId}
-                  href={`/match/${latestMatch.id}?focus=booking`}
+                  href="/payments"
                   className="flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2 transition active:scale-[0.99]"
                 >
                   <div className="min-w-0">

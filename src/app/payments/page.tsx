@@ -218,13 +218,18 @@ export default function PaymentsPage() {
   const { currentUser } = useCurrentUser()
   const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
   const { isLeagueAdmin } = useLeagueAccess()
-  const { sendCourtBookingPaymentReminder } = useMatchData()
+  const {
+    sendCourtBookingPaymentReminder,
+    updateCourtBookingTransferPaymentStatus,
+  } = useMatchData()
   const canViewAllMovements = isLeagueAdmin(activeLeague.id)
   const [activeTab, setActiveTab] = useState<PaymentTab>("status")
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [isEventsLoading, setIsEventsLoading] = useState(true)
   const [eventsError, setEventsError] = useState<string | null>(null)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
+  const [updatingTransferId, setUpdatingTransferId] = useState<string | null>(null)
+  const [paymentStatusError, setPaymentStatusError] = useState<string | null>(null)
   const [reminderMessage, setReminderMessage] = useState<string | null>(null)
   const [reminderError, setReminderError] = useState<string | null>(null)
 
@@ -361,6 +366,35 @@ export default function PaymentsPage() {
     )
   }
 
+  async function handleMarkTransferPaid({
+    matchId,
+    transferId,
+  }: {
+    matchId: string
+    transferId: string
+  }) {
+    if (updatingTransferId) {
+      return
+    }
+
+    setUpdatingTransferId(transferId)
+    setPaymentStatusError(null)
+
+    const saved = await updateCourtBookingTransferPaymentStatus(
+      matchId,
+      transferId,
+      true
+    )
+
+    setUpdatingTransferId(null)
+
+    if (!saved) {
+      setPaymentStatusError(
+        "No se ha podido marcar el pago como pagado. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+    }
+  }
+
   const tabs: { id: PaymentTab; label: string }[] = [
     { id: "status", label: "Estado" },
     { id: "movements", label: "Movimientos" },
@@ -469,6 +503,12 @@ export default function PaymentsPage() {
               Deudas pendientes o ya saldadas calculadas desde las reservas.
             </p>
 
+            {paymentStatusError ? (
+              <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+                {paymentStatusError}
+              </p>
+            ) : null}
+
             <div className="mt-3 space-y-2">
               {myMovements.length > 0 ? (
                 myMovements.map(({ match, transfer }) => {
@@ -494,7 +534,7 @@ export default function PaymentsPage() {
                           </p>
                         </div>
 
-                        <div className="text-right">
+                        <div className="shrink-0 text-right">
                           <p className="text-sm font-black text-neutral-950">
                             {formatMoney(transfer.amount)}
                           </p>
@@ -509,6 +549,24 @@ export default function PaymentsPage() {
                           </p>
                         </div>
                       </div>
+
+                      {!transfer.isPaid ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleMarkTransferPaid({
+                              matchId: match.id,
+                              transferId: transfer.id,
+                            })
+                          }
+                          disabled={updatingTransferId === transfer.id}
+                          className="mt-2 w-full rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                        >
+                          {updatingTransferId === transfer.id
+                            ? "Guardando..."
+                            : "Marcar como pagado"}
+                        </button>
+                      ) : null}
                     </div>
                   )
                 })
