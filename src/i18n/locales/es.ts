@@ -140,8 +140,8 @@ export const es = {
   },
 
   courtBooking: {
-    expand: "Ver reserva",
-    collapse: "Ocultar reserva",
+    expand: "Ver pagos",
+    collapse: "Ocultar pagos",
     pendingPaymentSingular: "pago pendiente",
     pendingPaymentPlural: "pagos pendientes",
   },

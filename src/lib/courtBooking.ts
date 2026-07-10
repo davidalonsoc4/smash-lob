@@ -29,6 +29,7 @@ export function getEmptyCourtBooking(): CourtBooking {
   return {
     isReserved: false,
     reservations: [],
+    ballPurchases: [],
     transfers: [],
     updatedAt: null,
   }
@@ -48,6 +49,14 @@ export function normalizeCourtBooking(value: Partial<CourtBooking> | null | unde
             amount: normalizeAmount(Number(reservation.amount)),
           }))
           .filter((reservation) => reservation.playerId && reservation.amount > 0)
+      : [],
+    ballPurchases: Array.isArray(value.ballPurchases)
+      ? value.ballPurchases
+          .map((purchase) => ({
+            playerId: String(purchase.playerId ?? ""),
+            amount: normalizeAmount(Number(purchase.amount)),
+          }))
+          .filter((purchase) => purchase.playerId && purchase.amount > 0)
       : [],
     transfers: Array.isArray(value.transfers)
       ? value.transfers
@@ -86,38 +95,44 @@ function getTransferId({
 export function buildCourtBooking({
   participantIds,
   reservations,
+  ballPurchases = [],
   previousTransfers = [],
 }: {
   participantIds: string[]
   reservations: CourtBookingReservation[]
+  ballPurchases?: CourtBookingReservation[]
   previousTransfers?: CourtBookingTransfer[]
 }): CourtBooking {
   const uniqueParticipantIds = Array.from(new Set(participantIds))
-  const cleanReservations = reservations
-    .map((reservation) => ({
-      playerId: reservation.playerId,
-      amount: normalizeAmount(Number(reservation.amount)),
-    }))
-    .filter(
-      (reservation) =>
-        uniqueParticipantIds.includes(reservation.playerId) && reservation.amount > 0
-    )
+  const cleanPayments = (payments: CourtBookingReservation[]) =>
+    payments
+      .map((payment) => ({
+        playerId: payment.playerId,
+        amount: normalizeAmount(Number(payment.amount)),
+      }))
+      .filter(
+        (payment) =>
+          uniqueParticipantIds.includes(payment.playerId) && payment.amount > 0
+      )
+  const cleanReservations = cleanPayments(reservations)
+  const cleanBallPurchases = cleanPayments(ballPurchases)
+  const allPayments = [...cleanReservations, ...cleanBallPurchases]
 
-  if (uniqueParticipantIds.length === 0 || cleanReservations.length === 0) {
+  if (uniqueParticipantIds.length === 0 || allPayments.length === 0) {
     return getEmptyCourtBooking()
   }
 
   const totalAmount = roundMoney(
-    cleanReservations.reduce((sum, reservation) => sum + reservation.amount, 0)
+    allPayments.reduce((sum, payment) => sum + payment.amount, 0)
   )
   const share = roundMoney(totalAmount / uniqueParticipantIds.length)
   const paidByPlayer = new Map<string, number>()
 
   uniqueParticipantIds.forEach((playerId) => paidByPlayer.set(playerId, 0))
-  cleanReservations.forEach((reservation) => {
+  allPayments.forEach((payment) => {
     paidByPlayer.set(
-      reservation.playerId,
-      roundMoney((paidByPlayer.get(reservation.playerId) ?? 0) + reservation.amount)
+      payment.playerId,
+      roundMoney((paidByPlayer.get(payment.playerId) ?? 0) + payment.amount)
     )
   })
 
@@ -177,6 +192,7 @@ export function buildCourtBooking({
   return {
     isReserved: true,
     reservations: cleanReservations,
+    ballPurchases: cleanBallPurchases,
     transfers,
     updatedAt: new Date().toISOString(),
   }

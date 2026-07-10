@@ -53,6 +53,7 @@ export type CourtBookingTransfer = {
 export type CourtBooking = {
   isReserved: boolean
   reservations: CourtBookingReservation[]
+  ballPurchases: CourtBookingReservation[]
   transfers: CourtBookingTransfer[]
   updatedAt: string | null
 }
@@ -87,6 +88,7 @@ type MatchResultInput = {
 type CourtBookingInput = {
   participantIds: string[]
   reservations: CourtBookingReservation[]
+  ballPurchases: CourtBookingReservation[]
 }
 
 type MatchDataContextValue = {
@@ -364,10 +366,10 @@ function getResultSummary(match: MatchData) {
 }
 
 function getBookingTotal(match: MatchData) {
-  return match.courtBooking.reservations.reduce(
-    (total, reservation) => total + reservation.amount,
-    0
-  )
+  return [
+    ...match.courtBooking.reservations,
+    ...match.courtBooking.ballPurchases,
+  ].reduce((total, payment) => total + payment.amount, 0)
 }
 
 function formatActivityMoney(value: number) {
@@ -964,6 +966,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       const booking = buildCourtBooking({
         participantIds: bookingInput.participantIds,
         reservations: bookingInput.reservations,
+        ballPurchases: bookingInput.ballPurchases,
         previousTransfers: currentMatch.courtBooking.transfers,
       })
 
@@ -994,10 +997,11 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           title: "Tienes pagos pendientes",
           description: getActivityMatchDescription(
             updatedMatch,
-            `Total pista: ${formatActivityMoney(getBookingTotal(updatedMatch))}`
+            `Total pagos y reservas: ${formatActivityMoney(getBookingTotal(updatedMatch))}`
           ),
           metadata: {
             reservations: updatedMatch.courtBooking.reservations,
+            ballPurchases: updatedMatch.courtBooking.ballPurchases,
             transfers: updatedMatch.courtBooking.transfers,
           },
         })
@@ -1152,6 +1156,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           ),
           metadata: {
             reservations: currentMatch.courtBooking.reservations,
+            ballPurchases: currentMatch.courtBooking.ballPurchases,
             transfers: currentMatch.courtBooking.transfers,
             reminder: true,
           },

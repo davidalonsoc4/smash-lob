@@ -251,6 +251,55 @@ function getPendingPaymentItems({
     });
 }
 
+function getPendingPaymentGroups({
+  matches,
+  currentUserId,
+  players,
+}: {
+  matches: MatchData[];
+  currentUserId: string;
+  players: AwardPlayer[];
+}) {
+  const groups = new Map<
+    string,
+    {
+      toPlayerId: string;
+      toPlayerName: string;
+      totalAmount: number;
+      count: number;
+      latestMatch: MatchData;
+    }
+  >();
+
+  getPendingPaymentItems({ matches, currentUserId, players }).forEach(
+    ({ match, transfer, toPlayerName }) => {
+      const currentGroup = groups.get(transfer.toPlayerId);
+
+      if (!currentGroup) {
+        groups.set(transfer.toPlayerId, {
+          toPlayerId: transfer.toPlayerId,
+          toPlayerName,
+          totalAmount: transfer.amount,
+          count: 1,
+          latestMatch: match,
+        });
+        return;
+      }
+
+      currentGroup.totalAmount += transfer.amount;
+      currentGroup.count += 1;
+
+      if (getMatchRelevantTime(match) > getMatchRelevantTime(currentGroup.latestMatch)) {
+        currentGroup.latestMatch = match;
+      }
+    },
+  );
+
+  return Array.from(groups.values()).sort(
+    (left, right) => right.totalAmount - left.totalAmount,
+  );
+}
+
 function PlayerAwardCard({
   eyebrow,
   title,
@@ -526,7 +575,7 @@ export default function Home() {
   const selectedLastMatchHasResult =
     selectedLastMatch?.status === "finished" ||
     Boolean(selectedLastMatch?.sets.length);
-  const pendingPaymentItems = getPendingPaymentItems({
+  const pendingPaymentGroups = getPendingPaymentGroups({
     matches,
     currentUserId,
     players,
@@ -928,36 +977,30 @@ export default function Home() {
         </section>
       ) : null}
 
-      {!isSeasonClosed && !isSeasonUpcoming && pendingPaymentItems.length > 0 ? (
+      {!isSeasonClosed && !isSeasonUpcoming && pendingPaymentGroups.length > 0 ? (
         <section>
           <SectionHeader title="Pagos pendientes" />
 
           <AppCard className="border-amber-200 bg-amber-50 p-3">
             <div className="space-y-2">
-              {pendingPaymentItems.slice(0, 3).map(({ match, transfer, toPlayerName }) => (
+              {pendingPaymentGroups.map(({ latestMatch, toPlayerId, toPlayerName, totalAmount, count }) => (
                 <Link
-                  key={`${match.id}-${transfer.id}`}
-                  href={`/match/${match.id}?focus=booking`}
+                  key={toPlayerId}
+                  href={`/match/${latestMatch.id}?focus=booking`}
                   className="flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2 transition active:scale-[0.99]"
                 >
                   <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-wide text-amber-900">
-                      Jornada {match.round}
+                      {toPlayerName}
                     </p>
                     <p className="mt-0.5 truncate text-xs font-semibold text-amber-800">
-                      Debes {formatMoney(transfer.amount)} a {toPlayerName}
+                      Debes {formatMoney(totalAmount)} en {count} movimiento{count === 1 ? "" : "s"} pendiente{count === 1 ? "" : "s"}
                     </p>
                   </div>
                   <span className="shrink-0 text-lg font-black text-amber-900">›</span>
                 </Link>
               ))}
             </div>
-
-            {pendingPaymentItems.length > 3 ? (
-              <p className="mt-2 text-center text-xs font-semibold text-amber-800">
-                +{pendingPaymentItems.length - 3} pago{pendingPaymentItems.length - 3 === 1 ? "" : "s"} pendiente{pendingPaymentItems.length - 3 === 1 ? "" : "s"} más
-              </p>
-            ) : null}
           </AppCard>
         </section>
       ) : null}

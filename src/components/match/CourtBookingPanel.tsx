@@ -58,11 +58,22 @@ function getInitialSelectedPayerIds({
 }: {
   participantIds: string[]
   reservations: CourtBookingReservation[]
-  currentUserId: string
 }) {
   return reservations
     .map((reservation) => reservation.playerId)
     .filter((playerId) => participantIds.includes(playerId))
+}
+
+function getInitialSelectedSinglePayerId({
+  participantIds,
+  reservations,
+}: {
+  participantIds: string[]
+  reservations: CourtBookingReservation[]
+}) {
+  return reservations.find((reservation) =>
+    participantIds.includes(reservation.playerId)
+  )?.playerId ?? ""
 }
 
 function parseAmount(value: string) {
@@ -142,11 +153,22 @@ export function CourtBookingPanel({
       reservations: booking.reservations,
     })
   )
+  const [ballPurchaseInputs, setBallPurchaseInputs] = useState(() =>
+    getInitialReservationInputs({
+      participantIds,
+      reservations: booking.ballPurchases,
+    })
+  )
   const [selectedPayerIds, setSelectedPayerIds] = useState(() =>
     getInitialSelectedPayerIds({
       participantIds,
       reservations: booking.reservations,
-      currentUserId,
+    })
+  )
+  const [selectedBallBuyerId, setSelectedBallBuyerId] = useState(() =>
+    getInitialSelectedSinglePayerId({
+      participantIds,
+      reservations: booking.ballPurchases,
     })
   )
   const [isPayerSelectorOpen, setIsPayerSelectorOpen] = useState(false)
@@ -173,23 +195,39 @@ export function CourtBookingPanel({
   const selectedReservationInputs = reservationInputs.filter((input) =>
     selectedPayerIds.includes(input.playerId)
   )
+  const selectedBallPurchaseInputs = ballPurchaseInputs.filter(
+    (input) => input.playerId === selectedBallBuyerId
+  )
   const parsedReservations = parseReservations(selectedReservationInputs)
-  const selectedAmountsAreValid =
+  const parsedBallPurchases = parseReservations(selectedBallPurchaseInputs)
+  const courtAmountsAreValid =
     selectedReservationInputs.length > 0 &&
     selectedReservationInputs.every((input) => {
       const amount = parseAmount(input.amount)
       return amount !== null && amount > 0
     })
+  const ballAmountIsValid =
+    selectedBallBuyerId.length === 0 ||
+    selectedBallPurchaseInputs.every((input) => {
+      const amount = parseAmount(input.amount)
+      return amount !== null && amount > 0
+    })
+  const selectedAmountsAreValid =
+    (courtAmountsAreValid || parsedBallPurchases.length > 0) && ballAmountIsValid
   const totalAmount = parsedReservations.reduce(
     (sum, reservation) => sum + reservation.amount,
     0
-  )
+  ) + parsedBallPurchases.reduce((sum, purchase) => sum + purchase.amount, 0)
+  const isCurrentUserBookingPayer = [
+    ...booking.reservations,
+    ...booking.ballPurchases,
+  ].some((payment) => payment.playerId === currentUserId)
   const isCurrentUserReservationPayer = booking.reservations.some(
     (reservation) => reservation.playerId === currentUserId
   )
   const canCreateBooking = canManage && !booking.isReserved
   const canManageExistingBooking =
-    canManage && booking.isReserved && isCurrentUserReservationPayer
+    canManage && booking.isReserved && isCurrentUserBookingPayer
   const canManageBooking = canCreateBooking || canManageExistingBooking
   const canSave = canManageBooking && !isSaving && selectedAmountsAreValid
   const currentUserTransfers = booking.transfers.filter(
@@ -201,21 +239,47 @@ export function CourtBookingPanel({
   const totalReservedAmount = booking.reservations.reduce(
     (sum, reservation) => sum + reservation.amount,
     0
+  ) + booking.ballPurchases.reduce(
+    (sum, purchase) => sum + purchase.amount,
+    0
   )
-  const paidByCount = booking.reservations.length
+  const paidByCount = new Set(
+    [...booking.reservations, ...booking.ballPurchases].map(
+      (payment) => payment.playerId
+    )
+  ).size
   const pendingTransfersCount = booking.transfers.filter(
     (transfer) => !transfer.isPaid
   ).length
   const savedPayerNames = booking.reservations
     .map((reservation) => getPlayerName(reservation.playerId, players))
     .join(", ")
+  const savedBallBuyerName = booking.ballPurchases[0]
+    ? getPlayerName(booking.ballPurchases[0].playerId, players)
+    : ""
   const payerSummary = getPayerSummary(selectedPayerIds, players)
   const hasMultipleSelectedPayers = selectedReservationInputs.length > 1
   const singleReservationInput =
     selectedReservationInputs.length === 1 ? selectedReservationInputs[0] : null
+  const selectedBallPurchaseInput =
+    selectedBallPurchaseInputs.length === 1 ? selectedBallPurchaseInputs[0] : null
 
   function updateReservationAmount(playerId: string, amount: string) {
     setReservationInputs((currentInputs) =>
+      currentInputs.map((input) =>
+        input.playerId === playerId
+          ? {
+              ...input,
+              amount,
+            }
+          : input
+      )
+    )
+    setError(null)
+  }
+
+  function updateBallPurchaseAmount(playerId: string, amount: string) {
+    setBallPurchaseInputs((currentInputs) =>
       currentInputs.map((input) =>
         input.playerId === playerId
           ? {
@@ -252,6 +316,7 @@ export function CourtBookingPanel({
     const saved = await updateCourtBooking(matchId, {
       participantIds,
       reservations: parsedReservations,
+      ballPurchases: parsedBallPurchases,
     })
 
     setIsSaving(false)
@@ -293,13 +358,19 @@ export function CourtBookingPanel({
         reservations: [],
       })
     )
+    setBallPurchaseInputs(
+      getInitialReservationInputs({
+        participantIds,
+        reservations: [],
+      })
+    )
     setSelectedPayerIds(
       getInitialSelectedPayerIds({
         participantIds,
         reservations: [],
-        currentUserId,
       })
     )
+    setSelectedBallBuyerId("")
     setIsPayerSelectorOpen(false)
     setIsExpanded(true)
     setIsEditing(true)
@@ -357,20 +428,20 @@ export function CourtBookingPanel({
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-black text-neutral-950">Reserva de pista</p>
+            <p className="text-sm font-black text-neutral-950">Pagos y reservas</p>
             {booking.isReserved ? (
               <span className={getBookingStatusBadgeClassName(true)}>
-                Reservada
+                Guardado
               </span>
             ) : (
               <span className={getBookingStatusBadgeClassName(false)}>
-                Sin reserva
+                Pendiente
               </span>
             )}
           </div>
 
           <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
-            Indica quién pagó la pista. La app calcula las transferencias.
+            Indica quién pagó pista y bolas. La app calcula las transferencias.
           </p>
         </div>
 
@@ -400,7 +471,7 @@ export function CourtBookingPanel({
             Pagan
           </p>
           <p className="text-xs font-black text-neutral-950">
-            {booking.isReserved ? paidByCount : parsedReservations.length}
+            {booking.isReserved ? paidByCount : new Set([...parsedReservations, ...parsedBallPurchases].map((payment) => payment.playerId)).size}
           </p>
         </div>
         <div className="px-2 py-1">
@@ -417,9 +488,15 @@ export function CourtBookingPanel({
         <div className="mt-1.5 space-y-1.5">
           <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5">
             <p className="text-xs font-semibold leading-5 text-neutral-700">
-              <span className="font-black text-neutral-950">Pagado por:</span>{" "}
+              <span className="font-black text-neutral-950">Pista pagada por:</span>{" "}
               <span className="font-bold">
                 {savedPayerNames || "Sin pagador informado"}
+              </span>
+            </p>
+            <p className="text-xs font-semibold leading-5 text-neutral-700">
+              <span className="font-black text-neutral-950">Bolas compradas por:</span>{" "}
+              <span className="font-bold">
+                {savedBallBuyerName || "Sin comprador informado"}
               </span>
             </p>
           </div>
@@ -507,7 +584,7 @@ export function CourtBookingPanel({
             <div className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-900">
               <p className="font-black">No hay pagos pendientes.</p>
               <p className="mt-0.5 text-xs font-semibold">
-                El importe ya queda compensado entre quienes reservaron.
+                El importe ya queda compensado entre los jugadores.
               </p>
             </div>
           )}
@@ -549,10 +626,10 @@ export function CourtBookingPanel({
                 <button
                   type="button"
                   onClick={handleClearBooking}
-                  disabled={isSaving}
+                  disabled={isSaving || !isCurrentUserReservationPayer}
                   className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 text-[11px] font-black text-red-700 disabled:text-red-300"
                 >
-                  Quitar
+                  Cancelar reserva
                 </button>
               </div>
             </div>
@@ -562,6 +639,51 @@ export function CourtBookingPanel({
 
       {isExpanded && isEditing && canManageBooking ? (
         <form onSubmit={handleSubmit} className="mt-1.5 space-y-1.5">
+          <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+            <label className="flex min-w-0 flex-col justify-center rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                Compró las bolas
+              </span>
+              <select
+                value={selectedBallBuyerId}
+                onChange={(event) => {
+                  setSelectedBallBuyerId(event.target.value)
+                  setError(null)
+                }}
+                disabled={isSaving}
+                className="mt-0.5 min-w-0 bg-transparent text-sm font-black text-neutral-950 outline-none disabled:text-neutral-300"
+              >
+                <option value="">Seleccionar</option>
+                {participantIds.map((playerId) => (
+                  <option key={playerId} value={playerId}>
+                    {getPlayerName(playerId, players)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex min-w-0 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
+              <input
+                inputMode="decimal"
+                value={selectedBallPurchaseInput?.amount ?? ""}
+                disabled={isSaving || !selectedBallPurchaseInput}
+                onChange={(event) => {
+                  if (!selectedBallPurchaseInput) {
+                    return
+                  }
+
+                  updateBallPurchaseAmount(
+                    selectedBallPurchaseInput.playerId,
+                    event.target.value
+                  )
+                }}
+                placeholder="0,00"
+                className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-300"
+              />
+              <span className="text-xs font-black text-neutral-500">€</span>
+            </label>
+          </div>
+
           {!hasMultipleSelectedPayers ? (
             <div className="space-y-1.5">
               <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
@@ -572,7 +694,7 @@ export function CourtBookingPanel({
                 >
                   <span className="min-w-0">
                     <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                      Pagó la reserva
+                      Pagó la pista
                     </span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
@@ -639,7 +761,7 @@ export function CourtBookingPanel({
                 >
                   <span className="min-w-0">
                     <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                      Pagaron la reserva
+                      Pagaron la pista
                     </span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
@@ -740,7 +862,7 @@ export function CourtBookingPanel({
               disabled={!canSave}
               className="rounded-md bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
             >
-              {isSaving ? "Guardando..." : "Guardar reserva"}
+              {isSaving ? "Guardando..." : "Guardar pagos"}
             </button>
           </div>
         </form>

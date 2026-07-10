@@ -62,12 +62,27 @@ function toStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string")
 }
 
-function toCourtBookingReservations(value: unknown): CourtBookingReservation[] {
+function getCourtBookingReservationItems(
+  value: unknown,
+  key?: "reservations" | "ballPurchases"
+) {
+  if (key && typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>
+    return Array.isArray(record[key]) ? record[key] : []
+  }
+
   if (!Array.isArray(value)) {
     return []
   }
 
   return value
+}
+
+function toCourtBookingReservations(
+  value: unknown,
+  key?: "reservations" | "ballPurchases"
+): CourtBookingReservation[] {
+  return getCourtBookingReservationItems(value, key)
     .map((item) => {
       if (typeof item !== "object" || item === null) {
         return null
@@ -129,7 +144,14 @@ function toCourtBookingTransfers(value: unknown): CourtBookingTransfer[] {
 function mapCourtBooking(row: Record<string, unknown>): CourtBooking {
   return normalizeCourtBooking({
     isReserved: Boolean(row.court_reserved),
-    reservations: toCourtBookingReservations(row.booking_reservations),
+    reservations: toCourtBookingReservations(
+      row.booking_reservations,
+      Array.isArray(row.booking_reservations) ? undefined : "reservations"
+    ),
+    ballPurchases: toCourtBookingReservations(
+      row.booking_reservations,
+      "ballPurchases"
+    ),
     transfers: toCourtBookingTransfers(row.booking_transfers),
     updatedAt:
       typeof row.booking_updated_at === "string" ? row.booking_updated_at : null,
@@ -333,7 +355,10 @@ export async function updateSupabaseCourtBooking({
     .from("matches")
     .update({
       court_reserved: booking.isReserved,
-      booking_reservations: booking.reservations,
+      booking_reservations: {
+        reservations: booking.reservations,
+        ballPurchases: booking.ballPurchases,
+      },
       booking_transfers: booking.transfers,
       booking_updated_at: booking.updatedAt,
     })
