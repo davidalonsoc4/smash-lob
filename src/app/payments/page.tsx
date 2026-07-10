@@ -217,9 +217,9 @@ function PaymentActivityList({
 export default function PaymentsPage() {
   const { currentUser } = useCurrentUser()
   const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
-  const { hasLeagueAdminRole } = useLeagueAccess()
+  const { isLeagueAdmin } = useLeagueAccess()
   const { sendCourtBookingPaymentReminder } = useMatchData()
-  const canViewAllMovements = hasLeagueAdminRole(activeLeague.id)
+  const canViewAllMovements = isLeagueAdmin(activeLeague.id)
   const [activeTab, setActiveTab] = useState<PaymentTab>("status")
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [isEventsLoading, setIsEventsLoading] = useState(true)

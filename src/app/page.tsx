@@ -481,12 +481,12 @@ export default function Home() {
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const { currentUserId, currentUser } = useCurrentUser();
-  const { isLeagueAdmin, hasLeagueAdminRole } = useLeagueAccess();
+  const { isLeagueAdmin } = useLeagueAccess();
   const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
     useCurrentLeagueData();
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
-  const canManageRegistration = hasLeagueAdminRole(activeLeague.id);
+  const canManageRegistration = canManageSeason;
   const isSeasonClosed = activeSeason.status === "finished";
   const isSeasonUpcoming = activeSeason.status === "upcoming";
   const currentUserMatches = matches.filter(
@@ -588,6 +588,8 @@ export default function Home() {
     activeLeague.createdByUserId &&
       activeLeague.createdByUserId === currentUser.userId,
   );
+  const canSendRegistrationReminder =
+    canManageRegistration && isCurrentUserLeagueCreator;
   const shouldShowRegistrationPanel =
     isSeasonUpcoming &&
     roundSettings.registrationFee.enabled &&
@@ -629,7 +631,7 @@ export default function Home() {
   }
 
   async function handleSendRegistrationPaymentReminder() {
-    if (!isCurrentUserLeagueCreator || isSendingRegistrationReminder) {
+    if (!canSendRegistrationReminder || isSendingRegistrationReminder) {
       return false;
     }
 
@@ -970,7 +972,7 @@ export default function Home() {
             canManage={canManageRegistration}
             organizerName={organizerName}
             isSeasonUpcoming={isSeasonUpcoming}
-            canSendReminder={isCurrentUserLeagueCreator}
+            canSendReminder={canSendRegistrationReminder}
             onTogglePayment={handleToggleRegistrationPayment}
             onSendReminder={handleSendRegistrationPaymentReminder}
           />

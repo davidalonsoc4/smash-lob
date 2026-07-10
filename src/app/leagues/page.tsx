@@ -25,7 +25,13 @@ function getSeasonStatusLabel(season: {
 export default function LeaguesPage() {
   const router = useRouter();
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
-  const { canCreateLeagues, hasLeagueAdminRole, userLeagues } = useLeagueAccess();
+  const {
+    canCreateLeagues,
+    isAdminViewEnabled,
+    isLeagueAdmin,
+    userLeagues,
+  } = useLeagueAccess();
+  const canCreateLeaguesInCurrentView = canCreateLeagues && isAdminViewEnabled;
   const { matches } = useMatchData();
   const {
     getActiveSeasonByLeagueId,
@@ -72,7 +78,7 @@ export default function LeaguesPage() {
           });
           const leader = ranking.find((player) => player.points > 0) ?? null;
           const isActive = activeLeagueId === league.id;
-          const isAdmin = hasLeagueAdminRole(league.id);
+          const isAdmin = isLeagueAdmin(league.id);
 
           return (
             <article
@@ -164,7 +170,7 @@ export default function LeaguesPage() {
           >
             Unirme con invitación
           </Link>
-          {canCreateLeagues ? (
+          {canCreateLeaguesInCurrentView ? (
             <Link
               href="/league/new"
               className="block rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"

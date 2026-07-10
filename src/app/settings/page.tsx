@@ -188,6 +188,7 @@ export default function SettingsPage() {
     canCreateLeagues,
     getMembershipForLeague,
     hasLeagueAdminRole,
+    isLeagueAdmin,
     isAdminViewEnabled,
     setAdminViewEnabled,
     unlinkLeaguePlayerAccount,
@@ -195,7 +196,9 @@ export default function SettingsPage() {
   } = useLeagueAccess()
   const router = useRouter()
   const activeMembership = getMembershipForLeague(activeLeague.id)
-  const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
+  const hasAdminRole = hasLeagueAdminRole(activeLeague.id)
+  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const canCreateLeaguesInCurrentView = canCreateLeagues && isAdminViewEnabled
   const canSelfUnlink = Boolean(activeMembership && activeMembership.role !== "creator")
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
@@ -371,13 +374,13 @@ export default function SettingsPage() {
         Liga
       </p>
 
-      {canAccessAdmin ? (
+      {hasAdminRole ? (
         <AppCard>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-bold">Vista admin</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Desactívala para ver Inicio, Ranking, Partidos y Actividad como un jugador normal. Los ajustes y el panel admin siguen disponibles.
+                Desactívala para ocultar accesos y acciones de administrador y ver la liga como un jugador normal.
               </p>
             </div>
 
@@ -457,7 +460,7 @@ export default function SettingsPage() {
             {t.settings.joinNewExistingLeague}
           </Link>
 
-          {canCreateLeagues ? (
+          {canCreateLeaguesInCurrentView ? (
             <Link
               href="/league/new"
               className="block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
