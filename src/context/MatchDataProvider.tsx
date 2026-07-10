@@ -124,7 +124,10 @@ type MatchDataContextValue = {
     transferId: string,
     isPaid: boolean
   ) => Promise<boolean>
-  sendCourtBookingPaymentReminder: (matchId: string) => Promise<boolean>
+  sendCourtBookingPaymentReminder: (
+    matchId: string,
+    transferIds?: string[]
+  ) => Promise<boolean>
 }
 
 type MatchDataProviderProps = {
@@ -1130,15 +1133,19 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
 
   const sendCourtBookingPaymentReminder = useCallback(
-    async (matchId: string) => {
+    async (matchId: string, transferIds?: string[]) => {
       const currentMatch = matches.find((match) => match.id === matchId)
 
       if (!currentMatch || !currentMatch.courtBooking.isReserved) {
         return false
       }
 
+      const transferIdSet = transferIds?.length
+        ? new Set(transferIds)
+        : null
       const pendingTransfers = currentMatch.courtBooking.transfers.filter(
-        (transfer) => !transfer.isPaid
+        (transfer) =>
+          !transfer.isPaid && (!transferIdSet || transferIdSet.has(transfer.id))
       )
 
       if (pendingTransfers.length === 0 || !isSupabaseBackedMatch(matchId)) {
@@ -1157,7 +1164,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           metadata: {
             reservations: currentMatch.courtBooking.reservations,
             ballPurchases: currentMatch.courtBooking.ballPurchases,
-            transfers: currentMatch.courtBooking.transfers,
+            transfers: pendingTransfers,
             reminder: true,
           },
         })
