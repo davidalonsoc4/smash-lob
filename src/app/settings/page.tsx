@@ -15,6 +15,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
+import { formatMoney } from "@/lib/courtBooking"
 
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
@@ -32,6 +33,143 @@ function normalizeAvatarUrl(value: string | null | undefined) {
 
 function isCustomUploadedAvatar(value: string | null | undefined) {
   return normalizeAvatarUrl(value)?.startsWith("data:image/") ?? false
+}
+
+type PaymentMovement = {
+  match: {
+    id: string
+    round: number
+  }
+  transfer: {
+    id: string
+    fromPlayerId: string
+    toPlayerId: string
+    amount: number
+    isPaid: boolean
+  }
+}
+
+function PaymentSummaryCard({
+  currentUserId,
+  movements,
+  getPlayerName,
+}: {
+  currentUserId: string
+  movements: PaymentMovement[]
+  getPlayerName: (playerId: string) => string
+}) {
+  const pendingOwedByMe = movements.filter(
+    ({ transfer }) => transfer.fromPlayerId === currentUserId && !transfer.isPaid
+  )
+  const pendingOwedToMe = movements.filter(
+    ({ transfer }) => transfer.toPlayerId === currentUserId && !transfer.isPaid
+  )
+  const totalOwedByMe = pendingOwedByMe.reduce(
+    (total, item) => total + item.transfer.amount,
+    0
+  )
+  const totalOwedToMe = pendingOwedToMe.reduce(
+    (total, item) => total + item.transfer.amount,
+    0
+  )
+  const hasPendingMovements =
+    pendingOwedByMe.length > 0 || pendingOwedToMe.length > 0
+
+  return (
+    <AppCard
+      className={
+        hasPendingMovements
+          ? "border-amber-200 bg-amber-50 shadow-[0_1px_14px_rgba(217,119,6,0.13)]"
+          : undefined
+      }
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold text-neutral-950">Pagos y reservas</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            Controla lo que debes, lo que te deben y el historial de movimientos.
+          </p>
+        </div>
+
+        {hasPendingMovements ? (
+          <span className="shrink-0 rounded-full bg-amber-200 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-950">
+            Pendiente
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            Debo
+          </p>
+          <p className="mt-1 text-lg font-black text-neutral-950">
+            {formatMoney(totalOwedByMe)}
+          </p>
+          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+            {pendingOwedByMe.length} pendiente{pendingOwedByMe.length === 1 ? "" : "s"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            Me deben
+          </p>
+          <p className="mt-1 text-lg font-black text-neutral-950">
+            {formatMoney(totalOwedToMe)}
+          </p>
+          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+            {pendingOwedToMe.length} pendiente{pendingOwedToMe.length === 1 ? "" : "s"}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+          Movimientos
+        </p>
+        {movements.length > 0 ? (
+          movements.slice(0, 6).map(({ match, transfer }) => {
+            const isDebt = transfer.fromPlayerId === currentUserId
+
+            return (
+              <div
+                key={`${match.id}-${transfer.id}`}
+                className="rounded-2xl bg-white px-3 py-2.5 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-neutral-950">
+                      Jornada {match.round} · {formatMoney(transfer.amount)}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+                      {isDebt
+                        ? `Debes pagar a ${getPlayerName(transfer.toPlayerId)}`
+                        : `${getPlayerName(transfer.fromPlayerId)} debe pagarte`}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${
+                      transfer.isPaid
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-amber-100 text-amber-900"
+                    }`}
+                  >
+                    {transfer.isPaid ? "Pagado" : "Pendiente"}
+                  </span>
+                </div>
+              </div>
+            )
+          })
+        ) : (
+          <p className="rounded-2xl bg-white px-3 py-2.5 text-xs font-semibold text-neutral-500 shadow-sm">
+            Aún no tienes movimientos de pagos y reservas.
+          </p>
+        )}
+      </div>
+    </AppCard>
+  )
 }
 
 function AccountAvatarSettings() {
@@ -181,7 +319,7 @@ function AccountAvatarSettings() {
 export default function SettingsPage() {
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
   const {
     canCreateLeagues,
     getMembershipForLeague,
@@ -198,6 +336,19 @@ export default function SettingsPage() {
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
   const [unlinkLeagueError, setUnlinkLeagueError] = useState<string | null>(null)
+  const paymentMovements = matches
+    .flatMap((match) =>
+      match.courtBooking.transfers
+        .filter(
+          (transfer) =>
+            transfer.fromPlayerId === currentUser.id ||
+            transfer.toPlayerId === currentUser.id
+        )
+        .map((transfer) => ({ match, transfer }))
+    )
+    .sort((left, right) => right.match.round - left.match.round)
+  const getPlayerName = (playerId: string) =>
+    players.find((player) => player.id === playerId)?.displayName ?? playerId
 
   async function handleUnlinkCurrentLeague() {
     if (!canSelfUnlink || isUnlinkingLeague) {
@@ -251,6 +402,12 @@ export default function SettingsPage() {
       <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
         Preferencias
       </p>
+
+      <PaymentSummaryCard
+        currentUserId={currentUser.id}
+        movements={paymentMovements}
+        getPlayerName={getPlayerName}
+      />
 
       <AppCard>
         <div className="flex items-center justify-between gap-3">

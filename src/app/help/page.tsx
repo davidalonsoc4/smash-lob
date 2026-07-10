@@ -2,7 +2,6 @@
 
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { formatMoney } from "@/lib/courtBooking"
@@ -85,9 +84,7 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 
 export default function HelpPage() {
   const { t } = useI18n()
-  const { currentUserId } = useCurrentUser()
-  const { activeLeague, activeSeason, roundSettings, matches, players } =
-    useCurrentLeagueData()
+  const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData()
   const requiresThreeSets = roundSettings.requiresThreeSets
   const registrationFee = roundSettings.registrationFee
   const hasRegistrationFee = Boolean(
@@ -100,37 +97,6 @@ export default function HelpPage() {
   const setsSummaryDescription = requiresThreeSets
     ? t.help.summarySetsThree
     : t.help.summarySetsOptional
-  const getPlayerName = (playerId: string) =>
-    players.find((player) => player.id === playerId)?.displayName ?? playerId
-  const pendingOwedByMe = matches.flatMap((match) =>
-    match.courtBooking.transfers
-      .filter((transfer) => transfer.fromPlayerId === currentUserId && !transfer.isPaid)
-      .map((transfer) => ({ match, transfer }))
-  )
-  const pendingOwedToMe = matches.flatMap((match) =>
-    match.courtBooking.transfers
-      .filter((transfer) => transfer.toPlayerId === currentUserId && !transfer.isPaid)
-      .map((transfer) => ({ match, transfer }))
-  )
-  const myPaymentHistory = matches
-    .flatMap((match) =>
-      match.courtBooking.transfers
-        .filter(
-          (transfer) =>
-            transfer.fromPlayerId === currentUserId ||
-            transfer.toPlayerId === currentUserId
-        )
-        .map((transfer) => ({ match, transfer }))
-    )
-    .sort((left, right) => right.match.round - left.match.round)
-  const totalOwedByMe = pendingOwedByMe.reduce(
-    (total, item) => total + item.transfer.amount,
-    0
-  )
-  const totalOwedToMe = pendingOwedToMe.reduce(
-    (total, item) => total + item.transfer.amount,
-    0
-  )
 
   return (
     <div className="space-y-4">
@@ -227,59 +193,6 @@ export default function HelpPage() {
             {t.help.registrationPurposePrefix} {registrationPurpose}
           </p>
         ) : null}
-      </HelpBlock>
-
-      <HelpBlock eyebrow="Pagos" title="Pagos y reservas">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <MiniCard
-            title={`Debo ${formatMoney(totalOwedByMe)}`}
-            description={
-              pendingOwedByMe.length > 0
-                ? `${pendingOwedByMe.length} movimiento${pendingOwedByMe.length === 1 ? "" : "s"} pendiente${pendingOwedByMe.length === 1 ? "" : "s"} de pagar.`
-                : "No tienes pagos pendientes ahora mismo."
-            }
-          />
-          <MiniCard
-            title={`Me deben ${formatMoney(totalOwedToMe)}`}
-            description={
-              pendingOwedToMe.length > 0
-                ? `${pendingOwedToMe.length} movimiento${pendingOwedToMe.length === 1 ? "" : "s"} pendiente${pendingOwedToMe.length === 1 ? "" : "s"} de recibir.`
-                : "No tienes cobros pendientes ahora mismo."
-            }
-          />
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-xs font-black uppercase tracking-wide text-neutral-500">
-            Movimientos
-          </p>
-          {myPaymentHistory.length > 0 ? (
-            myPaymentHistory.map(({ match, transfer }) => {
-              const isDebt = transfer.fromPlayerId === currentUserId
-
-              return (
-                <div
-                  key={`${match.id}-${transfer.id}`}
-                  className="rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-neutral-100"
-                >
-                  <p className="text-sm font-black text-neutral-950">
-                    Jornada {match.round} · {formatMoney(transfer.amount)}
-                  </p>
-                  <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
-                    {isDebt
-                      ? `Debes pagar a ${getPlayerName(transfer.toPlayerId)}`
-                      : `${getPlayerName(transfer.fromPlayerId)} debe pagarte`}{" "}
-                    · {transfer.isPaid ? "Pagado" : "Pendiente"}
-                  </p>
-                </div>
-              )
-            })
-          ) : (
-            <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-              Aún no tienes movimientos de pagos y reservas.
-            </p>
-          )}
-        </div>
       </HelpBlock>
 
       <HelpBlock eyebrow={t.help.formatEyebrow} title={t.help.formatTitle}>
