@@ -172,6 +172,7 @@ export function CourtBookingPanel({
     })
   )
   const [isPayerSelectorOpen, setIsPayerSelectorOpen] = useState(false)
+  const [isBallBuyerSelectorOpen, setIsBallBuyerSelectorOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -258,6 +259,10 @@ export function CourtBookingPanel({
     ? getPlayerName(booking.ballPurchases[0].playerId, players)
     : ""
   const payerSummary = getPayerSummary(selectedPayerIds, players)
+  const ballBuyerSummary = getPayerSummary(
+    selectedBallBuyerId ? [selectedBallBuyerId] : [],
+    players
+  )
   const hasMultipleSelectedPayers = selectedReservationInputs.length > 1
   const singleReservationInput =
     selectedReservationInputs.length === 1 ? selectedReservationInputs[0] : null
@@ -292,10 +297,47 @@ export function CourtBookingPanel({
     setError(null)
   }
 
+  function selectBallBuyer(playerId: string) {
+    const currentAmount = selectedBallPurchaseInput?.amount ?? ""
+
+    setSelectedBallBuyerId(playerId)
+    setBallPurchaseInputs((currentInputs) =>
+      currentInputs.map((input) =>
+        input.playerId === playerId && currentAmount
+          ? {
+              ...input,
+              amount: currentAmount,
+            }
+          : input
+      )
+    )
+    setIsBallBuyerSelectorOpen(false)
+    setError(null)
+  }
+
   function togglePayer(playerId: string) {
     setSelectedPayerIds((currentIds) => {
       if (currentIds.includes(playerId)) {
         return currentIds.filter((currentId) => currentId !== playerId)
+      }
+
+      if (currentIds.length === 1) {
+        const currentAmount =
+          reservationInputs.find((input) => input.playerId === currentIds[0])
+            ?.amount ?? ""
+
+        if (currentAmount) {
+          setReservationInputs((currentInputs) =>
+            currentInputs.map((input) =>
+              input.playerId === playerId
+                ? {
+                    ...input,
+                    amount: currentAmount,
+                  }
+                : input
+            )
+          )
+        }
       }
 
       return [...currentIds, playerId]
@@ -329,6 +371,7 @@ export function CourtBookingPanel({
     }
 
     setIsPayerSelectorOpen(false)
+    setIsBallBuyerSelectorOpen(false)
     setIsEditing(false)
     setIsExpanded(true)
   }
@@ -372,6 +415,7 @@ export function CourtBookingPanel({
     )
     setSelectedBallBuyerId("")
     setIsPayerSelectorOpen(false)
+    setIsBallBuyerSelectorOpen(false)
     setIsExpanded(true)
     setIsEditing(true)
   }
@@ -639,49 +683,73 @@ export function CourtBookingPanel({
 
       {isExpanded && isEditing && canManageBooking ? (
         <form onSubmit={handleSubmit} className="mt-1.5 space-y-1.5">
-          <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
-            <label className="flex min-w-0 flex-col justify-center rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                Compró las bolas
-              </span>
-              <select
-                value={selectedBallBuyerId}
-                onChange={(event) => {
-                  setSelectedBallBuyerId(event.target.value)
-                  setError(null)
-                }}
-                disabled={isSaving}
-                className="mt-0.5 min-w-0 bg-transparent text-sm font-black text-neutral-950 outline-none disabled:text-neutral-300"
+          <div className="space-y-1.5">
+            <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setIsBallBuyerSelectorOpen((currentValue) => !currentValue)
+                }
+                className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left shadow-sm"
               >
-                <option value="">Seleccionar</option>
-                {participantIds.map((playerId) => (
-                  <option key={playerId} value={playerId}>
-                    {getPlayerName(playerId, players)}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                    Compró las bolas
+                  </span>
+                  <span className="block truncate text-sm font-black text-neutral-950">
+                    {ballBuyerSummary}
+                  </span>
+                </span>
+                <span aria-hidden="true" className="shrink-0 text-sm font-black text-neutral-400">
+                  {isBallBuyerSelectorOpen ? "⌃" : "⌄"}
+                </span>
+              </button>
 
-            <label className="flex min-w-0 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
-              <input
-                inputMode="decimal"
-                value={selectedBallPurchaseInput?.amount ?? ""}
-                disabled={isSaving || !selectedBallPurchaseInput}
-                onChange={(event) => {
-                  if (!selectedBallPurchaseInput) {
-                    return
-                  }
+              <label className="flex min-w-0 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
+                <input
+                  inputMode="decimal"
+                  value={selectedBallPurchaseInput?.amount ?? ""}
+                  disabled={isSaving || !selectedBallPurchaseInput}
+                  onChange={(event) => {
+                    if (!selectedBallPurchaseInput) {
+                      return
+                    }
 
-                  updateBallPurchaseAmount(
-                    selectedBallPurchaseInput.playerId,
-                    event.target.value
+                    updateBallPurchaseAmount(
+                      selectedBallPurchaseInput.playerId,
+                      event.target.value
+                    )
+                  }}
+                  placeholder="0,00"
+                  className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-300"
+                />
+                <span className="text-xs font-black text-neutral-500">€</span>
+              </label>
+            </div>
+
+            {isBallBuyerSelectorOpen ? (
+              <div className="grid grid-cols-2 gap-1.5 rounded-lg border border-neutral-200 bg-white p-1.5 shadow-sm">
+                {participantIds.map((playerId) => {
+                  const isSelected = selectedBallBuyerId === playerId
+
+                  return (
+                    <button
+                      key={playerId}
+                      type="button"
+                      onClick={() => selectBallBuyer(playerId)}
+                      disabled={isSaving}
+                      className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
+                        isSelected
+                          ? "border-neutral-950 bg-neutral-950 text-white"
+                          : "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
+                      } disabled:opacity-60`}
+                    >
+                      <span className="block truncate">{getPlayerName(playerId, players)}</span>
+                    </button>
                   )
-                }}
-                placeholder="0,00"
-                className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-300"
-              />
-              <span className="text-xs font-black text-neutral-500">€</span>
-            </label>
+                })}
+              </div>
+            ) : null}
           </div>
 
           {!hasMultipleSelectedPayers ? (
