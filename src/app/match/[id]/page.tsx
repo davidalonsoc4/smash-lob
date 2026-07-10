@@ -272,6 +272,7 @@ export default function MatchDetailPage() {
           players={players}
           currentUserId={currentUserId}
           canManage={canManageMatch}
+          canManageAllPayments={isAdmin}
           booking={match.courtBooking}
           shouldFocusBooking={shouldFocusBooking}
         />

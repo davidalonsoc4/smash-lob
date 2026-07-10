@@ -22,6 +22,7 @@ type CourtBookingPanelProps = {
   players: PlayerProfile[]
   currentUserId: string
   canManage: boolean
+  canManageAllPayments?: boolean
   booking: CourtBooking
   shouldFocusBooking?: boolean
 }
@@ -123,6 +124,7 @@ export function CourtBookingPanel({
   players,
   currentUserId,
   canManage,
+  canManageAllPayments = false,
   booking,
   shouldFocusBooking = false,
 }: CourtBookingPanelProps) {
@@ -228,8 +230,13 @@ export function CourtBookingPanel({
   )
   const canCreateBooking = canManage && !booking.isReserved
   const canManageExistingBooking =
-    canManage && booking.isReserved && isCurrentUserBookingPayer
+    canManage &&
+    booking.isReserved &&
+    (isCurrentUserBookingPayer || canManageAllPayments)
   const canManageBooking = canCreateBooking || canManageExistingBooking
+  const canCancelBooking =
+    canManageExistingBooking &&
+    (isCurrentUserReservationPayer || canManageAllPayments)
   const canSave = canManageBooking && !isSaving && selectedAmountsAreValid
   const currentUserTransfers = booking.transfers.filter(
     (transfer) => transfer.fromPlayerId === currentUserId
@@ -670,7 +677,7 @@ export function CourtBookingPanel({
                 <button
                   type="button"
                   onClick={handleClearBooking}
-                  disabled={isSaving || !isCurrentUserReservationPayer}
+                  disabled={isSaving || !canCancelBooking}
                   className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 text-[11px] font-black text-red-700 disabled:text-red-300"
                 >
                   Cancelar reserva

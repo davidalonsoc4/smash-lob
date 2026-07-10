@@ -52,12 +52,17 @@ type PaymentMovement = {
 function PaymentSummaryCard({
   currentUserId,
   movements,
+  allMovements,
+  canViewAllMovements,
   getPlayerName,
 }: {
   currentUserId: string
   movements: PaymentMovement[]
+  allMovements: PaymentMovement[]
+  canViewAllMovements: boolean
   getPlayerName: (playerId: string) => string
 }) {
+  const [activeMovementScope, setActiveMovementScope] = useState<"mine" | "all">("mine")
   const pendingOwedByMe = movements.filter(
     ({ transfer }) => transfer.fromPlayerId === currentUserId && !transfer.isPaid
   )
@@ -74,6 +79,8 @@ function PaymentSummaryCard({
   )
   const hasPendingMovements =
     pendingOwedByMe.length > 0 || pendingOwedToMe.length > 0
+  const displayedMovements =
+    canViewAllMovements && activeMovementScope === "all" ? allMovements : movements
 
   return (
     <AppCard
@@ -125,12 +132,45 @@ function PaymentSummaryCard({
       </div>
 
       <div className="mt-3 space-y-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-          Movimientos
-        </p>
-        {movements.length > 0 ? (
-          movements.slice(0, 6).map(({ match, transfer }) => {
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+            Movimientos
+          </p>
+
+          {canViewAllMovements ? (
+            <div className="flex shrink-0 rounded-xl bg-white p-0.5 shadow-sm">
+              {[
+                { id: "mine", label: "Míos" },
+                { id: "all", label: "Todos" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() =>
+                    setActiveMovementScope(tab.id as "mine" | "all")
+                  }
+                  className={`rounded-lg px-2.5 py-1 text-[10px] font-black ${
+                    activeMovementScope === tab.id
+                      ? "bg-neutral-950 text-white"
+                      : "text-neutral-500"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        {displayedMovements.length > 0 ? (
+          displayedMovements.slice(0, 8).map(({ match, transfer }) => {
             const isDebt = transfer.fromPlayerId === currentUserId
+            const description =
+              activeMovementScope === "all"
+                ? `${getPlayerName(transfer.fromPlayerId)} debe pagar a ${getPlayerName(transfer.toPlayerId)}`
+                : isDebt
+                  ? `Debes pagar a ${getPlayerName(transfer.toPlayerId)}`
+                  : `${getPlayerName(transfer.fromPlayerId)} debe pagarte`
 
             return (
               <div
@@ -143,9 +183,7 @@ function PaymentSummaryCard({
                       Jornada {match.round} · {formatMoney(transfer.amount)}
                     </p>
                     <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
-                      {isDebt
-                        ? `Debes pagar a ${getPlayerName(transfer.toPlayerId)}`
-                        : `${getPlayerName(transfer.fromPlayerId)} debe pagarte`}
+                      {description}
                     </p>
                   </div>
 
@@ -336,6 +374,11 @@ export default function SettingsPage() {
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
   const [unlinkLeagueError, setUnlinkLeagueError] = useState<string | null>(null)
+  const allPaymentMovements = matches
+    .flatMap((match) =>
+      match.courtBooking.transfers.map((transfer) => ({ match, transfer }))
+    )
+    .sort((left, right) => right.match.round - left.match.round)
   const paymentMovements = matches
     .flatMap((match) =>
       match.courtBooking.transfers
@@ -406,6 +449,8 @@ export default function SettingsPage() {
       <PaymentSummaryCard
         currentUserId={currentUser.id}
         movements={paymentMovements}
+        allMovements={allPaymentMovements}
+        canViewAllMovements={canAccessAdmin}
         getPlayerName={getPlayerName}
       />
 
