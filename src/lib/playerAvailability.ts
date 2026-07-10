@@ -497,6 +497,16 @@ function hasAnyAvailabilitySlot(availability: PlayerAvailability) {
   );
 }
 
+function isUnrestrictedAvailability(
+  availability: PlayerAvailability | null | undefined,
+) {
+  return !availability || !hasAnyAvailabilitySlot(availability);
+}
+
+function getUnrestrictedAvailabilitySlots(): AvailabilitySlot[] {
+  return [{ start: "00:00", end: "23:59" }];
+}
+
 function getRecommendedDefaultCandidate(
   recommendations: AvailabilityRecommendation[],
   totalPlayers: number,
@@ -561,10 +571,6 @@ export function buildAvailabilityRecommendations({
     return availability ? hasAnyAvailabilitySlot(availability) : false;
   });
 
-  if (configuredPlayerIds.length === 0) {
-    return [];
-  }
-
   const dates = getDateRange({ startsAt, endsAt });
   const recommendations: AvailabilityRecommendation[] = [];
 
@@ -572,10 +578,12 @@ export function buildAvailabilityRecommendations({
     const dateValue = formatDateValue(date);
     const playerSlots = uniquePlayerIds.map((playerId) => ({
       playerId,
-      slots: getAvailabilitySlotsForDate({
-        availability: availabilityByPlayerId.get(playerId),
-        date: dateValue,
-      }),
+      slots: isUnrestrictedAvailability(availabilityByPlayerId.get(playerId))
+        ? getUnrestrictedAvailabilitySlots()
+        : getAvailabilitySlotsForDate({
+            availability: availabilityByPlayerId.get(playerId),
+            date: dateValue,
+          }),
     }));
     const candidateStartMinutes = [
       ...new Set(
@@ -595,7 +603,7 @@ export function buildAvailabilityRecommendations({
         .filter(({ slots }) => isSlotCovered({ slots, startMinutes, endMinutes }))
         .map(({ playerId }) => playerId);
       const isCommonForConfiguredPlayers =
-        configuredPlayerIds.length > 0 &&
+        configuredPlayerIds.length === 0 ||
         configuredPlayerIds.every((playerId) =>
           availablePlayerIds.includes(playerId),
         );

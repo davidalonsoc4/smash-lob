@@ -95,7 +95,7 @@ const availabilityTemplates: AvailabilityTemplate[] = [
   {
     id: "empty",
     label: "Limpiar",
-    description: "Sin disponibilidad",
+    description: "Disponibilidad total",
     weeklySlots: emptyWeeklyAvailability,
   },
 ];
@@ -452,7 +452,7 @@ export default function AvailabilityPage() {
             <p className="mt-0.5 text-xs font-semibold text-neutral-500">
               {slotCount > 0
                 ? `${slotCount} franja${slotCount === 1 ? "" : "s"} configurada${slotCount === 1 ? "" : "s"}`
-                : "Aún no has configurado disponibilidad"}
+                : "Sin franjas: disponibilidad total"}
             </p>
             <p className="mt-0.5 text-[11px] font-semibold text-neutral-400">
               {formatUpdatedAt(availability.updatedAt)}
@@ -470,7 +470,7 @@ export default function AvailabilityPage() {
           <div className="min-w-0">
             <p className="text-sm font-black text-neutral-950">Rellenar rapido</p>
             <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-              Elige una plantilla y ajusta debajo solo los dias que cambien.
+              Elige una plantilla y ajusta debajo solo los dias que cambien. Si lo dejas limpio, contarás como disponible por defecto.
             </p>
           </div>
 

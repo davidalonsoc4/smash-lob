@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { PlayerProfile } from "@/data/fakeData";
 import {
   buildAvailabilityRecommendations,
+  countWeeklyAvailabilitySlots,
   findStoredPlayerAvailability,
   getRecommendedDefaultDateTimeLocalValue,
   isSupabaseBackedAvailabilityId,
+  normalizeAvailabilitySlots,
   type AvailabilityRecommendation,
   type PlayerAvailability,
 } from "@/lib/playerAvailability";
@@ -25,6 +27,15 @@ type MatchAvailabilitySuggestionsProps = {
 
 function getPlayerName(players: PlayerProfile[], playerId: string) {
   return players.find((player) => player.id === playerId)?.displayName ?? playerId;
+}
+
+function hasAnyAvailabilitySlot(availability: PlayerAvailability) {
+  return (
+    countWeeklyAvailabilitySlots(availability.weeklySlots) > 0 ||
+    Object.values(availability.dateOverrides).some(
+      (slots) => normalizeAvailabilitySlots(slots).length > 0,
+    )
+  );
 }
 
 function ChevronIcon({ isExpanded }: { isExpanded: boolean }) {
@@ -243,8 +254,18 @@ export function MatchAvailabilitySuggestions({
     onDefaultSuggestionReady?.(defaultDateTimeLocalValue);
   }, [defaultDateTimeLocalValue, onDefaultSuggestionReady]);
 
-  const playersWithoutAvailability = uniquePlayerIds.filter(
-    (playerId) => !availabilities.some((item) => item.playerId === playerId),
+  const unrestrictedPlayerIds = uniquePlayerIds.filter((playerId) => {
+    const availability = availabilities.find((item) => item.playerId === playerId);
+
+    return !availability || !hasAnyAvailabilitySlot(availability);
+  });
+
+  const unrestrictedPlayersLabel = unrestrictedPlayerIds
+    .map((playerId) => getPlayerName(players, playerId))
+    .join(", ");
+
+  const playersWithConfiguredAvailability = uniquePlayerIds.filter(
+    (playerId) => !unrestrictedPlayerIds.includes(playerId),
   );
 
   const handleSelectSuggestion = (dateTimeLocalValue: string) => {
@@ -256,8 +277,8 @@ export function MatchAvailabilitySuggestions({
     ? "Calculando..."
     : bestRecommendation
       ? `${recommendations.length} propuesta${recommendations.length === 1 ? "" : "s"}. Mejor: ${bestRecommendation.dateLabel}, ${bestRecommendation.timeLabel}.`
-      : playersWithoutAvailability.length > 0
-        ? "Faltan disponibilidades."
+      : playersWithConfiguredAvailability.length === 0
+        ? "Sin restricciones: todos cuentan como disponibles."
         : "Sin huecos comunes.";
 
   return (
@@ -302,12 +323,9 @@ export function MatchAvailabilitySuggestions({
             </p>
           ) : null}
 
-          {playersWithoutAvailability.length > 0 ? (
+          {unrestrictedPlayerIds.length > 0 ? (
             <p className="rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
-              Sin disponibilidad: {playersWithoutAvailability
-                .map((playerId) => getPlayerName(players, playerId))
-                .join(", ")}
-              .
+              Sin disponibilidad informada: {unrestrictedPlayersLabel}. Se consideran disponibles por defecto.
             </p>
           ) : null}
 
@@ -325,7 +343,7 @@ export function MatchAvailabilitySuggestions({
             </div>
           ) : (
             <p className="rounded-lg bg-white p-2 text-xs font-semibold leading-5 text-neutral-500">
-              No hay huecos de 2 horas. Completa más disponibilidades o introduce el horario manualmente.
+              No hay huecos de 2 horas entre las restricciones informadas. Puedes introducir el horario manualmente.
             </p>
           )}
         </div>
