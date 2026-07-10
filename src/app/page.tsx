@@ -1033,6 +1033,8 @@ export default function Home() {
                       {rankingPreviewStart + index + 1}
                     </div>
 
+                    <PlayerAvatar player={player} size="sm" />
+
                     <div className="min-w-0">
                       <Link
                         href={`/player/${player.slug ?? player.id}`}

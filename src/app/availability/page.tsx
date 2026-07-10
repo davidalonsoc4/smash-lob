@@ -30,93 +30,77 @@ import {
 
 const defaultSlot: AvailabilitySlot = { start: "19:00", end: "21:00" };
 const weekendSlot: AvailabilitySlot = { start: "10:00", end: "12:00" };
-const emptyWeeklyAvailability: WeeklyAvailability = {
-  monday: [],
-  tuesday: [],
-  wednesday: [],
-  thursday: [],
-  friday: [],
-  saturday: [],
-  sunday: [],
-};
+const weekday4Ids: WeekdayId[] = ["monday", "tuesday", "wednesday", "thursday"];
+const weekday5Ids: WeekdayId[] = [...weekday4Ids, "friday"];
+const weekendIds: WeekdayId[] = ["saturday", "sunday"];
 
-type AvailabilityTemplateId = "weekday4" | "weekday5" | "weekend" | "empty";
+type WeekdayQuickMode = "weekday4" | "weekday5" | "none" | "custom";
+type EditorMode = "quick" | "custom";
 
-type AvailabilityTemplate = {
-  id: AvailabilityTemplateId;
-  label: string;
-  description: string;
-  weeklySlots: WeeklyAvailability;
-};
-
-function buildWeeklyAvailabilityFromDays({
-  enabledWeekdays,
-  slot,
-}: {
-  enabledWeekdays: WeekdayId[];
-  slot: AvailabilitySlot;
-}) {
-  return Object.fromEntries(
-    weekdayIds.map((weekdayId) => [
-      weekdayId,
-      enabledWeekdays.includes(weekdayId) ? [{ ...slot }] : [],
-    ]),
-  ) as WeeklyAvailability;
+function cloneSlot(slot: AvailabilitySlot) {
+  return { start: slot.start, end: slot.end };
 }
 
-const availabilityTemplates: AvailabilityTemplate[] = [
-  {
-    id: "weekday4",
-    label: "L-J",
-    description: "19:00-21:00",
-    weeklySlots: buildWeeklyAvailabilityFromDays({
-      enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday"],
-      slot: defaultSlot,
-    }),
-  },
-  {
-    id: "weekday5",
-    label: "L-V",
-    description: "19:00-21:00",
-    weeklySlots: buildWeeklyAvailabilityFromDays({
-      enabledWeekdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
-      slot: defaultSlot,
-    }),
-  },
-  {
-    id: "weekend",
-    label: "Finde",
-    description: "10:00-12:00",
-    weeklySlots: buildWeeklyAvailabilityFromDays({
-      enabledWeekdays: ["saturday", "sunday"],
-      slot: weekendSlot,
-    }),
-  },
-  {
-    id: "empty",
-    label: "Limpiar",
-    description: "Disponibilidad total",
-    weeklySlots: emptyWeeklyAvailability,
-  },
-];
+function areSlotsEqual(first?: AvailabilitySlot, second?: AvailabilitySlot) {
+  return Boolean(first && second && first.start === second.start && first.end === second.end);
+}
 
-function areSlotsEqual(firstSlots: AvailabilitySlot[], secondSlots: AvailabilitySlot[]) {
-  return (
-    firstSlots.length === secondSlots.length &&
-    firstSlots.every(
-      (slot, index) =>
-        slot.start === secondSlots[index]?.start &&
-        slot.end === secondSlots[index]?.end,
-    )
+function getSingleSharedSlot(weeklySlots: WeeklyAvailability, days: WeekdayId[]) {
+  const firstSlots = weeklySlots[days[0]];
+
+  if (firstSlots.length !== 1) {
+    return null;
+  }
+
+  const firstSlot = firstSlots[0];
+  const hasSameSlot = days.every(
+    (day) => weeklySlots[day].length === 1 && areSlotsEqual(weeklySlots[day][0], firstSlot),
   );
+
+  return hasSameSlot ? firstSlot : null;
 }
 
-function getMatchingTemplateId(weeklySlots: WeeklyAvailability) {
-  return availabilityTemplates.find((template) =>
-    weekdayIds.every((weekdayId) =>
-      areSlotsEqual(weeklySlots[weekdayId], template.weeklySlots[weekdayId]),
-    ),
-  )?.id ?? null;
+function areDaysEmpty(weeklySlots: WeeklyAvailability, days: WeekdayId[]) {
+  return days.every((day) => weeklySlots[day].length === 0);
+}
+
+function getWeekdayQuickMode(weeklySlots: WeeklyAvailability): WeekdayQuickMode {
+  if (getSingleSharedSlot(weeklySlots, weekday5Ids)) {
+    return "weekday5";
+  }
+
+  if (getSingleSharedSlot(weeklySlots, weekday4Ids) && weeklySlots.friday.length === 0) {
+    return "weekday4";
+  }
+
+  if (areDaysEmpty(weeklySlots, weekday5Ids)) {
+    return "none";
+  }
+
+  return "custom";
+}
+
+function buildInitialAvailability({
+  leagueId,
+  seasonId,
+  playerId,
+  userId,
+}: {
+  leagueId: string;
+  seasonId: string;
+  playerId: string;
+  userId: string | null;
+}) {
+  return (
+    findStoredPlayerAvailability({ leagueId, seasonId, playerId }) ??
+    createEmptyPlayerAvailability({
+      leagueId,
+      seasonId,
+      playerId,
+      userId,
+      timezone: getBrowserTimezone(),
+    })
+  );
 }
 
 function formatUpdatedAt(value: string | null | undefined) {
@@ -143,26 +127,31 @@ function isValidSlot(slot: AvailabilitySlot) {
   return slot.start < slot.end;
 }
 
-function buildInitialAvailability({
-  leagueId,
-  seasonId,
-  playerId,
-  userId,
+function TimeRangeInputs({
+  slot,
+  onChange,
 }: {
-  leagueId: string;
-  seasonId: string;
-  playerId: string;
-  userId: string | null;
+  slot: AvailabilitySlot;
+  onChange: (slot: AvailabilitySlot) => void;
 }) {
   return (
-    findStoredPlayerAvailability({ leagueId, seasonId, playerId }) ??
-    createEmptyPlayerAvailability({
-      leagueId,
-      seasonId,
-      playerId,
-      userId,
-      timezone: getBrowserTimezone(),
-    })
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <input
+        type="time"
+        value={slot.start}
+        step={1800}
+        onChange={(event) => onChange({ ...slot, start: event.target.value })}
+        className="min-w-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm font-bold text-neutral-950 outline-none focus:border-neutral-500"
+      />
+      <span className="text-xs font-black text-neutral-400">-</span>
+      <input
+        type="time"
+        value={slot.end}
+        step={1800}
+        onChange={(event) => onChange({ ...slot, end: event.target.value })}
+        className="min-w-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm font-bold text-neutral-950 outline-none focus:border-neutral-500"
+      />
+    </div>
   );
 }
 
@@ -181,21 +170,12 @@ function DayAvailabilityEditor({
     onChange(enabled ? [defaultSlot] : []);
   }
 
-  function updateSlot(index: number, field: keyof AvailabilitySlot, value: string) {
+  function updateSlot(index: number, slot: AvailabilitySlot) {
     onChange(
-      slots.map((slot, slotIndex) =>
-        slotIndex === index
-          ? {
-              ...slot,
-              [field]: value,
-            }
-          : slot,
+      slots.map((currentSlot, slotIndex) =>
+        slotIndex === index ? slot : currentSlot,
       ),
     );
-  }
-
-  function removeSlot(index: number) {
-    onChange(slots.filter((_, slotIndex) => slotIndex !== index));
   }
 
   return (
@@ -206,7 +186,9 @@ function DayAvailabilityEditor({
             {weekdayLabels[weekdayId]}
           </p>
           <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {isAvailable ? `${slots.length} franja${slots.length === 1 ? "" : "s"}` : "Sin disponibilidad"}
+            {isAvailable
+              ? `${slots.length} franja${slots.length === 1 ? "" : "s"}`
+              : "Sin disponibilidad"}
           </p>
         </div>
 
@@ -230,29 +212,21 @@ function DayAvailabilityEditor({
       {isAvailable ? (
         <div className="mt-2 space-y-2">
           {slots.map((slot, index) => (
-            <div key={`${weekdayId}-${index}`} className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
-              <input
-                type="time"
-                value={slot.start}
-                step={1800}
-                onChange={(event) => updateSlot(index, "start", event.target.value)}
-                className="min-w-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm font-bold text-neutral-950 outline-none focus:border-neutral-500"
-              />
-              <span className="text-xs font-black text-neutral-400">-</span>
-              <input
-                type="time"
-                value={slot.end}
-                step={1800}
-                onChange={(event) => updateSlot(index, "end", event.target.value)}
-                className="min-w-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm font-bold text-neutral-950 outline-none focus:border-neutral-500"
+            <div
+              key={`${weekdayId}-${index}`}
+              className="grid grid-cols-[1fr_auto] items-center gap-2"
+            >
+              <TimeRangeInputs
+                slot={slot}
+                onChange={(nextSlot) => updateSlot(index, nextSlot)}
               />
               <button
                 type="button"
-                onClick={() => removeSlot(index)}
+                onClick={() => onChange(slots.filter((_, slotIndex) => slotIndex !== index))}
                 className="rounded-xl bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-600"
                 aria-label="Quitar franja"
               >
-                ×
+                x
               </button>
             </div>
           ))}
@@ -283,6 +257,7 @@ export default function AvailabilityPage() {
       userId,
     }),
   );
+  const [editorMode, setEditorMode] = useState<EditorMode>("quick");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -358,30 +333,85 @@ export default function AvailabilityPage() {
     [availability.weeklySlots],
   );
   const slotCount = countWeeklyAvailabilitySlots(weeklySlots);
-  const activeTemplateId = getMatchingTemplateId(weeklySlots);
+  const weekdayMode = getWeekdayQuickMode(weeklySlots);
+  const weekdaySlot =
+    getSingleSharedSlot(weeklySlots, weekdayMode === "weekday5" ? weekday5Ids : weekday4Ids) ??
+    defaultSlot;
+  const sharedWeekendSlot = getSingleSharedSlot(weeklySlots, weekendIds);
+  const isWeekendEnabled = Boolean(sharedWeekendSlot);
+  const weekendInputSlot = sharedWeekendSlot ?? weekendSlot;
+  const hasWeekendCustomShape =
+    !sharedWeekendSlot && !areDaysEmpty(weeklySlots, weekendIds);
+  const shouldShowCustomEditor =
+    editorMode === "custom" || weekdayMode === "custom" || hasWeekendCustomShape;
   const hasInvalidSlots = weekdayIds.some((weekdayId) =>
     weeklySlots[weekdayId].some((slot) => !isValidSlot(slot)),
   );
 
-  function updateWeekdaySlots(weekdayId: WeekdayId, slots: AvailabilitySlot[]) {
-    setMessage(null);
-    setError(null);
-    setAvailability((currentAvailability) => ({
-      ...currentAvailability,
-      weeklySlots: {
-        ...currentAvailability.weeklySlots,
-        [weekdayId]: slots,
-      } as WeeklyAvailability,
-    }));
-  }
-
-  function applyWeeklyTemplate(nextWeeklySlots: WeeklyAvailability) {
+  function updateWeeklySlots(nextWeeklySlots: WeeklyAvailability) {
     setMessage(null);
     setError(null);
     setAvailability((currentAvailability) => ({
       ...currentAvailability,
       weeklySlots: nextWeeklySlots,
     }));
+  }
+
+  function setWeekdayMode(nextMode: Exclude<WeekdayQuickMode, "custom">) {
+    const nextSlots = normalizeWeeklyAvailability(weeklySlots);
+    const daysToEnable = nextMode === "weekday4" ? weekday4Ids : nextMode === "weekday5" ? weekday5Ids : [];
+    const slot = cloneSlot(weekdaySlot);
+
+    weekday5Ids.forEach((weekdayId) => {
+      nextSlots[weekdayId] = daysToEnable.includes(weekdayId) ? [slot] : [];
+    });
+
+    setEditorMode("quick");
+    updateWeeklySlots(nextSlots);
+  }
+
+  function updateSharedWeekdaySlot(nextSlot: AvailabilitySlot) {
+    if (weekdayMode === "custom") {
+      return;
+    }
+
+    const nextSlots = normalizeWeeklyAvailability(weeklySlots);
+    const daysToUpdate = weekdayMode === "weekday5" ? weekday5Ids : weekdayMode === "weekday4" ? weekday4Ids : [];
+
+    daysToUpdate.forEach((weekdayId) => {
+      nextSlots[weekdayId] = [cloneSlot(nextSlot)];
+    });
+
+    updateWeeklySlots(nextSlots);
+  }
+
+  function setWeekendEnabled(enabled: boolean) {
+    const nextSlots = normalizeWeeklyAvailability(weeklySlots);
+
+    weekendIds.forEach((weekdayId) => {
+      nextSlots[weekdayId] = enabled ? [cloneSlot(weekendInputSlot)] : [];
+    });
+
+    setEditorMode("quick");
+    updateWeeklySlots(nextSlots);
+  }
+
+  function updateSharedWeekendSlot(nextSlot: AvailabilitySlot) {
+    const nextSlots = normalizeWeeklyAvailability(weeklySlots);
+
+    weekendIds.forEach((weekdayId) => {
+      nextSlots[weekdayId] = [cloneSlot(nextSlot)];
+    });
+
+    updateWeeklySlots(nextSlots);
+  }
+
+  function updateWeekdaySlots(weekdayId: WeekdayId, slots: AvailabilitySlot[]) {
+    setEditorMode("custom");
+    updateWeeklySlots({
+      ...weeklySlots,
+      [weekdayId]: slots,
+    } as WeeklyAvailability);
   }
 
   async function saveAvailability() {
@@ -439,7 +469,7 @@ export default function AvailabilityPage() {
         </h1>
 
         <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          Define tus horarios habituales de juego. La app los usará después para recomendar horarios cuando se crucen los 4 jugadores de un partido.
+          Define tus horarios habituales. En modo rápido una sola franja se aplica al bloque de días elegido.
         </p>
       </header>
 
@@ -459,80 +489,127 @@ export default function AvailabilityPage() {
             </p>
           </div>
 
-          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-            2h partido
-          </span>
+          <div className="grid grid-cols-2 rounded-2xl bg-neutral-100 p-1 text-xs font-black">
+            <button
+              type="button"
+              onClick={() => setEditorMode("quick")}
+              className={`rounded-xl px-3 py-1.5 ${
+                !shouldShowCustomEditor ? "bg-white shadow-sm" : "text-neutral-500"
+              }`}
+            >
+              Rápido
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorMode("custom")}
+              className={`rounded-xl px-3 py-1.5 ${
+                shouldShowCustomEditor ? "bg-white shadow-sm" : "text-neutral-500"
+              }`}
+            >
+              Custom
+            </button>
+          </div>
         </div>
       </AppCard>
 
-      <AppCard className="p-2.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-black text-neutral-950">Rellenar rapido</p>
-            <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-              Elige una plantilla y ajusta debajo solo los dias que cambien. Si lo dejas limpio, contarás como disponible por defecto.
+      {!shouldShowCustomEditor ? (
+        <>
+          <AppCard className="p-2.5">
+            <p className="text-sm font-black text-neutral-950">Laborables</p>
+            <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+              Elige L-J o L-V. Solo uno puede estar activo.
             </p>
-          </div>
 
-          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-            {activeTemplateId ? "Plantilla" : "Personalizado"}
-          </span>
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {availabilityTemplates.map((template) => {
-            const isActiveTemplate = activeTemplateId === template.id;
-            const isEmptyTemplate = template.id === "empty";
-
-            return (
-              <button
-                key={template.id}
-                type="button"
-                aria-pressed={isActiveTemplate}
-                onClick={() => applyWeeklyTemplate(template.weeklySlots)}
-                className={`rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99] ${
-                  isActiveTemplate
-                    ? "bg-neutral-950 text-white shadow-sm"
-                    : isEmptyTemplate
-                      ? "bg-red-50 text-red-700"
-                      : "bg-neutral-100 text-neutral-800"
-                }`}
-              >
-                <span className="block text-xs font-black">
-                  {template.label}
-                </span>
-                <span
-                  className={`mt-0.5 block text-[11px] font-semibold ${
-                    isActiveTemplate ? "text-white/70" : "text-current opacity-60"
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {[
+                { id: "weekday4", label: "L-J" },
+                { id: "weekday5", label: "L-V" },
+                { id: "none", label: "Ninguno" },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setWeekdayMode(option.id as Exclude<WeekdayQuickMode, "custom">)}
+                  className={`rounded-2xl px-3 py-2.5 text-xs font-black transition active:scale-[0.99] ${
+                    weekdayMode === option.id
+                      ? "bg-neutral-950 text-white"
+                      : "bg-neutral-100 text-neutral-700"
                   }`}
                 >
-                  {template.description}
-                </span>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {weekdayMode !== "none" ? (
+              <div className="mt-3">
+                <TimeRangeInputs
+                  slot={weekdaySlot}
+                  onChange={updateSharedWeekdaySlot}
+                />
+              </div>
+            ) : null}
+          </AppCard>
+
+          <AppCard className="p-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-neutral-950">
+                  Sábado y domingo
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+                  Una franja común para todo el fin de semana.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isWeekendEnabled}
+                onClick={() => setWeekendEnabled(!isWeekendEnabled)}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                  isWeekendEnabled ? "bg-neutral-950" : "bg-neutral-300"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                    isWeekendEnabled ? "left-6" : "left-1"
+                  }`}
+                />
               </button>
-            );
-          })}
+            </div>
+
+            {isWeekendEnabled ? (
+              <div className="mt-3">
+                <TimeRangeInputs
+                  slot={weekendInputSlot}
+                  onChange={updateSharedWeekendSlot}
+                />
+              </div>
+            ) : null}
+          </AppCard>
+        </>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            Horario custom por día
+          </p>
+          {weekdayIds.map((weekdayId) => (
+            <DayAvailabilityEditor
+              key={weekdayId}
+              weekdayId={weekdayId}
+              slots={weeklySlots[weekdayId]}
+              onChange={(slots) => updateWeekdaySlots(weekdayId, slots)}
+            />
+          ))}
         </div>
-      </AppCard>
+      )}
 
       {isLoading ? (
         <p className="rounded-2xl bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-500">
           Cargando disponibilidad guardada...
         </p>
       ) : null}
-
-      <div className="space-y-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-          Excepciones por día
-        </p>
-        {weekdayIds.map((weekdayId) => (
-          <DayAvailabilityEditor
-            key={weekdayId}
-            weekdayId={weekdayId}
-            slots={weeklySlots[weekdayId]}
-            onChange={(slots) => updateWeekdaySlots(weekdayId, slots)}
-          />
-        ))}
-      </div>
 
       {hasInvalidSlots ? (
         <p className="rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">

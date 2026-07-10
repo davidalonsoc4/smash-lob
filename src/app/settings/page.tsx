@@ -281,34 +281,6 @@ export default function SettingsPage() {
         Preferencias
       </p>
 
-      <Link href="/payments" className="block">
-        <AppCard
-          className={`transition active:scale-[0.99] ${
-            hasPendingPayments ? "border-amber-200 bg-amber-50" : ""
-          }`}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-bold">Pagos y reservas</p>
-                {hasPendingPayments ? (
-                  <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-white">
-                    {pendingPaymentCount} pendiente{pendingPaymentCount === 1 ? "" : "s"}
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {hasPendingPayments
-                  ? `Debes ${formatMoney(owedByMeAmount)} · Te deben ${formatMoney(owedToMeAmount)}`
-                  : "Consulta tus pagos, reservas e historial de movimientos."}
-              </p>
-            </div>
-
-            <span className="text-xl">&gt;</span>
-          </div>
-        </AppCard>
-      </Link>
-
       <AppCard>
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -322,7 +294,6 @@ export default function SettingsPage() {
         </div>
       </AppCard>
 
-
       <Link href="/settings/notifications" className="block">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
@@ -330,6 +301,34 @@ export default function SettingsPage() {
               <p className="font-bold">Notificaciones</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
                 Activa push y elige qué avisos quieres recibir en este dispositivo.
+              </p>
+            </div>
+
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
+      <Link href="/payments" className="block">
+        <AppCard
+          className={`transition active:scale-[0.99] ${
+            hasPendingPayments ? "border-amber-200 bg-amber-50" : ""
+          }`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-bold">Mis pagos</p>
+                {hasPendingPayments ? (
+                  <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-white">
+                    {pendingPaymentCount} pendiente{pendingPaymentCount === 1 ? "" : "s"}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                {hasPendingPayments
+                  ? `Debes ${formatMoney(owedByMeAmount)} · Te deben ${formatMoney(owedToMeAmount)}`
+                  : "Consulta tus pagos, reservas e historial de movimientos."}
               </p>
             </div>
 
