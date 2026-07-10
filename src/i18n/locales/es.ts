@@ -431,16 +431,16 @@ export const es = {
       "Hidratación, se decide el sacador jugando un punto en el que todos tocan la bola al menos una vez, y empieza el partido.",
     registrationEyebrow: "Inscripción",
     registrationTitle: "Inscripción, fianza y material",
-    registrationFallbackAmount: "el importe definido por la organización",
+    registrationFallbackAmount: "Es el importe definido por la organización",
     registrationFeeTitle: "Cuota de temporada",
     registrationFeeDescriptionSuffix:
       "por persona. Si la temporada tiene cuota activa, la app permite controlar quién la tiene pagada.",
     registrationFundTitle: "Fondo y fianza",
     registrationFundDescription:
-      "La cuota funciona como fondo de compromiso para cubrir botes de bolas, premios y gastos comunes. El sobrante se puede reservar para la clausura o devolver al final.",
+      "La cuota funciona como fondo de compromiso para cubrir premios y gastos comunes. El sobrante se puede reservar para la clausura o devolver al final.",
     registrationBallsTitle: "Bolas nuevas",
     registrationBallsDescription:
-      "La referencia recomendada es estrenar un bote de bolas nuevo en cada partido y organizar el reparto al inicio de la temporada.",
+      "La referencia recomendada es estrenar un bote de bolas nuevo en cada partido.",
     registrationPurposePrefix: "Destino indicado por la organización:",
     formatEyebrow: "Formato",
     formatTitle: "Cómo funciona una temporada",
