@@ -10,7 +10,7 @@ import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
-import { getRoundMvpPlayerIds } from "@/lib/mvp"
+import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 import {
   getRoundStatusBadgeClassName,
@@ -198,14 +198,23 @@ export default function MatchesPage() {
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"
-                    highlightedPlayerIds={getRoundMvpPlayerIds({
-                      leagueId: activeLeague.id,
-                      seasonId: activeSeason.id,
-                      round: match.round,
-                      matches,
-                      votes,
-                      mvpSystem: roundSettings.mvpSystem,
-                    })}
+                    highlightedPlayerIds={
+                      roundSettings.mvpSystem === "voting"
+                        ? (getMatchMvpSelection({ votes, match })?.playerIds ?? [])
+                        : getRoundMvpPlayerIds({
+                            leagueId: activeLeague.id,
+                            seasonId: activeSeason.id,
+                            round: match.round,
+                            matches,
+                            votes,
+                            mvpSystem: roundSettings.mvpSystem,
+                          })
+                    }
+                    highlightedPlayerLabel={
+                      roundSettings.mvpSystem === "voting"
+                        ? "MVP del partido"
+                        : "MVP de jornada"
+                    }
                     leagueLocations={activeLeague.locations}
                     showMissingScheduleHint={currentUserNextMatch?.id === match.id}
                   />

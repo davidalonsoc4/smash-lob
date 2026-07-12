@@ -5,6 +5,7 @@ type TeamPlayersProps = {
   playerIds: string[]
   players?: PlayerProfile[]
   highlightedPlayerIds?: string[]
+  highlightedPlayerLabel?: string
   className?: string
 }
 
@@ -12,6 +13,7 @@ export function TeamPlayers({
   playerIds,
   players,
   highlightedPlayerIds = [],
+  highlightedPlayerLabel = "MVP de jornada",
   className = "flex flex-wrap gap-x-1 gap-y-1 text-lg font-black",
 }: TeamPlayersProps) {
   return (
@@ -23,7 +25,11 @@ export function TeamPlayers({
           <span key={playerId} className="inline-flex items-center gap-x-1">
             <PlayerNameLink playerId={playerId} players={players} />
             {isHighlighted ? (
-              <span aria-label="MVP de jornada" title="MVP de jornada" className="text-yellow-500">
+              <span
+                aria-label={highlightedPlayerLabel}
+                title={highlightedPlayerLabel}
+                className="text-yellow-500"
+              >
                 ★
               </span>
             ) : null}

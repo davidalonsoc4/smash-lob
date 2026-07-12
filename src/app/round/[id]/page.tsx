@@ -7,7 +7,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
-import { getRoundMvpPlayerIds } from "@/lib/mvp"
+import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 
 export default function RoundDetailPage() {
   const params = useParams<{ id: string }>()
@@ -52,14 +52,17 @@ export default function RoundDetailPage() {
 
       <div className="space-y-3">
         {roundMatches.map((match) => {
-          const highlightedPlayerIds = getRoundMvpPlayerIds({
-            leagueId: activeLeague.id,
-            seasonId: activeSeason.id,
-            round: match.round,
-            matches,
-            votes,
-            mvpSystem: roundSettings.mvpSystem,
-          })
+          const highlightedPlayerIds =
+            roundSettings.mvpSystem === "voting"
+              ? (getMatchMvpSelection({ votes, match })?.playerIds ?? [])
+              : getRoundMvpPlayerIds({
+                  leagueId: activeLeague.id,
+                  seasonId: activeSeason.id,
+                  round: match.round,
+                  matches,
+                  votes,
+                  mvpSystem: roundSettings.mvpSystem,
+                })
 
           return (
             <MatchCard
@@ -69,6 +72,11 @@ export default function RoundDetailPage() {
               roundStartsAt={null}
               roundEndsAt={null}
               highlightedPlayerIds={highlightedPlayerIds}
+              highlightedPlayerLabel={
+                roundSettings.mvpSystem === "voting"
+                  ? "MVP del partido"
+                  : "MVP de jornada"
+              }
               leagueLocations={activeLeague.locations}
             />
           )

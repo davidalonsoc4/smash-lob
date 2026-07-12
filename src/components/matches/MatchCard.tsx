@@ -34,6 +34,7 @@ type MatchCardProps = {
   roundEndsAt: string | null;
   headerMode?: "round" | "match-date";
   highlightedPlayerIds?: string[];
+  highlightedPlayerLabel?: string;
   leagueLocations?: LeagueLocation[];
   showMissingScheduleHint?: boolean;
 };
@@ -45,6 +46,7 @@ export function MatchCard({
   roundEndsAt,
   headerMode = "round",
   highlightedPlayerIds = [],
+  highlightedPlayerLabel = "MVP de jornada",
   leagueLocations = [],
   showMissingScheduleHint = true,
 }: MatchCardProps) {
@@ -129,6 +131,7 @@ export function MatchCard({
                   playerIds={match.teamA}
                   players={players}
                   highlightedPlayerIds={highlightedPlayerIds}
+                  highlightedPlayerLabel={highlightedPlayerLabel}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
 
@@ -144,6 +147,7 @@ export function MatchCard({
                   playerIds={match.teamB}
                   players={players}
                   highlightedPlayerIds={highlightedPlayerIds}
+                  highlightedPlayerLabel={highlightedPlayerLabel}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
 

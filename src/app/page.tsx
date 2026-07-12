@@ -21,6 +21,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import type { MatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
+  getMatchMvpSelection,
   getRoundMvpPlayerIds,
   getSeasonMvpSelection,
   getPlayersByIds,
@@ -548,26 +549,33 @@ export default function Home() {
         scheduleLocation: selectedNextMatch.location,
       })
     : null;
-  const selectedLastMatchHighlightedPlayerIds = selectedLastMatch
-    ? getRoundMvpPlayerIds({
-        leagueId: activeLeague.id,
-        seasonId: activeSeason.id,
-        round: selectedLastMatch.round,
-        matches,
-        votes,
-        mvpSystem: roundSettings.mvpSystem,
-      })
-    : [];
-  const selectedNextMatchHighlightedPlayerIds = selectedNextMatch
-    ? getRoundMvpPlayerIds({
-        leagueId: activeLeague.id,
-        seasonId: activeSeason.id,
-        round: selectedNextMatch.round,
-        matches,
-        votes,
-        mvpSystem: roundSettings.mvpSystem,
-      })
-    : [];
+  function getMatchPanelHighlightedPlayerIds(match: MatchData | null) {
+    if (!match) {
+      return [];
+    }
+
+    if (roundSettings.mvpSystem === "voting") {
+      return getMatchMvpSelection({ votes, match })?.playerIds ?? [];
+    }
+
+    return getRoundMvpPlayerIds({
+      leagueId: activeLeague.id,
+      seasonId: activeSeason.id,
+      round: match.round,
+      matches,
+      votes,
+      mvpSystem: roundSettings.mvpSystem,
+    });
+  }
+
+  const matchPanelMvpLabel =
+    roundSettings.mvpSystem === "voting"
+      ? "MVP del partido"
+      : "MVP de jornada";
+  const selectedLastMatchHighlightedPlayerIds =
+    getMatchPanelHighlightedPlayerIds(selectedLastMatch);
+  const selectedNextMatchHighlightedPlayerIds =
+    getMatchPanelHighlightedPlayerIds(selectedNextMatch);
   const selectedLastMatchFallbackLocation = selectedLastMatch
     ? getScheduleLocationFallbackText(selectedLastMatch.location)
     : null;
@@ -1153,6 +1161,7 @@ export default function Home() {
                       playerIds={selectedNextMatch.teamA}
                       players={players}
                       highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
+                      highlightedPlayerLabel={matchPanelMvpLabel}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                     <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
@@ -1162,6 +1171,7 @@ export default function Home() {
                       playerIds={selectedNextMatch.teamB}
                       players={players}
                       highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
+                      highlightedPlayerLabel={matchPanelMvpLabel}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                   </div>
@@ -1258,6 +1268,7 @@ export default function Home() {
                           playerIds={selectedLastMatch.teamA}
                           players={players}
                           highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                          highlightedPlayerLabel={matchPanelMvpLabel}
                           className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                         />
                         <p className="min-w-6 text-right text-lg font-black">
@@ -1270,6 +1281,7 @@ export default function Home() {
                           playerIds={selectedLastMatch.teamB}
                           players={players}
                           highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                          highlightedPlayerLabel={matchPanelMvpLabel}
                           className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                         />
                         <p className="min-w-6 text-right text-lg font-black">
@@ -1301,6 +1313,7 @@ export default function Home() {
                       playerIds={selectedLastMatch.teamA}
                       players={players}
                       highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                      highlightedPlayerLabel={matchPanelMvpLabel}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                     <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
@@ -1310,6 +1323,7 @@ export default function Home() {
                       playerIds={selectedLastMatch.teamB}
                       players={players}
                       highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+                      highlightedPlayerLabel={matchPanelMvpLabel}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                   </div>
