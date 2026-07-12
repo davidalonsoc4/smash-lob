@@ -216,7 +216,7 @@ export function AppShell({ children }: AppShellProps) {
           className="px-3"
           style={{
             paddingTop: hasFloatingTopControls
-              ? "max(56px, calc(env(safe-area-inset-top, 0px) + 52px))"
+              ? "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))"
               : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
             paddingBottom: "96px",
           }}
