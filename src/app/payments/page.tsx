@@ -216,7 +216,7 @@ function PaymentActivityList({
 
 export default function PaymentsPage() {
   const { currentUser } = useCurrentUser()
-  const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
+  const { activeLeague, matches, players } = useCurrentLeagueData()
   const { isLeagueAdmin } = useLeagueAccess()
   const {
     sendCourtBookingPaymentReminder,
@@ -408,7 +408,7 @@ export default function PaymentsPage() {
         <BackButton fallbackHref="/settings" label="Volver" />
 
         <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">Mis pagos</h1>

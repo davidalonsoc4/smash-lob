@@ -109,7 +109,7 @@ export default function PlayerPage() {
         <BackButton fallbackHref="/ranking" label={t.common.back} />
 
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name} · {selectedScope.label}</span>
+          <span>{activeLeague.name}</span>
           {isSeasonClosed ? (
             <span className={getSeasonStatusBadgeClassName("finished")}>
               Terminada

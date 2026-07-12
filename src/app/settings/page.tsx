@@ -183,10 +183,8 @@ function AccountAvatarSettings() {
 
 function SpectatorSettingsPage({
   leagueName,
-  seasonName,
 }: {
   leagueName: string
-  seasonName: string
 }) {
   const { t } = useI18n()
   const { data: session } = useSession()
@@ -195,7 +193,7 @@ function SpectatorSettingsPage({
     <div className="space-y-3">
       <header className="pt-1">
         <p className="text-sm font-medium text-neutral-500">
-          {leagueName} · {seasonName}
+          {leagueName}
         </p>
         <h1 className="mt-1 text-2xl font-black tracking-tight">
           Cuenta de espectador
@@ -285,15 +283,12 @@ function SpectatorSettingsPage({
 }
 
 export default function SettingsPage() {
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague } = useCurrentLeagueData()
   const { isLeagueSpectator } = useLeagueAccess()
 
   if (isLeagueSpectator(activeLeague.id)) {
     return (
-      <SpectatorSettingsPage
-        leagueName={activeLeague.name}
-        seasonName={activeSeason.name}
-      />
+      <SpectatorSettingsPage leagueName={activeLeague.name} />
     )
   }
 
@@ -303,7 +298,7 @@ export default function SettingsPage() {
 function PlayerSettingsPage() {
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { activeLeague, activeSeason, matches } = useCurrentLeagueData()
+  const { activeLeague, matches } = useCurrentLeagueData()
   const {
     canCreateLeagues,
     getMembershipForLeague,
@@ -388,7 +383,7 @@ function PlayerSettingsPage() {
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
         <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">

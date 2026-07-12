@@ -218,7 +218,7 @@ export default function MatchDetailPage() {
 
         <div className="mt-3 min-w-0">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-            {activeLeague.name} · {activeSeason.name}
+            {activeLeague.name}
           </p>
 
           <div className="mt-1 flex min-w-0 items-center justify-between gap-2.5">

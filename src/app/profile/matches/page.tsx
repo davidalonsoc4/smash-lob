@@ -173,7 +173,7 @@ export default function ProfileMatchesPage() {
         <BackButton fallbackHref="/profile" label={t.common.back} />
 
         <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-1 text-2xl font-black tracking-tight">

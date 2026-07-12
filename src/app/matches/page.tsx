@@ -67,7 +67,7 @@ export default function MatchesPage() {
     <div className="space-y-4">
       <header className="pt-2">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name} · {activeSeason.name}</span>
+          <span>{activeLeague.name}</span>
           {isSeasonClosed ? (
             <span className={getSeasonStatusBadgeClassName("finished")}>
               Terminada

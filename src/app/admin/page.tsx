@@ -153,7 +153,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 export default function AdminPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } = useLeagueAccess()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague } = useCurrentLeagueData()
   const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
@@ -208,7 +208,7 @@ export default function AdminPage() {
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
         <p className="mt-1 text-xs font-bold text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">

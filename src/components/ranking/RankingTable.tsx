@@ -56,9 +56,7 @@ export function RankingTable({ players }: RankingTableProps) {
           >
             <div className="flex min-w-0 items-center gap-1.5">
               <div
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black text-neutral-950 ${
-                  index === 0 ? "bg-amber-400" : "bg-neutral-100"
-                }`}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-950"
                 aria-hidden="true"
               >
                 {index + 1}

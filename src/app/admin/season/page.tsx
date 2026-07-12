@@ -3209,7 +3209,7 @@ export default function AdminSeasonPage() {
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
         <p className="mt-1 text-xs font-bold text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">

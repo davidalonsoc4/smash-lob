@@ -461,7 +461,7 @@ export default function AvailabilityPage() {
         <BackButton fallbackHref="/profile" label="Volver" />
 
         <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">

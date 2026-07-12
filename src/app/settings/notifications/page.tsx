@@ -48,7 +48,7 @@ function formatEnabledCount(preferences: NotificationPreferences) {
 }
 
 export default function NotificationSettingsPage() {
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague } = useCurrentLeagueData()
   const { currentUserId } = useCurrentUser()
   const [preferences, setPreferences] = useState<NotificationPreferences>(
     defaultNotificationPreferences
@@ -274,7 +274,7 @@ export default function NotificationSettingsPage() {
         <BackButton fallbackHref="/settings" label="Volver" />
 
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name} · {activeSeason.name}</span>
+          <span>{activeLeague.name}</span>
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">

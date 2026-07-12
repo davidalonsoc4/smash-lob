@@ -814,11 +814,7 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header className="pt-1">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-          {activeSeason.name}
-        </p>
-
-        <div className="mt-1.5 flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5">
           <LeagueLogo league={activeLeague} size="lg" />
 
           <h1 className="min-w-0 text-2xl font-black tracking-tight">
@@ -1072,11 +1068,7 @@ export default function Home() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-black text-neutral-950 ${
-                        rankingPreviewStart + index === 0
-                          ? "bg-amber-400"
-                          : "bg-neutral-100"
-                      }`}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-black text-neutral-950"
                       aria-hidden="true"
                     >
                       {rankingPreviewStart + index + 1}

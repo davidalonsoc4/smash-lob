@@ -541,8 +541,7 @@ export default function NotificationsPage() {
   const { t } = useI18n();
   const { data: session } = useSession();
   const { currentUserId } = useCurrentUser();
-  const { activeLeague, activeSeason, matches, players } =
-    useCurrentLeagueData();
+  const { activeLeague, matches, players } = useCurrentLeagueData();
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -617,7 +616,7 @@ export default function NotificationsPage() {
 
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
           <span>
-            {activeLeague.name} · {activeSeason.name}
+            {activeLeague.name}
           </span>
         </p>
 

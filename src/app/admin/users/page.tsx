@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 export default function AdminUsersPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole } = useLeagueAccess()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague } = useCurrentLeagueData()
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
 
   if (!canAccessAdmin) {
@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
         <p className="mt-1 text-xs font-bold text-neutral-500">
-          {activeLeague.name} - {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">

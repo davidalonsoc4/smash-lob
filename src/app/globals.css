@@ -189,17 +189,15 @@ textarea {
   --tw-ring-color: rgb(212 212 212 / 0.85) !important;
 }
 
-/* Keep the first header line clear of the floating controls without moving the page down. */
+/* Keep header content clear of the floating controls without moving the page down. */
 .app-main[data-has-floating-top-controls="true"]
   > :first-child
   > header:first-child
-  > :first-child:is(a, h1, h2, p),
+  > :first-child,
 .app-main[data-has-floating-top-controls="true"]
   > :first-child
   > header:first-child
   > a:first-child
-  + :is(h1, h2, p) {
-  display: block;
-  width: fit-content;
+  + * {
   max-width: calc(100% - var(--app-floating-top-reserved-width, 0px));
 }

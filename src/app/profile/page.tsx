@@ -93,7 +93,7 @@ export default function ProfilePage() {
       <div className="space-y-3">
         <header className="pt-1">
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-            <span>{activeLeague.name} · {activeSeason.name}</span>
+            <span>{activeLeague.name}</span>
             {isSeasonClosed ? (
               <span className={getSeasonStatusBadgeClassName("finished")}>
                 Terminada
@@ -124,7 +124,7 @@ export default function ProfilePage() {
     <div className="space-y-3">
       <header className="pt-1">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name} · {selectedScope.label}</span>
+          <span>{activeLeague.name}</span>
           {isSeasonClosed ? (
             <span className={getSeasonStatusBadgeClassName("finished")}>
               Terminada

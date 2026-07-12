@@ -84,7 +84,7 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 
 export default function HelpPage() {
   const { t } = useI18n()
-  const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData()
+  const { activeLeague, roundSettings } = useCurrentLeagueData()
   const requiresThreeSets = roundSettings.requiresThreeSets
   const registrationFee = roundSettings.registrationFee
   const hasRegistrationFee = Boolean(
@@ -104,7 +104,7 @@ export default function HelpPage() {
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
         <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name} · {activeSeason.name}
+          {activeLeague.name}
         </p>
 
         <h1 className="mt-1 text-2xl font-black tracking-tight">
