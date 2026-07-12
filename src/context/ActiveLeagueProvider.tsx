@@ -38,7 +38,7 @@ function forceHomeReload() {
 }
 
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
-  const { userLeagues, canAccessLeague } = useLeagueAccess()
+  const { userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
   const effectiveActiveLeagueId = canAccessLeague(activeLeagueId)
@@ -46,12 +46,13 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     : userLeagues[0]?.id ?? activeLeagueId
 
   useEffect(() => {
+    if (!isAccessHydrated) {
+      return
+    }
+
     const storedLeagueId = window.localStorage.getItem(storageKey)
 
-    if (
-      storedLeagueId &&
-      canAccessLeague(storedLeagueId)
-    ) {
+    if (storedLeagueId && canAccessLeague(storedLeagueId)) {
       window.setTimeout(() => {
         setActiveLeagueIdState(storedLeagueId)
       }, 0)
@@ -66,7 +67,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
         window.localStorage.setItem(storageKey, firstLeagueId)
       }, 0)
     }
-  }, [canAccessLeague, userLeagues])
+  }, [canAccessLeague, isAccessHydrated, userLeagues])
 
   const changeActiveLeague = useCallback((leagueId: string) => {
     if (!canAccessLeague(leagueId)) {

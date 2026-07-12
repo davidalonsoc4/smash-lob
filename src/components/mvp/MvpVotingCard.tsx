@@ -59,6 +59,8 @@ export function MvpVotingCard({
       participantIds.includes(player.id) && player.id !== currentUserId,
   );
   const isParticipant = participantIds.includes(currentUserId);
+  const hasPendingVote =
+    isParticipant && !currentVote && !matchProgress.complete;
 
   if (mvpSystem === "none") {
     return null;
@@ -112,10 +114,20 @@ export function MvpVotingCard({
   }
 
   return (
-    <AppCard className="p-2.5">
+    <AppCard
+      className={`p-2.5 ${
+        hasPendingVote
+          ? "border-amber-300 bg-amber-50/70 ring-1 ring-amber-200"
+          : ""
+      }`}
+    >
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-black">MVP del partido</p>
-        {currentVote || matchProgress.complete ? (
+        {hasPendingVote ? (
+          <span className="rounded-full bg-amber-200 px-2 py-1 text-[10px] font-black text-amber-900">
+            Voto pendiente
+          </span>
+        ) : currentVote || matchProgress.complete ? (
           <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700">
             {matchProgress.complete ? "Cerrado" : "Votado"}
           </span>

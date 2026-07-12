@@ -64,6 +64,7 @@ type LeagueAccessContextValue = {
   leagues: League[];
   userMemberships: UserLeagueMembership[];
   spectatorLeagueIds: string[];
+  isAccessHydrated: boolean;
   userLeagues: League[];
   createLeague: (settings: {
     name: string;
@@ -455,7 +456,7 @@ function recordSupabaseError(action: string, error: unknown) {
 }
 
 export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const { hydrateMatches } = useMatchData();
   const {
     hydrateSeasonSnapshot,
@@ -485,6 +486,12 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     readStoredMemberships,
   );
   const [spectatorLeagueIds, setSpectatorLeagueIds] = useState<string[]>([]);
+  const [hydratedAccessUserId, setHydratedAccessUserId] = useState<string | null>(
+    null,
+  );
+  const isAccessHydrated =
+    sessionStatus === "unauthenticated" ||
+    (Boolean(userId) && hydratedAccessUserId === userId);
 
   function persistLeagues(nextLeaguesInput: League[]) {
     const nextLeagues = uniqueLeaguesById(nextLeaguesInput);
@@ -506,6 +513,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   >(readStoredInviteCodes);
 
   useEffect(() => {
+    if (sessionStatus === "loading") {
+      return;
+    }
+
     if (!userId) {
       return;
     }
@@ -569,6 +580,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
             createdAt: new Date().toISOString(),
           }),
         );
+      } finally {
+        if (!isCancelled) {
+          setHydratedAccessUserId(userId);
+        }
       }
     }
 
@@ -577,7 +592,14 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     return () => {
       isCancelled = true;
     };
-  }, [hydrateMatches, hydrateSeasonSnapshot, userDisplayName, userGoogleAvatarUrl, userId]);
+  }, [
+    hydrateMatches,
+    hydrateSeasonSnapshot,
+    sessionStatus,
+    userDisplayName,
+    userGoogleAvatarUrl,
+    userId,
+  ]);
 
   const persistMemberships = useCallback(
     (nextMemberships: UserLeagueMembership[]) => {
@@ -1480,6 +1502,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       leagues,
       userMemberships,
       spectatorLeagueIds,
+      isAccessHydrated,
       userLeagues,
       createLeague,
       getMembershipForLeague,
@@ -1541,6 +1564,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       setAdminViewEnabled,
       leagues,
       spectatorLeagueIds,
+      isAccessHydrated,
       userId,
       userLeagues,
       userMemberships,
