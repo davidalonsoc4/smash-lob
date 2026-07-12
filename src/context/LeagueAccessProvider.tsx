@@ -38,6 +38,10 @@ import {
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import {
+  readCachedSpectatorLeagueIds,
+  writeCachedSpectatorLeagueIds,
+} from "@/lib/leagueAccessCache";
+import {
   claimSupabasePlayer,
   fetchSupabaseInviteSnapshot,
 } from "@/lib/supabaseInvites";
@@ -168,7 +172,6 @@ function normalizeUserId(email: string | null | undefined) {
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase();
 }
-
 
 function readStoredAdminViewEnabled() {
   if (typeof window === "undefined") {
@@ -522,6 +525,12 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     }
 
     let isCancelled = false;
+    const cachedSpectatorLeagueIds = readCachedSpectatorLeagueIds(userId);
+    const cachedAccessTimer = window.setTimeout(() => {
+      if (!isCancelled) {
+        setSpectatorLeagueIds(cachedSpectatorLeagueIds);
+      }
+    }, 0);
 
     async function hydrateSupabaseAccess() {
       try {
@@ -536,7 +545,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           setCanCreateLeaguesFromDb(Boolean(appUser.can_create_leagues));
         }
 
-        const snapshot = await fetchSupabaseLeagueSnapshot(userId as string);
+        const snapshot = await fetchSupabaseLeagueSnapshot(
+          userId as string,
+          appUser,
+        );
 
         if (isCancelled) {
           return;
@@ -545,6 +557,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         setIsSuperuserFromDb(snapshot.isSuperuser);
         setCanCreateLeaguesFromDb(snapshot.canCreateLeagues);
         setSpectatorLeagueIds(snapshot.spectatorLeagueIds);
+        writeCachedSpectatorLeagueIds(
+          userId as string,
+          snapshot.spectatorLeagueIds,
+        );
 
         const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : [];
         const nextLeagues = mergeLeagues(fallbackLeagues, snapshot.leagues);
@@ -591,6 +607,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
     return () => {
       isCancelled = true;
+      window.clearTimeout(cachedAccessTimer);
     };
   }, [
     hydrateMatches,

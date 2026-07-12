@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import {
@@ -9,8 +10,10 @@ import {
   fetchSpectatorInvite,
   type SpectatorInviteSummary,
 } from "@/lib/spectatorInvites"
+import { addCachedSpectatorLeagueId } from "@/lib/leagueAccessCache"
 
 export function SpectatorInviteFlow() {
+  const { data: session } = useSession()
   const params = useParams<{ code: string }>()
   const code = decodeURIComponent(params.code ?? "").trim().toUpperCase()
   const [invite, setInvite] = useState<SpectatorInviteSummary | null>(null)
@@ -58,6 +61,12 @@ export function SpectatorInviteFlow() {
 
     try {
       const result = await acceptSpectatorInvite(code)
+      const userEmail = session?.user?.email?.trim().toLowerCase()
+
+      if (userEmail) {
+        addCachedSpectatorLeagueId(userEmail, result.leagueId)
+      }
+
       window.localStorage.setItem("smash-lob-active-league", result.leagueId)
       window.location.assign("/")
     } catch {

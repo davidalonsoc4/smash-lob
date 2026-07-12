@@ -26,6 +26,12 @@ type SupabaseErrorLike = {
   message?: string
 }
 
+type SnapshotAppUser = {
+  id: string
+  is_superuser?: boolean | null
+  can_create_leagues?: boolean | null
+}
+
 function isUniqueViolation(error: unknown) {
   return (
     typeof error === "object" &&
@@ -206,7 +212,10 @@ function toRole(role: unknown): LeagueMemberRole {
     : "player"
 }
 
-export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
+export async function fetchSupabaseLeagueSnapshot(
+  email: string,
+  existingUser?: SnapshotAppUser | null,
+): Promise<{
   isSuperuser: boolean
   leagues: League[]
   canCreateLeagues: boolean
@@ -216,11 +225,18 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   seasonSnapshot: SeasonSnapshot
 }> {
   const normalizedEmail = email.trim().toLowerCase()
-  const { data: user } = await supabase
-    .from("app_users")
-    .select("id,email,is_superuser,can_create_leagues")
-    .eq("email", normalizedEmail)
-    .maybeSingle()
+  let user = existingUser ?? null
+
+  if (!user) {
+    const { data: fetchedUser, error: userError } = await supabase
+      .from("app_users")
+      .select("id,is_superuser,can_create_leagues")
+      .eq("email", normalizedEmail)
+      .maybeSingle()
+
+    if (userError) throw userError
+    user = fetchedUser
+  }
 
   if (!user) {
     return {
@@ -242,20 +258,23 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
 
   const isSuperuser = Boolean(user.is_superuser)
   const canCreateLeagues = Boolean(user.can_create_leagues)
-  const { data: ownMembershipRows, error: ownMembershipError } = await supabase
-    .from("league_memberships")
-    .select("league_id,player_id,role,user_id")
-    .eq("user_id", user.id)
+  const [ownMembershipResult, spectatorLeagueIds] = await Promise.all([
+    supabase
+      .from("league_memberships")
+      .select("league_id,player_id,role,user_id")
+      .eq("user_id", user.id),
+    fetchCurrentUserSpectatorLeagueIds(),
+  ])
 
-  if (ownMembershipError) throw ownMembershipError
+  if (ownMembershipResult.error) throw ownMembershipResult.error
 
+  const ownMembershipRows = ownMembershipResult.data
   const ownMemberships = (ownMembershipRows ?? []).map((membership) => ({
     userId: normalizedEmail,
     leagueId: membership.league_id,
     playerId: membership.player_id ?? "",
     role: toRole(membership.role),
   }))
-  const spectatorLeagueIds = await fetchCurrentUserSpectatorLeagueIds()
   const memberLeagueIds = new Set(
     ownMemberships.map((membership) => membership.leagueId),
   )
