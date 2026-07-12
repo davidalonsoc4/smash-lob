@@ -151,6 +151,11 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowPlayerInviteButton =
     !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute && !spectatorMode
   const shouldShowSpectatorShareButton = shouldShowPlayerInviteButton
+  const hasFloatingTopControls =
+    shouldShowSettingsButton ||
+    shouldShowNotificationsButton ||
+    shouldShowPlayerInviteButton ||
+    shouldShowSpectatorShareButton
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
   const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
 
@@ -210,7 +215,9 @@ export function AppShell({ children }: AppShellProps) {
         <main
           className="px-3"
           style={{
-            paddingTop: "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
+            paddingTop: hasFloatingTopControls
+              ? "max(56px, calc(env(safe-area-inset-top, 0px) + 52px))"
+              : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
             paddingBottom: "96px",
           }}
         >

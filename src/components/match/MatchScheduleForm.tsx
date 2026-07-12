@@ -423,7 +423,7 @@ export function MatchScheduleForm({
                       href={directionsUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800"
+                      className="rounded-xl border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99]"
                     >
                       {t.matchDetail.directionsButton}
                     </a>

@@ -75,7 +75,7 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
         href={calendarData.googleUrl}
         target="_blank"
         rel="noreferrer"
-        className="block w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-center text-xs font-black text-neutral-800 transition active:scale-[0.99]"
+        className="block w-full rounded-xl border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99]"
       >
         Añadir al calendario
       </a>
