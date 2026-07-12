@@ -590,7 +590,11 @@ export default function Home() {
   const organizerPlayer = activeLeague.createdByUserId
     ? players.find((player) => player.userId === activeLeague.createdByUserId)
     : null;
+  const organizerPlayerId = organizerPlayer?.id ?? null;
   const organizerName = organizerPlayer?.displayName ?? "organizador de la liga";
+  const automaticallySettledRegistrationPlayerIds = organizerPlayerId
+    ? [organizerPlayerId]
+    : [];
   const isCurrentUserLeagueCreator = Boolean(
     activeLeague.createdByUserId &&
       activeLeague.createdByUserId === currentUser.userId,
@@ -609,12 +613,17 @@ export default function Home() {
   const isRegistrationSettled = isSeasonRegistrationSettled({
     registrationFee: roundSettings.registrationFee,
     playerIds: players.map((player) => player.id),
+    settledPlayerIds: automaticallySettledRegistrationPlayerIds,
   });
 
   async function handleToggleRegistrationPayment(
     playerId: string,
     isPaid: boolean,
   ) {
+    if (playerId === organizerPlayerId) {
+      return;
+    }
+
     const nextRegistrationFee = ensureSeasonRegistrationPlayers({
       registrationFee: setSeasonRegistrationPaymentPaidStatus({
         registrationFee: roundSettings.registrationFee,
@@ -645,6 +654,7 @@ export default function Home() {
     const pendingPlayerIds = getSeasonRegistrationPendingPayments({
       registrationFee: roundSettings.registrationFee,
       playerIds: players.map((player) => player.id),
+      settledPlayerIds: automaticallySettledRegistrationPlayerIds,
     });
 
     if (pendingPlayerIds.length === 0) {
@@ -991,6 +1001,9 @@ export default function Home() {
           currentUserId={currentUserId}
           canManage={canManageRegistration}
           organizerName={organizerName}
+          automaticallySettledPlayerIds={
+            automaticallySettledRegistrationPlayerIds
+          }
           isSeasonUpcoming={isSeasonUpcoming}
           canSendReminder={canSendRegistrationReminder}
           onTogglePayment={handleToggleRegistrationPayment}

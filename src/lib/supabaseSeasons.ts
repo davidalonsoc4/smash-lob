@@ -547,6 +547,41 @@ export async function startSupabaseSeason({
     }
   }
 
+  let registrationRecipientPlayerId =
+    selectedSelfPlayerId && linkedMembershipRole === "creator"
+      ? selectedSelfPlayerId
+      : null;
+  const { data: leagueOwner, error: leagueOwnerError } = await supabase
+    .from("leagues")
+    .select("created_by_user_id")
+    .eq("id", leagueId)
+    .maybeSingle();
+
+  if (leagueOwnerError) {
+    throw leagueOwnerError;
+  }
+
+  if (leagueOwner?.created_by_user_id) {
+    const { data: creatorMembership, error: creatorMembershipError } =
+      await supabase
+        .from("league_memberships")
+        .select("player_id")
+        .eq("league_id", leagueId)
+        .eq("user_id", leagueOwner.created_by_user_id)
+        .maybeSingle();
+
+    if (creatorMembershipError) {
+      throw creatorMembershipError;
+    }
+
+    if (
+      creatorMembership?.player_id &&
+      finalPlayerIds.includes(creatorMembership.player_id)
+    ) {
+      registrationRecipientPlayerId = creatorMembership.player_id;
+    }
+  }
+
   if (finalPlayerIds.length > 0) {
     const { error: seasonPlayersError } = await supabase
       .from("season_players")
@@ -631,6 +666,9 @@ export async function startSupabaseSeason({
         amount: registrationFeeAmount,
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
+        paidPlayerIds: registrationRecipientPlayerId
+          ? [registrationRecipientPlayerId]
+          : [],
       }),
     });
 
@@ -673,6 +711,9 @@ export async function startSupabaseSeason({
         amount: registrationFeeAmount,
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
+        paidPlayerIds: registrationRecipientPlayerId
+          ? [registrationRecipientPlayerId]
+          : [],
       }),
     },
   ];

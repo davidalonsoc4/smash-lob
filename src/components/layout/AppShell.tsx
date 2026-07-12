@@ -137,7 +137,9 @@ export function AppShell({ children }: AppShellProps) {
   const { seasons } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
-  const isPublicAccessRoute = isInviteRoute || isSpectateRoute
+  const isLeagueNavigationRoute = pathname === "/open"
+  const isPublicAccessRoute =
+    isInviteRoute || isSpectateRoute || isLeagueNavigationRoute
   const isNewLeagueRoute = pathname === "/league/new"
   const isInitialSeasonSetupRoute =
     pathname === "/admin/season" &&

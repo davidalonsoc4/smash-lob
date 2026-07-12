@@ -79,24 +79,32 @@ export function buildSeasonRegistrationFee({
   amount,
   purpose = "",
   playerIds,
+  paidPlayerIds = [],
 }: {
   enabled: boolean
   amount: number
   purpose?: string
   playerIds: string[]
+  paidPlayerIds?: string[]
 }): SeasonRegistrationFee {
   const normalizedAmount = enabled ? normalizeAmount(amount) : 0
   const uniquePlayerIds = Array.from(new Set(playerIds.filter(Boolean)))
+  const paidPlayerIdSet = new Set(paidPlayerIds.filter(Boolean))
+  const paidAt = new Date().toISOString()
 
   return {
     enabled: enabled && normalizedAmount > 0,
     amount: normalizedAmount,
     purpose: enabled ? purpose.trim() : "",
-    payments: uniquePlayerIds.map((playerId) => ({
-      playerId,
-      isPaid: false,
-      paidAt: null,
-    })),
+    payments: uniquePlayerIds.map((playerId) => {
+      const isPaid = paidPlayerIdSet.has(playerId)
+
+      return {
+        playerId,
+        isPaid,
+        paidAt: isPaid ? paidAt : null,
+      }
+    }),
   }
 }
 
@@ -157,9 +165,11 @@ export function setSeasonRegistrationPaymentPaidStatus({
 export function getSeasonRegistrationPendingPayments({
   registrationFee,
   playerIds,
+  settledPlayerIds = [],
 }: {
   registrationFee: SeasonRegistrationFee
   playerIds: string[]
+  settledPlayerIds?: string[]
 }) {
   if (!registrationFee.enabled || registrationFee.amount <= 0) {
     return []
@@ -168,21 +178,27 @@ export function getSeasonRegistrationPendingPayments({
   const paymentByPlayerId = new Map(
     registrationFee.payments.map((payment) => [payment.playerId, payment]),
   )
+  const settledPlayerIdSet = new Set(settledPlayerIds.filter(Boolean))
 
   return Array.from(new Set(playerIds.filter(Boolean))).filter(
-    (playerId) => !paymentByPlayerId.get(playerId)?.isPaid,
+    (playerId) =>
+      !settledPlayerIdSet.has(playerId) &&
+      !paymentByPlayerId.get(playerId)?.isPaid,
   )
 }
 
 export function isSeasonRegistrationSettled({
   registrationFee,
   playerIds,
+  settledPlayerIds = [],
 }: {
   registrationFee: SeasonRegistrationFee
   playerIds: string[]
+  settledPlayerIds?: string[]
 }) {
   return getSeasonRegistrationPendingPayments({
     registrationFee,
     playerIds,
+    settledPlayerIds,
   }).length === 0
 }

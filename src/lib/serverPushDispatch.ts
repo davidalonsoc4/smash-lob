@@ -5,6 +5,7 @@ import {
   normalizeNotificationPreferences,
 } from "@/lib/notificationSettings";
 import type { ActivityEventType } from "@/lib/activity";
+import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
 
 export type PushDispatchResult = {
   ok: boolean;
@@ -269,11 +270,11 @@ function isLeagueWideEvent(eventType: ActivityEventType) {
 }
 
 function getNotificationUrl(event: ActivityEventRow) {
-  if (event.match_id) {
-    return `/match/${event.match_id}`;
-  }
+  let targetPath = "/activity?scope=mine";
 
-  if (
+  if (event.match_id) {
+    targetPath = `/match/${event.match_id}`;
+  } else if (
     event.type === "season_created" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
@@ -281,10 +282,13 @@ function getNotificationUrl(event: ActivityEventRow) {
     event.type === "round_mvp_awarded" ||
     event.type === "season_registration_payment_reminder"
   ) {
-    return "/";
+    targetPath = "/";
   }
 
-  return "/activity?scope=mine";
+  return buildLeagueNavigationUrl({
+    leagueId: event.league_id,
+    targetPath,
+  });
 }
 
 function getPlayerName(playerId: string, playerNamesById: Map<string, string>) {

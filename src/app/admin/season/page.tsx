@@ -1875,12 +1875,19 @@ function NewSeasonForm({
   const {
     getLeagueInviteCode,
     isSuperuser,
+    leagues: accessibleLeagues,
     linkCurrentUserToLeaguePlayer,
     userId,
   } = useLeagueAccess();
   const leaguePlayers = playerProfiles.filter(
     (player) => player.leagueId === activeLeagueId,
   );
+  const leagueCreatorUserId = accessibleLeagues.find(
+    (league) => league.id === activeLeagueId,
+  )?.createdByUserId;
+  const registrationRecipientPlayerId = leagueCreatorUserId
+    ? leaguePlayers.find((player) => player.userId === leagueCreatorUserId)?.id ?? null
+    : null;
   const leagueSeasonCount = seasons.filter(
     (season) => season.leagueId === activeLeagueId,
   ).length;
@@ -2131,6 +2138,7 @@ function NewSeasonForm({
         : 0,
       registrationFeePurpose: hasRegistrationFee ? registrationFeePurpose : "",
       selfPlayerValue: selectedSelfPlayerValue,
+      registrationRecipientPlayerId,
       currentUserEmail: userId,
       currentUserDisplayName: session?.user?.name ?? null,
       currentUserAvatarUrl: session?.user?.image ?? null,
@@ -2971,6 +2979,9 @@ export default function AdminSeasonPage() {
     !hasCreatedLeagueSeason,
   );
   const inviteCode = getLeagueInviteCode(activeLeague.id);
+  const registrationRecipientPlayerId = activeLeague.createdByUserId
+    ? players.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
+    : null;
 
   if (!canAccessAdmin) {
     return (
@@ -2996,6 +3007,9 @@ export default function AdminSeasonPage() {
   const isRegistrationSettled = isSeasonRegistrationSettled({
     registrationFee: roundSettings.registrationFee,
     playerIds: players.map((player) => player.id),
+    settledPlayerIds: registrationRecipientPlayerId
+      ? [registrationRecipientPlayerId]
+      : [],
   });
 
   return (

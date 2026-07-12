@@ -260,7 +260,10 @@ function normalizeStoredLeague(league: unknown): League | null {
     !Array.isArray(item.locations) ||
     (typeof item.logoUrl !== "undefined" &&
       item.logoUrl !== null &&
-      typeof item.logoUrl !== "string")
+      typeof item.logoUrl !== "string") ||
+    (typeof item.createdByUserId !== "undefined" &&
+      item.createdByUserId !== null &&
+      typeof item.createdByUserId !== "string")
   ) {
     return null;
   }
@@ -276,6 +279,8 @@ function normalizeStoredLeague(league: unknown): League | null {
     locations: normalizeLeagueLocations(item.locations),
     logoUrl: typeof item.logoUrl === "string" ? item.logoUrl : null,
     statusColorsEnabled: item.statusColorsEnabled !== false,
+    createdByUserId:
+      typeof item.createdByUserId === "string" ? item.createdByUserId : null,
   };
 }
 

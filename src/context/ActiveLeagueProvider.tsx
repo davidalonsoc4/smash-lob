@@ -15,6 +15,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
 type ActiveLeagueContextValue = {
   activeLeagueId: string
+  activateLeague: (leagueId: string) => boolean
   changeActiveLeague: (leagueId: string) => void
   setActiveLeagueId: (leagueId: string) => void
 }
@@ -72,10 +73,25 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     }
   }, [canAccessLeague, isAccessHydrated, userLeagues])
 
-  const openLeague = useCallback(
+  const activateLeague = useCallback(
     (leagueId: string) => {
+      if (!canAccessLeague(leagueId)) {
+        return false
+      }
+
       setActiveLeagueIdState(leagueId)
       window.localStorage.setItem(storageKey, leagueId)
+
+      return true
+    },
+    [canAccessLeague],
+  )
+
+  const openLeague = useCallback(
+    (leagueId: string) => {
+      if (!activateLeague(leagueId)) {
+        return
+      }
 
       // All accessible leagues are already hydrated in the client contexts.
       // Navigating client-side avoids repeating auth and the full Supabase snapshot.
@@ -85,18 +101,14 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
         window.scrollTo({ top: 0, behavior: "auto" })
       }
     },
-    [pathname, router],
+    [activateLeague, pathname, router],
   )
 
   const changeActiveLeague = useCallback(
     (leagueId: string) => {
-      if (!canAccessLeague(leagueId)) {
-        return
-      }
-
       openLeague(leagueId)
     },
-    [canAccessLeague, openLeague],
+    [openLeague],
   )
 
   const setActiveLeagueId = useCallback(
@@ -109,10 +121,16 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const value = useMemo(
     () => ({
       activeLeagueId: effectiveActiveLeagueId,
+      activateLeague,
       changeActiveLeague,
       setActiveLeagueId,
     }),
-    [changeActiveLeague, effectiveActiveLeagueId, setActiveLeagueId],
+    [
+      activateLeague,
+      changeActiveLeague,
+      effectiveActiveLeagueId,
+      setActiveLeagueId,
+    ],
   )
 
   return (

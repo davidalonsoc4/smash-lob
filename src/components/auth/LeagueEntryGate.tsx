@@ -32,6 +32,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
+  const isLeagueNavigationRoute = pathname === "/open"
   const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
   const isNewLeagueRoute = pathname === "/league/new"
   const isLeaguesRoute = pathname === "/leagues"
@@ -81,7 +82,8 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname === "/settings" ||
     pathname === "/leagues" ||
     pathname === "/help" ||
-    isAccessInviteRoute
+    isAccessInviteRoute ||
+    isLeagueNavigationRoute
 
   useEffect(() => {
     if (spectatorMode && !spectatorAllowedRoute) {
@@ -91,6 +93,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
 
   if (
     isAccessInviteRoute ||
+    isLeagueNavigationRoute ||
     isLeaguesRoute ||
     (isNewLeagueRoute && canCreateLeagues)
   ) {

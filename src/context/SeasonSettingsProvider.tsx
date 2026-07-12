@@ -18,6 +18,7 @@ import {
   type SeasonPlayer,
 } from "@/data/fakeData";
 import {
+  getNewPlayerIndexFromToken,
   getSeasonScheduleRoundCount,
   type SeasonScheduleMode,
 } from "@/lib/calendar";
@@ -99,6 +100,8 @@ type SeasonSettingsContextValue = {
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    selfPlayerValue?: string | null;
+    registrationRecipientPlayerId?: string | null;
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -780,6 +783,8 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
+    selfPlayerValue = null,
+    registrationRecipientPlayerId = null,
   }: {
     leagueId: string;
     name: string;
@@ -795,6 +800,8 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    selfPlayerValue?: string | null;
+    registrationRecipientPlayerId?: string | null;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -850,6 +857,19 @@ export function SeasonSettingsProvider({
     });
     const newPlayerIds = newPlayers.map((player) => player.id);
     const finalPlayerIds = [...uniquePlayerIds, ...newPlayerIds];
+    const selectedNewPlayerIndex = selfPlayerValue
+      ? getNewPlayerIndexFromToken(selfPlayerValue)
+      : null;
+    const selfPlayerId = selfPlayerValue
+      ? selectedNewPlayerIndex === null
+        ? selfPlayerValue
+        : (newPlayerIds[selectedNewPlayerIndex] ?? null)
+      : null;
+    const resolvedRegistrationRecipientPlayerId =
+      registrationRecipientPlayerId &&
+      finalPlayerIds.includes(registrationRecipientPlayerId)
+        ? registrationRecipientPlayerId
+        : selfPlayerId;
 
     setSeasonData((currentSeasonData) => {
       const nextSeasonData = {
@@ -889,6 +909,9 @@ export function SeasonSettingsProvider({
         amount: registrationFeeAmount,
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
+        paidPlayerIds: resolvedRegistrationRecipientPlayerId
+          ? [resolvedRegistrationRecipientPlayerId]
+          : [],
       }),
     });
 

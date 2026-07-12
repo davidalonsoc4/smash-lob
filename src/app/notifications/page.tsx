@@ -14,6 +14,7 @@ import {
   type ActivityEvent,
 } from "@/lib/activity";
 import { formatMoney } from "@/lib/courtBooking";
+import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
 import {
   getNotificationPreferenceKeyForEvent,
   isAlwaysEnabledNotificationEvent,
@@ -88,20 +89,25 @@ function formatNotificationDate(value: string) {
 }
 
 function getNotificationUrl(event: ActivityEvent) {
-  if (event.matchId) {
-    return `/match/${event.matchId}`;
-  }
+  let targetPath = "/activity?scope=mine";
 
-  if (
+  if (event.matchId) {
+    targetPath = `/match/${event.matchId}`;
+  } else if (
     event.type === "season_created" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
-    event.type === "round_in_play"
+    event.type === "round_in_play" ||
+    event.type === "round_mvp_awarded" ||
+    event.type === "season_registration_payment_reminder"
   ) {
-    return "/";
+    targetPath = "/";
   }
 
-  return "/activity?scope=mine";
+  return buildLeagueNavigationUrl({
+    leagueId: event.leagueId,
+    targetPath,
+  });
 }
 
 function isMatchParticipantNotification(event: ActivityEvent) {

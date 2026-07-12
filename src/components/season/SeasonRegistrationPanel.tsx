@@ -14,6 +14,7 @@ type SeasonRegistrationPanelProps = {
   currentUserId: string
   canManage: boolean
   organizerName?: string | null
+  automaticallySettledPlayerIds?: string[]
   isSeasonUpcoming?: boolean
   canSendReminder?: boolean
   onTogglePayment: (playerId: string, isPaid: boolean) => Promise<void> | void
@@ -26,6 +27,7 @@ export function SeasonRegistrationPanel({
   currentUserId,
   canManage,
   organizerName,
+  automaticallySettledPlayerIds = [],
   isSeasonUpcoming = false,
   canSendReminder = false,
   onTogglePayment,
@@ -36,12 +38,24 @@ export function SeasonRegistrationPanel({
   const [reminderMessage, setReminderMessage] = useState<string | null>(null)
   const [arePaymentsExpanded, setArePaymentsExpanded] = useState(false)
 
+  const automaticallySettledPlayerIdSet = useMemo(
+    () => new Set(automaticallySettledPlayerIds.filter(Boolean)),
+    [automaticallySettledPlayerIds],
+  )
   const paymentByPlayerId = useMemo(
     () =>
       new Map(
-        registrationFee.payments.map((payment) => [payment.playerId, payment]),
+        registrationFee.payments.map((payment) => [
+          payment.playerId,
+          automaticallySettledPlayerIdSet.has(payment.playerId)
+            ? {
+                ...payment,
+                isPaid: true,
+              }
+            : payment,
+        ]),
       ),
-    [registrationFee.payments],
+    [automaticallySettledPlayerIdSet, registrationFee.payments],
   )
 
   if (!registrationFee.enabled || registrationFee.amount <= 0) {
@@ -195,7 +209,11 @@ export function SeasonRegistrationPanel({
           {visiblePlayers.map((player) => {
             const payment = paymentByPlayerId.get(player.id)
             const isPaid = Boolean(payment?.isPaid)
-            const canEdit = canManage || player.id === currentUserId
+            const isAutomaticallySettled =
+              automaticallySettledPlayerIdSet.has(player.id)
+            const canEdit =
+              !isAutomaticallySettled &&
+              (canManage || player.id === currentUserId)
             const isSaving = savingPlayerId === player.id
 
             return (
@@ -215,7 +233,11 @@ export function SeasonRegistrationPanel({
                   </p>
                   <div className="mt-0.5 flex items-center gap-1.5">
                     <span className={getPaymentStatusBadgeClassName(isPaid)}>
-                      {isPaid ? "Pagada" : "Pendiente"}
+                      {isAutomaticallySettled
+                        ? "Destinatario"
+                        : isPaid
+                          ? "Pagada"
+                          : "Pendiente"}
                     </span>
                     {!isPaid ? (
                       <span className="text-[10px] font-semibold text-neutral-500">
