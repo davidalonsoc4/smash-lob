@@ -61,6 +61,12 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     personalScope: "match_participants",
     pushReady: true,
   },
+  mvp_vote_missing_reminder: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
   match_upcoming_reminder: {
     category: "match",
     defaultMode: "notify",

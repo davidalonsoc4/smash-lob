@@ -3,6 +3,7 @@ import {
   type SeasonRegistrationFee,
 } from "@/lib/seasonRegistration"
 import type { LeagueLocation } from "@/lib/leagueLocations"
+import type { SeasonMvpMode } from "@/lib/mvp"
 
 export type LeagueMemberRole = "creator" | "admin" | "player"
 
@@ -86,6 +87,7 @@ export type SeasonRoundSettings = {
   manualActiveRound: number | null
   manualCompletedRounds: number[]
   registrationFee: SeasonRegistrationFee
+  mvpMode: SeasonMvpMode
 }
 
 export const currentUserId = "davo"
@@ -447,6 +449,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
+    mvpMode: "automatic",
   },
   {
     leagueId: "league-work",
@@ -458,6 +461,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
+    mvpMode: "automatic",
   },
 ]
 

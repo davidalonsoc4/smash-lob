@@ -31,6 +31,11 @@ type SeasonRow = {
   status: string | null;
 };
 
+type SeasonSettingsRow = {
+  season_id: string;
+  mvp_system: string | null;
+};
+
 type ActivityInsertResult = {
   id: string;
 };
@@ -129,6 +134,59 @@ async function hasExistingUpcomingReminderEvent({
   return Boolean(data && data.length > 0);
 }
 
+async function hasExistingMvpVoteReminderEvent({
+  supabase,
+  matchId,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  matchId: string;
+}) {
+  const { data, error } = await supabase
+    .from("activity_events")
+    .select("id")
+    .eq("match_id", matchId)
+    .eq("type", "mvp_vote_missing_reminder")
+    .contains("metadata", { reminderHours: 24 })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data && data.length > 0);
+}
+
+async function getMissingMvpVotePlayerIds({
+  supabase,
+  match,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  match: MatchRow;
+}) {
+  const participantIds = getParticipantIds(match);
+
+  if (participantIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("mvp_votes")
+    .select("voter_player_id")
+    .eq("match_id", match.id);
+
+  if (error) {
+    throw error;
+  }
+
+  const voterIds = new Set(
+    ((data ?? []) as { voter_player_id: string | null }[])
+      .map((vote) => vote.voter_player_id)
+      .filter((playerId): playerId is string => typeof playerId === "string"),
+  );
+
+  return participantIds.filter((playerId) => !voterIds.has(playerId));
+}
+
 async function createActivityEvent({
   supabase,
   match,
@@ -142,7 +200,8 @@ async function createActivityEvent({
   type:
     | "round_in_play"
     | "match_result_missing_reminder"
-    | "match_upcoming_reminder";
+    | "match_upcoming_reminder"
+    | "mvp_vote_missing_reminder";
   title: string;
   description: string;
   metadata: Record<string, unknown>;
@@ -232,7 +291,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: matchesError.message }, { status: 500 });
   }
 
-  const matches = (scheduledMatches ?? []) as MatchRow[];
+  const mvpVoteReminderStartsAt = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const { data: finishedMatches, error: finishedMatchesError } = await supabase
+    .from("matches")
+    .select(
+      "id,league_id,season_id,round,status,team_a,team_b,scheduled_at,date_label,location,result_recorded_at",
+    )
+    .eq("status", "finished")
+    .not("result_recorded_at", "is", null)
+    .lte("result_recorded_at", mvpVoteReminderStartsAt.toISOString())
+    .limit(500);
+
+  if (finishedMatchesError) {
+    return NextResponse.json({ ok: false, error: finishedMatchesError.message }, { status: 500 });
+  }
+
+  const matches = [
+    ...((scheduledMatches ?? []) as MatchRow[]),
+    ...((finishedMatches ?? []) as MatchRow[]),
+  ];
   const seasonIds = Array.from(new Set(matches.map((match) => match.season_id).filter(Boolean)));
 
   if (seasonIds.length === 0) {
@@ -255,12 +332,28 @@ export async function GET(request: Request) {
   );
 
   const activeMatches = matches.filter((match) => activeSeasonById.has(match.season_id));
+  const { data: settingsRows, error: settingsError } = await supabase
+    .from("season_settings")
+    .select("season_id,mvp_system")
+    .in("season_id", seasonIds);
+
+  if (settingsError) {
+    return NextResponse.json({ ok: false, error: settingsError.message }, { status: 500 });
+  }
+
+  const mvpSystemBySeasonId = new Map(
+    ((settingsRows ?? []) as SeasonSettingsRow[]).map((settings) => [
+      settings.season_id,
+      settings.mvp_system ?? "automatic",
+    ]),
+  );
   const roundCandidates = new Map<string, MatchRow>();
   const resultReminderCandidates: {
     match: MatchRow;
     reminderHours: ResultReminderHour[];
   }[] = [];
   const upcomingReminderCandidates: MatchRow[] = [];
+  const mvpVoteReminderCandidates: MatchRow[] = [];
 
   activeMatches.forEach((match) => {
     if (
@@ -300,6 +393,14 @@ export async function GET(request: Request) {
 
     if (dueReminderHours.length > 0) {
       resultReminderCandidates.push({ match, reminderHours: dueReminderHours });
+    }
+
+    if (
+      match.status === "finished" &&
+      match.result_recorded_at &&
+      mvpSystemBySeasonId.get(match.season_id) === "voting"
+    ) {
+      mvpVoteReminderCandidates.push(match);
     }
   });
 
@@ -401,6 +502,44 @@ export async function GET(request: Request) {
         participantIds: getParticipantIds(match),
         scheduledAt: match.scheduled_at,
         location: match.location,
+        automatic: true,
+      },
+    });
+
+    eventIds.push(eventId);
+  }
+
+  for (const match of mvpVoteReminderCandidates) {
+    const alreadySent = await hasExistingMvpVoteReminderEvent({
+      supabase,
+      matchId: match.id,
+    });
+
+    if (alreadySent) {
+      continue;
+    }
+
+    const missingPlayerIds = await getMissingMvpVotePlayerIds({
+      supabase,
+      match,
+    });
+
+    if (missingPlayerIds.length === 0) {
+      continue;
+    }
+
+    const eventId = await createActivityEvent({
+      supabase,
+      match,
+      type: "mvp_vote_missing_reminder",
+      title: "Falta votar MVP",
+      description: `Vota el MVP de tu partido de la Jornada ${match.round}.`,
+      metadata: {
+        round: match.round,
+        reminderHours: 24,
+        participantIds: missingPlayerIds,
+        matchParticipantIds: getParticipantIds(match),
+        resultRecordedAt: match.result_recorded_at,
         automatic: true,
       },
     });

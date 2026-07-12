@@ -27,6 +27,7 @@ import {
   normalizeSeasonRegistrationFee,
   type SeasonRegistrationFee,
 } from "@/lib/seasonRegistration";
+import type { SeasonMvpMode } from "@/lib/mvp";
 
 export type RoundWindowMode = "none" | "fixed-days";
 
@@ -40,6 +41,7 @@ export type SeasonRoundSettings = {
   manualActiveRound: number | null;
   manualCompletedRounds: number[];
   registrationFee: SeasonRegistrationFee;
+  mvpMode: SeasonMvpMode;
 };
 
 type SeasonSettingsContextValue = {
@@ -74,6 +76,7 @@ type SeasonSettingsContextValue = {
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    mvpMode?: SeasonMvpMode;
   }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
     leagueId: string;
@@ -88,6 +91,7 @@ type SeasonSettingsContextValue = {
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    mvpMode?: SeasonMvpMode;
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -120,6 +124,8 @@ export type SeasonSnapshot = {
 function normalizeSettings(
   settings: (typeof seasonRoundSettings)[number],
 ): SeasonRoundSettings {
+  const storedMvpMode = (settings as Partial<SeasonRoundSettings>).mvpMode;
+
   return {
     leagueId: settings.leagueId,
     seasonId: settings.seasonId,
@@ -140,6 +146,12 @@ function normalizeSettings(
     registrationFee: normalizeSeasonRegistrationFee(
       (settings as Partial<SeasonRoundSettings>).registrationFee,
     ),
+    mvpMode:
+      storedMvpMode === "none" ||
+      storedMvpMode === "automatic" ||
+      storedMvpMode === "voting"
+        ? storedMvpMode
+        : "automatic",
   };
 }
 
@@ -296,6 +308,12 @@ function parseStoredSettings(
         ...storedSetting,
         requiresThreeSets:
           storedSetting.requiresThreeSets ?? defaultSetting.requiresThreeSets,
+        mvpMode:
+          storedSetting.mvpMode === "none" ||
+          storedSetting.mvpMode === "automatic" ||
+          storedSetting.mvpMode === "voting"
+            ? storedSetting.mvpMode
+            : defaultSetting.mvpMode,
       };
     });
 
@@ -324,6 +342,12 @@ function parseStoredSettings(
         registrationFee: normalizeSeasonRegistrationFee(
           storedSetting.registrationFee,
         ),
+        mvpMode:
+          storedSetting.mvpMode === "none" ||
+          storedSetting.mvpMode === "automatic" ||
+          storedSetting.mvpMode === "voting"
+            ? storedSetting.mvpMode
+            : "automatic",
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -343,6 +367,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
+    mvpMode: "automatic",
   };
 }
 
@@ -630,6 +655,7 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
+    mvpMode = "automatic",
   }: {
     leagueId: string;
     seasonName: string;
@@ -641,6 +667,7 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    mvpMode?: SeasonMvpMode;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const cleanPlayerNames = playerNames
@@ -728,6 +755,7 @@ export function SeasonSettingsProvider({
         purpose: registrationFeePurpose,
         playerIds,
       }),
+      mvpMode,
     });
 
     return { seasonId, playerIds };
@@ -746,6 +774,7 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
+    mvpMode = "automatic",
   }: {
     leagueId: string;
     name: string;
@@ -759,6 +788,7 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    mvpMode?: SeasonMvpMode;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -852,6 +882,7 @@ export function SeasonSettingsProvider({
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
+      mvpMode,
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { useMvp } from "@/context/MvpProvider"
 import {
   getLatestCompletedRound,
   getPlayersByIds,
@@ -10,6 +11,7 @@ import {
   getSeasonMvpSelection,
   type MvpMatch,
   type MvpPlayer,
+  type SeasonMvpMode,
 } from "@/lib/mvp"
 
 type DashboardMvpCardProps = {
@@ -19,6 +21,7 @@ type DashboardMvpCardProps = {
   canManage: boolean
   players: MvpPlayer[]
   matches: MvpMatch[]
+  mvpMode: SeasonMvpMode
 }
 
 function formatSignedDiff(value: number) {
@@ -36,7 +39,13 @@ export function DashboardMvpCard({
   canManage,
   players,
   matches,
+  mvpMode,
 }: DashboardMvpCardProps) {
+  const { votes } = useMvp()
+  if (mvpMode === "none") {
+    return null
+  }
+
   const latestCompletedRound = getLatestCompletedRound(matches, leagueId, seasonId)
   const latestRoundMvp = latestCompletedRound
     ? getRoundMvpSelection({
@@ -44,6 +53,8 @@ export function DashboardMvpCard({
         seasonId,
         round: latestCompletedRound,
         matches,
+        votes,
+        mvpMode,
       })
     : null
   const seasonMvp = isSeasonClosed
@@ -51,6 +62,8 @@ export function DashboardMvpCard({
         leagueId,
         seasonId,
         matches,
+        votes,
+        mvpMode,
       })
     : null
   const latestRoundMvpPlayers = getPlayersByIds(

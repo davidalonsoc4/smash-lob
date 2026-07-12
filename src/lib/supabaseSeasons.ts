@@ -110,6 +110,7 @@ export async function updateSupabaseSeasonRoundSettings(
     manual_active_round: settings.manualActiveRound,
     manual_completed_rounds: settings.manualCompletedRounds,
     registration_fee: settings.registrationFee,
+    mvp_system: settings.mvpMode,
   };
 
   const { data, error } = await supabase
@@ -381,6 +382,7 @@ export async function startSupabaseSeason({
   seasonStartsAt,
   roundWindowDays,
   requiresThreeSets,
+  mvpMode = "automatic",
   manualMatches,
   scheduleMode = "single",
   registrationFeeEnabled = false,
@@ -400,6 +402,7 @@ export async function startSupabaseSeason({
   seasonStartsAt: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
+  mvpMode?: SeasonRoundSettings["mvpMode"];
   manualMatches?: ManualCalendarMatchDraft[];
   scheduleMode?: SeasonScheduleMode;
   registrationFeeEnabled?: boolean;
@@ -622,6 +625,7 @@ export async function startSupabaseSeason({
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
+      mvp_system: mvpMode,
     });
 
   if (settingsError) {
@@ -662,6 +666,7 @@ export async function startSupabaseSeason({
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
+      mvpMode,
     },
   ];
 

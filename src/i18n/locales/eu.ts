@@ -890,6 +890,7 @@ export const eu = {
       match_result_updated: "Emaitza",
       match_result_cleared: "Emaitza",
       match_result_missing_reminder: "Emaitza",
+      mvp_vote_missing_reminder: "MVP",
       match_upcoming_reminder: "Gogorarazpena",
       round_in_play: "Jardunaldia",
       round_mvp_awarded: "MVP",

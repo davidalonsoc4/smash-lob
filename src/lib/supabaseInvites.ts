@@ -235,7 +235,7 @@ async function fetchSupabaseInviteSnapshotDirect(
       supabase
         .from("season_settings")
         .select(
-          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds,registration_fee"
+          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds,registration_fee,mvp_system"
         )
         .eq("league_id", league.id),
       supabase.from("matches").select(matchSelect).eq("league_id", league.id),
@@ -343,6 +343,12 @@ async function fetchSupabaseInviteSnapshotDirect(
         )
       : [],
     registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
+    mvpMode:
+      settings.mvp_system === "none" ||
+      settings.mvp_system === "automatic" ||
+      settings.mvp_system === "voting"
+        ? settings.mvp_system
+        : "automatic",
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []
