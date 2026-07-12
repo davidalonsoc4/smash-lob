@@ -26,8 +26,13 @@ function getSeasonStatusLabel(season: {
 export default function LeaguesPage() {
   const router = useRouter();
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
-  const { canCreateLeagues, isAdminViewEnabled, isLeagueAdmin, userLeagues } =
-    useLeagueAccess();
+  const {
+    canCreateLeagues,
+    isAdminViewEnabled,
+    isLeagueAdmin,
+    isLeagueSpectator,
+    userLeagues,
+  } = useLeagueAccess();
   const canCreateLeaguesInCurrentView = canCreateLeagues && isAdminViewEnabled;
   const { matches, resultConfirmations } = useMatchData();
   const {
@@ -90,6 +95,7 @@ export default function LeaguesPage() {
           const leader = ranking.find((player) => player.points > 0) ?? null;
           const isActive = activeLeagueId === league.id;
           const isAdmin = isLeagueAdmin(league.id);
+          const isSpectator = isLeagueSpectator(league.id);
 
           return (
             <article
@@ -138,6 +144,10 @@ export default function LeaguesPage() {
                     {isAdmin ? (
                       <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
                         Admin
+                      </span>
+                    ) : isSpectator ? (
+                      <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+                        Espectador
                       </span>
                     ) : null}
                     <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">

@@ -10,14 +10,14 @@ import {
 
 export function AutoPushRegistration() {
   const { activeLeagueId } = useActiveLeague()
-  const { canAccessLeague, getMembershipForLeague } = useLeagueAccess()
+  const { canAccessLeague, getMembershipForLeague, isLeagueSpectator } = useLeagueAccess()
   const membership = getMembershipForLeague(activeLeagueId)
   const playerId = membership?.playerId ?? null
   const lastSyncedKeyRef = useRef<string | null>(null)
   const [retryTick, setRetryTick] = useState(0)
 
   useEffect(() => {
-    if (!canAccessLeague(activeLeagueId)) {
+    if (!canAccessLeague(activeLeagueId) || isLeagueSpectator(activeLeagueId)) {
       return
     }
 
@@ -50,7 +50,7 @@ export function AutoPushRegistration() {
     return () => {
       isCancelled = true
     }
-  }, [activeLeagueId, canAccessLeague, playerId, retryTick])
+  }, [activeLeagueId, canAccessLeague, isLeagueSpectator, playerId, retryTick])
 
   useEffect(() => {
     function scheduleRetry() {

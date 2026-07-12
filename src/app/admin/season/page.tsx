@@ -891,11 +891,17 @@ function RoundManagementPanel({
     matches,
   });
   const activeRound = rounds.find((round) => round.status === "active");
+  const firstOverdueRound = rounds.find(
+    (round) => round.status === "overdue",
+  );
   const firstUpcomingRound = rounds.find(
     (round) => round.status === "upcoming",
   );
   const defaultSelectedRound =
-    activeRound?.round ?? firstUpcomingRound?.round ?? 1;
+    activeRound?.round ??
+    firstOverdueRound?.round ??
+    firstUpcomingRound?.round ??
+    1;
   const [selectedRound, setSelectedRound] = useState(defaultSelectedRound);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingRoundOrder, setIsSavingRoundOrder] = useState(false);
@@ -1046,7 +1052,9 @@ function RoundManagementPanel({
                   ? "bg-emerald-50 text-emerald-800 ring-emerald-200/80"
                   : round.status === "completed"
                     ? "bg-neutral-950 text-white ring-neutral-950"
-                    : "bg-sky-50 text-sky-800 ring-sky-200/80"
+                    : round.status === "overdue"
+                      ? "bg-amber-50 text-amber-800 ring-amber-200/80"
+                      : "bg-sky-50 text-sky-800 ring-sky-200/80"
             }`}
           >
             <span className="block">J{round.round}</span>
@@ -1055,7 +1063,9 @@ function RoundManagementPanel({
                 ? "Activa"
                 : round.status === "completed"
                   ? "Finalizada"
-                  : "Próxima"}
+                  : round.status === "overdue"
+                    ? "Fuera de plazo"
+                    : "Próxima"}
             </span>
           </button>
         ))}

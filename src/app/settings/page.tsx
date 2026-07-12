@@ -180,7 +180,127 @@ function AccountAvatarSettings() {
   )
 }
 
+
+function SpectatorSettingsPage({
+  leagueName,
+  seasonName,
+}: {
+  leagueName: string
+  seasonName: string
+}) {
+  const { t } = useI18n()
+  const { data: session } = useSession()
+
+  return (
+    <div className="space-y-3">
+      <header className="pt-1">
+        <p className="text-sm font-medium text-neutral-500">
+          {leagueName} · {seasonName}
+        </p>
+        <h1 className="mt-1 text-2xl font-black tracking-tight">
+          Cuenta de espectador
+        </h1>
+        <p className="mt-1 text-sm font-semibold text-neutral-500">
+          Acceso de solo lectura a la liga.
+        </p>
+      </header>
+
+      <AppCard>
+        <div className="flex items-center gap-3">
+          {session?.user?.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={session.user.image}
+              alt=""
+              className="h-11 w-11 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-200 text-sm font-black text-neutral-700">
+              ES
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="truncate font-black">
+              {session?.user?.name ?? "Espectador"}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+              {session?.user?.email}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-2xl bg-neutral-50 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
+          Puedes consultar Home, ranking, partidos, resultados y perfiles. No puedes modificar datos ni acceder a la actividad interna.
+        </div>
+      </AppCard>
+
+      <Link href="/leagues" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Mis ligas</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Cambia entre ligas donde eres jugador o espectador.
+              </p>
+            </div>
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
+      <AppCard>
+        <p className="font-bold">Idioma</p>
+        <div className="mt-3">
+          <LanguageSwitcher />
+        </div>
+      </AppCard>
+
+      <Link href="/help" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Ayuda</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Consulta cómo funciona Smash & Lob.
+              </p>
+            </div>
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
+      <button
+        type="button"
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm"
+      >
+        {t.auth.signOut}
+      </button>
+
+      <p className="pb-2 pt-3 text-center text-xs font-semibold text-neutral-400">
+        {APP_VERSION_LABEL}
+      </p>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
+  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { isLeagueSpectator } = useLeagueAccess()
+
+  if (isLeagueSpectator(activeLeague.id)) {
+    return (
+      <SpectatorSettingsPage
+        leagueName={activeLeague.name}
+        seasonName={activeSeason.name}
+      />
+    )
+  }
+
+  return <PlayerSettingsPage />
+}
+
+function PlayerSettingsPage() {
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, activeSeason, matches } = useCurrentLeagueData()

@@ -12,7 +12,12 @@ type MatchDisplayStatus =
   | "in_progress"
   | "result_pending"
 
-type RoundDisplayStatus = "upcoming" | "active" | "completed" | "finished"
+type RoundDisplayStatus =
+  | "upcoming"
+  | "active"
+  | "overdue"
+  | "completed"
+  | "finished"
 
 type SeasonDisplayStatus = "none" | "upcoming" | "active" | "finished"
 
@@ -55,6 +60,7 @@ export function getRoundStatusBadgeClassName(status: string) {
   const toneByStatus: Record<RoundDisplayStatus, string> = {
     upcoming: "blue",
     active: "green",
+    overdue: "amber",
     completed: "dark",
     finished: "dark",
   }

@@ -179,6 +179,27 @@ export async function createSupabaseLeague({
 }
 
 
+
+async function fetchCurrentUserSpectatorLeagueIds() {
+  try {
+    const response = await fetch("/api/spectator-access", { cache: "no-store" })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const body = (await response.json()) as { leagueIds?: unknown }
+
+    return Array.isArray(body.leagueIds)
+      ? body.leagueIds.filter(
+          (leagueId): leagueId is string => typeof leagueId === "string",
+        )
+      : []
+  } catch {
+    return []
+  }
+}
+
 function toRole(role: unknown): LeagueMemberRole {
   return role === "creator" || role === "admin" || role === "player"
     ? role
@@ -190,6 +211,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
   leagues: League[]
   canCreateLeagues: boolean
   memberships: UserLeagueMembership[]
+  spectatorLeagueIds: string[]
   matches: MatchData[]
   seasonSnapshot: SeasonSnapshot
 }> {
@@ -206,6 +228,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       canCreateLeagues: false,
       leagues: [],
       memberships: [],
+      spectatorLeagueIds: [],
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -232,9 +255,17 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     playerId: membership.player_id ?? "",
     role: toRole(membership.role),
   }))
-  const accessibleLeagueIds = new Set(
-    ownMemberships.map((membership) => membership.leagueId)
+  const spectatorLeagueIds = await fetchCurrentUserSpectatorLeagueIds()
+  const memberLeagueIds = new Set(
+    ownMemberships.map((membership) => membership.leagueId),
   )
+  const effectiveSpectatorLeagueIds = spectatorLeagueIds.filter(
+    (leagueId) => !memberLeagueIds.has(leagueId),
+  )
+  const accessibleLeagueIds = new Set([
+    ...memberLeagueIds,
+    ...effectiveSpectatorLeagueIds,
+  ])
 
   if (!isSuperuser && accessibleLeagueIds.size === 0) {
     return {
@@ -242,6 +273,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       canCreateLeagues,
       leagues: [],
       memberships: isSuperuser ? [] : ownMemberships,
+      spectatorLeagueIds: effectiveSpectatorLeagueIds,
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -291,6 +323,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
       canCreateLeagues,
       leagues,
       memberships: isSuperuser ? [] : ownMemberships,
+      spectatorLeagueIds: effectiveSpectatorLeagueIds,
       matches: [],
       seasonSnapshot: {
         seasons: [],
@@ -453,6 +486,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     canCreateLeagues,
     leagues,
     memberships,
+    spectatorLeagueIds: effectiveSpectatorLeagueIds,
     matches,
     seasonSnapshot: {
       seasons,

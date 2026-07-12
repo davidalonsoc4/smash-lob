@@ -15,14 +15,16 @@ export function AuthGate({ children }: AuthGateProps) {
   const { status } = useSession()
   const pathname = usePathname()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
+  const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
+  const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
 
   useEffect(() => {
-    if (status !== "unauthenticated" || !isInviteRoute) {
+    if (status !== "unauthenticated" || !isAccessInviteRoute) {
       return
     }
 
     signIn("google", { callbackUrl: pathname })
-  }, [isInviteRoute, pathname, status])
+  }, [isAccessInviteRoute, pathname, status])
 
   if (status === "loading") {
     return (
@@ -54,7 +56,7 @@ export function AuthGate({ children }: AuthGateProps) {
           <button
             type="button"
             onClick={() =>
-              signIn("google", { callbackUrl: isInviteRoute ? pathname : "/" })
+              signIn("google", { callbackUrl: isAccessInviteRoute ? pathname : "/" })
             }
             className="mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
           >

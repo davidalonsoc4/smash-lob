@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useActiveLeague } from "@/context/ActiveLeagueProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type NavItem = {
   href: string
   label: string
-  icon: "home" | "ranking" | "matches" | "activity" | "profile"
+  icon: "home" | "ranking" | "matches" | "activity" | "profile" | "settings"
   isActive: (pathname: string) => boolean
 }
 
@@ -62,6 +64,19 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
     )
   }
 
+  if (icon === "settings") {
+    return (
+      <svg {...commonProps}>
+        <path d="M4 7h10" />
+        <path d="M18 7h2" />
+        <path d="M4 17h2" />
+        <path d="M10 17h10" />
+        <circle cx="16" cy="7" r="2" />
+        <circle cx="8" cy="17" r="2" />
+      </svg>
+    )
+  }
+
   return (
     <svg {...commonProps}>
       <circle cx="12" cy="8" r="4" />
@@ -73,8 +88,11 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
 export function BottomNav() {
   const pathname = usePathname()
   const { t } = useI18n()
+  const { activeLeagueId } = useActiveLeague()
+  const { isLeagueSpectator } = useLeagueAccess()
+  const spectatorMode = isLeagueSpectator(activeLeagueId)
 
-  const navItems: NavItem[] = [
+  const playerNavItems: NavItem[] = [
     {
       href: "/",
       label: t.nav.home,
@@ -111,6 +129,21 @@ export function BottomNav() {
       isActive: (currentPathname) => currentPathname.startsWith("/profile"),
     },
   ]
+  const spectatorNavItems: NavItem[] = [
+    playerNavItems[0],
+    playerNavItems[1],
+    playerNavItems[2],
+    {
+      href: "/settings",
+      label: "Cuenta",
+      icon: "settings",
+      isActive: (currentPathname) =>
+        currentPathname.startsWith("/settings") ||
+        currentPathname === "/leagues" ||
+        currentPathname === "/help",
+    },
+  ]
+  const navItems = spectatorMode ? spectatorNavItems : playerNavItems
 
   return (
     <nav
@@ -121,7 +154,9 @@ export function BottomNav() {
       }}
     >
       <div
-        className="grid w-full grid-cols-5 gap-1.5 bg-transparent px-2.5"
+        className={`grid w-full gap-1.5 bg-transparent px-2.5 ${
+          spectatorMode ? "grid-cols-4" : "grid-cols-5"
+        }`}
         style={{
           minHeight: "72px",
           paddingTop: "7px",

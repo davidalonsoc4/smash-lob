@@ -1,5 +1,6 @@
 "use client"
 
+import { LeagueSpectatorsPanel } from "@/components/admin/LeagueSpectatorsPanel"
 import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -44,15 +45,16 @@ export default function AdminUsersPage() {
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">
-          Jugadores y usuarios
+          Jugadores, usuarios y espectadores
         </h1>
 
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Gestiona cuentas vinculadas, nombres visibles y permisos de la liga.
+          Gestiona cuentas vinculadas, espectadores, nombres visibles y permisos de la liga.
         </p>
       </header>
 
       <LeagueUsersManagementPanel leagueId={activeLeague.id} />
+      <LeagueSpectatorsPanel leagueId={activeLeague.id} />
     </div>
   )
 }

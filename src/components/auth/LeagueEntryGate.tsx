@@ -22,10 +22,17 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const { data: session } = useSession()
   const { activeLeagueId } = useActiveLeague()
   const { seasons } = useSeasonSettings()
-  const { canCreateLeagues, hasLeagueAdminRole, userLeagues } = useLeagueAccess()
+  const {
+    canCreateLeagues,
+    hasLeagueAdminRole,
+    isLeagueSpectator,
+    userLeagues,
+  } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
+  const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
+  const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
   const isNewLeagueRoute = pathname === "/league/new"
   const isLeaguesRoute = pathname === "/leagues"
   const isSeasonSetupRoute = pathname === "/admin/season"
@@ -40,7 +47,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const shouldRequireInitialSeason =
     Boolean(activeLeague) &&
     !activeLeagueHasSeason &&
-    !isInviteRoute &&
+    !isAccessInviteRoute &&
     !isNewLeagueRoute &&
     !isLeaguesRoute
 
@@ -61,8 +68,37 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     shouldRequireInitialSeason,
   ])
 
-  if (isInviteRoute || isLeaguesRoute || (isNewLeagueRoute && canCreateLeagues)) {
+  const spectatorMode = activeLeague
+    ? isLeagueSpectator(activeLeague.id)
+    : false
+  const spectatorAllowedRoute =
+    pathname === "/" ||
+    pathname === "/ranking" ||
+    pathname === "/matches" ||
+    pathname.startsWith("/match/") ||
+    pathname.startsWith("/round/") ||
+    pathname.startsWith("/player/") ||
+    pathname === "/settings" ||
+    pathname === "/leagues" ||
+    pathname === "/help" ||
+    isAccessInviteRoute
+
+  useEffect(() => {
+    if (spectatorMode && !spectatorAllowedRoute) {
+      router.replace("/")
+    }
+  }, [router, spectatorAllowedRoute, spectatorMode])
+
+  if (
+    isAccessInviteRoute ||
+    isLeaguesRoute ||
+    (isNewLeagueRoute && canCreateLeagues)
+  ) {
     return children
+  }
+
+  if (spectatorMode && !spectatorAllowedRoute) {
+    return null
   }
 
   if (shouldRequireInitialSeason) {

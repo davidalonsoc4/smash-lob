@@ -8,7 +8,7 @@ type Season = {
   status?: "upcoming" | "active" | "finished"
 }
 
-export type SeasonRoundStatus = "upcoming" | "active" | "completed"
+export type SeasonRoundStatus = "upcoming" | "active" | "overdue" | "completed"
 
 export type SeasonRound = {
   id: string
@@ -143,6 +143,10 @@ function getRoundStatus({
 
     if (today >= startDate && today <= endDate) {
       return "active"
+    }
+
+    if (today > endDate) {
+      return "overdue"
     }
 
     return "upcoming"

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
+import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -109,32 +110,49 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
   )
 }
 
+
+function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
+  const { canShareSpectatorInvite } = useLeagueAccess()
+  const { activeLeague, activeSeason } = useCurrentLeagueData()
+
+  if (!canShareSpectatorInvite(activeLeague.id)) {
+    return null
+  }
+
+  return (
+    <FloatingSpectatorShareButton
+      leagueId={activeLeague.id}
+      leagueName={activeLeague.name}
+      seasonName={activeSeason.name}
+      rightOffsetPx={rightOffsetPx}
+    />
+  )
+}
+
 export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
   const pathname = usePathname()
   const { activeLeagueId } = useActiveLeague()
-  const { leagues } = useLeagueAccess()
+  const { isLeagueSpectator, leagues } = useLeagueAccess()
   const { seasons } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
+  const isSpectateRoute = pathname.startsWith("/spectate/")
+  const isPublicAccessRoute = isInviteRoute || isSpectateRoute
   const isNewLeagueRoute = pathname === "/league/new"
   const isInitialSeasonSetupRoute =
     pathname === "/admin/season" &&
     !seasons.some((season) => season.leagueId === activeLeagueId)
-  const shouldShowSettingsButton = !isInitialSeasonSetupRoute
-  const shouldShowNotificationsButton = !isInitialSeasonSetupRoute
+  const spectatorMode = isLeagueSpectator(activeLeagueId)
+  const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
+  const shouldShowNotificationsButton =
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !spectatorMode
   const shouldShowBottomNav =
-    !isInviteRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
-  const shouldShowInviteButton =
-    !isInviteRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
+    !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
+  const shouldShowPlayerInviteButton =
+    !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute && !spectatorMode
+  const shouldShowSpectatorShareButton = shouldShowPlayerInviteButton
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
   const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
-  const inviteRightOffset = shouldShowSettingsButton
-    ? shouldShowNotificationsButton
-      ? 100
-      : 58
-    : shouldShowNotificationsButton
-      ? 58
-      : 16
 
   return (
     <div
@@ -145,8 +163,12 @@ export function AppShell({ children }: AppShellProps) {
       <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
 
-        {shouldShowInviteButton ? (
-          <InviteFloatingControls rightOffsetPx={inviteRightOffset} />
+        {shouldShowPlayerInviteButton ? (
+          <InviteFloatingControls rightOffsetPx={142} />
+        ) : null}
+
+        {shouldShowSpectatorShareButton ? (
+          <SpectatorFloatingControls rightOffsetPx={100} />
         ) : null}
 
         {shouldShowNotificationsButton ? (

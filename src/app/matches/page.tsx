@@ -56,6 +56,7 @@ export default function MatchesPage() {
     const labelByStatus = {
       upcoming: t.rounds.statusUpcoming,
       active: t.rounds.statusActive,
+      overdue: t.rounds.statusOverdue,
       completed: t.rounds.statusCompleted,
     }
 

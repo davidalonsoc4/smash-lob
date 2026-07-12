@@ -63,6 +63,7 @@ type LeagueAccessContextValue = {
   setAdminViewEnabled: (enabled: boolean) => void;
   leagues: League[];
   userMemberships: UserLeagueMembership[];
+  spectatorLeagueIds: string[];
   userLeagues: League[];
   createLeague: (settings: {
     name: string;
@@ -119,6 +120,8 @@ type LeagueAccessContextValue = {
   claimPlayer: (leagueId: string, playerId: string) => Promise<ClaimResult>;
   linkCurrentUserToLeaguePlayer: (leagueId: string, playerId: string) => void;
   canAccessLeague: (leagueId: string) => boolean;
+  isLeagueSpectator: (leagueId: string) => boolean;
+  canShareSpectatorInvite: (leagueId: string) => boolean;
   isLeagueAdmin: (leagueId: string) => boolean;
   hasLeagueAdminRole: (leagueId: string) => boolean;
   isLeagueCreator: (leagueId: string) => boolean;
@@ -481,6 +484,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const [memberships, setMemberships] = useState<UserLeagueMembership[]>(
     readStoredMemberships,
   );
+  const [spectatorLeagueIds, setSpectatorLeagueIds] = useState<string[]>([]);
 
   function persistLeagues(nextLeaguesInput: League[]) {
     const nextLeagues = uniqueLeaguesById(nextLeaguesInput);
@@ -529,6 +533,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
         setIsSuperuserFromDb(snapshot.isSuperuser);
         setCanCreateLeaguesFromDb(snapshot.canCreateLeagues);
+        setSpectatorLeagueIds(snapshot.spectatorLeagueIds);
 
         const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : [];
         const nextLeagues = mergeLeagues(fallbackLeagues, snapshot.leagues);
@@ -715,14 +720,22 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       return uniqueLeaguesById(leagues).map(getLeagueWithInviteCode);
     }
 
-    const accessibleLeagues = userMemberships
-      .map((membership) =>
-        leagues.find((league) => league.id === membership.leagueId),
-      )
-      .filter((league): league is League => Boolean(league));
+    const accessibleLeagueIds = new Set([
+      ...userMemberships.map((membership) => membership.leagueId),
+      ...spectatorLeagueIds,
+    ]);
+    const accessibleLeagues = leagues.filter((league) =>
+      accessibleLeagueIds.has(league.id),
+    );
 
     return uniqueLeaguesById(accessibleLeagues).map(getLeagueWithInviteCode);
-  }, [getLeagueWithInviteCode, isSuperuser, leagues, userMemberships]);
+  }, [
+    getLeagueWithInviteCode,
+    isSuperuser,
+    leagues,
+    spectatorLeagueIds,
+    userMemberships,
+  ]);
 
   const getMembershipForLeague = useCallback(
     (leagueId: string) =>
@@ -1401,10 +1414,24 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [userId],
   );
 
-  const canAccessLeague = useCallback(
+  const isLeagueSpectator = useCallback(
+    (leagueId: string) =>
+      !getMembershipForLeague(leagueId) && spectatorLeagueIds.includes(leagueId),
+    [getMembershipForLeague, spectatorLeagueIds],
+  );
+
+  const canShareSpectatorInvite = useCallback(
     (leagueId: string) =>
       isSuperuser || Boolean(getMembershipForLeague(leagueId)),
     [getMembershipForLeague, isSuperuser],
+  );
+
+  const canAccessLeague = useCallback(
+    (leagueId: string) =>
+      isSuperuser ||
+      Boolean(getMembershipForLeague(leagueId)) ||
+      spectatorLeagueIds.includes(leagueId),
+    [getMembershipForLeague, isSuperuser, spectatorLeagueIds],
   );
 
   const hasLeagueAdminRole = useCallback(
@@ -1452,6 +1479,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       setAdminViewEnabled,
       leagues,
       userMemberships,
+      spectatorLeagueIds,
       userLeagues,
       createLeague,
       getMembershipForLeague,
@@ -1474,12 +1502,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       claimPlayer,
       linkCurrentUserToLeaguePlayer,
       canAccessLeague,
+      isLeagueSpectator,
+      canShareSpectatorInvite,
       isLeagueAdmin,
       hasLeagueAdminRole,
       isLeagueCreator,
     }),
     [
       canAccessLeague,
+      canShareSpectatorInvite,
       createLeague,
       claimPlayer,
       deleteLeague,
@@ -1501,6 +1532,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueStatusColorsEnabled,
       resolveLeagueInvite,
       isLeagueAdmin,
+      isLeagueSpectator,
       hasLeagueAdminRole,
       isLeagueCreator,
       isSuperuser,
@@ -1508,6 +1540,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       isAdminViewEnabled,
       setAdminViewEnabled,
       leagues,
+      spectatorLeagueIds,
       userId,
       userLeagues,
       userMemberships,

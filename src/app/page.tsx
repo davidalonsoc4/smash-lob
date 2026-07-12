@@ -482,12 +482,13 @@ export default function Home() {
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const { currentUserId, currentUser } = useCurrentUser();
-  const { isLeagueAdmin } = useLeagueAccess();
+  const { isLeagueAdmin, isLeagueSpectator } = useLeagueAccess();
   const { votes } = useMvp();
   const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
     useCurrentLeagueData();
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
+  const spectatorMode = isLeagueSpectator(activeLeague.id);
   const canManageRegistration = canManageSeason;
   const isSeasonClosed = activeSeason.status === "finished";
   const isSeasonUpcoming = activeSeason.status === "upcoming";
@@ -717,8 +718,9 @@ export default function Home() {
       player.matchesPlayed > 0,
   );
   const activeRound = rounds.find((round) => round.status === "active");
+  const overdueRound = rounds.find((round) => round.status === "overdue");
   const nextRound = rounds.find((round) => round.status === "upcoming");
-  const dashboardRound = activeRound ?? nextRound ?? null;
+  const dashboardRound = activeRound ?? overdueRound ?? nextRound ?? null;
 
   async function handleStartUpcomingSeason() {
     if (isStartingSeason || !isSeasonUpcoming || !canManageSeason) {
@@ -810,6 +812,12 @@ export default function Home() {
           {activeLeague.description} · {t.common.individualRanking}
         </p>
       </header>
+
+      {spectatorMode ? (
+        <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-semibold text-neutral-600 shadow-sm">
+          <span className="font-black text-neutral-950">Vista de espectador</span> · Solo lectura
+        </div>
+      ) : null}
 
       {isSeasonUpcoming ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80">
@@ -945,7 +953,11 @@ export default function Home() {
                 label={t.dashboard.rounds}
                 value={`Jornada ${dashboardRound.round}`}
                 helper={
-                  dashboardRound.status === "active" ? "Activa" : "Próxima"
+                  dashboardRound.status === "active"
+                    ? "Activa"
+                    : dashboardRound.status === "overdue"
+                      ? "Fuera de plazo"
+                      : "Próxima"
                 }
               />
             </Link>

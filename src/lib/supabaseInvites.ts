@@ -460,6 +460,16 @@ export async function claimSupabasePlayer({
     throw membershipError
   }
 
+  try {
+    await fetch(`/api/leagues/${encodeURIComponent(leagueId)}/spectator-self`, {
+      method: "DELETE",
+      cache: "no-store",
+    })
+  } catch {
+    // The player membership is already valid; stale spectator access is cleaned
+    // up by the server endpoint when available.
+  }
+
   return {
     ok: true,
     membership: {
