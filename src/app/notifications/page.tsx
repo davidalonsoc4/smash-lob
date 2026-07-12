@@ -112,7 +112,8 @@ function isMatchParticipantNotification(event: ActivityEvent) {
     event.type === "match_result_saved" ||
     event.type === "match_result_updated" ||
     event.type === "match_result_cleared" ||
-    event.type === "match_result_missing_reminder"
+    event.type === "match_result_missing_reminder" ||
+    event.type === "match_mvp_vote_reminder"
   )
 }
 
@@ -155,6 +156,10 @@ function isNotificationForCurrentUser({
 
   if (event.type === "round_in_play") {
     return !participantIds.includes(currentUserId)
+  }
+
+  if (event.type === "match_mvp_vote_reminder") {
+    return toStringArray(metadata.targetPlayerIds).includes(currentUserId)
   }
 
   if (isMatchParticipantNotification(event)) {
@@ -256,6 +261,10 @@ function getNotificationTitle(event: ActivityEvent) {
     return "Falta el resultado"
   }
 
+  if (event.type === "match_mvp_vote_reminder") {
+    return "Falta tu voto MVP"
+  }
+
   if (event.type === "round_in_play") {
     return "Jornada en juego"
   }
@@ -343,8 +352,8 @@ function getNotificationBody({
 
     if (resultText) {
       return event.type === "match_result_updated"
-        ? `Nuevo resultado: ${resultText}.`
-        : `Resultado: ${resultText}.`
+        ? `Nuevo resultado: ${resultText}. Entra para confirmarlo.`
+        : `Resultado: ${resultText}. Entra para confirmarlo.`
     }
   }
 
@@ -354,6 +363,14 @@ function getNotificationBody({
     return typeof round === "number" || typeof round === "string"
       ? `No olvides registrar el resultado de tu partido de la Jornada ${round}.`
       : "No olvides registrar el resultado de tu partido."
+  }
+
+  if (event.type === "match_mvp_vote_reminder") {
+    const round = metadata.round
+
+    return typeof round === "number" || typeof round === "string"
+      ? `Vota al MVP de tu partido de la Jornada ${round}.`
+      : "Vota al MVP de tu último partido."
   }
 
   if (event.type === "round_in_play") {

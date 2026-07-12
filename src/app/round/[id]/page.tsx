@@ -5,6 +5,7 @@ import { MatchCard } from "@/components/matches/MatchCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
+import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
 
@@ -12,7 +13,8 @@ export default function RoundDetailPage() {
   const params = useParams<{ id: string }>()
   const round = Number(params.id)
   const { matches } = useMatchData()
-  const { activeLeague, activeSeason, players: leaguePlayers } = useCurrentLeagueData()
+  const { votes } = useMvp()
+  const { activeLeague, activeSeason, roundSettings, players: leaguePlayers } = useCurrentLeagueData()
   const roundMatches = matches
     .filter(
       (match) =>
@@ -55,6 +57,8 @@ export default function RoundDetailPage() {
             seasonId: activeSeason.id,
             round: match.round,
             matches,
+            votes,
+            mvpSystem: roundSettings.mvpSystem,
           })
 
           return (

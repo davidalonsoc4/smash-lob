@@ -35,6 +35,7 @@ import {
   type SeasonScheduleMode,
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
+import type { MvpSystem } from "@/lib/mvp";
 import { recordActivityEvent } from "@/lib/activity";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
@@ -403,6 +404,156 @@ function InviteLinkCard({
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
+
+const mvpSystemOptions: {
+  value: MvpSystem;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: "none",
+    title: "Sin sistema MVP",
+    description: "No se elegirán MVP de partido, jornada ni temporada.",
+  },
+  {
+    value: "automatic",
+    title: "MVP automático",
+    description:
+      "El sistema actual elige como MVP a la pareja ganadora con mejor diferencia de juegos de la jornada.",
+  },
+  {
+    value: "voting",
+    title: "MVP por votación",
+    description:
+      "Tras cada resultado, los cuatro jugadores votan a otra persona del partido. Gana la jornada quien acumule más votos.",
+  },
+];
+
+function MvpSystemOptions({
+  value,
+  onChange,
+}: {
+  value: MvpSystem;
+  onChange: (value: MvpSystem) => void;
+}) {
+  return (
+    <div className="mt-3 grid gap-2">
+      {mvpSystemOptions.map((option) => {
+        const selected = value === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`rounded-2xl border px-3 py-3 text-left ${
+              selected
+                ? "border-neutral-950 bg-neutral-950 text-white"
+                : "border-neutral-200 bg-white text-neutral-900"
+            }`}
+          >
+            <span className="block text-sm font-black">{option.title}</span>
+            <span
+              className={`mt-1 block text-xs font-semibold leading-5 ${
+                selected ? "text-neutral-300" : "text-neutral-500"
+              }`}
+            >
+              {option.description}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MvpSystemSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [selectedSystem, setSelectedSystem] = useState<MvpSystem>(
+    roundSettings.mvpSystem,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    if (isSaving) {
+      return;
+    }
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      mvpSystem: selectedSystem,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError("update-season-mvp-system", supabaseError);
+        setError(
+          "No se ha podido guardar el sistema MVP en Supabase. Revisa smash-lob-last-supabase-error.",
+        );
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+    setFeedback("Sistema MVP actualizado.");
+    setIsSaving(false);
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Sistema MVP</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Puedes cambiarlo antes o durante la temporada. Los votos solo se usan
+        cuando está seleccionado el modo por votación.
+      </p>
+
+      <MvpSystemOptions
+        value={selectedSystem}
+        onChange={(value) => {
+          setSelectedSystem(value);
+          setFeedback(null);
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={isSaving || selectedSystem === roundSettings.mvpSystem}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving ? "Guardando..." : "Guardar sistema MVP"}
+      </button>
+
+      {feedback ? (
+        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
         </p>
       ) : null}
@@ -1452,6 +1603,7 @@ function NewSeasonForm({
   const [seasonStartsAt, setSeasonStartsAt] = useState("");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
+  const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
   const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
@@ -1651,6 +1803,7 @@ function NewSeasonForm({
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
+      mvpSystem,
       manualMatches,
       scheduleMode,
       registrationFeeEnabled: hasRegistrationFee,
@@ -1751,6 +1904,7 @@ function NewSeasonForm({
           calendarMode,
           scheduleMode,
           totalRounds: totalSeasonRounds,
+          mvpSystem,
           registrationFeeEnabled: hasRegistrationFee,
           registrationFeeAmount: hasRegistrationFee
             ? parsedRegistrationFeeAmount
@@ -2261,6 +2415,21 @@ function NewSeasonForm({
       </AppCard>
 
       <AppCard>
+        <p className="font-bold">Sistema MVP</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Decide si habrá MVP de jornada y cómo se seleccionará.
+        </p>
+
+        <MvpSystemOptions
+          value={mvpSystem}
+          onChange={(nextSystem) => {
+            setMvpSystem(nextSystem);
+            setFeedback(null);
+          }}
+        />
+      </AppCard>
+
+      <AppCard>
         <p className="font-bold">Inscripción</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.
@@ -2524,6 +2693,9 @@ export default function AdminSeasonPage() {
               <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jornadas
               </a>
+              <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                MVP
+              </a>
               <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jugadores
               </a>
@@ -2538,6 +2710,9 @@ export default function AdminSeasonPage() {
             <>
               <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Comenzar
+              </a>
+              <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                MVP
               </a>
               <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jugadores
@@ -2574,6 +2749,13 @@ export default function AdminSeasonPage() {
 
 
 
+          <div id="mvp">
+            <MvpSystemSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
           <div id="jugadores">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
@@ -2607,7 +2789,12 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-
+          <div id="mvp">
+            <MvpSystemSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
 
           <div id="jugadores">
             <SeasonPlayerNamesPanel

@@ -4,6 +4,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
@@ -57,19 +58,23 @@ function MvpPlayerLine({
 export default function AdminMvpPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole } = useLeagueAccess()
-  const { activeLeague, activeSeason, players, matches } = useCurrentLeagueData()
+  const { votes } = useMvp()
+  const { activeLeague, activeSeason, roundSettings, players, matches } =
+    useCurrentLeagueData()
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const completedRounds = getCompletedRoundNumbers(
     matches,
     activeLeague.id,
-    activeSeason.id
+    activeSeason.id,
   )
   const isSeasonClosed = activeSeason.status === "finished"
   const seasonMvp = isSeasonClosed
     ? getSeasonMvpSelection({
+        votes,
         leagueId: activeLeague.id,
         seasonId: activeSeason.id,
         matches,
+        mvpSystem: roundSettings.mvpSystem,
       })
     : null
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
@@ -94,21 +99,42 @@ export default function AdminMvpPage() {
     )
   }
 
+  if (roundSettings.mvpSystem === "none") {
+    return (
+      <div className="compact-page space-y-3">
+        <header className="pt-2">
+          <BackButton fallbackHref="/admin" label={t.common.back} />
+          <h1 className="mt-1 text-xl font-black tracking-tight">
+            Administrar MVP
+          </h1>
+        </header>
+        <AppCard>
+          <p className="font-bold">Sistema MVP desactivado</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            Puedes activarlo o cambiar su metodología desde Administración de
+            temporada.
+          </p>
+        </AppCard>
+      </div>
+    )
+  }
+
+  const isVoting = roundSettings.mvpSystem === "voting"
+
   return (
     <div className="compact-page space-y-3">
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
-
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name} · {activeSeason.name}
         </p>
-
         <h1 className="mt-0.5 text-xl font-black tracking-tight">
           Administrar MVP
         </h1>
-
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Consulta los MVPs automáticos de jornada. El MVP final solo se mostrará cuando la temporada esté cerrada.
+          {isVoting
+            ? "Consulta los MVP elegidos por votación y las jornadas todavía pendientes de votos."
+            : "Consulta los MVP automáticos de cada jornada."}
         </p>
       </header>
 
@@ -116,15 +142,15 @@ export default function AdminMvpPage() {
         <AppCard>
           <p className="font-bold">MVP final de temporada</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            Se calcula automáticamente con el jugador que más MVPs de jornada acumula. Si hay empate, la app mantiene co-MVPs en vez de inventar un desempate.
+            Se asigna al jugador que más MVP de jornada acumula. Los empates se
+            mantienen como MVP compartidos.
           </p>
-
           <MvpPlayerLine
             label={seasonMvp?.tied ? "Empate final" : "Resultado final"}
             players={seasonMvpPlayers}
             helper={
               seasonMvp
-                ? `${seasonMvp.votes} MVPs de jornada acumulados${seasonMvp.tied ? " · co-MVPs" : ""}`
+                ? `${seasonMvp.votes} MVP de jornada acumulados${seasonMvp.tied ? " · compartido" : ""}`
                 : "No hay MVP final disponible"
             }
           />
@@ -132,23 +158,27 @@ export default function AdminMvpPage() {
       ) : null}
 
       <AppCard>
-        <p className="font-bold">MVPs por jornada</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
-          El MVP de jornada se calcula al registrar el último resultado pendiente de esa jornada. Gana la pareja vencedora con mejor diferencia de juegos.
+        <p className="font-bold">MVP por jornada</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          {isVoting
+            ? "Gana quien acumule más votos entre todos los partidos. La jornada queda pendiente hasta que hayan votado todos los participantes."
+            : "Gana la pareja vencedora con mejor diferencia de juegos cuando todos los partidos tienen resultado."}
         </p>
 
         {completedRounds.length > 0 ? (
           <div className="mt-3 space-y-4">
             {completedRounds.map((round) => {
               const roundMvp = getRoundMvpSelection({
+                votes,
                 leagueId: activeLeague.id,
                 seasonId: activeSeason.id,
                 round,
                 matches,
+                mvpSystem: roundSettings.mvpSystem,
               })
               const roundMvpPlayers = getPlayersByIds(
                 players,
-                roundMvp?.playerIds ?? []
+                roundMvp?.playerIds ?? [],
               )
 
               return (
@@ -163,9 +193,8 @@ export default function AdminMvpPage() {
                         Jornada completa
                       </p>
                     </div>
-
                     <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-                      Auto
+                      {isVoting ? "Votación" : "Auto"}
                     </span>
                   </div>
 
@@ -174,8 +203,12 @@ export default function AdminMvpPage() {
                     players={roundMvpPlayers}
                     helper={
                       roundMvp
-                        ? `${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`
-                        : "Pendiente"
+                        ? isVoting
+                          ? `${roundMvp.votes} votos${roundMvp.tied ? " · empate compartido" : ""}`
+                          : `${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`
+                        : isVoting
+                          ? "Pendiente de completar todas las votaciones"
+                          : "Pendiente"
                     }
                   />
                 </div>

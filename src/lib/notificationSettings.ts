@@ -40,12 +40,13 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     key: "my_match_result",
     title: "Resultados de mis partidos",
     description:
-      "Resultado informado, modificado, eliminado o recordatorios para registrar el resultado de tus partidos.",
+      "Resultado informado, modificado, eliminado, confirmaciones y recordatorios para registrar el resultado o votar al MVP.",
     eventTypes: [
       "match_result_saved",
       "match_result_updated",
       "match_result_cleared",
       "match_result_missing_reminder",
+      "match_mvp_vote_reminder",
     ],
   },
   {

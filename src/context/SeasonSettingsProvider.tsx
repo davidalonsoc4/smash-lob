@@ -27,6 +27,7 @@ import {
   normalizeSeasonRegistrationFee,
   type SeasonRegistrationFee,
 } from "@/lib/seasonRegistration";
+import type { MvpSystem } from "@/lib/mvp";
 
 export type RoundWindowMode = "none" | "fixed-days";
 
@@ -37,6 +38,7 @@ export type SeasonRoundSettings = {
   seasonStartsAt: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
+  mvpSystem: MvpSystem;
   manualActiveRound: number | null;
   manualCompletedRounds: number[];
   registrationFee: SeasonRegistrationFee;
@@ -71,6 +73,7 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    mvpSystem: MvpSystem;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
@@ -84,6 +87,7 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    mvpSystem: MvpSystem;
     scheduleMode?: SeasonScheduleMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
@@ -127,6 +131,7 @@ function normalizeSettings(
     seasonStartsAt: settings.seasonStartsAt,
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
+    mvpSystem: (settings as Partial<SeasonRoundSettings>).mvpSystem ?? "automatic",
     manualActiveRound:
       typeof (settings as Partial<SeasonRoundSettings>).manualActiveRound === "number"
         ? (settings as Partial<SeasonRoundSettings>).manualActiveRound ?? null
@@ -296,6 +301,7 @@ function parseStoredSettings(
         ...storedSetting,
         requiresThreeSets:
           storedSetting.requiresThreeSets ?? defaultSetting.requiresThreeSets,
+        mvpSystem: storedSetting.mvpSystem ?? defaultSetting.mvpSystem,
       };
     });
 
@@ -312,6 +318,7 @@ function parseStoredSettings(
         seasonStartsAt: storedSetting.seasonStartsAt ?? null,
         roundWindowDays: storedSetting.roundWindowDays ?? null,
         requiresThreeSets: storedSetting.requiresThreeSets ?? true,
+        mvpSystem: storedSetting.mvpSystem ?? "automatic",
         manualActiveRound:
           typeof storedSetting.manualActiveRound === "number"
             ? storedSetting.manualActiveRound
@@ -340,6 +347,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     seasonStartsAt: null,
     roundWindowDays: null,
     requiresThreeSets: true,
+    mvpSystem: "automatic",
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
@@ -627,6 +635,7 @@ export function SeasonSettingsProvider({
     seasonStartsAt,
     roundWindowDays,
     requiresThreeSets,
+    mvpSystem,
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
@@ -638,6 +647,7 @@ export function SeasonSettingsProvider({
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    mvpSystem: MvpSystem;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
@@ -720,6 +730,7 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
+      mvpSystem,
       manualActiveRound: null,
       manualCompletedRounds: [],
       registrationFee: buildSeasonRegistrationFee({
@@ -742,6 +753,7 @@ export function SeasonSettingsProvider({
     seasonStartsAt,
     roundWindowDays,
     requiresThreeSets,
+    mvpSystem,
     scheduleMode = "single",
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
@@ -755,6 +767,7 @@ export function SeasonSettingsProvider({
     seasonStartsAt: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
+    mvpSystem: MvpSystem;
     scheduleMode?: SeasonScheduleMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
@@ -844,6 +857,7 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       roundWindowDays,
       requiresThreeSets,
+      mvpSystem,
       manualActiveRound: null,
       manualCompletedRounds: [],
       registrationFee: buildSeasonRegistrationFee({

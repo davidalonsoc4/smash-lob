@@ -6,6 +6,7 @@ import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { BackButton } from "@/components/ui/BackButton"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
+import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { getPlayerRoundMvpMatches } from "@/lib/mvp"
@@ -13,7 +14,8 @@ import { getPlayerRoundMvpMatches } from "@/lib/mvp"
 export default function PlayerMvpMatchesPage() {
   const params = useParams<{ id: string }>()
   const { matches } = useMatchData()
-  const { seasons, playerProfiles } = useSeasonSettings()
+  const { votes } = useMvp()
+  const { seasons, playerProfiles, seasonSettings } = useSeasonSettings()
   const { activeLeague } = useCurrentLeagueData()
 
   const player = playerProfiles.find(
@@ -24,12 +26,17 @@ export default function PlayerMvpMatchesPage() {
   const leagueSeasonIds = seasons
     .filter((season) => season.leagueId === activeLeague.id)
     .map((season) => season.id)
+  const mvpSystemBySeasonId = Object.fromEntries(
+    seasonSettings.map((settings) => [settings.seasonId, settings.mvpSystem]),
+  )
   const mvpMatches = player
     ? getPlayerRoundMvpMatches({
         leagueId: activeLeague.id,
         seasonIds: leagueSeasonIds,
         matches,
+        votes,
         playerId: player.id,
+        mvpSystemBySeasonId,
       }).sort((firstItem, secondItem) => {
         if (secondItem.seasonId !== firstItem.seasonId) {
           return secondItem.seasonId.localeCompare(firstItem.seasonId)
@@ -64,7 +71,7 @@ export default function PlayerMvpMatchesPage() {
       <AppCard>
         <div className="flex items-center justify-between gap-4">
           <p className="min-w-0 text-sm font-semibold leading-relaxed text-neutral-500">
-            Aquí aparecen los partidos en los que este jugador formó parte de la pareja MVP de la jornada.
+            Aquí aparecen los partidos en los que este jugador fue MVP de la jornada, ya sea por el sistema automático o por votación.
           </p>
           <div className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
             <p className="text-xl font-black leading-none">{mvpMatches.length}</p>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getPlayerMvpSummary } from "@/lib/mvp"
+import { getPlayerMvpSummary, type MvpSystem, type MvpVote } from "@/lib/mvp"
 
 type PlayerStatsPanelProps = {
   playerId: string
@@ -14,6 +14,9 @@ type PlayerStatsPanelProps = {
   players: PlayerStatsPlayer[]
   matches: PlayerStatsMatch[]
   seasonMatches?: PlayerStatsMatch[]
+  votes?: MvpVote[]
+  mvpSystem?: MvpSystem
+  mvpSystemBySeasonId?: Record<string, MvpSystem>
 }
 
 type PlayerStatsPlayer = {
@@ -144,6 +147,9 @@ export function PlayerStatsPanel({
   players,
   matches,
   seasonMatches = matches,
+  votes = [],
+  mvpSystem = "automatic",
+  mvpSystemBySeasonId,
 }: PlayerStatsPanelProps) {
   const { t } = useI18n()
   const finishedMatches = matches.filter(
@@ -218,8 +224,11 @@ export function PlayerStatsPanel({
     leagueId,
     seasonId,
     seasonIds,
+    votes,
     matches: seasonMatches,
     playerId,
+    mvpSystem,
+    mvpSystemBySeasonId,
   })
   const setsTotal = setsFor + setsAgainst
   const gamesTotal = gamesFor + gamesAgainst

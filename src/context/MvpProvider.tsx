@@ -12,6 +12,7 @@ import {
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import type { MvpManualSelection, MvpScope, MvpVote } from "@/lib/mvp"
 import {
+  deleteSupabaseMvpVotesForMatch,
   fetchSupabaseMvpData,
   saveSupabaseMvpManualSelection,
   upsertSupabaseMvpVote,
@@ -20,6 +21,7 @@ import {
 type MvpVoteInput = {
   leagueId: string
   seasonId: string
+  matchId: string
   round: number
   voterPlayerId: string
   selectedPlayerId: string
@@ -28,7 +30,7 @@ type MvpVoteInput = {
 type MvpManualSelectionInput = {
   leagueId: string
   seasonId: string
-  scope: MvpScope
+  scope: Exclude<MvpScope, "match">
   round: number | null
   selectedPlayerId: string | null
 }
@@ -36,7 +38,8 @@ type MvpManualSelectionInput = {
 type MvpContextValue = {
   votes: MvpVote[]
   manualSelections: MvpManualSelection[]
-  voteForRoundMvp: (input: MvpVoteInput) => void
+  voteForMatchMvp: (input: MvpVoteInput) => Promise<boolean>
+  clearVotesForMatch: (matchId: string) => Promise<boolean>
   setManualMvpSelection: (input: MvpManualSelectionInput) => void
 }
 
@@ -69,11 +72,11 @@ function parseStoredArray<T>(value: string | null): T[] | null {
   }
 }
 
-function isSameVote(firstVote: MvpVoteInput, secondVote: MvpVoteInput) {
+function isSameVote(firstVote: MvpVote, secondVote: MvpVoteInput) {
   return (
     firstVote.leagueId === secondVote.leagueId &&
     firstVote.seasonId === secondVote.seasonId &&
-    firstVote.round === secondVote.round &&
+    firstVote.matchId === secondVote.matchId &&
     firstVote.voterPlayerId === secondVote.voterPlayerId
   )
 }
@@ -110,19 +113,17 @@ function recordSupabaseError(action: string, error: unknown) {
   )
 }
 
+function getVoteKey(vote: MvpVote) {
+  return vote.matchId
+    ? `${vote.leagueId}:${vote.seasonId}:match:${vote.matchId}:${vote.voterPlayerId}`
+    : `${vote.leagueId}:${vote.seasonId}:round:${vote.round}:${vote.voterPlayerId}`
+}
+
 function mergeVotes(currentVotes: MvpVote[], incomingVotes: MvpVote[]) {
-  const items = new Map(
-    currentVotes.map((vote) => [
-      `${vote.leagueId}:${vote.seasonId}:${vote.round}:${vote.voterPlayerId}`,
-      vote,
-    ])
-  )
+  const items = new Map(currentVotes.map((vote) => [getVoteKey(vote), vote]))
 
   incomingVotes.forEach((vote) => {
-    items.set(
-      `${vote.leagueId}:${vote.seasonId}:${vote.round}:${vote.voterPlayerId}`,
-      vote
-    )
+    items.set(getVoteKey(vote), vote)
   })
 
   return Array.from(items.values())
@@ -170,7 +171,16 @@ export function MvpProvider({ children }: MvpProviderProps) {
     )
 
     if (storedVotes) {
-      window.setTimeout(() => setVotes(storedVotes), 0)
+      window.setTimeout(
+        () =>
+          setVotes(
+            storedVotes.map((vote) => ({
+              ...vote,
+              matchId: typeof vote.matchId === "string" ? vote.matchId : null,
+            }))
+          ),
+        0
+      )
     }
 
     if (storedManualSelections) {
@@ -215,11 +225,24 @@ export function MvpProvider({ children }: MvpProviderProps) {
       })
   }, [persistManualSelections, persistVotes, supabaseLeagueIdKey, supabaseLeagueIds])
 
-  const voteForRoundMvp = useCallback(
-    (input: MvpVoteInput) => {
+  const voteForMatchMvp = useCallback(
+    async (input: MvpVoteInput) => {
+      if (input.voterPlayerId === input.selectedPlayerId) {
+        return false
+      }
+
       const nextVote: MvpVote = {
         ...input,
         createdAt: new Date().toISOString(),
+      }
+
+      if (isSupabaseBackedId(input.leagueId)) {
+        try {
+          await upsertSupabaseMvpVote(nextVote)
+        } catch (error) {
+          recordSupabaseError("upsert-match-mvp-vote", error)
+          return false
+        }
       }
 
       setVotes((currentVotes) =>
@@ -229,11 +252,27 @@ export function MvpProvider({ children }: MvpProviderProps) {
         ])
       )
 
-      if (isSupabaseBackedId(input.leagueId)) {
-        upsertSupabaseMvpVote(nextVote).catch((error) => {
-          recordSupabaseError("upsert-mvp-vote", error)
-        })
+      return true
+    },
+    [persistVotes]
+  )
+
+  const clearVotesForMatch = useCallback(
+    async (matchId: string) => {
+      if (isSupabaseBackedId(matchId)) {
+        try {
+          await deleteSupabaseMvpVotesForMatch(matchId)
+        } catch (error) {
+          recordSupabaseError("delete-match-mvp-votes", error)
+          return false
+        }
       }
+
+      setVotes((currentVotes) =>
+        persistVotes(currentVotes.filter((vote) => vote.matchId !== matchId))
+      )
+
+      return true
     },
     [persistVotes]
   )
@@ -275,10 +314,17 @@ export function MvpProvider({ children }: MvpProviderProps) {
     () => ({
       votes,
       manualSelections,
-      voteForRoundMvp,
+      voteForMatchMvp,
+      clearVotesForMatch,
       setManualMvpSelection,
     }),
-    [manualSelections, setManualMvpSelection, voteForRoundMvp, votes]
+    [
+      clearVotesForMatch,
+      manualSelections,
+      setManualMvpSelection,
+      voteForMatchMvp,
+      votes,
+    ]
   )
 
   return <MvpContext.Provider value={value}>{children}</MvpContext.Provider>

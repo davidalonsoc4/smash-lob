@@ -6,6 +6,7 @@ import { MatchCard } from "@/components/matches/MatchCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
@@ -21,7 +22,8 @@ export default function MatchesPage() {
   const searchParams = useSearchParams()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
-  const { activeLeague, activeSeason, rounds, players, matches } =
+  const { votes } = useMvp()
+  const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonClosed = activeSeason.status === "finished"
@@ -200,6 +202,8 @@ export default function MatchesPage() {
                       seasonId: activeSeason.id,
                       round: match.round,
                       matches,
+                      votes,
+                      mvpSystem: roundSettings.mvpSystem,
                     })}
                     leagueLocations={activeLeague.locations}
                     showMissingScheduleHint={currentUserNextMatch?.id === match.id}

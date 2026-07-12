@@ -16,6 +16,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
+import { useMvp } from "@/context/MvpProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import type { MatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -482,6 +483,7 @@ export default function Home() {
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const { currentUserId, currentUser } = useCurrentUser();
   const { isLeagueAdmin } = useLeagueAccess();
+  const { votes } = useMvp();
   const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
     useCurrentLeagueData();
 
@@ -551,6 +553,8 @@ export default function Home() {
         seasonId: activeSeason.id,
         round: selectedLastMatch.round,
         matches,
+        votes,
+        mvpSystem: roundSettings.mvpSystem,
       })
     : [];
   const selectedNextMatchHighlightedPlayerIds = selectedNextMatch
@@ -559,6 +563,8 @@ export default function Home() {
         seasonId: activeSeason.id,
         round: selectedNextMatch.round,
         matches,
+        votes,
+        mvpSystem: roundSettings.mvpSystem,
       })
     : [];
   const selectedLastMatchFallbackLocation = selectedLastMatch
@@ -698,6 +704,8 @@ export default function Home() {
         leagueId: activeLeague.id,
         seasonId: activeSeason.id,
         matches,
+        votes,
+        mvpSystem: roundSettings.mvpSystem,
       })
     : null;
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? []);
@@ -959,6 +967,8 @@ export default function Home() {
           canManage={canManageSeason}
           players={players}
           matches={matches}
+          votes={votes}
+          mvpSystem={roundSettings.mvpSystem}
         />
       ) : null}
 

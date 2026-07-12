@@ -1,22 +1,18 @@
-"use client"
+"use client";
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
-import { AppCard } from "@/components/ui/AppCard"
-import { BackButton } from "@/components/ui/BackButton"
-import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
-import { useI18n } from "@/i18n/I18nProvider"
+import { useRouter, useSearchParams } from "next/navigation";
+import { PlayerMatchesList } from "@/components/player/PlayerMatchesList";
+import { AppCard } from "@/components/ui/AppCard";
+import { BackButton } from "@/components/ui/BackButton";
+import { useCurrentUser } from "@/context/CurrentUserProvider";
+import { useMvp } from "@/context/MvpProvider";
+import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type MatchFilter =
-  | "all"
-  | "finished"
-  | "pending"
-  | "scheduled"
-  | "scheduling"
-  | "postponed"
+  "all" | "finished" | "pending" | "scheduled" | "scheduling" | "postponed";
 
-type MatchSort = "recent" | "roundAsc" | "roundDesc"
+type MatchSort = "recent" | "roundAsc" | "roundDesc";
 
 const validFilters: MatchFilter[] = [
   "finished",
@@ -25,64 +21,73 @@ const validFilters: MatchFilter[] = [
   "scheduled",
   "scheduling",
   "postponed",
-]
+];
 
-const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"]
-const defaultFilter: MatchFilter = "all"
-const defaultSort: MatchSort = "roundAsc"
+const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"];
+const defaultFilter: MatchFilter = "all";
+const defaultSort: MatchSort = "roundAsc";
 
-function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null; round: number }) {
-  const value = match.resultRecordedAt ?? match.scheduledAt
+function getMatchSortTime(match: {
+  resultRecordedAt?: string | null;
+  scheduledAt?: string | null;
+  round: number;
+}) {
+  const value = match.resultRecordedAt ?? match.scheduledAt;
 
   if (!value) {
-    return 0
+    return 0;
   }
 
-  const time = new Date(value).getTime()
+  const time = new Date(value).getTime();
 
-  return Number.isNaN(time) ? 0 : time
+  return Number.isNaN(time) ? 0 : time;
 }
 
-function sortMatchesByOrder<T extends { resultRecordedAt?: string | null; scheduledAt?: string | null; round: number }>(
-  matches: T[],
-  sort: MatchSort,
-) {
+function sortMatchesByOrder<
+  T extends {
+    resultRecordedAt?: string | null;
+    scheduledAt?: string | null;
+    round: number;
+  },
+>(matches: T[], sort: MatchSort) {
   return [...matches].sort((firstMatch, secondMatch) => {
     if (sort === "roundAsc") {
-      return firstMatch.round - secondMatch.round
+      return firstMatch.round - secondMatch.round;
     }
 
     if (sort === "roundDesc") {
-      return secondMatch.round - firstMatch.round
+      return secondMatch.round - firstMatch.round;
     }
 
-    const timeDiff = getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch)
+    const timeDiff =
+      getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch);
 
     if (timeDiff !== 0) {
-      return timeDiff
+      return timeDiff;
     }
 
-    return secondMatch.round - firstMatch.round
-  })
+    return secondMatch.round - firstMatch.round;
+  });
 }
 
 export default function ProfileMatchesPage() {
-  const { t } = useI18n()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { currentUserId } = useCurrentUser()
-  const { activeLeague, activeSeason, players, matches } =
-    useCurrentLeagueData()
+  const { t } = useI18n();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { currentUserId } = useCurrentUser();
+  const { votes } = useMvp();
+  const { activeLeague, activeSeason, roundSettings, players, matches } =
+    useCurrentLeagueData();
 
-  const queryFilter = searchParams.get("status")
-  const querySort = searchParams.get("sort")
+  const queryFilter = searchParams.get("status");
+  const querySort = searchParams.get("sort");
   const activeFilter = validFilters.includes(queryFilter as MatchFilter)
     ? (queryFilter as MatchFilter)
-    : defaultFilter
+    : defaultFilter;
   const activeSort = validSorts.includes(querySort as MatchSort)
     ? (querySort as MatchSort)
-    : defaultSort
-  const player = players.find((item) => item.id === currentUserId)
+    : defaultSort;
+  const player = players.find((item) => item.id === currentUserId);
 
   const filterOptions: { value: MatchFilter; label: string }[] = [
     { value: "all", label: t.profile.filterAll },
@@ -91,57 +96,61 @@ export default function ProfileMatchesPage() {
     { value: "scheduled", label: t.profile.filterScheduled },
     { value: "scheduling", label: t.profile.filterUnscheduled },
     { value: "postponed", label: t.profile.filterPostponed },
-  ]
+  ];
   const sortOptions: { value: MatchSort; label: string }[] = [
     { value: "roundAsc", label: "Jornada 1 → final" },
     { value: "recent", label: "Más recientes" },
     { value: "roundDesc", label: "Última jornada → primera" },
-  ]
+  ];
 
   const playerMatches = matches.filter(
     (match) =>
-      match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId),
-  )
-  const filteredMatches = sortMatchesByOrder(playerMatches.filter((match) => {
-    if (activeFilter === "all") {
-      return true
-    }
+      match.teamA.includes(currentUserId) ||
+      match.teamB.includes(currentUserId),
+  );
+  const filteredMatches = sortMatchesByOrder(
+    playerMatches.filter((match) => {
+      if (activeFilter === "all") {
+        return true;
+      }
 
-    if (activeFilter === "pending") {
-      return match.status !== "finished"
-    }
+      if (activeFilter === "pending") {
+        return match.status !== "finished";
+      }
 
-    return match.status === activeFilter
-  }), activeSort)
+      return match.status === activeFilter;
+    }),
+    activeSort,
+  );
 
   function buildHref({
     filter = activeFilter,
     sort = activeSort,
   }: {
-    filter?: MatchFilter
-    sort?: MatchSort
+    filter?: MatchFilter;
+    sort?: MatchSort;
   }) {
-    const nextParams = new URLSearchParams()
+    const nextParams = new URLSearchParams();
 
     if (filter !== defaultFilter) {
-      nextParams.set("status", filter)
+      nextParams.set("status", filter);
     }
 
     if (sort !== defaultSort) {
-      nextParams.set("sort", sort)
+      nextParams.set("sort", sort);
     }
 
-    const query = nextParams.toString()
+    const query = nextParams.toString();
 
-    return query ? `/profile/matches?${query}` : "/profile/matches"
+    return query ? `/profile/matches?${query}` : "/profile/matches";
   }
 
   function handleFilterChange(filter: MatchFilter) {
-    router.push(buildHref({ filter }))
+    router.push(buildHref({ filter }));
   }
 
   function handleSortChange(sort: MatchSort) {
-    router.push(buildHref({ sort }))
+    router.push(buildHref({ sort }));
   }
 
   if (!player) {
@@ -155,7 +164,7 @@ export default function ProfileMatchesPage() {
           <p className="font-bold">{t.profile.notFound}</p>
         </AppCard>
       </div>
-    )
+    );
   }
 
   return (
@@ -202,7 +211,9 @@ export default function ProfileMatchesPage() {
           </span>
           <select
             value={activeSort}
-            onChange={(event) => handleSortChange(event.target.value as MatchSort)}
+            onChange={(event) =>
+              handleSortChange(event.target.value as MatchSort)
+            }
             className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
           >
             {sortOptions.map((option) => (
@@ -222,7 +233,11 @@ export default function ProfileMatchesPage() {
         seasonMatches={matches}
         emptyMessage={t.profile.noFilteredMatches}
         leagueLocations={activeLeague.locations}
+        votes={votes}
+        mvpSystemBySeasonId={{
+          [activeSeason.id]: roundSettings.mvpSystem,
+        }}
       />
     </div>
-  )
+  );
 }

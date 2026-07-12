@@ -9,6 +9,8 @@ export const MATCH_IN_PROGRESS_WINDOW_MS =
 
 export const RESULT_REMINDER_HOURS = [2, 3, 4, 24] as const;
 export type ResultReminderHour = (typeof RESULT_REMINDER_HOURS)[number];
+export const MVP_VOTE_REMINDER_HOURS = RESULT_REMINDER_HOURS;
+export type MvpVoteReminderHour = ResultReminderHour;
 
 function parseScheduledAt(scheduledAt: string | null | undefined) {
   return parseMatchScheduleDate(scheduledAt);
@@ -124,4 +126,32 @@ export function isMatchResultReminderDue({
     resultRecordedAt,
     now,
   }).length > 0;
+}
+
+export function getDueMvpVoteReminderHours({
+  resultRecordedAt,
+  now = new Date(),
+}: {
+  resultRecordedAt?: string | null;
+  now?: Date;
+}): MvpVoteReminderHour[] {
+  if (!resultRecordedAt) {
+    return [];
+  }
+
+  const resultDate = new Date(resultRecordedAt);
+
+  if (Number.isNaN(resultDate.getTime())) {
+    return [];
+  }
+
+  const elapsedMs = now.getTime() - resultDate.getTime();
+
+  if (elapsedMs < 0) {
+    return [];
+  }
+
+  return MVP_VOTE_REMINDER_HOURS.filter(
+    (hour) => elapsedMs >= hour * 60 * 60 * 1000,
+  );
 }

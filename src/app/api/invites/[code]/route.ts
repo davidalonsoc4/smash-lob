@@ -49,7 +49,7 @@ type SerializedError = {
 const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,created_by_user_id"
 const seasonSettingsSelect =
-  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds"
+  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,manual_active_round,manual_completed_rounds"
 
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase()
@@ -383,6 +383,10 @@ async function buildInviteResponse(
     seasonStartsAt: settings.season_starts_at,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
+    mvpSystem:
+      settings.mvp_system === "none" || settings.mvp_system === "voting"
+        ? settings.mvp_system
+        : "automatic",
     manualActiveRound:
       typeof settings.manual_active_round === "number"
         ? settings.manual_active_round

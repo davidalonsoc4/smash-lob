@@ -12,7 +12,7 @@ import {
   getScheduleLocationFallbackText,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
-import { getRoundMvpPlayerIds } from "@/lib/mvp";
+import { getRoundMvpPlayerIds, type MvpSystem, type MvpVote } from "@/lib/mvp";
 import type { PlayerProfile } from "@/data/fakeData";
 
 type PlayerMatch = {
@@ -43,6 +43,8 @@ type PlayerMatchesListProps = {
   actionHref?: string;
   actionLabel?: string;
   leagueLocations?: LeagueLocation[];
+  votes?: MvpVote[];
+  mvpSystemBySeasonId?: Record<string, MvpSystem>;
 };
 
 export function PlayerMatchesList({
@@ -56,6 +58,8 @@ export function PlayerMatchesList({
   actionHref,
   actionLabel,
   leagueLocations = [],
+  votes = [],
+  mvpSystemBySeasonId = {},
 }: PlayerMatchesListProps) {
   const { t } = useI18n();
 
@@ -96,6 +100,8 @@ export function PlayerMatchesList({
             seasonId: match.seasonId,
             round: match.round,
             matches: seasonMatches,
+            votes,
+            mvpSystem: mvpSystemBySeasonId[match.seasonId] ?? "automatic",
           });
 
           const leagueLocation = findLeagueLocationByScheduleLocation({

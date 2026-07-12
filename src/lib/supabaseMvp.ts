@@ -4,6 +4,7 @@ import type { MvpManualSelection, MvpVote } from "@/lib/mvp"
 type SupabaseMvpVoteRow = {
   league_id: string
   season_id: string
+  match_id: string | null
   round: number
   voter_player_id: string
   selected_player_id: string
@@ -23,6 +24,7 @@ function mapVote(row: SupabaseMvpVoteRow): MvpVote {
   return {
     leagueId: row.league_id,
     seasonId: row.season_id,
+    matchId: row.match_id,
     round: row.round,
     voterPlayerId: row.voter_player_id,
     selectedPlayerId: row.selected_player_id,
@@ -55,7 +57,7 @@ export async function fetchSupabaseMvpData(leagueIds: string[]) {
     supabase
       .from("mvp_votes")
       .select(
-        "league_id, season_id, round, voter_player_id, selected_player_id, created_at"
+        "league_id, season_id, match_id, round, voter_player_id, selected_player_id, created_at"
       )
       .in("league_id", leagueIds),
     supabase
@@ -73,27 +75,77 @@ export async function fetchSupabaseMvpData(leagueIds: string[]) {
   }
 
   return {
-    votes: (votesResult.data ?? []).map((row) => mapVote(row)),
+    votes: (votesResult.data ?? []).map((row) =>
+      mapVote(row as SupabaseMvpVoteRow)
+    ),
     manualSelections: (manualSelectionsResult.data ?? []).map((row) =>
-      mapManualSelection(row)
+      mapManualSelection(row as SupabaseMvpManualSelectionRow)
     ),
   }
 }
 
 export async function upsertSupabaseMvpVote(vote: MvpVote) {
-  const { error } = await supabase.from("mvp_votes").upsert(
-    {
-      league_id: vote.leagueId,
-      season_id: vote.seasonId,
-      round: vote.round,
-      voter_player_id: vote.voterPlayerId,
-      selected_player_id: vote.selectedPlayerId,
-      created_at: vote.createdAt,
-    },
-    {
-      onConflict: "league_id,season_id,round,voter_player_id",
+  if (!vote.matchId) {
+    const { error } = await supabase.from("mvp_votes").upsert(
+      {
+        league_id: vote.leagueId,
+        season_id: vote.seasonId,
+        match_id: null,
+        round: vote.round,
+        voter_player_id: vote.voterPlayerId,
+        selected_player_id: vote.selectedPlayerId,
+        created_at: vote.createdAt,
+      },
+      {
+        onConflict: "league_id,season_id,round,voter_player_id",
+      }
+    )
+
+    if (error) {
+      throw error
     }
-  )
+
+    return
+  }
+
+  const payload = {
+    league_id: vote.leagueId,
+    season_id: vote.seasonId,
+    match_id: vote.matchId,
+    round: vote.round,
+    voter_player_id: vote.voterPlayerId,
+    selected_player_id: vote.selectedPlayerId,
+    created_at: vote.createdAt,
+  }
+  const { data: updatedRows, error: updateError } = await supabase
+    .from("mvp_votes")
+    .update(payload)
+    .eq("league_id", vote.leagueId)
+    .eq("season_id", vote.seasonId)
+    .eq("match_id", vote.matchId)
+    .eq("voter_player_id", vote.voterPlayerId)
+    .select("match_id")
+
+  if (updateError) {
+    throw updateError
+  }
+
+  if ((updatedRows ?? []).length > 0) {
+    return
+  }
+
+  const { error: insertError } = await supabase.from("mvp_votes").insert(payload)
+
+  if (insertError) {
+    throw insertError
+  }
+}
+
+export async function deleteSupabaseMvpVotesForMatch(matchId: string) {
+  const { error } = await supabase
+    .from("mvp_votes")
+    .delete()
+    .eq("match_id", matchId)
 
   if (error) {
     throw error

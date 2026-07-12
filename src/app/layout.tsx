@@ -6,6 +6,7 @@ import { AuthSessionProvider } from "@/context/AuthSessionProvider"
 import { CurrentUserProvider } from "@/context/CurrentUserProvider"
 import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
+import { MvpProvider } from "@/context/MvpProvider"
 import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
 import { AppShell } from "@/components/layout/AppShell"
 import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistration"
@@ -55,14 +56,16 @@ export default function RootLayout({
               <SeasonSettingsProvider>
                 <MatchDataProvider>
                   <LeagueAccessProvider>
-                    <ActiveLeagueProvider>
+                    <MvpProvider>
+                      <ActiveLeagueProvider>
                       <CurrentUserProvider>
                         <LeagueEntryGate>
                           <AutoPushRegistration />
                           <AppShell>{children}</AppShell>
                         </LeagueEntryGate>
                       </CurrentUserProvider>
-                    </ActiveLeagueProvider>
+                      </ActiveLeagueProvider>
+                    </MvpProvider>
                   </LeagueAccessProvider>
                 </MatchDataProvider>
               </SeasonSettingsProvider>

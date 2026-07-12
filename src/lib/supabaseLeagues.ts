@@ -325,7 +325,7 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds,registration_fee"
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,manual_active_round,manual_completed_rounds,registration_fee"
       )
       .in("league_id", leagueIds),
     supabase
@@ -409,6 +409,10 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
     seasonStartsAt: settings.season_starts_at,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
+    mvpSystem:
+      settings.mvp_system === "none" || settings.mvp_system === "voting"
+        ? settings.mvp_system
+        : "automatic",
     manualActiveRound:
       typeof settings.manual_active_round === "number"
         ? settings.manual_active_round

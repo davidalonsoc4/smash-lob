@@ -1,29 +1,25 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { PlayerMatchesList } from "@/components/player/PlayerMatchesList"
-import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
-import { AppCard } from "@/components/ui/AppCard"
-import { BackButton } from "@/components/ui/BackButton"
-import { useMatchData } from "@/context/MatchDataProvider"
-import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
-import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
-import { useI18n } from "@/i18n/I18nProvider"
+import { useMemo } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { PlayerMatchesList } from "@/components/player/PlayerMatchesList";
+import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector";
+import { AppCard } from "@/components/ui/AppCard";
+import { BackButton } from "@/components/ui/BackButton";
+import { useMatchData } from "@/context/MatchDataProvider";
+import { useMvp } from "@/context/MvpProvider";
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
+import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   getPlayerSeasonScopes,
   getPlayersForSeasonScope,
-} from "@/lib/playerHistory"
+} from "@/lib/playerHistory";
 
 type MatchFilter =
-  | "all"
-  | "finished"
-  | "pending"
-  | "scheduled"
-  | "scheduling"
-  | "postponed"
+  "all" | "finished" | "pending" | "scheduled" | "scheduling" | "postponed";
 
-type MatchSort = "recent" | "roundAsc" | "roundDesc"
+type MatchSort = "recent" | "roundAsc" | "roundDesc";
 
 const validFilters: MatchFilter[] = [
   "finished",
@@ -32,85 +28,95 @@ const validFilters: MatchFilter[] = [
   "scheduled",
   "scheduling",
   "postponed",
-]
+];
 
-const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"]
-const defaultFilter: MatchFilter = "all"
-const defaultSort: MatchSort = "roundAsc"
+const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"];
+const defaultFilter: MatchFilter = "all";
+const defaultSort: MatchSort = "roundAsc";
 
-function getMatchSortTime(match: { resultRecordedAt?: string | null; scheduledAt?: string | null }) {
-  const value = match.resultRecordedAt ?? match.scheduledAt
+function getMatchSortTime(match: {
+  resultRecordedAt?: string | null;
+  scheduledAt?: string | null;
+}) {
+  const value = match.resultRecordedAt ?? match.scheduledAt;
 
   if (!value) {
-    return 0
+    return 0;
   }
 
-  const time = new Date(value).getTime()
+  const time = new Date(value).getTime();
 
-  return Number.isNaN(time) ? 0 : time
+  return Number.isNaN(time) ? 0 : time;
 }
 
-function sortMatchesByOrder<T extends { resultRecordedAt?: string | null; scheduledAt?: string | null; seasonId: string; round: number }>(
-  matches: T[],
-  sort: MatchSort,
-) {
+function sortMatchesByOrder<
+  T extends {
+    resultRecordedAt?: string | null;
+    scheduledAt?: string | null;
+    seasonId: string;
+    round: number;
+  },
+>(matches: T[], sort: MatchSort) {
   return [...matches].sort((firstMatch, secondMatch) => {
     if (sort === "roundAsc") {
-      return firstMatch.round - secondMatch.round
+      return firstMatch.round - secondMatch.round;
     }
 
     if (sort === "roundDesc") {
-      return secondMatch.round - firstMatch.round
+      return secondMatch.round - firstMatch.round;
     }
 
-    const timeDiff = getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch)
+    const timeDiff =
+      getMatchSortTime(secondMatch) - getMatchSortTime(firstMatch);
 
     if (timeDiff !== 0) {
-      return timeDiff
+      return timeDiff;
     }
 
     if (secondMatch.seasonId !== firstMatch.seasonId) {
-      return secondMatch.seasonId.localeCompare(firstMatch.seasonId)
+      return secondMatch.seasonId.localeCompare(firstMatch.seasonId);
     }
 
-    return secondMatch.round - firstMatch.round
-  })
+    return secondMatch.round - firstMatch.round;
+  });
 }
 
 export default function PlayerMatchesPage() {
-  const { t } = useI18n()
-  const params = useParams<{ id: string }>()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { matches: allMatches } = useMatchData()
-  const { seasons, seasonPlayers, playerProfiles } = useSeasonSettings()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { t } = useI18n();
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { matches: allMatches } = useMatchData();
+  const { votes } = useMvp();
+  const { seasons, seasonPlayers, playerProfiles, seasonSettings } =
+    useSeasonSettings();
+  const { activeLeague, activeSeason } = useCurrentLeagueData();
 
   const player = playerProfiles.find(
     (item) =>
       item.leagueId === activeLeague.id &&
-      (item.slug === params.id || item.id === params.id)
-  )
-  const queryFilter = searchParams.get("status")
-  const querySort = searchParams.get("sort")
+      (item.slug === params.id || item.id === params.id),
+  );
+  const queryFilter = searchParams.get("status");
+  const querySort = searchParams.get("sort");
   const activeFilter = validFilters.includes(queryFilter as MatchFilter)
     ? (queryFilter as MatchFilter)
-    : defaultFilter
+    : defaultFilter;
   const activeSort = validSorts.includes(querySort as MatchSort)
     ? (querySort as MatchSort)
-    : defaultSort
-  const queryScopeId = searchParams.get("scope")
-  const playerHref = `/player/${params.id}`
-  const matchesHref = `/player/${params.id}/matches`
+    : defaultSort;
+  const queryScopeId = searchParams.get("scope");
+  const playerHref = `/player/${params.id}`;
+  const matchesHref = `/player/${params.id}/matches`;
 
   const leagueMatches = useMemo(
     () => allMatches.filter((match) => match.leagueId === activeLeague.id),
-    [activeLeague.id, allMatches]
-  )
+    [activeLeague.id, allMatches],
+  );
 
   const seasonScopes = useMemo(() => {
     if (!player) {
-      return []
+      return [];
     }
 
     return getPlayerSeasonScopes({
@@ -120,27 +126,34 @@ export default function PlayerMatchesPage() {
       seasons,
       seasonPlayers,
       matches: leagueMatches,
-    })
-  }, [activeLeague.id, activeSeason.id, leagueMatches, player, seasonPlayers, seasons])
+    });
+  }, [
+    activeLeague.id,
+    activeSeason.id,
+    leagueMatches,
+    player,
+    seasonPlayers,
+    seasons,
+  ]);
 
   const selectedScope =
     seasonScopes.find((scope) => scope.id === queryScopeId) ??
     seasonScopes.find((scope) => scope.id === activeSeason.id) ??
-    seasonScopes[0]
-  const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id]
+    seasonScopes[0];
+  const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id];
   const leagueSeasonCount = seasons.filter(
-    (season) => season.leagueId === activeLeague.id
-  ).length
+    (season) => season.leagueId === activeLeague.id,
+  ).length;
   const selectedMatches = leagueMatches.filter((match) =>
-    selectedSeasonIds.includes(match.seasonId)
-  )
+    selectedSeasonIds.includes(match.seasonId),
+  );
   const selectedPlayers = getPlayersForSeasonScope({
     leagueId: activeLeague.id,
     seasonIds: selectedSeasonIds,
     playerProfiles,
     seasonPlayers,
     matches: leagueMatches,
-  })
+  });
 
   const filterOptions: { value: MatchFilter; label: string }[] = [
     { value: "all", label: t.profile.filterAll },
@@ -149,69 +162,72 @@ export default function PlayerMatchesPage() {
     { value: "scheduled", label: t.profile.filterScheduled },
     { value: "scheduling", label: t.profile.filterUnscheduled },
     { value: "postponed", label: t.profile.filterPostponed },
-  ]
+  ];
   const sortOptions: { value: MatchSort; label: string }[] = [
     { value: "roundAsc", label: "Jornada 1 → final" },
     { value: "recent", label: "Más recientes" },
     { value: "roundDesc", label: "Última jornada → primera" },
-  ]
+  ];
 
   const playerMatches = player
     ? selectedMatches.filter(
         (match) =>
           match.teamA.includes(player.id) || match.teamB.includes(player.id),
       )
-    : []
-  const filteredMatches = sortMatchesByOrder(playerMatches.filter((match) => {
-    if (activeFilter === "all") {
-      return true
-    }
+    : [];
+  const filteredMatches = sortMatchesByOrder(
+    playerMatches.filter((match) => {
+      if (activeFilter === "all") {
+        return true;
+      }
 
-    if (activeFilter === "pending") {
-      return match.status !== "finished"
-    }
+      if (activeFilter === "pending") {
+        return match.status !== "finished";
+      }
 
-    return match.status === activeFilter
-  }), activeSort)
+      return match.status === activeFilter;
+    }),
+    activeSort,
+  );
 
   function buildHref({
     filter = activeFilter,
     sort = activeSort,
     scopeId = selectedScope?.id,
   }: {
-    filter?: MatchFilter
-    sort?: MatchSort
-    scopeId?: string
+    filter?: MatchFilter;
+    sort?: MatchSort;
+    scopeId?: string;
   }) {
-    const nextParams = new URLSearchParams()
+    const nextParams = new URLSearchParams();
 
     if (filter !== defaultFilter) {
-      nextParams.set("status", filter)
+      nextParams.set("status", filter);
     }
 
     if (sort !== defaultSort) {
-      nextParams.set("sort", sort)
+      nextParams.set("sort", sort);
     }
 
     if (scopeId) {
-      nextParams.set("scope", scopeId)
+      nextParams.set("scope", scopeId);
     }
 
-    const query = nextParams.toString()
+    const query = nextParams.toString();
 
-    return query ? `${matchesHref}?${query}` : matchesHref
+    return query ? `${matchesHref}?${query}` : matchesHref;
   }
 
   function handleFilterChange(filter: MatchFilter) {
-    router.push(buildHref({ filter }))
+    router.push(buildHref({ filter }));
   }
 
   function handleSortChange(sort: MatchSort) {
-    router.push(buildHref({ sort }))
+    router.push(buildHref({ sort }));
   }
 
   function handleScopeChange(scopeId: string) {
-    router.push(buildHref({ scopeId }))
+    router.push(buildHref({ scopeId }));
   }
 
   if (!player || !selectedScope) {
@@ -225,7 +241,7 @@ export default function PlayerMatchesPage() {
           <p className="font-bold">{t.playerProfile.notFound}</p>
         </AppCard>
       </div>
-    )
+    );
   }
 
   return (
@@ -282,7 +298,9 @@ export default function PlayerMatchesPage() {
           </span>
           <select
             value={activeSort}
-            onChange={(event) => handleSortChange(event.target.value as MatchSort)}
+            onChange={(event) =>
+              handleSortChange(event.target.value as MatchSort)
+            }
             className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
           >
             {sortOptions.map((option) => (
@@ -302,7 +320,14 @@ export default function PlayerMatchesPage() {
         seasonMatches={selectedMatches}
         emptyMessage={t.profile.noFilteredMatches}
         leagueLocations={activeLeague.locations}
+        votes={votes}
+        mvpSystemBySeasonId={Object.fromEntries(
+          seasonSettings.map((settings) => [
+            settings.seasonId,
+            settings.mvpSystem,
+          ]),
+        )}
       />
     </div>
-  )
+  );
 }

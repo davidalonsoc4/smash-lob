@@ -4,12 +4,14 @@ import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import {
-  getLatestCompletedRound,
+  getCompletedRoundNumbers,
   getPlayersByIds,
   getRoundMvpSelection,
   getSeasonMvpSelection,
   type MvpMatch,
   type MvpPlayer,
+  type MvpSystem,
+  type MvpVote,
 } from "@/lib/mvp"
 
 type DashboardMvpCardProps = {
@@ -19,6 +21,8 @@ type DashboardMvpCardProps = {
   canManage: boolean
   players: MvpPlayer[]
   matches: MvpMatch[]
+  votes: MvpVote[]
+  mvpSystem: MvpSystem
 }
 
 function formatSignedDiff(value: number) {
@@ -36,21 +40,39 @@ export function DashboardMvpCard({
   canManage,
   players,
   matches,
+  votes,
+  mvpSystem,
 }: DashboardMvpCardProps) {
-  const latestCompletedRound = getLatestCompletedRound(matches, leagueId, seasonId)
-  const latestRoundMvp = latestCompletedRound
-    ? getRoundMvpSelection({
+  const completedRounds = getCompletedRoundNumbers(matches, leagueId, seasonId)
+  const latestRoundWithMvp = [...completedRounds].reverse().find((round) =>
+    Boolean(
+      getRoundMvpSelection({
+        votes,
         leagueId,
         seasonId,
-        round: latestCompletedRound,
+        round,
         matches,
+        mvpSystem,
+      })
+    )
+  ) ?? null
+  const latestRoundMvp = latestRoundWithMvp
+    ? getRoundMvpSelection({
+        votes,
+        leagueId,
+        seasonId,
+        round: latestRoundWithMvp,
+        matches,
+        mvpSystem,
       })
     : null
   const seasonMvp = isSeasonClosed
     ? getSeasonMvpSelection({
+        votes,
         leagueId,
         seasonId,
         matches,
+        mvpSystem,
       })
     : null
   const latestRoundMvpPlayers = getPlayersByIds(
@@ -59,7 +81,7 @@ export function DashboardMvpCard({
   )
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
 
-  if (!latestRoundMvp && !seasonMvp) {
+  if (mvpSystem === "none" || (!latestRoundMvp && !seasonMvp)) {
     return null
   }
 
@@ -93,7 +115,9 @@ export function DashboardMvpCard({
                   </p>
                 </div>
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Jornada {latestCompletedRound} · {formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}
+                  Jornada {latestRoundWithMvp} · {mvpSystem === "voting"
+                    ? `${latestRoundMvp.votes} votos${latestRoundMvp.tied ? " · empate" : ""}`
+                    : formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}
                 </p>
               </div>
             ) : seasonMvp ? (

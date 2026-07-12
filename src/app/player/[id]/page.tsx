@@ -10,6 +10,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useMatchData } from "@/context/MatchDataProvider"
+import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -24,7 +25,8 @@ export default function PlayerPage() {
   const { t } = useI18n()
   const params = useParams<{ id: string }>()
   const { matches: allMatches } = useMatchData()
-  const { seasons, seasonPlayers, playerProfiles } = useSeasonSettings()
+  const { votes } = useMvp()
+  const { seasons, seasonPlayers, playerProfiles, seasonSettings } = useSeasonSettings()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const [selectedScopeId, setSelectedScopeId] = useState(activeSeason.id)
   const isSeasonClosed = activeSeason.status === "finished"
@@ -59,6 +61,9 @@ export default function PlayerPage() {
   const selectedScope =
     seasonScopes.find((scope) => scope.id === selectedScopeId) ?? seasonScopes[0]
   const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id]
+  const mvpSystemBySeasonId = Object.fromEntries(
+    seasonSettings.map((settings) => [settings.seasonId, settings.mvpSystem]),
+  )
   const leagueSeasonCount = seasons.filter(
     (season) => season.leagueId === activeLeague.id
   ).length
@@ -164,6 +169,8 @@ export default function PlayerPage() {
         players={selectedPlayers}
         matches={playerMatches}
         seasonMatches={selectedMatches}
+        votes={votes}
+        mvpSystemBySeasonId={mvpSystemBySeasonId}
       />
 
       <Link href={`/player/${player.slug ?? player.id}/matches?scope=${selectedScope.id}`}>

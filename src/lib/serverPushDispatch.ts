@@ -140,12 +140,17 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_result_updated" ||
     eventType === "match_result_cleared" ||
     eventType === "match_result_missing_reminder" ||
+    eventType === "match_mvp_vote_reminder" ||
     eventType === "match_upcoming_reminder"
   );
 }
 
 function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
   const metadata = toRecord(event.metadata);
+
+  if (event.type === "match_mvp_vote_reminder") {
+    return toStringArray(metadata.targetPlayerIds);
+  }
 
   if (isMatchParticipantNotification(event.type)) {
     return toStringArray(metadata.participantIds);
@@ -216,6 +221,10 @@ async function getTargetPlayerIds({
   event: ActivityEventRow;
 }) {
   const metadataTargetPlayerIds = getTargetPlayerIdsFromMetadata(event);
+
+  if (event.type === "match_mvp_vote_reminder") {
+    return metadataTargetPlayerIds;
+  }
 
   if (!isMatchParticipantNotification(event.type)) {
     return metadataTargetPlayerIds;
@@ -367,6 +376,11 @@ function getNotificationTitle(event: ActivityEventRow) {
     return "Falta el resultado";
   }
 
+  if (event.type === "match_mvp_vote_reminder") {
+    return "Falta tu voto MVP";
+  }
+
+
   if (event.type === "match_upcoming_reminder") {
     return "Próximo partido";
   }
@@ -467,6 +481,14 @@ function getNotificationBody(
       : "No olvides registrar el resultado de tu partido.";
   }
 
+
+  if (event.type === "match_mvp_vote_reminder") {
+    const round = toRecord(event.metadata).round;
+
+    return typeof round === "number"
+      ? `Vota al MVP de tu partido de la Jornada ${round}.`
+      : "Vota al MVP de tu último partido.";
+  }
   if (event.type === "match_upcoming_reminder") {
     const metadata = toRecord(event.metadata);
     const location =
@@ -484,8 +506,8 @@ function getNotificationBody(
 
     if (resultText) {
       return event.type === "match_result_updated"
-        ? `Nuevo resultado: ${resultText}.`
-        : `Resultado: ${resultText}.`;
+        ? `Nuevo resultado: ${resultText}. Entra para confirmarlo.`
+        : `Resultado: ${resultText}. Entra para confirmarlo.`;
     }
   }
 

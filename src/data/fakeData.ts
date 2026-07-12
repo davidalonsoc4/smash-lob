@@ -83,6 +83,7 @@ export type SeasonRoundSettings = {
   seasonStartsAt: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
+  mvpSystem: "none" | "automatic" | "voting"
   manualActiveRound: number | null
   manualCompletedRounds: number[]
   registrationFee: SeasonRegistrationFee
@@ -444,6 +445,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     seasonStartsAt: "2026-06-14",
     roundWindowDays: 15,
     requiresThreeSets: true,
+    mvpSystem: "automatic",
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
@@ -455,6 +457,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     seasonStartsAt: "2026-06-18",
     roundWindowDays: 15,
     requiresThreeSets: true,
+    mvpSystem: "automatic",
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
