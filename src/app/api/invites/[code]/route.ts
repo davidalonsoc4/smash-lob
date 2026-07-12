@@ -49,7 +49,7 @@ type SerializedError = {
 const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,created_by_user_id"
 const seasonSettingsSelect =
-  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds,mvp_system"
+  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,manual_active_round,manual_completed_rounds"
 
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase()
@@ -393,12 +393,7 @@ async function buildInviteResponse(
         )
       : [],
     registrationFee: normalizeSeasonRegistrationFee(undefined),
-    mvpMode:
-      settings.mvp_system === "none" ||
-      settings.mvp_system === "automatic" ||
-      settings.mvp_system === "voting"
-        ? settings.mvp_system
-        : "automatic",
+    mvpMode: "automatic",
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

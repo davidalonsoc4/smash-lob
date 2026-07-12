@@ -5,7 +5,7 @@ type SupabaseMvpVoteRow = {
   league_id: string
   season_id: string
   round: number
-  match_id: string | null
+  match_id?: string | null
   voter_player_id: string
   selected_player_id: string
   created_at: string
@@ -57,7 +57,7 @@ export async function fetchSupabaseMvpData(leagueIds: string[]) {
     supabase
       .from("mvp_votes")
       .select(
-        "league_id, season_id, round, match_id, voter_player_id, selected_player_id, created_at"
+        "league_id, season_id, round, voter_player_id, selected_player_id, created_at"
       )
       .in("league_id", leagueIds),
     supabase
