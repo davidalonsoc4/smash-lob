@@ -53,6 +53,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
         "match_result_missing_reminder",
         "match_result_confirmation_reminder",
         "match_mvp_vote_reminder",
+        "match_mvp_awarded",
       ],
     },
     {

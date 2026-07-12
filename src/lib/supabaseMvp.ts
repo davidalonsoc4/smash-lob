@@ -207,6 +207,32 @@ export async function saveSupabaseMvpManualSelection({
   }
 }
 
+export async function hasSupabaseVotingMatchMvpEvent({
+  leagueId,
+  seasonId,
+  matchId,
+}: {
+  leagueId: string;
+  seasonId: string;
+  matchId: string;
+}) {
+  const { data, error } = await supabase
+    .from("activity_events")
+    .select("id")
+    .eq("league_id", leagueId)
+    .eq("season_id", seasonId)
+    .eq("match_id", matchId)
+    .eq("type", "match_mvp_awarded")
+    .contains("metadata", { system: "voting" })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data && data.length > 0);
+}
+
 export async function hasSupabaseVotingRoundMvpEvent({
   leagueId,
   seasonId,

@@ -12,6 +12,7 @@ export type ActivityEventType =
   | "match_result_missing_reminder"
   | "match_result_confirmation_reminder"
   | "match_mvp_vote_reminder"
+  | "match_mvp_awarded"
   | "match_upcoming_reminder"
   | "round_in_play"
   | "round_mvp_awarded"
@@ -89,6 +90,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_result_missing_reminder" ||
     type === "match_result_confirmation_reminder" ||
     type === "match_mvp_vote_reminder" ||
+    type === "match_mvp_awarded" ||
     type === "match_upcoming_reminder" ||
     type === "round_in_play" ||
     type === "round_mvp_awarded" ||

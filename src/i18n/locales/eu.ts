@@ -896,6 +896,7 @@ export const eu = {
       match_result_disputed: "Emaitza",
       match_result_cleared: "Emaitza",
       match_mvp_vote_reminder: "MVP botoa",
+      match_mvp_awarded: "Partidako MVP",
       match_result_missing_reminder: "Emaitza",
       match_result_confirmation_reminder: "Berrespena",
       match_upcoming_reminder: "Gogorarazpena",

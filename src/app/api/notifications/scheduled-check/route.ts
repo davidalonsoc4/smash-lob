@@ -48,6 +48,7 @@ type SeasonSettingRow = {
 type VoteRow = {
   match_id: string | null;
   voter_player_id: string;
+  selected_player_id: string;
 };
 
 type ConfirmationRow = {
@@ -464,12 +465,13 @@ export async function GET(request: Request) {
   });
 
   const votesByMatchId = new Map<string, Set<string>>();
+  const voteCountsByMatchId = new Map<string, Map<string, number>>();
   const votingMatchIds = eligibleVotingMatches.map((match) => match.id);
 
   if (votingMatchIds.length > 0) {
     const { data, error } = await supabase
       .from("mvp_votes")
-      .select("match_id,voter_player_id")
+      .select("match_id,voter_player_id,selected_player_id")
       .in("match_id", votingMatchIds);
 
     if (error) {
@@ -487,6 +489,14 @@ export async function GET(request: Request) {
       const voters = votesByMatchId.get(vote.match_id) ?? new Set<string>();
       voters.add(vote.voter_player_id);
       votesByMatchId.set(vote.match_id, voters);
+
+      const voteCounts =
+        voteCountsByMatchId.get(vote.match_id) ?? new Map<string, number>();
+      voteCounts.set(
+        vote.selected_player_id,
+        (voteCounts.get(vote.selected_player_id) ?? 0) + 1,
+      );
+      voteCountsByMatchId.set(vote.match_id, voteCounts);
     });
   }
 
@@ -498,10 +508,15 @@ export async function GET(request: Request) {
       const missingPlayerIds = participantIds.filter(
         (playerId) => !submittedVoterIds.has(playerId),
       );
-      const reminderHours = getDueMvpVoteReminderHours({
-        resultRecordedAt: match.result_recorded_at,
-        now,
-      });
+      const hasDecisiveWinner = Array.from(
+        voteCountsByMatchId.get(match.id)?.values() ?? [],
+      ).some((voteCount) => voteCount >= 3);
+      const reminderHours = hasDecisiveWinner
+        ? []
+        : getDueMvpVoteReminderHours({
+            resultRecordedAt: match.result_recorded_at,
+            now,
+          });
 
       return { match, participantIds, missingPlayerIds, reminderHours };
     })

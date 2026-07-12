@@ -433,7 +433,7 @@ const mvpSystemOptions: {
     value: "voting",
     title: "MVP por votación",
     description:
-      "Tras cada resultado, los cuatro jugadores votan a otra persona del partido. Gana la jornada quien acumule más votos.",
+      "Tras cada resultado, los jugadores votan a otra persona del partido. Con 3 votos se decide el MVP del partido; la jornada la gana quien acumule más votos.",
   },
 ];
 

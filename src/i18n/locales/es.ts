@@ -903,6 +903,7 @@ export const es = {
       match_result_disputed: "Resultado",
       match_result_cleared: "Resultado",
       match_mvp_vote_reminder: "Votación MVP",
+      match_mvp_awarded: "MVP del partido",
       match_result_missing_reminder: "Resultado",
       match_result_confirmation_reminder: "Confirmación",
       match_upcoming_reminder: "Recordatorio",

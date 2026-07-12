@@ -161,7 +161,7 @@ export default function AdminMvpPage() {
         <p className="font-bold">MVP por jornada</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {isVoting
-            ? "Gana quien acumule más votos entre todos los partidos. La jornada queda pendiente hasta que hayan votado todos los participantes."
+            ? "Cada partido se cierra cuando alguien alcanza 3 votos o, si no ocurre, al votar los cuatro jugadores. La jornada se decide cuando todos sus partidos tienen MVP."
             : "Gana la pareja vencedora con mejor diferencia de juegos cuando todos los partidos tienen resultado."}
         </p>
 

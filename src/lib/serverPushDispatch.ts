@@ -143,6 +143,7 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_result_missing_reminder" ||
     eventType === "match_result_confirmation_reminder" ||
     eventType === "match_mvp_vote_reminder" ||
+    eventType === "match_mvp_awarded" ||
     eventType === "match_upcoming_reminder"
   );
 }
@@ -228,6 +229,7 @@ async function getTargetPlayerIds({
 
   if (
     event.type === "match_mvp_vote_reminder" ||
+    event.type === "match_mvp_awarded" ||
     event.type === "match_result_confirmation_reminder" ||
     event.type === "round_mvp_awarded"
   ) {
@@ -365,7 +367,10 @@ function getResultTextFromMetadata(event: ActivityEventRow) {
     .join(": ");
 }
 
-function getNotificationTitle(event: ActivityEventRow) {
+function getNotificationTitle(
+  event: ActivityEventRow,
+  recipient: NotificationRecipient | null,
+) {
   if (event.type === "season_finished") {
     return "TEMPORADA FINALIZADA";
   }
@@ -401,8 +406,18 @@ function getNotificationTitle(event: ActivityEventRow) {
     return "Falta tu voto MVP";
   }
 
+  if (event.type === "match_mvp_awarded") {
+    const winnerPlayerIds = toStringArray(toRecord(event.metadata).playerIds);
+    return recipient?.playerId && winnerPlayerIds.includes(recipient.playerId)
+      ? "¡MVP del partido!"
+      : "MVP del partido";
+  }
+
   if (event.type === "round_mvp_awarded") {
-    return "MVP de la jornada";
+    const winnerPlayerIds = toStringArray(toRecord(event.metadata).playerIds);
+    return recipient?.playerId && winnerPlayerIds.includes(recipient.playerId)
+      ? "¡MVP de la jornada!"
+      : "MVP de la jornada";
   }
 
   if (event.type === "match_upcoming_reminder") {
@@ -534,11 +549,44 @@ function getNotificationBody(
       : "Vota al MVP de tu último partido.";
   }
 
-  if (event.type === "round_mvp_awarded") {
+  if (event.type === "match_mvp_awarded") {
     const metadata = toRecord(event.metadata);
+    const winnerPlayerIds = toStringArray(metadata.playerIds);
     const winnerNames = toStringArray(metadata.playerNames);
     const round = metadata.round;
     const winnerText = winnerNames.join(" / ");
+    const isWinner = Boolean(
+      recipient?.playerId && winnerPlayerIds.includes(recipient.playerId),
+    );
+
+    if (isWinner) {
+      return winnerNames.length > 1
+        ? `Enhorabuena, eres MVP compartido del partido de la Jornada ${round}.`
+        : `Enhorabuena, eres el MVP del partido de la Jornada ${round}.`;
+    }
+
+    if (winnerText) {
+      return `${winnerText} ${winnerNames.length > 1 ? "son" : "es"} el MVP del partido de la Jornada ${round}.`;
+    }
+
+    return event.description?.trim() || "Ya se ha decidido el MVP del partido.";
+  }
+
+  if (event.type === "round_mvp_awarded") {
+    const metadata = toRecord(event.metadata);
+    const winnerPlayerIds = toStringArray(metadata.playerIds);
+    const winnerNames = toStringArray(metadata.playerNames);
+    const round = metadata.round;
+    const winnerText = winnerNames.join(" / ");
+    const isWinner = Boolean(
+      recipient?.playerId && winnerPlayerIds.includes(recipient.playerId),
+    );
+
+    if (isWinner) {
+      return winnerNames.length > 1
+        ? `Enhorabuena, eres MVP compartido de la Jornada ${round}.`
+        : `Enhorabuena, eres el MVP de la Jornada ${round}.`;
+    }
 
     if (winnerText && typeof round === "number") {
       return `${winnerText} ${winnerNames.length > 1 ? "son" : "es"} el MVP de la Jornada ${round}.`;
@@ -889,7 +937,7 @@ export async function dispatchPushForActivityEvent(
       const recipient =
         recipientByEmail.get(normalizeEmail(subscription.user_email)) ?? null;
       const payload = JSON.stringify({
-        title: getNotificationTitle(event),
+        title: getNotificationTitle(event, recipient),
         body: getNotificationBody(event, recipient, playerNamesById),
         url: getNotificationUrl(event),
         tag: `smash-lob-${event.id}`,

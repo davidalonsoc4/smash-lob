@@ -277,15 +277,18 @@ export function getMatchVotingProgress({
       )
       .map((vote) => vote.voterPlayerId)
   )
+  const voteRows = getMatchVoteRows({ votes, match })
+  const hasDecisiveWinner = (voteRows[0]?.votes ?? 0) >= 3
 
   return {
     submitted: validVoterIds.size,
     required: participantIds.length,
     missingPlayerIds: participantIds.filter((playerId) => !validVoterIds.has(playerId)),
+    resolvedEarly: hasDecisiveWinner,
     complete:
       match.status === "finished" &&
       participantIds.length > 0 &&
-      validVoterIds.size === participantIds.length,
+      (hasDecisiveWinner || validVoterIds.size === participantIds.length),
   }
 }
 

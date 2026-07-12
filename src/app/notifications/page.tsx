@@ -120,7 +120,8 @@ function isMatchParticipantNotification(event: ActivityEvent) {
     event.type === "match_result_cleared" ||
     event.type === "match_result_missing_reminder" ||
     event.type === "match_result_confirmation_reminder" ||
-    event.type === "match_mvp_vote_reminder"
+    event.type === "match_mvp_vote_reminder" ||
+    event.type === "match_mvp_awarded"
   );
 }
 
@@ -170,6 +171,7 @@ function isNotificationForCurrentUser({
 
   if (
     event.type === "match_mvp_vote_reminder" ||
+    event.type === "match_mvp_awarded" ||
     event.type === "match_result_confirmation_reminder" ||
     event.type === "match_result_disputed" ||
     event.type === "round_mvp_awarded"
@@ -254,7 +256,7 @@ function getResultText(event: ActivityEvent) {
     .join(": ");
 }
 
-function getNotificationTitle(event: ActivityEvent) {
+function getNotificationTitle(event: ActivityEvent, currentUserId: string) {
   if (event.type === "season_finished") {
     return "TEMPORADA FINALIZADA";
   }
@@ -291,8 +293,16 @@ function getNotificationTitle(event: ActivityEvent) {
     return "Falta tu voto MVP";
   }
 
+  if (event.type === "match_mvp_awarded") {
+    return toStringArray(event.metadata.playerIds).includes(currentUserId)
+      ? "¡MVP del partido!"
+      : "MVP del partido";
+  }
+
   if (event.type === "round_mvp_awarded") {
-    return "MVP de la jornada";
+    return toStringArray(event.metadata.playerIds).includes(currentUserId)
+      ? "¡MVP de la jornada!"
+      : "MVP de la jornada";
   }
 
   if (event.type === "round_in_play") {
@@ -442,10 +452,38 @@ function getNotificationBody({
       : "Vota al MVP de tu último partido.";
   }
 
-  if (event.type === "round_mvp_awarded") {
+  if (event.type === "match_mvp_awarded") {
+    const playerIds = toStringArray(metadata.playerIds);
     const playerNames = toStringArray(metadata.playerNames);
     const round = metadata.round;
     const winnerText = playerNames.join(" / ");
+    const isWinner = playerIds.includes(currentUserId);
+
+    if (isWinner) {
+      return playerNames.length > 1
+        ? `Enhorabuena, eres MVP compartido del partido de la Jornada ${round}.`
+        : `Enhorabuena, eres el MVP del partido de la Jornada ${round}.`;
+    }
+
+    if (winnerText) {
+      return `${winnerText} ${playerNames.length > 1 ? "son" : "es"} el MVP del partido de la Jornada ${round}.`;
+    }
+
+    return event.description || "Ya se ha decidido el MVP del partido.";
+  }
+
+  if (event.type === "round_mvp_awarded") {
+    const playerIds = toStringArray(metadata.playerIds);
+    const playerNames = toStringArray(metadata.playerNames);
+    const round = metadata.round;
+    const winnerText = playerNames.join(" / ");
+    const isWinner = playerIds.includes(currentUserId);
+
+    if (isWinner) {
+      return playerNames.length > 1
+        ? `Enhorabuena, eres MVP compartido de la Jornada ${round}.`
+        : `Enhorabuena, eres el MVP de la Jornada ${round}.`;
+    }
 
     if (
       winnerText &&
@@ -484,7 +522,7 @@ function NotificationCard({
       <AppCard className="p-3 transition active:scale-[0.99]">
         <div className="flex items-start justify-between gap-2">
           <p className="min-w-0 text-sm font-black text-neutral-950">
-            {getNotificationTitle(event)}
+            {getNotificationTitle(event, currentUserId)}
           </p>
           <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
             {formatNotificationDate(event.createdAt)}
