@@ -881,7 +881,6 @@ export const en = {
       match_result_updated: "Result",
       match_result_cleared: "Result",
       match_result_missing_reminder: "Result",
-      mvp_vote_missing_reminder: "MVP",
       match_upcoming_reminder: "Reminder",
       round_in_play: "Round",
       round_mvp_awarded: "MVP",

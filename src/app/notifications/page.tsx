@@ -112,8 +112,7 @@ function isMatchParticipantNotification(event: ActivityEvent) {
     event.type === "match_result_saved" ||
     event.type === "match_result_updated" ||
     event.type === "match_result_cleared" ||
-    event.type === "match_result_missing_reminder" ||
-    event.type === "mvp_vote_missing_reminder"
+    event.type === "match_result_missing_reminder"
   )
 }
 
@@ -257,10 +256,6 @@ function getNotificationTitle(event: ActivityEvent) {
     return "Falta el resultado"
   }
 
-  if (event.type === "mvp_vote_missing_reminder") {
-    return "Falta votar MVP"
-  }
-
   if (event.type === "round_in_play") {
     return "Jornada en juego"
   }
@@ -359,14 +354,6 @@ function getNotificationBody({
     return typeof round === "number" || typeof round === "string"
       ? `No olvides registrar el resultado de tu partido de la Jornada ${round}.`
       : "No olvides registrar el resultado de tu partido."
-  }
-
-  if (event.type === "mvp_vote_missing_reminder") {
-    const round = metadata.round
-
-    return typeof round === "number" || typeof round === "string"
-      ? `Vota el MVP de tu partido de la Jornada ${round}.`
-      : "Vota el MVP de tu partido."
   }
 
   if (event.type === "round_in_play") {

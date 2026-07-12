@@ -419,7 +419,6 @@ export async function fetchSupabaseLeagueSnapshot(email: string): Promise<{
         )
       : [],
     registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
-    mvpMode: "automatic",
   }))
   const matches: MatchData[] = (matchesResult.data ?? []).map((match) =>
     mapSupabaseMatch(match)

@@ -13,7 +13,6 @@ import {
   SeasonRoundSettings,
   useSeasonSettings,
 } from "@/context/SeasonSettingsProvider";
-import type { SeasonMvpMode } from "@/lib/mvp";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -405,102 +404,6 @@ function InviteLinkCard({
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
-        </p>
-      ) : null}
-    </AppCard>
-  );
-}
-
-function MvpSettingsPanel({
-  activeLeagueId,
-  activeSeasonId,
-  roundSettings,
-}: {
-  activeLeagueId: string;
-  activeSeasonId: string;
-  roundSettings: SeasonRoundSettings;
-}) {
-  const { updateSeasonRoundSettings } = useSeasonSettings();
-  const [selectedMode, setSelectedMode] = useState<SeasonMvpMode>(
-    roundSettings.mvpMode,
-  );
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
-
-  async function saveMode(nextMode: SeasonMvpMode) {
-    setSelectedMode(nextMode);
-    setIsSaving(true);
-    setError(null);
-    setFeedback(null);
-
-    const nextSettings = {
-      ...roundSettings,
-      leagueId: activeLeagueId,
-      seasonId: activeSeasonId,
-      mvpMode: nextMode,
-    };
-
-    if (isSupabaseBackedId(activeSeasonId)) {
-      try {
-        await updateSupabaseSeasonRoundSettings(nextSettings);
-      } catch (supabaseError) {
-        recordSupabaseError("update-mvp-system", supabaseError);
-        setError(
-          "No se ha podido guardar el sistema MVP en Supabase. Revisa smash-lob-last-supabase-error.",
-        );
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    updateSeasonRoundSettings(nextSettings);
-    setFeedback("Sistema MVP actualizado.");
-    setIsSaving(false);
-  }
-
-  return (
-    <AppCard>
-      <p className="font-bold">Sistema MVP</p>
-      <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Define si esta temporada reparte MVPs y como se calculan.
-      </p>
-
-      <div className="mt-4 grid gap-2">
-        {([
-          ["none", "Sin MVP", "No se muestran ni calculan MVPs."],
-          ["automatic", "Automatico", "La app elige la pareja ganadora con mejor diferencia."],
-          ["voting", "Por votacion", "Cada jugador vota al MVP de su partido tras el resultado."],
-        ] as [SeasonMvpMode, string, string][]).map(([mode, label, helper]) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => saveMode(mode)}
-            disabled={isSaving}
-            className={`rounded-2xl border px-3 py-2.5 text-left transition disabled:opacity-50 ${
-              selectedMode === mode
-                ? "border-neutral-950 bg-neutral-950 text-white"
-                : "border-neutral-200 bg-white text-neutral-900"
-            }`}
-          >
-            <span className="block text-sm font-black">{label}</span>
-            <span
-              className={`mt-1 block text-xs font-semibold ${
-                selectedMode === mode ? "text-neutral-300" : "text-neutral-500"
-              }`}
-            >
-              {helper}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {error ? (
-        <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
-      ) : null}
-      {feedback ? (
-        <p className="mt-3 text-sm font-semibold text-neutral-600">
-          {feedback}
         </p>
       ) : null}
     </AppCard>
@@ -1549,7 +1452,6 @@ function NewSeasonForm({
   const [seasonStartsAt, setSeasonStartsAt] = useState("");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
-  const [mvpMode, setMvpMode] = useState<SeasonMvpMode>("automatic");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
   const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
@@ -1749,7 +1651,6 @@ function NewSeasonForm({
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
-      mvpMode,
       manualMatches,
       scheduleMode,
       registrationFeeEnabled: hasRegistrationFee,
@@ -1855,7 +1756,6 @@ function NewSeasonForm({
             ? parsedRegistrationFeeAmount
             : 0,
           registrationFeePurpose: hasRegistrationFee ? registrationFeePurpose : "",
-          mvpMode,
         },
       });
     } catch {
@@ -1929,44 +1829,6 @@ function NewSeasonForm({
               ))}
             </div>
           </div>
-        </div>
-      </AppCard>
-
-      <AppCard>
-        <p className="font-bold">Sistema MVP</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
-          Puedes desactivar MVPs o elegir como se resolveran durante la temporada.
-        </p>
-
-        <div className="mt-4 grid gap-2">
-          {([
-            ["none", "Sin MVP", "No se calcularan MVPs en esta temporada."],
-            ["automatic", "Automatico", "La app elegira a la pareja MVP de cada jornada."],
-            ["voting", "Por votacion", "Cada jugador votara al MVP de su partido tras guardar resultado."],
-          ] as [SeasonMvpMode, string, string][]).map(([mode, label, helper]) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => {
-                setMvpMode(mode);
-                setFeedback(null);
-              }}
-              className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                mvpMode === mode
-                  ? "border-neutral-950 bg-neutral-950 text-white"
-                  : "border-neutral-200 bg-white text-neutral-900"
-              }`}
-            >
-              <span className="block text-sm font-black">{label}</span>
-              <span
-                className={`mt-1 block text-xs font-semibold ${
-                  mvpMode === mode ? "text-neutral-300" : "text-neutral-500"
-                }`}
-              >
-                {helper}
-              </span>
-            </button>
-          ))}
         </div>
       </AppCard>
 
@@ -2710,12 +2572,6 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <MvpSettingsPanel
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-            roundSettings={roundSettings}
-          />
-
 
 
           <div id="jugadores">
@@ -2750,12 +2606,6 @@ export default function AdminSeasonPage() {
               canStartBecauseRegistrationSettled={isRegistrationSettled}
             />
           </div>
-
-          <MvpSettingsPanel
-            activeLeagueId={activeLeague.id}
-            activeSeasonId={activeSeason.id}
-            roundSettings={roundSettings}
-          />
 
 
 

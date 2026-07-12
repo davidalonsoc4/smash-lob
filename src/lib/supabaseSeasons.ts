@@ -381,7 +381,6 @@ export async function startSupabaseSeason({
   seasonStartsAt,
   roundWindowDays,
   requiresThreeSets,
-  mvpMode = "automatic",
   manualMatches,
   scheduleMode = "single",
   registrationFeeEnabled = false,
@@ -401,7 +400,6 @@ export async function startSupabaseSeason({
   seasonStartsAt: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
-  mvpMode?: SeasonRoundSettings["mvpMode"];
   manualMatches?: ManualCalendarMatchDraft[];
   scheduleMode?: SeasonScheduleMode;
   registrationFeeEnabled?: boolean;
@@ -664,7 +662,6 @@ export async function startSupabaseSeason({
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
       }),
-      mvpMode,
     },
   ];
 

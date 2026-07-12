@@ -142,8 +142,7 @@ async function createActivityEvent({
   type:
     | "round_in_play"
     | "match_result_missing_reminder"
-    | "match_upcoming_reminder"
-    | "mvp_vote_missing_reminder";
+    | "match_upcoming_reminder";
   title: string;
   description: string;
   metadata: Record<string, unknown>;
@@ -233,25 +232,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: matchesError.message }, { status: 500 });
   }
 
-  const mvpVoteReminderStartsAt = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const { data: finishedMatches, error: finishedMatchesError } = await supabase
-    .from("matches")
-    .select(
-      "id,league_id,season_id,round,status,team_a,team_b,scheduled_at,date_label,location,result_recorded_at",
-    )
-    .eq("status", "finished")
-    .not("result_recorded_at", "is", null)
-    .lte("result_recorded_at", mvpVoteReminderStartsAt.toISOString())
-    .limit(500);
-
-  if (finishedMatchesError) {
-    return NextResponse.json({ ok: false, error: finishedMatchesError.message }, { status: 500 });
-  }
-
-  const matches = [
-    ...((scheduledMatches ?? []) as MatchRow[]),
-    ...((finishedMatches ?? []) as MatchRow[]),
-  ];
+  const matches = (scheduledMatches ?? []) as MatchRow[];
   const seasonIds = Array.from(new Set(matches.map((match) => match.season_id).filter(Boolean)));
 
   if (seasonIds.length === 0) {

@@ -418,7 +418,6 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
   const { data: session } = useSession()
   const {
     finishSeason,
-    getSeasonRoundSettings,
     hydrateSeasonSnapshot,
     playerProfiles,
     seasonPlayers,
@@ -721,7 +720,6 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           seasonId: currentMatch.seasonId,
           round: currentMatch.round,
           matches,
-          mvpMode: getSeasonRoundSettings(currentMatch.seasonId).mvpMode,
         })
         const updatedMatch = await finishSupabaseMatch({
           matchId,
@@ -733,7 +731,6 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           seasonId: updatedMatch.seasonId,
           round: updatedMatch.round,
           matches: nextMatches,
-          mvpMode: getSeasonRoundSettings(updatedMatch.seasonId).mvpMode,
         })
 
         setMatches(() => persistNextMatches(nextMatches))
@@ -851,7 +848,6 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [
       finishSeason,
       hydrateSeasonSnapshot,
-      getSeasonRoundSettings,
       matches,
       persistNextMatches,
       playerProfiles,

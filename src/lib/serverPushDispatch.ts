@@ -140,7 +140,6 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_result_updated" ||
     eventType === "match_result_cleared" ||
     eventType === "match_result_missing_reminder" ||
-    eventType === "mvp_vote_missing_reminder" ||
     eventType === "match_upcoming_reminder"
   );
 }
@@ -368,10 +367,6 @@ function getNotificationTitle(event: ActivityEventRow) {
     return "Falta el resultado";
   }
 
-  if (event.type === "mvp_vote_missing_reminder") {
-    return "Falta votar MVP";
-  }
-
   if (event.type === "match_upcoming_reminder") {
     return "Próximo partido";
   }
@@ -470,14 +465,6 @@ function getNotificationBody(
     return typeof round === "number"
       ? `No olvides registrar el resultado de tu partido de la Jornada ${round}.`
       : "No olvides registrar el resultado de tu partido.";
-  }
-
-  if (event.type === "mvp_vote_missing_reminder") {
-    const round = toRecord(event.metadata).round;
-
-    return typeof round === "number"
-      ? `Vota el MVP de tu partido de la Jornada ${round}.`
-      : "Vota el MVP de tu partido.";
   }
 
   if (event.type === "match_upcoming_reminder") {

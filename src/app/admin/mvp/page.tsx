@@ -4,7 +4,6 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
@@ -58,9 +57,7 @@ function MvpPlayerLine({
 export default function AdminMvpPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole } = useLeagueAccess()
-  const { votes } = useMvp()
-  const { activeLeague, activeSeason, roundSettings, players, matches } =
-    useCurrentLeagueData()
+  const { activeLeague, activeSeason, players, matches } = useCurrentLeagueData()
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const completedRounds = getCompletedRoundNumbers(
     matches,
@@ -73,8 +70,6 @@ export default function AdminMvpPage() {
         leagueId: activeLeague.id,
         seasonId: activeSeason.id,
         matches,
-        votes,
-        mvpMode: roundSettings.mvpMode,
       })
     : null
   const seasonMvpPlayers = getPlayersByIds(players, seasonMvp?.playerIds ?? [])
@@ -93,29 +88,6 @@ export default function AdminMvpPage() {
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
             {t.adminPanel.accessDeniedDescription}
-          </p>
-        </AppCard>
-      </div>
-    )
-  }
-
-  if (roundSettings.mvpMode === "none") {
-    return (
-      <div className="compact-page space-y-3">
-        <header className="pt-2">
-          <BackButton fallbackHref="/admin" label={t.common.back} />
-          <p className="mt-1 text-xs font-bold text-neutral-500">
-            {activeLeague.name} - {activeSeason.name}
-          </p>
-          <h1 className="mt-0.5 text-xl font-black tracking-tight">
-            Administrar MVP
-          </h1>
-        </header>
-
-        <AppCard>
-          <p className="font-bold">MVP desactivado</p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">
-            Esta temporada no reparte MVPs.
           </p>
         </AppCard>
       </div>
@@ -173,8 +145,6 @@ export default function AdminMvpPage() {
                 seasonId: activeSeason.id,
                 round,
                 matches,
-                votes,
-                mvpMode: roundSettings.mvpMode,
               })
               const roundMvpPlayers = getPlayersByIds(
                 players,

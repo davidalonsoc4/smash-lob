@@ -21,7 +21,6 @@ type MvpVoteInput = {
   leagueId: string
   seasonId: string
   round: number
-  matchId?: string | null
   voterPlayerId: string
   selectedPlayerId: string
 }
@@ -75,7 +74,6 @@ function isSameVote(firstVote: MvpVoteInput, secondVote: MvpVoteInput) {
     firstVote.leagueId === secondVote.leagueId &&
     firstVote.seasonId === secondVote.seasonId &&
     firstVote.round === secondVote.round &&
-    (firstVote.matchId ?? null) === (secondVote.matchId ?? null) &&
     firstVote.voterPlayerId === secondVote.voterPlayerId
   )
 }
@@ -115,14 +113,14 @@ function recordSupabaseError(action: string, error: unknown) {
 function mergeVotes(currentVotes: MvpVote[], incomingVotes: MvpVote[]) {
   const items = new Map(
     currentVotes.map((vote) => [
-      `${vote.leagueId}:${vote.seasonId}:${vote.round}:${vote.matchId ?? "round"}:${vote.voterPlayerId}`,
+      `${vote.leagueId}:${vote.seasonId}:${vote.round}:${vote.voterPlayerId}`,
       vote,
     ])
   )
 
   incomingVotes.forEach((vote) => {
     items.set(
-      `${vote.leagueId}:${vote.seasonId}:${vote.round}:${vote.matchId ?? "round"}:${vote.voterPlayerId}`,
+      `${vote.leagueId}:${vote.seasonId}:${vote.round}:${vote.voterPlayerId}`,
       vote
     )
   })

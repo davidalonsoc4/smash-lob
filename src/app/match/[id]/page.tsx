@@ -5,7 +5,6 @@ import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
-import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
@@ -15,7 +14,6 @@ import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
-import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
@@ -30,7 +28,6 @@ export default function MatchDetailPage() {
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const { clearMatchResult } = useMatchData()
-  const { votes } = useMvp()
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
   const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
@@ -124,8 +121,6 @@ export default function MatchDetailPage() {
     seasonId: activeSeason.id,
     round: match.round,
     matches,
-    votes,
-    mvpMode: roundSettings.mvpMode,
   })
   const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
     currentUserId
@@ -196,23 +191,13 @@ export default function MatchDetailPage() {
       />
 
       {match.status === "finished" ? (
-        <MatchResultConfirmationCard
-          matchId={match.id}
-          participantIds={[...match.teamA, ...match.teamB]}
-          currentUserId={currentUserId}
-          players={players}
-        />
-      ) : null}
-
-      {match.status === "finished" ? (
         <MvpVotingCard
           leagueId={activeLeague.id}
           seasonId={activeSeason.id}
-          match={match}
+          round={match.round}
           currentUserId={currentUserId}
           players={players}
           matches={matches}
-          mvpMode={roundSettings.mvpMode}
         />
       ) : null}
 

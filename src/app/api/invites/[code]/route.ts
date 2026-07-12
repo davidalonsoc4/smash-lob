@@ -393,7 +393,6 @@ async function buildInviteResponse(
         )
       : [],
     registrationFee: normalizeSeasonRegistrationFee(undefined),
-    mvpMode: "automatic",
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

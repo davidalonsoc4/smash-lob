@@ -343,7 +343,6 @@ async function fetchSupabaseInviteSnapshotDirect(
         )
       : [],
     registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
-    mvpMode: "automatic",
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

@@ -959,7 +959,6 @@ export default function Home() {
           canManage={canManageSeason}
           players={players}
           matches={matches}
-          mvpMode={roundSettings.mvpMode}
         />
       ) : null}
 
