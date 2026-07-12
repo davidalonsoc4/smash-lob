@@ -22,13 +22,12 @@ import {
 } from "@/lib/leagueLocations"
 import {
   activityEventCategories,
-  activityEventTypes,
+  configurableNotificationEventTypes,
   fetchLeagueActivitySettings,
   getActivityDeliveryMode,
   getActivityEventDefinition,
   mergeWithDefaultActivitySettings,
   updateLeagueActivitySettings,
-  type ActivityDeliveryMode,
   type LeagueActivitySettings,
 } from "@/lib/activitySettings"
 
@@ -409,20 +408,6 @@ function ActivityEventCard({
   )
 }
 
-function DeliveryModeLabel({ mode }: { mode: ActivityDeliveryMode }) {
-  const { t } = useI18n()
-
-  if (mode === "notify") {
-    return <>{t.activity.modeNotify}</>
-  }
-
-  if (mode === "personal") {
-    return <>{t.activity.modePersonal}</>
-  }
-
-  return <>{t.activity.modeActivityOnly}</>
-}
-
 function ActivityPageContent() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
@@ -572,23 +557,35 @@ function ActivityPageContent() {
   const visibleEvents = effectiveScope === "mine" ? personalEvents : events
   const hasEvents = visibleEvents.length > 0
   const normalizedDraftSettings = mergeWithDefaultActivitySettings(draftSettings)
-  const activitySettingsSummary = useMemo(() => {
-    return activityEventTypes.reduce(
-      (summary, eventType) => {
-        summary[normalizedDraftSettings[eventType]] += 1
-        return summary
-      },
-      { activity_only: 0, personal: 0, notify: 0 } as Record<ActivityDeliveryMode, number>
-    )
+  const notificationSettingsSummary = useMemo(() => {
+    const enabled = configurableNotificationEventTypes.filter(
+      (eventType) => normalizedDraftSettings[eventType] === "notify"
+    ).length
+
+    return {
+      enabled,
+      disabled: configurableNotificationEventTypes.length - enabled,
+    }
   }, [normalizedDraftSettings])
   const activityEventGroups = useMemo(() => {
     return activityEventCategories.map((category) => ({
       category,
-      eventTypes: activityEventTypes.filter(
+      eventTypes: configurableNotificationEventTypes.filter(
         (eventType) => getActivityEventDefinition(eventType).category === category
       ),
-    }))
+    })).filter((group) => group.eventTypes.length > 0)
   }, [])
+
+  function setAllNotificationTypes(enabled: boolean) {
+    setDraftSettings((currentSettings) => {
+      const nextSettings = { ...currentSettings }
+      configurableNotificationEventTypes.forEach((eventType) => {
+        nextSettings[eventType] = enabled ? "notify" : "personal"
+      })
+      return nextSettings
+    })
+    setSettingsMessage(null)
+  }
 
   async function saveActivitySettings() {
     if (!canAccessAdmin || isSettingsSaving) {
@@ -693,30 +690,14 @@ function ActivityPageContent() {
                 </button>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
-                <p className="text-lg font-black text-neutral-950">
-                  {activitySettingsSummary.activity_only}
-                </p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                  {t.activity.modeActivityOnlyShort}
-                </p>
-                </div>
-                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
-                <p className="text-lg font-black text-neutral-950">
-                  {activitySettingsSummary.personal}
-                </p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                  {t.activity.modePersonalShort}
-                </p>
-                </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-2xl bg-neutral-950 p-3 text-center text-white">
-                <p className="text-lg font-black">
-                  {activitySettingsSummary.notify}
-                </p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-white/70">
-                  {t.activity.modeNotifyShort}
-                </p>
+                  <p className="text-lg font-black">{notificationSettingsSummary.enabled}</p>
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-white/70">{t.activity.notificationEnabledCount}</p>
+                </div>
+                <div className="rounded-2xl bg-neutral-100 p-3 text-center">
+                  <p className="text-lg font-black text-neutral-950">{notificationSettingsSummary.disabled}</p>
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">{t.activity.notificationDisabledCount}</p>
                 </div>
               </div>
 
@@ -744,6 +725,19 @@ function ActivityPageContent() {
                       </p>
                     </div>
 
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                      <p className="text-sm font-black text-amber-950">{t.activity.mandatoryPaymentRemindersTitle}</p>
+                      <p className="mt-1 text-xs font-semibold text-amber-800">{t.activity.mandatoryPaymentRemindersDescription}</p>
+                    </div>
+
+                    <div className="rounded-2xl border border-neutral-200 bg-white p-3">
+                      <p className="text-xs font-semibold leading-4 text-neutral-500">{t.activity.notificationToggleDescription}</p>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => setAllNotificationTypes(false)} className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700">{t.notifications.disableAll}</button>
+                        <button type="button" onClick={() => setAllNotificationTypes(true)} className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white">{t.notifications.enableAll}</button>
+                      </div>
+                    </div>
+
                     {activityEventGroups.map((group) => (
                       <section key={group.category} className="space-y-3">
                         <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
@@ -752,51 +746,28 @@ function ActivityPageContent() {
 
                         {group.eventTypes.map((eventType) => {
                           const definition = getActivityEventDefinition(eventType)
+                          const isNotificationEnabled = normalizedDraftSettings[eventType] === "notify"
 
                           return (
-                            <div
-                              key={eventType}
-                              className="rounded-2xl border border-neutral-200 p-3"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <p className="text-sm font-black text-neutral-950">
-                                    {t.activity.labels[eventType]}
-                                  </p>
-                                  <p className="mt-1 break-all text-xs font-semibold text-neutral-400">
-                                    {eventType}
-                                  </p>
-                                </div>
-                                {definition.pushReady ? (
-                                  <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
-                                    {t.activity.pushReady}
-                                  </span>
-                                ) : null}
+                            <div key={eventType} className="flex items-start justify-between gap-3 rounded-2xl border border-neutral-200 p-3">
+                              <div className="min-w-0">
+                                <p className="text-sm font-black text-neutral-950">{t.activity.notificationLabels[eventType]}</p>
+                                <p className="mt-1 text-xs font-semibold text-neutral-500">{t.activity.personalScopeLabels[definition.personalScope]}</p>
+                                <p className="mt-1 text-[11px] font-semibold text-neutral-400">{isNotificationEnabled ? t.activity.notificationEnabled : t.activity.notificationDisabled}</p>
                               </div>
-
-                              <p className="mt-2 text-xs font-semibold text-neutral-500">
-                                {t.activity.personalScopeLabel}: {t.activity.personalScopeLabels[definition.personalScope]}
-                              </p>
-
-                              <select
-                                value={normalizedDraftSettings[eventType]}
-                                onChange={(event) => {
-                                  const mode = event.target.value as ActivityDeliveryMode
-                                  setDraftSettings((currentSettings) => ({
-                                    ...currentSettings,
-                                    [eventType]: mode,
-                                  }))
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={isNotificationEnabled}
+                                aria-label={t.activity.notificationLabels[eventType]}
+                                onClick={() => {
+                                  setDraftSettings((currentSettings) => ({ ...currentSettings, [eventType]: isNotificationEnabled ? "personal" : "notify" }))
                                   setSettingsMessage(null)
                                 }}
-                                className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
+                                className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${isNotificationEnabled ? "bg-neutral-950" : "bg-neutral-300"}`}
                               >
-                                <option value="activity_only">{t.activity.modeActivityOnly}</option>
-                                <option value="personal">{t.activity.modePersonal}</option>
-                                <option value="notify">{t.activity.modeNotify}</option>
-                              </select>
-                              <p className="mt-2 text-xs text-neutral-500">
-                                <DeliveryModeLabel mode={normalizedDraftSettings[eventType]} />
-                              </p>
+                                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${isNotificationEnabled ? "left-6" : "left-1"}`} />
+                              </button>
                             </div>
                           )
                         })}

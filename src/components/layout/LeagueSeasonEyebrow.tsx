@@ -1,4 +1,7 @@
+"use client"
+
 import type { Season } from "@/data/fakeData"
+import { useI18n } from "@/i18n/I18nProvider"
 import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 
 type LeagueSeasonEyebrowProps = {
@@ -15,6 +18,8 @@ export function LeagueSeasonEyebrow({
   seasonName,
   seasonStatus,
 }: LeagueSeasonEyebrowProps) {
+  const { t } = useI18n()
+
   return (
     <div className="min-w-0 space-y-0.5">
       <p className={`${eyebrowClassName} break-words`}>{leagueName}</p>
@@ -23,7 +28,7 @@ export function LeagueSeasonEyebrow({
         <p className={eyebrowClassName}>{seasonName}</p>
         {seasonStatus === "finished" ? (
           <span className={getSeasonStatusBadgeClassName("finished")}>
-            Terminada
+            {t.common.finishedSeasonBadge}
           </span>
         ) : null}
       </div>

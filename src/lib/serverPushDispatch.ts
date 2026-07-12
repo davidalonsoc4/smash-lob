@@ -6,6 +6,10 @@ import {
 } from "@/lib/notificationSettings";
 import type { ActivityEventType } from "@/lib/activity";
 import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
+import {
+  getActivityDeliveryMode,
+  normalizeLeagueActivitySettings,
+} from "@/lib/activitySettings";
 
 export type PushDispatchResult = {
   ok: boolean;
@@ -889,6 +893,27 @@ export async function dispatchPushForActivityEvent(
   }
 
   const event = eventData as ActivityEventRow;
+
+  if (!isAlwaysEnabledNotificationEvent(event.type)) {
+    const { data: leagueData, error: leagueError } = await supabase
+      .from("leagues")
+      .select("activity_settings")
+      .eq("id", event.league_id)
+      .maybeSingle();
+
+    if (leagueError) {
+      return { ok: false, sent: 0, error: leagueError.message };
+    }
+
+    const leagueSettings = normalizeLeagueActivitySettings(
+      leagueData?.activity_settings,
+    );
+
+    if (getActivityDeliveryMode(leagueSettings, event.type) !== "notify") {
+      return { ok: true, sent: 0, reason: "disabled_by_league" };
+    }
+  }
+
   const recipients = await getRecipients({ supabase, event });
   const allowedRecipients = await filterByPreferences({
     supabase,

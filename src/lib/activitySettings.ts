@@ -1,5 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import type { ActivityEventType } from "@/lib/activity";
+import {
+  alwaysEnabledNotificationEventTypes,
+  isAlwaysEnabledNotificationEvent,
+} from "@/lib/notificationSettings";
 
 export type ActivityDeliveryMode = "activity_only" | "personal" | "notify";
 export type ActivityEventCategory =
@@ -220,6 +224,12 @@ export const activityEventTypes = Object.keys(
   activityEventDefinitions,
 ) as ActivityEventType[];
 
+export const configurableNotificationEventTypes = activityEventTypes.filter(
+  (eventType) =>
+    activityEventDefinitions[eventType].pushReady &&
+    !alwaysEnabledNotificationEventTypes.includes(eventType),
+);
+
 export const activityEventCategories: ActivityEventCategory[] = [
   "match",
   "court",
@@ -245,7 +255,9 @@ function isActivityDeliveryMode(value: unknown): value is ActivityDeliveryMode {
   );
 }
 
-function normalizeSettings(value: unknown): LeagueActivitySettings {
+export function normalizeLeagueActivitySettings(
+  value: unknown,
+): LeagueActivitySettings {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return {};
   }
@@ -272,6 +284,10 @@ export function getActivityDeliveryMode(
   settings: LeagueActivitySettings,
   eventType: ActivityEventType,
 ): ActivityDeliveryMode {
+  if (isAlwaysEnabledNotificationEvent(eventType)) {
+    return "notify";
+  }
+
   return settings[eventType] ?? defaultLeagueActivitySettings[eventType];
 }
 
@@ -298,7 +314,7 @@ export async function fetchLeagueActivitySettings(leagueId: string) {
     throw error;
   }
 
-  return normalizeSettings(data?.activity_settings);
+  return normalizeLeagueActivitySettings(data?.activity_settings);
 }
 
 export async function updateLeagueActivitySettings({
@@ -321,5 +337,5 @@ export async function updateLeagueActivitySettings({
     throw error;
   }
 
-  return normalizeSettings(data?.activity_settings);
+  return normalizeLeagueActivitySettings(data?.activity_settings);
 }

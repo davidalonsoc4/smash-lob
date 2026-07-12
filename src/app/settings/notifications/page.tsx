@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import {
   defaultNotificationPreferences,
@@ -26,28 +27,12 @@ type LoadPreferencesResponse = {
   isConfigured?: boolean
 }
 
-function getSupportMessage(status: PushSupportStatus) {
-  if (status === "unsupported") {
-    return "Este navegador no permite notificaciones push web. En iPhone necesitas instalar la PWA en la pantalla de inicio."
-  }
-
-  if (status === "missing_public_key") {
-    return "Falta configurar NEXT_PUBLIC_VAPID_PUBLIC_KEY para activar el permiso push. Puedes guardar preferencias igualmente."
-  }
-
-  if (status === "permission_denied") {
-    return "Las notificaciones están bloqueadas en el navegador. Tendrás que permitirlas desde los ajustes del sistema o del navegador."
-  }
-
-  return "Activa este dispositivo para recibir avisos aunque no tengas la app abierta."
-}
-
-function formatEnabledCount(preferences: NotificationPreferences) {
-  const enabled = Object.values(preferences).filter(Boolean).length
-  return `${enabled}/${notificationPreferenceDefinitions.length}`
+function getEnabledCount(preferences: NotificationPreferences) {
+  return Object.values(preferences).filter(Boolean).length
 }
 
 export default function NotificationSettingsPage() {
+  const { t } = useI18n()
   const { activeLeague } = useCurrentLeagueData()
   const { currentUserId } = useCurrentUser()
   const [preferences, setPreferences] = useState<NotificationPreferences>(
@@ -61,11 +46,15 @@ export default function NotificationSettingsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const enabledCount = useMemo(
-    () => formatEnabledCount(preferences),
-    [preferences]
-  )
+  const enabledCount = useMemo(() => getEnabledCount(preferences), [preferences])
   const canRequestPush = supportStatus === "supported"
+
+  function getSupportMessage(status: PushSupportStatus) {
+    if (status === "unsupported") return t.notifications.supportUnsupported
+    if (status === "missing_public_key") return t.notifications.supportMissingPublicKey
+    if (status === "permission_denied") return t.notifications.supportPermissionDenied
+    return t.notifications.supportReady
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -149,11 +138,9 @@ export default function NotificationSettingsPage() {
       const data = (await response.json()) as LoadPreferencesResponse
       setPreferences(normalizeNotificationPreferences(data.preferences))
       setIsConfigured(data.isConfigured !== false)
-      setMessage("Preferencias guardadas.")
+      setMessage(t.notifications.preferencesSaved)
     } catch {
-      setError(
-        "No se han podido guardar las preferencias. Revisa las tablas de notificaciones y SUPABASE_SERVICE_ROLE_KEY."
-      )
+      setError(t.notifications.preferencesSaveError)
     } finally {
       setIsSaving(false)
     }
@@ -223,11 +210,9 @@ export default function NotificationSettingsPage() {
 
       setPushAutoRegistrationDisabled(false)
       setHasSubscription(true)
-      setMessage("Notificaciones activadas en este dispositivo.")
+      setMessage(t.notifications.deviceEnabled)
     } catch {
-      setError(
-        "No se ha podido guardar este dispositivo. Revisa VAPID, SUPABASE_SERVICE_ROLE_KEY y las tablas de notificaciones."
-      )
+      setError(t.notifications.deviceEnableError)
     } finally {
       setIsSaving(false)
     }
@@ -260,9 +245,9 @@ export default function NotificationSettingsPage() {
       })
 
       setHasSubscription(false)
-      setMessage("Notificaciones desactivadas en este dispositivo.")
+      setMessage(t.notifications.deviceDisabled)
     } catch {
-      setError("No se ha podido desactivar este dispositivo.")
+      setError(t.notifications.deviceDisableError)
     } finally {
       setIsSaving(false)
     }
@@ -271,18 +256,18 @@ export default function NotificationSettingsPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="pt-1">
-        <BackButton fallbackHref="/settings" label="Volver" />
+        <BackButton fallbackHref="/settings" label={t.common.back} />
 
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
           <span>{activeLeague.name}</span>
         </p>
 
         <h1 className="mt-0.5 text-xl font-black tracking-tight">
-          Notificaciones
+          {t.notifications.title}
         </h1>
 
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Elige qué avisos quieres recibir. Todas las opciones vienen activadas por defecto.
+          {t.notifications.description}
         </p>
       </header>
 
@@ -290,7 +275,7 @@ export default function NotificationSettingsPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-black text-neutral-950">
-              Push en este dispositivo
+              {t.notifications.deviceTitle}
             </p>
             <p className="mt-1 text-xs font-semibold leading-4 text-neutral-500">
               {getSupportMessage(supportStatus)}
@@ -304,13 +289,13 @@ export default function NotificationSettingsPage() {
                 : "bg-neutral-100 text-neutral-600"
             }`}
           >
-            {hasSubscription ? "Activo" : "Inactivo"}
+            {hasSubscription ? t.notifications.active : t.notifications.inactive}
           </span>
         </div>
 
         {!isConfigured ? (
           <div className="mt-3 rounded-xl bg-orange-50 px-3 py-2 text-xs font-semibold leading-4 text-orange-900">
-            Falta configuración de servidor o las tablas SQL. La pantalla queda preparada, pero el envío real necesita completar la configuración.
+            {t.notifications.missingConfiguration}
           </div>
         ) : null}
 
@@ -321,7 +306,7 @@ export default function NotificationSettingsPage() {
             disabled={!canRequestPush || hasSubscription || isSaving}
             className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
           >
-            Activar push
+            {t.notifications.enablePush}
           </button>
           <button
             type="button"
@@ -329,7 +314,7 @@ export default function NotificationSettingsPage() {
             disabled={!hasSubscription || isSaving}
             className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300"
           >
-            Desactivar
+            {t.notifications.disablePush}
           </button>
         </div>
       </AppCard>
@@ -338,13 +323,13 @@ export default function NotificationSettingsPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-black text-neutral-950">
-              Tipos de aviso
+              {t.notifications.typesTitle}
             </p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
-              Activados: {enabledCount}
+              {t.notifications.enabledCount.replace("{enabled}", String(enabledCount)).replace("{total}", String(notificationPreferenceDefinitions.length))}
             </p>
             <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-400">
-              Los recordatorios manuales de pago se reciben siempre.
+              {t.notifications.mandatoryPaymentReminders}
             </p>
           </div>
 
@@ -355,7 +340,7 @@ export default function NotificationSettingsPage() {
               disabled={isLoading || isSaving}
               className="rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-300"
             >
-              Desactivar todo
+              {t.notifications.disablePush} todo
             </button>
             <button
               type="button"
@@ -363,7 +348,7 @@ export default function NotificationSettingsPage() {
               disabled={isLoading || isSaving}
               className="rounded-xl bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
             >
-              Activar todo
+              {t.notifications.enableAll}
             </button>
           </div>
         </div>
@@ -379,10 +364,10 @@ export default function NotificationSettingsPage() {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-black text-neutral-950">
-                    {definition.title}
+                    {t.notifications.preferences[definition.key].title}
                   </p>
                   <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">
-                    {definition.description}
+                    {t.notifications.preferences[definition.key].description}
                   </p>
                 </div>
 

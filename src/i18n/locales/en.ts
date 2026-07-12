@@ -13,6 +13,7 @@ export const en = {
     cancel: "Cancel",
     retry: "Check again",
     active: "Selected",
+    finishedSeasonBadge: "Finished",
   },
 
   auth: {
@@ -157,6 +158,7 @@ export const en = {
     activity: "Activity",
     player: "Player",
     profile: "Profile",
+    account: "Account",
   },
 
   dashboard: {
@@ -809,6 +811,78 @@ export const en = {
     createError: "The league could not be created with the current user.",
   },
 
+  notifications: {
+    title: "Notifications",
+    description:
+      "Choose which alerts you want to receive. Every option is enabled by default.",
+    deviceTitle: "Push on this device",
+    supportUnsupported:
+      "This browser does not support web push notifications. On iPhone, install the PWA on the Home Screen first.",
+    supportMissingPublicKey:
+      "NEXT_PUBLIC_VAPID_PUBLIC_KEY is not configured, so push permission cannot be enabled. You can still save preferences.",
+    supportPermissionDenied:
+      "Notifications are blocked in the browser. Allow them from the system or browser settings.",
+    supportReady:
+      "Enable this device to receive alerts even when the app is not open.",
+    active: "Active",
+    inactive: "Inactive",
+    missingConfiguration:
+      "Server configuration or notification SQL tables are missing. The screen is ready, but actual delivery requires completing the setup.",
+    enablePush: "Enable push",
+    disablePush: "Disable",
+    typesTitle: "Alert types",
+    enabledCount: "Enabled: {enabled}/{total}",
+    mandatoryPaymentReminders:
+      "Court and registration payment reminders, whether automatic or sent manually, are always received.",
+    disableAll: "Disable all",
+    enableAll: "Enable all",
+    preferencesSaved: "Preferences saved.",
+    preferencesSaveError:
+      "Preferences could not be saved. Check the notification tables and SUPABASE_SERVICE_ROLE_KEY.",
+    deviceEnabled: "Notifications enabled on this device.",
+    deviceEnableError:
+      "This device could not be saved. Check VAPID, SUPABASE_SERVICE_ROLE_KEY and the notification tables.",
+    deviceDisabled: "Notifications disabled on this device.",
+    deviceDisableError: "This device could not be disabled.",
+    preferences: {
+      next_match: {
+        title: "My next match",
+        description:
+          "Scheduling, date, place or court changes, postponements and a reminder 2 hours before your matches.",
+      },
+      my_match_result: {
+        title: "My match results",
+        description:
+          "Results entered, edited or removed, confirmations, and reminders to enter a result or vote for MVP.",
+      },
+      round_events: {
+        title: "Rounds and MVP",
+        description:
+          "Alerts when a round is in play and when MVP awards are decided during the season.",
+      },
+      season_events: {
+        title: "Seasons",
+        description:
+          "A new season is created, started or finished in your league.",
+      },
+      booking_i_owe: {
+        title: "Court bookings",
+        description:
+          "A booking says you owe your share to another player or a booking in one of your matches is updated.",
+      },
+      booking_paid_to_me: {
+        title: "Court payments received",
+        description:
+          "Someone who owed you a court transfer marks it as paid.",
+      },
+      player_account: {
+        title: "Account and players",
+        description:
+          "Changes to your profile, avatar, role, league link or user details.",
+      },
+    },
+  },
+
   activity: {
     title: "Activity",
     description: "Important changes in the league and your matches.",
@@ -839,25 +913,34 @@ export const en = {
       "Complete admin view with every event and its internal data.",
     adminMetadata: "Internal data",
     adminEventType: "Event type",
-    notificationSettingsTitle: "Activity alerts",
+    notificationSettingsTitle: "Notification management",
     notificationSettingsDescription:
-      "Choose which events stay only in the wall, which count as personal, and which should generate an alert once notifications are enabled.",
+      "Choose which events send a push notification, remain in personal activity, or appear only in the general history.",
     notificationFutureHint:
-      "For now this organizes Activity, decides what enters Personal, and classifies each event for future push notifications.",
+      "Changes apply to new league notifications. Each player also keeps their personal notification preferences.",
     notificationSettingsCollapsedHint:
       "The panel stays collapsed so the audit trail remains visible. Open it only when you want to change alerts.",
     showNotificationSettings: "Configure",
     hideNotificationSettings: "Collapse",
-    modeActivityOnly: "General activity only",
-    modePersonal: "Personal activity when it affects the player",
-    modeNotify: "Notify later",
+    modeActivityOnly: "General history only",
+    modePersonal: "No push · show in personal activity",
+    modeNotify: "Send push notification",
     modeActivityOnlyShort: "General",
     modePersonalShort: "Personal",
-    modeNotifyShort: "Alert",
-    pushPreparationTitle: "Push base ready",
+    modeNotifyShort: "Push",
+    pushPreparationTitle: "All configurable notifications",
     pushPreparationDescription:
-      "Events marked as notifiable do not send push yet, but they are already separated so alerts can be generated when we add the notification service.",
-    pushReady: "Push",
+      "Every available notification type is shown here and can be configured independently.",
+    pushReady: "Configurable",
+    mandatoryPaymentRemindersTitle: "Payment reminders always enabled",
+    mandatoryPaymentRemindersDescription:
+      "Court and registration payment reminders, whether automatic or sent manually, cannot be disabled.",
+    notificationEnabledCount: "Enabled",
+    notificationDisabledCount: "Disabled",
+    notificationEnabled: "Notification enabled",
+    notificationDisabled: "Notification disabled",
+    notificationToggleDescription:
+      "Disabling a type stops its push, but the event remains available in the activity history.",
     personalScopeLabel: "Personal scope",
     categoryLabels: {
       match: "Matches",
@@ -878,6 +961,40 @@ export const en = {
       "Alert settings could not be loaded. Run the activity_settings SQL or check Supabase.",
     settingsSaveError:
       "Alert settings could not be saved. Check Supabase or permissions.",
+    notificationLabels: {
+      match_scheduled: "Match scheduled",
+      match_schedule_updated: "Match schedule changed",
+      match_postponed: "Match postponed",
+      match_result_saved: "Result entered",
+      match_result_updated: "Result corrected",
+      match_result_disputed: "Result marked as incorrect",
+      match_result_cleared: "Result removed",
+      match_result_missing_reminder: "Reminder to enter a result",
+      match_result_confirmation_reminder: "Reminder to confirm a result",
+      match_mvp_vote_reminder: "Reminder to vote for MVP",
+      match_mvp_awarded: "Match MVP decided",
+      match_upcoming_reminder: "Upcoming match reminder",
+      round_in_play: "Round in play",
+      round_mvp_awarded: "Round MVP decided",
+      court_booking_updated: "Court booking created or changed",
+      court_booking_cleared: "Court booking removed",
+      court_booking_payment_paid: "Court payment received",
+      court_booking_payment_reminder: "Court payment reminder",
+      season_registration_payment_reminder: "Registration payment reminder",
+      league_created: "League created",
+      league_updated: "League changed",
+      league_logo_updated: "League logo changed",
+      league_locations_updated: "League locations changed",
+      league_invite_regenerated: "Player invitation regenerated",
+      season_finished: "Season finished",
+      season_created: "Season created",
+      season_started: "Season started",
+      player_name_updated: "Player name changed",
+      player_avatar_updated: "Player photo changed",
+      player_role_updated: "Player role changed",
+      player_unlinked: "Player unlinked",
+      user_updated: "User account changed",
+    },
     labels: {
       match_scheduled: "Schedule",
       match_schedule_updated: "Schedule",

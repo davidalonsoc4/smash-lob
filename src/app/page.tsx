@@ -36,6 +36,7 @@ import {
 import { getNextMatch } from "@/lib/leagues";
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
+import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles";
 import {
   ensureSeasonRegistrationPlayers,
   getSeasonRegistrationPendingPayments,
@@ -814,9 +815,16 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header className="pt-1">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-          {activeSeason.name}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
+            {activeSeason.name}
+          </p>
+          {isSeasonClosed ? (
+            <span className={getSeasonStatusBadgeClassName("finished")}>
+              {t.common.finishedSeasonBadge}
+            </span>
+          ) : null}
+        </div>
 
         <div className="mt-1.5 flex items-center gap-2.5">
           <LeagueLogo league={activeLeague} size="lg" />

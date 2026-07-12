@@ -16,8 +16,6 @@ export type NotificationPreferences = Record<
 
 export type NotificationPreferenceDefinition = {
   key: NotificationPreferenceKey;
-  title: string;
-  description: string;
   eventTypes: ActivityEventType[];
 };
 
@@ -30,9 +28,6 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
   [
     {
       key: "next_match",
-      title: "Mi próximo partido",
-      description:
-        "Programación, cambios de fecha, lugar, pista, aplazamientos y recordatorio 2h antes de tus partidos.",
       eventTypes: [
         "match_scheduled",
         "match_schedule_updated",
@@ -42,9 +37,6 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     },
     {
       key: "my_match_result",
-      title: "Resultados de mis partidos",
-      description:
-        "Resultado informado, modificado, eliminado, confirmaciones y recordatorios para registrar el resultado o votar al MVP.",
       eventTypes: [
         "match_result_saved",
         "match_result_updated",
@@ -58,37 +50,22 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     },
     {
       key: "round_events",
-      title: "Jornadas y MVP",
-      description:
-        "Avisos de jornada en juego y MVPs asignados durante la temporada.",
       eventTypes: ["round_in_play", "round_mvp_awarded"],
     },
     {
       key: "season_events",
-      title: "Temporadas",
-      description:
-        "Nueva temporada creada, temporada iniciada o temporada finalizada en tu liga.",
       eventTypes: ["season_created", "season_started", "season_finished"],
     },
     {
       key: "booking_i_owe",
-      title: "Reservas de pista",
-      description:
-        "Una reserva indica que tienes que pagar tu parte a otro jugador o se actualiza una reserva de tus partidos.",
       eventTypes: ["court_booking_updated", "court_booking_cleared"],
     },
     {
       key: "booking_paid_to_me",
-      title: "Pagos recibidos de pista",
-      description:
-        "Alguien que te debía una transferencia de pista la marca como pagada.",
       eventTypes: ["court_booking_payment_paid"],
     },
     {
       key: "player_account",
-      title: "Cuenta y jugadores",
-      description:
-        "Cambios sobre tu perfil, avatar, rol, vinculación o datos de usuario.",
       eventTypes: [
         "player_name_updated",
         "player_avatar_updated",

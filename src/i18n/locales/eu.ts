@@ -13,6 +13,7 @@ export const eu = {
     cancel: "Utzi",
     retry: "Berriro egiaztatu",
     active: "Hautatuta",
+    finishedSeasonBadge: "Amaituta",
   },
 
   auth: {
@@ -158,6 +159,7 @@ export const eu = {
     activity: "Jarduera",
     player: "Jokalaria",
     profile: "Profila",
+    account: "Kontua",
   },
 
   dashboard: {
@@ -818,6 +820,78 @@ export const eu = {
     createError: "Ezin izan da liga sortu uneko erabiltzailearekin.",
   },
 
+  notifications: {
+    title: "Jakinarazpenak",
+    description:
+      "Aukeratu zein abisu jaso nahi dituzun. Aukera guztiak aktibatuta daude lehenespenez.",
+    deviceTitle: "Push jakinarazpenak gailu honetan",
+    supportUnsupported:
+      "Nabigatzaile honek ez ditu web push jakinarazpenak onartzen. iPhonean PWA hasierako pantailan instalatu behar duzu.",
+    supportMissingPublicKey:
+      "NEXT_PUBLIC_VAPID_PUBLIC_KEY konfiguratu gabe dago eta ezin da push baimena aktibatu. Lehentasunak hala ere gorde ditzakezu.",
+    supportPermissionDenied:
+      "Jakinarazpenak blokeatuta daude nabigatzailean. Sistemaren edo nabigatzailearen ezarpenetan baimendu behar dituzu.",
+    supportReady:
+      "Aktibatu gailu hau aplikazioa irekita ez dagoenean ere abisuak jasotzeko.",
+    active: "Aktibo",
+    inactive: "Desaktibatuta",
+    missingConfiguration:
+      "Zerbitzariaren konfigurazioa edo jakinarazpenen SQL taulak falta dira. Pantaila prest dago, baina bidalketa errealak konfigurazioa osatzea behar du.",
+    enablePush: "Push aktibatu",
+    disablePush: "Desaktibatu",
+    typesTitle: "Abisu motak",
+    enabledCount: "Aktibatuta: {enabled}/{total}",
+    mandatoryPaymentReminders:
+      "Pistaren eta izen-ematearen ordainketa gogorarazpenak, automatikoak zein eskuz bidalitakoak, beti jasotzen dira.",
+    disableAll: "Guztiak desaktibatu",
+    enableAll: "Guztiak aktibatu",
+    preferencesSaved: "Lehentasunak gordeta.",
+    preferencesSaveError:
+      "Ezin izan dira lehentasunak gorde. Egiaztatu jakinarazpenen taulak eta SUPABASE_SERVICE_ROLE_KEY.",
+    deviceEnabled: "Jakinarazpenak aktibatuta gailu honetan.",
+    deviceEnableError:
+      "Ezin izan da gailu hau gorde. Egiaztatu VAPID, SUPABASE_SERVICE_ROLE_KEY eta jakinarazpenen taulak.",
+    deviceDisabled: "Jakinarazpenak desaktibatuta gailu honetan.",
+    deviceDisableError: "Ezin izan da gailu hau desaktibatu.",
+    preferences: {
+      next_match: {
+        title: "Nire hurrengo partida",
+        description:
+          "Programazioa, data, leku edo pista aldaketak, atzerapenak eta partidak hasi baino 2 ordu lehenagoko gogorarazpena.",
+      },
+      my_match_result: {
+        title: "Nire partiden emaitzak",
+        description:
+          "Sartutako, aldatutako edo ezabatutako emaitzak, berrespenak eta emaitza sartzeko edo MVP botoa emateko gogorarazpenak.",
+      },
+      round_events: {
+        title: "Jardunaldiak eta MVP",
+        description:
+          "Jardunaldi bat jokoan dagoenean eta denboraldiko MVP sariak erabakitzen direnean jasotako abisuak.",
+      },
+      season_events: {
+        title: "Denboraldiak",
+        description:
+          "Zure ligan denboraldi berri bat sortu, hasi edo amaitzen denean.",
+      },
+      booking_i_owe: {
+        title: "Pista-erreserbak",
+        description:
+          "Erreserba batek beste jokalari bati zure zatia zor diozula adierazten du, edo zure partida bateko erreserba eguneratzen da.",
+      },
+      booking_paid_to_me: {
+        title: "Jasotako pista-ordainketak",
+        description:
+          "Pistaren transferentzia zor zizun norbaitek ordainduta markatzen du.",
+      },
+      player_account: {
+        title: "Kontua eta jokalariak",
+        description:
+          "Zure profil, avatar, rol, liga-lotura edo erabiltzaile datuen aldaketak.",
+      },
+    },
+  },
+
   activity: {
     title: "Jarduera",
     description: "Ligako eta zure partidetako aldaketa garrantzitsuak.",
@@ -848,25 +922,34 @@ export const eu = {
       "Adminentzako ikuspegi osoa, gertaera guztiak eta barne-datuak erakutsita.",
     adminMetadata: "Barne-datuak",
     adminEventType: "Gertaera mota",
-    notificationSettingsTitle: "Jarduera abisuak",
+    notificationSettingsTitle: "Jakinarazpenen kudeaketa",
     notificationSettingsDescription:
-      "Aukeratu zein gertaera geldituko diren horman bakarrik, zein izango diren pertsonalak eta zeinek sortuko duten abisua jakinarazpenak aktibatzean.",
+      "Aukeratu zein gertaerak bidaliko duten push jakinarazpena, zein geratuko diren jarduera pertsonalean eta zein agertuko diren historia orokorrean bakarrik.",
     notificationFutureHint:
-      "Oraingoz Jarduera antolatzen du, Pertsonalean zer sartzen den erabakitzen du eta gertaera bakoitza etorkizuneko push jakinarazpenetarako sailkatzen du.",
+      "Aldaketak ligako jakinarazpen berriei aplikatzen zaizkie. Jokalari bakoitzak bere lehentasun pertsonalak ere mantentzen ditu.",
     notificationSettingsCollapsedHint:
       "Panela tolestuta geratzen da auditoria ikusgai uzteko. Ireki abisuak aldatu nahi dituzunean bakarrik.",
     showNotificationSettings: "Konfiguratu",
     hideNotificationSettings: "Tolestu",
-    modeActivityOnly: "Jarduera orokorra bakarrik",
-    modePersonal: "Jarduera pertsonala jokalariari eragiten badio",
-    modeNotify: "Gero abisatu",
+    modeActivityOnly: "Historia orokorra bakarrik",
+    modePersonal: "Pushik ez · jarduera pertsonalean erakutsi",
+    modeNotify: "Push jakinarazpena bidali",
     modeActivityOnlyShort: "Orokorra",
     modePersonalShort: "Pertsonala",
-    modeNotifyShort: "Abisua",
-    pushPreparationTitle: "Push oinarria prest",
+    modeNotifyShort: "Push",
+    pushPreparationTitle: "Jakinarazpen konfiguragarri guztiak",
     pushPreparationDescription:
-      "Abisagarri markatutako gertaerek oraindik ez dute push bidaltzen, baina bereizita gelditzen dira jakinarazpen zerbitzua gehitzean abisuak sortzeko.",
-    pushReady: "Push",
+      "Eskuragarri dauden jakinarazpen mota guztiak hemen agertzen dira eta banaka konfigura daitezke.",
+    pushReady: "Konfiguragarria",
+    mandatoryPaymentRemindersTitle: "Ordainketa gogorarazpenak beti aktibo",
+    mandatoryPaymentRemindersDescription:
+      "Pistaren eta izen-ematearen ordainketa gogorarazpenak, automatikoak zein eskuz bidalitakoak, ezin dira desgaitu.",
+    notificationEnabledCount: "Aktibatuta",
+    notificationDisabledCount: "Desaktibatuta",
+    notificationEnabled: "Jakinarazpena aktibatuta",
+    notificationDisabled: "Jakinarazpena desaktibatuta",
+    notificationToggleDescription:
+      "Mota bat desaktibatzeak push bidalketa gelditzen du, baina gertaerak jarduera-historian agertzen jarraitzen du.",
     personalScopeLabel: "Eremu pertsonala",
     categoryLabels: {
       match: "Partidak",
@@ -887,6 +970,40 @@ export const eu = {
       "Ezin izan da abisu konfigurazioa kargatu. Exekutatu activity_settings SQL-a edo begiratu Supabase.",
     settingsSaveError:
       "Ezin izan da abisu konfigurazioa gorde. Begiratu Supabase edo baimenak.",
+    notificationLabels: {
+      match_scheduled: "Partida programatuta",
+      match_schedule_updated: "Partidaren programazioa aldatuta",
+      match_postponed: "Partida atzeratuta",
+      match_result_saved: "Emaitza sartuta",
+      match_result_updated: "Emaitza zuzenduta",
+      match_result_disputed: "Emaitza oker gisa markatuta",
+      match_result_cleared: "Emaitza ezabatuta",
+      match_result_missing_reminder: "Emaitza sartzeko gogorarazpena",
+      match_result_confirmation_reminder: "Emaitza berresteko gogorarazpena",
+      match_mvp_vote_reminder: "MVP botoa emateko gogorarazpena",
+      match_mvp_awarded: "Partidako MVP erabakita",
+      match_upcoming_reminder: "Hurrengo partidaren gogorarazpena",
+      round_in_play: "Jardunaldia jokoan",
+      round_mvp_awarded: "Jardunaldiko MVP erabakita",
+      court_booking_updated: "Pista-erreserba sortu edo aldatuta",
+      court_booking_cleared: "Pista-erreserba ezabatuta",
+      court_booking_payment_paid: "Pista-ordainketa jasota",
+      court_booking_payment_reminder: "Pista-ordainketaren gogorarazpena",
+      season_registration_payment_reminder: "Izen-ematearen ordainketa gogorarazpena",
+      league_created: "Liga sortuta",
+      league_updated: "Liga aldatuta",
+      league_logo_updated: "Ligaren logoa aldatuta",
+      league_locations_updated: "Ligaren kokalekuak aldatuta",
+      league_invite_regenerated: "Jokalarien gonbidapena berrituta",
+      season_finished: "Denboraldia amaituta",
+      season_created: "Denboraldia sortuta",
+      season_started: "Denboraldia hasita",
+      player_name_updated: "Jokalariaren izena aldatuta",
+      player_avatar_updated: "Jokalariaren argazkia aldatuta",
+      player_role_updated: "Jokalariaren rola aldatuta",
+      player_unlinked: "Jokalaria deskonektatuta",
+      user_updated: "Erabiltzaile-kontua aldatuta",
+    },
     labels: {
       match_scheduled: "Programazioa",
       match_schedule_updated: "Programazioa",

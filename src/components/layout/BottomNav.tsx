@@ -121,7 +121,7 @@ export function BottomNav() {
     playerNavItems[2],
     {
       href: "/settings",
-      label: "Cuenta",
+      label: t.nav.account,
       icon: "settings",
       isActive: (currentPathname) =>
         currentPathname.startsWith("/settings") ||
@@ -154,6 +154,12 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={(event) => {
+                if (item.href === "/" && pathname === "/") {
+                  event.preventDefault()
+                  window.location.reload()
+                }
+              }}
               className={
                 isActive
                   ? "flex flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-center text-[10px] font-black text-white shadow-sm"

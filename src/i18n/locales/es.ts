@@ -13,6 +13,7 @@ export const es = {
     cancel: "Cancelar",
     retry: "Volver a comprobar",
     active: "Seleccionado",
+    finishedSeasonBadge: "Terminada",
   },
 
   auth: {
@@ -159,6 +160,7 @@ export const es = {
     activity: "Actividad",
     player: "Jugador",
     profile: "Perfil",
+    account: "Cuenta",
   },
 
   dashboard: {
@@ -825,6 +827,78 @@ export const es = {
     createError: "No se ha podido crear la liga con el usuario actual.",
   },
 
+  notifications: {
+    title: "Notificaciones",
+    description:
+      "Elige qué avisos quieres recibir. Todas las opciones vienen activadas por defecto.",
+    deviceTitle: "Push en este dispositivo",
+    supportUnsupported:
+      "Este navegador no permite notificaciones push web. En iPhone necesitas instalar la PWA en la pantalla de inicio.",
+    supportMissingPublicKey:
+      "Falta configurar NEXT_PUBLIC_VAPID_PUBLIC_KEY para activar el permiso push. Puedes guardar preferencias igualmente.",
+    supportPermissionDenied:
+      "Las notificaciones están bloqueadas en el navegador. Tendrás que permitirlas desde los ajustes del sistema o del navegador.",
+    supportReady:
+      "Activa este dispositivo para recibir avisos aunque no tengas la app abierta.",
+    active: "Activo",
+    inactive: "Inactivo",
+    missingConfiguration:
+      "Falta configuración de servidor o las tablas SQL. La pantalla queda preparada, pero el envío real necesita completar la configuración.",
+    enablePush: "Activar push",
+    disablePush: "Desactivar",
+    typesTitle: "Tipos de aviso",
+    enabledCount: "Activados: {enabled}/{total}",
+    mandatoryPaymentReminders:
+      "Los recordatorios de pago de pista e inscripción, automáticos o enviados manualmente, se reciben siempre.",
+    disableAll: "Desactivar todo",
+    enableAll: "Activar todo",
+    preferencesSaved: "Preferencias guardadas.",
+    preferencesSaveError:
+      "No se han podido guardar las preferencias. Revisa las tablas de notificaciones y SUPABASE_SERVICE_ROLE_KEY.",
+    deviceEnabled: "Notificaciones activadas en este dispositivo.",
+    deviceEnableError:
+      "No se ha podido guardar este dispositivo. Revisa VAPID, SUPABASE_SERVICE_ROLE_KEY y las tablas de notificaciones.",
+    deviceDisabled: "Notificaciones desactivadas en este dispositivo.",
+    deviceDisableError: "No se ha podido desactivar este dispositivo.",
+    preferences: {
+      next_match: {
+        title: "Mi próximo partido",
+        description:
+          "Programación, cambios de fecha, lugar, pista, aplazamientos y recordatorio 2 h antes de tus partidos.",
+      },
+      my_match_result: {
+        title: "Resultados de mis partidos",
+        description:
+          "Resultado informado, modificado, eliminado, confirmaciones y recordatorios para registrar el resultado o votar al MVP.",
+      },
+      round_events: {
+        title: "Jornadas y MVP",
+        description:
+          "Avisos de jornada en juego y MVP asignados durante la temporada.",
+      },
+      season_events: {
+        title: "Temporadas",
+        description:
+          "Nueva temporada creada, temporada iniciada o temporada finalizada en tu liga.",
+      },
+      booking_i_owe: {
+        title: "Reservas de pista",
+        description:
+          "Una reserva indica que debes pagar tu parte a otro jugador o se actualiza una reserva de tus partidos.",
+      },
+      booking_paid_to_me: {
+        title: "Pagos recibidos de pista",
+        description:
+          "Alguien que te debía una transferencia de pista la marca como pagada.",
+      },
+      player_account: {
+        title: "Cuenta y jugadores",
+        description:
+          "Cambios sobre tu perfil, avatar, rol, vinculación o datos de usuario.",
+      },
+    },
+  },
+
   activity: {
     title: "Actividad",
     description: "Cambios importantes de la liga y de tus partidos.",
@@ -855,25 +929,34 @@ export const es = {
       "Vista completa para administradores con todos los eventos y sus datos internos.",
     adminMetadata: "Datos internos",
     adminEventType: "Tipo de evento",
-    notificationSettingsTitle: "Avisos de actividad",
+    notificationSettingsTitle: "Gestión de notificaciones",
     notificationSettingsDescription:
-      "Define qué eventos se quedan solo en el muro, cuáles cuentan como personales y cuáles deberán generar aviso cuando activemos notificaciones.",
+      "Decide qué eventos envían una notificación push, cuáles quedan en la actividad personal y cuáles se muestran solo en el historial general.",
     notificationFutureHint:
-      "De momento esto ordena Actividad, decide qué entra en Personal y deja cada evento clasificado para futuras notificaciones push.",
+      "Los cambios se aplican a las nuevas notificaciones de la liga. Cada jugador conserva además sus preferencias personales.",
     notificationSettingsCollapsedHint:
       "El panel queda plegado para dejar visible la auditoría. Despliégalo solo cuando quieras cambiar avisos.",
     showNotificationSettings: "Configurar",
     hideNotificationSettings: "Plegar",
-    modeActivityOnly: "Solo actividad general",
-    modePersonal: "Actividad personal si afecta al jugador",
-    modeNotify: "Notificable más adelante",
+    modeActivityOnly: "Solo historial general",
+    modePersonal: "Sin push · visible en actividad personal",
+    modeNotify: "Enviar notificación push",
     modeActivityOnlyShort: "General",
     modePersonalShort: "Personal",
-    modeNotifyShort: "Aviso",
-    pushPreparationTitle: "Base preparada para push",
+    modeNotifyShort: "Push",
+    pushPreparationTitle: "Todos los avisos configurables",
     pushPreparationDescription:
-      "Los eventos marcados como notificables todavía no envían push, pero ya quedan separados para generar avisos cuando añadamos el servicio de notificaciones.",
-    pushReady: "Push",
+      "Todos los tipos de notificación disponibles aparecen aquí y se pueden configurar de forma independiente.",
+    pushReady: "Configurable",
+    mandatoryPaymentRemindersTitle: "Recordatorios de pago siempre activos",
+    mandatoryPaymentRemindersDescription:
+      "Los recordatorios de pista e inscripción, tanto automáticos como enviados manualmente, no se pueden desactivar.",
+    notificationEnabledCount: "Activadas",
+    notificationDisabledCount: "Desactivadas",
+    notificationEnabled: "Notificación activada",
+    notificationDisabled: "Notificación desactivada",
+    notificationToggleDescription:
+      "Desactivar un tipo detiene su push, pero el evento continúa apareciendo en el historial de actividad.",
     personalScopeLabel: "Ámbito personal",
     categoryLabels: {
       match: "Partidos",
@@ -894,6 +977,40 @@ export const es = {
       "No se ha podido cargar la configuración de avisos. Ejecuta el SQL de activity_settings o revisa Supabase.",
     settingsSaveError:
       "No se ha podido guardar la configuración de avisos. Revisa Supabase o los permisos.",
+    notificationLabels: {
+      match_scheduled: "Partido programado",
+      match_schedule_updated: "Programación de partido modificada",
+      match_postponed: "Partido aplazado",
+      match_result_saved: "Resultado registrado",
+      match_result_updated: "Resultado corregido",
+      match_result_disputed: "Resultado marcado como incorrecto",
+      match_result_cleared: "Resultado eliminado",
+      match_result_missing_reminder: "Recordatorio para registrar resultado",
+      match_result_confirmation_reminder: "Recordatorio para confirmar resultado",
+      match_mvp_vote_reminder: "Recordatorio para votar al MVP",
+      match_mvp_awarded: "MVP del partido decidido",
+      match_upcoming_reminder: "Recordatorio de partido próximo",
+      round_in_play: "Jornada en juego",
+      round_mvp_awarded: "MVP de jornada decidido",
+      court_booking_updated: "Reserva de pista creada o modificada",
+      court_booking_cleared: "Reserva de pista eliminada",
+      court_booking_payment_paid: "Pago de pista recibido",
+      court_booking_payment_reminder: "Recordatorio de pago de pista",
+      season_registration_payment_reminder: "Recordatorio de pago de inscripción",
+      league_created: "Liga creada",
+      league_updated: "Liga modificada",
+      league_logo_updated: "Logo de liga modificado",
+      league_locations_updated: "Ubicaciones de liga modificadas",
+      league_invite_regenerated: "Invitación de jugadores regenerada",
+      season_finished: "Temporada finalizada",
+      season_created: "Temporada creada",
+      season_started: "Temporada iniciada",
+      player_name_updated: "Nombre de jugador modificado",
+      player_avatar_updated: "Foto de jugador modificada",
+      player_role_updated: "Rol de jugador modificado",
+      player_unlinked: "Jugador desvinculado",
+      user_updated: "Cuenta de usuario modificada",
+    },
     labels: {
       match_scheduled: "Programación",
       match_schedule_updated: "Programación",
