@@ -1040,21 +1040,24 @@ export default function Home() {
                     player.id === currentUserId ? "bg-neutral-100" : ""
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-sm font-bold">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <div
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-black ${
+                        rankingPreviewStart + index === 0
+                          ? "text-amber-500"
+                          : "text-neutral-800"
+                      }`}
+                      aria-hidden="true"
+                    >
                       {rankingPreviewStart + index + 1}
                     </div>
 
-                    <PlayerAvatar player={player} size="sm" />
-
-                    <div className="min-w-0">
-                      <Link
-                        href={`/player/${player.slug ?? player.id}`}
-                        className="block truncate font-semibold text-neutral-950 underline-offset-2 active:underline"
-                      >
-                        {player.displayName}
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/player/${player.slug ?? player.id}`}
+                      className="min-w-0 font-semibold leading-tight text-neutral-950 underline-offset-2 [overflow-wrap:anywhere] active:underline"
+                    >
+                      {player.displayName}
+                    </Link>
                   </div>
 
                   <p className="min-w-6 text-right text-lg font-black">
