@@ -985,20 +985,17 @@ export default function Home() {
       ) : null}
 
       {shouldShowRegistrationPanel ? (
-        <section>
-          <SectionHeader title="Inscripciones" />
-          <SeasonRegistrationPanel
-            registrationFee={roundSettings.registrationFee}
-            players={players}
-            currentUserId={currentUserId}
-            canManage={canManageRegistration}
-            organizerName={organizerName}
-            isSeasonUpcoming={isSeasonUpcoming}
-            canSendReminder={canSendRegistrationReminder}
-            onTogglePayment={handleToggleRegistrationPayment}
-            onSendReminder={handleSendRegistrationPaymentReminder}
-          />
-        </section>
+        <SeasonRegistrationPanel
+          registrationFee={roundSettings.registrationFee}
+          players={players}
+          currentUserId={currentUserId}
+          canManage={canManageRegistration}
+          organizerName={organizerName}
+          isSeasonUpcoming={isSeasonUpcoming}
+          canSendReminder={canSendRegistrationReminder}
+          onTogglePayment={handleToggleRegistrationPayment}
+          onSendReminder={handleSendRegistrationPaymentReminder}
+        />
       ) : null}
 
       {!isSeasonClosed && !isSeasonUpcoming && pendingPaymentGroups.length > 0 ? (
