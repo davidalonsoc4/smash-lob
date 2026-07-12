@@ -74,6 +74,8 @@ export type Match = {
   dateLabel: string | null
   location: string | null
   resultRecordedAt?: string | null
+  resultReportedByPlayerId?: string | null
+  resultLocked?: boolean
 }
 
 export type SeasonRoundSettings = {

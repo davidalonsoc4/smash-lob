@@ -32,6 +32,7 @@ export default function MatchDetailPage() {
   const {
     clearMatchResult,
     resultConfirmations,
+    setMatchResultLocked,
     setMatchResultConfirmation,
   } = useMatchData()
   const { votes, clearVotesForMatch } = useMvp()
@@ -41,6 +42,7 @@ export default function MatchDetailPage() {
     useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
   const [isClearingResult, setIsClearingResult] = useState(false)
+  const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)
   const [clearResultError, setClearResultError] = useState<string | null>(null)
 
   const shouldFocusBooking = searchParams.get("focus") === "booking"
@@ -125,6 +127,37 @@ export default function MatchDetailPage() {
     setIsEditingResult(false)
   }
 
+  async function handleToggleResultLock() {
+    if (!match || isUpdatingResultLock) {
+      return
+    }
+
+    const nextLocked = !match.resultLocked
+    const confirmed = window.confirm(
+      nextLocked
+        ? "¿Marcar este resultado como definitivo? Los jugadores ya no podrán confirmarlo, impugnarlo ni editarlo hasta que un admin lo desbloquee."
+        : "¿Desbloquear este resultado? Volverá a admitir correcciones según el flujo de confirmación."
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsUpdatingResultLock(true)
+    setClearResultError(null)
+    const saved = await setMatchResultLocked(match.id, nextLocked)
+    setIsUpdatingResultLock(false)
+
+    if (!saved) {
+      setClearResultError(
+        "No se ha podido actualizar el bloqueo del resultado. Revisa Supabase o smash-lob-last-supabase-error."
+      )
+      return
+    }
+
+    setIsEditingResult(false)
+  }
+
   const roundWindowText = getRoundWindowText()
   const roundStatusText = getRoundStatusText()
   const roundMvpPlayerIds = getRoundMvpPlayerIds({
@@ -138,6 +171,11 @@ export default function MatchDetailPage() {
   const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
     currentUserId
   )
+  const currentResultConfirmation = resultConfirmations.find(
+    (confirmation) =>
+      confirmation.matchId === match.id &&
+      confirmation.playerId === currentUserId
+  )
   const isAdmin = isLeagueAdmin(activeLeague.id)
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
@@ -145,7 +183,23 @@ export default function MatchDetailPage() {
     canManageMatch &&
     (match.status === "scheduled" ||
       (isAdmin && (match.status === "scheduling" || match.status === "postponed")))
-  const canEditResult = canManageMatch && match.status === "finished"
+  const canEditResultAsParticipant = Boolean(
+    isMatchParticipant &&
+      !match.resultLocked &&
+      (match.resultReportedByPlayerId === currentUserId ||
+        currentResultConfirmation?.status === "disputed" ||
+        !match.resultReportedByPlayerId)
+  )
+  const canEditResult =
+    !isSeasonUpcoming &&
+    match.status === "finished" &&
+    !match.resultLocked &&
+    (isAdmin || canEditResultAsParticipant)
+  const resultReporterName = match.resultReportedByPlayerId
+    ? players.find((player) => player.id === match.resultReportedByPlayerId)
+        ?.displayName ?? null
+    : null
+  const editorReporterPlayerId = isMatchParticipant ? currentUserId : null
 
   const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
     locations: activeLeague.locations,
@@ -208,7 +262,9 @@ export default function MatchDetailPage() {
           matchId={match.id}
           participantIds={[...match.teamA, ...match.teamB]}
           currentUserId={currentUserId}
+          reporterPlayerId={match.resultReportedByPlayerId}
           resultRecordedAt={match.resultRecordedAt}
+          resultLocked={match.resultLocked}
           mode={roundSettings.resultConfirmationMode}
           confirmations={resultConfirmations}
           onSetStatus={setMatchResultConfirmation}
@@ -310,34 +366,64 @@ export default function MatchDetailPage() {
           players={players}
           mode="create"
           requiresThreeSets={roundSettings.requiresThreeSets}
+          reportedByPlayerId={editorReporterPlayerId}
         />
       ) : null}
 
-      {canEditResult && !isEditingResult ? (
+      {(canEditResult || isAdmin) && !isEditingResult ? (
         <AppCard>
           <div>
             <p className="font-black">{t.matchResult.registeredTitle}</p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              {t.matchResult.registeredDescription}
+              {match.resultLocked
+                ? "El resultado está fijado como definitivo por la administración."
+                : currentResultConfirmation?.status === "disputed"
+                  ? "Lo has marcado como incorrecto. Ya puedes corregirlo y pasarás a figurar como la persona que informó el resultado."
+                  : resultReporterName
+                    ? `Informado por ${resultReporterName}. Solo esa persona puede modificarlo, salvo que otro jugador lo marque como incorrecto.`
+                    : t.matchResult.registeredDescription}
             </p>
           </div>
 
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setIsEditingResult(true)}
-              disabled={isClearingResult}
-              className="rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
-            >
-              {t.matchResult.editButton}
-            </button>
+            {canEditResult ? (
+              <button
+                type="button"
+                onClick={() => setIsEditingResult(true)}
+                disabled={isClearingResult || isUpdatingResultLock}
+                className="rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+              >
+                {currentResultConfirmation?.status === "disputed"
+                  ? "Corregir resultado"
+                  : t.matchResult.editButton}
+              </button>
+            ) : null}
 
             {isAdmin ? (
               <button
                 type="button"
+                onClick={handleToggleResultLock}
+                disabled={isClearingResult || isUpdatingResultLock}
+                className={`rounded-xl px-3 py-2 text-sm font-black disabled:text-neutral-400 ${
+                  match.resultLocked
+                    ? "bg-neutral-100 text-neutral-800"
+                    : "bg-emerald-50 text-emerald-800"
+                }`}
+              >
+                {isUpdatingResultLock
+                  ? "Guardando..."
+                  : match.resultLocked
+                    ? "Desbloquear resultado"
+                    : "Fijar como definitivo"}
+              </button>
+            ) : null}
+
+            {isAdmin && !match.resultLocked ? (
+              <button
+                type="button"
                 onClick={handleClearResult}
-                disabled={isClearingResult}
-                className="rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300"
+                disabled={isClearingResult || isUpdatingResultLock}
+                className="rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300 sm:col-span-2"
               >
                 {isClearingResult ? "Limpiando..." : "Limpiar resultado"}
               </button>
@@ -361,6 +447,7 @@ export default function MatchDetailPage() {
           initialSets={match.sets}
           mode="edit"
           requiresThreeSets={roundSettings.requiresThreeSets}
+          reportedByPlayerId={editorReporterPlayerId}
           onCancel={() => setIsEditingResult(false)}
           onSaved={async () => {
             await clearVotesForMatch(match.id)

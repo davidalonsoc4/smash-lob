@@ -602,6 +602,8 @@ export async function startSupabaseSeason({
               date_label: match.dateLabel,
               location: match.location,
               result_recorded_at: match.resultRecordedAt,
+              result_reported_by_player_id: match.resultReportedByPlayerId,
+              result_locked: match.resultLocked,
             })),
           )
           .select(matchSelect)

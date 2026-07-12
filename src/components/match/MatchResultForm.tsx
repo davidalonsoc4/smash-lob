@@ -14,6 +14,7 @@ type MatchResultFormProps = {
   initialSets?: { a: number; b: number }[]
   mode: "create" | "edit"
   requiresThreeSets: boolean
+  reportedByPlayerId: string | null
   onCancel?: () => void
   onSaved?: () => void
 }
@@ -133,6 +134,7 @@ export function MatchResultForm({
   initialSets,
   mode,
   requiresThreeSets,
+  reportedByPlayerId,
   onCancel,
   onSaved,
 }: MatchResultFormProps) {
@@ -244,12 +246,16 @@ export function MatchResultForm({
     setIsSaving(true)
     setActionError(null)
 
-    const saved = await finishMatch(matchId, {
-      sets: completedSets.map((set) => ({
-        a: Number(set.a),
-        b: Number(set.b),
-      })),
-    })
+    const saved = await finishMatch(
+      matchId,
+      {
+        sets: completedSets.map((set) => ({
+          a: Number(set.a),
+          b: Number(set.b),
+        })),
+      },
+      reportedByPlayerId,
+    )
 
     setIsSaving(false)
 

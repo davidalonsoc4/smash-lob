@@ -7,6 +7,7 @@ export type ActivityEventType =
   | "match_postponed"
   | "match_result_saved"
   | "match_result_updated"
+  | "match_result_disputed"
   | "match_result_cleared"
   | "match_result_missing_reminder"
   | "match_result_confirmation_reminder"
@@ -83,6 +84,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_postponed" ||
     type === "match_result_saved" ||
     type === "match_result_updated" ||
+    type === "match_result_disputed" ||
     type === "match_result_cleared" ||
     type === "match_result_missing_reminder" ||
     type === "match_result_confirmation_reminder" ||

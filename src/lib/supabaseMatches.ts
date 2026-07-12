@@ -10,7 +10,7 @@ import type {
 } from "@/context/MatchDataProvider"
 
 export const matchSelect =
-  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at,court_reserved,booking_reservations,booking_transfers,booking_updated_at"
+  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at,result_reported_by_player_id,result_locked,court_reserved,booking_reservations,booking_transfers,booking_updated_at"
 
 type MatchSet = {
   a: number
@@ -178,6 +178,11 @@ export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
       typeof match.result_recorded_at === "string"
         ? match.result_recorded_at
         : null,
+    resultReportedByPlayerId:
+      typeof match.result_reported_by_player_id === "string"
+        ? match.result_reported_by_player_id
+        : null,
+    resultLocked: Boolean(match.result_locked),
     courtBooking: mapCourtBooking(match),
   }
 }
@@ -283,9 +288,11 @@ export async function clearSupabaseMatchSchedule(matchId: string) {
 export async function finishSupabaseMatch({
   matchId,
   result,
+  reportedByPlayerId,
 }: {
   matchId: string
   result: MatchResultInput
+  reportedByPlayerId: string | null
 }) {
   const points = calculateResultPoints(result.sets)
   const resultRecordedAt = new Date().toISOString()
@@ -298,6 +305,8 @@ export async function finishSupabaseMatch({
       points_a: points.pointsA,
       points_b: points.pointsB,
       result_recorded_at: resultRecordedAt,
+      result_reported_by_player_id: reportedByPlayerId,
+      result_locked: false,
     })
     .eq("id", matchId)
     .select(matchSelect)
@@ -332,8 +341,32 @@ export async function clearSupabaseMatchResult(matchId: string) {
       points_a: null,
       points_b: null,
       result_recorded_at: null,
+      result_reported_by_player_id: null,
+      result_locked: false,
     })
     .eq("id", matchId)
+    .select(matchSelect)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return mapSupabaseMatch(data)
+}
+
+export async function updateSupabaseMatchResultLock({
+  matchId,
+  locked,
+}: {
+  matchId: string
+  locked: boolean
+}) {
+  const { data, error } = await supabase
+    .from("matches")
+    .update({ result_locked: locked })
+    .eq("id", matchId)
+    .eq("status", "finished")
     .select(matchSelect)
     .single()
 

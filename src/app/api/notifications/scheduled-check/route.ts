@@ -28,6 +28,8 @@ type MatchRow = {
   date_label: string | null;
   location: string | null;
   result_recorded_at: string | null;
+  result_reported_by_player_id: string | null;
+  result_locked: boolean | null;
 };
 
 type SeasonRow = {
@@ -297,7 +299,7 @@ export async function GET(request: Request) {
     supabase
       .from("matches")
       .select(
-        "id,league_id,season_id,round,status,team_a,team_b,scheduled_at,date_label,location,result_recorded_at",
+        "id,league_id,season_id,round,status,team_a,team_b,scheduled_at,date_label,location,result_recorded_at,result_reported_by_player_id,result_locked",
       )
       .eq("status", "scheduled")
       .not("scheduled_at", "is", null)
@@ -345,7 +347,7 @@ export async function GET(request: Request) {
     const { data, error } = await supabase
       .from("matches")
       .select(
-        "id,league_id,season_id,round,status,team_a,team_b,scheduled_at,date_label,location,result_recorded_at",
+        "id,league_id,season_id,round,status,team_a,team_b,scheduled_at,date_label,location,result_recorded_at,result_reported_by_player_id,result_locked",
       )
       .in("season_id", finishedSeasonIds)
       .eq("status", "finished")
@@ -548,7 +550,13 @@ export async function GET(request: Request) {
   }[] = [];
 
   eligibleConfirmationMatches.forEach((match) => {
-    const participantIds = getParticipantIds(match);
+    if (match.result_locked) {
+      return;
+    }
+
+    const participantIds = getParticipantIds(match).filter(
+      (playerId) => playerId !== match.result_reported_by_player_id,
+    );
     const rows = confirmationsByMatchId.get(match.id) ?? [];
     const hasDispute = rows.some((row) => row.status === "disputed");
 

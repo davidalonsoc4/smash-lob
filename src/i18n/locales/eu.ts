@@ -887,6 +887,7 @@ export const eu = {
       match_postponed: "Atzerapena",
       match_result_saved: "Emaitza",
       match_result_updated: "Emaitza",
+      match_result_disputed: "Emaitza",
       match_result_cleared: "Emaitza",
       match_mvp_vote_reminder: "MVP botoa",
       match_result_missing_reminder: "Emaitza",

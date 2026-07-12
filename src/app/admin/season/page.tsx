@@ -485,7 +485,7 @@ const resultConfirmationOptions: {
     value: "required",
     title: "Confirmación obligatoria",
     description:
-      "El resultado no suma en la clasificación hasta recibir las cuatro confirmaciones. Si nadie lo impugna, se valida automáticamente a las 24 horas.",
+      "El jugador que informa el resultado queda validado implícitamente. El resultado suma cuando lo confirma el resto o, si nadie lo impugna, al cumplirse 24 horas.",
   },
   {
     value: "optional",
@@ -2870,6 +2870,9 @@ export default function AdminSeasonPage() {
               <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 MVP
               </a>
+              <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Confirmación
+              </a>
               <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jugadores
               </a>
@@ -2887,6 +2890,9 @@ export default function AdminSeasonPage() {
               </a>
               <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 MVP
+              </a>
+              <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Confirmación
               </a>
               <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jugadores

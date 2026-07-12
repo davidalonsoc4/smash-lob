@@ -52,6 +52,12 @@ export const activityEventDefinitions: Record<
     personalScope: "match_participants",
     pushReady: true,
   },
+  match_result_disputed: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
   match_result_cleared: {
     category: "match",
     defaultMode: "notify",

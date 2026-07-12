@@ -165,6 +165,7 @@ function isNotificationForCurrentUser({
   if (
     event.type === "match_mvp_vote_reminder" ||
     event.type === "match_result_confirmation_reminder" ||
+    event.type === "match_result_disputed" ||
     event.type === "round_mvp_awarded"
   ) {
     return toStringArray(metadata.targetPlayerIds).includes(currentUserId);
@@ -276,6 +277,10 @@ function getNotificationTitle(event: ActivityEvent) {
     return "Confirma el resultado";
   }
 
+  if (event.type === "match_result_disputed") {
+    return "Resultado incorrecto";
+  }
+
   if (event.type === "match_mvp_vote_reminder") {
     return "Falta tu voto MVP";
   }
@@ -286,6 +291,15 @@ function getNotificationTitle(event: ActivityEvent) {
 
   if (event.type === "round_in_play") {
     return "Jornada en juego";
+  }
+
+  if (
+    event.type === "match_result_updated" &&
+    event.metadata.resultLockOnly === true
+  ) {
+    return event.metadata.resultLocked === true
+      ? "Resultado definitivo"
+      : "Resultado desbloqueado";
   }
 
   return event.title || "Smash & Lob";
@@ -371,6 +385,15 @@ function getNotificationBody({
     event.type === "match_result_saved" ||
     event.type === "match_result_updated"
   ) {
+    if (
+      event.type === "match_result_updated" &&
+      metadata.resultLockOnly === true
+    ) {
+      return metadata.resultLocked === true
+        ? "La administración ha fijado el resultado como definitivo."
+        : "La administración ha desbloqueado el resultado para permitir correcciones.";
+    }
+
     const resultText = getResultText(event);
 
     if (resultText) {
@@ -399,6 +422,10 @@ function getNotificationBody({
     return typeof round === "number" || typeof round === "string"
       ? `Revisa y confirma el resultado de tu partido de la Jornada ${round}.`
       : "Revisa y confirma el resultado de tu último partido.";
+  }
+
+  if (event.type === "match_result_disputed") {
+    return "Un jugador ha marcado el resultado como incorrecto. Entra para revisarlo o corregirlo.";
   }
 
   if (event.type === "match_mvp_vote_reminder") {

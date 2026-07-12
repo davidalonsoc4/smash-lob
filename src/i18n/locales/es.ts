@@ -894,6 +894,7 @@ export const es = {
       match_postponed: "Aplazamiento",
       match_result_saved: "Resultado",
       match_result_updated: "Resultado",
+      match_result_disputed: "Resultado",
       match_result_cleared: "Resultado",
       match_mvp_vote_reminder: "Votación MVP",
       match_result_missing_reminder: "Resultado",

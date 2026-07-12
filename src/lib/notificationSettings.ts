@@ -48,6 +48,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
       eventTypes: [
         "match_result_saved",
         "match_result_updated",
+        "match_result_disputed",
         "match_result_cleared",
         "match_result_missing_reminder",
         "match_result_confirmation_reminder",

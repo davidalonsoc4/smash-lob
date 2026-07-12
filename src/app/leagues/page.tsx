@@ -42,7 +42,9 @@ export default function LeaguesPage() {
     resultCounts: getMatchResultConfirmationState({
       matchId: match.id,
       participantIds: [...match.teamA, ...match.teamB],
+      reporterPlayerId: match.resultReportedByPlayerId,
       resultRecordedAt: match.resultRecordedAt,
+      resultLocked: match.resultLocked,
       confirmations: resultConfirmations,
       mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
     }).countsForRanking,

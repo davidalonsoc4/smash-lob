@@ -32,6 +32,7 @@ import {
   finishSupabaseMatch,
   formatScheduleDateLabel,
   postponeSupabaseMatch,
+  updateSupabaseMatchResultLock,
   updateSupabaseCourtBooking,
   updateSupabaseMatchSchedule,
 } from "@/lib/supabaseMatches";
@@ -84,6 +85,8 @@ export type MatchData = {
   dateLabel: string | null;
   location: string | null;
   resultRecordedAt: string | null;
+  resultReportedByPlayerId: string | null;
+  resultLocked: boolean;
   resultCounts?: boolean;
   courtBooking: CourtBooking;
 };
@@ -119,8 +122,16 @@ type MatchDataContextValue = {
   ) => Promise<boolean>;
   postponeMatch: (matchId: string) => Promise<boolean>;
   clearMatchSchedule: (matchId: string) => Promise<boolean>;
-  finishMatch: (matchId: string, result: MatchResultInput) => Promise<boolean>;
+  finishMatch: (
+    matchId: string,
+    result: MatchResultInput,
+    reportedByPlayerId: string | null,
+  ) => Promise<boolean>;
   clearMatchResult: (matchId: string) => Promise<boolean>;
+  setMatchResultLocked: (
+    matchId: string,
+    locked: boolean,
+  ) => Promise<boolean>;
   setMatchResultConfirmation: (input: {
     matchId: string;
     playerId: string;
@@ -176,6 +187,8 @@ function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
     dateLabel: match.dateLabel,
     location: match.location,
     resultRecordedAt: match.resultRecordedAt ?? null,
+    resultReportedByPlayerId: match.resultReportedByPlayerId ?? null,
+    resultLocked: match.resultLocked ?? false,
     courtBooking: getEmptyCourtBooking(),
   };
 }
@@ -187,6 +200,11 @@ function getInitialMatches() {
 function sanitizeMatch(match: MatchData): MatchData {
   const cleanMatch = {
     ...match,
+    resultReportedByPlayerId:
+      typeof match.resultReportedByPlayerId === "string"
+        ? match.resultReportedByPlayerId
+        : null,
+    resultLocked: Boolean(match.resultLocked),
     courtBooking: normalizeCourtBooking(match.courtBooking),
   };
 
@@ -243,6 +261,10 @@ function parseStoredMatches(value: string | null): MatchData[] | null {
         location: storedMatch.location ?? initialMatch.location,
         resultRecordedAt:
           storedMatch.resultRecordedAt ?? initialMatch.resultRecordedAt,
+        resultReportedByPlayerId:
+          storedMatch.resultReportedByPlayerId ??
+          initialMatch.resultReportedByPlayerId,
+        resultLocked: storedMatch.resultLocked ?? initialMatch.resultLocked,
         courtBooking: normalizeCourtBooking(storedMatch.courtBooking),
       };
 
@@ -351,6 +373,7 @@ function getLocalClearedScheduleMatch(match: MatchData): MatchData {
 function getLocalFinishedMatch(
   match: MatchData,
   result: MatchResultInput,
+  reportedByPlayerId: string | null,
 ): MatchData {
   const points = calculateResultPoints(result.sets);
 
@@ -361,6 +384,8 @@ function getLocalFinishedMatch(
     pointsA: points.pointsA,
     pointsB: points.pointsB,
     resultRecordedAt: new Date().toISOString(),
+    resultReportedByPlayerId: reportedByPlayerId,
+    resultLocked: false,
   };
 }
 
@@ -372,6 +397,8 @@ function getLocalClearedResultMatch(match: MatchData): MatchData {
     pointsA: null,
     pointsB: null,
     resultRecordedAt: null,
+    resultReportedByPlayerId: null,
+    resultLocked: false,
   };
 }
 
@@ -515,7 +542,9 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         resultCounts: getMatchResultConfirmationState({
           matchId: match.id,
           participantIds: [...match.teamA, ...match.teamB],
+          reporterPlayerId: match.resultReportedByPlayerId,
           resultRecordedAt: match.resultRecordedAt,
+          resultLocked: match.resultLocked,
           confirmations,
           mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
         }).countsForRanking,
@@ -841,7 +870,11 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
   );
 
   const finishMatch = useCallback(
-    async (matchId: string, result: MatchResultInput) => {
+    async (
+      matchId: string,
+      result: MatchResultInput,
+      reportedByPlayerId: string | null,
+    ) => {
       const currentMatch = matches.find((match) => match.id === matchId);
 
       if (!currentMatch) {
@@ -857,7 +890,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           persistNextMatches(
             currentMatches.map((match) =>
               match.id === matchId
-                ? getLocalFinishedMatch(match, result)
+                ? getLocalFinishedMatch(match, result, reportedByPlayerId)
                 : match,
             ),
           ),
@@ -881,6 +914,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         const updatedMatch = await finishSupabaseMatch({
           matchId,
           result,
+          reportedByPlayerId,
         });
         const nextMatches = replaceMatch(matches, updatedMatch);
         const nextConfirmations = resultConfirmations.filter(
@@ -945,6 +979,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             pointsB: updatedMatch.pointsB,
             sets: updatedMatch.sets,
             resultConfirmationMode,
+            resultReportedByPlayerId: updatedMatch.resultReportedByPlayerId,
           },
         });
 
@@ -1098,6 +1133,73 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches, persistConfirmations, persistNextMatches, recordMatchActivity],
   );
 
+  const setMatchResultLocked = useCallback(
+    async (matchId: string, locked: boolean) => {
+      const currentMatch = matches.find((match) => match.id === matchId);
+
+      if (!currentMatch || currentMatch.status !== "finished") {
+        return false;
+      }
+
+      if (!isSupabaseBackedMatch(matchId)) {
+        setMatches((currentMatches) =>
+          persistNextMatches(
+            currentMatches.map((match) =>
+              match.id === matchId ? { ...match, resultLocked: locked } : match,
+            ),
+          ),
+        );
+        return true;
+      }
+
+      try {
+        const updatedMatch = await updateSupabaseMatchResultLock({
+          matchId,
+          locked,
+        });
+
+        setMatches((currentMatches) =>
+          persistNextMatches(replaceMatch(currentMatches, updatedMatch)),
+        );
+
+        await recordMatchActivity({
+          match: updatedMatch,
+          type: "match_result_updated",
+          title: locked
+            ? "Resultado fijado por administración"
+            : "Resultado desbloqueado por administración",
+          description: getActivityMatchDescription(
+            updatedMatch,
+            locked
+              ? "El resultado queda marcado como definitivo."
+              : "El resultado vuelve a admitir correcciones.",
+          ),
+          metadata: {
+            pointsA: updatedMatch.pointsA,
+            pointsB: updatedMatch.pointsB,
+            sets: updatedMatch.sets,
+            resultConfirmationMode: getSeasonRoundSettings(
+              updatedMatch.seasonId,
+            ).resultConfirmationMode,
+            resultLockOnly: true,
+            resultLocked: locked,
+          },
+        });
+
+        return true;
+      } catch (error) {
+        recordSupabaseError("update-match-result-lock", error);
+        return false;
+      }
+    },
+    [
+      getSeasonRoundSettings,
+      matches,
+      persistNextMatches,
+      recordMatchActivity,
+    ],
+  );
+
   const setMatchResultConfirmation = useCallback(
     async ({
       matchId,
@@ -1120,7 +1222,23 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
       const settings = getSeasonRoundSettings(match.seasonId);
 
-      if (settings.resultConfirmationMode === "none") {
+      const currentValidation = getMatchResultConfirmationState({
+        matchId: match.id,
+        participantIds: [...match.teamA, ...match.teamB],
+        reporterPlayerId: match.resultReportedByPlayerId,
+        resultRecordedAt: match.resultRecordedAt,
+        resultLocked: match.resultLocked,
+        confirmations: resultConfirmations,
+        mode: settings.resultConfirmationMode,
+      });
+
+      if (
+        settings.resultConfirmationMode === "none" ||
+        match.resultLocked ||
+        playerId === match.resultReportedByPlayerId ||
+        currentValidation.state === "validated" ||
+        currentValidation.state === "auto_validated"
+      ) {
         return false;
       }
 
@@ -1148,6 +1266,29 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       ];
 
       setResultConfirmations(() => persistConfirmations(nextConfirmations));
+
+      if (status === "disputed") {
+        const targetPlayerIds = match.resultReportedByPlayerId
+          ? [match.resultReportedByPlayerId]
+          : [...match.teamA, ...match.teamB].filter(
+              (participantId) => participantId !== playerId,
+            );
+
+        await recordMatchActivity({
+          match,
+          type: "match_result_disputed",
+          title: "Resultado marcado como incorrecto",
+          description: getActivityMatchDescription(
+            match,
+            "Un jugador ha indicado que el resultado necesita corregirse.",
+          ),
+          metadata: {
+            targetPlayerIds,
+            disputedByPlayerId: playerId,
+            resultReportedByPlayerId: match.resultReportedByPlayerId,
+          },
+        });
+      }
 
       const previousCalculatedMatches = applyResultCountState(
         matches,
@@ -1555,6 +1696,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       clearMatchSchedule,
       finishMatch,
       clearMatchResult,
+      setMatchResultLocked,
       setMatchResultConfirmation,
       deleteSeasonMatches,
       deleteRoundMatches,
@@ -1577,6 +1719,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       matches,
       resultConfirmations,
       sendCourtBookingPaymentReminder,
+      setMatchResultLocked,
       setMatchResultConfirmation,
       postponeMatch,
       reorderSeasonRounds,

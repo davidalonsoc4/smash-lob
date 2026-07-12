@@ -15,7 +15,9 @@ type MatchResultConfirmationCardProps = {
   matchId: string;
   participantIds: string[];
   currentUserId: string;
+  reporterPlayerId: string | null;
   resultRecordedAt: string | null;
+  resultLocked: boolean;
   mode: ResultConfirmationMode;
   confirmations: MatchResultConfirmation[];
   onSetStatus: (input: {
@@ -29,7 +31,9 @@ export function MatchResultConfirmationCard({
   matchId,
   participantIds,
   currentUserId,
+  reporterPlayerId,
   resultRecordedAt,
+  resultLocked,
   mode,
   confirmations,
   onSetStatus,
@@ -42,35 +46,55 @@ export function MatchResultConfirmationCard({
   const validation = getMatchResultConfirmationState({
     matchId,
     participantIds,
+    reporterPlayerId,
     resultRecordedAt,
+    resultLocked,
     confirmations,
     mode,
   });
   const isParticipant = participantIds.includes(currentUserId);
+  const isReporter = reporterPlayerId === currentUserId;
+  const canRespond =
+    isParticipant && !isReporter && validation.state === "pending";
 
   if (mode === "none") {
     return null;
   }
 
   const status =
+    validation.state === "locked"
+      ? { label: "Definitivo", className: "bg-neutral-950 text-white" }
+      : validation.state === "disputed"
+        ? { label: "En revisión", className: "bg-red-100 text-red-700" }
+        : validation.state === "validated"
+          ? { label: "Validado", className: "bg-emerald-100 text-emerald-700" }
+          : validation.state === "auto_validated"
+            ? {
+                label: "Validado 24 h",
+                className: "bg-emerald-100 text-emerald-700",
+              }
+            : mode === "required"
+              ? { label: "Pendiente", className: "bg-amber-100 text-amber-800" }
+              : {
+                  label: "Opcional",
+                  className: "bg-neutral-100 text-neutral-600",
+                };
+
+  const detail =
     validation.state === "disputed"
-      ? { label: "En revisión", className: "bg-red-100 text-red-700" }
-      : validation.state === "validated"
-        ? { label: "Validado", className: "bg-emerald-100 text-emerald-700" }
-        : validation.state === "auto_validated"
-          ? {
-              label: "Validado 24 h",
-              className: "bg-emerald-100 text-emerald-700",
-            }
-          : mode === "required"
-            ? { label: "Pendiente", className: "bg-amber-100 text-amber-800" }
-            : {
-                label: "Opcional",
-                className: "bg-neutral-100 text-neutral-600",
-              };
+      ? isReporter
+        ? "Corrige el resultado."
+        : currentConfirmation?.status === "disputed"
+          ? "Puedes corregirlo."
+          : "Pendiente de corrección."
+      : isReporter && validation.state === "pending"
+        ? "Informado por ti."
+        : mode === "required" && validation.state === "pending"
+          ? "Validación del resto · auto 24 h."
+          : null;
 
   async function saveStatus(nextStatus: MatchResultConfirmationStatus) {
-    if (!isParticipant || isSaving) {
+    if (!canRespond || isSaving) {
       return;
     }
 
@@ -101,18 +125,14 @@ export function MatchResultConfirmationCard({
             </span>
           </div>
 
-          {validation.state === "disputed" ? (
-            <p className="mt-0.5 truncate text-[10px] font-semibold text-red-700">
-              Pendiente de corrección.
-            </p>
-          ) : mode === "required" && validation.state === "pending" ? (
+          {detail ? (
             <p className="mt-0.5 truncate text-[10px] font-semibold text-neutral-500">
-              Se valida con 4 respuestas o a las 24 h.
+              {detail}
             </p>
           ) : null}
         </div>
 
-        {isParticipant ? (
+        {canRespond ? (
           <div className="flex shrink-0 gap-1">
             <button
               type="button"
@@ -131,11 +151,7 @@ export function MatchResultConfirmationCard({
               type="button"
               onClick={() => saveStatus("disputed")}
               disabled={isSaving}
-              className={`rounded-lg px-2 py-1.5 text-[10px] font-black disabled:opacity-50 ${
-                currentConfirmation?.status === "disputed"
-                  ? "bg-red-700 text-white"
-                  : "bg-red-50 text-red-700"
-              }`}
+              className="rounded-lg bg-red-50 px-2 py-1.5 text-[10px] font-black text-red-700 disabled:opacity-50"
             >
               Incorrecto
             </button>

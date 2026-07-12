@@ -410,7 +410,19 @@ function getNotificationTitle(event: ActivityEventRow) {
   }
 
   if (event.type === "match_result_updated") {
+    const metadata = toRecord(event.metadata);
+
+    if (metadata.resultLockOnly === true) {
+      return metadata.resultLocked === true
+        ? "Resultado definitivo"
+        : "Resultado desbloqueado";
+    }
+
     return "Resultado modificado";
+  }
+
+  if (event.type === "match_result_disputed") {
+    return "Resultado incorrecto";
   }
 
   if (event.type === "match_result_cleared") {
@@ -548,10 +560,21 @@ function getNotificationBody(
     event.type === "match_result_saved" ||
     event.type === "match_result_updated"
   ) {
+    const metadata = toRecord(event.metadata);
+
+    if (
+      event.type === "match_result_updated" &&
+      metadata.resultLockOnly === true
+    ) {
+      return metadata.resultLocked === true
+        ? "La administración ha fijado el resultado como definitivo."
+        : "La administración ha desbloqueado el resultado para permitir correcciones.";
+    }
+
     const resultText = getResultTextFromMetadata(event);
 
     if (resultText) {
-      const confirmationMode = toRecord(event.metadata).resultConfirmationMode;
+      const confirmationMode = metadata.resultConfirmationMode;
       const confirmationText =
         confirmationMode === "none" ? "" : " Entra para confirmarlo.";
 
@@ -559,6 +582,10 @@ function getNotificationBody(
         ? `Nuevo resultado: ${resultText}.${confirmationText}`
         : `Resultado: ${resultText}.${confirmationText}`;
     }
+  }
+
+  if (event.type === "match_result_disputed") {
+    return "Un jugador ha marcado el resultado como incorrecto. Entra para revisarlo o corregirlo.";
   }
 
   const actor = event.actor_display_name || event.actor_email || "Smash & Lob";

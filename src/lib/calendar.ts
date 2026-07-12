@@ -13,6 +13,8 @@ export type GeneratedMatch = {
   dateLabel: null
   location: null
   resultRecordedAt: null
+  resultReportedByPlayerId: null
+  resultLocked: false
 }
 
 export type ManualCalendarMatchDraft = {
@@ -63,6 +65,8 @@ function buildEmptyMatch({
     dateLabel: null,
     location: null,
     resultRecordedAt: null,
+    resultReportedByPlayerId: null,
+    resultLocked: false,
   }
 }
 
