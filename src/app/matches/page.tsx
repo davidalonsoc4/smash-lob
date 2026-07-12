@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
+import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -14,7 +15,6 @@ import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 import {
   getRoundStatusBadgeClassName,
-  getSeasonStatusBadgeClassName,
 } from "@/lib/statusStyles"
 
 export default function MatchesPage() {
@@ -26,7 +26,6 @@ export default function MatchesPage() {
   const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
-  const isSeasonClosed = activeSeason.status === "finished"
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const activeScope = searchParams.get("scope") === "mine" ? "mine" : "all"
   const currentUserMatches = matches.filter(
@@ -66,16 +65,13 @@ export default function MatchesPage() {
   return (
     <div className="space-y-4">
       <header className="pt-2">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name}</span>
-          {isSeasonClosed ? (
-            <span className={getSeasonStatusBadgeClassName("finished")}>
-              Terminada
-            </span>
-          ) : null}
-        </p>
+        <LeagueSeasonEyebrow
+          leagueName={activeLeague.name}
+          seasonName={activeSeason.name}
+          seasonStatus={activeSeason.status}
+        />
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="mt-1.5 text-2xl font-black tracking-tight">
           {t.matches.subtitle}
         </h1>
 

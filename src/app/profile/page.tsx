@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
@@ -13,7 +14,6 @@ import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 import {
   getPlayerScopeStats,
   getPlayerSeasonScopes,
@@ -28,7 +28,6 @@ export default function ProfilePage() {
   const { seasons, seasonPlayers, playerProfiles, seasonSettings } = useSeasonSettings()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const [selectedScopeId, setSelectedScopeId] = useState(activeSeason.id)
-  const isSeasonClosed = activeSeason.status === "finished"
 
   const player = playerProfiles.find(
     (item) => item.id === currentUserId && item.leagueId === activeLeague.id
@@ -92,16 +91,13 @@ export default function ProfilePage() {
     return (
       <div className="space-y-3">
         <header className="pt-1">
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-            <span>{activeLeague.name}</span>
-            {isSeasonClosed ? (
-              <span className={getSeasonStatusBadgeClassName("finished")}>
-                Terminada
-              </span>
-            ) : null}
-          </p>
+          <LeagueSeasonEyebrow
+            leagueName={activeLeague.name}
+            seasonName={activeSeason.name}
+            seasonStatus={activeSeason.status}
+          />
 
-          <h1 className="mt-1 text-2xl font-black tracking-tight">
+          <h1 className="mt-1.5 text-2xl font-black tracking-tight">
             {t.profile.title}
           </h1>
         </header>
@@ -123,14 +119,11 @@ export default function ProfilePage() {
   return (
     <div className="space-y-3">
       <header className="pt-1">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name}</span>
-          {isSeasonClosed ? (
-            <span className={getSeasonStatusBadgeClassName("finished")}>
-              Terminada
-            </span>
-          ) : null}
-        </p>
+        <LeagueSeasonEyebrow
+          leagueName={activeLeague.name}
+          seasonName={activeSeason.name}
+          seasonStatus={activeSeason.status}
+        />
 
         <div className="mt-2 flex items-center gap-2.5">
           <PlayerAvatar player={player} size="md" />

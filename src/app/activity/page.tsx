@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
+import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -17,7 +18,6 @@ import {
   getScheduleLocationFallbackText,
   normalizeLeagueLocation,
 } from "@/lib/leagueLocations"
-import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 import {
   activityEventCategories,
   activityEventTypes,
@@ -427,7 +427,6 @@ export default function ActivityPage() {
   const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason, matches } = useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
-  const isSeasonClosed = activeSeason.status === "finished"
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [scope, setScope] = useState<ActivityScope>("all")
   const [activitySettings, setActivitySettings] = useState<LeagueActivitySettings>({})
@@ -597,16 +596,13 @@ export default function ActivityPage() {
   return (
     <div className="space-y-4">
       <header className="pt-2">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name}</span>
-          {isSeasonClosed ? (
-            <span className={getSeasonStatusBadgeClassName("finished")}>
-              Terminada
-            </span>
-          ) : null}
-        </p>
+        <LeagueSeasonEyebrow
+          leagueName={activeLeague.name}
+          seasonName={activeSeason.name}
+          seasonStatus={activeSeason.status}
+        />
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="mt-1.5 text-2xl font-black tracking-tight">
           {t.activity.title}
         </h1>
 

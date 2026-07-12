@@ -814,7 +814,11 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header className="pt-1">
-        <div className="flex items-center gap-2.5">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
+          {activeSeason.name}
+        </p>
+
+        <div className="mt-1.5 flex items-center gap-2.5">
           <LeagueLogo league={activeLeague} size="lg" />
 
           <h1 className="min-w-0 text-2xl font-black tracking-tight">
