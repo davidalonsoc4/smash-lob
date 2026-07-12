@@ -65,6 +65,9 @@ export const en = {
     activeSeasonTitle: "Active season",
     activeSeasonDescription:
       "Only players in the active season can be claimed.",
+    finishedSeasonTitle: "Finished season",
+    finishedSeasonDescription:
+      "The season is closed, but you can still link your account to one of its unclaimed players.",
     noActiveSeasonTitle: "No active season",
     noActiveSeasonDescription:
       "The league is waiting for the admin to create a new season.",
@@ -73,7 +76,10 @@ export const en = {
       "Choose who you are in this league. You can only claim one player per league.",
     claimActiveDescription:
       "These are the unlinked players in the active season.",
+    claimFinishedDescription:
+      "These are the players from the finished season who still do not have a linked account.",
     claimableActivePlayers: "Pending players in the active season",
+    claimableFinishedPlayers: "Pending players in the finished season",
     selectedPlayer: "Selected player",
     inactivePlayersHidden:
       "Players from previous seasons are hidden here to avoid wrong claims.",

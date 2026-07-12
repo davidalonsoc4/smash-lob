@@ -341,9 +341,14 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   }
 
   const existingMembership = getMembershipForLeague(league.id)
-  const activeSeason = league.activeSeasonId
-    ? seasons.find((season) => season.id === league.activeSeasonId)
-    : null
+  const activeSeason =
+    (league.activeSeasonId
+      ? seasons.find((season) => season.id === league.activeSeasonId)
+      : null) ??
+    [...seasons]
+      .filter((season) => season.leagueId === league.id)
+      .at(-1) ??
+    null
   const activeSeasonSettings = activeSeason
     ? getSeasonRoundSettings(activeSeason.id)
     : null
@@ -452,15 +457,21 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
 
       <AppCard>
         <p className="font-bold">
-          {activeSeason ? t.invites.activeSeasonTitle : t.invites.noActiveSeasonTitle}
+          {activeSeason?.status === "finished"
+            ? t.invites.finishedSeasonTitle
+            : activeSeason
+              ? t.invites.activeSeasonTitle
+              : t.invites.noActiveSeasonTitle}
         </p>
         <p className="mt-1 text-xl font-black tracking-tight">
           {activeSeason?.name ?? "—"}
         </p>
         <p className="mt-2 text-sm text-neutral-500">
-          {activeSeason
-            ? t.invites.activeSeasonDescription
-            : t.invites.noActiveSeasonDescription}
+          {activeSeason?.status === "finished"
+            ? t.invites.finishedSeasonDescription
+            : activeSeason
+              ? t.invites.activeSeasonDescription
+              : t.invites.noActiveSeasonDescription}
         </p>
       </AppCard>
 
@@ -528,9 +539,11 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
         <AppCard>
           <p className="font-bold">{t.invites.claimTitle}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            {activeSeason
-              ? t.invites.claimActiveDescription
-              : t.invites.claimDescription}
+            {activeSeason?.status === "finished"
+              ? t.invites.claimFinishedDescription
+              : activeSeason
+                ? t.invites.claimActiveDescription
+                : t.invites.claimDescription}
           </p>
 
           {!hasAcceptedRules ? (
@@ -556,7 +569,9 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
           {hasAcceptedRules ? (
             <>
               <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
-                {t.invites.claimableActivePlayers}
+                {activeSeason?.status === "finished"
+                  ? t.invites.claimableFinishedPlayers
+                  : t.invites.claimableActivePlayers}
               </p>
 
               <div className="mt-3 grid grid-cols-2 gap-2">

@@ -458,6 +458,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     hydrateSeasonSnapshot,
     playerProfiles,
     seasonPlayers,
+    seasons,
     updatePlayerProfile,
   } = useSeasonSettings();
   const userId = normalizeUserId(session?.user?.email);
@@ -1271,12 +1272,16 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           .map((membership) => membership.playerId),
       );
       const league = leagues.find((item) => item.id === leagueId);
-      const activeSeasonId = league?.activeSeasonId ?? "";
-      const activeSeasonPlayerIds = new Set(
-        activeSeasonId
+      const latestLeagueSeason = [...seasons]
+        .filter((season) => season.leagueId === leagueId)
+        .at(-1);
+      const joinableSeasonId =
+        league?.activeSeasonId || latestLeagueSeason?.id || "";
+      const joinableSeasonPlayerIds = new Set(
+        joinableSeasonId
           ? seasonPlayers
               .filter(
-                (seasonPlayer) => seasonPlayer.seasonId === activeSeasonId,
+                (seasonPlayer) => seasonPlayer.seasonId === joinableSeasonId,
               )
               .map((seasonPlayer) => seasonPlayer.playerId)
           : [],
@@ -1287,14 +1292,14 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           return false;
         }
 
-        if (activeSeasonPlayerIds.size > 0) {
-          return activeSeasonPlayerIds.has(player.id);
+        if (joinableSeasonPlayerIds.size > 0) {
+          return joinableSeasonPlayerIds.has(player.id);
         }
 
         return true;
       });
     },
-    [leagues, memberships, playerProfiles, seasonPlayers],
+    [leagues, memberships, playerProfiles, seasonPlayers, seasons],
   );
 
   const claimPlayer = useCallback(

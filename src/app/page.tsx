@@ -1042,15 +1042,17 @@ export default function Home() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-black ${
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-black text-neutral-950 ${
                         rankingPreviewStart + index === 0
-                          ? "text-amber-500"
-                          : "text-neutral-800"
+                          ? "bg-amber-400"
+                          : "bg-neutral-100"
                       }`}
                       aria-hidden="true"
                     >
                       {rankingPreviewStart + index + 1}
                     </div>
+
+                    <PlayerAvatar player={player} size="sm" />
 
                     <Link
                       href={`/player/${player.slug ?? player.id}`}

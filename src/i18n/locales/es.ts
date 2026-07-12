@@ -66,6 +66,9 @@ export const es = {
     activeSeasonTitle: "Temporada activa",
     activeSeasonDescription:
       "Solo se pueden reclamar jugadores que pertenecen a la temporada activa.",
+    finishedSeasonTitle: "Temporada finalizada",
+    finishedSeasonDescription:
+      "La temporada está cerrada, pero todavía puedes vincular tu cuenta a uno de sus jugadores pendientes.",
     noActiveSeasonTitle: "Sin temporada activa",
     noActiveSeasonDescription:
       "La liga está pendiente de que el administrador cree una nueva temporada.",
@@ -74,7 +77,10 @@ export const es = {
       "Elige quién eres en esta liga. Solo podrás reclamar un jugador por liga.",
     claimActiveDescription:
       "Estos son los jugadores pendientes de vincular en la temporada activa.",
+    claimFinishedDescription:
+      "Estos son los jugadores de la temporada cerrada que todavía no tienen una cuenta vinculada.",
     claimableActivePlayers: "Jugadores pendientes en la temporada activa",
+    claimableFinishedPlayers: "Jugadores pendientes en la temporada finalizada",
     selectedPlayer: "Jugador seleccionado",
     inactivePlayersHidden:
       "Los jugadores de temporadas anteriores no aparecen aquí para evitar reclamaciones equivocadas.",

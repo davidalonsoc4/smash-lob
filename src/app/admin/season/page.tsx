@@ -539,6 +539,159 @@ function ResultConfirmationOptions({
   );
 }
 
+function getFinishedSeasonScheduleLabel({
+  totalRounds,
+  playerCount,
+  matches,
+}: {
+  totalRounds: number;
+  playerCount: number;
+  matches: ReturnType<typeof useCurrentLeagueData>["matches"];
+}) {
+  const baseRoundCount = Math.max(playerCount - 1, 1);
+
+  if (totalRounds === baseRoundCount) {
+    return "Vuelta única";
+  }
+
+  if (totalRounds !== baseRoundCount * 2) {
+    return `${totalRounds} jornadas`;
+  }
+
+  function getTeamKey(playerIds: string[]) {
+    return [...playerIds].sort().join(":");
+  }
+
+  function getRoundSignature(round: number) {
+    return matches
+      .filter((match) => match.round === round)
+      .map((match) =>
+        [getTeamKey(match.teamA), getTeamKey(match.teamB)].sort().join("|")
+      )
+      .sort()
+      .join(";");
+  }
+
+  const signatureCounts = new Map<string, number>();
+
+  for (let round = 1; round <= totalRounds; round += 1) {
+    const signature = getRoundSignature(round);
+
+    if (signature) {
+      signatureCounts.set(signature, (signatureCounts.get(signature) ?? 0) + 1);
+    }
+  }
+
+  const repeatsFirstLeg =
+    signatureCounts.size === baseRoundCount &&
+    Array.from(signatureCounts.values()).every((count) => count === 2);
+
+  return repeatsFirstLeg ? "Doble vuelta" : "Temporada larga";
+}
+
+function formatFinishedSeasonDate(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month - 1, day));
+}
+
+function FinishedSeasonConfigurationSummary({
+  activeSeason,
+  roundSettings,
+  matches,
+  playerCount,
+}: {
+  activeSeason: {
+    totalRounds: number;
+  };
+  roundSettings: SeasonRoundSettings;
+  matches: ReturnType<typeof useCurrentLeagueData>["matches"];
+  playerCount: number;
+}) {
+  const calendarValue = getFinishedSeasonScheduleLabel({
+    totalRounds: activeSeason.totalRounds,
+    playerCount,
+    matches,
+  });
+  const marginValue =
+    roundSettings.roundWindowMode === "fixed-days"
+      ? `${roundSettings.roundWindowDays ?? "—"} días por jornada`
+      : "Sin margen específico";
+  const marginStartDate = formatFinishedSeasonDate(
+    roundSettings.seasonStartsAt,
+  );
+  const confirmationValue =
+    resultConfirmationOptions.find(
+      (option) => option.value === roundSettings.resultConfirmationMode,
+    )?.title ?? "Sin confirmaciones";
+  const mvpValue =
+    mvpSystemOptions.find((option) => option.value === roundSettings.mvpSystem)
+      ?.title ?? "Sin sistema MVP";
+  const items = [
+    {
+      title: "Calendario",
+      value: `${calendarValue} · ${activeSeason.totalRounds} jornadas`,
+      detail: `${playerCount} jugadores · calendario finalizado`,
+    },
+    {
+      title: "Margen de jornadas",
+      value: marginValue,
+      detail:
+        roundSettings.roundWindowMode === "fixed-days" && marginStartDate
+          ? `La Jornada 1 comenzó el ${marginStartDate}.`
+          : "La temporada no utilizó ventanas oficiales por jornada.",
+    },
+    {
+      title: "Confirmación de resultados",
+      value: confirmationValue,
+      detail: "Configuración utilizada durante esta temporada.",
+    },
+    {
+      title: "Sistema MVP",
+      value: mvpValue,
+      detail: "Configuración utilizada durante esta temporada.",
+    },
+  ];
+
+  return (
+    <AppCard>
+      <p className="font-bold">Configuración final de la temporada</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Estos ajustes quedan en modo consulta. Para cambiarlos, crea una nueva
+        temporada o reabre esta.
+      </p>
+
+      <div className="mt-3 space-y-2">
+        {items.map((item) => (
+          <div key={item.title} className="rounded-2xl bg-neutral-100 px-3 py-2.5">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+              {item.title}
+            </p>
+            <p className="mt-0.5 text-sm font-black text-neutral-950">
+              {item.value}
+            </p>
+            <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+              {item.detail}
+            </p>
+          </div>
+        ))}
+      </div>
+    </AppCard>
+  );
+}
+
 function ResultConfirmationSettingsPanel({
   activeLeagueId,
   roundSettings,
@@ -2789,7 +2942,7 @@ function NewSeasonForm({
 
 export default function AdminSeasonPage() {
   const { t } = useI18n();
-  const { hasLeagueAdminRole } = useLeagueAccess();
+  const { getLeagueInviteCode, hasLeagueAdminRole } = useLeagueAccess();
   const { seasons } = useSeasonSettings();
   const { activeLeague, activeSeason, roundSettings, players, matches } =
     useCurrentLeagueData();
@@ -2804,6 +2957,10 @@ export default function AdminSeasonPage() {
     activeSeason.status === "finished" &&
     activeSeason.totalRounds > 0 &&
     matches.length > 0;
+  const [isNewSeasonFormOpen, setIsNewSeasonFormOpen] = useState(
+    !hasCreatedLeagueSeason,
+  );
+  const inviteCode = getLeagueInviteCode(activeLeague.id);
 
   if (!canAccessAdmin) {
     return (
@@ -2845,7 +3002,9 @@ export default function AdminSeasonPage() {
             ? t.adminSeason.title
             : isUpcomingSeason
               ? "Temporada próximamente"
-              : t.adminSeason.newSeasonTitle}
+              : hasCreatedLeagueSeason
+                ? "Temporada finalizada"
+                : t.adminSeason.newSeasonTitle}
         </h1>
 
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
@@ -2853,7 +3012,9 @@ export default function AdminSeasonPage() {
             ? t.adminSeason.description
             : isUpcomingSeason
               ? "La temporada está creada. Comiénzala cuando esté preparada para jugarse."
-              : t.adminSeason.finishedDescription}
+              : hasCreatedLeagueSeason
+                ? "Consulta su configuración final, invita a los jugadores pendientes o prepara la siguiente temporada."
+                : t.adminSeason.finishedDescription}
         </p>
       </header>
 
@@ -2901,17 +3062,30 @@ export default function AdminSeasonPage() {
                 Zona sensible
               </a>
             </>
-          ) : (
+          ) : hasCreatedLeagueSeason ? (
             <>
+              <a href="#configuracion-final" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Configuración
+              </a>
+              <a href="#invitacion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Invitación
+              </a>
+              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Jugadores
+              </a>
               {canReopenFinishedSeason ? (
                 <a href="#reabrir" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                   Reabrir
                 </a>
               ) : null}
               <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
-                Crear temporada
+                Nueva temporada
               </a>
             </>
+          ) : (
+            <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
+              Crear temporada
+            </a>
           )}
         </div>
       </AppCard>
@@ -3005,32 +3179,79 @@ export default function AdminSeasonPage() {
             />
           </div>
         </>
-      ) : (
+      ) : hasCreatedLeagueSeason ? (
         <>
+          <div id="configuracion-final">
+            <FinishedSeasonConfigurationSummary
+              activeSeason={activeSeason}
+              roundSettings={roundSettings}
+              matches={matches}
+              playerCount={players.length}
+            />
+          </div>
+
+          <div id="invitacion">
+            <InviteLinkCard
+              inviteCode={inviteCode}
+              leagueName={activeLeague.name}
+            />
+          </div>
+
+          <div id="jugadores">
+            <SeasonPlayerNamesPanel
+              activeLeagueId={activeLeague.id}
+              players={players}
+            />
+          </div>
+
           {canReopenFinishedSeason ? (
-            <div id="reabrir" className="space-y-3">
+            <div id="reabrir">
               <ReopenSeasonPanel
                 activeLeagueId={activeLeague.id}
                 activeSeasonId={activeSeason.id}
               />
-
-              <SeasonPlayerNamesPanel
-                activeLeagueId={activeLeague.id}
-                players={players}
-              />
             </div>
           ) : null}
 
-          <div id="nueva-temporada">
-            <NewSeasonForm
-              key={`${activeSeason.id}-new`}
-              activeLeagueId={activeLeague.id}
-              activeLeagueName={activeLeague.name}
-              activeSeasonId={activeSeason.id}
-              currentPlayers={players}
-            />
+          <div id="nueva-temporada" className="space-y-3">
+            <AppCard>
+              <p className="font-bold">Preparar la siguiente temporada</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                La configuración de la temporada finalizada se conserva arriba.
+                Abre este formulario solo cuando vayas a crear la siguiente.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsNewSeasonFormOpen((current) => !current)}
+                className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
+              >
+                {isNewSeasonFormOpen
+                  ? "Ocultar nueva temporada"
+                  : "Configurar nueva temporada"}
+              </button>
+            </AppCard>
+
+            {isNewSeasonFormOpen ? (
+              <NewSeasonForm
+                key={`${activeSeason.id}-new`}
+                activeLeagueId={activeLeague.id}
+                activeLeagueName={activeLeague.name}
+                activeSeasonId={activeSeason.id}
+                currentPlayers={players}
+              />
+            ) : null}
           </div>
         </>
+      ) : (
+        <div id="nueva-temporada">
+          <NewSeasonForm
+            key={`${activeSeason.id}-new`}
+            activeLeagueId={activeLeague.id}
+            activeLeagueName={activeLeague.name}
+            activeSeasonId={activeSeason.id}
+            currentPlayers={players}
+          />
+        </div>
       )}
     </div>
   );

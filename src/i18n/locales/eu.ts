@@ -64,6 +64,9 @@ export const eu = {
     activeSeasonTitle: "Denboraldi aktiboa",
     activeSeasonDescription:
       "Denboraldi aktiboko jokalariak bakarrik erreklama daitezke.",
+    finishedSeasonTitle: "Amaitutako denboraldia",
+    finishedSeasonDescription:
+      "Denboraldia itxita dago, baina oraindik kontua lotu dezakezu erreklamatu gabeko jokalari batekin.",
     noActiveSeasonTitle: "Ez dago denboraldi aktiborik",
     noActiveSeasonDescription:
       "Liga administratzaileak denboraldi berri bat sortzeko zain dago.",
@@ -72,7 +75,10 @@ export const eu = {
       "Aukeratu nor zaren liga honetan. Liga bakoitzean jokalari bakarra erreklama dezakezu.",
     claimActiveDescription:
       "Hauek dira denboraldi aktiboan lotu gabe dauden jokalariak.",
+    claimFinishedDescription:
+      "Hauek dira amaitutako denboraldian oraindik konturik lotuta ez duten jokalariak.",
     claimableActivePlayers: "Denboraldi aktiboko jokalari pendienteak",
+    claimableFinishedPlayers: "Amaitutako denboraldiko jokalari pendienteak",
     selectedPlayer: "Aukeratutako jokalaria",
     inactivePlayersHidden:
       "Aurreko denboraldietako jokalariak ez dira hemen agertzen, erreklamazio okerrak saihesteko.",

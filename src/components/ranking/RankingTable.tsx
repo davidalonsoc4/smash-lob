@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type RankingPlayer = {
@@ -38,7 +39,7 @@ export function RankingTable({ players }: RankingTableProps) {
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_1.5rem_2.2rem_2.2rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-400">
+      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-400">
         <span>Jugador</span>
         <span className="text-right">J</span>
         <span className="text-right">Dif</span>
@@ -51,19 +52,21 @@ export function RankingTable({ players }: RankingTableProps) {
             key={player.id}
             href={`/player/${player.slug}`}
             aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
-            className="grid grid-cols-[minmax(0,1fr)_1.5rem_2.2rem_2.2rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
+            className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
           >
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
               <div
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black ${
-                  index === 0 ? "text-amber-500" : "text-neutral-800"
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black text-neutral-950 ${
+                  index === 0 ? "bg-amber-400" : "bg-neutral-100"
                 }`}
                 aria-hidden="true"
               >
                 {index + 1}
               </div>
 
-              <p className="min-w-0 text-sm font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+              <PlayerAvatar player={player} size="sm" />
+
+              <p className="min-w-0 text-[13px] font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
                 {player.displayName}
               </p>
             </div>
