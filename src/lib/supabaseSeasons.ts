@@ -108,6 +108,7 @@ export async function updateSupabaseSeasonRoundSettings(
     round_window_days: settings.roundWindowDays,
     requires_three_sets: settings.requiresThreeSets,
     mvp_system: settings.mvpSystem,
+    result_confirmation_mode: settings.resultConfirmationMode,
     manual_active_round: settings.manualActiveRound,
     manual_completed_rounds: settings.manualCompletedRounds,
     registration_fee: settings.registrationFee,
@@ -383,6 +384,7 @@ export async function startSupabaseSeason({
   roundWindowDays,
   requiresThreeSets,
   mvpSystem,
+  resultConfirmationMode,
   manualMatches,
   scheduleMode = "single",
   registrationFeeEnabled = false,
@@ -403,6 +405,7 @@ export async function startSupabaseSeason({
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: SeasonRoundSettings["mvpSystem"];
+  resultConfirmationMode: SeasonRoundSettings["resultConfirmationMode"];
   manualMatches?: ManualCalendarMatchDraft[];
   scheduleMode?: SeasonScheduleMode;
   registrationFeeEnabled?: boolean;
@@ -618,6 +621,7 @@ export async function startSupabaseSeason({
       round_window_days: roundWindowDays,
       requires_three_sets: requiresThreeSets,
       mvp_system: mvpSystem,
+      result_confirmation_mode: resultConfirmationMode,
       manual_active_round: null,
       manual_completed_rounds: [],
       registration_fee: buildSeasonRegistrationFee({
@@ -659,6 +663,7 @@ export async function startSupabaseSeason({
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,
+      resultConfirmationMode,
       manualActiveRound: null,
       manualCompletedRounds: [],
       registrationFee: buildSeasonRegistrationFee({

@@ -32,6 +32,7 @@ export type MvpMatch = {
   pointsA: number | null
   pointsB: number | null
   sets: { a: number; b: number }[]
+  resultCounts?: boolean
 }
 
 export type MvpPlayer = {
@@ -117,14 +118,25 @@ function getRoundMatches(matches: MvpMatch[], leagueId: string, seasonId: string
   )
 }
 
-function isRoundComplete(matches: MvpMatch[], leagueId: string, seasonId: string, round: number) {
+function isRoundFinished(matches: MvpMatch[], leagueId: string, seasonId: string, round: number) {
   const roundMatches = getRoundMatches(matches, leagueId, seasonId, round)
 
   return roundMatches.length > 0 && roundMatches.every((match) => match.status === "finished")
 }
 
+function isRoundComplete(matches: MvpMatch[], leagueId: string, seasonId: string, round: number) {
+  const roundMatches = getRoundMatches(matches, leagueId, seasonId, round)
+
+  return (
+    roundMatches.length > 0 &&
+    roundMatches.every(
+      (match) => match.status === "finished" && match.resultCounts !== false,
+    )
+  )
+}
+
 function getRoundWinnerCandidate(match: MvpMatch): RoundMvpCandidate | null {
-  if (match.status !== "finished") {
+  if (match.status !== "finished" || match.resultCounts === false) {
     return null
   }
 
@@ -400,11 +412,14 @@ export function getRoundMvpSelection({
   matches: MvpMatch[]
   mvpSystem?: MvpSystem
 }): MvpResult | null {
-  if (mvpSystem === "none" || !isRoundComplete(matches, leagueId, seasonId, round)) {
+  if (mvpSystem === "none") {
     return null
   }
 
   if (mvpSystem === "voting") {
+    if (!isRoundFinished(matches, leagueId, seasonId, round)) {
+      return null
+    }
     const progress = getRoundVotingProgress({
       votes,
       leagueId,
@@ -468,6 +483,10 @@ export function getRoundMvpSelection({
       tied: topPlayerIds.length > 1,
       matchId: singleWinnerMatch?.id,
     }
+  }
+
+  if (!isRoundComplete(matches, leagueId, seasonId, round)) {
+    return null
   }
 
   const topCandidate = getRoundMatches(matches, leagueId, seasonId, round)

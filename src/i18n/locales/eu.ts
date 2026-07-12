@@ -481,8 +481,7 @@ export const eu = {
     scoringPlayedSetsValue:
       "Osatutako eta emaitzan gordetako setak bakarrik kontatzen dira",
     scoringTiebreakLabel: "Berdinketak",
-    scoringTiebreakValue:
-      "Lehenik puntuak, gero jokoak eta joko-diferentzia",
+    scoringTiebreakValue: "Lehenik puntuak, gero jokoak eta joko-diferentzia",
     scoringThreeSetsNote:
       "Rankingak jokalari bakoitzak irabazitako setak neurtzen ditu. Horregatik, partida galdu arren set bat borrokatuz puntuak lor ditzakezu.",
     scoringOptionalSetsNote:
@@ -891,6 +890,7 @@ export const eu = {
       match_result_cleared: "Emaitza",
       match_mvp_vote_reminder: "MVP botoa",
       match_result_missing_reminder: "Emaitza",
+      match_result_confirmation_reminder: "Berrespena",
       match_upcoming_reminder: "Gogorarazpena",
       round_in_play: "Jardunaldia",
       round_mvp_awarded: "MVP",
@@ -905,7 +905,7 @@ export const eu = {
       league_locations_updated: "Liga",
       league_invite_regenerated: "Gonbidapena",
       season_finished: "Denboraldia",
-      season_started: 'Denboraldia',
+      season_started: "Denboraldia",
       season_created: "Denboraldia",
       player_name_updated: "Jokalaria",
       player_avatar_updated: "Jokalaria",

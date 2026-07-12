@@ -140,6 +140,7 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_result_updated" ||
     eventType === "match_result_cleared" ||
     eventType === "match_result_missing_reminder" ||
+    eventType === "match_result_confirmation_reminder" ||
     eventType === "match_mvp_vote_reminder" ||
     eventType === "match_upcoming_reminder"
   );
@@ -148,8 +149,10 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
 function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
   const metadata = toRecord(event.metadata);
 
-  if (event.type === "match_mvp_vote_reminder") {
-    return toStringArray(metadata.targetPlayerIds);
+  const explicitTargetPlayerIds = toStringArray(metadata.targetPlayerIds);
+
+  if (explicitTargetPlayerIds.length > 0) {
+    return explicitTargetPlayerIds;
   }
 
   if (isMatchParticipantNotification(event.type)) {
@@ -222,7 +225,11 @@ async function getTargetPlayerIds({
 }) {
   const metadataTargetPlayerIds = getTargetPlayerIdsFromMetadata(event);
 
-  if (event.type === "match_mvp_vote_reminder") {
+  if (
+    event.type === "match_mvp_vote_reminder" ||
+    event.type === "match_result_confirmation_reminder" ||
+    event.type === "round_mvp_awarded"
+  ) {
     return metadataTargetPlayerIds;
   }
 
@@ -230,10 +237,15 @@ async function getTargetPlayerIds({
     return metadataTargetPlayerIds;
   }
 
-  const matchParticipantIds = await fetchMatchParticipantIds({ supabase, event });
+  const matchParticipantIds = await fetchMatchParticipantIds({
+    supabase,
+    event,
+  });
 
   return Array.from(
-    new Set([...metadataTargetPlayerIds, ...matchParticipantIds].filter(Boolean)),
+    new Set(
+      [...metadataTargetPlayerIds, ...matchParticipantIds].filter(Boolean),
+    ),
   );
 }
 
@@ -266,6 +278,7 @@ function getNotificationUrl(event: ActivityEventRow) {
     event.type === "season_started" ||
     event.type === "season_finished" ||
     event.type === "round_in_play" ||
+    event.type === "round_mvp_awarded" ||
     event.type === "season_registration_payment_reminder"
   ) {
     return "/";
@@ -311,7 +324,6 @@ function getPendingTransferText({
     .join(" y ");
 }
 
-
 function getResultTextFromMetadata(event: ActivityEventRow) {
   const metadata = toRecord(event.metadata);
   const pointsA = Number(metadata.pointsA);
@@ -337,9 +349,10 @@ function getResultTextFromMetadata(event: ActivityEventRow) {
         .filter((item): item is string => Boolean(item))
     : [];
   const round = metadata.round;
-  const roundText = typeof round === "number" || typeof round === "string"
-    ? `Jornada ${round}`
-    : null;
+  const roundText =
+    typeof round === "number" || typeof round === "string"
+      ? `Jornada ${round}`
+      : null;
   const resultText = `${pointsA}-${pointsB}`;
   const setsText = sets.length > 0 ? ` · ${sets.join(", ")}` : "";
 
@@ -376,10 +389,17 @@ function getNotificationTitle(event: ActivityEventRow) {
     return "Falta el resultado";
   }
 
+  if (event.type === "match_result_confirmation_reminder") {
+    return "Confirma el resultado";
+  }
+
   if (event.type === "match_mvp_vote_reminder") {
     return "Falta tu voto MVP";
   }
 
+  if (event.type === "round_mvp_awarded") {
+    return "MVP de la jornada";
+  }
 
   if (event.type === "match_upcoming_reminder") {
     return "Próximo partido";
@@ -457,7 +477,8 @@ function getNotificationBody(
     const metadata = toRecord(event.metadata);
     const amount = toNumber(metadata.amount);
     const organizerName =
-      typeof metadata.organizerName === "string" && metadata.organizerName.trim()
+      typeof metadata.organizerName === "string" &&
+      metadata.organizerName.trim()
         ? metadata.organizerName.trim()
         : "el organizador";
 
@@ -481,6 +502,13 @@ function getNotificationBody(
       : "No olvides registrar el resultado de tu partido.";
   }
 
+  if (event.type === "match_result_confirmation_reminder") {
+    const round = toRecord(event.metadata).round;
+
+    return typeof round === "number"
+      ? `Revisa y confirma el resultado de tu partido de la Jornada ${round}.`
+      : "Revisa y confirma el resultado de tu último partido.";
+  }
 
   if (event.type === "match_mvp_vote_reminder") {
     const round = toRecord(event.metadata).round;
@@ -488,6 +516,21 @@ function getNotificationBody(
     return typeof round === "number"
       ? `Vota al MVP de tu partido de la Jornada ${round}.`
       : "Vota al MVP de tu último partido.";
+  }
+
+  if (event.type === "round_mvp_awarded") {
+    const metadata = toRecord(event.metadata);
+    const winnerNames = toStringArray(metadata.playerNames);
+    const round = metadata.round;
+    const winnerText = winnerNames.join(" / ");
+
+    if (winnerText && typeof round === "number") {
+      return `${winnerText} ${winnerNames.length > 1 ? "son" : "es"} el MVP de la Jornada ${round}.`;
+    }
+
+    return (
+      event.description?.trim() || "Ya se ha decidido el MVP de la jornada."
+    );
   }
   if (event.type === "match_upcoming_reminder") {
     const metadata = toRecord(event.metadata);
@@ -501,13 +544,20 @@ function getNotificationBody(
       : "Prepárate para tu partido.";
   }
 
-  if (event.type === "match_result_saved" || event.type === "match_result_updated") {
+  if (
+    event.type === "match_result_saved" ||
+    event.type === "match_result_updated"
+  ) {
     const resultText = getResultTextFromMetadata(event);
 
     if (resultText) {
+      const confirmationMode = toRecord(event.metadata).resultConfirmationMode;
+      const confirmationText =
+        confirmationMode === "none" ? "" : " Entra para confirmarlo.";
+
       return event.type === "match_result_updated"
-        ? `Nuevo resultado: ${resultText}. Entra para confirmarlo.`
-        : `Resultado: ${resultText}. Entra para confirmarlo.`;
+        ? `Nuevo resultado: ${resultText}.${confirmationText}`
+        : `Resultado: ${resultText}.${confirmationText}`;
     }
   }
 

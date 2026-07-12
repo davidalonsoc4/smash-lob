@@ -1,24 +1,27 @@
-import { supabase } from "@/lib/supabase"
-import type { ActivityEventType } from "@/lib/activity"
+import { supabase } from "@/lib/supabase";
+import type { ActivityEventType } from "@/lib/activity";
 
-export type ActivityDeliveryMode = "activity_only" | "personal" | "notify"
-export type ActivityEventCategory = "match" | "court" | "season" | "league" | "player"
+export type ActivityDeliveryMode = "activity_only" | "personal" | "notify";
+export type ActivityEventCategory =
+  "match" | "court" | "season" | "league" | "player";
 export type ActivityPersonalScope =
-  | "match_participants"
-  | "target_player"
-  | "league_wide"
-  | "admin_only"
+  "match_participants" | "target_player" | "league_wide" | "admin_only";
 
 export type ActivityEventDefinition = {
-  category: ActivityEventCategory
-  defaultMode: ActivityDeliveryMode
-  personalScope: ActivityPersonalScope
-  pushReady: boolean
-}
+  category: ActivityEventCategory;
+  defaultMode: ActivityDeliveryMode;
+  personalScope: ActivityPersonalScope;
+  pushReady: boolean;
+};
 
-export type LeagueActivitySettings = Partial<Record<ActivityEventType, ActivityDeliveryMode>>
+export type LeagueActivitySettings = Partial<
+  Record<ActivityEventType, ActivityDeliveryMode>
+>;
 
-export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDefinition> = {
+export const activityEventDefinitions: Record<
+  ActivityEventType,
+  ActivityEventDefinition
+> = {
   match_scheduled: {
     category: "match",
     defaultMode: "notify",
@@ -56,6 +59,12 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     pushReady: true,
   },
   match_result_missing_reminder: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_result_confirmation_reminder: {
     category: "match",
     defaultMode: "notify",
     personalScope: "match_participants",
@@ -193,11 +202,11 @@ export const activityEventDefinitions: Record<ActivityEventType, ActivityEventDe
     personalScope: "target_player",
     pushReady: true,
   },
-}
+};
 
 export const activityEventTypes = Object.keys(
-  activityEventDefinitions
-) as ActivityEventType[]
+  activityEventDefinitions,
+) as ActivityEventType[];
 
 export const activityEventCategories: ActivityEventCategory[] = [
   "match",
@@ -205,55 +214,65 @@ export const activityEventCategories: ActivityEventCategory[] = [
   "season",
   "league",
   "player",
-]
+];
 
-export const defaultLeagueActivitySettings: Record<ActivityEventType, ActivityDeliveryMode> =
-  activityEventTypes.reduce((settings, eventType) => {
-    settings[eventType] = activityEventDefinitions[eventType].defaultMode
-    return settings
-  }, {} as Record<ActivityEventType, ActivityDeliveryMode>)
+export const defaultLeagueActivitySettings: Record<
+  ActivityEventType,
+  ActivityDeliveryMode
+> = activityEventTypes.reduce(
+  (settings, eventType) => {
+    settings[eventType] = activityEventDefinitions[eventType].defaultMode;
+    return settings;
+  },
+  {} as Record<ActivityEventType, ActivityDeliveryMode>,
+);
 
 function isActivityDeliveryMode(value: unknown): value is ActivityDeliveryMode {
-  return value === "activity_only" || value === "personal" || value === "notify"
+  return (
+    value === "activity_only" || value === "personal" || value === "notify"
+  );
 }
 
 function normalizeSettings(value: unknown): LeagueActivitySettings {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return {}
+    return {};
   }
 
-  const rawSettings = value as Record<string, unknown>
-  const settings: LeagueActivitySettings = {}
+  const rawSettings = value as Record<string, unknown>;
+  const settings: LeagueActivitySettings = {};
 
   activityEventTypes.forEach((eventType) => {
-    const mode = rawSettings[eventType]
+    const mode = rawSettings[eventType];
 
     if (isActivityDeliveryMode(mode)) {
-      settings[eventType] = mode
+      settings[eventType] = mode;
     }
-  })
+  });
 
-  return settings
+  return settings;
 }
 
 export function getActivityEventDefinition(eventType: ActivityEventType) {
-  return activityEventDefinitions[eventType]
+  return activityEventDefinitions[eventType];
 }
 
 export function getActivityDeliveryMode(
   settings: LeagueActivitySettings,
-  eventType: ActivityEventType
+  eventType: ActivityEventType,
 ): ActivityDeliveryMode {
-  return settings[eventType] ?? defaultLeagueActivitySettings[eventType]
+  return settings[eventType] ?? defaultLeagueActivitySettings[eventType];
 }
 
 export function mergeWithDefaultActivitySettings(
-  settings: LeagueActivitySettings
+  settings: LeagueActivitySettings,
 ): Record<ActivityEventType, ActivityDeliveryMode> {
-  return activityEventTypes.reduce((nextSettings, eventType) => {
-    nextSettings[eventType] = getActivityDeliveryMode(settings, eventType)
-    return nextSettings
-  }, {} as Record<ActivityEventType, ActivityDeliveryMode>)
+  return activityEventTypes.reduce(
+    (nextSettings, eventType) => {
+      nextSettings[eventType] = getActivityDeliveryMode(settings, eventType);
+      return nextSettings;
+    },
+    {} as Record<ActivityEventType, ActivityDeliveryMode>,
+  );
 }
 
 export async function fetchLeagueActivitySettings(leagueId: string) {
@@ -261,34 +280,34 @@ export async function fetchLeagueActivitySettings(leagueId: string) {
     .from("leagues")
     .select("activity_settings")
     .eq("id", leagueId)
-    .single()
+    .single();
 
   if (error) {
-    throw error
+    throw error;
   }
 
-  return normalizeSettings(data?.activity_settings)
+  return normalizeSettings(data?.activity_settings);
 }
 
 export async function updateLeagueActivitySettings({
   leagueId,
   settings,
 }: {
-  leagueId: string
-  settings: LeagueActivitySettings
+  leagueId: string;
+  settings: LeagueActivitySettings;
 }) {
-  const safeSettings = mergeWithDefaultActivitySettings(settings)
+  const safeSettings = mergeWithDefaultActivitySettings(settings);
 
   const { data, error } = await supabase
     .from("leagues")
     .update({ activity_settings: safeSettings })
     .eq("id", leagueId)
     .select("activity_settings")
-    .single()
+    .single();
 
   if (error) {
-    throw error
+    throw error;
   }
 
-  return normalizeSettings(data?.activity_settings)
+  return normalizeSettings(data?.activity_settings);
 }

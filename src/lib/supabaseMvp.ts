@@ -1,24 +1,24 @@
-import { supabase } from "@/lib/supabase"
-import type { MvpManualSelection, MvpVote } from "@/lib/mvp"
+import { supabase } from "@/lib/supabase";
+import type { MvpManualSelection, MvpVote } from "@/lib/mvp";
 
 type SupabaseMvpVoteRow = {
-  league_id: string
-  season_id: string
-  match_id: string | null
-  round: number
-  voter_player_id: string
-  selected_player_id: string
-  created_at: string
-}
+  league_id: string;
+  season_id: string;
+  match_id: string | null;
+  round: number;
+  voter_player_id: string;
+  selected_player_id: string;
+  created_at: string;
+};
 
 type SupabaseMvpManualSelectionRow = {
-  league_id: string
-  season_id: string
-  scope: "round" | "season"
-  round: number | null
-  selected_player_id: string
-  updated_at: string
-}
+  league_id: string;
+  season_id: string;
+  scope: "round" | "season";
+  round: number | null;
+  selected_player_id: string;
+  updated_at: string;
+};
 
 function mapVote(row: SupabaseMvpVoteRow): MvpVote {
   return {
@@ -29,11 +29,11 @@ function mapVote(row: SupabaseMvpVoteRow): MvpVote {
     voterPlayerId: row.voter_player_id,
     selectedPlayerId: row.selected_player_id,
     createdAt: row.created_at,
-  }
+  };
 }
 
 function mapManualSelection(
-  row: SupabaseMvpManualSelectionRow
+  row: SupabaseMvpManualSelectionRow,
 ): MvpManualSelection {
   return {
     leagueId: row.league_id,
@@ -42,7 +42,7 @@ function mapManualSelection(
     round: row.round,
     selectedPlayerId: row.selected_player_id,
     updatedAt: row.updated_at,
-  }
+  };
 }
 
 export async function fetchSupabaseMvpData(leagueIds: string[]) {
@@ -50,38 +50,40 @@ export async function fetchSupabaseMvpData(leagueIds: string[]) {
     return {
       votes: [],
       manualSelections: [],
-    }
+    };
   }
 
   const [votesResult, manualSelectionsResult] = await Promise.all([
     supabase
       .from("mvp_votes")
       .select(
-        "league_id, season_id, match_id, round, voter_player_id, selected_player_id, created_at"
+        "league_id, season_id, match_id, round, voter_player_id, selected_player_id, created_at",
       )
       .in("league_id", leagueIds),
     supabase
       .from("mvp_manual_selections")
-      .select("league_id, season_id, scope, round, selected_player_id, updated_at")
+      .select(
+        "league_id, season_id, scope, round, selected_player_id, updated_at",
+      )
       .in("league_id", leagueIds),
-  ])
+  ]);
 
   if (votesResult.error) {
-    throw votesResult.error
+    throw votesResult.error;
   }
 
   if (manualSelectionsResult.error) {
-    throw manualSelectionsResult.error
+    throw manualSelectionsResult.error;
   }
 
   return {
     votes: (votesResult.data ?? []).map((row) =>
-      mapVote(row as SupabaseMvpVoteRow)
+      mapVote(row as SupabaseMvpVoteRow),
     ),
     manualSelections: (manualSelectionsResult.data ?? []).map((row) =>
-      mapManualSelection(row as SupabaseMvpManualSelectionRow)
+      mapManualSelection(row as SupabaseMvpManualSelectionRow),
     ),
-  }
+  };
 }
 
 export async function upsertSupabaseMvpVote(vote: MvpVote) {
@@ -98,14 +100,14 @@ export async function upsertSupabaseMvpVote(vote: MvpVote) {
       },
       {
         onConflict: "league_id,season_id,round,voter_player_id",
-      }
-    )
+      },
+    );
 
     if (error) {
-      throw error
+      throw error;
     }
 
-    return
+    return;
   }
 
   const payload = {
@@ -116,7 +118,7 @@ export async function upsertSupabaseMvpVote(vote: MvpVote) {
     voter_player_id: vote.voterPlayerId,
     selected_player_id: vote.selectedPlayerId,
     created_at: vote.createdAt,
-  }
+  };
   const { data: updatedRows, error: updateError } = await supabase
     .from("mvp_votes")
     .update(payload)
@@ -124,20 +126,22 @@ export async function upsertSupabaseMvpVote(vote: MvpVote) {
     .eq("season_id", vote.seasonId)
     .eq("match_id", vote.matchId)
     .eq("voter_player_id", vote.voterPlayerId)
-    .select("match_id")
+    .select("match_id");
 
   if (updateError) {
-    throw updateError
+    throw updateError;
   }
 
   if ((updatedRows ?? []).length > 0) {
-    return
+    return;
   }
 
-  const { error: insertError } = await supabase.from("mvp_votes").insert(payload)
+  const { error: insertError } = await supabase
+    .from("mvp_votes")
+    .insert(payload);
 
   if (insertError) {
-    throw insertError
+    throw insertError;
   }
 }
 
@@ -145,10 +149,10 @@ export async function deleteSupabaseMvpVotesForMatch(matchId: string) {
   const { error } = await supabase
     .from("mvp_votes")
     .delete()
-    .eq("match_id", matchId)
+    .eq("match_id", matchId);
 
   if (error) {
-    throw error
+    throw error;
   }
 }
 
@@ -159,11 +163,11 @@ export async function saveSupabaseMvpManualSelection({
   round,
   selectedPlayerId,
 }: {
-  leagueId: string
-  seasonId: string
-  scope: "round" | "season"
-  round: number | null
-  selectedPlayerId: string | null
+  leagueId: string;
+  seasonId: string;
+  scope: "round" | "season";
+  round: number | null;
+  selectedPlayerId: string | null;
 }) {
   if (!selectedPlayerId) {
     let query = supabase
@@ -171,17 +175,17 @@ export async function saveSupabaseMvpManualSelection({
       .delete()
       .eq("league_id", leagueId)
       .eq("season_id", seasonId)
-      .eq("scope", scope)
+      .eq("scope", scope);
 
-    query = round === null ? query.is("round", null) : query.eq("round", round)
+    query = round === null ? query.is("round", null) : query.eq("round", round);
 
-    const { error } = await query
+    const { error } = await query;
 
     if (error) {
-      throw error
+      throw error;
     }
 
-    return
+    return;
   }
 
   const { error } = await supabase.from("mvp_manual_selections").upsert(
@@ -195,10 +199,35 @@ export async function saveSupabaseMvpManualSelection({
     },
     {
       onConflict: "league_id,season_id,scope,round_key",
-    }
-  )
+    },
+  );
 
   if (error) {
-    throw error
+    throw error;
   }
+}
+
+export async function hasSupabaseVotingRoundMvpEvent({
+  leagueId,
+  seasonId,
+  round,
+}: {
+  leagueId: string;
+  seasonId: string;
+  round: number;
+}) {
+  const { data, error } = await supabase
+    .from("activity_events")
+    .select("id")
+    .eq("league_id", leagueId)
+    .eq("season_id", seasonId)
+    .eq("type", "round_mvp_awarded")
+    .contains("metadata", { round, system: "voting" })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data && data.length > 0);
 }

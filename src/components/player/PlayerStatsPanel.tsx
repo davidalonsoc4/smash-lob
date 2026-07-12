@@ -1,89 +1,96 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { AppCard } from "@/components/ui/AppCard"
-import { useI18n } from "@/i18n/I18nProvider"
-import { getPlayerMvpSummary, type MvpSystem, type MvpVote } from "@/lib/mvp"
+import Link from "next/link";
+import { AppCard } from "@/components/ui/AppCard";
+import { useI18n } from "@/i18n/I18nProvider";
+import { getPlayerMvpSummary, type MvpSystem, type MvpVote } from "@/lib/mvp";
 
 type PlayerStatsPanelProps = {
-  playerId: string
-  leagueId: string
-  seasonId: string
-  seasonIds?: string[]
-  scopeLabel?: string
-  players: PlayerStatsPlayer[]
-  matches: PlayerStatsMatch[]
-  seasonMatches?: PlayerStatsMatch[]
-  votes?: MvpVote[]
-  mvpSystem?: MvpSystem
-  mvpSystemBySeasonId?: Record<string, MvpSystem>
-}
+  playerId: string;
+  leagueId: string;
+  seasonId: string;
+  seasonIds?: string[];
+  scopeLabel?: string;
+  players: PlayerStatsPlayer[];
+  matches: PlayerStatsMatch[];
+  seasonMatches?: PlayerStatsMatch[];
+  votes?: MvpVote[];
+  mvpSystem?: MvpSystem;
+  mvpSystemBySeasonId?: Record<string, MvpSystem>;
+};
 
 type PlayerStatsPlayer = {
-  id: string
-  slug?: string
-  displayName: string
-}
+  id: string;
+  slug?: string;
+  displayName: string;
+};
 
 type PlayerStatsMatch = {
-  id: string
-  leagueId: string
-  seasonId: string
-  round: number
-  status: string
-  teamA: string[]
-  teamB: string[]
-  pointsA: number | null
-  pointsB: number | null
-  sets: { a: number; b: number }[]
-}
+  id: string;
+  leagueId: string;
+  seasonId: string;
+  round: number;
+  status: string;
+  teamA: string[];
+  teamB: string[];
+  pointsA: number | null;
+  pointsB: number | null;
+  sets: { a: number; b: number }[];
+  resultCounts?: boolean;
+};
 
 type PlayerRelationStats = {
-  playerId: string
-  matches: number
-  wins: number
-  gamesFor: number
-  gamesAgainst: number
-}
+  playerId: string;
+  matches: number;
+  wins: number;
+  gamesFor: number;
+  gamesAgainst: number;
+};
 
 function getTeamSetPoints(match: PlayerStatsMatch, team: "A" | "B") {
   if (team === "A" && match.pointsA !== null) {
-    return match.pointsA
+    return match.pointsA;
   }
 
   if (team === "B" && match.pointsB !== null) {
-    return match.pointsB
+    return match.pointsB;
   }
 
-  return match.sets.filter((set) => (team === "A" ? set.a > set.b : set.b > set.a)).length
+  return match.sets.filter((set) =>
+    team === "A" ? set.a > set.b : set.b > set.a,
+  ).length;
 }
 
 function getTeamGames(match: PlayerStatsMatch, team: "A" | "B") {
-  return match.sets.reduce((total, set) => total + (team === "A" ? set.a : set.b), 0)
+  return match.sets.reduce(
+    (total, set) => total + (team === "A" ? set.a : set.b),
+    0,
+  );
 }
 
 function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
   return Array.from(relationStats.values()).sort((a, b) => {
-    const diffA = a.gamesFor - a.gamesAgainst
-    const diffB = b.gamesFor - b.gamesAgainst
+    const diffA = a.gamesFor - a.gamesAgainst;
+    const diffB = b.gamesFor - b.gamesAgainst;
 
-    if (diffB !== diffA) return diffB - diffA
-    if (b.wins !== a.wins) return b.wins - a.wins
-    if (b.matches !== a.matches) return b.matches - a.matches
-    return a.playerId.localeCompare(b.playerId)
-  })[0]
+    if (diffB !== diffA) return diffB - diffA;
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    if (b.matches !== a.matches) return b.matches - a.matches;
+    return a.playerId.localeCompare(b.playerId);
+  })[0];
 }
 
 function getToughestRival(relationStats: Map<string, PlayerRelationStats>) {
   return Array.from(relationStats.values()).sort((a, b) => {
-    const diffA = a.gamesFor - a.gamesAgainst
-    const diffB = b.gamesFor - b.gamesAgainst
+    const diffA = a.gamesFor - a.gamesAgainst;
+    const diffB = b.gamesFor - b.gamesAgainst;
 
-    if (diffA !== diffB) return diffA - diffB
-    if (b.gamesAgainst !== a.gamesAgainst) return b.gamesAgainst - a.gamesAgainst
-    if (b.matches !== a.matches) return b.matches - a.matches
-    return a.playerId.localeCompare(b.playerId)
-  })[0]
+    if (diffA !== diffB) return diffA - diffB;
+    if (b.gamesAgainst !== a.gamesAgainst)
+      return b.gamesAgainst - a.gamesAgainst;
+    if (b.matches !== a.matches) return b.matches - a.matches;
+    return a.playerId.localeCompare(b.playerId);
+  })[0];
 }
 
 function upsertRelation(
@@ -91,7 +98,7 @@ function upsertRelation(
   playerId: string,
   won: boolean,
   gamesFor: number,
-  gamesAgainst: number
+  gamesAgainst: number,
 ) {
   const current = relationStats.get(playerId) ?? {
     playerId,
@@ -99,43 +106,43 @@ function upsertRelation(
     wins: 0,
     gamesFor: 0,
     gamesAgainst: 0,
-  }
+  };
 
-  current.matches += 1
-  current.gamesFor += gamesFor
-  current.gamesAgainst += gamesAgainst
+  current.matches += 1;
+  current.gamesFor += gamesFor;
+  current.gamesAgainst += gamesAgainst;
 
   if (won) {
-    current.wins += 1
+    current.wins += 1;
   }
 
-  relationStats.set(playerId, current)
+  relationStats.set(playerId, current);
 }
 
 function formatPercentage(value: number) {
   if (!Number.isFinite(value)) {
-    return "0%"
+    return "0%";
   }
 
-  return `${Math.round(value)}%`
+  return `${Math.round(value)}%`;
 }
 
 function formatSignedNumber(value: number) {
-  return `${value > 0 ? "+" : ""}${value}`
+  return `${value > 0 ? "+" : ""}${value}`;
 }
 
 function getPlayer(playerId: string, players: PlayerStatsPlayer[]) {
-  return players.find((player) => player.id === playerId) ?? null
+  return players.find((player) => player.id === playerId) ?? null;
 }
 
 function getDisplayName(playerId: string, players: PlayerStatsPlayer[]) {
-  return getPlayer(playerId, players)?.displayName ?? playerId
+  return getPlayer(playerId, players)?.displayName ?? playerId;
 }
 
 function getPlayerHref(playerId: string, players: PlayerStatsPlayer[]) {
-  const player = getPlayer(playerId, players)
+  const player = getPlayer(playerId, players);
 
-  return `/player/${player?.slug ?? playerId}`
+  return `/player/${player?.slug ?? playerId}`;
 }
 
 export function PlayerStatsPanel({
@@ -151,75 +158,86 @@ export function PlayerStatsPanel({
   mvpSystem = "automatic",
   mvpSystemBySeasonId,
 }: PlayerStatsPanelProps) {
-  const { t } = useI18n()
+  const { t } = useI18n();
   const finishedMatches = matches.filter(
     (match) =>
       match.status === "finished" &&
-      (match.teamA.includes(playerId) || match.teamB.includes(playerId))
-  )
+      match.resultCounts !== false &&
+      (match.teamA.includes(playerId) || match.teamB.includes(playerId)),
+  );
 
-  const partnerStats = new Map<string, PlayerRelationStats>()
-  const rivalStats = new Map<string, PlayerRelationStats>()
-  let setsFor = 0
-  let setsAgainst = 0
-  let gamesFor = 0
-  let gamesAgainst = 0
-  let wins = 0
-  let losses = 0
-  let bestMatch: { seasonId: string; round: number; diff: number } | null = null
-  let toughestMatch: { seasonId: string; round: number; diff: number } | null = null
+  const partnerStats = new Map<string, PlayerRelationStats>();
+  const rivalStats = new Map<string, PlayerRelationStats>();
+  let setsFor = 0;
+  let setsAgainst = 0;
+  let gamesFor = 0;
+  let gamesAgainst = 0;
+  let wins = 0;
+  let losses = 0;
+  let bestMatch: { seasonId: string; round: number; diff: number } | null =
+    null;
+  let toughestMatch: { seasonId: string; round: number; diff: number } | null =
+    null;
 
   for (const match of finishedMatches) {
-    const isTeamA = match.teamA.includes(playerId)
-    const ownTeam = isTeamA ? match.teamA : match.teamB
-    const opponentTeam = isTeamA ? match.teamB : match.teamA
-    const ownSets = getTeamSetPoints(match, isTeamA ? "A" : "B")
-    const opponentSets = getTeamSetPoints(match, isTeamA ? "B" : "A")
-    const ownGames = getTeamGames(match, isTeamA ? "A" : "B")
-    const opponentGames = getTeamGames(match, isTeamA ? "B" : "A")
-    const won = ownSets > opponentSets
-    const gamesDiff = ownGames - opponentGames
+    const isTeamA = match.teamA.includes(playerId);
+    const ownTeam = isTeamA ? match.teamA : match.teamB;
+    const opponentTeam = isTeamA ? match.teamB : match.teamA;
+    const ownSets = getTeamSetPoints(match, isTeamA ? "A" : "B");
+    const opponentSets = getTeamSetPoints(match, isTeamA ? "B" : "A");
+    const ownGames = getTeamGames(match, isTeamA ? "A" : "B");
+    const opponentGames = getTeamGames(match, isTeamA ? "B" : "A");
+    const won = ownSets > opponentSets;
+    const gamesDiff = ownGames - opponentGames;
 
-    setsFor += ownSets
-    setsAgainst += opponentSets
-    gamesFor += ownGames
-    gamesAgainst += opponentGames
+    setsFor += ownSets;
+    setsAgainst += opponentSets;
+    gamesFor += ownGames;
+    gamesAgainst += opponentGames;
 
     if (won) {
-      wins += 1
+      wins += 1;
     } else {
-      losses += 1
+      losses += 1;
     }
 
     ownTeam
       .filter((teammateId) => teammateId !== playerId)
       .forEach((teammateId) =>
-        upsertRelation(partnerStats, teammateId, won, ownGames, opponentGames)
-      )
+        upsertRelation(partnerStats, teammateId, won, ownGames, opponentGames),
+      );
 
     opponentTeam.forEach((opponentId) =>
-      upsertRelation(rivalStats, opponentId, won, ownGames, opponentGames)
-    )
+      upsertRelation(rivalStats, opponentId, won, ownGames, opponentGames),
+    );
 
     if (!bestMatch || gamesDiff > bestMatch.diff) {
-      bestMatch = { seasonId: match.seasonId, round: match.round, diff: gamesDiff }
+      bestMatch = {
+        seasonId: match.seasonId,
+        round: match.round,
+        diff: gamesDiff,
+      };
     }
 
     if (!toughestMatch || gamesDiff < toughestMatch.diff) {
-      toughestMatch = { seasonId: match.seasonId, round: match.round, diff: gamesDiff }
+      toughestMatch = {
+        seasonId: match.seasonId,
+        round: match.round,
+        diff: gamesDiff,
+      };
     }
   }
 
-  const matchesPlayed = finishedMatches.length
-  const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0
-  const bestPartner = getBestRelation(partnerStats)
+  const matchesPlayed = finishedMatches.length;
+  const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0;
+  const bestPartner = getBestRelation(partnerStats);
   const bestPartnerDiff = bestPartner
     ? bestPartner.gamesFor - bestPartner.gamesAgainst
-    : 0
-  const toughestRival = getToughestRival(rivalStats)
+    : 0;
+  const toughestRival = getToughestRival(rivalStats);
   const toughestRivalDiff = toughestRival
     ? toughestRival.gamesFor - toughestRival.gamesAgainst
-    : 0
+    : 0;
   const mvpSummary = getPlayerMvpSummary({
     leagueId,
     seasonId,
@@ -229,13 +247,13 @@ export function PlayerStatsPanel({
     playerId,
     mvpSystem,
     mvpSystemBySeasonId,
-  })
-  const setsTotal = setsFor + setsAgainst
-  const gamesTotal = gamesFor + gamesAgainst
-  const setsWinRate = setsTotal > 0 ? (setsFor / setsTotal) * 100 : 0
-  const gamesForRate = gamesTotal > 0 ? (gamesFor / gamesTotal) * 100 : 0
-  const emptyValue = "—"
-  const mvpHref = getPlayerHref(playerId, players) + "/mvp"
+  });
+  const setsTotal = setsFor + setsAgainst;
+  const gamesTotal = gamesFor + gamesAgainst;
+  const setsWinRate = setsTotal > 0 ? (setsFor / setsTotal) * 100 : 0;
+  const gamesForRate = gamesTotal > 0 ? (gamesFor / gamesTotal) * 100 : 0;
+  const emptyValue = "—";
+  const mvpHref = getPlayerHref(playerId, players) + "/mvp";
 
   return (
     <AppCard className="p-2.5">
@@ -258,7 +276,9 @@ export function PlayerStatsPanel({
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-300">
             {t.playerStats.winRate}
           </p>
-          <p className="text-lg font-black leading-none">{formatPercentage(winRate)}</p>
+          <p className="text-lg font-black leading-none">
+            {formatPercentage(winRate)}
+          </p>
           <p className="mt-1 text-[11px] font-semibold text-neutral-300">
             {wins}-{losses} {t.playerStats.record}
           </p>
@@ -403,5 +423,5 @@ export function PlayerStatsPanel({
         )}
       </div>
     </AppCard>
-  )
+  );
 }

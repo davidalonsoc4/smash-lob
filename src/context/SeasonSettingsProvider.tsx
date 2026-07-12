@@ -28,6 +28,10 @@ import {
   type SeasonRegistrationFee,
 } from "@/lib/seasonRegistration";
 import type { MvpSystem } from "@/lib/mvp";
+import {
+  normalizeResultConfirmationMode,
+  type ResultConfirmationMode,
+} from "@/lib/resultConfirmations";
 
 export type RoundWindowMode = "none" | "fixed-days";
 
@@ -39,6 +43,7 @@ export type SeasonRoundSettings = {
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: MvpSystem;
+  resultConfirmationMode: ResultConfirmationMode;
   manualActiveRound: number | null;
   manualCompletedRounds: number[];
   registrationFee: SeasonRegistrationFee;
@@ -74,6 +79,7 @@ type SeasonSettingsContextValue = {
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
+    resultConfirmationMode: ResultConfirmationMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
@@ -88,6 +94,7 @@ type SeasonSettingsContextValue = {
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
+    resultConfirmationMode: ResultConfirmationMode;
     scheduleMode?: SeasonScheduleMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
@@ -132,6 +139,9 @@ function normalizeSettings(
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
     mvpSystem: (settings as Partial<SeasonRoundSettings>).mvpSystem ?? "automatic",
+    resultConfirmationMode: normalizeResultConfirmationMode(
+      (settings as Partial<SeasonRoundSettings>).resultConfirmationMode,
+    ),
     manualActiveRound:
       typeof (settings as Partial<SeasonRoundSettings>).manualActiveRound === "number"
         ? (settings as Partial<SeasonRoundSettings>).manualActiveRound ?? null
@@ -302,6 +312,10 @@ function parseStoredSettings(
         requiresThreeSets:
           storedSetting.requiresThreeSets ?? defaultSetting.requiresThreeSets,
         mvpSystem: storedSetting.mvpSystem ?? defaultSetting.mvpSystem,
+        resultConfirmationMode: normalizeResultConfirmationMode(
+          storedSetting.resultConfirmationMode ??
+            defaultSetting.resultConfirmationMode,
+        ),
       };
     });
 
@@ -319,6 +333,9 @@ function parseStoredSettings(
         roundWindowDays: storedSetting.roundWindowDays ?? null,
         requiresThreeSets: storedSetting.requiresThreeSets ?? true,
         mvpSystem: storedSetting.mvpSystem ?? "automatic",
+        resultConfirmationMode: normalizeResultConfirmationMode(
+          storedSetting.resultConfirmationMode,
+        ),
         manualActiveRound:
           typeof storedSetting.manualActiveRound === "number"
             ? storedSetting.manualActiveRound
@@ -348,6 +365,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     roundWindowDays: null,
     requiresThreeSets: true,
     mvpSystem: "automatic",
+    resultConfirmationMode: "optional",
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
@@ -636,6 +654,7 @@ export function SeasonSettingsProvider({
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
+    resultConfirmationMode,
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
@@ -648,6 +667,7 @@ export function SeasonSettingsProvider({
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
+    resultConfirmationMode: ResultConfirmationMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
@@ -731,6 +751,7 @@ export function SeasonSettingsProvider({
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,
+      resultConfirmationMode,
       manualActiveRound: null,
       manualCompletedRounds: [],
       registrationFee: buildSeasonRegistrationFee({
@@ -754,6 +775,7 @@ export function SeasonSettingsProvider({
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
+    resultConfirmationMode,
     scheduleMode = "single",
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
@@ -768,6 +790,7 @@ export function SeasonSettingsProvider({
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
+    resultConfirmationMode: ResultConfirmationMode;
     scheduleMode?: SeasonScheduleMode;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
@@ -858,6 +881,7 @@ export function SeasonSettingsProvider({
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,
+      resultConfirmationMode,
       manualActiveRound: null,
       manualCompletedRounds: [],
       registrationFee: buildSeasonRegistrationFee({

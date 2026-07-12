@@ -16,6 +16,7 @@ import {
 } from "@/lib/calendar";
 import { getRoundMvpSelection } from "@/lib/mvp";
 import { calculateSeasonRanking } from "@/lib/ranking";
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations";
 import {
   buildCourtBooking,
   getEmptyCourtBooking,
@@ -83,6 +84,7 @@ export type MatchData = {
   dateLabel: string | null;
   location: string | null;
   resultRecordedAt: string | null;
+  resultCounts?: boolean;
   courtBooking: CourtBooking;
 };
 
@@ -506,6 +508,21 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     MatchResultConfirmation[]
   >([]);
 
+  const applyResultCountState = useCallback(
+    (sourceMatches: MatchData[], confirmations: MatchResultConfirmation[]) =>
+      sourceMatches.map((match) => ({
+        ...match,
+        resultCounts: getMatchResultConfirmationState({
+          matchId: match.id,
+          participantIds: [...match.teamA, ...match.teamB],
+          resultRecordedAt: match.resultRecordedAt,
+          confirmations,
+          mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
+        }).countsForRanking,
+      })),
+    [getSeasonRoundSettings],
+  );
+
   useEffect(() => {
     const storedMatches = parseStoredMatches(
       window.localStorage.getItem(storageKey),
@@ -831,7 +848,9 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         return false;
       }
 
-      const mvpSystem = getSeasonRoundSettings(currentMatch.seasonId).mvpSystem;
+      const seasonSettings = getSeasonRoundSettings(currentMatch.seasonId);
+      const mvpSystem = seasonSettings.mvpSystem;
+      const resultConfirmationMode = seasonSettings.resultConfirmationMode;
 
       if (!isSupabaseBackedMatch(matchId)) {
         setMatches((currentMatches) =>
@@ -864,11 +883,18 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           result,
         });
         const nextMatches = replaceMatch(matches, updatedMatch);
+        const nextConfirmations = resultConfirmations.filter(
+          (item) => item.matchId !== matchId,
+        );
+        const calculatedNextMatches = applyResultCountState(
+          nextMatches,
+          nextConfirmations,
+        );
         const nextRoundMvp = getRoundMvpSelection({
           leagueId: updatedMatch.leagueId,
           seasonId: updatedMatch.seasonId,
           round: updatedMatch.round,
-          matches: nextMatches,
+          matches: calculatedNextMatches,
           mvpSystem,
         });
 
@@ -918,6 +944,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             pointsA: updatedMatch.pointsA,
             pointsB: updatedMatch.pointsB,
             sets: updatedMatch.sets,
+            resultConfirmationMode,
           },
         });
 
@@ -952,7 +979,12 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           targetSeason?.status === "active" &&
           updatedMatch.round === targetSeason.totalRounds &&
           seasonMatches.length > 0 &&
-          seasonMatches.every((match) => match.status === "finished"),
+          calculatedNextMatches
+            .filter((match) => match.seasonId === updatedMatch.seasonId)
+            .every(
+              (match) =>
+                match.status === "finished" && match.resultCounts !== false,
+            ),
         );
 
         if (shouldAutoFinishSeason) {
@@ -973,7 +1005,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             seasonId: updatedMatch.seasonId,
             playerProfiles,
             seasonPlayers,
-            matches: nextMatches,
+            matches: calculatedNextMatches,
           });
 
           await recordMatchActivity({
@@ -998,6 +1030,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       }
     },
     [
+      applyResultCountState,
       finishSeason,
       getSeasonRoundSettings,
       hydrateSeasonSnapshot,
@@ -1006,6 +1039,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       persistNextMatches,
       playerProfiles,
       recordMatchActivity,
+      resultConfirmations,
       seasonPlayers,
       seasons,
     ],
@@ -1084,6 +1118,12 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         return false;
       }
 
+      const settings = getSeasonRoundSettings(match.seasonId);
+
+      if (settings.resultConfirmationMode === "none") {
+        return false;
+      }
+
       const confirmation: MatchResultConfirmation = {
         matchId,
         playerId,
@@ -1100,18 +1140,129 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         }
       }
 
-      setResultConfirmations((currentConfirmations) =>
-        persistConfirmations([
-          ...currentConfirmations.filter(
-            (item) => !(item.matchId === matchId && item.playerId === playerId),
-          ),
-          confirmation,
-        ]),
+      const nextConfirmations = [
+        ...resultConfirmations.filter(
+          (item) => !(item.matchId === matchId && item.playerId === playerId),
+        ),
+        confirmation,
+      ];
+
+      setResultConfirmations(() => persistConfirmations(nextConfirmations));
+
+      const previousCalculatedMatches = applyResultCountState(
+        matches,
+        resultConfirmations,
       );
+      const nextCalculatedMatches = applyResultCountState(
+        matches,
+        nextConfirmations,
+      );
+      const previousRoundMvp = getRoundMvpSelection({
+        leagueId: match.leagueId,
+        seasonId: match.seasonId,
+        round: match.round,
+        matches: previousCalculatedMatches,
+        mvpSystem: settings.mvpSystem,
+      });
+      const nextRoundMvp = getRoundMvpSelection({
+        leagueId: match.leagueId,
+        seasonId: match.seasonId,
+        round: match.round,
+        matches: nextCalculatedMatches,
+        mvpSystem: settings.mvpSystem,
+      });
+
+      if (
+        settings.mvpSystem === "automatic" &&
+        !previousRoundMvp &&
+        nextRoundMvp
+      ) {
+        await recordMatchActivity({
+          match,
+          type: "round_mvp_awarded",
+          title: `MVP de Jornada ${match.round} decidido`,
+          description: `Pareja MVP automática · ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos · ${nextRoundMvp.gamesDiff ?? 0} dif.`,
+          metadata: {
+            round: match.round,
+            playerIds: nextRoundMvp.playerIds,
+            gamesFor: nextRoundMvp.gamesFor,
+            gamesAgainst: nextRoundMvp.gamesAgainst,
+            gamesDiff: nextRoundMvp.gamesDiff,
+            setsFor: nextRoundMvp.setsFor,
+            setsAgainst: nextRoundMvp.setsAgainst,
+          },
+        });
+      }
+
+      const targetSeason = seasons.find(
+        (season) => season.id === match.seasonId,
+      );
+      const countedSeasonMatches = nextCalculatedMatches.filter(
+        (item) => item.seasonId === match.seasonId,
+      );
+      const shouldAutoFinishSeason = Boolean(
+        targetSeason?.status === "active" &&
+        match.round === targetSeason.totalRounds &&
+        countedSeasonMatches.length > 0 &&
+        countedSeasonMatches.every(
+          (item) => item.status === "finished" && item.resultCounts !== false,
+        ),
+      );
+
+      if (shouldAutoFinishSeason) {
+        if (isSupabaseBackedMatch(match.id)) {
+          try {
+            const seasonSnapshot = await finishSupabaseActiveSeason({
+              leagueId: match.leagueId,
+              seasonId: match.seasonId,
+            });
+            hydrateSeasonSnapshot(seasonSnapshot);
+          } catch (seasonError) {
+            recordSupabaseError(
+              "auto-finish-season-after-confirmation",
+              seasonError,
+            );
+          }
+        }
+
+        finishSeason(match.leagueId, match.seasonId);
+        const winnerName = getSeasonWinnerName({
+          seasonId: match.seasonId,
+          playerProfiles,
+          seasonPlayers,
+          matches: nextCalculatedMatches,
+        });
+
+        await recordMatchActivity({
+          match,
+          type: "season_finished",
+          title: "Temporada finalizada",
+          description: winnerName
+            ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+            : "La temporada ha finalizado.",
+          metadata: {
+            automatic: true,
+            totalRounds: targetSeason?.totalRounds ?? match.round,
+            winnerName,
+          },
+        });
+      }
 
       return true;
     },
-    [matches, persistConfirmations],
+    [
+      applyResultCountState,
+      finishSeason,
+      getSeasonRoundSettings,
+      hydrateSeasonSnapshot,
+      matches,
+      persistConfirmations,
+      playerProfiles,
+      recordMatchActivity,
+      resultConfirmations,
+      seasonPlayers,
+      seasons,
+    ],
   );
 
   const deleteSeasonMatches = useCallback(

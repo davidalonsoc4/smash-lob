@@ -208,7 +208,8 @@ export default function MatchDetailPage() {
           matchId={match.id}
           participantIds={[...match.teamA, ...match.teamB]}
           currentUserId={currentUserId}
-          players={players}
+          resultRecordedAt={match.resultRecordedAt}
+          mode={roundSettings.resultConfirmationMode}
           confirmations={resultConfirmations}
           onSetStatus={setMatchResultConfirmation}
         />

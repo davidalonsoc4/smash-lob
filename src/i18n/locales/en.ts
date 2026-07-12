@@ -98,8 +98,7 @@ export const en = {
     rulesDescription:
       "Your account will not be linked to any player until you accept this summary of rules and commitments.",
     acceptRulesLabel: "I have read and accept the season rules.",
-    acceptRulesBeforeSelect:
-      "Confirm the rules first to select your player.",
+    acceptRulesBeforeSelect: "Confirm the rules first to select your player.",
     rules: {
       registrationTitle: "Registration before the start",
       registrationFallbackAmount: "the fee defined by the organization",
@@ -470,7 +469,8 @@ export const en = {
     scoringTwoOneValue:
       "2 points for the winning pair and 1 for the losing pair",
     scoringEachSetLabel: "Each set won",
-    scoringEachSetValue: "1 point for each player in the pair that wins that set",
+    scoringEachSetValue:
+      "1 point for each player in the pair that wins that set",
     scoringPlayedSetsLabel: "Played sets",
     scoringPlayedSetsValue: "Only completed and saved sets count",
     scoringTiebreakLabel: "Tiebreakers",
@@ -489,8 +489,7 @@ export const en = {
     keyRuleOptionalSetsIntro:
       "In this season it is not mandatory to complete three sets. The app lets players save only the played sets and calculates the ranking with that data.",
     keyRuleFairTitle: "Fairer",
-    keyRuleFairDescription:
-      "All players compete for the same amount of sets.",
+    keyRuleFairDescription: "All players compete for the same amount of sets.",
     keyRuleEmotionTitle: "More tension",
     keyRuleEmotionDescription:
       "Even if a pair loses the first two sets, the third one still counts.",
@@ -882,6 +881,7 @@ export const en = {
       match_result_cleared: "Result",
       match_mvp_vote_reminder: "MVP vote",
       match_result_missing_reminder: "Result",
+      match_result_confirmation_reminder: "Confirmation",
       match_upcoming_reminder: "Reminder",
       round_in_play: "Round",
       round_mvp_awarded: "MVP",
@@ -896,7 +896,7 @@ export const en = {
       league_locations_updated: "League",
       league_invite_regenerated: "Invitation",
       season_finished: "Season",
-      season_started: 'Season',
+      season_started: "Season",
       season_created: "Season",
       player_name_updated: "Player",
       player_avatar_updated: "Player",

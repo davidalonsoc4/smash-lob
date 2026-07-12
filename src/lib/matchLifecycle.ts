@@ -11,6 +11,10 @@ export const RESULT_REMINDER_HOURS = [2, 3, 4, 24] as const;
 export type ResultReminderHour = (typeof RESULT_REMINDER_HOURS)[number];
 export const MVP_VOTE_REMINDER_HOURS = RESULT_REMINDER_HOURS;
 export type MvpVoteReminderHour = ResultReminderHour;
+export const RESULT_CONFIRMATION_REMINDER_HOURS = [2, 3, 4] as const;
+export type ResultConfirmationReminderHour =
+  (typeof RESULT_CONFIRMATION_REMINDER_HOURS)[number];
+export const RESULT_CONFIRMATION_AUTO_VALIDATION_HOURS = 24;
 
 function parseScheduledAt(scheduledAt: string | null | undefined) {
   return parseMatchScheduleDate(scheduledAt);
@@ -120,12 +124,14 @@ export function isMatchResultReminderDue({
   resultRecordedAt?: string | null;
   now?: Date;
 }) {
-  return getDueMatchResultReminderHours({
-    status,
-    scheduledAt,
-    resultRecordedAt,
-    now,
-  }).length > 0;
+  return (
+    getDueMatchResultReminderHours({
+      status,
+      scheduledAt,
+      resultRecordedAt,
+      now,
+    }).length > 0
+  );
 }
 
 export function getDueMvpVoteReminderHours({
@@ -153,5 +159,56 @@ export function getDueMvpVoteReminderHours({
 
   return MVP_VOTE_REMINDER_HOURS.filter(
     (hour) => elapsedMs >= hour * 60 * 60 * 1000,
+  );
+}
+
+export function getDueResultConfirmationReminderHours({
+  resultRecordedAt,
+  now = new Date(),
+}: {
+  resultRecordedAt?: string | null;
+  now?: Date;
+}): ResultConfirmationReminderHour[] {
+  if (!resultRecordedAt) {
+    return [];
+  }
+
+  const resultDate = new Date(resultRecordedAt);
+
+  if (Number.isNaN(resultDate.getTime())) {
+    return [];
+  }
+
+  const elapsedMs = now.getTime() - resultDate.getTime();
+
+  if (elapsedMs < 0) {
+    return [];
+  }
+
+  return RESULT_CONFIRMATION_REMINDER_HOURS.filter(
+    (hour) => elapsedMs >= hour * 60 * 60 * 1000,
+  );
+}
+
+export function isResultConfirmationAutoValidationDue({
+  resultRecordedAt,
+  now = new Date(),
+}: {
+  resultRecordedAt?: string | null;
+  now?: Date;
+}) {
+  if (!resultRecordedAt) {
+    return false;
+  }
+
+  const resultDate = new Date(resultRecordedAt);
+
+  if (Number.isNaN(resultDate.getTime())) {
+    return false;
+  }
+
+  return (
+    now.getTime() - resultDate.getTime() >=
+    RESULT_CONFIRMATION_AUTO_VALIDATION_HOURS * 60 * 60 * 1000
   );
 }

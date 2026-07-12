@@ -11,6 +11,7 @@ import {
   getPlayersBySeasonId,
 } from "@/lib/leagues"
 import { buildSeasonRounds } from "@/lib/rounds"
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 
 export function useCurrentLeagueData() {
   const { activeLeagueId } = useActiveLeague()
@@ -20,7 +21,7 @@ export function useCurrentLeagueData() {
     leagues,
     userLeagues,
   } = useLeagueAccess()
-  const { matches: storedMatches } = useMatchData()
+  const { matches: storedMatches, resultConfirmations } = useMatchData()
   const {
     getActiveSeasonByLeagueId: getStoredActiveSeasonByLeagueId,
     playerProfiles,
@@ -64,11 +65,21 @@ export function useCurrentLeagueData() {
     latestPlayerSeason
       ? latestPlayerSeason
       : storedCurrentSeason
+  const roundSettings = getSeasonRoundSettings(baseActiveSeason.id)
   const matches = getMatchesByLeagueAndSeason(
     storedMatches,
     activeLeague.id,
     baseActiveSeason.id
-  )
+  ).map((match) => ({
+    ...match,
+    resultCounts: getMatchResultConfirmationState({
+      matchId: match.id,
+      participantIds: [...match.teamA, ...match.teamB],
+      resultRecordedAt: match.resultRecordedAt,
+      confirmations: resultConfirmations,
+      mode: roundSettings.resultConfirmationMode,
+    }).countsForRanking,
+  }))
   const players = getPlayersBySeasonId(
     baseActiveSeason.id,
     matches,
@@ -77,7 +88,6 @@ export function useCurrentLeagueData() {
   )
   const lastMatch = getLastMatch(matches)
   const nextMatch = getNextMatch(matches)
-  const roundSettings = getSeasonRoundSettings(baseActiveSeason.id)
   const rounds = buildSeasonRounds({
     season: baseActiveSeason,
     settings: roundSettings,

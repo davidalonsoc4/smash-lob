@@ -36,6 +36,7 @@ import {
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import type { MvpSystem } from "@/lib/mvp";
+import type { ResultConfirmationMode } from "@/lib/resultConfirmations";
 import { recordActivityEvent } from "@/lib/activity";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
@@ -471,6 +472,158 @@ function MvpSystemOptions({
         );
       })}
     </div>
+  );
+}
+
+
+const resultConfirmationOptions: {
+  value: ResultConfirmationMode;
+  title: string;
+  description: string;
+}[] = [
+  {
+    value: "required",
+    title: "Confirmación obligatoria",
+    description:
+      "El resultado no suma en la clasificación hasta recibir las cuatro confirmaciones. Si nadie lo impugna, se valida automáticamente a las 24 horas.",
+  },
+  {
+    value: "optional",
+    title: "Confirmación opcional",
+    description:
+      "Los jugadores pueden confirmar o impugnar el resultado, pero este cuenta desde que se registra.",
+  },
+  {
+    value: "none",
+    title: "Sin confirmaciones",
+    description:
+      "No se mostrará el apartado de confirmación de resultados.",
+  },
+];
+
+function ResultConfirmationOptions({
+  value,
+  onChange,
+}: {
+  value: ResultConfirmationMode;
+  onChange: (value: ResultConfirmationMode) => void;
+}) {
+  return (
+    <div className="mt-3 grid gap-2">
+      {resultConfirmationOptions.map((option) => {
+        const selected = value === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`rounded-2xl border px-3 py-3 text-left ${
+              selected
+                ? "border-neutral-950 bg-neutral-950 text-white"
+                : "border-neutral-200 bg-white text-neutral-900"
+            }`}
+          >
+            <span className="block text-sm font-black">{option.title}</span>
+            <span
+              className={`mt-1 block text-xs font-semibold leading-5 ${
+                selected ? "text-neutral-300" : "text-neutral-500"
+              }`}
+            >
+              {option.description}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ResultConfirmationSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [selectedMode, setSelectedMode] = useState<ResultConfirmationMode>(
+    roundSettings.resultConfirmationMode,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    if (isSaving) {
+      return;
+    }
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      resultConfirmationMode: selectedMode,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError("update-season-result-confirmations", supabaseError);
+        setError(
+          "No se ha podido guardar la configuración de confirmaciones en Supabase.",
+        );
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+    setFeedback("Confirmaciones de resultado actualizadas.");
+    setIsSaving(false);
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Confirmación de resultados</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Decide si los jugadores deben validar los resultados registrados.
+      </p>
+
+      <ResultConfirmationOptions
+        value={selectedMode}
+        onChange={(value) => {
+          setSelectedMode(value);
+          setFeedback(null);
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={
+          isSaving || selectedMode === roundSettings.resultConfirmationMode
+        }
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving ? "Guardando..." : "Guardar confirmaciones"}
+      </button>
+
+      {feedback ? (
+        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
   );
 }
 
@@ -1604,6 +1757,8 @@ function NewSeasonForm({
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
   const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
+  const [resultConfirmationMode, setResultConfirmationMode] =
+    useState<ResultConfirmationMode>("optional");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
   const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
@@ -1804,6 +1959,7 @@ function NewSeasonForm({
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
       mvpSystem,
+      resultConfirmationMode,
       manualMatches,
       scheduleMode,
       registrationFeeEnabled: hasRegistrationFee,
@@ -1905,6 +2061,7 @@ function NewSeasonForm({
           scheduleMode,
           totalRounds: totalSeasonRounds,
           mvpSystem,
+          resultConfirmationMode,
           registrationFeeEnabled: hasRegistrationFee,
           registrationFeeAmount: hasRegistrationFee
             ? parsedRegistrationFeeAmount
@@ -2429,6 +2586,23 @@ function NewSeasonForm({
         />
       </AppCard>
 
+
+
+      <AppCard>
+        <p className="font-bold">Confirmación de resultados</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Decide si los resultados necesitan validación de los jugadores.
+        </p>
+
+        <ResultConfirmationOptions
+          value={resultConfirmationMode}
+          onChange={(nextMode) => {
+            setResultConfirmationMode(nextMode);
+            setFeedback(null);
+          }}
+        />
+      </AppCard>
+
       <AppCard>
         <p className="font-bold">Inscripción</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -2756,6 +2930,13 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="confirmaciones">
+            <ResultConfirmationSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
           <div id="jugadores">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
@@ -2791,6 +2972,13 @@ export default function AdminSeasonPage() {
 
           <div id="mvp">
             <MvpSystemSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="confirmaciones">
+            <ResultConfirmationSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />

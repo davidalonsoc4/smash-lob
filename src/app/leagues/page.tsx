@@ -10,6 +10,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { calculateSeasonRanking } from "@/lib/ranking";
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations";
 import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles";
 
 function getSeasonStatusLabel(season: {
@@ -25,19 +26,27 @@ function getSeasonStatusLabel(season: {
 export default function LeaguesPage() {
   const router = useRouter();
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
-  const {
-    canCreateLeagues,
-    isAdminViewEnabled,
-    isLeagueAdmin,
-    userLeagues,
-  } = useLeagueAccess();
+  const { canCreateLeagues, isAdminViewEnabled, isLeagueAdmin, userLeagues } =
+    useLeagueAccess();
   const canCreateLeaguesInCurrentView = canCreateLeagues && isAdminViewEnabled;
-  const { matches } = useMatchData();
+  const { matches, resultConfirmations } = useMatchData();
   const {
     getActiveSeasonByLeagueId,
+    getSeasonRoundSettings,
     playerProfiles,
     seasonPlayers,
   } = useSeasonSettings();
+
+  const countedMatches = matches.map((match) => ({
+    ...match,
+    resultCounts: getMatchResultConfirmationState({
+      matchId: match.id,
+      participantIds: [...match.teamA, ...match.teamB],
+      resultRecordedAt: match.resultRecordedAt,
+      confirmations: resultConfirmations,
+      mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
+    }).countsForRanking,
+  }));
 
   function handleEnterLeague(leagueId: string) {
     changeActiveLeague(leagueId);
@@ -49,9 +58,7 @@ export default function LeaguesPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label="Volver" />
 
-        <h1 className="mt-3 text-2xl font-black tracking-tight">
-          Mis ligas
-        </h1>
+        <h1 className="mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Selecciona la liga en la que quieres entrar.
         </p>
@@ -60,11 +67,13 @@ export default function LeaguesPage() {
       <div className="space-y-3">
         {userLeagues.map((league) => {
           const season = getActiveSeasonByLeagueId(league.id);
-          const seasonMatches = matches.filter(
-            (match) => match.leagueId === league.id && match.seasonId === season.id,
+          const seasonMatches = countedMatches.filter(
+            (match) =>
+              match.leagueId === league.id && match.seasonId === season.id,
           );
           const finishedMatches = seasonMatches.filter(
-            (match) => match.status === "finished",
+            (match) =>
+              match.status === "finished" && match.resultCounts !== false,
           ).length;
           const seasonPlayerIds = seasonPlayers
             .filter((seasonPlayer) => seasonPlayer.seasonId === season.id)
@@ -74,7 +83,7 @@ export default function LeaguesPage() {
             seasonId: season.id,
             playerProfiles,
             seasonPlayers,
-            matches,
+            matches: countedMatches,
           });
           const leader = ranking.find((player) => player.points > 0) ?? null;
           const isActive = activeLeagueId === league.id;
@@ -116,7 +125,12 @@ export default function LeaguesPage() {
                     {league.description || "Sin descripción"}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className={getSeasonStatusBadgeClassName(season.status, season.totalRounds)}>
+                    <span
+                      className={getSeasonStatusBadgeClassName(
+                        season.status,
+                        season.totalRounds,
+                      )}
+                    >
                       {getSeasonStatusLabel(season)}
                     </span>
                     {isAdmin ? (

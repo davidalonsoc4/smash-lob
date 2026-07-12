@@ -235,7 +235,7 @@ async function fetchSupabaseInviteSnapshotDirect(
       supabase
         .from("season_settings")
         .select(
-          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,manual_active_round,manual_completed_rounds,registration_fee"
+          "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee"
         )
         .eq("league_id", league.id),
       supabase.from("matches").select(matchSelect).eq("league_id", league.id),
@@ -337,6 +337,11 @@ async function fetchSupabaseInviteSnapshotDirect(
       settings.mvp_system === "none" || settings.mvp_system === "voting"
         ? settings.mvp_system
         : "automatic",
+    resultConfirmationMode:
+      settings.result_confirmation_mode === "required" ||
+      settings.result_confirmation_mode === "none"
+        ? settings.result_confirmation_mode
+        : "optional",
     manualActiveRound:
       typeof settings.manual_active_round === "number"
         ? settings.manual_active_round

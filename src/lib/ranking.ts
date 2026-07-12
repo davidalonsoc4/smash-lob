@@ -14,6 +14,7 @@ type Match = {
   pointsA: number | null
   pointsB: number | null
   sets: MatchSet[]
+  resultCounts?: boolean
 }
 
 export type RankingPlayer = PlayerProfile & {
@@ -126,7 +127,9 @@ export function calculateSeasonRanking({
 
   matches
     .filter((match) => match.seasonId === seasonId)
-    .filter((match) => match.status === "finished")
+    .filter(
+      (match) => match.status === "finished" && match.resultCounts !== false,
+    )
     .forEach((match) => {
       const pointsA = getTeamSetPoints(match, "A")
       const pointsB = getTeamSetPoints(match, "B")

@@ -91,7 +91,9 @@ function isRoundCompleted(matches: MatchData[], round: number) {
 
   return (
     roundMatches.length > 0 &&
-    roundMatches.every((match) => match.status === "finished")
+    roundMatches.every(
+      (match) => match.status === "finished" && match.resultCounts !== false,
+    )
   )
 }
 
