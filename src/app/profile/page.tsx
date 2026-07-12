@@ -90,7 +90,7 @@ export default function ProfilePage() {
   if (!player || !selectedStats || !selectedScope) {
     return (
       <div className="space-y-3">
-        <header className="pt-1">
+        <header className="pt-2">
           <LeagueSeasonEyebrow
             leagueName={activeLeague.name}
             seasonName={activeSeason.name}
@@ -118,7 +118,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-3">
-      <header className="pt-1">
+      <header className="pt-2">
         <LeagueSeasonEyebrow
           leagueName={activeLeague.name}
           seasonName={activeSeason.name}
