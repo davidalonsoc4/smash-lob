@@ -9,7 +9,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 type NavItem = {
   href: string
   label: string
-  icon: "home" | "ranking" | "matches" | "activity" | "profile" | "settings"
+  icon: "home" | "ranking" | "matches" | "profile" | "settings"
   isActive: (pathname: string) => boolean
 }
 
@@ -52,14 +52,6 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
         <path d="M17 3v4" />
         <path d="M4 8h16" />
         <rect x="4" y="5" width="16" height="16" rx="3" />
-      </svg>
-    )
-  }
-
-  if (icon === "activity") {
-    return (
-      <svg {...commonProps}>
-        <path d="M4 13h4l2-6 4 12 2-6h4" />
       </svg>
     )
   }
@@ -117,12 +109,6 @@ export function BottomNav() {
         currentPathname.startsWith("/round"),
     },
     {
-      href: "/activity",
-      label: t.nav.activity,
-      icon: "activity",
-      isActive: (currentPathname) => currentPathname.startsWith("/activity"),
-    },
-    {
       href: "/profile",
       label: t.nav.profile,
       icon: "profile",
@@ -154,9 +140,7 @@ export function BottomNav() {
       }}
     >
       <div
-        className={`grid w-full gap-1.5 bg-transparent px-2.5 ${
-          spectatorMode ? "grid-cols-4" : "grid-cols-5"
-        }`}
+        className="grid w-full grid-cols-4 gap-1.5 bg-transparent px-2.5"
         style={{
           minHeight: "72px",
           paddingTop: "7px",

@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
@@ -10,6 +11,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
+  fetchLeagueMembershipJoinedAt,
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
@@ -421,14 +423,22 @@ function DeliveryModeLabel({ mode }: { mode: ActivityDeliveryMode }) {
   return <>{t.activity.modeActivityOnly}</>
 }
 
-export default function ActivityPage() {
+function ActivityPageContent() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const { activeLeague, activeSeason, matches } = useCurrentLeagueData()
   const canAccessAdmin = isLeagueAdmin(activeLeague.id)
+  const searchParams = useSearchParams()
+  const requestedScope = searchParams.get("scope")
+  const initialScope: ActivityScope =
+    requestedScope === "mine" || requestedScope === "all"
+      ? requestedScope
+      : requestedScope === "admin" && canAccessAdmin
+        ? "admin"
+        : "all"
   const [events, setEvents] = useState<ActivityEvent[]>([])
-  const [scope, setScope] = useState<ActivityScope>("all")
+  const [scope, setScope] = useState<ActivityScope>(initialScope)
   const [activitySettings, setActivitySettings] = useState<LeagueActivitySettings>({})
   const [draftSettings, setDraftSettings] = useState<LeagueActivitySettings>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -443,7 +453,6 @@ export default function ActivityPage() {
     () => readLastActivityError()
   )
 
-
   useEffect(() => {
     let isMounted = true
 
@@ -452,9 +461,16 @@ export default function ActivityPage() {
       setError(null)
 
       try {
+        const joinedAt = canAccessAdmin
+          ? null
+          : await fetchLeagueMembershipJoinedAt({
+              leagueId: activeLeague.id,
+              playerId: currentUserId,
+            })
         const activityEvents = await fetchSupabaseActivityEvents({
           leagueId: activeLeague.id,
           limit: 160,
+          createdAtFrom: joinedAt,
         })
 
         if (!isMounted) {
@@ -480,7 +496,13 @@ export default function ActivityPage() {
     return () => {
       isMounted = false
     }
-  }, [activeLeague.id, refreshKey, t.activity.loadErrorDescription])
+  }, [
+    activeLeague.id,
+    canAccessAdmin,
+    currentUserId,
+    refreshKey,
+    t.activity.loadErrorDescription,
+  ])
 
   useEffect(() => {
     let isMounted = true
@@ -933,5 +955,14 @@ export default function ActivityPage() {
         </section>
       )}
     </div>
+  )
+}
+
+
+export default function ActivityPage() {
+  return (
+    <Suspense fallback={<div className="space-y-4" />}>
+      <ActivityPageContent />
+    </Suspense>
   )
 }

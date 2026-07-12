@@ -270,6 +270,21 @@ export default function AdminPage() {
           </AppCard>
         </Link>
 
+        <Link href="/activity?scope=admin" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Historial y auditoría</p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Revisa toda la actividad de la liga y configura sus avisos.
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+
         <Link href="/admin/mvp" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">

@@ -489,6 +489,21 @@ function PlayerSettingsPage() {
         Liga
       </p>
 
+      <Link href="/activity?scope=all" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Actividad de la liga</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Consulta el historial de cambios y acciones desde que te vinculaste.
+              </p>
+            </div>
+
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
       {hasAdminRole ? (
         <AppCard>
           <div className="flex items-center justify-between gap-3">

@@ -393,17 +393,56 @@ async function resolveLeagueActorProfile({
   return profilesByUserId.get(resolvedActorUserId) ?? null;
 }
 
+export async function fetchLeagueMembershipJoinedAt({
+  leagueId,
+  playerId,
+}: {
+  leagueId: string;
+  playerId: string;
+}) {
+  if (!leagueId || !playerId) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("league_memberships")
+    .select("joined_at")
+    .eq("league_id", leagueId)
+    .eq("player_id", playerId)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    // Allows a safe rollout if the app is deployed just before the SQL migration.
+    if (error.code === "42703") {
+      return null;
+    }
+
+    throw error;
+  }
+
+  return typeof data?.joined_at === "string" ? data.joined_at : null;
+}
+
 export async function fetchSupabaseActivityEvents({
   leagueId,
   limit = 50,
+  createdAtFrom = null,
 }: {
   leagueId: string;
   limit?: number;
+  createdAtFrom?: string | null;
 }) {
-  const { data, error } = await supabase
+  let query = supabase
     .from("activity_events")
     .select(activitySelect)
-    .eq("league_id", leagueId)
+    .eq("league_id", leagueId);
+
+  if (createdAtFrom) {
+    query = query.gte("created_at", createdAtFrom);
+  }
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
 
