@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { type ReactNode } from "react"
+import { type CSSProperties, type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
@@ -133,7 +133,12 @@ export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
   const pathname = usePathname()
   const { activeLeagueId } = useActiveLeague()
-  const { isLeagueSpectator, leagues } = useLeagueAccess()
+  const {
+    canShareSpectatorInvite,
+    isLeagueAdmin,
+    isLeagueSpectator,
+    leagues,
+  } = useLeagueAccess()
   const { seasons } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
@@ -153,11 +158,25 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowPlayerInviteButton =
     !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute && !spectatorMode
   const shouldShowSpectatorShareButton = shouldShowPlayerInviteButton
+  const hasPlayerInviteControl =
+    shouldShowPlayerInviteButton && isLeagueAdmin(activeLeagueId)
+  const hasSpectatorShareControl =
+    shouldShowSpectatorShareButton &&
+    canShareSpectatorInvite(activeLeagueId)
   const hasFloatingTopControls =
     shouldShowSettingsButton ||
     shouldShowNotificationsButton ||
-    shouldShowPlayerInviteButton ||
-    shouldShowSpectatorShareButton
+    hasPlayerInviteControl ||
+    hasSpectatorShareControl
+  const floatingTopReservedWidth = hasPlayerInviteControl
+    ? 184
+    : hasSpectatorShareControl
+      ? 142
+      : shouldShowNotificationsButton
+        ? 100
+        : shouldShowSettingsButton
+          ? 58
+          : 0
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
   const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
 
@@ -170,11 +189,11 @@ export function AppShell({ children }: AppShellProps) {
       <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
 
-        {shouldShowPlayerInviteButton ? (
+        {hasPlayerInviteControl ? (
           <InviteFloatingControls rightOffsetPx={142} />
         ) : null}
 
-        {shouldShowSpectatorShareButton ? (
+        {hasSpectatorShareControl ? (
           <SpectatorFloatingControls rightOffsetPx={100} />
         ) : null}
 
@@ -215,13 +234,17 @@ export function AppShell({ children }: AppShellProps) {
         ) : null}
 
         <main
-          className="px-3"
-          style={{
-            paddingTop: hasFloatingTopControls
-              ? "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))"
-              : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
-            paddingBottom: "96px",
-          }}
+          className="app-main px-3"
+          data-has-floating-top-controls={hasFloatingTopControls}
+          style={
+            {
+              "--app-floating-top-reserved-width": `${floatingTopReservedWidth}px`,
+              paddingTop: hasFloatingTopControls
+                ? "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))"
+                : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
+              paddingBottom: "96px",
+            } as CSSProperties
+          }
         >
           {children}
         </main>

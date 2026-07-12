@@ -867,6 +867,130 @@ function MvpSystemSettingsPanel({
   );
 }
 
+function RegistrationFeeSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [amount, setAmount] = useState(
+    String(roundSettings.registrationFee.amount),
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const parsedAmount = Number(amount);
+  const normalizedAmount = Number.isFinite(parsedAmount)
+    ? Math.round(parsedAmount * 100) / 100
+    : 0;
+  const hasValidAmount = normalizedAmount > 0;
+  const hasChanges =
+    hasValidAmount &&
+    normalizedAmount !== roundSettings.registrationFee.amount;
+
+  async function save() {
+    if (isSaving || !hasChanges) {
+      return;
+    }
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      registrationFee: {
+        ...roundSettings.registrationFee,
+        amount: normalizedAmount,
+      },
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError(
+          "update-season-registration-amount",
+          supabaseError,
+        );
+        setError(
+          "No se ha podido guardar el importe de inscripción en Supabase.",
+        );
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+    setFeedback("Importe de inscripción actualizado.");
+    setIsSaving(false);
+  }
+
+  if (!roundSettings.registrationFee.enabled) {
+    return null;
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Importe de inscripción</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Modifica la cuota de esta temporada. Los jugadores marcados como pagados
+        conservarán su estado.
+      </p>
+
+      <label className="mt-3 block">
+        <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+          Precio por jugador
+        </span>
+        <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
+          <input
+            type="number"
+            min={0.5}
+            step="0.5"
+            value={amount}
+            onChange={(event) => {
+              setAmount(event.target.value);
+              setFeedback(null);
+              setError(null);
+            }}
+            className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
+          />
+          <span className="text-sm font-black text-neutral-500">€</span>
+        </div>
+      </label>
+
+      {!hasValidAmount ? (
+        <p className="mt-2 text-xs font-semibold text-red-600">
+          Introduce un importe mayor que 0.
+        </p>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={isSaving || !hasChanges}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving ? "Guardando..." : "Guardar importe"}
+      </button>
+
+      {feedback ? (
+        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
 function RoundManagementPanel({
   activeLeagueId,
   activeSeason,
@@ -885,6 +1009,7 @@ function RoundManagementPanel({
 }) {
   const { reorderSeasonRounds } = useMatchData();
   const { updateSeasonRoundSettings } = useSeasonSettings();
+  const isUpcomingSeason = activeSeason.status === "upcoming";
   const rounds = buildSeasonRounds({
     season: activeSeason,
     settings: roundSettings,
@@ -899,6 +1024,7 @@ function RoundManagementPanel({
   );
   const defaultSelectedRound =
     activeRound?.round ??
+    roundSettings.manualActiveRound ??
     firstOverdueRound?.round ??
     firstUpcomingRound?.round ??
     1;
@@ -999,12 +1125,30 @@ function RoundManagementPanel({
     setError(null);
     setFeedback(null);
 
+    const nextRoundByCurrentRound = new Map(
+      roundOrder.map((round, index) => [round, index + 1]),
+    );
+    const reorderedSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      seasonId: activeSeason.id,
+      manualActiveRound:
+        typeof roundSettings.manualActiveRound === "number"
+          ? (nextRoundByCurrentRound.get(roundSettings.manualActiveRound) ?? null)
+          : null,
+      manualCompletedRounds: (roundSettings.manualCompletedRounds ?? [])
+        .map((round) => nextRoundByCurrentRound.get(round))
+        .filter((round): round is number => typeof round === "number")
+        .sort((firstRound, secondRound) => firstRound - secondRound),
+    };
+
     if (isSupabaseBackedId(activeSeason.id)) {
       try {
         await updateSupabaseSeasonRoundOrder({
           seasonId: activeSeason.id,
           roundOrder,
         });
+        await updateSupabaseSeasonRoundSettings(reorderedSettings);
       } catch (supabaseError) {
         recordSupabaseError("update-round-order", supabaseError);
         setError(
@@ -1019,6 +1163,10 @@ function RoundManagementPanel({
       seasonId: activeSeason.id,
       roundOrder,
     });
+    updateSeasonRoundSettings(reorderedSettings);
+    setSelectedRound((currentRound) =>
+      nextRoundByCurrentRound.get(currentRound) ?? currentRound,
+    );
     setRoundOrder(defaultRoundOrder);
     setFeedback("Gestión y orden de jornadas actualizados.");
     setIsSavingRoundOrder(false);
@@ -1033,42 +1181,51 @@ function RoundManagementPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Gestión de jornadas</p>
+      <p className="font-bold">Gestión y orden de jornadas</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Control manual para activar, finalizar, reabrir o mover la jornada
-        activa cuando haga falta.
+        {isUpcomingSeason
+          ? "Reordena el calendario y deja preparada la jornada inicial antes de comenzar la temporada."
+          : "Control manual para activar, finalizar, reabrir o mover la jornada activa cuando haga falta."}
       </p>
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        {rounds.map((round) => (
-          <button
-            key={round.id}
-            type="button"
-            onClick={() => setSelectedRound(round.round)}
-            className={`rounded-2xl px-2 py-3 text-xs font-black ring-1 transition ${
-              selectedRound === round.round
-                ? "bg-neutral-950 text-white ring-neutral-950"
-                : round.status === "active"
-                  ? "bg-emerald-50 text-emerald-800 ring-emerald-200/80"
-                  : round.status === "completed"
-                    ? "bg-neutral-950 text-white ring-neutral-950"
-                    : round.status === "overdue"
-                      ? "bg-amber-50 text-amber-800 ring-amber-200/80"
-                      : "bg-sky-50 text-sky-800 ring-sky-200/80"
-            }`}
-          >
-            <span className="block">J{round.round}</span>
-            <span className="mt-1 block text-[10px] uppercase tracking-wide opacity-70">
-              {round.status === "active"
-                ? "Activa"
-                : round.status === "completed"
-                  ? "Finalizada"
-                  : round.status === "overdue"
-                    ? "Fuera de plazo"
-                    : "Próxima"}
-            </span>
-          </button>
-        ))}
+        {rounds.map((round) => {
+          const isInitialRound =
+            isUpcomingSeason &&
+            roundSettings.manualActiveRound === round.round;
+
+          return (
+            <button
+              key={round.id}
+              type="button"
+              onClick={() => setSelectedRound(round.round)}
+              className={`rounded-2xl px-2 py-3 text-xs font-black ring-1 transition ${
+                selectedRound === round.round
+                  ? "bg-neutral-950 text-white ring-neutral-950"
+                  : isInitialRound || round.status === "active"
+                    ? "bg-emerald-50 text-emerald-800 ring-emerald-200/80"
+                    : round.status === "completed"
+                      ? "bg-neutral-950 text-white ring-neutral-950"
+                      : round.status === "overdue"
+                        ? "bg-amber-50 text-amber-800 ring-amber-200/80"
+                        : "bg-sky-50 text-sky-800 ring-sky-200/80"
+              }`}
+            >
+              <span className="block">J{round.round}</span>
+              <span className="mt-1 block text-[10px] uppercase tracking-wide opacity-70">
+                {isInitialRound
+                  ? "Inicial"
+                  : round.status === "active"
+                    ? "Activa"
+                    : round.status === "completed"
+                      ? "Finalizada"
+                      : round.status === "overdue"
+                        ? "Fuera de plazo"
+                        : "Próxima"}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
@@ -1081,64 +1238,98 @@ function RoundManagementPanel({
           </span>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => activateRound(selectedRound)}
-            disabled={isSaving}
-            className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
-          >
-            Activar
-          </button>
-          <button
-            type="button"
-            onClick={() => finishRound(selectedRound)}
-            disabled={isSaving}
-            className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
-          >
-            Finalizar
-          </button>
-          <button
-            type="button"
-            onClick={() => reopenRound(selectedRound)}
-            disabled={isSaving}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
-          >
-            Reabrir
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              persistRoundSettings({
-                ...getBaseSettings(),
-                manualActiveRound: null,
-              })
-            }
-            disabled={isSaving}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
-          >
-            Modo automático
-          </button>
-        </div>
+        {isUpcomingSeason ? (
+          <>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => activateRound(selectedRound)}
+                disabled={isSaving}
+                className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+              >
+                Empezar por esta
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  persistRoundSettings({
+                    ...getBaseSettings(),
+                    manualActiveRound: null,
+                  })
+                }
+                disabled={isSaving}
+                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                Orden automático
+              </button>
+            </div>
+            <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
+              Finalizar y reabrir jornadas estará disponible cuando comience la
+              temporada.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => activateRound(selectedRound)}
+                disabled={isSaving}
+                className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+              >
+                Activar
+              </button>
+              <button
+                type="button"
+                onClick={() => finishRound(selectedRound)}
+                disabled={isSaving}
+                className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+              >
+                Finalizar
+              </button>
+              <button
+                type="button"
+                onClick={() => reopenRound(selectedRound)}
+                disabled={isSaving}
+                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                Reabrir
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  persistRoundSettings({
+                    ...getBaseSettings(),
+                    manualActiveRound: null,
+                  })
+                }
+                disabled={isSaving}
+                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                Modo automático
+              </button>
+            </div>
 
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => activateRound(previousRound)}
-            disabled={isSaving || previousRound === activeRound?.round}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
-          >
-            Jornada anterior
-          </button>
-          <button
-            type="button"
-            onClick={() => activateRound(nextRound)}
-            disabled={isSaving || nextRound === activeRound?.round}
-            className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
-          >
-            Siguiente jornada
-          </button>
-        </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => activateRound(previousRound)}
+                disabled={isSaving || previousRound === activeRound?.round}
+                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                Jornada anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => activateRound(nextRound)}
+                disabled={isSaving || nextRound === activeRound?.round}
+                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                Siguiente jornada
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {canEditRoundOrder ? (
@@ -3058,6 +3249,11 @@ export default function AdminSeasonPage() {
               <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Confirmación
               </a>
+              {roundSettings.registrationFee.enabled ? (
+                <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                  Inscripción
+                </a>
+              ) : null}
               <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jugadores
               </a>
@@ -3073,12 +3269,20 @@ export default function AdminSeasonPage() {
               <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Comenzar
               </a>
+              <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Jornadas
+              </a>
               <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 MVP
               </a>
               <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Confirmación
               </a>
+              {roundSettings.registrationFee.enabled ? (
+                <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                  Inscripción
+                </a>
+              ) : null}
               <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jugadores
               </a>
@@ -3141,6 +3345,16 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          {roundSettings.registrationFee.enabled ? (
+            <div id="inscripcion">
+              <RegistrationFeeSettingsPanel
+                key={activeSeason.id}
+                activeLeagueId={activeLeague.id}
+                roundSettings={roundSettings}
+              />
+            </div>
+          ) : null}
+
           <div id="jugadores">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
@@ -3174,6 +3388,15 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="jornadas">
+            <RoundManagementPanel
+              activeLeagueId={activeLeague.id}
+              activeSeason={activeSeason}
+              roundSettings={roundSettings}
+              matches={matches}
+            />
+          </div>
+
           <div id="mvp">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -3187,6 +3410,16 @@ export default function AdminSeasonPage() {
               roundSettings={roundSettings}
             />
           </div>
+
+          {roundSettings.registrationFee.enabled ? (
+            <div id="inscripcion">
+              <RegistrationFeeSettingsPanel
+                key={activeSeason.id}
+                activeLeagueId={activeLeague.id}
+                roundSettings={roundSettings}
+              />
+            </div>
+          ) : null}
 
           <div id="jugadores">
             <SeasonPlayerNamesPanel
