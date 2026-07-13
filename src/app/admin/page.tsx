@@ -334,7 +334,7 @@ export default function AdminPage() {
         Ajustes rápidos
       </p>
 
-      <AppCard>
+      <div id="status-colors" className="settings-search-target"><AppCard>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="font-bold">Código de color</p>
@@ -368,10 +368,10 @@ export default function AdminPage() {
             {statusColorsError}
           </p>
         ) : null}
-      </AppCard>
+      </AppCard></div>
 
 
-      <AdminInviteCard leagueId={activeLeague.id} />
+      <div id="invitations" className="settings-search-target"><AdminInviteCard leagueId={activeLeague.id} /></div>
     </div>
   )
 }

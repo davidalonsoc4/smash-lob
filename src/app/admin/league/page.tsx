@@ -550,7 +550,7 @@ export default function AdminLeaguePage() {
         </div>
       </AppCard>
 
-      <div id="identidad">
+      <div id="identidad" className="settings-search-target">
         <LeagueIdentityForm
           key={`${activeLeague.id}-identity`}
           leagueId={activeLeague.id}
@@ -561,7 +561,7 @@ export default function AdminLeaguePage() {
         />
       </div>
 
-      <div id="lugares">
+      <div id="lugares" className="settings-search-target">
         <LeagueLocationsForm
           key={`${activeLeague.id}-locations`}
           leagueId={activeLeague.id}
@@ -571,7 +571,7 @@ export default function AdminLeaguePage() {
       </div>
 
       {canDeleteLeague ? (
-        <div id="zona-sensible">
+        <div id="zona-sensible" className="settings-search-target">
           <DeleteLeagueCard
             leagueId={activeLeague.id}
             leagueName={activeLeague.name}

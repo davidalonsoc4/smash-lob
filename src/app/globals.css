@@ -279,3 +279,42 @@ html.dark .status-colors-disabled :where(
   color: #dedee2 !important;
   --tw-ring-color: #4a4a50 !important;
 }
+
+/* Global settings search destinations ----------------------------------- */
+.settings-search-target,
+.app-main [id] {
+  scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 5.5rem);
+}
+
+@keyframes settings-search-highlight {
+  0%, 45% {
+    box-shadow: 0 0 0 3px rgb(245 158 11 / 0.42);
+    background-color: rgb(255 251 235 / 0.92);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(245 158 11 / 0);
+    background-color: transparent;
+  }
+}
+
+.settings-search-target:target,
+.app-main [id]:target {
+  border-radius: 0.9rem;
+  animation: settings-search-highlight 1.8s ease-out;
+}
+
+html.dark .settings-search-target:target,
+html.dark .app-main [id]:target {
+  animation-name: settings-search-highlight-dark;
+}
+
+@keyframes settings-search-highlight-dark {
+  0%, 45% {
+    box-shadow: 0 0 0 3px rgb(245 158 11 / 0.5);
+    background-color: rgb(69 55 20 / 0.72);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(245 158 11 / 0);
+    background-color: transparent;
+  }
+}

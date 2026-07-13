@@ -3857,7 +3857,7 @@ export default function AdminSeasonPage() {
 
       {isActiveSeason ? (
         <>
-          <div id="jornadas">
+          <div id="jornadas" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
@@ -3866,7 +3866,7 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="margen-jornadas">
+          <div id="margen-jornadas" className="settings-search-target">
             <RoundWindowSettingsPanel
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
@@ -3875,7 +3875,7 @@ export default function AdminSeasonPage() {
           </div>
 
           {canAuditCalendar ? (
-            <div id="equilibrio-calendario">
+            <div id="equilibrio-calendario" className="settings-search-target">
               <BalancedCalendarAuditPanel
                 activeLeagueId={activeLeague.id}
                 activeSeason={activeSeason}
@@ -3886,14 +3886,14 @@ export default function AdminSeasonPage() {
           ) : null}
 
 
-          <div id="mvp">
+          <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
           </div>
 
-          <div id="confirmaciones">
+          <div id="confirmaciones" className="settings-search-target">
             <ResultConfirmationSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
@@ -3901,7 +3901,7 @@ export default function AdminSeasonPage() {
           </div>
 
           {roundSettings.registrationFee.enabled ? (
-            <div id="inscripcion">
+            <div id="inscripcion" className="settings-search-target">
               <RegistrationFeeSettingsPanel
                 key={activeSeason.id}
                 activeLeagueId={activeLeague.id}
@@ -3910,14 +3910,14 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="jugadores">
+          <div id="jugadores" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
             />
           </div>
 
-          <div id="cierre">
+          <div id="cierre" className="settings-search-target">
             <FinishSeasonPanel
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
@@ -3925,7 +3925,7 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="zona-sensible">
+          <div id="zona-sensible" className="settings-search-target">
             <SeasonDangerZone
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
@@ -3935,7 +3935,7 @@ export default function AdminSeasonPage() {
         </>
       ) : isUpcomingSeason ? (
         <>
-          <div id="inicio-temporada">
+          <div id="inicio-temporada" className="settings-search-target">
             <StartSeasonPanel
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
@@ -3944,7 +3944,7 @@ export default function AdminSeasonPage() {
           </div>
 
           {canAuditCalendar ? (
-            <div id="equilibrio-calendario">
+            <div id="equilibrio-calendario" className="settings-search-target">
               <BalancedCalendarAuditPanel
                 activeLeagueId={activeLeague.id}
                 activeSeason={activeSeason}
@@ -3954,7 +3954,7 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="jornadas">
+          <div id="jornadas" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
@@ -3963,7 +3963,7 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="margen-jornadas">
+          <div id="margen-jornadas" className="settings-search-target">
             <RoundWindowSettingsPanel
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
@@ -3971,14 +3971,14 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="mvp">
+          <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
           </div>
 
-          <div id="confirmaciones">
+          <div id="confirmaciones" className="settings-search-target">
             <ResultConfirmationSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
@@ -3986,7 +3986,7 @@ export default function AdminSeasonPage() {
           </div>
 
           {roundSettings.registrationFee.enabled ? (
-            <div id="inscripcion">
+            <div id="inscripcion" className="settings-search-target">
               <RegistrationFeeSettingsPanel
                 key={activeSeason.id}
                 activeLeagueId={activeLeague.id}
@@ -3995,14 +3995,14 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="jugadores">
+          <div id="jugadores" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
             />
           </div>
 
-          <div id="zona-sensible">
+          <div id="zona-sensible" className="settings-search-target">
             <SeasonDangerZone
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
@@ -4012,7 +4012,7 @@ export default function AdminSeasonPage() {
         </>
       ) : hasCreatedLeagueSeason ? (
         <>
-          <div id="configuracion-final">
+          <div id="configuracion-final" className="settings-search-target">
             <FinishedSeasonConfigurationSummary
               activeSeason={activeSeason}
               roundSettings={roundSettings}
@@ -4021,14 +4021,14 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="invitacion">
+          <div id="invitacion" className="settings-search-target">
             <InviteLinkCard
               inviteCode={inviteCode}
               leagueName={activeLeague.name}
             />
           </div>
 
-          <div id="jugadores">
+          <div id="jugadores" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
@@ -4036,7 +4036,7 @@ export default function AdminSeasonPage() {
           </div>
 
           {canReopenFinishedSeason ? (
-            <div id="reabrir">
+            <div id="reabrir" className="settings-search-target">
               <ReopenSeasonPanel
                 activeLeagueId={activeLeague.id}
                 activeSeasonId={activeSeason.id}
@@ -4044,7 +4044,7 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="nueva-temporada" className="space-y-3">
+          <div id="nueva-temporada" className="settings-search-target space-y-3">
             <AppCard>
               <p className="font-bold">Preparar la siguiente temporada</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -4074,7 +4074,7 @@ export default function AdminSeasonPage() {
           </div>
         </>
       ) : (
-        <div id="nueva-temporada">
+        <div id="nueva-temporada" className="settings-search-target">
           <NewSeasonForm
             key={`${activeSeason.id}-new`}
             activeLeagueId={activeLeague.id}

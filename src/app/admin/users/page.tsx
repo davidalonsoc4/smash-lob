@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
       </header>
 
 
-      <AppCard>
+      <div id="ranking-avatars" className="settings-search-target"><AppCard>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="font-bold">{t.adminPanel.rankingAvatarsTitle}</p>
@@ -114,10 +114,10 @@ export default function AdminUsersPage() {
             {rankingAvatarsError}
           </p>
         ) : null}
-      </AppCard>
+      </AppCard></div>
 
-      <LeagueUsersManagementPanel leagueId={activeLeague.id} />
-      <LeagueSpectatorsPanel leagueId={activeLeague.id} />
+      <div id="users" className="settings-search-target"><LeagueUsersManagementPanel leagueId={activeLeague.id} /></div>
+      <div id="spectators" className="settings-search-target"><LeagueSpectatorsPanel leagueId={activeLeague.id} /></div>
     </div>
   )
 }

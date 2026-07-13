@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
+import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -17,7 +18,10 @@ import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
 import { formatMoney } from "@/lib/courtBooking"
+import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 
+
+const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   return {
@@ -225,8 +229,16 @@ function SpectatorSettingsPage({
 }: {
   leagueName: string
 }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { data: session } = useSession()
+  const searchEntries = buildSettingsSearchEntries(locale, {
+    isSpectator: true,
+    canAccessAdmin: false,
+    hasAdminRole: false,
+    canCreateLeague: false,
+    canSelfUnlink: false,
+    qaEnabled: false,
+  })
 
   return (
     <div className="space-y-3">
@@ -242,7 +254,9 @@ function SpectatorSettingsPage({
         </p>
       </header>
 
-      <AppCard>
+      <GlobalSettingsSearch locale={locale} entries={searchEntries} />
+
+      <div id="spectator-account" className="settings-search-target"><AppCard>
         <div className="flex items-center gap-3">
           {session?.user?.image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -269,9 +283,9 @@ function SpectatorSettingsPage({
         <div className="mt-3 rounded-2xl bg-neutral-50 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
           Puedes consultar Home, ranking, partidos, resultados y perfiles. No puedes modificar datos ni acceder a la actividad interna.
         </div>
-      </AppCard>
+      </AppCard></div>
 
-      <Link href="/leagues" className="block">
+      <Link href="/leagues" className="block settings-search-target" id="leagues">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -285,16 +299,16 @@ function SpectatorSettingsPage({
         </AppCard>
       </Link>
 
-      <AppCard>
+      <div id="language" className="settings-search-target"><AppCard>
         <p className="font-bold">Idioma</p>
         <div className="mt-3">
           <LanguageSwitcher />
         </div>
-      </AppCard>
+      </AppCard></div>
 
-      <AppearanceSettings />
+      <div id="appearance" className="settings-search-target"><AppearanceSettings /></div>
 
-      <Link href="/help" className="block">
+      <Link href="/help" className="block settings-search-target" id="help">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -337,7 +351,7 @@ export default function SettingsPage() {
 }
 
 function PlayerSettingsPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, matches } = useCurrentLeagueData()
   const {
@@ -386,6 +400,14 @@ function PlayerSettingsPage() {
   )
   const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
   const hasPendingPayments = pendingPaymentCount > 0
+  const searchEntries = buildSettingsSearchEntries(locale, {
+    isSpectator: false,
+    canAccessAdmin,
+    hasAdminRole,
+    canCreateLeague: canCreateLeaguesInCurrentView,
+    canSelfUnlink,
+    qaEnabled: qaModeEnabled,
+  })
 
   async function handleUnlinkCurrentLeague() {
     if (!canSelfUnlink || isUnlinkingLeague) {
@@ -436,11 +458,13 @@ function PlayerSettingsPage() {
         </p>
       </header>
 
+      <GlobalSettingsSearch locale={locale} entries={searchEntries} />
+
       <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
         Preferencias
       </p>
 
-      <AppCard>
+      <div id="language" className="settings-search-target"><AppCard>
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold">{t.settings.language}</p>
@@ -451,11 +475,11 @@ function PlayerSettingsPage() {
 
           <LanguageSwitcher />
         </div>
-      </AppCard>
+      </AppCard></div>
 
-      <AppearanceSettings />
+      <div id="appearance" className="settings-search-target"><AppearanceSettings /></div>
 
-      <Link href="/settings/notifications" className="block">
+      <Link href="/settings/notifications" className="block settings-search-target" id="notifications">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -470,7 +494,7 @@ function PlayerSettingsPage() {
         </AppCard>
       </Link>
 
-      <Link href="/payments" className="block">
+      <Link href="/payments" className="block settings-search-target" id="payments">
         <AppCard
           className={`transition active:scale-[0.99] ${
             hasPendingPayments ? "border-amber-200 bg-amber-50" : ""
@@ -498,7 +522,7 @@ function PlayerSettingsPage() {
         </AppCard>
       </Link>
 
-      <Link href="/availability" className="block">
+      <Link href="/availability" className="block settings-search-target" id="availability">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -513,7 +537,7 @@ function PlayerSettingsPage() {
         </AppCard>
       </Link>
 
-      <Link href="/help" className="block">
+      <Link href="/help" className="block settings-search-target" id="help">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -532,7 +556,7 @@ function PlayerSettingsPage() {
         Liga
       </p>
 
-      <Link href="/activity?scope=all" className="block">
+      <Link href="/activity?scope=all" className="block settings-search-target" id="activity">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -548,7 +572,7 @@ function PlayerSettingsPage() {
       </Link>
 
       {hasAdminRole ? (
-        <AppCard>
+        <div id="admin-view" className="settings-search-target"><AppCard>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-bold">Vista admin</p>
@@ -573,11 +597,11 @@ function PlayerSettingsPage() {
               />
             </button>
           </div>
-        </AppCard>
+        </AppCard></div>
       ) : null}
 
       {hasLeagues ? (
-        <Link href="/leagues" className="block">
+        <Link href="/leagues" className="block settings-search-target" id="leagues">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -595,7 +619,7 @@ function PlayerSettingsPage() {
       ) : null}
 
       {canAccessAdmin ? (
-        <Link href="/admin" className="block">
+        <Link href="/admin" className="block settings-search-target" id="admin">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -615,7 +639,7 @@ function PlayerSettingsPage() {
         Cuenta
       </p>
 
-      <AppCard>
+      <div id="account" className="settings-search-target"><AppCard>
         <div className="min-w-0">
           <p className="font-bold">{t.settings.accountTitle}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -642,7 +666,7 @@ function PlayerSettingsPage() {
             </Link>
           ) : null}
         </div>
-      </AppCard>
+      </AppCard></div>
 
 
       <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
@@ -650,7 +674,7 @@ function PlayerSettingsPage() {
       </p>
 
       {canSelfUnlink ? (
-        <AppCard className="border-red-100 bg-red-50">
+        <div id="unlink" className="settings-search-target"><AppCard className="border-red-100 bg-red-50">
           <p className="font-bold text-red-950">Desvincularme de esta liga</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-red-700">
             Saldrás de {activeLeague.name} y tu jugador quedará libre para poder
@@ -668,7 +692,7 @@ function PlayerSettingsPage() {
           {unlinkLeagueError ? (
             <p className="mt-2 text-xs font-bold text-red-700">{unlinkLeagueError}</p>
           ) : null}
-        </AppCard>
+        </AppCard></div>
       ) : null}
 
       <button
