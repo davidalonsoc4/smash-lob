@@ -827,10 +827,10 @@ export const es = {
       "Repite el calendario una segunda vez: con 8 jugadores se generan 14 jornadas.",
     extendedCalendar: "Temporada larga",
     extendedCalendarDescription:
-      "Añade una segunda vuelta remezclada, manteniendo parejas pero cambiando rivales cuando sea posible.",
+      "Añade una segunda vuelta completa y equilibrada, repitiendo todas las parejas pero con partidos diferentes.",
     balancedCalendar: "Calendario equilibrado",
     balancedCalendarDescription:
-      "Cada jugador jugará una vez con cada compañero y dos veces contra cada rival.",
+      "En cada vuelta, cada jugador jugará una vez con cada compañero y dos veces contra cada rival.",
     manualCalendar: "Calendario manual",
     manualCalendarDescription:
       "Permite configurar jornadas y emparejamientos a mano antes de crear la temporada.",
@@ -845,11 +845,29 @@ export const es = {
       "Completa todos los desplegables del calendario manual para continuar.",
     calendarAuditTitle: "Equilibrio del calendario",
     calendarAuditDescription:
-      "Comprueba que todos jueguen una vez con cada compañero y el mismo número de veces contra cada rival.",
+      "Comprueba jugadores, jornadas, partidos, parejas, rivales y la estructura específica de la modalidad.",
     calendarAuditOk: "Verificado",
     calendarAuditNeedsRepair: "Revisar",
+    calendarAuditMode: "Modalidad",
+    calendarAuditPlayers: "Jugadores",
+    calendarAuditRounds: "Jornadas",
+    calendarAuditMatches: "Partidos",
+    calendarAuditMatchStructure: "Partidos bien formados",
+    calendarAuditRoundStructure: "Una aparición por jornada",
+    calendarAuditIncorrectMatches: "partidos incorrectos",
+    calendarAuditRoundStructureError:
+      "{rounds} jornadas y {appearances} apariciones incorrectas",
     calendarAuditPartners: "Compañeros",
     calendarAuditOpponents: "Rivales",
+    calendarAuditExpectedTimes: "Frecuencia esperada: {count} veces",
+    calendarAuditFirstLeg: "Primera vuelta",
+    calendarAuditSecondLeg: "Segunda vuelta",
+    calendarAuditBalancedLeg: "Vuelta completa y equilibrada",
+    calendarAuditUnbalancedLeg: "La vuelta no está equilibrada",
+    calendarAuditExactSecondLeg: "Repetición exacta",
+    calendarAuditRemixedSecondLeg: "Segunda vuelta remezclada",
+    calendarAuditRepeatedRounds: "{count} jornadas idénticas de {total}",
+    calendarAuditRepeatedMatches: "{count} partidos repetidos exactamente",
     calendarAuditAllCorrect: "Todos correctos",
     calendarAuditIncorrect: "parejas incorrectas",
     calendarAuditRepairHelp:

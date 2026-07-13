@@ -820,10 +820,10 @@ export const eu = {
       "Egutegia bigarren aldiz errepikatzen du: 8 jokalarirekin 14 jardunaldi sortzen dira.",
     extendedCalendar: "Denboraldi luzea",
     extendedCalendarDescription:
-      "Bigarren itzuli nahasiagoa gehitzen du, bikoteak mantenduta baina aurkariak ahal denean aldatuta.",
+      "Bigarren itzuli oso eta orekatua gehitzen du, bikote guztiak errepikatuz baina partida desberdinekin.",
     balancedCalendar: "Egutegi orekatua",
     balancedCalendarDescription:
-      "Jokalari bakoitza beste guztiekin behin arituko da bikotekide gisa eta aurkari bakoitzaren aurka bitan.",
+      "Itzuli bakoitzean, jokalari bakoitza beste guztiekin behin arituko da bikotekide gisa eta aurkari bakoitzaren aurka bitan.",
     manualCalendar: "Eskuzko egutegia",
     manualCalendarDescription:
       "Denboraldia sortu aurretik jardunaldiak eta bikoteak eskuz konfiguratzeko aukera ematen du.",
@@ -838,11 +838,29 @@ export const eu = {
       "Bete eskuzko egutegiko zabalgarri guztiak jarraitzeko.",
     calendarAuditTitle: "Egutegiaren oreka",
     calendarAuditDescription:
-      "Egiaztatu denek jokalari bakoitzarekin behin jokatzen dutela bikotekide gisa eta aurkari bakoitzaren aurka aldi kopuru bera.",
+      "Jokalariak, jardunaldiak, partidak, bikoteak, aurkariak eta modalitatearen egitura egiaztatzen ditu.",
     calendarAuditOk: "Egiaztatuta",
     calendarAuditNeedsRepair: "Berrikusi",
+    calendarAuditMode: "Modalitatea",
+    calendarAuditPlayers: "Jokalariak",
+    calendarAuditRounds: "Jardunaldiak",
+    calendarAuditMatches: "Partidak",
+    calendarAuditMatchStructure: "Partiden egitura zuzena",
+    calendarAuditRoundStructure: "Agerraldi bat jardunaldi bakoitzean",
+    calendarAuditIncorrectMatches: "partida oker",
+    calendarAuditRoundStructureError:
+      "{rounds} jardunaldi eta {appearances} agerraldi oker",
     calendarAuditPartners: "Bikotekideak",
     calendarAuditOpponents: "Aurkariak",
+    calendarAuditExpectedTimes: "Espero den maiztasuna: {count} aldiz",
+    calendarAuditFirstLeg: "Lehen itzulia",
+    calendarAuditSecondLeg: "Bigarren itzulia",
+    calendarAuditBalancedLeg: "Itzuli oso eta orekatua",
+    calendarAuditUnbalancedLeg: "Itzulia ez dago orekatuta",
+    calendarAuditExactSecondLeg: "Errepikapen zehatza",
+    calendarAuditRemixedSecondLeg: "Bigarren itzuli nahastua",
+    calendarAuditRepeatedRounds: "{count} jardunaldi berdin {total}(e)tik",
+    calendarAuditRepeatedMatches: "Zehazki errepikatutako {count} partida",
     calendarAuditAllCorrect: "Guztiak zuzen",
     calendarAuditIncorrect: "bikote oker",
     calendarAuditRepairHelp:

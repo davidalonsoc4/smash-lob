@@ -138,6 +138,99 @@ export type CalendarBalanceAudit = {
   isPerfectlyBalanced: boolean
 }
 
+export type SeasonCalendarAudit = {
+  mode: SeasonScheduleMode
+  playerCount: number
+  baseRoundCount: number
+  roundCount: number
+  matchCount: number
+  expectedRoundCount: number
+  expectedMatchCount: number
+  expectedMatchesPerRound: number
+  invalidMatchCount: number
+  invalidRoundMatchCount: number
+  invalidRoundAppearanceCount: number
+  expectedTeammateCount: number
+  expectedOpponentCount: number
+  invalidTeammatePairCount: number
+  invalidOpponentPairCount: number
+  firstLegBalanced: boolean
+  secondLegBalanced: boolean | null
+  repeatedMatchCount: number
+  repeatedRoundCount: number
+  modeStructureCorrect: boolean
+  isPerfectlyBalanced: boolean
+}
+
+function getTeamSignature(team: string[]) {
+  return [...team].sort().join("+")
+}
+
+function getMatchSignature(match: { teamA: string[]; teamB: string[] }) {
+  return [getTeamSignature(match.teamA), getTeamSignature(match.teamB)]
+    .sort()
+    .join(" vs ")
+}
+
+function getRoundSignature(
+  matches: Pick<GeneratedMatch, "round" | "teamA" | "teamB">[],
+  round: number
+) {
+  return matches
+    .filter((match) => match.round === round)
+    .map(getMatchSignature)
+    .sort()
+    .join(" || ")
+}
+
+function countSharedSignatures(first: string[], second: string[]) {
+  const remaining = new Map<string, number>()
+
+  first.forEach((signature) => {
+    remaining.set(signature, (remaining.get(signature) ?? 0) + 1)
+  })
+
+  return second.reduce((count, signature) => {
+    const available = remaining.get(signature) ?? 0
+
+    if (available <= 0) {
+      return count
+    }
+
+    remaining.set(signature, available - 1)
+    return count + 1
+  }, 0)
+}
+
+function getCalendarPairCounts({
+  matches,
+}: {
+  matches: Pick<GeneratedMatch, "teamA" | "teamB">[]
+}) {
+  const teammateCounts = new Map<string, number>()
+  const opponentCounts = new Map<string, number>()
+
+  matches.forEach((match) => {
+    ;[match.teamA, match.teamB].forEach((team) => {
+      if (team.length !== 2) {
+        return
+      }
+
+      const pairKey = getPairKey(team[0], team[1])
+      teammateCounts.set(pairKey, (teammateCounts.get(pairKey) ?? 0) + 1)
+    })
+
+    match.teamA.forEach((teamAPlayerId) => {
+      match.teamB.forEach((teamBPlayerId) => {
+        const pairKey = getPairKey(teamAPlayerId, teamBPlayerId)
+        opponentCounts.set(pairKey, (opponentCounts.get(pairKey) ?? 0) + 1)
+      })
+    })
+  })
+
+  return { teammateCounts, opponentCounts }
+}
+
 export function auditBalancedCalendar({
   matches,
   playerIds,
@@ -254,6 +347,228 @@ export function auditBalancedCalendar({
       invalidRoundAppearanceCount === 0 &&
       invalidTeammatePairCount === 0 &&
       invalidOpponentPairCount === 0,
+  }
+}
+
+function normalizeLegRounds({
+  matches,
+  roundOffset,
+}: {
+  matches: Pick<GeneratedMatch, "round" | "teamA" | "teamB">[]
+  roundOffset: number
+}) {
+  return matches.map((match) => ({
+    ...match,
+    round: match.round - roundOffset,
+  }))
+}
+
+export function inferSeasonScheduleMode({
+  matches,
+  playerCount,
+  totalRounds,
+}: {
+  matches: Pick<GeneratedMatch, "round" | "teamA" | "teamB">[]
+  playerCount: number
+  totalRounds: number
+}): SeasonScheduleMode | null {
+  const baseRoundCount = Math.max(playerCount - 1, 1)
+
+  if (totalRounds === baseRoundCount) {
+    return "single"
+  }
+
+  if (totalRounds !== baseRoundCount * 2) {
+    return null
+  }
+
+  const firstLegSignatures = matches
+    .filter((match) => match.round <= baseRoundCount)
+    .map(getMatchSignature)
+  const secondLegSignatures = matches
+    .filter((match) => match.round > baseRoundCount)
+    .map(getMatchSignature)
+  const repeatedMatchCount = countSharedSignatures(
+    firstLegSignatures,
+    secondLegSignatures
+  )
+
+  return repeatedMatchCount === firstLegSignatures.length
+    ? "double"
+    : "extended"
+}
+
+export function auditSeasonCalendar({
+  matches,
+  playerIds,
+  mode,
+}: {
+  matches: Pick<GeneratedMatch, "round" | "teamA" | "teamB">[]
+  playerIds: string[]
+  mode: SeasonScheduleMode
+}): SeasonCalendarAudit {
+  const baseRoundCount = Math.max(playerIds.length - 1, 1)
+  const roundMultiplier = getSeasonScheduleRoundMultiplier(mode)
+  const expectedRoundCount = baseRoundCount * roundMultiplier
+  const expectedMatchesPerRound = playerIds.length / 4
+  const expectedMatchCount = expectedRoundCount * expectedMatchesPerRound
+  const expectedTeammateCount = roundMultiplier
+  const expectedOpponentCount = roundMultiplier * 2
+  const playerIdSet = new Set(playerIds)
+  const appearancesByRoundPlayer = new Map<string, number>()
+  let invalidMatchCount = 0
+
+  matches.forEach((match) => {
+    const participants = [...match.teamA, ...match.teamB]
+
+    if (
+      match.teamA.length !== 2 ||
+      match.teamB.length !== 2 ||
+      new Set(participants).size !== 4 ||
+      participants.some((playerId) => !playerIdSet.has(playerId))
+    ) {
+      invalidMatchCount += 1
+    }
+
+    participants.forEach((playerId) => {
+      const appearanceKey = `${match.round}|${playerId}`
+      appearancesByRoundPlayer.set(
+        appearanceKey,
+        (appearancesByRoundPlayer.get(appearanceKey) ?? 0) + 1
+      )
+    })
+  })
+
+  let invalidRoundMatchCount = 0
+  let invalidRoundAppearanceCount = 0
+
+  for (let round = 1; round <= expectedRoundCount; round += 1) {
+    if (
+      matches.filter((match) => match.round === round).length !==
+      expectedMatchesPerRound
+    ) {
+      invalidRoundMatchCount += 1
+    }
+
+    playerIds.forEach((playerId) => {
+      if ((appearancesByRoundPlayer.get(`${round}|${playerId}`) ?? 0) !== 1) {
+        invalidRoundAppearanceCount += 1
+      }
+    })
+  }
+
+  const { teammateCounts, opponentCounts } = getCalendarPairCounts({ matches })
+  let invalidTeammatePairCount = 0
+  let invalidOpponentPairCount = 0
+
+  for (let firstIndex = 0; firstIndex < playerIds.length; firstIndex += 1) {
+    for (
+      let secondIndex = firstIndex + 1;
+      secondIndex < playerIds.length;
+      secondIndex += 1
+    ) {
+      const pairKey = getPairKey(
+        playerIds[firstIndex],
+        playerIds[secondIndex]
+      )
+
+      if ((teammateCounts.get(pairKey) ?? 0) !== expectedTeammateCount) {
+        invalidTeammatePairCount += 1
+      }
+
+      if ((opponentCounts.get(pairKey) ?? 0) !== expectedOpponentCount) {
+        invalidOpponentPairCount += 1
+      }
+    }
+  }
+
+  const firstLegMatches = matches.filter(
+    (match) => match.round <= baseRoundCount
+  )
+  const secondLegMatches = matches.filter(
+    (match) => match.round > baseRoundCount
+  )
+  const firstLegAudit = auditBalancedCalendar({
+    matches: firstLegMatches,
+    playerIds,
+  })
+  const secondLegAudit =
+    mode === "single"
+      ? null
+      : auditBalancedCalendar({
+          matches: normalizeLegRounds({
+            matches: secondLegMatches,
+            roundOffset: baseRoundCount,
+          }),
+          playerIds,
+        })
+  const repeatedMatchCount =
+    mode === "single"
+      ? 0
+      : countSharedSignatures(
+          firstLegMatches.map(getMatchSignature),
+          secondLegMatches.map(getMatchSignature)
+        )
+  let repeatedRoundCount = 0
+
+  if (mode !== "single") {
+    for (let round = 1; round <= baseRoundCount; round += 1) {
+      const firstRoundSignature = getRoundSignature(firstLegMatches, round)
+      const secondRoundSignature = getRoundSignature(
+        secondLegMatches,
+        round + baseRoundCount
+      )
+
+      if (
+        firstRoundSignature &&
+        firstRoundSignature === secondRoundSignature
+      ) {
+        repeatedRoundCount += 1
+      }
+    }
+  }
+
+  const modeStructureCorrect =
+    mode === "single"
+      ? true
+      : mode === "double"
+        ? repeatedMatchCount === firstLegMatches.length &&
+          repeatedRoundCount === baseRoundCount
+        : repeatedMatchCount === 0 && repeatedRoundCount === 0
+  const roundCount = new Set(matches.map((match) => match.round)).size
+
+  return {
+    mode,
+    playerCount: playerIds.length,
+    baseRoundCount,
+    roundCount,
+    matchCount: matches.length,
+    expectedRoundCount,
+    expectedMatchCount,
+    expectedMatchesPerRound,
+    invalidMatchCount,
+    invalidRoundMatchCount,
+    invalidRoundAppearanceCount,
+    expectedTeammateCount,
+    expectedOpponentCount,
+    invalidTeammatePairCount,
+    invalidOpponentPairCount,
+    firstLegBalanced: firstLegAudit.isPerfectlyBalanced,
+    secondLegBalanced: secondLegAudit?.isPerfectlyBalanced ?? null,
+    repeatedMatchCount,
+    repeatedRoundCount,
+    modeStructureCorrect,
+    isPerfectlyBalanced:
+      roundCount === expectedRoundCount &&
+      matches.length === expectedMatchCount &&
+      invalidMatchCount === 0 &&
+      invalidRoundMatchCount === 0 &&
+      invalidRoundAppearanceCount === 0 &&
+      invalidTeammatePairCount === 0 &&
+      invalidOpponentPairCount === 0 &&
+      firstLegAudit.isPerfectlyBalanced &&
+      (secondLegAudit?.isPerfectlyBalanced ?? true) &&
+      modeStructureCorrect,
   }
 }
 
@@ -383,28 +698,119 @@ function cloneMatchForRound({
   })
 }
 
-function rotateTeamsForExtendedRound({
-  teams,
-  roundIndex,
+function getCalendarPlayerIds(matches: GeneratedMatch[]) {
+  return Array.from(
+    new Set(matches.flatMap((match) => [...match.teamA, ...match.teamB]))
+  )
+}
+
+function buildExtendedCandidate({
+  baseMatches,
+  playerIds,
+  rotation,
 }: {
-  teams: string[][]
-  roundIndex: number
+  baseMatches: GeneratedMatch[]
+  playerIds: string[]
+  rotation: number
 }) {
-  if (teams.length <= 2) {
-    return teams
+  const rotatedPlayerIds = [
+    ...playerIds.slice(rotation),
+    ...playerIds.slice(0, rotation),
+  ]
+  const sampleMatch = baseMatches[0]
+
+  if (!sampleMatch) {
+    return []
   }
 
-  const shift = (roundIndex % (teams.length - 1)) + 1
+  return generateCyclicWhistCalendar({
+    leagueId: sampleMatch.leagueId,
+    seasonId: sampleMatch.seasonId,
+    playerIds: rotatedPlayerIds,
+  })
+}
 
-  return [...teams.slice(shift), ...teams.slice(0, shift)]
+function generateRemixedBalancedSecondLeg({
+  baseMatches,
+  playerIds,
+}: {
+  baseMatches: GeneratedMatch[]
+  playerIds: string[]
+}) {
+  const baseRoundCount = getBaseRoundCount(baseMatches)
+  let bestCandidate: GeneratedMatch[] | null = null
+  let bestRepeatedMatchCount = Number.POSITIVE_INFINITY
+  let bestRepeatedRoundCount = Number.POSITIVE_INFINITY
+
+  for (let rotation = 1; rotation < playerIds.length; rotation += 1) {
+    const candidate = buildExtendedCandidate({
+      baseMatches,
+      playerIds,
+      rotation,
+    })
+    const candidateAudit = auditBalancedCalendar({
+      matches: candidate,
+      playerIds,
+    })
+
+    if (!candidateAudit.isPerfectlyBalanced) {
+      continue
+    }
+
+    const repeatedMatchCount = countSharedSignatures(
+      baseMatches.map(getMatchSignature),
+      candidate.map(getMatchSignature)
+    )
+    let repeatedRoundCount = 0
+
+    for (let round = 1; round <= baseRoundCount; round += 1) {
+      if (
+        getRoundSignature(baseMatches, round) ===
+        getRoundSignature(candidate, round)
+      ) {
+        repeatedRoundCount += 1
+      }
+    }
+
+    if (
+      repeatedMatchCount < bestRepeatedMatchCount ||
+      (repeatedMatchCount === bestRepeatedMatchCount &&
+        repeatedRoundCount < bestRepeatedRoundCount)
+    ) {
+      bestCandidate = candidate
+      bestRepeatedMatchCount = repeatedMatchCount
+      bestRepeatedRoundCount = repeatedRoundCount
+    }
+
+    if (repeatedMatchCount === 0 && repeatedRoundCount === 0) {
+      break
+    }
+  }
+
+  if (!bestCandidate) {
+    throw new Error(
+      "No se ha podido generar una segunda vuelta larga equilibrada."
+    )
+  }
+
+  return bestCandidate.map((match, matchIndex) =>
+    cloneMatchForRound({
+      match,
+      round: match.round + baseRoundCount,
+      matchIndex,
+      idSuffix: "extended",
+    })
+  )
 }
 
 function extendCalendarMatches({
   baseMatches,
   mode,
+  playerIds,
 }: {
   baseMatches: GeneratedMatch[]
   mode: SeasonScheduleMode
+  playerIds?: string[]
 }): GeneratedMatch[] {
   if (mode === "single") {
     return baseMatches
@@ -429,36 +835,10 @@ function extendCalendarMatches({
     return [...baseMatches, ...secondLegMatches]
   }
 
-  const remixedMatches: GeneratedMatch[] = []
-
-  for (let round = 1; round <= baseRoundCount; round += 1) {
-    const roundMatches = baseMatches.filter((match) => match.round === round)
-    const teams = roundMatches.flatMap((match) => [match.teamA, match.teamB])
-    const rotatedTeams = rotateTeamsForExtendedRound({
-      teams,
-      roundIndex: round - 1,
-    })
-
-    for (let index = 0; index < rotatedTeams.length; index += 2) {
-      const teamA = rotatedTeams[index]
-      const teamB = rotatedTeams[index + 1]
-
-      if (!teamA || !teamB) {
-        continue
-      }
-
-      remixedMatches.push(
-        buildEmptyMatch({
-          id: `${roundMatches[0]?.seasonId ?? "season"}-round-${round + baseRoundCount}-extended-match-${index / 2 + 1}`,
-          leagueId: roundMatches[0]?.leagueId ?? "league",
-          seasonId: roundMatches[0]?.seasonId ?? "season",
-          round: round + baseRoundCount,
-          teamA,
-          teamB,
-        })
-      )
-    }
-  }
+  const remixedMatches = generateRemixedBalancedSecondLeg({
+    baseMatches,
+    playerIds: playerIds ?? getCalendarPlayerIds(baseMatches),
+  })
 
   return [...baseMatches, ...remixedMatches]
 }
@@ -513,7 +893,24 @@ export function generateBalancedCalendar({
     )
   }
 
-  return extendCalendarMatches({ baseMatches, mode: scheduleMode })
+  const fullCalendar = extendCalendarMatches({
+    baseMatches,
+    mode: scheduleMode,
+    playerIds,
+  })
+  const fullAudit = auditSeasonCalendar({
+    matches: fullCalendar,
+    playerIds,
+    mode: scheduleMode,
+  })
+
+  if (!fullAudit.isPerfectlyBalanced) {
+    throw new Error(
+      `No se ha podido completar un calendario ${scheduleMode} equilibrado para ${playerIds.length} jugadores.`
+    )
+  }
+
+  return fullCalendar
 }
 
 export function generateManualCalendar({

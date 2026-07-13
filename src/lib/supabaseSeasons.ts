@@ -414,7 +414,7 @@ function isPristineUpcomingMatch(match: Record<string, unknown>) {
 }
 
 /**
- * Replaces only the pairings of a pristine upcoming single-round season.
+ * Replaces only the pairings of a pristine upcoming automatic season.
  * Existing match ids are retained so the operation does not break links or
  * references. The guard intentionally refuses to touch any match that has
  * already been scheduled, scored or given booking data.
@@ -423,17 +423,22 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
   leagueId,
   seasonId,
   playerIds,
+  scheduleMode = "single",
 }: {
   leagueId: string;
   seasonId: string;
   playerIds: string[];
+  scheduleMode?: SeasonScheduleMode;
 }): Promise<MatchData[]> {
-  const expectedRoundCount = Math.max(playerIds.length - 1, 1);
+  const expectedRoundCount = getSeasonScheduleRoundCount({
+    playerCount: playerIds.length,
+    mode: scheduleMode,
+  });
   const generatedMatches = generateBalancedCalendar({
     leagueId,
     seasonId,
     playerIds,
-    scheduleMode: "single",
+    scheduleMode,
   });
 
   const { data: season, error: seasonError } = await supabase
@@ -459,7 +464,7 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
 
   if (Number(season.total_rounds) !== expectedRoundCount) {
     throw new Error(
-      "La regeneración automática solo está disponible para temporadas de vuelta única.",
+      "La longitud actual de la temporada no coincide con el calendario que se quiere regenerar.",
     );
   }
 

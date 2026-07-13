@@ -26,10 +26,11 @@ import {
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
 import {
-  auditBalancedCalendar,
+  auditSeasonCalendar,
   generateBalancedCalendar,
   generateManualCalendar,
   getSeasonScheduleRoundCount,
+  inferSeasonScheduleMode,
   getNewPlayerIndexFromToken,
   getNewPlayerToken,
   resolveManualCalendarDraft,
@@ -1017,31 +1018,138 @@ function BalancedCalendarAuditPanel({
     () => matches.filter((match) => match.seasonId === activeSeason.id),
     [activeSeason.id, matches],
   );
-  const isSingleRoundSeason =
-    activeSeason.totalRounds === Math.max(playerIds.length - 1, 1);
+  const scheduleMode = useMemo(
+    () =>
+      inferSeasonScheduleMode({
+        matches: seasonMatches,
+        playerCount: playerIds.length,
+        totalRounds: activeSeason.totalRounds,
+      }),
+    [activeSeason.totalRounds, playerIds.length, seasonMatches],
+  );
   const audit = useMemo(
     () =>
-      isSingleRoundSeason
-        ? auditBalancedCalendar({
+      scheduleMode
+        ? auditSeasonCalendar({
             matches: seasonMatches,
             playerIds,
+            mode: scheduleMode,
           })
         : null,
-    [isSingleRoundSeason, playerIds, seasonMatches],
+    [playerIds, scheduleMode, seasonMatches],
   );
   const canAudit =
-    activeSeason.status === "upcoming" &&
-    isSingleRoundSeason &&
-    [8, 12, 16].includes(playerIds.length);
+    Boolean(scheduleMode) &&
+    [8, 12, 16].includes(playerIds.length) &&
+    seasonMatches.length > 0;
+  const canRepair = activeSeason.status === "upcoming";
 
-  if (!canAudit || !audit) {
+  if (!canAudit || !audit || !scheduleMode) {
     return null;
   }
 
   const calendarAudit = audit;
+  const modeLabel =
+    scheduleMode === "single"
+      ? t.adminSeason.singleRoundCalendar
+      : scheduleMode === "double"
+        ? t.adminSeason.doubleRoundCalendar
+        : t.adminSeason.extendedCalendar;
+  const checkRows = [
+    {
+      label: t.adminSeason.calendarAuditMatchStructure,
+      ok: calendarAudit.invalidMatchCount === 0,
+      detail:
+        calendarAudit.invalidMatchCount === 0
+          ? t.adminSeason.calendarAuditAllCorrect
+          : `${calendarAudit.invalidMatchCount} ${t.adminSeason.calendarAuditIncorrectMatches}`,
+    },
+    {
+      label: t.adminSeason.calendarAuditRoundStructure,
+      ok:
+        calendarAudit.invalidRoundMatchCount === 0 &&
+        calendarAudit.invalidRoundAppearanceCount === 0,
+      detail:
+        calendarAudit.invalidRoundMatchCount === 0 &&
+        calendarAudit.invalidRoundAppearanceCount === 0
+          ? t.adminSeason.calendarAuditAllCorrect
+          : t.adminSeason.calendarAuditRoundStructureError
+              .replace(
+                "{rounds}",
+                String(calendarAudit.invalidRoundMatchCount),
+              )
+              .replace(
+                "{appearances}",
+                String(calendarAudit.invalidRoundAppearanceCount),
+              ),
+    },
+    {
+      label: t.adminSeason.calendarAuditPartners,
+      ok: calendarAudit.invalidTeammatePairCount === 0,
+      detail:
+        calendarAudit.invalidTeammatePairCount === 0
+          ? t.adminSeason.calendarAuditExpectedTimes.replace(
+              "{count}",
+              String(calendarAudit.expectedTeammateCount),
+            )
+          : `${calendarAudit.invalidTeammatePairCount} ${t.adminSeason.calendarAuditIncorrect}`,
+    },
+    {
+      label: t.adminSeason.calendarAuditOpponents,
+      ok: calendarAudit.invalidOpponentPairCount === 0,
+      detail:
+        calendarAudit.invalidOpponentPairCount === 0
+          ? t.adminSeason.calendarAuditExpectedTimes.replace(
+              "{count}",
+              String(calendarAudit.expectedOpponentCount),
+            )
+          : `${calendarAudit.invalidOpponentPairCount} ${t.adminSeason.calendarAuditIncorrect}`,
+    },
+    {
+      label: t.adminSeason.calendarAuditFirstLeg,
+      ok: calendarAudit.firstLegBalanced,
+      detail: calendarAudit.firstLegBalanced
+        ? t.adminSeason.calendarAuditBalancedLeg
+        : t.adminSeason.calendarAuditUnbalancedLeg,
+    },
+    ...(scheduleMode === "single"
+      ? []
+      : [
+          {
+            label: t.adminSeason.calendarAuditSecondLeg,
+            ok: calendarAudit.secondLegBalanced === true,
+            detail:
+              calendarAudit.secondLegBalanced === true
+                ? t.adminSeason.calendarAuditBalancedLeg
+                : t.adminSeason.calendarAuditUnbalancedLeg,
+          },
+          {
+            label:
+              scheduleMode === "double"
+                ? t.adminSeason.calendarAuditExactSecondLeg
+                : t.adminSeason.calendarAuditRemixedSecondLeg,
+            ok: calendarAudit.modeStructureCorrect,
+            detail:
+              scheduleMode === "double"
+                ? t.adminSeason.calendarAuditRepeatedRounds
+                    .replace(
+                      "{count}",
+                      String(calendarAudit.repeatedRoundCount),
+                    )
+                    .replace(
+                      "{total}",
+                      String(calendarAudit.baseRoundCount),
+                    )
+                : t.adminSeason.calendarAuditRepeatedMatches.replace(
+                    "{count}",
+                    String(calendarAudit.repeatedMatchCount),
+                  ),
+          },
+        ]),
+  ];
 
   async function repairCalendar() {
-    if (isSaving || calendarAudit.isPerfectlyBalanced) {
+    if (isSaving || calendarAudit.isPerfectlyBalanced || !canRepair) {
       return;
     }
 
@@ -1061,12 +1169,13 @@ function BalancedCalendarAuditPanel({
             leagueId: activeLeagueId,
             seasonId: activeSeason.id,
             playerIds,
+            scheduleMode: scheduleMode ?? "single",
           })
         : generateBalancedCalendar({
             leagueId: activeLeagueId,
             seasonId: activeSeason.id,
             playerIds,
-            scheduleMode: "single",
+            scheduleMode: scheduleMode ?? "single",
           }).map((match) => ({
             ...match,
             courtBooking: getEmptyCourtBooking(),
@@ -1111,27 +1220,68 @@ function BalancedCalendarAuditPanel({
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
           <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
-            {t.adminSeason.calendarAuditPartners}
+            {t.adminSeason.calendarAuditMode}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
-            {calendarAudit.invalidTeammatePairCount === 0
-              ? t.adminSeason.calendarAuditAllCorrect
-              : `${calendarAudit.invalidTeammatePairCount} ${t.adminSeason.calendarAuditIncorrect}`}
+            {modeLabel}
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
           <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
-            {t.adminSeason.calendarAuditOpponents}
+            {t.adminSeason.calendarAuditPlayers}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
-            {calendarAudit.invalidOpponentPairCount === 0
-              ? t.adminSeason.calendarAuditAllCorrect
-              : `${calendarAudit.invalidOpponentPairCount} ${t.adminSeason.calendarAuditIncorrect}`}
+            {calendarAudit.playerCount}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+            {t.adminSeason.calendarAuditRounds}
+          </p>
+          <p className="mt-1 text-sm font-black text-neutral-950">
+            {calendarAudit.roundCount}/{calendarAudit.expectedRoundCount}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+            {t.adminSeason.calendarAuditMatches}
+          </p>
+          <p className="mt-1 text-sm font-black text-neutral-950">
+            {calendarAudit.matchCount}/{calendarAudit.expectedMatchCount}
           </p>
         </div>
       </div>
 
-      {!calendarAudit.isPerfectlyBalanced ? (
+      <div className="mt-3 divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white px-3">
+        {checkRows.map((check) => (
+          <div
+            key={check.label}
+            className="flex items-center justify-between gap-3 py-2.5"
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-black text-neutral-900">
+                {check.label}
+              </p>
+              <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+                {check.detail}
+              </p>
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${
+                check.ok
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-amber-100 text-amber-800"
+              }`}
+            >
+              {check.ok
+                ? t.adminSeason.calendarAuditOk
+                : t.adminSeason.calendarAuditNeedsRepair}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {!calendarAudit.isPerfectlyBalanced && canRepair ? (
         <>
           <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-xs font-semibold leading-5 text-amber-900">
             {t.adminSeason.calendarAuditRepairHelp}
@@ -3374,9 +3524,11 @@ export default function AdminSeasonPage() {
       ? [registrationRecipientPlayerId]
       : [],
   });
-  const canAuditUpcomingCalendar =
-    isUpcomingSeason &&
-    activeSeason.totalRounds === Math.max(players.length - 1, 1) &&
+  const canAuditCalendar =
+    [
+      Math.max(players.length - 1, 1),
+      Math.max(players.length - 1, 1) * 2,
+    ].includes(activeSeason.totalRounds) &&
     [8, 12, 16].includes(players.length);
 
   return (
@@ -3419,6 +3571,11 @@ export default function AdminSeasonPage() {
               <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jornadas
               </a>
+              {canAuditCalendar ? (
+                <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                  Calendario
+                </a>
+              ) : null}
               <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 MVP
               </a>
@@ -3445,7 +3602,7 @@ export default function AdminSeasonPage() {
               <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Comenzar
               </a>
-              {canAuditUpcomingCalendar ? (
+              {canAuditCalendar ? (
                 <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                   Calendario
                 </a>
@@ -3510,6 +3667,16 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          {canAuditCalendar ? (
+            <div id="equilibrio-calendario">
+              <BalancedCalendarAuditPanel
+                activeLeagueId={activeLeague.id}
+                activeSeason={activeSeason}
+                playerIds={players.map((player) => player.id)}
+                matches={matches}
+              />
+            </div>
+          ) : null}
 
 
           <div id="mvp">
@@ -3569,7 +3736,7 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          {canAuditUpcomingCalendar ? (
+          {canAuditCalendar ? (
             <div id="equilibrio-calendario">
               <BalancedCalendarAuditPanel
                 activeLeagueId={activeLeague.id}

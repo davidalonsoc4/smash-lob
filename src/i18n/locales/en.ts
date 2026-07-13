@@ -811,10 +811,10 @@ export const en = {
       "Repeats the calendar once: with 8 players it generates 14 rounds.",
     extendedCalendar: "Long season",
     extendedCalendarDescription:
-      "Adds a remixed second round, keeping pairs but changing opponents when possible.",
+      "Adds a complete balanced second leg, repeating every partnership with different matches.",
     balancedCalendar: "Balanced calendar",
     balancedCalendarDescription:
-      "Each player will partner every other player once and face every opponent twice.",
+      "In each leg, every player partners every other player once and faces every opponent twice.",
     manualCalendar: "Manual calendar",
     manualCalendarDescription:
       "Configure rounds and pairings manually before creating the season.",
@@ -829,11 +829,29 @@ export const en = {
       "Complete every manual calendar dropdown to continue.",
     calendarAuditTitle: "Calendar balance",
     calendarAuditDescription:
-      "Checks that everyone partners each player once and faces every opponent the same number of times.",
+      "Checks players, rounds, matches, partnerships, opponents and the structure required by the selected mode.",
     calendarAuditOk: "Verified",
     calendarAuditNeedsRepair: "Review",
+    calendarAuditMode: "Mode",
+    calendarAuditPlayers: "Players",
+    calendarAuditRounds: "Rounds",
+    calendarAuditMatches: "Matches",
+    calendarAuditMatchStructure: "Valid match structure",
+    calendarAuditRoundStructure: "One appearance per round",
+    calendarAuditIncorrectMatches: "incorrect matches",
+    calendarAuditRoundStructureError:
+      "{rounds} incorrect rounds and {appearances} incorrect appearances",
     calendarAuditPartners: "Partners",
     calendarAuditOpponents: "Opponents",
+    calendarAuditExpectedTimes: "Expected frequency: {count} times",
+    calendarAuditFirstLeg: "First leg",
+    calendarAuditSecondLeg: "Second leg",
+    calendarAuditBalancedLeg: "Complete balanced leg",
+    calendarAuditUnbalancedLeg: "This leg is not balanced",
+    calendarAuditExactSecondLeg: "Exact repeat",
+    calendarAuditRemixedSecondLeg: "Remixed second leg",
+    calendarAuditRepeatedRounds: "{count} identical rounds out of {total}",
+    calendarAuditRepeatedMatches: "{count} exactly repeated matches",
     calendarAuditAllCorrect: "All correct",
     calendarAuditIncorrect: "incorrect pairs",
     calendarAuditRepairHelp:
