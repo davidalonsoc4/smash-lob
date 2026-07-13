@@ -657,10 +657,64 @@ export const eu = {
     futureTitle: "Hurrengo tresnak",
     futureDescription:
       "Hemen jokalariak, gonbidapenak, arauak, jardunaldien sorrera, jakinarazpenak eta auditoria bilduko dira.",
+    qaTitle: "Proba tresnak",
+    qaDescription:
+      "Simulatu jokalariak, emaitzak, baieztapenak eta MVP botoak kontu gehiago sortu gabe.",
     accessDeniedTitle: "Administratzaile baimenik gabe",
     accessDeniedCardTitle: "Ezin duzu panel honetara sartu",
     accessDeniedDescription:
       "Liga aktiboko sortzaileek eta administratzaileek bakarrik kudea dezakete atal hau.",
+  },
+
+  qa: {
+    title: "Proba tresnak",
+    description:
+      "Simulatu jokalarien ekintzak eta probatu fluxu nagusiak Google kontu askorik gabe.",
+    disabledTitle: "QA modua desaktibatuta",
+    disabledDescription:
+      "Aktibatu NEXT_PUBLIC_QA_MODE=true eta QA_MODE=true proba ingurunean. Sarbidea administratzaileentzat bakarrik izango da.",
+    warningTitle: "Erabili proba liga batean bakarrik",
+    warningDescription:
+      "Ekintza hauek benetako datuak idazten dituzte Supabasen eta lotutako kontuei benetako jakinarazpenak bidal diezazkiekete.",
+    loading: "Proba datuak kargatzen...",
+    error: "Ezin izan dira proba tresnak kargatu.",
+    actionError: "Ezin izan da proba ekintza exekutatu.",
+    actionCompleted: "QA ekintza osatu da eta datuak berriro kargatu dira.",
+    contextTitle: "Probaren testuingurua",
+    season: "Denboraldia",
+    match: "Partida",
+    matchStatus: "Egoera",
+    configuration: "Konfigurazioa",
+    votes: "MVP botoak",
+    confirmations: "Baieztapenak",
+    disputedShort: "eztabaidatuta",
+    simulatedPlayerTitle: "Jokalari gisa jardun",
+    simulatedPlayerDescription:
+      "Aukeratu zein parte-hartzailek simulatuko duen ekintza. Ez du lotutako konturik behar.",
+    scheduleMatch: "Biharko programatu",
+    recordResult: "2-1 emaitza sartu",
+    confirmAll: "Guztiengatik baieztatu",
+    disputeResult: "Emaitza zalantzan jarri",
+    autoValidate: "24 ordu simulatu",
+    lockResult: "Emaitza finkatu",
+    unlockResult: "Desblokeatu",
+    mvpTitle: "MVP agertokiak",
+    mvpDescription:
+      "Sortu baliozko botoak, erabaki goiztiarrak eta jakinarazpenak aplikazioaren logika berarekin.",
+    target: "Helburua",
+    secondTarget: "Bigarren helburua",
+    castOneVote: "Boto bat eman",
+    awardThreeVotes: "3 boto eman",
+    tieVotes: "2-2 berdinketa",
+    completeRoundScenario: "Jardunaldiko MVP osatu",
+    resetTitle: "QA datuak berrezarri",
+    resetDescription:
+      "Hautatutako partidaren edo jardunaldiaren emaitza, botoak eta baieztapenak ezabatzen ditu. Tresna hauek sortutako MVP gertaerak bakarrik ezabatzen dira.",
+    resetMatch: "Partida berrezarri",
+    resetRound: "Jardunaldia berrezarri",
+    noDataTitle: "Ez dago partidarik",
+    noDataDescription:
+      "Sortu egutegia duen denboraldi bat eta ireki berriro tresna hauek.",
   },
 
   adminLeague: {

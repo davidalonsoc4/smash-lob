@@ -11,6 +11,8 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
 import { recordActivityEvent } from "@/lib/activity"
 
+const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
+
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   return {
@@ -299,6 +301,28 @@ export default function AdminPage() {
             </div>
           </AppCard>
         </Link>
+
+        {qaModeEnabled ? (
+          <Link href="/admin/qa" className="block">
+            <AppCard className="border-amber-200 bg-amber-50 transition active:scale-[0.99]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold">{t.adminPanel.qaTitle}</p>
+                    <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[9px] font-black uppercase text-amber-950">
+                      QA
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs font-semibold text-neutral-600">
+                    {t.adminPanel.qaDescription}
+                  </p>
+                </div>
+
+                <span className="text-xl">&gt;</span>
+              </div>
+            </AppCard>
+          </Link>
+        ) : null}
       </div>
 
 

@@ -664,10 +664,64 @@ export const es = {
     futureTitle: "Próximas herramientas",
     futureDescription:
       "Aquí se agruparán jugadores, invitaciones, reglas, generación de jornadas, notificaciones y auditoría.",
+    qaTitle: "Herramientas de prueba",
+    qaDescription:
+      "Simula jugadores, resultados, confirmaciones y votaciones MVP sin crear más cuentas.",
     accessDeniedTitle: "Sin permisos de administrador",
     accessDeniedCardTitle: "No puedes acceder a este panel",
     accessDeniedDescription:
       "Solo los creadores y administradores de la liga activa pueden gestionar esta sección.",
+  },
+
+  qa: {
+    title: "Herramientas de prueba",
+    description:
+      "Simula acciones de jugadores y recorre los flujos críticos sin necesitar varias cuentas de Google.",
+    disabledTitle: "Modo QA desactivado",
+    disabledDescription:
+      "Activa NEXT_PUBLIC_QA_MODE=true y QA_MODE=true en el entorno de pruebas. El acceso seguirá limitado a administradores.",
+    warningTitle: "Solo para una liga de pruebas",
+    warningDescription:
+      "Estas acciones escriben datos reales en Supabase y pueden enviar notificaciones reales a las cuentas vinculadas.",
+    loading: "Cargando datos de prueba...",
+    error: "No se han podido cargar las herramientas de prueba.",
+    actionError: "No se ha podido ejecutar la acción de prueba.",
+    actionCompleted: "Acción QA completada y datos recargados.",
+    contextTitle: "Contexto de la prueba",
+    season: "Temporada",
+    match: "Partido",
+    matchStatus: "Estado",
+    configuration: "Configuración",
+    votes: "Votos MVP",
+    confirmations: "Confirmaciones",
+    disputedShort: "impugnadas",
+    simulatedPlayerTitle: "Actuar como jugador",
+    simulatedPlayerDescription:
+      "Elige qué participante simula la acción. No necesita tener una cuenta vinculada.",
+    scheduleMatch: "Programar mañana",
+    recordResult: "Registrar 2-1",
+    confirmAll: "Confirmar por todos",
+    disputeResult: "Impugnar resultado",
+    autoValidate: "Simular 24 h",
+    lockResult: "Fijar resultado",
+    unlockResult: "Desbloquear",
+    mvpTitle: "Escenarios MVP",
+    mvpDescription:
+      "Genera votos válidos, cierres anticipados y notificaciones usando la misma lógica de la aplicación.",
+    target: "Objetivo",
+    secondTarget: "Segundo objetivo",
+    castOneVote: "Emitir un voto",
+    awardThreeVotes: "Dar 3 votos",
+    tieVotes: "Empate 2-2",
+    completeRoundScenario: "Completar jornada MVP",
+    resetTitle: "Reiniciar datos QA",
+    resetDescription:
+      "Borra resultado, votos y confirmaciones del partido o de toda la jornada seleccionada. Solo elimina eventos MVP creados por estas herramientas.",
+    resetMatch: "Reiniciar partido",
+    resetRound: "Reiniciar jornada",
+    noDataTitle: "Sin partidos disponibles",
+    noDataDescription:
+      "Crea una temporada con calendario y vuelve a abrir estas herramientas.",
   },
 
   adminLeague: {

@@ -113,3 +113,14 @@ SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 En iPhone/iPad, las notificaciones web necesitan usar la app como PWA instalada en la pantalla de inicio. En Android funciona desde navegador/PWA compatible con Push API.
+
+## Modo QA (solo entorno de pruebas)
+
+Para mostrar las herramientas de simulación en `Administración > Herramientas de prueba`, configura y vuelve a desplegar:
+
+```env
+NEXT_PUBLIC_QA_MODE=true
+QA_MODE=true
+```
+
+Las rutas QA siguen comprobando en el servidor que la cuenta sea creadora o administradora de la liga. No actives estas variables en producción: las acciones escriben datos reales en Supabase y pueden generar notificaciones push reales.

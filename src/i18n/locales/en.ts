@@ -649,10 +649,64 @@ export const en = {
     futureTitle: "Upcoming tools",
     futureDescription:
       "Players, invitations, rules, round generation, notifications and audit will be grouped here.",
+    qaTitle: "Testing tools",
+    qaDescription:
+      "Simulate players, results, confirmations and MVP voting without creating more accounts.",
     accessDeniedTitle: "No admin permissions",
     accessDeniedCardTitle: "You cannot access this panel",
     accessDeniedDescription:
       "Only league creators and admins can manage this section.",
+  },
+
+  qa: {
+    title: "Testing tools",
+    description:
+      "Simulate player actions and test critical flows without needing several Google accounts.",
+    disabledTitle: "QA mode disabled",
+    disabledDescription:
+      "Enable NEXT_PUBLIC_QA_MODE=true and QA_MODE=true in the test environment. Access remains restricted to admins.",
+    warningTitle: "Use only in a test league",
+    warningDescription:
+      "These actions write real data to Supabase and may send real notifications to linked accounts.",
+    loading: "Loading testing data...",
+    error: "Testing tools could not be loaded.",
+    actionError: "The testing action could not be completed.",
+    actionCompleted: "QA action completed and data reloaded.",
+    contextTitle: "Test context",
+    season: "Season",
+    match: "Match",
+    matchStatus: "Status",
+    configuration: "Configuration",
+    votes: "MVP votes",
+    confirmations: "Confirmations",
+    disputedShort: "disputed",
+    simulatedPlayerTitle: "Act as player",
+    simulatedPlayerDescription:
+      "Choose which participant simulates the action. A linked account is not required.",
+    scheduleMatch: "Schedule tomorrow",
+    recordResult: "Record 2-1",
+    confirmAll: "Confirm for everyone",
+    disputeResult: "Dispute result",
+    autoValidate: "Simulate 24 h",
+    lockResult: "Lock result",
+    unlockResult: "Unlock",
+    mvpTitle: "MVP scenarios",
+    mvpDescription:
+      "Generate valid votes, early decisions and notifications using the same application logic.",
+    target: "Target",
+    secondTarget: "Second target",
+    castOneVote: "Cast one vote",
+    awardThreeVotes: "Give 3 votes",
+    tieVotes: "2-2 tie",
+    completeRoundScenario: "Complete round MVP",
+    resetTitle: "Reset QA data",
+    resetDescription:
+      "Clears the result, votes and confirmations for the selected match or round. Only MVP events created by these tools are removed.",
+    resetMatch: "Reset match",
+    resetRound: "Reset round",
+    noDataTitle: "No matches available",
+    noDataDescription:
+      "Create a season with a calendar and reopen these tools.",
   },
 
   adminLeague: {
