@@ -178,6 +178,8 @@ export default function MatchDetailPage() {
       confirmation.playerId === currentUserId
   )
   const isAdmin = isLeagueAdmin(activeLeague.id)
+  const confirmationsEnabled = roundSettings.resultConfirmationMode !== "none"
+  const resultIsLocked = confirmationsEnabled && match.resultLocked
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
   const canEnterResult =
@@ -186,7 +188,7 @@ export default function MatchDetailPage() {
       (isAdmin && (match.status === "scheduling" || match.status === "postponed")))
   const canEditResultAsParticipant = Boolean(
     isMatchParticipant &&
-      !match.resultLocked &&
+      !resultIsLocked &&
       (match.resultReportedByPlayerId === currentUserId ||
         currentResultConfirmation?.status === "disputed" ||
         !match.resultReportedByPlayerId)
@@ -194,7 +196,7 @@ export default function MatchDetailPage() {
   const canEditResult =
     !isSeasonUpcoming &&
     match.status === "finished" &&
-    !match.resultLocked &&
+    !resultIsLocked &&
     (isAdmin || canEditResultAsParticipant)
   const resultReporterName = match.resultReportedByPlayerId
     ? players.find((player) => player.id === match.resultReportedByPlayerId)
@@ -216,7 +218,7 @@ export default function MatchDetailPage() {
       <header className="pt-1">
         <BackButton fallbackHref="/matches" label={t.common.back} />
 
-        <div className="mt-3 min-w-0">
+        <div className="mt-3 min-w-0 w-full" style={{ maxWidth: "none" }}>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
             {activeLeague.name}
           </p>
@@ -376,7 +378,7 @@ export default function MatchDetailPage() {
           <div>
             <p className="font-black">{t.matchResult.registeredTitle}</p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              {match.resultLocked
+              {resultIsLocked
                 ? "El resultado está fijado como definitivo por la administración."
                 : currentResultConfirmation?.status === "disputed"
                   ? "Lo has marcado como incorrecto. Ya puedes corregirlo y pasarás a figurar como la persona que informó el resultado."
@@ -400,26 +402,26 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
 
-            {isAdmin ? (
+            {isAdmin && confirmationsEnabled ? (
               <button
                 type="button"
                 onClick={handleToggleResultLock}
                 disabled={isClearingResult || isUpdatingResultLock}
                 className={`rounded-xl px-3 py-2 text-sm font-black disabled:text-neutral-400 ${
-                  match.resultLocked
+                  resultIsLocked
                     ? "bg-neutral-100 text-neutral-800"
                     : "bg-emerald-50 text-emerald-800"
                 }`}
               >
                 {isUpdatingResultLock
                   ? "Guardando..."
-                  : match.resultLocked
+                  : resultIsLocked
                     ? "Desbloquear resultado"
                     : "Fijar como definitivo"}
               </button>
             ) : null}
 
-            {isAdmin && !match.resultLocked ? (
+            {isAdmin && !resultIsLocked ? (
               <button
                 type="button"
                 onClick={handleClearResult}

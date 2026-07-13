@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
@@ -24,7 +23,6 @@ function getSeasonStatusLabel(season: {
 }
 
 export default function LeaguesPage() {
-  const router = useRouter();
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
   const {
     canCreateLeagues,
@@ -57,7 +55,6 @@ export default function LeaguesPage() {
 
   function handleEnterLeague(leagueId: string) {
     changeActiveLeague(leagueId);
-    router.push("/");
   }
 
   return (

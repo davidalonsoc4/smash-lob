@@ -32,7 +32,7 @@ export function MatchStatusBadge({
   }
 
   return (
-    <p className={getMatchStatusBadgeClassName(displayStatus)}>
+    <p className={`${getMatchStatusBadgeClassName(displayStatus)} ml-auto text-right`}>
       {labelByStatus[displayStatus] ?? displayStatus}
     </p>
   )

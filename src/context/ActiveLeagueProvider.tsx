@@ -16,6 +16,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 type ActiveLeagueContextValue = {
   activeLeagueId: string
   activateLeague: (leagueId: string) => boolean
+  activateGrantedLeague: (leagueId: string) => void
   changeActiveLeague: (leagueId: string) => void
   setActiveLeagueId: (leagueId: string) => void
 }
@@ -34,13 +35,31 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const { userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
-  const effectiveActiveLeagueId = canAccessLeague(activeLeagueId)
-    ? activeLeagueId
-    : isAccessHydrated
-      ? userLeagues[0]?.id ?? activeLeagueId
-      : activeLeagueId
+  const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
+  const effectiveActiveLeagueId = grantedLeagueId
+    ? grantedLeagueId
+    : canAccessLeague(activeLeagueId)
+      ? activeLeagueId
+      : isAccessHydrated
+        ? userLeagues[0]?.id ?? activeLeagueId
+        : activeLeagueId
 
   useEffect(() => {
+    // Creation and invite flows have already been confirmed by Supabase, but
+    // React may still be applying the new league/membership state. Do not let
+    // the normal fallback logic overwrite that freshly selected league.
+    if (grantedLeagueId) {
+      if (canAccessLeague(grantedLeagueId)) {
+        const clearGrantedTimer = window.setTimeout(() => {
+          setGrantedLeagueId(null)
+        }, 0)
+
+        return () => window.clearTimeout(clearGrantedTimer)
+      }
+
+      return
+    }
+
     const storedLeagueId = window.localStorage.getItem(storageKey)
 
     // A cached player or spectator access is enough to restore the last league
@@ -71,7 +90,16 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
 
       return () => window.clearTimeout(fallbackTimer)
     }
-  }, [canAccessLeague, isAccessHydrated, userLeagues])
+  }, [canAccessLeague, grantedLeagueId, isAccessHydrated, userLeagues])
+
+  const persistActiveLeague = useCallback((leagueId: string) => {
+    if (!leagueId) {
+      return
+    }
+
+    setActiveLeagueIdState(leagueId)
+    window.localStorage.setItem(storageKey, leagueId)
+  }, [])
 
   const activateLeague = useCallback(
     (leagueId: string) => {
@@ -79,12 +107,28 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
         return false
       }
 
-      setActiveLeagueIdState(leagueId)
-      window.localStorage.setItem(storageKey, leagueId)
+      setGrantedLeagueId(null)
+      persistActiveLeague(leagueId)
 
       return true
     },
-    [canAccessLeague],
+    [canAccessLeague, persistActiveLeague],
+  )
+
+  // Creation and invite flows call this only after Supabase has confirmed the
+  // new access. It deliberately avoids the current render's access snapshot,
+  // which can still be one render behind immediately after creating or
+  // claiming a membership.
+  const activateGrantedLeague = useCallback(
+    (leagueId: string) => {
+      if (!leagueId) {
+        return
+      }
+
+      setGrantedLeagueId(leagueId)
+      persistActiveLeague(leagueId)
+    },
+    [persistActiveLeague],
   )
 
   const openLeague = useCallback(
@@ -122,10 +166,12 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     () => ({
       activeLeagueId: effectiveActiveLeagueId,
       activateLeague,
+      activateGrantedLeague,
       changeActiveLeague,
       setActiveLeagueId,
     }),
     [
+      activateGrantedLeague,
       activateLeague,
       changeActiveLeague,
       effectiveActiveLeagueId,

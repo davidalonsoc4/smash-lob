@@ -194,9 +194,9 @@ function InviteRulesSummary({
 
 export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const { t } = useI18n()
-  const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const router = useRouter()
-  const { setActiveLeagueId } = useActiveLeague()
+  const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
+  const { activateGrantedLeague } = useActiveLeague()
   const { seasons, getSeasonRoundSettings } = useSeasonSettings()
   const {
     getLeagueByInviteCode,
@@ -366,10 +366,9 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       return
     }
 
-    window.localStorage.setItem("smash-lob-active-league", league.id)
-    await syncPushForInviteLeague(league.id, existingMembership?.playerId || null)
-    setActiveLeagueId(league.id)
-    router.push("/")
+    activateGrantedLeague(league.id)
+    void syncPushForInviteLeague(league.id, existingMembership?.playerId || null)
+    router.replace("/")
   }
 
   async function handleClaim() {
@@ -403,9 +402,9 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       return
     }
 
-    await syncPushForInviteLeague(league.id, selectedPlayerId)
-    setActiveLeagueId(league.id)
-    router.push("/")
+    activateGrantedLeague(league.id)
+    void syncPushForInviteLeague(league.id, selectedPlayerId)
+    router.replace("/")
   }
 
   return (

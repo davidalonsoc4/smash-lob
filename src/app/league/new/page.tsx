@@ -13,7 +13,7 @@ import type { LeagueLocation } from "@/lib/leagueLocations"
 export default function NewLeaguePage() {
   const { t } = useI18n()
   const router = useRouter()
-  const { setActiveLeagueId } = useActiveLeague()
+  const { activateGrantedLeague } = useActiveLeague()
   const { canCreateLeagues, createLeague } = useLeagueAccess()
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
@@ -45,8 +45,8 @@ export default function NewLeaguePage() {
       return
     }
 
-    setActiveLeagueId(league.id)
-    router.push("/admin/season")
+    activateGrantedLeague(league.id)
+    router.replace("/admin/season")
   }
 
   if (!canCreateLeagues) {
