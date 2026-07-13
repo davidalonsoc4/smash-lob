@@ -485,22 +485,22 @@ const resultConfirmationOptions: {
   description: string;
 }[] = [
   {
-    value: "required",
-    title: "Confirmación obligatoria",
-    description:
-      "El jugador que informa el resultado queda validado implícitamente. El resultado suma cuando lo confirma el resto o, si nadie lo impugna, al cumplirse 24 horas.",
-  },
-  {
-    value: "optional",
-    title: "Confirmación opcional",
-    description:
-      "Los jugadores pueden confirmar o impugnar el resultado, pero este cuenta desde que se registra.",
-  },
-  {
     value: "none",
     title: "Sin confirmaciones",
     description:
       "No se mostrará el apartado de confirmación de resultados.",
+  },
+  {
+    value: "optional",
+    title: "Confirmación adicional",
+    description:
+      "Los jugadores pueden confirmar o impugnar el resultado, pero este cuenta desde que se registra.",
+  },
+  {
+    value: "required",
+    title: "Confirmación obligatoria",
+    description:
+      "El jugador que informa el resultado queda validado implícitamente. El resultado suma cuando lo confirma el resto o, si nadie lo impugna, al cumplirse 24 horas.",
   },
 ];
 
@@ -2634,7 +2634,7 @@ function NewSeasonForm({
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
   const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
   const [resultConfirmationMode, setResultConfirmationMode] =
-    useState<ResultConfirmationMode>("optional");
+    useState<ResultConfirmationMode>("none");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
   const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
