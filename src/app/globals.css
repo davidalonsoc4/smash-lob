@@ -220,6 +220,13 @@ html.dark .bg-white { background-color: #222225 !important; }
 html.dark .bg-white\/60 { background-color: rgb(34 34 37 / 0.6) !important; }
 html.dark .bg-white\/80 { background-color: rgb(34 34 37 / 0.8) !important; }
 html.dark .bg-white\/90 { background-color: rgb(34 34 37 / 0.9) !important; }
+html.dark .bg-white\/95 { background-color: rgb(34 34 37 / 0.95) !important; }
+
+html.dark .app-bottom-nav {
+  background-color: rgb(32 32 35 / 0.96) !important;
+  border-top-color: #3a3a3f !important;
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 0.38) !important;
+}
 
 html.dark .text-neutral-950,
 html.dark .text-neutral-900,
