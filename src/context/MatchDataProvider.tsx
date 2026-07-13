@@ -110,6 +110,7 @@ type MatchDataContextValue = {
   matches: MatchData[];
   resultConfirmations: MatchResultConfirmation[];
   hydrateMatches: (matches: MatchData[]) => void;
+  replaceSeasonMatches: (seasonId: string, matches: MatchData[]) => void;
   createSeasonMatches: (settings: {
     leagueId: string;
     seasonId: string;
@@ -662,6 +663,18 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
         return persistNextMatches(nextMatches);
       });
+    },
+    [persistNextMatches],
+  );
+
+  const replaceSeasonMatches = useCallback(
+    (seasonId: string, incomingMatches: MatchData[]) => {
+      setMatches((currentMatches) =>
+        persistNextMatches([
+          ...currentMatches.filter((match) => match.seasonId !== seasonId),
+          ...incomingMatches,
+        ]),
+      );
     },
     [persistNextMatches],
   );
@@ -1690,6 +1703,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       matches,
       resultConfirmations,
       hydrateMatches,
+      replaceSeasonMatches,
       createSeasonMatches,
       updateMatchSchedule,
       postponeMatch,
@@ -1715,6 +1729,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       deleteSeasonMatches,
       finishMatch,
       hydrateMatches,
+      replaceSeasonMatches,
       updateCourtBookingTransferPaymentStatus,
       matches,
       resultConfirmations,

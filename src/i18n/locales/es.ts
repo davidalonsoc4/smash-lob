@@ -830,7 +830,7 @@ export const es = {
       "Añade una segunda vuelta remezclada, manteniendo parejas pero cambiando rivales cuando sea posible.",
     balancedCalendar: "Calendario equilibrado",
     balancedCalendarDescription:
-      "Todos los jugadores tendrán una distribución compensada de partidos. Configuraremos el detalle en el siguiente paso.",
+      "Cada jugador jugará una vez con cada compañero y dos veces contra cada rival.",
     manualCalendar: "Calendario manual",
     manualCalendarDescription:
       "Permite configurar jornadas y emparejamientos a mano antes de crear la temporada.",
@@ -843,6 +843,24 @@ export const es = {
       "Configura manualmente todas las jornadas de la temporada larga.",
     manualCalendarBlocked:
       "Completa todos los desplegables del calendario manual para continuar.",
+    calendarAuditTitle: "Equilibrio del calendario",
+    calendarAuditDescription:
+      "Comprueba que todos jueguen una vez con cada compañero y el mismo número de veces contra cada rival.",
+    calendarAuditOk: "Verificado",
+    calendarAuditNeedsRepair: "Revisar",
+    calendarAuditPartners: "Compañeros",
+    calendarAuditOpponents: "Rivales",
+    calendarAuditAllCorrect: "Todos correctos",
+    calendarAuditIncorrect: "parejas incorrectas",
+    calendarAuditRepairHelp:
+      "El calendario se creó con el generador anterior. Puedes regenerar únicamente los emparejamientos antes de comenzar la temporada. No se modificarán jugadores ni ajustes.",
+    repairCalendar: "Regenerar calendario equilibrado",
+    repairingCalendar: "Regenerando...",
+    repairCalendarConfirm:
+      "¿Regenerar los emparejamientos de esta temporada? Solo continuará si ningún partido ha sido programado o modificado.",
+    repairCalendarSuccess:
+      "Calendario regenerado y verificado correctamente.",
+    repairCalendarError: "No se ha podido regenerar el calendario.",
     startSeason: "Comenzar temporada",
     seasonFinished: "Temporada finalizada.",
     seasonStarted: "Nueva temporada creada.",

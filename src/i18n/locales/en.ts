@@ -814,7 +814,7 @@ export const en = {
       "Adds a remixed second round, keeping pairs but changing opponents when possible.",
     balancedCalendar: "Balanced calendar",
     balancedCalendarDescription:
-      "All players will have a balanced match distribution. We will configure the details in the next step.",
+      "Each player will partner every other player once and face every opponent twice.",
     manualCalendar: "Manual calendar",
     manualCalendarDescription:
       "Configure rounds and pairings manually before creating the season.",
@@ -827,6 +827,24 @@ export const en = {
       "Configure every round of the long season manually.",
     manualCalendarBlocked:
       "Complete every manual calendar dropdown to continue.",
+    calendarAuditTitle: "Calendar balance",
+    calendarAuditDescription:
+      "Checks that everyone partners each player once and faces every opponent the same number of times.",
+    calendarAuditOk: "Verified",
+    calendarAuditNeedsRepair: "Review",
+    calendarAuditPartners: "Partners",
+    calendarAuditOpponents: "Opponents",
+    calendarAuditAllCorrect: "All correct",
+    calendarAuditIncorrect: "incorrect pairs",
+    calendarAuditRepairHelp:
+      "This calendar was created with the previous generator. You can regenerate only the pairings before the season starts. Players and settings will not change.",
+    repairCalendar: "Regenerate balanced calendar",
+    repairingCalendar: "Regenerating...",
+    repairCalendarConfirm:
+      "Regenerate this season's pairings? It will only continue if no match has been scheduled or modified.",
+    repairCalendarSuccess:
+      "Calendar regenerated and verified successfully.",
+    repairCalendarError: "The calendar could not be regenerated.",
     startSeason: "Start season",
     seasonFinished: "Season finished.",
     seasonStarted: "New season created.",

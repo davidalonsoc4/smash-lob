@@ -373,6 +373,161 @@ export async function updateSupabaseSeasonRoundOrder({
   }
 }
 
+function hasArrayItems(value: unknown) {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function hasBookingReservationItems(value: unknown) {
+  if (hasArrayItems(value)) {
+    return true;
+  }
+
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const booking = value as Record<string, unknown>;
+
+  return (
+    hasArrayItems(booking.reservations) ||
+    hasArrayItems(booking.ballPurchases)
+  );
+}
+
+function isPristineUpcomingMatch(match: Record<string, unknown>) {
+  return (
+    match.status === "scheduling" &&
+    match.points_a === null &&
+    match.points_b === null &&
+    !hasArrayItems(match.sets) &&
+    match.scheduled_at === null &&
+    match.date_label === null &&
+    match.location === null &&
+    match.result_recorded_at === null &&
+    match.result_reported_by_player_id === null &&
+    !Boolean(match.result_locked) &&
+    !Boolean(match.court_reserved) &&
+    !hasBookingReservationItems(match.booking_reservations) &&
+    !hasArrayItems(match.booking_transfers) &&
+    match.booking_updated_at === null
+  );
+}
+
+/**
+ * Replaces only the pairings of a pristine upcoming single-round season.
+ * Existing match ids are retained so the operation does not break links or
+ * references. The guard intentionally refuses to touch any match that has
+ * already been scheduled, scored or given booking data.
+ */
+export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
+  leagueId,
+  seasonId,
+  playerIds,
+}: {
+  leagueId: string;
+  seasonId: string;
+  playerIds: string[];
+}): Promise<MatchData[]> {
+  const expectedRoundCount = Math.max(playerIds.length - 1, 1);
+  const generatedMatches = generateBalancedCalendar({
+    leagueId,
+    seasonId,
+    playerIds,
+    scheduleMode: "single",
+  });
+
+  const { data: season, error: seasonError } = await supabase
+    .from("seasons")
+    .select("id,league_id,status,total_rounds")
+    .eq("id", seasonId)
+    .eq("league_id", leagueId)
+    .maybeSingle();
+
+  if (seasonError) {
+    throw seasonError;
+  }
+
+  if (!season) {
+    throw new Error("No se ha encontrado la temporada que se quiere reparar.");
+  }
+
+  if (season.status !== "upcoming") {
+    throw new Error(
+      "Solo se puede regenerar el calendario antes de comenzar la temporada.",
+    );
+  }
+
+  if (Number(season.total_rounds) !== expectedRoundCount) {
+    throw new Error(
+      "La regeneración automática solo está disponible para temporadas de vuelta única.",
+    );
+  }
+
+  const { data: existingMatches, error: matchesError } = await supabase
+    .from("matches")
+    .select(matchSelect)
+    .eq("season_id", seasonId);
+
+  if (matchesError) {
+    throw matchesError;
+  }
+
+  if ((existingMatches ?? []).length !== generatedMatches.length) {
+    throw new Error(
+      "El número actual de partidos no coincide con el calendario equilibrado esperado.",
+    );
+  }
+
+  if (
+    (existingMatches ?? []).some(
+      (match) => !isPristineUpcomingMatch(match as Record<string, unknown>),
+    )
+  ) {
+    throw new Error(
+      "Hay partidos ya programados o modificados. No se ha reemplazado el calendario para evitar perder datos.",
+    );
+  }
+
+  const sortedExistingMatches = [...(existingMatches ?? [])].sort(
+    (firstMatch, secondMatch) => {
+      const roundDifference =
+        Number(firstMatch.round) - Number(secondMatch.round);
+
+      return roundDifference !== 0
+        ? roundDifference
+        : String(firstMatch.id).localeCompare(String(secondMatch.id));
+    },
+  );
+  const sortedGeneratedMatches = [...generatedMatches].sort(
+    (firstMatch, secondMatch) =>
+      firstMatch.round - secondMatch.round ||
+      firstMatch.id.localeCompare(secondMatch.id),
+  );
+
+  const payload = sortedGeneratedMatches.map((match, index) => ({
+    id: sortedExistingMatches[index].id,
+    league_id: leagueId,
+    season_id: seasonId,
+    round: match.round,
+    team_a: match.teamA,
+    team_b: match.teamB,
+    status: "scheduling",
+  }));
+
+  const { data: updatedMatches, error: updateError } = await supabase
+    .from("matches")
+    .upsert(payload, { onConflict: "id" })
+    .select(matchSelect);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  return (updatedMatches ?? []).map((match) =>
+    mapSupabaseMatch(match as Record<string, unknown>),
+  );
+}
+
 export async function startSupabaseSeason({
   leagueId,
   activeSeasonId,

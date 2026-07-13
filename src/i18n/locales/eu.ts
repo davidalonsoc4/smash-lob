@@ -823,7 +823,7 @@ export const eu = {
       "Bigarren itzuli nahasiagoa gehitzen du, bikoteak mantenduta baina aurkariak ahal denean aldatuta.",
     balancedCalendar: "Egutegi orekatua",
     balancedCalendarDescription:
-      "Jokalari guztiek partida banaketa orekatua izango dute. Xehetasuna hurrengo urratsean konfiguratuko dugu.",
+      "Jokalari bakoitza beste guztiekin behin arituko da bikotekide gisa eta aurkari bakoitzaren aurka bitan.",
     manualCalendar: "Eskuzko egutegia",
     manualCalendarDescription:
       "Denboraldia sortu aurretik jardunaldiak eta bikoteak eskuz konfiguratzeko aukera ematen du.",
@@ -836,6 +836,24 @@ export const eu = {
       "Konfiguratu eskuz denboraldi luzeko jardunaldi guztiak.",
     manualCalendarBlocked:
       "Bete eskuzko egutegiko zabalgarri guztiak jarraitzeko.",
+    calendarAuditTitle: "Egutegiaren oreka",
+    calendarAuditDescription:
+      "Egiaztatu denek jokalari bakoitzarekin behin jokatzen dutela bikotekide gisa eta aurkari bakoitzaren aurka aldi kopuru bera.",
+    calendarAuditOk: "Egiaztatuta",
+    calendarAuditNeedsRepair: "Berrikusi",
+    calendarAuditPartners: "Bikotekideak",
+    calendarAuditOpponents: "Aurkariak",
+    calendarAuditAllCorrect: "Guztiak zuzen",
+    calendarAuditIncorrect: "bikote oker",
+    calendarAuditRepairHelp:
+      "Egutegi hau aurreko sortzailearekin sortu zen. Denboraldia hasi aurretik parekatzeak bakarrik birsortu ditzakezu. Jokalariak eta ezarpenak ez dira aldatuko.",
+    repairCalendar: "Egutegi orekatua birsortu",
+    repairingCalendar: "Birsortzen...",
+    repairCalendarConfirm:
+      "Denboraldi honetako parekatzeak birsortu? Partidarik programatu edo aldatu ez bada bakarrik jarraituko du.",
+    repairCalendarSuccess:
+      "Egutegia behar bezala birsortu eta egiaztatu da.",
+    repairCalendarError: "Ezin izan da egutegia birsortu.",
     startSeason: "Denboraldia hasi",
     seasonFinished: "Denboraldia amaituta.",
     seasonStarted: "Denboraldi berria sortuta.",

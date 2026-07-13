@@ -21,10 +21,12 @@ import {
   finishSupabaseActiveSeason,
   startSupabaseExistingSeason,
   startSupabaseSeason,
+  replaceSupabaseUpcomingSeasonBalancedCalendar,
   updateSupabaseSeasonRoundOrder,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
 import {
+  auditBalancedCalendar,
   generateBalancedCalendar,
   generateManualCalendar,
   getSeasonScheduleRoundCount,
@@ -984,6 +986,176 @@ function RegistrationFeeSettingsPanel({
       ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
+function BalancedCalendarAuditPanel({
+  activeLeagueId,
+  activeSeason,
+  playerIds,
+  matches,
+}: {
+  activeLeagueId: string;
+  activeSeason: {
+    id: string;
+    totalRounds: number;
+    status?: "upcoming" | "active" | "finished";
+  };
+  playerIds: string[];
+  matches: ReturnType<typeof useCurrentLeagueData>["matches"];
+}) {
+  const { t } = useI18n();
+  const { replaceSeasonMatches } = useMatchData();
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const seasonMatches = useMemo(
+    () => matches.filter((match) => match.seasonId === activeSeason.id),
+    [activeSeason.id, matches],
+  );
+  const isSingleRoundSeason =
+    activeSeason.totalRounds === Math.max(playerIds.length - 1, 1);
+  const audit = useMemo(
+    () =>
+      isSingleRoundSeason
+        ? auditBalancedCalendar({
+            matches: seasonMatches,
+            playerIds,
+          })
+        : null,
+    [isSingleRoundSeason, playerIds, seasonMatches],
+  );
+  const canAudit =
+    activeSeason.status === "upcoming" &&
+    isSingleRoundSeason &&
+    [8, 12, 16].includes(playerIds.length);
+
+  if (!canAudit || !audit) {
+    return null;
+  }
+
+  const calendarAudit = audit;
+
+  async function repairCalendar() {
+    if (isSaving || calendarAudit.isPerfectlyBalanced) {
+      return;
+    }
+
+    const confirmed = window.confirm(t.adminSeason.repairCalendarConfirm);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    try {
+      const repairedMatches = isSupabaseBackedId(activeSeason.id)
+        ? await replaceSupabaseUpcomingSeasonBalancedCalendar({
+            leagueId: activeLeagueId,
+            seasonId: activeSeason.id,
+            playerIds,
+          })
+        : generateBalancedCalendar({
+            leagueId: activeLeagueId,
+            seasonId: activeSeason.id,
+            playerIds,
+            scheduleMode: "single",
+          }).map((match) => ({
+            ...match,
+            courtBooking: getEmptyCourtBooking(),
+          }));
+
+      replaceSeasonMatches(activeSeason.id, repairedMatches);
+      setFeedback(t.adminSeason.repairCalendarSuccess);
+    } catch (repairError) {
+      recordSupabaseError("repair-balanced-calendar", repairError);
+      setError(
+        repairError instanceof Error
+          ? repairError.message
+          : t.adminSeason.repairCalendarError,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <AppCard>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold">{t.adminSeason.calendarAuditTitle}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            {t.adminSeason.calendarAuditDescription}
+          </p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
+            calendarAudit.isPerfectlyBalanced
+              ? "bg-emerald-100 text-emerald-800"
+              : "bg-amber-100 text-amber-800"
+          }`}
+        >
+          {calendarAudit.isPerfectlyBalanced
+            ? t.adminSeason.calendarAuditOk
+            : t.adminSeason.calendarAuditNeedsRepair}
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+        <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+            {t.adminSeason.calendarAuditPartners}
+          </p>
+          <p className="mt-1 text-sm font-black text-neutral-950">
+            {calendarAudit.invalidTeammatePairCount === 0
+              ? t.adminSeason.calendarAuditAllCorrect
+              : `${calendarAudit.invalidTeammatePairCount} ${t.adminSeason.calendarAuditIncorrect}`}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+            {t.adminSeason.calendarAuditOpponents}
+          </p>
+          <p className="mt-1 text-sm font-black text-neutral-950">
+            {calendarAudit.invalidOpponentPairCount === 0
+              ? t.adminSeason.calendarAuditAllCorrect
+              : `${calendarAudit.invalidOpponentPairCount} ${t.adminSeason.calendarAuditIncorrect}`}
+          </p>
+        </div>
+      </div>
+
+      {!calendarAudit.isPerfectlyBalanced ? (
+        <>
+          <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-xs font-semibold leading-5 text-amber-900">
+            {t.adminSeason.calendarAuditRepairHelp}
+          </p>
+          <button
+            type="button"
+            onClick={repairCalendar}
+            disabled={isSaving}
+            className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+          >
+            {isSaving
+              ? t.adminSeason.repairingCalendar
+              : t.adminSeason.repairCalendar}
+          </button>
+        </>
+      ) : null}
+
+      {feedback ? (
+        <p className="mt-3 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-3 text-center text-xs font-semibold text-red-600">
           {error}
         </p>
       ) : null}
@@ -3202,6 +3374,10 @@ export default function AdminSeasonPage() {
       ? [registrationRecipientPlayerId]
       : [],
   });
+  const canAuditUpcomingCalendar =
+    isUpcomingSeason &&
+    activeSeason.totalRounds === Math.max(players.length - 1, 1) &&
+    [8, 12, 16].includes(players.length);
 
   return (
     <div className="compact-page space-y-3">
@@ -3269,6 +3445,11 @@ export default function AdminSeasonPage() {
               <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Comenzar
               </a>
+              {canAuditUpcomingCalendar ? (
+                <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                  Calendario
+                </a>
+              ) : null}
               <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jornadas
               </a>
@@ -3387,6 +3568,17 @@ export default function AdminSeasonPage() {
               canStartBecauseRegistrationSettled={isRegistrationSettled}
             />
           </div>
+
+          {canAuditUpcomingCalendar ? (
+            <div id="equilibrio-calendario">
+              <BalancedCalendarAuditPanel
+                activeLeagueId={activeLeague.id}
+                activeSeason={activeSeason}
+                playerIds={players.map((player) => player.id)}
+                matches={matches}
+              />
+            </div>
+          ) : null}
 
           <div id="jornadas">
             <RoundManagementPanel

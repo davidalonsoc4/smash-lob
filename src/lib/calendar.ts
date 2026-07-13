@@ -27,12 +27,234 @@ export type SeasonScheduleMode = "single" | "double" | "extended"
 
 const newPlayerTokenPrefix = "__new_player__"
 
-function rotatePlayers(players: string[]) {
-  return [
-    players[0],
-    players[players.length - 1],
-    ...players.slice(1, players.length - 1),
-  ]
+type CyclicWhistPlayer = number | "fixed"
+
+type CyclicWhistGame = {
+  teamA: [CyclicWhistPlayer, CyclicWhistPlayer]
+  teamB: [CyclicWhistPlayer, CyclicWhistPlayer]
+}
+
+/**
+ * Starter rounds for resolvable Whist tournaments.
+ *
+ * Translating every numeric position modulo playerCount - 1 produces a full
+ * calendar where every pair of players are teammates exactly once and rivals
+ * exactly twice. The fixed position is not translated.
+ *
+ * The app currently supports 8, 12 and 16-player seasons, so keeping the
+ * verified starters explicit makes generation deterministic and instant in
+ * the browser.
+ */
+const cyclicWhistStarters: Record<number, CyclicWhistGame[]> = {
+  8: [
+    { teamA: ["fixed", 0], teamB: [1, 3] },
+    { teamA: [2, 6], teamB: [4, 5] },
+  ],
+  12: [
+    { teamA: ["fixed", 0], teamB: [7, 10] },
+    { teamA: [1, 2], teamB: [4, 6] },
+    { teamA: [3, 8], teamB: [5, 9] },
+  ],
+  16: [
+    { teamA: ["fixed", 0], teamB: [1, 2] },
+    { teamA: [3, 6], teamB: [9, 11] },
+    { teamA: [4, 13], teamB: [8, 12] },
+    { teamA: [5, 10], teamB: [7, 14] },
+  ],
+}
+
+function getPairKey(firstPlayerId: string, secondPlayerId: string) {
+  return [firstPlayerId, secondPlayerId].sort().join("|")
+}
+
+function translateWhistPlayer({
+  player,
+  roundIndex,
+  playerIds,
+}: {
+  player: CyclicWhistPlayer
+  roundIndex: number
+  playerIds: string[]
+}) {
+  if (player === "fixed") {
+    return playerIds[playerIds.length - 1]
+  }
+
+  const rotatingPlayerCount = playerIds.length - 1
+  return playerIds[(player + roundIndex) % rotatingPlayerCount]
+}
+
+function generateCyclicWhistCalendar({
+  leagueId,
+  seasonId,
+  playerIds,
+}: {
+  leagueId: string
+  seasonId: string
+  playerIds: string[]
+}) {
+  const starter = cyclicWhistStarters[playerIds.length]
+
+  if (!starter) {
+    return []
+  }
+
+  const baseRoundCount = playerIds.length - 1
+  const matches: GeneratedMatch[] = []
+
+  for (let roundIndex = 0; roundIndex < baseRoundCount; roundIndex += 1) {
+    starter.forEach((game, matchIndex) => {
+      const resolvePlayer = (player: CyclicWhistPlayer) =>
+        translateWhistPlayer({ player, roundIndex, playerIds })
+
+      matches.push(
+        buildEmptyMatch({
+          id: `${seasonId}-round-${roundIndex + 1}-match-${matchIndex + 1}`,
+          leagueId,
+          seasonId,
+          round: roundIndex + 1,
+          teamA: game.teamA.map(resolvePlayer),
+          teamB: game.teamB.map(resolvePlayer),
+        })
+      )
+    })
+  }
+
+  return matches
+}
+
+export type CalendarBalanceAudit = {
+  playerCount: number
+  roundCount: number
+  matchCount: number
+  expectedRoundCount: number
+  expectedMatchCount: number
+  invalidMatchCount: number
+  invalidRoundAppearanceCount: number
+  teammatePairCounts: Record<string, number>
+  opponentPairCounts: Record<string, number>
+  invalidTeammatePairCount: number
+  invalidOpponentPairCount: number
+  isPerfectlyBalanced: boolean
+}
+
+export function auditBalancedCalendar({
+  matches,
+  playerIds,
+}: {
+  matches: Pick<GeneratedMatch, "round" | "teamA" | "teamB">[]
+  playerIds: string[]
+}): CalendarBalanceAudit {
+  const expectedRoundCount = Math.max(playerIds.length - 1, 0)
+  const expectedMatchCount =
+    playerIds.length > 0
+      ? (playerIds.length * expectedRoundCount) / 4
+      : 0
+  const teammateCounts = new Map<string, number>()
+  const opponentCounts = new Map<string, number>()
+  const appearancesByRoundPlayer = new Map<string, number>()
+  let invalidMatchCount = 0
+
+  matches.forEach((match) => {
+    const participants = [...match.teamA, ...match.teamB]
+
+    if (
+      match.teamA.length !== 2 ||
+      match.teamB.length !== 2 ||
+      new Set(participants).size !== 4 ||
+      participants.some((playerId) => !playerIds.includes(playerId))
+    ) {
+      invalidMatchCount += 1
+    }
+
+    participants.forEach((playerId) => {
+      const appearanceKey = `${match.round}|${playerId}`
+      appearancesByRoundPlayer.set(
+        appearanceKey,
+        (appearancesByRoundPlayer.get(appearanceKey) ?? 0) + 1
+      )
+    })
+
+    ;[match.teamA, match.teamB].forEach((team) => {
+      if (team.length !== 2) {
+        return
+      }
+
+      const pairKey = getPairKey(team[0], team[1])
+      teammateCounts.set(pairKey, (teammateCounts.get(pairKey) ?? 0) + 1)
+    })
+
+    match.teamA.forEach((teamAPlayerId) => {
+      match.teamB.forEach((teamBPlayerId) => {
+        const pairKey = getPairKey(teamAPlayerId, teamBPlayerId)
+        opponentCounts.set(pairKey, (opponentCounts.get(pairKey) ?? 0) + 1)
+      })
+    })
+  })
+
+  const teammatePairCounts: Record<string, number> = {}
+  const opponentPairCounts: Record<string, number> = {}
+  let invalidTeammatePairCount = 0
+  let invalidOpponentPairCount = 0
+
+  for (let firstIndex = 0; firstIndex < playerIds.length; firstIndex += 1) {
+    for (
+      let secondIndex = firstIndex + 1;
+      secondIndex < playerIds.length;
+      secondIndex += 1
+    ) {
+      const pairKey = getPairKey(
+        playerIds[firstIndex],
+        playerIds[secondIndex]
+      )
+      const teammateCount = teammateCounts.get(pairKey) ?? 0
+      const opponentCount = opponentCounts.get(pairKey) ?? 0
+
+      teammatePairCounts[pairKey] = teammateCount
+      opponentPairCounts[pairKey] = opponentCount
+
+      if (teammateCount !== 1) {
+        invalidTeammatePairCount += 1
+      }
+
+      if (opponentCount !== 2) {
+        invalidOpponentPairCount += 1
+      }
+    }
+  }
+
+  let invalidRoundAppearanceCount = 0
+
+  for (let round = 1; round <= expectedRoundCount; round += 1) {
+    playerIds.forEach((playerId) => {
+      if ((appearancesByRoundPlayer.get(`${round}|${playerId}`) ?? 0) !== 1) {
+        invalidRoundAppearanceCount += 1
+      }
+    })
+  }
+
+  const roundCount = new Set(matches.map((match) => match.round)).size
+
+  return {
+    playerCount: playerIds.length,
+    roundCount,
+    matchCount: matches.length,
+    expectedRoundCount,
+    expectedMatchCount,
+    invalidMatchCount,
+    invalidRoundAppearanceCount,
+    teammatePairCounts,
+    opponentPairCounts,
+    invalidTeammatePairCount,
+    invalidOpponentPairCount,
+    isPerfectlyBalanced:
+      roundCount === expectedRoundCount &&
+      matches.length === expectedMatchCount &&
+      invalidMatchCount === 0 &&
+      invalidRoundAppearanceCount === 0 &&
+      invalidTeammatePairCount === 0 &&
+      invalidOpponentPairCount === 0,
+  }
 }
 
 function buildEmptyMatch({
@@ -270,36 +492,28 @@ export function generateBalancedCalendar({
     return []
   }
 
-  const matches: GeneratedMatch[] = []
-  let rotatedPlayers = [...playerIds]
+  const baseMatches = generateCyclicWhistCalendar({
+    leagueId,
+    seasonId,
+    playerIds,
+  })
 
-  for (let roundIndex = 0; roundIndex < playerIds.length - 1; roundIndex += 1) {
-    const round = roundIndex + 1
-    const teams = Array.from(
-      { length: rotatedPlayers.length / 2 },
-      (_, index) => [
-        rotatedPlayers[index],
-        rotatedPlayers[rotatedPlayers.length - 1 - index],
-      ]
-    )
-
-    for (let matchIndex = 0; matchIndex < teams.length / 2; matchIndex += 1) {
-      matches.push(
-        buildEmptyMatch({
-          id: `${seasonId}-round-${round}-match-${matchIndex + 1}`,
-          leagueId,
-          seasonId,
-          round,
-          teamA: teams[matchIndex],
-          teamB: teams[teams.length - 1 - matchIndex],
-        })
-      )
-    }
-
-    rotatedPlayers = rotatePlayers(rotatedPlayers)
+  if (baseMatches.length === 0) {
+    return []
   }
 
-  return extendCalendarMatches({ baseMatches: matches, mode: scheduleMode })
+  const audit = auditBalancedCalendar({
+    matches: baseMatches,
+    playerIds,
+  })
+
+  if (!audit.isPerfectlyBalanced) {
+    throw new Error(
+      `No se ha podido generar un calendario equilibrado para ${playerIds.length} jugadores.`
+    )
+  }
+
+  return extendCalendarMatches({ baseMatches, mode: scheduleMode })
 }
 
 export function generateManualCalendar({
