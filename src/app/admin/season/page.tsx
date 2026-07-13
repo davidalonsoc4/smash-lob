@@ -695,6 +695,199 @@ function FinishedSeasonConfigurationSummary({
   );
 }
 
+function RoundWindowSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { t } = useI18n();
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [selectedMode, setSelectedMode] = useState<RoundWindowMode>(
+    roundSettings.roundWindowMode,
+  );
+  const [seasonStartsAt, setSeasonStartsAt] = useState(
+    roundSettings.seasonStartsAt ?? "",
+  );
+  const [roundWindowDays, setRoundWindowDays] = useState(
+    roundSettings.roundWindowDays
+      ? String(roundSettings.roundWindowDays)
+      : "15",
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const parsedRoundWindowDays = Number(roundWindowDays);
+  const isFixedDaysMode = selectedMode === "fixed-days";
+  const normalizedDays =
+    Number.isInteger(parsedRoundWindowDays) && parsedRoundWindowDays >= 1
+      ? parsedRoundWindowDays
+      : null;
+  const isValid =
+    selectedMode === "none" ||
+    (seasonStartsAt.length > 0 && normalizedDays !== null);
+  const hasChanges =
+    selectedMode !== roundSettings.roundWindowMode ||
+    (selectedMode === "fixed-days" &&
+      (seasonStartsAt !== (roundSettings.seasonStartsAt ?? "") ||
+        normalizedDays !== roundSettings.roundWindowDays)) ||
+    (selectedMode === "none" &&
+      (roundSettings.seasonStartsAt !== null ||
+        roundSettings.roundWindowDays !== null));
+
+  async function save() {
+    if (isSaving || !isValid || !hasChanges) {
+      return;
+    }
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      roundWindowMode: selectedMode,
+      seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
+      roundWindowDays: isFixedDaysMode ? normalizedDays : null,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError("update-season-round-window", supabaseError);
+        setError(t.adminSeason.roundWindowSaveError);
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+    setFeedback(t.adminSeason.roundWindowSaved);
+    setIsSaving(false);
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">{t.adminSeason.roundWindowTitle}</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        {t.adminSeason.roundWindowEditDescription}
+      </p>
+
+      <div className="mt-3 space-y-2">
+        {(["none", "fixed-days"] as RoundWindowMode[]).map((mode) => (
+          <label
+            key={mode}
+            className={`flex items-start gap-3 rounded-2xl border p-3 transition ${
+              selectedMode === mode
+                ? "border-neutral-950 bg-neutral-100"
+                : "border-neutral-200 bg-white"
+            }`}
+          >
+            <input
+              type="radio"
+              name="seasonRoundWindowMode"
+              value={mode}
+              checked={selectedMode === mode}
+              onChange={() => {
+                setSelectedMode(mode);
+                setFeedback(null);
+                setError(null);
+              }}
+              className="mt-1"
+            />
+
+            <span className="min-w-0">
+              <span className="block text-sm font-black text-neutral-950">
+                {mode === "none"
+                  ? t.adminSeason.noWindowTitle
+                  : t.adminSeason.fixedDaysTitle}
+              </span>
+              <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                {mode === "none"
+                  ? t.adminSeason.noWindowDescription
+                  : t.adminSeason.fixedDaysDescription}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+
+      {isFixedDaysMode ? (
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+              {t.adminSeason.seasonStartDate}
+            </span>
+            <input
+              type="date"
+              value={seasonStartsAt}
+              onChange={(event) => {
+                setSeasonStartsAt(event.target.value);
+                setFeedback(null);
+                setError(null);
+              }}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+              {t.adminSeason.daysPerRound}
+            </span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={roundWindowDays}
+              onChange={(event) => {
+                setRoundWindowDays(event.target.value);
+                setFeedback(null);
+                setError(null);
+              }}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+            />
+          </label>
+        </div>
+      ) : null}
+
+      <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
+        {t.adminSeason.roundWindowRecalculationNotice}
+      </p>
+
+      {!isValid ? (
+        <p className="mt-2 text-xs font-semibold text-red-600">
+          {t.adminSeason.roundWindowInvalid}
+        </p>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={isSaving || !isValid || !hasChanges}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving
+          ? t.adminSeason.roundWindowSaving
+          : t.adminSeason.roundWindowSave}
+      </button>
+
+      {feedback ? (
+        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
 function ResultConfirmationSettingsPanel({
   activeLeagueId,
   roundSettings,
@@ -3571,6 +3764,9 @@ export default function AdminSeasonPage() {
               <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jornadas
               </a>
+              <a href="#margen-jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Margen
+              </a>
               {canAuditCalendar ? (
                 <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                   Calendario
@@ -3609,6 +3805,9 @@ export default function AdminSeasonPage() {
               ) : null}
               <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Jornadas
+              </a>
+              <a href="#margen-jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Margen
               </a>
               <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 MVP
@@ -3664,6 +3863,14 @@ export default function AdminSeasonPage() {
               activeSeason={activeSeason}
               roundSettings={roundSettings}
               matches={matches}
+            />
+          </div>
+
+          <div id="margen-jornadas">
+            <RoundWindowSettingsPanel
+              key={activeSeason.id}
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
             />
           </div>
 
@@ -3753,6 +3960,14 @@ export default function AdminSeasonPage() {
               activeSeason={activeSeason}
               roundSettings={roundSettings}
               matches={matches}
+            />
+          </div>
+
+          <div id="margen-jornadas">
+            <RoundWindowSettingsPanel
+              key={activeSeason.id}
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
             />
           </div>
 

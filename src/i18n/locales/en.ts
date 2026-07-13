@@ -754,6 +754,17 @@ export const en = {
       "Define whether each round has an official play window.",
     newRoundWindowDescription:
       "This setting can be changed during the season if needed.",
+    roundWindowEditDescription:
+      "Change the window before or during the season. All round windows will be recalculated when saved.",
+    roundWindowRecalculationNotice:
+      "Matches, results and bookings are not modified. Manual round management will keep priority until automatic mode is restored.",
+    roundWindowSave: "Save window",
+    roundWindowSaving: "Saving...",
+    roundWindowSaved: "Round window updated.",
+    roundWindowSaveError:
+      "The round window could not be saved in Supabase.",
+    roundWindowInvalid:
+      "Enter the start date and a whole number of days equal to or greater than 1.",
     noWindowTitle: "No specific window",
     noWindowDescription:
       "Rounds will not have an automatically calculated deadline.",

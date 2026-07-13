@@ -769,6 +769,17 @@ export const es = {
       "Define si cada jornada tiene una ventana oficial para jugarse.",
     newRoundWindowDescription:
       "Este ajuste podrá modificarse durante la temporada si hace falta.",
+    roundWindowEditDescription:
+      "Cambia el margen antes o durante la temporada. Las ventanas de todas las jornadas se recalcularán al guardar.",
+    roundWindowRecalculationNotice:
+      "No se modifican partidos, resultados ni reservas. La gestión manual de jornadas seguirá teniendo prioridad hasta volver al modo automático.",
+    roundWindowSave: "Guardar margen",
+    roundWindowSaving: "Guardando...",
+    roundWindowSaved: "Margen de jornadas actualizado.",
+    roundWindowSaveError:
+      "No se ha podido guardar el margen de jornadas en Supabase.",
+    roundWindowInvalid:
+      "Indica la fecha de inicio y un número entero de días igual o superior a 1.",
     noWindowTitle: "Sin margen específico",
     noWindowDescription:
       "Las jornadas no tendrán una fecha límite calculada automáticamente.",

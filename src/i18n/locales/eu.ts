@@ -762,6 +762,17 @@ export const eu = {
       "Definitu jardunaldi bakoitzak jokatzeko leiho ofiziala duen ala ez.",
     newRoundWindowDescription:
       "Ezarpen hau denboraldian zehar aldatu ahal izango da behar bada.",
+    roundWindowEditDescription:
+      "Aldatu margena denboraldia hasi aurretik edo denboraldian zehar. Jardunaldi guztien leihoak berriro kalkulatuko dira gordetzean.",
+    roundWindowRecalculationNotice:
+      "Ez dira partidak, emaitzak edo erreserbak aldatzen. Jardunaldien eskuzko kudeaketak lehentasuna izaten jarraituko du modu automatikora itzuli arte.",
+    roundWindowSave: "Margena gorde",
+    roundWindowSaving: "Gordetzen...",
+    roundWindowSaved: "Jardunaldien margena eguneratu da.",
+    roundWindowSaveError:
+      "Ezin izan da jardunaldien margena Supabasen gorde.",
+    roundWindowInvalid:
+      "Adierazi hasiera-data eta 1 edo gehiagoko egun kopuru osoa.",
     noWindowTitle: "Marge zehatzik gabe",
     noWindowDescription:
       "Jardunaldiek ez dute automatikoki kalkulatutako epemugarik izango.",
