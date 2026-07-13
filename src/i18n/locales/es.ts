@@ -664,6 +664,11 @@ export const es = {
     futureTitle: "Próximas herramientas",
     futureDescription:
       "Aquí se agruparán jugadores, invitaciones, reglas, generación de jornadas, notificaciones y auditoría.",
+    rankingAvatarsTitle: "Fotos en la clasificación",
+    rankingAvatarsDescription:
+      "Muestra las imágenes de perfil en Ranking y en el resumen de clasificación de Home. Desactívalo para usar solo posición y nombre.",
+    rankingAvatarsSaveError:
+      "No se ha podido guardar la visibilidad de las fotos. Revisa Supabase o inténtalo de nuevo.",
     qaTitle: "Herramientas de prueba",
     qaDescription:
       "Simula jugadores, resultados, confirmaciones y votaciones MVP sin crear más cuentas.",

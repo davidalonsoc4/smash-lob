@@ -18,6 +18,7 @@ type RankingPlayer = {
 
 type RankingTableProps = {
   players: RankingPlayer[]
+  showAvatars?: boolean
 }
 
 function formatSigned(value: number) {
@@ -28,7 +29,7 @@ function getPositionLabel(index: number) {
   return `${index + 1}º`
 }
 
-export function RankingTable({ players }: RankingTableProps) {
+export function RankingTable({ players, showAvatars = true }: RankingTableProps) {
   const { t } = useI18n()
 
   const sortedPlayers = [...players].sort((a, b) => {
@@ -62,7 +63,7 @@ export function RankingTable({ players }: RankingTableProps) {
                 {index + 1}
               </div>
 
-              <PlayerAvatar player={player} size="sm" />
+              {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}
 
               <p className="min-w-0 text-[13px] font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
                 {player.displayName}

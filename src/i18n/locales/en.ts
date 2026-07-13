@@ -649,6 +649,11 @@ export const en = {
     futureTitle: "Upcoming tools",
     futureDescription:
       "Players, invitations, rules, round generation, notifications and audit will be grouped here.",
+    rankingAvatarsTitle: "Photos in standings",
+    rankingAvatarsDescription:
+      "Show profile images in Ranking and the Home standings preview. Disable it to display only position and name.",
+    rankingAvatarsSaveError:
+      "The photo visibility setting could not be saved. Check Supabase or try again.",
     qaTitle: "Testing tools",
     qaDescription:
       "Simulate players, results, confirmations and MVP voting without creating more accounts.",

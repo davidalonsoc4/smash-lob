@@ -19,6 +19,7 @@ import {
   updateSupabaseLeagueDetails,
   updateSupabaseLeagueLocations,
   updateSupabaseLeagueLogo,
+  updateSupabaseLeagueShowRankingAvatars,
   updateSupabaseLeagueStatusColorsEnabled,
 } from "@/lib/supabaseAdminLeagues";
 import {
@@ -92,6 +93,10 @@ type LeagueAccessContextValue = {
     locations: LeagueLocation[],
   ) => Promise<boolean>;
   updateLeagueStatusColorsEnabled: (
+    leagueId: string,
+    enabled: boolean,
+  ) => Promise<boolean>;
+  updateLeagueShowRankingAvatars: (
     leagueId: string,
     enabled: boolean,
   ) => Promise<boolean>;
@@ -279,6 +284,7 @@ function normalizeStoredLeague(league: unknown): League | null {
     locations: normalizeLeagueLocations(item.locations),
     logoUrl: typeof item.logoUrl === "string" ? item.logoUrl : null,
     statusColorsEnabled: item.statusColorsEnabled !== false,
+    showRankingAvatars: item.showRankingAvatars !== false,
     createdByUserId:
       typeof item.createdByUserId === "string" ? item.createdByUserId : null,
   };
@@ -1076,6 +1082,58 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [],
   );
 
+
+  const updateLeagueShowRankingAvatars = useCallback(
+    async (leagueId: string, enabled: boolean) => {
+      if (isSupabaseBackedId(leagueId)) {
+        try {
+          const result = await updateSupabaseLeagueShowRankingAvatars({
+            leagueId,
+            enabled,
+          });
+
+          setLeagues((currentLeagues) => {
+            const nextLeagues = currentLeagues.map((league) =>
+              league.id === result.leagueId
+                ? {
+                    ...league,
+                    showRankingAvatars: result.showRankingAvatars,
+                  }
+                : league,
+            );
+
+            persistLeagues(nextLeagues);
+
+            return nextLeagues;
+          });
+
+          return true;
+        } catch (error) {
+          recordSupabaseError("update-league-ranking-avatars", error);
+          return false;
+        }
+      }
+
+      setLeagues((currentLeagues) => {
+        const nextLeagues = currentLeagues.map((league) =>
+          league.id === leagueId
+            ? {
+                ...league,
+                showRankingAvatars: enabled,
+              }
+            : league,
+        );
+
+        persistLeagues(nextLeagues);
+
+        return nextLeagues;
+      });
+
+      return true;
+    },
+    [],
+  );
+
   const deleteLeague = useCallback(
     async (leagueId: string) => {
       if (!userId) {
@@ -1535,6 +1593,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueLogo,
       updateLeagueLocations,
       updateLeagueStatusColorsEnabled,
+      updateLeagueShowRankingAvatars,
       deleteLeague,
       fetchLeagueUsers,
       updateLeagueUserRole,
@@ -1575,6 +1634,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueLogo,
       updateLeagueLocations,
       updateLeagueStatusColorsEnabled,
+      updateLeagueShowRankingAvatars,
       resolveLeagueInvite,
       isLeagueAdmin,
       isLeagueSpectator,

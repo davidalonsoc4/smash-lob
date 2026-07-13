@@ -154,12 +154,19 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 
 export default function AdminPage() {
   const { t } = useI18n()
-  const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } = useLeagueAccess()
+  const {
+    hasLeagueAdminRole,
+    updateLeagueShowRankingAvatars,
+    updateLeagueStatusColorsEnabled,
+  } = useLeagueAccess()
   const { activeLeague } = useCurrentLeagueData()
   const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
+  const [isUpdatingRankingAvatars, setIsUpdatingRankingAvatars] = useState(false)
+  const [rankingAvatarsError, setRankingAvatarsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const statusColorsEnabled = activeLeague.statusColorsEnabled !== false
+  const showRankingAvatars = activeLeague.showRankingAvatars !== false
 
   if (!canAccessAdmin) {
     return (
@@ -201,6 +208,27 @@ export default function AdminPage() {
       setStatusColorsError(
         "No se ha podido guardar el ajuste. Revisa Supabase o inténtalo de nuevo.",
       )
+    }
+  }
+
+
+  async function handleRankingAvatarsToggle() {
+    if (isUpdatingRankingAvatars) {
+      return
+    }
+
+    setIsUpdatingRankingAvatars(true)
+    setRankingAvatarsError(null)
+
+    const ok = await updateLeagueShowRankingAvatars(
+      activeLeague.id,
+      !showRankingAvatars,
+    )
+
+    setIsUpdatingRankingAvatars(false)
+
+    if (!ok) {
+      setRankingAvatarsError(t.adminPanel.rankingAvatarsSaveError)
     }
   }
 
@@ -362,6 +390,42 @@ export default function AdminPage() {
         {statusColorsError ? (
           <p className="mt-3 text-xs font-semibold text-red-600">
             {statusColorsError}
+          </p>
+        ) : null}
+      </AppCard>
+
+
+      <AppCard>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-bold">{t.adminPanel.rankingAvatarsTitle}</p>
+            <p className="mt-1 text-xs font-semibold text-neutral-500">
+              {t.adminPanel.rankingAvatarsDescription}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={showRankingAvatars}
+            aria-label={t.adminPanel.rankingAvatarsTitle}
+            onClick={handleRankingAvatarsToggle}
+            disabled={isUpdatingRankingAvatars}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
+              showRankingAvatars ? "bg-neutral-950" : "bg-neutral-300"
+            }`}
+          >
+            <span
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                showRankingAvatars ? "left-6" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
+
+        {rankingAvatarsError ? (
+          <p className="mt-3 text-xs font-semibold text-red-600">
+            {rankingAvatarsError}
           </p>
         ) : null}
       </AppCard>

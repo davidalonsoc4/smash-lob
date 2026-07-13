@@ -25,6 +25,7 @@ type SupabaseLeagueRow = {
   locations: unknown
   logo_url?: string | null
   status_colors_enabled?: boolean | null
+  show_ranking_avatars?: boolean | null
   created_by_user_id?: string | null
 }
 
@@ -47,7 +48,7 @@ type SerializedError = {
 }
 
 const leagueInviteSelect =
-  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,created_by_user_id"
+  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,created_by_user_id"
 const seasonSettingsSelect =
   "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds"
 
@@ -77,6 +78,7 @@ function mapLeague(league: SupabaseLeagueRow): League {
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
     statusColorsEnabled: league.status_colors_enabled !== false,
+    showRankingAvatars: league.show_ranking_avatars !== false,
     createdByUserId:
       typeof league.created_by_user_id === "string"
         ? league.created_by_user_id

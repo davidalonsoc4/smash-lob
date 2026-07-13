@@ -1086,7 +1086,9 @@ export default function Home() {
                       {rankingPreviewStart + index + 1}
                     </div>
 
-                    <PlayerAvatar player={player} size="sm" />
+                    {activeLeague.showRankingAvatars !== false ? (
+                      <PlayerAvatar player={player} size="sm" />
+                    ) : null}
 
                     <Link
                       href={`/player/${player.slug ?? player.id}`}

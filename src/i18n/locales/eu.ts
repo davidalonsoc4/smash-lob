@@ -657,6 +657,11 @@ export const eu = {
     futureTitle: "Hurrengo tresnak",
     futureDescription:
       "Hemen jokalariak, gonbidapenak, arauak, jardunaldien sorrera, jakinarazpenak eta auditoria bilduko dira.",
+    rankingAvatarsTitle: "Argazkiak sailkapenean",
+    rankingAvatarsDescription:
+      "Erakutsi profileko irudiak Rankingean eta Homeko sailkapen laburpenean. Desaktibatu posizioa eta izena bakarrik erakusteko.",
+    rankingAvatarsSaveError:
+      "Ezin izan da argazkien ikusgarritasuna gorde. Begiratu Supabase edo saiatu berriro.",
     qaTitle: "Proba tresnak",
     qaDescription:
       "Simulatu jokalariak, emaitzak, baieztapenak eta MVP botoak kontu gehiago sortu gabe.",

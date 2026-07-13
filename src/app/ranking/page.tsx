@@ -28,7 +28,10 @@ export default function RankingPage() {
       </header>
 
 
-      <RankingTable players={players} />
+      <RankingTable
+        players={players}
+        showAvatars={activeLeague.showRankingAvatars !== false}
+      />
     </div>
   )
 }

@@ -115,6 +115,31 @@ export async function updateSupabaseLeagueStatusColorsEnabled({
   }
 }
 
+
+export async function updateSupabaseLeagueShowRankingAvatars({
+  leagueId,
+  enabled,
+}: {
+  leagueId: string
+  enabled: boolean
+}) {
+  const { data, error } = await supabase
+    .from("leagues")
+    .update({ show_ranking_avatars: enabled })
+    .eq("id", leagueId)
+    .select("id,show_ranking_avatars")
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return {
+    leagueId: data.id,
+    showRankingAvatars: data.show_ranking_avatars !== false,
+  }
+}
+
 export async function regenerateSupabaseLeagueInviteCode({
   leagueId,
   code,

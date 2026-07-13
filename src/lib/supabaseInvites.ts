@@ -33,6 +33,7 @@ type SupabaseLeagueRow = {
   locations: unknown
   logo_url?: string | null
   status_colors_enabled?: boolean | null
+  show_ranking_avatars?: boolean | null
   created_by_user_id?: string | null
 }
 
@@ -41,7 +42,7 @@ type SupabaseInviteRow = {
 }
 
 const leagueInviteSelect =
-  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,created_by_user_id"
+  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,created_by_user_id"
 
 type ClaimPlayerResult =
   | { ok: true; membership: UserLeagueMembership }
@@ -80,6 +81,7 @@ function mapLeague(league: SupabaseLeagueRow): League {
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
     statusColorsEnabled: league.status_colors_enabled !== false,
+    showRankingAvatars: league.show_ranking_avatars !== false,
     createdByUserId:
       typeof league.created_by_user_id === "string"
         ? league.created_by_user_id
