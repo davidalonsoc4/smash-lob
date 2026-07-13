@@ -609,6 +609,11 @@ export const es = {
     languageTitle: "Idioma",
     language: "Idioma",
     languageDescription: "Cambia el idioma de la aplicación.",
+    appearanceTitle: "Apariencia",
+    appearanceDescription: "Elige el tema de la aplicación en este dispositivo.",
+    appearanceLight: "Claro",
+    appearanceDark: "Oscuro",
+    appearanceSystem: "Sistema",
     accountTitle: "Cuenta e invitaciones",
     accountDescription:
       "Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.",

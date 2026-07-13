@@ -9,6 +9,7 @@ import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
+import { useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -35,6 +36,44 @@ function isCustomUploadedAvatar(value: string | null | undefined) {
   return normalizeAvatarUrl(value)?.startsWith("data:image/") ?? false
 }
 
+
+
+function AppearanceSettings() {
+  const { t } = useI18n()
+  const { preference, setPreference } = useTheme()
+  const options = [
+    { value: "light" as const, label: t.settings.appearanceLight },
+    { value: "dark" as const, label: t.settings.appearanceDark },
+    { value: "system" as const, label: t.settings.appearanceSystem },
+  ]
+
+  return (
+    <AppCard>
+      <div>
+        <p className="font-bold">{t.settings.appearanceTitle}</p>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
+          {t.settings.appearanceDescription}
+        </p>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-1 rounded-2xl bg-neutral-100 p-1">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setPreference(option.value)}
+            className={`rounded-xl px-2 py-2 text-xs font-black transition ${
+              preference === option.value
+                ? "bg-white text-neutral-950 shadow-sm"
+                : "text-neutral-500"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </AppCard>
+  )
+}
 
 function AccountAvatarSettings() {
   const { t } = useI18n()
@@ -253,6 +292,8 @@ function SpectatorSettingsPage({
         </div>
       </AppCard>
 
+      <AppearanceSettings />
+
       <Link href="/help" className="block">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
@@ -411,6 +452,8 @@ function PlayerSettingsPage() {
           <LanguageSwitcher />
         </div>
       </AppCard>
+
+      <AppearanceSettings />
 
       <Link href="/settings/notifications" className="block">
         <AppCard className="transition active:scale-[0.99]">

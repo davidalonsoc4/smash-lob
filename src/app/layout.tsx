@@ -11,6 +11,7 @@ import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
 import { AppShell } from "@/components/layout/AppShell"
 import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistration"
 import { I18nProvider } from "@/i18n/I18nProvider"
+import { ThemeProvider } from "@/context/ThemeProvider"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -48,8 +49,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>
+        <ThemeProvider>
         <I18nProvider>
           <AuthSessionProvider>
             <AuthGate>
@@ -72,6 +81,7 @@ export default function RootLayout({
             </AuthGate>
           </AuthSessionProvider>
         </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

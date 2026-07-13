@@ -201,3 +201,74 @@ textarea {
   + * {
   max-width: calc(100% - var(--app-floating-top-reserved-width, 0px));
 }
+
+/* Dark appearance -------------------------------------------------------- */
+html.dark {
+  --background: #111113;
+  --foreground: #f5f5f5;
+}
+
+html.dark body,
+html.dark .bg-stone-50 { background-color: #171719 !important; }
+html.dark .bg-stone-100 { background-color: #202023 !important; }
+html.dark .bg-stone-200 { background-color: #0f0f10 !important; }
+html.dark .bg-neutral-50 { background-color: #202023 !important; }
+html.dark .bg-neutral-100 { background-color: #29292d !important; }
+html.dark .bg-neutral-200 { background-color: #35353a !important; }
+html.dark .bg-neutral-300 { background-color: #4a4a50 !important; }
+html.dark .bg-white { background-color: #222225 !important; }
+html.dark .bg-white\/60 { background-color: rgb(34 34 37 / 0.6) !important; }
+html.dark .bg-white\/80 { background-color: rgb(34 34 37 / 0.8) !important; }
+html.dark .bg-white\/90 { background-color: rgb(34 34 37 / 0.9) !important; }
+
+html.dark .text-neutral-950,
+html.dark .text-neutral-900,
+html.dark .text-neutral-800 { color: #f5f5f5 !important; }
+html.dark .text-neutral-700 { color: #dedee2 !important; }
+html.dark .text-neutral-600 { color: #c3c3c9 !important; }
+html.dark .text-neutral-500 { color: #a5a5ad !important; }
+html.dark .text-neutral-400 { color: #85858e !important; }
+html.dark .text-neutral-300 { color: #6f6f78 !important; }
+html.dark .text-stone-950,
+html.dark .text-stone-900,
+html.dark .text-stone-800 { color: #f5f5f5 !important; }
+html.dark .text-stone-700,
+html.dark .text-stone-600 { color: #c8c8ce !important; }
+html.dark .text-stone-500 { color: #a5a5ad !important; }
+
+html.dark .border-neutral-100 { border-color: #303034 !important; }
+html.dark .border-neutral-200 { border-color: #3a3a3f !important; }
+html.dark .border-neutral-300 { border-color: #4b4b51 !important; }
+html.dark .border-stone-100,
+html.dark .border-stone-200 { border-color: #3a3a3f !important; }
+html.dark .ring-neutral-100 { --tw-ring-color: #303034 !important; }
+html.dark .ring-neutral-200 { --tw-ring-color: #3a3a3f !important; }
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #222225;
+  border-color: #44444a;
+  color: #f5f5f5;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #777780; }
+html.dark option { background-color: #222225; color: #f5f5f5; }
+
+html.dark .shadow-sm,
+html.dark [class*="shadow-["] { --tw-shadow-color: rgb(0 0 0 / 0.4); }
+
+html.dark .status-colors-disabled :where(
+  .status-tone-neutral,
+  .status-tone-dark,
+  .status-tone-blue,
+  .status-tone-green,
+  .status-tone-amber,
+  .status-tone-orange,
+  .status-tone-red,
+  .status-tone-gold
+) {
+  background-color: #29292d !important;
+  color: #dedee2 !important;
+  --tw-ring-color: #4a4a50 !important;
+}
