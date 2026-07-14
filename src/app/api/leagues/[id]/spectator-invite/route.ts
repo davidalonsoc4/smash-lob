@@ -21,7 +21,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: leagueId } = await params
-  const access = await getServerLeagueActor(leagueId, { requireMember: true })
+  const access = await getServerLeagueActor(leagueId, { requireAdmin: true })
 
   if (!access.ok) {
     return NextResponse.json(
