@@ -16,6 +16,11 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+import {
+  isSafeDataImageUrl,
+  isSafeImageUrl,
+  normalizeImageUrl,
+} from "@/lib/imageUrl"
 import { recordActivityEvent } from "@/lib/activity"
 import { formatMoney } from "@/lib/courtBooking"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
@@ -31,13 +36,13 @@ function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
 }
 
 function normalizeAvatarUrl(value: string | null | undefined) {
-  const cleanValue = value?.trim()
+  const cleanValue = normalizeImageUrl(value)
 
-  return cleanValue ? cleanValue : null
+  return cleanValue && isSafeImageUrl(cleanValue) ? cleanValue : null
 }
 
 function isCustomUploadedAvatar(value: string | null | undefined) {
-  return normalizeAvatarUrl(value)?.startsWith("data:image/") ?? false
+  return isSafeDataImageUrl(value)
 }
 
 

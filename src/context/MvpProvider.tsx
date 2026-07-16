@@ -12,10 +12,8 @@ import {
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
-import { recordActivityEvent } from "@/lib/activity";
 import {
   getMatchMvpSelection,
-  getRoundMvpSelection,
   type MvpManualSelection,
   type MvpScope,
   type MvpVote,
@@ -23,8 +21,6 @@ import {
 import {
   deleteSupabaseMvpVotesForMatch,
   fetchSupabaseMvpData,
-  hasSupabaseVotingMatchMvpEvent,
-  hasSupabaseVotingRoundMvpEvent,
   saveSupabaseMvpManualSelection,
   upsertSupabaseMvpVote,
 } from "@/lib/supabaseMvp";
@@ -164,7 +160,7 @@ function mergeManualSelections(
 export function MvpProvider({ children }: MvpProviderProps) {
   const { userLeagues } = useLeagueAccess();
   const { matches } = useMatchData();
-  const { getSeasonRoundSettings, playerProfiles } = useSeasonSettings();
+  const { getSeasonRoundSettings } = useSeasonSettings();
   const [votes, setVotes] = useState<MvpVote[]>([]);
   const [manualSelections, setManualSelections] = useState<
     MvpManualSelection[]
@@ -265,18 +261,6 @@ export function MvpProvider({ children }: MvpProviderProps) {
         ...input,
         createdAt: new Date().toISOString(),
       };
-      const previousMatchMvp = getMatchMvpSelection({
-        votes,
-        match: targetMatch,
-      });
-      const previousRoundMvp = getRoundMvpSelection({
-        votes,
-        leagueId: input.leagueId,
-        seasonId: input.seasonId,
-        round: input.round,
-        matches,
-        mvpSystem: "voting",
-      });
       let nextVotes = [
         ...votes.filter((vote) => !isSameVote(vote, input)),
         nextVote,
@@ -284,9 +268,15 @@ export function MvpProvider({ children }: MvpProviderProps) {
 
       if (isSupabaseBackedId(input.leagueId)) {
         try {
-          await upsertSupabaseMvpVote(nextVote);
+          await upsertSupabaseMvpVote({
+            matchId: input.matchId,
+            selectedPlayerId: input.selectedPlayerId,
+          });
           const remoteData = await fetchSupabaseMvpData([input.leagueId]);
-          nextVotes = mergeVotes(nextVotes, remoteData.votes);
+          nextVotes = [
+            ...votes.filter((vote) => vote.leagueId !== input.leagueId),
+            ...remoteData.votes,
+          ];
         } catch (error) {
           recordSupabaseError("upsert-match-mvp-vote", error);
           return false;
@@ -295,137 +285,12 @@ export function MvpProvider({ children }: MvpProviderProps) {
 
       setVotes(() => persistVotes(nextVotes));
 
-      const nextMatchMvp = getMatchMvpSelection({
-        votes: nextVotes,
-        match: targetMatch,
-      });
-      const nextRoundMvp = getRoundMvpSelection({
-        votes: nextVotes,
-        leagueId: input.leagueId,
-        seasonId: input.seasonId,
-        round: input.round,
-        matches,
-        mvpSystem: "voting",
-      });
-
-      let shouldRecordMatchMvp = !previousMatchMvp && Boolean(nextMatchMvp);
-
-      if (nextMatchMvp && isSupabaseBackedId(input.leagueId)) {
-        try {
-          shouldRecordMatchMvp = !(await hasSupabaseVotingMatchMvpEvent({
-            leagueId: input.leagueId,
-            seasonId: input.seasonId,
-            matchId: input.matchId,
-          }));
-        } catch (error) {
-          recordSupabaseError("check-match-mvp-awarded", error);
-        }
-      }
-
-      if (shouldRecordMatchMvp && nextMatchMvp) {
-        const winnerNames = nextMatchMvp.playerIds.map(
-          (playerId) =>
-            playerProfiles.find((player) => player.id === playerId)
-              ?.displayName ?? "Jugador",
-        );
-        const winnerText = winnerNames.join(" / ");
-        const participantIds = Array.from(
-          new Set([...targetMatch.teamA, ...targetMatch.teamB]),
-        );
-
-        try {
-          await recordActivityEvent({
-            leagueId: input.leagueId,
-            seasonId: input.seasonId,
-            matchId: input.matchId,
-            actorEmail: "system@smash-lob.local",
-            actorDisplayName: "Smash & Lob",
-            type: "match_mvp_awarded",
-            title: "MVP del partido decidido",
-            description: `${winnerText} ${winnerNames.length > 1 ? "son" : "es"} el MVP del partido de la Jornada ${input.round}.`,
-            metadata: {
-              round: input.round,
-              playerIds: nextMatchMvp.playerIds,
-              playerNames: winnerNames,
-              participantIds,
-              targetPlayerIds: participantIds,
-              votes: nextMatchMvp.votes,
-              tied: nextMatchMvp.tied ?? false,
-              resolvedWithThreeVotes: nextMatchMvp.votes >= 3,
-              system: "voting",
-            },
-          });
-        } catch (error) {
-          recordSupabaseError("record-match-mvp-awarded", error);
-        }
-      }
-
-      let shouldRecordRoundMvp = !previousRoundMvp && Boolean(nextRoundMvp);
-
-      if (nextRoundMvp && isSupabaseBackedId(input.leagueId)) {
-        try {
-          shouldRecordRoundMvp = !(await hasSupabaseVotingRoundMvpEvent({
-            leagueId: input.leagueId,
-            seasonId: input.seasonId,
-            round: input.round,
-          }));
-        } catch (error) {
-          recordSupabaseError("check-round-mvp-awarded", error);
-        }
-      }
-
-      if (shouldRecordRoundMvp && nextRoundMvp) {
-        const winnerNames = nextRoundMvp.playerIds.map(
-          (playerId) =>
-            playerProfiles.find((player) => player.id === playerId)
-              ?.displayName ?? "Jugador",
-        );
-        const winnerText = winnerNames.join(" / ");
-        const targetPlayerIds = Array.from(
-          new Set(
-            matches
-              .filter(
-                (match) =>
-                  match.leagueId === input.leagueId &&
-                  match.seasonId === input.seasonId &&
-                  match.round === input.round,
-              )
-              .flatMap((match) => [...match.teamA, ...match.teamB]),
-          ),
-        );
-
-        try {
-          await recordActivityEvent({
-            leagueId: input.leagueId,
-            seasonId: input.seasonId,
-            matchId: nextRoundMvp.matchId ?? input.matchId,
-            actorEmail: "system@smash-lob.local",
-            actorDisplayName: "Smash & Lob",
-            type: "round_mvp_awarded",
-            title: `MVP de Jornada ${input.round} decidido`,
-            description: `${winnerText} ${winnerNames.length > 1 ? "son" : "es"} el MVP de la Jornada ${input.round}.`,
-            metadata: {
-              round: input.round,
-              playerIds: nextRoundMvp.playerIds,
-              playerNames: winnerNames,
-              targetPlayerIds,
-              votes: nextRoundMvp.votes,
-              tied: nextRoundMvp.tied ?? false,
-              system: "voting",
-            },
-          });
-        } catch (error) {
-          recordSupabaseError("record-round-mvp-awarded", error);
-        }
-      }
-
       return true;
     },
     [
       getSeasonRoundSettings,
       matches,
       persistVotes,
-      playerProfiles,
       votes,
     ],
   );

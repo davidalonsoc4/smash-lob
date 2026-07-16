@@ -1,3 +1,5 @@
+import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
+
 export type AvatarSourceUser = {
   id: string
   email?: string | null
@@ -20,7 +22,7 @@ export function normalizeAvatarDisplayName(value: string | null | undefined) {
 }
 
 function hasAvatarUrl(user: AvatarSourceUser) {
-  return typeof user.avatarUrl === "string" && user.avatarUrl.trim().length > 0
+  return isSafeImageUrl(user.avatarUrl)
 }
 
 export function buildUserAvatarLookup(users: AvatarSourceUser[]): UserAvatarLookup {
@@ -58,16 +60,20 @@ export function resolvePlayerAvatarUrl({
   const linkedUser = linkedUserId ? users.byId.get(linkedUserId) : null
 
   if (linkedUser?.avatarUrl) {
-    return linkedUser.avatarUrl
+    return normalizeImageUrl(linkedUser.avatarUrl)
   }
 
   if (playerAvatarUrl) {
-    return playerAvatarUrl
+    return hasAvatarUrl({ id: "__player__", avatarUrl: playerAvatarUrl })
+      ? normalizeImageUrl(playerAvatarUrl)
+      : null
   }
 
   const displayNameUser = users.byDisplayName.get(
     normalizeAvatarDisplayName(playerDisplayName)
   )
 
-  return displayNameUser?.avatarUrl ?? null
+  return hasAvatarUrl(displayNameUser ?? { id: "__display-name__" })
+    ? normalizeImageUrl(displayNameUser?.avatarUrl)
+    : null
 }

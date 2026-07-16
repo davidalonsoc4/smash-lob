@@ -6,7 +6,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
-import type { QaAction } from "@/lib/serverQa";
+import type { QaAction } from "@/lib/qaTypes";
 
 type QaSeason = {
   id: string;

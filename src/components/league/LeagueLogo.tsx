@@ -1,4 +1,5 @@
 import type { League } from "@/data/fakeData"
+import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 
 type LeagueLogoProps = {
   league?: Pick<League, "name" | "logoUrl"> | null
@@ -30,7 +31,7 @@ export function LeagueLogo({
   size = "md",
   className = "",
 }: LeagueLogoProps) {
-  if (league?.logoUrl) {
+  if (isSafeImageUrl(league?.logoUrl)) {
     return (
       <div
         className={`${sizeClasses[size]} flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent ${className}`}
@@ -38,7 +39,7 @@ export function LeagueLogo({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={league.logoUrl}
+          src={normalizeImageUrl(league?.logoUrl) ?? ""}
           alt=""
           className="h-full w-full object-contain drop-shadow-sm"
         />

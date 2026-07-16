@@ -1,4 +1,5 @@
 import type { PlayerProfile } from "@/data/fakeData"
+import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 
 type PlayerAvatarProps = {
   player?: Pick<PlayerProfile, "displayName" | "avatarUrl"> & {
@@ -21,7 +22,7 @@ const iconSizeClasses = {
 }
 
 function hasImage(player?: PlayerAvatarProps["player"]) {
-  return typeof player?.avatarUrl === "string" && player.avatarUrl.trim().length > 0
+  return isSafeImageUrl(player?.avatarUrl)
 }
 
 function GenericUserIcon({ size }: { size: NonNullable<PlayerAvatarProps["size"]> }) {
@@ -57,7 +58,7 @@ export function PlayerAvatar({
       {hasImage(player) ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={player?.avatarUrl ?? ""}
+          src={normalizeImageUrl(player?.avatarUrl) ?? ""}
           alt=""
           className="h-full w-full object-cover"
         />

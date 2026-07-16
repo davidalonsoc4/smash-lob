@@ -1,48 +1,14 @@
-import { supabase } from "@/lib/supabase";
-import type { MvpManualSelection, MvpVote } from "@/lib/mvp";
+import type { MvpManualSelection, MvpVote } from "@/lib/mvp"
 
-type SupabaseMvpVoteRow = {
-  league_id: string;
-  season_id: string;
-  match_id: string | null;
-  round: number;
-  voter_player_id: string;
-  selected_player_id: string;
-  created_at: string;
-};
-
-type SupabaseMvpManualSelectionRow = {
-  league_id: string;
-  season_id: string;
-  scope: "round" | "season";
-  round: number | null;
-  selected_player_id: string;
-  updated_at: string;
-};
-
-function mapVote(row: SupabaseMvpVoteRow): MvpVote {
-  return {
-    leagueId: row.league_id,
-    seasonId: row.season_id,
-    matchId: row.match_id,
-    round: row.round,
-    voterPlayerId: row.voter_player_id,
-    selectedPlayerId: row.selected_player_id,
-    createdAt: row.created_at,
-  };
+type MvpDataPayload = {
+  votes?: MvpVote[]
+  manualSelections?: MvpManualSelection[]
 }
 
-function mapManualSelection(
-  row: SupabaseMvpManualSelectionRow,
-): MvpManualSelection {
-  return {
-    leagueId: row.league_id,
-    seasonId: row.season_id,
-    scope: row.scope,
-    round: row.round,
-    selectedPlayerId: row.selected_player_id,
-    updatedAt: row.updated_at,
-  };
+type MatchMvpVotePayload = {
+  vote?: MvpVote
+  existingMatchAwardEvent?: boolean
+  existingRoundAwardEvent?: boolean
 }
 
 export async function fetchSupabaseMvpData(leagueIds: string[]) {
@@ -50,109 +16,70 @@ export async function fetchSupabaseMvpData(leagueIds: string[]) {
     return {
       votes: [],
       manualSelections: [],
-    };
+    }
   }
 
-  const [votesResult, manualSelectionsResult] = await Promise.all([
-    supabase
-      .from("mvp_votes")
-      .select(
-        "league_id, season_id, match_id, round, voter_player_id, selected_player_id, created_at",
-      )
-      .in("league_id", leagueIds),
-    supabase
-      .from("mvp_manual_selections")
-      .select(
-        "league_id, season_id, scope, round, selected_player_id, updated_at",
-      )
-      .in("league_id", leagueIds),
-  ]);
+  const response = await fetch("/api/mvp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ leagueIds }),
+    cache: "no-store",
+  })
 
-  if (votesResult.error) {
-    throw votesResult.error;
+  if (!response.ok) {
+    throw new Error(`mvp-data-api-${response.status}`)
   }
 
-  if (manualSelectionsResult.error) {
-    throw manualSelectionsResult.error;
+  const payload = (await response.json()) as MvpDataPayload
+
+  return {
+    votes: payload.votes ?? [],
+    manualSelections: payload.manualSelections ?? [],
+  }
+}
+
+export async function upsertSupabaseMvpVote(input: {
+  matchId: string
+  selectedPlayerId: string
+}) {
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(input.matchId)}/mvp-vote`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selectedPlayerId: input.selectedPlayerId }),
+      cache: "no-store",
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(`match-mvp-vote-api-${response.status}`)
+  }
+
+  const payload = (await response.json()) as MatchMvpVotePayload
+
+  if (!payload.vote) {
+    throw new Error("match-mvp-vote-api-empty")
   }
 
   return {
-    votes: (votesResult.data ?? []).map((row) =>
-      mapVote(row as SupabaseMvpVoteRow),
-    ),
-    manualSelections: (manualSelectionsResult.data ?? []).map((row) =>
-      mapManualSelection(row as SupabaseMvpManualSelectionRow),
-    ),
-  };
-}
-
-export async function upsertSupabaseMvpVote(vote: MvpVote) {
-  if (!vote.matchId) {
-    const { error } = await supabase.from("mvp_votes").upsert(
-      {
-        league_id: vote.leagueId,
-        season_id: vote.seasonId,
-        match_id: null,
-        round: vote.round,
-        voter_player_id: vote.voterPlayerId,
-        selected_player_id: vote.selectedPlayerId,
-        created_at: vote.createdAt,
-      },
-      {
-        onConflict: "league_id,season_id,round,voter_player_id",
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    return;
-  }
-
-  const payload = {
-    league_id: vote.leagueId,
-    season_id: vote.seasonId,
-    match_id: vote.matchId,
-    round: vote.round,
-    voter_player_id: vote.voterPlayerId,
-    selected_player_id: vote.selectedPlayerId,
-    created_at: vote.createdAt,
-  };
-  const { data: updatedRows, error: updateError } = await supabase
-    .from("mvp_votes")
-    .update(payload)
-    .eq("league_id", vote.leagueId)
-    .eq("season_id", vote.seasonId)
-    .eq("match_id", vote.matchId)
-    .eq("voter_player_id", vote.voterPlayerId)
-    .select("match_id");
-
-  if (updateError) {
-    throw updateError;
-  }
-
-  if ((updatedRows ?? []).length > 0) {
-    return;
-  }
-
-  const { error: insertError } = await supabase
-    .from("mvp_votes")
-    .insert(payload);
-
-  if (insertError) {
-    throw insertError;
+    vote: payload.vote,
+    existingMatchAwardEvent: Boolean(payload.existingMatchAwardEvent),
+    existingRoundAwardEvent: Boolean(payload.existingRoundAwardEvent),
   }
 }
 
 export async function deleteSupabaseMvpVotesForMatch(matchId: string) {
-  const { error } = await supabase
-    .from("mvp_votes")
-    .delete()
-    .eq("match_id", matchId);
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/mvp-votes`,
+    {
+      method: "DELETE",
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error;
+  if (!response.ok) {
+    throw new Error(`match-mvp-vote-delete-api-${response.status}`)
   }
 }
 
@@ -163,97 +90,27 @@ export async function saveSupabaseMvpManualSelection({
   round,
   selectedPlayerId,
 }: {
-  leagueId: string;
-  seasonId: string;
-  scope: "round" | "season";
-  round: number | null;
-  selectedPlayerId: string | null;
+  leagueId: string
+  seasonId: string
+  scope: "round" | "season"
+  round: number | null
+  selectedPlayerId: string | null
 }) {
-  if (!selectedPlayerId) {
-    let query = supabase
-      .from("mvp_manual_selections")
-      .delete()
-      .eq("league_id", leagueId)
-      .eq("season_id", seasonId)
-      .eq("scope", scope);
-
-    query = round === null ? query.is("round", null) : query.eq("round", round);
-
-    const { error } = await query;
-
-    if (error) {
-      throw error;
+  const response = await fetch(
+    `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/mvp-selection`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scope,
+        round,
+        selectedPlayerId,
+      }),
+      cache: "no-store",
     }
+  )
 
-    return;
+  if (!response.ok) {
+    throw new Error(`mvp-manual-selection-api-${response.status}`)
   }
-
-  const { error } = await supabase.from("mvp_manual_selections").upsert(
-    {
-      league_id: leagueId,
-      season_id: seasonId,
-      scope,
-      round,
-      selected_player_id: selectedPlayerId,
-      updated_at: new Date().toISOString(),
-    },
-    {
-      onConflict: "league_id,season_id,scope,round_key",
-    },
-  );
-
-  if (error) {
-    throw error;
-  }
-}
-
-export async function hasSupabaseVotingMatchMvpEvent({
-  leagueId,
-  seasonId,
-  matchId,
-}: {
-  leagueId: string;
-  seasonId: string;
-  matchId: string;
-}) {
-  const { data, error } = await supabase
-    .from("activity_events")
-    .select("id")
-    .eq("league_id", leagueId)
-    .eq("season_id", seasonId)
-    .eq("match_id", matchId)
-    .eq("type", "match_mvp_awarded")
-    .contains("metadata", { system: "voting" })
-    .limit(1);
-
-  if (error) {
-    throw error;
-  }
-
-  return Boolean(data && data.length > 0);
-}
-
-export async function hasSupabaseVotingRoundMvpEvent({
-  leagueId,
-  seasonId,
-  round,
-}: {
-  leagueId: string;
-  seasonId: string;
-  round: number;
-}) {
-  const { data, error } = await supabase
-    .from("activity_events")
-    .select("id")
-    .eq("league_id", leagueId)
-    .eq("season_id", seasonId)
-    .eq("type", "round_mvp_awarded")
-    .contains("metadata", { round, system: "voting" })
-    .limit(1);
-
-  if (error) {
-    throw error;
-  }
-
-  return Boolean(data && data.length > 0);
 }
