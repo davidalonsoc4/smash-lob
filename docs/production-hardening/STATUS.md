@@ -1,31 +1,25 @@
 ﻿# Production Hardening Status
 
-Last updated: 2026-07-16 15:42:07 +02:00
-Current branch: `release/production-hardening`
-Current HEAD: `07168b539b926bd7e8fc249a4d3c45d4da0e2e13`
-Last confirmed remote commit: `07168b539b926bd7e8fc249a4d3c45d4da0e2e13`
+Last updated: 2026-07-16 23:20:03 +02:00
+Current branch: `main`
+Current HEAD: `2407b4f8464969ea18376c1d8de025f479b93d2c`
+Last confirmed remote commit: `2407b4f8464969ea18376c1d8de025f479b93d2c`
 
 Active milestone: `H20 - Integrate with production branch`
 
 Last completed action:
-- Closed H19 on the linked Supabase project; remote migration parity, linked lint, current-object SQL audits, and public-table ownership verification all passed, leaving only the documented `supabase_admin` default ACL residual.
-- Confirmed the real production branch is `main` from both Git and Vercel:
-  - Git: `origin/HEAD -> origin/main` and `git symbolic-ref refs/remotes/origin/HEAD` both resolve to `refs/remotes/origin/main`.
-  - Vercel project API: `link.productionBranch` is `main`.
-  - Current Production deployment is `dpl_CPxBspxp7wNw19R3vv527aaA57s9`, `Ready`, built from commit `d4209a65300d6c5357cf7afa9adbf9876f38882a` on branch `main`.
-- `git fetch --all --prune` completed, and `git rev-list --left-right --count origin/main...HEAD` returned `0 11`, so `release/production-hardening` already contains the current tip of `origin/main` and sits 11 commits ahead with no incoming main-only commits.
+- Contrasted this file against the real repo/remotes: it was stale. `main`, `origin/main`, `release/production-hardening`, and `origin/release/production-hardening` are all already aligned at `2407b4f8464969ea18376c1d8de025f479b93d2c`, not `07168b5`.
+- Reconfirmed `git fetch --all --prune` on 2026-07-16 and verified both remote branches still point to `2407b4f8464969ea18376c1d8de025f479b93d2c`.
+- The previous Production verification for SHA `2407b4f8464969ea18376c1d8de025f479b93d2c` remains valid as historical evidence only; it is no longer sufficient for release sign-off because a new UI-only change is now pending locally in `src/app/settings/page.tsx`.
+- Added the requested non-intrusive settings-only label so the rendered footer now reads `Beta cerrada · v0.9.68` for both player and spectator settings views, without touching `package.json`, `package-lock.json`, or `src/lib/appVersion.ts`.
 
 Next exact action:
-- Create a clean checkpoint commit for the updated hardening docs on `release/production-hardening`, then integrate `release/production-hardening` into `main` using the standard non-destructive flow.
-- Rerun the required validations on the resulting pre-production SHA before allowing the Production deployment step to proceed.
+- Run `git diff --check`, `npm run lint`, and `npm run build` on the current worktree.
+- If validations pass, update the hardening docs with the new SHA flow, commit the UI/docs delta, push `release/production-hardening` and `main`, then verify the exact Vercel Preview/Production deployments and rerun the production smoke suite on the final SHA.
 
 Modified files without commit:
-- `docs/production-hardening/DECISIONS.md`
-- `docs/production-hardening/PLAN.md`
 - `docs/production-hardening/STATUS.md`
-- `docs/production-hardening/VALIDATION.md`
-- `docs/production-hardening/ROLLBACK.md`
-- `docs/production-hardening/TIMELOG.md`
+- `src/app/settings/page.tsx`
 
 Commands executed and results:
 - `npx vercel list --environment=preview --meta "githubCommitSha=07168b539b926bd7e8fc249a4d3c45d4da0e2e13"` -> PASS (`Ready` Preview deployment `https://smash-7vgg9yyao-davidalonsoc4-8740s-projects.vercel.app`)
@@ -88,7 +82,8 @@ Known deployments:
 - Preview URL: `https://smash-7vgg9yyao-davidalonsoc4-8740s-projects.vercel.app`
 - Preview stable alias: `https://smash-lob-git-release-produ-7ebc68-davidalonsoc4-8740s-projects.vercel.app`
 - Production URL: `https://smash-lob.vercel.app`
-- Production deployment id / SHA: not verified in this session yet
+- Production deployment id: `dpl_EiMC9dX7XnVRpCW8jqDAbZuSMQCo`
+- Production deployment SHA: `2407b4f8464969ea18376c1d8de025f479b93d2c`
 
 Validations passed:
 - H15 local validation suite (`npm ci`, `npm audit`, `npx tsc --noEmit`, `npm run lint`, `npm run build`, local Supabase reset/lint/audits)
@@ -96,24 +91,25 @@ Validations passed:
 - H17 release commits, push, and explicit remote SHA verification
 - H18 Preview deployment readiness, authenticated smoke tests, stable-alias OAuth provider host check, and clean post-smoke log scan
 - H19 linked remote migration parity, linked remote lint, current-object SQL audits, and remote public-table ownership verification
+- Historical final-sha verification for `2407b4f8464969ea18376c1d8de025f479b93d2c`: Preview `Ready`, Production `Ready`, production env-name presence confirmed, production smoke tests passed, and post-smoke production log scan found no repeated `500`/`error` keywords
 
 Validations pending:
-- Determine and verify the real production branch
-- Merge/integrate the latest production branch state into `release/production-hardening`
-- Rerun the required validation suite on the final pre-production SHA after integration
-- Anon direct-access verification with the public anon key path (without printing secrets)
-- Production deployment verification
-- Production smoke tests
-- Final interactive Google OAuth end-to-end verification if no safe automated browser session becomes available
+- `git diff --check` on the new `Beta cerrada` change
+- `npm run lint` on the new `Beta cerrada` change
+- `npm run build` on the new `Beta cerrada` change
+- Commit/push of the new final SHA
+- Exact Preview/Production deployment verification for the new final SHA
+- Production smoke-test rerun for the new final SHA
+- Final interactive Google OAuth two-account verification (manual-only)
 
 Blockers:
-- No current local blocker; H20 production-branch detection and integration is the next active milestone
+- No current local blocker; the repo is waiting on validation and redeploy verification for the new settings-label SHA
 
 Risks detected:
 - Supabase platform defaults for `supabase_admin` in schema `public` remain open in `pg_default_acl`; this is currently documented as an environment-level residual because all current public business tables are owned by `postgres`
 - Supabase security advisors still emit `RLS Enabled No Policy` infos for intentionally grants-closed/server-only tables; current-object grant/function audits are clean
 - The repo still has no automated test suite, so runtime coverage depends on static audit plus Preview/Production smoke testing
-- Interactive Google OAuth has not been executed end to end in this session; provider metadata and callback hosts are correct, but the real login round-trip remains a later manual verification item if no safe authenticated browser session is available
+- Interactive Google OAuth has not been executed end to end in this session; provider metadata and callback hosts were correct on the prior final SHA, but the real login round-trip remains a manual verification item for the new final SHA
 
 Secrets or interactions needed later (do not print values):
 - GitHub auth if PR-based production integration is used

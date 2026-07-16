@@ -27,6 +27,7 @@ import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 
 
 const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
+const settingsVersionLabel = `Beta cerrada · ${APP_VERSION_LABEL}`
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   return {
@@ -336,7 +337,7 @@ function SpectatorSettingsPage({
       </button>
 
       <p className="pb-2 pt-3 text-center text-xs font-semibold text-neutral-400">
-        {APP_VERSION_LABEL}
+        {settingsVersionLabel}
       </p>
     </div>
   )
@@ -709,7 +710,7 @@ function PlayerSettingsPage() {
       </button>
 
       <p className="pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300">
-        {APP_VERSION_LABEL}
+        {settingsVersionLabel}
       </p>
     </div>
   )
