@@ -1,6 +1,32 @@
-import { supabase } from "@/lib/supabase"
-import { upsertAppUser } from "@/lib/supabaseUsers"
 import { normalizeLeagueLocations, type LeagueLocation } from "@/lib/leagueLocations"
+
+type LeagueAdminUpdateResult = {
+  leagueId: string
+  name: string
+  description: string
+  logoUrl: string | null
+  locations: LeagueLocation[]
+  statusColorsEnabled: boolean
+  showRankingAvatars: boolean
+}
+
+async function patchLeague(
+  leagueId: string,
+  payload: Record<string, unknown>
+): Promise<LeagueAdminUpdateResult> {
+  const response = await fetch(`/api/leagues/${encodeURIComponent(leagueId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error(`update-league-api-${response.status}`)
+  }
+
+  return (await response.json()) as LeagueAdminUpdateResult
+}
 
 export async function updateSupabaseLeagueDetails({
   leagueId,
@@ -15,28 +41,19 @@ export async function updateSupabaseLeagueDetails({
   const cleanDescription = description.trim()
 
   if (!cleanName) {
-    throw new Error("El nombre de la liga no puede estar vacío")
+    throw new Error("El nombre de la liga no puede estar vacio")
   }
 
-  const { data, error } = await supabase
-    .from("leagues")
-    .update({
-      name: cleanName,
-      description: cleanDescription,
-    })
-    .eq("id", leagueId)
-    .select("id,name,description,logo_url")
-    .single()
-
-  if (error) {
-    throw error
-  }
+  const data = await patchLeague(leagueId, {
+    name: cleanName,
+    description: cleanDescription,
+  })
 
   return {
-    leagueId: data.id,
+    leagueId: data.leagueId,
     name: data.name,
-    description: data.description ?? "",
-    logoUrl: typeof data.logo_url === "string" ? data.logo_url : null,
+    description: data.description,
+    logoUrl: data.logoUrl,
   }
 }
 
@@ -47,20 +64,11 @@ export async function updateSupabaseLeagueLogo({
   leagueId: string
   logoUrl: string | null
 }) {
-  const { data, error } = await supabase
-    .from("leagues")
-    .update({ logo_url: logoUrl })
-    .eq("id", leagueId)
-    .select("id,logo_url")
-    .single()
-
-  if (error) {
-    throw error
-  }
+  const data = await patchLeague(leagueId, { logoUrl })
 
   return {
-    leagueId: data.id,
-    logoUrl: typeof data.logo_url === "string" ? data.logo_url : null,
+    leagueId: data.leagueId,
+    logoUrl: data.logoUrl,
   }
 }
 
@@ -72,24 +80,15 @@ export async function updateSupabaseLeagueLocations({
   locations: LeagueLocation[]
 }) {
   const normalizedLocations = normalizeLeagueLocations(locations)
-
-  const { data, error } = await supabase
-    .from("leagues")
-    .update({ locations: normalizedLocations })
-    .eq("id", leagueId)
-    .select("id,locations")
-    .single()
-
-  if (error) {
-    throw error
-  }
+  const data = await patchLeague(leagueId, {
+    locations: normalizedLocations,
+  })
 
   return {
-    leagueId: data.id,
+    leagueId: data.leagueId,
     locations: normalizeLeagueLocations(data.locations),
   }
 }
-
 
 export async function updateSupabaseLeagueStatusColorsEnabled({
   leagueId,
@@ -98,23 +97,15 @@ export async function updateSupabaseLeagueStatusColorsEnabled({
   leagueId: string
   enabled: boolean
 }) {
-  const { data, error } = await supabase
-    .from("leagues")
-    .update({ status_colors_enabled: enabled })
-    .eq("id", leagueId)
-    .select("id,status_colors_enabled")
-    .single()
-
-  if (error) {
-    throw error
-  }
+  const data = await patchLeague(leagueId, {
+    statusColorsEnabled: enabled,
+  })
 
   return {
-    leagueId: data.id,
-    statusColorsEnabled: data.status_colors_enabled !== false,
+    leagueId: data.leagueId,
+    statusColorsEnabled: data.statusColorsEnabled,
   }
 }
-
 
 export async function updateSupabaseLeagueShowRankingAvatars({
   leagueId,
@@ -123,28 +114,19 @@ export async function updateSupabaseLeagueShowRankingAvatars({
   leagueId: string
   enabled: boolean
 }) {
-  const { data, error } = await supabase
-    .from("leagues")
-    .update({ show_ranking_avatars: enabled })
-    .eq("id", leagueId)
-    .select("id,show_ranking_avatars")
-    .single()
-
-  if (error) {
-    throw error
-  }
+  const data = await patchLeague(leagueId, {
+    showRankingAvatars: enabled,
+  })
 
   return {
-    leagueId: data.id,
-    showRankingAvatars: data.show_ranking_avatars !== false,
+    leagueId: data.leagueId,
+    showRankingAvatars: data.showRankingAvatars,
   }
 }
 
 export async function regenerateSupabaseLeagueInviteCode({
   leagueId,
   code,
-  email,
-  displayName,
 }: {
   leagueId: string
   code: string
@@ -152,177 +134,41 @@ export async function regenerateSupabaseLeagueInviteCode({
   displayName?: string | null
 }) {
   const normalizedCode = code.trim().toUpperCase()
-  if (typeof window !== "undefined") {
-    try {
-      const response = await fetch(
-        `/api/leagues/${encodeURIComponent(leagueId)}/invite`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: normalizedCode,
-            email,
-            displayName: displayName ?? null,
-          }),
-        }
-      )
-
-      if (response.ok) {
-        const payload = (await response.json()) as {
-          leagueId: string
-          inviteCode: string
-        }
-
-        return payload
-      }
-    } catch {
-      // Fall back to the direct Supabase client below.
+  const response = await fetch(
+    `/api/leagues/${encodeURIComponent(leagueId)}/invite`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: normalizedCode }),
+      cache: "no-store",
     }
+  )
+
+  if (!response.ok) {
+    throw new Error(`regenerate-invite-api-${response.status}`)
   }
 
-  const user = await upsertAppUser({
-    email,
-    displayName,
-  })
-
-  const { data: league, error: leagueError } = await supabase
-    .from("leagues")
-    .update({ invite_code: normalizedCode })
-    .eq("id", leagueId)
-    .select("id,invite_code")
-    .single()
-
-  if (leagueError) {
-    throw leagueError
-  }
-
-  const { error: inviteError } = await supabase.from("invites").insert({
-    league_id: leagueId,
-    code: normalizedCode,
-    created_by_user_id: user.id,
-  })
-
-  if (inviteError) {
-    console.warn("No se ha podido guardar el histórico de invitación", inviteError)
-  }
-
-  return {
-    leagueId: league.id,
-    inviteCode: league.invite_code,
-  }
-}
-
-
-async function deleteLeagueLocationsIfTableExists(leagueId: string) {
-  const { error } = await supabase
-    .from("league_locations")
-    .delete()
-    .eq("league_id", leagueId)
-
-  if (error && error.code !== "42P01") {
-    throw error
+  return (await response.json()) as {
+    leagueId: string
+    inviteCode: string
   }
 }
 
 export async function deleteSupabaseLeague({
   leagueId,
-  email,
-  displayName,
 }: {
   leagueId: string
   email: string
   displayName?: string | null
 }) {
-  const user = await upsertAppUser({
-    email,
-    displayName,
+  const response = await fetch(`/api/leagues/${encodeURIComponent(leagueId)}`, {
+    method: "DELETE",
+    cache: "no-store",
   })
 
-  const { data: creatorMembership, error: membershipError } = await supabase
-    .from("league_memberships")
-    .select("id,role")
-    .eq("league_id", leagueId)
-    .eq("user_id", user.id)
-    .eq("role", "creator")
-    .maybeSingle()
-
-  if (membershipError) {
-    throw membershipError
+  if (!response.ok) {
+    throw new Error(`delete-league-api-${response.status}`)
   }
 
-  if (!creatorMembership) {
-    throw new Error("Solo el creador de la liga puede eliminarla")
-  }
-
-  const { data: seasons, error: seasonsReadError } = await supabase
-    .from("seasons")
-    .select("id")
-    .eq("league_id", leagueId)
-
-  if (seasonsReadError) {
-    throw seasonsReadError
-  }
-
-  const seasonIds = (seasons ?? []).map((season) => season.id)
-
-  const { error: clearActiveSeasonError } = await supabase
-    .from("leagues")
-    .update({ active_season_id: null })
-    .eq("id", leagueId)
-
-  if (clearActiveSeasonError) {
-    throw clearActiveSeasonError
-  }
-
-  const deleteOperations = [
-    supabase.from("matches").delete().eq("league_id", leagueId),
-    supabase.from("season_settings").delete().eq("league_id", leagueId),
-    supabase.from("invites").delete().eq("league_id", leagueId),
-    supabase.from("league_memberships").delete().eq("league_id", leagueId),
-  ]
-
-  if (seasonIds.length > 0) {
-    deleteOperations.push(
-      supabase.from("season_players").delete().in("season_id", seasonIds)
-    )
-  }
-
-  const deleteResults = await Promise.all(deleteOperations)
-
-  for (const result of deleteResults) {
-    if (result.error) {
-      throw result.error
-    }
-  }
-
-  await deleteLeagueLocationsIfTableExists(leagueId)
-
-  const { error: playersError } = await supabase
-    .from("players")
-    .delete()
-    .eq("league_id", leagueId)
-
-  if (playersError) {
-    throw playersError
-  }
-
-  const { error: seasonsError } = await supabase
-    .from("seasons")
-    .delete()
-    .eq("league_id", leagueId)
-
-  if (seasonsError) {
-    throw seasonsError
-  }
-
-  const { error: leagueError } = await supabase
-    .from("leagues")
-    .delete()
-    .eq("id", leagueId)
-
-  if (leagueError) {
-    throw leagueError
-  }
-
-  return { leagueId }
+  return (await response.json()) as { leagueId: string }
 }

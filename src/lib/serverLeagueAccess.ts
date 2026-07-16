@@ -1,4 +1,6 @@
-import { auth } from "@/auth"
+import "server-only"
+
+import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 
 export type ServerLeagueActor = {
@@ -13,10 +15,23 @@ export type ServerLeagueActor = {
   membership: {
     role: "creator" | "admin" | "player"
     playerId: string | null
+    joinedAt: string | null
   } | null
 }
 
 type GetServerLeagueActorOptions = {
+  requireAdmin?: boolean
+  requireMember?: boolean
+}
+
+export type ServerLeagueViewer = ServerLeagueActor & {
+  isAdmin: boolean
+  isSpectator: boolean
+  spectatorJoinedAt: string | null
+}
+
+type GetServerLeagueViewerOptions = {
+  requireAccess?: boolean
   requireAdmin?: boolean
   requireMember?: boolean
 }
@@ -31,77 +46,68 @@ function normalizeRole(value: unknown): "creator" | "admin" | "player" {
     : "player"
 }
 
-export async function getServerLeagueActor(
+export async function getServerLeagueViewer(
   leagueId: string,
-  options: GetServerLeagueActorOptions = {},
+  options: GetServerLeagueViewerOptions = {}
 ): Promise<
-  | { ok: true; actor: ServerLeagueActor }
+  | { ok: true; actor: ServerLeagueViewer }
   | { ok: false; status: number; error: string }
 > {
-  const session = await auth()
-  const email = normalizeEmail(session?.user?.email)
+  const authResult = await requireAuthenticatedAppUser()
 
-  if (!email) {
-    return { ok: false, status: 401, error: "unauthenticated" }
+  if (!authResult.ok) {
+    return authResult
   }
 
-  const supabase = createSupabaseServiceClient()
+  const {
+    supabase,
+    user: { id, email, displayName, avatarUrl, isSuperuser },
+  } = authResult.actor
 
-  if (!supabase) {
-    return { ok: false, status: 501, error: "missing_service_role" }
+  const [membershipResult, spectatorResult] = isSuperuser
+    ? [
+        { data: null, error: null },
+        { data: null, error: null },
+      ]
+    : await Promise.all([
+        supabase
+          .from("league_memberships")
+          .select("role,player_id,joined_at")
+          .eq("league_id", leagueId)
+          .eq("user_id", id)
+          .maybeSingle(),
+        supabase
+          .from("league_spectators")
+          .select("joined_at")
+          .eq("league_id", leagueId)
+          .eq("user_id", id)
+          .maybeSingle(),
+      ])
+
+  if (membershipResult.error || spectatorResult.error) {
+    return { ok: false, status: 500, error: "league_membership_lookup_failed" }
   }
 
-  const { data: existingUser, error: existingUserError } = await supabase
-    .from("app_users")
-    .select("id,email,display_name,avatar_url,is_superuser,can_create_leagues")
-    .eq("email", email)
-    .maybeSingle()
-
-  if (existingUserError) {
-    return { ok: false, status: 500, error: existingUserError.message }
-  }
-
-  const { data: user, error: userError } = await supabase
-    .from("app_users")
-    .upsert(
-      {
-        email,
-        display_name: session?.user?.name?.trim() || existingUser?.display_name || null,
-        avatar_url: session?.user?.image ?? existingUser?.avatar_url ?? null,
-        is_superuser: Boolean(existingUser?.is_superuser),
-        can_create_leagues: Boolean(existingUser?.can_create_leagues),
-      },
-      { onConflict: "email" },
-    )
-    .select("id,email,display_name,avatar_url,is_superuser")
-    .single()
-
-  if (userError) {
-    return { ok: false, status: 500, error: userError.message }
-  }
-
-  const { data: membershipRow, error: membershipError } = await supabase
-    .from("league_memberships")
-    .select("role,player_id")
-    .eq("league_id", leagueId)
-    .eq("user_id", user.id)
-    .maybeSingle()
-
-  if (membershipError) {
-    return { ok: false, status: 500, error: membershipError.message }
-  }
-
-  const membership = membershipRow
+  const membership = membershipResult.data
     ? {
-        role: normalizeRole(membershipRow.role),
+        role: normalizeRole(membershipResult.data.role),
         playerId:
-          typeof membershipRow.player_id === "string"
-            ? membershipRow.player_id
+          typeof membershipResult.data.player_id === "string"
+            ? membershipResult.data.player_id
+            : null,
+        joinedAt:
+          typeof membershipResult.data.joined_at === "string"
+            ? membershipResult.data.joined_at
             : null,
       }
     : null
+  const spectatorJoinedAt =
+    typeof spectatorResult.data?.joined_at === "string"
+      ? spectatorResult.data.joined_at
+      : null
+  const isSpectator = Boolean(spectatorResult.data)
   const isAdmin =
-    Boolean(user.is_superuser) ||
+    isSuperuser ||
     membership?.role === "creator" ||
     membership?.role === "admin"
 
@@ -109,7 +115,11 @@ export async function getServerLeagueActor(
     return { ok: false, status: 403, error: "forbidden" }
   }
 
-  if (options.requireMember && !membership && !user.is_superuser) {
+  if (options.requireMember && !membership && !isSuperuser) {
+    return { ok: false, status: 403, error: "forbidden" }
+  }
+
+  if (options.requireAccess && !isSuperuser && !membership && !isSpectator) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 
@@ -118,13 +128,42 @@ export async function getServerLeagueActor(
     actor: {
       supabase,
       user: {
-        id: user.id,
-        email,
-        displayName: user.display_name ?? null,
-        avatarUrl: user.avatar_url ?? null,
-        isSuperuser: Boolean(user.is_superuser),
+        id,
+        email: normalizeEmail(email),
+        displayName,
+        avatarUrl,
+        isSuperuser,
       },
       membership,
+      isAdmin,
+      isSpectator,
+      spectatorJoinedAt,
+    },
+  }
+}
+
+export async function getServerLeagueActor(
+  leagueId: string,
+  options: GetServerLeagueActorOptions = {},
+): Promise<
+  | { ok: true; actor: ServerLeagueActor }
+  | { ok: false; status: number; error: string }
+> {
+  const access = await getServerLeagueViewer(leagueId, {
+    requireAdmin: options.requireAdmin,
+    requireMember: options.requireMember,
+  })
+
+  if (!access.ok) {
+    return access
+  }
+
+  return {
+    ok: true,
+    actor: {
+      supabase: access.actor.supabase,
+      user: access.actor.user,
+      membership: access.actor.membership,
     },
   }
 }

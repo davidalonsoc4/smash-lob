@@ -12,7 +12,6 @@ import {
 import { useSession } from "next-auth/react";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
-import { upsertAppUser } from "@/lib/supabaseUsers";
 import {
   deleteSupabaseLeague,
   regenerateSupabaseLeagueInviteCode,
@@ -127,7 +126,11 @@ type LeagueAccessContextValue = {
     leagueIdHint?: string | null,
   ) => Promise<League | null>;
   getUnclaimedPlayersForLeague: (leagueId: string) => PlayerProfile[];
-  claimPlayer: (leagueId: string, playerId: string) => Promise<ClaimResult>;
+  claimPlayer: (
+    leagueId: string,
+    playerId: string,
+    inviteCode?: string,
+  ) => Promise<ClaimResult>;
   linkCurrentUserToLeaguePlayer: (leagueId: string, playerId: string) => void;
   canAccessLeague: (leagueId: string) => boolean;
   isLeagueSpectator: (leagueId: string) => boolean;
@@ -146,6 +149,7 @@ const leaguesStorageKey = "smash-lob-leagues";
 const inviteCodesStorageKey = "smash-lob-league-invite-codes";
 const adminViewStorageKey = "smash-lob-admin-view-enabled";
 const adminRoles: LeagueMemberRole[] = ["creator", "admin"];
+const claimedMembershipUserId = "__claimed__";
 const LeagueAccessContext = createContext<LeagueAccessContextValue | null>(
   null,
 );
@@ -481,7 +485,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   } = useSeasonSettings();
   const userId = normalizeUserId(session?.user?.email);
   const userDisplayName = session?.user?.name;
-  const userGoogleAvatarUrl = session?.user?.image ?? null;
   const [isSuperuserFromDb, setIsSuperuserFromDb] = useState(false);
   const [canCreateLeaguesFromDb, setCanCreateLeaguesFromDb] = useState(false);
   const isSuperuser = Boolean(userId) && isSuperuserFromDb;
@@ -545,21 +548,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
     async function hydrateSupabaseAccess() {
       try {
-        const appUser = await upsertAppUser({
-          email: userId as string,
-          displayName: userDisplayName,
-          avatarUrl: userGoogleAvatarUrl,
-        });
-
-        if (!isCancelled) {
-          setIsSuperuserFromDb(Boolean(appUser.is_superuser));
-          setCanCreateLeaguesFromDb(Boolean(appUser.can_create_leagues));
-        }
-
-        const snapshot = await fetchSupabaseLeagueSnapshot(
-          userId as string,
-          appUser,
-        );
+        const snapshot = await fetchSupabaseLeagueSnapshot();
 
         if (isCancelled) {
           return;
@@ -624,8 +613,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     hydrateMatches,
     hydrateSeasonSnapshot,
     sessionStatus,
-    userDisplayName,
-    userGoogleAvatarUrl,
     userId,
   ]);
 
@@ -685,9 +672,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       try {
         const result = await createSupabaseLeague({
-          creatorEmail: userId,
-          creatorName: userDisplayName,
-          creatorAvatarUrl: userGoogleAvatarUrl,
           leagueName: name,
           leagueDescription: description,
           leagueSlug: slug,
@@ -742,8 +726,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       getLeagueInviteCode,
       hydrateSeasonSnapshot,
       leagues,
-      userDisplayName,
-      userGoogleAvatarUrl,
       userId,
     ],
   );
@@ -1220,7 +1202,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
                 !(
                   membership.leagueId === leagueId &&
                   membership.playerId === playerId &&
-                  membership.userId.startsWith("__claimed__:")
+                  membership.userId === claimedMembershipUserId
                 ),
             ),
             [result],
@@ -1418,7 +1400,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   );
 
   const claimPlayer = useCallback(
-    async (leagueId: string, playerId: string): Promise<ClaimResult> => {
+    async (
+      leagueId: string,
+      playerId: string,
+      inviteCode?: string,
+    ): Promise<ClaimResult> => {
       if (!userId) {
         return { ok: false, error: "already-in-league" };
       }
@@ -1444,9 +1430,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
         try {
           const result = await claimSupabasePlayer({
-            email: userId,
-            displayName: userDisplayName,
-            avatarUrl: userGoogleAvatarUrl,
+            code: inviteCode ?? getLeagueInviteCode(leagueId),
             leagueId,
             playerId,
           });
@@ -1475,7 +1459,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return { ok: true, membership };
     },
-    [memberships, persistMemberships, userDisplayName, userGoogleAvatarUrl, userId],
+    [getLeagueInviteCode, memberships, persistMemberships, userId],
   );
 
   const linkCurrentUserToLeaguePlayer = useCallback(

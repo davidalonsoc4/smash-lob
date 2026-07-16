@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto"
 import { NextResponse } from "next/server"
 import { getPublicAppBaseUrl } from "@/lib/inviteUrls"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
+import { validateUuid } from "@/lib/serverRequest"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,6 +22,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: leagueId } = await params
+
+  if (!validateUuid(leagueId)) {
+    return NextResponse.json({ error: "invalid_league_id" }, { status: 400 })
+  }
+
   const access = await getServerLeagueActor(leagueId, { requireAdmin: true })
 
   if (!access.ok) {
@@ -42,7 +48,7 @@ export async function POST(
 
   if (existingInviteError) {
     return NextResponse.json(
-      { error: existingInviteError.message },
+      { error: "spectator_invite_lookup_failed" },
       { status: 500 },
     )
   }
@@ -87,7 +93,7 @@ export async function POST(
       }
 
       return NextResponse.json(
-        { error: createError?.message ?? "spectator_invite_create_failed" },
+        { error: "spectator_invite_create_failed" },
         { status: 500 },
       )
     }

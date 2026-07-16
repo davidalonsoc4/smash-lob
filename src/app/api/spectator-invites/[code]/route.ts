@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 
 export const runtime = "nodejs"
@@ -24,7 +24,7 @@ async function resolveInvite(code: string) {
     .maybeSingle()
 
   if (inviteError) {
-    return { ok: false as const, status: 500, error: inviteError.message }
+    return { ok: false as const, status: 500, error: "spectator_invite_lookup_failed" }
   }
 
   if (!invite) {
@@ -38,7 +38,7 @@ async function resolveInvite(code: string) {
     .single()
 
   if (leagueError) {
-    return { ok: false as const, status: 500, error: leagueError.message }
+    return { ok: false as const, status: 500, error: "spectator_league_lookup_failed" }
   }
 
   const { data: seasons, error: seasonsError } = await supabase
@@ -48,7 +48,7 @@ async function resolveInvite(code: string) {
     .order("name", { ascending: false })
 
   if (seasonsError) {
-    return { ok: false as const, status: 500, error: seasonsError.message }
+    return { ok: false as const, status: 500, error: "spectator_seasons_lookup_failed" }
   }
 
   const visibleSeason =
@@ -104,13 +104,6 @@ export async function POST(
   _request: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
-  const session = await auth()
-  const email = session?.user?.email?.trim().toLowerCase()
-
-  if (!email) {
-    return NextResponse.json({ error: "unauthenticated" }, { status: 401 })
-  }
-
   const { code: rawCode } = await params
   const code = normalizeCode(decodeURIComponent(rawCode ?? ""))
   const result = await resolveInvite(code)
@@ -122,49 +115,29 @@ export async function POST(
     )
   }
 
-  const { supabase, invite, league } = result
-  const { data: existingUser, error: existingUserError } = await supabase
-    .from("app_users")
-    .select("id,is_superuser,can_create_leagues,avatar_url,display_name")
-    .eq("email", email)
-    .maybeSingle()
+  const authResult = await requireAuthenticatedAppUser()
 
-  if (existingUserError) {
+  if (!authResult.ok) {
     return NextResponse.json(
-      { error: existingUserError.message },
-      { status: 500 },
+      { error: authResult.error },
+      { status: authResult.status },
     )
   }
 
-  const { data: user, error: userError } = await supabase
-    .from("app_users")
-    .upsert(
-      {
-        email,
-        display_name: session?.user?.name?.trim() || existingUser?.display_name || null,
-        avatar_url: session?.user?.image ?? existingUser?.avatar_url ?? null,
-        is_superuser: Boolean(existingUser?.is_superuser),
-        can_create_leagues: Boolean(existingUser?.can_create_leagues),
-      },
-      { onConflict: "email" },
-    )
-    .select("id")
-    .single()
-
-  if (userError) {
-    return NextResponse.json({ error: userError.message }, { status: 500 })
-  }
-
+  const {
+    user: { id: userId },
+  } = authResult.actor
+  const { supabase, invite, league } = result
   const { data: playerMembership, error: membershipError } = await supabase
     .from("league_memberships")
     .select("id")
     .eq("league_id", league.id)
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .maybeSingle()
 
   if (membershipError) {
     return NextResponse.json(
-      { error: membershipError.message },
+      { error: "spectator_membership_lookup_failed" },
       { status: 500 },
     )
   }
@@ -175,7 +148,7 @@ export async function POST(
       .upsert(
         {
           league_id: league.id,
-          user_id: user.id,
+          user_id: userId,
           spectator_invite_id: invite.id,
         },
         { onConflict: "league_id,user_id" },
@@ -183,7 +156,7 @@ export async function POST(
 
     if (spectatorError) {
       return NextResponse.json(
-        { error: spectatorError.message },
+        { error: "spectator_access_upsert_failed" },
         { status: 500 },
       )
     }

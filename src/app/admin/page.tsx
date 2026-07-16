@@ -2,28 +2,17 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
-import { recordActivityEvent } from "@/lib/activity"
 
 const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 
-
-function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
-  return {
-    actorEmail: session?.user?.email ?? "system@smash-lob.local",
-    actorDisplayName: session?.user?.name ?? null,
-  }
-}
-
 function AdminInviteCard({ leagueId }: { leagueId: string }) {
   const { getLeagueInviteCode, regenerateLeagueInviteCode } = useLeagueAccess()
-  const { data: session } = useSession()
   const [inviteCode, setInviteCode] = useState(() =>
     getLeagueInviteCode(leagueId)
   )
@@ -71,22 +60,6 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
     }
 
     setInviteCode(nextInviteCode)
-
-    try {
-      await recordActivityEvent({
-        leagueId,
-        ...getActorFromSession(session),
-        type: "league_invite_regenerated",
-        title: "Invitación regenerada",
-        description: "Se ha generado un nuevo código de invitación para la liga. Los enlaces anteriores dejan de ser válidos.",
-        metadata: {
-          inviteCode: nextInviteCode,
-        },
-      })
-    } catch {
-      // La invitación ya está regenerada; la actividad es auxiliar.
-    }
-
     setCopiedLabel("Código regenerado")
     window.setTimeout(() => setCopiedLabel(null), 1800)
   }
@@ -154,10 +127,8 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 
 export default function AdminPage() {
   const { t } = useI18n()
-  const {
-    hasLeagueAdminRole,
-    updateLeagueStatusColorsEnabled,
-  } = useLeagueAccess()
+  const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } =
+    useLeagueAccess()
   const { activeLeague } = useCurrentLeagueData()
   const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
@@ -195,18 +166,17 @@ export default function AdminPage() {
 
     const ok = await updateLeagueStatusColorsEnabled(
       activeLeague.id,
-      !statusColorsEnabled,
+      !statusColorsEnabled
     )
 
     setIsUpdatingStatusColors(false)
 
     if (!ok) {
       setStatusColorsError(
-        "No se ha podido guardar el ajuste. Revisa Supabase o inténtalo de nuevo.",
+        "No se ha podido guardar el ajuste. Revisa Supabase o inténtalo de nuevo."
       )
     }
   }
-
 
   return (
     <div className="compact-page space-y-3">
@@ -329,49 +299,51 @@ export default function AdminPage() {
         ) : null}
       </div>
 
-
       <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
         Ajustes rápidos
       </p>
 
-      <div id="status-colors" className="settings-search-target"><AppCard>
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-bold">Código de color</p>
-            <p className="mt-1 text-xs font-semibold text-neutral-500">
-              Activa colores suaves en etiquetas de estado, pagos y jornadas para
-              que la liga sea más fácil de leer. Si lo desactivas, las etiquetas
-              vuelven a una estética gris.
-            </p>
+      <div id="status-colors" className="settings-search-target">
+        <AppCard>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-bold">Código de color</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Activa colores suaves en etiquetas de estado, pagos y jornadas
+                para que la liga sea más fácil de leer. Si lo desactivas, las
+                etiquetas vuelven a una estética gris.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={statusColorsEnabled}
+              onClick={handleStatusColorsToggle}
+              disabled={isUpdatingStatusColors}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
+                statusColorsEnabled ? "bg-neutral-950" : "bg-neutral-300"
+              }`}
+            >
+              <span
+                className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                  statusColorsEnabled ? "left-6" : "left-1"
+                }`}
+              />
+            </button>
           </div>
 
-          <button
-            type="button"
-            role="switch"
-            aria-checked={statusColorsEnabled}
-            onClick={handleStatusColorsToggle}
-            disabled={isUpdatingStatusColors}
-            className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
-              statusColorsEnabled ? "bg-neutral-950" : "bg-neutral-300"
-            }`}
-          >
-            <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
-                statusColorsEnabled ? "left-6" : "left-1"
-              }`}
-            />
-          </button>
-        </div>
+          {statusColorsError ? (
+            <p className="mt-3 text-xs font-semibold text-red-600">
+              {statusColorsError}
+            </p>
+          ) : null}
+        </AppCard>
+      </div>
 
-        {statusColorsError ? (
-          <p className="mt-3 text-xs font-semibold text-red-600">
-            {statusColorsError}
-          </p>
-        ) : null}
-      </AppCard></div>
-
-
-      <div id="invitations" className="settings-search-target"><AdminInviteCard leagueId={activeLeague.id} /></div>
+      <div id="invitations" className="settings-search-target">
+        <AdminInviteCard leagueId={activeLeague.id} />
+      </div>
     </div>
   )
 }

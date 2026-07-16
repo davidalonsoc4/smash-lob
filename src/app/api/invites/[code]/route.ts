@@ -3,10 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
-import {
-  createSupabaseServerAnonClient,
-  createSupabaseServiceClient,
-} from "@/lib/supabaseServer"
+import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { validateUuid } from "@/lib/serverRequest"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { League, LeagueMemberRole, PlayerProfile, Season, SeasonPlayer, UserLeagueMembership } from "@/data/fakeData"
@@ -33,25 +31,15 @@ type SupabaseInviteRow = {
   league_id: string
 }
 
-type InviteClient = {
-  name: "service_role" | "anon"
-  client: SupabaseClient
-}
-
 type SerializedError = {
   stage?: string
-  client?: string
-  message: string
   code?: string
-  details?: string
-  hint?: string
 }
 
 const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,created_by_user_id"
 const seasonSettingsSelect =
   "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds"
-
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase()
 }
@@ -96,50 +84,23 @@ function getErrorField(error: unknown, field: string) {
   return typeof value === "string" ? value : null
 }
 
-function serializeError(error: unknown, client?: string): SerializedError {
-  const message =
-    error instanceof Error
-      ? error.message
-      : getErrorField(error, "message") ?? String(error)
-
+function serializeError(error: unknown): SerializedError {
   return {
     stage: getErrorField(error, "stage") ?? undefined,
-    client,
-    message,
     code: getErrorField(error, "code") ?? undefined,
-    details: getErrorField(error, "details") ?? undefined,
-    hint: getErrorField(error, "hint") ?? undefined,
   }
 }
 
 function throwSupabaseError(stage: string, error: unknown): never {
   const serialized = serializeError(error)
-  const enhancedError = new Error(`${stage}: ${serialized.message}`)
+  const enhancedError = new Error(stage)
 
   Object.assign(enhancedError, {
     stage,
     code: serialized.code,
-    details: serialized.details,
-    hint: serialized.hint,
   })
 
   throw enhancedError
-}
-
-function getInviteClients(): InviteClient[] {
-  const clients: InviteClient[] = []
-  const serviceClient = createSupabaseServiceClient()
-  const anonClient = createSupabaseServerAnonClient()
-
-  if (serviceClient) {
-    clients.push({ name: "service_role", client: serviceClient })
-  }
-
-  if (anonClient) {
-    clients.push({ name: "anon", client: anonClient })
-  }
-
-  return clients
 }
 
 async function fetchLeagueById(supabase: SupabaseClient, leagueId: string) {
@@ -408,7 +369,7 @@ async function buildInviteResponse(
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []
   ).map((membership) => ({
-    userId: `__claimed__:${membership.user_id}`,
+    userId: "__claimed__",
     leagueId: membership.league_id,
     playerId: membership.player_id ?? "",
     role: toRole(membership.role),
@@ -444,32 +405,27 @@ export async function GET(
     return NextResponse.json({ error: "invalid_code" }, { status: 400 })
   }
 
-  const clients = getInviteClients()
+  if (leagueIdHint && !validateUuid(leagueIdHint)) {
+    return NextResponse.json({ error: "invalid_league_id" }, { status: 400 })
+  }
 
-  if (clients.length === 0) {
+  const supabase = createSupabaseServiceClient()
+
+  if (!supabase) {
+    return NextResponse.json({ error: "missing_service_role" }, { status: 501 })
+  }
+
+  try {
+    return await buildInviteResponse(supabase, normalizedCode, leagueIdHint)
+  } catch (error) {
     return NextResponse.json(
-      { error: "missing_supabase_server_credentials" },
-      { status: 501 }
+      {
+        error: "invite_lookup_failed",
+        code: normalizedCode,
+        leagueId: leagueIdHint,
+        failures: [serializeError(error)],
+      },
+      { status: 500 }
     )
   }
-
-  const failures: SerializedError[] = []
-
-  for (const { name, client } of clients) {
-    try {
-      return await buildInviteResponse(client, normalizedCode, leagueIdHint)
-    } catch (error) {
-      failures.push(serializeError(error, name))
-    }
-  }
-
-  return NextResponse.json(
-    {
-      error: "invite_lookup_failed",
-      code: normalizedCode,
-      leagueId: leagueIdHint,
-      failures,
-    },
-    { status: 500 }
-  )
 }

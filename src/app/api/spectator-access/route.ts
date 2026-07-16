@@ -1,38 +1,27 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
-import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  const session = await auth()
-  const email = session?.user?.email?.trim().toLowerCase()
+  const authResult = await requireAuthenticatedAppUser()
 
-  if (!email) {
-    return NextResponse.json({ leagueIds: [] }, { status: 401 })
+  if (!authResult.ok) {
+    return NextResponse.json(
+      { leagueIds: [] },
+      { status: authResult.status }
+    )
   }
 
-  const supabase = createSupabaseServiceClient()
-
-  if (!supabase) {
-    return NextResponse.json({ leagueIds: [] }, { status: 501 })
-  }
-
-  const { data: user, error: userError } = await supabase
-    .from("app_users")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle()
-
-  if (userError || !user) {
-    return NextResponse.json({ leagueIds: [] })
-  }
-
+  const {
+    supabase,
+    user: { id: userId },
+  } = authResult.actor
   const { data, error } = await supabase
     .from("league_spectators")
     .select("league_id")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
 
   if (error) {
     return NextResponse.json({ leagueIds: [] })

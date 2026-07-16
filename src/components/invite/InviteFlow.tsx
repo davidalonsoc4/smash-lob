@@ -389,7 +389,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     setIsClaiming(true)
     setError(null)
 
-    const result = await claimPlayer(league.id, selectedPlayerId)
+    const result = await claimPlayer(league.id, selectedPlayerId, normalizedCode)
 
     setIsClaiming(false)
 

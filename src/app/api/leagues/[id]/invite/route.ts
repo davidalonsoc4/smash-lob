@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
+import { recordServerActorActivity } from "@/lib/serverActivityWrite"
+import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -17,10 +19,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: leagueId } = await params
-  const body = (await request.json().catch(() => ({}))) as InviteRequestBody
-  const code = normalizeInviteCode(body.code)
+  const body = await parseJsonBody<InviteRequestBody>(request)
+  const code = normalizeInviteCode(body?.code)
 
-  if (!leagueId || !code) {
+  if (!validateUuid(leagueId) || !code) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
@@ -38,38 +40,47 @@ export async function POST(
   const { supabase, user } = access.actor
 
   try {
-    const { data: league, error: leagueError } = await supabase
-      .from("leagues")
-      .update({ invite_code: code })
-      .eq("id", leagueId)
-      .select("id,invite_code")
-      .single()
+    const { data, error } = await supabase.rpc(
+      "server_regenerate_league_invite",
+      {
+        p_league_id: leagueId,
+        p_code: code,
+        p_created_by_user_id: user.id,
+      }
+    )
 
-    if (leagueError) {
-      throw leagueError
+    if (error) {
+      if (error.code === "23505") {
+        return NextResponse.json({ error: "invite_code_conflict" }, { status: 409 })
+      }
+
+      throw error
     }
 
-    const { error: inviteError } = await supabase.from("invites").insert({
-      league_id: leagueId,
-      code,
-      created_by_user_id: user.id,
-    })
+    const result = Array.isArray(data) ? data[0] : data
 
-    if (inviteError) {
-      console.warn(
-        "No se ha podido guardar el histórico de invitación",
-        inviteError
-      )
-    }
+    await recordServerActorActivity({
+      supabase,
+      user,
+      membership: access.actor.membership,
+      leagueId,
+      type: "league_invite_regenerated",
+      title: "Invitacion regenerada",
+      description:
+        "Se ha generado un nuevo código de invitación para la liga. Los enlaces anteriores dejan de ser válidos.",
+      metadata: {
+        inviteCode: result?.invite_code ?? code,
+      },
+    }).catch(() => null)
 
     return NextResponse.json({
-      leagueId: league.id,
-      inviteCode: league.invite_code,
+      leagueId: result?.league_id ?? leagueId,
+      inviteCode: result?.invite_code ?? code,
     })
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "invite_regeneration_failed"
-
-    return NextResponse.json({ error: message }, { status: 500 })
+  } catch {
+    return NextResponse.json(
+      { error: "invite_regeneration_failed" },
+      { status: 500 }
+    )
   }
 }
