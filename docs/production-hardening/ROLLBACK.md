@@ -1,10 +1,10 @@
 # Rollback Notes
 
-Last updated: 2026-07-16 13:35:45 +02:00
+Last updated: 2026-07-16 13:39:57 +02:00
 
 Last stable commit:
-- local release checkpoint: `1bdf65e security: finalize database grants and rls hardening`
-- last confirmed remote checkpoint: `8405e27 security: restrict rls auto-enable execution`
+- local and remote release checkpoint: `07168b5 chore: checkpoint production hardening progress`
+- prior remote checkpoint before H17 push: `8405e27 security: restrict rls auto-enable execution`
 
 Last stable production deployment:
 - Production URL known: `https://smash-lob.vercel.app`
@@ -20,28 +20,38 @@ Fresh bundle created:
 - `D:\BACKUPS\smash-lob-release-production-hardening-20260716-131924.bundle.sha256.txt`
 
 Remote changes already performed in the current hardening run:
-- none
+- pushed `release/production-hardening` to `origin` at `07168b5` (verified with `git ls-remote`)
+- applied the linked Supabase hardening migrations through `20260716014000` and verified local/remote migration parity afterward
 
-Current local release-only commits not pushed yet:
+Current validated Preview deployment:
+- deployment id: `dpl_EmRooXAtzhxC4KN3WW2uLHn3gpYQ`
+- Preview URL: `https://smash-7vgg9yyao-davidalonsoc4-8740s-projects.vercel.app`
+- stable alias: `https://smash-lob-git-release-produ-7ebc68-davidalonsoc4-8740s-projects.vercel.app`
+- status: `Ready`
+- smoke status: authenticated H18 Preview/stable-alias smoke checks passed on `2026-07-16`
+
+Current release commits on the remote branch:
 - `9d4bdd2 security: move league access behind server authorization`
 - `b244bf1 security: protect match and season operations`
 - `0319d09 security: protect activity and notification flows`
 - `820df86 security: protect mvp qa and media flows`
 - `1bdf65e security: finalize database grants and rls hardening`
+- `07168b5 chore: checkpoint production hardening progress`
 
 Migrations already applied:
 - local known: `20260714155912`, `20260714194452`
 - remote known: `20260714155912`, `20260714194452`
-- pending local-only migration: `20260714213000_lock_down_public_invites.sql`
-- pending local-only migration: `20260714231500_add_server_league_mutation_functions.sql`
-- pending local-only migration: `20260714234500_lock_down_player_availability.sql`
-- pending local-only migration: `20260714240000_lock_down_match_result_confirmations.sql`
-- pending local-only migration: `20260715002000_lock_down_matches.sql`
-- pending local-only migration: `20260715003000_fix_server_regenerate_league_invite.sql`
-- pending local-only migration: `20260715004000_lock_down_mvp_tables.sql`
-- pending local-only migration: `20260716004500_lock_down_notification_tables.sql`
-- pending local-only migration: `20260716013000_finalize_public_rls_and_grants.sql`
-- pending local-only migration: `20260716014000_fix_function_default_execute_privileges.sql`
+- remote applied in H19:
+  - `20260714213000_lock_down_public_invites.sql`
+  - `20260714231500_add_server_league_mutation_functions.sql`
+  - `20260714234500_lock_down_player_availability.sql`
+  - `20260714240000_lock_down_match_result_confirmations.sql`
+  - `20260715002000_lock_down_matches.sql`
+  - `20260715003000_fix_server_regenerate_league_invite.sql`
+  - `20260715004000_lock_down_mvp_tables.sql`
+  - `20260716004500_lock_down_notification_tables.sql`
+  - `20260716013000_finalize_public_rls_and_grants.sql`
+  - `20260716014000_fix_function_default_execute_privileges.sql`
 
 Backward compatibility status:
 - current uncommitted work has not been pushed or deployed
@@ -69,6 +79,8 @@ Backward compatibility status:
 - H14 static audit is locally closed: client/server import boundaries are clean, runtime `supabase.*` access is confined to API/server code, and the legacy public superuser helper has been removed
 - H15 local validation is now closed: `npm ci`, `npm audit`, typecheck, lint, build, and a fresh local Supabase reset/lint/audit/stop cycle all passed on the current tree; there is still no automated test suite to run
 - H16 backup verification is now closed: the prior encrypted backup has been checksum-verified, and a fresh git bundle checkpoint exists in `D:\BACKUPS`
+- H18 Preview validation is now closed for release SHA `07168b5`: root, manifest, icon assets, auth session/providers, invalid invite routes, cron-without-secret behavior, protected no-session behavior, and a post-smoke deployment-log scan all returned the expected results
+- H19 linked remote validation is now closed: remote migration parity is exact, linked lint passes, current-object SQL audits are clean, all current public tables remain owned by `postgres`, and the only leftover DB-level residual is the known `supabase_admin` default ACL pattern
 - production compatibility of later milestones remains to be verified before remote DB changes
 
 Recovery procedure:

@@ -1,15 +1,15 @@
 # Production Hardening Time Log
 
-Last updated: 2026-07-16 13:35:45 +02:00
+Last updated: 2026-07-16 15:42:07 +02:00
 
 This is a planning/reference log, not a stopwatch export. Times below are approximate active-work estimates based on the completed validation slices and current repo state.
 
 ## Quick summary
 
-- Closed milestones already completed: `27.0h`
-- Open-milestone work already spent (`H17`): `1.0h`
-- Total active effort already invested: `28.0h`
-- Active effort still forecast to finish: `4.0h to 8.5h`
+- Closed milestones already completed: `30.0h`
+- Open-milestone work already spent (`H20`): `0.0h`
+- Total active effort already invested: `30.0h`
+- Active effort still forecast to finish: `2.0h to 5.5h`
 - For wall-clock planning, use the active estimate plus roughly `25% to 40%` extra for builds, Supabase/Docker spin-up, reruns, rereads, and checkpoint maintenance
 
 ## How to read this log
@@ -18,7 +18,7 @@ This is a planning/reference log, not a stopwatch export. Times below are approx
 - It does **not** mean exact wall-clock elapsed time.
 - It does **not** represent token cooldown or any platform wait-state accounting.
 - Short pauses between iterations, rereads, command retries, and ordinary process overhead are only reflected if they materially belonged to the active slice being estimated.
-- The current active-invested total is `28.0h`, including the ongoing H17 commit-grouping and checkpoint pass.
+- The current active-invested total is `30.0h`, with H19 now closed and H20 just opened.
 - If you need a calendar estimate rather than an engineering-effort estimate, budget the active numbers with a multiplier of about `1.25x` to `1.4x`.
 
 ## Why total process time can look larger than this file
@@ -34,9 +34,9 @@ This is a planning/reference log, not a stopwatch export. Times below are approx
 | --- | --- | --- |
 | Audit and design | 7.0h to 8.0h | repo review, static audits, migration-boundary decisions, route planning, H13 default-ACL diagnostics, and the later H14 boundary audit |
 | Implementation and refactor | 10.0h to 11.0h | helpers, routes, client wrapper rewrites, hardening refactors |
-| Validation, diagnostics, and forward fixes | 8.0h to 9.0h | lint/build/tsc/db reset/lint reruns, invite SQL forward fix, H13 reset/audit loops, the later function-default forward fix, H14 cleanup validation, and the end-to-end H15 sweep |
+| Validation, diagnostics, and forward fixes | 10.0h to 11.0h | lint/build/tsc/db reset/lint reruns, invite SQL forward fix, H13 reset/audit loops, the later function-default forward fix, H14 cleanup validation, the end-to-end H15 sweep, the authenticated H18 Preview smoke validation, and the H19 linked remote verification/audit cycle |
 | Release prep and recovery | 0.5h to 1.0h | backup verification, bundle creation, checksum generation, and rollback prep |
-| Total active estimate already invested | 28.0h | Working estimate, not stopwatch time |
+| Total active estimate already invested | 30.0h | Working estimate, not stopwatch time |
 
 ## Completed work (approximate active time)
 
@@ -59,27 +59,29 @@ This is a planning/reference log, not a stopwatch export. Times below are approx
 | H14 | Full static audit | DONE | 1.0h | Confirmed runtime Supabase access is server-confined, fixed `server-only` boundary gaps for QA/push helpers, and removed the dead public superuser helper |
 | H15 | End-to-end local validation | DONE | 1.5h | Passed `npm ci`, `npm audit`, typecheck, lint, build, and a fresh local Supabase reset/lint/audit/stop cycle; no automated test suite exists in the repo |
 | H16 | Backup verification | DONE | 0.5h | Verified the `2026-07-14` encrypted backup checksum and created a fresh release-branch git bundle plus SHA256 |
+| H18 | Preview deployment and smoke tests | DONE | 1.0h | Verified the exact Preview deployment for `07168b5`, ran authenticated Preview/stable-alias smoke checks via `npx vercel curl`, confirmed protected-route auth failures and controlled invalid-invite responses, and rechecked deployment logs for runtime-error keywords |
+| H19 | Remote migrations and remote audit | DONE | 1.0h | Applied the validated hardening migrations to the linked Supabase project, verified local/remote migration parity, passed linked remote lint, confirmed zero current-object RLS/grant/function regressions by SQL, and isolated the same non-blocking `supabase_admin` default-ACL residual already seen locally |
 | Validation + SQL forward fix | Build/reset/lint reruns and invite RPC fix | DONE | 1.5h | Includes local Supabase reruns, the invite SQL forward fix, and the later MVP migration validation pass |
 
-Estimated active work completed so far: `28.0h`
+Estimated active work completed so far: `30.0h`
 
 ## Remaining work (forecast)
 
 | Milestone | Scope | Status | Estimated remaining time | Notes |
 | --- | --- | --- | --- | --- |
-| H17 | Commits and push | IN_PROGRESS | 0.25h to 0.5h | Five local commits are already created; remaining work is the docs checkpoint plus verified push |
-| H18 | Preview deployment and smoke tests | PENDING | 1h to 2h | Includes reruns if preview uncovers regressions |
-| H19 | Remote migrations and remote audit | PENDING | 1h to 2h | Depends on linked environment behaving cleanly |
+| H17 | Commits and push | DONE | 1.0h | Finished with six commits, push, and explicit remote SHA verification |
 | H20 | Integrate with production branch | PENDING | 0.5h to 1.5h | Merge/rebase plus validation rerun |
 | H21 | Production deployment | PENDING | 0.5h to 1h | Operational step |
 | H22 | Production smoke tests | PENDING | 0.5h to 1.5h | Manual/automated checks on the live app |
 | H23 | Final report and cleanup | PENDING | 0.5h to 1h | Wrap-up and residual risk summary |
 
-Estimated active work remaining: `4.0h to 8.5h`
+Estimated active work remaining: `2.0h to 5.5h`
 
 ## Planning notes
 
 - `H13` through `H16` are now locally closed for current objects, future `postgres`-owned migration objects, client/server boundary audit work, end-to-end local validation, and rollback/bundle preparation.
+- `H18` is now also closed for the current release SHA with authenticated Preview smoke checks and a clean post-smoke deployment-log scan.
+- `H19` is now closed for the linked remote database; current-object remote audits are clean, and the only leftover database-level exposure remains the same platform-owned `supabase_admin` default ACL residual that does not affect current public tables.
 - The remaining `supabase_admin` default-privilege issue is not token-related; it is a platform-owned environment concern to re-audit later in H19, not an unresolved local app-migration gap.
 - The DB-heavy milestones (`H13`, `H19`) may compress if the remaining audits come back cleaner than expected, or expand if they reveal more helper SQL fixes like the invite regeneration lint finding.
-- Operational milestones (`H18` through `H22`) are more sensitive to environment/tooling friction than code complexity.
+- Operational milestones (`H20` through `H22`) are more sensitive to environment/tooling friction than code complexity.

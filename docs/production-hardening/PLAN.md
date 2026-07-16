@@ -1,6 +1,6 @@
 # Production Hardening Plan
 
-Last updated: 2026-07-16 13:35:45 +02:00
+Last updated: 2026-07-16 15:42:07 +02:00
 
 ## H00 - Inventory and initial diff review
 - Status: DONE
@@ -302,8 +302,8 @@ Last updated: 2026-07-16 13:35:45 +02:00
 - Depends on: H15
 
 ## H17 - Release commits and push
-- Status: IN_PROGRESS
-- Current checkpoint: five local H17 commits now exist (`9d4bdd2`, `b244bf1`, `0319d09`, `820df86`, `1bdf65e`) covering league/invite access, matches/seasons, activity/notifications, MVP/QA/media, and the final RLS/grant migrations. The remaining work inside H17 is the checkpoint-doc commit plus the verified push of `release/production-hardening`.
+- Status: DONE
+- Current checkpoint: `release/production-hardening` now contains six H17 commits ending at `07168b5`, the push to `origin/release/production-hardening` succeeded, and `git ls-remote --heads origin release/production-hardening` verified the remote branch HEAD explicitly.
 - Objective: Commit validated local work in small domain-based commits and push release branch.
 - Domains: git history on `release/production-hardening`
 - Acceptance:
@@ -319,7 +319,8 @@ Last updated: 2026-07-16 13:35:45 +02:00
 - Depends on: H15, H16
 
 ## H18 - Preview deployment and smoke tests
-- Status: PENDING
+- Status: DONE
+- Current checkpoint: Preview deployment `dpl_EmRooXAtzhxC4KN3WW2uLHn3gpYQ` for SHA `07168b539b926bd7e8fc249a4d3c45d4da0e2e13` is `Ready`, and authenticated `npx vercel curl` smoke checks now pass against both the Preview URL and the stable alias. Verified responses include `/`, `/manifest.webmanifest`, icon assets, `/api/auth/session`, `/api/auth/providers`, invalid invite routes, cron without secret (`401`), and protected member/admin routes without session (`401`). The stable alias provider metadata returns the alias host in the Google sign-in/callback URLs, so the registered OAuth callback surface is aligned; only a later interactive end-to-end login remains manual.
 - Objective: Validate the release SHA on Vercel Preview.
 - Domains: Vercel preview deploy, preview smoke tests, anon write checks
 - Acceptance:
@@ -334,7 +335,8 @@ Last updated: 2026-07-16 13:35:45 +02:00
 - Depends on: H17
 
 ## H19 - Remote migrations and remote audit
-- Status: PENDING
+- Status: DONE
+- Current checkpoint: The linked remote project now has the full validated hardening migration chain through `20260716014000`, `npx supabase db lint --linked --schema public --level warning --fail-on none` passes, remote SQL audits return zero current-object RLS/grant/function regressions, and the remaining `supabase_admin` default ACL rows are confirmed as the same platform-owned residual seen locally while all current public tables remain owned by `postgres`.
 - Objective: Apply only the planned new migrations and verify remote DB state.
 - Domains: linked Supabase migrations, remote lint, remote SQL audits
 - Acceptance:
@@ -352,7 +354,8 @@ Last updated: 2026-07-16 13:35:45 +02:00
 - Depends on: H18
 
 ## H20 - Integrate with production branch
-- Status: PENDING
+- Status: IN_PROGRESS
+- Current checkpoint: H19 is closed on the linked database, so the next action is to determine the real production branch from GitHub/Vercel state, fetch/prune remotes, and integrate the latest production changes into `release/production-hardening` before rerunning validations on the final pre-production SHA.
 - Objective: Merge the validated release work with the real production branch.
 - Domains: git integration with production branch
 - Acceptance:

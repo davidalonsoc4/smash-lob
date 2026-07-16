@@ -469,3 +469,41 @@
   - `docs/production-hardening/PLAN.md`
   - `docs/production-hardening/STATUS.md`
   - `docs/production-hardening/VALIDATION.md`
+
+## 2026-07-16 - Use authenticated `vercel curl` instead of browser-only Preview access for H18 smoke checks
+- Decision: Close H18 with authenticated `npx vercel curl` probes against the exact Preview deployment URL and the stable alias instead of relying on unauthenticated browser access through Vercel Preview protection.
+- Why: The Preview deployment itself was healthy, but unauthenticated browser/HTTP probes were intercepted by `Login – Vercel`. The Vercel CLI already had authenticated access, and `vercel curl` returned the live app/API responses we needed to validate routing, auth failures, manifest/assets, invite routes, and the host-specific OAuth provider metadata without weakening Preview protection.
+- Rejected alternatives:
+  - treat Preview protection as an H18 blocker and stop before any smoke validation
+  - disable or bypass Preview protection just to run automated checks
+  - claim OAuth callback readiness without verifying that the stable alias host appears in the provider metadata
+- Consequences:
+  - H18 can close with real evidence on the pushed release SHA while keeping Preview protection intact
+  - the stable alias host is now explicitly verified in the Google provider metadata
+  - only the fully interactive Google OAuth round-trip remains a later manual verification item if no safe authenticated browser session is available
+- Affected files:
+  - `docs/production-hardening/PLAN.md`
+  - `docs/production-hardening/STATUS.md`
+  - `docs/production-hardening/DECISIONS.md`
+  - `docs/production-hardening/VALIDATION.md`
+  - `docs/production-hardening/ROLLBACK.md`
+  - `docs/production-hardening/TIMELOG.md`
+
+## 2026-07-16 - Accept the remote `supabase_admin` default ACL rows as a documented residual, not an H19 blocker
+- Decision: Treat the linked remote `supabase_admin` default ACL rows as the same environment-level residual already identified locally, and allow H19 to close because the post-push SQL audits show zero current-object RLS/grant/function regressions while all current public tables remain owned by `postgres`.
+- Why: After the remote push, `migration list --linked`, `db lint --linked`, direct SQL summary checks, default-ACL detail, and public-table ownership audits all aligned with the validated local picture. The only remaining open surface is the platform-owned default ACL set for future `supabase_admin`-owned objects, and it is not currently affecting any public business table in this project.
+- Rejected alternatives:
+  - block H19 until the platform-owned `supabase_admin` defaults can be altered directly from the migration runner
+  - treat advisor `RLS Enabled No Policy` infos as hard failures even though direct grants are already zero and access is intentionally server-only
+  - ignore the remote ownership audit and assume the residual is harmless without evidence
+- Consequences:
+  - H19 can close with explicit remote evidence instead of staying open on a non-regressing platform default
+  - the residual remains documented for future audits, especially if any remote/public object later appears with owner `supabase_admin`
+  - downstream milestones can proceed, but the final report must still call out this environment-level residual honestly
+- Affected files:
+  - `docs/production-hardening/PLAN.md`
+  - `docs/production-hardening/STATUS.md`
+  - `docs/production-hardening/DECISIONS.md`
+  - `docs/production-hardening/VALIDATION.md`
+  - `docs/production-hardening/ROLLBACK.md`
+  - `docs/production-hardening/TIMELOG.md`
