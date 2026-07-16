@@ -11,10 +11,12 @@ import {
   normalizeAvailabilitySlots,
   type AvailabilityRecommendation,
   type PlayerAvailability,
+  upsertStoredPlayerAvailability,
 } from "@/lib/playerAvailability";
-import { fetchSupabasePlayerAvailabilities } from "@/lib/supabasePlayerAvailability";
+import { fetchSupabaseMatchPlayerAvailabilities } from "@/lib/supabasePlayerAvailability";
 
 type MatchAvailabilitySuggestionsProps = {
+  matchId: string;
   leagueId: string;
   seasonId: string;
   playerIds: string[];
@@ -146,6 +148,7 @@ function AvailabilitySuggestionCard({
 }
 
 export function MatchAvailabilitySuggestions({
+  matchId,
   leagueId,
   seasonId,
   playerIds,
@@ -165,6 +168,7 @@ export function MatchAvailabilitySuggestions({
     [playerIdsKey],
   );
   const isPersistentAvailability =
+    isSupabaseBackedAvailabilityId(matchId) &&
     isSupabaseBackedAvailabilityId(leagueId) &&
     isSupabaseBackedAvailabilityId(seasonId) &&
     uniquePlayerIds.every(isSupabaseBackedAvailabilityId);
@@ -196,14 +200,16 @@ export function MatchAvailabilitySuggestions({
       setIsLoading(true);
 
       try {
-        const remoteAvailabilities = await fetchSupabasePlayerAvailabilities({
+        const remoteAvailabilities = await fetchSupabaseMatchPlayerAvailabilities({
           leagueId,
-          seasonId,
-          playerIds: uniquePlayerIds,
+          matchId,
         });
 
         if (!isCancelled) {
           setAvailabilities(remoteAvailabilities);
+          remoteAvailabilities.forEach((availability) => {
+            upsertStoredPlayerAvailability(availability);
+          });
         }
       } catch {
         if (!isCancelled) {
@@ -222,7 +228,7 @@ export function MatchAvailabilitySuggestions({
       isCancelled = true;
       window.clearTimeout(resetTimeout);
     };
-  }, [isPersistentAvailability, leagueId, seasonId, uniquePlayerIds]);
+  }, [isPersistentAvailability, leagueId, matchId, seasonId, uniquePlayerIds]);
 
   const recommendations = useMemo(
     () =>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
@@ -245,7 +244,6 @@ function DayAvailabilityEditor({
 }
 
 export default function AvailabilityPage() {
-  const { data: session } = useSession();
   const { userId } = useLeagueAccess();
   const { currentUser } = useCurrentUser();
   const { activeLeague, activeSeason } = useCurrentLeagueData();
@@ -433,8 +431,6 @@ export default function AvailabilityPage() {
       if (isPersistentAvailability && userId) {
         const savedAvailability = await upsertSupabasePlayerAvailability({
           availability: nextAvailability,
-          userEmail: userId,
-          displayName: session?.user?.name,
         });
 
         setAvailability(savedAvailability);

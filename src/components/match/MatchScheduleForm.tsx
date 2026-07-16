@@ -472,6 +472,7 @@ export function MatchScheduleForm({
       {canManage && isEditing ? (
         <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
           <MatchAvailabilitySuggestions
+            matchId={matchId}
             leagueId={leagueId}
             seasonId={seasonId}
             playerIds={playerIds}

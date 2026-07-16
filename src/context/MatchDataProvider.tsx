@@ -27,11 +27,14 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { recordActivityEvent, type ActivityEventType } from "@/lib/activity";
 import { dateTimeLocalToUtcIso } from "@/lib/matchScheduleTime";
 import {
+  clearSupabaseCourtBooking,
   clearSupabaseMatchResult,
   clearSupabaseMatchSchedule,
   finishSupabaseMatch,
   formatScheduleDateLabel,
   postponeSupabaseMatch,
+  sendSupabaseCourtBookingPaymentReminder,
+  updateSupabaseCourtBookingTransferPaymentStatus,
   updateSupabaseMatchResultLock,
   updateSupabaseCourtBooking,
   updateSupabaseMatchSchedule,
@@ -39,7 +42,6 @@ import {
 import { finishSupabaseActiveSeason } from "@/lib/supabaseSeasons";
 import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
 import {
-  clearSupabaseMatchResultConfirmations,
   fetchSupabaseMatchResultConfirmations,
   upsertSupabaseMatchResultConfirmation,
   type MatchResultConfirmation,
@@ -595,9 +597,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     [matches],
   );
   const supabaseMatchIdKey = supabaseMatchIds.join("|");
+  const hasAuthenticatedSession = Boolean(session?.user?.email?.trim());
 
   useEffect(() => {
-    if (!supabaseMatchIdKey) {
+    if (!supabaseMatchIdKey || !hasAuthenticatedSession) {
       return;
     }
 
@@ -612,7 +615,12 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       .catch((error) => {
         recordSupabaseError("fetch-match-result-confirmations", error);
       });
-  }, [persistConfirmations, supabaseMatchIdKey, supabaseMatchIds]);
+  }, [
+    hasAuthenticatedSession,
+    persistConfirmations,
+    supabaseMatchIdKey,
+    supabaseMatchIds,
+  ]);
 
   const recordMatchActivity = useCallback(
     async ({
@@ -946,14 +954,6 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         });
 
         setMatches(() => persistNextMatches(nextMatches));
-        try {
-          await clearSupabaseMatchResultConfirmations(matchId);
-        } catch (confirmationError) {
-          recordSupabaseError(
-            "clear-match-result-confirmations-after-save",
-            confirmationError,
-          );
-        }
         setResultConfirmations((currentConfirmations) =>
           persistConfirmations(
             currentConfirmations.filter((item) => item.matchId !== matchId),
@@ -1119,7 +1119,6 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
       try {
         const updatedMatch = await clearSupabaseMatchResult(matchId);
-        await clearSupabaseMatchResultConfirmations(matchId);
 
         setMatches((currentMatches) =>
           persistNextMatches(replaceMatch(currentMatches, updatedMatch)),
@@ -1255,7 +1254,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         return false;
       }
 
-      const confirmation: MatchResultConfirmation = {
+      let confirmation: MatchResultConfirmation = {
         matchId,
         playerId,
         status,
@@ -1264,7 +1263,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
       if (isSupabaseBackedMatch(matchId)) {
         try {
-          await upsertSupabaseMatchResultConfirmation(confirmation);
+          confirmation = await upsertSupabaseMatchResultConfirmation({
+            matchId,
+            status,
+          });
         } catch (error) {
           recordSupabaseError("upsert-match-result-confirmation", error);
           return false;
@@ -1557,10 +1559,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       }
 
       try {
-        const updatedMatch = await updateSupabaseCourtBooking({
-          matchId,
-          booking,
-        });
+        const updatedMatch = await clearSupabaseCourtBooking(matchId);
 
         setMatches((currentMatches) =>
           persistNextMatches(replaceMatch(currentMatches, updatedMatch)),
@@ -1610,9 +1609,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       }
 
       try {
-        const updatedMatch = await updateSupabaseCourtBooking({
+        const updatedMatch = await updateSupabaseCourtBookingTransferPaymentStatus({
           matchId,
-          booking,
+          transferId,
+          isPaid,
         });
 
         setMatches((currentMatches) =>
@@ -1673,20 +1673,9 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       }
 
       try {
-        await recordMatchActivity({
-          match: currentMatch,
-          type: "court_booking_payment_reminder",
-          title: "Tienes pagos pendientes",
-          description: getActivityMatchDescription(
-            currentMatch,
-            "Recordatorio de pago de reserva",
-          ),
-          metadata: {
-            reservations: currentMatch.courtBooking.reservations,
-            ballPurchases: currentMatch.courtBooking.ballPurchases,
-            transfers: pendingTransfers,
-            reminder: true,
-          },
+        await sendSupabaseCourtBookingPaymentReminder({
+          matchId,
+          transferIds: pendingTransfers.map((transfer) => transfer.id),
         });
 
         return true;
@@ -1695,7 +1684,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         return false;
       }
     },
-    [matches, recordMatchActivity],
+    [matches],
   );
 
   const value = useMemo(

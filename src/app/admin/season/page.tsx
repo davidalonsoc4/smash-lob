@@ -1660,6 +1660,7 @@ function RoundManagementPanel({
     if (isSupabaseBackedId(activeSeason.id)) {
       try {
         await updateSupabaseSeasonRoundOrder({
+          leagueId: activeLeagueId,
           seasonId: activeSeason.id,
           roundOrder,
         });
@@ -2440,6 +2441,7 @@ function SeasonDangerZone({
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
         await deleteSupabaseRoundMatches({
+          leagueId: activeLeagueId,
           seasonId: activeSeasonId,
           round: selectedRound,
         });

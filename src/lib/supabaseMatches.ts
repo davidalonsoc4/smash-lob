@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase"
-import { dateTimeLocalToUtcIso, parseMatchScheduleDate } from "@/lib/matchScheduleTime"
+import { parseMatchScheduleDate } from "@/lib/matchScheduleTime"
 import { normalizeCourtBooking } from "@/lib/courtBooking"
 import type {
   CourtBooking,
@@ -187,16 +186,6 @@ export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
   }
 }
 
-function calculateResultPoints(sets: MatchSet[]) {
-  const pointsA = sets.filter((set) => set.a > set.b).length
-  const pointsB = sets.filter((set) => set.b > set.a).length
-
-  return {
-    pointsA,
-    pointsB,
-  }
-}
-
 export function formatScheduleDateLabel(scheduledAt: string) {
   const date = parseMatchScheduleDate(scheduledAt)
 
@@ -215,6 +204,20 @@ export function formatScheduleDateLabel(scheduledAt: string) {
   return label.charAt(0).toLocaleUpperCase("es-ES") + label.slice(1)
 }
 
+async function readMatchResponse(response: Response, errorPrefix: string) {
+  if (!response.ok) {
+    throw new Error(`${errorPrefix}-${response.status}`)
+  }
+
+  const payload = (await response.json()) as { match?: MatchData }
+
+  if (!payload.match) {
+    throw new Error(`${errorPrefix}-empty`)
+  }
+
+  return payload.match
+}
+
 export async function updateSupabaseMatchSchedule({
   matchId,
   scheduledAt,
@@ -224,65 +227,41 @@ export async function updateSupabaseMatchSchedule({
   scheduledAt: string
   location: string
 }) {
-  const storedScheduledAt = dateTimeLocalToUtcIso(scheduledAt)
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/schedule`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scheduledAt, location }),
+      cache: "no-store",
+    }
+  )
 
-  const { data, error } = await supabase
-    .from("matches")
-    .update({
-      status: "scheduled",
-      scheduled_at: storedScheduledAt,
-      date_label: formatScheduleDateLabel(storedScheduledAt),
-      location,
-    })
-    .eq("id", matchId)
-    .select(matchSelect)
-    .single()
-
-  if (error) {
-    throw error
-  }
-
-  return mapSupabaseMatch(data)
+  return readMatchResponse(response, "match-schedule-api")
 }
 
 export async function postponeSupabaseMatch(matchId: string) {
-  const { data, error } = await supabase
-    .from("matches")
-    .update({
-      status: "postponed",
-      scheduled_at: null,
-      date_label: null,
-      location: null,
-    })
-    .eq("id", matchId)
-    .select(matchSelect)
-    .single()
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/postpone`,
+    {
+      method: "POST",
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error
-  }
-
-  return mapSupabaseMatch(data)
+  return readMatchResponse(response, "match-postpone-api")
 }
 
 export async function clearSupabaseMatchSchedule(matchId: string) {
-  const { data, error } = await supabase
-    .from("matches")
-    .update({
-      status: "scheduling",
-      scheduled_at: null,
-      date_label: null,
-      location: null,
-    })
-    .eq("id", matchId)
-    .select(matchSelect)
-    .single()
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/schedule`,
+    {
+      method: "DELETE",
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error
-  }
-
-  return mapSupabaseMatch(data)
+  return readMatchResponse(response, "match-schedule-clear-api")
 }
 
 export async function finishSupabaseMatch({
@@ -294,65 +273,32 @@ export async function finishSupabaseMatch({
   result: MatchResultInput
   reportedByPlayerId: string | null
 }) {
-  const points = calculateResultPoints(result.sets)
-  const resultRecordedAt = new Date().toISOString()
+  void reportedByPlayerId
 
-  const { data, error } = await supabase
-    .from("matches")
-    .update({
-      status: "finished",
-      sets: result.sets,
-      points_a: points.pointsA,
-      points_b: points.pointsB,
-      result_recorded_at: resultRecordedAt,
-      result_reported_by_player_id: reportedByPlayerId,
-      result_locked: false,
-    })
-    .eq("id", matchId)
-    .select(matchSelect)
-    .single()
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/result`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sets: result.sets }),
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error
-  }
-
-  return mapSupabaseMatch(data)
+  return readMatchResponse(response, "match-result-api")
 }
 
 
 export async function clearSupabaseMatchResult(matchId: string) {
-  const { data: currentMatch, error: currentError } = await supabase
-    .from("matches")
-    .select("scheduled_at")
-    .eq("id", matchId)
-    .single()
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/result`,
+    {
+      method: "DELETE",
+      cache: "no-store",
+    }
+  )
 
-  if (currentError) {
-    throw currentError
-  }
-
-  const nextStatus = currentMatch?.scheduled_at ? "scheduled" : "scheduling"
-
-  const { data, error } = await supabase
-    .from("matches")
-    .update({
-      status: nextStatus,
-      sets: [],
-      points_a: null,
-      points_b: null,
-      result_recorded_at: null,
-      result_reported_by_player_id: null,
-      result_locked: false,
-    })
-    .eq("id", matchId)
-    .select(matchSelect)
-    .single()
-
-  if (error) {
-    throw error
-  }
-
-  return mapSupabaseMatch(data)
+  return readMatchResponse(response, "match-result-clear-api")
 }
 
 export async function updateSupabaseMatchResultLock({
@@ -362,19 +308,17 @@ export async function updateSupabaseMatchResultLock({
   matchId: string
   locked: boolean
 }) {
-  const { data, error } = await supabase
-    .from("matches")
-    .update({ result_locked: locked })
-    .eq("id", matchId)
-    .eq("status", "finished")
-    .select(matchSelect)
-    .single()
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/result-lock`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locked }),
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error
-  }
-
-  return mapSupabaseMatch(data)
+  return readMatchResponse(response, "match-result-lock-api")
 }
 
 export async function updateSupabaseCourtBooking({
@@ -384,24 +328,74 @@ export async function updateSupabaseCourtBooking({
   matchId: string
   booking: CourtBooking
 }) {
-  const { data, error } = await supabase
-    .from("matches")
-    .update({
-      court_reserved: booking.isReserved,
-      booking_reservations: {
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/court-booking`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         reservations: booking.reservations,
         ballPurchases: booking.ballPurchases,
-      },
-      booking_transfers: booking.transfers,
-      booking_updated_at: booking.updatedAt,
-    })
-    .eq("id", matchId)
-    .select(matchSelect)
-    .single()
+      }),
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error
+  return readMatchResponse(response, "match-court-booking-api")
+}
+
+export async function clearSupabaseCourtBooking(matchId: string) {
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/court-booking`,
+    {
+      method: "DELETE",
+      cache: "no-store",
+    }
+  )
+
+  return readMatchResponse(response, "match-court-booking-clear-api")
+}
+
+export async function updateSupabaseCourtBookingTransferPaymentStatus({
+  matchId,
+  transferId,
+  isPaid,
+}: {
+  matchId: string
+  transferId: string
+  isPaid: boolean
+}) {
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/court-booking/transfers/${encodeURIComponent(transferId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isPaid }),
+      cache: "no-store",
+    }
+  )
+
+  return readMatchResponse(response, "match-court-booking-transfer-api")
+}
+
+export async function sendSupabaseCourtBookingPaymentReminder({
+  matchId,
+  transferIds,
+}: {
+  matchId: string
+  transferIds?: string[]
+}) {
+  const response = await fetch(
+    `/api/matches/${encodeURIComponent(matchId)}/court-booking/payment-reminder`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transferIds }),
+      cache: "no-store",
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(`match-court-booking-reminder-api-${response.status}`)
   }
-
-  return mapSupabaseMatch(data)
 }

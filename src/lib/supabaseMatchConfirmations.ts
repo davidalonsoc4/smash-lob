@@ -1,5 +1,3 @@
-import { supabase } from "@/lib/supabase"
-
 export type MatchResultConfirmationStatus = "confirmed" | "disputed"
 
 export type MatchResultConfirmation = {
@@ -9,70 +7,70 @@ export type MatchResultConfirmation = {
   updatedAt: string
 }
 
-type SupabaseMatchResultConfirmationRow = {
-  match_id: string
-  player_id: string
-  status: MatchResultConfirmationStatus
-  updated_at: string
-}
-
-function mapConfirmation(
-  row: SupabaseMatchResultConfirmationRow
-): MatchResultConfirmation {
-  return {
-    matchId: row.match_id,
-    playerId: row.player_id,
-    status: row.status,
-    updatedAt: row.updated_at,
-  }
-}
-
 export async function fetchSupabaseMatchResultConfirmations(matchIds: string[]) {
   if (matchIds.length === 0) {
     return []
   }
 
-  const { data, error } = await supabase
-    .from("match_result_confirmations")
-    .select("match_id,player_id,status,updated_at")
-    .in("match_id", matchIds)
+  const response = await fetch("/api/result-confirmations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ matchIds }),
+    cache: "no-store",
+  })
 
-  if (error) {
-    throw error
+  if (!response.ok) {
+    throw new Error(`result-confirmations-api-${response.status}`)
   }
 
-  return (data ?? []).map((row) =>
-    mapConfirmation(row as SupabaseMatchResultConfirmationRow)
-  )
+  const payload = (await response.json()) as {
+    items?: MatchResultConfirmation[]
+  }
+
+  return payload.items ?? []
 }
 
 export async function upsertSupabaseMatchResultConfirmation(
-  confirmation: MatchResultConfirmation
+  confirmation: {
+    matchId: string
+    status: MatchResultConfirmationStatus
+  }
 ) {
-  const { error } = await supabase.from("match_result_confirmations").upsert(
+  const response = await fetch(
+    `/api/result-confirmations/${encodeURIComponent(confirmation.matchId)}`,
     {
-      match_id: confirmation.matchId,
-      player_id: confirmation.playerId,
-      status: confirmation.status,
-      updated_at: confirmation.updatedAt,
-    },
-    {
-      onConflict: "match_id,player_id",
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: confirmation.status }),
+      cache: "no-store",
     }
   )
 
-  if (error) {
-    throw error
+  if (!response.ok) {
+    throw new Error(`result-confirmation-save-api-${response.status}`)
   }
+
+  const payload = (await response.json()) as {
+    confirmation?: MatchResultConfirmation
+  }
+
+  if (!payload.confirmation) {
+    throw new Error("result-confirmation-save-api-empty")
+  }
+
+  return payload.confirmation
 }
 
 export async function clearSupabaseMatchResultConfirmations(matchId: string) {
-  const { error } = await supabase
-    .from("match_result_confirmations")
-    .delete()
-    .eq("match_id", matchId)
+  const response = await fetch(
+    `/api/result-confirmations/${encodeURIComponent(matchId)}`,
+    {
+      method: "DELETE",
+      cache: "no-store",
+    }
+  )
 
-  if (error) {
-    throw error
+  if (!response.ok) {
+    throw new Error(`result-confirmation-delete-api-${response.status}`)
   }
 }
