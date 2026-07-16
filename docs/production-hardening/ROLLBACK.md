@@ -1,14 +1,18 @@
 # Rollback Notes
 
-Last updated: 2026-07-16 13:39:57 +02:00
+Last updated: 2026-07-16 23:31:46 +02:00
 
 Last stable commit:
-- local and remote release checkpoint: `07168b5 chore: checkpoint production hardening progress`
+- current validated application release commit: `b805faf ui: label settings as closed beta`
+- prior validated production commit before the closed-beta label: `2407b4f docs: checkpoint preview and remote verification`
 - prior remote checkpoint before H17 push: `8405e27 security: restrict rls auto-enable execution`
 
 Last stable production deployment:
-- Production URL known: `https://smash-lob.vercel.app`
-- Exact deployment ID / SHA: not verified in this session yet
+- Production alias: `https://smash-lob.vercel.app`
+- Exact deployment ID: `dpl_sMFbcwiqc5bC3sSEPPmHpH1dfGtc`
+- Exact deployment URL: `https://smash-la8pe2hvc-davidalonsoc4-8740s-projects.vercel.app`
+- Release commit deployed in this validation run: `b805faf5a146f5bfa93b4646fbef3dbb0d8d399b`
+- Status at verification time: `Ready`
 
 Backup artifacts verified:
 - `D:\BACKUPS\smash-lob-backup-2026-07-14.7z`
@@ -20,15 +24,16 @@ Fresh bundle created:
 - `D:\BACKUPS\smash-lob-release-production-hardening-20260716-131924.bundle.sha256.txt`
 
 Remote changes already performed in the current hardening run:
-- pushed `release/production-hardening` to `origin` at `07168b5` (verified with `git ls-remote`)
+- pushed `release/production-hardening` to `origin` through `b805faf` (verified with `git ls-remote`)
+- fast-forwarded and pushed `main` through `b805faf`
 - applied the linked Supabase hardening migrations through `20260716014000` and verified local/remote migration parity afterward
 
 Current validated Preview deployment:
-- deployment id: `dpl_EmRooXAtzhxC4KN3WW2uLHn3gpYQ`
-- Preview URL: `https://smash-7vgg9yyao-davidalonsoc4-8740s-projects.vercel.app`
+- deployment id: `dpl_2XA51Wn1LKR67ZDifQtpzon6uSdo`
+- Preview URL: `https://smash-iw3095qvd-davidalonsoc4-8740s-projects.vercel.app`
 - stable alias: `https://smash-lob-git-release-produ-7ebc68-davidalonsoc4-8740s-projects.vercel.app`
 - status: `Ready`
-- smoke status: authenticated H18 Preview/stable-alias smoke checks passed on `2026-07-16`
+- smoke status: final release deployment reached `Ready` on `2026-07-16`; the full automated smoke suite was executed against the Production alias
 
 Current release commits on the remote branch:
 - `9d4bdd2 security: move league access behind server authorization`
@@ -37,6 +42,7 @@ Current release commits on the remote branch:
 - `820df86 security: protect mvp qa and media flows`
 - `1bdf65e security: finalize database grants and rls hardening`
 - `07168b5 chore: checkpoint production hardening progress`
+- `b805faf ui: label settings as closed beta`
 
 Migrations already applied:
 - local known: `20260714155912`, `20260714194452`
@@ -54,7 +60,7 @@ Migrations already applied:
   - `20260716014000_fix_function_default_execute_privileges.sql`
 
 Backward compatibility status:
-- current uncommitted work has not been pushed or deployed
+- the validated production app now includes the non-intrusive settings-only `Beta cerrada · v0.9.68` label
 - pending migration `20260714213000` must not be applied remotely until invite flows are fully server-side and validated
 - `app_users` browser upsert behavior now depends on `/api/app-user`; rollback should restore `src/lib/supabaseUsers.ts` together with that route if this milestone is reverted
 - availability editing and scheduling hints now depend on server routes under `/api/leagues/[id]/players/[playerId]/availability` and `/api/leagues/[id]/matches/[matchId]/availability`; rollback should restore `src/lib/supabasePlayerAvailability.ts` together with those routes if H05 is reverted
@@ -79,9 +85,10 @@ Backward compatibility status:
 - H14 static audit is locally closed: client/server import boundaries are clean, runtime `supabase.*` access is confined to API/server code, and the legacy public superuser helper has been removed
 - H15 local validation is now closed: `npm ci`, `npm audit`, typecheck, lint, build, and a fresh local Supabase reset/lint/audit/stop cycle all passed on the current tree; there is still no automated test suite to run
 - H16 backup verification is now closed: the prior encrypted backup has been checksum-verified, and a fresh git bundle checkpoint exists in `D:\BACKUPS`
-- H18 Preview validation is now closed for release SHA `07168b5`: root, manifest, icon assets, auth session/providers, invalid invite routes, cron-without-secret behavior, protected no-session behavior, and a post-smoke deployment-log scan all returned the expected results
+- H18 Preview validation is closed on both the earlier release checkpoint and the final closed-beta release commit; the stable alias continues to resolve correctly
 - H19 linked remote validation is now closed: remote migration parity is exact, linked lint passes, current-object SQL audits are clean, all current public tables remain owned by `postgres`, and the only leftover DB-level residual is the known `supabase_admin` default ACL pattern
-- production compatibility of later milestones remains to be verified before remote DB changes
+- H20-H22 are now closed for the automated scope: branch integration, Production deployment, env-name/value checks, smoke tests, anon-write probe, and post-smoke log scan all passed on 2026-07-16
+- the only remaining release evidence outside the automated scope is the manual two-account Google walkthrough
 
 Recovery procedure:
 1. If local code work becomes unstable before any remote action, revert only the local uncommitted domain changes with non-destructive file edits.
@@ -89,7 +96,7 @@ Recovery procedure:
 3. If a preview deployment is bad, redeploy a known-good commit or revert the offending commits on `release/production-hardening`.
 4. Before any remote migration, verify backups and generate a fresh git bundle.
 5. If a remote migration fails partially, stop, inspect migration state, and repair with a new forward migration. Do not edit an applied migration.
-6. If production deployment fails critically after merge, restore the last Production Ready deployment and, if needed, revert the merge with a new commit.
+6. If production deployment fails critically after merge, restore the prior Production Ready deployment (`dpl_EiMC9dX7XnVRpCW8jqDAbZuSMQCo` for commit `2407b4f`) or a later known-good deployment, and if needed revert the release commit with a new commit.
 
 Do not revert destructively:
 - applied Supabase migrations

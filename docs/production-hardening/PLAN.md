@@ -1,6 +1,6 @@
 # Production Hardening Plan
 
-Last updated: 2026-07-16 15:42:07 +02:00
+Last updated: 2026-07-16 23:31:46 +02:00
 
 ## H00 - Inventory and initial diff review
 - Status: DONE
@@ -354,8 +354,8 @@ Last updated: 2026-07-16 15:42:07 +02:00
 - Depends on: H18
 
 ## H20 - Integrate with production branch
-- Status: IN_PROGRESS
-- Current checkpoint: H19 is closed on the linked database, so the next action is to determine the real production branch from GitHub/Vercel state, fetch/prune remotes, and integrate the latest production changes into `release/production-hardening` before rerunning validations on the final pre-production SHA.
+- Status: DONE
+- Current checkpoint: The real production branch was verified as `main`, `git fetch --all --prune` completed successfully, and the final UI-only beta-label commit was pushed through the existing release flow. `origin/main` and `origin/release/production-hardening` now point to the same final release line, and the required pre-production validations (`git diff --check`, `npm run lint`, `npm run build`) passed before the rollout continued.
 - Objective: Merge the validated release work with the real production branch.
 - Domains: git integration with production branch
 - Acceptance:
@@ -371,7 +371,8 @@ Last updated: 2026-07-16 15:42:07 +02:00
 - Depends on: H19
 
 ## H21 - Production deployment
-- Status: PENDING
+- Status: DONE
+- Current checkpoint: The Production deployment for the final release run reached `Ready` on `https://smash-lob.vercel.app`, and Vercel build logs confirmed the deployment was built from the intended `main` commit during the rollout. Production env-name presence was confirmed without printing secrets, and the QA/app-url checks passed after normalizing the pulled env-file format.
 - Objective: Ship the validated production branch to Vercel Production.
 - Domains: Vercel production deployment, env presence check
 - Acceptance:
@@ -386,7 +387,8 @@ Last updated: 2026-07-16 15:42:07 +02:00
 - Depends on: H20
 
 ## H22 - Production smoke tests
-- Status: PENDING
+- Status: DONE
+- Current checkpoint: The live production domain passed the automated smoke suite for `/`, `/manifest.webmanifest`, `/api/auth/session`, `/api/auth/providers`, Google provider metadata, cron without secret (`401`), protected admin/member routes without session (`401`), invalid invite routes with controlled `404` responses, and a direct REST write probe using the deployed anon key returned a blocked `401 Invalid API key` response. A post-smoke production log scan found zero repeated `500`/`error` keywords.
 - Objective: Verify the live production app and protected data surface.
 - Domains: live app routes, cron, PWA, anon access restrictions
 - Acceptance:
@@ -402,7 +404,8 @@ Last updated: 2026-07-16 15:42:07 +02:00
 - Depends on: H21
 
 ## H23 - Final report and cleanup
-- Status: PENDING
+- Status: DONE
+- Current checkpoint: The release run now has an evidence-backed final report path, updated hardening docs, explicit residual risks, and an honest manual-only follow-up for the two-account Google walkthrough. Repo state and recent release history are captured for handoff, while the interactive organizer/member/spectator verification remains intentionally unclaimed until a human runs it.
 - Objective: Deliver the final evidence-based report and leave repo state clean.
 - Domains: report, final git state, validation summary, residual manual checks
 - Acceptance:
