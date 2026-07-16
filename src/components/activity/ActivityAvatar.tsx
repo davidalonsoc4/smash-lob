@@ -1,3 +1,5 @@
+import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
+
 type ActivityAvatarProps = {
   name?: string | null
   email?: string | null
@@ -39,10 +41,10 @@ export function ActivityAvatar({
 
   return (
     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-950 text-xs font-black text-white shadow-sm">
-      {imageUrl ? (
+      {isSafeImageUrl(imageUrl) ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={imageUrl}
+          src={normalizeImageUrl(imageUrl) ?? ""}
           alt=""
           className={`h-full w-full ${
             imageFit === "contain" ? "object-contain" : "object-cover"

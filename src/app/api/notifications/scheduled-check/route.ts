@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { createSupabaseServiceClient } from "@/lib/supabaseServer";
 import { dispatchPushForActivityEvent } from "@/lib/serverPushDispatch";
 import {
@@ -260,18 +261,25 @@ function getProvidedCronSecret(request: Request) {
     return headerSecret;
   }
 
-  const url = new URL(request.url);
-  return url.searchParams.get("secret")?.trim() ?? "";
+  return "";
 }
 
 function isAuthorizedCronRequest(request: Request) {
   const expectedSecret = process.env.CRON_SECRET?.trim();
+  const providedSecret = getProvidedCronSecret(request);
 
-  if (!expectedSecret) {
+  if (!expectedSecret || !providedSecret) {
     return false;
   }
 
-  return getProvidedCronSecret(request) === expectedSecret;
+  const expectedBuffer = Buffer.from(expectedSecret);
+  const providedBuffer = Buffer.from(providedSecret);
+
+  if (expectedBuffer.length !== providedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(expectedBuffer, providedBuffer);
 }
 
 export async function GET(request: Request) {
@@ -287,7 +295,7 @@ export async function GET(request: Request) {
   if (!supabase) {
     return NextResponse.json(
       { ok: false, reason: "missing_service_role" },
-      { status: 200 },
+      { status: 501 },
     );
   }
 
@@ -314,14 +322,14 @@ export async function GET(request: Request) {
 
   if (scheduledResult.error) {
     return NextResponse.json(
-      { ok: false, error: scheduledResult.error.message },
+      { ok: false, error: "matches_lookup_failed" },
       { status: 500 },
     );
   }
 
   if (settingsResult.error) {
     return NextResponse.json(
-      { ok: false, error: settingsResult.error.message },
+      { ok: false, error: "season_settings_lookup_failed" },
       { status: 500 },
     );
   }
@@ -357,7 +365,7 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { ok: false, error: error.message },
+        { ok: false, error: "finished_matches_lookup_failed" },
         { status: 500 },
       );
     }
@@ -395,7 +403,7 @@ export async function GET(request: Request) {
 
   if (seasonsError) {
     return NextResponse.json(
-      { ok: false, error: seasonsError.message },
+      { ok: false, error: "seasons_lookup_failed" },
       { status: 500 },
     );
   }
@@ -476,7 +484,7 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { ok: false, error: error.message },
+        { ok: false, error: "mvp_votes_lookup_failed" },
         { status: 500 },
       );
     }
@@ -539,7 +547,7 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { ok: false, error: error.message },
+        { ok: false, error: "result_confirmations_lookup_failed" },
         { status: 500 },
       );
     }
@@ -631,7 +639,7 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { ok: false, error: error.message },
+        { ok: false, error: "result_confirmations_autovalidate_failed" },
         { status: 500 },
       );
     }

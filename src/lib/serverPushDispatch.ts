@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createSupabaseServiceClient } from "@/lib/supabaseServer";
 import {
   getNotificationPreferenceKeyForEvent,

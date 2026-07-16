@@ -87,6 +87,11 @@ export default function NotificationSettingsPage() {
         const response = await fetch(
           `/api/notifications/preferences?leagueId=${encodeURIComponent(activeLeague.id)}`
         )
+
+        if (!response.ok) {
+          throw new Error("load-failed")
+        }
+
         const data = (await response.json()) as LoadPreferencesResponse
 
         if (!isMounted) {
@@ -236,13 +241,17 @@ export default function NotificationSettingsPage() {
         await unsubscribeFromPush()
       }
 
-      await fetch("/api/notifications/unsubscribe", {
+      const response = await fetch("/api/notifications/unsubscribe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ endpoint }),
+        body: JSON.stringify({ leagueId: activeLeague.id, endpoint }),
       })
+
+      if (!response.ok) {
+        throw new Error("unsubscribe-failed")
+      }
 
       setHasSubscription(false)
       setMessage(t.notifications.deviceDisabled)

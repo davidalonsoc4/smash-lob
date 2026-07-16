@@ -1,43 +1,43 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
-import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
+import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 
 export const runtime = "nodejs"
 
-function normalizeEmail(value: string | null | undefined) {
-  return value?.trim().toLowerCase() ?? ""
-}
-
 export async function POST(request: Request) {
-  const session = await auth()
-  const email = normalizeEmail(session?.user?.email)
-  const body = (await request.json().catch(() => null)) as {
+  const body = await parseJsonBody<{
+    leagueId?: string
     endpoint?: string
-  } | null
+  }>(request)
+  const leagueId = validateUuid(body?.leagueId)
   const endpoint = body?.endpoint?.trim() ?? ""
 
-  if (!email) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  if (!leagueId) {
+    return NextResponse.json({ error: "invalid_league" }, { status: 400 })
   }
 
   if (!endpoint) {
     return NextResponse.json({ ok: true })
   }
 
-  const supabase = createSupabaseServiceClient()
+  const access = await getServerLeagueActor(leagueId, { requireMember: true })
 
-  if (!supabase) {
-    return NextResponse.json({ error: "missing_service_role" }, { status: 501 })
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
-  const { error } = await supabase
+  const { error } = await access.actor.supabase
     .from("push_subscriptions")
     .update({ enabled: false, updated_at: new Date().toISOString() })
+    .eq("league_id", leagueId)
     .eq("endpoint", endpoint)
-    .eq("user_email", email)
+    .eq("user_email", access.actor.user.email)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: "push_subscription_disable_failed" },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ ok: true })

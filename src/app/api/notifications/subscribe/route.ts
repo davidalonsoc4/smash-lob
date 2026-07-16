@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
-import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { defaultNotificationPreferences } from "@/lib/notificationSettings"
+import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 
 export const runtime = "nodejs"
-
-function normalizeEmail(value: string | null | undefined) {
-  return value?.trim().toLowerCase() ?? ""
-}
-
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-}
 
 function getEndpoint(value: unknown) {
   if (typeof value !== "object" || value === null) {
@@ -43,24 +35,17 @@ function getKeys(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  const session = await auth()
-  const email = normalizeEmail(session?.user?.email)
-  const body = (await request.json().catch(() => null)) as {
+  const body = await parseJsonBody<{
     leagueId?: string
     playerId?: string
     subscription?: unknown
-  } | null
-  const leagueId = body?.leagueId?.trim() ?? ""
-  const rawPlayerId = body?.playerId?.trim() ?? ""
-  const playerId = isUuid(rawPlayerId) ? rawPlayerId : null
+  }>(request)
+  const leagueId = validateUuid(body?.leagueId)
+  const requestedPlayerId = validateUuid(body?.playerId)
   const endpoint = getEndpoint(body?.subscription)
   const keys = getKeys(body?.subscription)
 
-  if (!email) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-  }
-
-  if (!isUuid(leagueId)) {
+  if (!leagueId) {
     return NextResponse.json({ error: "invalid_league" }, { status: 400 })
   }
 
@@ -68,16 +53,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_subscription" }, { status: 400 })
   }
 
-  const supabase = createSupabaseServiceClient()
+  const access = await getServerLeagueActor(leagueId, { requireMember: true })
 
-  if (!supabase) {
-    return NextResponse.json({ error: "missing_service_role" }, { status: 501 })
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
-  const { error } = await supabase.from("push_subscriptions").upsert(
+  if (
+    requestedPlayerId &&
+    access.actor.membership?.playerId &&
+    requestedPlayerId !== access.actor.membership.playerId
+  ) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 })
+  }
+
+  const playerId = access.actor.membership?.playerId ?? null
+  const { error } = await access.actor.supabase.from("push_subscriptions").upsert(
     {
       league_id: leagueId,
-      user_email: email,
+      user_email: access.actor.user.email,
       player_id: playerId,
       endpoint,
       p256dh: keys.p256dh,
@@ -86,27 +80,47 @@ export async function POST(request: Request) {
       enabled: true,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "endpoint" }
+    { onConflict: "league_id,endpoint" }
   )
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: "push_subscription_upsert_failed" },
+      { status: 500 }
+    )
   }
 
-  const { data: existingPreferences } = await supabase
-    .from("notification_preferences")
-    .select("id")
-    .eq("league_id", leagueId)
-    .eq("user_email", email)
-    .maybeSingle()
+  const { data: existingPreferences, error: existingPreferencesError } =
+    await access.actor.supabase
+      .from("notification_preferences")
+      .select("id")
+      .eq("league_id", leagueId)
+      .eq("user_email", access.actor.user.email)
+      .maybeSingle()
+
+  if (existingPreferencesError) {
+    return NextResponse.json(
+      { error: "notification_preferences_lookup_failed" },
+      { status: 500 }
+    )
+  }
 
   if (!existingPreferences) {
-    await supabase.from("notification_preferences").insert({
-      league_id: leagueId,
-      user_email: email,
-      settings: defaultNotificationPreferences,
-      updated_at: new Date().toISOString(),
-    })
+    const { error: insertPreferencesError } = await access.actor.supabase
+      .from("notification_preferences")
+      .insert({
+        league_id: leagueId,
+        user_email: access.actor.user.email,
+        settings: defaultNotificationPreferences,
+        updated_at: new Date().toISOString(),
+      })
+
+    if (insertPreferencesError) {
+      return NextResponse.json(
+        { error: "notification_preferences_create_failed" },
+        { status: 500 }
+      )
+    }
   }
 
   return NextResponse.json({ ok: true })

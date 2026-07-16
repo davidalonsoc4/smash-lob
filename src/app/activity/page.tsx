@@ -11,7 +11,6 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
-  fetchLeagueMembershipJoinedAt,
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
@@ -446,16 +445,10 @@ function ActivityPageContent() {
       setError(null)
 
       try {
-        const joinedAt = canAccessAdmin
-          ? null
-          : await fetchLeagueMembershipJoinedAt({
-              leagueId: activeLeague.id,
-              playerId: currentUserId,
-            })
         const activityEvents = await fetchSupabaseActivityEvents({
           leagueId: activeLeague.id,
           limit: 160,
-          createdAtFrom: joinedAt,
+          clampToViewerJoinDate: !canAccessAdmin,
         })
 
         if (!isMounted) {

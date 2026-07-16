@@ -106,8 +106,8 @@ export async function POST(
     leagueId,
     seasonId,
     type: "season_registration_payment_reminder",
-    title: "Recordatorio de inscripcion",
-    description: `Inscripcion pendiente · ${registrationFee.amount}`,
+    title: "Recordatorio de inscripción",
+    description: `Inscripción pendiente · ${registrationFee.amount}`,
     metadata: {
       amount: registrationFee.amount,
       organizerName,

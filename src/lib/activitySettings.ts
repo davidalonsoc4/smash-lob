@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase";
 import type { ActivityEventType } from "@/lib/activity";
 import {
   alwaysEnabledNotificationEventTypes,
@@ -304,17 +303,20 @@ export function mergeWithDefaultActivitySettings(
 }
 
 export async function fetchLeagueActivitySettings(leagueId: string) {
-  const { data, error } = await supabase
-    .from("leagues")
-    .select("activity_settings")
-    .eq("id", leagueId)
-    .single();
+  const response = await fetch(
+    `/api/leagues/${encodeURIComponent(leagueId)}/activity-settings`,
+    {
+      cache: "no-store",
+    },
+  );
 
-  if (error) {
-    throw error;
+  if (!response.ok) {
+    throw new Error(`activity-settings-api-${response.status}`);
   }
 
-  return normalizeLeagueActivitySettings(data?.activity_settings);
+  const payload = (await response.json()) as { settings?: unknown };
+
+  return normalizeLeagueActivitySettings(payload.settings);
 }
 
 export async function updateLeagueActivitySettings({
@@ -326,16 +328,23 @@ export async function updateLeagueActivitySettings({
 }) {
   const safeSettings = mergeWithDefaultActivitySettings(settings);
 
-  const { data, error } = await supabase
-    .from("leagues")
-    .update({ activity_settings: safeSettings })
-    .eq("id", leagueId)
-    .select("activity_settings")
-    .single();
+  const response = await fetch(
+    `/api/leagues/${encodeURIComponent(leagueId)}/activity-settings`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ settings: safeSettings }),
+      cache: "no-store",
+    },
+  );
 
-  if (error) {
-    throw error;
+  if (!response.ok) {
+    throw new Error(`activity-settings-api-${response.status}`);
   }
 
-  return normalizeLeagueActivitySettings(data?.activity_settings);
+  const payload = (await response.json()) as { settings?: unknown };
+
+  return normalizeLeagueActivitySettings(payload.settings);
 }
