@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { getAppBranding } from "@/lib/appVariant"
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>
 }
 
-const dismissedStorageKey = "smash-lob-pwa-install-dismissed-at"
 const dismissedCooldownDays = 7
 
 function isStandaloneDisplay() {
@@ -33,7 +33,7 @@ function isIosDevice() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent)
 }
 
-function wasRecentlyDismissed() {
+function wasRecentlyDismissed(dismissedStorageKey: string) {
   const storedValue = window.localStorage.getItem(dismissedStorageKey)
 
   if (!storedValue) {
@@ -52,12 +52,14 @@ function wasRecentlyDismissed() {
 }
 
 export function PwaInstallPrompt() {
+  const branding = useMemo(() => getAppBranding(), [])
+  const dismissedStorageKey = `smash-lob-pwa-install-dismissed-at:${branding.variantKey}`
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null)
   const [shouldShowIosHelp, setShouldShowIosHelp] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    if (isStandaloneDisplay() || wasRecentlyDismissed()) {
+    if (isStandaloneDisplay() || wasRecentlyDismissed(dismissedStorageKey)) {
       return
     }
 
@@ -81,7 +83,7 @@ export function PwaInstallPrompt() {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
     }
-  }, [])
+  }, [dismissedStorageKey])
 
   function dismiss() {
     window.localStorage.setItem(dismissedStorageKey, String(Date.now()))
@@ -121,13 +123,13 @@ export function PwaInstallPrompt() {
     >
       <div className="mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-3 shadow-lg">
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-sm font-black text-white">
-            S&L
+          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white ${branding.preproduction ? "bg-red-700" : "bg-neutral-950"}`}>
+            {branding.installPromptMonogram}
           </div>
 
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black text-neutral-950">
-              Instala Smash & Lob
+              {branding.installPromptTitle}
             </p>
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
               {shouldShowIosHelp

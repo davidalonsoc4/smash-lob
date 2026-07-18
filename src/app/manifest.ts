@@ -1,15 +1,18 @@
 import type { MetadataRoute } from "next"
+import { getAppBranding } from "@/lib/appVariant"
 
 export default function manifest(): MetadataRoute.Manifest {
+  const branding = getAppBranding()
+
   return {
-    name: "Smash & Lob Padel",
-    short_name: "Smash & Lob",
+    name: branding.applicationName,
+    short_name: branding.shortName,
     description: "Ligas, torneos y rankings privados de pádel.",
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f5f5f5",
-    theme_color: "#0a0a0a",
+    background_color: branding.backgroundColor,
+    theme_color: branding.themeColor,
     orientation: "portrait",
     categories: ["sports", "productivity"],
     icons: [

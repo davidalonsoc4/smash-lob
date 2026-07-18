@@ -13,19 +13,22 @@ import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistr
 import { I18nProvider } from "@/i18n/I18nProvider"
 import { ThemeProvider } from "@/context/ThemeProvider"
 import "./globals.css"
+import { getAppBranding } from "@/lib/appVariant"
+
+const branding = getAppBranding()
 
 export const metadata: Metadata = {
-  applicationName: "Smash & Lob Padel",
+  applicationName: branding.applicationName,
   title: {
-    default: "Smash & Lob",
-    template: "%s · Smash & Lob",
+    default: branding.browserTitle,
+    template: branding.titleTemplate,
   },
   description: "Ligas privadas de pádel con calendario, ranking y resultados.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Smash & Lob",
+    title: branding.appleWebAppTitle,
   },
   icons: {
     icon: [
@@ -40,7 +43,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0a0a0a",
+  themeColor: branding.themeColor,
 }
 
 export default function RootLayout({
