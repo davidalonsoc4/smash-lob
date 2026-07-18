@@ -11,6 +11,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getAppBranding } from "@/lib/appVariant"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
@@ -131,6 +132,7 @@ function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProp
 
 export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
+  const branding = getAppBranding()
   const pathname = usePathname()
   const { activeLeagueId } = useActiveLeague()
   const {
@@ -188,6 +190,16 @@ export function AppShell({ children }: AppShellProps) {
     >
       <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
+
+        {branding.preproduction ? (
+          <div
+            aria-label={branding.internalBadgeAriaLabel ?? undefined}
+            className="pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-white shadow-lg"
+            style={{ top: getFloatingTop() }}
+          >
+            {branding.internalBadgeText}
+          </div>
+        ) : null}
 
         {hasPlayerInviteControl ? (
           <InviteFloatingControls rightOffsetPx={142} />

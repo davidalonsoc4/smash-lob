@@ -13,26 +13,34 @@ import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistr
 import { I18nProvider } from "@/i18n/I18nProvider"
 import { ThemeProvider } from "@/context/ThemeProvider"
 import "./globals.css"
+import { getAppBranding } from "@/lib/appVariant"
+
+const branding = getAppBranding()
 
 export const metadata: Metadata = {
-  applicationName: "Smash & Lob Padel",
+  applicationName: branding.applicationName,
   title: {
-    default: "Smash & Lob",
-    template: "%s · Smash & Lob",
+    default: branding.browserTitle,
+    template: branding.titleTemplate,
   },
   description: "Ligas privadas de pádel con calendario, ranking y resultados.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Smash & Lob",
+    title: branding.appleWebAppTitle,
   },
   icons: {
     icon: [
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: branding.favicon, rel: "icon" },
+      { url: branding.favicon16, sizes: "16x16", type: "image/png" },
+      { url: branding.favicon32, sizes: "32x32", type: "image/png" },
+      { url: branding.icon192, sizes: "192x192", type: "image/png" },
+      { url: branding.icon512, sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      { url: branding.appleTouchIcon, sizes: "180x180", type: "image/png" },
+    ],
   },
 }
 
@@ -40,7 +48,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0a0a0a",
+  themeColor: branding.themeColor,
 }
 
 export default function RootLayout({
@@ -51,6 +59,10 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <link rel="icon" href={branding.favicon} />
+        <link rel="icon" href={branding.favicon16} sizes="16x16" type="image/png" />
+        <link rel="icon" href={branding.favicon32} sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href={branding.appleTouchIcon} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})();`,
