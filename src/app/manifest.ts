@@ -17,25 +17,25 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["sports", "productivity"],
     icons: [
       {
-        src: "/icon-192.png",
+        src: branding.icon192,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-maskable-192.png",
+        src: branding.maskableIcon192,
         sizes: "192x192",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icon-512.png",
+        src: branding.icon512,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-maskable-512.png",
+        src: branding.maskableIcon512,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
