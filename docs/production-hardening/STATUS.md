@@ -1,6 +1,6 @@
 # Production Hardening Status
 
-Last updated: 2026-07-16 23:31:46 +02:00
+Last updated: 2026-07-18 11:05:08 +02:00
 Current branch at status update: `main`
 Production branch confirmed from Git + Vercel: `main`
 Final application release commit validated in this run: `b805faf5a146f5bfa93b4646fbef3dbb0d8d399b`
@@ -15,6 +15,7 @@ Active milestone state: `H20-H23 complete`
 - Production env-name presence was confirmed without printing values, and the normalized checks for `QA_MODE=false`, `NEXT_PUBLIC_QA_MODE=false`, and `NEXT_PUBLIC_APP_URL=https://smash-lob.vercel.app` passed.
 - The live production smoke suite passed for root, manifest, auth session/providers, Google provider metadata, cron-without-secret, protected no-session routes, and controlled invalid invite responses.
 - A direct REST write probe using the deployed public anon key was blocked with HTTP `401`, and the post-smoke Production log scan found zero repeated `500` / `error` keywords.
+- On 2026-07-18, the project owner completed the documented two-Google-account Production walkthrough, covering organizer, player/member, result/confirmation/MVP, and spectator flows.
 
 ## Verified deployments
 
@@ -45,29 +46,31 @@ Active milestone state: `H20-H23 complete`
 - Direct anon REST write probe against `matches` -> blocked `401 Invalid API key`
 - Post-smoke Production log scan -> `0` matches for `error|exception|500|failed`
 
-## Manual verification still pending
+## Manual two-account verification completed
 
-The interactive two-Google-account walkthrough has not been executed by Codex in this run, so it remains a required human check:
+The project owner completed the interactive Production walkthrough with two Google accounts on 2026-07-18. The human-verified checklist covered:
 
 - organizer sign-in
-- open the league
-- generate an invite
-- join with a second Google account
-- claim a player
-- save availability
-- verify calendar and ranking
-- register or review a result
-- verify confirmations and MVP voting
-- open a spectator invite
+- opening the league
+- generating a player invite
+- joining with a second Google account
+- claiming a player
+- saving availability
+- verifying calendar and ranking
+- registering or reviewing a result
+- verifying result confirmations and MVP voting
+- opening and validating a spectator invite
+
+This is human acceptance evidence reported by the project owner. It was not replayed independently by Codex, but it closes the final manual release check documented for the closed beta.
 
 ## Known residual risks
 
 - Supabase platform defaults for `supabase_admin` in schema `public` remain an environment-level residual in `pg_default_acl`, although current public business tables remain owned by `postgres` and current-object grant/function audits are clean.
 - Supabase security advisors still emit `RLS Enabled No Policy` informational findings on intentionally grants-closed server-only tables.
 - The repo still has no automated test suite, so runtime confidence comes from static review plus Preview/Production smoke testing.
-- The real Google OAuth organizer/member/spectator round-trip remains manual-only evidence until a human executes it on Production.
+- The Google OAuth organizer/member/spectator round-trip now has human Production acceptance evidence; there is still no automated browser end-to-end suite to replay it continuously.
 
 ## Blockers
 
-- No current technical blocker for the automated production-verification scope.
-- Do not declare the app fully released without the manual two-account Google walkthrough.
+- No current release blocker is documented for the closed-beta scope.
+- The application is considered Production Ready for controlled sharing with the league participants.

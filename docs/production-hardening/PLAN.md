@@ -388,7 +388,7 @@ Last updated: 2026-07-16 23:31:46 +02:00
 
 ## H22 - Production smoke tests
 - Status: DONE
-- Current checkpoint: The live production domain passed the automated smoke suite for `/`, `/manifest.webmanifest`, `/api/auth/session`, `/api/auth/providers`, Google provider metadata, cron without secret (`401`), protected admin/member routes without session (`401`), invalid invite routes with controlled `404` responses, and a direct REST write probe using the deployed anon key returned a blocked `401 Invalid API key` response. A post-smoke production log scan found zero repeated `500`/`error` keywords.
+- Current checkpoint: The live production domain passed the automated smoke suite for `/`, `/manifest.webmanifest`, `/api/auth/session`, `/api/auth/providers`, Google provider metadata, cron without secret (`401`), protected admin/member routes without session (`401`), invalid invite routes with controlled `404` responses, and a direct REST write probe using the deployed anon key returned a blocked `401 Invalid API key` response. A post-smoke production log scan found zero repeated `500`/`error` keywords. On 2026-07-18, the project owner also completed the documented two-Google-account Production walkthrough for organizer, member/player, availability, calendar/ranking, results, confirmations, MVP, and spectator access.
 - Objective: Verify the live production app and protected data surface.
 - Domains: live app routes, cron, PWA, anon access restrictions
 - Acceptance:
@@ -405,12 +405,12 @@ Last updated: 2026-07-16 23:31:46 +02:00
 
 ## H23 - Final report and cleanup
 - Status: DONE
-- Current checkpoint: The release run now has an evidence-backed final report path, updated hardening docs, explicit residual risks, and an honest manual-only follow-up for the two-account Google walkthrough. Repo state and recent release history are captured for handoff, while the interactive organizer/member/spectator verification remains intentionally unclaimed until a human runs it.
+- Current checkpoint: The release run has an evidence-backed final report, updated hardening docs, explicit residual risks, captured repo/release history, and completed human acceptance for the two-account Google organizer/member/spectator walkthrough on Production. The closed-beta release has no remaining documented release blocker.
 - Objective: Deliver the final evidence-based report and leave repo state clean.
 - Domains: report, final git state, validation summary, residual manual checks
 - Acceptance:
   - final report covers all required sections
-  - remaining manual-only checks are called out honestly
+  - human-only checks are recorded with their evidence source and completion state
   - repo state and recent history captured
 - Validation:
   - final `git status -sb`

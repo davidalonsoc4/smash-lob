@@ -88,7 +88,7 @@ Backward compatibility status:
 - H18 Preview validation is closed on both the earlier release checkpoint and the final closed-beta release commit; the stable alias continues to resolve correctly
 - H19 linked remote validation is now closed: remote migration parity is exact, linked lint passes, current-object SQL audits are clean, all current public tables remain owned by `postgres`, and the only leftover DB-level residual is the known `supabase_admin` default ACL pattern
 - H20-H22 are now closed for the automated scope: branch integration, Production deployment, env-name/value checks, smoke tests, anon-write probe, and post-smoke log scan all passed on 2026-07-16
-- the only remaining release evidence outside the automated scope is the manual two-account Google walkthrough
+- the two-account Google organizer/member/spectator walkthrough was completed by the project owner on Production on 2026-07-18; this is human acceptance evidence rather than an automated browser test
 
 Recovery procedure:
 1. If local code work becomes unstable before any remote action, revert only the local uncommitted domain changes with non-destructive file edits.

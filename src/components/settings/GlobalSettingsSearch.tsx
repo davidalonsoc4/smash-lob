@@ -1,80 +1,36 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import {
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react"
 import { useRouter } from "next/navigation"
 import type { Locale } from "@/i18n/translations"
 import {
   getSettingsSearchCopy,
+  searchSettingsEntries,
   type SettingsSearchEntry,
 } from "@/lib/settingsSearch"
 
 const recentStorageKey = "smash-lob-recent-settings-search"
+const maximumRecentEntries = 6
+const maximumIdleEntriesPerGroup = 4
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-}
+function readRecentIds() {
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(recentStorageKey) ?? "[]",
+    )
 
-function isOneEditAway(left: string, right: string) {
-  if (Math.abs(left.length - right.length) > 1) return false
-
-  let leftIndex = 0
-  let rightIndex = 0
-  let edits = 0
-
-  while (leftIndex < left.length && rightIndex < right.length) {
-    if (left[leftIndex] === right[rightIndex]) {
-      leftIndex += 1
-      rightIndex += 1
-      continue
-    }
-
-    edits += 1
-    if (edits > 1) return false
-
-    if (left.length > right.length) leftIndex += 1
-    else if (right.length > left.length) rightIndex += 1
-    else {
-      leftIndex += 1
-      rightIndex += 1
-    }
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string")
+      : []
+  } catch {
+    return []
   }
-
-  return edits + Number(leftIndex < left.length || rightIndex < right.length) <= 1
-}
-
-function scoreEntry(entry: SettingsSearchEntry, rawQuery: string) {
-  const query = normalizeText(rawQuery)
-  if (!query) return 0
-
-  const title = normalizeText(entry.title)
-  const description = normalizeText(entry.description)
-  const section = normalizeText(entry.section)
-  const keywords = normalizeText(entry.keywords.join(" "))
-  const completeText = `${title} ${description} ${section} ${keywords}`
-  const queryTokens = query.split(" ").filter(Boolean)
-  const candidateTokens = completeText.split(" ").filter(Boolean)
-
-  const allTokensMatch = queryTokens.every((queryToken) =>
-    candidateTokens.some(
-      (candidateToken) =>
-        candidateToken.includes(queryToken) ||
-        queryToken.includes(candidateToken) ||
-        (queryToken.length >= 4 && isOneEditAway(queryToken, candidateToken)),
-    ),
-  )
-
-  if (!allTokensMatch) return -1
-  if (title === query) return 120
-  if (title.startsWith(query)) return 100
-  if (title.includes(query)) return 90
-  if (keywords.includes(query)) return 75
-  if (description.includes(query)) return 60
-  return 40
 }
 
 function SearchIcon() {
@@ -102,71 +58,256 @@ export function GlobalSettingsSearch({
 }) {
   const router = useRouter()
   const copy = getSettingsSearchCopy(locale)
+  const listboxId = useId()
+  const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
+  const [recentIds, setRecentIds] = useState<string[]>(() =>
+    typeof window === "undefined" ? [] : readRecentIds(),
+  )
+  const [activeIndex, setActiveIndex] = useState(-1)
 
   const matchingEntries = useMemo(
-    () =>
-      entries
-        .map((entry) => ({ entry, score: scoreEntry(entry, query) }))
-        .filter(({ score }) => score >= 0)
-        .sort(
-          (left, right) =>
-            right.score - left.score ||
-            left.entry.title.localeCompare(right.entry.title),
-        )
-        .slice(0, 10)
-        .map(({ entry }) => entry),
-    [entries, query],
+    () => searchSettingsEntries(entries, query, locale),
+    [entries, locale, query],
   )
 
-  function openEntry(entry: SettingsSearchEntry) {
-    let recentIds: string[] = []
+  const entriesById = useMemo(
+    () => new Map(entries.map((entry) => [entry.id, entry])),
+    [entries],
+  )
 
-    try {
-      const parsed = JSON.parse(
-        window.localStorage.getItem(recentStorageKey) ?? "[]",
-      )
-      recentIds = Array.isArray(parsed)
-        ? parsed.filter(
-            (value): value is string => typeof value === "string",
-          )
-        : []
-    } catch {
-      recentIds = []
-    }
+  const recentEntries = useMemo(
+    () =>
+      recentIds
+        .map((id) => entriesById.get(id))
+        .filter((entry): entry is SettingsSearchEntry => Boolean(entry))
+        .slice(0, maximumIdleEntriesPerGroup),
+    [entriesById, recentIds],
+  )
 
+  const recentEntryIds = useMemo(
+    () => new Set(recentEntries.map((entry) => entry.id)),
+    [recentEntries],
+  )
+
+  const suggestedEntries = useMemo(
+    () =>
+      entries
+        .filter(
+          (entry) => entry.suggested && !recentEntryIds.has(entry.id),
+        )
+        .slice(0, maximumIdleEntriesPerGroup),
+    [entries, recentEntryIds],
+  )
+
+  const hasQuery = Boolean(query.trim())
+  const idleEntries = useMemo(
+    () => [...recentEntries, ...suggestedEntries],
+    [recentEntries, suggestedEntries],
+  )
+  const navigableEntries = hasQuery ? matchingEntries : idleEntries
+  const showPanel =
+    isOpen &&
+    (hasQuery || recentEntries.length > 0 || suggestedEntries.length > 0)
+
+  function rememberEntry(entry: SettingsSearchEntry) {
     const nextRecentIds = [
       entry.id,
       ...recentIds.filter((id) => id !== entry.id),
-    ].slice(0, 6)
+    ].slice(0, maximumRecentEntries)
 
-    window.localStorage.setItem(
-      recentStorageKey,
-      JSON.stringify(nextRecentIds),
-    )
+    setRecentIds(nextRecentIds)
+
+    try {
+      window.localStorage.setItem(
+        recentStorageKey,
+        JSON.stringify(nextRecentIds),
+      )
+    } catch {
+      // Searching and navigation still work if storage is unavailable.
+    }
+  }
+
+  function navigateToEntry(entry: SettingsSearchEntry) {
+    const destination = new URL(entry.href, window.location.origin)
+    const currentPath = `${window.location.pathname}${window.location.search}`
+    const destinationPath = `${destination.pathname}${destination.search}`
+
+    if (destination.hash && currentPath === destinationPath) {
+      const destinationWithHash = `${destinationPath}${destination.hash}`
+      const scrollToTarget = () => {
+        const targetId = decodeURIComponent(destination.hash.slice(1))
+        document.getElementById(targetId)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        })
+      }
+
+      if (window.location.hash === destination.hash) {
+        window.history.replaceState(window.history.state, "", destinationPath)
+        window.requestAnimationFrame(() => {
+          window.history.pushState(
+            window.history.state,
+            "",
+            destinationWithHash,
+          )
+          scrollToTarget()
+        })
+        return
+      }
+
+      window.history.pushState(
+        window.history.state,
+        "",
+        destinationWithHash,
+      )
+      window.requestAnimationFrame(scrollToTarget)
+      return
+    }
+
     router.push(entry.href)
   }
 
-  const hasQuery = Boolean(query.trim())
+  function openEntry(entry: SettingsSearchEntry) {
+    rememberEntry(entry)
+    setQuery("")
+    setIsOpen(false)
+    setActiveIndex(-1)
+    navigateToEntry(entry)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault()
+      setQuery("")
+      setIsOpen(false)
+      setActiveIndex(-1)
+      inputRef.current?.blur()
+      return
+    }
+
+    if (navigableEntries.length === 0) return
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault()
+      setIsOpen(true)
+      setActiveIndex((currentIndex) =>
+        currentIndex < navigableEntries.length - 1 ? currentIndex + 1 : 0,
+      )
+      return
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault()
+      setIsOpen(true)
+      setActiveIndex((currentIndex) =>
+        currentIndex > 0 ? currentIndex - 1 : navigableEntries.length - 1,
+      )
+      return
+    }
+
+    if (event.key === "Enter") {
+      const selectedEntry =
+        navigableEntries[activeIndex] ?? navigableEntries[0]
+
+      if (selectedEntry) {
+        event.preventDefault()
+        openEntry(selectedEntry)
+      }
+    }
+  }
+
+  function renderEntry(entry: SettingsSearchEntry) {
+    const entryIndex = navigableEntries.findIndex(
+      (candidate) => candidate.id === entry.id,
+    )
+    const isActive = entryIndex === activeIndex
+
+    return (
+      <button
+        id={`${listboxId}-${entry.id}`}
+        key={entry.id}
+        type="button"
+        role="option"
+        aria-selected={isActive}
+        onMouseEnter={() => setActiveIndex(entryIndex)}
+        onClick={() => openEntry(entry)}
+        className={`flex w-full items-center gap-2 px-2.5 py-2 text-left transition ${
+          isActive ? "bg-neutral-100" : "bg-white active:bg-neutral-100"
+        }`}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <p className="truncate text-sm font-black text-neutral-950">
+              {entry.title}
+            </p>
+            <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-neutral-500">
+              {entry.section}
+            </span>
+          </div>
+          <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold leading-4 text-neutral-500">
+            {entry.description}
+          </p>
+        </div>
+        <span
+          className="shrink-0 text-base font-black text-neutral-400"
+          aria-label={copy.open}
+        >
+          ›
+        </span>
+      </button>
+    )
+  }
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5">
+    <section
+      className="rounded-xl border border-neutral-200 bg-white p-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)]"
+      onFocusCapture={() => setIsOpen(true)}
+      onBlurCapture={(event) => {
+        const nextTarget = event.relatedTarget
+
+        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+          setIsOpen(false)
+          setActiveIndex(-1)
+        }
+      }}
+    >
+      <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
         <span className="shrink-0 text-neutral-400">
           <SearchIcon />
         </span>
         <input
+          ref={inputRef}
           type="search"
+          role="combobox"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setIsOpen(true)
+            setActiveIndex(-1)
+          }}
+          onKeyDown={handleKeyDown}
           placeholder={copy.placeholder}
           aria-label={copy.title}
+          aria-autocomplete="list"
+          aria-controls={showPanel ? listboxId : undefined}
+          aria-expanded={showPanel}
+          aria-activedescendant={
+            activeIndex >= 0 && navigableEntries[activeIndex]
+              ? `${listboxId}-${navigableEntries[activeIndex].id}`
+              : undefined
+          }
           className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2 text-sm font-semibold outline-none"
         />
         {query ? (
           <button
             type="button"
-            onClick={() => setQuery("")}
+            onClick={() => {
+              setQuery("")
+              setActiveIndex(-1)
+              inputRef.current?.focus()
+            }}
             aria-label={copy.clear}
             className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-600"
           >
@@ -175,48 +316,60 @@ export function GlobalSettingsSearch({
         ) : null}
       </div>
 
-      {hasQuery ? (
-        matchingEntries.length > 0 ? (
-          <div className="mt-2 divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
-            {matchingEntries.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                onClick={() => openEntry(entry)}
-                className="flex w-full items-center gap-2 bg-white px-2.5 py-2 text-left transition active:bg-neutral-100"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <p className="truncate text-sm font-black text-neutral-950">
-                      {entry.title}
-                    </p>
-                    <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-neutral-500">
-                      {entry.section}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold leading-4 text-neutral-500">
-                    {entry.description}
+      {showPanel ? (
+        <div id={listboxId} role="listbox" className="mt-2 space-y-2">
+          {hasQuery ? (
+            matchingEntries.length > 0 ? (
+              <div className="overflow-hidden rounded-xl border border-neutral-200">
+                <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                    {copy.results} · {matchingEntries.length}
                   </p>
                 </div>
-                <span
-                  className="shrink-0 text-base font-black text-neutral-400"
-                  aria-label={copy.open}
-                >
-                  ›
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-2 rounded-xl bg-neutral-50 px-3 py-3 text-center">
-            <p className="text-xs font-black text-neutral-800">
-              {copy.noResultsTitle}
-            </p>
-            <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-              {copy.noResultsDescription}
-            </p>
-          </div>
-        )
+                <div className="divide-y divide-neutral-100">
+                  {matchingEntries.map(renderEntry)}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-neutral-50 px-3 py-3 text-center">
+                <p className="text-xs font-black text-neutral-800">
+                  {copy.noResultsTitle}
+                </p>
+                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  {copy.noResultsDescription}
+                </p>
+              </div>
+            )
+          ) : (
+            <>
+              {recentEntries.length > 0 ? (
+                <div className="overflow-hidden rounded-xl border border-neutral-200">
+                  <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                      {copy.recent}
+                    </p>
+                  </div>
+                  <div className="divide-y divide-neutral-100">
+                    {recentEntries.map(renderEntry)}
+                  </div>
+                </div>
+              ) : null}
+
+              {suggestedEntries.length > 0 ? (
+                <div className="overflow-hidden rounded-xl border border-neutral-200">
+                  <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                      {copy.suggested}
+                    </p>
+                  </div>
+                  <div className="divide-y divide-neutral-100">
+                    {suggestedEntries.map(renderEntry)}
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
       ) : null}
     </section>
   )

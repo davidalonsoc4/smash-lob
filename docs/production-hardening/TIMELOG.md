@@ -70,12 +70,12 @@ Estimated active work completed so far: `30.0h`
 | Milestone | Scope | Status | Estimated remaining time | Notes |
 | --- | --- | --- | --- | --- |
 | H17 | Commits and push | DONE | 1.0h | Finished with six commits, push, and explicit remote SHA verification |
-| H20 | Integrate with production branch | PENDING | 0.5h to 1.5h | Merge/rebase plus validation rerun |
-| H21 | Production deployment | PENDING | 0.5h to 1h | Operational step |
-| H22 | Production smoke tests | PENDING | 0.5h to 1.5h | Manual/automated checks on the live app |
-| H23 | Final report and cleanup | PENDING | 0.5h to 1h | Wrap-up and residual risk summary |
+| H20 | Integrate with production branch | DONE | 0h | Completed: final SHA merged/pushed to `main` |
+| H21 | Production deployment | DONE | 0h | Completed: final Production deployment reached `Ready` |
+| H22 | Production smoke tests | DONE | 0h | Automated checks passed; two-account human walkthrough completed 2026-07-18 |
+| H23 | Final report and cleanup | DONE | 0h | Final evidence and residual risks documented |
 
-Estimated active work remaining: `2.0h to 5.5h`
+Estimated active work remaining: `0h`
 
 ## Planning notes
 
@@ -85,3 +85,10 @@ Estimated active work remaining: `2.0h to 5.5h`
 - The remaining `supabase_admin` default-privilege issue is not token-related; it is a platform-owned environment concern to re-audit later in H19, not an unresolved local app-migration gap.
 - The DB-heavy milestones (`H13`, `H19`) may compress if the remaining audits come back cleaner than expected, or expand if they reveal more helper SQL fixes like the invite regeneration lint finding.
 - Operational milestones (`H20` through `H22`) are more sensitive to environment/tooling friction than code complexity.
+
+
+## Final human acceptance
+
+- On 2026-07-18, the project owner completed the documented two-Google-account Production walkthrough.
+- Covered organizer login, invite generation, second-account join and player claim, availability, calendar/ranking, result handling, confirmations, MVP voting, and spectator access.
+- This human validation is not included in the Codex active-time estimate and is recorded as user-reported acceptance evidence rather than an automated browser test.
