@@ -213,6 +213,14 @@ export default function MatchDetailPage() {
     scheduledLeagueLocation,
     match.location
   )
+  const hasSchedule = Boolean(
+    match.scheduledAt || match.dateLabel || match.location
+  )
+  const hasSubstitutions = (match.substitutions?.length ?? 0) > 0
+  const shouldShowSchedulePanel =
+    match.status !== "finished" || hasSchedule
+  const shouldShowSubstitutionPanel =
+    canManageMatch && (match.status !== "finished" || hasSubstitutions)
 
   return (
     <div className="space-y-3">
@@ -317,37 +325,39 @@ export default function MatchDetailPage() {
         </AppCard>
       ) : null}
 
-      <MatchScheduleForm
-        matchId={match.id}
-        leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        status={match.status}
-        scheduledAt={match.scheduledAt}
-        dateLabel={match.dateLabel}
-        location={match.location}
-        availableLocations={activeLeague.locations}
-        playerIds={[...match.teamA, ...match.teamB]}
-        players={players}
-        roundStartsAt={round?.startsAt ?? null}
-        roundEndsAt={round?.endsAt ?? null}
-        canManage={canManageMatch}
-        canClearSchedule={isAdmin}
-        calendarAction={
-          match.status === "scheduled" && match.scheduledAt ? (
-            <AddToCalendarButton
-              leagueName={activeLeague.name}
-              seasonName={activeSeason.name}
-              round={match.round}
-              teamA={match.teamA}
-              teamB={match.teamB}
-              players={players}
-              scheduledAt={match.scheduledAt}
-              location={calendarLocation}
-              className="min-w-0"
-            />
-          ) : null
-        }
-      />
+      {shouldShowSchedulePanel ? (
+        <MatchScheduleForm
+          matchId={match.id}
+          leagueId={activeLeague.id}
+          seasonId={activeSeason.id}
+          status={match.status}
+          scheduledAt={match.scheduledAt}
+          dateLabel={match.dateLabel}
+          location={match.location}
+          availableLocations={activeLeague.locations}
+          playerIds={[...match.teamA, ...match.teamB]}
+          players={players}
+          roundStartsAt={round?.startsAt ?? null}
+          roundEndsAt={round?.endsAt ?? null}
+          canManage={canManageMatch}
+          canClearSchedule={isAdmin}
+          calendarAction={
+            match.status === "scheduled" && match.scheduledAt ? (
+              <AddToCalendarButton
+                leagueName={activeLeague.name}
+                seasonName={activeSeason.name}
+                round={match.round}
+                teamA={match.teamA}
+                teamB={match.teamB}
+                players={players}
+                scheduledAt={match.scheduledAt}
+                location={calendarLocation}
+                className="min-w-0"
+              />
+            ) : null
+          }
+        />
+      ) : null}
 
       {(match.status === "scheduled" || match.courtBooking.isReserved) ? (
         <CourtBookingPanel
@@ -363,7 +373,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {canManageMatch ? (
+      {shouldShowSubstitutionPanel ? (
         <MatchSubstitutionPanel match={match} players={players} />
       ) : null}
 

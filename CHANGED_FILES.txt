@@ -1,4 +1,4 @@
-Smash & Lob v0.10.1 · Cierre de la primera versión de suplentes
+Smash & Lob v0.10.2 · Cierre de la primera versión de suplentes
 
 Archivos incluidos:
 - CHANGED_FILES.txt
@@ -17,16 +17,19 @@ Archivos incluidos:
 - src/context/MatchDataProvider.tsx
 - src/lib/substitutes.ts
 
-Cambios:
+Cambios acumulados de la rama:
 - El panel de sustituciones del partido solo se muestra a participantes, administradores y creador, con la misma autorización comprobada en servidor.
 - El panel de sustituciones es compacto, está plegado por defecto y no preselecciona la creación de un suplente nuevo.
 - Un suplente creado desde un partido queda guardado en la bolsa de suplentes de la temporada.
 - El panel «Resultado registrado» solo aparece cuando el partido está finalizado.
-- «Añadir programación» ya no abre el formulario automáticamente: aparece comprimido por defecto y puede abrirse y cerrarse.
+- «Añadir programación» aparece comprimido por defecto y puede abrirse y cerrarse.
 - Las sustituciones puntuales muestran una etiqueta «SUPLENTE · por [titular]» en la ficha del partido y en el calendario.
 - Administración > Suplentes incluye un historial visible de sustituciones puntuales con jornada y estado del partido.
 - La carga general de la liga incorpora los metadatos de sustitución necesarios para mostrar las etiquetas sin consultas adicionales por tarjeta.
-- Versión visible actualizada a v0.10.1.
+- En un partido finalizado sin programación previa ya no aparece el panel «Añadir programación».
+- En un partido finalizado sin sustituciones ya no aparece el panel «Sustituciones».
+- Si un partido finalizado sí tuvo programación o sustituciones, se conserva la información correspondiente para consulta e histórico.
+- Versión visible actualizada a v0.10.2.
 
 Base de datos:
 - Sin migraciones nuevas.
