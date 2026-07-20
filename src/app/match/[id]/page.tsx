@@ -251,8 +251,6 @@ export default function MatchDetailPage() {
         </AppCard>
       ) : null}
 
-      {isAdmin ? <MatchSubstitutionPanel match={match} players={players} /> : null}
-
       <MatchScoreboard
         teamA={match.teamA}
         teamB={match.teamB}
@@ -362,6 +360,10 @@ export default function MatchDetailPage() {
           booking={match.courtBooking}
           shouldFocusBooking={shouldFocusBooking}
         />
+      ) : null}
+
+      {canManageMatch ? (
+        <MatchSubstitutionPanel match={match} players={players} />
       ) : null}
 
       {canEnterResult ? (

@@ -18,6 +18,68 @@ type Body = {
   displayName?: unknown
 }
 
+
+async function getAuthorizedActor(matchId: string) {
+  const access = await getServerMatchActor(matchId, {
+    requireLeagueAccess: true,
+  })
+
+  if (!access.ok) {
+    return access
+  }
+
+  if (!access.actor.isAdmin && !access.actor.participantPlayerId) {
+    return { ok: false as const, status: 403, error: "forbidden" }
+  }
+
+  return access
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ matchId: string }> },
+) {
+  const { matchId } = await params
+  if (!validateUuid(matchId)) {
+    return NextResponse.json({ error: "invalid_match_id" }, { status: 400 })
+  }
+
+  const access = await getAuthorizedActor(matchId)
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status })
+  }
+
+  const { supabase, match } = access.actor
+  const [poolResult, substitutionsResult] = await Promise.all([
+    supabase
+      .from("season_substitutes")
+      .select(
+        "id,league_id,season_id,player_id,active,inactive_reason,players(id,display_name,avatar_initials,avatar_url)",
+      )
+      .eq("season_id", match.seasonId)
+      .eq("active", true)
+      .order("created_at"),
+    supabase
+      .from("match_substitutions")
+      .select(
+        "id,league_id,season_id,match_id,original_player_id,substitute_player_id,substitution_type",
+      )
+      .eq("match_id", matchId),
+  ])
+
+  if (poolResult.error || substitutionsResult.error) {
+    return NextResponse.json(
+      { error: "substitutes_lookup_failed" },
+      { status: 500 },
+    )
+  }
+
+  return NextResponse.json({
+    substitutes: poolResult.data ?? [],
+    matchSubstitutions: substitutionsResult.data ?? [],
+  })
+}
+
 async function readUpdatedMatch(
   supabase: Extract<
     Awaited<ReturnType<typeof getServerMatchActor>>,
@@ -47,10 +109,7 @@ export async function PUT(
     return NextResponse.json({ error: "invalid_match_id" }, { status: 400 })
   }
 
-  const access = await getServerMatchActor(matchId, {
-    requireLeagueAccess: true,
-    requireAdmin: true,
-  })
+  const access = await getAuthorizedActor(matchId)
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
@@ -119,10 +178,7 @@ export async function DELETE(
     return NextResponse.json({ error: "invalid_match_id" }, { status: 400 })
   }
 
-  const access = await getServerMatchActor(matchId, {
-    requireLeagueAccess: true,
-    requireAdmin: true,
-  })
+  const access = await getAuthorizedActor(matchId)
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
