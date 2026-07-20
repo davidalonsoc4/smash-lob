@@ -29,12 +29,12 @@ Active milestone state: `H20-H23 complete; environment isolation repair complete
 - No code, data, migration, Supabase link, Production branch, or Git branch was changed as part of the remote configuration repair.
 - Read-only data checks show 3 leagues in Production and 0 in PRE. The configured owner account exists in both environments and can create leagues; Production has 3 creator memberships while PRE has none.
 
-## Verified deployments
+## Verified deployment targets
 
-- Preview deployment id: `dpl_HppVyCzPCteV9vDJthi1c9fQESg4`
-- Preview URL: `https://smash-lmw3hmjw7-davidalonsoc4-8740s-projects.vercel.app`
-- Preview stable alias: `https://smash-lob-git-staging-davidalonsoc4-8740s-projects.vercel.app`
-- Preview status: `Ready`
+- Preview credential-repair deployment id: `dpl_HppVyCzPCteV9vDJthi1c9fQESg4`
+- Preview credential-repair URL: `https://smash-lmw3hmjw7-davidalonsoc4-8740s-projects.vercel.app`
+- Preview stable alias (tracks subsequent `staging` commits): `https://smash-lob-git-staging-davidalonsoc4-8740s-projects.vercel.app`
+- Preview status at the final post-push check: `Ready`
 - Production deployment id: `dpl_ABUCNvnneZ5aTcLhwe51ChVRznBi`
 - Production URL: `https://smash-op3577c8f-davidalonsoc4-8740s-projects.vercel.app`
 - Production aliases:
