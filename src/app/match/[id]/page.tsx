@@ -8,6 +8,7 @@ import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
+import { MatchSubstitutionPanel } from "@/components/match/MatchSubstitutionPanel"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
@@ -249,6 +250,8 @@ export default function MatchDetailPage() {
           </p>
         </AppCard>
       ) : null}
+
+      {isAdmin ? <MatchSubstitutionPanel match={match} players={players} /> : null}
 
       <MatchScoreboard
         teamA={match.teamA}

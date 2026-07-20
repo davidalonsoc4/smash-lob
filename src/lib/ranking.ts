@@ -8,6 +8,7 @@ type MatchSet = {
 type Match = {
   id: string
   seasonId: string
+  round: number
   status: string
   teamA: string[]
   teamB: string[]
@@ -20,6 +21,9 @@ type Match = {
 export type RankingPlayer = PlayerProfile & {
   seasonId: string
   playerId: string
+  seasonPlayerStatus: "active" | "withdrawn"
+  joinedFromRound: number | null
+  replacedFromRound: number | null
   points: number
   gamesDiff: number
   gamesFor: number
@@ -31,12 +35,23 @@ export type RankingPlayer = PlayerProfile & {
 
 function createEmptyStats(
   seasonId: string,
-  player: PlayerProfile
+  player: PlayerProfile,
+  seasonPlayer: SeasonPlayer,
 ): RankingPlayer {
   return {
     ...player,
     seasonId,
     playerId: player.id,
+    seasonPlayerStatus:
+      seasonPlayer.status === "withdrawn" ? "withdrawn" : "active",
+    joinedFromRound:
+      typeof seasonPlayer.joinedFromRound === "number"
+        ? seasonPlayer.joinedFromRound
+        : null,
+    replacedFromRound:
+      typeof seasonPlayer.replacedFromRound === "number"
+        ? seasonPlayer.replacedFromRound
+        : null,
     points: 0,
     gamesDiff: 0,
     gamesFor: 0,
@@ -75,12 +90,22 @@ function applyTeamResult(
     gamesFor: number
     gamesAgainst: number
     won: boolean
+    round: number
   }
 ) {
   playerIds.forEach((playerId) => {
     const playerStats = statsByPlayerId.get(playerId)
 
     if (!playerStats) {
+      return
+    }
+
+    if (
+      (playerStats.joinedFromRound !== null &&
+        result.round < playerStats.joinedFromRound) ||
+      (playerStats.replacedFromRound !== null &&
+        result.round >= playerStats.replacedFromRound)
+    ) {
       return
     }
 
@@ -109,20 +134,28 @@ export function calculateSeasonRanking({
   seasonPlayers: SeasonPlayer[]
   matches: Match[]
 }) {
-  const playerIdsInSeason = seasonPlayers
+  const playersInSeason = seasonPlayers
     .filter((seasonPlayer) => seasonPlayer.seasonId === seasonId)
-    .map((seasonPlayer) => seasonPlayer.playerId)
-
-  const playersInSeason = playerIdsInSeason
-    .map((playerId) => {
-      return playerProfiles.find((player) => player.id === playerId)
-    })
-    .filter((player): player is PlayerProfile => Boolean(player))
+    .map((seasonPlayer) => ({
+      seasonPlayer,
+      player: playerProfiles.find(
+        (profile) => profile.id === seasonPlayer.playerId,
+      ),
+    }))
+    .filter(
+      (
+        item,
+      ): item is { seasonPlayer: SeasonPlayer; player: PlayerProfile } =>
+        Boolean(item.player),
+    )
 
   const statsByPlayerId = new Map<string, RankingPlayer>()
 
-  playersInSeason.forEach((player) => {
-    statsByPlayerId.set(player.id, createEmptyStats(seasonId, player))
+  playersInSeason.forEach(({ player, seasonPlayer }) => {
+    statsByPlayerId.set(
+      player.id,
+      createEmptyStats(seasonId, player, seasonPlayer),
+    )
   })
 
   matches
@@ -141,6 +174,7 @@ export function calculateSeasonRanking({
         gamesFor: gamesA,
         gamesAgainst: gamesB,
         won: pointsA > pointsB,
+        round: match.round,
       })
 
       applyTeamResult(statsByPlayerId, match.teamB, {
@@ -148,6 +182,7 @@ export function calculateSeasonRanking({
         gamesFor: gamesB,
         gamesAgainst: gamesA,
         won: pointsB > pointsA,
+        round: match.round,
       })
     })
 

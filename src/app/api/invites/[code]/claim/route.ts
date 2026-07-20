@@ -58,7 +58,7 @@ export async function POST(
 
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
-    .select("id,invite_code")
+    .select("id,invite_code,active_season_id")
     .eq("id", leagueId)
     .maybeSingle()
 
@@ -105,6 +105,60 @@ export async function POST(
   }
 
   if (!player) {
+    return NextResponse.json({ error: "invalid_player" }, { status: 400 })
+  }
+
+  let joinableSeasonId =
+    typeof league.active_season_id === "string" ? league.active_season_id : ""
+
+  if (!joinableSeasonId) {
+    const { data: latestSeason, error: latestSeasonError } = await supabase
+      .from("seasons")
+      .select("id")
+      .eq("league_id", leagueId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (latestSeasonError) {
+      return NextResponse.json(
+        { error: "season_lookup_failed" },
+        { status: 500 },
+      )
+    }
+
+    joinableSeasonId = latestSeason?.id ?? ""
+  }
+
+  if (!joinableSeasonId) {
+    return NextResponse.json({ error: "invalid_player" }, { status: 400 })
+  }
+
+  const [seasonPlayerResult, substituteResult] = await Promise.all([
+    supabase
+      .from("season_players")
+      .select("id")
+      .eq("season_id", joinableSeasonId)
+      .eq("player_id", playerId)
+      .eq("status", "active")
+      .maybeSingle(),
+    supabase
+      .from("season_substitutes")
+      .select("id")
+      .eq("season_id", joinableSeasonId)
+      .eq("player_id", playerId)
+      .eq("active", true)
+      .maybeSingle(),
+  ])
+
+  if (seasonPlayerResult.error || substituteResult.error) {
+    return NextResponse.json(
+      { error: "claimable_player_lookup_failed" },
+      { status: 500 },
+    )
+  }
+
+  if (!seasonPlayerResult.data && !substituteResult.data) {
     return NextResponse.json({ error: "invalid_player" }, { status: 400 })
   }
 

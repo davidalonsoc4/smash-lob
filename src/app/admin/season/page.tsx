@@ -3670,8 +3670,13 @@ export default function AdminSeasonPage() {
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole } = useLeagueAccess();
   const { seasons } = useSeasonSettings();
-  const { activeLeague, activeSeason, roundSettings, players, matches } =
-    useCurrentLeagueData();
+  const {
+    activeLeague,
+    activeSeason,
+    roundSettings,
+    rankingPlayers: players,
+    matches,
+  } = useCurrentLeagueData();
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id);
   const isActiveSeason = activeSeason.status === "active";
   const isUpcomingSeason = activeSeason.status === "upcoming";

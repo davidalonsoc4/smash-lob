@@ -14,6 +14,9 @@ type RankingPlayer = {
   matchesPlayed: number
   avatarInitials?: string | null
   avatarUrl?: string | null
+  seasonPlayerStatus?: "active" | "withdrawn"
+  joinedFromRound?: number | null
+  replacedFromRound?: number | null
 }
 
 type RankingTableProps = {
@@ -65,9 +68,20 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
 
               {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}
 
-              <p className="min-w-0 text-[13px] font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
-                {player.displayName}
-              </p>
+              <div className="min-w-0">
+                <p className="min-w-0 text-[13px] font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+                  {player.displayName}
+                </p>
+                {player.seasonPlayerStatus === "withdrawn" ? (
+                  <span className="mt-0.5 inline-flex rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-700">
+                    Baja{player.replacedFromRound ? ` desde J${player.replacedFromRound}` : ""}
+                  </span>
+                ) : player.joinedFromRound && player.joinedFromRound > 1 ? (
+                  <span className="mt-0.5 inline-flex rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700">
+                    Desde J{player.joinedFromRound}
+                  </span>
+                ) : null}
+              </div>
             </div>
 
             <div className="text-right">
