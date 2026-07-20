@@ -378,7 +378,9 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {(canEditResult || isAdmin) && !isEditingResult ? (
+      {match.status === "finished" &&
+      (canEditResult || isAdmin) &&
+      !isEditingResult ? (
         <AppCard>
           <div>
             <p className="font-black">{t.matchResult.registeredTitle}</p>
