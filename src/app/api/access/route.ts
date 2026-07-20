@@ -169,6 +169,7 @@ export async function GET() {
     seasonPlayersResult,
     settingsResult,
     matchesResult,
+    matchSubstitutionsResult,
     leagueMembershipsResult,
   ] = await Promise.all([
     supabase
@@ -191,6 +192,12 @@ export async function GET() {
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
     supabase
+      .from("match_substitutions")
+      .select(
+        "id,league_id,season_id,match_id,original_player_id,substitute_player_id,substitution_type"
+      )
+      .in("league_id", leagueIds),
+    supabase
       .from("league_memberships")
       .select("user_id,league_id,player_id,role")
       .in("league_id", leagueIds),
@@ -202,6 +209,7 @@ export async function GET() {
     seasonPlayersResult.error ||
     settingsResult.error ||
     matchesResult.error ||
+    matchSubstitutionsResult.error ||
     leagueMembershipsResult.error
   ) {
     return NextResponse.json({ error: "league_snapshot_failed" }, { status: 500 })
@@ -326,9 +334,37 @@ export async function GET() {
       : [],
     registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
   }))
-  const matches: MatchData[] = (matchesResult.data ?? []).map((match) =>
-    mapSupabaseMatch(match)
-  )
+  const substitutionsByMatchId = new Map<
+    string,
+    NonNullable<MatchData["substitutions"]>
+  >()
+
+  for (const substitution of matchSubstitutionsResult.data ?? []) {
+    const item = {
+      id: substitution.id,
+      leagueId: substitution.league_id,
+      seasonId: substitution.season_id,
+      matchId: substitution.match_id,
+      originalPlayerId: substitution.original_player_id,
+      substitutePlayerId: substitution.substitute_player_id,
+      type:
+        substitution.substitution_type === "permanent"
+          ? ("permanent" as const)
+          : ("single" as const),
+    }
+    const currentItems = substitutionsByMatchId.get(item.matchId) ?? []
+    currentItems.push(item)
+    substitutionsByMatchId.set(item.matchId, currentItems)
+  }
+
+  const matches: MatchData[] = (matchesResult.data ?? []).map((match) => {
+    const mappedMatch = mapSupabaseMatch(match)
+
+    return {
+      ...mappedMatch,
+      substitutions: substitutionsByMatchId.get(mappedMatch.id) ?? [],
+    }
+  })
   const memberships: UserLeagueMembership[] = (
     leagueMembershipsResult.data ?? []
   )

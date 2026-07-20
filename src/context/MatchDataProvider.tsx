@@ -50,6 +50,16 @@ import {
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed";
 
+export type MatchSubstitution = {
+  id: string;
+  leagueId: string;
+  seasonId: string;
+  matchId: string;
+  originalPlayerId: string;
+  substitutePlayerId: string;
+  type: "single" | "permanent";
+};
+
 export type CourtBookingReservation = {
   playerId: string;
   amount: number;
@@ -90,6 +100,7 @@ export type MatchData = {
   resultReportedByPlayerId: string | null;
   resultLocked: boolean;
   resultCounts?: boolean;
+  substitutions?: MatchSubstitution[];
   courtBooking: CourtBooking;
 };
 
@@ -192,6 +203,7 @@ function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
     resultRecordedAt: match.resultRecordedAt ?? null,
     resultReportedByPlayerId: match.resultReportedByPlayerId ?? null,
     resultLocked: match.resultLocked ?? false,
+    substitutions: [],
     courtBooking: getEmptyCourtBooking(),
   };
 }
@@ -208,6 +220,9 @@ function sanitizeMatch(match: MatchData): MatchData {
         ? match.resultReportedByPlayerId
         : null,
     resultLocked: Boolean(match.resultLocked),
+    substitutions: Array.isArray(match.substitutions)
+      ? match.substitutions.map((substitution) => ({ ...substitution }))
+      : [],
     courtBooking: normalizeCourtBooking(match.courtBooking),
   };
 

@@ -2,6 +2,8 @@
 
 import { TeamPlayers } from "@/components/player/TeamPlayers"
 import { useI18n } from "@/i18n/I18nProvider"
+import type { MatchSubstitution } from "@/lib/substitutes"
+import { getMatchSubstituteLabels } from "@/lib/substitutes"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type MatchScoreboardProps = {
@@ -11,6 +13,7 @@ type MatchScoreboardProps = {
   pointsA: number | null
   pointsB: number | null
   sets: { a: number; b: number }[]
+  substitutions?: MatchSubstitution[]
   highlightedPlayerIds?: string[]
 }
 
@@ -21,9 +24,14 @@ export function MatchScoreboard({
   pointsA,
   pointsB,
   sets,
+  substitutions = [],
   highlightedPlayerIds = [],
 }: MatchScoreboardProps) {
   const { t } = useI18n()
+  const substituteLabels = getMatchSubstituteLabels({
+    substitutions,
+    players: players ?? [],
+  })
   const isFinished = pointsA !== null && pointsB !== null
 
   return (
@@ -38,6 +46,7 @@ export function MatchScoreboard({
               playerIds={teamA}
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
+              substituteLabels={substituteLabels}
               className="mt-0.5 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
             />
           </div>
@@ -56,6 +65,7 @@ export function MatchScoreboard({
               playerIds={teamB}
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
+              substituteLabels={substituteLabels}
               className="mt-0.5 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
             />
           </div>
