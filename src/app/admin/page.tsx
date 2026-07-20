@@ -231,6 +231,21 @@ export default function AdminPage() {
           </AppCard>
         </Link>
 
+        <Link href="/admin/substitutes" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Suplentes y reemplazos</p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Gestiona la bolsa de suplentes, sustituciones puntuales y bajas permanentes.
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+
         <Link href="/admin/users" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">

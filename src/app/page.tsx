@@ -486,8 +486,15 @@ export default function Home() {
   const { currentUserId, currentUser } = useCurrentUser();
   const { isLeagueAdmin, isLeagueSpectator } = useLeagueAccess();
   const { votes } = useMvp();
-  const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
-    useCurrentLeagueData();
+  const {
+    activeLeague,
+    activeSeason,
+    roundSettings,
+    players,
+    rankingPlayers: seasonRankingPlayers,
+    matches,
+    rounds,
+  } = useCurrentLeagueData();
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
   const spectatorMode = isLeagueSpectator(activeLeague.id);
@@ -621,7 +628,7 @@ export default function Home() {
 
   const isRegistrationSettled = isSeasonRegistrationSettled({
     registrationFee: roundSettings.registrationFee,
-    playerIds: players.map((player) => player.id),
+    playerIds: seasonRankingPlayers.map((player) => player.id),
     settledPlayerIds: automaticallySettledRegistrationPlayerIds,
   });
 
@@ -639,7 +646,7 @@ export default function Home() {
         playerId,
         isPaid,
       }),
-      playerIds: players.map((player) => player.id),
+      playerIds: seasonRankingPlayers.map((player) => player.id),
     });
     const nextSettings = {
       ...roundSettings,
@@ -662,7 +669,7 @@ export default function Home() {
 
     const pendingPlayerIds = getSeasonRegistrationPendingPayments({
       registrationFee: roundSettings.registrationFee,
-      playerIds: players.map((player) => player.id),
+      playerIds: seasonRankingPlayers.map((player) => player.id),
       settledPlayerIds: automaticallySettledRegistrationPlayerIds,
     });
 
@@ -699,7 +706,7 @@ export default function Home() {
     }
   }
 
-  const rankingPlayers = [...players].sort((a, b) => {
+  const rankingPlayers = [...seasonRankingPlayers].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff;
     return b.gamesFor - a.gamesFor;
@@ -1013,7 +1020,7 @@ export default function Home() {
       {shouldShowRegistrationPanel ? (
         <SeasonRegistrationPanel
           registrationFee={roundSettings.registrationFee}
-          players={players}
+          players={seasonRankingPlayers}
           currentUserId={currentUserId}
           canManage={canManageRegistration}
           organizerName={organizerName}

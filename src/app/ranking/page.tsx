@@ -7,7 +7,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 
 export default function RankingPage() {
   const { t } = useI18n()
-  const { activeLeague, activeSeason, players } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, rankingPlayers } = useCurrentLeagueData()
 
   return (
     <div className="space-y-4">
@@ -29,7 +29,7 @@ export default function RankingPage() {
 
 
       <RankingTable
-        players={players}
+        players={rankingPlayers}
         showAvatars={activeLeague.showRankingAvatars !== false}
       />
     </div>

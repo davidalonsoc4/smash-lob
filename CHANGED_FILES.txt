@@ -1,0 +1,39 @@
+Smash & Lob v0.10.0 · Sistema de suplentes y reemplazos · revisión transaccional
+
+Archivos incluidos:
+
+package.json
+package-lock.json
+src/lib/appVersion.ts
+src/app/page.tsx
+src/app/ranking/page.tsx
+src/app/admin/page.tsx
+src/app/admin/season/page.tsx
+src/app/admin/substitutes/page.tsx
+src/app/match/[id]/page.tsx
+src/app/api/access/route.ts
+src/app/api/invites/[code]/route.ts
+src/app/api/invites/[code]/claim/route.ts
+src/app/api/matches/[matchId]/substitution/route.ts
+src/app/api/seasons/[seasonId]/replacements/route.ts
+src/app/api/seasons/[seasonId]/substitutes/route.ts
+src/app/api/seasons/[seasonId]/substitutes/[substituteId]/route.ts
+src/components/match/MatchSubstitutionPanel.tsx
+src/components/ranking/RankingTable.tsx
+src/context/LeagueAccessProvider.tsx
+src/data/fakeData.ts
+src/hooks/useCurrentLeagueData.ts
+src/lib/ranking.ts
+src/lib/serverSubstitutes.ts
+src/lib/substitutes.ts
+src/lib/supabaseInvites.ts
+supabase/migrations/20260720090000_add_season_substitutes.sql
+docs/preproduction/SUBSTITUTES_V0.10.0.md
+CHANGED_FILES.txt
+
+Validación realizada en el paquete:
+- npm run lint: correcto
+- npx tsc --noEmit: correcto
+- npm run build: correcto con 32 páginas generadas
+
+La migración SQL no se ha ejecutado desde este entorno. Debe aplicarse primero en Supabase PRE después de verificar el project-ref miadjotkucgluwbrgeih.

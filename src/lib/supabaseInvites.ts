@@ -11,6 +11,7 @@ export type SupabaseInviteSnapshot = {
   claimedMemberships: UserLeagueMembership[]
   matches: MatchData[]
   seasonSnapshot: SeasonSnapshot
+  claimablePlayerIds: string[]
 }
 
 function normalizeInviteCode(code: string) {

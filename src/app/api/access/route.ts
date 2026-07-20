@@ -181,7 +181,7 @@ export async function GET() {
       .in("league_id", leagueIds),
     supabase
       .from("season_players")
-      .select("season_id,player_id,seasons!inner(league_id)")
+      .select("season_id,player_id,status,joined_from_round,replaces_player_id,replaced_from_round,replaced_by_player_id,seasons!inner(league_id)")
       .in("seasons.league_id", leagueIds),
     supabase
       .from("season_settings")
@@ -277,6 +277,23 @@ export async function GET() {
     (seasonPlayer) => ({
       seasonId: seasonPlayer.season_id,
       playerId: seasonPlayer.player_id,
+      status: seasonPlayer.status === "withdrawn" ? "withdrawn" : "active",
+      joinedFromRound:
+        typeof seasonPlayer.joined_from_round === "number"
+          ? seasonPlayer.joined_from_round
+          : null,
+      replacesPlayerId:
+        typeof seasonPlayer.replaces_player_id === "string"
+          ? seasonPlayer.replaces_player_id
+          : null,
+      replacedFromRound:
+        typeof seasonPlayer.replaced_from_round === "number"
+          ? seasonPlayer.replaced_from_round
+          : null,
+      replacedByPlayerId:
+        typeof seasonPlayer.replaced_by_player_id === "string"
+          ? seasonPlayer.replaced_by_player_id
+          : null,
     })
   )
   const seasonSettings: SeasonRoundSettings[] = (
