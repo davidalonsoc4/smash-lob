@@ -98,3 +98,15 @@ Antes de aplicar la migración en PROD:
 4. Verificar explícitamente el proyecto Supabase de producción.
 5. Aplicar la migración canónica.
 6. Desplegar `main` y repetir una prueba de humo sin crear sustituciones sobre ligas reales.
+
+## Corrección posterior: alta y asignación de suplentes
+
+La migración `20260720213000_fix_substitute_rpc_column_ambiguity.sql` recrea las RPC
+`server_add_season_substitute` y `server_assign_match_substitute` con referencias de
+columnas calificadas. Corrige colisiones de nombres entre columnas PostgreSQL y los
+parámetros de salida de las funciones PL/pgSQL (`player_id`, `match_id` y
+`substitute_player_id`).
+
+Esta migración debe aplicarse solamente en Supabase PRE durante la validación de
+v0.10.0. La migración original `20260720090000_add_season_substitutes.sql` no debe
+editarse porque ya figura como aplicada en PRE.
