@@ -258,6 +258,7 @@ export default function MatchDetailPage() {
         pointsA={match.pointsA}
         pointsB={match.pointsB}
         sets={match.sets}
+        substitutions={match.substitutions}
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 

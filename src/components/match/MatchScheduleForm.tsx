@@ -99,9 +99,7 @@ export function MatchScheduleForm({
         ? ""
         : otherLocationValue;
 
-  const [isEditing, setIsEditing] = useState(
-    canManage && !hasSchedule && !isPostponed && !isFinished,
-  );
+  const [isEditing, setIsEditing] = useState(false);
   const [scheduledAtValue, setScheduledAtValue] = useState(
     hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
   );
@@ -185,6 +183,8 @@ export function MatchScheduleForm({
     canManage && !isSaving && !isFinished && !isPostponed && hasSchedule;
   const canClearCurrentSchedule =
     canClearSchedule && !isSaving && hasSchedule && !isFinished;
+  const isCollapsedAddSchedule =
+    canManage && !hasSchedule && !isPostponed && !isFinished && !isEditing;
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -405,7 +405,7 @@ export function MatchScheduleForm({
         ) : null}
       </div>
 
-      {!isEditing ? (
+      {!isEditing && !isCollapsedAddSchedule ? (
         <div className="mt-2 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-sm">
           {hasSchedule ? (
             <>
@@ -595,14 +595,16 @@ export function MatchScheduleForm({
           ) : null}
 
           <div className="flex gap-2">
-            {(hasSchedule || isPostponed) && !isFinished ? (
+            {!isFinished ? (
               <button
                 type="button"
                 onClick={handleCancel}
                 disabled={isSaving}
                 className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
               >
-                {t.matchDetail.cancelScheduleEdit}
+                {hasSchedule || isPostponed
+                  ? t.matchDetail.cancelScheduleEdit
+                  : "Cerrar"}
               </button>
             ) : null}
 

@@ -41,8 +41,20 @@ type Payload = {
   replacements: ReplacementRow[]
 }
 
-function getPoolProfile(item: PoolPlayer) {
+function getPoolProfile(item: PoolPlayer | undefined) {
+  if (!item) return null
   return Array.isArray(item.players) ? item.players[0] ?? null : item.players
+}
+
+function getMatchStatusText(status: string) {
+  const labels: Record<string, string> = {
+    finished: "Partido finalizado",
+    scheduled: "Partido programado",
+    postponed: "Partido aplazado",
+    scheduling: "Sin programar",
+  }
+
+  return labels[status] ?? "Partido"
 }
 
 export default function AdminSubstitutesPage() {
@@ -113,6 +125,20 @@ export default function AdminSubstitutesPage() {
       matches,
       payload.matchSubstitutions,
     ],
+  )
+  const substitutionHistory = useMemo(
+    () =>
+      payload.matchSubstitutions
+        .filter((item) => item.substitution_type === "single")
+        .map((item) => ({
+          ...item,
+          match: matches.find((match) => match.id === item.match_id) ?? null,
+        }))
+        .filter((item) => item.match?.seasonId === activeSeason.id)
+        .sort((left, right) =>
+          (right.match?.round ?? 0) - (left.match?.round ?? 0),
+        ),
+    [activeSeason.id, matches, payload.matchSubstitutions],
   )
 
   async function addSubstitute(event: FormEvent) {
@@ -242,6 +268,44 @@ export default function AdminSubstitutesPage() {
             </div>
           </div>
         ) : null}
+      </AppCard>
+
+      <AppCard>
+        <p className="font-black">Historial de sustituciones</p>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">Participaciones puntuales registradas durante la temporada.</p>
+        <div className="mt-3 space-y-2">
+          {substitutionHistory.length === 0 ? (
+            <p className="text-xs font-semibold text-neutral-500">Sin sustituciones puntuales todavía.</p>
+          ) : (
+            substitutionHistory.map((item) => {
+              const original = players.find((player) => player.id === item.original_player_id)
+              const substitute = players.find((player) => player.id === item.substitute_player_id)
+              const poolProfile = getPoolProfile(
+                payload.substitutes.find(
+                  (poolItem) => poolItem.player_id === item.substitute_player_id,
+                ),
+              )
+
+              return (
+                <div key={item.id} className="rounded-2xl bg-neutral-50 px-3 py-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black">
+                        J{item.match?.round ?? "-"} · {original?.displayName ?? "Titular"} → {substitute?.displayName ?? poolProfile?.display_name ?? "Suplente"}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                        Sustitución para un único partido
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-neutral-600">
+                      {getMatchStatusText(item.match?.status ?? "")}
+                    </span>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
       </AppCard>
 
       <AppCard>

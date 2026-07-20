@@ -13,6 +13,8 @@ import {
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import type { PlayerProfile } from "@/data/fakeData";
+import type { MatchSubstitution } from "@/lib/substitutes";
+import { getMatchSubstituteLabels } from "@/lib/substitutes";
 
 type MatchCardProps = {
   match: {
@@ -28,6 +30,7 @@ type MatchCardProps = {
     resultRecordedAt?: string | null;
     dateLabel: string | null;
     location: string | null;
+    substitutions?: MatchSubstitution[];
   };
   players?: PlayerProfile[];
   roundStartsAt: string | null;
@@ -51,6 +54,10 @@ export function MatchCard({
   showMissingScheduleHint = true,
 }: MatchCardProps) {
   const { t } = useI18n();
+  const substituteLabels = getMatchSubstituteLabels({
+    substitutions: match.substitutions,
+    players,
+  });
   const isFinished = match.status === "finished";
   const isPostponed = match.status === "postponed";
   const hasRoundWindow = Boolean(roundStartsAt && roundEndsAt);
@@ -132,6 +139,7 @@ export function MatchCard({
                   players={players}
                   highlightedPlayerIds={highlightedPlayerIds}
                   highlightedPlayerLabel={highlightedPlayerLabel}
+                  substituteLabels={substituteLabels}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
 
@@ -148,6 +156,7 @@ export function MatchCard({
                   players={players}
                   highlightedPlayerIds={highlightedPlayerIds}
                   highlightedPlayerLabel={highlightedPlayerLabel}
+                  substituteLabels={substituteLabels}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
 

@@ -1,20 +1,34 @@
-Smash & Lob v0.10.1 · Sustituciones y panel de resultado
+Smash & Lob v0.10.1 · Cierre de la primera versión de suplentes
 
 Archivos incluidos:
-
-package.json
-package-lock.json
-src/lib/appVersion.ts
-src/app/api/matches/[matchId]/substitution/route.ts
-src/app/match/[id]/page.tsx
-src/components/match/MatchSubstitutionPanel.tsx
-CHANGED_FILES.txt
+- CHANGED_FILES.txt
+- package.json
+- package-lock.json
+- src/lib/appVersion.ts
+- src/app/api/access/route.ts
+- src/app/api/matches/[matchId]/substitution/route.ts
+- src/app/admin/substitutes/page.tsx
+- src/app/match/[id]/page.tsx
+- src/components/match/MatchScheduleForm.tsx
+- src/components/match/MatchScoreboard.tsx
+- src/components/match/MatchSubstitutionPanel.tsx
+- src/components/matches/MatchCard.tsx
+- src/components/player/TeamPlayers.tsx
+- src/context/MatchDataProvider.tsx
+- src/lib/substitutes.ts
 
 Cambios:
-- Panel de sustituciones visible solo para jugadores del partido, administradores y creador.
-- Panel de sustituciones desplazado y plegado por defecto con diseño mucho más compacto.
-- Ninguna opción de alta de suplente queda preseleccionada.
-- Los suplentes creados desde un partido pasan a la bolsa de la temporada.
-- El panel «Resultado registrado» solo aparece en partidos con estado finalizado.
-- El botón «Limpiar resultado» ya no aparece en partidos sin programar ni en otros estados sin resultado.
+- El panel de sustituciones del partido solo se muestra a participantes, administradores y creador, con la misma autorización comprobada en servidor.
+- El panel de sustituciones es compacto, está plegado por defecto y no preselecciona la creación de un suplente nuevo.
+- Un suplente creado desde un partido queda guardado en la bolsa de suplentes de la temporada.
+- El panel «Resultado registrado» solo aparece cuando el partido está finalizado.
+- «Añadir programación» ya no abre el formulario automáticamente: aparece comprimido por defecto y puede abrirse y cerrarse.
+- Las sustituciones puntuales muestran una etiqueta «SUPLENTE · por [titular]» en la ficha del partido y en el calendario.
+- Administración > Suplentes incluye un historial visible de sustituciones puntuales con jornada y estado del partido.
+- La carga general de la liga incorpora los metadatos de sustitución necesarios para mostrar las etiquetas sin consultas adicionales por tarjeta.
 - Versión visible actualizada a v0.10.1.
+
+Base de datos:
+- Sin migraciones nuevas.
+- Sin SQL manual.
+- No ejecutar db push para este parche.

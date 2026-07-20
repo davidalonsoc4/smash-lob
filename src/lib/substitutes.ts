@@ -146,3 +146,29 @@ export function calculateSubstituteStats({
     return b.gamesFor - a.gamesFor
   })
 }
+
+type SubstituteLabelPlayer = {
+  id: string
+  displayName: string
+}
+
+export function getMatchSubstituteLabels({
+  substitutions,
+  players,
+}: {
+  substitutions?: MatchSubstitution[]
+  players: SubstituteLabelPlayer[]
+}) {
+  const playerNames = new Map(
+    players.map((player) => [player.id, player.displayName]),
+  )
+
+  return Object.fromEntries(
+    (substitutions ?? [])
+      .filter((substitution) => substitution.type === "single")
+      .map((substitution) => [
+        substitution.substitutePlayerId,
+        playerNames.get(substitution.originalPlayerId) ?? "titular",
+      ]),
+  )
+}
