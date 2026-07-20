@@ -1,6 +1,6 @@
 # Production Hardening Status
 
-Last updated: 2026-07-20 18:36:50 +02:00
+Last updated: 2026-07-20 18:49:40 +02:00
 Current branch at status update: `staging`
 Production branch confirmed from Git + Vercel: `main`
 Production source version retained in this run: `v0.9.71`
@@ -22,7 +22,7 @@ Active milestone state: `H20-H23 complete; environment isolation repair complete
 
 - The local Supabase CLI link remains on PRE project `miadjotkucgluwbrgeih`; it was not switched to Production.
 - Vercel Production now targets Supabase Production project `szycbwdzestcmimziyey` for the public URL, anon key, and service-role key.
-- Vercel Preview for Git branch `staging` now targets Supabase PRE project `miadjotkucgluwbrgeih` for the same three variables.
+- Vercel Preview defaults and the explicit Git branch `staging` overrides now target Supabase PRE project `miadjotkucgluwbrgeih` for the same three variables, preventing future Preview branches from falling back to Production.
 - Both official legacy JWT pairs were validated before use: three JWT segments, expected project reference and role claims, and successful read-only HTTP checks.
 - Public keys were compared exactly after storage without printing values. Service-role values were stored as Vercel Sensitive variables and cannot be read back.
 - Production was rebuilt from its existing `main` deployment, preserving the v0.9.71 source line. Staging was rebuilt from its existing branch deployment, preserving v0.10.0.
