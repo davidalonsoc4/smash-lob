@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile } from "@/data/fakeData"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type PoolItem = {
   id: string
@@ -29,7 +30,8 @@ type Payload = {
 
 const NEW_SUBSTITUTE_VALUE = "__new_substitute__"
 
-function getProfile(item: PoolItem) {
+function getProfile(item: PoolItem | null | undefined) {
+  if (!item) return null
   return Array.isArray(item.players) ? item.players[0] ?? null : item.players
 }
 
@@ -40,6 +42,7 @@ export function MatchSubstitutionPanel({
   match: MatchData
   players: PlayerProfile[]
 }) {
+  const { t } = useI18n()
   const [payload, setPayload] = useState<Payload | null>(null)
   const [originalPlayerId, setOriginalPlayerId] = useState("")
   const [substituteSelection, setSubstituteSelection] = useState("")
@@ -60,12 +63,12 @@ export function MatchSubstitutionPanel({
         if (!cancelled) setPayload(nextPayload)
       })
       .catch(() => {
-        if (!cancelled) setError("No se han podido cargar los suplentes.")
+        if (!cancelled) setError(t.matchDetail.substitutionsLoadError)
       })
     return () => {
       cancelled = true
     }
-  }, [match.id])
+  }, [match.id, t.matchDetail.substitutionsLoadError])
 
   const matchSubstitutions = useMemo(
     () =>
@@ -121,21 +124,18 @@ export function MatchSubstitutionPanel({
         error?: string
       } | null
       const messages: Record<string, string> = {
-        forbidden: "No tienes permiso para gestionar este partido.",
+        forbidden: t.matchDetail.substitutionsForbidden,
         season_player_cannot_be_substitute:
-          "Un titular de la temporada no puede actuar como suplente.",
+          t.matchDetail.substitutionsStarterCannotSubstitute,
         substitute_already_in_match:
-          "Ese suplente ya participa en el partido.",
-        substitute_not_available:
-          "Ese jugador ya no está disponible en la bolsa de suplentes.",
+          t.matchDetail.substitutionsAlreadyInMatch,
+        substitute_not_available: t.matchDetail.substitutionsUnavailable,
         original_player_already_substituted:
-          "Ese puesto del partido ya tiene una sustitución aplicada.",
-        finished_match_locked:
-          "No se puede cambiar una sustitución después de registrar el resultado.",
+          t.matchDetail.substitutionsSlotAlreadyReplaced,
+        finished_match_locked: t.matchDetail.substitutionsFinishedLocked,
       }
       setError(
-        messages[body?.error ?? ""] ??
-          "No se ha podido guardar la sustitución.",
+        messages[body?.error ?? ""] ?? t.matchDetail.substitutionsSaveError,
       )
       return
     }
@@ -158,7 +158,7 @@ export function MatchSubstitutionPanel({
     )
     setIsSaving(false)
     if (!response.ok) {
-      setError("No se ha podido deshacer la sustitución.")
+      setError(t.matchDetail.substitutionsUndoError)
       return
     }
     window.location.reload()
@@ -168,26 +168,38 @@ export function MatchSubstitutionPanel({
     <details className="group rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
         <div className="flex min-w-0 items-center gap-2">
-          <p className="text-sm font-black">Sustituciones</p>
+          <p className="text-sm font-black">{t.matchDetail.substitutionsTitle}</p>
           {matchSubstitutions.length > 0 ? (
             <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-700">
               {matchSubstitutions.length}
             </span>
           ) : (
             <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-              Opcional
+              {t.matchDetail.substitutionsOptional}
             </span>
           )}
         </div>
-        <span className="shrink-0 text-[11px] font-black text-neutral-500">
-          Gestionar <span className="inline-block transition group-open:rotate-180">⌄</span>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-4 w-4 transition-transform group-open:rotate-180"
+          >
+            <path
+              d="m6 8 4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </span>
       </summary>
 
       <div className="border-t border-neutral-100 px-3 py-3">
         <p className="text-[11px] font-semibold leading-4 text-neutral-500">
-          Sustituye a un titular solo en este partido. Los puntos, el MVP, las
-          confirmaciones y los pagos corresponderán a quien juegue realmente.
+          {t.matchDetail.substitutionsDescription}
         </p>
 
         {matchSubstitutions.length > 0 ? (
@@ -204,7 +216,7 @@ export function MatchSubstitutionPanel({
                   payload?.substitutes.find(
                     (poolItem) =>
                       poolItem.player_id === item.substitute_player_id,
-                  ) as PoolItem,
+                  ),
                 )
               const substituteName =
                 "displayName" in (substitute ?? {})
@@ -219,13 +231,16 @@ export function MatchSubstitutionPanel({
                 >
                   <div className="min-w-0">
                     <p className="truncate text-xs font-black">
-                      {substituteName ?? "Suplente"}
+                      {substituteName ?? t.matchDetail.substituteFallbackName}
                     </p>
                     <p className="truncate text-[10px] font-semibold text-red-700">
-                      Por {original?.displayName ?? "titular"} ·{" "}
+                      {t.matchDetail.substituteForPrefix}{" "}
+                      {original?.displayName ??
+                        t.matchDetail.starterFallbackName}{" "}
+                      ·{" "}
                       {item.substitution_type === "permanent"
-                        ? "permanente"
-                        : "este partido"}
+                        ? t.matchDetail.substitutionPermanent
+                        : t.matchDetail.substitutionThisMatch}
                     </p>
                   </div>
                   {item.substitution_type === "single" &&
@@ -236,7 +251,7 @@ export function MatchSubstitutionPanel({
                       onClick={() => remove(item.substitute_player_id)}
                       className="shrink-0 rounded-lg bg-white/80 px-2 py-1 text-[10px] font-black text-red-700 disabled:opacity-50"
                     >
-                      Deshacer
+                      {t.matchDetail.substitutionUndo}
                     </button>
                   ) : null}
                 </div>
@@ -253,7 +268,9 @@ export function MatchSubstitutionPanel({
                 onChange={(event) => setOriginalPlayerId(event.target.value)}
                 className="w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold"
               >
-                <option value="">Titular que no puede jugar</option>
+                <option value="">
+                  {t.matchDetail.substitutionOriginalPlaceholder}
+                </option>
                 {selectableOriginalPlayers.map((playerId) => (
                   <option key={playerId} value={playerId}>
                     {players.find((player) => player.id === playerId)
@@ -272,14 +289,17 @@ export function MatchSubstitutionPanel({
                 }}
                 className="w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold"
               >
-                <option value="">Selecciona suplente</option>
+                <option value="">
+                  {t.matchDetail.substitutionSelectPlaceholder}
+                </option>
                 {activePool.map((item) => (
                   <option key={item.id} value={item.player_id}>
-                    {getProfile(item)?.display_name ?? "Suplente"}
+                    {getProfile(item)?.display_name ??
+                      t.matchDetail.substituteFallbackName}
                   </option>
                 ))}
                 <option value={NEW_SUBSTITUTE_VALUE}>
-                  + Añadir un suplente nuevo
+                  + {t.matchDetail.substitutionAddNew}
                 </option>
               </select>
             </div>
@@ -290,11 +310,11 @@ export function MatchSubstitutionPanel({
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
                   maxLength={80}
-                  placeholder="Nombre del nuevo suplente"
+                  placeholder={t.matchDetail.substitutionNewNamePlaceholder}
                   className="w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold"
                 />
                 <p className="mt-1 text-[10px] font-semibold text-neutral-500">
-                  Quedará guardado también en la bolsa de suplentes.
+                  {t.matchDetail.substitutionSavedToPool}
                 </p>
               </div>
             ) : null}
@@ -303,7 +323,9 @@ export function MatchSubstitutionPanel({
               disabled={isSaving || !canAssign}
               className="w-full rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
             >
-              {isSaving ? "Guardando..." : "Asignar a este partido"}
+              {isSaving
+                ? t.matchDetail.saving
+                : t.matchDetail.substitutionAssign}
             </button>
           </form>
         ) : null}

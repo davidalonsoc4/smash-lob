@@ -531,6 +531,18 @@ export default function Home() {
       });
   const selectedNextMatch =
     effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
+  const selectedNextMatchCanSchedule = Boolean(
+    selectedNextMatch &&
+      (canManageSeason ||
+        selectedNextMatch.teamA.includes(currentUserId) ||
+        selectedNextMatch.teamB.includes(currentUserId)),
+  );
+  const selectedNextMatchHasSchedule = Boolean(
+    selectedNextMatch &&
+      (selectedNextMatch.scheduledAt ||
+        selectedNextMatch.dateLabel ||
+        selectedNextMatch.location),
+  );
   const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
     leagueMatch: leagueLastMatch,
     personalMatch: personalLastMatch,
@@ -1192,25 +1204,28 @@ export default function Home() {
                   <ClickableChevron className="shrink-0" />
                 </div>
 
-                <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
-                  <p className="text-xs font-black text-neutral-800">
-                    {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
-                      (selectedNextMatch.status === "postponed"
-                        ? t.matches.pendingReschedule
-                        : t.dashboard.addSchedule)}
-                  </p>
-
-                  <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                    {selectedNextMatchLocation
-                      ? getLeagueLocationCompactText(selectedNextMatchLocation)
-                      : (getScheduleLocationFallbackText(
-                          selectedNextMatch.location,
-                        ) ??
+                {selectedNextMatchHasSchedule ||
+                selectedNextMatchCanSchedule ? (
+                  <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+                    <p className="text-xs font-black text-neutral-800">
+                      {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
                         (selectedNextMatch.status === "postponed"
-                          ? t.matches.needsReschedule
-                          : t.dashboard.playersCanSchedule))}
-                  </p>
-                </div>
+                          ? t.matches.pendingReschedule
+                          : t.dashboard.addSchedule)}
+                    </p>
+
+                    <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                      {selectedNextMatchLocation
+                        ? getLeagueLocationCompactText(selectedNextMatchLocation)
+                        : (getScheduleLocationFallbackText(
+                            selectedNextMatch.location,
+                          ) ??
+                          (selectedNextMatch.status === "postponed"
+                            ? t.matches.needsReschedule
+                            : t.dashboard.playersCanSchedule))}
+                    </p>
+                  </div>
+                ) : null}
               </AppCard>
             </Link>
           ) : (
