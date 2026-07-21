@@ -110,18 +110,23 @@ export function LeagueRulesSummary({
         </RuleList>
       </RuleSection>
 
-      <RuleSection title="🩹 Jugadores comodín">
+      <RuleSection title="🩹 Suplentes y reemplazos">
         <RuleList>
           <RuleItem>
-            Solo se usarán para bajas médicas o lesiones de larga duración.
+            La organización puede mantener una bolsa de suplentes y añadir nuevos
+            perfiles durante la temporada cuando sea necesario.
           </RuleItem>
           <RuleItem>
-            Antes de empezar se podrán fijar 1 o 2 comodines oficiales externos de
-            nivel medio acordado por todos.
+            Una sustitución puntual afecta únicamente al partido seleccionado y puede
+            deshacerse antes de registrar el resultado.
           </RuleItem>
           <RuleItem>
-            Los puntos conseguidos por el comodín no suman al jugador lesionado. No se
-            permiten suplentes aleatorios de última hora.
+            Un reemplazo permanente se aplica desde una jornada concreta: el titular
+            saliente conserva su histórico y el nuevo titular comienza desde cero.
+          </RuleItem>
+          <RuleItem>
+            Los puntos, MVP, confirmaciones y pagos corresponden siempre a quien disputa
+            realmente el partido. El titular ausente no hereda esos puntos.
           </RuleItem>
         </RuleList>
       </RuleSection>

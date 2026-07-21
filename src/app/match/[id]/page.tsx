@@ -216,11 +216,10 @@ export default function MatchDetailPage() {
   const hasSchedule = Boolean(
     match.scheduledAt || match.dateLabel || match.location
   )
-  const hasSubstitutions = (match.substitutions?.length ?? 0) > 0
   const shouldShowSchedulePanel =
     match.status !== "finished" || hasSchedule
   const shouldShowSubstitutionPanel =
-    canManageMatch && (match.status !== "finished" || hasSubstitutions)
+    canManageMatch && match.status !== "finished"
 
   return (
     <div className="space-y-3">

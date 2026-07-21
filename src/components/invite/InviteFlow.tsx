@@ -184,6 +184,10 @@ function InviteRulesSummary({
           description={t.invites.rules.commitmentDescription}
         />
         <CompactRule
+          title={t.invites.rules.substitutesTitle}
+          description={t.invites.rules.substitutesDescription}
+        />
+        <CompactRule
           title={t.invites.rules.gameRulesTitle}
           description={t.invites.rules.gameRulesDescription}
         />

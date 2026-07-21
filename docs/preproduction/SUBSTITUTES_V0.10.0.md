@@ -1,4 +1,4 @@
-# Suplentes y reemplazos · v0.10.0
+# Suplentes y reemplazos · v0.10.3
 
 ## Flujo de ramas
 
@@ -14,13 +14,17 @@ La funcionalidad se prueba primero en PRE. No se aplica ningún cambio de base d
 supabase/migrations/20260720090000_add_season_substitutes.sql
 ```
 
-Esta migración es la única fuente de verdad para PRE y PROD. No hay SQL manual adicional que copiar después.
+La migración canónica y su migración correctora son la fuente de verdad para PRE y PROD. No hay SQL manual adicional que copiar después.
+
+```text
+supabase/migrations/20260720213000_fix_substitute_rpc_column_ambiguity.sql
+```
 
 Estado operativo:
 
 ```text
-PRE  · pendiente de aplicar
-PROD · pendiente hasta aprobar v0.10.0
+PRE  · ambas migraciones aplicadas y validadas
+PROD · pendiente hasta aprobar la promoción desde staging
 ```
 
 Antes de cualquier comando remoto en PRE:
@@ -42,7 +46,7 @@ supabase db push
 supabase migration list
 ```
 
-Cuando v0.10.0 esté aprobada para producción, la misma migración se aplicará desde el worktree de producción después de verificar expresamente el `project-ref` de PROD y antes de desplegar el código que depende de ella.
+Cuando esta funcionalidad esté aprobada para producción, las dos migraciones se aplicarán en orden desde el worktree de producción después de verificar expresamente el `project-ref` de PROD y antes de desplegar el código que depende de ella.
 
 ## Reglas funcionales
 
@@ -58,6 +62,8 @@ Cuando v0.10.0 esté aprobada para producción, la misma migración se aplicará
 - Un reemplazo permanente se bloquea si el saliente tiene sustituciones puntuales futuras o si el entrante ya está asignado como suplente en otro partido pendiente.
 - Los titulares dados de baja se muestran como `BAJA DESDE Jx`; los entrantes se muestran como `DESDE Jx`.
 - Las reservas, compradores de bolas y transferencias de pista se actualizan y recalculan con los participantes reales.
+- El panel de gestión de sustituciones solo aparece mientras el partido no está finalizado; el histórico de un partido cerrado se reconoce mediante sus etiquetas y desde Administración > Suplentes.
+- La ayuda de la aplicación y el resumen obligatorio de normas explican la bolsa, la sustitución puntual, el reemplazo permanente y la atribución real de puntos.
 
 ## Integridad transaccional
 
@@ -86,7 +92,9 @@ La modificación de partidos, auditoría, bolsa, titulares y pagos se confirma c
 12. Confirmar que los partidos anteriores no cambian, los futuros sí y las reservas futuras se actualizan.
 13. Confirmar las etiquetas `BAJA DESDE Jx` y `DESDE Jx` en el ranking.
 14. Confirmar que el saliente conserva sus puntos y el entrante empieza desde cero.
-15. Ejecutar `npm run lint`, `npm run build` y una prueba con dos cuentas antes de mergear a `staging`.
+15. Confirmar que el panel de sustituciones desaparece al finalizar el partido, manteniendo las etiquetas de suplente.
+16. Confirmar que Ayuda y la aceptación de normas explican correctamente los suplentes.
+17. Ejecutar `npm run lint`, `npm run build` y una prueba con dos cuentas antes de promocionar la rama.
 
 ## Promoción a producción
 
@@ -98,15 +106,3 @@ Antes de aplicar la migración en PROD:
 4. Verificar explícitamente el proyecto Supabase de producción.
 5. Aplicar la migración canónica.
 6. Desplegar `main` y repetir una prueba de humo sin crear sustituciones sobre ligas reales.
-
-## Corrección posterior: alta y asignación de suplentes
-
-La migración `20260720213000_fix_substitute_rpc_column_ambiguity.sql` recrea las RPC
-`server_add_season_substitute` y `server_assign_match_substitute` con referencias de
-columnas calificadas. Corrige colisiones de nombres entre columnas PostgreSQL y los
-parámetros de salida de las funciones PL/pgSQL (`player_id`, `match_id` y
-`substitute_player_id`).
-
-Esta migración debe aplicarse solamente en Supabase PRE durante la validación de
-v0.10.0. La migración original `20260720090000_add_season_substitutes.sql` no debe
-editarse porque ya figura como aplicada en PRE.
