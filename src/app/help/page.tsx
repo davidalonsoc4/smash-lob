@@ -231,10 +231,21 @@ export default function HelpPage() {
             description={t.help.injuriesAgreedDescription}
           />
           <MiniCard
+            title={t.help.injuriesSingleTitle}
+            description={t.help.injuriesSingleDescription}
+          />
+          <MiniCard
+            title={t.help.injuriesPermanentTitle}
+            description={t.help.injuriesPermanentDescription}
+          />
+          <MiniCard
             title={t.help.injuriesNoInheritedTitle}
             description={t.help.injuriesNoInheritedDescription}
           />
         </div>
+        <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
+          {t.help.injuriesHistoryNote}
+        </p>
       </HelpBlock>
 
       <HelpBlock eyebrow={t.help.scoringEyebrow} title={t.help.scoringTitle}>

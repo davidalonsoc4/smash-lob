@@ -1,35 +1,44 @@
-Smash & Lob v0.10.2 · Cierre de la primera versión de suplentes
+Smash & Lob v0.10.3 · Cierre documental y visual de suplentes
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
+- docs/preproduction/SUBSTITUTES_V0.10.0.md
 - src/lib/appVersion.ts
+- src/lib/substitutes.ts
+- src/app/admin/substitutes/page.tsx
 - src/app/api/access/route.ts
 - src/app/api/matches/[matchId]/substitution/route.ts
-- src/app/admin/substitutes/page.tsx
+- src/app/help/page.tsx
 - src/app/match/[id]/page.tsx
+- src/components/invite/InviteFlow.tsx
+- src/components/league/LeagueRulesSummary.tsx
 - src/components/match/MatchScheduleForm.tsx
 - src/components/match/MatchScoreboard.tsx
 - src/components/match/MatchSubstitutionPanel.tsx
 - src/components/matches/MatchCard.tsx
 - src/components/player/TeamPlayers.tsx
 - src/context/MatchDataProvider.tsx
-- src/lib/substitutes.ts
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
 
-Cambios acumulados de la rama:
+Cambios acumulados de v0.10.1-v0.10.3:
 - El panel de sustituciones del partido solo se muestra a participantes, administradores y creador, con la misma autorización comprobada en servidor.
-- El panel de sustituciones es compacto, está plegado por defecto y no preselecciona la creación de un suplente nuevo.
+- El panel es compacto, está plegado por defecto y no preselecciona la creación de un suplente nuevo.
 - Un suplente creado desde un partido queda guardado en la bolsa de suplentes de la temporada.
 - El panel «Resultado registrado» solo aparece cuando el partido está finalizado.
-- «Añadir programación» aparece comprimido por defecto y puede abrirse y cerrarse.
+- «Añadir programación» aparece comprimido por defecto; en un partido finalizado sin programación previa no aparece.
 - Las sustituciones puntuales muestran una etiqueta «SUPLENTE · por [titular]» en la ficha del partido y en el calendario.
 - Administración > Suplentes incluye un historial visible de sustituciones puntuales con jornada y estado del partido.
 - La carga general de la liga incorpora los metadatos de sustitución necesarios para mostrar las etiquetas sin consultas adicionales por tarjeta.
-- En un partido finalizado sin programación previa ya no aparece el panel «Añadir programación».
-- En un partido finalizado sin sustituciones ya no aparece el panel «Sustituciones».
-- Si un partido finalizado sí tuvo programación o sustituciones, se conserva la información correspondiente para consulta e histórico.
-- Versión visible actualizada a v0.10.2.
+- El panel de gestión de sustituciones no se muestra nunca cuando el partido está finalizado; las etiquetas conservan la trazabilidad.
+- La pantalla Ayuda explica la bolsa, quién puede gestionarla, la sustitución puntual, el reemplazo permanente, los puntos reales y el historial.
+- La pantalla obligatoria de aceptación de normas incluye el funcionamiento de suplentes y reemplazos.
+- El resumen ampliado del reglamento se adapta al sistema real de suplentes.
+- Los textos están actualizados en español, inglés y euskera.
+- Versión visible actualizada a v0.10.3.
 
 Base de datos:
 - Sin migraciones nuevas.

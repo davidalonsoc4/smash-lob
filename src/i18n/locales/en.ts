@@ -129,6 +129,9 @@ export const en = {
       commitmentTitle: "Commitment and good faith",
       commitmentDescription:
         "Matches are designed for 2-hour bookings. If there is an injury or a real scheduling issue, the match is moved without blocking the league.",
+      substitutesTitle: "Substitutes and permanent replacements",
+      substitutesDescription:
+        "The organisers may assign a substitute to one match or make a permanent replacement from a specific round. Points, MVP votes, confirmations and payments always belong to the person who actually plays; the absent starter does not inherit them.",
       gameRulesTitle: "Game rules",
       gameRulesDescription:
         "Matches use Star Point and a tie-break at 6-6. Games also matter because they break ranking ties.",
@@ -458,17 +461,25 @@ export const en = {
     formatGoodFaithTitle: "Good faith and postponements",
     formatGoodFaithDescription:
       "If there are holidays, an injury or a real scheduling issue, the match is moved while trying not to block the calendar.",
-    injuriesEyebrow: "Injuries",
-    injuriesTitle: "Wildcard players",
-    injuriesRealTitle: "Only for real absences",
+    injuriesEyebrow: "Substitutes",
+    injuriesTitle: "Pool, substitutions and replacements",
+    injuriesRealTitle: "Substitute pool",
     injuriesRealDescription:
-      "Wildcard players are reserved for injuries or long-term absences, not random last-minute substitutes.",
-    injuriesAgreedTitle: "Agreed before starting",
+      "The organisers may keep an optional pool and add profiles during the season. A substitute created from a match is also saved in that pool.",
+    injuriesAgreedTitle: "Who can manage them",
     injuriesAgreedDescription:
-      "The organization may define 1 or 2 official external wildcard players with a similar average level and accepted by the group.",
-    injuriesNoInheritedTitle: "No inherited points",
+      "Match participants, administrators and the league creator can manage a one-match substitution while the match is not finished.",
+    injuriesSingleTitle: "One-match substitution",
+    injuriesSingleDescription:
+      "It replaces a starter only in that match, keeping the same partner and position. It can be undone before a result is recorded.",
+    injuriesPermanentTitle: "Permanent replacement",
+    injuriesPermanentDescription:
+      "It takes effect from a specific round. The outgoing starter keeps their history and is marked as withdrawn; the incoming player becomes a starter from zero.",
+    injuriesNoInheritedTitle: "Points belong to the player",
     injuriesNoInheritedDescription:
-      "Points earned by a wildcard player do not count for the injured player; they only help the calendar keep moving.",
+      "Points, statistics, MVP votes, confirmations and payments belong to the substitute who actually plays. The absent starter receives none of them.",
+    injuriesHistoryNote:
+      "Labels in the calendar, match and ranking identify each change. Administration keeps the history of substitutions and replacements.",
     scoringEyebrow: "Scoring",
     scoringTitle: "How points are added",
     scoringThreeNilLabel: "3-0 match",
