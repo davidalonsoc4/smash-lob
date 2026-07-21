@@ -1,19 +1,19 @@
-Smash & Lob v0.10.10 · Alineación de la Pareja B
+Smash & Lob v0.10.11 · Corrección de zona horaria en la programación
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/components/match/MatchScoreboard.tsx
+- src/lib/matchScheduleTime.ts
+- src/lib/supabaseMatches.ts
 
 Cambios:
-- En el enfrentamiento previo al resultado, los nombres de los jugadores de la Pareja B quedan alineados a la derecha.
-- Cada fila completa de jugador, incluida cualquier etiqueta de suplente o MVP, respeta la alineación derecha.
-- Versión visible actualizada a v0.10.10.
-
-Traducciones:
-- No se añaden textos nuevos.
+- La fecha y hora mostradas para los partidos se formatean explícitamente en Europe/Madrid, incluyendo el cambio automático entre horario de invierno y verano.
+- Las etiquetas de programación se recalculan desde scheduled_at al leer los partidos, evitando reutilizar date_label antiguos generados en UTC.
+- Se corrigen inmediatamente las programaciones existentes que mostraban dos horas menos sin modificar la hora real guardada.
+- La lógica de estado mantiene la ventana de 120 minutos desde la hora real programada.
+- Versión visible actualizada a v0.10.11.
 
 Base de datos:
 - Sin migraciones nuevas.

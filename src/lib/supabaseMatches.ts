@@ -1,4 +1,7 @@
-import { parseMatchScheduleDate } from "@/lib/matchScheduleTime"
+import {
+  MATCH_SCHEDULE_TIME_ZONE,
+  parseMatchScheduleDate,
+} from "@/lib/matchScheduleTime"
 import { normalizeCourtBooking } from "@/lib/courtBooking"
 import type {
   CourtBooking,
@@ -158,6 +161,9 @@ function mapCourtBooking(row: Record<string, unknown>): CourtBooking {
 }
 
 export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
+  const scheduledAt =
+    typeof match.scheduled_at === "string" ? match.scheduled_at : null;
+
   return {
     id: String(match.id),
     leagueId: String(match.league_id),
@@ -169,9 +175,12 @@ export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
     pointsA: typeof match.points_a === "number" ? match.points_a : null,
     pointsB: typeof match.points_b === "number" ? match.points_b : null,
     sets: toMatchSets(match.sets),
-    scheduledAt:
-      typeof match.scheduled_at === "string" ? match.scheduled_at : null,
-    dateLabel: typeof match.date_label === "string" ? match.date_label : null,
+    scheduledAt,
+    dateLabel: scheduledAt
+      ? formatScheduleDateLabel(scheduledAt)
+      : typeof match.date_label === "string"
+        ? match.date_label
+        : null,
     location: typeof match.location === "string" ? match.location : null,
     resultRecordedAt:
       typeof match.result_recorded_at === "string"
@@ -199,6 +208,7 @@ export function formatScheduleDateLabel(scheduledAt: string) {
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
   }).format(date)
 
   return label.charAt(0).toLocaleUpperCase("es-ES") + label.slice(1)
