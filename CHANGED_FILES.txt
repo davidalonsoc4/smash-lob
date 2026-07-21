@@ -1,21 +1,24 @@
-Smash & Lob v0.10.6 · Ajustes visuales finales de los paneles del partido
+Smash & Lob v0.10.7 · Enfrentamiento lateral y registro de resultado más compacto
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/components/match/MatchScheduleForm.tsx
-- src/components/match/MatchSubstitutionPanel.tsx
+- src/app/match/[id]/page.tsx
+- src/components/match/MatchScoreboard.tsx
+- src/components/match/MatchResultForm.tsx
 
 Cambios:
-- Se elimina el botón «Cerrar» al añadir la primera programación: el panel se cierra con su propio chevron.
-- Se mantiene «Cancelar edición» al modificar una programación existente o reprogramar un partido, para poder descartar cambios sin guardar.
-- El panel «Sustituciones» adopta exactamente el mismo contenedor visual que «Añadir programación»: mismo radio, borde y sombra.
-- Versión visible actualizada a v0.10.6.
+- Antes de registrar un resultado, los equipos se muestran enfrentados a izquierda y derecha con un indicador VS central.
+- Los partidos finalizados mantienen el marcador vertical existente con puntos y sets.
+- El formulario de registro y edición de resultado elimina la repetición de las parejas, porque ya aparecen en el marcador superior.
+- Se compacta el bloque de introducción de sets sin alterar validaciones, confirmaciones ni guardado.
+- Versión visible actualizada a v0.10.7.
 
 Traducciones:
-- No se añaden textos nuevos; se reutilizan las traducciones existentes en español, inglés y euskera.
+- No se añaden textos traducibles nuevos; el indicador universal VS no requiere nuevas claves.
+- Se mantienen las traducciones existentes en español, inglés y euskera.
 
 Base de datos:
 - Sin migraciones nuevas.

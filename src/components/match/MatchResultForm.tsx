@@ -4,13 +4,9 @@ import { type FormEvent, type KeyboardEvent, useMemo, useRef, useState } from "r
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import type { PlayerProfile } from "@/data/fakeData"
 
 type MatchResultFormProps = {
   matchId: string
-  teamA: string[]
-  teamB: string[]
-  players?: PlayerProfile[]
   initialSets?: { a: number; b: number }[]
   mode: "create" | "edit"
   requiresThreeSets: boolean
@@ -93,44 +89,8 @@ function getInitialSetInputs(initialSets?: { a: number; b: number }[]) {
   })
 }
 
-function getPlayerDisplayName(playerId: string, players?: PlayerProfile[]) {
-  return players?.find((player) => player.id === playerId)?.displayName ?? playerId
-}
-
-function TeamNameStack({
-  label,
-  team,
-  players,
-}: {
-  label: string
-  team: string[]
-  players?: PlayerProfile[]
-}) {
-  return (
-    <div className="rounded-lg bg-white px-2.5 py-2 shadow-sm">
-      <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
-        {label}
-      </p>
-      <div className="mt-1 space-y-0.5">
-        {team.map((playerId) => (
-          <p
-            key={playerId}
-            className="truncate text-sm font-black text-neutral-950"
-            title={getPlayerDisplayName(playerId, players)}
-          >
-            {getPlayerDisplayName(playerId, players)}
-          </p>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export function MatchResultForm({
   matchId,
-  teamA,
-  teamB,
-  players,
   initialSets,
   mode,
   requiresThreeSets,
@@ -286,16 +246,10 @@ export function MatchResultForm({
         </div>
 
         <div className="mt-3 rounded-xl bg-neutral-100 p-2.5">
-          <div className="grid grid-cols-2 gap-2">
-            <TeamNameStack label="Pareja A" team={teamA} players={players} />
-            <TeamNameStack label="Pareja B" team={teamB} players={players} />
-          </div>
+          <div className="grid grid-cols-[34px_repeat(3,minmax(38px,1fr))_34px] items-center gap-1.5">
+            <div />
 
-          <div className="mt-2 rounded-xl bg-white p-2.5 shadow-sm">
-            <div className="grid grid-cols-[34px_repeat(3,minmax(38px,1fr))_34px] items-center gap-1.5">
-              <div />
-
-              {sets.map((set, index) => (
+            {sets.map((set, index) => (
                 <p
                   key={index}
                   className="text-center text-[10px] font-black uppercase text-neutral-500"
@@ -368,8 +322,7 @@ export function MatchResultForm({
                 </label>
               ))}
 
-              <p className="text-center text-lg font-black">{pointsB}</p>
-            </div>
+            <p className="text-center text-lg font-black">{pointsB}</p>
           </div>
         </div>
 
