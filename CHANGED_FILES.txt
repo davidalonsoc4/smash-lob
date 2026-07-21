@@ -1,26 +1,21 @@
-Smash & Lob v0.10.5 · Ajustes finales de programación y sustituciones
+Smash & Lob v0.10.6 · Ajustes visuales finales de los paneles del partido
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/app/page.tsx
 - src/components/match/MatchScheduleForm.tsx
 - src/components/match/MatchSubstitutionPanel.tsx
-- src/i18n/locales/es.ts
-- src/i18n/locales/en.ts
-- src/i18n/locales/eu.ts
 
 Cambios:
-- El panel «Añadir programación» funciona como desplegable real, con círculo y chevron a la derecha.
-- El panel queda cerrado por defecto cuando el partido todavía no está programado y puede volver a cerrarse en cualquier momento.
-- Al abrir un partido sin programación, los jugadores del partido o los admins con Vista admin activa acceden directamente al formulario.
-- Cuando la liga no tiene pistas guardadas y se introduce una ubicación manual, aparece «Comprobar dirección» para abrir la búsqueda en Google Maps antes de guardar.
-- El panel «Sustituciones» reemplaza el texto «Gestionar» por el mismo círculo con chevron.
-- Los textos nuevos y el panel de sustituciones quedan traducidos al español, inglés y euskera.
-- En HOME, el bloque «Añadir programación» del próximo partido solo se muestra a participantes del partido o admins con Vista admin activa. La programación ya existente sigue visible para todos.
-- Versión visible actualizada a v0.10.5.
+- Se elimina el botón «Cerrar» al añadir la primera programación: el panel se cierra con su propio chevron.
+- Se mantiene «Cancelar edición» al modificar una programación existente o reprogramar un partido, para poder descartar cambios sin guardar.
+- El panel «Sustituciones» adopta exactamente el mismo contenedor visual que «Añadir programación»: mismo radio, borde y sombra.
+- Versión visible actualizada a v0.10.6.
+
+Traducciones:
+- No se añaden textos nuevos; se reutilizan las traducciones existentes en español, inglés y euskera.
 
 Base de datos:
 - Sin migraciones nuevas.

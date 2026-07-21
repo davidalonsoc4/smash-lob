@@ -165,7 +165,7 @@ export function MatchSubstitutionPanel({
   }
 
   return (
-    <details className="group rounded-2xl border border-neutral-200 bg-white shadow-sm">
+    <details className="group overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
         <div className="flex min-w-0 items-center gap-2">
           <p className="text-sm font-black">{t.matchDetail.substitutionsTitle}</p>
