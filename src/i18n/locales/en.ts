@@ -283,6 +283,39 @@ export const en = {
     customLocation: "Maps location",
     customLocationPlaceholder:
       "Example: Lasesarre Sports Centre, Barakaldo or Maps URL",
+    checkAddressButton: "Check address",
+    closePanel: "Close",
+    saving: "Saving...",
+    substitutionsTitle: "Substitutions",
+    substitutionsOptional: "Optional",
+    substitutionsDescription:
+      "Replace a starter for this match only. Points, MVP votes, confirmations and payments will belong to the person who actually plays.",
+    substitutionsLoadError: "Substitutes could not be loaded.",
+    substitutionsForbidden: "You do not have permission to manage this match.",
+    substitutionsStarterCannotSubstitute:
+      "A season starter cannot act as a substitute.",
+    substitutionsAlreadyInMatch: "That substitute is already in the match.",
+    substitutionsUnavailable:
+      "That player is no longer available in the substitute pool.",
+    substitutionsSlotAlreadyReplaced:
+      "That match slot already has a substitution applied.",
+    substitutionsFinishedLocked:
+      "A substitution cannot be changed after the result is recorded.",
+    substitutionsSaveError: "The substitution could not be saved.",
+    substitutionsUndoError: "The substitution could not be undone.",
+    substituteFallbackName: "Substitute",
+    starterFallbackName: "starter",
+    substituteForPrefix: "For",
+    substitutionPermanent: "permanent",
+    substitutionThisMatch: "this match",
+    substitutionUndo: "Undo",
+    substitutionOriginalPlaceholder: "Starter who cannot play",
+    substitutionSelectPlaceholder: "Select substitute",
+    substitutionAddNew: "Add a new substitute",
+    substitutionNewNamePlaceholder: "New substitute name",
+    substitutionSavedToPool:
+      "They will also be saved in the substitute pool.",
+    substitutionAssign: "Assign to this match",
     directionsButton: "How to get there",
     schedulePlaceholderDate: "Example: Friday, 20:00",
     schedulePlaceholderLocation: "Example: North Padel Club",

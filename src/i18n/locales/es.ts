@@ -291,6 +291,39 @@ export const es = {
     customLocation: "Ubicación en Maps",
     customLocationPlaceholder:
       "Ejemplo: Polideportivo de Lasesarre, Barakaldo o URL de Maps",
+    checkAddressButton: "Comprobar dirección",
+    closePanel: "Cerrar",
+    saving: "Guardando...",
+    substitutionsTitle: "Sustituciones",
+    substitutionsOptional: "Opcional",
+    substitutionsDescription:
+      "Sustituye a un titular solo en este partido. Los puntos, el MVP, las confirmaciones y los pagos corresponderán a quien juegue realmente.",
+    substitutionsLoadError: "No se han podido cargar los suplentes.",
+    substitutionsForbidden: "No tienes permiso para gestionar este partido.",
+    substitutionsStarterCannotSubstitute:
+      "Un titular de la temporada no puede actuar como suplente.",
+    substitutionsAlreadyInMatch: "Ese suplente ya participa en el partido.",
+    substitutionsUnavailable:
+      "Ese jugador ya no está disponible en la bolsa de suplentes.",
+    substitutionsSlotAlreadyReplaced:
+      "Ese puesto del partido ya tiene una sustitución aplicada.",
+    substitutionsFinishedLocked:
+      "No se puede cambiar una sustitución después de registrar el resultado.",
+    substitutionsSaveError: "No se ha podido guardar la sustitución.",
+    substitutionsUndoError: "No se ha podido deshacer la sustitución.",
+    substituteFallbackName: "Suplente",
+    starterFallbackName: "titular",
+    substituteForPrefix: "Por",
+    substitutionPermanent: "permanente",
+    substitutionThisMatch: "este partido",
+    substitutionUndo: "Deshacer",
+    substitutionOriginalPlaceholder: "Titular que no puede jugar",
+    substitutionSelectPlaceholder: "Selecciona suplente",
+    substitutionAddNew: "Añadir un suplente nuevo",
+    substitutionNewNamePlaceholder: "Nombre del nuevo suplente",
+    substitutionSavedToPool:
+      "Quedará guardado también en la bolsa de suplentes.",
+    substitutionAssign: "Asignar a este partido",
     directionsButton: "Cómo llegar",
     schedulePlaceholderDate: "Ejemplo: Viernes, 20:00",
     schedulePlaceholderLocation: "Ejemplo: Club Pádel Norte",

@@ -286,6 +286,39 @@ export const eu = {
     customLocation: "Maps kokapena",
     customLocationPlaceholder:
       "Adibidea: Lasesarre kiroldegia, Barakaldo edo Maps URL",
+    checkAddressButton: "Helbidea egiaztatu",
+    closePanel: "Itxi",
+    saving: "Gordetzen...",
+    substitutionsTitle: "Ordezkapenak",
+    substitutionsOptional: "Aukerakoa",
+    substitutionsDescription:
+      "Ordezkatu titular bat partida honetan bakarrik. Puntuak, MVP botoak, baieztapenak eta ordainketak benetan jokatzen duenari dagozkio.",
+    substitutionsLoadError: "Ezin izan dira ordezkoak kargatu.",
+    substitutionsForbidden: "Ez duzu partida hau kudeatzeko baimenik.",
+    substitutionsStarterCannotSubstitute:
+      "Denboraldiko titular batek ezin du ordezko gisa jokatu.",
+    substitutionsAlreadyInMatch: "Ordezko hori dagoeneko partidan dago.",
+    substitutionsUnavailable:
+      "Jokalari hori jada ez dago ordezkoen poltsan erabilgarri.",
+    substitutionsSlotAlreadyReplaced:
+      "Partidako postu horrek ordezkapen bat dauka dagoeneko.",
+    substitutionsFinishedLocked:
+      "Emaitza erregistratu ondoren ezin da ordezkapena aldatu.",
+    substitutionsSaveError: "Ezin izan da ordezkapena gorde.",
+    substitutionsUndoError: "Ezin izan da ordezkapena desegin.",
+    substituteFallbackName: "Ordezkoa",
+    starterFallbackName: "titularra",
+    substituteForPrefix: "Honen ordez:",
+    substitutionPermanent: "iraunkorra",
+    substitutionThisMatch: "partida honetan",
+    substitutionUndo: "Desegin",
+    substitutionOriginalPlaceholder: "Jokatu ezin duen titularra",
+    substitutionSelectPlaceholder: "Aukeratu ordezkoa",
+    substitutionAddNew: "Ordezko berria gehitu",
+    substitutionNewNamePlaceholder: "Ordezko berriaren izena",
+    substitutionSavedToPool:
+      "Ordezkoen poltsan ere gordeko da.",
+    substitutionAssign: "Partida honetara esleitu",
     directionsButton: "Nola iritsi",
     schedulePlaceholderDate: "Adibidea: Ostirala, 20:00",
     schedulePlaceholderLocation: "Adibidea: North Padel Club",
