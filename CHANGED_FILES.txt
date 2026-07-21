@@ -1,24 +1,25 @@
-Smash & Lob v0.10.7 · Enfrentamiento lateral y registro de resultado más compacto
+Smash & Lob v0.10.8 · Pagos desplegables y nombres largos en el enfrentamiento
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/app/match/[id]/page.tsx
+- src/components/match/CourtBookingPanel.tsx
 - src/components/match/MatchScoreboard.tsx
-- src/components/match/MatchResultForm.tsx
+- src/components/player/PlayerNameLink.tsx
+- src/components/player/TeamPlayers.tsx
 
 Cambios:
-- Antes de registrar un resultado, los equipos se muestran enfrentados a izquierda y derecha con un indicador VS central.
-- Los partidos finalizados mantienen el marcador vertical existente con puntos y sets.
-- El formulario de registro y edición de resultado elimina la repetición de las parejas, porque ya aparecen en el marcador superior.
-- Se compacta el bloque de introducción de sets sin alterar validaciones, confirmaciones ni guardado.
-- Versión visible actualizada a v0.10.7.
+- El panel Pagos y reservas sustituye los botones de texto Ver pagos / Ocultar pagos por el mismo círculo con chevron utilizado en los demás paneles desplegables.
+- El chevron conserva etiquetas accesibles y gira al abrir o cerrar el panel.
+- El enfrentamiento lateral previo al resultado aprovecha más ancho reduciendo el espacio central, el relleno y el tamaño responsivo del texto.
+- Los nombres completos de cada jugador se mantienen en una sola línea; nombres como Andoni Fernandez caben en móvil sin partirse por el espacio.
+- Se mantienen las etiquetas de suplente y MVP, permitiendo que los elementos auxiliares se adapten sin partir el nombre.
+- Versión visible actualizada a v0.10.8.
 
 Traducciones:
-- No se añaden textos traducibles nuevos; el indicador universal VS no requiere nuevas claves.
-- Se mantienen las traducciones existentes en español, inglés y euskera.
+- No se añaden textos nuevos. Las etiquetas accesibles reutilizan las traducciones existentes en español, inglés y euskera.
 
 Base de datos:
 - Sin migraciones nuevas.

@@ -73,8 +73,8 @@ export function MatchScoreboard({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-[minmax(0,1fr)_32px_minmax(0,1fr)] items-stretch gap-1.5">
-          <div className="min-w-0 rounded-lg bg-neutral-50 px-2.5 py-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] items-stretch gap-1">
+          <div className="min-w-0 rounded-lg bg-neutral-50 px-1.5 py-2">
             <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
               {t.matchDetail.teamA}
             </p>
@@ -83,17 +83,18 @@ export function MatchScoreboard({
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
-              className="mt-1 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+              className="mt-1 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-[clamp(11px,3vw,13px)] font-black leading-tight tracking-[-0.02em]"
+              keepNamesOnOneLine
             />
           </div>
 
           <div className="flex items-center justify-center">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-[10px] font-black uppercase text-neutral-500">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-neutral-100 text-[9px] font-black uppercase text-neutral-500">
               VS
             </span>
           </div>
 
-          <div className="min-w-0 rounded-lg bg-neutral-50 px-2.5 py-2 text-right">
+          <div className="min-w-0 rounded-lg bg-neutral-50 px-1.5 py-2 text-right">
             <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
               {t.matchDetail.teamB}
             </p>
@@ -102,7 +103,8 @@ export function MatchScoreboard({
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
-              className="mt-1 flex min-w-0 flex-wrap justify-end gap-x-1 gap-y-0.5 text-sm font-black"
+              className="mt-1 flex min-w-0 flex-wrap justify-end gap-x-1 gap-y-0.5 text-[clamp(11px,3vw,13px)] font-black leading-tight tracking-[-0.02em]"
+              keepNamesOnOneLine
             />
           </div>
         </div>
