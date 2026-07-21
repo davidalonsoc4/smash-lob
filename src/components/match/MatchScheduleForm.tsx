@@ -683,16 +683,14 @@ export function MatchScheduleForm({
               ) : null}
 
               <div className="flex gap-2">
-                {!isFinished ? (
+                {!isFinished && (hasSchedule || isPostponed) ? (
                   <button
                     type="button"
                     onClick={handleCancel}
                     disabled={isSaving}
                     className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
                   >
-                    {hasSchedule || isPostponed
-                      ? t.matchDetail.cancelScheduleEdit
-                      : t.matchDetail.closePanel}
+                    {t.matchDetail.cancelScheduleEdit}
                   </button>
                 ) : null}
 
