@@ -8,6 +8,7 @@ type TeamPlayersProps = {
   highlightedPlayerLabel?: string
   substituteLabels?: Record<string, string>
   className?: string
+  keepNamesOnOneLine?: boolean
 }
 
 export function TeamPlayers({
@@ -17,6 +18,7 @@ export function TeamPlayers({
   highlightedPlayerLabel = "MVP de jornada",
   substituteLabels = {},
   className = "flex flex-wrap gap-x-1 gap-y-1 text-lg font-black",
+  keepNamesOnOneLine = false,
 }: TeamPlayersProps) {
   return (
     <div className={className}>
@@ -24,8 +26,17 @@ export function TeamPlayers({
         const isHighlighted = highlightedPlayerIds.includes(playerId)
 
         return (
-          <span key={playerId} className="inline-flex items-center gap-x-1">
-            <PlayerNameLink playerId={playerId} players={players} />
+          <span
+            key={playerId}
+            className={`inline-flex min-w-0 items-center gap-x-1 ${
+              keepNamesOnOneLine ? "flex-wrap" : ""
+            }`}
+          >
+            <PlayerNameLink
+              playerId={playerId}
+              players={players}
+              className={keepNamesOnOneLine ? "whitespace-nowrap" : ""}
+            />
             {isHighlighted ? (
               <span
                 aria-label={highlightedPlayerLabel}

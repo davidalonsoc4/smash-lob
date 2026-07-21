@@ -499,12 +499,25 @@ export function CourtBookingPanel({
         <button
           type="button"
           onClick={() => setIsExpanded((currentValue) => !currentValue)}
-          className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 text-[10px] font-black text-neutral-700 shadow-sm transition active:bg-neutral-100"
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}
+          title={isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600 transition active:bg-neutral-200"
         >
-          <span>{isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}</span>
-          <span aria-hidden="true" className="text-xs leading-none text-neutral-400">
-            {isExpanded ? "⌃" : "⌄"}
-          </span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="none"
+            className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          >
+            <path
+              d="m6 8 4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       </div>
 
