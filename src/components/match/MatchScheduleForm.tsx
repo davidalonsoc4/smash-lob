@@ -347,9 +347,42 @@ export function MatchScheduleForm({
       : t.matchDetail.pendingScheduleDescription;
   }
 
+  if (isCollapsedAddSchedule) {
+    return (
+      <section className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          disabled={isSaving}
+          aria-expanded={false}
+          className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-0.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
+        >
+          <span className="min-w-0 truncate text-sm font-black text-neutral-950">
+            {t.matchDetail.addScheduleTitle}
+          </span>
+
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-4 w-4 shrink-0 text-neutral-500"
+          >
+            <path
+              d="m6 8 4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-black text-neutral-950">{getTitle()}</p>
 
@@ -359,13 +392,13 @@ export function MatchScheduleForm({
         </div>
 
         {canManage && !isEditing && !isFinished ? (
-          <div className="flex shrink-0 items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 shadow-sm">
+          <div className="flex w-full items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 shadow-sm sm:w-auto sm:shrink-0">
             {isPostponed ? (
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
                 disabled={isSaving}
-                className="inline-flex h-6 items-center rounded-md bg-neutral-950 px-2 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                className="inline-flex h-6 flex-1 items-center justify-center rounded-md bg-neutral-950 px-2 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 sm:flex-none"
               >
                 {t.matchDetail.rescheduleButton}
               </button>
@@ -376,7 +409,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="inline-flex h-6 items-center rounded-md bg-white px-2 text-[10px] font-black text-neutral-900 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
+                    className="inline-flex h-6 flex-1 items-center justify-center rounded-md bg-white px-2 text-[10px] font-black text-neutral-900 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400 sm:flex-none"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -385,7 +418,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="inline-flex h-6 items-center rounded-md bg-neutral-950 px-2 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                    className="inline-flex h-6 flex-1 items-center justify-center rounded-md bg-neutral-950 px-2 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 sm:flex-none"
                   >
                     {t.matchDetail.addScheduleButton}
                   </button>
@@ -395,7 +428,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={handlePostpone}
                   disabled={!canPostpone}
-                  className="inline-flex h-6 items-center rounded-md px-2 text-[10px] font-black text-neutral-700 transition active:bg-white disabled:text-neutral-300"
+                  className="inline-flex h-6 flex-1 items-center justify-center rounded-md px-2 text-[10px] font-black text-neutral-700 transition active:bg-white disabled:text-neutral-300 sm:flex-none"
                 >
                   {isSaving ? "Guardando..." : t.matchDetail.postponeButton}
                 </button>
@@ -405,7 +438,7 @@ export function MatchScheduleForm({
         ) : null}
       </div>
 
-      {!isEditing && !isCollapsedAddSchedule ? (
+      {!isEditing ? (
         <div className="mt-2 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-sm">
           {hasSchedule ? (
             <>
