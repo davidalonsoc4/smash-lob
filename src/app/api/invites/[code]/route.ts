@@ -281,12 +281,28 @@ async function buildInviteResponse(
     seasonIds.length > 0
       ? await supabase
           .from("season_players")
-          .select("season_id,player_id")
+          .select("season_id,player_id,status,joined_from_round,replaces_player_id,replaced_from_round,replaced_by_player_id")
           .in("season_id", seasonIds)
       : { data: [], error: null }
 
   if (seasonPlayersError) {
     throwSupabaseError("fetch_invite_season_players", seasonPlayersError)
+  }
+
+  const joinableSeason =
+    seasons.find((season) => season.id === league.activeSeasonId) ??
+    [...seasons].at(-1) ??
+    null
+  const { data: substituteRows, error: substitutesError } = joinableSeason
+    ? await supabase
+        .from("season_substitutes")
+        .select("player_id")
+        .eq("season_id", joinableSeason.id)
+        .eq("active", true)
+    : { data: [], error: null }
+
+  if (substitutesError) {
+    throwSupabaseError("fetch_invite_substitutes", substitutesError)
   }
 
   const { data: membershipRows, error: membershipsError } = await supabase
@@ -337,7 +353,41 @@ async function buildInviteResponse(
     (seasonPlayer) => ({
       seasonId: seasonPlayer.season_id,
       playerId: seasonPlayer.player_id,
+      status: seasonPlayer.status === "withdrawn" ? "withdrawn" : "active",
+      joinedFromRound:
+        typeof seasonPlayer.joined_from_round === "number"
+          ? seasonPlayer.joined_from_round
+          : null,
+      replacesPlayerId:
+        typeof seasonPlayer.replaces_player_id === "string"
+          ? seasonPlayer.replaces_player_id
+          : null,
+      replacedFromRound:
+        typeof seasonPlayer.replaced_from_round === "number"
+          ? seasonPlayer.replaced_from_round
+          : null,
+      replacedByPlayerId:
+        typeof seasonPlayer.replaced_by_player_id === "string"
+          ? seasonPlayer.replaced_by_player_id
+          : null,
     })
+  )
+  const joinableSeasonPlayerIds = new Set(
+    joinableSeason
+      ? seasonPlayers
+          .filter(
+            (seasonPlayer) =>
+              seasonPlayer.seasonId === joinableSeason.id &&
+              seasonPlayer.status !== "withdrawn",
+          )
+          .map((seasonPlayer) => seasonPlayer.playerId)
+      : [],
+  )
+  const claimablePlayerIds = Array.from(
+    new Set([
+      ...joinableSeasonPlayerIds,
+      ...(substituteRows ?? []).map((row) => row.player_id),
+    ]),
   )
   const seasonSettings: SeasonRoundSettings[] = settingsRows.map((settings) => ({
     leagueId: settings.league_id,
@@ -389,6 +439,7 @@ async function buildInviteResponse(
           [league.id]: league.activeSeasonId,
         },
       },
+      claimablePlayerIds,
     },
   })
 }

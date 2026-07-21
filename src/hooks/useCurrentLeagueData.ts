@@ -82,12 +82,39 @@ export function useCurrentLeagueData() {
       mode: roundSettings.resultConfirmationMode,
     }).countsForRanking,
   }))
-  const players = getPlayersBySeasonId(
+  const rankingPlayers = getPlayersBySeasonId(
     baseActiveSeason.id,
     matches,
     seasonPlayers,
     playerProfiles
   )
+  const rankingPlayerIds = new Set(rankingPlayers.map((player) => player.id))
+  const matchParticipantIds = new Set(
+    matches.flatMap((match) => [...match.teamA, ...match.teamB]),
+  )
+  const matchOnlyPlayers = playerProfiles
+    .filter(
+      (player) =>
+        player.leagueId === activeLeague.id &&
+        matchParticipantIds.has(player.id) &&
+        !rankingPlayerIds.has(player.id),
+    )
+    .map((player) => ({
+      ...player,
+      seasonId: baseActiveSeason.id,
+      playerId: player.id,
+      seasonPlayerStatus: "active" as const,
+      joinedFromRound: null,
+      replacedFromRound: null,
+      points: 0,
+      gamesDiff: 0,
+      gamesFor: 0,
+      gamesAgainst: 0,
+      matchesPlayed: 0,
+      wins: 0,
+      losses: 0,
+    }))
+  const players = [...rankingPlayers, ...matchOnlyPlayers]
   const lastMatch = getLastMatch(matches)
   const nextMatch = getNextMatch(matches)
   const rounds = buildSeasonRounds({
@@ -107,6 +134,7 @@ export function useCurrentLeagueData() {
     roundSettings,
     rounds,
     players,
+    rankingPlayers,
     matches,
     lastMatch,
     nextMatch,

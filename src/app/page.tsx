@@ -486,8 +486,15 @@ export default function Home() {
   const { currentUserId, currentUser } = useCurrentUser();
   const { isLeagueAdmin, isLeagueSpectator } = useLeagueAccess();
   const { votes } = useMvp();
-  const { activeLeague, activeSeason, roundSettings, players, matches, rounds } =
-    useCurrentLeagueData();
+  const {
+    activeLeague,
+    activeSeason,
+    roundSettings,
+    players,
+    rankingPlayers: seasonRankingPlayers,
+    matches,
+    rounds,
+  } = useCurrentLeagueData();
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
   const spectatorMode = isLeagueSpectator(activeLeague.id);
@@ -524,6 +531,18 @@ export default function Home() {
       });
   const selectedNextMatch =
     effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
+  const selectedNextMatchCanSchedule = Boolean(
+    selectedNextMatch &&
+      (canManageSeason ||
+        selectedNextMatch.teamA.includes(currentUserId) ||
+        selectedNextMatch.teamB.includes(currentUserId)),
+  );
+  const selectedNextMatchHasSchedule = Boolean(
+    selectedNextMatch &&
+      (selectedNextMatch.scheduledAt ||
+        selectedNextMatch.dateLabel ||
+        selectedNextMatch.location),
+  );
   const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
     leagueMatch: leagueLastMatch,
     personalMatch: personalLastMatch,
@@ -621,7 +640,7 @@ export default function Home() {
 
   const isRegistrationSettled = isSeasonRegistrationSettled({
     registrationFee: roundSettings.registrationFee,
-    playerIds: players.map((player) => player.id),
+    playerIds: seasonRankingPlayers.map((player) => player.id),
     settledPlayerIds: automaticallySettledRegistrationPlayerIds,
   });
 
@@ -639,7 +658,7 @@ export default function Home() {
         playerId,
         isPaid,
       }),
-      playerIds: players.map((player) => player.id),
+      playerIds: seasonRankingPlayers.map((player) => player.id),
     });
     const nextSettings = {
       ...roundSettings,
@@ -662,7 +681,7 @@ export default function Home() {
 
     const pendingPlayerIds = getSeasonRegistrationPendingPayments({
       registrationFee: roundSettings.registrationFee,
-      playerIds: players.map((player) => player.id),
+      playerIds: seasonRankingPlayers.map((player) => player.id),
       settledPlayerIds: automaticallySettledRegistrationPlayerIds,
     });
 
@@ -699,7 +718,7 @@ export default function Home() {
     }
   }
 
-  const rankingPlayers = [...players].sort((a, b) => {
+  const rankingPlayers = [...seasonRankingPlayers].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff;
     return b.gamesFor - a.gamesFor;
@@ -1013,7 +1032,7 @@ export default function Home() {
       {shouldShowRegistrationPanel ? (
         <SeasonRegistrationPanel
           registrationFee={roundSettings.registrationFee}
-          players={players}
+          players={seasonRankingPlayers}
           currentUserId={currentUserId}
           canManage={canManageRegistration}
           organizerName={organizerName}
@@ -1185,25 +1204,28 @@ export default function Home() {
                   <ClickableChevron className="shrink-0" />
                 </div>
 
-                <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
-                  <p className="text-xs font-black text-neutral-800">
-                    {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
-                      (selectedNextMatch.status === "postponed"
-                        ? t.matches.pendingReschedule
-                        : t.dashboard.addSchedule)}
-                  </p>
-
-                  <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                    {selectedNextMatchLocation
-                      ? getLeagueLocationCompactText(selectedNextMatchLocation)
-                      : (getScheduleLocationFallbackText(
-                          selectedNextMatch.location,
-                        ) ??
+                {selectedNextMatchHasSchedule ||
+                selectedNextMatchCanSchedule ? (
+                  <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+                    <p className="text-xs font-black text-neutral-800">
+                      {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
                         (selectedNextMatch.status === "postponed"
-                          ? t.matches.needsReschedule
-                          : t.dashboard.playersCanSchedule))}
-                  </p>
-                </div>
+                          ? t.matches.pendingReschedule
+                          : t.dashboard.addSchedule)}
+                    </p>
+
+                    <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                      {selectedNextMatchLocation
+                        ? getLeagueLocationCompactText(selectedNextMatchLocation)
+                        : (getScheduleLocationFallbackText(
+                            selectedNextMatch.location,
+                          ) ??
+                          (selectedNextMatch.status === "postponed"
+                            ? t.matches.needsReschedule
+                            : t.dashboard.playersCanSchedule))}
+                    </p>
+                  </div>
+                ) : null}
               </AppCard>
             </Link>
           ) : (

@@ -56,6 +56,11 @@ export type UserLeagueMembership = {
 export type SeasonPlayer = {
   seasonId: string
   playerId: string
+  status?: "active" | "withdrawn"
+  joinedFromRound?: number | null
+  replacesPlayerId?: string | null
+  replacedFromRound?: number | null
+  replacedByPlayerId?: string | null
 }
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed"

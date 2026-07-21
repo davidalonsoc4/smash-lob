@@ -502,6 +502,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const [memberships, setMemberships] = useState<UserLeagueMembership[]>(
     readStoredMemberships,
   );
+  const [inviteClaimablePlayerIds, setInviteClaimablePlayerIds] = useState<
+    Record<string, string[]>
+  >({});
   const [spectatorLeagueIds, setSpectatorLeagueIds] = useState<string[]>([]);
   const [hydratedAccessUserId, setHydratedAccessUserId] = useState<string | null>(
     null,
@@ -1349,6 +1352,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         setMemberships((currentMemberships) =>
           mergeMemberships(currentMemberships, snapshot.claimedMemberships),
         );
+        setInviteClaimablePlayerIds((current) => ({
+          ...current,
+          [snapshot.league.id]: snapshot.claimablePlayerIds,
+        }));
         hydrateMatches(snapshot.matches);
         hydrateSeasonSnapshot(snapshot.seasonSnapshot);
 
@@ -1374,15 +1381,18 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         .at(-1);
       const joinableSeasonId =
         league?.activeSeasonId || latestLeagueSeason?.id || "";
-      const joinableSeasonPlayerIds = new Set(
-        joinableSeasonId
+      const joinableSeasonPlayerIds = new Set([
+        ...(joinableSeasonId
           ? seasonPlayers
               .filter(
-                (seasonPlayer) => seasonPlayer.seasonId === joinableSeasonId,
+                (seasonPlayer) =>
+                  seasonPlayer.seasonId === joinableSeasonId &&
+                  seasonPlayer.status !== "withdrawn",
               )
               .map((seasonPlayer) => seasonPlayer.playerId)
-          : [],
-      );
+          : []),
+        ...(inviteClaimablePlayerIds[leagueId] ?? []),
+      ]);
 
       return playerProfiles.filter((player) => {
         if (player.leagueId !== leagueId || claimedPlayerIds.has(player.id)) {
@@ -1396,7 +1406,14 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         return true;
       });
     },
-    [leagues, memberships, playerProfiles, seasonPlayers, seasons],
+    [
+      inviteClaimablePlayerIds,
+      leagues,
+      memberships,
+      playerProfiles,
+      seasonPlayers,
+      seasons,
+    ],
   );
 
   const claimPlayer = useCallback(

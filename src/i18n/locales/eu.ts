@@ -130,6 +130,9 @@ export const eu = {
       commitmentTitle: "Konpromisoa eta fede ona",
       commitmentDescription:
         "Partidak 2 orduko erreserbetarako pentsatuta daude. Lesioa edo benetako agenda arazoa badago, partida berriro kokatzen da liga blokeatu gabe.",
+      substitutesTitle: "Ordezkoak eta ordezkapen iraunkorrak",
+      substitutesDescription:
+        "Antolakuntzak ordezko bat partida bakarrerako esleitu edo ordezkapen iraunkorra jardunaldi jakin batetik egin dezake. Puntuak, MVP botoak, baieztapenak eta ordainketak benetan jokatzen duenari dagozkio; falta den titularrak ez ditu jasotzen.",
       gameRulesTitle: "Joko arauak",
       gameRulesDescription:
         "Star Point erabiltzen da eta 6-6an tie-breaka jokatzen da. Jokoak ere garrantzitsuak dira rankingeko berdinketak hausten dituztelako.",
@@ -150,6 +153,26 @@ export const eu = {
     collapse: "Ezkutatu erreserba",
     pendingPaymentSingular: "ordainketa pendiente",
     pendingPaymentPlural: "ordainketa pendiente",
+  },
+
+  payments: {
+    economyTitle: "Laburpen ekonomikoa",
+    expandEconomy: "Laburpen ekonomikoa ikusi",
+    collapseEconomy: "Laburpen ekonomikoa ezkutatu",
+    scopeLabel: "Epea",
+    allLeague: "Liga osoa",
+    recordedSpend: "Erregistratutako gastua",
+    yourEstimatedShare: "Zure gutxi gorabeherako zatia",
+    matchesWithCosts: "gastudun partida",
+    matchShareAndFees: "Partidak eta izen-ematea",
+    courts: "Pistak",
+    balls: "Pilotak",
+    registrationFees: "Izen-emate kuotak",
+    collectedOf: "kobratuta, guztira",
+    paid: "Ordainduta",
+    pending: "Zain",
+    economyNote:
+      "Pista eta piloten gastuak partida bakoitzean benetan jokatu dutenen artean banatzen dira. Izen-emate kuotak aparte erakusten dira, gero gastu horiek ordaintzeko erabiltzen den dirua bi aldiz ez zenbatzeko.",
   },
 
   nav: {
@@ -283,6 +306,39 @@ export const eu = {
     customLocation: "Maps kokapena",
     customLocationPlaceholder:
       "Adibidea: Lasesarre kiroldegia, Barakaldo edo Maps URL",
+    checkAddressButton: "Helbidea egiaztatu",
+    closePanel: "Itxi",
+    saving: "Gordetzen...",
+    substitutionsTitle: "Ordezkapenak",
+    substitutionsOptional: "Aukerakoa",
+    substitutionsDescription:
+      "Ordezkatu titular bat partida honetan bakarrik. Puntuak, MVP botoak, baieztapenak eta ordainketak benetan jokatzen duenari dagozkio.",
+    substitutionsLoadError: "Ezin izan dira ordezkoak kargatu.",
+    substitutionsForbidden: "Ez duzu partida hau kudeatzeko baimenik.",
+    substitutionsStarterCannotSubstitute:
+      "Denboraldiko titular batek ezin du ordezko gisa jokatu.",
+    substitutionsAlreadyInMatch: "Ordezko hori dagoeneko partidan dago.",
+    substitutionsUnavailable:
+      "Jokalari hori jada ez dago ordezkoen poltsan erabilgarri.",
+    substitutionsSlotAlreadyReplaced:
+      "Partidako postu horrek ordezkapen bat dauka dagoeneko.",
+    substitutionsFinishedLocked:
+      "Emaitza erregistratu ondoren ezin da ordezkapena aldatu.",
+    substitutionsSaveError: "Ezin izan da ordezkapena gorde.",
+    substitutionsUndoError: "Ezin izan da ordezkapena desegin.",
+    substituteFallbackName: "Ordezkoa",
+    starterFallbackName: "titularra",
+    substituteForPrefix: "Honen ordez:",
+    substitutionPermanent: "iraunkorra",
+    substitutionThisMatch: "partida honetan",
+    substitutionUndo: "Desegin",
+    substitutionOriginalPlaceholder: "Jokatu ezin duen titularra",
+    substitutionSelectPlaceholder: "Aukeratu ordezkoa",
+    substitutionAddNew: "Ordezko berria gehitu",
+    substitutionNewNamePlaceholder: "Ordezko berriaren izena",
+    substitutionSavedToPool:
+      "Ordezkoen poltsan ere gordeko da.",
+    substitutionAssign: "Partida honetara esleitu",
     directionsButton: "Nola iritsi",
     schedulePlaceholderDate: "Adibidea: Ostirala, 20:00",
     schedulePlaceholderLocation: "Adibidea: North Padel Club",
@@ -464,17 +520,25 @@ export const eu = {
     formatGoodFaithTitle: "Fede ona eta atzerapenak",
     formatGoodFaithDescription:
       "Oporrak, lesioa edo benetako agenda arazoa badago, partida berriro kokatzen da egutegia blokeatu gabe.",
-    injuriesEyebrow: "Lesioak",
-    injuriesTitle: "Komodin jokalariak",
-    injuriesRealTitle: "Benetako bajetarako bakarrik",
+    injuriesEyebrow: "Ordezkoak",
+    injuriesTitle: "Poltsa, ordezkapenak eta aldaketa iraunkorrak",
+    injuriesRealTitle: "Ordezkoen poltsa",
     injuriesRealDescription:
-      "Komodinak lesioetarako edo epe luzeko bajetarako gordetzen dira, ez azken orduko ordezko ausazkoetarako.",
-    injuriesAgreedTitle: "Hasi aurretik adostuak",
+      "Antolakuntzak aukerako poltsa bat eduki eta profilak denboraldian zehar gehitu ditzake. Partida batetik sortutako ordezkoa ere poltsan gordetzen da.",
+    injuriesAgreedTitle: "Nork kudea ditzake",
     injuriesAgreedDescription:
-      "Antolakuntzak 1 edo 2 komodin ofizial kanpoko finka ditzake, antzeko maila ertainekoak eta taldeak onartutakoak.",
-    injuriesNoInheritedTitle: "Puntu heredaturik gabe",
+      "Partidako jokalariek, administratzaileek eta ligaren sortzaileak partida bakarreko ordezkapena kudea dezakete partida amaitu gabe dagoen bitartean.",
+    injuriesSingleTitle: "Partida bakarreko ordezkapena",
+    injuriesSingleDescription:
+      "Titularra partida horretan bakarrik ordezkatzen du, bikotekide eta kokapen bera mantenduta. Emaitza gorde aurretik desegin daiteke.",
+    injuriesPermanentTitle: "Ordezkapen iraunkorra",
+    injuriesPermanentDescription:
+      "Jardunaldi jakin batetik aurrera aplikatzen da. Irteerako titularrak historikoa mantentzen du eta baja gisa agertzen da; sarrerakoa titular bihurtzen da zerotik hasita.",
+    injuriesNoInheritedTitle: "Puntuak jokatzen duenari",
     injuriesNoInheritedDescription:
-      "Komodinak lortzen dituen puntuak ez zaizkio jokalari lesionatuari gehitzen; egutegiak aurrera egin dezan balio dute.",
+      "Puntuak, estatistikak, MVP botoak, baieztapenak eta ordainketak benetan jokatzen duen ordezkoari dagozkio. Falta den titularrak ez ditu jasotzen.",
+    injuriesHistoryNote:
+      "Egutegiko, partidako eta rankingeko etiketek aldaketak identifikatzen dituzte. Administrazioak ordezkapenen eta aldaketa iraunkorren historikoa gordetzen du.",
     scoringEyebrow: "Puntuazioa",
     scoringTitle: "Nola gehitzen diren puntuak",
     scoringThreeNilLabel: "3-0 partida",

@@ -8,6 +8,7 @@ import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
+import { MatchSubstitutionPanel } from "@/components/match/MatchSubstitutionPanel"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
@@ -212,6 +213,13 @@ export default function MatchDetailPage() {
     scheduledLeagueLocation,
     match.location
   )
+  const hasSchedule = Boolean(
+    match.scheduledAt || match.dateLabel || match.location
+  )
+  const shouldShowSchedulePanel =
+    match.status !== "finished" || hasSchedule
+  const shouldShowSubstitutionPanel =
+    canManageMatch && match.status !== "finished"
 
   return (
     <div className="space-y-3">
@@ -257,6 +265,7 @@ export default function MatchDetailPage() {
         pointsA={match.pointsA}
         pointsB={match.pointsB}
         sets={match.sets}
+        substitutions={match.substitutions}
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 
@@ -315,37 +324,39 @@ export default function MatchDetailPage() {
         </AppCard>
       ) : null}
 
-      <MatchScheduleForm
-        matchId={match.id}
-        leagueId={activeLeague.id}
-        seasonId={activeSeason.id}
-        status={match.status}
-        scheduledAt={match.scheduledAt}
-        dateLabel={match.dateLabel}
-        location={match.location}
-        availableLocations={activeLeague.locations}
-        playerIds={[...match.teamA, ...match.teamB]}
-        players={players}
-        roundStartsAt={round?.startsAt ?? null}
-        roundEndsAt={round?.endsAt ?? null}
-        canManage={canManageMatch}
-        canClearSchedule={isAdmin}
-        calendarAction={
-          match.status === "scheduled" && match.scheduledAt ? (
-            <AddToCalendarButton
-              leagueName={activeLeague.name}
-              seasonName={activeSeason.name}
-              round={match.round}
-              teamA={match.teamA}
-              teamB={match.teamB}
-              players={players}
-              scheduledAt={match.scheduledAt}
-              location={calendarLocation}
-              className="min-w-0"
-            />
-          ) : null
-        }
-      />
+      {shouldShowSchedulePanel ? (
+        <MatchScheduleForm
+          matchId={match.id}
+          leagueId={activeLeague.id}
+          seasonId={activeSeason.id}
+          status={match.status}
+          scheduledAt={match.scheduledAt}
+          dateLabel={match.dateLabel}
+          location={match.location}
+          availableLocations={activeLeague.locations}
+          playerIds={[...match.teamA, ...match.teamB]}
+          players={players}
+          roundStartsAt={round?.startsAt ?? null}
+          roundEndsAt={round?.endsAt ?? null}
+          canManage={canManageMatch}
+          canClearSchedule={isAdmin}
+          calendarAction={
+            match.status === "scheduled" && match.scheduledAt ? (
+              <AddToCalendarButton
+                leagueName={activeLeague.name}
+                seasonName={activeSeason.name}
+                round={match.round}
+                teamA={match.teamA}
+                teamB={match.teamB}
+                players={players}
+                scheduledAt={match.scheduledAt}
+                location={calendarLocation}
+                className="min-w-0"
+              />
+            ) : null
+          }
+        />
+      ) : null}
 
       {(match.status === "scheduled" || match.courtBooking.isReserved) ? (
         <CourtBookingPanel
@@ -361,19 +372,22 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
+      {shouldShowSubstitutionPanel ? (
+        <MatchSubstitutionPanel match={match} players={players} />
+      ) : null}
+
       {canEnterResult ? (
         <MatchResultForm
           matchId={match.id}
-          teamA={match.teamA}
-          teamB={match.teamB}
-          players={players}
           mode="create"
           requiresThreeSets={roundSettings.requiresThreeSets}
           reportedByPlayerId={editorReporterPlayerId}
         />
       ) : null}
 
-      {(canEditResult || isAdmin) && !isEditingResult ? (
+      {match.status === "finished" &&
+      (canEditResult || isAdmin) &&
+      !isEditingResult ? (
         <AppCard>
           <div>
             <p className="font-black">{t.matchResult.registeredTitle}</p>
@@ -444,9 +458,6 @@ export default function MatchDetailPage() {
       {canEditResult && isEditingResult ? (
         <MatchResultForm
           matchId={match.id}
-          teamA={match.teamA}
-          teamB={match.teamB}
-          players={players}
           initialSets={match.sets}
           mode="edit"
           requiresThreeSets={roundSettings.requiresThreeSets}

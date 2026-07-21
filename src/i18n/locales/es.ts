@@ -131,6 +131,9 @@ export const es = {
       commitmentTitle: "Compromiso y buena fe",
       commitmentDescription:
         "Los partidos están pensados para reservas de 2 horas. Si hay lesión o problema real de agenda, se recoloca sin bloquear la liga.",
+      substitutesTitle: "Suplentes y reemplazos",
+      substitutesDescription:
+        "La organización puede asignar un suplente a un único partido o hacer un reemplazo permanente desde una jornada. Los puntos, MVP, confirmaciones y pagos corresponden siempre a quien juega realmente; el titular ausente no hereda esos puntos.",
       gameRulesTitle: "Normas de juego",
       gameRulesDescription:
         "Se juega con Star Point y tie-break a 6-6. Los juegos también importan porque desempatan el ranking.",
@@ -151,6 +154,26 @@ export const es = {
     collapse: "Ocultar pagos",
     pendingPaymentSingular: "pago pendiente",
     pendingPaymentPlural: "pagos pendientes",
+  },
+
+  payments: {
+    economyTitle: "Resumen económico",
+    expandEconomy: "Ver resumen económico",
+    collapseEconomy: "Ocultar resumen económico",
+    scopeLabel: "Periodo",
+    allLeague: "Toda la liga",
+    recordedSpend: "Gasto registrado",
+    yourEstimatedShare: "Tu parte estimada",
+    matchesWithCosts: "partidos con gastos",
+    matchShareAndFees: "Partidos e inscripción",
+    courts: "Pistas",
+    balls: "Bolas",
+    registrationFees: "Cuotas de inscripción",
+    collectedOf: "cobrados de",
+    paid: "Pagado",
+    pending: "Pendiente",
+    economyNote:
+      "Los gastos de pista y bolas se reparten entre quienes jugaron cada partido. Las cuotas se muestran aparte para no contar dos veces dinero que puede usarse después para cubrir esos gastos.",
   },
 
   nav: {
@@ -288,6 +311,39 @@ export const es = {
     customLocation: "Ubicación en Maps",
     customLocationPlaceholder:
       "Ejemplo: Polideportivo de Lasesarre, Barakaldo o URL de Maps",
+    checkAddressButton: "Comprobar dirección",
+    closePanel: "Cerrar",
+    saving: "Guardando...",
+    substitutionsTitle: "Sustituciones",
+    substitutionsOptional: "Opcional",
+    substitutionsDescription:
+      "Sustituye a un titular solo en este partido. Los puntos, el MVP, las confirmaciones y los pagos corresponderán a quien juegue realmente.",
+    substitutionsLoadError: "No se han podido cargar los suplentes.",
+    substitutionsForbidden: "No tienes permiso para gestionar este partido.",
+    substitutionsStarterCannotSubstitute:
+      "Un titular de la temporada no puede actuar como suplente.",
+    substitutionsAlreadyInMatch: "Ese suplente ya participa en el partido.",
+    substitutionsUnavailable:
+      "Ese jugador ya no está disponible en la bolsa de suplentes.",
+    substitutionsSlotAlreadyReplaced:
+      "Ese puesto del partido ya tiene una sustitución aplicada.",
+    substitutionsFinishedLocked:
+      "No se puede cambiar una sustitución después de registrar el resultado.",
+    substitutionsSaveError: "No se ha podido guardar la sustitución.",
+    substitutionsUndoError: "No se ha podido deshacer la sustitución.",
+    substituteFallbackName: "Suplente",
+    starterFallbackName: "titular",
+    substituteForPrefix: "Por",
+    substitutionPermanent: "permanente",
+    substitutionThisMatch: "este partido",
+    substitutionUndo: "Deshacer",
+    substitutionOriginalPlaceholder: "Titular que no puede jugar",
+    substitutionSelectPlaceholder: "Selecciona suplente",
+    substitutionAddNew: "Añadir un suplente nuevo",
+    substitutionNewNamePlaceholder: "Nombre del nuevo suplente",
+    substitutionSavedToPool:
+      "Quedará guardado también en la bolsa de suplentes.",
+    substitutionAssign: "Asignar a este partido",
     directionsButton: "Cómo llegar",
     schedulePlaceholderDate: "Ejemplo: Viernes, 20:00",
     schedulePlaceholderLocation: "Ejemplo: Club Pádel Norte",
@@ -467,17 +523,25 @@ export const es = {
     formatGoodFaithTitle: "Buena fe y aplazamientos",
     formatGoodFaithDescription:
       "Si hay vacaciones, lesión o un problema real de agenda, el partido se recoloca intentando no bloquear el calendario.",
-    injuriesEyebrow: "Lesiones",
-    injuriesTitle: "Jugadores comodín",
-    injuriesRealTitle: "Solo para bajas reales",
+    injuriesEyebrow: "Suplentes",
+    injuriesTitle: "Bolsa, sustituciones y reemplazos",
+    injuriesRealTitle: "Bolsa de suplentes",
     injuriesRealDescription:
-      "Los comodines se reservan para lesiones o bajas de larga duración, no para suplencias aleatorias de última hora.",
-    injuriesAgreedTitle: "Acordados antes de empezar",
+      "La organización puede mantener una bolsa opcional y añadir perfiles durante la temporada. Un suplente creado desde un partido queda guardado en esa bolsa.",
+    injuriesAgreedTitle: "Quién puede gestionarlos",
     injuriesAgreedDescription:
-      "La organización puede fijar 1 o 2 comodines oficiales externos, de nivel medio similar y aceptados por el grupo.",
-    injuriesNoInheritedTitle: "Sin puntos heredados",
+      "Los jugadores del partido, administradores y creador pueden gestionar una sustitución puntual mientras el encuentro no esté finalizado.",
+    injuriesSingleTitle: "Sustitución puntual",
+    injuriesSingleDescription:
+      "Cambia a un titular solo en ese partido, manteniendo su pareja y posición. Puede deshacerse antes de registrar el resultado.",
+    injuriesPermanentTitle: "Reemplazo permanente",
+    injuriesPermanentDescription:
+      "Se aplica desde una jornada concreta. El saliente conserva su histórico y aparece como baja; el entrante pasa a titular y comienza desde cero.",
+    injuriesNoInheritedTitle: "Puntos de quien juega",
     injuriesNoInheritedDescription:
-      "Los puntos que consiga el comodín no suman al jugador lesionado; sirven para que el calendario pueda seguir avanzando.",
+      "Los puntos, estadísticas, MVP, confirmaciones y pagos corresponden al suplente que disputa el partido. El titular ausente no recibe esos puntos.",
+    injuriesHistoryNote:
+      "Las etiquetas del calendario, del partido y del ranking identifican los cambios. La administración conserva el historial de sustituciones y reemplazos.",
     scoringEyebrow: "Puntuación",
     scoringTitle: "Cómo se suman los puntos",
     scoringThreeNilLabel: "Partido 3-0",
@@ -591,7 +655,7 @@ export const es = {
     description: "Gestiona tus preferencias de la aplicación.",
     helpTitle: "Ayuda y conceptos básicos",
     helpDescription:
-      "Consulta cómo funcionan Star Points, tie-breaks y el formato de 3 sets.",
+      "Consulta cómo funcionan los suplentes, la puntuación, Star Points, tie-breaks y el formato de la temporada.",
     backToProfile: "← Volver al perfil",
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",

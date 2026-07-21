@@ -1,10 +1,11 @@
 # Production Hardening Status
 
-Last updated: 2026-07-18 11:05:08 +02:00
-Current branch at status update: `main`
+Last updated: 2026-07-20 18:49:40 +02:00
+Current branch at status update: `staging`
 Production branch confirmed from Git + Vercel: `main`
-Final application release commit validated in this run: `b805faf5a146f5bfa93b4646fbef3dbb0d8d399b`
-Active milestone state: `H20-H23 complete`
+Production source version retained in this run: `v0.9.71`
+Staging source commit retained in this run: `78f1986` (`v0.10.0`)
+Active milestone state: `H20-H23 complete; environment isolation repair complete`
 
 ## Final state summary
 
@@ -14,37 +15,43 @@ Active milestone state: `H20-H23 complete`
 - Preview and Production deployments for the release run reached `Ready`, and Vercel build logs tied them to `release/production-hardening` / `main` for the final release commit during rollout.
 - Production env-name presence was confirmed without printing values, and the normalized checks for `QA_MODE=false`, `NEXT_PUBLIC_QA_MODE=false`, and `NEXT_PUBLIC_APP_URL=https://smash-lob.vercel.app` passed.
 - The live production smoke suite passed for root, manifest, auth session/providers, Google provider metadata, cron-without-secret, protected no-session routes, and controlled invalid invite responses.
-- A direct REST write probe using the deployed public anon key was blocked with HTTP `401`, and the post-smoke Production log scan found zero repeated `500` / `error` keywords.
+- The earlier invalid-key finding is superseded by the 2026-07-20 credential repair and the read-only REST validation recorded below.
 - On 2026-07-18, the project owner completed the documented two-Google-account Production walkthrough, covering organizer, player/member, result/confirmation/MVP, and spectator flows.
 
-## Verified deployments
+## Environment isolation repair (2026-07-20)
 
-- Preview deployment id: `dpl_2XA51Wn1LKR67ZDifQtpzon6uSdo`
-- Preview URL: `https://smash-iw3095qvd-davidalonsoc4-8740s-projects.vercel.app`
-- Preview stable alias: `https://smash-lob-git-release-produ-7ebc68-davidalonsoc4-8740s-projects.vercel.app`
-- Preview status: `Ready`
-- Production deployment id: `dpl_sMFbcwiqc5bC3sSEPPmHpH1dfGtc`
-- Production URL: `https://smash-la8pe2hvc-davidalonsoc4-8740s-projects.vercel.app`
+- The local Supabase CLI link remains on PRE project `miadjotkucgluwbrgeih`; it was not switched to Production.
+- Vercel Production now targets Supabase Production project `szycbwdzestcmimziyey` for the public URL, anon key, and service-role key.
+- Vercel Preview defaults and the explicit Git branch `staging` overrides now target Supabase PRE project `miadjotkucgluwbrgeih` for the same three variables, preventing future Preview branches from falling back to Production.
+- Both official legacy JWT pairs were validated before use: three JWT segments, expected project reference and role claims, and successful read-only HTTP checks.
+- Public keys were compared exactly after storage without printing values. Service-role values were stored as Vercel Sensitive variables and cannot be read back.
+- Production was rebuilt from its existing `main` deployment, preserving the v0.9.71 source line. Staging was rebuilt from its existing branch deployment, preserving v0.10.0.
+- No code, data, migration, Supabase link, Production branch, or Git branch was changed as part of the remote configuration repair.
+- Read-only data checks show 3 leagues in Production and 0 in PRE. The configured owner account exists in both environments and can create leagues; Production has 3 creator memberships while PRE has none.
+
+## Verified deployment targets
+
+- Preview credential-repair deployment id: `dpl_HppVyCzPCteV9vDJthi1c9fQESg4`
+- Preview credential-repair URL: `https://smash-lmw3hmjw7-davidalonsoc4-8740s-projects.vercel.app`
+- Preview stable alias (tracks subsequent `staging` commits): `https://smash-lob-git-staging-davidalonsoc4-8740s-projects.vercel.app`
+- Preview status at the final post-push check: `Ready`
+- Production deployment id: `dpl_ABUCNvnneZ5aTcLhwe51ChVRznBi`
+- Production URL: `https://smash-op3577c8f-davidalonsoc4-8740s-projects.vercel.app`
 - Production aliases:
   - `https://smash-lob.vercel.app`
   - `https://smash-lob-davidalonsoc4-8740s-projects.vercel.app`
   - `https://smash-lob-git-main-davidalonsoc4-8740s-projects.vercel.app`
 - Production status: `Ready`
 
-## Smoke-test snapshot
+## Smoke-test snapshot (2026-07-20)
 
 - `/` -> `200 text/html`
-- `/manifest.webmanifest` -> `200 application/manifest+json`
 - `/api/auth/session` -> `200 application/json` with controlled anonymous response
-- `/api/auth/providers` -> `200 application/json`; Google provider present; sign-in and callback URLs use `https://smash-lob.vercel.app`
-- `/api/notifications/scheduled-check` without secret -> `401 {"reason":"invalid_cron_secret"}`
-- `/api/leagues/11111111-1111-4111-8111-111111111111/users` without session -> `401 {"error":"unauthenticated"}`
-- `/api/leagues/11111111-1111-4111-8111-111111111111/activity` without session -> `401 {"error":"unauthenticated"}`
-- `/api/leagues/11111111-1111-4111-8111-111111111111/activity-settings` without session -> `401 {"error":"unauthenticated"}`
-- `/api/invites/INVALID-CODE` -> `404 {"snapshot":null}`
-- `/api/spectator-invites/INVALID-CODE` -> `404 {"error":"invite_not_found"}`
-- Direct anon REST write probe against `matches` -> blocked `401 Invalid API key`
-- Post-smoke Production log scan -> `0` matches for `error|exception|500|failed`
+- Production `/api/invites/CODEX-ENV-ISOLATION-CHECK-20260720` -> `404 application/json`, proving the server-side Supabase lookup completes without a credential error.
+- Staging is intentionally behind Vercel Authentication. Authenticated Vercel checks returned an anonymous session and `{ "snapshot": null }` for the controlled invalid invite.
+- Direct service-role REST reads completed without `401`: Production returned an exact league count of 3 and PRE returned 0.
+- Production owner lookup found one account with league creation enabled and 3 creator memberships.
+- PRE owner lookup found one account with league creation enabled and no memberships, consistent with an independent empty PRE dataset.
 
 ## Manual two-account verification completed
 
