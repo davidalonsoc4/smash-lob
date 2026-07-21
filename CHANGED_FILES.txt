@@ -1,44 +1,18 @@
-Smash & Lob v0.10.3 · Cierre documental y visual de suplentes
+Smash & Lob v0.10.4 · Corrección visual de Añadir programación
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
-- docs/preproduction/SUBSTITUTES_V0.10.0.md
 - src/lib/appVersion.ts
-- src/lib/substitutes.ts
-- src/app/admin/substitutes/page.tsx
-- src/app/api/access/route.ts
-- src/app/api/matches/[matchId]/substitution/route.ts
-- src/app/help/page.tsx
-- src/app/match/[id]/page.tsx
-- src/components/invite/InviteFlow.tsx
-- src/components/league/LeagueRulesSummary.tsx
 - src/components/match/MatchScheduleForm.tsx
-- src/components/match/MatchScoreboard.tsx
-- src/components/match/MatchSubstitutionPanel.tsx
-- src/components/matches/MatchCard.tsx
-- src/components/player/TeamPlayers.tsx
-- src/context/MatchDataProvider.tsx
-- src/i18n/locales/es.ts
-- src/i18n/locales/en.ts
-- src/i18n/locales/eu.ts
 
-Cambios acumulados de v0.10.1-v0.10.3:
-- El panel de sustituciones del partido solo se muestra a participantes, administradores y creador, con la misma autorización comprobada en servidor.
-- El panel es compacto, está plegado por defecto y no preselecciona la creación de un suplente nuevo.
-- Un suplente creado desde un partido queda guardado en la bolsa de suplentes de la temporada.
-- El panel «Resultado registrado» solo aparece cuando el partido está finalizado.
-- «Añadir programación» aparece comprimido por defecto; en un partido finalizado sin programación previa no aparece.
-- Las sustituciones puntuales muestran una etiqueta «SUPLENTE · por [titular]» en la ficha del partido y en el calendario.
-- Administración > Suplentes incluye un historial visible de sustituciones puntuales con jornada y estado del partido.
-- La carga general de la liga incorpora los metadatos de sustitución necesarios para mostrar las etiquetas sin consultas adicionales por tarjeta.
-- El panel de gestión de sustituciones no se muestra nunca cuando el partido está finalizado; las etiquetas conservan la trazabilidad.
-- La pantalla Ayuda explica la bolsa, quién puede gestionarla, la sustitución puntual, el reemplazo permanente, los puntos reales y el historial.
-- La pantalla obligatoria de aceptación de normas incluye el funcionamiento de suplentes y reemplazos.
-- El resumen ampliado del reglamento se adapta al sistema real de suplentes.
-- Los textos están actualizados en español, inglés y euskera.
-- Versión visible actualizada a v0.10.3.
+Cambios:
+- El estado comprimido de «Añadir programación» se muestra como una única fila compacta con chevron.
+- Se elimina del estado comprimido el botón deshabilitado «Aplazar partido», que ocupaba espacio y rompía el diseño móvil.
+- El título y la descripción ya no quedan comprimidos palabra a palabra en pantallas estrechas.
+- Los controles de programación existentes se adaptan mejor a móvil, ocupando una fila completa cuando sea necesario.
+- Versión visible actualizada a v0.10.4.
 
 Base de datos:
 - Sin migraciones nuevas.
