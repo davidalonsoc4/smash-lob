@@ -155,6 +155,26 @@ export const eu = {
     pendingPaymentPlural: "ordainketa pendiente",
   },
 
+  payments: {
+    economyTitle: "Laburpen ekonomikoa",
+    expandEconomy: "Laburpen ekonomikoa ikusi",
+    collapseEconomy: "Laburpen ekonomikoa ezkutatu",
+    scopeLabel: "Epea",
+    allLeague: "Liga osoa",
+    recordedSpend: "Erregistratutako gastua",
+    yourEstimatedShare: "Zure gutxi gorabeherako zatia",
+    matchesWithCosts: "gastudun partida",
+    matchShareAndFees: "Partidak eta izen-ematea",
+    courts: "Pistak",
+    balls: "Pilotak",
+    registrationFees: "Izen-emate kuotak",
+    collectedOf: "kobratuta, guztira",
+    paid: "Ordainduta",
+    pending: "Zain",
+    economyNote:
+      "Pista eta piloten gastuak partida bakoitzean benetan jokatu dutenen artean banatzen dira. Izen-emate kuotak aparte erakusten dira, gero gastu horiek ordaintzeko erabiltzen den dirua bi aldiz ez zenbatzeko.",
+  },
+
   nav: {
     home: "Hasiera",
     ranking: "Ranking",

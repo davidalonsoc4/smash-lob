@@ -10,12 +10,14 @@ import {
   useMatchData,
 } from "@/context/MatchDataProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
+import { useI18n } from "@/i18n/I18nProvider"
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
-import { formatMoney } from "@/lib/courtBooking"
+import { formatMoney, roundMoney } from "@/lib/courtBooking"
 
 type PaymentTab = "status" | "movements" | "all"
 
@@ -23,6 +25,8 @@ type PaymentMovement = {
   match: MatchData
   transfer: CourtBookingTransfer
 }
+
+type EconomyScope = "league" | string
 
 const paymentEventTypes = new Set<ActivityEvent["type"]>([
   "court_booking_updated",
@@ -33,6 +37,23 @@ const paymentEventTypes = new Set<ActivityEvent["type"]>([
 
 function getPendingAmount(movements: PaymentMovement[]) {
   return movements.reduce((sum, { transfer }) => sum + transfer.amount, 0)
+}
+
+function getRecordedMatchCost(match: MatchData) {
+  const court = match.courtBooking.reservations.reduce(
+    (sum, payment) => sum + payment.amount,
+    0
+  )
+  const balls = match.courtBooking.ballPurchases.reduce(
+    (sum, payment) => sum + payment.amount,
+    0
+  )
+
+  return {
+    court: roundMoney(court),
+    balls: roundMoney(balls),
+    total: roundMoney(court + balls),
+  }
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -216,9 +237,12 @@ function PaymentActivityList({
 
 export default function PaymentsPage() {
   const { currentUser } = useCurrentUser()
-  const { activeLeague, matches, players } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
   const { isLeagueAdmin } = useLeagueAccess()
+  const { seasons, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
+  const { t } = useI18n()
   const {
+    matches: storedMatches,
     sendCourtBookingPaymentReminder,
     updateCourtBookingTransferPaymentStatus,
   } = useMatchData()
@@ -232,6 +256,8 @@ export default function PaymentsPage() {
   const [paymentStatusError, setPaymentStatusError] = useState<string | null>(null)
   const [reminderMessage, setReminderMessage] = useState<string | null>(null)
   const [reminderError, setReminderError] = useState<string | null>(null)
+  const [isEconomyExpanded, setIsEconomyExpanded] = useState(false)
+  const [economyScope, setEconomyScope] = useState<EconomyScope>(activeSeason.id)
 
   useEffect(() => {
     let isMounted = true
@@ -322,6 +348,117 @@ export default function PaymentsPage() {
   const owedByMeAmount = getPendingAmount(pendingOwedByMe)
   const owedToMeAmount = getPendingAmount(pendingOwedToMe)
   const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
+
+  const leagueSeasons = useMemo(
+    () => seasons.filter((season) => season.leagueId === activeLeague.id),
+    [activeLeague.id, seasons]
+  )
+  const effectiveEconomyScope =
+    economyScope === "league" ||
+    leagueSeasons.some((season) => season.id === economyScope)
+      ? economyScope
+      : activeSeason.id
+  const economicSummary = useMemo(() => {
+    const selectedSeasonIds = new Set(
+      effectiveEconomyScope === "league"
+        ? leagueSeasons.map((season) => season.id)
+        : [effectiveEconomyScope]
+    )
+    const scopedMatches = storedMatches.filter(
+      (match) =>
+        match.leagueId === activeLeague.id &&
+        selectedSeasonIds.has(match.seasonId)
+    )
+    let courtCost = 0
+    let ballCost = 0
+    let userMatchShare = 0
+
+    scopedMatches.forEach((match) => {
+      const cost = getRecordedMatchCost(match)
+      const participantIds = Array.from(
+        new Set([...match.teamA, ...match.teamB])
+      )
+
+      courtCost += cost.court
+      ballCost += cost.balls
+
+      if (
+        participantIds.includes(currentUser.id) &&
+        participantIds.length > 0
+      ) {
+        userMatchShare += cost.total / participantIds.length
+      }
+    })
+
+    let registrationExpected = 0
+    let registrationPaid = 0
+    let userRegistration = 0
+    let userRegistrationPaid = 0
+
+    leagueSeasons
+      .filter((season) => selectedSeasonIds.has(season.id))
+      .forEach((season) => {
+        const registrationFee = getSeasonRoundSettings(season.id).registrationFee
+
+        if (!registrationFee.enabled || registrationFee.amount <= 0) {
+          return
+        }
+
+        const fallbackPlayerIds = seasonPlayers
+          .filter((seasonPlayer) => seasonPlayer.seasonId === season.id)
+          .map((seasonPlayer) => seasonPlayer.playerId)
+        const paymentPlayerIds = registrationFee.payments.map(
+          (payment) => payment.playerId
+        )
+        const chargedPlayerIds = Array.from(
+          new Set(
+            paymentPlayerIds.length > 0 ? paymentPlayerIds : fallbackPlayerIds
+          )
+        )
+        const currentUserPayment = registrationFee.payments.find(
+          (payment) => payment.playerId === currentUser.id
+        )
+
+        registrationExpected += registrationFee.amount * chargedPlayerIds.length
+        registrationPaid +=
+          registrationFee.amount *
+          registrationFee.payments.filter((payment) => payment.isPaid).length
+
+        if (chargedPlayerIds.includes(currentUser.id)) {
+          userRegistration += registrationFee.amount
+
+          if (currentUserPayment?.isPaid) {
+            userRegistrationPaid += registrationFee.amount
+          }
+        }
+      })
+
+    return {
+      courtCost: roundMoney(courtCost),
+      ballCost: roundMoney(ballCost),
+      recordedCost: roundMoney(courtCost + ballCost),
+      userMatchShare: roundMoney(userMatchShare),
+      userRegistration: roundMoney(userRegistration),
+      userRegistrationPaid: roundMoney(userRegistrationPaid),
+      userEstimatedShare: roundMoney(userMatchShare + userRegistration),
+      registrationExpected: roundMoney(registrationExpected),
+      registrationPaid: roundMoney(registrationPaid),
+      matchCount: scopedMatches.length,
+    }
+  }, [
+    activeLeague.id,
+    currentUser.id,
+    effectiveEconomyScope,
+    getSeasonRoundSettings,
+    leagueSeasons,
+    seasonPlayers,
+    storedMatches,
+  ])
+  const economyScopeLabel =
+    effectiveEconomyScope === "league"
+      ? t.payments.allLeague
+      : leagueSeasons.find((season) => season.id === effectiveEconomyScope)?.name ??
+        activeSeason.name
 
   const getPlayerName = (playerId: string) =>
     players.find((player) => player.id === playerId)?.displayName ?? playerId
@@ -492,6 +629,148 @@ export default function PaymentsPage() {
               <p className="mt-2 text-xs font-bold text-red-700">
                 {reminderError}
               </p>
+            ) : null}
+          </AppCard>
+
+          <AppCard className="overflow-hidden p-0">
+            <button
+              type="button"
+              onClick={() => setIsEconomyExpanded((current) => !current)}
+              aria-expanded={isEconomyExpanded}
+              aria-label={
+                isEconomyExpanded
+                  ? t.payments.collapseEconomy
+                  : t.payments.expandEconomy
+              }
+              className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-black text-neutral-950">
+                  {t.payments.economyTitle}
+                </p>
+                <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+                  {economyScopeLabel} · {formatMoney(economicSummary.recordedCost)}
+                </p>
+              </div>
+
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className={`h-4 w-4 transition-transform ${
+                    isEconomyExpanded ? "rotate-180" : ""
+                  }`}
+                >
+                  <path
+                    d="m6 8 4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </button>
+
+            {isEconomyExpanded ? (
+              <div className="border-t border-neutral-100 px-3 pb-3 pt-3">
+                <label className="block text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                  {t.payments.scopeLabel}
+                  <select
+                    value={effectiveEconomyScope}
+                    onChange={(event) => setEconomyScope(event.target.value)}
+                    className="mt-1.5 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold text-neutral-950 outline-none"
+                  >
+                    <option value="league">{t.payments.allLeague}</option>
+                    {leagueSeasons.map((season) => (
+                      <option key={season.id} value={season.id}>
+                        {season.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-2xl bg-neutral-50 px-3 py-2.5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+                      {t.payments.recordedSpend}
+                    </p>
+                    <p className="mt-1 text-lg font-black text-neutral-950">
+                      {formatMoney(economicSummary.recordedCost)}
+                    </p>
+                    <p className="text-[11px] font-semibold text-neutral-500">
+                      {economicSummary.matchCount} {t.payments.matchesWithCosts}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-neutral-50 px-3 py-2.5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+                      {t.payments.yourEstimatedShare}
+                    </p>
+                    <p className="mt-1 text-lg font-black text-neutral-950">
+                      {formatMoney(economicSummary.userEstimatedShare)}
+                    </p>
+                    <p className="text-[11px] font-semibold text-neutral-500">
+                      {t.payments.matchShareAndFees}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 divide-y divide-neutral-100 rounded-2xl border border-neutral-100 bg-white px-3">
+                  <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <span className="font-bold text-neutral-600">
+                      {t.payments.courts}
+                    </span>
+                    <span className="font-black text-neutral-950">
+                      {formatMoney(economicSummary.courtCost)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <span className="font-bold text-neutral-600">
+                      {t.payments.balls}
+                    </span>
+                    <span className="font-black text-neutral-950">
+                      {formatMoney(economicSummary.ballCost)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <div>
+                      <p className="font-bold text-neutral-600">
+                        {t.payments.registrationFees}
+                      </p>
+                      <p className="text-[11px] font-semibold text-neutral-400">
+                        {formatMoney(economicSummary.registrationPaid)} {t.payments.collectedOf}{" "}
+                        {formatMoney(economicSummary.registrationExpected)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-black text-neutral-950">
+                        {formatMoney(economicSummary.userRegistration)}
+                      </p>
+                      {economicSummary.userRegistration > 0 ? (
+                        <p
+                          className={`text-[10px] font-black uppercase tracking-[0.12em] ${
+                            economicSummary.userRegistrationPaid >=
+                            economicSummary.userRegistration
+                              ? "text-emerald-600"
+                              : "text-amber-600"
+                          }`}
+                        >
+                          {economicSummary.userRegistrationPaid >=
+                          economicSummary.userRegistration
+                            ? t.payments.paid
+                            : t.payments.pending}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-3 text-[11px] font-semibold leading-4 text-neutral-500">
+                  {t.payments.economyNote}
+                </p>
+              </div>
             ) : null}
           </AppCard>
 
