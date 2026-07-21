@@ -9,6 +9,7 @@ type TeamPlayersProps = {
   substituteLabels?: Record<string, string>
   className?: string
   keepNamesOnOneLine?: boolean
+  stackPlayers?: boolean
 }
 
 export function TeamPlayers({
@@ -19,6 +20,7 @@ export function TeamPlayers({
   substituteLabels = {},
   className = "flex flex-wrap gap-x-1 gap-y-1 text-lg font-black",
   keepNamesOnOneLine = false,
+  stackPlayers = false,
 }: TeamPlayersProps) {
   return (
     <div className={className}>
@@ -29,8 +31,8 @@ export function TeamPlayers({
           <span
             key={playerId}
             className={`inline-flex min-w-0 items-center gap-x-1 ${
-              keepNamesOnOneLine ? "flex-wrap" : ""
-            }`}
+              stackPlayers ? "w-full" : ""
+            } ${keepNamesOnOneLine ? "flex-wrap" : ""}`}
           >
             <PlayerNameLink
               playerId={playerId}
@@ -54,7 +56,7 @@ export function TeamPlayers({
                 Suplente · por {substituteLabels[playerId]}
               </span>
             ) : null}
-            {index < playerIds.length - 1 ? <span>/</span> : null}
+            {!stackPlayers && index < playerIds.length - 1 ? <span>/</span> : null}
           </span>
         )
       })}

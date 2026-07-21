@@ -156,6 +156,26 @@ export const es = {
     pendingPaymentPlural: "pagos pendientes",
   },
 
+  payments: {
+    economyTitle: "Resumen económico",
+    expandEconomy: "Ver resumen económico",
+    collapseEconomy: "Ocultar resumen económico",
+    scopeLabel: "Periodo",
+    allLeague: "Toda la liga",
+    recordedSpend: "Gasto registrado",
+    yourEstimatedShare: "Tu parte estimada",
+    matchesWithCosts: "partidos con gastos",
+    matchShareAndFees: "Partidos e inscripción",
+    courts: "Pistas",
+    balls: "Bolas",
+    registrationFees: "Cuotas de inscripción",
+    collectedOf: "cobrados de",
+    paid: "Pagado",
+    pending: "Pendiente",
+    economyNote:
+      "Los gastos de pista y bolas se reparten entre quienes jugaron cada partido. Las cuotas se muestran aparte para no contar dos veces dinero que puede usarse después para cubrir esos gastos.",
+  },
+
   nav: {
     home: "Inicio",
     ranking: "Ranking",

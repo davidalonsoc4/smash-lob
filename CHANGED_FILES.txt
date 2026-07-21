@@ -1,25 +1,30 @@
-Smash & Lob v0.10.8 · Pagos desplegables y nombres largos en el enfrentamiento
+Smash & Lob v0.10.9 · Equipos legibles y resumen económico
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/components/match/CourtBookingPanel.tsx
+- src/app/payments/page.tsx
 - src/components/match/MatchScoreboard.tsx
-- src/components/player/PlayerNameLink.tsx
 - src/components/player/TeamPlayers.tsx
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
 
 Cambios:
-- El panel Pagos y reservas sustituye los botones de texto Ver pagos / Ocultar pagos por el mismo círculo con chevron utilizado en los demás paneles desplegables.
-- El chevron conserva etiquetas accesibles y gira al abrir o cerrar el panel.
-- El enfrentamiento lateral previo al resultado aprovecha más ancho reduciendo el espacio central, el relleno y el tamaño responsivo del texto.
-- Los nombres completos de cada jugador se mantienen en una sola línea; nombres como Andoni Fernandez caben en móvil sin partirse por el espacio.
-- Se mantienen las etiquetas de suplente y MVP, permitiendo que los elementos auxiliares se adapten sin partir el nombre.
-- Versión visible actualizada a v0.10.8.
+- En el enfrentamiento previo al resultado, cada jugador aparece siempre en una línea independiente.
+- Se elimina la barra / entre los integrantes de cada pareja.
+- Se aumenta de forma responsiva el tamaño de los nombres, manteniendo nombres completos como Andoni Fernandez en una sola línea.
+- Mis pagos incorpora un Resumen económico plegado por defecto.
+- El resumen permite consultar una temporada concreta o el acumulado de toda la liga.
+- Muestra gasto registrado en pistas y bolas, parte estimada del usuario y situación de las cuotas de inscripción.
+- Los costes de cada partido se reparten entre los participantes reales del encuentro.
+- Las cuotas se muestran separadas del gasto de pista y bolas para evitar dobles contabilizaciones.
+- Versión visible actualizada a v0.10.9.
 
 Traducciones:
-- No se añaden textos nuevos. Las etiquetas accesibles reutilizan las traducciones existentes en español, inglés y euskera.
+- Nuevos textos añadidos en español, inglés y euskera.
 
 Base de datos:
 - Sin migraciones nuevas.

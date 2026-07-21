@@ -154,6 +154,26 @@ export const en = {
     pendingPaymentPlural: "pending payments",
   },
 
+  payments: {
+    economyTitle: "Financial summary",
+    expandEconomy: "View financial summary",
+    collapseEconomy: "Hide financial summary",
+    scopeLabel: "Period",
+    allLeague: "Entire league",
+    recordedSpend: "Recorded spend",
+    yourEstimatedShare: "Your estimated share",
+    matchesWithCosts: "matches with costs",
+    matchShareAndFees: "Matches and registration",
+    courts: "Courts",
+    balls: "Balls",
+    registrationFees: "Registration fees",
+    collectedOf: "collected out of",
+    paid: "Paid",
+    pending: "Pending",
+    economyNote:
+      "Court and ball costs are split among the players who actually played each match. Registration fees are shown separately to avoid counting money twice when it is later used to cover those costs.",
+  },
+
   nav: {
     home: "Home",
     ranking: "Ranking",

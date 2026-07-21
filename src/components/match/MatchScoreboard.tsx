@@ -83,8 +83,9 @@ export function MatchScoreboard({
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
-              className="mt-1 flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-[clamp(11px,3vw,13px)] font-black leading-tight tracking-[-0.02em]"
+              className="mt-1 flex min-w-0 flex-col gap-y-1 text-[clamp(13px,3.8vw,16px)] font-black leading-tight tracking-[-0.035em]"
               keepNamesOnOneLine
+              stackPlayers
             />
           </div>
 
@@ -103,8 +104,9 @@ export function MatchScoreboard({
               players={players}
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
-              className="mt-1 flex min-w-0 flex-wrap justify-end gap-x-1 gap-y-0.5 text-[clamp(11px,3vw,13px)] font-black leading-tight tracking-[-0.02em]"
+              className="mt-1 flex min-w-0 flex-col items-end gap-y-1 text-[clamp(13px,3.8vw,16px)] font-black leading-tight tracking-[-0.035em]"
               keepNamesOnOneLine
+              stackPlayers
             />
           </div>
         </div>
