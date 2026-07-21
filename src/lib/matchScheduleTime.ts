@@ -1,3 +1,5 @@
+export const MATCH_SCHEDULE_TIME_ZONE = "Europe/Madrid";
+
 const localDateTimePattern =
   /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/;
 const timeZoneSuffixPattern = /(Z|[+-]\d{2}:?\d{2})$/i;
