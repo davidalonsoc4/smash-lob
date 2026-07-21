@@ -379,9 +379,6 @@ export default function MatchDetailPage() {
       {canEnterResult ? (
         <MatchResultForm
           matchId={match.id}
-          teamA={match.teamA}
-          teamB={match.teamB}
-          players={players}
           mode="create"
           requiresThreeSets={roundSettings.requiresThreeSets}
           reportedByPlayerId={editorReporterPlayerId}
@@ -461,9 +458,6 @@ export default function MatchDetailPage() {
       {canEditResult && isEditingResult ? (
         <MatchResultForm
           matchId={match.id}
-          teamA={match.teamA}
-          teamB={match.teamB}
-          players={players}
           initialSets={match.sets}
           mode="edit"
           requiresThreeSets={roundSettings.requiresThreeSets}
