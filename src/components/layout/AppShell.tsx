@@ -6,6 +6,7 @@ import { type CSSProperties, type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
+import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -134,7 +135,11 @@ export function AppShell({ children }: AppShellProps) {
   const { t } = useI18n()
   const branding = getAppBranding()
   const pathname = usePathname()
-  const { activeLeagueId } = useActiveLeague()
+  const {
+    activeLeagueId,
+    isLeagueTransitioning,
+    transitioningLeagueId,
+  } = useActiveLeague()
   const {
     canShareSpectatorInvite,
     isLeagueAdmin,
@@ -180,7 +185,36 @@ export function AppShell({ children }: AppShellProps) {
           ? 58
           : 0
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
+  const transitioningLeague = transitioningLeagueId
+    ? leagues.find((league) => league.id === transitioningLeagueId)
+    : null
   const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
+
+  if (isLeagueTransitioning) {
+    const leagueName = transitioningLeague?.name ?? t.common.privateLeague
+
+    return (
+      <div className="min-h-screen bg-stone-200 text-neutral-950">
+        <div className="mx-auto flex min-h-screen max-w-md items-center bg-stone-50 px-4 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
+          <AppCard className="w-full text-center">
+            <div
+              aria-hidden="true"
+              className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-950"
+            />
+            <p className="mt-4 text-lg font-black">
+              {t.invites.enteringLeagueTitle}
+            </p>
+            <p className="mt-2 text-sm text-neutral-500">
+              {t.invites.enteringLeagueDescription.replace(
+                "{leagueName}",
+                leagueName,
+              )}
+            </p>
+          </AppCard>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

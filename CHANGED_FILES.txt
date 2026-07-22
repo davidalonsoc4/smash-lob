@@ -1,19 +1,27 @@
-Smash & Lob v0.10.11 · Corrección de zona horaria en la programación
+Smash & Lob v0.10.12 · Entrada segura a una liga mediante invitación
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/lib/matchScheduleTime.ts
-- src/lib/supabaseMatches.ts
+- src/context/ActiveLeagueProvider.tsx
+- src/components/layout/AppShell.tsx
+- src/components/auth/LeagueEntryGate.tsx
+- src/components/invite/InviteFlow.tsx
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
 
 Cambios:
-- La fecha y hora mostradas para los partidos se formatean explícitamente en Europe/Madrid, incluyendo el cambio automático entre horario de invierno y verano.
-- Las etiquetas de programación se recalculan desde scheduled_at al leer los partidos, evitando reutilizar date_label antiguos generados en UTC.
-- Se corrigen inmediatamente las programaciones existentes que mostraban dos horas menos sin modificar la hora real guardada.
-- La lógica de estado mantiene la ventana de 120 minutos desde la hora real programada.
-- Versión visible actualizada a v0.10.11.
+- Tras reclamar un jugador o entrar de nuevo mediante una invitación, la liga recién aceptada se fija inmediatamente como liga activa.
+- Mientras React aplica la nueva membresía y los datos de la liga, se muestra una pantalla de transición específica en lugar de dejar visible la HOME de la liga anterior.
+- La navegación no libera la pantalla de carga hasta que la ruta HOME ya está activa y la nueva liga aparece entre las ligas accesibles.
+- Las puertas de entrada y redirecciones de temporada/espectador quedan temporalmente suspendidas durante el cambio para evitar mostrar el onboarding o redirigir usando la liga anterior.
+- Se precarga la ruta HOME durante el flujo de invitación para reducir la espera tras confirmar.
+- El formulario de reclamación permanece bloqueado después de una confirmación correcta hasta completar la navegación, evitando dobles envíos y estados intermedios.
+- Nuevos textos de carga traducidos a español, inglés y euskera.
+- Versión visible actualizada a v0.10.12.
 
 Base de datos:
 - Sin migraciones nuevas.

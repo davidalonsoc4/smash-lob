@@ -20,7 +20,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { data: session } = useSession()
-  const { activeLeagueId } = useActiveLeague()
+  const { activeLeagueId, isLeagueTransitioning } = useActiveLeague()
   const { seasons } = useSeasonSettings()
   const {
     canCreateLeagues,
@@ -54,6 +54,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
 
   useEffect(() => {
     if (
+      isLeagueTransitioning ||
       !shouldRequireInitialSeason ||
       !canManageActiveLeagueSeason ||
       isSeasonSetupRoute
@@ -64,6 +65,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     router.replace("/admin/season")
   }, [
     canManageActiveLeagueSeason,
+    isLeagueTransitioning,
     isSeasonSetupRoute,
     router,
     shouldRequireInitialSeason,
@@ -86,10 +88,18 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     isLeagueNavigationRoute
 
   useEffect(() => {
+    if (isLeagueTransitioning) {
+      return
+    }
+
     if (spectatorMode && !spectatorAllowedRoute) {
       router.replace("/")
     }
-  }, [router, spectatorAllowedRoute, spectatorMode])
+  }, [isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
+
+  if (isLeagueTransitioning) {
+    return children
+  }
 
   if (
     isAccessInviteRoute ||

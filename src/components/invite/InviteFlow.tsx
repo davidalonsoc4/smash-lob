@@ -239,6 +239,10 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   }, [getLeagueByInviteCode, resolveLeagueInvite])
 
   useEffect(() => {
+    router.prefetch("/")
+  }, [router])
+
+  useEffect(() => {
     let isMounted = true
 
     async function loadInvite() {
@@ -395,9 +399,8 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
 
     const result = await claimPlayer(league.id, selectedPlayerId, normalizedCode)
 
-    setIsClaiming(false)
-
     if (!result.ok) {
+      setIsClaiming(false)
       setError(
         result.error === "already-in-league"
           ? t.invites.alreadyInLeague
@@ -406,6 +409,9 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       return
     }
 
+    // Keep the claim state active while the global league transition screen
+    // replaces the invitation. This prevents the previous league HOME from
+    // becoming visible between saving the membership and hydrating the target.
     activateGrantedLeague(league.id)
     void syncPushForInviteLeague(league.id, selectedPlayerId)
     router.replace("/")

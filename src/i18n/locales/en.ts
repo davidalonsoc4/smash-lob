@@ -51,6 +51,9 @@ export const en = {
     description: "Confirm the league and claim the player that belongs to you.",
     loadingDescription:
       "Checking invitation and loading the league from the database.",
+    enteringLeagueTitle: "Entering the league",
+    enteringLeagueDescription:
+      "Loading {leagueName}. You will go straight to its HOME when everything is ready.",
     checkingCode: "Checking code",
     checkingCodeDescription:
       "Looking for the league linked to this invitation.",
