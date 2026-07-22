@@ -41,6 +41,7 @@ function mapLeague(league: Record<string, unknown>): League {
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
     statusColorsEnabled: league.status_colors_enabled !== false,
     showRankingAvatars: league.show_ranking_avatars !== false,
+    showHistoricalProfileStats: league.show_historical_profile_stats === true,
     createdByUserId:
       typeof league.created_by_user_id === "string"
         ? league.created_by_user_id
@@ -127,7 +128,7 @@ export async function GET() {
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,created_by_user_id"
+      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
     )
 
   if (!isSuperuser) {

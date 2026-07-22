@@ -18,6 +18,7 @@ export type League = {
   logoUrl?: string | null
   statusColorsEnabled?: boolean
   showRankingAvatars?: boolean
+  showHistoricalProfileStats?: boolean
   createdByUserId?: string | null
 }
 

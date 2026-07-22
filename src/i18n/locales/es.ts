@@ -867,6 +867,13 @@ export const es = {
       "Escribe una ubicación o pega una URL de Maps. La app abrirá Maps con esa referencia.",
     save: "Guardar cambios",
     saved: "Configuración guardada.",
+    profileStatsVisibilityTitle: "Estadísticas históricas en el perfil",
+    profileStatsVisibilityDescription:
+      "Decide si durante una temporada activa los jugadores pueden consultar temporadas anteriores y el total histórico. Cuando todas las temporadas estén cerradas, el historial se mostrará siempre.",
+    profileStatsVisibilityAll: "Todas las temporadas disponibles",
+    profileStatsVisibilityCurrent: "Solo la temporada actual mientras esté abierta",
+    profileStatsVisibilityError:
+      "No se ha podido guardar la visibilidad de las estadísticas.",
   },
 
   adminSeason: {

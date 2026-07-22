@@ -860,6 +860,13 @@ export const eu = {
       "Idatzi kokapena edo itsatsi Maps URLa. Aplikazioak Maps irekiko du erreferentzia horrekin.",
     save: "Aldaketak gorde",
     saved: "Konfigurazioa gordeta.",
+    profileStatsVisibilityTitle: "Profileko estatistika historikoak",
+    profileStatsVisibilityDescription:
+      "Erabaki denboraldi aktibo batean jokalariek aurreko denboraldiak eta guztizko historikoa ikus ditzaketen. Denboraldi guztiak itxita daudenean, historikoa beti egongo da erabilgarri.",
+    profileStatsVisibilityAll: "Denboraldi guztiak erabilgarri",
+    profileStatsVisibilityCurrent: "Uneko denboraldia bakarrik irekita dagoen bitartean",
+    profileStatsVisibilityError:
+      "Ezin izan da estatistiken ikusgarritasuna gorde.",
   },
 
   adminSeason: {

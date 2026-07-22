@@ -4,7 +4,11 @@ import { useParams, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
-import { MatchActionsMenu } from "@/components/match/MatchActionsMenu"
+import {
+  MatchActionsContent,
+  MatchActionsTrigger,
+  type MatchActionPanel,
+} from "@/components/match/MatchActionsMenu"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
@@ -45,6 +49,9 @@ export default function MatchDetailPage() {
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)
   const [clearResultError, setClearResultError] = useState<string | null>(null)
+  const [matchActionsMenuOpen, setMatchActionsMenuOpen] = useState(false)
+  const [openMatchActionPanel, setOpenMatchActionPanel] =
+    useState<MatchActionPanel>(null)
 
   const shouldFocusBooking = searchParams.get("focus") === "booking"
   const match = matches.find((item) => item.id === params.id)
@@ -254,16 +261,33 @@ export default function MatchDetailPage() {
             {activeLeague.name}
           </p>
 
-          <div className="mt-1 flex min-w-0 items-center justify-between gap-2.5">
+          <div className="mt-1 flex min-w-0 items-start justify-between gap-2.5">
             <h1 className="min-w-0 text-2xl font-black tracking-tight">
               {t.matchDetail.title}
             </h1>
 
-            <MatchStatusBadge
-              status={match.status}
-              scheduledAt={match.scheduledAt}
-              resultRecordedAt={match.resultRecordedAt}
-            />
+            <div className="flex shrink-0 flex-col items-end gap-0.5">
+              <MatchStatusBadge
+                status={match.status}
+                scheduledAt={match.scheduledAt}
+                resultRecordedAt={match.resultRecordedAt}
+              />
+
+              <MatchActionsTrigger
+                match={match}
+                players={players}
+                isAdmin={isAdmin}
+                canReportIncident={canReportIncident}
+                canManageSubstitutions={canManageSubstitutions}
+                menuOpen={matchActionsMenuOpen}
+                onMenuOpenChange={setMatchActionsMenuOpen}
+                onSelectPanel={(panel) => {
+                  setOpenMatchActionPanel((current) =>
+                    current === panel ? null : panel
+                  )
+                }}
+              />
+            </div>
           </div>
 
           <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
@@ -292,12 +316,14 @@ export default function MatchDetailPage() {
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 
-      <MatchActionsMenu
+      <MatchActionsContent
         match={match}
         players={players}
         isAdmin={isAdmin}
         canReportIncident={canReportIncident}
         canManageSubstitutions={canManageSubstitutions}
+        openPanel={openMatchActionPanel}
+        onOpenPanelChange={setOpenMatchActionPanel}
       />
 
       {shouldShowResultWorkflow ? (
