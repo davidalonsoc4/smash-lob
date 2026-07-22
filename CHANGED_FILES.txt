@@ -1,11 +1,11 @@
-Smash & Lob v0.11.1 · Corrección de lint en perfil global
+Smash & Lob v0.11.2 · Corrección de tipos en actividad de autoinscripción
 
 Cambios principales:
-- Eliminada la sincronización de estado mediante efectos en el formulario obligatorio de perfil.
-- Eliminada la sincronización de estado mediante efectos en la edición de nombre desde Ajustes.
-- La carga inicial del perfil utiliza una petición cancelable y actualiza React desde callbacks asíncronos.
-- Se conserva el prellenado con los datos de Google y el reinicio correcto de los formularios al cambiar el perfil.
-- Versión visible actualizada a v0.11.1.
+- Añadidas las etiquetas de actividad para altas de jugadores en una temporada.
+- Añadidas las etiquetas de actividad para bajas antes del inicio.
+- Traducciones completadas en español, inglés y euskera.
+- Corregido el error TypeScript al indexar activity.labels con season_player_joined y season_player_left.
+- Versión visible actualizada a v0.11.2.
 
 Base de datos:
 - Sin nuevas migraciones.
@@ -16,7 +16,7 @@ Archivos incluidos:
 - CHANGED_FILES.txt
 - package-lock.json
 - package.json
-- src/components/auth/ProfileCompletionGate.tsx
-- src/components/settings/AccountNameSettings.tsx
-- src/context/AccountProfileProvider.tsx
+- src/i18n/locales/en.ts
+- src/i18n/locales/es.ts
+- src/i18n/locales/eu.ts
 - src/lib/appVersion.ts
