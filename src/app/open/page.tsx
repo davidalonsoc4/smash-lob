@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic"
 
 export default function OpenLeaguePage() {
   return (
-    <div className="space-y-3 pt-8">
+    <div className="w-full">
       <Suspense
         fallback={
           <AppCard>
