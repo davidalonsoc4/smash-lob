@@ -18,7 +18,7 @@ type ActiveLeagueContextValue = {
   isLeagueTransitioning: boolean
   transitioningLeagueId: string | null
   activateLeague: (leagueId: string) => boolean
-  activateGrantedLeague: (leagueId: string) => void
+  activateGrantedLeague: (leagueId: string, destinationPath?: string) => void
   changeActiveLeague: (leagueId: string) => void
   setActiveLeagueId: (leagueId: string) => void
 }
@@ -39,6 +39,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     useState(defaultActiveLeagueId)
   const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
   const [transitioningLeagueId, setTransitioningLeagueId] = useState<string | null>(null)
+  const [transitionDestinationPath, setTransitionDestinationPath] = useState("/")
   const effectiveActiveLeagueId = grantedLeagueId
     ? grantedLeagueId
     : canAccessLeague(activeLeagueId)
@@ -97,7 +98,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
 
 
   useEffect(() => {
-    if (!transitioningLeagueId || pathname !== "/") {
+    if (!transitioningLeagueId || pathname !== transitionDestinationPath) {
       return
     }
 
@@ -110,10 +111,10 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
       return
     }
 
-    // Keep the transition screen visible until the HOME route has committed at
-    // least one paint with the newly selected league. This prevents the
-    // previous league HOME from flashing while React applies the membership,
-    // league and season snapshots returned by the invitation flow.
+    // Keep the transition screen visible until the destination route has
+    // committed at least one paint with the newly selected league. Invitations
+    // finish on HOME, while newly created leagues finish in the initial season
+    // creator. This prevents stale content from the previous league flashing.
     let secondFrame = 0
     const firstFrame = window.requestAnimationFrame(() => {
       secondFrame = window.requestAnimationFrame(() => {
@@ -132,6 +133,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     effectiveActiveLeagueId,
     pathname,
     transitioningLeagueId,
+    transitionDestinationPath,
     userLeagues,
   ])
 
@@ -163,11 +165,12 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   // which can still be one render behind immediately after creating or
   // claiming a membership.
   const activateGrantedLeague = useCallback(
-    (leagueId: string) => {
+    (leagueId: string, destinationPath = "/") => {
       if (!leagueId) {
         return
       }
 
+      setTransitionDestinationPath(destinationPath)
       setTransitioningLeagueId(leagueId)
       setGrantedLeagueId(leagueId)
       persistActiveLeague(leagueId)
