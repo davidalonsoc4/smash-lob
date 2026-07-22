@@ -1,40 +1,23 @@
-Smash & Lob v0.12.2
+Smash & Lob v0.12.3
 
 Resumen
-- Corrige la duplicación de temporadas: deja de consultar el inexistente players.user_id y recupera las vinculaciones desde league_memberships.
-- Sustituye los botones permanentes de Incidencias y Suplentes por un único menú discreto «Más acciones».
-- Mantiene visibles, en formato compacto, las incidencias y sustituciones activas.
-- Añade permisos por temporada para permitir u ocultar a los jugadores la comunicación de incidencias y la gestión de suplentes.
-- Creator y administradores conservan siempre ambas acciones.
-- Añade resoluciones contextuales según el tipo de incidencia y aplica automáticamente la consecuencia elegida sobre el partido.
-- Amplía los tipos de resolución con continue, substitute y reset_result.
+- Añade un icono de corona al panel Líder de la HOME.
+- Añade un icono de calendario al panel Jornadas de la HOME.
+- Reduce de forma notable los controles Editar y Aplazar partido y los coloca como acciones secundarias compactas.
+- Después de guardar una programación, el panel vuelve automáticamente a su estado compacto.
+- Mantiene visibles Cómo llegar y Añadir al calendario incluso con el panel de programación cerrado.
+- Oculta el panel de reservas y pagos a jugadores ajenos al partido y a espectadores; creator y administradores conservan acceso.
 
-Migración PRE
-- supabase/migrations/20260722203000_add_match_action_permissions_and_incident_resolutions.sql
-- Añade allow_player_incidents y allow_player_substitutions a season_settings.
-- Amplía el constraint matches_resolution_type_check.
+Migraciones
+- No incluye migraciones nuevas.
+- No requiere db push ni cambios en Supabase.
 
 Archivos modificados
 CHANGED_FILES.txt
 package.json
 package-lock.json
-src/app/admin/season/page.tsx
-src/app/api/access/route.ts
-src/app/api/invites/[code]/route.ts
-src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts
-src/app/api/matches/[matchId]/incident/route.ts
-src/app/api/matches/[matchId]/result/route.ts
-src/app/api/matches/[matchId]/substitution/route.ts
+src/app/page.tsx
 src/app/match/[id]/page.tsx
-src/components/match/MatchActionsMenu.tsx
-src/components/match/MatchIncidentPanel.tsx
-src/components/match/MatchSubstitutionPanel.tsx
-src/context/SeasonSettingsProvider.tsx
-src/data/fakeData.ts
+src/components/match/MatchScheduleForm.tsx
+src/components/ui/StatCard.tsx
 src/lib/appVersion.ts
-src/lib/matchIncidents.ts
-src/lib/serverSeasonDuplication.ts
-src/lib/serverSeasonMutations.ts
-src/lib/supabaseMatches.ts
-src/lib/supabaseSeasons.ts
-supabase/migrations/20260722203000_add_match_action_permissions_and_incident_resolutions.sql
