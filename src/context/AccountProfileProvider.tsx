@@ -70,8 +70,34 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    void refreshProfile()
-  }, [refreshProfile])
+    let isActive = true
+    const controller = new AbortController()
+
+    void fetch("/api/account/profile", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(readProfileResponse)
+      .then((nextProfile) => {
+        if (!isActive) return
+        setProfile(nextProfile)
+      })
+      .catch((profileError: unknown) => {
+        if (!isActive || controller.signal.aborted) return
+        setError(
+          profileError instanceof Error ? profileError.message : "profile_load_failed",
+        )
+      })
+      .finally(() => {
+        if (!isActive) return
+        setIsLoading(false)
+      })
+
+    return () => {
+      isActive = false
+      controller.abort()
+    }
+  }, [])
 
   const value = useMemo(
     () => ({ profile, isLoading, error, refreshProfile, saveProfile }),

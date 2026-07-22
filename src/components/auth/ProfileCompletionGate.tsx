@@ -1,30 +1,31 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { splitGoogleDisplayName } from "@/lib/accountProfile"
+import type { AccountProfile } from "@/lib/accountProfile"
 
-export function ProfileCompletionGate({ children }: { children: React.ReactNode }) {
+type ProfileCompletionFormProps = {
+  initialFirstName: string
+  initialLastName: string
+  accountError: string | null
+  saveProfile: (firstName: string, lastName: string) => Promise<AccountProfile | null>
+}
+
+function ProfileCompletionForm({
+  initialFirstName,
+  initialLastName,
+  accountError,
+  saveProfile,
+}: ProfileCompletionFormProps) {
   const { t } = useI18n()
-  const { data: session } = useSession()
-  const { profile, isLoading, error, saveProfile } = useAccountProfile()
-  const googleDefaults = splitGoogleDisplayName(session?.user?.name)
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
+  const [firstName, setFirstName] = useState(initialFirstName)
+  const [lastName, setLastName] = useState(initialLastName)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!profile) {
-      return
-    }
-
-    setFirstName(profile.firstName || googleDefaults.firstName)
-    setLastName(profile.lastName || googleDefaults.lastName)
-  }, [googleDefaults.firstName, googleDefaults.lastName, profile])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -44,23 +45,6 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
     if (!result) {
       setFormError(t.accountProfile.saveError)
     }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-stone-200 px-4 py-8 text-neutral-950">
-        <div className="mx-auto max-w-md">
-          <AppCard className="text-center">
-            <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-950" />
-            <p className="mt-4 font-black">{t.accountProfile.loadingTitle}</p>
-          </AppCard>
-        </div>
-      </div>
-    )
-  }
-
-  if (profile?.isComplete) {
-    return children
   }
 
   return (
@@ -108,8 +92,10 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
               {t.accountProfile.globalNameNotice}
             </p>
 
-            {formError || error ? (
-              <p className="text-sm font-bold text-red-600">{formError ?? error}</p>
+            {formError || accountError ? (
+              <p className="text-sm font-bold text-red-600">
+                {formError ?? accountError}
+              </p>
             ) : null}
 
             <button
@@ -123,5 +109,42 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
         </AppCard>
       </div>
     </div>
+  )
+}
+
+export function ProfileCompletionGate({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n()
+  const { data: session } = useSession()
+  const { profile, isLoading, error, saveProfile } = useAccountProfile()
+  const googleDefaults = splitGoogleDisplayName(session?.user?.name)
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-stone-200 px-4 py-8 text-neutral-950">
+        <div className="mx-auto max-w-md">
+          <AppCard className="text-center">
+            <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-950" />
+            <p className="mt-4 font-black">{t.accountProfile.loadingTitle}</p>
+          </AppCard>
+        </div>
+      </div>
+    )
+  }
+
+  if (profile?.isComplete) {
+    return children
+  }
+
+  const initialFirstName = profile?.firstName || googleDefaults.firstName
+  const initialLastName = profile?.lastName || googleDefaults.lastName
+
+  return (
+    <ProfileCompletionForm
+      key={`${initialFirstName}\u0000${initialLastName}`}
+      initialFirstName={initialFirstName}
+      initialLastName={initialLastName}
+      accountError={error}
+      saveProfile={saveProfile}
+    />
   )
 }
