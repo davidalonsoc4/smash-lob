@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
+import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
@@ -880,6 +881,8 @@ export default function Home() {
           <span className="font-black text-neutral-950">Vista de espectador</span> · Solo lectura
         </div>
       ) : null}
+
+      <LeagueAnnouncementsCard leagueId={activeLeague.id} />
 
       {isSeasonUpcoming ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80">

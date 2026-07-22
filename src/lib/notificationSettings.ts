@@ -32,6 +32,9 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
         "match_scheduled",
         "match_schedule_updated",
         "match_postponed",
+        "match_incident_reported",
+        "match_incident_resolved",
+        "match_incident_cleared",
         "match_upcoming_reminder",
       ],
     },
@@ -54,7 +57,15 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     },
     {
       key: "season_events",
-      eventTypes: ["season_created", "season_started", "season_finished", "season_player_joined", "season_player_left"],
+      eventTypes: [
+        "season_created",
+        "season_duplicated",
+        "season_started",
+        "season_finished",
+        "season_player_joined",
+        "season_player_left",
+        "league_announcement_published",
+      ],
     },
     {
       key: "booking_i_owe",

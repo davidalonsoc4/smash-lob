@@ -64,6 +64,13 @@ export async function PUT(
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
+  if (access.actor.match.incidentStatus === "open") {
+    return NextResponse.json(
+      { error: "match_incident_resolution_required" },
+      { status: 409 },
+    )
+  }
+
   if (access.actor.match.status === "finished") {
     return NextResponse.json(
       { error: "match_schedule_not_allowed" },
@@ -77,6 +84,9 @@ export async function PUT(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
+  const resumingPostponedIncident =
+    access.actor.match.incidentStatus === "resolved" &&
+    access.actor.match.resolutionType === "postponed"
   const { data, error } = await access.actor.supabase
     .from("matches")
     .update({
@@ -84,6 +94,20 @@ export async function PUT(
       scheduled_at: schedule.scheduledAt,
       date_label: formatScheduleDateLabel(schedule.scheduledAt),
       location: schedule.location,
+      ...(resumingPostponedIncident
+        ? {
+            incident_type: null,
+            incident_status: null,
+            incident_reason: null,
+            incident_notes: null,
+            incident_reported_by_user_id: null,
+            incident_resolved_by_user_id: null,
+            incident_created_at: null,
+            incident_resolved_at: null,
+            resolution_type: null,
+            ranking_counts: true,
+          }
+        : {}),
     })
     .eq("id", matchId)
     .select(matchSelect)
@@ -143,6 +167,13 @@ export async function DELETE(
 
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
+  }
+
+  if (access.actor.match.incidentStatus === "open") {
+    return NextResponse.json(
+      { error: "match_incident_resolution_required" },
+      { status: 409 },
+    )
   }
 
   if (

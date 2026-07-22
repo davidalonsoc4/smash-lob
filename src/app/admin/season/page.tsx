@@ -1373,6 +1373,15 @@ function BalancedCalendarAuditPanel({
             scheduleMode: scheduleMode ?? "single",
           }).map((match) => ({
             ...match,
+            rankingCounts: true,
+            incidentType: null,
+            incidentStatus: null,
+            incidentReason: null,
+            incidentNotes: null,
+            incidentCreatedAt: null,
+            incidentResolvedAt: null,
+            resolutionType: null,
+            substitutions: [],
             courtBooking: getEmptyCourtBooking(),
           }));
 
@@ -2948,6 +2957,15 @@ function NewSeasonForm({
           scheduleMode,
         }).map((match) => ({
           ...match,
+          rankingCounts: true,
+          incidentType: null,
+          incidentStatus: null,
+          incidentReason: null,
+          incidentNotes: null,
+          incidentCreatedAt: null,
+          incidentResolvedAt: null,
+          resolutionType: null,
+          substitutions: [],
           courtBooking: getEmptyCourtBooking(),
         }));
 

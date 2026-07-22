@@ -131,6 +131,17 @@ export async function PUT(
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
+  if (
+    access.actor.match.incidentStatus === "open" ||
+    (access.actor.match.resolutionType &&
+      access.actor.match.resolutionType !== "played")
+  ) {
+    return NextResponse.json(
+      { error: "match_incident_resolution_required" },
+      { status: 409 },
+    )
+  }
+
   const sets = parseResultSets((await parseJsonBody<ResultBody>(request))?.sets)
 
   if (!sets) {
@@ -224,6 +235,8 @@ export async function PUT(
       result_recorded_at: resultRecordedAt,
       result_reported_by_player_id: access.actor.participantPlayerId,
       result_locked: false,
+      resolution_type: "played",
+      ranking_counts: true,
     })
     .eq("id", matchId)
     .select(matchSelect)
@@ -372,6 +385,17 @@ export async function DELETE(
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
+  if (
+    access.actor.match.incidentStatus === "open" ||
+    (access.actor.match.resolutionType &&
+      access.actor.match.resolutionType !== "played")
+  ) {
+    return NextResponse.json(
+      { error: "match_incident_resolution_required" },
+      { status: 409 },
+    )
+  }
+
   if (access.actor.match.status !== "finished") {
     return NextResponse.json(
       { error: "match_result_clear_not_allowed" },
@@ -416,6 +440,8 @@ export async function DELETE(
       result_recorded_at: null,
       result_reported_by_player_id: null,
       result_locked: false,
+      resolution_type: null,
+      ranking_counts: true,
     })
     .eq("id", matchId)
     .select(matchSelect)

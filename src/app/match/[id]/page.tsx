@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
+import { MatchIncidentPanel } from "@/components/match/MatchIncidentPanel"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
@@ -183,8 +184,14 @@ export default function MatchDetailPage() {
   const resultIsLocked = confirmationsEnabled && match.resultLocked
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
+  const hasOpenIncident = match.incidentStatus === "open"
+  const isExceptionalResolution = Boolean(
+    match.resolutionType && match.resolutionType !== "played",
+  )
   const canEnterResult =
     canManageMatch &&
+    !hasOpenIncident &&
+    !isExceptionalResolution &&
     (match.status === "scheduled" ||
       (isAdmin && (match.status === "scheduling" || match.status === "postponed")))
   const canEditResultAsParticipant = Boolean(
@@ -197,6 +204,8 @@ export default function MatchDetailPage() {
   const canEditResult =
     !isSeasonUpcoming &&
     match.status === "finished" &&
+    !hasOpenIncident &&
+    !isExceptionalResolution &&
     !resultIsLocked &&
     (isAdmin || canEditResultAsParticipant)
   const resultReporterName = match.resultReportedByPlayerId
@@ -219,7 +228,12 @@ export default function MatchDetailPage() {
   const shouldShowSchedulePanel =
     match.status !== "finished" || hasSchedule
   const shouldShowSubstitutionPanel =
-    canManageMatch && match.status !== "finished"
+    canManageMatch && match.status !== "finished" && !hasOpenIncident
+  const shouldShowResultWorkflow =
+    match.status === "finished" &&
+    !hasOpenIncident &&
+    !isExceptionalResolution &&
+    match.rankingCounts !== false
 
   return (
     <div className="space-y-3">
@@ -269,7 +283,14 @@ export default function MatchDetailPage() {
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 
-      {match.status === "finished" ? (
+      <MatchIncidentPanel
+        match={match}
+        players={players}
+        canReport={canManageMatch}
+        isAdmin={isAdmin}
+      />
+
+      {shouldShowResultWorkflow ? (
         <MatchResultConfirmationCard
           matchId={match.id}
           participantIds={[...match.teamA, ...match.teamB]}
@@ -283,7 +304,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {match.status === "finished" ? (
+      {shouldShowResultWorkflow ? (
         <MvpVotingCard
           match={match}
           currentUserId={currentUserId}
@@ -338,8 +359,8 @@ export default function MatchDetailPage() {
           players={players}
           roundStartsAt={round?.startsAt ?? null}
           roundEndsAt={round?.endsAt ?? null}
-          canManage={canManageMatch}
-          canClearSchedule={isAdmin}
+          canManage={canManageMatch && !hasOpenIncident}
+          canClearSchedule={isAdmin && !hasOpenIncident}
           calendarAction={
             match.status === "scheduled" && match.scheduledAt ? (
               <AddToCalendarButton
@@ -385,7 +406,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {match.status === "finished" &&
+      {shouldShowResultWorkflow &&
       (canEditResult || isAdmin) &&
       !isEditingResult ? (
         <AppCard>

@@ -72,15 +72,17 @@ export function useCurrentLeagueData() {
     baseActiveSeason.id
   ).map((match) => ({
     ...match,
-    resultCounts: getMatchResultConfirmationState({
-      matchId: match.id,
-      participantIds: [...match.teamA, ...match.teamB],
-      reporterPlayerId: match.resultReportedByPlayerId,
-      resultRecordedAt: match.resultRecordedAt,
-      resultLocked: match.resultLocked,
-      confirmations: resultConfirmations,
-      mode: roundSettings.resultConfirmationMode,
-    }).countsForRanking,
+    resultCounts:
+      match.rankingCounts !== false &&
+      getMatchResultConfirmationState({
+        matchId: match.id,
+        participantIds: [...match.teamA, ...match.teamB],
+        reporterPlayerId: match.resultReportedByPlayerId,
+        resultRecordedAt: match.resultRecordedAt,
+        resultLocked: match.resultLocked,
+        confirmations: resultConfirmations,
+        mode: roundSettings.resultConfirmationMode,
+      }).countsForRanking,
   }))
   const rankingPlayers = getPlayersBySeasonId(
     baseActiveSeason.id,

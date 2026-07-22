@@ -10,6 +10,7 @@ import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { calculateSeasonRanking } from "@/lib/ranking";
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations";
+import { isMatchCompetitionComplete } from "@/lib/matchLifecycle";
 import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles";
 
 function getSeasonStatusLabel(season: {
@@ -42,15 +43,17 @@ export default function LeaguesPage() {
 
   const countedMatches = matches.map((match) => ({
     ...match,
-    resultCounts: getMatchResultConfirmationState({
-      matchId: match.id,
-      participantIds: [...match.teamA, ...match.teamB],
-      reporterPlayerId: match.resultReportedByPlayerId,
-      resultRecordedAt: match.resultRecordedAt,
-      resultLocked: match.resultLocked,
-      confirmations: resultConfirmations,
-      mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
-    }).countsForRanking,
+    resultCounts:
+      match.rankingCounts !== false &&
+      getMatchResultConfirmationState({
+        matchId: match.id,
+        participantIds: [...match.teamA, ...match.teamB],
+        reporterPlayerId: match.resultReportedByPlayerId,
+        resultRecordedAt: match.resultRecordedAt,
+        resultLocked: match.resultLocked,
+        confirmations: resultConfirmations,
+        mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
+      }).countsForRanking,
   }));
 
   function handleEnterLeague(leagueId: string) {
@@ -77,7 +80,7 @@ export default function LeaguesPage() {
           );
           const finishedMatches = seasonMatches.filter(
             (match) =>
-              match.status === "finished" && match.resultCounts !== false,
+              isMatchCompetitionComplete(match),
           ).length;
           const seasonPlayerIds = seasonPlayers
             .filter((seasonPlayer) => seasonPlayer.seasonId === season.id)

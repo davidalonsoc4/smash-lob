@@ -1,18 +1,70 @@
-Smash & Lob v0.11.8 · Corrección de pureza en actualización suave de HOME
+Smash & Lob v0.12.0 · Gestión avanzada de ligas
 
 Cambios principales:
-- La marca temporal de la actualización suave deja de inicializarse durante el render de BottomNav.
-- La referencia temporal se inicializa en un efecto del cliente, evitando la regla react-hooks/purity.
-- Se mantiene intacto el comportamiento de actualización suave de HOME y la comprobación al volver a la aplicación tras 30 segundos.
+- Incidencias de partido comunicables por participantes o administración.
+- Resoluciones excepcionales: jugado, aplazado, cancelado, no presentado, abandono y resultado administrativo.
+- Control explícito de si un resultado excepcional contabiliza para clasificación y estadísticas.
+- Bloqueo de programación, sustituciones y resultado normal mientras exista una incidencia abierta.
+- Duplicación de temporadas terminadas conservando jugadores, reglas, cuota y formato, con calendario y progreso nuevos.
+- Nueva pantalla de historial y estadísticas por temporada y jugador.
+- Comunicados generales o por temporada visibles en HOME y acompañados de notificaciones push.
+- Exportación de clasificación y resultados a CSV compatible con Excel.
+- Nuevos eventos integrados en la pantalla existente Actividad · Admin.
 
 Base de datos:
-- Sin cambios SQL.
-- Sin migraciones.
-- No ejecutar db push.
+- Nueva migración: supabase/migrations/20260722173000_add_v012_management_features.sql
+- Aplicar únicamente en Supabase PRE durante la validación.
+- No aplicar en Supabase PROD hasta la publicación de v0.12.0.
+
+Documentación:
+- docs/preproduction/V0.12.0_LEAGUE_MANAGEMENT.md
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
-- src/lib/appVersion.ts
+- docs/preproduction/V0.12.0_LEAGUE_MANAGEMENT.md
+- src/app/admin/announcements/page.tsx
+- src/app/admin/exports/page.tsx
+- src/app/admin/page.tsx
+- src/app/admin/season/duplicate/page.tsx
+- src/app/admin/season/page.tsx
+- src/app/api/leagues/[id]/announcements/[announcementId]/route.ts
+- src/app/api/leagues/[id]/announcements/route.ts
+- src/app/api/leagues/[id]/seasons/[seasonId]/duplicate/route.ts
+- src/app/api/matches/[matchId]/incident/route.ts
+- src/app/api/matches/[matchId]/postpone/route.ts
+- src/app/api/matches/[matchId]/result/route.ts
+- src/app/api/matches/[matchId]/schedule/route.ts
+- src/app/leagues/page.tsx
+- src/app/match/[id]/page.tsx
+- src/app/page.tsx
+- src/app/ranking/page.tsx
+- src/app/statistics/page.tsx
+- src/components/announcements/LeagueAnnouncementsCard.tsx
 - src/components/layout/BottomNav.tsx
+- src/components/match/MatchIncidentPanel.tsx
+- src/context/MatchDataProvider.tsx
+- src/hooks/useCurrentLeagueData.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/es.ts
+- src/i18n/locales/eu.ts
+- src/lib/activity.ts
+- src/lib/activitySettings.ts
+- src/lib/announcements.ts
+- src/lib/appVersion.ts
+- src/lib/csvExport.ts
+- src/lib/matchIncidents.ts
+- src/lib/matchLifecycle.ts
+- src/lib/notificationSettings.ts
+- src/lib/rounds.ts
+- src/lib/seasonStatistics.ts
+- src/lib/serverActivity.ts
+- src/lib/serverActivityDerivations.ts
+- src/lib/serverMatchAccess.ts
+- src/lib/serverPushDispatch.ts
+- src/lib/serverSeasonDuplication.ts
+- src/lib/supabaseMatches.ts
+- src/lib/supabaseSeasons.ts
+- supabase/migrations/20260722173000_add_v012_management_features.sql
+- src/app/admin/announcements/page.tsx — elimina la variable activeSeason no utilizada para dejar npm run lint sin warnings.

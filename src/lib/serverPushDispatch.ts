@@ -143,6 +143,9 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_scheduled" ||
     eventType === "match_schedule_updated" ||
     eventType === "match_postponed" ||
+    eventType === "match_incident_reported" ||
+    eventType === "match_incident_resolved" ||
+    eventType === "match_incident_cleared" ||
     eventType === "match_result_saved" ||
     eventType === "match_result_updated" ||
     eventType === "match_result_cleared" ||
@@ -268,12 +271,17 @@ function getExcludedPlayerIds(event: ActivityEventRow) {
   return new Set<string>();
 }
 
-function isLeagueWideEvent(eventType: ActivityEventType) {
+function isLeagueWideEvent(event: ActivityEventRow) {
+  if (event.type === "league_announcement_published") {
+    return getTargetPlayerIdsFromMetadata(event).length === 0;
+  }
+
   return (
-    eventType === "season_created" ||
-    eventType === "season_started" ||
-    eventType === "season_finished" ||
-    eventType === "round_in_play"
+    event.type === "season_created" ||
+    event.type === "season_duplicated" ||
+    event.type === "season_started" ||
+    event.type === "season_finished" ||
+    event.type === "round_in_play"
   );
 }
 
@@ -284,13 +292,15 @@ function getNotificationUrl(event: ActivityEventRow) {
     targetPath = `/match/${event.match_id}`;
   } else if (
     event.type === "season_created" ||
+    event.type === "season_duplicated" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
     event.type === "season_player_joined" ||
     event.type === "season_player_left" ||
     event.type === "round_in_play" ||
     event.type === "round_mvp_awarded" ||
-    event.type === "season_registration_payment_reminder"
+    event.type === "season_registration_payment_reminder" ||
+    event.type === "league_announcement_published"
   ) {
     targetPath = "/";
   }
@@ -399,6 +409,26 @@ function getNotificationTitle(
       : "Se ha liberado una plaza de la temporada.";
   }
 
+  if (event.type === "match_incident_reported") {
+    return "Incidencia en tu partido";
+  }
+
+  if (event.type === "match_incident_resolved") {
+    return "Incidencia resuelta";
+  }
+
+  if (event.type === "match_incident_cleared") {
+    return "Incidencia eliminada";
+  }
+
+  if (event.type === "league_announcement_published") {
+    return event.title || "Nuevo comunicado";
+  }
+
+  if (event.type === "season_duplicated") {
+    return "Nueva temporada preparada";
+  }
+
   if (event.type === "season_finished") {
     return "TEMPORADA FINALIZADA";
   }
@@ -484,6 +514,26 @@ function getNotificationBody(
   recipient: NotificationRecipient | null,
   playerNamesById: Map<string, string>,
 ) {
+  if (event.type === "match_incident_reported") {
+    return event.description?.trim() || "Se ha comunicado una incidencia en uno de tus partidos.";
+  }
+
+  if (event.type === "match_incident_resolved") {
+    return event.description?.trim() || "La organización ha resuelto la incidencia del partido.";
+  }
+
+  if (event.type === "match_incident_cleared") {
+    return event.description?.trim() || "La organización ha eliminado la incidencia del partido.";
+  }
+
+  if (event.type === "league_announcement_published") {
+    return event.description?.trim() || "La organización ha publicado un nuevo comunicado.";
+  }
+
+  if (event.type === "season_duplicated") {
+    return event.description?.trim() || "La organización ha preparado una nueva temporada a partir de la anterior.";
+  }
+
   if (event.type === "season_created") {
     const metadata = toRecord(event.metadata);
     const playerCount = toNumber(metadata.playerCount);
@@ -694,7 +744,7 @@ async function getRecipients({
 
   const targetPlayerIds = await getTargetPlayerIds({ supabase, event });
 
-  if (!isLeagueWideEvent(event.type)) {
+  if (!isLeagueWideEvent(event)) {
     if (targetPlayerIds.length === 0) {
       return [];
     }
