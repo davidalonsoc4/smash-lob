@@ -7,6 +7,7 @@ import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
+import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -95,11 +96,13 @@ function getNotificationUrl(event: ActivityEvent) {
     targetPath = `/match/${event.matchId}`;
   } else if (
     event.type === "season_created" ||
+    event.type === "season_duplicated" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
     event.type === "round_in_play" ||
     event.type === "round_mvp_awarded" ||
-    event.type === "season_registration_payment_reminder"
+    event.type === "season_registration_payment_reminder" ||
+    event.type === "league_announcement_published"
   ) {
     targetPath = "/";
   }
@@ -115,6 +118,9 @@ function isMatchParticipantNotification(event: ActivityEvent) {
     event.type === "match_scheduled" ||
     event.type === "match_schedule_updated" ||
     event.type === "match_postponed" ||
+    event.type === "match_incident_reported" ||
+    event.type === "match_incident_resolved" ||
+    event.type === "match_incident_cleared" ||
     event.type === "match_result_saved" ||
     event.type === "match_result_updated" ||
     event.type === "match_result_cleared" ||
@@ -128,6 +134,7 @@ function isMatchParticipantNotification(event: ActivityEvent) {
 function isLeagueWideNotification(event: ActivityEvent) {
   return (
     event.type === "season_created" ||
+    event.type === "season_duplicated" ||
     event.type === "season_started" ||
     event.type === "season_finished"
   );
@@ -138,11 +145,13 @@ function isNotificationForCurrentUser({
   currentUserId,
   currentUserMatchIds,
   currentUserEmail,
+  isAdmin,
 }: {
   event: ActivityEvent;
   currentUserId: string;
   currentUserMatchIds: Set<string>;
   currentUserEmail: string;
+  isAdmin: boolean;
 }) {
   if (
     !getNotificationPreferenceKeyForEvent(event.type) &&
@@ -160,6 +169,15 @@ function isNotificationForCurrentUser({
 
   const metadata = event.metadata;
   const participantIds = toStringArray(metadata.participantIds);
+  const targetPlayerIds = toStringArray(metadata.targetPlayerIds);
+
+  if (event.type === "match_incident_reported" && isAdmin) {
+    return true;
+  }
+
+  if (event.type === "league_announcement_published") {
+    return targetPlayerIds.length === 0 || targetPlayerIds.includes(currentUserId);
+  }
 
   if (isLeagueWideNotification(event)) {
     return true;
@@ -541,7 +559,9 @@ export default function NotificationsPage() {
   const { t } = useI18n();
   const { data: session } = useSession();
   const { currentUserId } = useCurrentUser();
+  const { isLeagueAdmin } = useLeagueAccess();
   const { activeLeague, matches, players } = useCurrentLeagueData();
+  const isAdmin = isLeagueAdmin(activeLeague.id);
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -604,9 +624,10 @@ export default function NotificationsPage() {
           currentUserId,
           currentUserMatchIds,
           currentUserEmail,
+          isAdmin,
         }),
       ),
-    [currentUserEmail, currentUserId, currentUserMatchIds, events],
+    [currentUserEmail, currentUserId, currentUserMatchIds, events, isAdmin],
   );
 
   return (

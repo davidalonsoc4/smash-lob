@@ -1059,8 +1059,8 @@ export const en = {
     disablePush: "Disable",
     typesTitle: "Alert types",
     enabledCount: "Enabled: {enabled}/{total}",
-    mandatoryPaymentReminders:
-      "Court and registration payment reminders, whether automatic or sent manually, are always received.",
+    allTypesConfigurable:
+      "Every notification type, including incidents and payment reminders, can be enabled or disabled separately.",
     disableAll: "Disable all",
     enableAll: "Enable all",
     preferencesSaved: "Preferences saved.",
@@ -1072,41 +1072,21 @@ export const en = {
     deviceDisabled: "Notifications disabled on this device.",
     deviceDisableError: "This device could not be disabled.",
     preferences: {
-      next_match: {
-        title: "My next match",
-        description:
-          "Scheduling, date, place or court changes, postponements and a reminder 2 hours before your matches.",
-      },
-      my_match_result: {
-        title: "My match results",
-        description:
-          "Results entered, edited or removed, confirmations, and reminders to enter a result or vote for MVP.",
-      },
-      round_events: {
-        title: "Rounds and MVP",
-        description:
-          "Alerts when a round is in play and when MVP awards are decided during the season.",
-      },
-      season_events: {
-        title: "Seasons",
-        description:
-          "A new season is created, started or finished in your league.",
-      },
-      booking_i_owe: {
-        title: "Court bookings",
-        description:
-          "A booking says you owe your share to another player or a booking in one of your matches is updated.",
-      },
-      booking_paid_to_me: {
-        title: "Court payments received",
-        description:
-          "Someone who owed you a court transfer marks it as paid.",
-      },
-      player_account: {
-        title: "Account and players",
-        description:
-          "Changes to your profile, avatar, role, league link or user details.",
-      },
+      match_schedule: { title: "Match scheduling", description: "Dates, times, courts, changes and postponements for your matches." },
+      match_incidents: { title: "Match incidents", description: "Incidents reported, resolved or removed. Admins also receive new league incidents." },
+      match_upcoming: { title: "Upcoming match", description: "Reminder before your next match begins." },
+      match_results: { title: "Results", description: "Results saved, edited, removed, disputed or still missing." },
+      result_confirmations: { title: "Result confirmations", description: "Reminders to confirm or review a result." },
+      mvp_reminders: { title: "MVP voting", description: "Reminders to submit your MVP vote." },
+      mvp_awards: { title: "MVP awards", description: "Match and round MVP awards." },
+      round_events: { title: "Rounds", description: "Alerts when a round enters play." },
+      season_lifecycle: { title: "Seasons", description: "Season creation, duplication, start and finish." },
+      season_roster: { title: "Registration and roster", description: "Players joining or leaving a season." },
+      announcements: { title: "Announcements", description: "Alerts sent by the creator or administrators." },
+      booking_updates: { title: "Court bookings", description: "Booking creation, changes or removal for your matches." },
+      booking_payments: { title: "Court payments received", description: "A player marks a transfer owed to you as paid." },
+      payment_reminders: { title: "Payment reminders", description: "Reminders for pending court or registration payments." },
+      player_account: { title: "Account and players", description: "Profile, avatar, role, link or user-data changes." },
     },
   },
 

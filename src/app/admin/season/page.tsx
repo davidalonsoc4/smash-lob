@@ -23,6 +23,7 @@ import {
   startSupabaseExistingSeason,
   startSupabaseSeason,
   replaceSupabaseUpcomingSeasonBalancedCalendar,
+  duplicateSupabaseSeason,
   updateSupabaseSeasonRoundOrder,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
@@ -70,6 +71,12 @@ type ManualCalendarRoundDraft = {
     teamB: string[];
   }[];
 };
+
+function getSuggestedSeasonName(name: string) {
+  const match = name.match(/^(.*?)(\d+)\s*$/);
+  if (!match) return `${name} 2`;
+  return `${match[1].trim()} ${Number(match[2]) + 1}`;
+}
 
 function getTotalRoundCount(playerCount: number) {
   return Math.max(playerCount - 1, 1);
@@ -3816,7 +3823,8 @@ function NewSeasonForm({
 export default function AdminSeasonPage() {
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole } = useLeagueAccess();
-  const { seasons } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, seasons } = useSeasonSettings();
+  const { replaceSeasonMatches } = useMatchData();
   const {
     activeLeague,
     activeSeason,
@@ -3838,6 +3846,8 @@ export default function AdminSeasonPage() {
   const [isNewSeasonFormOpen, setIsNewSeasonFormOpen] = useState(
     !hasCreatedLeagueSeason,
   );
+  const [isDuplicatingSeason, setIsDuplicatingSeason] = useState(false);
+  const [duplicateSeasonError, setDuplicateSeasonError] = useState<string | null>(null);
   const inviteCode = getLeagueInviteCode(activeLeague.id);
   const registrationRecipientPlayerId = activeLeague.createdByUserId
     ? players.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
@@ -3877,6 +3887,45 @@ export default function AdminSeasonPage() {
       Math.max(players.length - 1, 1) * 2,
     ].includes(activeSeason.totalRounds) &&
     [8, 12, 16].includes(players.length);
+
+
+  async function handleDuplicateLastSeason() {
+    if (isDuplicatingSeason || activeSeason.status !== "finished") return;
+
+    const confirmed = window.confirm(
+      `¿Duplicar “${activeSeason.name}” como “${getSuggestedSeasonName(activeSeason.name)}”? Se conservarán jugadores y configuración, pero calendario, resultados, pagos y progreso empezarán de cero.`,
+    );
+    if (!confirmed) return;
+
+    setIsDuplicatingSeason(true);
+    setDuplicateSeasonError(null);
+
+    try {
+      const result = await duplicateSupabaseSeason({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        name: getSuggestedSeasonName(activeSeason.name),
+      });
+      hydrateSeasonSnapshot(result.snapshot);
+      const createdSeasonId = result.snapshot.activeSeasonIds[activeLeague.id];
+      if (createdSeasonId) {
+        replaceSeasonMatches(createdSeasonId, result.matches);
+      }
+    } catch (caughtError) {
+      const code = caughtError instanceof Error ? caughtError.message : "";
+      setDuplicateSeasonError(
+        code.includes("upcoming_season_already_exists")
+          ? "Ya existe una temporada próxima. Iníciala o elimínala antes de duplicar otra."
+          : code.includes("season_must_be_finished")
+            ? "Solo se puede duplicar una temporada terminada."
+            : code.includes("season_player_count_invalid")
+              ? "La última temporada no tiene un número válido de jugadores activos."
+              : `No se ha podido duplicar la temporada${code ? ` (${code})` : ""}.`,
+      );
+    } finally {
+      setIsDuplicatingSeason(false);
+    }
+  }
 
   return (
     <div className="compact-page space-y-3">
@@ -4228,6 +4277,21 @@ export default function AdminSeasonPage() {
                   ? "Ocultar nueva temporada"
                   : "Configurar nueva temporada"}
               </button>
+              <button
+                type="button"
+                onClick={handleDuplicateLastSeason}
+                disabled={isDuplicatingSeason}
+                className="mt-2 w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                {isDuplicatingSeason
+                  ? "Duplicando..."
+                  : "Duplicar última temporada"}
+              </button>
+              {duplicateSeasonError ? (
+                <p className="mt-2 text-center text-xs font-bold text-red-600">
+                  {duplicateSeasonError}
+                </p>
+              ) : null}
             </AppCard>
 
             {isNewSeasonFormOpen ? (

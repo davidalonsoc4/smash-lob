@@ -11,6 +11,7 @@ import {
   createLeagueAnnouncement,
   deleteLeagueAnnouncement,
   fetchLeagueAnnouncements,
+  type AnnouncementAudienceMode,
   type LeagueAnnouncement,
 } from "@/lib/announcements"
 
@@ -29,18 +30,29 @@ function formatDate(value: string) {
 
 export default function AdminAnnouncementsPage() {
   const { activeLeague } = useCurrentLeagueData()
-  const { seasons } = useSeasonSettings()
+  const { seasons, playerProfiles } = useSeasonSettings()
   const leagueSeasons = useMemo(
     () => seasons.filter((season) => season.leagueId === activeLeague.id),
     [activeLeague.id, seasons],
+  )
+  const leaguePlayers = useMemo(
+    () =>
+      playerProfiles
+        .filter((player) => player.leagueId === activeLeague.id)
+        .sort((a, b) => a.displayName.localeCompare(b.displayName, "es")),
+    [activeLeague.id, playerProfiles],
   )
   const { hasLeagueAdminRole } = useLeagueAccess()
   const canManage = hasLeagueAdminRole(activeLeague.id)
   const [announcements, setAnnouncements] = useState<LeagueAnnouncement[]>([])
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
+  const [audienceMode, setAudienceMode] =
+    useState<AnnouncementAudienceMode>("league")
   const [seasonId, setSeasonId] = useState("")
+  const [targetPlayerIds, setTargetPlayerIds] = useState<string[]>([])
   const [pinned, setPinned] = useState(true)
+  const [sendNotification, setSendNotification] = useState(true)
   const [expiresAt, setExpiresAt] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -67,10 +79,46 @@ export default function AdminAnnouncementsPage() {
     }
   }, [activeLeague.id])
 
-  const canSubmit = useMemo(
-    () => title.trim().length > 0 && body.trim().length > 0 && !isSaving,
-    [body, isSaving, title],
+  const selectedPlayers = useMemo(
+    () => leaguePlayers.filter((player) => targetPlayerIds.includes(player.id)),
+    [leaguePlayers, targetPlayerIds],
   )
+  const audienceIsValid =
+    audienceMode === "league" ||
+    (audienceMode === "season" && Boolean(seasonId)) ||
+    (audienceMode === "players" && targetPlayerIds.length > 0)
+  const canSubmit =
+    title.trim().length > 0 &&
+    body.trim().length > 0 &&
+    audienceIsValid &&
+    (pinned || sendNotification) &&
+    !isSaving
+  const actionLabel = pinned
+    ? sendNotification
+      ? "Publicar y notificar"
+      : "Publicar"
+    : "Notificar"
+
+  function getAudienceLabel(announcement: LeagueAnnouncement) {
+    if (announcement.targetPlayerNames.length > 0) {
+      return announcement.targetPlayerNames.join(", ")
+    }
+    if (announcement.seasonId) {
+      return (
+        leagueSeasons.find((season) => season.id === announcement.seasonId)?.name ??
+        "Temporada"
+      )
+    }
+    return "Toda la liga"
+  }
+
+  function toggleTargetPlayer(playerId: string) {
+    setTargetPlayerIds((current) =>
+      current.includes(playerId)
+        ? current.filter((id) => id !== playerId)
+        : [...current, playerId],
+    )
+  }
 
   if (!canManage) {
     return (
@@ -95,20 +143,37 @@ export default function AdminAnnouncementsPage() {
     try {
       const created = await createLeagueAnnouncement({
         leagueId: activeLeague.id,
-        seasonId: seasonId || null,
+        audienceMode,
+        seasonId: audienceMode === "season" ? seasonId : null,
+        targetPlayerIds: audienceMode === "players" ? targetPlayerIds : [],
         title: title.trim(),
         body: body.trim(),
         pinned,
-        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+        sendNotification,
+        expiresAt: pinned && expiresAt ? new Date(expiresAt).toISOString() : null,
       })
       setAnnouncements((current) => [...created, ...current])
       setTitle("")
       setBody("")
       setExpiresAt("")
+      setTargetPlayerIds([])
       announceLeagueAnnouncementsRefresh()
-      setMessage("Comunicado publicado y notificación enviada.")
-    } catch {
-      setError("No se ha podido publicar el comunicado.")
+      setMessage(
+        pinned && sendNotification
+          ? "Comunicado publicado y notificación enviada."
+          : pinned
+            ? "Comunicado publicado en la HOME."
+            : "Notificación enviada.",
+      )
+    } catch (caughtError) {
+      const code = caughtError instanceof Error ? caughtError.message : ""
+      setError(
+        code.includes("players_required")
+          ? "Selecciona al menos un jugador."
+          : code.includes("season_required")
+            ? "Selecciona una temporada."
+            : "No se ha podido procesar el comunicado.",
+      )
     } finally {
       setIsSaving(false)
     }
@@ -145,11 +210,9 @@ export default function AdminAnnouncementsPage() {
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
-          Comunicados
-        </h1>
+        <h1 className="mt-0.5 text-xl font-black tracking-tight">Comunicados</h1>
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Publica avisos en la HOME y envía una notificación a los miembros de la liga.
+          Publica un aviso en la HOME, envía una notificación o realiza ambas acciones.
         </p>
       </header>
 
@@ -170,7 +233,7 @@ export default function AdminAnnouncementsPage() {
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value.slice(0, 1500))}
-              rows={5}
+              rows={4}
               placeholder="Escribe el comunicado..."
               className="mt-1 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-500"
             />
@@ -179,7 +242,31 @@ export default function AdminAnnouncementsPage() {
             </span>
           </label>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-black text-neutral-700">Destinatarios</p>
+            <div className="mt-1 grid grid-cols-3 gap-1.5">
+              {([
+                ["league", "Toda la liga"],
+                ["season", "Temporada"],
+                ["players", "Jugadores"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setAudienceMode(value)}
+                  className={`rounded-xl px-2 py-2 text-[11px] font-black ${
+                    audienceMode === value
+                      ? "bg-neutral-950 text-white"
+                      : "bg-neutral-100 text-neutral-600"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {audienceMode === "season" ? (
             <label className="block">
               <span className="text-xs font-black text-neutral-700">Temporada</span>
               <select
@@ -187,7 +274,7 @@ export default function AdminAnnouncementsPage() {
                 onChange={(event) => setSeasonId(event.target.value)}
                 className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"
               >
-                <option value="">Toda la liga</option>
+                <option value="">Selecciona una temporada</option>
                 {leagueSeasons.map((season) => (
                   <option key={season.id} value={season.id}>
                     {season.name}
@@ -195,7 +282,69 @@ export default function AdminAnnouncementsPage() {
                 ))}
               </select>
             </label>
+          ) : null}
 
+          {audienceMode === "players" ? (
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-black">Selecciona jugadores</p>
+                <span className="text-[10px] font-black text-neutral-500">
+                  {targetPlayerIds.length} seleccionados
+                </span>
+              </div>
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
+                {leaguePlayers.map((player) => (
+                  <label
+                    key={player.id}
+                    className="flex items-center gap-2 rounded-lg bg-white px-2.5 py-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={targetPlayerIds.includes(player.id)}
+                      onChange={() => toggleTargetPlayer(player.id)}
+                      className="h-4 w-4"
+                    />
+                    <span className="truncate text-xs font-bold">{player.displayName}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedPlayers.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedPlayers.map((player) => (
+                    <span
+                      key={player.id}
+                      className="rounded-full bg-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-700"
+                    >
+                      {player.displayName}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex items-center gap-2 rounded-xl bg-orange-50 px-3 py-2.5">
+              <input
+                type="checkbox"
+                checked={pinned}
+                onChange={(event) => setPinned(event.target.checked)}
+                className="h-4 w-4"
+              />
+              <span className="text-xs font-black text-orange-950">Fijar en la HOME</span>
+            </label>
+            <label className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2.5">
+              <input
+                type="checkbox"
+                checked={sendNotification}
+                onChange={(event) => setSendNotification(event.target.checked)}
+                className="h-4 w-4"
+              />
+              <span className="text-xs font-black text-blue-950">Enviar notificación</span>
+            </label>
+          </div>
+
+          {pinned ? (
             <label className="block">
               <span className="text-xs font-black text-neutral-700">
                 Ocultar automáticamente (opcional)
@@ -207,17 +356,13 @@ export default function AdminAnnouncementsPage() {
                 className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"
               />
             </label>
-          </div>
+          ) : null}
 
-          <label className="flex items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2.5">
-            <input
-              type="checkbox"
-              checked={pinned}
-              onChange={(event) => setPinned(event.target.checked)}
-              className="h-4 w-4"
-            />
-            <span className="text-sm font-bold">Fijar arriba en la HOME</span>
-          </label>
+          {!pinned && !sendNotification ? (
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-800">
+              Marca al menos “Fijar en la HOME” o “Enviar notificación”.
+            </p>
+          ) : null}
 
           <button
             type="button"
@@ -225,13 +370,11 @@ export default function AdminAnnouncementsPage() {
             disabled={!canSubmit}
             className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
           >
-            {isSaving ? "Publicando..." : "Publicar y notificar"}
+            {isSaving ? "Procesando..." : actionLabel}
           </button>
 
           {message ? (
-            <p className="text-center text-xs font-bold text-emerald-700">
-              {message}
-            </p>
+            <p className="text-center text-xs font-bold text-emerald-700">{message}</p>
           ) : null}
           {error ? (
             <p className="text-center text-xs font-bold text-red-600">{error}</p>
@@ -241,37 +384,38 @@ export default function AdminAnnouncementsPage() {
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-          Publicados
+          Publicados y enviados
         </p>
 
         {isLoading ? (
-          <AppCard>
-            <p className="text-sm font-bold text-neutral-500">Cargando...</p>
-          </AppCard>
+          <AppCard><p className="text-sm font-bold text-neutral-500">Cargando...</p></AppCard>
         ) : announcements.length === 0 ? (
-          <AppCard>
-            <p className="text-sm font-bold text-neutral-500">
-              Todavía no hay comunicados.
-            </p>
-          </AppCard>
+          <AppCard><p className="text-sm font-bold text-neutral-500">Todavía no hay comunicados.</p></AppCard>
         ) : (
           <div className="space-y-2">
             {announcements.map((announcement) => (
-              <AppCard key={announcement.id}>
+              <AppCard key={announcement.id} className="p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <p className="font-black">{announcement.title}</p>
                       {announcement.pinned ? (
-                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase text-neutral-600">
-                          Fijado
+                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[9px] font-black uppercase text-orange-700">
+                          HOME
                         </span>
-                      ) : null}
+                      ) : (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-black uppercase text-blue-700">
+                          Solo aviso
+                        </span>
+                      )}
                     </div>
-                    <p className="mt-1 whitespace-pre-line text-sm font-semibold leading-5 text-neutral-600">
+                    <p className="mt-1 line-clamp-3 whitespace-pre-line text-xs font-semibold leading-4 text-neutral-600">
                       {announcement.body}
                     </p>
-                    <p className="mt-2 text-[10px] font-bold text-neutral-400">
+                    <p className="mt-1.5 text-[10px] font-bold text-neutral-500">
+                      Para: {getAudienceLabel(announcement)}
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold text-neutral-400">
                       {formatDate(announcement.publishedAt)}
                     </p>
                   </div>
@@ -280,7 +424,7 @@ export default function AdminAnnouncementsPage() {
                     onClick={() => handleDelete(announcement)}
                     disabled={deletingId === announcement.id}
                     aria-label={`Eliminar ${announcement.title}`}
-                    className="shrink-0 rounded-lg px-2 py-1 text-lg font-black text-neutral-400 hover:text-red-600 disabled:opacity-40"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-red-100 text-xl font-black leading-none text-red-700 transition hover:bg-red-200 disabled:opacity-40"
                   >
                     ×
                   </button>

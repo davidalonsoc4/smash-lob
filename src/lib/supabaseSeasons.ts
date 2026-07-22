@@ -16,10 +16,12 @@ async function readSeasonApiPayload<T>(
 ): Promise<T> {
   const payload = (await response
     .json()
-    .catch(() => null)) as (T & { message?: string }) | null;
+    .catch(() => null)) as (T & { message?: string; error?: string }) | null;
 
   if (!response.ok) {
-    throw new Error(payload?.message || `${errorPrefix}-${response.status}`);
+    throw new Error(
+      payload?.error || payload?.message || `${errorPrefix}-${response.status}`,
+    );
   }
 
   if (!payload) {

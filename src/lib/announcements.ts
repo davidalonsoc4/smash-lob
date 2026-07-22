@@ -1,15 +1,25 @@
 export const ANNOUNCEMENTS_REFRESH_EVENT = "smash-lob:announcements-refresh"
 
+export type AnnouncementAudienceMode = "league" | "season" | "players"
+
 export type LeagueAnnouncement = {
   id: string
   leagueId: string
   seasonId: string | null
+  targetPlayerIds: string[]
+  targetPlayerNames: string[]
   title: string
   body: string
   pinned: boolean
   publishedAt: string
   expiresAt: string | null
   createdByDisplayName: string | null
+}
+
+function toStringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : []
 }
 
 function toAnnouncement(value: unknown): LeagueAnnouncement | null {
@@ -33,6 +43,8 @@ function toAnnouncement(value: unknown): LeagueAnnouncement | null {
     id: row.id,
     leagueId: row.leagueId,
     seasonId: typeof row.seasonId === "string" ? row.seasonId : null,
+    targetPlayerIds: toStringArray(row.targetPlayerIds),
+    targetPlayerNames: toStringArray(row.targetPlayerNames),
     title: row.title,
     body: row.body,
     pinned: Boolean(row.pinned),
@@ -60,9 +72,13 @@ async function readAnnouncements(response: Response) {
     .filter((item): item is LeagueAnnouncement => Boolean(item))
 }
 
-export async function fetchLeagueAnnouncements(leagueId: string) {
+export async function fetchLeagueAnnouncements(
+  leagueId: string,
+  options: { homeOnly?: boolean } = {},
+) {
+  const search = options.homeOnly ? "?homeOnly=1" : ""
   const response = await fetch(
-    `/api/leagues/${encodeURIComponent(leagueId)}/announcements`,
+    `/api/leagues/${encodeURIComponent(leagueId)}/announcements${search}`,
     { cache: "no-store" },
   )
 
@@ -71,17 +87,23 @@ export async function fetchLeagueAnnouncements(leagueId: string) {
 
 export async function createLeagueAnnouncement({
   leagueId,
+  audienceMode,
   seasonId,
+  targetPlayerIds,
   title,
   body,
   pinned,
+  sendNotification,
   expiresAt,
 }: {
   leagueId: string
+  audienceMode: AnnouncementAudienceMode
   seasonId: string | null
+  targetPlayerIds: string[]
   title: string
   body: string
   pinned: boolean
+  sendNotification: boolean
   expiresAt: string | null
 }) {
   const response = await fetch(
@@ -89,7 +111,16 @@ export async function createLeagueAnnouncement({
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seasonId, title, body, pinned, expiresAt }),
+      body: JSON.stringify({
+        audienceMode,
+        seasonId,
+        targetPlayerIds,
+        title,
+        body,
+        pinned,
+        sendNotification,
+        expiresAt,
+      }),
       cache: "no-store",
     },
   )

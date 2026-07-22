@@ -6,11 +6,16 @@ import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+type AudienceMode = "league" | "season" | "players"
+
 type CreateBody = {
+  audienceMode?: unknown
   seasonId?: unknown
+  targetPlayerIds?: unknown
   title?: unknown
   body?: unknown
   pinned?: unknown
+  sendNotification?: unknown
   expiresAt?: unknown
 }
 
@@ -18,6 +23,7 @@ type AnnouncementRow = {
   id: string
   league_id: string
   season_id: string | null
+  target_player_ids: string[] | null
   created_by_user_id: string | null
   title: string
   body: string
@@ -37,6 +43,28 @@ function parseOptionalDate(value: unknown) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
+function parseAudienceMode(value: unknown): AudienceMode | null {
+  return value === "league" || value === "season" || value === "players"
+    ? value
+    : null
+}
+
+function parsePlayerIds(value: unknown) {
+  if (!Array.isArray(value)) return []
+
+  const playerIds = value
+    .map((playerId) => validateUuid(playerId))
+    .filter((playerId): playerId is string => playerId !== null)
+
+  return Array.from(new Set(playerIds)).slice(0, 64)
+}
+
+function normalizeTargetPlayerIds(row: AnnouncementRow) {
+  return Array.isArray(row.target_player_ids)
+    ? row.target_player_ids.filter((playerId) => typeof playerId === "string")
+    : []
+}
+
 async function mapAnnouncements({
   supabase,
   rows,
@@ -50,47 +78,74 @@ async function mapAnnouncements({
   const userIds = Array.from(
     new Set(rows.map((row) => row.created_by_user_id).filter(Boolean)),
   ) as string[]
+  const targetPlayerIds = Array.from(
+    new Set(rows.flatMap((row) => normalizeTargetPlayerIds(row))),
+  )
   const namesByUserId = new Map<string, string>()
+  const namesByPlayerId = new Map<string, string>()
 
   if (userIds.length > 0) {
-    const { data } = await supabase
+    const { data: users } = await supabase
       .from("app_users")
       .select("id,display_name,email")
       .in("id", userIds)
 
-    ;(data ?? []).forEach((user) => {
-      if (typeof user.id === "string") {
-        const name =
-          typeof user.display_name === "string" && user.display_name.trim()
-            ? user.display_name.trim()
-            : typeof user.email === "string"
-              ? user.email
-              : "Administración"
-        namesByUserId.set(user.id, name)
+    ;(users ?? []).forEach((user) => {
+      if (typeof user.id !== "string") return
+      const name =
+        typeof user.display_name === "string" && user.display_name.trim()
+          ? user.display_name.trim()
+          : typeof user.email === "string"
+            ? user.email
+            : "Administración"
+      namesByUserId.set(user.id, name)
+    })
+  }
+
+  if (targetPlayerIds.length > 0) {
+    const { data: players } = await supabase
+      .from("players")
+      .select("id,display_name")
+      .in("id", targetPlayerIds)
+
+    ;(players ?? []).forEach((player) => {
+      if (
+        typeof player.id === "string" &&
+        typeof player.display_name === "string"
+      ) {
+        namesByPlayerId.set(player.id, player.display_name)
       }
     })
   }
 
-  return rows.map((row) => ({
-    id: row.id,
-    leagueId: row.league_id,
-    seasonId: row.season_id,
-    title: row.title,
-    body: row.body,
-    pinned: row.pinned,
-    publishedAt: row.published_at,
-    expiresAt: row.expires_at,
-    createdByDisplayName: row.created_by_user_id
-      ? namesByUserId.get(row.created_by_user_id) ?? "Administración"
-      : "Administración",
-  }))
+  return rows.map((row) => {
+    const playerIds = normalizeTargetPlayerIds(row)
+    return {
+      id: row.id,
+      leagueId: row.league_id,
+      seasonId: row.season_id,
+      targetPlayerIds: playerIds,
+      targetPlayerNames: playerIds.map(
+        (playerId) => namesByPlayerId.get(playerId) ?? "Jugador",
+      ),
+      title: row.title,
+      body: row.body,
+      pinned: row.pinned,
+      publishedAt: row.published_at,
+      expiresAt: row.expires_at,
+      createdByDisplayName: row.created_by_user_id
+        ? namesByUserId.get(row.created_by_user_id) ?? "Administración"
+        : "Administración",
+    }
+  })
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: leagueId } = await params
+  const homeOnly = new URL(request.url).searchParams.get("homeOnly") === "1"
 
   if (!validateUuid(leagueId)) {
     return NextResponse.json({ error: "invalid_league_id" }, { status: 400 })
@@ -106,7 +161,7 @@ export async function GET(
   const { data, error } = await access.actor.supabase
     .from("league_announcements")
     .select(
-      "id,league_id,season_id,created_by_user_id,title,body,pinned,published_at,expires_at",
+      "id,league_id,season_id,target_player_ids,created_by_user_id,title,body,pinned,published_at,expires_at",
     )
     .eq("league_id", leagueId)
     .or(`expires_at.is.null,expires_at.gt.${now}`)
@@ -123,7 +178,7 @@ export async function GET(
 
   let visibleRows = (data ?? []) as AnnouncementRow[]
 
-  if (!access.actor.isAdmin) {
+  if (homeOnly || !access.actor.isAdmin) {
     const memberPlayerId = access.actor.membership?.playerId ?? null
     const allowedSeasonIds = new Set<string>()
 
@@ -149,10 +204,15 @@ export async function GET(
     }
 
     visibleRows = visibleRows
-      .filter(
-        (row) =>
-          row.season_id === null || allowedSeasonIds.has(row.season_id),
-      )
+      .filter((row) => {
+        if (!row.pinned) return false
+        const targetIds = normalizeTargetPlayerIds(row)
+        if (targetIds.length > 0) {
+          return Boolean(memberPlayerId && targetIds.includes(memberPlayerId))
+        }
+        if (row.season_id) return allowedSeasonIds.has(row.season_id)
+        return true
+      })
       .slice(0, 10)
   }
 
@@ -183,17 +243,18 @@ export async function POST(
   const body = await parseJsonBody<CreateBody>(request)
   const title = cleanText(body?.title, 100)
   const announcementBody = cleanText(body?.body, 1500)
-  const seasonId =
-    body?.seasonId === null || body?.seasonId === undefined || body.seasonId === ""
-      ? null
-      : validateUuid(body.seasonId)
+  const audienceMode = parseAudienceMode(body?.audienceMode) ?? "league"
+  const requestedSeasonId = validateUuid(body?.seasonId)
+  const requestedPlayerIds = parsePlayerIds(body?.targetPlayerIds)
+  const pinned = body?.pinned === true
+  const sendNotification = body?.sendNotification === true
   const expiresAt = parseOptionalDate(body?.expiresAt)
 
   if (
     title.length < 1 ||
     announcementBody.length < 1 ||
     expiresAt === undefined ||
-    (body?.seasonId && !seasonId)
+    (!pinned && !sendNotification)
   ) {
     return NextResponse.json({ error: "invalid_announcement" }, { status: 400 })
   }
@@ -205,27 +266,32 @@ export async function POST(
     )
   }
 
+  let seasonId: string | null = null
   let targetPlayerIds: string[] = []
 
-  if (seasonId) {
+  if (audienceMode === "season") {
+    if (!requestedSeasonId) {
+      return NextResponse.json({ error: "season_required" }, { status: 400 })
+    }
+
     const [{ data: season, error: seasonError }, seasonPlayersResult] =
       await Promise.all([
         access.actor.supabase
           .from("seasons")
           .select("id")
-          .eq("id", seasonId)
+          .eq("id", requestedSeasonId)
           .eq("league_id", leagueId)
           .maybeSingle(),
         access.actor.supabase
           .from("season_players")
           .select("player_id")
-          .eq("season_id", seasonId),
+          .eq("season_id", requestedSeasonId)
+          .eq("status", "active"),
       ])
 
     if (seasonError || !season) {
       return NextResponse.json({ error: "season_not_found" }, { status: 404 })
     }
-
     if (seasonPlayersResult.error) {
       return NextResponse.json(
         { error: "announcement_audience_lookup_failed" },
@@ -233,6 +299,7 @@ export async function POST(
       )
     }
 
+    seasonId = requestedSeasonId
     targetPlayerIds = Array.from(
       new Set(
         (seasonPlayersResult.data ?? [])
@@ -242,21 +309,40 @@ export async function POST(
           .filter((playerId): playerId is string => Boolean(playerId)),
       ),
     )
+  } else if (audienceMode === "players") {
+    if (requestedPlayerIds.length === 0) {
+      return NextResponse.json({ error: "players_required" }, { status: 400 })
+    }
+
+    const { data: leaguePlayers, error: playersError } = await access.actor.supabase
+      .from("players")
+      .select("id")
+      .eq("league_id", leagueId)
+      .in("id", requestedPlayerIds)
+
+    if (playersError || (leaguePlayers ?? []).length !== requestedPlayerIds.length) {
+      return NextResponse.json({ error: "invalid_players" }, { status: 400 })
+    }
+
+    targetPlayerIds = requestedPlayerIds
   }
 
+  const storedTargetPlayerIds =
+    audienceMode === "players" ? targetPlayerIds : []
   const { data, error } = await access.actor.supabase
     .from("league_announcements")
     .insert({
       league_id: leagueId,
       season_id: seasonId,
+      target_player_ids: storedTargetPlayerIds,
       created_by_user_id: access.actor.user.id,
       title,
       body: announcementBody,
-      pinned: body?.pinned === true,
+      pinned,
       expires_at: expiresAt,
     })
     .select(
-      "id,league_id,season_id,created_by_user_id,title,body,pinned,published_at,expires_at",
+      "id,league_id,season_id,target_player_ids,created_by_user_id,title,body,pinned,published_at,expires_at",
     )
     .single()
 
@@ -278,7 +364,11 @@ export async function POST(
     description: announcementBody,
     metadata: {
       announcementId: data.id,
-      pinned: body?.pinned === true,
+      pinned,
+      sendNotification,
+      forcePush: sendNotification,
+      skipPush: !sendNotification,
+      audienceMode,
       targetPlayerIds,
     },
   }).catch(() => null)

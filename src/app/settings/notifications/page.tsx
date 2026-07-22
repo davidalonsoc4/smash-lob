@@ -338,7 +338,7 @@ export default function NotificationSettingsPage() {
               {t.notifications.enabledCount.replace("{enabled}", String(enabledCount)).replace("{total}", String(notificationPreferenceDefinitions.length))}
             </p>
             <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-400">
-              {t.notifications.mandatoryPaymentReminders}
+              {t.notifications.allTypesConfigurable}
             </p>
           </div>
 
@@ -349,7 +349,7 @@ export default function NotificationSettingsPage() {
               disabled={isLoading || isSaving}
               className="rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-300"
             >
-              {t.notifications.disablePush} todo
+              {t.notifications.disableAll}
             </button>
             <button
               type="button"
