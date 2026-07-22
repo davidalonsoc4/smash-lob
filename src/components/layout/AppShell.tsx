@@ -300,15 +300,21 @@ export function AppShell({ children }: AppShellProps) {
         ) : null}
 
         <main
-          className="app-main px-3"
+          className={`app-main px-3 ${
+            isLeagueNavigationRoute ? "flex min-h-screen items-center" : ""
+          }`}
           data-has-floating-top-controls={hasFloatingTopControls}
           style={
             {
               "--app-floating-top-reserved-width": `${floatingTopReservedWidth}px`,
-              paddingTop: hasFloatingTopControls
-                ? "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))"
-                : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
-              paddingBottom: "96px",
+              paddingTop: isLeagueNavigationRoute
+                ? "env(safe-area-inset-top, 0px)"
+                : hasFloatingTopControls
+                  ? "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))"
+                  : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
+              paddingBottom: isLeagueNavigationRoute
+                ? "env(safe-area-inset-bottom, 0px)"
+                : "96px",
             } as CSSProperties
           }
         >

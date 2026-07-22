@@ -1,25 +1,20 @@
-Smash & Lob v0.11.5 · Protección de la plantilla y tema claro por defecto
+Smash & Lob v0.11.6 · Centrado de la pantalla “Abriendo liga”
 
 Cambios principales:
-- Solo creator y administradores pueden liberar plazas durante la autoinscripción.
-- El creator y los administradores están protegidos y no pueden eliminarse de la plantilla.
-- La HOME solo muestra la acción de eliminar en jugadores con rol normal y cuando la vista admin está activa.
-- Las comprobaciones de permisos y roles se realizan también en API y PostgreSQL.
-- El tema predeterminado pasa a ser siempre Claro cuando el usuario todavía no ha guardado una preferencia.
-- Las preferencias Claro, Oscuro o Sistema elegidas por el usuario continúan guardándose en el dispositivo.
+- La ruta de apertura de liga utiliza ahora un contenedor de altura completa.
+- El panel “Abriendo liga” queda centrado vertical y horizontalmente.
+- También quedan centrados el estado de error y el fallback de carga.
+- La ruta /open no reserva espacio para navegación inferior ni controles flotantes.
 
 Base de datos:
-- Nueva migración 20260722122000_protect_self_registration_managers.sql.
-- Aplicar exclusivamente en Supabase PRE antes del merge a staging.
-- No ejecutar en SQL Editor.
+- Sin cambios SQL.
+- Sin migraciones.
+- No ejecutar db push.
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/app/layout.tsx
-- src/context/ThemeProvider.tsx
-- src/components/season/SeasonRosterWaitingRoom.tsx
-- src/app/api/leagues/[id]/seasons/[seasonId]/registration/route.ts
-- supabase/migrations/20260722122000_protect_self_registration_managers.sql
+- src/app/open/page.tsx
+- src/components/layout/AppShell.tsx
