@@ -17,6 +17,7 @@ type DeleteBody = {
 function getRpcErrorStatus(message: string) {
   if (message.includes("profile_incomplete")) return 409
   if (message.includes("roster_full") || message.includes("registration_closed")) return 409
+  if (message.includes("protected_league_manager")) return 409
   if (message.includes("forbidden")) return 403
   if (message.includes("not_found")) return 404
   return 500
@@ -101,18 +102,42 @@ export async function DELETE(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
-  const access = await getServerLeagueActor(leagueId, { requireMember: true })
+  const access = await getServerLeagueActor(leagueId, { requireAdmin: true })
 
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
   const body = await parseJsonBody<DeleteBody>(request)
-  const requestedPlayerId = validateUuid(body?.playerId)
-  const playerId = requestedPlayerId ?? access.actor.membership?.playerId ?? null
+  const playerId = validateUuid(body?.playerId)
 
   if (!playerId) {
     return NextResponse.json({ error: "invalid_player" }, { status: 400 })
+  }
+
+  const { data: targetMembership, error: targetMembershipError } =
+    await access.actor.supabase
+      .from("league_memberships")
+      .select("role")
+      .eq("league_id", leagueId)
+      .eq("player_id", playerId)
+      .maybeSingle()
+
+  if (targetMembershipError) {
+    return NextResponse.json(
+      { error: "player_membership_lookup_failed" },
+      { status: 500 },
+    )
+  }
+
+  if (
+    targetMembership?.role === "creator" ||
+    targetMembership?.role === "admin"
+  ) {
+    return NextResponse.json(
+      { error: "protected_league_manager" },
+      { status: 409 },
+    )
   }
 
   try {

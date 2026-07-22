@@ -18,6 +18,7 @@ export function SeasonRosterWaitingRoom({
 }) {
   const { t } = useI18n()
   const {
+    fetchLeagueUsers,
     getMembershipForLeague,
     isLeagueAdmin,
     refreshLeagueAccess,
@@ -25,6 +26,10 @@ export function SeasonRosterWaitingRoom({
   const { playerProfiles, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [rosterPermissions, setRosterPermissions] = useState<{
+    leagueId: string
+    removablePlayerIds: Set<string>
+  } | null>(null)
   const settings = getSeasonRoundSettings(seasonId)
   const membership = getMembershipForLeague(leagueId)
   const canManage = isLeagueAdmin(leagueId)
@@ -45,6 +50,42 @@ export function SeasonRosterWaitingRoom({
     membership?.playerId && registeredPlayerIds.includes(membership.playerId),
   )
   const remaining = Math.max(playerCapacity - registeredPlayers.length, 0)
+  const removablePlayerIds =
+    rosterPermissions?.leagueId === leagueId
+      ? rosterPermissions.removablePlayerIds
+      : null
+
+  useEffect(() => {
+    if (!canManage) return
+
+    let cancelled = false
+
+    void fetchLeagueUsers(leagueId)
+      .then((items) => {
+        if (cancelled) return
+
+        setRosterPermissions({
+          leagueId,
+          removablePlayerIds: new Set(
+            items
+              .filter((item) => item.role === "player")
+              .map((item) => item.playerId),
+          ),
+        })
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRosterPermissions({
+            leagueId,
+            removablePlayerIds: new Set(),
+          })
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [canManage, fetchLeagueUsers, leagueId])
 
   useEffect(() => {
     function refreshWhenVisible() {
@@ -131,7 +172,7 @@ export function SeasonRosterWaitingRoom({
             <p className="min-w-0 flex-1 truncate text-xs font-black">
               {player.displayName}
             </p>
-            {(canManage || membership?.playerId === player.id) ? (
+            {canManage && removablePlayerIds?.has(player.id) ? (
               <button
                 type="button"
                 disabled={isSaving}
