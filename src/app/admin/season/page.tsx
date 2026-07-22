@@ -2576,6 +2576,7 @@ function NewSeasonForm({
   currentPlayers: SeasonPlayerSummary[];
 }) {
   const { t } = useI18n();
+  const router = useRouter();
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, playerProfiles, seasons, startNewSeason } =
     useSeasonSettings();
@@ -2958,6 +2959,7 @@ function NewSeasonForm({
       "Temporada creada. Puedes comenzarla cuando esté todo preparado.",
     );
     setIsSaving(false);
+    router.replace("/");
   }
 
   return (
