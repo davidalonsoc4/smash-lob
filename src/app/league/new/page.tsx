@@ -45,7 +45,7 @@ export default function NewLeaguePage() {
       return
     }
 
-    activateGrantedLeague(league.id)
+    activateGrantedLeague(league.id, "/admin/season")
     router.replace("/admin/season")
   }
 

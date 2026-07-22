@@ -51,6 +51,9 @@ export const es = {
       "Confirma la liga y reclama el jugador que te corresponde dentro de ella.",
     loadingDescription:
       "Comprobando invitación y cargando la liga desde la base de datos.",
+    enteringLeagueTitle: "Entrando en la liga",
+    enteringLeagueDescription:
+      "Estamos cargando {leagueName}. Verás directamente su HOME cuando todo esté preparado.",
     checkingCode: "Comprobando código",
     checkingCodeDescription:
       "Estamos buscando la liga asociada a esta invitación.",

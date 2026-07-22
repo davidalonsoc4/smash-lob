@@ -15,8 +15,10 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
 type ActiveLeagueContextValue = {
   activeLeagueId: string
+  isLeagueTransitioning: boolean
+  transitioningLeagueId: string | null
   activateLeague: (leagueId: string) => boolean
-  activateGrantedLeague: (leagueId: string) => void
+  activateGrantedLeague: (leagueId: string, destinationPath?: string) => void
   changeActiveLeague: (leagueId: string) => void
   setActiveLeagueId: (leagueId: string) => void
 }
@@ -32,10 +34,12 @@ const storageKey = "smash-lob-active-league"
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
+  const { leagues, userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
   const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
+  const [transitioningLeagueId, setTransitioningLeagueId] = useState<string | null>(null)
+  const [transitionDestinationPath, setTransitionDestinationPath] = useState("/")
   const effectiveActiveLeagueId = grantedLeagueId
     ? grantedLeagueId
     : canAccessLeague(activeLeagueId)
@@ -92,6 +96,71 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     }
   }, [canAccessLeague, grantedLeagueId, isAccessHydrated, userLeagues])
 
+
+  useEffect(() => {
+    if (!transitioningLeagueId || pathname !== transitionDestinationPath) {
+      return
+    }
+
+    const targetIsReady =
+      effectiveActiveLeagueId === transitioningLeagueId &&
+      leagues.some((league) => league.id === transitioningLeagueId) &&
+      (canAccessLeague(transitioningLeagueId) ||
+        grantedLeagueId === transitioningLeagueId)
+
+    if (!targetIsReady) {
+      return
+    }
+
+    // Keep the transition screen visible until the destination route has
+    // committed at least one paint with the newly selected league. Invitations
+    // finish on HOME, while newly created leagues finish in the initial season
+    // creator. This prevents stale content from the previous league flashing.
+    let secondFrame = 0
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        setTransitioningLeagueId(null)
+      })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame)
+      if (secondFrame) {
+        window.cancelAnimationFrame(secondFrame)
+      }
+    }
+  }, [
+    canAccessLeague,
+    effectiveActiveLeagueId,
+    grantedLeagueId,
+    leagues,
+    pathname,
+    transitioningLeagueId,
+    transitionDestinationPath,
+  ])
+
+  useEffect(() => {
+    if (!transitioningLeagueId) {
+      return
+    }
+
+    // A soft refresh normally makes the just-created membership visible to all
+    // client contexts. If the client transition still cannot settle, perform a
+    // single full navigation. This mirrors the manual refresh that already
+    // recovers the flow, while keeping the previous league hidden meanwhile.
+    const refreshTimer = window.setTimeout(() => {
+      router.refresh()
+    }, 1500)
+    const reloadTimer = window.setTimeout(() => {
+      window.location.replace(transitionDestinationPath)
+    }, 4500)
+
+    return () => {
+      window.clearTimeout(refreshTimer)
+      window.clearTimeout(reloadTimer)
+    }
+  }, [router, transitioningLeagueId, transitionDestinationPath])
+
   const persistActiveLeague = useCallback((leagueId: string) => {
     if (!leagueId) {
       return
@@ -120,11 +189,13 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   // which can still be one render behind immediately after creating or
   // claiming a membership.
   const activateGrantedLeague = useCallback(
-    (leagueId: string) => {
+    (leagueId: string, destinationPath = "/") => {
       if (!leagueId) {
         return
       }
 
+      setTransitionDestinationPath(destinationPath)
+      setTransitioningLeagueId(leagueId)
       setGrantedLeagueId(leagueId)
       persistActiveLeague(leagueId)
     },
@@ -165,6 +236,8 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const value = useMemo(
     () => ({
       activeLeagueId: effectiveActiveLeagueId,
+      isLeagueTransitioning: Boolean(transitioningLeagueId),
+      transitioningLeagueId,
       activateLeague,
       activateGrantedLeague,
       changeActiveLeague,
@@ -176,6 +249,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
       changeActiveLeague,
       effectiveActiveLeagueId,
       setActiveLeagueId,
+      transitioningLeagueId,
     ],
   )
 

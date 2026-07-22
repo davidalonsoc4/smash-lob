@@ -1,19 +1,23 @@
-Smash & Lob v0.10.11 · Corrección de zona horaria en la programación
+Smash & Lob v0.10.14 · Transiciones de liga y temporada robustas
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/lib/matchScheduleTime.ts
-- src/lib/supabaseMatches.ts
+- src/context/ActiveLeagueProvider.tsx
+- src/context/LeagueAccessProvider.tsx
+- src/components/invite/InviteFlow.tsx
+- src/app/admin/season/page.tsx
 
 Cambios:
-- La fecha y hora mostradas para los partidos se formatean explícitamente en Europe/Madrid, incluyendo el cambio automático entre horario de invierno y verano.
-- Las etiquetas de programación se recalculan desde scheduled_at al leer los partidos, evitando reutilizar date_label antiguos generados en UTC.
-- Se corrigen inmediatamente las programaciones existentes que mostraban dos horas menos sin modificar la hora real guardada.
-- La lógica de estado mantiene la ventana de 120 minutos desde la hora real programada.
-- Versión visible actualizada a v0.10.11.
+- Al crear correctamente una temporada, la aplicación navega directamente a la HOME de la liga activa.
+- La membresía obtenida al reclamar un jugador se normaliza y se aplica inmediatamente al estado local.
+- Tras unirse a una liga se solicita en segundo plano una recarga del acceso completo desde Supabase.
+- La transición acepta como válido el acceso recién concedido por una operación confirmada por servidor, evitando esperar indefinidamente a una instantánea cliente desfasada.
+- Si la transición no termina, se intenta primero router.refresh() y después una navegación completa automática a la ruta de destino.
+- Durante esos reintentos se mantiene la pantalla «Entrando en la liga», sin mostrar la HOME de la liga anterior.
+- Versión visible actualizada a v0.10.14.
 
 Base de datos:
 - Sin migraciones nuevas.
