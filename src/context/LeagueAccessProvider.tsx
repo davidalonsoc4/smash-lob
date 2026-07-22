@@ -57,7 +57,15 @@ import {
 
 type ClaimResult =
   | { ok: true; membership: UserLeagueMembership }
-  | { ok: false; error: "already-in-league" | "player-already-claimed" };
+  | {
+      ok: false;
+      error:
+        | "already-in-league"
+        | "player-already-claimed"
+        | "profile-incomplete"
+        | "roster-full"
+        | "registration-closed";
+    };
 
 type LeagueAccessContextValue = {
   userId: string | null;
@@ -1292,7 +1300,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const unlinkLeaguePlayerAccount = useCallback(
     async (leagueId: string, playerId: string) => {
       try {
-        if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
+        if (
+          isSupabaseBackedId(leagueId) &&
+          isSupabaseBackedId(playerId)
+        ) {
           await unlinkSupabaseLeagueMembership({ leagueId, playerId });
         }
 
@@ -1496,21 +1507,27 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         return { ok: false, error: "already-in-league" };
       }
 
-      const playerAlreadyClaimed = memberships.some(
-        (membership) =>
-          membership.leagueId === leagueId && membership.playerId === playerId,
-      );
+      const isSelfRegistrationClaim = playerId === "__self_registration__";
+      const playerAlreadyClaimed =
+        !isSelfRegistrationClaim &&
+        memberships.some(
+          (membership) =>
+            membership.leagueId === leagueId && membership.playerId === playerId,
+        );
 
       if (playerAlreadyClaimed) {
         return { ok: false, error: "player-already-claimed" };
       }
 
-      if (isSupabaseBackedId(leagueId) && isSupabaseBackedId(playerId)) {
+      if (
+        isSupabaseBackedId(leagueId) &&
+        (isSupabaseBackedId(playerId) || isSelfRegistrationClaim)
+      ) {
         try {
           const result = await claimSupabasePlayer({
             code: inviteCode ?? getLeagueInviteCode(leagueId),
             leagueId,
-            playerId,
+            playerId: isSelfRegistrationClaim ? undefined : playerId,
           });
 
           if (result.ok) {

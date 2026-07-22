@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
+import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
@@ -40,6 +41,7 @@ import {
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import type { MvpSystem } from "@/lib/mvp";
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations";
+import type { RosterMode } from "@/data/fakeData";
 import { recordActivityEvent } from "@/lib/activity";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
@@ -2207,19 +2209,28 @@ function StartSeasonPanel({
   activeLeagueId,
   activeSeasonId,
   canStartBecauseRegistrationSettled,
+  canStartBecauseRosterComplete,
 }: {
   activeLeagueId: string;
   activeSeasonId: string;
   canStartBecauseRegistrationSettled: boolean;
+  canStartBecauseRosterComplete: boolean;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings();
+  const { replaceSeasonMatches } = useMatchData();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleStartSeason() {
     if (isSaving) {
+      return;
+    }
+
+    if (!canStartBecauseRosterComplete) {
+      setError(t.roster.startIncompleteError);
       return;
     }
 
@@ -2243,12 +2254,15 @@ function StartSeasonPanel({
 
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
-        const snapshot = await startSupabaseExistingSeason({
+        const result = await startSupabaseExistingSeason({
           leagueId: activeLeagueId,
           seasonId: activeSeasonId,
         });
 
-        hydrateSeasonSnapshot(snapshot);
+        hydrateSeasonSnapshot(result.snapshot);
+        if (result.matches.length > 0) {
+          replaceSeasonMatches(activeSeasonId, result.matches);
+        }
       } catch (supabaseError) {
         recordSupabaseError("start-existing-season", supabaseError);
         setError(
@@ -2289,13 +2303,17 @@ function StartSeasonPanel({
       <button
         type="button"
         onClick={handleStartSeason}
-        disabled={isSaving || !canStartBecauseRegistrationSettled}
+        disabled={isSaving || !canStartBecauseRegistrationSettled || !canStartBecauseRosterComplete}
         className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
       >
         {isSaving ? "Guardando..." : "Comenzar temporada"}
       </button>
 
-      {!canStartBecauseRegistrationSettled ? (
+      {!canStartBecauseRosterComplete ? (
+        <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
+          {t.roster.startIncompleteHint}
+        </p>
+      ) : !canStartBecauseRegistrationSettled ? (
         <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
           Hay inscripciones pendientes. La temporada no podrá comenzar hasta que se marquen como pagadas.
         </p>
@@ -2320,6 +2338,7 @@ function ReopenSeasonPanel({
   const router = useRouter();
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings();
+  const { replaceSeasonMatches } = useMatchData();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -2341,12 +2360,15 @@ function ReopenSeasonPanel({
 
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
-        const snapshot = await startSupabaseExistingSeason({
+        const result = await startSupabaseExistingSeason({
           leagueId: activeLeagueId,
           seasonId: activeSeasonId,
         });
 
-        hydrateSeasonSnapshot(snapshot);
+        hydrateSeasonSnapshot(result.snapshot);
+        if (result.matches.length > 0) {
+          replaceSeasonMatches(activeSeasonId, result.matches);
+        }
       } catch (supabaseError) {
         recordSupabaseError("reopen-finished-season", supabaseError);
         setError(
@@ -2606,6 +2628,7 @@ function NewSeasonForm({
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount }),
   );
   const [playerCount, setPlayerCount] = useState(defaultPlayerCount);
+  const [rosterMode, setRosterMode] = useState<RosterMode>("fixed");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
   );
@@ -2704,6 +2727,7 @@ function NewSeasonForm({
       : null;
   const manualCalendarMatches = getManualCalendarMatches(manualCalendar);
   const isManualCalendarReady =
+    rosterMode === "self_registration" ||
     calendarMode !== "manual" ||
     isManualCalendarComplete({
       manualCalendar,
@@ -2711,9 +2735,10 @@ function NewSeasonForm({
     });
   const hasValidPlayers =
     allowedPlayerCounts.includes(playerCount) &&
-    selectedPlayerIds.length <= playerCount &&
-    selectedPlayerIds.length + cleanNewPlayerNames.length === playerCount &&
-    cleanNewPlayerNames.every(Boolean);
+    (rosterMode === "self_registration" ||
+      (selectedPlayerIds.length <= playerCount &&
+        selectedPlayerIds.length + cleanNewPlayerNames.length === playerCount &&
+        cleanNewPlayerNames.every(Boolean)));
   const hasValidRegistrationFee =
     !hasRegistrationFee ||
     (Number.isFinite(parsedRegistrationFeeAmount) &&
@@ -2751,6 +2776,15 @@ function NewSeasonForm({
 
   function handlePlayerCountChange(nextCount: number) {
     setPlayerCount(nextCount);
+
+    if (rosterMode === "self_registration") {
+      setSelectedPlayerIds([]);
+      setNewPlayerNames([]);
+      setSelfPlayerValue(null);
+      setFeedback(null);
+      return;
+    }
+
     const nextSelectedPlayerIds = selectedPlayerIds.slice(0, nextCount);
 
     setSelectedPlayerIds(nextSelectedPlayerIds);
@@ -2831,8 +2865,8 @@ function NewSeasonForm({
     const settings = {
       leagueId: activeLeagueId,
       name: newSeasonName.trim(),
-      playerIds: selectedPlayerIds,
-      newPlayerNames: cleanNewPlayerNames,
+      playerIds: rosterMode === "self_registration" ? [] : selectedPlayerIds,
+      newPlayerNames: rosterMode === "self_registration" ? [] : cleanNewPlayerNames,
       roundWindowMode,
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
@@ -2851,6 +2885,9 @@ function NewSeasonForm({
       currentUserEmail: userId,
       currentUserDisplayName: session?.user?.name ?? null,
       currentUserAvatarUrl: session?.user?.image ?? null,
+      rosterMode,
+      playerCapacity: playerCount,
+      calendarMode: rosterMode === "self_registration" ? "balanced" : calendarMode,
     };
 
     setIsSaving(true);
@@ -2935,8 +2972,12 @@ function NewSeasonForm({
         description: `${playerCount} jugadores · ${totalSeasonRounds} jornadas.`,
         metadata: {
           playerCount,
-          existingPlayerIds: selectedPlayerIds,
-          newPlayerNames: cleanNewPlayerNames,
+          existingPlayerIds:
+            rosterMode === "self_registration" ? [] : selectedPlayerIds,
+          newPlayerNames:
+            rosterMode === "self_registration" ? [] : cleanNewPlayerNames,
+          rosterMode,
+          playerCapacity: playerCount,
           calendarMode,
           scheduleMode,
           totalRounds: totalSeasonRounds,
@@ -3002,6 +3043,66 @@ function NewSeasonForm({
 
           <div>
             <p className="text-sm font-semibold text-neutral-700">
+              {t.adminSeason.rosterModeTitle}
+            </p>
+            <div className="mt-2 grid gap-2">
+              {(["fixed", "self_registration"] as RosterMode[]).map((mode) => {
+                const selected = rosterMode === mode;
+
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => {
+                      setRosterMode(mode);
+                      if (mode === "self_registration") {
+                        setCalendarMode("balanced");
+                        setSelectedPlayerIds([]);
+                        setNewPlayerNames([]);
+                        setSelfPlayerValue(null);
+                      } else {
+                        const nextIds = currentPlayers
+                          .map((player) => player.id)
+                          .slice(0, playerCount);
+                        setSelectedPlayerIds(nextIds);
+                        setNewPlayerNames(
+                          resizePlayerNames([], Math.max(playerCount - nextIds.length, 0)),
+                        );
+                        refreshManualCalendarFromPlayers({
+                          selectedIds: nextIds,
+                          count: playerCount,
+                        });
+                      }
+                      setFeedback(null);
+                    }}
+                    className={`rounded-2xl border px-3 py-3 text-left ${
+                      selected
+                        ? "border-neutral-950 bg-neutral-950 text-white"
+                        : "border-neutral-200 bg-white text-neutral-900"
+                    }`}
+                  >
+                    <span className="block text-sm font-black">
+                      {mode === "fixed"
+                        ? t.adminSeason.rosterModeFixedTitle
+                        : t.adminSeason.rosterModeSelfTitle}
+                    </span>
+                    <span
+                      className={`mt-1 block text-xs font-semibold leading-5 ${
+                        selected ? "text-neutral-300" : "text-neutral-500"
+                      }`}
+                    >
+                      {mode === "fixed"
+                        ? t.adminSeason.rosterModeFixedDescription
+                        : t.adminSeason.rosterModeSelfDescription}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-neutral-700">
               {t.adminSeason.playerCount}
             </p>
             <div className="mt-2 grid grid-cols-3 gap-2">
@@ -3024,6 +3125,7 @@ function NewSeasonForm({
         </div>
       </AppCard>
 
+      {rosterMode === "fixed" ? (
       <AppCard>
         <p className="font-bold">{t.adminSeason.seasonPlayersTitle}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -3157,6 +3259,22 @@ function NewSeasonForm({
           </div>
         ) : null}
       </AppCard>
+      ) : (
+        <AppCard className="border-emerald-200 bg-emerald-50">
+          <p className="font-bold text-emerald-950">
+            {t.adminSeason.selfRegistrationWaitingTitle}
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-emerald-800">
+            {t.adminSeason.selfRegistrationWaitingDescription.replace(
+              "{count}",
+              String(playerCount),
+            )}
+          </p>
+          <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2.5 text-xs font-semibold text-emerald-900">
+            {t.adminSeason.selfRegistrationCreatorNotice}
+          </div>
+        </AppCard>
+      )}
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.calendarTitle}</p>
@@ -3231,6 +3349,7 @@ function NewSeasonForm({
           </div>
         </div>
 
+        {rosterMode === "fixed" ? (
         <label className="mt-4 block rounded-2xl bg-neutral-100 p-3">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
             {t.adminSeason.calendarModeLabel}
@@ -3252,8 +3371,16 @@ function NewSeasonForm({
               : t.adminSeason.manualCalendarDescription}
           </p>
         </label>
+        ) : (
+          <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
+            <p className="text-sm font-black">{t.adminSeason.balancedCalendar}</p>
+            <p className="mt-1 text-xs font-semibold text-neutral-500">
+              {t.adminSeason.selfRegistrationCalendarDescription}
+            </p>
+          </div>
+        )}
 
-        {calendarMode === "manual" ? (
+        {rosterMode === "fixed" && calendarMode === "manual" ? (
           <div className="mt-4 space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
@@ -3944,11 +4071,25 @@ export default function AdminSeasonPage() {
         </>
       ) : isUpcomingSeason ? (
         <>
+          {roundSettings.rosterMode === "self_registration" ? (
+            <div id="plantilla-temporada" className="settings-search-target">
+              <SeasonRosterWaitingRoom
+                leagueId={activeLeague.id}
+                seasonId={activeSeason.id}
+              />
+            </div>
+          ) : null}
+
           <div id="inicio-temporada" className="settings-search-target">
             <StartSeasonPanel
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
               canStartBecauseRegistrationSettled={isRegistrationSettled}
+              canStartBecauseRosterComplete={
+                roundSettings.rosterMode !== "self_registration" ||
+                (Boolean(roundSettings.playerCapacity) &&
+                  players.length === roundSettings.playerCapacity)
+              }
             />
           </div>
 

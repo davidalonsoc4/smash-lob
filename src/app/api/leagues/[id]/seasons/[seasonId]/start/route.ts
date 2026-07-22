@@ -27,10 +27,12 @@ export async function POST(
   }
 
   try {
-    const snapshot = await startServerExistingSeason({
+    const result = await startServerExistingSeason({
       supabase: access.actor.supabase,
       leagueId,
       seasonId,
+      actorUserId: access.actor.user.id,
+      actorIsSuperuser: access.actor.user.isSuperuser,
     })
 
     await recordServerActorActivity({
@@ -50,7 +52,7 @@ export async function POST(
           : "La temporada ha pasado de proximamente a activa.",
     }).catch(() => null)
 
-    return NextResponse.json({ snapshot })
+    return NextResponse.json(result)
   } catch (error) {
     if (isSeasonMutationError(error)) {
       return NextResponse.json({ error: error.code }, { status: error.status })

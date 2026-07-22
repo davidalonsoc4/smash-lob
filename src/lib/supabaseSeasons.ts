@@ -7,7 +7,7 @@ import type {
   SeasonRoundSettings,
   SeasonSnapshot,
 } from "@/context/SeasonSettingsProvider";
-import type { UserLeagueMembership } from "@/data/fakeData";
+import type { RosterMode, UserLeagueMembership } from "@/data/fakeData";
 import type { MatchData } from "@/context/MatchDataProvider";
 
 async function readSeasonApiPayload<T>(
@@ -87,8 +87,11 @@ export async function startSupabaseExistingSeason({
 }: {
   leagueId: string;
   seasonId: string;
-}): Promise<SeasonSnapshot> {
-  const payload = await readSeasonApiPayload<{ snapshot?: SeasonSnapshot }>(
+}): Promise<{ snapshot: SeasonSnapshot; matches: MatchData[] }> {
+  const payload = await readSeasonApiPayload<{
+    snapshot?: SeasonSnapshot;
+    matches?: MatchData[];
+  }>(
     await fetch(
       `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/start`,
       {
@@ -103,7 +106,10 @@ export async function startSupabaseExistingSeason({
     throw new Error("season-start-api-empty");
   }
 
-  return payload.snapshot;
+  return {
+    snapshot: payload.snapshot,
+    matches: payload.matches ?? [],
+  };
 }
 
 export async function deleteSupabaseSeason({
@@ -227,6 +233,9 @@ export async function startSupabaseSeason({
   registrationFeeAmount = 0,
   registrationFeePurpose = "",
   selfPlayerValue,
+  rosterMode = "fixed",
+  playerCapacity,
+  calendarMode = "balanced",
 }: {
   leagueId: string;
   activeSeasonId: string | null;
@@ -245,6 +254,9 @@ export async function startSupabaseSeason({
   registrationFeeAmount?: number;
   registrationFeePurpose?: string;
   selfPlayerValue?: string | null;
+  rosterMode?: RosterMode;
+  playerCapacity: number;
+  calendarMode?: "balanced" | "manual";
 }): Promise<{
   matches: MatchData[];
   seasonSnapshot: SeasonSnapshot;
@@ -275,6 +287,9 @@ export async function startSupabaseSeason({
         registrationFeeAmount,
         registrationFeePurpose,
         selfPlayerValue,
+        rosterMode,
+        playerCapacity,
+        calendarMode,
       }),
       cache: "no-store",
     }),

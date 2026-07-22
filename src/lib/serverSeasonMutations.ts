@@ -26,6 +26,7 @@ import type {
   Season,
   SeasonPlayer,
   UserLeagueMembership,
+  RosterMode,
 } from "@/data/fakeData"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
 import type { ServerSeason } from "@/lib/serverSeasonAccess"
@@ -67,6 +68,9 @@ type CreateServerSeasonInput = {
   registrationFeeAmount: number
   registrationFeePurpose: string
   selfPlayerValue: string | null
+  rosterMode: RosterMode
+  playerCapacity: number
+  calendarMode: "balanced" | "manual"
 }
 
 function initials(name: string) {
@@ -240,6 +244,19 @@ async function getSeasonPlayerIds({
     .filter((playerId): playerId is string => typeof playerId === "string")
 }
 
+type EditableSeasonRoundSettings = Pick<
+  SeasonRoundSettings,
+  | "roundWindowMode"
+  | "seasonStartsAt"
+  | "roundWindowDays"
+  | "requiresThreeSets"
+  | "mvpSystem"
+  | "resultConfirmationMode"
+  | "manualActiveRound"
+  | "manualCompletedRounds"
+  | "registrationFee"
+>
+
 export async function updateServerSeasonRoundSettings({
   supabase,
   leagueId,
@@ -249,7 +266,7 @@ export async function updateServerSeasonRoundSettings({
   supabase: SupabaseClient
   leagueId: string
   seasonId: string
-  settings: SeasonRoundSettings
+  settings: EditableSeasonRoundSettings
 }) {
   const seasonPlayerIds = await getSeasonPlayerIds({
     supabase,
@@ -343,11 +360,165 @@ export async function startServerExistingSeason({
   supabase,
   leagueId,
   seasonId,
+  actorUserId,
+  actorIsSuperuser,
 }: {
   supabase: SupabaseClient
   leagueId: string
   seasonId: string
-}): Promise<SeasonSnapshot> {
+  actorUserId: string
+  actorIsSuperuser: boolean
+}): Promise<{ snapshot: SeasonSnapshot; matches: MatchData[] }> {
+  const { data: settingsRow, error: settingsLookupError } = await supabase
+    .from("season_settings")
+    .select(
+      "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode",
+    )
+    .eq("season_id", seasonId)
+    .eq("league_id", leagueId)
+    .maybeSingle()
+
+  if (settingsLookupError) {
+    throw new SeasonMutationError(500, "season_settings_lookup_failed")
+  }
+
+  if (settingsRow?.roster_mode === "self_registration") {
+    const { data: seasonPlayerRows, error: seasonPlayersError } = await supabase
+      .from("season_players")
+      .select("player_id,status")
+      .eq("season_id", seasonId)
+      .eq("status", "active")
+
+    if (seasonPlayersError) {
+      throw new SeasonMutationError(500, "season_players_lookup_failed")
+    }
+
+    const playerIds = (seasonPlayerRows ?? [])
+      .map((item) => item.player_id)
+      .filter((playerId): playerId is string => typeof playerId === "string")
+    const capacity = Number(settingsRow.player_capacity ?? 0)
+
+    if (!capacity || playerIds.length !== capacity) {
+      throw new SeasonMutationError(409, "roster_incomplete")
+    }
+
+    const scheduleMode: SeasonScheduleMode =
+      settingsRow.schedule_mode === "double" ||
+      settingsRow.schedule_mode === "extended"
+        ? settingsRow.schedule_mode
+        : "single"
+    const generatedMatches = generateBalancedCalendar({
+      leagueId,
+      seasonId,
+      playerIds,
+      scheduleMode,
+    })
+    const { error: startError } = await supabase.rpc(
+      "server_start_self_registration_season",
+      {
+        p_actor_user_id: actorUserId,
+        p_actor_is_superuser: actorIsSuperuser,
+        p_league_id: leagueId,
+        p_season_id: seasonId,
+        p_matches: generatedMatches.map((match) => ({
+          round: match.round,
+          teamA: match.teamA,
+          teamB: match.teamB,
+        })),
+      },
+    )
+
+    if (startError) {
+      const message = startError.message ?? "season_start_failed"
+      if (message.includes("roster_incomplete")) {
+        throw new SeasonMutationError(409, "roster_incomplete")
+      }
+      if (message.includes("registration_unsettled")) {
+        throw new SeasonMutationError(409, "registration_unsettled")
+      }
+      if (message.includes("forbidden")) {
+        throw new SeasonMutationError(403, "forbidden")
+      }
+      if (message.includes("already_exist")) {
+        throw new SeasonMutationError(409, "season_matches_already_exist")
+      }
+      throw new SeasonMutationError(500, "season_start_failed", message)
+    }
+
+    const [{ data: season, error: seasonError }, { data: matches, error: matchesError }] =
+      await Promise.all([
+        supabase
+          .from("seasons")
+          .select("id,league_id,name,status,total_rounds,completed_rounds")
+          .eq("id", seasonId)
+          .eq("league_id", leagueId)
+          .single(),
+        supabase
+          .from("matches")
+          .select(matchSelect)
+          .eq("season_id", seasonId)
+          .order("round", { ascending: true }),
+      ])
+
+    if (seasonError || matchesError) {
+      throw new SeasonMutationError(500, "season_start_snapshot_failed")
+    }
+
+    const registrationFee = normalizeSeasonRegistrationFee(
+      settingsRow.registration_fee,
+    )
+    const seasonSettings: SeasonRoundSettings = {
+      leagueId,
+      seasonId,
+      roundWindowMode:
+        settingsRow.round_window_mode === "fixed-days" ? "fixed-days" : "none",
+      seasonStartsAt: settingsRow.season_starts_at,
+      roundWindowDays: settingsRow.round_window_days,
+      requiresThreeSets: Boolean(settingsRow.requires_three_sets),
+      mvpSystem:
+        settingsRow.mvp_system === "none" || settingsRow.mvp_system === "voting"
+          ? settingsRow.mvp_system
+          : "automatic",
+      resultConfirmationMode:
+        settingsRow.result_confirmation_mode === "required" ||
+        settingsRow.result_confirmation_mode === "none"
+          ? settingsRow.result_confirmation_mode
+          : "optional",
+      manualActiveRound:
+        typeof settingsRow.manual_active_round === "number"
+          ? settingsRow.manual_active_round
+          : null,
+      manualCompletedRounds: Array.isArray(settingsRow.manual_completed_rounds)
+        ? settingsRow.manual_completed_rounds.filter(
+            (round): round is number => typeof round === "number",
+          )
+        : [],
+      registrationFee,
+      rosterMode: "self_registration",
+      playerCapacity: capacity,
+      registrationOpen: false,
+      rosterCompletedAt:
+        typeof settingsRow.roster_completed_at === "string"
+          ? settingsRow.roster_completed_at
+          : new Date().toISOString(),
+      scheduleMode,
+      calendarMode: "balanced",
+    }
+
+    return {
+      snapshot: {
+        seasons: [mapSeason(season)],
+        playerProfiles: [],
+        seasonPlayers: [],
+        seasonSettings: [seasonSettings],
+        activeSeasonIds: { [leagueId]: seasonId },
+      },
+      matches: (matches ?? []).map((match) =>
+        mapSupabaseMatch(match as Record<string, unknown>),
+      ),
+    }
+  }
+
   const { error: finishOtherActiveError } = await supabase
     .from("seasons")
     .update({ status: "finished" })
@@ -381,13 +552,14 @@ export async function startServerExistingSeason({
   }
 
   return {
-    seasons: [mapSeason(season)],
-    playerProfiles: [],
-    seasonPlayers: [],
-    seasonSettings: [],
-    activeSeasonIds: {
-      [leagueId]: seasonId,
+    snapshot: {
+      seasons: [mapSeason(season)],
+      playerProfiles: [],
+      seasonPlayers: [],
+      seasonSettings: [],
+      activeSeasonIds: { [leagueId]: seasonId },
     },
+    matches: [],
   }
 }
 
@@ -667,16 +839,41 @@ export async function createServerSeason({
     registrationFeeAmount,
     registrationFeePurpose,
     selfPlayerValue,
+    rosterMode,
+    playerCapacity,
+    calendarMode,
   } = input
   const { supabase, user, membership } = actor
-  const uniquePlayerIds = await assertLeaguePlayerIds({
-    supabase,
-    leagueId,
-    playerIds,
-  })
-  const cleanNewPlayerNames = newPlayerNames
-    .map((playerName) => playerName.trim())
-    .filter(Boolean)
+  const isSelfRegistration = rosterMode === "self_registration"
+  const selfRegistrationProfileName = isSelfRegistration
+    ? [user.firstName, user.lastName]
+        .filter((value): value is string => Boolean(value?.trim()))
+        .join(" ")
+        .trim()
+    : ""
+
+  if (
+    isSelfRegistration &&
+    (!user.profileCompletedAt ||
+      !user.firstName?.trim() ||
+      !user.lastName?.trim() ||
+      !selfRegistrationProfileName)
+  ) {
+    throw new SeasonMutationError(409, "profile_incomplete")
+  }
+
+  const uniquePlayerIds = isSelfRegistration
+    ? []
+    : await assertLeaguePlayerIds({
+        supabase,
+        leagueId,
+        playerIds,
+      })
+  const cleanNewPlayerNames = isSelfRegistration
+    ? []
+    : newPlayerNames
+        .map((playerName) => playerName.trim())
+        .filter(Boolean)
   const selectedNewPlayerIndex = selfPlayerValue
     ? getNewPlayerIndexFromToken(selfPlayerValue)
     : null
@@ -700,7 +897,9 @@ export async function createServerSeason({
     }
   }
 
-  const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length
+  const totalPlayers = isSelfRegistration
+    ? playerCapacity
+    : uniquePlayerIds.length + cleanNewPlayerNames.length
   const { data: finishedSeason, error: finishError } = shouldFinishCurrentSeason
     ? await supabase
         .from("seasons")
@@ -754,15 +953,88 @@ export async function createServerSeason({
     throw new SeasonMutationError(500, "season_players_create_failed")
   }
 
-  const finalPlayerIds = [
-    ...uniquePlayerIds,
-    ...(newPlayers ?? []).map((player) => player.id),
-  ]
-  const selectedSelfPlayerId = !user.isSuperuser && selfPlayerValue
-    ? selectedNewPlayerIndex === null
-      ? selfPlayerValue
-      : ((newPlayers ?? [])[selectedNewPlayerIndex]?.id ?? null)
-    : null
+  let selfRegistrationPlayer: {
+    id: string
+    league_id: string
+    slug: string
+    display_name: string
+    avatar_initials: string
+    avatar_url?: string | null
+  } | null = null
+
+  if (isSelfRegistration) {
+    const profileName = selfRegistrationProfileName
+
+    if (membership?.playerId) {
+      const { data: existingPlayer, error: existingPlayerError } = await supabase
+        .from("players")
+        .update({
+          display_name: profileName,
+          avatar_initials: initials(profileName),
+          avatar_url: user.avatarUrl ?? null,
+        })
+        .eq("id", membership.playerId)
+        .eq("league_id", leagueId)
+        .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+        .single()
+
+      if (existingPlayerError) {
+        throw new SeasonMutationError(500, "season_creator_player_update_failed")
+      }
+
+      selfRegistrationPlayer = existingPlayer
+    } else {
+      const { data: createdPlayer, error: createdPlayerError } = await supabase
+        .from("players")
+        .insert({
+          league_id: leagueId,
+          slug: `${slug(profileName)}-${Date.now()}`,
+          display_name: profileName,
+          avatar_initials: initials(profileName),
+          avatar_url: user.avatarUrl ?? null,
+        })
+        .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+        .single()
+
+      if (createdPlayerError) {
+        throw new SeasonMutationError(500, "season_creator_player_create_failed")
+      }
+
+      const { error: creatorMembershipError } = await supabase
+        .from("league_memberships")
+        .upsert(
+          {
+            user_id: user.id,
+            league_id: leagueId,
+            player_id: createdPlayer.id,
+            role: membership?.role ?? "creator",
+          },
+          { onConflict: "user_id,league_id" },
+        )
+
+      if (creatorMembershipError) {
+        throw new SeasonMutationError(500, "season_creator_membership_update_failed")
+      }
+
+      selfRegistrationPlayer = createdPlayer
+    }
+  }
+
+  const finalPlayerIds = isSelfRegistration
+    ? selfRegistrationPlayer
+      ? [selfRegistrationPlayer.id]
+      : []
+    : [
+        ...uniquePlayerIds,
+        ...(newPlayers ?? []).map((player) => player.id),
+      ]
+  const selectedSelfPlayerId = isSelfRegistration
+    ? selfRegistrationPlayer?.id ?? null
+    : !user.isSuperuser && selfPlayerValue
+      ? selectedNewPlayerIndex === null
+        ? selfPlayerValue
+        : ((newPlayers ?? [])[selectedNewPlayerIndex]?.id ?? null)
+      : null
   const linkedMembershipRole: UserLeagueMembership["role"] =
     membership?.role ?? "creator"
 
@@ -778,7 +1050,7 @@ export async function createServerSeason({
     throw new SeasonMutationError(400, "invalid_self_player")
   }
 
-  if (selectedSelfPlayerId && !user.isSuperuser) {
+  if (selectedSelfPlayerId) {
     if (user.avatarUrl) {
       const { error: avatarError } = await supabase
         .from("players")
@@ -858,14 +1130,15 @@ export async function createServerSeason({
     }
   }
 
-  const resolvedManualMatches = manualMatches
+  const resolvedManualMatches = !isSelfRegistration && manualMatches
     ? resolveManualCalendarDraft({
         matches: manualMatches,
         newPlayerIds: (newPlayers ?? []).map((player) => player.id),
       })
     : []
-  const seasonMatches =
-    resolvedManualMatches.length > 0
+  const seasonMatches = isSelfRegistration
+    ? []
+    : resolvedManualMatches.length > 0
       ? generateManualCalendar({
           leagueId,
           seasonId: season.id,
@@ -932,6 +1205,18 @@ export async function createServerSeason({
       manual_active_round: null,
       manual_completed_rounds: [],
       registration_fee: registrationFee,
+      roster_mode: rosterMode,
+      player_capacity: playerCapacity,
+      registration_open:
+        isSelfRegistration && finalPlayerIds.length < playerCapacity,
+      roster_completed_at:
+        isSelfRegistration && finalPlayerIds.length >= playerCapacity
+          ? new Date().toISOString()
+          : rosterMode === "fixed"
+            ? new Date().toISOString()
+            : null,
+      schedule_mode: scheduleMode,
+      calendar_mode: calendarMode,
     })
 
   if (settingsError) {
@@ -951,7 +1236,10 @@ export async function createServerSeason({
     ...(finishedSeason ? [mapSeason(finishedSeason)] : []),
     mapSeason(season),
   ]
-  const playerProfiles = (newPlayers ?? []).map(mapPlayer)
+  const playerProfiles = [
+    ...(newPlayers ?? []).map(mapPlayer),
+    ...(selfRegistrationPlayer ? [mapPlayer(selfRegistrationPlayer)] : []),
+  ]
   const seasonPlayers: SeasonPlayer[] = finalPlayerIds.map((playerId) => ({
     seasonId: season.id,
     playerId,
@@ -969,10 +1257,22 @@ export async function createServerSeason({
       manualActiveRound: null,
       manualCompletedRounds: [],
       registrationFee,
+      rosterMode,
+      playerCapacity,
+      registrationOpen:
+        isSelfRegistration && finalPlayerIds.length < playerCapacity,
+      rosterCompletedAt:
+        isSelfRegistration && finalPlayerIds.length >= playerCapacity
+          ? new Date().toISOString()
+          : rosterMode === "fixed"
+            ? new Date().toISOString()
+            : null,
+      scheduleMode,
+      calendarMode,
     },
   ]
   const linkedMembership: UserLeagueMembership | null =
-    user.isSuperuser || !selectedSelfPlayerId
+    !selectedSelfPlayerId
       ? null
       : {
           userId: user.email,

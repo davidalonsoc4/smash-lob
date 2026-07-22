@@ -3,6 +3,8 @@ import { AuthGate } from "@/components/auth/AuthGate"
 import { LeagueEntryGate } from "@/components/auth/LeagueEntryGate"
 import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
 import { AuthSessionProvider } from "@/context/AuthSessionProvider"
+import { AccountProfileProvider } from "@/context/AccountProfileProvider"
+import { ProfileCompletionGate } from "@/components/auth/ProfileCompletionGate"
 import { CurrentUserProvider } from "@/context/CurrentUserProvider"
 import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
@@ -65,7 +67,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href={branding.appleTouchIcon} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'light';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})();`,
           }}
         />
       </head>
@@ -74,6 +76,8 @@ export default function RootLayout({
         <I18nProvider>
           <AuthSessionProvider>
             <AuthGate>
+              <AccountProfileProvider>
+                <ProfileCompletionGate>
               <SeasonSettingsProvider>
                 <MatchDataProvider>
                   <LeagueAccessProvider>
@@ -90,6 +94,8 @@ export default function RootLayout({
                   </LeagueAccessProvider>
                 </MatchDataProvider>
               </SeasonSettingsProvider>
+                </ProfileCompletionGate>
+              </AccountProfileProvider>
             </AuthGate>
           </AuthSessionProvider>
         </I18nProvider>

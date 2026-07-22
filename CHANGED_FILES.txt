@@ -1,25 +1,21 @@
-Smash & Lob v0.10.14 · Transiciones de liga y temporada robustas
+Smash & Lob v0.11.7 · Actualización suave desde HOME
+
+Cambios principales:
+- Pulsar HOME estando ya en HOME deja de recargar por completo la aplicación.
+- El segundo toque en HOME desplaza suavemente la pantalla al inicio.
+- Cada toque en HOME actualiza en segundo plano el acceso, ligas, temporadas, jugadores, partidos y datos relacionados.
+- Al volver a la aplicación tras tener datos sin actualizar durante al menos 30 segundos, se ejecuta la misma actualización suave.
+- Se evitan recargas paralelas si el usuario pulsa HOME repetidamente.
+- La pantalla “Preparando tu perfil” no se modifica: seguirá apareciendo únicamente en la carga inicial real, no durante la actualización suave.
+
+Base de datos:
+- Sin cambios SQL.
+- Sin migraciones.
+- No ejecutar db push.
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/context/ActiveLeagueProvider.tsx
-- src/context/LeagueAccessProvider.tsx
-- src/components/invite/InviteFlow.tsx
-- src/app/admin/season/page.tsx
-
-Cambios:
-- Al crear correctamente una temporada, la aplicación navega directamente a la HOME de la liga activa.
-- La membresía obtenida al reclamar un jugador se normaliza y se aplica inmediatamente al estado local.
-- Tras unirse a una liga se solicita en segundo plano una recarga del acceso completo desde Supabase.
-- La transición acepta como válido el acceso recién concedido por una operación confirmada por servidor, evitando esperar indefinidamente a una instantánea cliente desfasada.
-- Si la transición no termina, se intenta primero router.refresh() y después una navegación completa automática a la ruta de destino.
-- Durante esos reintentos se mantiene la pantalla «Entrando en la liga», sin mostrar la HOME de la liga anterior.
-- Versión visible actualizada a v0.10.14.
-
-Base de datos:
-- Sin migraciones nuevas.
-- Sin SQL manual.
-- No ejecutar db push para este parche.
+- src/components/layout/BottomNav.tsx

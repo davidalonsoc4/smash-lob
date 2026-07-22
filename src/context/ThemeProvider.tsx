@@ -13,11 +13,11 @@ const STORAGE_KEY = "smash-lob-theme"
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function readStoredPreference(): ThemePreference {
-  if (typeof window === "undefined") return "system"
+  if (typeof window === "undefined") return "light"
   const stored = window.localStorage.getItem(STORAGE_KEY)
   return stored === "light" || stored === "dark" || stored === "system"
     ? stored
-    : "system"
+    : "light"
 }
 
 function applyTheme(preference: ThemePreference) {

@@ -164,8 +164,6 @@ export async function PUT(
       leagueId,
       seasonId,
       settings: {
-        leagueId,
-        seasonId,
         roundWindowMode,
         seasonStartsAt,
         roundWindowDays,

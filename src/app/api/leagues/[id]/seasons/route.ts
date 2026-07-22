@@ -8,6 +8,7 @@ import {
 } from "@/lib/serverSeasonMutations"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
+import type { RosterMode } from "@/data/fakeData"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -29,6 +30,9 @@ type CreateSeasonBody = {
   registrationFeeAmount?: unknown
   registrationFeePurpose?: unknown
   selfPlayerValue?: unknown
+  rosterMode?: unknown
+  playerCapacity?: unknown
+  calendarMode?: unknown
 }
 
 const allowedPlayerCounts = new Set([8, 12, 16])
@@ -70,6 +74,15 @@ function parseNewPlayerNames(value: unknown) {
 
 function parseRoundWindowMode(value: unknown): RoundWindowMode | null {
   return value === "none" || value === "fixed-days" ? value : null
+}
+
+
+function parseRosterMode(value: unknown): RosterMode | null {
+  return value === "fixed" || value === "self_registration" ? value : null
+}
+
+function parseCalendarMode(value: unknown): "balanced" | "manual" | null {
+  return value === "balanced" || value === "manual" ? value : null
 }
 
 function parseScheduleMode(value: unknown): SeasonScheduleMode | null {
@@ -227,6 +240,9 @@ export async function POST(
   const newPlayerNames = parseNewPlayerNames(body?.newPlayerNames)
   const roundWindowMode = parseRoundWindowMode(body?.roundWindowMode)
   const scheduleMode = parseScheduleMode(body?.scheduleMode) ?? "single"
+  const rosterMode = parseRosterMode(body?.rosterMode) ?? "fixed"
+  const calendarMode = parseCalendarMode(body?.calendarMode) ?? "balanced"
+  const playerCapacity = Number(body?.playerCapacity)
   const mvpSystem = parseMvpSystem(body?.mvpSystem)
   const resultConfirmationMode = parseResultConfirmationMode(
     body?.resultConfirmationMode
@@ -264,7 +280,9 @@ export async function POST(
     !mvpSystem ||
     !resultConfirmationMode ||
     activeSeasonId === undefined ||
-    requiresThreeSets === null
+    requiresThreeSets === null ||
+    !allowedPlayerCounts.has(playerCapacity) ||
+    (rosterMode === "self_registration" && calendarMode !== "balanced")
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
@@ -283,9 +301,16 @@ export async function POST(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
-  const totalPlayers = playerIds.length + newPlayerNames.length
+  const totalPlayers =
+    rosterMode === "self_registration"
+      ? playerCapacity
+      : playerIds.length + newPlayerNames.length
 
-  if (!allowedPlayerCounts.has(totalPlayers)) {
+  if (
+    !allowedPlayerCounts.has(totalPlayers) ||
+    (rosterMode === "self_registration" &&
+      (playerIds.length > 0 || newPlayerNames.length > 0))
+  ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
@@ -330,6 +355,9 @@ export async function POST(
         registrationFeeAmount,
         registrationFeePurpose,
         selfPlayerValue,
+        rosterMode,
+        playerCapacity,
+        calendarMode,
       },
     })
 
@@ -360,6 +388,9 @@ export async function POST(
         registrationFeePurpose: registrationFeeEnabled
           ? registrationFeePurpose
           : "",
+        rosterMode,
+        playerCapacity,
+        calendarMode,
       },
     }).catch(() => null)
 

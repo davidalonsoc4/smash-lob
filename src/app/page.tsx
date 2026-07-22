@@ -9,6 +9,7 @@ import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
+import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -18,7 +19,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useMvp } from "@/context/MvpProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
-import type { MatchData } from "@/context/MatchDataProvider";
+import { useMatchData, type MatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   getMatchMvpSelection,
@@ -478,6 +479,7 @@ export default function Home() {
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings } =
     useSeasonSettings();
+  const { replaceSeasonMatches } = useMatchData();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
   const [isSendingRegistrationReminder, setIsSendingRegistrationReminder] = useState(false);
@@ -643,6 +645,13 @@ export default function Home() {
     playerIds: seasonRankingPlayers.map((player) => player.id),
     settledPlayerIds: automaticallySettledRegistrationPlayerIds,
   });
+  const isSelfRegistrationSeason =
+    roundSettings.rosterMode === "self_registration";
+  const isRosterComplete =
+    !isSelfRegistrationSeason ||
+    (Boolean(roundSettings.playerCapacity) &&
+      seasonRankingPlayers.length === roundSettings.playerCapacity);
+  const canStartUpcomingSeason = isRegistrationSettled && isRosterComplete;
 
   async function handleToggleRegistrationPayment(
     playerId: string,
@@ -765,6 +774,11 @@ export default function Home() {
       return;
     }
 
+    if (!isRosterComplete) {
+      setStartSeasonError(t.roster.startIncompleteError);
+      return;
+    }
+
     if (!isRegistrationSettled) {
       setStartSeasonError(
         "No se puede comenzar la temporada hasta que todas las inscripciones estén saldadas.",
@@ -785,12 +799,15 @@ export default function Home() {
 
     if (isSupabaseBackedId(activeSeason.id)) {
       try {
-        const snapshot = await startSupabaseExistingSeason({
+        const result = await startSupabaseExistingSeason({
           leagueId: activeLeague.id,
           seasonId: activeSeason.id,
         });
 
-        hydrateSeasonSnapshot(snapshot);
+        hydrateSeasonSnapshot(result.snapshot);
+        if (result.matches.length > 0) {
+          replaceSeasonMatches(activeSeason.id, result.matches);
+        }
       } catch (supabaseError) {
         const details =
           typeof supabaseError === "object" && supabaseError !== null
@@ -877,18 +894,31 @@ export default function Home() {
             registrar resultados.
           </p>
 
+          {isSelfRegistrationSeason ? (
+            <div className="mt-4">
+              <SeasonRosterWaitingRoom
+                leagueId={activeLeague.id}
+                seasonId={activeSeason.id}
+              />
+            </div>
+          ) : null}
+
           {canManageSeason ? (
             <>
               <button
                 type="button"
                 onClick={handleStartUpcomingSeason}
-                disabled={isStartingSeason || !isRegistrationSettled}
+                disabled={isStartingSeason || !canStartUpcomingSeason}
                 className="mt-3 block w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300"
               >
                 {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
               </button>
 
-              {!isRegistrationSettled ? (
+              {!isRosterComplete ? (
+                <p className="mt-3 text-center text-xs font-semibold text-amber-700">
+                  {t.roster.startIncompleteHint}
+                </p>
+              ) : !isRegistrationSettled ? (
                 <p className="mt-3 text-center text-xs font-semibold text-amber-700">
                   La temporada no puede comenzar hasta saldar todas las inscripciones.
                 </p>
