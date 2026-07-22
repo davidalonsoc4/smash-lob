@@ -18,6 +18,7 @@ type UpdateLeagueBody = {
   locations?: unknown
   statusColorsEnabled?: unknown
   showRankingAvatars?: unknown
+  showHistoricalProfileStats?: unknown
 }
 
 function cleanString(value: unknown) {
@@ -66,6 +67,10 @@ export async function PATCH(
   const showRankingAvatars =
     body && "showRankingAvatars" in body
       ? body.showRankingAvatars
+      : undefined
+  const showHistoricalProfileStats =
+    body && "showHistoricalProfileStats" in body
+      ? body.showHistoricalProfileStats
       : undefined
 
   if (hasName) {
@@ -125,6 +130,17 @@ export async function PATCH(
     updatePayload.show_ranking_avatars = showRankingAvatars
   }
 
+  if (showHistoricalProfileStats !== undefined) {
+    if (typeof showHistoricalProfileStats !== "boolean") {
+      return NextResponse.json(
+        { error: "invalid_show_historical_profile_stats" },
+        { status: 400 }
+      )
+    }
+
+    updatePayload.show_historical_profile_stats = showHistoricalProfileStats
+  }
+
   if (Object.keys(updatePayload).length === 0) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
@@ -151,7 +167,7 @@ export async function PATCH(
       .update(updatePayload)
       .eq("id", leagueId)
       .select(
-        "id,name,description,logo_url,locations,status_colors_enabled,show_ranking_avatars,active_season_id"
+        "id,name,description,logo_url,locations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,active_season_id"
       )
       .single()
 
@@ -230,6 +246,7 @@ export async function PATCH(
       locations: normalizeLeagueLocations(data.locations),
       statusColorsEnabled: data.status_colors_enabled !== false,
       showRankingAvatars: data.show_ranking_avatars !== false,
+      showHistoricalProfileStats: data.show_historical_profile_stats === true,
     })
   } catch {
     return NextResponse.json({ error: "league_update_failed" }, { status: 500 })

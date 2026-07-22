@@ -8,6 +8,7 @@ type LeagueAdminUpdateResult = {
   locations: LeagueLocation[]
   statusColorsEnabled: boolean
   showRankingAvatars: boolean
+  showHistoricalProfileStats: boolean
 }
 
 async function patchLeague(
@@ -121,6 +122,24 @@ export async function updateSupabaseLeagueShowRankingAvatars({
   return {
     leagueId: data.leagueId,
     showRankingAvatars: data.showRankingAvatars,
+  }
+}
+
+
+export async function updateSupabaseLeagueShowHistoricalProfileStats({
+  leagueId,
+  enabled,
+}: {
+  leagueId: string
+  enabled: boolean
+}) {
+  const data = await patchLeague(leagueId, {
+    showHistoricalProfileStats: enabled,
+  })
+
+  return {
+    leagueId: data.leagueId,
+    showHistoricalProfileStats: data.showHistoricalProfileStats,
   }
 }
 

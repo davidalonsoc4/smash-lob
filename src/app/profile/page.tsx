@@ -19,6 +19,10 @@ import {
   getPlayerSeasonScopes,
   getPlayersForSeasonScope,
 } from "@/lib/playerHistory"
+import {
+  getVisiblePlayerSeasonScopes,
+  shouldShowHistoricalProfileStats,
+} from "@/lib/playerProfileVisibility"
 
 export default function ProfilePage() {
   const { t } = useI18n()
@@ -54,15 +58,23 @@ export default function ProfilePage() {
   }, [activeLeague.id, activeSeason.id, leagueMatches, player, seasonPlayers, seasons])
 
 
+  const showHistoricalStats = shouldShowHistoricalProfileStats({
+    league: activeLeague,
+    seasons,
+  })
+  const visibleSeasonScopes = getVisiblePlayerSeasonScopes({
+    scopes: seasonScopes,
+    activeSeason,
+    showHistory: showHistoricalStats,
+  })
   const selectedScope =
-    seasonScopes.find((scope) => scope.id === selectedScopeId) ?? seasonScopes[0]
+    visibleSeasonScopes.find((scope) => scope.id === selectedScopeId) ??
+    visibleSeasonScopes.find((scope) => scope.id === activeSeason.id) ??
+    visibleSeasonScopes[0]
   const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id]
   const mvpSystemBySeasonId = Object.fromEntries(
     seasonSettings.map((settings) => [settings.seasonId, settings.mvpSystem]),
   )
-  const leagueSeasonCount = seasons.filter(
-    (season) => season.leagueId === activeLeague.id
-  ).length
   const selectedMatches = leagueMatches.filter((match) =>
     selectedSeasonIds.includes(match.seasonId)
   )
@@ -138,12 +150,12 @@ export default function ProfilePage() {
         </p>
       </header>
 
-      {leagueSeasonCount > 1 ? (
+      {showHistoricalStats && visibleSeasonScopes.length > 1 ? (
         <PlayerSeasonScopeSelector
           title={t.playerProfile.scopeSelectorTitle}
           description={t.playerProfile.scopeSelectorDescription}
           value={selectedScope.id}
-          scopes={seasonScopes}
+          scopes={visibleSeasonScopes}
           onChange={setSelectedScopeId}
         />
       ) : null}

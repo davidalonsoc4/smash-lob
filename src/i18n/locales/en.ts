@@ -852,6 +852,13 @@ export const en = {
       "Type a location or paste a Maps URL. The app will open Maps with that reference.",
     save: "Save changes",
     saved: "Settings saved.",
+    profileStatsVisibilityTitle: "Historical profile stats",
+    profileStatsVisibilityDescription:
+      "Choose whether players can browse previous seasons and their historical total while a season is active. When every season is closed, history is always available.",
+    profileStatsVisibilityAll: "All seasons available",
+    profileStatsVisibilityCurrent: "Current season only while it is open",
+    profileStatsVisibilityError:
+      "The statistics visibility setting could not be saved.",
   },
 
   adminSeason: {
