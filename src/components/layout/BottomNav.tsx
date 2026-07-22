@@ -85,7 +85,7 @@ export function BottomNav() {
   const { isLeagueSpectator, refreshLeagueAccess } = useLeagueAccess()
   const spectatorMode = isLeagueSpectator(activeLeagueId)
   const isSoftRefreshingRef = useRef(false)
-  const lastSoftRefreshAtRef = useRef(Date.now())
+  const lastSoftRefreshAtRef = useRef<number | null>(null)
 
   const softRefreshHomeData = useCallback(async () => {
     if (isSoftRefreshingRef.current) {
@@ -103,12 +103,21 @@ export function BottomNav() {
   }, [refreshLeagueAccess])
 
   useEffect(() => {
+    lastSoftRefreshAtRef.current = Date.now()
+
     function handleVisibilityChange() {
       if (document.visibilityState !== "visible") {
         return
       }
 
-      const dataAge = Date.now() - lastSoftRefreshAtRef.current
+      const lastSoftRefreshAt = lastSoftRefreshAtRef.current
+
+      if (lastSoftRefreshAt === null) {
+        lastSoftRefreshAtRef.current = Date.now()
+        return
+      }
+
+      const dataAge = Date.now() - lastSoftRefreshAt
 
       if (dataAge >= 30_000) {
         void softRefreshHomeData()

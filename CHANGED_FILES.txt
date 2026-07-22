@@ -1,12 +1,9 @@
-Smash & Lob v0.11.7 · Actualización suave desde HOME
+Smash & Lob v0.11.8 · Corrección de pureza en actualización suave de HOME
 
 Cambios principales:
-- Pulsar HOME estando ya en HOME deja de recargar por completo la aplicación.
-- El segundo toque en HOME desplaza suavemente la pantalla al inicio.
-- Cada toque en HOME actualiza en segundo plano el acceso, ligas, temporadas, jugadores, partidos y datos relacionados.
-- Al volver a la aplicación tras tener datos sin actualizar durante al menos 30 segundos, se ejecuta la misma actualización suave.
-- Se evitan recargas paralelas si el usuario pulsa HOME repetidamente.
-- La pantalla “Preparando tu perfil” no se modifica: seguirá apareciendo únicamente en la carga inicial real, no durante la actualización suave.
+- La marca temporal de la actualización suave deja de inicializarse durante el render de BottomNav.
+- La referencia temporal se inicializa en un efecto del cliente, evitando la regla react-hooks/purity.
+- Se mantiene intacto el comportamiento de actualización suave de HOME y la comprobación al volver a la aplicación tras 30 segundos.
 
 Base de datos:
 - Sin cambios SQL.
