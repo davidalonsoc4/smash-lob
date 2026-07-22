@@ -7,17 +7,29 @@ export type AccountProfile = {
   isSuperuser: boolean
 }
 
+const PROFILE_NAME_LOCALE = "es-ES"
+
+export function formatProfileName(value: string) {
+  const normalized = value.trim().replace(/\s+/g, " ").toLocaleLowerCase(PROFILE_NAME_LOCALE)
+
+  return normalized.replace(
+    /(^|[\s'’\-])([\p{L}])/gu,
+    (_, separator: string, letter: string) =>
+      `${separator}${letter.toLocaleUpperCase(PROFILE_NAME_LOCALE)}`,
+  )
+}
+
 export function splitGoogleDisplayName(value: string | null | undefined) {
   const parts = (value ?? "").trim().split(/\s+/).filter(Boolean)
 
   return {
-    firstName: parts[0] ?? "",
-    lastName: parts[1] ?? "",
+    firstName: formatProfileName(parts[0] ?? ""),
+    lastName: formatProfileName(parts[1] ?? ""),
   }
 }
 
 export function normalizeProfileName(value: unknown, maxLength: number) {
   return typeof value === "string"
-    ? value.trim().replace(/\s+/g, " ").slice(0, maxLength)
+    ? formatProfileName(value).slice(0, maxLength)
     : ""
 }

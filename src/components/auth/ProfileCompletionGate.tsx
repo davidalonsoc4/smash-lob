@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import { splitGoogleDisplayName } from "@/lib/accountProfile"
+import { normalizeProfileName, splitGoogleDisplayName } from "@/lib/accountProfile"
 import type { AccountProfile } from "@/lib/accountProfile"
 
 type ProfileCompletionFormProps = {
@@ -29,8 +29,8 @@ function ProfileCompletionForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const cleanFirstName = firstName.trim()
-    const cleanLastName = lastName.trim()
+    const cleanFirstName = normalizeProfileName(firstName, 40)
+    const cleanLastName = normalizeProfileName(lastName, 60)
 
     if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
       setFormError(t.accountProfile.validationError)
@@ -69,6 +69,7 @@ function ProfileCompletionForm({
               <input
                 value={firstName}
                 onChange={(event) => setFirstName(event.target.value)}
+                onBlur={() => setFirstName(normalizeProfileName(firstName, 40))}
                 autoComplete="given-name"
                 maxLength={40}
                 className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-neutral-500"
@@ -82,6 +83,7 @@ function ProfileCompletionForm({
               <input
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
+                onBlur={() => setLastName(normalizeProfileName(lastName, 60))}
                 autoComplete="family-name"
                 maxLength={60}
                 className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-neutral-500"
@@ -120,9 +122,9 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-stone-200 px-4 py-8 text-neutral-950">
-        <div className="mx-auto max-w-md">
-          <AppCard className="text-center">
+      <div className="min-h-screen bg-stone-200 text-neutral-950">
+        <div className="mx-auto flex min-h-screen max-w-md items-center bg-stone-50 px-4 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
+          <AppCard className="w-full text-center">
             <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-950" />
             <p className="mt-4 font-black">{t.accountProfile.loadingTitle}</p>
           </AppCard>

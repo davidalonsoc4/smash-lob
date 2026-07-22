@@ -99,37 +99,36 @@ export function SeasonRosterWaitingRoom({
   }
 
   return (
-    <AppCard className="border-emerald-200 bg-emerald-50/70">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-            {t.roster.eyebrow}
-          </p>
-          <p className="mt-1 text-lg font-black text-emerald-950">
-            {t.roster.title}
-          </p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-emerald-800">
+    <AppCard className="border-emerald-200 bg-emerald-50/70 p-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-2">
+            <p className="truncate text-sm font-black text-emerald-950">
+              {t.roster.title}
+            </p>
+            <p className="shrink-0 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">
+              {registeredPlayers.length}/{playerCapacity}
+            </p>
+          </div>
+          <p className="mt-0.5 text-[11px] font-semibold text-emerald-800">
             {remaining > 0
               ? t.roster.remaining.replace("{count}", String(remaining))
               : t.roster.complete}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-white px-3 py-1.5 text-sm font-black text-emerald-900 shadow-sm">
-          {registeredPlayers.length}/{playerCapacity}
-        </span>
       </div>
 
-      <div className="mt-4 grid gap-2">
+      <div className="mt-2 grid gap-1">
         {registeredPlayers.map((player, index) => (
           <div
             key={player.id}
-            className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2.5 shadow-sm"
+            className="flex min-h-9 items-center gap-2 rounded-xl border border-emerald-100 bg-white px-2 py-1"
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-100 text-xs font-black text-emerald-800">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-[9px] font-black text-emerald-800">
               {index + 1}
             </span>
             <PlayerAvatar player={player} size="sm" />
-            <p className="min-w-0 flex-1 truncate text-sm font-black">
+            <p className="min-w-0 flex-1 truncate text-xs font-black">
               {player.displayName}
             </p>
             {(canManage || membership?.playerId === player.id) ? (
@@ -137,9 +136,11 @@ export function SeasonRosterWaitingRoom({
                 type="button"
                 disabled={isSaving}
                 onClick={() => handleLeave(player.id)}
-                className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-600 disabled:opacity-40"
+                aria-label={t.roster.leaveAction}
+                title={t.roster.leaveAction}
+                className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-base font-black leading-none text-neutral-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
               >
-                {t.roster.leaveAction}
+                ×
               </button>
             ) : null}
           </div>
@@ -148,9 +149,9 @@ export function SeasonRosterWaitingRoom({
         {Array.from({ length: remaining }, (_, index) => (
           <div
             key={`empty-${index}`}
-            className="flex items-center gap-3 rounded-2xl border border-dashed border-emerald-200 bg-white/60 px-3 py-2.5 text-sm font-semibold text-emerald-700"
+            className="flex min-h-8 items-center gap-2 rounded-xl border border-dashed border-emerald-200 bg-white/60 px-2 py-1 text-xs font-semibold text-emerald-700"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-100 text-xs font-black">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-[9px] font-black">
               {registeredPlayers.length + index + 1}
             </span>
             {t.roster.availableSlot}
@@ -163,14 +164,14 @@ export function SeasonRosterWaitingRoom({
           type="button"
           onClick={handleJoin}
           disabled={isSaving}
-          className="mt-4 w-full rounded-2xl bg-emerald-700 px-3 py-3 text-sm font-black text-white disabled:bg-emerald-200"
+          className="mt-2 w-full rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:bg-emerald-200"
         >
           {isSaving ? t.common.saving : t.roster.joinAction}
         </button>
       ) : null}
 
       {error ? (
-        <p className="mt-3 text-sm font-bold text-red-600">{error}</p>
+        <p className="mt-2 text-xs font-bold text-red-600">{error}</p>
       ) : null}
     </AppCard>
   )
