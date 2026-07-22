@@ -217,6 +217,9 @@ export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
         ? match.incident_resolved_at
         : null,
     resolutionType:
+      match.resolution_type === "continue" ||
+      match.resolution_type === "substitute" ||
+      match.resolution_type === "reset_result" ||
       match.resolution_type === "played" ||
       match.resolution_type === "postponed" ||
       match.resolution_type === "cancelled" ||

@@ -1,51 +1,40 @@
-Smash & Lob v0.12.1 · Pulido de incidencias, comunicados y temporadas
+Smash & Lob v0.12.2
 
-Cambios principales:
-- Incidencias y suplentes compactados como controles discretos por icono dentro del partido.
-- Nuevo buzón administrativo de incidencias pendientes con contador y acceso directo al partido.
-- Las incidencias nuevas notifican también a creator y administradores, además de a los participantes.
-- Comunicados con acciones independientes: fijar en HOME, enviar notificación o ambas.
-- Botón dinámico: Publicar, Notificar o Publicar y notificar.
-- Destinatarios de comunicados por liga, temporada o jugadores concretos.
-- Comunicados de HOME más compactos y resaltados en naranja.
-- Eliminación de comunicados mediante una X roja más visible.
-- Duplicación de la última temporada cerrada integrada en Administración de temporada.
-- La antigua ruta independiente de duplicación redirige a Administración de temporada.
-- Mejor lectura de errores y compatibilidad con jugadores históricos al duplicar temporadas.
-- Pantalla de preferencias ampliada para personalizar todos los eventos con push disponibles, incluidos incidencias y recordatorios de pago.
-- Se mantiene la compatibilidad con las preferencias guardadas en versiones anteriores.
-- Se corrige el tipado y la normalización de UUID al seleccionar destinatarios de comunicados.
+Resumen
+- Corrige la duplicación de temporadas: deja de consultar el inexistente players.user_id y recupera las vinculaciones desde league_memberships.
+- Sustituye los botones permanentes de Incidencias y Suplentes por un único menú discreto «Más acciones».
+- Mantiene visibles, en formato compacto, las incidencias y sustituciones activas.
+- Añade permisos por temporada para permitir u ocultar a los jugadores la comunicación de incidencias y la gestión de suplentes.
+- Creator y administradores conservan siempre ambas acciones.
+- Añade resoluciones contextuales según el tipo de incidencia y aplica automáticamente la consecuencia elegida sobre el partido.
+- Amplía los tipos de resolución con continue, substitute y reset_result.
 
-Base de datos:
-- Nueva migración: supabase/migrations/20260722190000_add_announcement_player_audiences.sql
-- Añade destinatarios de jugadores concretos a los comunicados.
-- Aplicar únicamente en Supabase PRE durante la validación.
-- No aplicar en Supabase PROD hasta la publicación de v0.12.1.
+Migración PRE
+- supabase/migrations/20260722203000_add_match_action_permissions_and_incident_resolutions.sql
+- Añade allow_player_incidents y allow_player_substitutions a season_settings.
+- Amplía el constraint matches_resolution_type_check.
 
-Archivos incluidos:
-- CHANGED_FILES.txt
-- package.json
-- package-lock.json
-- src/lib/appVersion.ts
-- src/app/admin/announcements/page.tsx
-- src/app/admin/incidents/page.tsx
-- src/app/admin/page.tsx
-- src/app/admin/season/duplicate/page.tsx
-- src/app/admin/season/page.tsx
-- src/app/api/leagues/[id]/announcements/route.ts
-- src/app/api/matches/[matchId]/incident/route.ts
-- src/app/match/[id]/page.tsx
-- src/app/notifications/page.tsx
-- src/app/settings/notifications/page.tsx
-- src/components/announcements/LeagueAnnouncementsCard.tsx
-- src/components/match/MatchIncidentPanel.tsx
-- src/components/match/MatchSubstitutionPanel.tsx
-- src/i18n/locales/en.ts
-- src/i18n/locales/es.ts
-- src/i18n/locales/eu.ts
-- src/lib/announcements.ts
-- src/lib/notificationSettings.ts
-- src/lib/serverPushDispatch.ts
-- src/lib/serverSeasonDuplication.ts
-- src/lib/supabaseSeasons.ts
-- supabase/migrations/20260722190000_add_announcement_player_audiences.sql
+Archivos modificados
+CHANGED_FILES.txt
+package.json
+package-lock.json
+src/app/admin/season/page.tsx
+src/app/api/access/route.ts
+src/app/api/invites/[code]/route.ts
+src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts
+src/app/api/matches/[matchId]/incident/route.ts
+src/app/api/matches/[matchId]/result/route.ts
+src/app/api/matches/[matchId]/substitution/route.ts
+src/app/match/[id]/page.tsx
+src/components/match/MatchActionsMenu.tsx
+src/components/match/MatchIncidentPanel.tsx
+src/components/match/MatchSubstitutionPanel.tsx
+src/context/SeasonSettingsProvider.tsx
+src/data/fakeData.ts
+src/lib/appVersion.ts
+src/lib/matchIncidents.ts
+src/lib/serverSeasonDuplication.ts
+src/lib/serverSeasonMutations.ts
+src/lib/supabaseMatches.ts
+src/lib/supabaseSeasons.ts
+supabase/migrations/20260722203000_add_match_action_permissions_and_incident_resolutions.sql

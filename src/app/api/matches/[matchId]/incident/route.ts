@@ -33,6 +33,9 @@ const incidentTypes = new Set<MatchIncidentType>([
   "other",
 ])
 const resolutionTypes = new Set<MatchResolutionType>([
+  "continue",
+  "substitute",
+  "reset_result",
   "played",
   "postponed",
   "cancelled",
@@ -98,8 +101,18 @@ function calculatePoints(sets: MatchSet[]) {
   }
 }
 
-function canReport(actor: { isAdmin: boolean; participantPlayerId: string | null }) {
-  return actor.isAdmin || Boolean(actor.participantPlayerId)
+async function canReportIncident(actor: Extract<Awaited<ReturnType<typeof getServerMatchActor>>, { ok: true }>['actor']) {
+  if (actor.isAdmin) return true
+  if (!actor.participantPlayerId) return false
+
+  const { data, error } = await actor.supabase
+    .from("season_settings")
+    .select("allow_player_incidents")
+    .eq("season_id", actor.match.seasonId)
+    .maybeSingle()
+
+  if (error) return false
+  return data?.allow_player_incidents !== false
 }
 
 export async function POST(
@@ -118,8 +131,8 @@ export async function POST(
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
-  if (!canReport(access.actor)) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 })
+  if (!(await canReportIncident(access.actor))) {
+    return NextResponse.json({ error: "player_incidents_disabled" }, { status: 403 })
   }
 
   if (access.actor.match.incidentStatus === "open") {
@@ -243,11 +256,23 @@ export async function PUT(
     )
   }
 
+  if (
+    resolutionType === "reset_result" &&
+    access.actor.match.status !== "finished"
+  ) {
+    return NextResponse.json(
+      { error: "reset_result_requires_result" },
+      { status: 409 },
+    )
+  }
+
   const rankingAllowed =
+    resolutionType === "continue" ||
+    resolutionType === "substitute" ||
     resolutionType === "played" ||
     resolutionType === "no_show" ||
     resolutionType === "administrative" ||
-    (resolutionType === "abandoned" && sets.length > 0)
+    resolutionType === "abandoned"
 
   if (rankingCounts && !rankingAllowed) {
     return NextResponse.json(
@@ -288,7 +313,23 @@ export async function PUT(
     ranking_counts: rankingCounts,
   }
 
-  if (resolutionType === "postponed") {
+  if (resolutionType === "continue" || resolutionType === "substitute") {
+    Object.assign(update, {
+      ranking_counts:
+        access.actor.match.status === "finished" ? rankingCounts : true,
+    })
+  } else if (resolutionType === "reset_result") {
+    Object.assign(update, {
+      status: access.actor.match.scheduledAt ? "scheduled" : "scheduling",
+      sets: [],
+      points_a: null,
+      points_b: null,
+      result_recorded_at: null,
+      result_reported_by_player_id: null,
+      result_locked: false,
+      ranking_counts: true,
+    })
+  } else if (resolutionType === "postponed") {
     Object.assign(update, {
       status: "postponed",
       scheduled_at: null,
@@ -304,7 +345,7 @@ export async function PUT(
     })
   } else if (resolutionType === "played") {
     Object.assign(update, {
-      ranking_counts: access.actor.match.status === "finished" ? rankingCounts : false,
+      ranking_counts: rankingCounts,
     })
   } else {
     Object.assign(update, {
@@ -390,7 +431,9 @@ export async function DELETE(
 
   const exceptionalResolution =
     access.actor.match.resolutionType &&
-    access.actor.match.resolutionType !== "played"
+    !["continue", "substitute", "reset_result", "played"].includes(
+      access.actor.match.resolutionType,
+    )
   const update: Record<string, unknown> = {
     incident_type: null,
     incident_status: null,

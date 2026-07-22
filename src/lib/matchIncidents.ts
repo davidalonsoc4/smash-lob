@@ -10,6 +10,9 @@ export type MatchIncidentType =
 export type MatchIncidentStatus = "open" | "resolved"
 
 export type MatchResolutionType =
+  | "continue"
+  | "substitute"
+  | "reset_result"
   | "played"
   | "postponed"
   | "cancelled"
@@ -33,7 +36,10 @@ export const matchIncidentTypeLabels: Record<MatchIncidentType, string> = {
 }
 
 export const matchResolutionTypeLabels: Record<MatchResolutionType, string> = {
-  played: "Partido jugado",
+  continue: "El partido seguirá su flujo normal",
+  substitute: "Resolver mediante suplente",
+  reset_result: "Eliminar resultado y volver a introducirlo",
+  played: "Confirmar resultado actual",
   postponed: "Aplazado",
   cancelled: "Cancelado sin resultado",
   no_show: "No presentado / resultado administrativo",

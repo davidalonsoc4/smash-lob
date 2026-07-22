@@ -187,7 +187,7 @@ export async function GET() {
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode"
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions"
       )
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
@@ -351,6 +351,8 @@ export async function GET() {
         ? settings.schedule_mode
         : "single",
     calendarMode: settings.calendar_mode === "manual" ? "manual" : "balanced",
+    allowPlayerIncidents: settings.allow_player_incidents !== false,
+    allowPlayerSubstitutions: settings.allow_player_substitutions !== false,
   }))
   const substitutionsByMatchId = new Map<
     string,

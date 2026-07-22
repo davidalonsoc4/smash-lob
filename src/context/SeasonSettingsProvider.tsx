@@ -64,6 +64,8 @@ export type SeasonRoundSettings = {
   rosterCompletedAt: string | null;
   scheduleMode: SeasonScheduleMode;
   calendarMode: "balanced" | "manual";
+  allowPlayerIncidents: boolean;
+  allowPlayerSubstitutions: boolean;
 };
 
 type SeasonSettingsContextValue = {
@@ -195,6 +197,10 @@ function normalizeSettings(
     calendarMode: normalizeCalendarMode(
       (settings as Partial<SeasonRoundSettings>).calendarMode,
     ),
+    allowPlayerIncidents:
+      (settings as Partial<SeasonRoundSettings>).allowPlayerIncidents !== false,
+    allowPlayerSubstitutions:
+      (settings as Partial<SeasonRoundSettings>).allowPlayerSubstitutions !== false,
   };
 }
 
@@ -403,6 +409,8 @@ function parseStoredSettings(
             : null,
         scheduleMode: normalizeSeasonScheduleMode(storedSetting.scheduleMode),
         calendarMode: normalizeCalendarMode(storedSetting.calendarMode),
+        allowPlayerIncidents: storedSetting.allowPlayerIncidents !== false,
+        allowPlayerSubstitutions: storedSetting.allowPlayerSubstitutions !== false,
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -430,6 +438,8 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     rosterCompletedAt: null,
     scheduleMode: "single",
     calendarMode: "balanced",
+    allowPlayerIncidents: true,
+    allowPlayerSubstitutions: true,
   };
 }
 
@@ -827,6 +837,8 @@ export function SeasonSettingsProvider({
       rosterCompletedAt: new Date().toISOString(),
       scheduleMode: "single",
       calendarMode: "balanced",
+      allowPlayerIncidents: true,
+      allowPlayerSubstitutions: true,
     });
 
     return { seasonId, playerIds };
@@ -983,6 +995,8 @@ export function SeasonSettingsProvider({
       rosterCompletedAt: new Date().toISOString(),
       scheduleMode,
       calendarMode: "balanced",
+      allowPlayerIncidents: true,
+      allowPlayerSubstitutions: true,
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

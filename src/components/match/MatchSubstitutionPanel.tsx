@@ -165,20 +165,15 @@ export function MatchSubstitutionPanel({
   }
 
   return (
-    <details className="group w-10 flex-none overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.04)] open:w-full open:basis-full">
-      <summary title={t.matchDetail.substitutionsTitle} aria-label={t.matchDetail.substitutionsTitle} className="relative flex h-9 cursor-pointer list-none items-center justify-center px-2 text-neutral-700 [&::-webkit-details-marker]:hidden">
-        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0">
-          <path d="M3 6h10m0 0-3-3m3 3-3 3M17 14H7m0 0 3-3m-3 3 3 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="sr-only">{t.matchDetail.substitutionsTitle}</span>
+    <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-black">{t.matchDetail.substitutionsTitle}</p>
         {matchSubstitutions.length > 0 ? (
-          <span className="absolute right-0 top-0 grid h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-black text-white ring-2 ring-white">
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black text-red-700">
             {matchSubstitutions.length}
           </span>
         ) : null}
-      </summary>
-
-      <div className="border-t border-neutral-100 px-3 py-3">
+      </div>
 
         {matchSubstitutions.length > 0 ? (
           <div className="mt-2 space-y-1.5">
@@ -311,7 +306,6 @@ export function MatchSubstitutionPanel({
         {error ? (
           <p className="mt-2 text-[11px] font-bold text-red-700">{error}</p>
         ) : null}
-      </div>
-    </details>
+    </div>
   )
 }
