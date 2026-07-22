@@ -283,12 +283,17 @@ export default function MatchDetailPage() {
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 
-      <MatchIncidentPanel
-        match={match}
-        players={players}
-        canReport={canManageMatch}
-        isAdmin={isAdmin}
-      />
+      <div className="flex flex-wrap gap-2">
+        <MatchIncidentPanel
+          match={match}
+          players={players}
+          canReport={canManageMatch}
+          isAdmin={isAdmin}
+        />
+        {shouldShowSubstitutionPanel ? (
+          <MatchSubstitutionPanel match={match} players={players} />
+        ) : null}
+      </div>
 
       {shouldShowResultWorkflow ? (
         <MatchResultConfirmationCard
@@ -391,10 +396,6 @@ export default function MatchDetailPage() {
           booking={match.courtBooking}
           shouldFocusBooking={shouldFocusBooking}
         />
-      ) : null}
-
-      {shouldShowSubstitutionPanel ? (
-        <MatchSubstitutionPanel match={match} players={players} />
       ) : null}
 
       {canEnterResult ? (

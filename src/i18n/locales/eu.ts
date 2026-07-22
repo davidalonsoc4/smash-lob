@@ -1068,8 +1068,8 @@ export const eu = {
     disablePush: "Desaktibatu",
     typesTitle: "Abisu motak",
     enabledCount: "Aktibatuta: {enabled}/{total}",
-    mandatoryPaymentReminders:
-      "Pistaren eta izen-ematearen ordainketa gogorarazpenak, automatikoak zein eskuz bidalitakoak, beti jasotzen dira.",
+    allTypesConfigurable:
+      "Jakinarazpen mota guztiak, gorabeherak eta ordainketa gogorarazpenak barne, banaka aktibatu edo desaktibatu daitezke.",
     disableAll: "Guztiak desaktibatu",
     enableAll: "Guztiak aktibatu",
     preferencesSaved: "Lehentasunak gordeta.",
@@ -1081,41 +1081,21 @@ export const eu = {
     deviceDisabled: "Jakinarazpenak desaktibatuta gailu honetan.",
     deviceDisableError: "Ezin izan da gailu hau desaktibatu.",
     preferences: {
-      next_match: {
-        title: "Nire hurrengo partida",
-        description:
-          "Programazioa, data, leku edo pista aldaketak, atzerapenak eta partidak hasi baino 2 ordu lehenagoko gogorarazpena.",
-      },
-      my_match_result: {
-        title: "Nire partiden emaitzak",
-        description:
-          "Sartutako, aldatutako edo ezabatutako emaitzak, berrespenak eta emaitza sartzeko edo MVP botoa emateko gogorarazpenak.",
-      },
-      round_events: {
-        title: "Jardunaldiak eta MVP",
-        description:
-          "Jardunaldi bat jokoan dagoenean eta denboraldiko MVP sariak erabakitzen direnean jasotako abisuak.",
-      },
-      season_events: {
-        title: "Denboraldiak",
-        description:
-          "Zure ligan denboraldi berri bat sortu, hasi edo amaitzen denean.",
-      },
-      booking_i_owe: {
-        title: "Pista-erreserbak",
-        description:
-          "Erreserba batek beste jokalari bati zure zatia zor diozula adierazten du, edo zure partida bateko erreserba eguneratzen da.",
-      },
-      booking_paid_to_me: {
-        title: "Jasotako pista-ordainketak",
-        description:
-          "Pistaren transferentzia zor zizun norbaitek ordainduta markatzen du.",
-      },
-      player_account: {
-        title: "Kontua eta jokalariak",
-        description:
-          "Zure profil, avatar, rol, liga-lotura edo erabiltzaile datuen aldaketak.",
-      },
+      match_schedule: { title: "Partiden programazioa", description: "Zure partiden datak, orduak, pistak, aldaketak eta atzerapenak." },
+      match_incidents: { title: "Partidetako gorabeherak", description: "Jakinarazitako, ebatzitako edo ezabatutako gorabeherak. Admin-ek ligako berriak ere jasotzen dituzte." },
+      match_upcoming: { title: "Hurrengo partida", description: "Hurrengo partida hasi aurreko gogorarazpena." },
+      match_results: { title: "Emaitzak", description: "Gordetako, aldatutako, ezabatutako, eztabaidatutako edo falta diren emaitzak." },
+      result_confirmations: { title: "Emaitzen berrespena", description: "Emaitza bat berresteko edo berrikusteko gogorarazpenak." },
+      mvp_reminders: { title: "MVP bozketa", description: "MVP botoa emateko gogorarazpenak." },
+      mvp_awards: { title: "MVP sariak", description: "Partidako eta jardunaldiko MVP sariak." },
+      round_events: { title: "Jardunaldiak", description: "Jardunaldi bat jokoan hasten denean jasotako abisuak." },
+      season_lifecycle: { title: "Denboraldiak", description: "Denboraldien sorrera, bikoizketa, hasiera eta amaiera." },
+      season_roster: { title: "Izen-ematea eta plantilla", description: "Denboraldi batera sartzen edo irteten diren jokalariak." },
+      announcements: { title: "Komunikatuak", description: "Sortzaileak edo administratzaileek bidalitako abisuak." },
+      booking_updates: { title: "Pista-erreserbak", description: "Zure partidetako erreserben sorrera, aldaketak edo ezabaketa." },
+      booking_payments: { title: "Jasotako pista-ordainketak", description: "Jokalari batek zuri zor zizun transferentzia ordaindutzat markatzen du." },
+      payment_reminders: { title: "Ordainketa gogorarazpenak", description: "Pista edo izen-emate ordainketa pendienteen gogorarazpenak." },
+      player_account: { title: "Kontua eta jokalariak", description: "Profil, avatar, rol, lotura edo erabiltzaile datuen aldaketak." },
     },
   },
 

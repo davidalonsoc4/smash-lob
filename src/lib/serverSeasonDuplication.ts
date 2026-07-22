@@ -155,7 +155,6 @@ export async function duplicateServerSeason({
     .from("season_players")
     .select("player_id,status")
     .eq("season_id", sourceSeasonId)
-    .eq("status", "active")
 
   if (playersError) {
     throw new SeasonDuplicationError(500, "season_players_lookup_failed")
@@ -163,10 +162,17 @@ export async function duplicateServerSeason({
 
   const sourcePlayerRows = (sourceSeasonPlayers ?? []) as {
     player_id: unknown
+    status?: unknown
   }[]
   const playerIds: string[] = Array.from(
     new Set(
       sourcePlayerRows
+        .filter((item) =>
+          !("status" in item) ||
+          item.status === null ||
+          item.status === undefined ||
+          item.status === "active",
+        )
         .map((item) =>
           typeof item.player_id === "string" ? item.player_id : null,
         )

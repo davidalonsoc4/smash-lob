@@ -165,6 +165,20 @@ export async function POST(
   }
 
   const updatedMatch = mapSupabaseMatch(data as Record<string, unknown>)
+  const { data: managerMemberships } = await access.actor.supabase
+    .from("league_memberships")
+    .select("user_id")
+    .eq("league_id", updatedMatch.leagueId)
+    .in("role", ["creator", "admin"])
+  const targetUserIds = Array.from(
+    new Set(
+      (managerMemberships ?? [])
+        .map((membership) =>
+          typeof membership.user_id === "string" ? membership.user_id : null,
+        )
+        .filter((userId): userId is string => Boolean(userId)),
+    ),
+  )
 
   await recordServerActorActivity({
     supabase: access.actor.supabase,
@@ -178,6 +192,8 @@ export async function POST(
     description: `Jornada ${updatedMatch.round} · ${reason}`,
     metadata: {
       participantIds: [...updatedMatch.teamA, ...updatedMatch.teamB],
+      targetPlayerIds: [...updatedMatch.teamA, ...updatedMatch.teamB],
+      targetUserIds,
       round: updatedMatch.round,
       incidentType,
       reason,

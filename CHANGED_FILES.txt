@@ -1,70 +1,51 @@
-Smash & Lob v0.12.0 · Gestión avanzada de ligas
+Smash & Lob v0.12.1 · Pulido de incidencias, comunicados y temporadas
 
 Cambios principales:
-- Incidencias de partido comunicables por participantes o administración.
-- Resoluciones excepcionales: jugado, aplazado, cancelado, no presentado, abandono y resultado administrativo.
-- Control explícito de si un resultado excepcional contabiliza para clasificación y estadísticas.
-- Bloqueo de programación, sustituciones y resultado normal mientras exista una incidencia abierta.
-- Duplicación de temporadas terminadas conservando jugadores, reglas, cuota y formato, con calendario y progreso nuevos.
-- Nueva pantalla de historial y estadísticas por temporada y jugador.
-- Comunicados generales o por temporada visibles en HOME y acompañados de notificaciones push.
-- Exportación de clasificación y resultados a CSV compatible con Excel.
-- Nuevos eventos integrados en la pantalla existente Actividad · Admin.
+- Incidencias y suplentes compactados como controles discretos por icono dentro del partido.
+- Nuevo buzón administrativo de incidencias pendientes con contador y acceso directo al partido.
+- Las incidencias nuevas notifican también a creator y administradores, además de a los participantes.
+- Comunicados con acciones independientes: fijar en HOME, enviar notificación o ambas.
+- Botón dinámico: Publicar, Notificar o Publicar y notificar.
+- Destinatarios de comunicados por liga, temporada o jugadores concretos.
+- Comunicados de HOME más compactos y resaltados en naranja.
+- Eliminación de comunicados mediante una X roja más visible.
+- Duplicación de la última temporada cerrada integrada en Administración de temporada.
+- La antigua ruta independiente de duplicación redirige a Administración de temporada.
+- Mejor lectura de errores y compatibilidad con jugadores históricos al duplicar temporadas.
+- Pantalla de preferencias ampliada para personalizar todos los eventos con push disponibles, incluidos incidencias y recordatorios de pago.
+- Se mantiene la compatibilidad con las preferencias guardadas en versiones anteriores.
+- Se corrige el tipado y la normalización de UUID al seleccionar destinatarios de comunicados.
 
 Base de datos:
-- Nueva migración: supabase/migrations/20260722173000_add_v012_management_features.sql
+- Nueva migración: supabase/migrations/20260722190000_add_announcement_player_audiences.sql
+- Añade destinatarios de jugadores concretos a los comunicados.
 - Aplicar únicamente en Supabase PRE durante la validación.
-- No aplicar en Supabase PROD hasta la publicación de v0.12.0.
-
-Documentación:
-- docs/preproduction/V0.12.0_LEAGUE_MANAGEMENT.md
+- No aplicar en Supabase PROD hasta la publicación de v0.12.1.
 
 Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
-- docs/preproduction/V0.12.0_LEAGUE_MANAGEMENT.md
+- src/lib/appVersion.ts
 - src/app/admin/announcements/page.tsx
-- src/app/admin/exports/page.tsx
+- src/app/admin/incidents/page.tsx
 - src/app/admin/page.tsx
 - src/app/admin/season/duplicate/page.tsx
 - src/app/admin/season/page.tsx
-- src/app/api/leagues/[id]/announcements/[announcementId]/route.ts
 - src/app/api/leagues/[id]/announcements/route.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/duplicate/route.ts
 - src/app/api/matches/[matchId]/incident/route.ts
-- src/app/api/matches/[matchId]/postpone/route.ts
-- src/app/api/matches/[matchId]/result/route.ts
-- src/app/api/matches/[matchId]/schedule/route.ts
-- src/app/leagues/page.tsx
 - src/app/match/[id]/page.tsx
-- src/app/page.tsx
-- src/app/ranking/page.tsx
-- src/app/statistics/page.tsx
+- src/app/notifications/page.tsx
+- src/app/settings/notifications/page.tsx
 - src/components/announcements/LeagueAnnouncementsCard.tsx
-- src/components/layout/BottomNav.tsx
 - src/components/match/MatchIncidentPanel.tsx
-- src/context/MatchDataProvider.tsx
-- src/hooks/useCurrentLeagueData.ts
+- src/components/match/MatchSubstitutionPanel.tsx
 - src/i18n/locales/en.ts
 - src/i18n/locales/es.ts
 - src/i18n/locales/eu.ts
-- src/lib/activity.ts
-- src/lib/activitySettings.ts
 - src/lib/announcements.ts
-- src/lib/appVersion.ts
-- src/lib/csvExport.ts
-- src/lib/matchIncidents.ts
-- src/lib/matchLifecycle.ts
 - src/lib/notificationSettings.ts
-- src/lib/rounds.ts
-- src/lib/seasonStatistics.ts
-- src/lib/serverActivity.ts
-- src/lib/serverActivityDerivations.ts
-- src/lib/serverMatchAccess.ts
 - src/lib/serverPushDispatch.ts
 - src/lib/serverSeasonDuplication.ts
-- src/lib/supabaseMatches.ts
 - src/lib/supabaseSeasons.ts
-- supabase/migrations/20260722173000_add_v012_management_features.sql
-- src/app/admin/announcements/page.tsx — elimina la variable activeSeason no utilizada para dejar npm run lint sin warnings.
+- supabase/migrations/20260722190000_add_announcement_player_audiences.sql

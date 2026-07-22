@@ -13,7 +13,6 @@ import {
   type MatchIncidentType,
   type MatchResolutionType,
 } from "@/lib/matchIncidents"
-import { AppCard } from "@/components/ui/AppCard"
 
 function getTeamLabel(playerIds: string[], players: PlayerProfile[]) {
   return playerIds
@@ -26,9 +25,7 @@ function getTeamLabel(playerIds: string[], players: PlayerProfile[]) {
 }
 
 function getResolutionSummary(match: MatchData) {
-  if (!match.resolutionType) {
-    return null
-  }
+  if (!match.resolutionType) return null
 
   const resolution = matchResolutionTypeLabels[match.resolutionType]
   const ranking = match.rankingCounts ? "Cuenta para clasificación" : "No puntúa"
@@ -64,10 +61,9 @@ export function MatchIncidentPanel({
   const { hydrateMatches } = useMatchData()
   const [incidentType, setIncidentType] = useState<MatchIncidentType>("injury")
   const [reason, setReason] = useState("")
-  const [resolutionType, setResolutionType] =
-    useState<MatchResolutionType>(
-      match.status === "finished" ? "played" : "postponed",
-    )
+  const [resolutionType, setResolutionType] = useState<MatchResolutionType>(
+    match.status === "finished" ? "played" : "postponed",
+  )
   const [notes, setNotes] = useState("")
   const [rankingCounts, setRankingCounts] = useState(() =>
     getDefaultRankingCounts(
@@ -113,7 +109,7 @@ export function MatchIncidentPanel({
       })
       hydrateMatches([updatedMatch])
       setReason("")
-      setMessage("Incidencia comunicada. La administración ya puede resolverla.")
+      setMessage("Incidencia comunicada. La organización ha sido avisada.")
     } catch (caughtError) {
       const code = caughtError instanceof Error ? caughtError.message : ""
       setError(
@@ -188,67 +184,69 @@ export function MatchIncidentPanel({
     }
   }
 
-  if (!isOpen && !isResolved && !canReport) {
-    return null
-  }
+  if (!isOpen && !isResolved && !canReport) return null
+
+  const summaryTone = isOpen
+    ? "border-amber-300 bg-amber-50 text-amber-900"
+    : isResolved
+      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      : "border-neutral-200 bg-white text-neutral-700"
 
   return (
-    <AppCard className={isOpen ? "border-amber-200 bg-amber-50" : undefined}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-black">Incidencias del partido</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Comunica una lesión, ausencia, cancelación o discrepancia para que la
-            administración pueda aplicar una resolución oficial.
-          </p>
-        </div>
-
+    <details
+      className={`group w-10 flex-none overflow-hidden rounded-xl border shadow-[0_1px_8px_rgba(15,23,42,0.04)] open:w-full open:basis-full ${summaryTone}`}
+    >
+      <summary title="Gestionar incidencia" aria-label="Gestionar incidencia" className="relative flex h-9 cursor-pointer list-none items-center justify-center px-2 [&::-webkit-details-marker]:hidden">
+        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0">
+          <path d="M10 2.5 18 17H2L10 2.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+          <path d="M10 7v4.5M10 14.2v.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+        <span className="sr-only">Incidencia</span>
         {isOpen ? (
-          <span className="shrink-0 rounded-full bg-amber-200 px-2.5 py-1 text-[10px] font-black uppercase text-amber-950">
-            Pendiente
-          </span>
+          <span className="absolute right-0 top-0 h-2 w-2 shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-50" aria-label="Pendiente" />
         ) : isResolved ? (
-          <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-800">
-            Resuelta
-          </span>
+          <span className="absolute right-0 top-0 grid h-3.5 w-3.5 place-items-center rounded-full bg-emerald-600 text-[8px] font-black text-white ring-2 ring-emerald-50">✓</span>
         ) : null}
-      </div>
+      </summary>
 
-      {match.incidentType ? (
-        <div className="mt-3 rounded-xl bg-white/80 px-3 py-2.5">
-          <p className="text-xs font-black text-neutral-900">
-            {matchIncidentTypeLabels[match.incidentType]}
-          </p>
-          {match.incidentReason ? (
-            <p className="mt-1 text-sm font-semibold leading-5 text-neutral-600">
-              {match.incidentReason}
-            </p>
-          ) : null}
-          {match.incidentNotes ? (
-            <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
-              Resolución: {match.incidentNotes}
-            </p>
-          ) : null}
-          {getResolutionSummary(match) ? (
-            <p className="mt-2 text-[10px] font-black uppercase tracking-wide text-neutral-500">
-              {getResolutionSummary(match)}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      <div className="border-t border-current/10 bg-white px-3 py-3 text-neutral-950">
+        {match.incidentType ? (
+          <div className="rounded-xl bg-amber-50 px-3 py-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs font-black">
+                {matchIncidentTypeLabels[match.incidentType]}
+              </p>
+              <span className="shrink-0 text-[9px] font-black uppercase text-amber-800">
+                {isOpen ? "Pendiente" : "Resuelta"}
+              </span>
+            </div>
+            {match.incidentReason ? (
+              <p className="mt-1 text-xs font-semibold leading-4 text-neutral-600">
+                {match.incidentReason}
+              </p>
+            ) : null}
+            {match.incidentNotes ? (
+              <p className="mt-1.5 text-[11px] font-semibold leading-4 text-neutral-500">
+                Resolución: {match.incidentNotes}
+              </p>
+            ) : null}
+            {getResolutionSummary(match) ? (
+              <p className="mt-1.5 text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                {getResolutionSummary(match)}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
-      {!isOpen && !isResolved && canReport ? (
-        <div className="mt-3 space-y-3">
-          <label className="block">
-            <span className="text-xs font-black text-neutral-700">
-              Tipo de incidencia
-            </span>
+        {!isOpen && !isResolved && canReport ? (
+          <div className="space-y-2">
             <select
+              aria-label="Tipo de incidencia"
               value={incidentType}
               onChange={(event) =>
                 setIncidentType(event.target.value as MatchIncidentType)
               }
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"
+              className="w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold"
             >
               {Object.entries(matchIncidentTypeLabels).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -256,46 +254,39 @@ export function MatchIncidentPanel({
                 </option>
               ))}
             </select>
-          </label>
-
-          <label className="block">
-            <span className="text-xs font-black text-neutral-700">Motivo</span>
             <textarea
+              aria-label="Motivo de la incidencia"
               value={reason}
               onChange={(event) => setReason(event.target.value.slice(0, 500))}
-              rows={3}
+              rows={2}
               placeholder="Explica brevemente qué ha ocurrido"
-              className="mt-1 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-500"
+              className="w-full resize-none rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-semibold outline-none focus:border-neutral-500"
             />
-          </label>
+            <button
+              type="button"
+              onClick={handleReport}
+              disabled={isWorking || reason.trim().length < 3}
+              className="w-full rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+            >
+              {isWorking ? "Enviando..." : "Comunicar incidencia"}
+            </button>
+          </div>
+        ) : null}
 
-          <button
-            type="button"
-            onClick={handleReport}
-            disabled={isWorking || reason.trim().length < 3}
-            className="w-full rounded-xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
-          >
-            {isWorking ? "Enviando..." : "Comunicar incidencia"}
-          </button>
-        </div>
-      ) : null}
-
-      {isOpen && isAdmin ? (
-        <div className="mt-3 space-y-3 border-t border-amber-200 pt-3">
-          <p className="text-xs font-black uppercase tracking-wide text-amber-900">
-            Resolución administrativa
-          </p>
-
-          <label className="block">
-            <span className="text-xs font-black text-neutral-700">Decisión</span>
+        {isOpen && isAdmin ? (
+          <div className="mt-2 space-y-2 border-t border-amber-100 pt-2">
+            <p className="text-[10px] font-black uppercase tracking-wide text-amber-900">
+              Resolución administrativa
+            </p>
             <select
+              aria-label="Decisión administrativa"
               value={resolutionType}
               onChange={(event) => {
                 const next = event.target.value as MatchResolutionType
                 setResolutionType(next)
                 setRankingCounts(getDefaultRankingCounts(next))
               }}
-              className="mt-1 w-full rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-sm font-bold"
+              className="w-full rounded-xl border border-amber-200 bg-white px-2.5 py-2 text-xs font-bold"
             >
               {Object.entries(matchResolutionTypeLabels)
                 .filter(([value]) => value !== "played" || canResolveAsPlayed)
@@ -305,94 +296,77 @@ export function MatchIncidentPanel({
                   </option>
                 ))}
             </select>
-          </label>
 
-          {requiresAdministrativeWinner ? (
-            <label className="block">
-              <span className="text-xs font-black text-neutral-700">
-                Pareja ganadora
-              </span>
+            {requiresAdministrativeWinner ? (
               <select
+                aria-label="Pareja ganadora"
                 value={winningTeam}
                 onChange={(event) =>
                   setWinningTeam(event.target.value as "A" | "B")
                 }
-                className="mt-1 w-full rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-sm font-bold"
+                className="w-full rounded-xl border border-amber-200 bg-white px-2.5 py-2 text-xs font-bold"
               >
-                <option value="A">{teamALabel}</option>
-                <option value="B">{teamBLabel}</option>
+                <option value="A">Ganadores: {teamALabel}</option>
+                <option value="B">Ganadores: {teamBLabel}</option>
               </select>
-              <span className="mt-1 block text-[11px] font-semibold text-neutral-500">
-                Se registrará un 6-0, 6-0 y 6-0 administrativo.
-              </span>
-            </label>
-          ) : null}
+            ) : null}
 
-          {canCountForRanking ? (
-            <label className="flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2.5">
-              <input
-                type="checkbox"
-                checked={rankingCounts}
-                onChange={(event) => setRankingCounts(event.target.checked)}
-                className="h-4 w-4"
-              />
-              <span className="text-sm font-bold">
-                Contabilizar en clasificación y estadísticas
-              </span>
-            </label>
-          ) : null}
+            {canCountForRanking ? (
+              <label className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2">
+                <input
+                  type="checkbox"
+                  checked={rankingCounts}
+                  onChange={(event) => setRankingCounts(event.target.checked)}
+                  className="h-4 w-4"
+                />
+                <span className="text-xs font-bold">Contabilizar en clasificación</span>
+              </label>
+            ) : null}
 
-          <label className="block">
-            <span className="text-xs font-black text-neutral-700">
-              Nota de resolución
-            </span>
             <textarea
+              aria-label="Nota de resolución"
               value={notes}
               onChange={(event) => setNotes(event.target.value.slice(0, 1000))}
-              rows={3}
-              placeholder="Decisión adoptada y contexto"
-              className="mt-1 w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-amber-500"
+              rows={2}
+              placeholder="Nota de resolución (opcional)"
+              className="w-full resize-none rounded-xl border border-amber-200 bg-white px-2.5 py-2 text-xs font-semibold outline-none focus:border-amber-500"
             />
-          </label>
 
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={handleResolve}
-              disabled={isWorking}
-              className="rounded-xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
-            >
-              {isWorking ? "Guardando..." : "Resolver incidencia"}
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={isWorking}
-              className="rounded-xl bg-white px-4 py-2.5 text-sm font-black text-red-700 disabled:text-neutral-300"
-            >
-              Eliminar incidencia
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleResolve}
+                disabled={isWorking}
+                className="rounded-xl bg-neutral-950 px-2 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+              >
+                {isWorking ? "Guardando..." : "Resolver"}
+              </button>
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={isWorking}
+                className="rounded-xl bg-red-50 px-2 py-2 text-xs font-black text-red-700 disabled:text-neutral-300"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {isResolved && isAdmin ? (
-        <button
-          type="button"
-          onClick={handleClear}
-          disabled={isWorking}
-          className="mt-3 w-full rounded-xl bg-neutral-100 px-4 py-2.5 text-sm font-black text-neutral-700 disabled:text-neutral-300"
-        >
-          {isWorking ? "Eliminando..." : "Eliminar resolución y reabrir flujo"}
-        </button>
-      ) : null}
+        {isResolved && isAdmin ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={isWorking}
+            className="mt-2 w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+          >
+            {isWorking ? "Eliminando..." : "Eliminar resolución"}
+          </button>
+        ) : null}
 
-      {message ? (
-        <p className="mt-3 text-xs font-bold text-emerald-700">{message}</p>
-      ) : null}
-      {error ? (
-        <p className="mt-3 text-xs font-bold text-red-600">{error}</p>
-      ) : null}
-    </AppCard>
+        {message ? <p className="mt-2 text-[11px] font-bold text-emerald-700">{message}</p> : null}
+        {error ? <p className="mt-2 text-[11px] font-bold text-red-600">{error}</p> : null}
+      </div>
+    </details>
   )
 }

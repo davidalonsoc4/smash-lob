@@ -1075,8 +1075,8 @@ export const es = {
     disablePush: "Desactivar",
     typesTitle: "Tipos de aviso",
     enabledCount: "Activados: {enabled}/{total}",
-    mandatoryPaymentReminders:
-      "Los recordatorios de pago de pista e inscripción, automáticos o enviados manualmente, se reciben siempre.",
+    allTypesConfigurable:
+      "Todos los tipos de notificación, incluidos incidencias y recordatorios de pago, se pueden activar o desactivar por separado.",
     disableAll: "Desactivar todo",
     enableAll: "Activar todo",
     preferencesSaved: "Preferencias guardadas.",
@@ -1088,40 +1088,65 @@ export const es = {
     deviceDisabled: "Notificaciones desactivadas en este dispositivo.",
     deviceDisableError: "No se ha podido desactivar este dispositivo.",
     preferences: {
-      next_match: {
-        title: "Mi próximo partido",
-        description:
-          "Programación, cambios de fecha, lugar, pista, aplazamientos y recordatorio 2 h antes de tus partidos.",
+      match_schedule: {
+        title: "Programación de partidos",
+        description: "Fechas, horas, pistas, cambios y aplazamientos de tus partidos.",
       },
-      my_match_result: {
-        title: "Resultados de mis partidos",
-        description:
-          "Resultado informado, modificado, eliminado, confirmaciones y recordatorios para registrar el resultado o votar al MVP.",
+      match_incidents: {
+        title: "Incidencias de partidos",
+        description: "Incidencias comunicadas, resueltas o eliminadas. Los admins reciben además los nuevos avisos de su liga.",
+      },
+      match_upcoming: {
+        title: "Próximo partido",
+        description: "Recordatorio antes de que comience tu siguiente partido.",
+      },
+      match_results: {
+        title: "Resultados",
+        description: "Resultados guardados, modificados, eliminados, disputados o pendientes.",
+      },
+      result_confirmations: {
+        title: "Confirmación de resultados",
+        description: "Recordatorios para confirmar o revisar un resultado.",
+      },
+      mvp_reminders: {
+        title: "Votación MVP",
+        description: "Recordatorios para emitir tu voto MVP.",
+      },
+      mvp_awards: {
+        title: "MVP concedidos",
+        description: "MVP del partido y de la jornada.",
       },
       round_events: {
-        title: "Jornadas y MVP",
-        description:
-          "Avisos de jornada en juego y MVP asignados durante la temporada.",
+        title: "Jornadas",
+        description: "Avisos cuando una jornada entra en juego.",
       },
-      season_events: {
+      season_lifecycle: {
         title: "Temporadas",
-        description:
-          "Nueva temporada creada, temporada iniciada o temporada finalizada en tu liga.",
+        description: "Creación, duplicación, inicio y finalización de temporadas.",
       },
-      booking_i_owe: {
+      season_roster: {
+        title: "Inscripciones y plantilla",
+        description: "Jugadores que entran o abandonan una temporada.",
+      },
+      announcements: {
+        title: "Comunicados",
+        description: "Avisos enviados por creator o administradores.",
+      },
+      booking_updates: {
         title: "Reservas de pista",
-        description:
-          "Una reserva indica que debes pagar tu parte a otro jugador o se actualiza una reserva de tus partidos.",
+        description: "Creación, modificación o eliminación de reservas de tus partidos.",
       },
-      booking_paid_to_me: {
-        title: "Pagos recibidos de pista",
-        description:
-          "Alguien que te debía una transferencia de pista la marca como pagada.",
+      booking_payments: {
+        title: "Pagos de pista recibidos",
+        description: "Un jugador marca como pagada una transferencia que debía realizarte.",
+      },
+      payment_reminders: {
+        title: "Recordatorios de pago",
+        description: "Recordatorios de pagos de pista o de inscripción pendientes.",
       },
       player_account: {
         title: "Cuenta y jugadores",
-        description:
-          "Cambios sobre tu perfil, avatar, rol, vinculación o datos de usuario.",
+        description: "Cambios de perfil, avatar, rol, vinculación o datos de usuario.",
       },
     },
   },

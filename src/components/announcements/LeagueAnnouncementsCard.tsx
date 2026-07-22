@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { AppCard } from "@/components/ui/AppCard"
 import {
   ANNOUNCEMENTS_REFRESH_EVENT,
   fetchLeagueAnnouncements,
@@ -10,11 +9,7 @@ import {
 
 function formatAnnouncementDate(value: string) {
   const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return ""
-  }
-
+  if (Number.isNaN(date.getTime())) return ""
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "short",
@@ -28,7 +23,7 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
 
   const refreshAnnouncements = useCallback(async () => {
     try {
-      const items = await fetchLeagueAnnouncements(leagueId)
+      const items = await fetchLeagueAnnouncements(leagueId, { homeOnly: true })
       setAnnouncements(items.slice(0, 3))
     } catch {
       setAnnouncements([])
@@ -38,7 +33,7 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
   useEffect(() => {
     let cancelled = false
 
-    fetchLeagueAnnouncements(leagueId)
+    fetchLeagueAnnouncements(leagueId, { homeOnly: true })
       .then((items) => {
         if (!cancelled) setAnnouncements(items.slice(0, 3))
       })
@@ -46,13 +41,9 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
         if (!cancelled) setAnnouncements([])
       })
 
-    const handleRefresh = () => {
-      void refreshAnnouncements()
-    }
+    const handleRefresh = () => void refreshAnnouncements()
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        void refreshAnnouncements()
-      }
+      if (document.visibilityState === "visible") void refreshAnnouncements()
     }
 
     window.addEventListener(ANNOUNCEMENTS_REFRESH_EVENT, handleRefresh)
@@ -65,40 +56,27 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
     }
   }, [leagueId, refreshAnnouncements])
 
-  if (announcements.length === 0) {
-    return null
-  }
+  if (announcements.length === 0) return null
 
   return (
-    <AppCard className="overflow-hidden p-0">
-      <div className="border-b border-neutral-100 px-4 py-3">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+    <section className="overflow-hidden rounded-2xl border border-orange-300 bg-orange-50 shadow-[0_2px_12px_rgba(234,88,12,0.08)]">
+      <div className="flex items-center gap-2 border-b border-orange-200 px-3 py-2">
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-orange-500 text-[11px] font-black text-white">!</span>
+        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-900">
           Comunicados
         </p>
       </div>
 
-      <div className="divide-y divide-neutral-100">
+      <div className="divide-y divide-orange-200">
         {announcements.map((announcement) => (
-          <article key={announcement.id} className="px-4 py-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <p className="font-black text-neutral-950">
-                    {announcement.title}
-                  </p>
-                  {announcement.pinned ? (
-                    <span className="rounded-full bg-neutral-950 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">
-                      Fijado
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 whitespace-pre-line text-sm font-semibold leading-5 text-neutral-600">
-                  {announcement.body}
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-2 text-[10px] font-bold text-neutral-400">
+          <article key={announcement.id} className="px-3 py-2.5">
+            <p className="text-sm font-black leading-4 text-orange-950">
+              {announcement.title}
+            </p>
+            <p className="mt-1 line-clamp-3 whitespace-pre-line text-xs font-semibold leading-4 text-orange-950/75">
+              {announcement.body}
+            </p>
+            <p className="mt-1.5 text-[9px] font-bold text-orange-800/60">
               {announcement.createdByDisplayName ?? "Administración"}
               {formatAnnouncementDate(announcement.publishedAt)
                 ? ` · ${formatAnnouncementDate(announcement.publishedAt)}`
@@ -107,6 +85,6 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
           </article>
         ))}
       </div>
-    </AppCard>
+    </section>
   )
 }

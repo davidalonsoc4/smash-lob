@@ -157,6 +157,10 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
   );
 }
 
+function getTargetUserIdsFromMetadata(event: ActivityEventRow) {
+  return toStringArray(toRecord(event.metadata).targetUserIds);
+}
+
 function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
   const metadata = toRecord(event.metadata);
 
@@ -737,30 +741,32 @@ async function getRecipients({
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
   event: ActivityEventRow;
 }) {
-  let membershipsQuery = supabase
+  const { data: memberships, error: membershipsError } = await supabase
     .from("league_memberships")
     .select("user_id,player_id")
     .eq("league_id", event.league_id);
-
-  const targetPlayerIds = await getTargetPlayerIds({ supabase, event });
-
-  if (!isLeagueWideEvent(event)) {
-    if (targetPlayerIds.length === 0) {
-      return [];
-    }
-
-    membershipsQuery = membershipsQuery.in("player_id", targetPlayerIds);
-  }
-
-  const { data: memberships, error: membershipsError } = await membershipsQuery;
 
   if (membershipsError) {
     throw membershipsError;
   }
 
+  const targetPlayerIds = new Set(await getTargetPlayerIds({ supabase, event }));
+  const targetUserIds = new Set(getTargetUserIdsFromMetadata(event));
+  const leagueWide = isLeagueWideEvent(event);
+  const relevantMemberships = ((memberships ?? []) as LeagueMembershipRow[]).filter(
+    (membership) =>
+      leagueWide ||
+      (membership.player_id ? targetPlayerIds.has(membership.player_id) : false) ||
+      (membership.user_id ? targetUserIds.has(membership.user_id) : false),
+  );
+
+  if (!leagueWide && relevantMemberships.length === 0) {
+    return [];
+  }
+
   const userIds = Array.from(
     new Set(
-      ((memberships ?? []) as LeagueMembershipRow[])
+      relevantMemberships
         .map((membership) => membership.user_id)
         .filter((userId): userId is string => Boolean(userId)),
     ),
@@ -781,7 +787,6 @@ async function getRecipients({
 
   const actorEmail = normalizeEmail(event.actor_email);
   const excludedPlayerIds = getExcludedPlayerIds(event);
-
   const emailByUserId = new Map(
     ((users ?? []) as AppUserRow[]).map((user) => [
       user.id,
@@ -791,26 +796,18 @@ async function getRecipients({
 
   return Array.from(
     new Map(
-      ((memberships ?? []) as LeagueMembershipRow[])
+      relevantMemberships
         .map((membership) => {
           const userId = membership.user_id;
           const email = userId ? (emailByUserId.get(userId) ?? "") : "";
           const playerId = membership.player_id;
 
-          if (!email || email === actorEmail) {
-            return null;
-          }
-
-          if (playerId && excludedPlayerIds.has(playerId)) {
-            return null;
-          }
+          if (!email || email === actorEmail) return null;
+          if (playerId && excludedPlayerIds.has(playerId)) return null;
 
           return [
             email,
-            {
-              email,
-              playerId,
-            } satisfies NotificationRecipient,
+            { email, playerId } satisfies NotificationRecipient,
           ] as const;
         })
         .filter((item): item is readonly [string, NotificationRecipient] =>
@@ -967,8 +964,16 @@ export async function dispatchPushForActivityEvent(
   }
 
   const event = eventData as ActivityEventRow;
+  const eventMetadata = toRecord(event.metadata);
 
-  if (!isAlwaysEnabledNotificationEvent(event.type)) {
+  if (eventMetadata.skipPush === true) {
+    return { ok: true, sent: 0, reason: "disabled_for_event" };
+  }
+
+  if (
+    !isAlwaysEnabledNotificationEvent(event.type) &&
+    eventMetadata.forcePush !== true
+  ) {
     const { data: leagueData, error: leagueError } = await supabase
       .from("leagues")
       .select("activity_settings")

@@ -129,11 +129,12 @@ export default function AdminPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } =
     useLeagueAccess()
-  const { activeLeague } = useCurrentLeagueData()
+  const { activeLeague, matches } = useCurrentLeagueData()
   const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const statusColorsEnabled = activeLeague.statusColorsEnabled !== false
+  const openIncidentCount = matches.filter((match) => match.incidentStatus === "open").length
 
   if (!canAccessAdmin) {
     return (
@@ -231,16 +232,22 @@ export default function AdminPage() {
           </AppCard>
         </Link>
 
-        <Link href="/admin/season/duplicate" className="block">
-          <AppCard className="transition active:scale-[0.99]">
+        <Link href="/admin/incidents" className="block">
+          <AppCard className={`transition active:scale-[0.99] ${openIncidentCount > 0 ? "border-amber-200 bg-amber-50" : ""}`}>
             <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Duplicar temporada</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold">Buzón de incidencias</p>
+                  {openIncidentCount > 0 ? (
+                    <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-black text-white">
+                      {openIncidentCount}
+                    </span>
+                  ) : null}
+                </div>
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Reutiliza jugadores, reglas y formato para preparar la siguiente temporada.
+                  Revisa y resuelve las incidencias pendientes de los partidos.
                 </p>
               </div>
-
               <span className="text-xl">&gt;</span>
             </div>
           </AppCard>
