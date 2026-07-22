@@ -1,65 +1,22 @@
-Smash & Lob v0.11.0 · Plantillas por autoinscripción y perfil global
+Smash & Lob v0.11.1 · Corrección de lint en perfil global
 
 Cambios principales:
-- Nuevo selector de plantilla fija o autoinscripción al crear una temporada.
-- En autoinscripción solo se indica la capacidad; creator ocupa la primera plaza.
-- Sala de espera con nombres, plazas disponibles, incorporación, salida y retirada administrativa.
-- Calendario generado al comenzar, únicamente cuando la plantilla está completa.
-- Operaciones transaccionales para incorporación, retirada e inicio de temporada.
-- Perfil global obligatorio con nombre y primer apellido precompletados desde Google cuando es posible.
-- Edición del nombre desde Ajustes y propagación a todas las ligas sin alterar IDs ni estadísticas.
-- Invitaciones adaptadas para ocupar una plaza sin seleccionar un jugador.
-- Notificaciones para creator/admin por incorporaciones, salidas y plantilla completa.
-- Compatibilidad completa con las temporadas de plantilla fija existentes.
-- Traducciones en español, inglés y euskera.
-- Versión visible actualizada a v0.11.0.
+- Eliminada la sincronización de estado mediante efectos en el formulario obligatorio de perfil.
+- Eliminada la sincronización de estado mediante efectos en la edición de nombre desde Ajustes.
+- La carga inicial del perfil utiliza una petición cancelable y actualiza React desde callbacks asíncronos.
+- Se conserva el prellenado con los datos de Google y el reinicio correcto de los formularios al cambiar el perfil.
+- Versión visible actualizada a v0.11.1.
 
 Base de datos:
-- Nueva migración: 20260722094500_add_self_registration_rosters.sql.
-- Aplicar únicamente en Supabase PRE durante la validación.
-- No ejecutar SQL manual ni aplicar todavía en producción.
+- Sin nuevas migraciones.
+- La migración v0.11.0 ya aplicada en Supabase PRE no debe repetirse.
+- No ejecutar SQL Editor ni db push para este parche.
 
 Archivos incluidos:
 - CHANGED_FILES.txt
-- docs/preproduction/SELF_REGISTRATION_V0.11.0.md
 - package-lock.json
 - package.json
-- src/app/admin/season/page.tsx
-- src/app/admin/users/page.tsx
-- src/app/api/access/route.ts
-- src/app/api/account/profile/route.ts
-- src/app/api/invites/[code]/claim/route.ts
-- src/app/api/invites/[code]/route.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/registration/route.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/start/route.ts
-- src/app/api/leagues/[id]/seasons/route.ts
-- src/app/layout.tsx
-- src/app/page.tsx
-- src/app/settings/page.tsx
 - src/components/auth/ProfileCompletionGate.tsx
-- src/components/invite/InviteFlow.tsx
-- src/components/layout/AppShell.tsx
-- src/components/season/SeasonRosterWaitingRoom.tsx
 - src/components/settings/AccountNameSettings.tsx
 - src/context/AccountProfileProvider.tsx
-- src/context/LeagueAccessProvider.tsx
-- src/context/SeasonSettingsProvider.tsx
-- src/data/fakeData.ts
-- src/i18n/locales/en.ts
-- src/i18n/locales/es.ts
-- src/i18n/locales/eu.ts
-- src/lib/accountProfile.ts
-- src/lib/activity.ts
-- src/lib/activitySettings.ts
 - src/lib/appVersion.ts
-- src/lib/notificationSettings.ts
-- src/lib/selfRegistration.ts
-- src/lib/serverActivity.ts
-- src/lib/serverAuth.ts
-- src/lib/serverLeagueAccess.ts
-- src/lib/serverPushDispatch.ts
-- src/lib/serverSeasonMutations.ts
-- src/lib/serverSelfRegistration.ts
-- src/lib/supabaseInvites.ts
-- src/lib/supabaseSeasons.ts
-- supabase/migrations/20260722094500_add_self_registration_rosters.sql

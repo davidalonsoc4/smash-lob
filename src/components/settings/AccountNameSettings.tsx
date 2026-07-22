@@ -1,25 +1,29 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import type { AccountProfile } from "@/lib/accountProfile"
 
-export function AccountNameSettings() {
+type AccountNameSettingsFormProps = {
+  initialFirstName: string
+  initialLastName: string
+  saveProfile: (firstName: string, lastName: string) => Promise<AccountProfile | null>
+}
+
+function AccountNameSettingsForm({
+  initialFirstName,
+  initialLastName,
+  saveProfile,
+}: AccountNameSettingsFormProps) {
   const { t } = useI18n()
-  const { profile, saveProfile } = useAccountProfile()
   const { refreshLeagueAccess } = useLeagueAccess()
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
+  const [firstName, setFirstName] = useState(initialFirstName)
+  const [lastName, setLastName] = useState(initialLastName)
   const [isSaving, setIsSaving] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!profile) return
-    setFirstName(profile.firstName)
-    setLastName(profile.lastName)
-  }, [profile])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -106,5 +110,22 @@ export function AccountNameSettings() {
         <p className="mt-2 text-xs font-bold text-red-600">{error}</p>
       ) : null}
     </form>
+  )
+}
+
+export function AccountNameSettings() {
+  const { profile, saveProfile } = useAccountProfile()
+
+  if (!profile) {
+    return null
+  }
+
+  return (
+    <AccountNameSettingsForm
+      key={`${profile.firstName}\u0000${profile.lastName}`}
+      initialFirstName={profile.firstName}
+      initialLastName={profile.lastName}
+      saveProfile={saveProfile}
+    />
   )
 }
