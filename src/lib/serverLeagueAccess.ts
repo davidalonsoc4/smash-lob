@@ -9,6 +9,9 @@ export type ServerLeagueActor = {
     id: string
     email: string
     displayName: string | null
+    firstName: string | null
+    lastName: string | null
+    profileCompletedAt: string | null
     avatarUrl: string | null
     isSuperuser: boolean
   }
@@ -61,28 +64,32 @@ export async function getServerLeagueViewer(
 
   const {
     supabase,
-    user: { id, email, displayName, avatarUrl, isSuperuser },
+    user: {
+      id,
+      email,
+      displayName,
+      firstName,
+      lastName,
+      profileCompletedAt,
+      avatarUrl,
+      isSuperuser,
+    },
   } = authResult.actor
 
-  const [membershipResult, spectatorResult] = isSuperuser
-    ? [
-        { data: null, error: null },
-        { data: null, error: null },
-      ]
-    : await Promise.all([
-        supabase
-          .from("league_memberships")
-          .select("role,player_id,joined_at")
-          .eq("league_id", leagueId)
-          .eq("user_id", id)
-          .maybeSingle(),
-        supabase
-          .from("league_spectators")
-          .select("joined_at")
-          .eq("league_id", leagueId)
-          .eq("user_id", id)
-          .maybeSingle(),
-      ])
+  const [membershipResult, spectatorResult] = await Promise.all([
+    supabase
+      .from("league_memberships")
+      .select("role,player_id,joined_at")
+      .eq("league_id", leagueId)
+      .eq("user_id", id)
+      .maybeSingle(),
+    supabase
+      .from("league_spectators")
+      .select("joined_at")
+      .eq("league_id", leagueId)
+      .eq("user_id", id)
+      .maybeSingle(),
+  ])
 
   if (membershipResult.error || spectatorResult.error) {
     return { ok: false, status: 500, error: "league_membership_lookup_failed" }
@@ -131,6 +138,9 @@ export async function getServerLeagueViewer(
         id,
         email: normalizeEmail(email),
         displayName,
+        firstName,
+        lastName,
+        profileCompletedAt,
         avatarUrl,
         isSuperuser,
       },

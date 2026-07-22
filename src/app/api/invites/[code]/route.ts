@@ -39,7 +39,7 @@ type SerializedError = {
 const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,created_by_user_id"
 const seasonSettingsSelect =
-  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds"
+  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode"
 function normalizeInviteCode(code: string) {
   return code.trim().toUpperCase()
 }
@@ -414,7 +414,27 @@ async function buildInviteResponse(
           (round: unknown): round is number => typeof round === "number"
         )
       : [],
-    registrationFee: normalizeSeasonRegistrationFee(undefined),
+    registrationFee: normalizeSeasonRegistrationFee(
+      "registration_fee" in settings ? settings.registration_fee : undefined,
+    ),
+    rosterMode:
+      settings.roster_mode === "self_registration"
+        ? "self_registration"
+        : "fixed",
+    playerCapacity:
+      typeof settings.player_capacity === "number"
+        ? settings.player_capacity
+        : null,
+    registrationOpen: Boolean(settings.registration_open),
+    rosterCompletedAt:
+      typeof settings.roster_completed_at === "string"
+        ? settings.roster_completed_at
+        : null,
+    scheduleMode:
+      settings.schedule_mode === "double" || settings.schedule_mode === "extended"
+        ? settings.schedule_mode
+        : "single",
+    calendarMode: settings.calendar_mode === "manual" ? "manual" : "balanced",
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

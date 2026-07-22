@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { LeagueSpectatorsPanel } from "@/components/admin/LeagueSpectatorsPanel"
 import { LeagueUsersManagementPanel } from "@/components/admin/LeagueUsersManagementPanel"
+import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -15,7 +16,7 @@ export default function AdminUsersPage() {
     hasLeagueAdminRole,
     updateLeagueShowRankingAvatars,
   } = useLeagueAccess()
-  const { activeLeague } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData()
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const showRankingAvatars = activeLeague.showRankingAvatars !== false
   const [isUpdatingRankingAvatars, setIsUpdatingRankingAvatars] = useState(false)
@@ -115,6 +116,16 @@ export default function AdminUsersPage() {
           </p>
         ) : null}
       </AppCard></div>
+
+      {activeSeason.status === "upcoming" &&
+      roundSettings.rosterMode === "self_registration" ? (
+        <div id="season-roster" className="settings-search-target">
+          <SeasonRosterWaitingRoom
+            leagueId={activeLeague.id}
+            seasonId={activeSeason.id}
+          />
+        </div>
+      ) : null}
 
       <div id="users" className="settings-search-target"><LeagueUsersManagementPanel leagueId={activeLeague.id} /></div>
       <div id="spectators" className="settings-search-target"><LeagueSpectatorsPanel leagueId={activeLeague.id} /></div>

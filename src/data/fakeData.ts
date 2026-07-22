@@ -21,6 +21,8 @@ export type League = {
   createdByUserId?: string | null
 }
 
+export type RosterMode = "fixed" | "self_registration"
+
 export type Season = {
   id: string
   leagueId: string
@@ -96,6 +98,12 @@ export type SeasonRoundSettings = {
   manualActiveRound: number | null
   manualCompletedRounds: number[]
   registrationFee: SeasonRegistrationFee
+  rosterMode?: RosterMode
+  playerCapacity?: number | null
+  registrationOpen?: boolean
+  rosterCompletedAt?: string | null
+  scheduleMode?: "single" | "double" | "extended"
+  calendarMode?: "balanced" | "manual"
 }
 
 export const currentUserId = "davo"

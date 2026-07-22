@@ -4,7 +4,15 @@ import type { League, UserLeagueMembership } from "@/data/fakeData"
 
 type ClaimPlayerResult =
   | { ok: true; membership: UserLeagueMembership }
-  | { ok: false; error: "already-in-league" | "player-already-claimed" }
+  | {
+      ok: false
+      error:
+        | "already-in-league"
+        | "player-already-claimed"
+        | "profile-incomplete"
+        | "roster-full"
+        | "registration-closed"
+    }
 
 export type SupabaseInviteSnapshot = {
   league: League
@@ -62,7 +70,7 @@ export async function claimSupabasePlayer({
 }: {
   code: string
   leagueId: string
-  playerId: string
+  playerId?: string
 }): Promise<ClaimPlayerResult> {
   const normalizedCode = normalizeInviteCode(code)
   const response = await fetch(
@@ -70,7 +78,7 @@ export async function claimSupabasePlayer({
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leagueId, playerId }),
+      body: JSON.stringify({ leagueId, playerId: playerId || null }),
       cache: "no-store",
     }
   )

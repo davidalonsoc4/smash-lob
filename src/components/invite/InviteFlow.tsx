@@ -201,7 +201,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const router = useRouter()
   const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const { activateGrantedLeague } = useActiveLeague()
-  const { seasons, getSeasonRoundSettings } = useSeasonSettings()
+  const { seasons, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const {
     getLeagueByInviteCode,
     resolveLeagueInvite,
@@ -362,6 +362,15 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     ? getSeasonRoundSettings(activeSeason.id)
     : null
   const registrationFee = activeSeasonSettings?.registrationFee ?? null
+  const isSelfRegistration =
+    activeSeasonSettings?.rosterMode === "self_registration"
+  const registeredCount = activeSeason
+    ? seasonPlayers.filter(
+        (seasonPlayer) =>
+          seasonPlayer.seasonId === activeSeason.id &&
+          seasonPlayer.status !== "withdrawn",
+      ).length
+    : 0
   const unclaimedPlayers = activeSeason
     ? getUnclaimedPlayersForLeague(league.id)
     : []
@@ -391,7 +400,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       return
     }
 
-    if (!selectedPlayerId) {
+    if (!isSelfRegistration && !selectedPlayerId) {
       setError(t.invites.selectPlayerError)
       return
     }
@@ -399,15 +408,24 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     setIsClaiming(true)
     setError(null)
 
-    const result = await claimPlayer(league.id, selectedPlayerId, normalizedCode)
+    const claimPlayerId = isSelfRegistration
+      ? "__self_registration__"
+      : selectedPlayerId
+    const result = await claimPlayer(league.id, claimPlayerId, normalizedCode)
 
     if (!result.ok) {
       setIsClaiming(false)
-      setError(
+      const claimError =
         result.error === "already-in-league"
           ? t.invites.alreadyInLeague
-          : t.invites.playerAlreadyClaimed
-      )
+          : result.error === "profile-incomplete"
+            ? t.invites.profileIncomplete
+            : result.error === "roster-full"
+              ? t.invites.rosterFull
+              : result.error === "registration-closed"
+                ? t.invites.registrationClosed
+                : t.invites.playerAlreadyClaimed
+      setError(claimError)
       return
     }
 
@@ -415,7 +433,10 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     // replaces the invitation. This prevents the previous league HOME from
     // becoming visible between saving the membership and hydrating the target.
     activateGrantedLeague(league.id)
-    void syncPushForInviteLeague(league.id, selectedPlayerId)
+    void syncPushForInviteLeague(
+      league.id,
+      isSelfRegistration ? result.membership.playerId : selectedPlayerId,
+    )
     router.replace("/")
   }
 
@@ -548,13 +569,24 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
         </AppCard>
       ) : (
         <AppCard>
-          <p className="font-bold">{t.invites.claimTitle}</p>
+          <p className="font-bold">
+            {isSelfRegistration
+              ? t.invites.selfRegistrationTitle
+              : t.invites.claimTitle}
+          </p>
           <p className="mt-2 text-sm text-neutral-500">
-            {activeSeason?.status === "finished"
-              ? t.invites.claimFinishedDescription
-              : activeSeason
-                ? t.invites.claimActiveDescription
-                : t.invites.claimDescription}
+            {isSelfRegistration
+              ? t.invites.selfRegistrationDescription
+                  .replace("{registered}", String(registeredCount))
+                  .replace(
+                    "{capacity}",
+                    String(activeSeasonSettings?.playerCapacity ?? 0),
+                  )
+              : activeSeason?.status === "finished"
+                ? t.invites.claimFinishedDescription
+                : activeSeason
+                  ? t.invites.claimActiveDescription
+                  : t.invites.claimDescription}
           </p>
 
           {!hasAcceptedRules ? (
@@ -563,7 +595,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             </p>
           ) : null}
 
-          {hasAcceptedRules && selectedPlayer ? (
+          {!isSelfRegistration && hasAcceptedRules && selectedPlayer ? (
             <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-3">
               <p className="text-xs font-semibold text-neutral-500">
                 {t.invites.selectedPlayer}
@@ -577,7 +609,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             </div>
           ) : null}
 
-          {hasAcceptedRules ? (
+          {!isSelfRegistration && hasAcceptedRules ? (
             <>
               <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
                 {activeSeason?.status === "finished"
@@ -602,16 +634,22 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             </>
           ) : null}
 
-          {hasAcceptedRules && unclaimedPlayers.length > 0 ? (
+          {!isSelfRegistration && hasAcceptedRules && unclaimedPlayers.length > 0 ? (
             <p className="mt-3 text-xs font-semibold text-neutral-500">
               {t.invites.inactivePlayersHidden}
             </p>
           ) : null}
 
-          {hasAcceptedRules && unclaimedPlayers.length === 0 ? (
+          {!isSelfRegistration && hasAcceptedRules && unclaimedPlayers.length === 0 ? (
             <p className="mt-3 text-sm font-semibold text-red-600">
               {t.invites.noPlayersAvailable}
             </p>
+          ) : null}
+
+          {isSelfRegistration && hasAcceptedRules ? (
+            <div className="mt-3 rounded-2xl bg-emerald-50 px-3 py-3 text-sm font-semibold leading-5 text-emerald-900">
+              {t.invites.selfRegistrationProfileNotice}
+            </div>
           ) : null}
 
           {error ? (
@@ -621,10 +659,18 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
           <button
             type="button"
             onClick={handleClaim}
-            disabled={!hasAcceptedRules || !selectedPlayerId || isClaiming}
+            disabled={
+              !hasAcceptedRules ||
+              (!isSelfRegistration && !selectedPlayerId) ||
+              isClaiming
+            }
             className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
           >
-            {isClaiming ? t.invites.claiming : t.invites.confirmClaim}
+            {isClaiming
+              ? t.invites.claiming
+              : isSelfRegistration
+                ? t.invites.selfRegistrationAction
+                : t.invites.confirmClaim}
           </button>
         </AppCard>
       )}

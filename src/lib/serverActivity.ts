@@ -32,6 +32,8 @@ type ActivityEventType =
   | "season_finished"
   | "season_created"
   | "season_started"
+  | "season_player_joined"
+  | "season_player_left"
   | "player_name_updated"
   | "player_avatar_updated"
   | "player_role_updated"
@@ -114,6 +116,8 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "season_finished" ||
     type === "season_created" ||
     type === "season_started" ||
+    type === "season_player_joined" ||
+    type === "season_player_left" ||
     type === "player_name_updated" ||
     type === "player_avatar_updated" ||
     type === "player_role_updated" ||

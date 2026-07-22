@@ -187,6 +187,18 @@ export const activityEventDefinitions: Record<
     personalScope: "league_wide",
     pushReady: true,
   },
+  season_player_joined: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "admin_only",
+    pushReady: true,
+  },
+  season_player_left: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "admin_only",
+    pushReady: true,
+  },
   player_name_updated: {
     category: "player",
     defaultMode: "personal",

@@ -54,7 +54,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     },
     {
       key: "season_events",
-      eventTypes: ["season_created", "season_started", "season_finished"],
+      eventTypes: ["season_created", "season_started", "season_finished", "season_player_joined", "season_player_left"],
     },
     {
       key: "booking_i_owe",

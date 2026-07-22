@@ -286,6 +286,8 @@ function getNotificationUrl(event: ActivityEventRow) {
     event.type === "season_created" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
+    event.type === "season_player_joined" ||
+    event.type === "season_player_left" ||
     event.type === "round_in_play" ||
     event.type === "round_mvp_awarded" ||
     event.type === "season_registration_payment_reminder"
@@ -377,6 +379,26 @@ function getNotificationTitle(
   event: ActivityEventRow,
   recipient: NotificationRecipient | null,
 ) {
+  if (event.type === "season_player_joined") {
+    const metadata = toRecord(event.metadata);
+    const registeredCount = toNumber(metadata.registeredCount);
+    const playerCapacity = toNumber(metadata.playerCapacity);
+
+    return registeredCount > 0 && playerCapacity > 0
+      ? `${event.actor_display_name ?? "Un jugador"} se ha unido · ${registeredCount}/${playerCapacity}.`
+      : `${event.actor_display_name ?? "Un jugador"} se ha unido a la temporada.`;
+  }
+
+  if (event.type === "season_player_left") {
+    const metadata = toRecord(event.metadata);
+    const registeredCount = toNumber(metadata.registeredCount);
+    const playerCapacity = toNumber(metadata.playerCapacity);
+
+    return registeredCount >= 0 && playerCapacity > 0
+      ? `La plantilla vuelve a tener ${registeredCount}/${playerCapacity} jugadores.`
+      : "Se ha liberado una plaza de la temporada.";
+  }
+
   if (event.type === "season_finished") {
     return "TEMPORADA FINALIZADA";
   }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { joinSelfRegistrationSeason } from "@/lib/serverSelfRegistration"
+import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -28,6 +30,10 @@ function toRole(role: unknown) {
     : "player"
 }
 
+function getProfileInitials(firstName: string, lastName: string) {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
@@ -38,7 +44,7 @@ export async function POST(
   const leagueId = validateUuid(body?.leagueId)
   const playerId = validateUuid(body?.playerId)
 
-  if (!normalizedCode || !leagueId || !playerId) {
+  if (!normalizedCode || !leagueId) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
@@ -53,8 +59,21 @@ export async function POST(
 
   const {
     supabase,
-    user: { id: userId, email },
+    user: {
+      id: userId,
+      email,
+      firstName,
+      lastName,
+      profileCompletedAt,
+      avatarUrl,
+    },
   } = authResult.actor
+
+  if (!profileCompletedAt || !firstName?.trim() || !lastName?.trim()) {
+    return NextResponse.json({ error: "profile-incomplete" }, { status: 409 })
+  }
+
+  const profileDisplayName = `${firstName.trim()} ${lastName.trim()}`
 
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
@@ -91,6 +110,103 @@ export async function POST(
     if (!invite) {
       return NextResponse.json({ error: "invite_not_found" }, { status: 404 })
     }
+  }
+
+  let selfRegistrationSeasonId =
+    typeof league.active_season_id === "string" ? league.active_season_id : ""
+
+  if (!selfRegistrationSeasonId) {
+    const { data: latestSeason, error: latestSeasonError } = await supabase
+      .from("seasons")
+      .select("id")
+      .eq("league_id", leagueId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (latestSeasonError) {
+      return NextResponse.json({ error: "season_lookup_failed" }, { status: 500 })
+    }
+
+    selfRegistrationSeasonId = latestSeason?.id ?? ""
+  }
+
+  if (selfRegistrationSeasonId) {
+    const { data: rosterSettings, error: rosterSettingsError } = await supabase
+      .from("season_settings")
+      .select("roster_mode")
+      .eq("season_id", selfRegistrationSeasonId)
+      .eq("league_id", leagueId)
+      .maybeSingle()
+
+    if (rosterSettingsError) {
+      return NextResponse.json({ error: "season_settings_lookup_failed" }, { status: 500 })
+    }
+
+    if (rosterSettings?.roster_mode === "self_registration") {
+      try {
+        const result = await joinSelfRegistrationSeason({
+          actor: authResult.actor,
+          leagueId,
+          seasonId: selfRegistrationSeasonId,
+        })
+        const { data: adminMemberships } = await supabase
+          .from("league_memberships")
+          .select("player_id,role")
+          .eq("league_id", leagueId)
+          .in("role", ["creator", "admin"])
+        const targetPlayerIds = (adminMemberships ?? [])
+          .map((item) => item.player_id)
+          .filter((item): item is string => typeof item === "string")
+
+        await recordServerActorActivity({
+          supabase,
+          user: authResult.actor.user,
+          membership: result.membership,
+          leagueId,
+          seasonId: selfRegistrationSeasonId,
+          type: "season_player_joined",
+          title: result.rosterComplete ? "Plantilla completa" : "Nuevo jugador inscrito",
+          description: result.rosterComplete
+            ? `${authResult.actor.user.displayName ?? email} ha ocupado la última plaza. Ya puedes comenzar la temporada.`
+            : `${authResult.actor.user.displayName ?? email} se ha unido a la temporada.`,
+          metadata: {
+            playerId: result.playerId,
+            registeredCount: result.registeredCount,
+            playerCapacity: result.playerCapacity,
+            rosterComplete: result.rosterComplete,
+            targetPlayerIds,
+          },
+        }).catch(() => null)
+
+        return NextResponse.json({
+          ok: true,
+          membership: result.membership,
+          selfRegistration: {
+            registeredCount: result.registeredCount,
+            playerCapacity: result.playerCapacity,
+            rosterComplete: result.rosterComplete,
+          },
+        })
+      } catch (joinError) {
+        const message = joinError instanceof Error ? joinError.message : "self_registration_join_failed"
+        if (message.includes("profile_incomplete")) {
+          return NextResponse.json({ error: "profile-incomplete" }, { status: 409 })
+        }
+        if (message.includes("roster_full")) {
+          return NextResponse.json({ error: "roster-full" }, { status: 409 })
+        }
+        if (message.includes("registration_closed")) {
+          return NextResponse.json({ error: "registration-closed" }, { status: 409 })
+        }
+
+        return NextResponse.json({ error: "self-registration-failed" }, { status: 500 })
+      }
+    }
+  }
+
+  if (!playerId) {
+    return NextResponse.json({ error: "invalid_player" }, { status: 400 })
   }
 
   const { data: player, error: playerError } = await supabase
@@ -253,6 +369,20 @@ export async function POST(
     }
 
     return NextResponse.json({ error: "membership_create_failed" }, { status: 500 })
+  }
+
+  const { error: playerProfileError } = await supabase
+    .from("players")
+    .update({
+      display_name: profileDisplayName,
+      avatar_initials: getProfileInitials(firstName, lastName),
+      avatar_url: avatarUrl,
+    })
+    .eq("id", playerId)
+    .eq("league_id", leagueId)
+
+  if (playerProfileError) {
+    // The membership is authoritative. A later global profile save will retry the name propagation.
   }
 
   const { error: spectatorDeleteError } = await supabase
