@@ -1,4 +1,4 @@
-Smash & Lob v0.10.13 · Transición correcta al crear una liga
+Smash & Lob v0.10.14 · Transiciones de liga y temporada robustas
 
 Archivos incluidos:
 - CHANGED_FILES.txt
@@ -6,15 +6,18 @@ Archivos incluidos:
 - package-lock.json
 - src/lib/appVersion.ts
 - src/context/ActiveLeagueProvider.tsx
-- src/app/league/new/page.tsx
+- src/context/LeagueAccessProvider.tsx
+- src/components/invite/InviteFlow.tsx
+- src/app/admin/season/page.tsx
 
 Cambios:
-- La transición de liga ahora conoce la ruta de destino que debe esperar antes de liberar la pantalla de carga.
-- Las invitaciones siguen terminando en la HOME de la liga aceptada.
-- Al crear una liga nueva, la transición termina directamente en /admin/season para configurar la primera temporada.
-- Se evita que la pantalla «Entrando en la liga» quede bloqueada esperando una HOME que no corresponde al flujo de creación.
-- La liga recién creada permanece fijada como activa mientras se hidratan la membresía y los datos de acceso.
-- Versión visible actualizada a v0.10.13.
+- Al crear correctamente una temporada, la aplicación navega directamente a la HOME de la liga activa.
+- La membresía obtenida al reclamar un jugador se normaliza y se aplica inmediatamente al estado local.
+- Tras unirse a una liga se solicita en segundo plano una recarga del acceso completo desde Supabase.
+- La transición acepta como válido el acceso recién concedido por una operación confirmada por servidor, evitando esperar indefinidamente a una instantánea cliente desfasada.
+- Si la transición no termina, se intenta primero router.refresh() y después una navegación completa automática a la ruta de destino.
+- Durante esos reintentos se mantiene la pantalla «Entrando en la liga», sin mostrar la HOME de la liga anterior.
+- Versión visible actualizada a v0.10.14.
 
 Base de datos:
 - Sin migraciones nuevas.

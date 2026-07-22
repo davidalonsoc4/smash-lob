@@ -208,6 +208,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     getMembershipForLeague,
     getUnclaimedPlayersForLeague,
     claimPlayer,
+    refreshLeagueAccess,
   } = useLeagueAccess()
   const resolveLeagueInviteRef = useRef(resolveLeagueInvite)
   const localLeagueRef = useRef(getLeagueByInviteCode)
@@ -375,6 +376,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     }
 
     activateGrantedLeague(league.id)
+    void refreshLeagueAccess()
     void syncPushForInviteLeague(league.id, existingMembership?.playerId || null)
     router.replace("/")
   }

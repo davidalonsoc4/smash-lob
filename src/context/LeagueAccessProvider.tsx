@@ -70,6 +70,7 @@ type LeagueAccessContextValue = {
   spectatorLeagueIds: string[];
   isAccessHydrated: boolean;
   userLeagues: League[];
+  refreshLeagueAccess: () => Promise<boolean>;
   createLeague: (settings: {
     name: string;
     description: string;
@@ -618,6 +619,66 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     sessionStatus,
     userId,
   ]);
+
+  const refreshLeagueAccess = useCallback(async () => {
+    if (!userId) {
+      return false;
+    }
+
+    try {
+      const snapshot = await fetchSupabaseLeagueSnapshot();
+      const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : [];
+      const fallbackMemberships = isDemoDataEnabled()
+        ? defaultUserLeagueMemberships
+        : [];
+
+      setIsSuperuserFromDb(snapshot.isSuperuser);
+      setCanCreateLeaguesFromDb(snapshot.canCreateLeagues);
+      setSpectatorLeagueIds(snapshot.spectatorLeagueIds);
+      writeCachedSpectatorLeagueIds(userId, snapshot.spectatorLeagueIds);
+
+      setLeagues((currentLeagues) => {
+        const nextLeagues = mergeLeagues(
+          mergeLeagues(fallbackLeagues, currentLeagues),
+          snapshot.leagues,
+        );
+        const customLeagues = nextLeagues.filter(
+          (league) =>
+            !defaultLeagues.some(
+              (defaultLeague) => defaultLeague.id === league.id,
+            ),
+        );
+
+        window.localStorage.setItem(
+          leaguesStorageKey,
+          JSON.stringify(customLeagues),
+        );
+
+        return nextLeagues;
+      });
+      setMemberships((currentMemberships) => {
+        const nextMemberships = mergeMemberships(
+          mergeMemberships(fallbackMemberships, currentMemberships),
+          snapshot.memberships,
+        );
+
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify(nextMemberships),
+        );
+
+        return nextMemberships;
+      });
+      hydrateMatches(snapshot.matches);
+      hydrateSeasonSnapshot(snapshot.seasonSnapshot);
+      setHydratedAccessUserId(userId);
+
+      return true;
+    } catch (error) {
+      recordSupabaseError("refresh-league-access", error);
+      return false;
+    }
+  }, [hydrateMatches, hydrateSeasonSnapshot, userId]);
 
   const persistMemberships = useCallback(
     (nextMemberships: UserLeagueMembership[]) => {
@@ -1453,9 +1514,17 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           });
 
           if (result.ok) {
+            const normalizedMembership = {
+              ...result.membership,
+              userId,
+            };
+
             persistMemberships(
-              mergeMemberships(memberships, [result.membership]),
+              mergeMemberships(memberships, [normalizedMembership]),
             );
+            void refreshLeagueAccess();
+
+            return { ok: true, membership: normalizedMembership };
           }
 
           return result;
@@ -1476,7 +1545,13 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
       return { ok: true, membership };
     },
-    [getLeagueInviteCode, memberships, persistMemberships, userId],
+    [
+      getLeagueInviteCode,
+      memberships,
+      persistMemberships,
+      refreshLeagueAccess,
+      userId,
+    ],
   );
 
   const linkCurrentUserToLeaguePlayer = useCallback(
@@ -1585,6 +1660,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       spectatorLeagueIds,
       isAccessHydrated,
       userLeagues,
+      refreshLeagueAccess,
       createLeague,
       getMembershipForLeague,
       getLeagueInviteCode,
@@ -1637,6 +1713,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueStatusColorsEnabled,
       updateLeagueShowRankingAvatars,
       resolveLeagueInvite,
+      refreshLeagueAccess,
       isLeagueAdmin,
       isLeagueSpectator,
       hasLeagueAdminRole,

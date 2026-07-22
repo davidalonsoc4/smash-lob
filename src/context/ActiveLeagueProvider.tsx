@@ -34,7 +34,7 @@ const storageKey = "smash-lob-active-league"
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
+  const { leagues, userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
   const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
@@ -104,8 +104,9 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
 
     const targetIsReady =
       effectiveActiveLeagueId === transitioningLeagueId &&
-      canAccessLeague(transitioningLeagueId) &&
-      userLeagues.some((league) => league.id === transitioningLeagueId)
+      leagues.some((league) => league.id === transitioningLeagueId) &&
+      (canAccessLeague(transitioningLeagueId) ||
+        grantedLeagueId === transitioningLeagueId)
 
     if (!targetIsReady) {
       return
@@ -131,11 +132,34 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   }, [
     canAccessLeague,
     effectiveActiveLeagueId,
+    grantedLeagueId,
+    leagues,
     pathname,
     transitioningLeagueId,
     transitionDestinationPath,
-    userLeagues,
   ])
+
+  useEffect(() => {
+    if (!transitioningLeagueId) {
+      return
+    }
+
+    // A soft refresh normally makes the just-created membership visible to all
+    // client contexts. If the client transition still cannot settle, perform a
+    // single full navigation. This mirrors the manual refresh that already
+    // recovers the flow, while keeping the previous league hidden meanwhile.
+    const refreshTimer = window.setTimeout(() => {
+      router.refresh()
+    }, 1500)
+    const reloadTimer = window.setTimeout(() => {
+      window.location.replace(transitionDestinationPath)
+    }, 4500)
+
+    return () => {
+      window.clearTimeout(refreshTimer)
+      window.clearTimeout(reloadTimer)
+    }
+  }, [router, transitioningLeagueId, transitionDestinationPath])
 
   const persistActiveLeague = useCallback((leagueId: string) => {
     if (!leagueId) {
