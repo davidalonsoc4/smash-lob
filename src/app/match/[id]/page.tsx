@@ -183,6 +183,7 @@ export default function MatchDetailPage() {
   const resultIsLocked = confirmationsEnabled && match.resultLocked
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
+  const canViewCourtBooking = isMatchParticipant || isAdmin
   const hasOpenIncident = match.incidentStatus === "open"
   const isExceptionalResolution = Boolean(
     match.resolutionType &&
@@ -381,14 +382,15 @@ export default function MatchDetailPage() {
                 players={players}
                 scheduledAt={match.scheduledAt}
                 location={calendarLocation}
-                className="min-w-0"
+                className="min-w-0 flex-1"
               />
             ) : null
           }
         />
       ) : null}
 
-      {(match.status === "scheduled" || match.courtBooking.isReserved) ? (
+      {(match.status === "scheduled" || match.courtBooking.isReserved) &&
+      canViewCourtBooking ? (
         <CourtBookingPanel
           matchId={match.id}
           teamA={match.teamA}

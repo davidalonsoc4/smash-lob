@@ -88,6 +88,48 @@ function formatWinPercentage(player: DashboardPlayer) {
   return `${Math.round((player.wins / player.matchesPlayed) * 100)}%`;
 }
 
+function CrownIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+      <path
+        d="m4 7 4.2 4L12 5l3.8 6L20 7l-1.2 10H5.2L4 7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 20h12"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+      <rect
+        x="3.5"
+        y="5.5"
+        width="17"
+        height="15"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M8 3.5v4M16 3.5v4M3.5 10h17"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 
 
 function capitalizeFirstLetter(value: string | null | undefined) {
@@ -1001,9 +1043,12 @@ export default function Home() {
       {!isSeasonClosed && !isSeasonUpcoming ? (
         <div className="grid grid-cols-2 gap-3">
           <AppCard className="p-3">
-            <p className="text-xs font-semibold text-neutral-500">
-              {t.dashboard.leader}
-            </p>
+            <div className="flex items-center gap-1.5 text-neutral-500">
+              <span aria-hidden="true">
+                <CrownIcon />
+              </span>
+              <p className="text-xs font-semibold">{t.dashboard.leader}</p>
+            </div>
             {hasMeaningfulResults && leader ? (
               <Link
                 href={`/player/${leader.slug ?? leader.id}`}
@@ -1037,6 +1082,7 @@ export default function Home() {
                       ? "Fuera de plazo"
                       : "Próxima"
                 }
+                icon={<CalendarIcon />}
               />
             </Link>
           ) : (
@@ -1044,6 +1090,7 @@ export default function Home() {
               label={t.dashboard.rounds}
               value="-"
               helper={t.dashboard.regularLeague}
+              icon={<CalendarIcon />}
             />
           )}
         </div>
