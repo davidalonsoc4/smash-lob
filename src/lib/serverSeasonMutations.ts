@@ -244,6 +244,19 @@ async function getSeasonPlayerIds({
     .filter((playerId): playerId is string => typeof playerId === "string")
 }
 
+type EditableSeasonRoundSettings = Pick<
+  SeasonRoundSettings,
+  | "roundWindowMode"
+  | "seasonStartsAt"
+  | "roundWindowDays"
+  | "requiresThreeSets"
+  | "mvpSystem"
+  | "resultConfirmationMode"
+  | "manualActiveRound"
+  | "manualCompletedRounds"
+  | "registrationFee"
+>
+
 export async function updateServerSeasonRoundSettings({
   supabase,
   leagueId,
@@ -253,7 +266,7 @@ export async function updateServerSeasonRoundSettings({
   supabase: SupabaseClient
   leagueId: string
   seasonId: string
-  settings: SeasonRoundSettings
+  settings: EditableSeasonRoundSettings
 }) {
   const seasonPlayerIds = await getSeasonPlayerIds({
     supabase,

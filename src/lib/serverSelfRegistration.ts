@@ -3,6 +3,14 @@ import "server-only"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
 import type { UserLeagueMembership } from "@/data/fakeData"
 
+type SelfRegistrationActor = {
+  supabase: ServerLeagueActor["supabase"]
+  user: Pick<
+    ServerLeagueActor["user"],
+    "id" | "email" | "displayName" | "isSuperuser"
+  >
+}
+
 export type SelfRegistrationJoinResult = {
   playerId: string
   registeredCount: number
@@ -20,7 +28,7 @@ export async function joinSelfRegistrationSeason({
   leagueId,
   seasonId,
 }: {
-  actor: ServerLeagueActor
+  actor: SelfRegistrationActor
   leagueId: string
   seasonId: string
 }): Promise<SelfRegistrationJoinResult> {
@@ -74,7 +82,7 @@ export async function removeSelfRegistrationPlayer({
   seasonId,
   playerId,
 }: {
-  actor: ServerLeagueActor
+  actor: SelfRegistrationActor
   leagueId: string
   seasonId: string
   playerId: string

@@ -1,22 +1,22 @@
-Smash & Lob v0.11.2 · Corrección de tipos en actividad de autoinscripción
+Smash & Lob v0.11.3 · Correcciones acumulativas de tipos de autoinscripción
 
 Cambios principales:
-- Añadidas las etiquetas de actividad para altas de jugadores en una temporada.
-- Añadidas las etiquetas de actividad para bajas antes del inicio.
-- Traducciones completadas en español, inglés y euskera.
-- Corregido el error TypeScript al indexar activity.labels con season_player_joined y season_player_left.
-- Versión visible actualizada a v0.11.2.
+- El alta desde una invitación acepta un usuario autenticado aunque todavía no tenga membresía en la liga.
+- La edición de ajustes de temporada acepta únicamente los campos editables de esa pantalla.
+- La ruta de ajustes ya no envía leagueId ni seasonId dentro del objeto settings; ambos continúan pasándose como argumentos independientes.
+- Los nuevos campos de autoinscripción no se sobrescriben ni se exigen al editar los ajustes generales.
+- Se mantiene la versión visible v0.11.3 porque estas correcciones forman parte del mismo cambio todavía no confirmado.
 
 Base de datos:
 - Sin nuevas migraciones.
 - La migración v0.11.0 ya aplicada en Supabase PRE no debe repetirse.
 - No ejecutar SQL Editor ni db push para este parche.
 
-Archivos incluidos:
+Archivos incluidos en este parche acumulativo:
 - CHANGED_FILES.txt
-- package-lock.json
 - package.json
-- src/i18n/locales/en.ts
-- src/i18n/locales/es.ts
-- src/i18n/locales/eu.ts
+- package-lock.json
 - src/lib/appVersion.ts
+- src/lib/serverSelfRegistration.ts
+- src/lib/serverSeasonMutations.ts
+- src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts
