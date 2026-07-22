@@ -1,22 +1,23 @@
-Smash & Lob v0.11.3 · Correcciones acumulativas de tipos de autoinscripción
+Smash & Lob v0.11.4 · Pulido de perfil y sala de inscripción
 
 Cambios principales:
-- El alta desde una invitación acepta un usuario autenticado aunque todavía no tenga membresía en la liga.
-- La edición de ajustes de temporada acepta únicamente los campos editables de esa pantalla.
-- La ruta de ajustes ya no envía leagueId ni seasonId dentro del objeto settings; ambos continúan pasándose como argumentos independientes.
-- Los nuevos campos de autoinscripción no se sobrescriben ni se exigen al editar los ajustes generales.
-- Se mantiene la versión visible v0.11.3 porque estas correcciones forman parte del mismo cambio todavía no confirmado.
+- La pantalla de carga del perfil queda centrada verticalmente, igual que las transiciones de liga y temporada.
+- La sala de espera de autoinscripción en HOME es bastante más compacta.
+- La acción de liberar una plaza se representa mediante una X pequeña y discreta con confirmación.
+- Nombre y primer apellido se normalizan automáticamente: primera letra de cada palabra en mayúscula y el resto en minúscula.
+- La normalización también contempla nombres compuestos, guiones y apóstrofes.
+- El control se aplica al completar el perfil, editarlo desde Ajustes y guardar en servidor.
 
 Base de datos:
 - Sin nuevas migraciones.
-- La migración v0.11.0 ya aplicada en Supabase PRE no debe repetirse.
-- No ejecutar SQL Editor ni db push para este parche.
+- No ejecutar SQL Editor ni db push.
 
-Archivos incluidos en este parche acumulativo:
+Archivos incluidos:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/lib/serverSelfRegistration.ts
-- src/lib/serverSeasonMutations.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts
+- src/lib/accountProfile.ts
+- src/components/auth/ProfileCompletionGate.tsx
+- src/components/settings/AccountNameSettings.tsx
+- src/components/season/SeasonRosterWaitingRoom.tsx

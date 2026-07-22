@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { normalizeProfileName } from "@/lib/accountProfile"
 import type { AccountProfile } from "@/lib/accountProfile"
 
 type AccountNameSettingsFormProps = {
@@ -27,8 +28,8 @@ function AccountNameSettingsForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const cleanFirstName = firstName.trim()
-    const cleanLastName = lastName.trim()
+    const cleanFirstName = normalizeProfileName(firstName, 40)
+    const cleanLastName = normalizeProfileName(lastName, 60)
 
     if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
       setError(t.accountProfile.validationError)
@@ -76,6 +77,7 @@ function AccountNameSettingsForm({
           <input
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
+            onBlur={() => setFirstName(normalizeProfileName(firstName, 40))}
             autoComplete="given-name"
             maxLength={40}
             className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:border-neutral-500"
@@ -88,6 +90,7 @@ function AccountNameSettingsForm({
           <input
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
+            onBlur={() => setLastName(normalizeProfileName(lastName, 60))}
             autoComplete="family-name"
             maxLength={60}
             className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:border-neutral-500"
