@@ -8,6 +8,9 @@ type ActivityEventType =
   | "match_scheduled"
   | "match_schedule_updated"
   | "match_postponed"
+  | "match_incident_reported"
+  | "match_incident_resolved"
+  | "match_incident_cleared"
   | "match_result_saved"
   | "match_result_updated"
   | "match_result_disputed"
@@ -29,8 +32,11 @@ type ActivityEventType =
   | "league_logo_updated"
   | "league_locations_updated"
   | "league_invite_regenerated"
+  | "league_announcement_published"
+  | "league_announcement_deleted"
   | "season_finished"
   | "season_created"
+  | "season_duplicated"
   | "season_started"
   | "season_player_joined"
   | "season_player_left"
@@ -92,6 +98,9 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_scheduled" ||
     type === "match_schedule_updated" ||
     type === "match_postponed" ||
+    type === "match_incident_reported" ||
+    type === "match_incident_resolved" ||
+    type === "match_incident_cleared" ||
     type === "match_result_saved" ||
     type === "match_result_updated" ||
     type === "match_result_disputed" ||
@@ -113,8 +122,11 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "league_logo_updated" ||
     type === "league_locations_updated" ||
     type === "league_invite_regenerated" ||
+    type === "league_announcement_published" ||
+    type === "league_announcement_deleted" ||
     type === "season_finished" ||
     type === "season_created" ||
+    type === "season_duplicated" ||
     type === "season_started" ||
     type === "season_player_joined" ||
     type === "season_player_left" ||

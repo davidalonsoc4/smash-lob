@@ -306,3 +306,38 @@ export async function startSupabaseSeason({
     linkedMembership: payload.linkedMembership ?? null,
   };
 }
+
+export async function duplicateSupabaseSeason({
+  leagueId,
+  seasonId,
+  name,
+}: {
+  leagueId: string
+  seasonId: string
+  name: string
+}): Promise<{ snapshot: SeasonSnapshot; matches: MatchData[] }> {
+  const payload = await readSeasonApiPayload<{
+    snapshot?: SeasonSnapshot
+    matches?: MatchData[]
+  }>(
+    await fetch(
+      `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/duplicate`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+        cache: "no-store",
+      },
+    ),
+    "season-duplicate-api",
+  )
+
+  if (!payload.snapshot) {
+    throw new Error("season-duplicate-api-empty")
+  }
+
+  return {
+    snapshot: payload.snapshot,
+    matches: payload.matches ?? [],
+  }
+}

@@ -231,6 +231,51 @@ export default function AdminPage() {
           </AppCard>
         </Link>
 
+        <Link href="/admin/season/duplicate" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Duplicar temporada</p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Reutiliza jugadores, reglas y formato para preparar la siguiente temporada.
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+
+        <Link href="/admin/announcements" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Comunicados</p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Publica avisos en la HOME y envía notificaciones a la liga.
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+
+        <Link href="/admin/exports" className="block">
+          <AppCard className="transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold">Exportar datos</p>
+                <p className="mt-1 text-xs font-semibold text-neutral-500">
+                  Descarga clasificación y resultados de cualquier temporada en CSV.
+                </p>
+              </div>
+
+              <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+
         <Link href="/admin/substitutes" className="block">
           <AppCard className="transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">

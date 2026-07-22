@@ -12,7 +12,7 @@ import type {
 } from "@/context/MatchDataProvider"
 
 export const matchSelect =
-  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at,result_reported_by_player_id,result_locked,court_reserved,booking_reservations,booking_transfers,booking_updated_at"
+  "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_recorded_at,result_reported_by_player_id,result_locked,court_reserved,booking_reservations,booking_transfers,booking_updated_at,incident_type,incident_status,incident_reason,incident_notes,incident_created_at,incident_resolved_at,resolution_type,ranking_counts"
 
 type MatchSet = {
   a: number
@@ -191,6 +191,40 @@ export function mapSupabaseMatch(match: Record<string, unknown>): MatchData {
         ? match.result_reported_by_player_id
         : null,
     resultLocked: Boolean(match.result_locked),
+    rankingCounts: match.ranking_counts !== false,
+    incidentType:
+      match.incident_type === "injury" ||
+      match.incident_type === "no_show" ||
+      match.incident_type === "cancelled" ||
+      match.incident_type === "disputed" ||
+      match.incident_type === "other"
+        ? match.incident_type
+        : null,
+    incidentStatus:
+      match.incident_status === "open" || match.incident_status === "resolved"
+        ? match.incident_status
+        : null,
+    incidentReason:
+      typeof match.incident_reason === "string" ? match.incident_reason : null,
+    incidentNotes:
+      typeof match.incident_notes === "string" ? match.incident_notes : null,
+    incidentCreatedAt:
+      typeof match.incident_created_at === "string"
+        ? match.incident_created_at
+        : null,
+    incidentResolvedAt:
+      typeof match.incident_resolved_at === "string"
+        ? match.incident_resolved_at
+        : null,
+    resolutionType:
+      match.resolution_type === "played" ||
+      match.resolution_type === "postponed" ||
+      match.resolution_type === "cancelled" ||
+      match.resolution_type === "no_show" ||
+      match.resolution_type === "abandoned" ||
+      match.resolution_type === "administrative"
+        ? match.resolution_type
+        : null,
     courtBooking: mapCourtBooking(match),
   }
 }

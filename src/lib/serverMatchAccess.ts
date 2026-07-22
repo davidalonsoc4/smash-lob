@@ -63,6 +63,14 @@ export async function getServerMatchActor(
           reporterPlayerId: string | null
           resultRecordedAt: string | null
           resultLocked: boolean
+          rankingCounts: boolean
+          incidentType: ReturnType<typeof mapSupabaseMatch>["incidentType"]
+          incidentStatus: ReturnType<typeof mapSupabaseMatch>["incidentStatus"]
+          incidentReason: string | null
+          incidentNotes: string | null
+          incidentCreatedAt: string | null
+          incidentResolvedAt: string | null
+          resolutionType: ReturnType<typeof mapSupabaseMatch>["resolutionType"]
           courtBooking: ReturnType<typeof mapSupabaseMatch>["courtBooking"]
         }
       }
@@ -178,6 +186,14 @@ export async function getServerMatchActor(
         reporterPlayerId: mappedMatch.resultReportedByPlayerId,
         resultRecordedAt: mappedMatch.resultRecordedAt,
         resultLocked: mappedMatch.resultLocked,
+        rankingCounts: mappedMatch.rankingCounts,
+        incidentType: mappedMatch.incidentType,
+        incidentStatus: mappedMatch.incidentStatus,
+        incidentReason: mappedMatch.incidentReason,
+        incidentNotes: mappedMatch.incidentNotes,
+        incidentCreatedAt: mappedMatch.incidentCreatedAt,
+        incidentResolvedAt: mappedMatch.incidentResolvedAt,
+        resolutionType: mappedMatch.resolutionType,
         courtBooking: mappedMatch.courtBooking,
       },
     },

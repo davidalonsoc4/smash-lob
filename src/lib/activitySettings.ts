@@ -43,6 +43,24 @@ export const activityEventDefinitions: Record<
     personalScope: "match_participants",
     pushReady: true,
   },
+  match_incident_reported: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_incident_resolved: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
+  match_incident_cleared: {
+    category: "match",
+    defaultMode: "personal",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
   match_result_saved: {
     category: "match",
     defaultMode: "notify",
@@ -169,6 +187,18 @@ export const activityEventDefinitions: Record<
     personalScope: "admin_only",
     pushReady: false,
   },
+  league_announcement_published: {
+    category: "league",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
+  league_announcement_deleted: {
+    category: "league",
+    defaultMode: "activity_only",
+    personalScope: "admin_only",
+    pushReady: false,
+  },
   season_finished: {
     category: "season",
     defaultMode: "notify",
@@ -176,6 +206,12 @@ export const activityEventDefinitions: Record<
     pushReady: true,
   },
   season_created: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
+  season_duplicated: {
     category: "season",
     defaultMode: "notify",
     personalScope: "league_wide",
