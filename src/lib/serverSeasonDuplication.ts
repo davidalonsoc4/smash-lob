@@ -42,6 +42,8 @@ type SettingsRow = {
   result_confirmation_mode: "required" | "optional" | "none"
   registration_fee: unknown
   schedule_mode: "single" | "double" | "extended"
+  allow_player_incidents?: boolean | null
+  allow_player_substitutions?: boolean | null
 }
 
 type PlayerRow = {
@@ -51,7 +53,7 @@ type PlayerRow = {
   display_name: string
   avatar_initials: string
   avatar_url: string | null
-  user_id: string | null
+  user_id?: string | null
 }
 
 function mapSeason(row: SeasonRow): Season {
@@ -119,7 +121,7 @@ export async function duplicateServerSeason({
     supabase
       .from("season_settings")
       .select(
-        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode",
+        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions",
       )
       .eq("season_id", sourceSeasonId)
       .eq("league_id", leagueId)
@@ -186,13 +188,42 @@ export async function duplicateServerSeason({
 
   const { data: playerRows, error: playerRowsError } = await supabase
     .from("players")
-    .select("id,league_id,slug,display_name,avatar_initials,avatar_url,user_id")
+    .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
     .eq("league_id", leagueId)
     .in("id", playerIds)
 
   if (playerRowsError || (playerRows ?? []).length !== playerIds.length) {
     throw new SeasonDuplicationError(500, "season_duplicate_player_profiles_failed")
   }
+
+  const { data: playerMemberships, error: playerMembershipsError } = await supabase
+    .from("league_memberships")
+    .select("player_id,user_id")
+    .eq("league_id", leagueId)
+    .in("player_id", playerIds)
+
+  if (playerMembershipsError) {
+    throw new SeasonDuplicationError(500, "season_duplicate_player_memberships_failed")
+  }
+
+  const userIdByPlayerId = new Map<string, string>()
+  for (const membership of (playerMemberships ?? []) as {
+    player_id: unknown
+    user_id: unknown
+  }[]) {
+    if (
+      typeof membership.player_id === "string" &&
+      typeof membership.user_id === "string"
+    ) {
+      userIdByPlayerId.set(membership.player_id, membership.user_id)
+    }
+  }
+  const hydratedPlayerRows: PlayerRow[] = (
+    (playerRows ?? []) as Omit<PlayerRow, "user_id">[]
+  ).map((player) => ({
+    ...player,
+    user_id: userIdByPlayerId.get(player.id) ?? null,
+  }))
 
   const scheduleMode =
     sourceSettings.schedule_mode === "double" ||
@@ -304,6 +335,8 @@ export async function duplicateServerSeason({
     rosterCompletedAt: new Date().toISOString(),
     scheduleMode,
     calendarMode: "balanced",
+    allowPlayerIncidents: sourceSettings.allow_player_incidents !== false,
+    allowPlayerSubstitutions: sourceSettings.allow_player_substitutions !== false,
   }
 
   const { error: settingsCreateError } = await supabase
@@ -326,6 +359,8 @@ export async function duplicateServerSeason({
       roster_completed_at: settings.rosterCompletedAt,
       schedule_mode: scheduleMode,
       calendar_mode: "balanced",
+      allow_player_incidents: settings.allowPlayerIncidents,
+      allow_player_substitutions: settings.allowPlayerSubstitutions,
     })
 
   if (settingsCreateError) {
@@ -345,7 +380,7 @@ export async function duplicateServerSeason({
 
   const snapshot: SeasonSnapshot = {
     seasons: [mapSeason(sourceSeason), mapSeason(duplicatedSeason)],
-    playerProfiles: ((playerRows ?? []) as PlayerRow[]).map(mapPlayer),
+    playerProfiles: hydratedPlayerRows.map(mapPlayer),
     seasonPlayers: playerIds.map(
       (playerId): SeasonPlayer => ({
         seasonId: duplicatedSeason.id,

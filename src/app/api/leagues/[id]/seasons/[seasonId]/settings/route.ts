@@ -21,6 +21,8 @@ type UpdateSeasonSettingsBody = {
   manualActiveRound?: unknown
   manualCompletedRounds?: unknown
   registrationFee?: unknown
+  allowPlayerIncidents?: unknown
+  allowPlayerSubstitutions?: unknown
 }
 
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/
@@ -131,6 +133,14 @@ export async function PUT(
   const manualActiveRound = parseOptionalPositiveInteger(body?.manualActiveRound)
   const manualCompletedRounds = parseManualCompletedRounds(body?.manualCompletedRounds)
   const registrationFee = parseRegistrationFee(body?.registrationFee)
+  const allowPlayerIncidents =
+    typeof body?.allowPlayerIncidents === "boolean"
+      ? body.allowPlayerIncidents
+      : null
+  const allowPlayerSubstitutions =
+    typeof body?.allowPlayerSubstitutions === "boolean"
+      ? body.allowPlayerSubstitutions
+      : null
 
   if (
     !roundWindowMode ||
@@ -138,7 +148,9 @@ export async function PUT(
     !mvpSystem ||
     !resultConfirmationMode ||
     !manualCompletedRounds ||
-    !registrationFee
+    !registrationFee ||
+    allowPlayerIncidents === null ||
+    allowPlayerSubstitutions === null
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
@@ -173,6 +185,8 @@ export async function PUT(
         manualActiveRound,
         manualCompletedRounds,
         registrationFee,
+        allowPlayerIncidents,
+        allowPlayerSubstitutions,
       },
     })
 

@@ -134,7 +134,9 @@ export async function PUT(
   if (
     access.actor.match.incidentStatus === "open" ||
     (access.actor.match.resolutionType &&
-      access.actor.match.resolutionType !== "played")
+      !["continue", "substitute", "reset_result", "played"].includes(
+        access.actor.match.resolutionType,
+      ))
   ) {
     return NextResponse.json(
       { error: "match_incident_resolution_required" },
@@ -388,7 +390,9 @@ export async function DELETE(
   if (
     access.actor.match.incidentStatus === "open" ||
     (access.actor.match.resolutionType &&
-      access.actor.match.resolutionType !== "played")
+      !["continue", "substitute", "reset_result", "played"].includes(
+        access.actor.match.resolutionType,
+      ))
   ) {
     return NextResponse.json(
       { error: "match_incident_resolution_required" },

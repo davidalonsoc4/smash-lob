@@ -104,6 +104,8 @@ export type SeasonRoundSettings = {
   rosterCompletedAt?: string | null
   scheduleMode?: "single" | "double" | "extended"
   calendarMode?: "balanced" | "manual"
+  allowPlayerIncidents?: boolean
+  allowPlayerSubstitutions?: boolean
 }
 
 export const currentUserId = "davo"

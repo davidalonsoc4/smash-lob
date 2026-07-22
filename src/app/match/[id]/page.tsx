@@ -4,12 +4,11 @@ import { useParams, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
-import { MatchIncidentPanel } from "@/components/match/MatchIncidentPanel"
+import { MatchActionsMenu } from "@/components/match/MatchActionsMenu"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
-import { MatchSubstitutionPanel } from "@/components/match/MatchSubstitutionPanel"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
@@ -186,7 +185,10 @@ export default function MatchDetailPage() {
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
   const hasOpenIncident = match.incidentStatus === "open"
   const isExceptionalResolution = Boolean(
-    match.resolutionType && match.resolutionType !== "played",
+    match.resolutionType &&
+      !["continue", "substitute", "reset_result", "played"].includes(
+        match.resolutionType,
+      ),
   )
   const canEnterResult =
     canManageMatch &&
@@ -227,8 +229,14 @@ export default function MatchDetailPage() {
   )
   const shouldShowSchedulePanel =
     match.status !== "finished" || hasSchedule
-  const shouldShowSubstitutionPanel =
-    canManageMatch && match.status !== "finished" && !hasOpenIncident
+  const canReportIncident =
+    !isSeasonUpcoming &&
+    isMatchParticipant &&
+    roundSettings.allowPlayerIncidents
+  const canManageSubstitutions =
+    !isSeasonUpcoming &&
+    isMatchParticipant &&
+    roundSettings.allowPlayerSubstitutions
   const shouldShowResultWorkflow =
     match.status === "finished" &&
     !hasOpenIncident &&
@@ -283,17 +291,13 @@ export default function MatchDetailPage() {
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 
-      <div className="flex flex-wrap gap-2">
-        <MatchIncidentPanel
-          match={match}
-          players={players}
-          canReport={canManageMatch}
-          isAdmin={isAdmin}
-        />
-        {shouldShowSubstitutionPanel ? (
-          <MatchSubstitutionPanel match={match} players={players} />
-        ) : null}
-      </div>
+      <MatchActionsMenu
+        match={match}
+        players={players}
+        isAdmin={isAdmin}
+        canReportIncident={canReportIncident}
+        canManageSubstitutions={canManageSubstitutions}
+      />
 
       {shouldShowResultWorkflow ? (
         <MatchResultConfirmationCard

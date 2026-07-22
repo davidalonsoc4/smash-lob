@@ -3820,6 +3820,128 @@ function NewSeasonForm({
   );
 }
 
+
+function PlayerMatchActionsSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [allowIncidents, setAllowIncidents] = useState(
+    roundSettings.allowPlayerIncidents,
+  );
+  const [allowSubstitutions, setAllowSubstitutions] = useState(
+    roundSettings.allowPlayerSubstitutions,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasChanges =
+    allowIncidents !== roundSettings.allowPlayerIncidents ||
+    allowSubstitutions !== roundSettings.allowPlayerSubstitutions;
+
+  async function save() {
+    if (isSaving || !hasChanges) return;
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      allowPlayerIncidents: allowIncidents,
+      allowPlayerSubstitutions: allowSubstitutions,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError("update-season-player-match-actions", supabaseError);
+        setError("No se han podido guardar los permisos de acciones de partido.");
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+    setFeedback("Permisos de los jugadores actualizados.");
+    setIsSaving(false);
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Acciones de partido para jugadores</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Creator y administradores siempre conservarán estas opciones. Los cambios
+        solo afectan a los jugadores normales de esta temporada.
+      </p>
+
+      <div className="mt-3 space-y-2">
+        <label className="flex items-start gap-3 rounded-2xl border border-neutral-200 px-3 py-3">
+          <input
+            type="checkbox"
+            checked={allowIncidents}
+            onChange={(event) => {
+              setAllowIncidents(event.target.checked);
+              setFeedback(null);
+            }}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-black">Permitir comunicar incidencias</span>
+            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+              Los participantes podrán abrir una incidencia desde Más acciones.
+            </span>
+          </span>
+        </label>
+
+        <label className="flex items-start gap-3 rounded-2xl border border-neutral-200 px-3 py-3">
+          <input
+            type="checkbox"
+            checked={allowSubstitutions}
+            onChange={(event) => {
+              setAllowSubstitutions(event.target.checked);
+              setFeedback(null);
+            }}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-black">Permitir gestionar suplentes</span>
+            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+              Los participantes podrán asignar o retirar suplentes de sus partidos.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={isSaving || !hasChanges}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving ? "Guardando..." : "Guardar permisos"}
+      </button>
+
+      {feedback ? (
+        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
 export default function AdminSeasonPage() {
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole } = useLeagueAccess();
@@ -3920,7 +4042,11 @@ export default function AdminSeasonPage() {
             ? "Solo se puede duplicar una temporada terminada."
             : code.includes("season_player_count_invalid")
               ? "La última temporada no tiene un número válido de jugadores activos."
-              : `No se ha podido duplicar la temporada${code ? ` (${code})` : ""}.`,
+              : code.includes("season_duplicate_player_profiles_failed")
+                ? "No se han podido recuperar todos los jugadores de la última temporada."
+                : code.includes("season_duplicate_player_memberships_failed")
+                  ? "No se han podido recuperar las vinculaciones de los jugadores."
+                  : `No se ha podido duplicar la temporada${code ? ` (${code})` : ""}.`,
       );
     } finally {
       setIsDuplicatingSeason(false);
@@ -3981,6 +4107,9 @@ export default function AdminSeasonPage() {
               <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Confirmación
               </a>
+              <a href="#acciones-partido" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Acciones
+              </a>
               {roundSettings.registrationFee.enabled ? (
                 <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                   Inscripción
@@ -4017,6 +4146,9 @@ export default function AdminSeasonPage() {
               </a>
               <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Confirmación
+              </a>
+              <a href="#acciones-partido" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                Acciones
               </a>
               {roundSettings.registrationFee.enabled ? (
                 <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
@@ -4098,6 +4230,13 @@ export default function AdminSeasonPage() {
 
           <div id="confirmaciones" className="settings-search-target">
             <ResultConfirmationSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="acciones-partido" className="settings-search-target">
+            <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
@@ -4197,6 +4336,13 @@ export default function AdminSeasonPage() {
 
           <div id="confirmaciones" className="settings-search-target">
             <ResultConfirmationSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="acciones-partido" className="settings-search-target">
+            <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />

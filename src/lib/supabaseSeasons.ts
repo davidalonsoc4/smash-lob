@@ -50,6 +50,8 @@ export async function updateSupabaseSeasonRoundSettings(
           manualActiveRound: settings.manualActiveRound,
           manualCompletedRounds: settings.manualCompletedRounds,
           registrationFee: settings.registrationFee,
+          allowPlayerIncidents: settings.allowPlayerIncidents,
+          allowPlayerSubstitutions: settings.allowPlayerSubstitutions,
         }),
         cache: "no-store",
       },
