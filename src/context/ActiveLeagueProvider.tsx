@@ -15,6 +15,8 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
 type ActiveLeagueContextValue = {
   activeLeagueId: string
+  isLeagueTransitioning: boolean
+  transitioningLeagueId: string | null
   activateLeague: (leagueId: string) => boolean
   activateGrantedLeague: (leagueId: string) => void
   changeActiveLeague: (leagueId: string) => void
@@ -36,6 +38,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
   const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
+  const [transitioningLeagueId, setTransitioningLeagueId] = useState<string | null>(null)
   const effectiveActiveLeagueId = grantedLeagueId
     ? grantedLeagueId
     : canAccessLeague(activeLeagueId)
@@ -92,6 +95,46 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     }
   }, [canAccessLeague, grantedLeagueId, isAccessHydrated, userLeagues])
 
+
+  useEffect(() => {
+    if (!transitioningLeagueId || pathname !== "/") {
+      return
+    }
+
+    const targetIsReady =
+      effectiveActiveLeagueId === transitioningLeagueId &&
+      canAccessLeague(transitioningLeagueId) &&
+      userLeagues.some((league) => league.id === transitioningLeagueId)
+
+    if (!targetIsReady) {
+      return
+    }
+
+    // Keep the transition screen visible until the HOME route has committed at
+    // least one paint with the newly selected league. This prevents the
+    // previous league HOME from flashing while React applies the membership,
+    // league and season snapshots returned by the invitation flow.
+    let secondFrame = 0
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        setTransitioningLeagueId(null)
+      })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame)
+      if (secondFrame) {
+        window.cancelAnimationFrame(secondFrame)
+      }
+    }
+  }, [
+    canAccessLeague,
+    effectiveActiveLeagueId,
+    pathname,
+    transitioningLeagueId,
+    userLeagues,
+  ])
+
   const persistActiveLeague = useCallback((leagueId: string) => {
     if (!leagueId) {
       return
@@ -125,6 +168,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
         return
       }
 
+      setTransitioningLeagueId(leagueId)
       setGrantedLeagueId(leagueId)
       persistActiveLeague(leagueId)
     },
@@ -165,6 +209,8 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const value = useMemo(
     () => ({
       activeLeagueId: effectiveActiveLeagueId,
+      isLeagueTransitioning: Boolean(transitioningLeagueId),
+      transitioningLeagueId,
       activateLeague,
       activateGrantedLeague,
       changeActiveLeague,
@@ -176,6 +222,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
       changeActiveLeague,
       effectiveActiveLeagueId,
       setActiveLeagueId,
+      transitioningLeagueId,
     ],
   )
 

@@ -49,6 +49,9 @@ export const eu = {
     description: "Berretsi liga eta erreklamatu zuri dagokizun jokalaria.",
     loadingDescription:
       "Gonbidapena egiaztatzen eta liga datu-basetik kargatzen.",
+    enteringLeagueTitle: "Ligan sartzen",
+    enteringLeagueDescription:
+      "{leagueName} kargatzen ari gara. Dena prest dagoenean zuzenean haren HOME pantailara joango zara.",
     checkingCode: "Kodea egiaztatzen",
     checkingCodeDescription: "Gonbidapen honi lotutako liga bilatzen ari gara.",
     codeLabel: "Gonbidapen kodea",
