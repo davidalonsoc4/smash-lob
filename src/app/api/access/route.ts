@@ -187,7 +187,7 @@ export async function GET() {
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee"
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode"
       )
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
@@ -333,6 +333,24 @@ export async function GET() {
         )
       : [],
     registrationFee: normalizeSeasonRegistrationFee(settings.registration_fee),
+    rosterMode:
+      settings.roster_mode === "self_registration"
+        ? "self_registration"
+        : "fixed",
+    playerCapacity:
+      typeof settings.player_capacity === "number"
+        ? settings.player_capacity
+        : null,
+    registrationOpen: Boolean(settings.registration_open),
+    rosterCompletedAt:
+      typeof settings.roster_completed_at === "string"
+        ? settings.roster_completed_at
+        : null,
+    scheduleMode:
+      settings.schedule_mode === "double" || settings.schedule_mode === "extended"
+        ? settings.schedule_mode
+        : "single",
+    calendarMode: settings.calendar_mode === "manual" ? "manual" : "balanced",
   }))
   const substitutionsByMatchId = new Map<
     string,

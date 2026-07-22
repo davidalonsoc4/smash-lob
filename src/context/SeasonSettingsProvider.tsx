@@ -16,6 +16,7 @@ import {
   type PlayerProfile,
   type Season,
   type SeasonPlayer,
+  type RosterMode,
 } from "@/data/fakeData";
 import {
   getNewPlayerIndexFromToken,
@@ -36,6 +37,15 @@ import {
 
 export type RoundWindowMode = "none" | "fixed-days";
 
+
+function normalizeSeasonScheduleMode(value: unknown): SeasonScheduleMode {
+  return value === "double" || value === "extended" ? value : "single";
+}
+
+function normalizeCalendarMode(value: unknown): "balanced" | "manual" {
+  return value === "manual" ? "manual" : "balanced";
+}
+
 export type SeasonRoundSettings = {
   leagueId: string;
   seasonId: string;
@@ -48,6 +58,12 @@ export type SeasonRoundSettings = {
   manualActiveRound: number | null;
   manualCompletedRounds: number[];
   registrationFee: SeasonRegistrationFee;
+  rosterMode: RosterMode;
+  playerCapacity: number | null;
+  registrationOpen: boolean;
+  rosterCompletedAt: string | null;
+  scheduleMode: SeasonScheduleMode;
+  calendarMode: "balanced" | "manual";
 };
 
 type SeasonSettingsContextValue = {
@@ -157,6 +173,27 @@ function normalizeSettings(
       : [],
     registrationFee: normalizeSeasonRegistrationFee(
       (settings as Partial<SeasonRoundSettings>).registrationFee,
+    ),
+    rosterMode:
+      (settings as Partial<SeasonRoundSettings>).rosterMode === "self_registration"
+        ? "self_registration"
+        : "fixed",
+    playerCapacity:
+      typeof (settings as Partial<SeasonRoundSettings>).playerCapacity === "number"
+        ? (settings as Partial<SeasonRoundSettings>).playerCapacity ?? null
+        : null,
+    registrationOpen: Boolean(
+      (settings as Partial<SeasonRoundSettings>).registrationOpen,
+    ),
+    rosterCompletedAt:
+      typeof (settings as Partial<SeasonRoundSettings>).rosterCompletedAt === "string"
+        ? (settings as Partial<SeasonRoundSettings>).rosterCompletedAt ?? null
+        : null,
+    scheduleMode: normalizeSeasonScheduleMode(
+      (settings as Partial<SeasonRoundSettings>).scheduleMode,
+    ),
+    calendarMode: normalizeCalendarMode(
+      (settings as Partial<SeasonRoundSettings>).calendarMode,
     ),
   };
 }
@@ -322,7 +359,7 @@ function parseStoredSettings(
       };
     });
 
-    const extraSettings = parsed
+    const extraSettings: SeasonRoundSettings[] = parsed
       .filter((storedSetting) => {
         return !mergedSettings.some(
           (setting) => setting.seasonId === storedSetting.seasonId,
@@ -351,6 +388,21 @@ function parseStoredSettings(
         registrationFee: normalizeSeasonRegistrationFee(
           storedSetting.registrationFee,
         ),
+        rosterMode:
+          storedSetting.rosterMode === "self_registration"
+            ? "self_registration"
+            : "fixed",
+        playerCapacity:
+          typeof storedSetting.playerCapacity === "number"
+            ? storedSetting.playerCapacity
+            : null,
+        registrationOpen: Boolean(storedSetting.registrationOpen),
+        rosterCompletedAt:
+          typeof storedSetting.rosterCompletedAt === "string"
+            ? storedSetting.rosterCompletedAt
+            : null,
+        scheduleMode: normalizeSeasonScheduleMode(storedSetting.scheduleMode),
+        calendarMode: normalizeCalendarMode(storedSetting.calendarMode),
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -372,6 +424,12 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
+    rosterMode: "fixed",
+    playerCapacity: null,
+    registrationOpen: false,
+    rosterCompletedAt: null,
+    scheduleMode: "single",
+    calendarMode: "balanced",
   };
 }
 
@@ -763,6 +821,12 @@ export function SeasonSettingsProvider({
         purpose: registrationFeePurpose,
         playerIds,
       }),
+      rosterMode: "fixed",
+      playerCapacity: playerIds.length,
+      registrationOpen: false,
+      rosterCompletedAt: new Date().toISOString(),
+      scheduleMode: "single",
+      calendarMode: "balanced",
     });
 
     return { seasonId, playerIds };
@@ -913,6 +977,12 @@ export function SeasonSettingsProvider({
           ? [resolvedRegistrationRecipientPlayerId]
           : [],
       }),
+      rosterMode: "fixed",
+      playerCapacity: finalPlayerIds.length,
+      registrationOpen: false,
+      rosterCompletedAt: new Date().toISOString(),
+      scheduleMode,
+      calendarMode: "balanced",
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

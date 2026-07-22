@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
+import { AccountNameSettings } from "@/components/settings/AccountNameSettings"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -289,6 +290,8 @@ function SpectatorSettingsPage({
         <div className="mt-3 rounded-2xl bg-neutral-50 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
           Puedes consultar Home, ranking, partidos, resultados y perfiles. No puedes modificar datos ni acceder a la actividad interna.
         </div>
+
+        <AccountNameSettings />
       </AppCard></div>
 
       <Link href="/leagues" className="block settings-search-target" id="leagues">
@@ -653,6 +656,7 @@ function PlayerSettingsPage() {
           </p>
         </div>
 
+        <AccountNameSettings />
         <AccountAvatarSettings />
 
         <div className="mt-3 grid gap-2">

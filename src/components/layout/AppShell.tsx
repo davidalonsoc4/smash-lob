@@ -86,7 +86,13 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
     isPlayerClaimed,
     regenerateLeagueInviteCode,
   } = useLeagueAccess()
-  const { activeLeague, players } = useCurrentLeagueData()
+  const {
+    activeLeague,
+    activeSeason,
+    roundSettings,
+    players,
+  } = useCurrentLeagueData()
+  const { seasonPlayers } = useSeasonSettings()
 
   if (!isLeagueAdmin(activeLeague.id)) {
     return null
@@ -96,8 +102,22 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
     (player) => !isPlayerClaimed(activeLeague.id, player.id)
   )
   const inviteCode = getLeagueInviteCode(activeLeague.id)
+  const registeredCount = seasonPlayers.filter(
+    (item) =>
+      item.seasonId === activeSeason.id && item.status !== "withdrawn",
+  ).length
+  const selfRegistrationSlots =
+    roundSettings.rosterMode === "self_registration" &&
+    roundSettings.registrationOpen &&
+    roundSettings.playerCapacity
+      ? Math.max(roundSettings.playerCapacity - registeredCount, 0)
+      : 0
+  const inviteCount =
+    roundSettings.rosterMode === "self_registration"
+      ? selfRegistrationSlots
+      : unclaimedPlayers.length
 
-  if (unclaimedPlayers.length === 0) {
+  if (inviteCount === 0) {
     return null
   }
 
@@ -105,7 +125,7 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
     <FloatingInviteShareButton
       initialInviteCode={inviteCode}
       leagueName={activeLeague.name}
-      unclaimedCount={unclaimedPlayers.length}
+      unclaimedCount={inviteCount}
       rightOffsetPx={rightOffsetPx}
       onGenerateInviteCode={() => regenerateLeagueInviteCode(activeLeague.id)}
     />
