@@ -1,5 +1,6 @@
 "use client"
 
+import { useCallback, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
@@ -81,8 +82,45 @@ export function BottomNav() {
   const pathname = usePathname()
   const { t } = useI18n()
   const { activeLeagueId } = useActiveLeague()
-  const { isLeagueSpectator } = useLeagueAccess()
+  const { isLeagueSpectator, refreshLeagueAccess } = useLeagueAccess()
   const spectatorMode = isLeagueSpectator(activeLeagueId)
+  const isSoftRefreshingRef = useRef(false)
+  const lastSoftRefreshAtRef = useRef(Date.now())
+
+  const softRefreshHomeData = useCallback(async () => {
+    if (isSoftRefreshingRef.current) {
+      return
+    }
+
+    isSoftRefreshingRef.current = true
+
+    try {
+      await refreshLeagueAccess()
+      lastSoftRefreshAtRef.current = Date.now()
+    } finally {
+      isSoftRefreshingRef.current = false
+    }
+  }, [refreshLeagueAccess])
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState !== "visible") {
+        return
+      }
+
+      const dataAge = Date.now() - lastSoftRefreshAtRef.current
+
+      if (dataAge >= 30_000) {
+        void softRefreshHomeData()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [softRefreshHomeData])
 
   const playerNavItems: NavItem[] = [
     {
@@ -155,9 +193,15 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               onClick={(event) => {
-                if (item.href === "/" && pathname === "/") {
+                if (item.href !== "/") {
+                  return
+                }
+
+                void softRefreshHomeData()
+
+                if (pathname === "/") {
                   event.preventDefault()
-                  window.location.reload()
+                  window.scrollTo({ top: 0, behavior: "smooth" })
                 }
               }}
               className={
