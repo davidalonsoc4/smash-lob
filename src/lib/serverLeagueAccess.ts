@@ -12,6 +12,7 @@ export type ServerLeagueActor = {
     firstName: string | null
     lastName: string | null
     profileCompletedAt: string | null
+    availabilityCompletedAt: string | null
     avatarUrl: string | null
     isSuperuser: boolean
   }
@@ -71,6 +72,7 @@ export async function getServerLeagueViewer(
       firstName,
       lastName,
       profileCompletedAt,
+      availabilityCompletedAt,
       avatarUrl,
       isSuperuser,
     },
@@ -141,6 +143,7 @@ export async function getServerLeagueViewer(
         firstName,
         lastName,
         profileCompletedAt,
+        availabilityCompletedAt,
         avatarUrl,
         isSuperuser,
       },

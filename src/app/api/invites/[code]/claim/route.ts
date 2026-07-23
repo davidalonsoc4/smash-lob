@@ -65,11 +65,17 @@ export async function POST(
       firstName,
       lastName,
       profileCompletedAt,
+      availabilityCompletedAt,
       avatarUrl,
     },
   } = authResult.actor
 
-  if (!profileCompletedAt || !firstName?.trim() || !lastName?.trim()) {
+  if (
+    !profileCompletedAt ||
+    !availabilityCompletedAt ||
+    !firstName?.trim() ||
+    !lastName?.trim()
+  ) {
     return NextResponse.json({ error: "profile-incomplete" }, { status: 409 })
   }
 

@@ -7,7 +7,12 @@ type SelfRegistrationActor = {
   supabase: ServerLeagueActor["supabase"]
   user: Pick<
     ServerLeagueActor["user"],
-    "id" | "email" | "displayName" | "isSuperuser"
+    | "id"
+    | "email"
+    | "displayName"
+    | "isSuperuser"
+    | "profileCompletedAt"
+    | "availabilityCompletedAt"
   >
 }
 
@@ -32,6 +37,13 @@ export async function joinSelfRegistrationSeason({
   leagueId: string
   seasonId: string
 }): Promise<SelfRegistrationJoinResult> {
+  if (
+    !actor.user.profileCompletedAt ||
+    !actor.user.availabilityCompletedAt
+  ) {
+    throw new Error("profile_incomplete")
+  }
+
   const { data, error } = await actor.supabase.rpc(
     "server_join_self_registration_season",
     {

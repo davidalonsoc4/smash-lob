@@ -3,7 +3,7 @@ import "server-only"
 import { auth } from "@/auth"
 import { normalizeStoredImageUrl } from "@/lib/serverImageValidation"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
-import { splitGoogleDisplayName } from "@/lib/accountProfile"
+import { normalizeAccountStandardAvailability, splitGoogleDisplayName } from "@/lib/accountProfile"
 
 export type AuthenticatedAppUser = {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>
@@ -14,6 +14,9 @@ export type AuthenticatedAppUser = {
     firstName: string | null
     lastName: string | null
     profileCompletedAt: string | null
+    availabilityCompletedAt: string | null
+    standardAvailabilityTimezone: string
+    standardAvailabilityWeeklySlots: ReturnType<typeof normalizeAccountStandardAvailability>
     avatarUrl: string | null
     isSuperuser: boolean
     canCreateLeagues: boolean
@@ -43,7 +46,7 @@ export async function requireAuthenticatedAppUser(): Promise<
 
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
-    .select("id,display_name,first_name,last_name,profile_completed_at,avatar_url,is_superuser,can_create_leagues")
+    .select("id,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,is_superuser,can_create_leagues")
     .eq("email", email)
     .maybeSingle()
 
@@ -73,6 +76,11 @@ export async function requireAuthenticatedAppUser(): Promise<
         first_name: firstName,
         last_name: lastName,
         profile_completed_at: existingUser?.profile_completed_at ?? null,
+        availability_completed_at: existingUser?.availability_completed_at ?? null,
+        standard_availability_timezone:
+          existingUser?.standard_availability_timezone ?? "Europe/Madrid",
+        standard_availability_weekly_slots:
+          existingUser?.standard_availability_weekly_slots ?? {},
         avatar_url:
           normalizeStoredImageUrl(existingUser?.avatar_url) ??
           normalizeStoredImageUrl(session?.user?.image) ??
@@ -82,7 +90,7 @@ export async function requireAuthenticatedAppUser(): Promise<
       },
       { onConflict: "email" }
     )
-    .select("id,email,display_name,first_name,last_name,profile_completed_at,avatar_url,is_superuser,can_create_leagues")
+    .select("id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,is_superuser,can_create_leagues")
     .single()
 
   if (userError) {
@@ -100,6 +108,12 @@ export async function requireAuthenticatedAppUser(): Promise<
         firstName: user.first_name ?? null,
         lastName: user.last_name ?? null,
         profileCompletedAt: user.profile_completed_at ?? null,
+        availabilityCompletedAt: user.availability_completed_at ?? null,
+        standardAvailabilityTimezone:
+          user.standard_availability_timezone ?? "Europe/Madrid",
+        standardAvailabilityWeeklySlots: normalizeAccountStandardAvailability(
+          user.standard_availability_weekly_slots,
+        ),
         avatarUrl: normalizeStoredImageUrl(user.avatar_url) ?? null,
         isSuperuser: Boolean(user.is_superuser),
         canCreateLeagues: Boolean(user.can_create_leagues),

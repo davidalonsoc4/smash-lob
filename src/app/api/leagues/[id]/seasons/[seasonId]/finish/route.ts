@@ -6,6 +6,7 @@ import {
   isSeasonMutationError,
 } from "@/lib/serverSeasonMutations"
 import { validateUuid } from "@/lib/serverRequest"
+import { getServerSeasonAwards } from "@/lib/serverSeasonAwards"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -27,11 +28,23 @@ export async function POST(
   }
 
   try {
+    const awards = await getServerSeasonAwards({
+      supabase: access.actor.supabase,
+      leagueId,
+      seasonId,
+    }).catch(() => ({
+      winnerPlayerIds: [],
+      winnerNames: [],
+      mvpPlayerIds: [],
+      mvpNames: [],
+    }))
     const snapshot = await finishServerActiveSeason({
       supabase: access.actor.supabase,
       leagueId,
       season: access.season,
     })
+    const winnerText = awards.winnerNames.join(" / ")
+    const mvpText = awards.mvpNames.join(" / ")
 
     await recordServerActorActivity({
       supabase: access.actor.supabase,
@@ -41,10 +54,22 @@ export async function POST(
       seasonId,
       type: "season_finished",
       title: "Temporada finalizada",
-      description: "La temporada ha finalizado.",
+      description: [
+        winnerText ? `Ganador: ${winnerText}.` : null,
+        mvpText ? `MVP: ${mvpText}.` : null,
+      ]
+        .filter((item): item is string => Boolean(item))
+        .join(" ") || "La temporada ha finalizado.",
       metadata: {
         automatic: false,
         totalRounds: access.season.totalRounds,
+        includeActor: true,
+        winnerName: awards.winnerNames[0] ?? null,
+        winnerPlayerIds: awards.winnerPlayerIds,
+        winnerNames: awards.winnerNames,
+        mvpName: awards.mvpNames[0] ?? null,
+        mvpPlayerIds: awards.mvpPlayerIds,
+        mvpNames: awards.mvpNames,
       },
     }).catch(() => null)
 

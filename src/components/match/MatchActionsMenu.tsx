@@ -80,20 +80,26 @@ export function MatchActionsTrigger({
   }
 
   return (
-    <div className="relative flex justify-end">
+    <div
+      className="fixed z-40"
+      style={{
+        right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
+        bottom: "calc(84px + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
       <button
         type="button"
         aria-expanded={menuOpen}
         aria-label="Más acciones del partido"
         title="Más acciones"
         onClick={() => onMenuOpenChange(!menuOpen)}
-        className="flex h-5 w-7 items-center justify-center rounded-full text-sm font-black leading-none text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 active:scale-95"
+        className="grid h-10 w-10 place-items-center rounded-full border border-neutral-200 bg-white/95 text-neutral-600 shadow-lg backdrop-blur transition active:scale-95 active:bg-neutral-100"
       >
-        <span aria-hidden="true" className="-mt-1 tracking-[0.08em]">•••</span>
+        <span aria-hidden="true" className="-mt-1 text-base font-black tracking-[0.08em]">•••</span>
       </button>
 
       {menuOpen ? (
-        <div className="absolute right-0 top-6 z-30 min-w-52 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 text-left shadow-xl">
+        <div className="absolute bottom-12 right-0 z-30 min-w-52 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 text-left shadow-xl">
           {canOpenIncident ? (
             <button
               type="button"
