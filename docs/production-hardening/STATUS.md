@@ -1,3 +1,12 @@
+
+## v0.13.2 cumulative application-admin package (2026-07-23)
+
+- Rebuilt the complete v0.13.x delivery from the original staging snapshot plus the v0.13.0 application-administration changes.
+- Retains the v0.12.7 scheduling-panel and compact statistics season-selector refinements.
+- Corrects the v0.13.1 upcoming-roster refresh so Supabase snapshots replace stale season/player membership data for the leagues represented by the snapshot.
+- The correction is client-state-only and does not add or modify database migrations beyond `20260723133000_add_application_admin_controls.sql`.
+- Version advanced to v0.13.2 because the previously delivered v0.13.1 package did not pass TypeScript validation.
+
 # Production Hardening Status
 
 Last updated: 2026-07-20 18:49:40 +02:00
@@ -6,6 +15,13 @@ Production branch confirmed from Git + Vercel: `main`
 Production source version retained in this run: `v0.9.71`
 Staging source commit retained in this run: `78f1986` (`v0.10.0`)
 Active milestone state: `H20-H23 complete; environment isolation repair complete`
+
+## Post-hardening fix checkpoint (v0.13.1, 2026-07-23)
+
+- Fixed stale self-registration roster entries after a linked user leaves a league before the season starts.
+- Supabase season snapshots are now authoritative for the leagues and seasons included in each refresh, so deleted `season_players` rows no longer survive in local state or localStorage.
+- The existing unlink SQL function remains unchanged: it already removes the player from an upcoming self-registration roster and reopens registration. This patch only corrects client hydration.
+- No database migration is required for v0.13.1.
 
 ## Post-hardening feature checkpoint (2026-07-23)
 
