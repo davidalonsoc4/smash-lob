@@ -162,7 +162,8 @@ function isNotificationForCurrentUser({
 
   if (
     currentUserEmail &&
-    normalizeEmail(event.actorEmail) === currentUserEmail
+    normalizeEmail(event.actorEmail) === currentUserEmail &&
+    event.metadata.includeActor !== true
   ) {
     return false;
   }
@@ -360,14 +361,40 @@ function getNotificationBody({
   }
 
   if (event.type === "season_finished") {
-    const winnerName =
-      typeof metadata.winnerName === "string" && metadata.winnerName.trim()
-        ? metadata.winnerName.trim()
-        : null;
+    const winnerPlayerIds = toStringArray(metadata.winnerPlayerIds);
+    const winnerNames = toStringArray(metadata.winnerNames);
+    const mvpPlayerIds = toStringArray(metadata.mvpPlayerIds);
+    const mvpNames = toStringArray(metadata.mvpNames);
+    const winnerText = winnerNames.join(" / ");
+    const mvpText = mvpNames.join(" / ");
+    const isWinner = winnerPlayerIds.includes(currentUserId);
+    const isMvp = mvpPlayerIds.includes(currentUserId);
 
-    return winnerName
-      ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
-      : "La temporada ha finalizado.";
+    if (isWinner && isMvp) {
+      return "¡Enhorabuena! Has ganado la temporada y eres el MVP.";
+    }
+
+    if (isWinner) {
+      return `¡Enhorabuena! Has ganado la temporada.${mvpText ? ` MVP: ${mvpText}.` : ""}`;
+    }
+
+    if (isMvp) {
+      return `¡Enhorabuena! Eres el MVP de la temporada.${winnerText ? ` Ganador: ${winnerText}.` : ""}`;
+    }
+
+    if (winnerText && mvpText) {
+      return `Ganador: ${winnerText}. MVP: ${mvpText}.`;
+    }
+
+    if (winnerText) {
+      return `Ganador: ${winnerText}.`;
+    }
+
+    if (mvpText) {
+      return `MVP: ${mvpText}.`;
+    }
+
+    return "La temporada ha finalizado.";
   }
 
   if (

@@ -35,7 +35,7 @@ const validFilters: MatchFilter[] = [
 ];
 
 const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"];
-const defaultFilter: MatchFilter = "all";
+const defaultFilter: MatchFilter = "finished";
 const defaultSort: MatchSort = "roundAsc";
 
 function getMatchSortTime(match: {
@@ -282,17 +282,16 @@ export default function PlayerMatchesPage() {
         />
       ) : null}
 
-      <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-neutral-200 bg-white px-2 py-2 shadow-sm">
+      <div className="flex items-center justify-end gap-1.5">
         <label className="min-w-0">
-          <span className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
-            Estado
-          </span>
+          <span className="sr-only">Estado</span>
           <select
             value={activeFilter}
             onChange={(event) =>
               handleFilterChange(event.target.value as MatchFilter)
             }
-            className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
+            aria-label="Estado de los partidos"
+            className="max-w-28 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black text-neutral-700 shadow-sm outline-none"
           >
             {filterOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -303,15 +302,14 @@ export default function PlayerMatchesPage() {
         </label>
 
         <label className="min-w-0">
-          <span className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
-            Orden
-          </span>
+          <span className="sr-only">Orden</span>
           <select
             value={activeSort}
             onChange={(event) =>
               handleSortChange(event.target.value as MatchSort)
             }
-            className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
+            aria-label="Orden de los partidos"
+            className="max-w-40 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black text-neutral-700 shadow-sm outline-none"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>

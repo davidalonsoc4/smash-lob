@@ -3,27 +3,51 @@
 import { FormEvent, useState } from "react"
 import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
+import {
+  buildStandardWeeklyAvailability,
+  getStandardAvailabilityEditorInitialState,
+  StandardAvailabilityEditor,
+} from "@/components/auth/StandardAvailabilityEditor"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeProfileName, splitGoogleDisplayName } from "@/lib/accountProfile"
+import { getBrowserTimezone, type WeeklyAvailability } from "@/lib/playerAvailability"
 import type { AccountProfile } from "@/lib/accountProfile"
 
 type ProfileCompletionFormProps = {
   initialFirstName: string
   initialLastName: string
+  initialWeeklySlots: WeeklyAvailability
   accountError: string | null
-  saveProfile: (firstName: string, lastName: string) => Promise<AccountProfile | null>
+  saveProfile: (
+    firstName: string,
+    lastName: string,
+    availability?: {
+      timezone: string
+      weeklySlots: WeeklyAvailability
+    },
+  ) => Promise<AccountProfile | null>
 }
 
 function ProfileCompletionForm({
   initialFirstName,
   initialLastName,
+  initialWeeklySlots,
   accountError,
   saveProfile,
 }: ProfileCompletionFormProps) {
   const { t } = useI18n()
+  const initialAvailability = getStandardAvailabilityEditorInitialState(
+    initialWeeklySlots,
+  )
   const [firstName, setFirstName] = useState(initialFirstName)
   const [lastName, setLastName] = useState(initialLastName)
+  const [selectedDays, setSelectedDays] = useState(
+    initialAvailability.selectedDays,
+  )
+  const [availabilitySlot, setAvailabilitySlot] = useState(
+    initialAvailability.slot,
+  )
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -37,9 +61,25 @@ function ProfileCompletionForm({
       return
     }
 
+    if (
+      selectedDays.length === 0 ||
+      !availabilitySlot.start ||
+      !availabilitySlot.end ||
+      availabilitySlot.start >= availabilitySlot.end
+    ) {
+      setFormError(t.accountProfile.availabilityValidationError)
+      return
+    }
+
     setIsSaving(true)
     setFormError(null)
-    const result = await saveProfile(cleanFirstName, cleanLastName)
+    const result = await saveProfile(cleanFirstName, cleanLastName, {
+      timezone: getBrowserTimezone(),
+      weeklySlots: buildStandardWeeklyAvailability({
+        selectedDays,
+        slot: availabilitySlot,
+      }),
+    })
     setIsSaving(false)
 
     if (!result) {
@@ -94,6 +134,19 @@ function ProfileCompletionForm({
               {t.accountProfile.globalNameNotice}
             </p>
 
+            <StandardAvailabilityEditor
+              selectedDays={selectedDays}
+              slot={availabilitySlot}
+              dayLabels={t.accountProfile.availabilityDays}
+              title={t.accountProfile.availabilityTitle}
+              description={t.accountProfile.availabilityDescription}
+              startLabel={t.accountProfile.availabilityStart}
+              endLabel={t.accountProfile.availabilityEnd}
+              laterNotice={t.accountProfile.availabilityLaterNotice}
+              onSelectedDaysChange={setSelectedDays}
+              onSlotChange={setAvailabilitySlot}
+            />
+
             {formError || accountError ? (
               <p className="text-sm font-bold text-red-600">
                 {formError ?? accountError}
@@ -139,12 +192,24 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
 
   const initialFirstName = profile?.firstName || googleDefaults.firstName
   const initialLastName = profile?.lastName || googleDefaults.lastName
+  const initialWeeklySlots =
+    profile?.standardAvailabilityWeeklySlots ??
+    {
+      monday: [],
+      tuesday: [],
+      wednesday: [],
+      thursday: [],
+      friday: [],
+      saturday: [],
+      sunday: [],
+    }
 
   return (
     <ProfileCompletionForm
       key={`${initialFirstName}\u0000${initialLastName}`}
       initialFirstName={initialFirstName}
       initialLastName={initialLastName}
+      initialWeeklySlots={initialWeeklySlots}
       accountError={error}
       saveProfile={saveProfile}
     />

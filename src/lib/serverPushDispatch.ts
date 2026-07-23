@@ -550,14 +550,44 @@ function getNotificationBody(
 
   if (event.type === "season_finished") {
     const metadata = toRecord(event.metadata);
-    const winnerName =
-      typeof metadata.winnerName === "string" && metadata.winnerName.trim()
-        ? metadata.winnerName.trim()
-        : null;
+    const winnerPlayerIds = toStringArray(metadata.winnerPlayerIds);
+    const winnerNames = toStringArray(metadata.winnerNames);
+    const mvpPlayerIds = toStringArray(metadata.mvpPlayerIds);
+    const mvpNames = toStringArray(metadata.mvpNames);
+    const winnerText = winnerNames.join(" / ");
+    const mvpText = mvpNames.join(" / ");
+    const isWinner = Boolean(
+      recipient?.playerId && winnerPlayerIds.includes(recipient.playerId),
+    );
+    const isMvp = Boolean(
+      recipient?.playerId && mvpPlayerIds.includes(recipient.playerId),
+    );
 
-    return winnerName
-      ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
-      : "La temporada ha finalizado.";
+    if (isWinner && isMvp) {
+      return "¡Enhorabuena! Has ganado la temporada y eres el MVP.";
+    }
+
+    if (isWinner) {
+      return `¡Enhorabuena! Has ganado la temporada.${mvpText ? ` MVP: ${mvpText}.` : ""}`;
+    }
+
+    if (isMvp) {
+      return `¡Enhorabuena! Eres el MVP de la temporada.${winnerText ? ` Ganador: ${winnerText}.` : ""}`;
+    }
+
+    if (winnerText && mvpText) {
+      return `Ganador: ${winnerText}. MVP: ${mvpText}.`;
+    }
+
+    if (winnerText) {
+      return `Ganador: ${winnerText}.`;
+    }
+
+    if (mvpText) {
+      return `MVP: ${mvpText}.`;
+    }
+
+    return "La temporada ha finalizado.";
   }
 
   if (
@@ -802,7 +832,9 @@ async function getRecipients({
           const email = userId ? (emailByUserId.get(userId) ?? "") : "";
           const playerId = membership.player_id;
 
-          if (!email || email === actorEmail) return null;
+          const includeActor = toRecord(event.metadata).includeActor === true;
+
+          if (!email || (!includeActor && email === actorEmail)) return null;
           if (playerId && excludedPlayerIds.has(playerId)) return null;
 
           return [

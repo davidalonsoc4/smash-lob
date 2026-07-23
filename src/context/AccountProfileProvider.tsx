@@ -2,13 +2,21 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import type { AccountProfile } from "@/lib/accountProfile"
+import type { WeeklyAvailability } from "@/lib/playerAvailability"
 
 type AccountProfileContextValue = {
   profile: AccountProfile | null
   isLoading: boolean
   error: string | null
   refreshProfile: () => Promise<AccountProfile | null>
-  saveProfile: (firstName: string, lastName: string) => Promise<AccountProfile | null>
+  saveProfile: (
+    firstName: string,
+    lastName: string,
+    availability?: {
+      timezone: string
+      weeklySlots: WeeklyAvailability
+    },
+  ) => Promise<AccountProfile | null>
 }
 
 const AccountProfileContext = createContext<AccountProfileContextValue | null>(null)
@@ -49,25 +57,40 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     }
   }, [])
 
-  const saveProfile = useCallback(async (firstName: string, lastName: string) => {
-    setError(null)
+  const saveProfile = useCallback(
+    async (
+      firstName: string,
+      lastName: string,
+      availability?: {
+        timezone: string
+        weeklySlots: WeeklyAvailability
+      },
+    ) => {
+      setError(null)
 
-    try {
-      const nextProfile = await readProfileResponse(
-        await fetch("/api/account/profile", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ firstName, lastName }),
-          cache: "no-store",
-        }),
-      )
-      setProfile(nextProfile)
-      return nextProfile
-    } catch (profileError) {
-      setError(profileError instanceof Error ? profileError.message : "profile_save_failed")
-      return null
-    }
-  }, [])
+      try {
+        const nextProfile = await readProfileResponse(
+          await fetch("/api/account/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              firstName,
+              lastName,
+              timezone: availability?.timezone,
+              weeklySlots: availability?.weeklySlots,
+            }),
+            cache: "no-store",
+          }),
+        )
+        setProfile(nextProfile)
+        return nextProfile
+      } catch (profileError) {
+        setError(profileError instanceof Error ? profileError.message : "profile_save_failed")
+        return null
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     let isActive = true
