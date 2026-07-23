@@ -7,6 +7,18 @@ Production source version retained in this run: `v0.9.71`
 Staging source commit retained in this run: `78f1986` (`v0.10.0`)
 Active milestone state: `H20-H23 complete; environment isolation repair complete`
 
+## Post-hardening feature checkpoint (2026-07-23)
+
+- Prepared source version `v0.13.0` on top of the current staging snapshot.
+- Added global application administration for summary metrics, richer account data, account suspension/reactivation, onboarding resets, push/preference cleanup, league ownership transfer, and application-admin audit history.
+- Added local migration `20260723133000_add_application_admin_controls.sql`; it has not been applied remotely by this patch.
+- Account suspension is enforced in the shared server authentication boundary and renders a dedicated blocked-account screen before league providers load.
+- League ownership transfer updates the league owner and both membership roles transactionally through a service-role-only SQL function.
+- The v0.12.7 scheduling-panel and compact season-selector changes are retained cumulatively in this source.
+- TypeScript/TSX syntax transpilation passed for every modified source file, and whitespace/conflict-marker checks are clean.
+- Full dependency installation, lint, typecheck, and build could not be completed in the review container because its npm proxy returned HTTP 503 for required packages; these gates remain mandatory locally before commit.
+
+
 ## Final state summary
 
 - `git fetch --all --prune` was rerun on 2026-07-16, and `git ls-remote --heads origin main release/production-hardening` confirmed both remote branches point to the same release line.

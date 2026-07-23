@@ -1,7 +1,7 @@
 "use client"
 
 import { FormEvent, useState } from "react"
-import { useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import {
   buildStandardWeeklyAvailability,
@@ -172,6 +172,35 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
   const { data: session } = useSession()
   const { profile, isLoading, error, saveProfile } = useAccountProfile()
   const googleDefaults = splitGoogleDisplayName(session?.user?.name)
+
+  if (error === "account_suspended") {
+    return (
+      <div className="min-h-screen bg-stone-200 px-4 py-8 text-neutral-950">
+        <div className="mx-auto max-w-md">
+          <AppCard>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-red-600">
+              Cuenta suspendida
+            </p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight">
+              Acceso temporalmente bloqueado
+            </h1>
+            <p className="mt-2 text-sm font-semibold leading-6 text-neutral-500">
+              Un administrador de Smash & Lob ha suspendido esta cuenta. Tus ligas,
+              jugadores y resultados se conservan, pero no puedes utilizar la aplicación
+              hasta que se reactive el acceso.
+            </p>
+            <button
+              type="button"
+              onClick={() => void signOut({ callbackUrl: "/" })}
+              className="mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white"
+            >
+              Cerrar sesión
+            </button>
+          </AppCard>
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return (
