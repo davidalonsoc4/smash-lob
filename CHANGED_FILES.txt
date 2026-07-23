@@ -1,45 +1,35 @@
-Smash & Lob v0.12.5
-
-Resumen
-- Enriquece la notificación de temporada finalizada con el ganador y el MVP de la temporada.
-- Personaliza el aviso para felicitar al ganador, al MVP o a quien haya conseguido ambos reconocimientos.
-- Compacta los filtros de estado y orden del historial de partidos y deja Jugados seleccionado por defecto.
-- Convierte Más acciones del partido en un botón flotante circular sobre la barra de navegación.
-- Amplía el alta de usuarios nuevos para exigir nombre, primer apellido y una disponibilidad semanal habitual.
-- Copia automáticamente esa disponibilidad estándar al jugador cuando se vincula o se incorpora a una temporada.
-- Mantiene siempre visible el resumen gris de una programación guardada, con Cómo llegar y Añadir al calendario.
-- Al desplegar una programación guardada solo aparecen las acciones administrativas de editar, aplazar o eliminar.
-- Abre por defecto el panel de programación únicamente cuando el partido está sin programar.
-- Elimina los textos descriptivos redundantes situados por encima del resumen de programación.
-
-Migraciones
-- 20260723081500_add_standard_availability_onboarding.sql
-- Añade disponibilidad estándar al perfil global y la aplica automáticamente a futuras vinculaciones con jugadores y temporadas.
-- Los usuarios existentes con el perfil ya completado no vuelven a pasar por el alta; la obligación se aplica a usuarios nuevos.
-- Requiere db push exclusivamente en Supabase PRE durante las pruebas.
+Smash & Lob v0.12.6
 
 Archivos modificados
-CHANGED_FILES.txt
-package.json
-package-lock.json
-src/app/api/account/profile/route.ts
-src/app/api/invites/[code]/claim/route.ts
-src/app/api/leagues/[id]/seasons/[seasonId]/finish/route.ts
-src/app/notifications/page.tsx
-src/app/player/[id]/matches/page.tsx
-src/components/auth/ProfileCompletionGate.tsx
-src/components/auth/StandardAvailabilityEditor.tsx
-src/components/match/MatchActionsMenu.tsx
-src/components/match/MatchScheduleForm.tsx
-src/context/AccountProfileProvider.tsx
-src/i18n/locales/en.ts
-src/i18n/locales/es.ts
-src/i18n/locales/eu.ts
-src/lib/accountProfile.ts
-src/lib/appVersion.ts
-src/lib/serverAuth.ts
-src/lib/serverLeagueAccess.ts
-src/lib/serverPushDispatch.ts
-src/lib/serverSeasonAwards.ts
-src/lib/serverSelfRegistration.ts
-supabase/migrations/20260723081500_add_standard_availability_onboarding.sql
+- CHANGED_FILES.txt
+- package.json
+- package-lock.json
+- src/lib/appVersion.ts
+- src/app/api/matches/[matchId]/schedule/route.ts
+- src/lib/leagueLocations.ts
+- src/lib/serverPushDispatch.ts
+- src/app/admin/season/page.tsx
+- src/app/api/leagues/[id]/members/[playerId]/route.ts
+- src/context/LeagueAccessProvider.tsx
+- src/lib/supabaseAdminUsers.ts
+- src/app/application-admin/page.tsx
+- src/app/api/application-admin/users/route.ts
+- src/app/api/application-admin/users/[userId]/route.ts
+- src/app/settings/page.tsx
+- src/app/profile/matches/page.tsx
+- src/components/match/MatchActionsMenu.tsx
+- supabase/migrations/20260723103500_sync_unlinked_self_registration_players.sql
+
+Cambios principales
+- Corrige la ubicación mostrada en las notificaciones de partido programado y reprogramado, transformando la ubicación estructurada —incluidas referencias que solo contienen un id— en un nombre legible.
+- Añade un resumen compacto de la configuración actual debajo de Accesos rápidos en Administrar temporada.
+- Permite modificar la regla «Jugar 3 sets completos siempre» debajo de Confirmación de resultados.
+- Sincroniza la plantilla de autoinscripción al desvincular una cuenta antes del inicio y reabre la plaza automáticamente.
+- Mantiene al jugador histórico durante una temporada activa y avisa a creator y administradores para valorar un reemplazo permanente.
+- Añade Administración de la aplicación, restringida a superusuarios, para buscar cuentas, editar nombres, conceder permiso para crear ligas y eliminar cuentas de aplicación, limpiando antes sus vinculaciones y plantillas de autoinscripción.
+- Iguala el historial de partidos propio con el historial público: filtros compactos, Jugados por defecto y selector histórico común.
+- Sustituye los caracteres manuales del botón flotante por un icono SVG real de tres puntos.
+
+Base de datos
+- Nueva migración PRE: 20260723103500_sync_unlinked_self_registration_players.sql
+- No aplicar en producción hasta validar y publicar la versión.

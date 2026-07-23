@@ -95,7 +95,16 @@ export function MatchActionsTrigger({
         onClick={() => onMenuOpenChange(!menuOpen)}
         className="grid h-10 w-10 place-items-center rounded-full border border-neutral-200 bg-white/95 text-neutral-600 shadow-lg backdrop-blur transition active:scale-95 active:bg-neutral-100"
       >
-        <span aria-hidden="true" className="-mt-1 text-base font-black tracking-[0.08em]">•••</span>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-5 w-5"
+          fill="currentColor"
+        >
+          <circle cx="5" cy="12" r="1.75" />
+          <circle cx="12" cy="12" r="1.75" />
+          <circle cx="19" cy="12" r="1.75" />
+        </svg>
       </button>
 
       {menuOpen ? (

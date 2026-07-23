@@ -4,6 +4,12 @@ import { dateTimeLocalToUtcIso, parseMatchScheduleDate } from "@/lib/matchSchedu
 import { mapSupabaseMatch, matchSelect, formatScheduleDateLabel } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import {
+  findLeagueLocationByScheduleLocation,
+  getLeagueLocationCompactText,
+  getScheduleLocationFallbackText,
+  normalizeLeagueLocations,
+} from "@/lib/leagueLocations"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -121,6 +127,19 @@ export async function PUT(
   }
 
   const updatedMatch = mapSupabaseMatch(data as Record<string, unknown>)
+  const { data: leagueLocationRow } = await access.actor.supabase
+    .from("leagues")
+    .select("locations")
+    .eq("id", updatedMatch.leagueId)
+    .maybeSingle()
+  const leagueLocations = normalizeLeagueLocations(leagueLocationRow?.locations)
+  const resolvedLocation = findLeagueLocationByScheduleLocation({
+    locations: leagueLocations,
+    scheduleLocation: updatedMatch.location,
+  })
+  const locationText = resolvedLocation
+    ? getLeagueLocationCompactText(resolvedLocation)
+    : getScheduleLocationFallbackText(updatedMatch.location) ?? "Ubicación pendiente"
   const wasAlreadyScheduled = Boolean(
     access.actor.match.scheduledAt || access.actor.match.status === "scheduled"
   )
@@ -134,14 +153,16 @@ export async function PUT(
     matchId: updatedMatch.id,
     type: wasAlreadyScheduled ? "match_schedule_updated" : "match_scheduled",
     title: wasAlreadyScheduled ? "Programacion modificada" : "Partido programado",
-    description: `Jornada ${updatedMatch.round} · ${updatedMatch.dateLabel ?? formatScheduleDateLabel(schedule.scheduledAt)} · ${schedule.location}`,
+    description: `Jornada ${updatedMatch.round} · ${updatedMatch.dateLabel ?? formatScheduleDateLabel(schedule.scheduledAt)} · ${locationText}`,
     metadata: {
       participantIds: [...updatedMatch.teamA, ...updatedMatch.teamB],
       round: updatedMatch.round,
       previousScheduledAt: access.actor.match.scheduledAt,
       previousLocation: access.actor.match.location,
       scheduledAt: updatedMatch.scheduledAt,
+      dateLabel: updatedMatch.dateLabel ?? formatScheduleDateLabel(schedule.scheduledAt),
       location: updatedMatch.location,
+      locationText,
     },
   }).catch(() => null)
 

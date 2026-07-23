@@ -82,6 +82,9 @@ export async function unlinkSupabaseLeagueMembership({
   return (await response.json()) as {
     leagueId: string
     playerId: string
+    seasonId: string | null
+    seasonStatus: string | null
+    removedFromUpcomingRoster: boolean
   }
 }
 
