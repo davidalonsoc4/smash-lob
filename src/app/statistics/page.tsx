@@ -186,22 +186,26 @@ export default function StatisticsPage() {
         </p>
       </header>
 
-      <AppCard>
-        <label className="block">
-          <span className="text-xs font-black text-neutral-700">Temporada</span>
-          <select
-            value={selectedSeason.id}
-            onChange={(event) => setSelectedSeasonId(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"
-          >
-            {leagueSeasons.map((season) => (
-              <option key={season.id} value={season.id}>
-                {season.name} · {season.status === "finished" ? "Terminada" : season.status === "active" ? "Activa" : "Próxima"}
-              </option>
-            ))}
-          </select>
-        </label>
-      </AppCard>
+      {leagueSeasons.length > 1 ? (
+        <AppCard className="p-2">
+          <label className="flex items-center gap-2">
+            <span className="shrink-0 text-[11px] font-black text-neutral-700">
+              Temporada
+            </span>
+            <select
+              value={selectedSeason.id}
+              onChange={(event) => setSelectedSeasonId(event.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-bold"
+            >
+              {leagueSeasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name} · {season.status === "finished" ? "Terminada" : season.status === "active" ? "Activa" : "Próxima"}
+                </option>
+              ))}
+            </select>
+          </label>
+        </AppCard>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <AppCard>

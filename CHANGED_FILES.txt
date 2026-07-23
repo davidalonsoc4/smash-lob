@@ -1,35 +1,18 @@
-Smash & Lob v0.12.6
+Smash & Lob v0.12.7
 
 Archivos modificados
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/app/api/matches/[matchId]/schedule/route.ts
-- src/lib/leagueLocations.ts
-- src/lib/serverPushDispatch.ts
-- src/app/admin/season/page.tsx
-- src/app/api/leagues/[id]/members/[playerId]/route.ts
-- src/context/LeagueAccessProvider.tsx
-- src/lib/supabaseAdminUsers.ts
-- src/app/application-admin/page.tsx
-- src/app/api/application-admin/users/route.ts
-- src/app/api/application-admin/users/[userId]/route.ts
-- src/app/settings/page.tsx
-- src/app/profile/matches/page.tsx
-- src/components/match/MatchActionsMenu.tsx
-- supabase/migrations/20260723103500_sync_unlinked_self_registration_players.sql
+- src/components/match/MatchScheduleForm.tsx
+- src/app/statistics/page.tsx
 
 Cambios principales
-- Corrige la ubicación mostrada en las notificaciones de partido programado y reprogramado, transformando la ubicación estructurada —incluidas referencias que solo contienen un id— en un nombre legible.
-- Añade un resumen compacto de la configuración actual debajo de Accesos rápidos en Administrar temporada.
-- Permite modificar la regla «Jugar 3 sets completos siempre» debajo de Confirmación de resultados.
-- Sincroniza la plantilla de autoinscripción al desvincular una cuenta antes del inicio y reabre la plaza automáticamente.
-- Mantiene al jugador histórico durante una temporada activa y avisa a creator y administradores para valorar un reemplazo permanente.
-- Añade Administración de la aplicación, restringida a superusuarios, para buscar cuentas, editar nombres, conceder permiso para crear ligas y eliminar cuentas de aplicación, limpiando antes sus vinculaciones y plantillas de autoinscripción.
-- Iguala el historial de partidos propio con el historial público: filtros compactos, Jugados por defecto y selector histórico común.
-- Sustituye los caracteres manuales del botón flotante por un icono SVG real de tres puntos.
+- El panel Programación solo muestra el chevron y permite desplegarse cuando el usuario puede acceder a las acciones Editar y Aplazar partido.
+- Para usuarios sin esas acciones y en partidos finalizados, Programación conserva el diseño compacto y deja de comportarse como un panel desplegable vacío.
+- El selector de temporada de Historial y estadísticas solo aparece cuando la liga tiene más de una temporada.
+- Reduce la altura del selector de temporada mediante una disposición horizontal y controles más compactos.
 
 Base de datos
-- Nueva migración PRE: 20260723103500_sync_unlinked_self_registration_players.sql
-- No aplicar en producción hasta validar y publicar la versión.
+- Sin cambios de base de datos ni migraciones nuevas.

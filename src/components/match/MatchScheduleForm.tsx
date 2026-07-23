@@ -100,7 +100,9 @@ export function MatchScheduleForm({
         ? ""
         : otherLocationValue;
 
-  const [isPanelOpen, setIsPanelOpen] = useState(isUnscheduled);
+  const [isPanelOpen, setIsPanelOpen] = useState(
+    isUnscheduled || (isPostponed && canManage),
+  );
   const [isEditing, setIsEditing] = useState(isUnscheduled && canManage);
   const [scheduledAtValue, setScheduledAtValue] = useState(
     hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
@@ -185,6 +187,8 @@ export function MatchScheduleForm({
     canManage && !isSaving && !isFinished && !isPostponed && hasSchedule;
   const canClearCurrentSchedule =
     canClearSchedule && !isSaving && hasSchedule && !isFinished;
+  const canExpandScheduleActions =
+    canManage && hasSchedule && !isFinished && !isPostponed;
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -330,7 +334,7 @@ export function MatchScheduleForm({
   }
 
   function togglePanel() {
-    if (isSaving) {
+    if (!canExpandScheduleActions || isSaving) {
       return;
     }
 
@@ -343,10 +347,6 @@ export function MatchScheduleForm({
     }
 
     setIsPanelOpen(true);
-
-    if (canManage && !hasSchedule && !isPostponed && !isFinished) {
-      setIsEditing(true);
-    }
   }
 
   function getTitle() {
@@ -366,34 +366,42 @@ export function MatchScheduleForm({
 
   return (
     <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
-      <button
-        type="button"
-        onClick={togglePanel}
-        disabled={isSaving}
-        aria-expanded={isPanelOpen}
-        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
-      >
-        <p className="truncate text-sm font-black text-neutral-950">
-          {getTitle()}
-        </p>
+      {canExpandScheduleActions ? (
+        <button
+          type="button"
+          onClick={togglePanel}
+          disabled={isSaving}
+          aria-expanded={isPanelOpen}
+          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
+        >
+          <p className="truncate text-sm font-black text-neutral-950">
+            {getTitle()}
+          </p>
 
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            fill="none"
-            className={`h-4 w-4 transition-transform ${isPanelOpen ? "rotate-180" : ""}`}
-          >
-            <path
-              d="m6 8 4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      </button>
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="none"
+              className={`h-4 w-4 transition-transform ${isPanelOpen ? "rotate-180" : ""}`}
+            >
+              <path
+                d="m6 8 4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </button>
+      ) : (
+        <div className="flex w-full items-center px-3 py-2.5">
+          <p className="truncate text-sm font-black text-neutral-950">
+            {getTitle()}
+          </p>
+        </div>
+      )}
 
       {hasSchedule ? (
         <div className="border-t border-neutral-100 px-3 pb-3 pt-2.5">
