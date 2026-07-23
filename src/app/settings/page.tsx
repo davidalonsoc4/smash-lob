@@ -348,9 +348,9 @@ function SpectatorSettingsPage({
 
 export default function SettingsPage() {
   const { activeLeague } = useCurrentLeagueData()
-  const { isLeagueSpectator } = useLeagueAccess()
+  const { isLeagueSpectator, isSuperuser } = useLeagueAccess()
 
-  if (isLeagueSpectator(activeLeague.id)) {
+  if (!isSuperuser && isLeagueSpectator(activeLeague.id)) {
     return (
       <SpectatorSettingsPage leagueName={activeLeague.name} />
     )
@@ -368,6 +368,7 @@ function PlayerSettingsPage() {
     getMembershipForLeague,
     hasLeagueAdminRole,
     isLeagueAdmin,
+    isSuperuser,
     isAdminViewEnabled,
     setAdminViewEnabled,
     unlinkLeaguePlayerAccount,
@@ -639,6 +640,23 @@ function PlayerSettingsPage() {
               </div>
 
               <span className="text-xl">&gt;</span>
+            </div>
+          </AppCard>
+        </Link>
+      ) : null}
+
+      {isSuperuser ? (
+        <Link href="/application-admin" className="block settings-search-target" id="application-admin">
+          <AppCard className="border-red-100 bg-red-50 transition active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-bold text-red-950">Administración de la aplicación</p>
+                <p className="mt-1 text-xs font-semibold text-red-700">
+                  Gestiona cuentas globales, nombres y permisos de creación de ligas.
+                </p>
+              </div>
+
+              <span className="text-xl text-red-700">&gt;</span>
             </div>
           </AppCard>
         </Link>

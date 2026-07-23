@@ -8,6 +8,7 @@ import {
 } from "@/lib/notificationSettings";
 import type { ActivityEventType } from "@/lib/activity";
 import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
+import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
 import {
   getActivityDeliveryMode,
   normalizeLeagueActivitySettings,
@@ -518,6 +519,32 @@ function getNotificationBody(
   recipient: NotificationRecipient | null,
   playerNamesById: Map<string, string>,
 ) {
+  if (
+    event.type === "match_scheduled" ||
+    event.type === "match_schedule_updated"
+  ) {
+    const metadata = toRecord(event.metadata);
+    const round = toNumber(metadata.round);
+    const dateLabel =
+      typeof metadata.dateLabel === "string" && metadata.dateLabel.trim()
+        ? metadata.dateLabel.trim()
+        : null;
+    const locationText =
+      typeof metadata.locationText === "string" && metadata.locationText.trim()
+        ? metadata.locationText.trim()
+        : getScheduleLocationFallbackText(
+            typeof metadata.location === "string" ? metadata.location : null,
+          );
+    const roundLabel = round > 0 ? `Jornada ${round}` : null;
+
+    return (
+      [roundLabel, dateLabel, locationText]
+        .filter((item): item is string => Boolean(item))
+        .join(" · ") ||
+      "Consulta la fecha, hora y ubicación del partido."
+    );
+  }
+
   if (event.type === "match_incident_reported") {
     return event.description?.trim() || "Se ha comunicado una incidencia en uno de tus partidos.";
   }

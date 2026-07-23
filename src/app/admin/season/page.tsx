@@ -601,31 +601,15 @@ function getFinishedSeasonScheduleLabel({
   return repeatsFirstLeg ? "Doble vuelta" : "Temporada larga";
 }
 
-function formatFinishedSeasonDate(value: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  const [year, month, day] = value.split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("es-ES", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, month - 1, day));
-}
-
-function FinishedSeasonConfigurationSummary({
+function SeasonConfigurationSummary({
   activeSeason,
   roundSettings,
   matches,
   playerCount,
 }: {
   activeSeason: {
+    name: string;
+    status: "upcoming" | "active" | "finished";
     totalRounds: number;
   };
   roundSettings: SeasonRoundSettings;
@@ -637,13 +621,6 @@ function FinishedSeasonConfigurationSummary({
     playerCount,
     matches,
   });
-  const marginValue =
-    roundSettings.roundWindowMode === "fixed-days"
-      ? `${roundSettings.roundWindowDays ?? "—"} días por jornada`
-      : "Sin margen específico";
-  const marginStartDate = formatFinishedSeasonDate(
-    roundSettings.seasonStartsAt,
-  );
   const confirmationValue =
     resultConfirmationOptions.find(
       (option) => option.value === roundSettings.resultConfirmationMode,
@@ -651,55 +628,147 @@ function FinishedSeasonConfigurationSummary({
   const mvpValue =
     mvpSystemOptions.find((option) => option.value === roundSettings.mvpSystem)
       ?.title ?? "Sin sistema MVP";
+  const statusValue =
+    activeSeason.status === "active"
+      ? "En juego"
+      : activeSeason.status === "upcoming"
+        ? "Próxima"
+        : "Finalizada";
+  const rosterValue =
+    roundSettings.rosterMode === "self_registration"
+      ? `${playerCount}/${roundSettings.playerCapacity ?? "—"} · Autoinscripción`
+      : `${playerCount} jugadores · Plantilla fija`;
+  const roundWindowValue =
+    roundSettings.roundWindowMode === "fixed-days"
+      ? `${roundSettings.roundWindowDays ?? "—"} días por jornada`
+      : "Sin margen fijo";
+  const registrationValue = roundSettings.registrationFee.enabled
+    ? `${roundSettings.registrationFee.amount} € por jugador`
+    : "Sin cuota";
   const items = [
-    {
-      title: "Calendario",
-      value: `${calendarValue} · ${activeSeason.totalRounds} jornadas`,
-      detail: `${playerCount} jugadores · calendario finalizado`,
-    },
-    {
-      title: "Margen de jornadas",
-      value: marginValue,
-      detail:
-        roundSettings.roundWindowMode === "fixed-days" && marginStartDate
-          ? `La Jornada 1 comenzó el ${marginStartDate}.`
-          : "La temporada no utilizó ventanas oficiales por jornada.",
-    },
-    {
-      title: "Confirmación de resultados",
-      value: confirmationValue,
-      detail: "Configuración utilizada durante esta temporada.",
-    },
-    {
-      title: "Sistema MVP",
-      value: mvpValue,
-      detail: "Configuración utilizada durante esta temporada.",
-    },
+    ["Estado", statusValue],
+    ["Plantilla", rosterValue],
+    ["Calendario", `${calendarValue} · ${activeSeason.totalRounds} jornadas`],
+    [
+      "Resultado",
+      roundSettings.requiresThreeSets
+        ? "3 sets completos siempre"
+        : "Sets según resultado",
+    ],
+    ["Confirmación", confirmationValue],
+    ["MVP", mvpValue],
+    ["Margen", roundWindowValue],
+    ["Inscripción", registrationValue],
   ];
 
   return (
-    <AppCard>
-      <p className="font-bold">Configuración final de la temporada</p>
-      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Estos ajustes quedan en modo consulta. Para cambiarlos, crea una nueva
-        temporada o reabre esta.
-      </p>
+    <AppCard className="p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold">Resumen de configuración</p>
+          <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+            {activeSeason.name}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-600">
+          {statusValue}
+        </span>
+      </div>
 
-      <div className="mt-3 space-y-2">
-        {items.map((item) => (
-          <div key={item.title} className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
-              {item.title}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {items.slice(1).map(([title, value]) => (
+          <div key={title} className="min-w-0 rounded-xl bg-neutral-100 px-2.5 py-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-400">
+              {title}
             </p>
-            <p className="mt-0.5 text-sm font-black text-neutral-950">
-              {item.value}
-            </p>
-            <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-              {item.detail}
+            <p className="mt-0.5 text-[11px] font-black leading-4 text-neutral-800">
+              {value}
             </p>
           </div>
         ))}
       </div>
+    </AppCard>
+  );
+}
+
+function RequiresThreeSetsSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [requiresThreeSets, setRequiresThreeSets] = useState(
+    roundSettings.requiresThreeSets,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const hasChanges = requiresThreeSets !== roundSettings.requiresThreeSets;
+
+  async function save() {
+    if (isSaving || !hasChanges) return;
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      requiresThreeSets,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    try {
+      await updateSupabaseSeasonRoundSettings(nextSettings);
+      updateSeasonRoundSettings(nextSettings);
+      setFeedback("Regla de resultados actualizada.");
+    } catch (caughtError) {
+      recordSupabaseError("update-three-set-rule", caughtError);
+      setError("No se ha podido guardar la regla de los tres sets.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Regla de los tres sets</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Decide si todos los partidos deben completar los tres sets, aunque una pareja gane los dos primeros.
+      </p>
+
+      <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+        <input
+          type="checkbox"
+          checked={requiresThreeSets}
+          onChange={(event) => {
+            setRequiresThreeSets(event.target.checked);
+            setFeedback(null);
+            setError(null);
+          }}
+          className="mt-1"
+        />
+        <span>
+          <span className="block text-sm font-black">Jugar 3 sets completos siempre</span>
+          <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+            Desactívalo para permitir cerrar el partido cuando una pareja ya haya ganado los sets necesarios.
+          </span>
+        </span>
+      </label>
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={!hasChanges || isSaving}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+      >
+        {isSaving ? "Guardando..." : "Guardar regla"}
+      </button>
+
+      {feedback ? <p className="mt-2 text-center text-xs font-bold text-emerald-700">{feedback}</p> : null}
+      {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{error}</p> : null}
     </AppCard>
   );
 }
@@ -4107,6 +4176,9 @@ export default function AdminSeasonPage() {
               <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Confirmación
               </a>
+              <a href="#regla-tres-sets" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                3 sets
+              </a>
               <a href="#acciones-partido" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Acciones
               </a>
@@ -4147,6 +4219,9 @@ export default function AdminSeasonPage() {
               <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Confirmación
               </a>
+              <a href="#regla-tres-sets" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+                3 sets
+              </a>
               <a href="#acciones-partido" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Acciones
               </a>
@@ -4164,7 +4239,7 @@ export default function AdminSeasonPage() {
             </>
           ) : hasCreatedLeagueSeason ? (
             <>
-              <a href="#configuracion-final" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+              <a href="#resumen-configuracion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
                 Configuración
               </a>
               <a href="#invitacion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
@@ -4189,6 +4264,17 @@ export default function AdminSeasonPage() {
           )}
         </div>
       </AppCard>
+
+      {hasCreatedLeagueSeason ? (
+        <div id="resumen-configuracion" className="settings-search-target">
+          <SeasonConfigurationSummary
+            activeSeason={activeSeason}
+            roundSettings={roundSettings}
+            matches={matches}
+            playerCount={players.length}
+          />
+        </div>
+      ) : null}
 
       {isActiveSeason ? (
         <>
@@ -4230,6 +4316,13 @@ export default function AdminSeasonPage() {
 
           <div id="confirmaciones" className="settings-search-target">
             <ResultConfirmationSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="regla-tres-sets" className="settings-search-target">
+            <RequiresThreeSetsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
@@ -4341,6 +4434,13 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="regla-tres-sets" className="settings-search-target">
+            <RequiresThreeSetsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
           <div id="acciones-partido" className="settings-search-target">
             <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -4375,15 +4475,6 @@ export default function AdminSeasonPage() {
         </>
       ) : hasCreatedLeagueSeason ? (
         <>
-          <div id="configuracion-final" className="settings-search-target">
-            <FinishedSeasonConfigurationSummary
-              activeSeason={activeSeason}
-              roundSettings={roundSettings}
-              matches={matches}
-              playerCount={players.length}
-            />
-          </div>
-
           <div id="invitacion" className="settings-search-target">
             <InviteLinkCard
               inviteCode={inviteCode}

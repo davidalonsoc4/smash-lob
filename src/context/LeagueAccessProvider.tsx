@@ -1382,13 +1382,14 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           return nextMemberships;
         });
 
+        await refreshLeagueAccess();
         return true;
       } catch (error) {
         recordSupabaseError("unlink-league-player-account", error);
         return false;
       }
     },
-    [],
+    [refreshLeagueAccess],
   );
 
   const updateLeaguePlayerName = useCallback(
