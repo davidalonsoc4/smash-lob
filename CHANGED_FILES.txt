@@ -1,4 +1,4 @@
-Smash & Lob v0.13.0 - archivos modificados
+Smash & Lob v0.13.2 - paquete acumulativo v0.13.x
 
 package.json
 package-lock.json
@@ -7,6 +7,7 @@ src/lib/serverAuth.ts
 src/lib/serverApplicationAdminAudit.ts
 src/components/auth/ProfileCompletionGate.tsx
 src/components/match/MatchScheduleForm.tsx
+src/context/SeasonSettingsProvider.tsx
 src/app/statistics/page.tsx
 src/app/application-admin/page.tsx
 src/app/api/application-admin/users/route.ts
