@@ -46,12 +46,16 @@ export async function requireAuthenticatedAppUser(): Promise<
 
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
-    .select("id,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,is_superuser,can_create_leagues")
+    .select("id,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,is_superuser,can_create_leagues,suspended_at,suspension_reason")
     .eq("email", email)
     .maybeSingle()
 
   if (existingUserError) {
     return { ok: false, status: 500, error: "app_user_lookup_failed" }
+  }
+
+  if (existingUser?.suspended_at) {
+    return { ok: false, status: 403, error: "account_suspended" }
   }
 
   const googleName = splitGoogleDisplayName(session?.user?.name)

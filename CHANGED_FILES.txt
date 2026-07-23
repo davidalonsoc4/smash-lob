@@ -1,18 +1,18 @@
-Smash & Lob v0.12.7
+Smash & Lob v0.13.0 - archivos modificados
 
-Archivos modificados
-- CHANGED_FILES.txt
-- package.json
-- package-lock.json
-- src/lib/appVersion.ts
-- src/components/match/MatchScheduleForm.tsx
-- src/app/statistics/page.tsx
-
-Cambios principales
-- El panel Programación solo muestra el chevron y permite desplegarse cuando el usuario puede acceder a las acciones Editar y Aplazar partido.
-- Para usuarios sin esas acciones y en partidos finalizados, Programación conserva el diseño compacto y deja de comportarse como un panel desplegable vacío.
-- El selector de temporada de Historial y estadísticas solo aparece cuando la liga tiene más de una temporada.
-- Reduce la altura del selector de temporada mediante una disposición horizontal y controles más compactos.
-
-Base de datos
-- Sin cambios de base de datos ni migraciones nuevas.
+package.json
+package-lock.json
+src/lib/appVersion.ts
+src/lib/serverAuth.ts
+src/lib/serverApplicationAdminAudit.ts
+src/components/auth/ProfileCompletionGate.tsx
+src/components/match/MatchScheduleForm.tsx
+src/app/statistics/page.tsx
+src/app/application-admin/page.tsx
+src/app/api/application-admin/users/route.ts
+src/app/api/application-admin/users/[userId]/route.ts
+src/app/api/application-admin/users/[userId]/actions/route.ts
+src/app/api/application-admin/leagues/[leagueId]/transfer/route.ts
+supabase/migrations/20260723133000_add_application_admin_controls.sql
+docs/preproduction/V0.13.0_APPLICATION_ADMIN.md
+docs/production-hardening/STATUS.md

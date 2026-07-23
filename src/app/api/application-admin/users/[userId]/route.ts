@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { normalizeProfileName } from "@/lib/accountProfile"
+import { recordApplicationAdminAudit } from "@/lib/serverApplicationAdminAudit"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { fetchLeaguePlayerNameMap, recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -52,6 +53,16 @@ export async function PATCH(
   const displayName = `${firstName} ${lastName}`
   const initials = `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase()
   const { supabase } = authResult.actor
+  const { data: existingTarget, error: existingTargetError } = await supabase
+    .from("app_users")
+    .select("id,email,first_name,last_name,can_create_leagues")
+    .eq("id", userId)
+    .maybeSingle()
+
+  if (existingTargetError || !existingTarget) {
+    return NextResponse.json({ error: "user_not_found" }, { status: 404 })
+  }
+
   const { data: user, error } = await supabase
     .from("app_users")
     .update({
@@ -82,6 +93,33 @@ export async function PATCH(
       .from("players")
       .update({ display_name: displayName, avatar_initials: initials })
       .in("id", playerIds)
+  }
+
+  const changedFields = [
+    existingTarget.first_name !== firstName ? "firstName" : null,
+    existingTarget.last_name !== lastName ? "lastName" : null,
+    Boolean(existingTarget.can_create_leagues) !== canCreateLeagues
+      ? "canCreateLeagues"
+      : null,
+  ].filter((field): field is string => Boolean(field))
+
+  if (changedFields.length > 0) {
+    await recordApplicationAdminAudit({
+      supabase,
+      actor: authResult.actor.user,
+      action: "user_updated",
+      targetUserId: userId,
+      targetEmail: existingTarget.email,
+      metadata: {
+        changedFields,
+        previous: {
+          firstName: existingTarget.first_name,
+          lastName: existingTarget.last_name,
+          canCreateLeagues: Boolean(existingTarget.can_create_leagues),
+        },
+        next: { firstName, lastName, canCreateLeagues },
+      },
+    })
   }
 
   return NextResponse.json({
@@ -262,6 +300,14 @@ export async function DELETE(
   if (deleteError) {
     return NextResponse.json({ error: "application_user_delete_failed" }, { status: 500 })
   }
+
+  await recordApplicationAdminAudit({
+    supabase,
+    actor: authResult.actor.user,
+    action: "user_deleted",
+    targetEmail: targetUser.email,
+    metadata: { cleanedMembershipCount: (memberships ?? []).length },
+  })
 
   return NextResponse.json({ ok: true })
 }
