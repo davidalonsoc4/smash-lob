@@ -516,7 +516,7 @@ export const es = {
     title: "Ayuda y conceptos básicos",
     description: "Una guía rápida para jugadores nuevos de la liga.",
     fullDescription:
-      "Guía rápida para entender el formato de la liga, la puntuación, los estados de los partidos y los MVPs.",
+      "Consulta las reglas activas de la temporada y las herramientas disponibles para organizar y seguir la liga.",
     quickSummaryEyebrow: "Resumen rápido",
     quickSummaryTitle: "Lo importante de un vistazo",
     quickSummaryDescription:
@@ -713,7 +713,7 @@ export const es = {
     description: "Gestiona tus preferencias de la aplicación.",
     helpTitle: "Ayuda y conceptos básicos",
     helpDescription:
-      "Consulta cómo funcionan los suplentes, la puntuación, Star Points, tie-breaks y el formato de la temporada.",
+      "Consulta las reglas activas, el formato y las herramientas disponibles en la liga.",
     backToProfile: "← Volver al perfil",
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",

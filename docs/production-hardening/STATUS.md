@@ -155,3 +155,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Expanded the search index to cover notification groups, season rules, operations, exports, application administration, and suggestions.
 - Improved search matching for natural phrases, plurals, partial words, and small typing errors.
 - Compacted Match "More actions" entries to remain on a single line.
+
+## v0.14.3 - Contextual help and stable search dialog (2026-07-24)
+
+- Fixed the floating Settings search dialog to a stable responsive height; only the results area scrolls when the query or result count changes.
+- Added a shared multilingual season guide used by Help and by the pre-join rules acceptance screen.
+- Help now documents recent application features and summarizes the active roster, calendar, schedule, round-window, scoring, confirmation, MVP, fee, incident, and substitution configuration.
+- Registration, MVP, incident, and substitute explanations are omitted when those features are disabled.
+- The invitation rules summary now reflects the target season instead of always showing generic fee, calendar, MVP, and substitution rules.
+- No database migration, API, permission, or search-index change is required.
+- TypeScript syntax transpilation and isolated strict validation of the shared guide passed. Full project lint, typecheck, and build remain mandatory locally because dependencies were unavailable in the review container.

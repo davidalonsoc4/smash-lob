@@ -1,24 +1,18 @@
-Smash & Lob v0.14.2
+Smash & Lob v0.14.3
 
 Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/lib/settingsSearch.ts
 - src/components/settings/GlobalSettingsSearch.tsx
-- src/components/match/MatchActionsMenu.tsx
-- src/components/auth/LeagueEntryGate.tsx
-- src/app/settings/page.tsx
-- src/app/settings/notifications/page.tsx
-- src/app/application-admin/page.tsx
-- src/app/globals.css
+- src/app/help/page.tsx
+- src/components/invite/InviteFlow.tsx
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
 - docs/production-hardening/STATUS.md
 
 Added:
-- src/app/settings/suggestions/page.tsx
-- src/app/application-admin/suggestions/page.tsx
-- src/app/api/suggestions/route.ts
-- src/app/api/application-admin/suggestions/route.ts
-- supabase/migrations/20260724111500_add_application_suggestions.sql
-- docs/preproduction/V0.14.2_SUGGESTIONS_AND_SEARCH.md
+- src/lib/leagueGuide.ts
+- docs/preproduction/V0.14.3_CONTEXTUAL_HELP.md
