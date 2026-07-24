@@ -1,3 +1,11 @@
+## v0.13.3 public changelog (2026-07-24)
+
+- Added `/changelog` with a public-safe history of documented Smash & Lob releases starting at v0.6.2.
+- Added access from player and spectator settings, the visible version footer, and the settings search index.
+- Grouped minor revisions when a reliable public per-patch description is unavailable instead of inventing release details.
+- Added the changelog route to the spectator allowlist.
+- No database migration or remote change is required.
+
 
 ## v0.13.2 cumulative application-admin package (2026-07-23)
 
