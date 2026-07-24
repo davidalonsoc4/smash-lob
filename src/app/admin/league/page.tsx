@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { ImageCropDialog } from "@/components/images/ImageCropDialog"
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { AppCard } from "@/components/ui/AppCard"
@@ -10,7 +11,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
 import type { LeagueLocation } from "@/lib/leagueLocations"
 
@@ -53,6 +54,7 @@ function LeagueIdentityForm({
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
+  const [logoCropSource, setLogoCropSource] = useState<string | null>(null)
   const [detailsSaved, setDetailsSaved] = useState(false)
   const [logoSaved, setLogoSaved] = useState(false)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
@@ -125,7 +127,7 @@ function LeagueIdentityForm({
       setLogoError(
         "No se ha podido guardar el logo de la liga. Revisa Supabase o smash-lob-last-supabase-error."
       )
-      return
+      return false
     }
 
     setLogoUrl(nextLogoUrl)
@@ -150,6 +152,7 @@ function LeagueIdentityForm({
     }
 
     setLogoSaved(true)
+    return true
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -160,12 +163,10 @@ function LeagueIdentityForm({
     }
 
     try {
-      const dataUrl = await resizeImageFileToDataUrl({
-        file,
-        maxSize: 512,
-      })
-
-      await saveLogo(dataUrl)
+      validateImageFile(file)
+      setLogoError(null)
+      setLogoSaved(false)
+      setLogoCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
       setLogoError(
         imageError instanceof Error
@@ -287,6 +288,24 @@ function LeagueIdentityForm({
           </p>
         ) : null}
       </AppCard>
+
+      {logoCropSource ? (
+        <ImageCropDialog
+          src={logoCropSource}
+          title="Recortar logo de la liga"
+          description="Ajusta el encuadre. La transparencia se conservará cuando el formato lo permita."
+          shape="square"
+          outputSize={512}
+          onCancel={() => setLogoCropSource(null)}
+          onConfirm={async (dataUrl) => {
+            const saved = await saveLogo(dataUrl)
+            if (saved) {
+              setLogoCropSource(null)
+            }
+            return saved
+          }}
+        />
+      ) : null}
     </form>
   )
 }

@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.0",
+    date: "24 de julio de 2026",
+    title: "Recorte y optimización de imágenes",
+    summary:
+      "Las imágenes de perfil y los logotipos de liga pueden encuadrarse, ampliarse y girarse antes de guardarse.",
+    category: "new",
+    changes: [
+      "Nuevo editor de recorte previo para imágenes de perfil y logotipos de liga.",
+      "El usuario puede arrastrar, ampliar y girar la imagen con una vista previa del resultado final.",
+      "Las imágenes se normalizan a formato cuadrado, 512 × 512 píxeles y se comprimen antes de guardarse.",
+      "El editor usa máscara circular para avatares y cuadrada para logotipos, conservando transparencia cuando el navegador lo permite.",
+    ],
+  },
+  {
     version: "v0.14.6",
     date: "24 de julio de 2026",
     title: "Reapertura segura de temporadas",

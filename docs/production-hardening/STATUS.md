@@ -187,3 +187,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Existing matches are reloaded from Supabase without calendar regeneration.
 - No database migration is required.
 
+
+
+## v0.15.0 - Image crop and optimization (2026-07-24)
+
+- Added a reusable crop editor for player avatars and league logos.
+- Added drag, zoom, rotation and final-shape previews before upload.
+- Normalized client images to 512 × 512 compressed WebP data URLs.
+- Added file type and 12 MB input-size validation.
+- No migration, API, permission or database change is required.

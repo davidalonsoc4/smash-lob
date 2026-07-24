@@ -1,13 +1,15 @@
-Smash & Lob v0.14.6
+Smash & Lob v0.15.0
 
 Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/lib/serverSeasonMutations.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/start/route.ts
+- src/lib/clientImages.ts
+- src/components/settings/AccountProfileSettings.tsx
+- src/app/admin/league/page.tsx
 - docs/production-hardening/STATUS.md
 
 Added:
-- docs/preproduction/V0.14.6_REOPEN_SEASON_HOTFIX.md
+- src/components/images/ImageCropDialog.tsx
+- docs/preproduction/V0.15.0_IMAGE_CROP.md
