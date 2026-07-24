@@ -255,6 +255,8 @@ type EditableSeasonRoundSettings = Pick<
   | "manualActiveRound"
   | "manualCompletedRounds"
   | "registrationFee"
+  | "allowPlayerIncidents"
+  | "allowPlayerSubstitutions"
 >
 
 export async function updateServerSeasonRoundSettings({
@@ -288,6 +290,8 @@ export async function updateServerSeasonRoundSettings({
     manual_active_round: settings.manualActiveRound,
     manual_completed_rounds: settings.manualCompletedRounds,
     registration_fee: registrationFee,
+    allow_player_incidents: settings.allowPlayerIncidents,
+    allow_player_substitutions: settings.allowPlayerSubstitutions,
   }
 
   const { data, error } = await supabase
@@ -372,7 +376,7 @@ export async function startServerExistingSeason({
   const { data: settingsRow, error: settingsLookupError } = await supabase
     .from("season_settings")
     .select(
-      "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode",
+      "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions",
     )
     .eq("season_id", seasonId)
     .eq("league_id", leagueId)
@@ -503,6 +507,8 @@ export async function startServerExistingSeason({
           : new Date().toISOString(),
       scheduleMode,
       calendarMode: "balanced",
+      allowPlayerIncidents: settingsRow.allow_player_incidents !== false,
+      allowPlayerSubstitutions: settingsRow.allow_player_substitutions !== false,
     }
 
     return {
@@ -1217,6 +1223,8 @@ export async function createServerSeason({
             : null,
       schedule_mode: scheduleMode,
       calendar_mode: calendarMode,
+      allow_player_incidents: true,
+      allow_player_substitutions: true,
     })
 
   if (settingsError) {
@@ -1269,6 +1277,8 @@ export async function createServerSeason({
             : null,
       scheduleMode,
       calendarMode,
+      allowPlayerIncidents: true,
+      allowPlayerSubstitutions: true,
     },
   ]
   const linkedMembership: UserLeagueMembership | null =

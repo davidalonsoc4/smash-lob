@@ -35,11 +35,26 @@ export const en = {
   accountProfile: {
     loadingTitle: "Preparing your profile",
     eyebrow: "Global profile",
-    title: "Confirm your name",
-    description: "This name will be used in every league you join.",
+    title: "Complete your profile",
+    description: "Confirm your name and add the times when you can usually play.",
     firstName: "First name",
     lastName: "First surname",
     globalNameNotice: "We prefilled your Google details where possible. Review them before continuing.",
+    availabilityTitle: "Usual availability",
+    availabilityDescription: "Select the days and time range when you can usually play.",
+    availabilityStart: "From",
+    availabilityEnd: "To",
+    availabilityLaterNotice: "You can add more ranges and exceptions later in My availability.",
+    availabilityValidationError: "Select at least one day and a valid time range.",
+    availabilityDays: {
+      monday: "M",
+      tuesday: "T",
+      wednesday: "W",
+      thursday: "T",
+      friday: "F",
+      saturday: "S",
+      sunday: "S",
+    },
     validationError: "Enter a valid first name and first surname.",
     saveError: "Your profile could not be saved.",
     continue: "Save and continue",
@@ -492,7 +507,7 @@ export const en = {
     title: "Help and basics",
     description: "A quick guide for new league players.",
     fullDescription:
-      "Quick guide to understand the league format, scoring, match statuses and MVPs.",
+      "Review the active season rules and the tools available to organise and follow the league.",
     quickSummaryEyebrow: "Quick summary",
     quickSummaryTitle: "The essentials at a glance",
     quickSummaryDescription:
@@ -685,7 +700,7 @@ export const en = {
     title: "Settings",
     description: "Manage your app preferences.",
     helpTitle: "Help and basics",
-    helpDescription: "Review Star Points, tie-breaks and the 3-set format.",
+    helpDescription: "Review the active rules, format and tools available in the league.",
     backToProfile: "← Back to profile",
     profileShortcutDescription:
       "Change the active league, language and app preferences.",
@@ -707,8 +722,15 @@ export const en = {
     appearanceLight: "Light",
     appearanceDark: "Dark",
     appearanceSystem: "System",
-    accountTitle: "Account and invitations",
-    accountDescription: "Manage your session, image and access to new leagues.",
+    myProfileTitle: "My profile",
+    myProfileDescription: "Edit your name and profile image from one compact screen.",
+    profileImageTitle: "Profile image",
+    profileImageDescription: "The image is applied to your player in the active league.",
+    profileGoogleImageNotice: "Spectators use the image from their Google account.",
+    profileLoading: "Loading profile...",
+    profileLoadError: "The profile could not be loaded.",
+    accountTitle: "Other leagues",
+    accountDescription: "Join an existing league or create a new competition.",
     accountSettingsTitle: "Account settings",
     accountSettingsDescription:
       "Customize the image shown in your profile for this league.",
@@ -852,6 +874,13 @@ export const en = {
       "Type a location or paste a Maps URL. The app will open Maps with that reference.",
     save: "Save changes",
     saved: "Settings saved.",
+    profileStatsVisibilityTitle: "Historical profile stats",
+    profileStatsVisibilityDescription:
+      "Choose whether players can browse previous seasons and their historical total while a season is active. When every season is closed, history is always available.",
+    profileStatsVisibilityAll: "All seasons available",
+    profileStatsVisibilityCurrent: "Current season only while it is open",
+    profileStatsVisibilityError:
+      "The statistics visibility setting could not be saved.",
   },
 
   adminSeason: {
@@ -1059,8 +1088,8 @@ export const en = {
     disablePush: "Disable",
     typesTitle: "Alert types",
     enabledCount: "Enabled: {enabled}/{total}",
-    mandatoryPaymentReminders:
-      "Court and registration payment reminders, whether automatic or sent manually, are always received.",
+    allTypesConfigurable:
+      "Every notification type, including incidents and payment reminders, can be enabled or disabled separately.",
     disableAll: "Disable all",
     enableAll: "Enable all",
     preferencesSaved: "Preferences saved.",
@@ -1072,41 +1101,21 @@ export const en = {
     deviceDisabled: "Notifications disabled on this device.",
     deviceDisableError: "This device could not be disabled.",
     preferences: {
-      next_match: {
-        title: "My next match",
-        description:
-          "Scheduling, date, place or court changes, postponements and a reminder 2 hours before your matches.",
-      },
-      my_match_result: {
-        title: "My match results",
-        description:
-          "Results entered, edited or removed, confirmations, and reminders to enter a result or vote for MVP.",
-      },
-      round_events: {
-        title: "Rounds and MVP",
-        description:
-          "Alerts when a round is in play and when MVP awards are decided during the season.",
-      },
-      season_events: {
-        title: "Seasons",
-        description:
-          "A new season is created, started or finished in your league.",
-      },
-      booking_i_owe: {
-        title: "Court bookings",
-        description:
-          "A booking says you owe your share to another player or a booking in one of your matches is updated.",
-      },
-      booking_paid_to_me: {
-        title: "Court payments received",
-        description:
-          "Someone who owed you a court transfer marks it as paid.",
-      },
-      player_account: {
-        title: "Account and players",
-        description:
-          "Changes to your profile, avatar, role, league link or user details.",
-      },
+      match_schedule: { title: "Match scheduling", description: "Dates, times, courts, changes and postponements for your matches." },
+      match_incidents: { title: "Match incidents", description: "Incidents reported, resolved or removed. Admins also receive new league incidents." },
+      match_upcoming: { title: "Upcoming match", description: "Reminder before your next match begins." },
+      match_results: { title: "Results", description: "Results saved, edited, removed, disputed or still missing." },
+      result_confirmations: { title: "Result confirmations", description: "Reminders to confirm or review a result." },
+      mvp_reminders: { title: "MVP voting", description: "Reminders to submit your MVP vote." },
+      mvp_awards: { title: "MVP awards", description: "Match and round MVP awards." },
+      round_events: { title: "Rounds", description: "Alerts when a round enters play." },
+      season_lifecycle: { title: "Seasons", description: "Season creation, duplication, start and finish." },
+      season_roster: { title: "Registration and roster", description: "Players joining or leaving a season." },
+      announcements: { title: "Announcements", description: "Alerts sent by the creator or administrators." },
+      booking_updates: { title: "Court bookings", description: "Booking creation, changes or removal for your matches." },
+      booking_payments: { title: "Court payments received", description: "A player marks a transfer owed to you as paid." },
+      payment_reminders: { title: "Payment reminders", description: "Reminders for pending court or registration payments." },
+      player_account: { title: "Account and players", description: "Profile, avatar, role, link or user-data changes." },
     },
   },
 
@@ -1192,6 +1201,9 @@ export const en = {
       match_scheduled: "Match scheduled",
       match_schedule_updated: "Match schedule changed",
       match_postponed: "Match postponed",
+      match_incident_reported: "Match incident reported",
+      match_incident_resolved: "Match incident resolved",
+      match_incident_cleared: "Match incident removed",
       match_result_saved: "Result entered",
       match_result_updated: "Result corrected",
       match_result_disputed: "Result marked as incorrect",
@@ -1213,8 +1225,11 @@ export const en = {
       league_logo_updated: "League logo changed",
       league_locations_updated: "League locations changed",
       league_invite_regenerated: "Player invitation regenerated",
+      league_announcement_published: "Announcement published",
+      league_announcement_deleted: "Announcement deleted",
       season_finished: "Season finished",
       season_created: "Season created",
+      season_duplicated: "Season duplicated",
       season_started: "Season started",
       season_player_joined: "Player joined the season",
       season_player_left: "Player left the season",
@@ -1228,6 +1243,9 @@ export const en = {
       match_scheduled: "Schedule",
       match_schedule_updated: "Schedule",
       match_postponed: "Postponement",
+      match_incident_reported: "Incident",
+      match_incident_resolved: "Incident",
+      match_incident_cleared: "Incident",
       match_result_saved: "Result",
       match_result_updated: "Result",
       match_result_disputed: "Result",
@@ -1249,11 +1267,14 @@ export const en = {
       league_logo_updated: "League",
       league_locations_updated: "League",
       league_invite_regenerated: "Invitation",
+      league_announcement_published: "Announcement",
+      league_announcement_deleted: "Announcement",
       season_finished: "Season",
       season_started: "Season",
       season_player_joined: "Registration",
       season_player_left: "Registration",
       season_created: "Season",
+      season_duplicated: "Season",
       player_name_updated: "Player",
       player_avatar_updated: "Player",
       player_role_updated: "User",

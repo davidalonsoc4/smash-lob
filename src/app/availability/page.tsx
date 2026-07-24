@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
+import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
@@ -154,19 +154,39 @@ function TimeRangeInputs({
   );
 }
 
+function formatSlotsSummary(slots: AvailabilitySlot[]) {
+  if (slots.length === 0) {
+    return "Sin disponibilidad";
+  }
+
+  if (slots.length === 1) {
+    return `${slots[0].start}–${slots[0].end}`;
+  }
+
+  return `${slots.length} franjas`;
+}
+
 function DayAvailabilityEditor({
   weekdayId,
   slots,
+  isExpanded,
+  onToggleExpanded,
   onChange,
 }: {
   weekdayId: WeekdayId;
   slots: AvailabilitySlot[];
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
   onChange: (slots: AvailabilitySlot[]) => void;
 }) {
   const isAvailable = slots.length > 0;
 
   function setAvailable(enabled: boolean) {
     onChange(enabled ? [defaultSlot] : []);
+
+    if (enabled !== isExpanded) {
+      onToggleExpanded();
+    }
   }
 
   function updateSlot(index: number, slot: AvailabilitySlot) {
@@ -177,19 +197,39 @@ function DayAvailabilityEditor({
     );
   }
 
+  function removeSlot(index: number) {
+    const nextSlots = slots.filter((_, slotIndex) => slotIndex !== index);
+    onChange(nextSlots);
+
+    if (nextSlots.length === 0 && isExpanded) {
+      onToggleExpanded();
+    }
+  }
+
   return (
-    <AppCard className="p-2.5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-black text-neutral-950">
-            {weekdayLabels[weekdayId]}
-          </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {isAvailable
-              ? `${slots.length} franja${slots.length === 1 ? "" : "s"}`
-              : "Sin disponibilidad"}
-          </p>
-        </div>
+    <div className="px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          disabled={!isAvailable}
+          aria-expanded={isAvailable ? isExpanded : false}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left disabled:cursor-default"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black text-neutral-950">
+              {weekdayLabels[weekdayId]}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-500">
+              {formatSlotsSummary(slots)}
+            </p>
+          </div>
+          {isAvailable ? (
+            <ClickableChevron
+              className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            />
+          ) : null}
+        </button>
 
         <button
           type="button"
@@ -208,8 +248,8 @@ function DayAvailabilityEditor({
         </button>
       </div>
 
-      {isAvailable ? (
-        <div className="mt-2 space-y-2">
+      {isAvailable && isExpanded ? (
+        <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2">
           {slots.map((slot, index) => (
             <div
               key={`${weekdayId}-${index}`}
@@ -221,11 +261,11 @@ function DayAvailabilityEditor({
               />
               <button
                 type="button"
-                onClick={() => onChange(slots.filter((_, slotIndex) => slotIndex !== index))}
+                onClick={() => removeSlot(index)}
                 className="rounded-xl bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-600"
                 aria-label="Quitar franja"
               >
-                x
+                ×
               </button>
             </div>
           ))}
@@ -239,7 +279,7 @@ function DayAvailabilityEditor({
           </button>
         </div>
       ) : null}
-    </AppCard>
+    </div>
   );
 }
 
@@ -256,6 +296,7 @@ export default function AvailabilityPage() {
     }),
   );
   const [editorMode, setEditorMode] = useState<EditorMode>("quick");
+  const [expandedCustomDay, setExpandedCustomDay] = useState<WeekdayId | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -454,7 +495,7 @@ export default function AvailabilityPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="pt-1">
-        <BackButton fallbackHref="/profile" label="Volver" />
+        <BackButton fallbackHref="/settings" label="Volver" />
 
         <p className="text-sm font-medium text-neutral-500">
           {activeLeague.name}
@@ -502,7 +543,7 @@ export default function AvailabilityPage() {
                 shouldShowCustomEditor ? "bg-white shadow-sm" : "text-neutral-500"
               }`}
             >
-              Custom
+              Por días
             </button>
           </div>
         </div>
@@ -586,19 +627,34 @@ export default function AvailabilityPage() {
           </AppCard>
         </>
       ) : (
-        <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-            Horario custom por día
-          </p>
-          {weekdayIds.map((weekdayId) => (
-            <DayAvailabilityEditor
-              key={weekdayId}
-              weekdayId={weekdayId}
-              slots={weeklySlots[weekdayId]}
-              onChange={(slots) => updateWeekdaySlots(weekdayId, slots)}
-            />
-          ))}
-        </div>
+        <section className="space-y-2">
+          <div className="px-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+              Horario por días
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+              Activa únicamente los días disponibles y despliega cada uno para editar sus franjas.
+            </p>
+          </div>
+          <AppCard className="overflow-hidden !p-0">
+            <div className="divide-y divide-neutral-100">
+              {weekdayIds.map((weekdayId) => (
+                <DayAvailabilityEditor
+                  key={weekdayId}
+                  weekdayId={weekdayId}
+                  slots={weeklySlots[weekdayId]}
+                  isExpanded={expandedCustomDay === weekdayId}
+                  onToggleExpanded={() =>
+                    setExpandedCustomDay((current) =>
+                      current === weekdayId ? null : weekdayId,
+                    )
+                  }
+                  onChange={(slots) => updateWeekdaySlots(weekdayId, slots)}
+                />
+              ))}
+            </div>
+          </AppCard>
+        </section>
       )}
 
       {isLoading ? (
@@ -634,12 +690,6 @@ export default function AvailabilityPage() {
         {isSaving ? "Guardando..." : "Guardar disponibilidad"}
       </button>
 
-      <Link
-        href="/profile"
-        className="block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-700"
-      >
-        Volver al perfil
-      </Link>
     </div>
   );
 }

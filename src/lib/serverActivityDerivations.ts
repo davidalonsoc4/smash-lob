@@ -21,6 +21,7 @@ type SeasonMatchRow = {
   result_reported_by_player_id: string | null
   result_recorded_at: string | null
   result_locked: boolean | null
+  ranking_counts: boolean | null
 }
 
 export type ServerSeasonActivityMatch = Omit<MvpMatch, "id"> & {
@@ -53,7 +54,7 @@ function mapSeasonMatch(row: SeasonMatchRow): ServerSeasonActivityMatch {
     pointsA: row.points_a,
     pointsB: row.points_b,
     sets: Array.isArray(row.sets) ? row.sets : [],
-    resultCounts: true,
+    resultCounts: row.ranking_counts !== false,
     reporterPlayerId: row.result_reported_by_player_id,
     resultRecordedAt: row.result_recorded_at,
     resultLocked: Boolean(row.result_locked),
@@ -72,7 +73,7 @@ export async function fetchServerSeasonActivityMatches({
   const { data, error } = await supabase
     .from("matches")
     .select(
-      "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,result_reported_by_player_id,result_recorded_at,result_locked"
+      "id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,result_reported_by_player_id,result_recorded_at,result_locked,ranking_counts"
     )
     .eq("league_id", leagueId)
     .eq("season_id", seasonId)
@@ -136,15 +137,17 @@ export function applyServerResultCountState({
 
   return matches.map((match) => ({
     ...match,
-    resultCounts: getMatchResultConfirmationState({
-      matchId: match.id,
-      participantIds: [...match.teamA, ...match.teamB],
-      reporterPlayerId: match.reporterPlayerId,
-      resultRecordedAt: match.resultRecordedAt,
-      resultLocked: match.resultLocked,
-      confirmations,
-      mode: normalizedMode,
-    }).countsForRanking,
+    resultCounts:
+      match.resultCounts !== false &&
+      getMatchResultConfirmationState({
+        matchId: match.id,
+        participantIds: [...match.teamA, ...match.teamB],
+        reporterPlayerId: match.reporterPlayerId,
+        resultRecordedAt: match.resultRecordedAt,
+        resultLocked: match.resultLocked,
+        confirmations,
+        mode: normalizedMode,
+      }).countsForRanking,
   }))
 }
 

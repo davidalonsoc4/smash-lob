@@ -1,3 +1,31 @@
+## v0.14.0 settings architecture (2026-07-24)
+
+- Reorganized Settings into Personal, My leagues, Personal activity, Administration, Help and information, and Session.
+- Player and spectator settings now share the same capability-driven visual architecture.
+- Reorganized the league administration hub into General, People and access, Competition, Operations, and Data and control.
+- Grouped personal notification preferences into four expandable categories.
+- Added clearer internal sections to season, league, users, and administrative activity screens.
+- Preserved all existing routes, anchors, APIs, permissions, and the current settings-search implementation.
+- No database migration or remote change is required.
+
+
+## v0.13.3 public changelog (2026-07-24)
+
+- Added `/changelog` with a public-safe history of documented Smash & Lob releases starting at v0.6.2.
+- Added access from player and spectator settings, the visible version footer, and the settings search index.
+- Grouped minor revisions when a reliable public per-patch description is unavailable instead of inventing release details.
+- Added the changelog route to the spectator allowlist.
+- No database migration or remote change is required.
+
+
+## v0.13.2 cumulative application-admin package (2026-07-23)
+
+- Rebuilt the complete v0.13.x delivery from the original staging snapshot plus the v0.13.0 application-administration changes.
+- Retains the v0.12.7 scheduling-panel and compact statistics season-selector refinements.
+- Corrects the v0.13.1 upcoming-roster refresh so Supabase snapshots replace stale season/player membership data for the leagues represented by the snapshot.
+- The correction is client-state-only and does not add or modify database migrations beyond `20260723133000_add_application_admin_controls.sql`.
+- Version advanced to v0.13.2 because the previously delivered v0.13.1 package did not pass TypeScript validation.
+
 # Production Hardening Status
 
 Last updated: 2026-07-20 18:49:40 +02:00
@@ -6,6 +34,25 @@ Production branch confirmed from Git + Vercel: `main`
 Production source version retained in this run: `v0.9.71`
 Staging source commit retained in this run: `78f1986` (`v0.10.0`)
 Active milestone state: `H20-H23 complete; environment isolation repair complete`
+
+## Post-hardening fix checkpoint (v0.13.1, 2026-07-23)
+
+- Fixed stale self-registration roster entries after a linked user leaves a league before the season starts.
+- Supabase season snapshots are now authoritative for the leagues and seasons included in each refresh, so deleted `season_players` rows no longer survive in local state or localStorage.
+- The existing unlink SQL function remains unchanged: it already removes the player from an upcoming self-registration roster and reopens registration. This patch only corrects client hydration.
+- No database migration is required for v0.13.1.
+
+## Post-hardening feature checkpoint (2026-07-23)
+
+- Prepared source version `v0.13.0` on top of the current staging snapshot.
+- Added global application administration for summary metrics, richer account data, account suspension/reactivation, onboarding resets, push/preference cleanup, league ownership transfer, and application-admin audit history.
+- Added local migration `20260723133000_add_application_admin_controls.sql`; it has not been applied remotely by this patch.
+- Account suspension is enforced in the shared server authentication boundary and renders a dedicated blocked-account screen before league providers load.
+- League ownership transfer updates the league owner and both membership roles transactionally through a service-role-only SQL function.
+- The v0.12.7 scheduling-panel and compact season-selector changes are retained cumulatively in this source.
+- TypeScript/TSX syntax transpilation passed for every modified source file, and whitespace/conflict-marker checks are clean.
+- Full dependency installation, lint, typecheck, and build could not be completed in the review container because its npm proxy returned HTTP 503 for required packages; these gates remain mandatory locally before commit.
+
 
 ## Final state summary
 
@@ -81,3 +128,55 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - No current release blocker is documented for the closed-beta scope.
 - The application is considered Production Ready for controlled sharing with the league participants.
+
+## v0.13.4 - Profile and navigation consistency (2026-07-24)
+
+- Added a compact `/settings/profile` screen that unifies account-name and active-league avatar editing.
+- Kept create-league and join-league actions directly in Settings.
+- Replaced remaining text navigation arrows with the shared `ClickableChevron` component.
+- Made the current closed-beta version explicit on the public changelog card.
+- No database migration is required.
+
+## v0.14.1 - Settings polish (2026-07-24)
+
+- Removed the duplicate application-version navigation row from Settings and restored the centered closed-beta version footer.
+- Simplified the public changelog to show only release entries.
+- Changed notification preference groups to load collapsed.
+- Reworked per-day availability into compact expandable rows and removed the redundant profile-return button.
+- Reduced Activity tab and Help screen visual scale to match the Settings architecture.
+- No database migration, API, permission, route, or search-index change is required.
+
+## v0.14.2 - Suggestions and settings search (2026-07-24)
+
+- Added an authenticated suggestion inbox with private per-user submission history.
+- Added a superuser-only suggestion review screen with internal status and notes.
+- Added migration `20260724111500_add_application_suggestions.sql`; browser roles have no direct table access.
+- Replaced the inline Settings search bar with a floating search control above the bottom navigation.
+- Expanded the search index to cover notification groups, season rules, operations, exports, application administration, and suggestions.
+- Improved search matching for natural phrases, plurals, partial words, and small typing errors.
+- Compacted Match "More actions" entries to remain on a single line.
+
+## v0.14.3 - Contextual help and stable search dialog (2026-07-24)
+
+- Fixed the floating Settings search dialog to a stable responsive height; only the results area scrolls when the query or result count changes.
+- Added a shared multilingual season guide used by Help and by the pre-join rules acceptance screen.
+- Help now documents recent application features and summarizes the active roster, calendar, schedule, round-window, scoring, confirmation, MVP, fee, incident, and substitution configuration.
+- Registration, MVP, incident, and substitute explanations are omitted when those features are disabled.
+- The invitation rules summary now reflects the target season instead of always showing generic fee, calendar, MVP, and substitution rules.
+- No database migration, API, permission, or search-index change is required.
+- TypeScript syntax transpilation and isolated strict validation of the shared guide passed. Full project lint, typecheck, and build remain mandatory locally because dependencies were unavailable in the review container.
+
+## v0.14.4 - Floating search dialog polish (2026-07-24)
+
+- Anchored the Settings search dialog below the top floating controls while keeping its top edge fixed.
+- Made the dialog height content-adaptive up to a responsive maximum.
+- Limited scrolling to the results area and only when the content exceeds the available height.
+- Extended the backdrop beyond the top viewport edge to remove uncovered pixels on mobile devices.
+- No database migration, API, permission, route, or search-index change is required.
+## v0.14.5 - React effect validation (2026-07-24)
+
+- Removed synchronous state updates reached directly from effects in both suggestion screens.
+- Made initial suggestion loads cancel-safe so late responses do not update unmounted pages.
+- Moved notification hash expansion and scrolling into animation-frame callbacks.
+- No database migration, API, permission, route, or search-index change is required.
+

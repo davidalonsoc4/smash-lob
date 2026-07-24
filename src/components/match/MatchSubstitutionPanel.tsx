@@ -165,42 +165,15 @@ export function MatchSubstitutionPanel({
   }
 
   return (
-    <details className="group overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
-        <div className="flex min-w-0 items-center gap-2">
-          <p className="text-sm font-black">{t.matchDetail.substitutionsTitle}</p>
-          {matchSubstitutions.length > 0 ? (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-700">
-              {matchSubstitutions.length}
-            </span>
-          ) : (
-            <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-              {t.matchDetail.substitutionsOptional}
-            </span>
-          )}
-        </div>
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            fill="none"
-            className="h-4 w-4 transition-transform group-open:rotate-180"
-          >
-            <path
-              d="m6 8 4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      </summary>
-
-      <div className="border-t border-neutral-100 px-3 py-3">
-        <p className="text-[11px] font-semibold leading-4 text-neutral-500">
-          {t.matchDetail.substitutionsDescription}
-        </p>
+    <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-black">{t.matchDetail.substitutionsTitle}</p>
+        {matchSubstitutions.length > 0 ? (
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black text-red-700">
+            {matchSubstitutions.length}
+          </span>
+        ) : null}
+      </div>
 
         {matchSubstitutions.length > 0 ? (
           <div className="mt-2 space-y-1.5">
@@ -333,7 +306,6 @@ export function MatchSubstitutionPanel({
         {error ? (
           <p className="mt-2 text-[11px] font-bold text-red-700">{error}</p>
         ) : null}
-      </div>
-    </details>
+    </div>
   )
 }

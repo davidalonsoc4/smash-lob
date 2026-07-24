@@ -291,6 +291,78 @@ function LeagueIdentityForm({
   )
 }
 
+function ProfileStatisticsVisibilityCard({
+  leagueId,
+  enabled,
+}: {
+  leagueId: string
+  enabled: boolean
+}) {
+  const { t } = useI18n()
+  const { updateLeagueShowHistoricalProfileStats } = useLeagueAccess()
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleToggle() {
+    if (isSaving) {
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+
+    const updated = await updateLeagueShowHistoricalProfileStats(
+      leagueId,
+      !enabled
+    )
+
+    setIsSaving(false)
+
+    if (!updated) {
+      setError(t.adminLeague.profileStatsVisibilityError)
+    }
+  }
+
+  return (
+    <AppCard>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold">{t.adminLeague.profileStatsVisibilityTitle}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            {t.adminLeague.profileStatsVisibilityDescription}
+          </p>
+          <p className="mt-1.5 text-[11px] font-black text-neutral-700">
+            {enabled
+              ? t.adminLeague.profileStatsVisibilityAll
+              : t.adminLeague.profileStatsVisibilityCurrent}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          onClick={handleToggle}
+          disabled={isSaving}
+          className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
+            enabled ? "bg-neutral-950" : "bg-neutral-300"
+          }`}
+        >
+          <span
+            className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+              enabled ? "left-6" : "left-1"
+            }`}
+          />
+        </button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>
+      ) : null}
+    </AppCard>
+  )
+}
+
 function DeleteLeagueCard({
   leagueId,
   leagueName,
@@ -542,6 +614,9 @@ export default function AdminLeaguePage() {
           <a href="#lugares" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
             Lugares
           </a>
+          <a href="#estadisticas-perfil" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+            Estadísticas
+          </a>
           {canDeleteLeague ? (
             <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
               Zona sensible
@@ -550,6 +625,14 @@ export default function AdminLeaguePage() {
         </div>
       </AppCard>
 
+      <div className="px-1 pt-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Identidad
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Nombre, descripción y logotipo que identifican la competición.
+        </p>
+      </div>
       <div id="identidad" className="settings-search-target">
         <LeagueIdentityForm
           key={`${activeLeague.id}-identity`}
@@ -561,6 +644,14 @@ export default function AdminLeaguePage() {
         />
       </div>
 
+      <div className="px-1 pt-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Lugares habituales
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Clubes, municipios, pistas y enlaces de localización usados con frecuencia.
+        </p>
+      </div>
       <div id="lugares" className="settings-search-target">
         <LeagueLocationsForm
           key={`${activeLeague.id}-locations`}
@@ -570,14 +661,39 @@ export default function AdminLeaguePage() {
         />
       </div>
 
+      <div className="px-1 pt-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Historial y perfiles
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Decide si los perfiles incluyen estadísticas de temporadas anteriores.
+        </p>
+      </div>
+      <div id="estadisticas-perfil" className="settings-search-target">
+        <ProfileStatisticsVisibilityCard
+          leagueId={activeLeague.id}
+          enabled={activeLeague.showHistoricalProfileStats === true}
+        />
+      </div>
+
       {canDeleteLeague ? (
-        <div id="zona-sensible" className="settings-search-target">
+        <>
+          <div className="px-1 pt-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400">
+              Zona sensible
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-red-600">
+              Acciones permanentes reservadas al creador de la liga.
+            </p>
+          </div>
+          <div id="zona-sensible" className="settings-search-target">
           <DeleteLeagueCard
             leagueId={activeLeague.id}
             leagueName={activeLeague.name}
             onDeleteLeague={deleteLeague}
           />
-        </div>
+          </div>
+        </>
       ) : null}
     </div>
   )

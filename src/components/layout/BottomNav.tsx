@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type NavItem = {
@@ -96,6 +97,7 @@ export function BottomNav() {
 
     try {
       await refreshLeagueAccess()
+      window.dispatchEvent(new Event(ANNOUNCEMENTS_REFRESH_EVENT))
       lastSoftRefreshAtRef.current = Date.now()
     } finally {
       isSoftRefreshingRef.current = false

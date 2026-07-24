@@ -21,22 +21,25 @@ export function PlayerSeasonScopeSelector({
   }
 
   return (
-    <div className="-mt-2 flex items-center justify-between gap-3 rounded-2xl bg-neutral-100/70 px-3 py-2">
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-500">
-        {title}
-      </p>
-
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="max-w-[165px] rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-black text-neutral-800 outline-none"
-      >
-        {scopes.map((scope) => (
-          <option key={scope.id} value={scope.id}>
-            {scope.label}
-          </option>
-        ))}
-      </select>
+    <div className="-mt-1 flex justify-end">
+      <label className="inline-flex max-w-full items-center gap-0.5 text-neutral-500">
+        <span className="sr-only">{title}</span>
+        <select
+          aria-label={title}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="max-w-[160px] cursor-pointer appearance-none truncate border-0 bg-transparent py-0.5 pl-1 pr-3 text-right text-[10px] font-bold text-neutral-500 outline-none"
+        >
+          {scopes.map((scope) => (
+            <option key={scope.id} value={scope.id}>
+              {scope.label}
+            </option>
+          ))}
+        </select>
+        <span aria-hidden="true" className="-ml-2 text-[9px] text-neutral-400">
+          ▾
+        </span>
+      </label>
     </div>
   )
 }

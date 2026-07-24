@@ -1,18 +1,14 @@
-Smash & Lob v0.11.8 · Corrección de pureza en actualización suave de HOME
+Smash & Lob v0.14.5
 
-Cambios principales:
-- La marca temporal de la actualización suave deja de inicializarse durante el render de BottomNav.
-- La referencia temporal se inicializa en un efecto del cliente, evitando la regla react-hooks/purity.
-- Se mantiene intacto el comportamiento de actualización suave de HOME y la comprobación al volver a la aplicación tras 30 segundos.
-
-Base de datos:
-- Sin cambios SQL.
-- Sin migraciones.
-- No ejecutar db push.
-
-Archivos incluidos:
-- CHANGED_FILES.txt
+Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
-- src/components/layout/BottomNav.tsx
+- src/lib/changelog.ts
+- src/app/application-admin/suggestions/page.tsx
+- src/app/settings/suggestions/page.tsx
+- src/app/settings/notifications/page.tsx
+- docs/production-hardening/STATUS.md
+
+Added:
+- docs/preproduction/V0.14.5_REACT_EFFECT_VALIDATION.md

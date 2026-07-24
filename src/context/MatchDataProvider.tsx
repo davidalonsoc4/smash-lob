@@ -26,6 +26,7 @@ import {
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { recordActivityEvent, type ActivityEventType } from "@/lib/activity";
 import { dateTimeLocalToUtcIso } from "@/lib/matchScheduleTime";
+import { isMatchCompetitionComplete } from "@/lib/matchLifecycle";
 import {
   clearSupabaseCourtBooking,
   clearSupabaseMatchResult,
@@ -41,6 +42,11 @@ import {
 } from "@/lib/supabaseMatches";
 import { finishSupabaseActiveSeason } from "@/lib/supabaseSeasons";
 import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
+import type {
+  MatchIncidentStatus,
+  MatchIncidentType,
+  MatchResolutionType,
+} from "@/lib/matchIncidents";
 import {
   fetchSupabaseMatchResultConfirmations,
   upsertSupabaseMatchResultConfirmation,
@@ -99,7 +105,15 @@ export type MatchData = {
   resultRecordedAt: string | null;
   resultReportedByPlayerId: string | null;
   resultLocked: boolean;
+  rankingCounts: boolean;
   resultCounts?: boolean;
+  incidentType: MatchIncidentType | null;
+  incidentStatus: MatchIncidentStatus | null;
+  incidentReason: string | null;
+  incidentNotes: string | null;
+  incidentCreatedAt: string | null;
+  incidentResolvedAt: string | null;
+  resolutionType: MatchResolutionType | null;
   substitutions?: MatchSubstitution[];
   courtBooking: CourtBooking;
 };
@@ -203,6 +217,14 @@ function normalizeMatch(match: (typeof allMatches)[number]): MatchData {
     resultRecordedAt: match.resultRecordedAt ?? null,
     resultReportedByPlayerId: match.resultReportedByPlayerId ?? null,
     resultLocked: match.resultLocked ?? false,
+    rankingCounts: true,
+    incidentType: null,
+    incidentStatus: null,
+    incidentReason: null,
+    incidentNotes: null,
+    incidentCreatedAt: null,
+    incidentResolvedAt: null,
+    resolutionType: null,
     substitutions: [],
     courtBooking: getEmptyCourtBooking(),
   };
@@ -220,6 +242,14 @@ function sanitizeMatch(match: MatchData): MatchData {
         ? match.resultReportedByPlayerId
         : null,
     resultLocked: Boolean(match.resultLocked),
+    rankingCounts: match.rankingCounts !== false,
+    incidentType: match.incidentType ?? null,
+    incidentStatus: match.incidentStatus ?? null,
+    incidentReason: match.incidentReason ?? null,
+    incidentNotes: match.incidentNotes ?? null,
+    incidentCreatedAt: match.incidentCreatedAt ?? null,
+    incidentResolvedAt: match.incidentResolvedAt ?? null,
+    resolutionType: match.resolutionType ?? null,
     substitutions: Array.isArray(match.substitutions)
       ? match.substitutions.map((substitution) => ({ ...substitution }))
       : [],
@@ -404,6 +434,8 @@ function getLocalFinishedMatch(
     resultRecordedAt: new Date().toISOString(),
     resultReportedByPlayerId: reportedByPlayerId,
     resultLocked: false,
+    rankingCounts: true,
+    resolutionType: "played",
   };
 }
 
@@ -417,6 +449,8 @@ function getLocalClearedResultMatch(match: MatchData): MatchData {
     resultRecordedAt: null,
     resultReportedByPlayerId: null,
     resultLocked: false,
+    rankingCounts: true,
+    resolutionType: null,
   };
 }
 
@@ -557,15 +591,17 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
     (sourceMatches: MatchData[], confirmations: MatchResultConfirmation[]) =>
       sourceMatches.map((match) => ({
         ...match,
-        resultCounts: getMatchResultConfirmationState({
-          matchId: match.id,
-          participantIds: [...match.teamA, ...match.teamB],
-          reporterPlayerId: match.resultReportedByPlayerId,
-          resultRecordedAt: match.resultRecordedAt,
-          resultLocked: match.resultLocked,
-          confirmations,
-          mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
-        }).countsForRanking,
+        resultCounts:
+          match.rankingCounts !== false &&
+          getMatchResultConfirmationState({
+            matchId: match.id,
+            participantIds: [...match.teamA, ...match.teamB],
+            reporterPlayerId: match.resultReportedByPlayerId,
+            resultRecordedAt: match.resultRecordedAt,
+            resultLocked: match.resultLocked,
+            confirmations,
+            mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
+          }).countsForRanking,
       })),
     [getSeasonRoundSettings],
   );
@@ -719,8 +755,17 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         seasonId,
         playerIds,
         scheduleMode,
-      }).map((match) => ({
+      }).map((match): MatchData => ({
         ...match,
+        rankingCounts: true,
+        incidentType: null,
+        incidentStatus: null,
+        incidentReason: null,
+        incidentNotes: null,
+        incidentCreatedAt: null,
+        incidentResolvedAt: null,
+        resolutionType: null,
+        substitutions: [],
         courtBooking: getEmptyCourtBooking(),
       }));
 
@@ -1044,10 +1089,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           seasonMatches.length > 0 &&
           calculatedNextMatches
             .filter((match) => match.seasonId === updatedMatch.seasonId)
-            .every(
-              (match) =>
-                match.status === "finished" && match.resultCounts !== false,
-            ),
+            .every(isMatchCompetitionComplete),
         );
 
         if (shouldAutoFinishSeason) {
@@ -1375,9 +1417,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
         targetSeason?.status === "active" &&
         match.round === targetSeason.totalRounds &&
         countedSeasonMatches.length > 0 &&
-        countedSeasonMatches.every(
-          (item) => item.status === "finished" && item.resultCounts !== false,
-        ),
+        countedSeasonMatches.every(isMatchCompetitionComplete),
       );
 
       if (shouldAutoFinishSeason) {

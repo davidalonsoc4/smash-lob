@@ -23,6 +23,7 @@ import {
   startSupabaseExistingSeason,
   startSupabaseSeason,
   replaceSupabaseUpcomingSeasonBalancedCalendar,
+  duplicateSupabaseSeason,
   updateSupabaseSeasonRoundOrder,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
@@ -70,6 +71,205 @@ type ManualCalendarRoundDraft = {
     teamB: string[];
   }[];
 };
+
+type SeasonNavigationLink = {
+  href: string;
+  label: string;
+  danger?: boolean;
+  primary?: boolean;
+};
+
+type SeasonNavigationGroup = {
+  title: string;
+  links: SeasonNavigationLink[];
+};
+
+function SeasonSectionIntro({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="px-1 pt-1">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        {title}
+      </p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function SeasonNavigation({
+  isActiveSeason,
+  isUpcomingSeason,
+  hasCreatedLeagueSeason,
+  canAuditCalendar,
+  canReopenFinishedSeason,
+  registrationEnabled,
+}: {
+  isActiveSeason: boolean;
+  isUpcomingSeason: boolean;
+  hasCreatedLeagueSeason: boolean;
+  canAuditCalendar: boolean;
+  canReopenFinishedSeason: boolean;
+  registrationEnabled: boolean;
+}) {
+  let groups: SeasonNavigationGroup[];
+
+  if (isActiveSeason) {
+    groups = [
+      {
+        title: "Calendario",
+        links: [
+          { href: "#jornadas", label: "Jornadas" },
+          { href: "#margen-jornadas", label: "Margen" },
+          ...(canAuditCalendar
+            ? [{ href: "#equilibrio-calendario", label: "Equilibrio" }]
+            : []),
+        ],
+      },
+      {
+        title: "Reglas",
+        links: [
+          { href: "#mvp", label: "MVP" },
+          { href: "#confirmaciones", label: "Confirmación" },
+          { href: "#regla-tres-sets", label: "Tres sets" },
+          { href: "#acciones-partido", label: "Acciones" },
+        ],
+      },
+      {
+        title: "Personas",
+        links: [
+          ...(registrationEnabled
+            ? [{ href: "#inscripcion", label: "Inscripción" }]
+            : []),
+          { href: "#jugadores", label: "Jugadores" },
+        ],
+      },
+      {
+        title: "Estado",
+        links: [
+          { href: "#cierre", label: "Finalizar" },
+          { href: "#zona-sensible", label: "Zona sensible", danger: true },
+        ],
+      },
+    ];
+  } else if (isUpcomingSeason) {
+    groups = [
+      {
+        title: "Preparación",
+        links: [
+          { href: "#inicio-temporada", label: "Comenzar", primary: true },
+          { href: "#jugadores", label: "Jugadores" },
+          ...(registrationEnabled
+            ? [{ href: "#inscripcion", label: "Inscripción" }]
+            : []),
+        ],
+      },
+      {
+        title: "Calendario",
+        links: [
+          { href: "#jornadas", label: "Jornadas" },
+          { href: "#margen-jornadas", label: "Margen" },
+          ...(canAuditCalendar
+            ? [{ href: "#equilibrio-calendario", label: "Equilibrio" }]
+            : []),
+        ],
+      },
+      {
+        title: "Reglas",
+        links: [
+          { href: "#mvp", label: "MVP" },
+          { href: "#confirmaciones", label: "Confirmación" },
+          { href: "#regla-tres-sets", label: "Tres sets" },
+          { href: "#acciones-partido", label: "Acciones" },
+        ],
+      },
+      {
+        title: "Control",
+        links: [
+          { href: "#zona-sensible", label: "Zona sensible", danger: true },
+        ],
+      },
+    ];
+  } else if (hasCreatedLeagueSeason) {
+    groups = [
+      {
+        title: "Temporada finalizada",
+        links: [
+          { href: "#resumen-configuracion", label: "Configuración" },
+          { href: "#invitacion", label: "Invitación" },
+          { href: "#jugadores", label: "Jugadores" },
+          ...(canReopenFinishedSeason
+            ? [{ href: "#reabrir", label: "Reabrir" }]
+            : []),
+        ],
+      },
+      {
+        title: "Siguiente ciclo",
+        links: [
+          { href: "#nueva-temporada", label: "Nueva temporada", primary: true },
+        ],
+      },
+    ];
+  } else {
+    groups = [
+      {
+        title: "Primera temporada",
+        links: [
+          { href: "#nueva-temporada", label: "Crear temporada", primary: true },
+        ],
+      },
+    ];
+  }
+
+  return (
+    <AppCard className="p-3">
+      <p className="text-sm font-black text-neutral-950">
+        Navegación de temporada
+      </p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Accede directamente al bloque que necesitas sin recorrer toda la pantalla.
+      </p>
+      <div className="mt-3 space-y-3">
+        {groups.map((group) => (
+          <div key={group.title}>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+              {group.title}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {group.links.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded-xl px-3 py-2 text-center text-xs font-black ${
+                    link.danger
+                      ? "bg-red-50 text-red-700"
+                      : link.primary
+                        ? "bg-neutral-950 text-white"
+                        : "bg-neutral-100 text-neutral-800"
+                  }`}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </AppCard>
+  );
+}
+
+function getSuggestedSeasonName(name: string) {
+  const match = name.match(/^(.*?)(\d+)\s*$/);
+  if (!match) return `${name} 2`;
+  return `${match[1].trim()} ${Number(match[2]) + 1}`;
+}
 
 function getTotalRoundCount(playerCount: number) {
   return Math.max(playerCount - 1, 1);
@@ -594,31 +794,15 @@ function getFinishedSeasonScheduleLabel({
   return repeatsFirstLeg ? "Doble vuelta" : "Temporada larga";
 }
 
-function formatFinishedSeasonDate(value: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  const [year, month, day] = value.split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("es-ES", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, month - 1, day));
-}
-
-function FinishedSeasonConfigurationSummary({
+function SeasonConfigurationSummary({
   activeSeason,
   roundSettings,
   matches,
   playerCount,
 }: {
   activeSeason: {
+    name: string;
+    status: "upcoming" | "active" | "finished";
     totalRounds: number;
   };
   roundSettings: SeasonRoundSettings;
@@ -630,13 +814,6 @@ function FinishedSeasonConfigurationSummary({
     playerCount,
     matches,
   });
-  const marginValue =
-    roundSettings.roundWindowMode === "fixed-days"
-      ? `${roundSettings.roundWindowDays ?? "—"} días por jornada`
-      : "Sin margen específico";
-  const marginStartDate = formatFinishedSeasonDate(
-    roundSettings.seasonStartsAt,
-  );
   const confirmationValue =
     resultConfirmationOptions.find(
       (option) => option.value === roundSettings.resultConfirmationMode,
@@ -644,55 +821,147 @@ function FinishedSeasonConfigurationSummary({
   const mvpValue =
     mvpSystemOptions.find((option) => option.value === roundSettings.mvpSystem)
       ?.title ?? "Sin sistema MVP";
+  const statusValue =
+    activeSeason.status === "active"
+      ? "En juego"
+      : activeSeason.status === "upcoming"
+        ? "Próxima"
+        : "Finalizada";
+  const rosterValue =
+    roundSettings.rosterMode === "self_registration"
+      ? `${playerCount}/${roundSettings.playerCapacity ?? "—"} · Autoinscripción`
+      : `${playerCount} jugadores · Plantilla fija`;
+  const roundWindowValue =
+    roundSettings.roundWindowMode === "fixed-days"
+      ? `${roundSettings.roundWindowDays ?? "—"} días por jornada`
+      : "Sin margen fijo";
+  const registrationValue = roundSettings.registrationFee.enabled
+    ? `${roundSettings.registrationFee.amount} € por jugador`
+    : "Sin cuota";
   const items = [
-    {
-      title: "Calendario",
-      value: `${calendarValue} · ${activeSeason.totalRounds} jornadas`,
-      detail: `${playerCount} jugadores · calendario finalizado`,
-    },
-    {
-      title: "Margen de jornadas",
-      value: marginValue,
-      detail:
-        roundSettings.roundWindowMode === "fixed-days" && marginStartDate
-          ? `La Jornada 1 comenzó el ${marginStartDate}.`
-          : "La temporada no utilizó ventanas oficiales por jornada.",
-    },
-    {
-      title: "Confirmación de resultados",
-      value: confirmationValue,
-      detail: "Configuración utilizada durante esta temporada.",
-    },
-    {
-      title: "Sistema MVP",
-      value: mvpValue,
-      detail: "Configuración utilizada durante esta temporada.",
-    },
+    ["Estado", statusValue],
+    ["Plantilla", rosterValue],
+    ["Calendario", `${calendarValue} · ${activeSeason.totalRounds} jornadas`],
+    [
+      "Resultado",
+      roundSettings.requiresThreeSets
+        ? "3 sets completos siempre"
+        : "Sets según resultado",
+    ],
+    ["Confirmación", confirmationValue],
+    ["MVP", mvpValue],
+    ["Margen", roundWindowValue],
+    ["Inscripción", registrationValue],
   ];
 
   return (
-    <AppCard>
-      <p className="font-bold">Configuración final de la temporada</p>
-      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Estos ajustes quedan en modo consulta. Para cambiarlos, crea una nueva
-        temporada o reabre esta.
-      </p>
+    <AppCard className="p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold">Resumen de configuración</p>
+          <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+            {activeSeason.name}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-600">
+          {statusValue}
+        </span>
+      </div>
 
-      <div className="mt-3 space-y-2">
-        {items.map((item) => (
-          <div key={item.title} className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
-              {item.title}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {items.slice(1).map(([title, value]) => (
+          <div key={title} className="min-w-0 rounded-xl bg-neutral-100 px-2.5 py-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-400">
+              {title}
             </p>
-            <p className="mt-0.5 text-sm font-black text-neutral-950">
-              {item.value}
-            </p>
-            <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-              {item.detail}
+            <p className="mt-0.5 text-[11px] font-black leading-4 text-neutral-800">
+              {value}
             </p>
           </div>
         ))}
       </div>
+    </AppCard>
+  );
+}
+
+function RequiresThreeSetsSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [requiresThreeSets, setRequiresThreeSets] = useState(
+    roundSettings.requiresThreeSets,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const hasChanges = requiresThreeSets !== roundSettings.requiresThreeSets;
+
+  async function save() {
+    if (isSaving || !hasChanges) return;
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      requiresThreeSets,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    try {
+      await updateSupabaseSeasonRoundSettings(nextSettings);
+      updateSeasonRoundSettings(nextSettings);
+      setFeedback("Regla de resultados actualizada.");
+    } catch (caughtError) {
+      recordSupabaseError("update-three-set-rule", caughtError);
+      setError("No se ha podido guardar la regla de los tres sets.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Regla de los tres sets</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Decide si todos los partidos deben completar los tres sets, aunque una pareja gane los dos primeros.
+      </p>
+
+      <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+        <input
+          type="checkbox"
+          checked={requiresThreeSets}
+          onChange={(event) => {
+            setRequiresThreeSets(event.target.checked);
+            setFeedback(null);
+            setError(null);
+          }}
+          className="mt-1"
+        />
+        <span>
+          <span className="block text-sm font-black">Jugar 3 sets completos siempre</span>
+          <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+            Desactívalo para permitir cerrar el partido cuando una pareja ya haya ganado los sets necesarios.
+          </span>
+        </span>
+      </label>
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={!hasChanges || isSaving}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+      >
+        {isSaving ? "Guardando..." : "Guardar regla"}
+      </button>
+
+      {feedback ? <p className="mt-2 text-center text-xs font-bold text-emerald-700">{feedback}</p> : null}
+      {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{error}</p> : null}
     </AppCard>
   );
 }
@@ -1373,6 +1642,15 @@ function BalancedCalendarAuditPanel({
             scheduleMode: scheduleMode ?? "single",
           }).map((match) => ({
             ...match,
+            rankingCounts: true,
+            incidentType: null,
+            incidentStatus: null,
+            incidentReason: null,
+            incidentNotes: null,
+            incidentCreatedAt: null,
+            incidentResolvedAt: null,
+            resolutionType: null,
+            substitutions: [],
             courtBooking: getEmptyCourtBooking(),
           }));
 
@@ -2948,6 +3226,15 @@ function NewSeasonForm({
           scheduleMode,
         }).map((match) => ({
           ...match,
+          rankingCounts: true,
+          incidentType: null,
+          incidentStatus: null,
+          incidentReason: null,
+          incidentNotes: null,
+          incidentCreatedAt: null,
+          incidentResolvedAt: null,
+          resolutionType: null,
+          substitutions: [],
           courtBooking: getEmptyCourtBooking(),
         }));
 
@@ -3795,10 +4082,133 @@ function NewSeasonForm({
   );
 }
 
+
+function PlayerMatchActionsSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [allowIncidents, setAllowIncidents] = useState(
+    roundSettings.allowPlayerIncidents,
+  );
+  const [allowSubstitutions, setAllowSubstitutions] = useState(
+    roundSettings.allowPlayerSubstitutions,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasChanges =
+    allowIncidents !== roundSettings.allowPlayerIncidents ||
+    allowSubstitutions !== roundSettings.allowPlayerSubstitutions;
+
+  async function save() {
+    if (isSaving || !hasChanges) return;
+
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      allowPlayerIncidents: allowIncidents,
+      allowPlayerSubstitutions: allowSubstitutions,
+    };
+
+    setIsSaving(true);
+    setFeedback(null);
+    setError(null);
+
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError("update-season-player-match-actions", supabaseError);
+        setError("No se han podido guardar los permisos de acciones de partido.");
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    updateSeasonRoundSettings(nextSettings);
+    setFeedback("Permisos de los jugadores actualizados.");
+    setIsSaving(false);
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">Acciones de partido para jugadores</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Creator y administradores siempre conservarán estas opciones. Los cambios
+        solo afectan a los jugadores normales de esta temporada.
+      </p>
+
+      <div className="mt-3 space-y-2">
+        <label className="flex items-start gap-3 rounded-2xl border border-neutral-200 px-3 py-3">
+          <input
+            type="checkbox"
+            checked={allowIncidents}
+            onChange={(event) => {
+              setAllowIncidents(event.target.checked);
+              setFeedback(null);
+            }}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-black">Permitir comunicar incidencias</span>
+            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+              Los participantes podrán abrir una incidencia desde Más acciones.
+            </span>
+          </span>
+        </label>
+
+        <label className="flex items-start gap-3 rounded-2xl border border-neutral-200 px-3 py-3">
+          <input
+            type="checkbox"
+            checked={allowSubstitutions}
+            onChange={(event) => {
+              setAllowSubstitutions(event.target.checked);
+              setFeedback(null);
+            }}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-black">Permitir gestionar suplentes</span>
+            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+              Los participantes podrán asignar o retirar suplentes de sus partidos.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={isSaving || !hasChanges}
+        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving ? "Guardando..." : "Guardar permisos"}
+      </button>
+
+      {feedback ? (
+        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </AppCard>
+  );
+}
+
 export default function AdminSeasonPage() {
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole } = useLeagueAccess();
-  const { seasons } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, seasons } = useSeasonSettings();
+  const { replaceSeasonMatches } = useMatchData();
   const {
     activeLeague,
     activeSeason,
@@ -3820,6 +4230,8 @@ export default function AdminSeasonPage() {
   const [isNewSeasonFormOpen, setIsNewSeasonFormOpen] = useState(
     !hasCreatedLeagueSeason,
   );
+  const [isDuplicatingSeason, setIsDuplicatingSeason] = useState(false);
+  const [duplicateSeasonError, setDuplicateSeasonError] = useState<string | null>(null);
   const inviteCode = getLeagueInviteCode(activeLeague.id);
   const registrationRecipientPlayerId = activeLeague.createdByUserId
     ? players.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
@@ -3860,6 +4272,49 @@ export default function AdminSeasonPage() {
     ].includes(activeSeason.totalRounds) &&
     [8, 12, 16].includes(players.length);
 
+
+  async function handleDuplicateLastSeason() {
+    if (isDuplicatingSeason || activeSeason.status !== "finished") return;
+
+    const confirmed = window.confirm(
+      `¿Duplicar “${activeSeason.name}” como “${getSuggestedSeasonName(activeSeason.name)}”? Se conservarán jugadores y configuración, pero calendario, resultados, pagos y progreso empezarán de cero.`,
+    );
+    if (!confirmed) return;
+
+    setIsDuplicatingSeason(true);
+    setDuplicateSeasonError(null);
+
+    try {
+      const result = await duplicateSupabaseSeason({
+        leagueId: activeLeague.id,
+        seasonId: activeSeason.id,
+        name: getSuggestedSeasonName(activeSeason.name),
+      });
+      hydrateSeasonSnapshot(result.snapshot);
+      const createdSeasonId = result.snapshot.activeSeasonIds[activeLeague.id];
+      if (createdSeasonId) {
+        replaceSeasonMatches(createdSeasonId, result.matches);
+      }
+    } catch (caughtError) {
+      const code = caughtError instanceof Error ? caughtError.message : "";
+      setDuplicateSeasonError(
+        code.includes("upcoming_season_already_exists")
+          ? "Ya existe una temporada próxima. Iníciala o elimínala antes de duplicar otra."
+          : code.includes("season_must_be_finished")
+            ? "Solo se puede duplicar una temporada terminada."
+            : code.includes("season_player_count_invalid")
+              ? "La última temporada no tiene un número válido de jugadores activos."
+              : code.includes("season_duplicate_player_profiles_failed")
+                ? "No se han podido recuperar todos los jugadores de la última temporada."
+                : code.includes("season_duplicate_player_memberships_failed")
+                  ? "No se han podido recuperar las vinculaciones de los jugadores."
+                  : `No se ha podido duplicar la temporada${code ? ` (${code})` : ""}.`,
+      );
+    } finally {
+      setIsDuplicatingSeason(false);
+    }
+  }
+
   return (
     <div className="compact-page space-y-3">
       <header className="pt-2">
@@ -3890,109 +4345,32 @@ export default function AdminSeasonPage() {
         </p>
       </header>
 
-      <AppCard className="p-2.5">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-400">
-          Accesos rápidos
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {isActiveSeason ? (
-            <>
-              <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jornadas
-              </a>
-              <a href="#margen-jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Margen
-              </a>
-              {canAuditCalendar ? (
-                <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Calendario
-                </a>
-              ) : null}
-              <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                MVP
-              </a>
-              <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Confirmación
-              </a>
-              {roundSettings.registrationFee.enabled ? (
-                <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Inscripción
-                </a>
-              ) : null}
-              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jugadores
-              </a>
-              <a href="#cierre" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Cierre
-              </a>
-              <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
-                Zona sensible
-              </a>
-            </>
-          ) : isUpcomingSeason ? (
-            <>
-              <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Comenzar
-              </a>
-              {canAuditCalendar ? (
-                <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Calendario
-                </a>
-              ) : null}
-              <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jornadas
-              </a>
-              <a href="#margen-jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Margen
-              </a>
-              <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                MVP
-              </a>
-              <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Confirmación
-              </a>
-              {roundSettings.registrationFee.enabled ? (
-                <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Inscripción
-                </a>
-              ) : null}
-              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jugadores
-              </a>
-              <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
-                Zona sensible
-              </a>
-            </>
-          ) : hasCreatedLeagueSeason ? (
-            <>
-              <a href="#configuracion-final" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Configuración
-              </a>
-              <a href="#invitacion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Invitación
-              </a>
-              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jugadores
-              </a>
-              {canReopenFinishedSeason ? (
-                <a href="#reabrir" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Reabrir
-                </a>
-              ) : null}
-              <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
-                Nueva temporada
-              </a>
-            </>
-          ) : (
-            <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
-              Crear temporada
-            </a>
-          )}
+      <SeasonNavigation
+        isActiveSeason={isActiveSeason}
+        isUpcomingSeason={isUpcomingSeason}
+        hasCreatedLeagueSeason={hasCreatedLeagueSeason}
+        canAuditCalendar={canAuditCalendar}
+        canReopenFinishedSeason={canReopenFinishedSeason}
+        registrationEnabled={roundSettings.registrationFee.enabled}
+      />
+
+      {hasCreatedLeagueSeason ? (
+        <div id="resumen-configuracion" className="settings-search-target">
+          <SeasonConfigurationSummary
+            activeSeason={activeSeason}
+            roundSettings={roundSettings}
+            matches={matches}
+            playerCount={players.length}
+          />
         </div>
-      </AppCard>
+      ) : null}
 
       {isActiveSeason ? (
         <>
+          <SeasonSectionIntro
+            title="Calendario y jornadas"
+            description="Ordena la competición, ajusta los plazos y comprueba el equilibrio del calendario."
+          />
           <div id="jornadas" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
@@ -4021,7 +4399,10 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-
+          <SeasonSectionIntro
+            title="Reglas de competición"
+            description="Define MVP, confirmaciones, formato de sets y acciones permitidas a los jugadores."
+          />
           <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -4036,6 +4417,24 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="regla-tres-sets" className="settings-search-target">
+            <RequiresThreeSetsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="acciones-partido" className="settings-search-target">
+            <PlayerMatchActionsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <SeasonSectionIntro
+            title="Personas e inscripción"
+            description="Gestiona la cuota de inscripción y los nombres de la plantilla activa."
+          />
           {roundSettings.registrationFee.enabled ? (
             <div id="inscripcion" className="settings-search-target">
               <RegistrationFeeSettingsPanel
@@ -4053,6 +4452,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Ciclo de vida"
+            description="Finaliza la temporada o accede a las acciones irreversibles."
+          />
           <div id="cierre" className="settings-search-target">
             <FinishSeasonPanel
               activeLeagueId={activeLeague.id}
@@ -4071,6 +4474,10 @@ export default function AdminSeasonPage() {
         </>
       ) : isUpcomingSeason ? (
         <>
+          <SeasonSectionIntro
+            title="Preparación"
+            description="Completa la plantilla y comprueba los requisitos antes de comenzar."
+          />
           {roundSettings.rosterMode === "self_registration" ? (
             <div id="plantilla-temporada" className="settings-search-target">
               <SeasonRosterWaitingRoom
@@ -4093,6 +4500,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Calendario y jornadas"
+            description="Revisa el equilibrio, el orden y las fechas antes de publicar la temporada."
+          />
           {canAuditCalendar ? (
             <div id="equilibrio-calendario" className="settings-search-target">
               <BalancedCalendarAuditPanel
@@ -4121,6 +4532,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Reglas de competición"
+            description="Configura MVP, confirmaciones, formato de sets y acciones de los jugadores."
+          />
           <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -4135,6 +4550,24 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="regla-tres-sets" className="settings-search-target">
+            <RequiresThreeSetsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="acciones-partido" className="settings-search-target">
+            <PlayerMatchActionsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <SeasonSectionIntro
+            title="Personas e inscripción"
+            description="Revisa la cuota, las plazas y los nombres antes de iniciar la competición."
+          />
           {roundSettings.registrationFee.enabled ? (
             <div id="inscripcion" className="settings-search-target">
               <RegistrationFeeSettingsPanel
@@ -4152,6 +4585,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Zona sensible"
+            description="Acciones que pueden eliminar la temporada o su calendario."
+          />
           <div id="zona-sensible" className="settings-search-target">
             <SeasonDangerZone
               activeLeagueId={activeLeague.id}
@@ -4162,15 +4599,10 @@ export default function AdminSeasonPage() {
         </>
       ) : hasCreatedLeagueSeason ? (
         <>
-          <div id="configuracion-final" className="settings-search-target">
-            <FinishedSeasonConfigurationSummary
-              activeSeason={activeSeason}
-              roundSettings={roundSettings}
-              matches={matches}
-              playerCount={players.length}
-            />
-          </div>
-
+          <SeasonSectionIntro
+            title="Accesos y plantilla"
+            description="Consulta la invitación y los jugadores de la temporada finalizada."
+          />
           <div id="invitacion" className="settings-search-target">
             <InviteLinkCard
               inviteCode={inviteCode}
@@ -4185,6 +4617,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Siguiente ciclo"
+            description="Reabre la temporada si procede o prepara la siguiente edición."
+          />
           {canReopenFinishedSeason ? (
             <div id="reabrir" className="settings-search-target">
               <ReopenSeasonPanel
@@ -4210,6 +4646,21 @@ export default function AdminSeasonPage() {
                   ? "Ocultar nueva temporada"
                   : "Configurar nueva temporada"}
               </button>
+              <button
+                type="button"
+                onClick={handleDuplicateLastSeason}
+                disabled={isDuplicatingSeason}
+                className="mt-2 w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+              >
+                {isDuplicatingSeason
+                  ? "Duplicando..."
+                  : "Duplicar última temporada"}
+              </button>
+              {duplicateSeasonError ? (
+                <p className="mt-2 text-center text-xs font-bold text-red-600">
+                  {duplicateSeasonError}
+                </p>
+              ) : null}
             </AppCard>
 
             {isNewSeasonFormOpen ? (
@@ -4224,15 +4675,21 @@ export default function AdminSeasonPage() {
           </div>
         </>
       ) : (
-        <div id="nueva-temporada" className="settings-search-target">
-          <NewSeasonForm
+        <>
+          <SeasonSectionIntro
+            title="Nueva temporada"
+            description="Configura desde cero la primera edición de la liga."
+          />
+          <div id="nueva-temporada" className="settings-search-target">
+            <NewSeasonForm
             key={`${activeSeason.id}-new`}
             activeLeagueId={activeLeague.id}
             activeLeagueName={activeLeague.name}
             activeSeasonId={activeSeason.id}
-            currentPlayers={players}
-          />
-        </div>
+              currentPlayers={players}
+            />
+          </div>
+        </>
       )}
     </div>
   );

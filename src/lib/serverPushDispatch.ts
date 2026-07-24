@@ -8,6 +8,7 @@ import {
 } from "@/lib/notificationSettings";
 import type { ActivityEventType } from "@/lib/activity";
 import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
+import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
 import {
   getActivityDeliveryMode,
   normalizeLeagueActivitySettings,
@@ -143,6 +144,9 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_scheduled" ||
     eventType === "match_schedule_updated" ||
     eventType === "match_postponed" ||
+    eventType === "match_incident_reported" ||
+    eventType === "match_incident_resolved" ||
+    eventType === "match_incident_cleared" ||
     eventType === "match_result_saved" ||
     eventType === "match_result_updated" ||
     eventType === "match_result_cleared" ||
@@ -152,6 +156,10 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_mvp_awarded" ||
     eventType === "match_upcoming_reminder"
   );
+}
+
+function getTargetUserIdsFromMetadata(event: ActivityEventRow) {
+  return toStringArray(toRecord(event.metadata).targetUserIds);
 }
 
 function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
@@ -268,12 +276,17 @@ function getExcludedPlayerIds(event: ActivityEventRow) {
   return new Set<string>();
 }
 
-function isLeagueWideEvent(eventType: ActivityEventType) {
+function isLeagueWideEvent(event: ActivityEventRow) {
+  if (event.type === "league_announcement_published") {
+    return getTargetPlayerIdsFromMetadata(event).length === 0;
+  }
+
   return (
-    eventType === "season_created" ||
-    eventType === "season_started" ||
-    eventType === "season_finished" ||
-    eventType === "round_in_play"
+    event.type === "season_created" ||
+    event.type === "season_duplicated" ||
+    event.type === "season_started" ||
+    event.type === "season_finished" ||
+    event.type === "round_in_play"
   );
 }
 
@@ -284,13 +297,15 @@ function getNotificationUrl(event: ActivityEventRow) {
     targetPath = `/match/${event.match_id}`;
   } else if (
     event.type === "season_created" ||
+    event.type === "season_duplicated" ||
     event.type === "season_started" ||
     event.type === "season_finished" ||
     event.type === "season_player_joined" ||
     event.type === "season_player_left" ||
     event.type === "round_in_play" ||
     event.type === "round_mvp_awarded" ||
-    event.type === "season_registration_payment_reminder"
+    event.type === "season_registration_payment_reminder" ||
+    event.type === "league_announcement_published"
   ) {
     targetPath = "/";
   }
@@ -399,6 +414,26 @@ function getNotificationTitle(
       : "Se ha liberado una plaza de la temporada.";
   }
 
+  if (event.type === "match_incident_reported") {
+    return "Incidencia en tu partido";
+  }
+
+  if (event.type === "match_incident_resolved") {
+    return "Incidencia resuelta";
+  }
+
+  if (event.type === "match_incident_cleared") {
+    return "Incidencia eliminada";
+  }
+
+  if (event.type === "league_announcement_published") {
+    return event.title || "Nuevo comunicado";
+  }
+
+  if (event.type === "season_duplicated") {
+    return "Nueva temporada preparada";
+  }
+
   if (event.type === "season_finished") {
     return "TEMPORADA FINALIZADA";
   }
@@ -484,6 +519,52 @@ function getNotificationBody(
   recipient: NotificationRecipient | null,
   playerNamesById: Map<string, string>,
 ) {
+  if (
+    event.type === "match_scheduled" ||
+    event.type === "match_schedule_updated"
+  ) {
+    const metadata = toRecord(event.metadata);
+    const round = toNumber(metadata.round);
+    const dateLabel =
+      typeof metadata.dateLabel === "string" && metadata.dateLabel.trim()
+        ? metadata.dateLabel.trim()
+        : null;
+    const locationText =
+      typeof metadata.locationText === "string" && metadata.locationText.trim()
+        ? metadata.locationText.trim()
+        : getScheduleLocationFallbackText(
+            typeof metadata.location === "string" ? metadata.location : null,
+          );
+    const roundLabel = round > 0 ? `Jornada ${round}` : null;
+
+    return (
+      [roundLabel, dateLabel, locationText]
+        .filter((item): item is string => Boolean(item))
+        .join(" · ") ||
+      "Consulta la fecha, hora y ubicación del partido."
+    );
+  }
+
+  if (event.type === "match_incident_reported") {
+    return event.description?.trim() || "Se ha comunicado una incidencia en uno de tus partidos.";
+  }
+
+  if (event.type === "match_incident_resolved") {
+    return event.description?.trim() || "La organización ha resuelto la incidencia del partido.";
+  }
+
+  if (event.type === "match_incident_cleared") {
+    return event.description?.trim() || "La organización ha eliminado la incidencia del partido.";
+  }
+
+  if (event.type === "league_announcement_published") {
+    return event.description?.trim() || "La organización ha publicado un nuevo comunicado.";
+  }
+
+  if (event.type === "season_duplicated") {
+    return event.description?.trim() || "La organización ha preparado una nueva temporada a partir de la anterior.";
+  }
+
   if (event.type === "season_created") {
     const metadata = toRecord(event.metadata);
     const playerCount = toNumber(metadata.playerCount);
@@ -496,14 +577,44 @@ function getNotificationBody(
 
   if (event.type === "season_finished") {
     const metadata = toRecord(event.metadata);
-    const winnerName =
-      typeof metadata.winnerName === "string" && metadata.winnerName.trim()
-        ? metadata.winnerName.trim()
-        : null;
+    const winnerPlayerIds = toStringArray(metadata.winnerPlayerIds);
+    const winnerNames = toStringArray(metadata.winnerNames);
+    const mvpPlayerIds = toStringArray(metadata.mvpPlayerIds);
+    const mvpNames = toStringArray(metadata.mvpNames);
+    const winnerText = winnerNames.join(" / ");
+    const mvpText = mvpNames.join(" / ");
+    const isWinner = Boolean(
+      recipient?.playerId && winnerPlayerIds.includes(recipient.playerId),
+    );
+    const isMvp = Boolean(
+      recipient?.playerId && mvpPlayerIds.includes(recipient.playerId),
+    );
 
-    return winnerName
-      ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
-      : "La temporada ha finalizado.";
+    if (isWinner && isMvp) {
+      return "¡Enhorabuena! Has ganado la temporada y eres el MVP.";
+    }
+
+    if (isWinner) {
+      return `¡Enhorabuena! Has ganado la temporada.${mvpText ? ` MVP: ${mvpText}.` : ""}`;
+    }
+
+    if (isMvp) {
+      return `¡Enhorabuena! Eres el MVP de la temporada.${winnerText ? ` Ganador: ${winnerText}.` : ""}`;
+    }
+
+    if (winnerText && mvpText) {
+      return `Ganador: ${winnerText}. MVP: ${mvpText}.`;
+    }
+
+    if (winnerText) {
+      return `Ganador: ${winnerText}.`;
+    }
+
+    if (mvpText) {
+      return `MVP: ${mvpText}.`;
+    }
+
+    return "La temporada ha finalizado.";
   }
 
   if (
@@ -687,30 +798,32 @@ async function getRecipients({
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
   event: ActivityEventRow;
 }) {
-  let membershipsQuery = supabase
+  const { data: memberships, error: membershipsError } = await supabase
     .from("league_memberships")
     .select("user_id,player_id")
     .eq("league_id", event.league_id);
-
-  const targetPlayerIds = await getTargetPlayerIds({ supabase, event });
-
-  if (!isLeagueWideEvent(event.type)) {
-    if (targetPlayerIds.length === 0) {
-      return [];
-    }
-
-    membershipsQuery = membershipsQuery.in("player_id", targetPlayerIds);
-  }
-
-  const { data: memberships, error: membershipsError } = await membershipsQuery;
 
   if (membershipsError) {
     throw membershipsError;
   }
 
+  const targetPlayerIds = new Set(await getTargetPlayerIds({ supabase, event }));
+  const targetUserIds = new Set(getTargetUserIdsFromMetadata(event));
+  const leagueWide = isLeagueWideEvent(event);
+  const relevantMemberships = ((memberships ?? []) as LeagueMembershipRow[]).filter(
+    (membership) =>
+      leagueWide ||
+      (membership.player_id ? targetPlayerIds.has(membership.player_id) : false) ||
+      (membership.user_id ? targetUserIds.has(membership.user_id) : false),
+  );
+
+  if (!leagueWide && relevantMemberships.length === 0) {
+    return [];
+  }
+
   const userIds = Array.from(
     new Set(
-      ((memberships ?? []) as LeagueMembershipRow[])
+      relevantMemberships
         .map((membership) => membership.user_id)
         .filter((userId): userId is string => Boolean(userId)),
     ),
@@ -731,7 +844,6 @@ async function getRecipients({
 
   const actorEmail = normalizeEmail(event.actor_email);
   const excludedPlayerIds = getExcludedPlayerIds(event);
-
   const emailByUserId = new Map(
     ((users ?? []) as AppUserRow[]).map((user) => [
       user.id,
@@ -741,26 +853,20 @@ async function getRecipients({
 
   return Array.from(
     new Map(
-      ((memberships ?? []) as LeagueMembershipRow[])
+      relevantMemberships
         .map((membership) => {
           const userId = membership.user_id;
           const email = userId ? (emailByUserId.get(userId) ?? "") : "";
           const playerId = membership.player_id;
 
-          if (!email || email === actorEmail) {
-            return null;
-          }
+          const includeActor = toRecord(event.metadata).includeActor === true;
 
-          if (playerId && excludedPlayerIds.has(playerId)) {
-            return null;
-          }
+          if (!email || (!includeActor && email === actorEmail)) return null;
+          if (playerId && excludedPlayerIds.has(playerId)) return null;
 
           return [
             email,
-            {
-              email,
-              playerId,
-            } satisfies NotificationRecipient,
+            { email, playerId } satisfies NotificationRecipient,
           ] as const;
         })
         .filter((item): item is readonly [string, NotificationRecipient] =>
@@ -917,8 +1023,16 @@ export async function dispatchPushForActivityEvent(
   }
 
   const event = eventData as ActivityEventRow;
+  const eventMetadata = toRecord(event.metadata);
 
-  if (!isAlwaysEnabledNotificationEvent(event.type)) {
+  if (eventMetadata.skipPush === true) {
+    return { ok: true, sent: 0, reason: "disabled_for_event" };
+  }
+
+  if (
+    !isAlwaysEnabledNotificationEvent(event.type) &&
+    eventMetadata.forcePush !== true
+  ) {
     const { data: leagueData, error: leagueError } = await supabase
       .from("leagues")
       .select("activity_settings")

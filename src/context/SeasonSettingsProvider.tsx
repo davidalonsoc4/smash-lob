@@ -64,6 +64,8 @@ export type SeasonRoundSettings = {
   rosterCompletedAt: string | null;
   scheduleMode: SeasonScheduleMode;
   calendarMode: "balanced" | "manual";
+  allowPlayerIncidents: boolean;
+  allowPlayerSubstitutions: boolean;
 };
 
 type SeasonSettingsContextValue = {
@@ -195,6 +197,10 @@ function normalizeSettings(
     calendarMode: normalizeCalendarMode(
       (settings as Partial<SeasonRoundSettings>).calendarMode,
     ),
+    allowPlayerIncidents:
+      (settings as Partial<SeasonRoundSettings>).allowPlayerIncidents !== false,
+    allowPlayerSubstitutions:
+      (settings as Partial<SeasonRoundSettings>).allowPlayerSubstitutions !== false,
   };
 }
 
@@ -403,6 +409,8 @@ function parseStoredSettings(
             : null,
         scheduleMode: normalizeSeasonScheduleMode(storedSetting.scheduleMode),
         calendarMode: normalizeCalendarMode(storedSetting.calendarMode),
+        allowPlayerIncidents: storedSetting.allowPlayerIncidents !== false,
+        allowPlayerSubstitutions: storedSetting.allowPlayerSubstitutions !== false,
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -430,6 +438,8 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     rosterCompletedAt: null,
     scheduleMode: "single",
     calendarMode: "balanced",
+    allowPlayerIncidents: true,
+    allowPlayerSubstitutions: true,
   };
 }
 
@@ -827,6 +837,8 @@ export function SeasonSettingsProvider({
       rosterCompletedAt: new Date().toISOString(),
       scheduleMode: "single",
       calendarMode: "balanced",
+      allowPlayerIncidents: true,
+      allowPlayerSubstitutions: true,
     });
 
     return { seasonId, playerIds };
@@ -983,6 +995,8 @@ export function SeasonSettingsProvider({
       rosterCompletedAt: new Date().toISOString(),
       scheduleMode,
       calendarMode: "balanced",
+      allowPlayerIncidents: true,
+      allowPlayerSubstitutions: true,
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };
@@ -1059,23 +1073,64 @@ export function SeasonSettingsProvider({
   );
 
   const hydrateSeasonSnapshot = useCallback((snapshot: SeasonSnapshot) => {
+    const snapshotLeagueIds = new Set<string>([
+      ...Object.keys(snapshot.activeSeasonIds),
+      ...snapshot.seasons.map((season) => season.leagueId),
+      ...snapshot.playerProfiles.map((player) => player.leagueId),
+      ...snapshot.seasonSettings.map((settings) => settings.leagueId),
+    ]);
+    const snapshotSeasonIds = new Set<string>([
+      ...Object.values(snapshot.activeSeasonIds).filter(Boolean),
+      ...snapshot.seasons.map((season) => season.id),
+      ...snapshot.seasonPlayers.map((seasonPlayer) => seasonPlayer.seasonId),
+      ...snapshot.seasonSettings.map((settings) => settings.seasonId),
+    ]);
+
     setSeasonData((currentSeasonData) => {
+      const managedSeasonIds = new Set<string>([
+        ...snapshotSeasonIds,
+        ...currentSeasonData.seasons
+          .filter((season) => snapshotLeagueIds.has(season.leagueId))
+          .map((season) => season.id),
+      ]);
+      const nextActiveSeasonIds: Record<string, string> = {};
+
+      for (const [leagueId, seasonId] of Object.entries(
+        currentSeasonData.activeSeasonIds,
+      )) {
+        if (!snapshotLeagueIds.has(leagueId) && seasonId) {
+          nextActiveSeasonIds[leagueId] = seasonId;
+        }
+      }
+
+      for (const [leagueId, seasonId] of Object.entries(
+        snapshot.activeSeasonIds,
+      )) {
+        if (seasonId) {
+          nextActiveSeasonIds[leagueId] = seasonId;
+        }
+      }
+
       const nextSeasonData = {
-        seasons: mergeById(currentSeasonData.seasons, snapshot.seasons),
+        seasons: mergeById(
+          currentSeasonData.seasons.filter(
+            (season) => !snapshotLeagueIds.has(season.leagueId),
+          ),
+          snapshot.seasons,
+        ),
         playerProfiles: mergeById(
-          currentSeasonData.playerProfiles,
+          currentSeasonData.playerProfiles.filter(
+            (player) => !snapshotLeagueIds.has(player.leagueId),
+          ),
           snapshot.playerProfiles,
         ),
         seasonPlayers: mergeSeasonPlayers(
-          currentSeasonData.seasonPlayers,
+          currentSeasonData.seasonPlayers.filter(
+            (seasonPlayer) => !managedSeasonIds.has(seasonPlayer.seasonId),
+          ),
           snapshot.seasonPlayers,
         ),
-        activeSeasonIds: Object.fromEntries(
-          Object.entries({
-            ...currentSeasonData.activeSeasonIds,
-            ...snapshot.activeSeasonIds,
-          }).filter(([, seasonId]) => Boolean(seasonId)),
-        ),
+        activeSeasonIds: nextActiveSeasonIds,
       };
 
       persistSeasonData(nextSeasonData);
@@ -1085,7 +1140,9 @@ export function SeasonSettingsProvider({
 
     setSeasonSettings((currentSettings) => {
       const nextSettings = mergeSettings(
-        currentSettings,
+        currentSettings.filter(
+          (settings) => !snapshotLeagueIds.has(settings.leagueId),
+        ),
         snapshot.seasonSettings,
       );
 

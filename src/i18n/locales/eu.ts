@@ -33,11 +33,26 @@ export const eu = {
   accountProfile: {
     loadingTitle: "Profila prestatzen",
     eyebrow: "Profil globala",
-    title: "Berretsi zure izena",
-    description: "Izen hau erabiltzen da sartzen zaren liga guztietan.",
+    title: "Osatu zure profila",
+    description: "Berretsi zure izena eta gehitu normalean jokatu ahal duzun ordutegia.",
     firstName: "Izena",
     lastName: "Lehen abizena",
     globalNameNotice: "Googleko datuak aurrez bete ditugu ahal izan denean. Berrikusi jarraitu aurretik.",
+    availabilityTitle: "Ohiko erabilgarritasuna",
+    availabilityDescription: "Aukeratu normalean jokatu ahal duzun egunak eta ordutegia.",
+    availabilityStart: "Noiztik",
+    availabilityEnd: "Noiz arte",
+    availabilityLaterNotice: "Tarte eta salbuespen gehiago gehitu ahal izango dituzu Nire erabilgarritasuna atalean.",
+    availabilityValidationError: "Aukeratu gutxienez egun bat eta baliozko ordutegi bat.",
+    availabilityDays: {
+      monday: "A",
+      tuesday: "A",
+      wednesday: "A",
+      thursday: "O",
+      friday: "O",
+      saturday: "L",
+      sunday: "I",
+    },
     validationError: "Adierazi baliozko izena eta lehen abizena.",
     saveError: "Ezin izan da profila gorde.",
     continue: "Gorde eta jarraitu",
@@ -498,7 +513,7 @@ export const eu = {
     title: "Laguntza eta oinarrizko kontzeptuak",
     description: "Ligako jokalari berrientzako gida azkarra.",
     fullDescription:
-      "Liga formatua, puntuazioa, partiden egoerak eta MVPak ulertzeko gida azkarra.",
+      "Kontsultatu denboraldiko arau aktiboak eta liga antolatzeko eta jarraitzeko tresnak.",
     quickSummaryEyebrow: "Laburpen azkarra",
     quickSummaryTitle: "Garrantzitsuena begirada batean",
     quickSummaryDescription:
@@ -694,7 +709,7 @@ export const eu = {
     description: "Kudeatu aplikazioaren hobespenak.",
     helpTitle: "Laguntza eta oinarrizko kontzeptuak",
     helpDescription:
-      "Ikusi Star Points, tie-breakak eta 3 seteko formatua nola funtzionatzen duten.",
+      "Kontsultatu ligako arau aktiboak, formatua eta erabilgarri dauden tresnak.",
     backToProfile: "← Profilera itzuli",
     profileShortcutDescription:
       "Aldatu liga aktiboa, hizkuntza eta aplikazioaren hobespenak.",
@@ -716,8 +731,15 @@ export const eu = {
     appearanceLight: "Argia",
     appearanceDark: "Iluna",
     appearanceSystem: "Sistema",
-    accountTitle: "Kontua eta gonbidapenak",
-    accountDescription: "Kudeatu saioa, irudia eta liga berrietarako sarbidea.",
+    myProfileTitle: "Nire profila",
+    myProfileDescription: "Editatu izena eta profileko irudia pantaila trinko batean.",
+    profileImageTitle: "Profileko irudia",
+    profileImageDescription: "Irudia liga aktiboko zure jokalariari aplikatzen zaio.",
+    profileGoogleImageNotice: "Ikusleek Google kontuko irudia erabiltzen dute.",
+    profileLoading: "Profila kargatzen...",
+    profileLoadError: "Ezin izan da profila kargatu.",
+    accountTitle: "Beste ligak",
+    accountDescription: "Sartu lehendik dagoen liga batean edo sortu lehiaketa berri bat.",
     accountSettingsTitle: "Kontuaren ezarpenak",
     accountSettingsDescription:
       "Pertsonalizatu liga honetako zure profilean agertzen den irudia.",
@@ -860,6 +882,13 @@ export const eu = {
       "Idatzi kokapena edo itsatsi Maps URLa. Aplikazioak Maps irekiko du erreferentzia horrekin.",
     save: "Aldaketak gorde",
     saved: "Konfigurazioa gordeta.",
+    profileStatsVisibilityTitle: "Profileko estatistika historikoak",
+    profileStatsVisibilityDescription:
+      "Erabaki denboraldi aktibo batean jokalariek aurreko denboraldiak eta guztizko historikoa ikus ditzaketen. Denboraldi guztiak itxita daudenean, historikoa beti egongo da erabilgarri.",
+    profileStatsVisibilityAll: "Denboraldi guztiak erabilgarri",
+    profileStatsVisibilityCurrent: "Uneko denboraldia bakarrik irekita dagoen bitartean",
+    profileStatsVisibilityError:
+      "Ezin izan da estatistiken ikusgarritasuna gorde.",
   },
 
   adminSeason: {
@@ -1068,8 +1097,8 @@ export const eu = {
     disablePush: "Desaktibatu",
     typesTitle: "Abisu motak",
     enabledCount: "Aktibatuta: {enabled}/{total}",
-    mandatoryPaymentReminders:
-      "Pistaren eta izen-ematearen ordainketa gogorarazpenak, automatikoak zein eskuz bidalitakoak, beti jasotzen dira.",
+    allTypesConfigurable:
+      "Jakinarazpen mota guztiak, gorabeherak eta ordainketa gogorarazpenak barne, banaka aktibatu edo desaktibatu daitezke.",
     disableAll: "Guztiak desaktibatu",
     enableAll: "Guztiak aktibatu",
     preferencesSaved: "Lehentasunak gordeta.",
@@ -1081,41 +1110,21 @@ export const eu = {
     deviceDisabled: "Jakinarazpenak desaktibatuta gailu honetan.",
     deviceDisableError: "Ezin izan da gailu hau desaktibatu.",
     preferences: {
-      next_match: {
-        title: "Nire hurrengo partida",
-        description:
-          "Programazioa, data, leku edo pista aldaketak, atzerapenak eta partidak hasi baino 2 ordu lehenagoko gogorarazpena.",
-      },
-      my_match_result: {
-        title: "Nire partiden emaitzak",
-        description:
-          "Sartutako, aldatutako edo ezabatutako emaitzak, berrespenak eta emaitza sartzeko edo MVP botoa emateko gogorarazpenak.",
-      },
-      round_events: {
-        title: "Jardunaldiak eta MVP",
-        description:
-          "Jardunaldi bat jokoan dagoenean eta denboraldiko MVP sariak erabakitzen direnean jasotako abisuak.",
-      },
-      season_events: {
-        title: "Denboraldiak",
-        description:
-          "Zure ligan denboraldi berri bat sortu, hasi edo amaitzen denean.",
-      },
-      booking_i_owe: {
-        title: "Pista-erreserbak",
-        description:
-          "Erreserba batek beste jokalari bati zure zatia zor diozula adierazten du, edo zure partida bateko erreserba eguneratzen da.",
-      },
-      booking_paid_to_me: {
-        title: "Jasotako pista-ordainketak",
-        description:
-          "Pistaren transferentzia zor zizun norbaitek ordainduta markatzen du.",
-      },
-      player_account: {
-        title: "Kontua eta jokalariak",
-        description:
-          "Zure profil, avatar, rol, liga-lotura edo erabiltzaile datuen aldaketak.",
-      },
+      match_schedule: { title: "Partiden programazioa", description: "Zure partiden datak, orduak, pistak, aldaketak eta atzerapenak." },
+      match_incidents: { title: "Partidetako gorabeherak", description: "Jakinarazitako, ebatzitako edo ezabatutako gorabeherak. Admin-ek ligako berriak ere jasotzen dituzte." },
+      match_upcoming: { title: "Hurrengo partida", description: "Hurrengo partida hasi aurreko gogorarazpena." },
+      match_results: { title: "Emaitzak", description: "Gordetako, aldatutako, ezabatutako, eztabaidatutako edo falta diren emaitzak." },
+      result_confirmations: { title: "Emaitzen berrespena", description: "Emaitza bat berresteko edo berrikusteko gogorarazpenak." },
+      mvp_reminders: { title: "MVP bozketa", description: "MVP botoa emateko gogorarazpenak." },
+      mvp_awards: { title: "MVP sariak", description: "Partidako eta jardunaldiko MVP sariak." },
+      round_events: { title: "Jardunaldiak", description: "Jardunaldi bat jokoan hasten denean jasotako abisuak." },
+      season_lifecycle: { title: "Denboraldiak", description: "Denboraldien sorrera, bikoizketa, hasiera eta amaiera." },
+      season_roster: { title: "Izen-ematea eta plantilla", description: "Denboraldi batera sartzen edo irteten diren jokalariak." },
+      announcements: { title: "Komunikatuak", description: "Sortzaileak edo administratzaileek bidalitako abisuak." },
+      booking_updates: { title: "Pista-erreserbak", description: "Zure partidetako erreserben sorrera, aldaketak edo ezabaketa." },
+      booking_payments: { title: "Jasotako pista-ordainketak", description: "Jokalari batek zuri zor zizun transferentzia ordaindutzat markatzen du." },
+      payment_reminders: { title: "Ordainketa gogorarazpenak", description: "Pista edo izen-emate ordainketa pendienteen gogorarazpenak." },
+      player_account: { title: "Kontua eta jokalariak", description: "Profil, avatar, rol, lotura edo erabiltzaile datuen aldaketak." },
     },
   },
 
@@ -1201,6 +1210,9 @@ export const eu = {
       match_scheduled: "Partida programatuta",
       match_schedule_updated: "Partidaren programazioa aldatuta",
       match_postponed: "Partida atzeratuta",
+      match_incident_reported: "Partidaren gorabehera jakinarazita",
+      match_incident_resolved: "Partidaren gorabehera ebatzita",
+      match_incident_cleared: "Partidaren gorabehera ezabatuta",
       match_result_saved: "Emaitza sartuta",
       match_result_updated: "Emaitza zuzenduta",
       match_result_disputed: "Emaitza oker gisa markatuta",
@@ -1222,8 +1234,11 @@ export const eu = {
       league_logo_updated: "Ligaren logoa aldatuta",
       league_locations_updated: "Ligaren kokalekuak aldatuta",
       league_invite_regenerated: "Jokalarien gonbidapena berrituta",
+      league_announcement_published: "Oharra argitaratuta",
+      league_announcement_deleted: "Oharra ezabatuta",
       season_finished: "Denboraldia amaituta",
       season_created: "Denboraldia sortuta",
+      season_duplicated: "Denboraldia bikoiztuta",
       season_started: "Denboraldia hasita",
       season_player_joined: "Jokalaria denboraldian izena emanda",
       season_player_left: "Jokalaria denboralditik aterata",
@@ -1237,6 +1252,9 @@ export const eu = {
       match_scheduled: "Programazioa",
       match_schedule_updated: "Programazioa",
       match_postponed: "Atzerapena",
+      match_incident_reported: "Gorabehera",
+      match_incident_resolved: "Gorabehera",
+      match_incident_cleared: "Gorabehera",
       match_result_saved: "Emaitza",
       match_result_updated: "Emaitza",
       match_result_disputed: "Emaitza",
@@ -1258,11 +1276,14 @@ export const eu = {
       league_logo_updated: "Liga",
       league_locations_updated: "Liga",
       league_invite_regenerated: "Gonbidapena",
+      league_announcement_published: "Oharra",
+      league_announcement_deleted: "Oharra",
       season_finished: "Denboraldia",
       season_started: "Denboraldia",
       season_player_joined: "Izen-ematea",
       season_player_left: "Izen-ematea",
       season_created: "Denboraldia",
+      season_duplicated: "Denboraldia",
       player_name_updated: "Jokalaria",
       player_avatar_updated: "Jokalaria",
       player_role_updated: "Erabiltzailea",

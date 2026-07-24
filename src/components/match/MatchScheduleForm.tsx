@@ -85,6 +85,7 @@ export function MatchScheduleForm({
   const isPostponed = status === "postponed";
   const hasSchedule =
     !isPostponed && Boolean(scheduledAt || dateLabel || location);
+  const isUnscheduled = status === "scheduling" && !hasSchedule;
 
   const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
     locations: normalizedAvailableLocations,
@@ -99,8 +100,10 @@ export function MatchScheduleForm({
         ? ""
         : otherLocationValue;
 
-  const [isPanelOpen, setIsPanelOpen] = useState(hasSchedule || isPostponed);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(
+    isUnscheduled || (isPostponed && canManage),
+  );
+  const [isEditing, setIsEditing] = useState(isUnscheduled && canManage);
   const [scheduledAtValue, setScheduledAtValue] = useState(
     hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
   );
@@ -184,6 +187,8 @@ export function MatchScheduleForm({
     canManage && !isSaving && !isFinished && !isPostponed && hasSchedule;
   const canClearCurrentSchedule =
     canClearSchedule && !isSaving && hasSchedule && !isFinished;
+  const canExpandScheduleActions =
+    canManage && hasSchedule && !isFinished && !isPostponed;
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -241,6 +246,7 @@ export function MatchScheduleForm({
     }
 
     setIsEditing(false);
+    setIsPanelOpen(false);
   }
 
   function handleCancel() {
@@ -262,7 +268,7 @@ export function MatchScheduleForm({
     setIsEditing(false);
 
     if (!hasSchedule && !isPostponed) {
-      setIsPanelOpen(false);
+      setIsPanelOpen(true);
     }
   }
 
@@ -323,12 +329,12 @@ export function MatchScheduleForm({
     setCustomLocation("");
     autoScheduledAtValueRef.current = null;
     hasUserChangedScheduledAtRef.current = false;
-    setIsEditing(false);
-    setIsPanelOpen(false);
+    setIsEditing(canManage);
+    setIsPanelOpen(true);
   }
 
   function togglePanel() {
-    if (isSaving) {
+    if (!canExpandScheduleActions || isSaving) {
       return;
     }
 
@@ -341,10 +347,6 @@ export function MatchScheduleForm({
     }
 
     setIsPanelOpen(true);
-
-    if (canManage && !hasSchedule && !isPostponed && !isFinished) {
-      setIsEditing(true);
-    }
   }
 
   function getTitle() {
@@ -361,147 +363,117 @@ export function MatchScheduleForm({
       : t.matchDetail.pendingSchedule;
   }
 
-  function getDescription() {
-    if (isPostponed) {
-      return t.matchDetail.postponedDescription;
-    }
-
-    if (hasSchedule) {
-      return t.matchDetail.scheduleDescription;
-    }
-
-    return canManage
-      ? t.matchDetail.addScheduleDescription
-      : t.matchDetail.pendingScheduleDescription;
-  }
 
   return (
     <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
-      <button
-        type="button"
-        onClick={togglePanel}
-        disabled={isSaving}
-        aria-expanded={isPanelOpen}
-        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
-      >
-        <div className="min-w-0">
+      {canExpandScheduleActions ? (
+        <button
+          type="button"
+          onClick={togglePanel}
+          disabled={isSaving}
+          aria-expanded={isPanelOpen}
+          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
+        >
           <p className="truncate text-sm font-black text-neutral-950">
             {getTitle()}
           </p>
-          {!isPanelOpen && hasSchedule ? (
-            <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-500">
-              {[capitalizeFirstLetter(dateLabel), displayedLocationText]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          ) : null}
+
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="none"
+              className={`h-4 w-4 transition-transform ${isPanelOpen ? "rotate-180" : ""}`}
+            >
+              <path
+                d="m6 8 4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </button>
+      ) : (
+        <div className="flex w-full items-center px-3 py-2.5">
+          <p className="truncate text-sm font-black text-neutral-950">
+            {getTitle()}
+          </p>
         </div>
+      )}
 
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            fill="none"
-            className={`h-4 w-4 transition-transform ${isPanelOpen ? "rotate-180" : ""}`}
-          >
-            <path
-              d="m6 8 4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      </button>
-
-      {isPanelOpen ? (
+      {hasSchedule ? (
         <div className="border-t border-neutral-100 px-3 pb-3 pt-2.5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p className="min-w-0 text-[11px] font-semibold leading-4 text-neutral-500">
-              {getDescription()}
+          <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
+            <p className="font-black text-neutral-950">
+              {capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
+            </p>
+            <p className="mt-0.5 text-xs font-semibold text-neutral-600">
+              {displayedLocationText ?? t.matches.missingSchedule}
             </p>
 
-            {canManage && !isEditing && !isFinished ? (
-              <div className="flex w-full items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 shadow-sm sm:w-auto sm:shrink-0">
-                {isPostponed ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    disabled={isSaving}
-                    className="inline-flex h-7 flex-1 items-center justify-center rounded-md bg-neutral-950 px-2.5 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 sm:flex-none"
+            {!isFinished && (directionsUrl || calendarAction) ? (
+              <div className="mt-2 flex gap-2">
+                {directionsUrl ? (
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99]"
                   >
-                    {t.matchDetail.rescheduleButton}
-                  </button>
-                ) : hasSchedule ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(true)}
-                      disabled={isSaving}
-                      className="inline-flex h-7 flex-1 items-center justify-center rounded-md bg-white px-2.5 text-[10px] font-black text-neutral-900 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400 sm:flex-none"
-                    >
-                      {t.matchDetail.editScheduleButton}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handlePostpone}
-                      disabled={!canPostpone}
-                      className="inline-flex h-7 flex-1 items-center justify-center rounded-md px-2.5 text-[10px] font-black text-neutral-700 transition active:bg-white disabled:text-neutral-300 sm:flex-none"
-                    >
-                      {isSaving
-                        ? t.matchDetail.saving
-                        : t.matchDetail.postponeButton}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    disabled={isSaving}
-                    className="inline-flex h-7 flex-1 items-center justify-center rounded-md bg-neutral-950 px-2.5 text-[10px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 sm:flex-none"
-                  >
-                    {t.matchDetail.addScheduleButton}
-                  </button>
-                )}
+                    {t.matchDetail.directionsButton}
+                  </a>
+                ) : null}
+
+                {calendarAction ? calendarAction : null}
               </div>
             ) : null}
           </div>
+        </div>
+      ) : null}
 
-          {!isEditing ? (
-            <div className="mt-2 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-sm">
-              {hasSchedule ? (
+      {isPanelOpen ? (
+        <div
+          className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "border-t border-neutral-100 pt-2.5"}`}
+        >
+          {canManage && !isEditing && !isFinished ? (
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {isPostponed ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  disabled={isSaving}
+                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 text-[9px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                >
+                  {t.matchDetail.rescheduleButton}
+                </button>
+              ) : hasSchedule ? (
                 <>
-                  <p className="font-black text-neutral-950">
-                    {capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
-                  </p>
-                  <p className="mt-0.5 text-xs font-semibold text-neutral-600">
-                    {displayedLocationText ?? t.matches.missingSchedule}
-                  </p>
-
-                  {!isFinished && (directionsUrl || calendarAction) ? (
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {directionsUrl ? (
-                        <a
-                          href={directionsUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-xl border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99]"
-                        >
-                          {t.matchDetail.directionsButton}
-                        </a>
-                      ) : null}
-
-                      {calendarAction ? calendarAction : null}
-                    </div>
-                  ) : null}
-
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    disabled={isSaving}
+                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-neutral-200 bg-white px-2.5 text-[9px] font-black text-neutral-800 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
+                  >
+                    {t.matchDetail.editScheduleButton}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePostpone}
+                    disabled={!canPostpone}
+                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 text-[9px] font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300"
+                  >
+                    {isSaving
+                      ? t.matchDetail.saving
+                      : t.matchDetail.postponeButton}
+                  </button>
                   {canClearCurrentSchedule ? (
                     <button
                       type="button"
                       onClick={handleClearSchedule}
                       disabled={!canClearCurrentSchedule}
-                      className="mt-2 w-full rounded-xl border border-red-100 bg-red-50 px-2.5 py-2 text-xs font-black text-red-700 shadow-sm disabled:text-red-300"
+                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-red-100 bg-red-50 px-2.5 text-[9px] font-black text-red-700 transition active:bg-red-100 disabled:text-red-300"
                     >
                       {isSaving
                         ? t.matchDetail.clearingSchedule
@@ -510,19 +482,30 @@ export function MatchScheduleForm({
                   ) : null}
                 </>
               ) : (
-                <>
-                  <p className="font-black text-neutral-950">
-                    {isPostponed
-                      ? t.matches.pendingReschedule
-                      : t.matches.pendingDate}
-                  </p>
-                  <p className="mt-0.5 text-xs font-semibold text-neutral-600">
-                    {isPostponed
-                      ? t.matches.needsReschedule
-                      : t.matchDetail.noScheduleDescription}
-                  </p>
-                </>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  disabled={isSaving}
+                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 text-[9px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                >
+                  {t.matchDetail.addScheduleButton}
+                </button>
               )}
+            </div>
+          ) : null}
+
+          {!hasSchedule && !isEditing ? (
+            <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
+              <p className="font-black text-neutral-950">
+                {isPostponed
+                  ? t.matches.pendingReschedule
+                  : t.matches.pendingDate}
+              </p>
+              <p className="mt-0.5 text-xs font-semibold text-neutral-600">
+                {isPostponed
+                  ? t.matches.needsReschedule
+                  : t.matchDetail.noScheduleDescription}
+              </p>
             </div>
           ) : null}
 
@@ -706,37 +689,10 @@ export function MatchScheduleForm({
                       : t.matchDetail.saveSchedule}
                 </button>
               </div>
-
-              {canPostpone ? (
-                <button
-                  type="button"
-                  onClick={handlePostpone}
-                  disabled={!canPostpone}
-                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-700 shadow-sm disabled:text-neutral-300"
-                >
-                  {isSaving
-                    ? t.matchDetail.saving
-                    : t.matchDetail.postponeButton}
-                </button>
-              ) : null}
-
-              {canClearCurrentSchedule ? (
-                <button
-                  type="button"
-                  onClick={handleClearSchedule}
-                  disabled={!canClearCurrentSchedule}
-                  className="w-full rounded-lg border border-red-100 bg-red-50 px-2.5 py-1.5 text-xs font-black text-red-700 shadow-sm disabled:text-red-300"
-                >
-                  {isSaving
-                    ? t.matchDetail.clearingSchedule
-                    : t.matchDetail.clearScheduleButton}
-                </button>
-              ) : null}
             </form>
           ) : null}
         </div>
       ) : null}
     </section>
   );
-
 }

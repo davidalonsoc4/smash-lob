@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
+import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
@@ -85,6 +86,48 @@ function formatWinPercentage(player: DashboardPlayer) {
   }
 
   return `${Math.round((player.wins / player.matchesPlayed) * 100)}%`;
+}
+
+function CrownIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+      <path
+        d="m4 7 4.2 4L12 5l3.8 6L20 7l-1.2 10H5.2L4 7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 20h12"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+      <rect
+        x="3.5"
+        y="5.5"
+        width="17"
+        height="15"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M8 3.5v4M16 3.5v4M3.5 10h17"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
 }
 
 
@@ -356,12 +399,7 @@ function PlayerAwardCard({
               {badge}
             </div>
             {isWholeCardClickable ? (
-              <span
-                aria-hidden="true"
-                className="text-xl font-black leading-none text-white/70"
-              >
-                ›
-              </span>
+              <ClickableChevron className="shrink-0 border-white/20 bg-white/10 text-white/70" />
             ) : null}
           </div>
         </div>
@@ -881,6 +919,8 @@ export default function Home() {
         </div>
       ) : null}
 
+      <LeagueAnnouncementsCard leagueId={activeLeague.id} />
+
       {isSeasonUpcoming ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
@@ -998,9 +1038,12 @@ export default function Home() {
       {!isSeasonClosed && !isSeasonUpcoming ? (
         <div className="grid grid-cols-2 gap-3">
           <AppCard className="p-3">
-            <p className="text-xs font-semibold text-neutral-500">
-              {t.dashboard.leader}
-            </p>
+            <div className="flex items-center gap-1.5 text-neutral-500">
+              <span aria-hidden="true">
+                <CrownIcon />
+              </span>
+              <p className="text-xs font-semibold">{t.dashboard.leader}</p>
+            </div>
             {hasMeaningfulResults && leader ? (
               <Link
                 href={`/player/${leader.slug ?? leader.id}`}
@@ -1034,6 +1077,7 @@ export default function Home() {
                       ? "Fuera de plazo"
                       : "Próxima"
                 }
+                icon={<CalendarIcon />}
               />
             </Link>
           ) : (
@@ -1041,6 +1085,7 @@ export default function Home() {
               label={t.dashboard.rounds}
               value="-"
               helper={t.dashboard.regularLeague}
+              icon={<CalendarIcon />}
             />
           )}
         </div>
@@ -1096,7 +1141,7 @@ export default function Home() {
                       Debes {formatMoney(totalAmount)} en {count} movimiento{count === 1 ? "" : "s"} pendiente{count === 1 ? "" : "s"}
                     </p>
                   </div>
-                  <span className="shrink-0 text-lg font-black text-amber-900">›</span>
+                  <ClickableChevron className="shrink-0 border-amber-200 bg-amber-100 text-amber-900" />
                 </Link>
               ))}
             </div>

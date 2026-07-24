@@ -16,10 +16,12 @@ async function readSeasonApiPayload<T>(
 ): Promise<T> {
   const payload = (await response
     .json()
-    .catch(() => null)) as (T & { message?: string }) | null;
+    .catch(() => null)) as (T & { message?: string; error?: string }) | null;
 
   if (!response.ok) {
-    throw new Error(payload?.message || `${errorPrefix}-${response.status}`);
+    throw new Error(
+      payload?.error || payload?.message || `${errorPrefix}-${response.status}`,
+    );
   }
 
   if (!payload) {
@@ -48,6 +50,8 @@ export async function updateSupabaseSeasonRoundSettings(
           manualActiveRound: settings.manualActiveRound,
           manualCompletedRounds: settings.manualCompletedRounds,
           registrationFee: settings.registrationFee,
+          allowPlayerIncidents: settings.allowPlayerIncidents,
+          allowPlayerSubstitutions: settings.allowPlayerSubstitutions,
         }),
         cache: "no-store",
       },
@@ -305,4 +309,39 @@ export async function startSupabaseSeason({
     seasonSnapshot: payload.seasonSnapshot,
     linkedMembership: payload.linkedMembership ?? null,
   };
+}
+
+export async function duplicateSupabaseSeason({
+  leagueId,
+  seasonId,
+  name,
+}: {
+  leagueId: string
+  seasonId: string
+  name: string
+}): Promise<{ snapshot: SeasonSnapshot; matches: MatchData[] }> {
+  const payload = await readSeasonApiPayload<{
+    snapshot?: SeasonSnapshot
+    matches?: MatchData[]
+  }>(
+    await fetch(
+      `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/duplicate`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+        cache: "no-store",
+      },
+    ),
+    "season-duplicate-api",
+  )
+
+  if (!payload.snapshot) {
+    throw new Error("season-duplicate-api-empty")
+  }
+
+  return {
+    snapshot: payload.snapshot,
+    matches: payload.matches ?? [],
+  }
 }

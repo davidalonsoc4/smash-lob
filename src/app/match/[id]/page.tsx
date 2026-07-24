@@ -4,11 +4,15 @@ import { useParams, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
+import {
+  MatchActionsContent,
+  MatchActionsTrigger,
+  type MatchActionPanel,
+} from "@/components/match/MatchActionsMenu"
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchScoreboard } from "@/components/match/MatchScoreboard"
-import { MatchSubstitutionPanel } from "@/components/match/MatchSubstitutionPanel"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
@@ -45,6 +49,9 @@ export default function MatchDetailPage() {
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)
   const [clearResultError, setClearResultError] = useState<string | null>(null)
+  const [matchActionsMenuOpen, setMatchActionsMenuOpen] = useState(false)
+  const [openMatchActionPanel, setOpenMatchActionPanel] =
+    useState<MatchActionPanel>(null)
 
   const shouldFocusBooking = searchParams.get("focus") === "booking"
   const match = matches.find((item) => item.id === params.id)
@@ -183,8 +190,18 @@ export default function MatchDetailPage() {
   const resultIsLocked = confirmationsEnabled && match.resultLocked
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
+  const canViewCourtBooking = isMatchParticipant || isAdmin
+  const hasOpenIncident = match.incidentStatus === "open"
+  const isExceptionalResolution = Boolean(
+    match.resolutionType &&
+      !["continue", "substitute", "reset_result", "played"].includes(
+        match.resolutionType,
+      ),
+  )
   const canEnterResult =
     canManageMatch &&
+    !hasOpenIncident &&
+    !isExceptionalResolution &&
     (match.status === "scheduled" ||
       (isAdmin && (match.status === "scheduling" || match.status === "postponed")))
   const canEditResultAsParticipant = Boolean(
@@ -197,6 +214,8 @@ export default function MatchDetailPage() {
   const canEditResult =
     !isSeasonUpcoming &&
     match.status === "finished" &&
+    !hasOpenIncident &&
+    !isExceptionalResolution &&
     !resultIsLocked &&
     (isAdmin || canEditResultAsParticipant)
   const resultReporterName = match.resultReportedByPlayerId
@@ -218,8 +237,19 @@ export default function MatchDetailPage() {
   )
   const shouldShowSchedulePanel =
     match.status !== "finished" || hasSchedule
-  const shouldShowSubstitutionPanel =
-    canManageMatch && match.status !== "finished"
+  const canReportIncident =
+    !isSeasonUpcoming &&
+    isMatchParticipant &&
+    roundSettings.allowPlayerIncidents
+  const canManageSubstitutions =
+    !isSeasonUpcoming &&
+    isMatchParticipant &&
+    roundSettings.allowPlayerSubstitutions
+  const shouldShowResultWorkflow =
+    match.status === "finished" &&
+    !hasOpenIncident &&
+    !isExceptionalResolution &&
+    match.rankingCounts !== false
 
   return (
     <div className="space-y-3">
@@ -231,16 +261,33 @@ export default function MatchDetailPage() {
             {activeLeague.name}
           </p>
 
-          <div className="mt-1 flex min-w-0 items-center justify-between gap-2.5">
+          <div className="mt-1 flex min-w-0 items-start justify-between gap-2.5">
             <h1 className="min-w-0 text-2xl font-black tracking-tight">
               {t.matchDetail.title}
             </h1>
 
-            <MatchStatusBadge
-              status={match.status}
-              scheduledAt={match.scheduledAt}
-              resultRecordedAt={match.resultRecordedAt}
-            />
+            <div className="flex shrink-0 flex-col items-end gap-0.5">
+              <MatchStatusBadge
+                status={match.status}
+                scheduledAt={match.scheduledAt}
+                resultRecordedAt={match.resultRecordedAt}
+              />
+
+              <MatchActionsTrigger
+                match={match}
+                players={players}
+                isAdmin={isAdmin}
+                canReportIncident={canReportIncident}
+                canManageSubstitutions={canManageSubstitutions}
+                menuOpen={matchActionsMenuOpen}
+                onMenuOpenChange={setMatchActionsMenuOpen}
+                onSelectPanel={(panel) => {
+                  setOpenMatchActionPanel((current) =>
+                    current === panel ? null : panel
+                  )
+                }}
+              />
+            </div>
           </div>
 
           <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
@@ -269,7 +316,17 @@ export default function MatchDetailPage() {
         highlightedPlayerIds={roundMvpPlayerIds}
       />
 
-      {match.status === "finished" ? (
+      <MatchActionsContent
+        match={match}
+        players={players}
+        isAdmin={isAdmin}
+        canReportIncident={canReportIncident}
+        canManageSubstitutions={canManageSubstitutions}
+        openPanel={openMatchActionPanel}
+        onOpenPanelChange={setOpenMatchActionPanel}
+      />
+
+      {shouldShowResultWorkflow ? (
         <MatchResultConfirmationCard
           matchId={match.id}
           participantIds={[...match.teamA, ...match.teamB]}
@@ -283,7 +340,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {match.status === "finished" ? (
+      {shouldShowResultWorkflow ? (
         <MvpVotingCard
           match={match}
           currentUserId={currentUserId}
@@ -338,8 +395,8 @@ export default function MatchDetailPage() {
           players={players}
           roundStartsAt={round?.startsAt ?? null}
           roundEndsAt={round?.endsAt ?? null}
-          canManage={canManageMatch}
-          canClearSchedule={isAdmin}
+          canManage={canManageMatch && !hasOpenIncident}
+          canClearSchedule={isAdmin && !hasOpenIncident}
           calendarAction={
             match.status === "scheduled" && match.scheduledAt ? (
               <AddToCalendarButton
@@ -351,14 +408,15 @@ export default function MatchDetailPage() {
                 players={players}
                 scheduledAt={match.scheduledAt}
                 location={calendarLocation}
-                className="min-w-0"
+                className="min-w-0 flex-1"
               />
             ) : null
           }
         />
       ) : null}
 
-      {(match.status === "scheduled" || match.courtBooking.isReserved) ? (
+      {(match.status === "scheduled" || match.courtBooking.isReserved) &&
+      canViewCourtBooking ? (
         <CourtBookingPanel
           matchId={match.id}
           teamA={match.teamA}
@@ -372,10 +430,6 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {shouldShowSubstitutionPanel ? (
-        <MatchSubstitutionPanel match={match} players={players} />
-      ) : null}
-
       {canEnterResult ? (
         <MatchResultForm
           matchId={match.id}
@@ -385,7 +439,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {match.status === "finished" &&
+      {shouldShowResultWorkflow &&
       (canEditResult || isAdmin) &&
       !isEditingResult ? (
         <AppCard>

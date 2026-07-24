@@ -1,8 +1,17 @@
+import {
+  createEmptyWeeklyAvailability,
+  normalizeWeeklyAvailability,
+  type WeeklyAvailability,
+} from "@/lib/playerAvailability"
+
 export type AccountProfile = {
   firstName: string
   lastName: string
   displayName: string
   profileCompletedAt: string | null
+  availabilityCompletedAt: string | null
+  standardAvailabilityTimezone: string
+  standardAvailabilityWeeklySlots: WeeklyAvailability
   isComplete: boolean
   isSuperuser: boolean
 }
@@ -32,4 +41,10 @@ export function normalizeProfileName(value: unknown, maxLength: number) {
   return typeof value === "string"
     ? formatProfileName(value).slice(0, maxLength)
     : ""
+}
+
+export function normalizeAccountStandardAvailability(value: unknown) {
+  return value
+    ? normalizeWeeklyAvailability(value)
+    : createEmptyWeeklyAvailability()
 }

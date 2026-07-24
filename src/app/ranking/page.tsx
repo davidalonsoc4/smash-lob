@@ -1,7 +1,10 @@
 "use client"
 
+import Link from "next/link"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { RankingTable } from "@/components/ranking/RankingTable"
+import { AppCard } from "@/components/ui/AppCard"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 
@@ -32,6 +35,21 @@ export default function RankingPage() {
         players={rankingPlayers}
         showAvatars={activeLeague.showRankingAvatars !== false}
       />
+
+      <Link href="/statistics" className="block">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-black">Historial y estadísticas</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Consulta rachas, parejas, temporadas anteriores y campeones.
+              </p>
+            </div>
+            <ClickableChevron className="shrink-0" />
+          </div>
+        </AppCard>
+      </Link>
+
     </div>
   )
 }

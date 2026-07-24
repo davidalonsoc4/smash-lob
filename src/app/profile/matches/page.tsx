@@ -1,13 +1,25 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PlayerMatchesList } from "@/components/player/PlayerMatchesList";
+import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
+import { useMatchData } from "@/context/MatchDataProvider";
 import { useMvp } from "@/context/MvpProvider";
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
+import {
+  getPlayerSeasonScopes,
+  getPlayersForSeasonScope,
+} from "@/lib/playerHistory";
+import {
+  getVisiblePlayerSeasonScopes,
+  shouldShowHistoricalProfileStats,
+} from "@/lib/playerProfileVisibility";
 
 type MatchFilter =
   "all" | "finished" | "pending" | "scheduled" | "scheduling" | "postponed";
@@ -24,13 +36,12 @@ const validFilters: MatchFilter[] = [
 ];
 
 const validSorts: MatchSort[] = ["recent", "roundAsc", "roundDesc"];
-const defaultFilter: MatchFilter = "all";
+const defaultFilter: MatchFilter = "finished";
 const defaultSort: MatchSort = "roundAsc";
 
 function getMatchSortTime(match: {
   resultRecordedAt?: string | null;
   scheduledAt?: string | null;
-  round: number;
 }) {
   const value = match.resultRecordedAt ?? match.scheduledAt;
 
@@ -47,6 +58,7 @@ function sortMatchesByOrder<
   T extends {
     resultRecordedAt?: string | null;
     scheduledAt?: string | null;
+    seasonId: string;
     round: number;
   },
 >(matches: T[], sort: MatchSort) {
@@ -66,6 +78,10 @@ function sortMatchesByOrder<
       return timeDiff;
     }
 
+    if (secondMatch.seasonId !== firstMatch.seasonId) {
+      return secondMatch.seasonId.localeCompare(firstMatch.seasonId);
+    }
+
     return secondMatch.round - firstMatch.round;
   });
 }
@@ -75,10 +91,15 @@ export default function ProfileMatchesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentUserId } = useCurrentUser();
+  const { matches: allMatches } = useMatchData();
   const { votes } = useMvp();
-  const { activeLeague, activeSeason, roundSettings, players, matches } =
-    useCurrentLeagueData();
+  const { seasons, seasonPlayers, playerProfiles, seasonSettings } =
+    useSeasonSettings();
+  const { activeLeague, activeSeason } = useCurrentLeagueData();
 
+  const player = playerProfiles.find(
+    (item) => item.leagueId === activeLeague.id && item.id === currentUserId,
+  );
   const queryFilter = searchParams.get("status");
   const querySort = searchParams.get("sort");
   const activeFilter = validFilters.includes(queryFilter as MatchFilter)
@@ -87,7 +108,61 @@ export default function ProfileMatchesPage() {
   const activeSort = validSorts.includes(querySort as MatchSort)
     ? (querySort as MatchSort)
     : defaultSort;
-  const player = players.find((item) => item.id === currentUserId);
+  const queryScopeId = searchParams.get("scope");
+  const playerHref = "/profile";
+  const matchesHref = "/profile/matches";
+
+  const leagueMatches = useMemo(
+    () => allMatches.filter((match) => match.leagueId === activeLeague.id),
+    [activeLeague.id, allMatches],
+  );
+
+  const seasonScopes = useMemo(() => {
+    if (!player) {
+      return [];
+    }
+
+    return getPlayerSeasonScopes({
+      leagueId: activeLeague.id,
+      playerId: player.id,
+      activeSeasonId: activeSeason.id,
+      seasons,
+      seasonPlayers,
+      matches: leagueMatches,
+    });
+  }, [
+    activeLeague.id,
+    activeSeason.id,
+    leagueMatches,
+    player,
+    seasonPlayers,
+    seasons,
+  ]);
+
+  const showHistoricalStats = shouldShowHistoricalProfileStats({
+    league: activeLeague,
+    seasons,
+  });
+  const visibleSeasonScopes = getVisiblePlayerSeasonScopes({
+    scopes: seasonScopes,
+    activeSeason,
+    showHistory: showHistoricalStats,
+  });
+  const selectedScope =
+    visibleSeasonScopes.find((scope) => scope.id === queryScopeId) ??
+    visibleSeasonScopes.find((scope) => scope.id === activeSeason.id) ??
+    visibleSeasonScopes[0];
+  const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id];
+  const selectedMatches = leagueMatches.filter((match) =>
+    selectedSeasonIds.includes(match.seasonId),
+  );
+  const selectedPlayers = getPlayersForSeasonScope({
+    leagueId: activeLeague.id,
+    seasonIds: selectedSeasonIds,
+    playerProfiles,
+    seasonPlayers,
+    matches: leagueMatches,
+  });
 
   const filterOptions: { value: MatchFilter; label: string }[] = [
     { value: "all", label: t.profile.filterAll },
@@ -103,11 +178,12 @@ export default function ProfileMatchesPage() {
     { value: "roundDesc", label: "Última jornada → primera" },
   ];
 
-  const playerMatches = matches.filter(
-    (match) =>
-      match.teamA.includes(currentUserId) ||
-      match.teamB.includes(currentUserId),
-  );
+  const playerMatches = player
+    ? selectedMatches.filter(
+        (match) =>
+          match.teamA.includes(player.id) || match.teamB.includes(player.id),
+      )
+    : [];
   const filteredMatches = sortMatchesByOrder(
     playerMatches.filter((match) => {
       if (activeFilter === "all") {
@@ -126,9 +202,11 @@ export default function ProfileMatchesPage() {
   function buildHref({
     filter = activeFilter,
     sort = activeSort,
+    scopeId = selectedScope?.id,
   }: {
     filter?: MatchFilter;
     sort?: MatchSort;
+    scopeId?: string;
   }) {
     const nextParams = new URLSearchParams();
 
@@ -140,9 +218,13 @@ export default function ProfileMatchesPage() {
       nextParams.set("sort", sort);
     }
 
+    if (scopeId) {
+      nextParams.set("scope", scopeId);
+    }
+
     const query = nextParams.toString();
 
-    return query ? `/profile/matches?${query}` : "/profile/matches";
+    return query ? `${matchesHref}?${query}` : matchesHref;
   }
 
   function handleFilterChange(filter: MatchFilter) {
@@ -153,7 +235,11 @@ export default function ProfileMatchesPage() {
     router.push(buildHref({ sort }));
   }
 
-  if (!player) {
+  function handleScopeChange(scopeId: string) {
+    router.push(buildHref({ scopeId }));
+  }
+
+  if (!player || !selectedScope) {
     return (
       <div className="space-y-4">
         <header className="pt-2">
@@ -161,7 +247,7 @@ export default function ProfileMatchesPage() {
         </header>
 
         <AppCard>
-          <p className="font-bold">{t.profile.notFound}</p>
+          <p className="font-bold">{t.playerProfile.notFound}</p>
         </AppCard>
       </div>
     );
@@ -170,7 +256,7 @@ export default function ProfileMatchesPage() {
   return (
     <div className="space-y-4">
       <header className="pt-2">
-        <BackButton fallbackHref="/profile" label={t.common.back} />
+        <BackButton fallbackHref={playerHref} label={t.common.back} />
 
         <p className="mt-3 text-sm font-medium text-neutral-500">
           {activeLeague.name}
@@ -185,17 +271,26 @@ export default function ProfileMatchesPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-neutral-200 bg-white px-2 py-2 shadow-sm">
+      {showHistoricalStats && visibleSeasonScopes.length > 1 ? (
+        <PlayerSeasonScopeSelector
+          title={t.playerProfile.scopeSelectorTitle}
+          description={t.playerProfile.scopeSelectorDescription}
+          value={selectedScope.id}
+          scopes={visibleSeasonScopes}
+          onChange={handleScopeChange}
+        />
+      ) : null}
+
+      <div className="flex items-center justify-end gap-1.5">
         <label className="min-w-0">
-          <span className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
-            Estado
-          </span>
+          <span className="sr-only">Estado</span>
           <select
             value={activeFilter}
             onChange={(event) =>
               handleFilterChange(event.target.value as MatchFilter)
             }
-            className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
+            aria-label="Estado de los partidos"
+            className="max-w-28 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black text-neutral-700 shadow-sm outline-none"
           >
             {filterOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -206,15 +301,14 @@ export default function ProfileMatchesPage() {
         </label>
 
         <label className="min-w-0">
-          <span className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
-            Orden
-          </span>
+          <span className="sr-only">Orden</span>
           <select
             value={activeSort}
             onChange={(event) =>
               handleSortChange(event.target.value as MatchSort)
             }
-            className="mt-0.5 w-full rounded-full border border-neutral-200 bg-neutral-100 px-2 py-1.5 text-[11px] font-black text-neutral-900 outline-none"
+            aria-label="Orden de los partidos"
+            className="max-w-40 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black text-neutral-700 shadow-sm outline-none"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -229,14 +323,17 @@ export default function ProfileMatchesPage() {
         playerId={player.id}
         title={t.profile.filteredMatches}
         matches={filteredMatches}
-        players={players}
-        seasonMatches={matches}
+        players={selectedPlayers}
+        seasonMatches={selectedMatches}
         emptyMessage={t.profile.noFilteredMatches}
         leagueLocations={activeLeague.locations}
         votes={votes}
-        mvpSystemBySeasonId={{
-          [activeSeason.id]: roundSettings.mvpSystem,
-        }}
+        mvpSystemBySeasonId={Object.fromEntries(
+          seasonSettings.map((settings) => [
+            settings.seasonId,
+            settings.mvpSystem,
+          ]),
+        )}
       />
     </div>
   );

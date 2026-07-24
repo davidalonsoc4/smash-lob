@@ -10,9 +10,12 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { League, PlayerProfile } from "@/data/fakeData"
 import { formatMoney } from "@/lib/courtBooking"
+import {
+  buildInviteRuleItems,
+  type LeagueGuideSettings,
+} from "@/lib/leagueGuide"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
 import { ensurePushSubscriptionForLeague } from "@/lib/pushClient"
-import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
 
 type InviteFlowProps = {
   code: string
@@ -129,69 +132,27 @@ function CompactRule({
 }
 
 function InviteRulesSummary({
-  registrationFee,
-  requiresThreeSets,
+  settings,
 }: {
-  registrationFee: SeasonRegistrationFee | null
-  requiresThreeSets: boolean
+  settings: LeagueGuideSettings
 }) {
-  const { t } = useI18n()
-  const hasRegistrationFee = Boolean(
-    registrationFee?.enabled && registrationFee.amount > 0
-  )
-  const registrationAmountLabel = hasRegistrationFee
-    ? formatMoney(registrationFee?.amount ?? 0)
-    : t.invites.rules.registrationFallbackAmount
-  const registrationPurpose = registrationFee?.purpose.trim()
+  const { locale } = useI18n()
+  const registrationAmountLabel = formatMoney(settings.registrationFee.amount)
+  const ruleItems = buildInviteRuleItems({
+    settings,
+    locale,
+    registrationAmountLabel,
+  })
 
   return (
-    <div className="mt-3 space-y-3">
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-3">
-        <p className="text-sm font-black text-amber-950">
-          {t.invites.rules.registrationTitle}
-        </p>
-        <p className="mt-1 text-xs font-bold leading-5 text-amber-900">
-          {hasRegistrationFee
-            ? `${t.invites.rules.registrationAmountPrefix} ${registrationAmountLabel} ${t.invites.rules.registrationAmountSuffix}`
-            : t.invites.rules.registrationNoAmount}
-        </p>
-        {registrationPurpose ? (
-          <p className="mt-2 rounded-xl bg-white/70 px-2.5 py-2 text-xs font-bold text-amber-950">
-            {t.invites.rules.registrationPurposePrefix} {registrationPurpose}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="grid gap-2">
+    <div className="mt-3 grid gap-2">
+      {ruleItems.map((rule) => (
         <CompactRule
-          title={t.invites.rules.individualTitle}
-          description={t.invites.rules.individualDescription}
+          key={rule.id}
+          title={rule.title}
+          description={rule.description}
         />
-        <CompactRule
-          title={t.invites.rules.calendarTitle}
-          description={t.invites.rules.calendarDescription}
-        />
-        <CompactRule
-          title={t.invites.rules.scoringTitle}
-          description={
-            requiresThreeSets
-              ? t.invites.rules.scoringThreeSets
-              : t.invites.rules.scoringOptionalSets
-          }
-        />
-        <CompactRule
-          title={t.invites.rules.commitmentTitle}
-          description={t.invites.rules.commitmentDescription}
-        />
-        <CompactRule
-          title={t.invites.rules.substitutesTitle}
-          description={t.invites.rules.substitutesDescription}
-        />
-        <CompactRule
-          title={t.invites.rules.gameRulesTitle}
-          description={t.invites.rules.gameRulesDescription}
-        />
-      </div>
+      ))}
     </div>
   )
 }
@@ -361,7 +322,25 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const activeSeasonSettings = activeSeason
     ? getSeasonRoundSettings(activeSeason.id)
     : null
-  const registrationFee = activeSeasonSettings?.registrationFee ?? null
+  const inviteRulesSettings: LeagueGuideSettings = activeSeasonSettings ?? {
+    requiresThreeSets: true,
+    mvpSystem: "none",
+    resultConfirmationMode: "none",
+    registrationFee: {
+      enabled: false,
+      amount: 0,
+      purpose: "",
+    },
+    rosterMode: "fixed",
+    playerCapacity: null,
+    registrationOpen: false,
+    scheduleMode: "single",
+    calendarMode: "balanced",
+    roundWindowMode: "none",
+    roundWindowDays: null,
+    allowPlayerIncidents: false,
+    allowPlayerSubstitutions: false,
+  }
   const isSelfRegistration =
     activeSeasonSettings?.rosterMode === "self_registration"
   const registeredCount = activeSeason
@@ -519,10 +498,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             {t.invites.rulesDescription}
           </p>
 
-          <InviteRulesSummary
-            registrationFee={registrationFee}
-            requiresThreeSets={activeSeasonSettings?.requiresThreeSets ?? true}
-          />
+          <InviteRulesSummary settings={inviteRulesSettings} />
 
           <label className="mt-4 flex items-start gap-3 rounded-2xl bg-white px-3 py-3 text-sm font-black text-neutral-900 ring-1 ring-neutral-100">
             <input

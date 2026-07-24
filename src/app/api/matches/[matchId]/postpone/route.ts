@@ -36,6 +36,13 @@ export async function POST(
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
+  if (access.actor.match.incidentStatus === "open") {
+    return NextResponse.json(
+      { error: "match_incident_resolution_required" },
+      { status: 409 },
+    )
+  }
+
   if (
     access.actor.match.status === "finished" ||
     access.actor.match.status === "postponed" ||

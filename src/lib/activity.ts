@@ -2,6 +2,9 @@ export type ActivityEventType =
   | "match_scheduled"
   | "match_schedule_updated"
   | "match_postponed"
+  | "match_incident_reported"
+  | "match_incident_resolved"
+  | "match_incident_cleared"
   | "match_result_saved"
   | "match_result_updated"
   | "match_result_disputed"
@@ -23,8 +26,11 @@ export type ActivityEventType =
   | "league_logo_updated"
   | "league_locations_updated"
   | "league_invite_regenerated"
+  | "league_announcement_published"
+  | "league_announcement_deleted"
   | "season_finished"
   | "season_created"
+  | "season_duplicated"
   | "season_started"
   | "season_player_joined"
   | "season_player_left"
@@ -55,6 +61,9 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "match_scheduled",
   "match_schedule_updated",
   "match_postponed",
+  "match_incident_reported",
+  "match_incident_resolved",
+  "match_incident_cleared",
   "match_result_saved",
   "match_result_updated",
   "match_result_cleared",
@@ -65,11 +74,14 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "court_booking_payment_paid",
   "court_booking_payment_reminder",
   "league_invite_regenerated",
+  "league_announcement_published",
+  "league_announcement_deleted",
   "league_updated",
   "league_logo_updated",
   "league_locations_updated",
   "season_finished",
   "season_created",
+  "season_duplicated",
   "season_started",
   "season_player_joined",
   "season_player_left",

@@ -212,3 +212,24 @@ export function isResultConfirmationAutoValidationDue({
     RESULT_CONFIRMATION_AUTO_VALIDATION_HOURS * 60 * 60 * 1000
   );
 }
+
+export function isMatchCompetitionComplete(match: {
+  status: string
+  resultCounts?: boolean
+  resolutionType?: string | null
+}) {
+  if (match.status !== "finished") {
+    return false
+  }
+
+  if (match.resultCounts !== false) {
+    return true
+  }
+
+  return (
+    match.resolutionType === "cancelled" ||
+    match.resolutionType === "no_show" ||
+    match.resolutionType === "abandoned" ||
+    match.resolutionType === "administrative"
+  )
+}

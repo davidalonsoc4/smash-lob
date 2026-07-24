@@ -33,11 +33,26 @@ export const es = {
   accountProfile: {
     loadingTitle: "Preparando tu perfil",
     eyebrow: "Perfil global",
-    title: "Confirma tu nombre",
-    description: "Este nombre se utilizará en todas las ligas a las que te unas.",
+    title: "Completa tu perfil",
+    description: "Confirma tu nombre y añade la disponibilidad en la que normalmente puedes jugar.",
     firstName: "Nombre",
     lastName: "Primer apellido",
     globalNameNotice: "Hemos precompletado los datos de Google cuando ha sido posible. Revísalos antes de continuar.",
+    availabilityTitle: "Disponibilidad habitual",
+    availabilityDescription: "Selecciona los días y la franja en la que normalmente puedes jugar.",
+    availabilityStart: "Desde",
+    availabilityEnd: "Hasta",
+    availabilityLaterNotice: "Podrás añadir más franjas y excepciones desde Mi disponibilidad.",
+    availabilityValidationError: "Selecciona al menos un día y una franja horaria válida.",
+    availabilityDays: {
+      monday: "L",
+      tuesday: "M",
+      wednesday: "X",
+      thursday: "J",
+      friday: "V",
+      saturday: "S",
+      sunday: "D",
+    },
     validationError: "Indica un nombre y un primer apellido válidos.",
     saveError: "No se ha podido guardar el perfil.",
     continue: "Guardar y continuar",
@@ -501,7 +516,7 @@ export const es = {
     title: "Ayuda y conceptos básicos",
     description: "Una guía rápida para jugadores nuevos de la liga.",
     fullDescription:
-      "Guía rápida para entender el formato de la liga, la puntuación, los estados de los partidos y los MVPs.",
+      "Consulta las reglas activas de la temporada y las herramientas disponibles para organizar y seguir la liga.",
     quickSummaryEyebrow: "Resumen rápido",
     quickSummaryTitle: "Lo importante de un vistazo",
     quickSummaryDescription:
@@ -698,7 +713,7 @@ export const es = {
     description: "Gestiona tus preferencias de la aplicación.",
     helpTitle: "Ayuda y conceptos básicos",
     helpDescription:
-      "Consulta cómo funcionan los suplentes, la puntuación, Star Points, tie-breaks y el formato de la temporada.",
+      "Consulta las reglas activas, el formato y las herramientas disponibles en la liga.",
     backToProfile: "← Volver al perfil",
     profileShortcutDescription:
       "Cambia la liga activa, el idioma y las preferencias de la aplicación.",
@@ -721,9 +736,16 @@ export const es = {
     appearanceLight: "Claro",
     appearanceDark: "Oscuro",
     appearanceSystem: "Sistema",
-    accountTitle: "Cuenta e invitaciones",
+    myProfileTitle: "Mi perfil",
+    myProfileDescription: "Edita tu nombre y la imagen de perfil desde una pantalla compacta.",
+    profileImageTitle: "Imagen de perfil",
+    profileImageDescription: "La imagen se aplica a tu jugador en la liga activa.",
+    profileGoogleImageNotice: "Como espectador se utiliza la imagen de tu cuenta de Google.",
+    profileLoading: "Cargando perfil...",
+    profileLoadError: "No se ha podido cargar el perfil.",
+    accountTitle: "Otras ligas",
     accountDescription:
-      "Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.",
+      "Únete a una liga existente o crea una nueva competición.",
     accountSettingsTitle: "Ajustes de cuenta",
     accountSettingsDescription:
       "Personaliza la imagen que se muestra en tu perfil de esta liga.",
@@ -867,6 +889,13 @@ export const es = {
       "Escribe una ubicación o pega una URL de Maps. La app abrirá Maps con esa referencia.",
     save: "Guardar cambios",
     saved: "Configuración guardada.",
+    profileStatsVisibilityTitle: "Estadísticas históricas en el perfil",
+    profileStatsVisibilityDescription:
+      "Decide si durante una temporada activa los jugadores pueden consultar temporadas anteriores y el total histórico. Cuando todas las temporadas estén cerradas, el historial se mostrará siempre.",
+    profileStatsVisibilityAll: "Todas las temporadas disponibles",
+    profileStatsVisibilityCurrent: "Solo la temporada actual mientras esté abierta",
+    profileStatsVisibilityError:
+      "No se ha podido guardar la visibilidad de las estadísticas.",
   },
 
   adminSeason: {
@@ -1075,8 +1104,8 @@ export const es = {
     disablePush: "Desactivar",
     typesTitle: "Tipos de aviso",
     enabledCount: "Activados: {enabled}/{total}",
-    mandatoryPaymentReminders:
-      "Los recordatorios de pago de pista e inscripción, automáticos o enviados manualmente, se reciben siempre.",
+    allTypesConfigurable:
+      "Todos los tipos de notificación, incluidos incidencias y recordatorios de pago, se pueden activar o desactivar por separado.",
     disableAll: "Desactivar todo",
     enableAll: "Activar todo",
     preferencesSaved: "Preferencias guardadas.",
@@ -1088,40 +1117,65 @@ export const es = {
     deviceDisabled: "Notificaciones desactivadas en este dispositivo.",
     deviceDisableError: "No se ha podido desactivar este dispositivo.",
     preferences: {
-      next_match: {
-        title: "Mi próximo partido",
-        description:
-          "Programación, cambios de fecha, lugar, pista, aplazamientos y recordatorio 2 h antes de tus partidos.",
+      match_schedule: {
+        title: "Programación de partidos",
+        description: "Fechas, horas, pistas, cambios y aplazamientos de tus partidos.",
       },
-      my_match_result: {
-        title: "Resultados de mis partidos",
-        description:
-          "Resultado informado, modificado, eliminado, confirmaciones y recordatorios para registrar el resultado o votar al MVP.",
+      match_incidents: {
+        title: "Incidencias de partidos",
+        description: "Incidencias comunicadas, resueltas o eliminadas. Los admins reciben además los nuevos avisos de su liga.",
+      },
+      match_upcoming: {
+        title: "Próximo partido",
+        description: "Recordatorio antes de que comience tu siguiente partido.",
+      },
+      match_results: {
+        title: "Resultados",
+        description: "Resultados guardados, modificados, eliminados, disputados o pendientes.",
+      },
+      result_confirmations: {
+        title: "Confirmación de resultados",
+        description: "Recordatorios para confirmar o revisar un resultado.",
+      },
+      mvp_reminders: {
+        title: "Votación MVP",
+        description: "Recordatorios para emitir tu voto MVP.",
+      },
+      mvp_awards: {
+        title: "MVP concedidos",
+        description: "MVP del partido y de la jornada.",
       },
       round_events: {
-        title: "Jornadas y MVP",
-        description:
-          "Avisos de jornada en juego y MVP asignados durante la temporada.",
+        title: "Jornadas",
+        description: "Avisos cuando una jornada entra en juego.",
       },
-      season_events: {
+      season_lifecycle: {
         title: "Temporadas",
-        description:
-          "Nueva temporada creada, temporada iniciada o temporada finalizada en tu liga.",
+        description: "Creación, duplicación, inicio y finalización de temporadas.",
       },
-      booking_i_owe: {
+      season_roster: {
+        title: "Inscripciones y plantilla",
+        description: "Jugadores que entran o abandonan una temporada.",
+      },
+      announcements: {
+        title: "Comunicados",
+        description: "Avisos enviados por creator o administradores.",
+      },
+      booking_updates: {
         title: "Reservas de pista",
-        description:
-          "Una reserva indica que debes pagar tu parte a otro jugador o se actualiza una reserva de tus partidos.",
+        description: "Creación, modificación o eliminación de reservas de tus partidos.",
       },
-      booking_paid_to_me: {
-        title: "Pagos recibidos de pista",
-        description:
-          "Alguien que te debía una transferencia de pista la marca como pagada.",
+      booking_payments: {
+        title: "Pagos de pista recibidos",
+        description: "Un jugador marca como pagada una transferencia que debía realizarte.",
+      },
+      payment_reminders: {
+        title: "Recordatorios de pago",
+        description: "Recordatorios de pagos de pista o de inscripción pendientes.",
       },
       player_account: {
         title: "Cuenta y jugadores",
-        description:
-          "Cambios sobre tu perfil, avatar, rol, vinculación o datos de usuario.",
+        description: "Cambios de perfil, avatar, rol, vinculación o datos de usuario.",
       },
     },
   },
@@ -1208,6 +1262,9 @@ export const es = {
       match_scheduled: "Partido programado",
       match_schedule_updated: "Programación de partido modificada",
       match_postponed: "Partido aplazado",
+      match_incident_reported: "Incidencia de partido comunicada",
+      match_incident_resolved: "Incidencia de partido resuelta",
+      match_incident_cleared: "Incidencia de partido eliminada",
       match_result_saved: "Resultado registrado",
       match_result_updated: "Resultado corregido",
       match_result_disputed: "Resultado marcado como incorrecto",
@@ -1229,8 +1286,11 @@ export const es = {
       league_logo_updated: "Logo de liga modificado",
       league_locations_updated: "Ubicaciones de liga modificadas",
       league_invite_regenerated: "Invitación de jugadores regenerada",
+      league_announcement_published: "Comunicado publicado",
+      league_announcement_deleted: "Comunicado eliminado",
       season_finished: "Temporada finalizada",
       season_created: "Temporada creada",
+      season_duplicated: "Temporada duplicada",
       season_started: "Temporada iniciada",
       season_player_joined: "Jugador inscrito en la temporada",
       season_player_left: "Jugador retirado de la temporada",
@@ -1244,6 +1304,9 @@ export const es = {
       match_scheduled: "Programación",
       match_schedule_updated: "Programación",
       match_postponed: "Aplazamiento",
+      match_incident_reported: "Incidencia",
+      match_incident_resolved: "Incidencia",
+      match_incident_cleared: "Incidencia",
       match_result_saved: "Resultado",
       match_result_updated: "Resultado",
       match_result_disputed: "Resultado",
@@ -1265,11 +1328,14 @@ export const es = {
       league_logo_updated: "Liga",
       league_locations_updated: "Liga",
       league_invite_regenerated: "Invitación",
+      league_announcement_published: "Comunicado",
+      league_announcement_deleted: "Comunicado",
       season_finished: "Temporada",
       season_started: "Temporada",
       season_player_joined: "Inscripción",
       season_player_left: "Inscripción",
       season_created: "Temporada",
+      season_duplicated: "Temporada",
       player_name_updated: "Jugador",
       player_avatar_updated: "Jugador",
       player_role_updated: "Usuario",

@@ -32,6 +32,22 @@ async function getAuthorizedActor(matchId: string) {
     return { ok: false as const, status: 403, error: "forbidden" }
   }
 
+  if (!access.actor.isAdmin) {
+    const { data, error } = await access.actor.supabase
+      .from("season_settings")
+      .select("allow_player_substitutions")
+      .eq("season_id", access.actor.match.seasonId)
+      .maybeSingle()
+
+    if (error || data?.allow_player_substitutions === false) {
+      return {
+        ok: false as const,
+        status: 403,
+        error: "player_substitutions_disabled",
+      }
+    }
+  }
+
   return access
 }
 
