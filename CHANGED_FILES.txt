@@ -1,21 +1,13 @@
-Smash & Lob v0.15.3
+Smash & Lob v0.15.4
 
 Modified:
+- CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/app/admin/season/page.tsx
-- src/app/availability/page.tsx
-- src/app/help/page.tsx
-- src/app/match/[id]/page.tsx
-- src/app/settings/page.tsx
-- src/i18n/locales/es.ts
-- src/i18n/locales/en.ts
-- src/i18n/locales/eu.ts
+- src/components/auth/ProfileCompletionGate.tsx
 - docs/production-hardening/STATUS.md
 
 Added:
-- src/lib/onboardingTips.ts
-- src/components/onboarding/ContextualTip.tsx
-- docs/preproduction/V0.15.3_CONTEXTUAL_ONBOARDING.md
+- docs/preproduction/V0.15.4_LINT_CLEANUP.md

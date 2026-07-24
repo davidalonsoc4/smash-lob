@@ -169,7 +169,6 @@ function ProfileCompletionForm({
 }
 
 export function ProfileCompletionGate({ children }: { children: React.ReactNode }) {
-  const { t } = useI18n()
   const { data: session } = useSession()
   const { profile, isLoading, error, saveProfile } = useAccountProfile()
   const googleDefaults = splitGoogleDisplayName(session?.user?.name)

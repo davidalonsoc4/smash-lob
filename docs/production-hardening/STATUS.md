@@ -219,3 +219,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added Spanish, English and Basque onboarding copy.
 - Tip state is local to the device and does not add server-side tracking.
 - No migration, API, permission or remote persistence change is required.
+
+## v0.15.4 - Lint cleanup (2026-07-24)
+
+- Removed the unused translation binding reported by ESLint in `ProfileCompletionGate`.
+- Preserved all profile completion, onboarding, and availability behavior.
+- No migration, API, permission, or persistence change is required.
+

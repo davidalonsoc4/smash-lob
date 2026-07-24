@@ -15,6 +15,18 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.4",
+    date: "24 de julio de 2026",
+    title: "Validación limpia de onboarding",
+    summary:
+      "El flujo de completado de perfil queda libre de avisos de lint tras la incorporación de los nuevos estados de carga.",
+    category: "fix",
+    changes: [
+      "Eliminada una traducción inicializada pero no utilizada en la puerta de completado del perfil.",
+      "La corrección no cambia el comportamiento del formulario, el onboarding ni la disponibilidad habitual.",
+    ],
+  },
+  {
     version: "v0.15.3",
     date: "24 de julio de 2026",
     title: "Ayudas contextuales y onboarding ligero",
