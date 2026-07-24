@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from "react"
 import { useRouter } from "next/navigation"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import type { Locale } from "@/i18n/translations"
 import {
   getSettingsSearchCopy,
@@ -250,12 +251,7 @@ export function GlobalSettingsSearch({
             {entry.description}
           </p>
         </div>
-        <span
-          className="shrink-0 text-base font-black text-neutral-400"
-          aria-label={copy.open}
-        >
-          ›
-        </span>
+        <ClickableChevron className="shrink-0" />
       </button>
     )
   }

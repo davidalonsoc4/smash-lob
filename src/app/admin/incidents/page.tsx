@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { matchIncidentTypeLabels } from "@/lib/matchIncidents"
@@ -108,7 +109,7 @@ export default function AdminIncidentsPage() {
                         </p>
                       ) : null}
                     </div>
-                    <span className="shrink-0 text-xl font-black text-amber-800">›</span>
+                    <ClickableChevron className="shrink-0 border-amber-200 bg-amber-100 text-amber-800" />
                   </div>
                 </AppCard>
               </Link>

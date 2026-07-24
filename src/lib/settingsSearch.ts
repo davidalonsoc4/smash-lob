@@ -123,7 +123,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     activity: { title: "Actividad de la liga", description: "Consulta el historial de cambios y acciones.", section: "league", keywords: ["historial", "auditoría", "eventos", "cambios"] },
     adminView: { title: "Vista admin", description: "Muestra u oculta los accesos de administrador.", section: "preferences", keywords: ["administrador", "ocultar admin", "modo jugador"] },
     leagues: { title: "Mis ligas", description: "Cambia entre ligas de jugador y espectador.", section: "league", keywords: ["cambiar liga", "selector", "espectador"] },
-    account: { title: "Cuenta e imagen de perfil", description: "Gestiona tu sesión y avatar.", section: "account", keywords: ["foto", "avatar", "google", "email", "perfil"] },
+    account: { title: "Mi perfil", description: "Edita tu nombre y tu imagen de perfil.", section: "account", keywords: ["foto", "avatar", "google", "email", "perfil", "nombre"] },
     joinLeague: { title: "Unirme a una liga", description: "Entra mediante un código o enlace de invitación.", section: "account", keywords: ["invitación", "código", "entrar", "vincular"] },
     createLeague: { title: "Crear nueva liga", description: "Crea una competición desde cero.", section: "league", keywords: ["nueva", "crear", "competición", "crear liga", "nueva liga", "alta liga"] },
     unlink: { title: "Desvincularme de esta liga", description: "Libera tu jugador sin borrar el historial.", section: "account", keywords: ["salir", "abandonar", "desvincular", "salir de la liga", "dejar liga", "liberar jugador"] },
@@ -164,7 +164,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     activity: { title: "League activity", description: "Review the history of changes and actions.", section: "league", keywords: ["history", "audit", "events", "changes"] },
     adminView: { title: "Admin view", description: "Show or hide administration shortcuts.", section: "preferences", keywords: ["administrator", "player mode"] },
     leagues: { title: "My leagues", description: "Switch between player and spectator leagues.", section: "league", keywords: ["switch league", "selector", "spectator"] },
-    account: { title: "Account and profile image", description: "Manage your session and avatar.", section: "account", keywords: ["photo", "avatar", "google", "email", "profile"] },
+    account: { title: "My profile", description: "Edit your name and profile image.", section: "account", keywords: ["photo", "avatar", "google", "email", "profile", "name"] },
     joinLeague: { title: "Join a league", description: "Enter with an invitation code or link.", section: "account", keywords: ["invitation", "code", "join", "link"] },
     createLeague: { title: "Create a new league", description: "Create a competition from scratch.", section: "league", keywords: ["new", "create", "competition", "create league", "new league", "add league"] },
     unlink: { title: "Unlink from this league", description: "Release your player without deleting history.", section: "account", keywords: ["leave", "unlink", "exit", "leave league", "release player"] },
@@ -205,7 +205,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     activity: { title: "Ligako jarduera", description: "Ikusi aldaketen eta ekintzen historia.", section: "league", keywords: ["historia", "auditoria", "gertaerak", "aldaketak"] },
     adminView: { title: "Admin ikuspegia", description: "Erakutsi edo ezkutatu administrazio sarbideak.", section: "preferences", keywords: ["administratzailea", "jokalari modua"] },
     leagues: { title: "Nire ligak", description: "Aldatu jokalari eta ikusle ligaren artean.", section: "league", keywords: ["liga aldatu", "hautatzailea", "ikuslea"] },
-    account: { title: "Kontua eta profileko irudia", description: "Kudeatu saioa eta avatarra.", section: "account", keywords: ["argazkia", "avatarra", "google", "emaila", "profila"] },
+    account: { title: "Nire profila", description: "Editatu izena eta profileko irudia.", section: "account", keywords: ["argazkia", "avatarra", "google", "emaila", "profila", "izena"] },
     joinLeague: { title: "Liga batera sartu", description: "Sartu gonbidapen kode edo esteka batekin.", section: "account", keywords: ["gonbidapena", "kodea", "sartu", "lotu"] },
     createLeague: { title: "Liga berria sortu", description: "Sortu lehiaketa hutsetik.", section: "league", keywords: ["berria", "sortu", "lehiaketa", "liga sortu", "liga berria", "liga gehitu"] },
     unlink: { title: "Liga honetatik deslotu", description: "Askatu jokalaria historia ezabatu gabe.", section: "account", keywords: ["irten", "utzi", "deslotu", "ligatik irten", "jokalaria askatu"] },
@@ -248,7 +248,7 @@ const routeById: Record<string, string> = {
   activity: "/activity?scope=all",
   adminView: "/settings#admin-view",
   leagues: "/leagues",
-  account: "/settings#account",
+  account: "/settings/profile",
   joinLeague: "/invite",
   createLeague: "/league/new",
   unlink: "/settings#unlink",
@@ -502,7 +502,7 @@ export function buildSettingsSearchEntries(
 ): SettingsSearchEntry[] {
   const source = entryCopyByLocale[locale]
   const ids = capabilities.isSpectator
-    ? ["language", "appearance", "leagues", "help", "changelog"]
+    ? ["language", "appearance", "leagues", "account", "help", "changelog"]
     : [
         "language",
         "appearance",

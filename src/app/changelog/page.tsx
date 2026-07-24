@@ -57,11 +57,11 @@ export default function ChangelogPage() {
               Versión actual
             </p>
             <p className="mt-1 text-2xl font-black tracking-tight">
-              {APP_VERSION_LABEL}
+              Beta cerrada · {APP_VERSION_LABEL}
             </p>
           </div>
           <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-950">
-            Beta cerrada
+            Actual
           </span>
         </div>
         <p className="mt-3 text-xs font-semibold leading-5 text-neutral-300">

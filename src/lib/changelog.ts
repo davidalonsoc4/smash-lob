@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.13.4",
+    date: "24 de julio de 2026",
+    title: "Perfil y navegación unificados",
+    summary:
+      "Ajustes más compactos y navegación visual consistente en toda la aplicación.",
+    category: "improvement",
+    changes: [
+      "Nueva pantalla Mi perfil para editar conjuntamente el nombre y la imagen.",
+      "El registro de cambios muestra de forma explícita el número de la versión actual.",
+      "Los indicadores de navegación antiguos se sustituyen por chevrons homogéneos.",
+      "Crear una liga y unirse a otra liga siguen disponibles directamente desde Ajustes.",
+    ],
+  },
+  {
     version: "v0.13.3",
     date: "24 de julio de 2026",
     title: "Registro público de cambios",

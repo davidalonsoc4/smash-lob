@@ -82,6 +82,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname.startsWith("/round/") ||
     pathname.startsWith("/player/") ||
     pathname === "/settings" ||
+    pathname === "/settings/profile" ||
     pathname === "/leagues" ||
     pathname === "/help" ||
     pathname === "/changelog" ||

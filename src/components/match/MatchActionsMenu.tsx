@@ -5,6 +5,7 @@ import type { PlayerProfile } from "@/data/fakeData"
 import { matchIncidentTypeLabels } from "@/lib/matchIncidents"
 import { MatchIncidentPanel } from "@/components/match/MatchIncidentPanel"
 import { MatchSubstitutionPanel } from "@/components/match/MatchSubstitutionPanel"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 
 export type MatchActionPanel = "incident" | "substitution" | null
 
@@ -183,7 +184,7 @@ export function MatchActionsContent({
                   ? ` · ${matchIncidentTypeLabels[match.incidentType]}`
                   : ""}
               </span>
-              <span className="shrink-0 text-sm font-black">›</span>
+              <ClickableChevron className="shrink-0" />
             </button>
           ) : null}
 
@@ -202,7 +203,7 @@ export function MatchActionsContent({
                 {getPlayerName(substitution.originalPlayerId, players)}
               </span>
               {canOpenSubstitution ? (
-                <span className="shrink-0 text-sm font-black">›</span>
+                <ClickableChevron className="shrink-0" />
               ) : null}
             </button>
           ))}
