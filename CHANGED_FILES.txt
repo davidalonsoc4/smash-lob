@@ -1,13 +1,10 @@
-Smash & Lob v0.15.5
+Smash & Lob v0.15.7
 
-Modified:
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/app/activity/page.tsx
+- src/app/availability/page.tsx
+- docs/preproduction/V0.15.7_AVAILABILITY_EFFECT_DEPS.md
 - docs/production-hardening/STATUS.md
-
-Added:
-- docs/preproduction/V0.15.5_ACTIVITY_REFRESH_FIX.md

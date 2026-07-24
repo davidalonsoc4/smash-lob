@@ -1,3 +1,9 @@
+## v0.15.7 — Availability effect dependency cleanup
+
+- ESLint exhaustive-deps warning removed from the availability screen.
+- No API, permission or database changes.
+- Local lint, typecheck and production build remain required before commit.
+
 ## v0.14.0 settings architecture (2026-07-24)
 
 - Reorganized Settings into Personal, My leagues, Personal activity, Administration, Help and information, and Session.
@@ -231,3 +237,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Removed the unused translation binding reported by ESLint in `ProfileCompletionGate`.
 - Preserved all profile completion, onboarding, and availability behavior.
 - No migration, API, permission, or persistence change is required.
+
+## v0.15.6 - Action feedback and connection recovery (2026-07-24)
+
+- Added a global accessible action-feedback center above the bottom navigation.
+- Added persistent offline status and a connection-restored confirmation.
+- Added success/error feedback to profile, availability, notification, and suggestion actions.
+- Added direct retry controls for recoverable availability, notification, and suggestion failures.
+- No migration, API contract, permission, or database change is required.

@@ -15,6 +15,14 @@ export const es = {
     active: "Seleccionado",
     finishedSeasonBadge: "Terminada",
   },
+  actionFeedback: {
+    close: "Cerrar aviso",
+    retry: "Reintentar",
+    offlineTitle: "Sin conexión",
+    offlineDescription: "Puedes seguir consultando la aplicación, pero algunos cambios no se guardarán hasta recuperar internet.",
+    backOnline: "Conexión recuperada. Ya puedes volver a guardar cambios.",
+  },
+
 
   auth: {
     subtitle: "Liga privada",

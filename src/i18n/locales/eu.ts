@@ -15,6 +15,14 @@ export const eu = {
     active: "Hautatuta",
     finishedSeasonBadge: "Amaituta",
   },
+  actionFeedback: {
+    close: "Mezua itxi",
+    retry: "Saiatu berriro",
+    offlineTitle: "Konexiorik gabe",
+    offlineDescription: "Aplikazioa kontsultatzen jarrai dezakezu, baina aldaketa batzuk ez dira gordeko konexioa berreskuratu arte.",
+    backOnline: "Konexioa berreskuratu da. Aldaketak berriro gorde ditzakezu.",
+  },
+
 
   auth: {
     subtitle: "Liga pribatua",

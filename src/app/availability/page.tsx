@@ -9,6 +9,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
+import { showActionFeedback } from "@/lib/actionFeedback";
 import {
   countWeeklyAvailabilitySlots,
   createEmptyPlayerAvailability,
@@ -353,7 +354,15 @@ export default function AvailabilityPage() {
         }
       } catch {
         if (!isCancelled) {
-          setError("No se ha podido cargar la disponibilidad guardada. Puedes editarla y volver a guardar.");
+          const loadError = "No se ha podido cargar la disponibilidad guardada. Puedes editarla y volver a guardar.";
+          setError(loadError);
+          showActionFeedback({
+            tone: "error",
+            message: loadError,
+            actionLabel: t.actionFeedback.retry,
+            onAction: () => window.location.reload(),
+            durationMs: 8000,
+          });
         }
       } finally {
         if (!isCancelled) {
@@ -368,7 +377,7 @@ export default function AvailabilityPage() {
       isCancelled = true;
       window.clearTimeout(resetTimeout);
     };
-  }, [activeLeague.id, activeSeason.id, currentUser.id, isPersistentAvailability, userId]);
+  }, [activeLeague.id, activeSeason.id, currentUser.id, isPersistentAvailability, t.actionFeedback.retry, userId]);
 
   const weeklySlots = useMemo(
     () => normalizeWeeklyAvailability(availability.weeklySlots),
@@ -487,9 +496,19 @@ export default function AvailabilityPage() {
         });
       }
 
-      setMessage("Disponibilidad guardada.");
+      const successMessage = "Disponibilidad guardada.";
+      setMessage(successMessage);
+      showActionFeedback({ tone: "success", message: successMessage });
     } catch {
-      setError("No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.");
+      const saveError = "No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.";
+      setError(saveError);
+      showActionFeedback({
+        tone: "error",
+        message: saveError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void saveAvailability(),
+        durationMs: 0,
+      });
     } finally {
       setIsSaving(false);
     }

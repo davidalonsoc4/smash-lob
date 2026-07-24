@@ -15,6 +15,33 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.7",
+    date: "24 de julio de 2026",
+    title: "Validación limpia del feedback de disponibilidad",
+    summary:
+      "La carga de disponibilidad declara correctamente todas sus dependencias y deja el lint de la serie v0.15 sin avisos.",
+    category: "fix",
+    changes: [
+      "Añadida la traducción del botón Reintentar a las dependencias del efecto que carga la disponibilidad.",
+      "La corrección no cambia la carga, el guardado ni la recuperación ante errores de conexión.",
+    ],
+  },
+  {
+    version: "v0.15.6",
+    date: "24 de julio de 2026",
+    title: "Feedback de acciones y recuperación de conexión",
+    summary:
+      "Las operaciones importantes confirman su resultado sin perder el contexto y permiten reintentar errores temporales desde un aviso global.",
+    category: "improvement",
+    changes: [
+      "Nuevo centro global de avisos accesibles para confirmaciones, errores e información de acciones.",
+      "La aplicación avisa cuando se pierde la conexión y confirma automáticamente cuándo vuelve a estar disponible.",
+      "Disponibilidad, notificaciones, perfil e ideas muestran confirmaciones visibles aunque la acción se realice fuera de la zona visible.",
+      "Los errores recuperables de disponibilidad, notificaciones y sugerencias ofrecen un botón de reintento directo.",
+      "Los avisos respetan el modo oscuro, el área segura móvil y la navegación inferior sin desplazar el contenido.",
+    ],
+  },
+  {
     version: "v0.15.5",
     date: "24 de julio de 2026",
     title: "Actualización de actividad corregida",

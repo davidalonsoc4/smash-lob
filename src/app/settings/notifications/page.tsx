@@ -6,6 +6,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import {
   defaultNotificationPreferences,
@@ -228,8 +229,19 @@ export default function NotificationSettingsPage() {
       setPreferences(normalizeNotificationPreferences(data.preferences))
       setIsConfigured(data.isConfigured !== false)
       setMessage(t.notifications.preferencesSaved)
+      showActionFeedback({
+        tone: "success",
+        message: t.notifications.preferencesSaved,
+      })
     } catch {
       setError(t.notifications.preferencesSaveError)
+      showActionFeedback({
+        tone: "error",
+        message: t.notifications.preferencesSaveError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void savePreferences(nextPreferences),
+        durationMs: 0,
+      })
     } finally {
       setIsSaving(false)
     }
@@ -276,8 +288,10 @@ export default function NotificationSettingsPage() {
       const result = await requestPushSubscription()
 
       if (!result.ok) {
+        const supportMessage = getSupportMessage(result.reason)
         setSupportStatus(result.reason)
-        setError(getSupportMessage(result.reason))
+        setError(supportMessage)
+        showActionFeedback({ tone: "error", message: supportMessage })
         return
       }
 
@@ -300,8 +314,16 @@ export default function NotificationSettingsPage() {
       setPushAutoRegistrationDisabled(false)
       setHasSubscription(true)
       setMessage(t.notifications.deviceEnabled)
+      showActionFeedback({ tone: "success", message: t.notifications.deviceEnabled })
     } catch {
       setError(t.notifications.deviceEnableError)
+      showActionFeedback({
+        tone: "error",
+        message: t.notifications.deviceEnableError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void enablePushOnThisDevice(),
+        durationMs: 0,
+      })
     } finally {
       setIsSaving(false)
     }
@@ -339,8 +361,16 @@ export default function NotificationSettingsPage() {
 
       setHasSubscription(false)
       setMessage(t.notifications.deviceDisabled)
+      showActionFeedback({ tone: "success", message: t.notifications.deviceDisabled })
     } catch {
       setError(t.notifications.deviceDisableError)
+      showActionFeedback({
+        tone: "error",
+        message: t.notifications.deviceDisableError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void disablePushOnThisDevice(),
+        durationMs: 0,
+      })
     } finally {
       setIsSaving(false)
     }

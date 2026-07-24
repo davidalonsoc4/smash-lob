@@ -10,6 +10,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeProfileName } from "@/lib/accountProfile"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import { recordActivityEvent } from "@/lib/activity"
 import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import {
@@ -73,7 +74,9 @@ function AccountProfileForm({
     const cleanLastName = normalizeProfileName(lastName, 60)
 
     if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
-      setNameError(t.accountProfile.validationError)
+      const validationMessage = t.accountProfile.validationError
+      setNameError(validationMessage)
+      showActionFeedback({ tone: "error", message: validationMessage })
       return
     }
 
@@ -88,7 +91,9 @@ function AccountProfileForm({
     const result = await saveProfile(cleanFirstName, cleanLastName)
 
     if (!result) {
-      setNameError(t.accountProfile.saveError)
+      const saveError = t.accountProfile.saveError
+      setNameError(saveError)
+      showActionFeedback({ tone: "error", message: saveError })
       setIsSavingName(false)
       return
     }
@@ -97,6 +102,7 @@ function AccountProfileForm({
     setFirstName(result.firstName)
     setLastName(result.lastName)
     setNameFeedback(t.accountProfile.saved)
+    showActionFeedback({ tone: "success", message: t.accountProfile.saved })
     setIsSavingName(false)
   }
 
@@ -118,7 +124,9 @@ function AccountProfileForm({
     setIsSavingAvatar(false)
 
     if (!updated) {
-      setAvatarError(t.settings.avatarSaveError)
+      const saveError = t.settings.avatarSaveError
+      setAvatarError(saveError)
+      showActionFeedback({ tone: "error", message: saveError })
       return false
     }
 
@@ -146,6 +154,7 @@ function AccountProfileForm({
     }
 
     setAvatarFeedback(t.settings.avatarSaved)
+    showActionFeedback({ tone: "success", message: t.settings.avatarSaved })
     return true
   }
 
@@ -162,11 +171,12 @@ function AccountProfileForm({
       setAvatarFeedback(null)
       setAvatarCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
-      setAvatarError(
+      const processError =
         imageError instanceof Error
           ? imageError.message
-          : t.settings.avatarProcessError,
-      )
+          : t.settings.avatarProcessError
+      setAvatarError(processError)
+      showActionFeedback({ tone: "error", message: processError })
     } finally {
       event.target.value = ""
     }

@@ -7,6 +7,7 @@ import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteSha
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
+import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -299,6 +300,8 @@ export function AppShell({ children }: AppShellProps) {
         >
           {children}
         </main>
+
+        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav} />
 
         {shouldShowBottomNav ? <BottomNav /> : null}
       </div>

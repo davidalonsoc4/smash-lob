@@ -15,6 +15,14 @@ export const en = {
     active: "Selected",
     finishedSeasonBadge: "Finished",
   },
+  actionFeedback: {
+    close: "Close message",
+    retry: "Try again",
+    offlineTitle: "You are offline",
+    offlineDescription: "You can keep browsing, but some changes will not be saved until the connection returns.",
+    backOnline: "Connection restored. You can save changes again.",
+  },
+
 
   auth: {
     subtitle: "Private league",
