@@ -180,3 +180,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Moved notification hash expansion and scrolling into animation-frame callbacks.
 - No database migration, API, permission, route, or search-index change is required.
 
+## v0.14.6 - Reopen finished season hotfix (2026-07-24)
+
+- Added a dedicated reopen path for finished seasons instead of reusing initial season start logic.
+- Reopening preserves roster mode, players, registrations, season settings, existing matches, and results.
+- Existing matches are reloaded from Supabase without calendar regeneration.
+- No database migration is required.
+

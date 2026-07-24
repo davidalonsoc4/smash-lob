@@ -3,6 +3,7 @@ import { getServerSeasonAdmin } from "@/lib/serverSeasonAccess"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import {
   isSeasonMutationError,
+  reopenServerFinishedSeason,
   startServerExistingSeason,
 } from "@/lib/serverSeasonMutations"
 import { validateUuid } from "@/lib/serverRequest"
@@ -27,13 +28,20 @@ export async function POST(
   }
 
   try {
-    const result = await startServerExistingSeason({
-      supabase: access.actor.supabase,
-      leagueId,
-      seasonId,
-      actorUserId: access.actor.user.id,
-      actorIsSuperuser: access.actor.user.isSuperuser,
-    })
+    const result =
+      access.season.status === "finished"
+        ? await reopenServerFinishedSeason({
+            supabase: access.actor.supabase,
+            leagueId,
+            seasonId,
+          })
+        : await startServerExistingSeason({
+            supabase: access.actor.supabase,
+            leagueId,
+            seasonId,
+            actorUserId: access.actor.user.id,
+            actorIsSuperuser: access.actor.user.isSuperuser,
+          })
 
     await recordServerActorActivity({
       supabase: access.actor.supabase,

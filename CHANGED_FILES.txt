@@ -1,14 +1,13 @@
-Smash & Lob v0.14.5
+Smash & Lob v0.14.6
 
 Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/app/application-admin/suggestions/page.tsx
-- src/app/settings/suggestions/page.tsx
-- src/app/settings/notifications/page.tsx
+- src/lib/serverSeasonMutations.ts
+- src/app/api/leagues/[id]/seasons/[seasonId]/start/route.ts
 - docs/production-hardening/STATUS.md
 
 Added:
-- docs/preproduction/V0.14.5_REACT_EFFECT_VALIDATION.md
+- docs/preproduction/V0.14.6_REOPEN_SEASON_HOTFIX.md
