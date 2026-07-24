@@ -376,51 +376,238 @@ html.dark .app-skeleton::after {
 
 /* Colorful appearance ---------------------------------------------------- */
 html.colorful {
-  --background: #eef1ff;
-  --foreground: #20224a;
-  --colorful-indigo: #5b5ce2;
-  --colorful-violet: #7c4dff;
-  --colorful-pink: #e94b9b;
-  --colorful-amber: #f2a93b;
-  --colorful-sky: #2f9fe8;
+  --colorful-primary: #5b5ce2;
+  --colorful-primary-rgb: 91 92 226;
+  --colorful-secondary: #7c4dff;
+  --colorful-secondary-rgb: 124 77 255;
+  --colorful-accent: #e94b9b;
+  --colorful-accent-rgb: 233 75 155;
+  --colorful-warm: #f2a93b;
+  --colorful-warm-rgb: 242 169 59;
+  --colorful-cool: #2f9fe8;
+  --colorful-cool-rgb: 47 159 232;
+  --colorful-bg-start: #eef1ff;
+  --colorful-bg-mid: #f7f4ff;
+  --colorful-bg-end: #fff3f8;
+  --colorful-shell-start: #e8ecff;
+  --colorful-shell-mid: #f5efff;
+  --colorful-shell-end: #ffeef5;
+  --colorful-frame-start: #f8f9ff;
+  --colorful-frame-mid: #f5f7ff;
+  --colorful-frame-end: #fff8fb;
+  --colorful-title: #26275d;
+  --colorful-text-strong: #20224a;
+  --colorful-text-700: #42466f;
+  --colorful-text-600: #5d6189;
+  --colorful-text-500: #73779b;
+  --colorful-text-400: #9699b8;
+  --colorful-text-300: #b1b4cd;
+  --colorful-neutral-50: #f5f6ff;
+  --colorful-neutral-100: #eceeff;
+  --colorful-neutral-200: #dde2ff;
+  --colorful-neutral-300: #c9d0f6;
+  --colorful-neutral-700: #575a88;
+  --colorful-neutral-800: #3e406b;
+  --colorful-neutral-900: #31335d;
   --colorful-surface: rgb(255 255 255 / 0.94);
-  --colorful-border: rgb(99 102 241 / 0.17);
-  --colorful-shadow: 0 12px 30px rgb(73 69 163 / 0.11);
+  --colorful-border: rgb(var(--colorful-primary-rgb) / 0.17);
+  --colorful-shadow: 0 12px 30px rgb(var(--colorful-primary-rgb) / 0.11);
+  --colorful-skeleton: #dfe3fb;
+  --colorful-disabled-bg: #eceeff;
+  --colorful-disabled-text: #5d6189;
+  --background: var(--colorful-bg-start);
+  --foreground: var(--colorful-text-strong);
+}
+
+html.colorful[data-colorful-palette="ocean"] {
+  --colorful-primary: #087ea4;
+  --colorful-primary-rgb: 8 126 164;
+  --colorful-secondary: #0ea5a8;
+  --colorful-secondary-rgb: 14 165 168;
+  --colorful-accent: #38bdf8;
+  --colorful-accent-rgb: 56 189 248;
+  --colorful-warm: #f59e0b;
+  --colorful-warm-rgb: 245 158 11;
+  --colorful-cool: #14b8a6;
+  --colorful-cool-rgb: 20 184 166;
+  --colorful-bg-start: #ecfeff;
+  --colorful-bg-mid: #effcff;
+  --colorful-bg-end: #f0f9ff;
+  --colorful-shell-start: #dff9fb;
+  --colorful-shell-mid: #e8fbfb;
+  --colorful-shell-end: #e8f6ff;
+  --colorful-frame-start: #f6feff;
+  --colorful-frame-mid: #f2fcfc;
+  --colorful-frame-end: #f5fbff;
+  --colorful-title: #0d4f63;
+  --colorful-text-strong: #123642;
+  --colorful-text-700: #285766;
+  --colorful-text-600: #47717d;
+  --colorful-text-500: #648894;
+  --colorful-text-400: #8ca7af;
+  --colorful-text-300: #afc2c8;
+  --colorful-neutral-50: #f0fbfc;
+  --colorful-neutral-100: #e1f5f6;
+  --colorful-neutral-200: #cbeaec;
+  --colorful-neutral-300: #addade;
+  --colorful-neutral-700: #46737c;
+  --colorful-neutral-800: #315c67;
+  --colorful-neutral-900: #234b58;
+  --colorful-skeleton: #d3eef1;
+  --colorful-disabled-bg: #e1f5f6;
+  --colorful-disabled-text: #47717d;
+}
+
+html.colorful[data-colorful-palette="emerald"] {
+  --colorful-primary: #059669;
+  --colorful-primary-rgb: 5 150 105;
+  --colorful-secondary: #10b981;
+  --colorful-secondary-rgb: 16 185 129;
+  --colorful-accent: #34d399;
+  --colorful-accent-rgb: 52 211 153;
+  --colorful-warm: #f59e0b;
+  --colorful-warm-rgb: 245 158 11;
+  --colorful-cool: #0ea5e9;
+  --colorful-cool-rgb: 14 165 233;
+  --colorful-bg-start: #ecfdf5;
+  --colorful-bg-mid: #f0fdf4;
+  --colorful-bg-end: #f0fdfa;
+  --colorful-shell-start: #dcfce7;
+  --colorful-shell-mid: #e7fbed;
+  --colorful-shell-end: #e8faf6;
+  --colorful-frame-start: #f7fef9;
+  --colorful-frame-mid: #f5fdf7;
+  --colorful-frame-end: #f6fffc;
+  --colorful-title: #145b45;
+  --colorful-text-strong: #173d35;
+  --colorful-text-700: #2d5c50;
+  --colorful-text-600: #4c766b;
+  --colorful-text-500: #688f84;
+  --colorful-text-400: #91aca4;
+  --colorful-text-300: #b3c6c0;
+  --colorful-neutral-50: #f1fbf5;
+  --colorful-neutral-100: #e3f5e9;
+  --colorful-neutral-200: #ccebd8;
+  --colorful-neutral-300: #acddc0;
+  --colorful-neutral-700: #4a7867;
+  --colorful-neutral-800: #356252;
+  --colorful-neutral-900: #274f42;
+  --colorful-skeleton: #d5eedf;
+  --colorful-disabled-bg: #e3f5e9;
+  --colorful-disabled-text: #4c766b;
+}
+
+html.colorful[data-colorful-palette="coral"] {
+  --colorful-primary: #e65a72;
+  --colorful-primary-rgb: 230 90 114;
+  --colorful-secondary: #ec4899;
+  --colorful-secondary-rgb: 236 72 153;
+  --colorful-accent: #fb7185;
+  --colorful-accent-rgb: 251 113 133;
+  --colorful-warm: #f59e0b;
+  --colorful-warm-rgb: 245 158 11;
+  --colorful-cool: #8b5cf6;
+  --colorful-cool-rgb: 139 92 246;
+  --colorful-bg-start: #fff1f2;
+  --colorful-bg-mid: #fff7ed;
+  --colorful-bg-end: #fdf2f8;
+  --colorful-shell-start: #ffe4e6;
+  --colorful-shell-mid: #fff0e6;
+  --colorful-shell-end: #fce7f3;
+  --colorful-frame-start: #fffafb;
+  --colorful-frame-mid: #fff9f4;
+  --colorful-frame-end: #fff8fc;
+  --colorful-title: #7a3044;
+  --colorful-text-strong: #49242d;
+  --colorful-text-700: #70424c;
+  --colorful-text-600: #8b5e67;
+  --colorful-text-500: #a47a82;
+  --colorful-text-400: #bd9ba2;
+  --colorful-text-300: #d2b9be;
+  --colorful-neutral-50: #fff6f6;
+  --colorful-neutral-100: #fdebed;
+  --colorful-neutral-200: #f8d9de;
+  --colorful-neutral-300: #efbdc7;
+  --colorful-neutral-700: #95616d;
+  --colorful-neutral-800: #794853;
+  --colorful-neutral-900: #623741;
+  --colorful-skeleton: #f6dce1;
+  --colorful-disabled-bg: #fdebed;
+  --colorful-disabled-text: #8b5e67;
+}
+
+html.colorful[data-colorful-palette="sunset"] {
+  --colorful-primary: #f06a24;
+  --colorful-primary-rgb: 240 106 36;
+  --colorful-secondary: #7c3aed;
+  --colorful-secondary-rgb: 124 58 237;
+  --colorful-accent: #ec4899;
+  --colorful-accent-rgb: 236 72 153;
+  --colorful-warm: #fbbf24;
+  --colorful-warm-rgb: 251 191 36;
+  --colorful-cool: #6366f1;
+  --colorful-cool-rgb: 99 102 241;
+  --colorful-bg-start: #fff7ed;
+  --colorful-bg-mid: #faf5ff;
+  --colorful-bg-end: #fff1f2;
+  --colorful-shell-start: #ffedd5;
+  --colorful-shell-mid: #f3e8ff;
+  --colorful-shell-end: #ffe4e6;
+  --colorful-frame-start: #fffbf7;
+  --colorful-frame-mid: #fcf9ff;
+  --colorful-frame-end: #fff8f8;
+  --colorful-title: #713b28;
+  --colorful-text-strong: #462c24;
+  --colorful-text-700: #674b42;
+  --colorful-text-600: #82685f;
+  --colorful-text-500: #9c837a;
+  --colorful-text-400: #b8a19a;
+  --colorful-text-300: #cdbab4;
+  --colorful-neutral-50: #fff8f1;
+  --colorful-neutral-100: #faeee4;
+  --colorful-neutral-200: #f2ded0;
+  --colorful-neutral-300: #e4c5b3;
+  --colorful-neutral-700: #886c61;
+  --colorful-neutral-800: #6e554c;
+  --colorful-neutral-900: #594239;
+  --colorful-skeleton: #f2e1d6;
+  --colorful-disabled-bg: #faeee4;
+  --colorful-disabled-text: #82685f;
 }
 
 html.colorful body {
   background:
-    radial-gradient(circle at 8% -4%, rgb(124 77 255 / 0.22), transparent 34rem),
-    radial-gradient(circle at 92% 6%, rgb(233 75 155 / 0.16), transparent 28rem),
-    linear-gradient(180deg, #eef1ff 0%, #f7f4ff 52%, #fff3f8 100%);
+    radial-gradient(circle at 8% -4%, rgb(var(--colorful-secondary-rgb) / 0.2), transparent 34rem),
+    radial-gradient(circle at 92% 6%, rgb(var(--colorful-accent-rgb) / 0.15), transparent 28rem),
+    linear-gradient(180deg, var(--colorful-bg-start) 0%, var(--colorful-bg-mid) 52%, var(--colorful-bg-end) 100%);
   color: var(--foreground);
 }
 
 html.colorful .app-shell-outer {
   background:
-    radial-gradient(circle at 20% 0%, rgb(91 92 226 / 0.18), transparent 34rem),
-    linear-gradient(180deg, #e8ecff 0%, #f5efff 50%, #ffeef5 100%) !important;
+    radial-gradient(circle at 20% 0%, rgb(var(--colorful-primary-rgb) / 0.17), transparent 34rem),
+    linear-gradient(180deg, var(--colorful-shell-start) 0%, var(--colorful-shell-mid) 50%, var(--colorful-shell-end) 100%) !important;
 }
 
 html.colorful .app-shell-frame {
   background:
-    radial-gradient(circle at 5% 0%, rgb(91 92 226 / 0.14), transparent 18rem),
-    radial-gradient(circle at 95% 7%, rgb(233 75 155 / 0.11), transparent 17rem),
-    linear-gradient(180deg, #f8f9ff 0%, #f5f7ff 42%, #fff8fb 100%) !important;
-  box-shadow: 0 0 42px rgb(65 61 143 / 0.14) !important;
+    radial-gradient(circle at 5% 0%, rgb(var(--colorful-primary-rgb) / 0.13), transparent 18rem),
+    radial-gradient(circle at 95% 7%, rgb(var(--colorful-accent-rgb) / 0.1), transparent 17rem),
+    linear-gradient(180deg, var(--colorful-frame-start) 0%, var(--colorful-frame-mid) 42%, var(--colorful-frame-end) 100%) !important;
+  box-shadow: 0 0 42px rgb(var(--colorful-primary-rgb) / 0.13) !important;
 }
 
 html.colorful .bg-stone-50 { background-color: transparent !important; }
-html.colorful .bg-stone-100 { background-color: #f1f0ff !important; }
-html.colorful .bg-stone-200 { background-color: #e9ecff !important; }
-html.colorful .bg-neutral-50 { background-color: #f5f6ff !important; }
-html.colorful .bg-neutral-100 { background-color: #eceeff !important; }
-html.colorful .bg-neutral-200 { background-color: #dde2ff !important; }
-html.colorful .bg-neutral-300 { background-color: #c9d0f6 !important; }
-html.colorful .bg-neutral-700 { background-color: #575a88 !important; }
-html.colorful .bg-neutral-800 { background-color: #3e406b !important; }
-html.colorful .bg-neutral-900 { background-color: #31335d !important; }
-html.colorful .bg-neutral-950 { background-color: var(--colorful-indigo) !important; }
+html.colorful .bg-stone-100 { background-color: var(--colorful-neutral-100) !important; }
+html.colorful .bg-stone-200 { background-color: var(--colorful-neutral-200) !important; }
+html.colorful .bg-neutral-50 { background-color: var(--colorful-neutral-50) !important; }
+html.colorful .bg-neutral-100 { background-color: var(--colorful-neutral-100) !important; }
+html.colorful .bg-neutral-200 { background-color: var(--colorful-neutral-200) !important; }
+html.colorful .bg-neutral-300 { background-color: var(--colorful-neutral-300) !important; }
+html.colorful .bg-neutral-700 { background-color: var(--colorful-neutral-700) !important; }
+html.colorful .bg-neutral-800 { background-color: var(--colorful-neutral-800) !important; }
+html.colorful .bg-neutral-900 { background-color: var(--colorful-neutral-900) !important; }
+html.colorful .bg-neutral-950 { background-color: var(--colorful-primary) !important; }
 html.colorful .bg-white { background-color: var(--colorful-surface) !important; }
 html.colorful .bg-white\/60 { background-color: rgb(255 255 255 / 0.68) !important; }
 html.colorful .bg-white\/70 { background-color: rgb(255 255 255 / 0.74) !important; }
@@ -430,55 +617,55 @@ html.colorful .bg-white\/95 { background-color: rgb(255 255 255 / 0.96) !importa
 
 html.colorful .text-neutral-950,
 html.colorful .text-neutral-900,
-html.colorful .text-neutral-800 { color: #20224a !important; }
-html.colorful .text-neutral-700 { color: #42466f !important; }
-html.colorful .text-neutral-600 { color: #5d6189 !important; }
-html.colorful .text-neutral-500 { color: #73779b !important; }
-html.colorful .text-neutral-400 { color: #9699b8 !important; }
-html.colorful .text-neutral-300 { color: #b1b4cd !important; }
+html.colorful .text-neutral-800 { color: var(--colorful-text-strong) !important; }
+html.colorful .text-neutral-700 { color: var(--colorful-text-700) !important; }
+html.colorful .text-neutral-600 { color: var(--colorful-text-600) !important; }
+html.colorful .text-neutral-500 { color: var(--colorful-text-500) !important; }
+html.colorful .text-neutral-400 { color: var(--colorful-text-400) !important; }
+html.colorful .text-neutral-300 { color: var(--colorful-text-300) !important; }
 html.colorful .text-stone-950,
 html.colorful .text-stone-900,
-html.colorful .text-stone-800 { color: #20224a !important; }
+html.colorful .text-stone-800 { color: var(--colorful-text-strong) !important; }
 html.colorful .text-stone-700,
-html.colorful .text-stone-600 { color: #55597f !important; }
-html.colorful .text-stone-500 { color: #75799d !important; }
+html.colorful .text-stone-600 { color: var(--colorful-text-600) !important; }
+html.colorful .text-stone-500 { color: var(--colorful-text-500) !important; }
 
-html.colorful .border-neutral-100 { border-color: rgb(99 102 241 / 0.11) !important; }
+html.colorful .border-neutral-100 { border-color: rgb(var(--colorful-primary-rgb) / 0.11) !important; }
 html.colorful .border-neutral-200 { border-color: var(--colorful-border) !important; }
-html.colorful .border-neutral-300 { border-color: rgb(99 102 241 / 0.28) !important; }
+html.colorful .border-neutral-300 { border-color: rgb(var(--colorful-primary-rgb) / 0.28) !important; }
 html.colorful .border-stone-100,
-html.colorful .border-stone-200 { border-color: rgb(99 102 241 / 0.16) !important; }
-html.colorful .ring-neutral-100 { --tw-ring-color: rgb(99 102 241 / 0.12) !important; }
-html.colorful .ring-neutral-200 { --tw-ring-color: rgb(99 102 241 / 0.2) !important; }
-html.colorful .ring-neutral-950 { --tw-ring-color: var(--colorful-indigo) !important; }
-html.colorful .divide-neutral-100 > :not(:last-child) { border-color: rgb(99 102 241 / 0.11) !important; }
+html.colorful .border-stone-200 { border-color: rgb(var(--colorful-primary-rgb) / 0.16) !important; }
+html.colorful .ring-neutral-100 { --tw-ring-color: rgb(var(--colorful-primary-rgb) / 0.12) !important; }
+html.colorful .ring-neutral-200 { --tw-ring-color: rgb(var(--colorful-primary-rgb) / 0.2) !important; }
+html.colorful .ring-neutral-950 { --tw-ring-color: var(--colorful-primary) !important; }
+html.colorful .divide-neutral-100 > :not(:last-child) { border-color: rgb(var(--colorful-primary-rgb) / 0.11) !important; }
 
 html.colorful input,
 html.colorful select,
 html.colorful textarea {
   background-color: rgb(255 255 255 / 0.88);
-  border-color: rgb(99 102 241 / 0.22);
-  color: #20224a;
+  border-color: rgb(var(--colorful-primary-rgb) / 0.22);
+  color: var(--colorful-text-strong);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.75);
 }
 html.colorful input:focus,
 html.colorful select:focus,
 html.colorful textarea:focus {
-  border-color: rgb(91 92 226 / 0.62);
-  outline-color: rgb(91 92 226 / 0.24);
+  border-color: rgb(var(--colorful-primary-rgb) / 0.62);
+  outline-color: rgb(var(--colorful-primary-rgb) / 0.24);
 }
 html.colorful input::placeholder,
-html.colorful textarea::placeholder { color: #9a9dbc; }
-html.colorful option { background-color: #ffffff; color: #20224a; }
+html.colorful textarea::placeholder { color: var(--colorful-text-400); }
+html.colorful option { background-color: #ffffff; color: var(--colorful-text-strong); }
 
 html.colorful .app-main h1 {
-  color: #26275d !important;
+  color: var(--colorful-title) !important;
   text-shadow: 0 1px 0 rgb(255 255 255 / 0.72);
 }
 
 html.colorful .app-eyebrow,
 html.colorful .settings-section-label {
-  color: var(--colorful-indigo) !important;
+  color: var(--colorful-primary) !important;
 }
 
 html.colorful .app-section-header h2::after {
@@ -488,7 +675,7 @@ html.colorful .app-section-header h2::after {
   height: 0.18rem;
   margin-top: 0.22rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--colorful-indigo), var(--colorful-pink));
+  background: linear-gradient(90deg, var(--colorful-primary), var(--colorful-accent));
 }
 
 html.colorful .app-card,
@@ -496,7 +683,7 @@ html.colorful .app-stat-card,
 html.colorful .app-ranking-row {
   border-color: var(--colorful-border) !important;
   background:
-    linear-gradient(145deg, rgb(255 255 255 / 0.98), rgb(248 248 255 / 0.92)) !important;
+    linear-gradient(145deg, rgb(255 255 255 / 0.98), rgb(255 255 255 / 0.88)) !important;
   box-shadow: var(--colorful-shadow) !important;
 }
 
@@ -514,25 +701,25 @@ html.colorful .app-card::before {
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    var(--colorful-indigo),
-    var(--colorful-violet),
-    var(--colorful-pink),
-    var(--colorful-amber)
+    var(--colorful-primary),
+    var(--colorful-secondary),
+    var(--colorful-accent),
+    var(--colorful-warm)
   );
   opacity: 0.84;
   pointer-events: none;
 }
 
 html.colorful .app-notification-card::before {
-  background: linear-gradient(90deg, var(--colorful-sky), var(--colorful-indigo)) !important;
+  background: linear-gradient(90deg, var(--colorful-cool), var(--colorful-primary)) !important;
 }
 
 html.colorful .app-activity-card::before {
-  background: linear-gradient(90deg, var(--colorful-violet), var(--colorful-pink)) !important;
+  background: linear-gradient(90deg, var(--colorful-secondary), var(--colorful-accent)) !important;
 }
 
 html.colorful .app-schedule-card::before {
-  background: linear-gradient(90deg, var(--colorful-amber), var(--colorful-pink)) !important;
+  background: linear-gradient(90deg, var(--colorful-warm), var(--colorful-accent)) !important;
 }
 
 html.colorful .app-notification-card,
@@ -553,13 +740,13 @@ html.colorful .app-stat-card::after {
   width: 4rem;
   height: 4rem;
   border-radius: 999px;
-  background: rgb(91 92 226 / 0.09);
+  background: rgb(var(--colorful-primary-rgb) / 0.09);
   pointer-events: none;
 }
 
-html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(47 159 232 / 0.1); }
-html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(233 75 155 / 0.1); }
-html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(242 169 59 / 0.12); }
+html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(var(--colorful-cool-rgb) / 0.1); }
+html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(var(--colorful-accent-rgb) / 0.1); }
+html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(var(--colorful-warm-rgb) / 0.12); }
 
 html.colorful .app-ranking-row {
   position: relative;
@@ -571,13 +758,13 @@ html.colorful .app-ranking-row::before {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0.22rem;
-  background: var(--colorful-indigo);
+  background: var(--colorful-primary);
   opacity: 0.5;
 }
 
-html.colorful .app-ranking-row:nth-child(2)::before { background: var(--colorful-sky); }
-html.colorful .app-ranking-row:nth-child(3)::before { background: var(--colorful-pink); }
-html.colorful .app-ranking-row:nth-child(4)::before { background: var(--colorful-amber); }
+html.colorful .app-ranking-row:nth-child(2)::before { background: var(--colorful-cool); }
+html.colorful .app-ranking-row:nth-child(3)::before { background: var(--colorful-accent); }
+html.colorful .app-ranking-row:nth-child(4)::before { background: var(--colorful-warm); }
 
 html.colorful .app-ranking-row:nth-child(1) .app-ranking-position {
   background: linear-gradient(145deg, #ffd768, #f2a93b) !important;
@@ -596,31 +783,31 @@ html.colorful .app-ranking-row:nth-child(3) .app-ranking-position {
 }
 
 html.colorful .app-bottom-nav {
-  border-top-color: rgb(99 102 241 / 0.17) !important;
+  border-top-color: rgb(var(--colorful-primary-rgb) / 0.17) !important;
   background: rgb(255 255 255 / 0.9) !important;
-  box-shadow: 0 -10px 28px rgb(73 69 163 / 0.14) !important;
+  box-shadow: 0 -10px 28px rgb(var(--colorful-primary-rgb) / 0.14) !important;
 }
 
 html.colorful .app-bottom-nav-active {
-  background: linear-gradient(135deg, var(--colorful-indigo), var(--colorful-violet)) !important;
+  background: linear-gradient(135deg, var(--colorful-primary), var(--colorful-secondary)) !important;
   color: #ffffff !important;
-  box-shadow: 0 8px 18px rgb(91 92 226 / 0.3) !important;
+  box-shadow: 0 8px 18px rgb(var(--colorful-primary-rgb) / 0.3) !important;
 }
 
 html.colorful .app-bottom-nav-item {
-  color: #696d98 !important;
+  color: var(--colorful-text-500) !important;
 }
 
 html.colorful .app-bottom-nav-item:active {
-  background-color: rgb(91 92 226 / 0.09) !important;
-  color: var(--colorful-indigo) !important;
+  background-color: rgb(var(--colorful-primary-rgb) / 0.09) !important;
+  color: var(--colorful-primary) !important;
 }
 
 html.colorful .app-floating-control {
-  border-color: rgb(99 102 241 / 0.2) !important;
+  border-color: rgb(var(--colorful-primary-rgb) / 0.2) !important;
   background: rgb(255 255 255 / 0.9) !important;
-  color: var(--colorful-indigo) !important;
-  box-shadow: 0 7px 18px rgb(73 69 163 / 0.18) !important;
+  color: var(--colorful-primary) !important;
+  box-shadow: 0 7px 18px rgb(var(--colorful-primary-rgb) / 0.18) !important;
 }
 
 html.colorful .settings-row-default {
@@ -628,18 +815,23 @@ html.colorful .settings-row-default {
 }
 
 html.colorful .settings-row-default:active {
-  background-color: rgb(91 92 226 / 0.08) !important;
+  background-color: rgb(var(--colorful-primary-rgb) / 0.08) !important;
 }
 
 html.colorful .appearance-settings {
   background:
-    linear-gradient(145deg, rgb(255 255 255 / 0.6), rgb(239 241 255 / 0.8));
+    linear-gradient(145deg, rgb(255 255 255 / 0.6), rgb(var(--colorful-primary-rgb) / 0.07));
 }
 
-html.colorful .appearance-option[aria-pressed="true"] {
-  border-color: rgb(91 92 226 / 0.52) !important;
-  background: linear-gradient(145deg, #ffffff, #f1efff) !important;
-  box-shadow: 0 8px 18px rgb(91 92 226 / 0.13) !important;
+html.colorful .appearance-option[aria-pressed="true"],
+html.colorful .colorful-palette-option[aria-pressed="true"] {
+  border-color: rgb(var(--colorful-primary-rgb) / 0.52) !important;
+  background: linear-gradient(145deg, #ffffff, rgb(var(--colorful-primary-rgb) / 0.07)) !important;
+  box-shadow: 0 8px 18px rgb(var(--colorful-primary-rgb) / 0.13) !important;
+}
+
+html.colorful .colorful-palette-settings {
+  border-color: rgb(var(--colorful-primary-rgb) / 0.12) !important;
 }
 
 /* Appearance previews must keep their own palette, regardless of active theme. */
@@ -658,13 +850,13 @@ html.colorful .appearance-option[aria-pressed="true"] {
 }
 .appearance-preview-system .appearance-preview-chip { background: #a3a3a3 !important; }
 .appearance-preview-colorful {
-  background: linear-gradient(135deg, #5b5ce2, #7c4dff 48%, #e94b9b) !important;
-  --tw-ring-color: #c7d2fe !important;
+  background: linear-gradient(135deg, var(--colorful-primary, #5b5ce2), var(--colorful-secondary, #7c4dff) 48%, var(--colorful-accent, #e94b9b)) !important;
+  --tw-ring-color: rgb(var(--colorful-primary-rgb, 91 92 226) / 0.28) !important;
 }
 .appearance-preview-colorful .appearance-preview-card { background: rgb(255 255 255 / 0.9) !important; }
-.appearance-preview-colorful .appearance-preview-chip { background: #fcd34d !important; }
+.appearance-preview-colorful .appearance-preview-chip { background: var(--colorful-warm, #fcd34d) !important; }
 
-html.colorful .app-skeleton { background: #dfe3fb; }
+html.colorful .app-skeleton { background: var(--colorful-skeleton); }
 html.colorful .app-skeleton::after {
   background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.68), transparent);
 }
@@ -676,11 +868,11 @@ html.colorful .app-main [id]:target {
 
 @keyframes settings-search-highlight-colorful {
   0%, 45% {
-    box-shadow: 0 0 0 3px rgb(124 77 255 / 0.32);
-    background-color: rgb(238 242 255 / 0.94);
+    box-shadow: 0 0 0 3px rgb(var(--colorful-secondary-rgb) / 0.32);
+    background-color: rgb(var(--colorful-primary-rgb) / 0.08);
   }
   100% {
-    box-shadow: 0 0 0 0 rgb(124 77 255 / 0);
+    box-shadow: 0 0 0 0 rgb(var(--colorful-secondary-rgb) / 0);
     background-color: transparent;
   }
 }
@@ -695,9 +887,9 @@ html.colorful .status-colors-disabled :where(
   .status-tone-red,
   .status-tone-gold
 ) {
-  background-color: #eceeff !important;
-  color: #5d6189 !important;
-  --tw-ring-color: rgb(99 102 241 / 0.2) !important;
+  background-color: var(--colorful-disabled-bg) !important;
+  color: var(--colorful-disabled-text) !important;
+  --tw-ring-color: rgb(var(--colorful-primary-rgb) / 0.2) !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -706,7 +898,9 @@ html.colorful .status-colors-disabled :where(
   html.colorful .app-stat-card,
   html.colorful .app-ranking-row,
   html.colorful .app-bottom-nav,
-  html.colorful .app-floating-control {
+  html.colorful .app-floating-control,
+  html.colorful .appearance-option,
+  html.colorful .colorful-palette-option {
     transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
   }
 }

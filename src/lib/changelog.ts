@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.2",
+    date: "25 de julio de 2026",
+    title: "Paletas para la apariencia Colorida",
+    summary:
+      "El modo Colorido puede personalizarse con cinco combinaciones visuales preparadas, coherentes y seguras para el contraste.",
+    category: "new",
+    changes: [
+      "Añadidas las paletas Índigo y violeta, Azul y turquesa, Verde esmeralda, Coral y rosa y Naranja y púrpura.",
+      "La paleta se cambia en Ajustes sin recargar y se recuerda únicamente en el dispositivo.",
+      "Fondos, navegación, tarjetas, formularios, clasificación, skeletons y controles adoptan automáticamente la combinación elegida.",
+      "Los colores semánticos de errores, avisos, pagos y estados de partido permanecen independientes de la paleta visual.",
+      "La apariencia seleccionada se aplica antes de hidratar la aplicación para evitar destellos con la paleta predeterminada.",
+      "No se requiere migración, cambio de API ni persistencia remota.",
+    ],
+  },
+  {
     version: "v0.16.1",
     date: "25 de julio de 2026",
     title: "Ubicaciones legibles y consistencia visual",

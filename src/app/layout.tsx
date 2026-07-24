@@ -67,7 +67,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href={branding.appleTouchIcon} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'light';var c=t==='colorful';var d=!c&&(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));var r=c?'colorful':d?'dark':'light';document.documentElement.classList.toggle('dark',d);document.documentElement.classList.toggle('colorful',c);document.documentElement.dataset.theme=r;document.documentElement.style.colorScheme=d?'dark':'light';var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',c?'#5b5ce2':d?'#0f0f10':'#0a0a0a')}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'light';var p=localStorage.getItem('smash-lob-colorful-palette')||'indigo';var v=['indigo','ocean','emerald','coral','sunset'];if(v.indexOf(p)<0)p='indigo';var c=t==='colorful';var d=!c&&(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));var r=c?'colorful':d?'dark':'light';var h={indigo:'#5b5ce2',ocean:'#087ea4',emerald:'#059669',coral:'#e65a72',sunset:'#f06a24'};document.documentElement.classList.toggle('dark',d);document.documentElement.classList.toggle('colorful',c);document.documentElement.dataset.theme=r;document.documentElement.dataset.colorfulPalette=p;document.documentElement.style.colorScheme=d?'dark':'light';var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',c?h[p]:d?'#0f0f10':'#0a0a0a')}catch(e){}})();`,
           }}
         />
       </head>
