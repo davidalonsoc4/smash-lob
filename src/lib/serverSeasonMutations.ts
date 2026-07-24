@@ -360,6 +360,81 @@ export async function finishServerActiveSeason({
   }
 }
 
+export async function reopenServerFinishedSeason({
+  supabase,
+  leagueId,
+  seasonId,
+}: {
+  supabase: SupabaseClient
+  leagueId: string
+  seasonId: string
+}): Promise<{ snapshot: SeasonSnapshot; matches: MatchData[] }> {
+  const { error: finishOtherActiveError } = await supabase
+    .from("seasons")
+    .update({ status: "finished" })
+    .eq("league_id", leagueId)
+    .eq("status", "active")
+    .neq("id", seasonId)
+
+  if (finishOtherActiveError) {
+    throw new SeasonMutationError(500, "season_reopen_finish_other_active_failed")
+  }
+
+  const { data: season, error: seasonError } = await supabase
+    .from("seasons")
+    .update({ status: "active" })
+    .eq("id", seasonId)
+    .eq("league_id", leagueId)
+    .eq("status", "finished")
+    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .single()
+
+  if (seasonError) {
+    throw new SeasonMutationError(500, "season_reopen_failed", seasonError.message)
+  }
+
+  const { error: leagueUpdateError } = await supabase
+    .from("leagues")
+    .update({ active_season_id: seasonId })
+    .eq("id", leagueId)
+
+  if (leagueUpdateError) {
+    throw new SeasonMutationError(
+      500,
+      "season_reopen_league_update_failed",
+      leagueUpdateError.message,
+    )
+  }
+
+  const { data: matches, error: matchesError } = await supabase
+    .from("matches")
+    .select(matchSelect)
+    .eq("league_id", leagueId)
+    .eq("season_id", seasonId)
+    .order("round", { ascending: true })
+
+  if (matchesError) {
+    throw new SeasonMutationError(
+      500,
+      "season_reopen_matches_lookup_failed",
+      matchesError.message,
+    )
+  }
+
+  return {
+    snapshot: {
+      seasons: [mapSeason(season)],
+      playerProfiles: [],
+      seasonPlayers: [],
+      seasonSettings: [],
+      activeSeasonIds: { [leagueId]: seasonId },
+    },
+    matches: (matches ?? []).map((match) =>
+      mapSupabaseMatch(match as Record<string, unknown>),
+    ),
+  }
+}
+
 export async function startServerExistingSeason({
   supabase,
   leagueId,
