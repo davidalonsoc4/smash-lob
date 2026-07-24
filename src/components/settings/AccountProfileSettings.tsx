@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react"
 import { useSession } from "next-auth/react"
 import { ImageCropDialog } from "@/components/images/ImageCropDialog"
+import { ProfileCardSkeleton } from "@/components/loading/PageSkeletons"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -327,11 +328,7 @@ export function AccountProfileSettings() {
   const { currentUser } = useCurrentUser()
 
   if (isLoading) {
-    return (
-      <div className="rounded-xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-        {t.settings.profileLoading}
-      </div>
-    )
+    return <ProfileCardSkeleton />
   }
 
   if (!profile) {

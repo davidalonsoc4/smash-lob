@@ -196,3 +196,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Normalized client images to 512 × 512 compressed WebP data URLs.
 - Added file type and 12 MB input-size validation.
 - No migration, API, permission or database change is required.
+
+## v0.15.1 - Loading states and skeletons (2026-07-24)
+
+- Added reusable skeleton primitives and page compositions.
+- Replaced generic session, profile and league-transition spinners with structured loading states.
+- Added route skeletons for the most-used list, ranking, settings and detail screens.
+- Skeleton animation respects reduced-motion preferences.
+- No migration, API, permission or persistence change is required.

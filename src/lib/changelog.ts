@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.1",
+    date: "24 de julio de 2026",
+    title: "Cargas más fluidas y predecibles",
+    summary:
+      "Las esperas principales muestran skeletons con la estructura real de cada pantalla para reducir saltos visuales y mejorar la percepción de velocidad.",
+    category: "improvement",
+    changes: [
+      "Nuevo sistema reutilizable de skeletons para inicio, listas, clasificación, detalle, ajustes y perfil.",
+      "La carga inicial de sesión y perfil deja de mostrar tarjetas genéricas y presenta la estructura aproximada de la aplicación.",
+      "El cambio entre ligas muestra un estado visual específico con el nombre de la liga de destino.",
+      "Ranking, partidos, estadísticas, Ajustes, notificaciones, actividad, pagos, perfiles y partidos incorporan estados de carga de ruta.",
+      "Las animaciones respetan la preferencia del sistema para reducir movimiento.",
+    ],
+  },
+  {
     version: "v0.15.0",
     date: "24 de julio de 2026",
     title: "Recorte y optimización de imágenes",
