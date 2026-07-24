@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 type SuggestionCategory = "improvement" | "feature" | "usability" | "other"
 type SuggestionStatus = "new" | "reviewing" | "planned" | "declined" | "completed"
@@ -142,9 +143,21 @@ export default function SuggestionsPage() {
       setTitle("")
       setDetails("")
       setCategory("improvement")
-      setMessage("Sugerencia enviada. Gracias por ayudar a mejorar Smash & Lob.")
+      const successMessage = "Sugerencia enviada. Gracias por ayudar a mejorar Smash & Lob."
+      setMessage(successMessage)
+      showActionFeedback({ tone: "success", message: successMessage })
     } catch (caughtError) {
-      setError(getSubmitError(caughtError instanceof Error ? caughtError.message : undefined))
+      const submitError = getSubmitError(
+        caughtError instanceof Error ? caughtError.message : undefined,
+      )
+      setError(submitError)
+      showActionFeedback({
+        tone: "error",
+        message: submitError,
+        actionLabel: "Reintentar",
+        onAction: () => void submitSuggestion(),
+        durationMs: 0,
+      })
     } finally {
       setSubmitting(false)
     }
