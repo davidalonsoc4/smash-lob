@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 
@@ -87,20 +87,28 @@ export default function SuggestionsPage() {
     [details, submitting, title],
   )
 
-  const loadItems = useCallback(async () => {
-    setLoadingItems(true)
-    try {
-      const response = await fetch("/api/suggestions", { cache: "no-store" })
-      const payload = (await response.json()) as { items?: SuggestionItem[] }
-      if (response.ok) setItems(payload.items ?? [])
-    } finally {
-      setLoadingItems(false)
+  useEffect(() => {
+    let cancelled = false
+
+    fetch("/api/suggestions", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json()) as { items?: SuggestionItem[] }
+        return response.ok ? payload.items ?? [] : []
+      })
+      .then((nextItems) => {
+        if (!cancelled) setItems(nextItems)
+      })
+      .catch(() => {
+        if (!cancelled) setItems([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingItems(false)
+      })
+
+    return () => {
+      cancelled = true
     }
   }, [])
-
-  useEffect(() => {
-    void loadItems()
-  }, [loadItems])
 
   async function submitSuggestion() {
     if (!canSubmit) return

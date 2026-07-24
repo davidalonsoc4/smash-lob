@@ -99,28 +99,34 @@ export default function NotificationSettingsPage() {
 
   useEffect(() => {
     const groupId = window.location.hash.slice(1) as NotificationGroupId | "device"
+    let scrollFrame: number | null = null
 
-    if (groupId === "device") {
-      window.requestAnimationFrame(() => {
+    const openFrame = window.requestAnimationFrame(() => {
+      if (groupId === "device") {
         document.getElementById("device")?.scrollIntoView({ block: "center" })
-      })
-      return
-    }
+        return
+      }
 
-    const targetGroup = notificationPreferenceGroups.find(
-      (group) => group.id === groupId,
-    )
+      const targetGroup = notificationPreferenceGroups.find(
+        (group) => group.id === groupId,
+      )
 
-    if (targetGroup) {
+      if (!targetGroup) return
+
       setExpandedGroups((current) => ({
         ...current,
         [targetGroup.id]: true,
       }))
-      window.requestAnimationFrame(() => {
+      scrollFrame = window.requestAnimationFrame(() => {
         document
           .getElementById(targetGroup.id)
           ?.scrollIntoView({ block: "center" })
       })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(openFrame)
+      if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame)
     }
   }, [])
 

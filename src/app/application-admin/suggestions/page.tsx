@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -57,29 +57,34 @@ export default function ApplicationSuggestionsPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const loadSuggestions = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch("/api/application-admin/suggestions", {
-        cache: "no-store",
-      })
-      const payload = (await response.json()) as {
-        items?: SuggestionItem[]
-        error?: string
-      }
-      if (!response.ok) throw new Error(payload.error ?? "lookup_failed")
-      setItems(payload.items ?? [])
-    } catch {
-      setError("No se ha podido cargar el buzón de sugerencias.")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    if (isSuperuser) void loadSuggestions()
-  }, [isSuperuser, loadSuggestions])
+    if (!isSuperuser) return
+
+    let cancelled = false
+
+    fetch("/api/application-admin/suggestions", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json()) as {
+          items?: SuggestionItem[]
+          error?: string
+        }
+        if (!response.ok) throw new Error(payload.error ?? "lookup_failed")
+        return payload.items ?? []
+      })
+      .then((nextItems) => {
+        if (!cancelled) setItems(nextItems)
+      })
+      .catch(() => {
+        if (!cancelled) setError("No se ha podido cargar el buzón de sugerencias.")
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isSuperuser])
 
   const visibleItems = useMemo(
     () => (filter === "all" ? items : items.filter((item) => item.status === filter)),
