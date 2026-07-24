@@ -606,28 +606,28 @@ function ActivityPageContent() {
   }
 
   return (
-    <div className="space-y-4">
-      <header className="pt-2">
+    <div className="compact-page space-y-3">
+      <header className="pt-1">
         <LeagueSeasonEyebrow
           leagueName={activeLeague.name}
           seasonName={activeSeason.name}
           seasonStatus={activeSeason.status}
         />
 
-        <h1 className="mt-1.5 text-2xl font-black tracking-tight">
+        <h1 className="mt-1 text-xl font-black tracking-tight">
           {t.activity.title}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
           {t.activity.description}
         </p>
       </header>
 
-      <div className={`grid gap-2 rounded-2xl bg-neutral-100 p-1 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
+      <div className={`grid gap-1 rounded-xl bg-neutral-100 p-0.5 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
         <button
           type="button"
           onClick={() => setScope("all")}
-          className={`rounded-xl px-3 py-2 text-sm font-black ${
+          className={`rounded-lg px-2 py-1.5 text-xs font-black ${
             effectiveScope === "all" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
@@ -636,7 +636,7 @@ function ActivityPageContent() {
         <button
           type="button"
           onClick={() => setScope("mine")}
-          className={`rounded-xl px-3 py-2 text-sm font-black ${
+          className={`rounded-lg px-2 py-1.5 text-xs font-black ${
             effectiveScope === "mine" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
           }`}
         >
@@ -646,7 +646,7 @@ function ActivityPageContent() {
           <button
             type="button"
             onClick={() => setScope("admin")}
-            className={`rounded-xl px-3 py-2 text-sm font-black ${
+            className={`rounded-lg px-2 py-1.5 text-xs font-black ${
               effectiveScope === "admin" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
             }`}
           >

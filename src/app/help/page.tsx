@@ -24,25 +24,25 @@ type SummaryItemProps = {
 
 function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
   return (
-    <details className="group rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
-      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
+    <details className="group overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5">
         <span className="min-w-0">
           {eyebrow ? (
-            <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            <span className="block text-[9px] font-black uppercase tracking-[0.18em] text-neutral-400">
               {eyebrow}
             </span>
           ) : null}
-          <span className="mt-0.5 block text-lg font-black tracking-tight text-neutral-950">
+          <span className="mt-0.5 block text-sm font-black tracking-tight text-neutral-950">
             {title}
           </span>
         </span>
 
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-lg font-black text-neutral-500 transition group-open:rotate-45">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-base font-black text-neutral-500 transition group-open:rotate-45">
           +
         </span>
       </summary>
 
-      <div className="space-y-3 border-t border-neutral-100 px-3 pb-3 pt-3 text-sm leading-relaxed text-neutral-600">
+      <div className="space-y-2 border-t border-neutral-100 px-3 pb-3 pt-2.5 text-xs font-semibold leading-5 text-neutral-600">
         {children}
       </div>
     </details>
@@ -51,9 +51,9 @@ function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
 
 function MiniCard({ title, description }: MiniCardProps) {
   return (
-    <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-      <p className="text-sm font-black text-neutral-950">{title}</p>
-      <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
+    <div className="rounded-xl bg-neutral-100 px-3 py-2">
+      <p className="text-xs font-black text-neutral-950">{title}</p>
+      <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
         {description}
       </p>
     </div>
@@ -62,9 +62,9 @@ function MiniCard({ title, description }: MiniCardProps) {
 
 function SummaryItem({ title, description }: SummaryItemProps) {
   return (
-    <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-neutral-100">
-      <p className="text-sm font-black text-neutral-950">{title}</p>
-      <p className="mt-1 text-xs font-semibold leading-relaxed text-neutral-500">
+    <div className="rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-neutral-100">
+      <p className="text-xs font-black text-neutral-950">{title}</p>
+      <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
         {description}
       </p>
     </div>
@@ -73,9 +73,9 @@ function SummaryItem({ title, description }: SummaryItemProps) {
 
 function RuleRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-neutral-100 py-3 last:border-b-0">
-      <p className="text-sm font-black text-neutral-900">{label}</p>
-      <p className="max-w-[62%] text-right text-sm font-semibold text-neutral-500">
+    <div className="flex items-start justify-between gap-3 border-b border-neutral-100 py-2.5 last:border-b-0">
+      <p className="text-xs font-black text-neutral-900">{label}</p>
+      <p className="max-w-[62%] text-right text-xs font-semibold text-neutral-500">
         {value}
       </p>
     </div>
@@ -99,37 +99,37 @@ export default function HelpPage() {
     : t.help.summarySetsOptional
 
   return (
-    <div className="space-y-4">
-      <header className="pt-2">
+    <div className="compact-page space-y-3">
+      <header className="pt-1">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
+        <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="mt-0.5 text-xl font-black tracking-tight">
           {t.help.title}
         </h1>
 
-        <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
           {t.help.fullDescription}
         </p>
       </header>
 
-      <AppCard className="space-y-4">
+      <AppCard className="space-y-3 !p-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
             {t.help.quickSummaryEyebrow}
           </p>
-          <h2 className="mt-2 text-xl font-black tracking-tight text-neutral-950">
+          <h2 className="mt-1 text-base font-black tracking-tight text-neutral-950">
             {t.help.quickSummaryTitle}
           </h2>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-500">
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {t.help.quickSummaryDescription}
           </p>
         </div>
 
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <SummaryItem
             title={t.help.summaryOwnPointsTitle}
             description={t.help.summaryOwnPointsDescription}
@@ -149,7 +149,7 @@ export default function HelpPage() {
         <p>
           {t.help.tipsIntro}
         </p>
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <MiniCard
             title={t.help.tipsParallelTitle}
             description={t.help.tipsParallelDescription}
@@ -174,7 +174,7 @@ export default function HelpPage() {
       </HelpBlock>
 
       <HelpBlock eyebrow={t.help.registrationEyebrow} title={t.help.registrationTitle}>
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <MiniCard
             title={t.help.registrationFeeTitle}
             description={`${registrationAmountLabel} ${t.help.registrationFeeDescriptionSuffix}`}
@@ -196,7 +196,7 @@ export default function HelpPage() {
       </HelpBlock>
 
       <HelpBlock eyebrow={t.help.formatEyebrow} title={t.help.formatTitle}>
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <MiniCard
             title={t.help.formatRotatingPairsTitle}
             description={t.help.formatRotatingPairsDescription}
@@ -221,7 +221,7 @@ export default function HelpPage() {
       </HelpBlock>
 
       <HelpBlock eyebrow={t.help.injuriesEyebrow} title={t.help.injuriesTitle}>
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <MiniCard
             title={t.help.injuriesRealTitle}
             description={t.help.injuriesRealDescription}
@@ -332,7 +332,7 @@ export default function HelpPage() {
       </HelpBlock>
 
       <HelpBlock eyebrow={t.help.padelEyebrow} title={t.help.padelTitle}>
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <MiniCard
             title={t.help.padelStarPointTitle}
             description={t.help.padelStarPointDescription}

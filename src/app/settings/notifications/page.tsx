@@ -91,7 +91,7 @@ export default function NotificationSettingsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [expandedGroups, setExpandedGroups] = useState<Record<NotificationGroupId, boolean>>({
-    matches: true,
+    matches: false,
     competition: false,
     league: false,
     payments: false,

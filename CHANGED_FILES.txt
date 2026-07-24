@@ -1,4 +1,4 @@
-Smash & Lob v0.14.0 - Nueva arquitectura de Ajustes
+Smash & Lob v0.14.1 - Pulido de Ajustes
 
 Archivos modificados o añadidos:
 - CHANGED_FILES.txt
@@ -7,14 +7,12 @@ Archivos modificados o añadidos:
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
 - src/app/settings/page.tsx
+- src/app/changelog/page.tsx
 - src/app/settings/notifications/page.tsx
-- src/app/admin/page.tsx
-- src/app/admin/league/page.tsx
-- src/app/admin/season/page.tsx
-- src/app/admin/users/page.tsx
+- src/app/availability/page.tsx
 - src/app/activity/page.tsx
-- src/components/settings/AccountProfileSettings.tsx
-- docs/preproduction/V0.14.0_SETTINGS_ARCHITECTURE.md
+- src/app/help/page.tsx
+- docs/preproduction/V0.14.1_SETTINGS_POLISH.md
 - docs/production-hardening/STATUS.md
 
 No modifica el motor de búsqueda.
