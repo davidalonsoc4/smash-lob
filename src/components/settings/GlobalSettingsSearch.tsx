@@ -287,7 +287,7 @@ export function GlobalSettingsSearch({
             role="dialog"
             aria-modal="true"
             aria-label={copy.title}
-            className="absolute bottom-12 right-0 w-[min(360px,calc(100vw-28px))] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+            className="absolute bottom-12 right-0 flex h-[clamp(380px,58svh,520px)] w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
           >
             <div className="border-b border-neutral-100 px-3 pb-2.5 pt-3">
               <div className="flex items-center justify-between gap-3">
@@ -353,7 +353,7 @@ export function GlobalSettingsSearch({
             <div
               id={listboxId}
               role="listbox"
-              className="max-h-[min(62vh,520px)] overflow-y-auto overscroll-contain p-2"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
             >
               {hasQuery ? (
                 matchingEntries.length > 0 ? (

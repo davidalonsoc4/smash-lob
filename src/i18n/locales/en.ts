@@ -507,7 +507,7 @@ export const en = {
     title: "Help and basics",
     description: "A quick guide for new league players.",
     fullDescription:
-      "Quick guide to understand the league format, scoring, match statuses and MVPs.",
+      "Review the active season rules and the tools available to organise and follow the league.",
     quickSummaryEyebrow: "Quick summary",
     quickSummaryTitle: "The essentials at a glance",
     quickSummaryDescription:
@@ -700,7 +700,7 @@ export const en = {
     title: "Settings",
     description: "Manage your app preferences.",
     helpTitle: "Help and basics",
-    helpDescription: "Review Star Points, tie-breaks and the 3-set format.",
+    helpDescription: "Review the active rules, format and tools available in the league.",
     backToProfile: "← Back to profile",
     profileShortcutDescription:
       "Change the active league, language and app preferences.",

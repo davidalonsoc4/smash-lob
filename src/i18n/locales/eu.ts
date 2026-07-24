@@ -513,7 +513,7 @@ export const eu = {
     title: "Laguntza eta oinarrizko kontzeptuak",
     description: "Ligako jokalari berrientzako gida azkarra.",
     fullDescription:
-      "Liga formatua, puntuazioa, partiden egoerak eta MVPak ulertzeko gida azkarra.",
+      "Kontsultatu denboraldiko arau aktiboak eta liga antolatzeko eta jarraitzeko tresnak.",
     quickSummaryEyebrow: "Laburpen azkarra",
     quickSummaryTitle: "Garrantzitsuena begirada batean",
     quickSummaryDescription:
@@ -709,7 +709,7 @@ export const eu = {
     description: "Kudeatu aplikazioaren hobespenak.",
     helpTitle: "Laguntza eta oinarrizko kontzeptuak",
     helpDescription:
-      "Ikusi Star Points, tie-breakak eta 3 seteko formatua nola funtzionatzen duten.",
+      "Kontsultatu ligako arau aktiboak, formatua eta erabilgarri dauden tresnak.",
     backToProfile: "← Profilera itzuli",
     profileShortcutDescription:
       "Aldatu liga aktiboa, hizkuntza eta aplikazioaren hobespenak.",

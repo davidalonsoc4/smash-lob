@@ -5,6 +5,11 @@ import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { formatMoney } from "@/lib/courtBooking"
+import {
+  buildApplicationToolItems,
+  buildSeasonConfigurationItems,
+  getLeagueGuideHeadings,
+} from "@/lib/leagueGuide"
 
 type HelpBlockProps = {
   eyebrow?: string
@@ -83,7 +88,7 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 }
 
 export default function HelpPage() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const { activeLeague, roundSettings } = useCurrentLeagueData()
   const requiresThreeSets = roundSettings.requiresThreeSets
   const registrationFee = roundSettings.registrationFee
@@ -97,6 +102,22 @@ export default function HelpPage() {
   const setsSummaryDescription = requiresThreeSets
     ? t.help.summarySetsThree
     : t.help.summarySetsOptional
+  const guideHeadings = getLeagueGuideHeadings(locale)
+  const seasonConfigurationItems = buildSeasonConfigurationItems({
+    settings: roundSettings,
+    locale,
+    registrationAmountLabel,
+  })
+  const applicationToolItems = buildApplicationToolItems({
+    settings: roundSettings,
+    locale,
+  })
+  const activeMvpItem = seasonConfigurationItems.find(
+    (item) => item.id === "mvp-system",
+  )
+  const calendarConfigurationItem = seasonConfigurationItems.find(
+    (item) => item.id === "calendar-mode",
+  )
 
   return (
     <div className="compact-page space-y-3">
@@ -145,6 +166,32 @@ export default function HelpPage() {
         </div>
       </AppCard>
 
+      <HelpBlock title={guideHeadings.currentSeasonTitle}>
+        <p>{guideHeadings.currentSeasonDescription}</p>
+        <div className="grid gap-2">
+          {seasonConfigurationItems.map((item) => (
+            <MiniCard
+              key={item.id}
+              title={item.title}
+              description={item.description}
+            />
+          ))}
+        </div>
+      </HelpBlock>
+
+      <HelpBlock title={guideHeadings.appToolsTitle}>
+        <p>{guideHeadings.appToolsDescription}</p>
+        <div className="grid gap-2">
+          {applicationToolItems.map((item) => (
+            <MiniCard
+              key={item.id}
+              title={item.title}
+              description={item.description}
+            />
+          ))}
+        </div>
+      </HelpBlock>
+
       <HelpBlock eyebrow={t.help.tipsEyebrow} title={t.help.tipsTitle}>
         <p>
           {t.help.tipsIntro}
@@ -173,33 +220,38 @@ export default function HelpPage() {
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow={t.help.registrationEyebrow} title={t.help.registrationTitle}>
-        <div className="grid gap-2">
-          <MiniCard
-            title={t.help.registrationFeeTitle}
-            description={`${registrationAmountLabel} ${t.help.registrationFeeDescriptionSuffix}`}
-          />
-          <MiniCard
-            title={t.help.registrationFundTitle}
-            description={t.help.registrationFundDescription}
-          />
-          <MiniCard
-            title={t.help.registrationBallsTitle}
-            description={t.help.registrationBallsDescription}
-          />
-        </div>
-        {registrationPurpose ? (
-          <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-            {t.help.registrationPurposePrefix} {registrationPurpose}
-          </p>
-        ) : null}
-      </HelpBlock>
+      {hasRegistrationFee ? (
+        <HelpBlock eyebrow={t.help.registrationEyebrow} title={t.help.registrationTitle}>
+          <div className="grid gap-2">
+            <MiniCard
+              title={t.help.registrationFeeTitle}
+              description={`${registrationAmountLabel} ${t.help.registrationFeeDescriptionSuffix}`}
+            />
+            <MiniCard
+              title={t.help.registrationFundTitle}
+              description={t.help.registrationFundDescription}
+            />
+            <MiniCard
+              title={t.help.registrationBallsTitle}
+              description={t.help.registrationBallsDescription}
+            />
+          </div>
+          {registrationPurpose ? (
+            <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
+              {t.help.registrationPurposePrefix} {registrationPurpose}
+            </p>
+          ) : null}
+        </HelpBlock>
+      ) : null}
 
       <HelpBlock eyebrow={t.help.formatEyebrow} title={t.help.formatTitle}>
         <div className="grid gap-2">
           <MiniCard
-            title={t.help.formatRotatingPairsTitle}
-            description={t.help.formatRotatingPairsDescription}
+            title={calendarConfigurationItem?.title ?? t.help.formatRotatingPairsTitle}
+            description={
+              calendarConfigurationItem?.description ??
+              t.help.formatRotatingPairsDescription
+            }
           />
           <MiniCard
             title={t.help.formatRoundsTitle}
@@ -220,33 +272,35 @@ export default function HelpPage() {
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow={t.help.injuriesEyebrow} title={t.help.injuriesTitle}>
-        <div className="grid gap-2">
-          <MiniCard
-            title={t.help.injuriesRealTitle}
-            description={t.help.injuriesRealDescription}
-          />
-          <MiniCard
-            title={t.help.injuriesAgreedTitle}
-            description={t.help.injuriesAgreedDescription}
-          />
-          <MiniCard
-            title={t.help.injuriesSingleTitle}
-            description={t.help.injuriesSingleDescription}
-          />
-          <MiniCard
-            title={t.help.injuriesPermanentTitle}
-            description={t.help.injuriesPermanentDescription}
-          />
-          <MiniCard
-            title={t.help.injuriesNoInheritedTitle}
-            description={t.help.injuriesNoInheritedDescription}
-          />
-        </div>
-        <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-          {t.help.injuriesHistoryNote}
-        </p>
-      </HelpBlock>
+      {roundSettings.allowPlayerSubstitutions ? (
+        <HelpBlock eyebrow={t.help.injuriesEyebrow} title={t.help.injuriesTitle}>
+          <div className="grid gap-2">
+            <MiniCard
+              title={t.help.injuriesRealTitle}
+              description={t.help.injuriesRealDescription}
+            />
+            <MiniCard
+              title={t.help.injuriesAgreedTitle}
+              description={t.help.injuriesAgreedDescription}
+            />
+            <MiniCard
+              title={t.help.injuriesSingleTitle}
+              description={t.help.injuriesSingleDescription}
+            />
+            <MiniCard
+              title={t.help.injuriesPermanentTitle}
+              description={t.help.injuriesPermanentDescription}
+            />
+            <MiniCard
+              title={t.help.injuriesNoInheritedTitle}
+              description={t.help.injuriesNoInheritedDescription}
+            />
+          </div>
+          <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
+            {t.help.injuriesHistoryNote}
+          </p>
+        </HelpBlock>
+      ) : null}
 
       <HelpBlock eyebrow={t.help.scoringEyebrow} title={t.help.scoringTitle}>
         <div className="rounded-2xl bg-white px-4 py-1 shadow-sm ring-1 ring-neutral-100">
@@ -360,14 +414,11 @@ export default function HelpPage() {
         </div>
       </HelpBlock>
 
-      <HelpBlock eyebrow={t.help.mvpEyebrow} title={t.help.mvpTitle}>
-        <p>
-          {t.help.mvpDescription}
-        </p>
-        <p className="rounded-2xl bg-neutral-100 p-3 text-xs font-bold text-neutral-600">
-          {t.help.mvpTip}
-        </p>
-      </HelpBlock>
+      {activeMvpItem ? (
+        <HelpBlock eyebrow={t.help.mvpEyebrow} title={activeMvpItem.title}>
+          <p>{activeMvpItem.description}</p>
+        </HelpBlock>
+      ) : null}
     </div>
   )
 }

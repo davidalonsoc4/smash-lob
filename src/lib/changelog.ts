@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.14.3",
+    date: "24 de julio de 2026",
+    title: "Ayuda contextual y búsqueda estable",
+    summary:
+      "La búsqueda flotante mantiene una altura estable y las explicaciones se adaptan a la configuración real de cada temporada.",
+    category: "improvement",
+    changes: [
+      "La ventana flotante de búsqueda conserva una altura fija aunque cambien la consulta, los resultados o el teclado del móvil.",
+      "Ayuda y conceptos básicos incorpora las funciones recientes de la aplicación y resume la configuración activa de la temporada.",
+      "Las explicaciones de cuota, MVP, confirmaciones, incidencias y suplentes solo aparecen cuando esas funciones están habilitadas.",
+      "La aceptación del reglamento antes de entrar en una liga muestra únicamente las reglas aplicables a esa temporada.",
+    ],
+  },
+  {
     version: "v0.14.2",
     date: "24 de julio de 2026",
     title: "Sugerencias y búsqueda flotante",
