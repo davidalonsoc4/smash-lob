@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.14.2",
+    date: "24 de julio de 2026",
+    title: "Sugerencias y búsqueda flotante",
+    summary:
+      "Nuevo canal de propuestas y una búsqueda de Ajustes más completa, rápida y accesible desde cualquier punto de la pantalla.",
+    category: "new",
+    changes: [
+      "Nuevo Buzón de sugerencias dentro de Ayuda e información, con seguimiento privado del estado de cada propuesta.",
+      "Los superusuarios pueden revisar, clasificar y anotar las sugerencias recibidas desde Administración de la aplicación.",
+      "El buscador deja de ocupar espacio fijo y pasa a un botón flotante sobre la navegación inferior.",
+      "El índice de búsqueda incorpora opciones internas de notificaciones, temporada, operaciones y administración global.",
+      "La búsqueda tolera plurales, expresiones naturales y pequeños errores de escritura, y muestra accesos recientes y rápidos.",
+      "El menú Más acciones de los partidos usa opciones más compactas para mantener cada texto en una sola línea.",
+    ],
+  },
+  {
     version: "v0.14.1",
     date: "24 de julio de 2026",
     title: "Ajustes más compactos y claros",

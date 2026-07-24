@@ -220,6 +220,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
     canCreateLeague: false,
     canSelfUnlink: false,
     qaEnabled: false,
+    isSuperuser: false,
   })
 
   return (
@@ -292,6 +293,12 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
       >
+        <SettingsLinkRow
+          href="/settings/suggestions"
+          id="suggestions"
+          title="Buzón de sugerencias"
+          description="Propón mejoras y nuevas funciones para Smash & Lob."
+        />
         <SettingsLinkRow
           href="/help"
           id="help"
@@ -384,6 +391,7 @@ function PlayerSettingsPage() {
     canCreateLeague: canCreateLeaguesInCurrentView,
     canSelfUnlink,
     qaEnabled: qaModeEnabled,
+    isSuperuser,
   })
 
   async function handleUnlinkCurrentLeague() {
@@ -594,6 +602,12 @@ function PlayerSettingsPage() {
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
       >
+        <SettingsLinkRow
+          href="/settings/suggestions"
+          id="suggestions"
+          title="Buzón de sugerencias"
+          description="Propón mejoras y nuevas funciones para Smash & Lob."
+        />
         <SettingsLinkRow
           href="/help"
           id="help"

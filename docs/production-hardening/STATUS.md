@@ -145,3 +145,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Reworked per-day availability into compact expandable rows and removed the redundant profile-return button.
 - Reduced Activity tab and Help screen visual scale to match the Settings architecture.
 - No database migration, API, permission, route, or search-index change is required.
+
+## v0.14.2 - Suggestions and settings search (2026-07-24)
+
+- Added an authenticated suggestion inbox with private per-user submission history.
+- Added a superuser-only suggestion review screen with internal status and notes.
+- Added migration `20260724111500_add_application_suggestions.sql`; browser roles have no direct table access.
+- Replaced the inline Settings search bar with a floating search control above the bottom navigation.
+- Expanded the search index to cover notification groups, season rules, operations, exports, application administration, and suggestions.
+- Improved search matching for natural phrases, plurals, partial words, and small typing errors.
+- Compacted Match "More actions" entries to remain on a single line.

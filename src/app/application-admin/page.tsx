@@ -1,8 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { formatProfileName } from "@/lib/accountProfile"
 
@@ -494,6 +496,19 @@ export default function ApplicationAdminPage() {
           Gestiona cuentas globales, accesos, dispositivos y propiedad de ligas.
         </p>
       </header>
+
+      <Link
+        href="/application-admin/suggestions"
+        className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-3 shadow-[0_1px_8px_rgba(15,23,42,0.04)] transition active:bg-neutral-50"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-neutral-950">Sugerencias recibidas</p>
+          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+            Revisa, clasifica y anota las propuestas enviadas desde Ajustes.
+          </p>
+        </div>
+        <ClickableChevron className="shrink-0" />
+      </Link>
 
       <AppCard>
         <div className="flex items-center justify-between gap-3">
