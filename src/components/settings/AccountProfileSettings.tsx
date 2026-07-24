@@ -201,6 +201,12 @@ function AccountProfileForm({
         onSubmit={handleNameSubmit}
         className="border-t border-neutral-100 pt-3"
       >
+        <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          Datos de cuenta
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          El nombre se actualiza en todas las ligas vinculadas a esta cuenta.
+        </p>
         <div className="grid grid-cols-2 gap-2">
           <label className="block">
             <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
@@ -255,7 +261,7 @@ function AccountProfileForm({
             {t.settings.profileImageTitle}
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            {t.settings.profileImageDescription}
+            {t.settings.profileImageDescription} La imagen se aplica al jugador de la liga activa.
           </p>
 
           <div className="mt-2 grid grid-cols-2 gap-2">

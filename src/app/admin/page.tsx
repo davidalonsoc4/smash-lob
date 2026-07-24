@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
@@ -12,17 +13,82 @@ import { getPublicInviteUrl } from "@/lib/inviteUrls"
 
 const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 
+function AdminGroup({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: ReactNode
+}) {
+  return (
+    <section className="space-y-2">
+      <div className="px-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          {title}
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          {description}
+        </p>
+      </div>
+      <AppCard className="overflow-hidden !p-0">
+        <div className="divide-y divide-neutral-100">{children}</div>
+      </AppCard>
+    </section>
+  )
+}
+
+function AdminLinkRow({
+  href,
+  title,
+  description,
+  badge,
+  tone = "default",
+}: {
+  href: string
+  title: string
+  description: string
+  badge?: ReactNode
+  tone?: "default" | "warning" | "qa"
+}) {
+  const toneClass =
+    tone === "warning"
+      ? "bg-amber-50"
+      : tone === "qa"
+        ? "bg-amber-50"
+        : "bg-white"
+
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-black text-neutral-950">{title}</p>
+          {badge}
+        </div>
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+          {description}
+        </p>
+      </div>
+      <ClickableChevron className="shrink-0" />
+    </Link>
+  )
+}
+
 function AdminInviteCard({ leagueId }: { leagueId: string }) {
   const { getLeagueInviteCode, regenerateLeagueInviteCode } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState(() =>
-    getLeagueInviteCode(leagueId)
+    getLeagueInviteCode(leagueId),
   )
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inviteUrl = useMemo(
     () => (inviteCode ? getPublicInviteUrl(inviteCode) : ""),
-    [inviteCode]
+    [inviteCode],
   )
 
   async function copyValue(value: string, label: string) {
@@ -55,7 +121,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 
     if (!nextInviteCode) {
       setError(
-        "No se ha podido regenerar la invitación en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
+        "No se ha podido regenerar la invitación en la base de datos. Revisa Supabase o smash-lob-last-supabase-error.",
       )
       return
     }
@@ -66,38 +132,42 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
   }
 
   return (
-    <AppCard>
-      <p className="font-bold">Invitaciones</p>
-      <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Comparte el código o el enlace completo para que otro jugador pueda
-        entrar en la liga y vincularse a su perfil.
-      </p>
+    <div id="invitations" className="settings-search-target px-3 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-neutral-950">Invitaciones</p>
+          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+            Comparte el código o el enlace para que otro jugador entre y reclame su perfil.
+          </p>
+        </div>
+        <span className="rounded-full bg-neutral-100 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+          Acceso
+        </span>
+      </div>
 
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
-        <p className="text-xs font-semibold uppercase text-neutral-500">
+        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-500">
           Código de invitación
         </p>
         <p className="mt-1 break-all text-sm font-black text-neutral-950">
           {inviteCode || "Sin código disponible"}
         </p>
-
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => copyValue(inviteCode, "Código copiado")}
             disabled={!inviteCode}
-            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
           >
             Copiar código
           </button>
-
           <button
             type="button"
             onClick={() => copyValue(inviteUrl, "URL copiada")}
             disabled={!inviteUrl}
-            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
           >
-            Copiar URL
+            Copiar enlace
           </button>
         </div>
       </div>
@@ -106,23 +176,22 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         type="button"
         onClick={handleRegenerate}
         disabled={isRegenerating}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+        className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300"
       >
         {isRegenerating ? "Regenerando..." : "Regenerar invitación"}
       </button>
 
       {copiedLabel ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
+        <p className="mt-2 text-center text-xs font-semibold text-neutral-600">
           {copiedLabel}
         </p>
       ) : null}
-
       {error ? (
-        <p className="mt-3 text-center text-sm font-semibold text-red-600">
+        <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
         </p>
       ) : null}
-    </AppCard>
+    </div>
   )
 }
 
@@ -135,19 +204,19 @@ export default function AdminPage() {
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
   const statusColorsEnabled = activeLeague.statusColorsEnabled !== false
-  const openIncidentCount = matches.filter((match) => match.incidentStatus === "open").length
+  const openIncidentCount = matches.filter(
+    (match) => match.incidentStatus === "open",
+  ).length
 
   if (!canAccessAdmin) {
     return (
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
-
           <h1 className="mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
-
         <AppCard>
           <p className="font-bold">{t.adminPanel.accessDeniedCardTitle}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -168,225 +237,55 @@ export default function AdminPage() {
 
     const ok = await updateLeagueStatusColorsEnabled(
       activeLeague.id,
-      !statusColorsEnabled
+      !statusColorsEnabled,
     )
 
     setIsUpdatingStatusColors(false)
 
     if (!ok) {
       setStatusColorsError(
-        "No se ha podido guardar el ajuste. Revisa Supabase o inténtalo de nuevo."
+        "No se ha podido guardar el ajuste. Revisa Supabase o inténtalo de nuevo.",
       )
     }
   }
 
   return (
-    <div className="compact-page space-y-3">
+    <div className="compact-page space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
-
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-
         <h1 className="mt-0.5 text-xl font-black tracking-tight">
-          {t.adminPanel.title}
+          Administración de liga
         </h1>
-
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {t.adminPanel.description}
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+          Las herramientas están agrupadas por finalidad para separar configuración, competición y trabajo diario.
         </p>
       </header>
 
-      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-        Gestionar
-      </p>
-
-      <div className="compact-page space-y-3">
-        <Link href="/admin/league" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">{t.adminPanel.leagueTitle}</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {t.adminPanel.leagueDescription}
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/season" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">{t.adminPanel.seasonTitle}</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {t.adminPanel.seasonDescription}
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/incidents" className="block">
-          <AppCard className={`transition active:scale-[0.99] ${openIncidentCount > 0 ? "border-amber-200 bg-amber-50" : ""}`}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold">Buzón de incidencias</p>
-                  {openIncidentCount > 0 ? (
-                    <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-black text-white">
-                      {openIncidentCount}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Revisa y resuelve las incidencias pendientes de los partidos.
-                </p>
-              </div>
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/announcements" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Comunicados</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Publica avisos en la HOME y envía notificaciones a la liga.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/exports" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Exportar datos</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Descarga clasificación y resultados de cualquier temporada en CSV.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/substitutes" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Suplentes y reemplazos</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Gestiona la bolsa de suplentes, sustituciones puntuales y bajas permanentes.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/users" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Jugadores y usuarios</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Revisa cuentas vinculadas, nombres visibles y permisos.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/activity?scope=admin" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Historial y auditoría</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Revisa toda la actividad de la liga y configura sus avisos.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        <Link href="/admin/mvp" className="block">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Administrar MVP</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Consulta los MVPs automáticos de cada jornada.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-
-        {qaModeEnabled ? (
-          <Link href="/admin/qa" className="block">
-            <AppCard className="border-amber-200 bg-amber-50 transition active:scale-[0.99]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold">{t.adminPanel.qaTitle}</p>
-                    <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[9px] font-black uppercase text-amber-950">
-                      QA
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs font-semibold text-neutral-600">
-                    {t.adminPanel.qaDescription}
-                  </p>
-                </div>
-
-                <ClickableChevron className="shrink-0" />
-              </div>
-            </AppCard>
-          </Link>
-        ) : null}
-      </div>
-
-      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-        Ajustes rápidos
-      </p>
-
-      <div id="status-colors" className="settings-search-target">
-        <AppCard>
+      <AdminGroup
+        title="General y apariencia"
+        description="Identidad, lugares habituales y presentación visual de la liga."
+      >
+        <AdminLinkRow
+          href="/admin/league"
+          title="Configuración general"
+          description="Edita nombre, descripción, logo, lugares y estadísticas históricas."
+        />
+        <div id="status-colors" className="settings-search-target px-3 py-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-bold">Código de color</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Activa colores suaves en etiquetas de estado, pagos y jornadas
-                para que la liga sea más fácil de leer. Si lo desactivas, las
-                etiquetas vuelven a una estética gris.
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black text-neutral-950">Código de color</p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+                Usa colores suaves en etiquetas de estado, pagos y jornadas.
               </p>
             </div>
-
             <button
               type="button"
               role="switch"
               aria-checked={statusColorsEnabled}
+              aria-label="Código de color"
               onClick={handleStatusColorsToggle}
               disabled={isUpdatingStatusColors}
               className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
@@ -400,18 +299,105 @@ export default function AdminPage() {
               />
             </button>
           </div>
-
           {statusColorsError ? (
-            <p className="mt-3 text-xs font-semibold text-red-600">
+            <p className="mt-2 text-xs font-semibold text-red-600">
               {statusColorsError}
             </p>
           ) : null}
-        </AppCard>
-      </div>
+        </div>
+      </AdminGroup>
 
-      <div id="invitations" className="settings-search-target">
+      <AdminGroup
+        title="Personas y accesos"
+        description="Plantilla, cuentas vinculadas, espectadores, suplentes e invitaciones."
+      >
+        <AdminLinkRow
+          href="/admin/users"
+          title="Jugadores, usuarios y espectadores"
+          description="Gestiona nombres visibles, vinculaciones, permisos y accesos de lectura."
+        />
+        <AdminLinkRow
+          href="/admin/substitutes"
+          title="Suplentes y reemplazos"
+          description="Gestiona la bolsa de suplentes, sustituciones puntuales y bajas permanentes."
+        />
         <AdminInviteCard leagueId={activeLeague.id} />
-      </div>
+      </AdminGroup>
+
+      <AdminGroup
+        title="Competición"
+        description="Temporada, reglas, calendario, jornadas y reconocimientos."
+      >
+        <AdminLinkRow
+          href="/admin/season"
+          title="Administrar temporada"
+          description="Gestiona estado, calendario, reglas, inscripción, plantilla y ciclo de vida."
+        />
+        <AdminLinkRow
+          href="/admin/mvp"
+          title="Administrar MVP"
+          description="Consulta los MVP de jornadas cerradas y el resultado de la temporada."
+        />
+      </AdminGroup>
+
+      <AdminGroup
+        title="Operaciones"
+        description="Trabajo diario, incidencias y comunicación con los jugadores."
+      >
+        <AdminLinkRow
+          href="/admin/incidents"
+          title="Buzón de incidencias"
+          description="Revisa y resuelve las incidencias pendientes de los partidos."
+          tone={openIncidentCount > 0 ? "warning" : "default"}
+          badge={
+            openIncidentCount > 0 ? (
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-black text-white">
+                {openIncidentCount}
+              </span>
+            ) : null
+          }
+        />
+        <AdminLinkRow
+          href="/admin/announcements"
+          title="Comunicados"
+          description="Publica avisos en HOME y envía notificaciones a la liga."
+        />
+      </AdminGroup>
+
+      <AdminGroup
+        title="Datos y control"
+        description="Auditoría, configuración de avisos y exportaciones."
+      >
+        <AdminLinkRow
+          href="/activity?scope=admin"
+          title="Historial y auditoría"
+          description="Revisa la actividad administrativa y configura los avisos generales de la liga."
+        />
+        <AdminLinkRow
+          href="/admin/exports"
+          title="Exportar datos"
+          description="Descarga clasificación y resultados de cualquier temporada en CSV."
+        />
+      </AdminGroup>
+
+      {qaModeEnabled ? (
+        <AdminGroup
+          title="Herramientas internas"
+          description="Utilidades exclusivas para pruebas en entornos controlados."
+        >
+          <AdminLinkRow
+            href="/admin/qa"
+            title={t.adminPanel.qaTitle}
+            description={t.adminPanel.qaDescription}
+            tone="qa"
+            badge={
+              <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[9px] font-black uppercase text-amber-950">
+                QA
+              </span>
+            }
+          />
+        </AdminGroup>
+      ) : null}
     </div>
   )
 }

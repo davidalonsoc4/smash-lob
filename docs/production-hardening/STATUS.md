@@ -1,3 +1,14 @@
+## v0.14.0 settings architecture (2026-07-24)
+
+- Reorganized Settings into Personal, My leagues, Personal activity, Administration, Help and information, and Session.
+- Player and spectator settings now share the same capability-driven visual architecture.
+- Reorganized the league administration hub into General, People and access, Competition, Operations, and Data and control.
+- Grouped personal notification preferences into four expandable categories.
+- Added clearer internal sections to season, league, users, and administrative activity screens.
+- Preserved all existing routes, anchors, APIs, permissions, and the current settings-search implementation.
+- No database migration or remote change is required.
+
+
 ## v0.13.3 public changelog (2026-07-24)
 
 - Added `/changelog` with a public-safe history of documented Smash & Lob releases starting at v0.6.2.

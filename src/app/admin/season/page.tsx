@@ -72,6 +72,199 @@ type ManualCalendarRoundDraft = {
   }[];
 };
 
+type SeasonNavigationLink = {
+  href: string;
+  label: string;
+  danger?: boolean;
+  primary?: boolean;
+};
+
+type SeasonNavigationGroup = {
+  title: string;
+  links: SeasonNavigationLink[];
+};
+
+function SeasonSectionIntro({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="px-1 pt-1">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        {title}
+      </p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function SeasonNavigation({
+  isActiveSeason,
+  isUpcomingSeason,
+  hasCreatedLeagueSeason,
+  canAuditCalendar,
+  canReopenFinishedSeason,
+  registrationEnabled,
+}: {
+  isActiveSeason: boolean;
+  isUpcomingSeason: boolean;
+  hasCreatedLeagueSeason: boolean;
+  canAuditCalendar: boolean;
+  canReopenFinishedSeason: boolean;
+  registrationEnabled: boolean;
+}) {
+  let groups: SeasonNavigationGroup[];
+
+  if (isActiveSeason) {
+    groups = [
+      {
+        title: "Calendario",
+        links: [
+          { href: "#jornadas", label: "Jornadas" },
+          { href: "#margen-jornadas", label: "Margen" },
+          ...(canAuditCalendar
+            ? [{ href: "#equilibrio-calendario", label: "Equilibrio" }]
+            : []),
+        ],
+      },
+      {
+        title: "Reglas",
+        links: [
+          { href: "#mvp", label: "MVP" },
+          { href: "#confirmaciones", label: "Confirmación" },
+          { href: "#regla-tres-sets", label: "Tres sets" },
+          { href: "#acciones-partido", label: "Acciones" },
+        ],
+      },
+      {
+        title: "Personas",
+        links: [
+          ...(registrationEnabled
+            ? [{ href: "#inscripcion", label: "Inscripción" }]
+            : []),
+          { href: "#jugadores", label: "Jugadores" },
+        ],
+      },
+      {
+        title: "Estado",
+        links: [
+          { href: "#cierre", label: "Finalizar" },
+          { href: "#zona-sensible", label: "Zona sensible", danger: true },
+        ],
+      },
+    ];
+  } else if (isUpcomingSeason) {
+    groups = [
+      {
+        title: "Preparación",
+        links: [
+          { href: "#inicio-temporada", label: "Comenzar", primary: true },
+          { href: "#jugadores", label: "Jugadores" },
+          ...(registrationEnabled
+            ? [{ href: "#inscripcion", label: "Inscripción" }]
+            : []),
+        ],
+      },
+      {
+        title: "Calendario",
+        links: [
+          { href: "#jornadas", label: "Jornadas" },
+          { href: "#margen-jornadas", label: "Margen" },
+          ...(canAuditCalendar
+            ? [{ href: "#equilibrio-calendario", label: "Equilibrio" }]
+            : []),
+        ],
+      },
+      {
+        title: "Reglas",
+        links: [
+          { href: "#mvp", label: "MVP" },
+          { href: "#confirmaciones", label: "Confirmación" },
+          { href: "#regla-tres-sets", label: "Tres sets" },
+          { href: "#acciones-partido", label: "Acciones" },
+        ],
+      },
+      {
+        title: "Control",
+        links: [
+          { href: "#zona-sensible", label: "Zona sensible", danger: true },
+        ],
+      },
+    ];
+  } else if (hasCreatedLeagueSeason) {
+    groups = [
+      {
+        title: "Temporada finalizada",
+        links: [
+          { href: "#resumen-configuracion", label: "Configuración" },
+          { href: "#invitacion", label: "Invitación" },
+          { href: "#jugadores", label: "Jugadores" },
+          ...(canReopenFinishedSeason
+            ? [{ href: "#reabrir", label: "Reabrir" }]
+            : []),
+        ],
+      },
+      {
+        title: "Siguiente ciclo",
+        links: [
+          { href: "#nueva-temporada", label: "Nueva temporada", primary: true },
+        ],
+      },
+    ];
+  } else {
+    groups = [
+      {
+        title: "Primera temporada",
+        links: [
+          { href: "#nueva-temporada", label: "Crear temporada", primary: true },
+        ],
+      },
+    ];
+  }
+
+  return (
+    <AppCard className="p-3">
+      <p className="text-sm font-black text-neutral-950">
+        Navegación de temporada
+      </p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        Accede directamente al bloque que necesitas sin recorrer toda la pantalla.
+      </p>
+      <div className="mt-3 space-y-3">
+        {groups.map((group) => (
+          <div key={group.title}>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+              {group.title}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {group.links.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded-xl px-3 py-2 text-center text-xs font-black ${
+                    link.danger
+                      ? "bg-red-50 text-red-700"
+                      : link.primary
+                        ? "bg-neutral-950 text-white"
+                        : "bg-neutral-100 text-neutral-800"
+                  }`}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </AppCard>
+  );
+}
+
 function getSuggestedSeasonName(name: string) {
   const match = name.match(/^(.*?)(\d+)\s*$/);
   if (!match) return `${name} 2`;
@@ -4152,118 +4345,14 @@ export default function AdminSeasonPage() {
         </p>
       </header>
 
-      <AppCard className="p-2.5">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-400">
-          Accesos rápidos
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {isActiveSeason ? (
-            <>
-              <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jornadas
-              </a>
-              <a href="#margen-jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Margen
-              </a>
-              {canAuditCalendar ? (
-                <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Calendario
-                </a>
-              ) : null}
-              <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                MVP
-              </a>
-              <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Confirmación
-              </a>
-              <a href="#regla-tres-sets" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                3 sets
-              </a>
-              <a href="#acciones-partido" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Acciones
-              </a>
-              {roundSettings.registrationFee.enabled ? (
-                <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Inscripción
-                </a>
-              ) : null}
-              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jugadores
-              </a>
-              <a href="#cierre" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Cierre
-              </a>
-              <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
-                Zona sensible
-              </a>
-            </>
-          ) : isUpcomingSeason ? (
-            <>
-              <a href="#inicio-temporada" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Comenzar
-              </a>
-              {canAuditCalendar ? (
-                <a href="#equilibrio-calendario" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Calendario
-                </a>
-              ) : null}
-              <a href="#jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jornadas
-              </a>
-              <a href="#margen-jornadas" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Margen
-              </a>
-              <a href="#mvp" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                MVP
-              </a>
-              <a href="#confirmaciones" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Confirmación
-              </a>
-              <a href="#regla-tres-sets" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                3 sets
-              </a>
-              <a href="#acciones-partido" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Acciones
-              </a>
-              {roundSettings.registrationFee.enabled ? (
-                <a href="#inscripcion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Inscripción
-                </a>
-              ) : null}
-              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jugadores
-              </a>
-              <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
-                Zona sensible
-              </a>
-            </>
-          ) : hasCreatedLeagueSeason ? (
-            <>
-              <a href="#resumen-configuracion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Configuración
-              </a>
-              <a href="#invitacion" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Invitación
-              </a>
-              <a href="#jugadores" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                Jugadores
-              </a>
-              {canReopenFinishedSeason ? (
-                <a href="#reabrir" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
-                  Reabrir
-                </a>
-              ) : null}
-              <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
-                Nueva temporada
-              </a>
-            </>
-          ) : (
-            <a href="#nueva-temporada" className="rounded-2xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white">
-              Crear temporada
-            </a>
-          )}
-        </div>
-      </AppCard>
+      <SeasonNavigation
+        isActiveSeason={isActiveSeason}
+        isUpcomingSeason={isUpcomingSeason}
+        hasCreatedLeagueSeason={hasCreatedLeagueSeason}
+        canAuditCalendar={canAuditCalendar}
+        canReopenFinishedSeason={canReopenFinishedSeason}
+        registrationEnabled={roundSettings.registrationFee.enabled}
+      />
 
       {hasCreatedLeagueSeason ? (
         <div id="resumen-configuracion" className="settings-search-target">
@@ -4278,6 +4367,10 @@ export default function AdminSeasonPage() {
 
       {isActiveSeason ? (
         <>
+          <SeasonSectionIntro
+            title="Calendario y jornadas"
+            description="Ordena la competición, ajusta los plazos y comprueba el equilibrio del calendario."
+          />
           <div id="jornadas" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
@@ -4306,7 +4399,10 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-
+          <SeasonSectionIntro
+            title="Reglas de competición"
+            description="Define MVP, confirmaciones, formato de sets y acciones permitidas a los jugadores."
+          />
           <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -4335,6 +4431,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Personas e inscripción"
+            description="Gestiona la cuota de inscripción y los nombres de la plantilla activa."
+          />
           {roundSettings.registrationFee.enabled ? (
             <div id="inscripcion" className="settings-search-target">
               <RegistrationFeeSettingsPanel
@@ -4352,6 +4452,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Ciclo de vida"
+            description="Finaliza la temporada o accede a las acciones irreversibles."
+          />
           <div id="cierre" className="settings-search-target">
             <FinishSeasonPanel
               activeLeagueId={activeLeague.id}
@@ -4370,6 +4474,10 @@ export default function AdminSeasonPage() {
         </>
       ) : isUpcomingSeason ? (
         <>
+          <SeasonSectionIntro
+            title="Preparación"
+            description="Completa la plantilla y comprueba los requisitos antes de comenzar."
+          />
           {roundSettings.rosterMode === "self_registration" ? (
             <div id="plantilla-temporada" className="settings-search-target">
               <SeasonRosterWaitingRoom
@@ -4392,6 +4500,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Calendario y jornadas"
+            description="Revisa el equilibrio, el orden y las fechas antes de publicar la temporada."
+          />
           {canAuditCalendar ? (
             <div id="equilibrio-calendario" className="settings-search-target">
               <BalancedCalendarAuditPanel
@@ -4420,6 +4532,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Reglas de competición"
+            description="Configura MVP, confirmaciones, formato de sets y acciones de los jugadores."
+          />
           <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -4448,6 +4564,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Personas e inscripción"
+            description="Revisa la cuota, las plazas y los nombres antes de iniciar la competición."
+          />
           {roundSettings.registrationFee.enabled ? (
             <div id="inscripcion" className="settings-search-target">
               <RegistrationFeeSettingsPanel
@@ -4465,6 +4585,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Zona sensible"
+            description="Acciones que pueden eliminar la temporada o su calendario."
+          />
           <div id="zona-sensible" className="settings-search-target">
             <SeasonDangerZone
               activeLeagueId={activeLeague.id}
@@ -4475,6 +4599,10 @@ export default function AdminSeasonPage() {
         </>
       ) : hasCreatedLeagueSeason ? (
         <>
+          <SeasonSectionIntro
+            title="Accesos y plantilla"
+            description="Consulta la invitación y los jugadores de la temporada finalizada."
+          />
           <div id="invitacion" className="settings-search-target">
             <InviteLinkCard
               inviteCode={inviteCode}
@@ -4489,6 +4617,10 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <SeasonSectionIntro
+            title="Siguiente ciclo"
+            description="Reabre la temporada si procede o prepara la siguiente edición."
+          />
           {canReopenFinishedSeason ? (
             <div id="reabrir" className="settings-search-target">
               <ReopenSeasonPanel
@@ -4543,15 +4675,21 @@ export default function AdminSeasonPage() {
           </div>
         </>
       ) : (
-        <div id="nueva-temporada" className="settings-search-target">
-          <NewSeasonForm
+        <>
+          <SeasonSectionIntro
+            title="Nueva temporada"
+            description="Configura desde cero la primera edición de la liga."
+          />
+          <div id="nueva-temporada" className="settings-search-target">
+            <NewSeasonForm
             key={`${activeSeason.id}-new`}
             activeLeagueId={activeLeague.id}
             activeLeagueName={activeLeague.name}
             activeSeasonId={activeSeason.id}
-            currentPlayers={players}
-          />
-        </div>
+              currentPlayers={players}
+            />
+          </div>
+        </>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -10,6 +11,7 @@ import {
   defaultNotificationPreferences,
   normalizeNotificationPreferences,
   notificationPreferenceDefinitions,
+  type NotificationPreferenceKey,
   type NotificationPreferences,
 } from "@/lib/notificationSettings"
 import {
@@ -26,6 +28,49 @@ type LoadPreferencesResponse = {
   preferences?: unknown
   isConfigured?: boolean
 }
+
+type NotificationGroupId = "matches" | "competition" | "league" | "payments"
+
+type NotificationPreferenceGroup = {
+  id: NotificationGroupId
+  title: string
+  description: string
+  keys: NotificationPreferenceKey[]
+}
+
+const notificationPreferenceGroups: NotificationPreferenceGroup[] = [
+  {
+    id: "matches",
+    title: "Partidos",
+    description: "Programación, incidencias y recordatorios del próximo partido.",
+    keys: ["match_schedule", "match_incidents", "match_upcoming"],
+  },
+  {
+    id: "competition",
+    title: "Resultados y competición",
+    description: "Resultados, confirmaciones, MVP, jornadas y temporadas.",
+    keys: [
+      "match_results",
+      "result_confirmations",
+      "mvp_reminders",
+      "mvp_awards",
+      "round_events",
+      "season_lifecycle",
+    ],
+  },
+  {
+    id: "league",
+    title: "Liga y jugadores",
+    description: "Plantilla, comunicados y cambios en cuentas o permisos.",
+    keys: ["season_roster", "announcements", "player_account"],
+  },
+  {
+    id: "payments",
+    title: "Reservas y pagos",
+    description: "Cambios de reserva, pagos recibidos y recordatorios.",
+    keys: ["booking_updates", "booking_payments", "payment_reminders"],
+  },
+]
 
 function getEnabledCount(preferences: NotificationPreferences) {
   return Object.values(preferences).filter(Boolean).length
@@ -45,6 +90,12 @@ export default function NotificationSettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [expandedGroups, setExpandedGroups] = useState<Record<NotificationGroupId, boolean>>({
+    matches: true,
+    competition: false,
+    league: false,
+    payments: false,
+  })
 
   const enabledCount = useMemo(() => getEnabledCount(preferences), [preferences])
   const canRequestPush = supportStatus === "supported"
@@ -363,40 +414,90 @@ export default function NotificationSettingsPage() {
         </div>
 
         <div className="mt-3 space-y-2">
-          {notificationPreferenceDefinitions.map((definition) => {
-            const isEnabled = preferences[definition.key]
+          {notificationPreferenceGroups.map((group) => {
+            const definitions = notificationPreferenceDefinitions.filter((definition) =>
+              group.keys.includes(definition.key),
+            )
+            const groupEnabledCount = definitions.filter(
+              (definition) => preferences[definition.key],
+            ).length
+            const isExpanded = expandedGroups[group.id]
 
             return (
-              <div
-                key={definition.key}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5"
+              <section
+                key={group.id}
+                className="overflow-hidden rounded-2xl border border-neutral-200 bg-white"
               >
-                <div className="min-w-0">
-                  <p className="text-sm font-black text-neutral-950">
-                    {t.notifications.preferences[definition.key].title}
-                  </p>
-                  <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">
-                    {t.notifications.preferences[definition.key].description}
-                  </p>
-                </div>
-
                 <button
                   type="button"
-                  role="switch"
-                  aria-checked={isEnabled}
-                  onClick={() => togglePreference(definition.key)}
-                  disabled={isLoading || isSaving}
-                  className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${
-                    isEnabled ? "bg-neutral-950" : "bg-neutral-300"
-                  } disabled:opacity-60`}
+                  onClick={() =>
+                    setExpandedGroups((current) => ({
+                      ...current,
+                      [group.id]: !current[group.id],
+                    }))
+                  }
+                  aria-expanded={isExpanded}
+                  className="flex w-full items-center gap-3 px-3 py-3 text-left"
                 >
-                  <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
-                      isEnabled ? "left-6" : "left-1"
-                    }`}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-black text-neutral-950">
+                        {group.title}
+                      </p>
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                        {groupEnabledCount}/{definitions.length}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">
+                      {group.description}
+                    </p>
+                  </div>
+                  <ClickableChevron
+                    className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
                   />
                 </button>
-              </div>
+
+                {isExpanded ? (
+                  <div className="divide-y divide-neutral-100 border-t border-neutral-100">
+                    {definitions.map((definition) => {
+                      const isEnabled = preferences[definition.key]
+
+                      return (
+                        <div
+                          key={definition.key}
+                          className="flex items-start justify-between gap-3 px-3 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-black text-neutral-950">
+                              {t.notifications.preferences[definition.key].title}
+                            </p>
+                            <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">
+                              {t.notifications.preferences[definition.key].description}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={isEnabled}
+                            onClick={() => togglePreference(definition.key)}
+                            disabled={isLoading || isSaving}
+                            className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${
+                              isEnabled ? "bg-neutral-950" : "bg-neutral-300"
+                            } disabled:opacity-60`}
+                          >
+                            <span
+                              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                                isEnabled ? "left-6" : "left-1"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </section>
             )
           })}
         </div>

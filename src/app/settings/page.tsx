@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -19,9 +20,142 @@ import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { formatMoney } from "@/lib/courtBooking"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 
-
 const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 const settingsVersionLabel = `Beta cerrada · ${APP_VERSION_LABEL}`
+
+type SettingsSectionProps = {
+  title: string
+  description?: string
+  children: ReactNode
+}
+
+function SettingsSection({ title, description, children }: SettingsSectionProps) {
+  return (
+    <section className="space-y-2">
+      <div className="px-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          {title}
+        </p>
+        {description ? (
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      <AppCard className="overflow-hidden !p-0">
+        <div className="divide-y divide-neutral-100">{children}</div>
+      </AppCard>
+    </section>
+  )
+}
+
+type SettingsLinkRowProps = {
+  href: string
+  title: string
+  description: string
+  id?: string
+  leading?: ReactNode
+  badge?: ReactNode
+  tone?: "default" | "warning" | "danger"
+}
+
+function SettingsLinkRow({
+  href,
+  title,
+  description,
+  id,
+  leading,
+  badge,
+  tone = "default",
+}: SettingsLinkRowProps) {
+  const toneClass =
+    tone === "danger"
+      ? "bg-red-50 text-red-950"
+      : tone === "warning"
+        ? "bg-amber-50 text-amber-950"
+        : "bg-white text-neutral-950"
+  const descriptionClass =
+    tone === "danger"
+      ? "text-red-700"
+      : tone === "warning"
+        ? "text-amber-700"
+        : "text-neutral-500"
+
+  return (
+    <Link
+      href={href}
+      id={id}
+      className={`settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
+    >
+      {leading ? <div className="shrink-0">{leading}</div> : null}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-black">{title}</p>
+          {badge}
+        </div>
+        <p className={`mt-0.5 text-xs font-semibold leading-5 ${descriptionClass}`}>
+          {description}
+        </p>
+      </div>
+      <ClickableChevron className="shrink-0" />
+    </Link>
+  )
+}
+
+function SettingsStaticRow({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id?: string
+  title: string
+  description: string
+  children: ReactNode
+}) {
+  return (
+    <div id={id} className="settings-search-target px-3 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-neutral-950">{title}</p>
+          <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+            {description}
+          </p>
+        </div>
+        <div className="shrink-0">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function SettingsToggle({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean
+  onChange: () => void
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onChange}
+      className={`relative h-7 w-12 rounded-full transition ${
+        checked ? "bg-neutral-950" : "bg-neutral-300"
+      }`}
+    >
+      <span
+        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+          checked ? "left-6" : "left-1"
+        }`}
+      />
+    </button>
+  )
+}
 
 function AppearanceSettings() {
   const { t } = useI18n()
@@ -33,14 +167,14 @@ function AppearanceSettings() {
   ]
 
   return (
-    <AppCard>
-      <div>
-        <p className="font-bold">{t.settings.appearanceTitle}</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
-          {t.settings.appearanceDescription}
-        </p>
-      </div>
-      <div className="mt-3 grid grid-cols-3 gap-1 rounded-2xl bg-neutral-100 p-1">
+    <div id="appearance" className="settings-search-target px-3 py-3">
+      <p className="text-sm font-black text-neutral-950">
+        {t.settings.appearanceTitle}
+      </p>
+      <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+        {t.settings.appearanceDescription}
+      </p>
+      <div className="mt-2 grid grid-cols-3 gap-1 rounded-2xl bg-neutral-100 p-1">
         {options.map((option) => (
           <button
             key={option.value}
@@ -56,15 +190,27 @@ function AppearanceSettings() {
           </button>
         ))}
       </div>
-    </AppCard>
+    </div>
   )
 }
 
-function SpectatorSettingsPage({
-  leagueName,
-}: {
-  leagueName: string
-}) {
+function SessionSection() {
+  const { t } = useI18n()
+
+  return (
+    <SettingsSection title="Sesión">
+      <button
+        type="button"
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="w-full px-3 py-3 text-left text-sm font-black text-red-700 transition active:bg-red-50"
+      >
+        {t.auth.signOut}
+      </button>
+    </SettingsSection>
+  )
+}
+
+function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
   const { t, locale } = useI18n()
   const { data: session } = useSession()
   const searchEntries = buildSettingsSearchEntries(locale, {
@@ -77,122 +223,95 @@ function SpectatorSettingsPage({
   })
 
   return (
-    <div className="space-y-3">
+    <div className="compact-page space-y-4">
       <header className="pt-1">
-        <p className="text-sm font-medium text-neutral-500">
-          {leagueName}
-        </p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
-          Cuenta de espectador
-        </h1>
-        <p className="mt-1 text-sm font-semibold text-neutral-500">
-          Acceso de solo lectura a la liga.
+        <BackButton fallbackHref="/profile" label={t.common.back} />
+        <p className="mt-1 text-xs font-bold text-neutral-500">{leagueName}</p>
+        <h1 className="mt-0.5 text-xl font-black tracking-tight">Ajustes</h1>
+        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+          Cuenta de espectador · acceso de solo lectura.
         </p>
       </header>
 
       <GlobalSettingsSearch locale={locale} entries={searchEntries} />
 
-      <Link
-        href="/settings/profile"
-        id="spectator-account"
-        className="block settings-search-target"
+      <AppCard className="border-blue-100 bg-blue-50">
+        <p className="text-sm font-black text-blue-950">Modo espectador</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
+          Puedes consultar Home, ranking, partidos, resultados y perfiles. Las opciones de juego y administración permanecen ocultas.
+        </p>
+      </AppCard>
+
+      <SettingsSection
+        title="Personal"
+        description="Tu cuenta, idioma y aspecto de la aplicación."
       >
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center gap-3">
-            {session?.user?.image ? (
+        <SettingsLinkRow
+          href="/settings/profile"
+          id="spectator-account"
+          title={t.settings.myProfileTitle}
+          description={t.settings.myProfileDescription}
+          leading={
+            session?.user?.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={session.user.image}
                 alt=""
-                className="h-11 w-11 rounded-full object-cover"
+                className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-200 text-sm font-black text-neutral-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-700">
                 ES
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-black">{t.settings.myProfileTitle}</p>
-              <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
-                {t.settings.myProfileDescription}
-              </p>
-            </div>
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <AppCard>
-        <div className="rounded-2xl bg-neutral-50 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
-          Puedes consultar Home, ranking, partidos, resultados y perfiles. No puedes modificar datos ni acceder a la actividad interna.
-        </div>
-      </AppCard>
-
-      <Link href="/leagues" className="block settings-search-target" id="leagues">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Mis ligas</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Cambia entre ligas donde eres jugador o espectador.
-              </p>
-            </div>
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <div id="language" className="settings-search-target"><AppCard>
-        <p className="font-bold">Idioma</p>
-        <div className="mt-3">
+            )
+          }
+        />
+        <SettingsStaticRow
+          id="language"
+          title={t.settings.language}
+          description={t.settings.languageDescription}
+        >
           <LanguageSwitcher />
-        </div>
-      </AppCard></div>
+        </SettingsStaticRow>
+        <AppearanceSettings />
+      </SettingsSection>
 
-      <div id="appearance" className="settings-search-target"><AppearanceSettings /></div>
-
-      <Link href="/help" className="block settings-search-target" id="help">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Ayuda</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Consulta cómo funciona Smash & Lob.
-              </p>
-            </div>
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <Link href="/changelog" className="block settings-search-target" id="changelog">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Registro de cambios</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Consulta las novedades publicadas en cada versión.
-              </p>
-            </div>
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <button
-        type="button"
-        onClick={() => signOut({ callbackUrl: "/" })}
-        className="w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm"
+      <SettingsSection
+        title="Mis ligas"
+        description="Accede a las competiciones que sigues o en las que participas."
       >
-        {t.auth.signOut}
-      </button>
+        <SettingsLinkRow
+          href="/leagues"
+          id="leagues"
+          title="Mis ligas"
+          description="Cambia entre ligas donde eres jugador o espectador."
+        />
+      </SettingsSection>
 
-      <Link
-        href="/changelog"
-        className="block pb-2 pt-3 text-center text-xs font-semibold text-neutral-400"
+      <SettingsSection
+        title="Ayuda e información"
+        description="Documentación, novedades y versión instalada."
       >
-        {settingsVersionLabel}
-      </Link>
+        <SettingsLinkRow
+          href="/help"
+          id="help"
+          title={t.settings.helpTitle}
+          description={t.settings.helpDescription}
+        />
+        <SettingsLinkRow
+          href="/changelog"
+          id="changelog"
+          title="Registro de cambios"
+          description="Consulta las novedades publicadas en cada versión."
+        />
+        <SettingsLinkRow
+          href="/changelog"
+          title="Versión de la aplicación"
+          description={settingsVersionLabel}
+        />
+      </SettingsSection>
+
+      <SessionSection />
     </div>
   )
 }
@@ -202,9 +321,7 @@ export default function SettingsPage() {
   const { isLeagueSpectator, isSuperuser } = useLeagueAccess()
 
   if (!isSuperuser && isLeagueSpectator(activeLeague.id)) {
-    return (
-      <SpectatorSettingsPage leagueName={activeLeague.name} />
-    )
+    return <SpectatorSettingsPage leagueName={activeLeague.name} />
   }
 
   return <PlayerSettingsPage />
@@ -240,24 +357,24 @@ function PlayerSettingsPage() {
         .filter(
           (transfer) =>
             transfer.fromPlayerId === currentUser.id ||
-            transfer.toPlayerId === currentUser.id
+            transfer.toPlayerId === currentUser.id,
         )
-        .map((transfer) => ({ match, transfer }))
+        .map((transfer) => ({ match, transfer })),
     )
     .sort((left, right) => right.match.round - left.match.round)
   const pendingOwedByMe = paymentMovements.filter(
-    ({ transfer }) => transfer.fromPlayerId === currentUser.id && !transfer.isPaid
+    ({ transfer }) => transfer.fromPlayerId === currentUser.id && !transfer.isPaid,
   )
   const pendingOwedToMe = paymentMovements.filter(
-    ({ transfer }) => transfer.toPlayerId === currentUser.id && !transfer.isPaid
+    ({ transfer }) => transfer.toPlayerId === currentUser.id && !transfer.isPaid,
   )
   const owedByMeAmount = pendingOwedByMe.reduce(
     (sum, { transfer }) => sum + transfer.amount,
-    0
+    0,
   )
   const owedToMeAmount = pendingOwedToMe.reduce(
     (sum, { transfer }) => sum + transfer.amount,
-    0
+    0,
   )
   const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
   const hasPendingPayments = pendingPaymentCount > 0
@@ -302,323 +419,202 @@ function PlayerSettingsPage() {
   }
 
   return (
-    <div className="compact-page space-y-3">
+    <div className="compact-page space-y-4">
       <header className="pt-1">
         <BackButton fallbackHref="/profile" label={t.common.back} />
-
-        <p className="text-sm font-medium text-neutral-500">
+        <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-
         <h1 className="mt-0.5 text-xl font-black tracking-tight">
           {t.settings.title}
         </h1>
-
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {t.settings.description}
+          Todo lo relacionado con tu cuenta, tus ligas y la aplicación.
         </p>
       </header>
 
       <GlobalSettingsSearch locale={locale} entries={searchEntries} />
 
-      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-        Preferencias
-      </p>
-
-      <div id="language" className="settings-search-target"><AppCard>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">{t.settings.language}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {t.settings.languageDescription}
-            </p>
-          </div>
-
-          <LanguageSwitcher />
-        </div>
-      </AppCard></div>
-
-      <div id="appearance" className="settings-search-target"><AppearanceSettings /></div>
-
-      <Link href="/settings/notifications" className="block settings-search-target" id="notifications">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Notificaciones</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Activa push y elige qué avisos quieres recibir en este dispositivo.
-              </p>
-            </div>
-
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <Link href="/payments" className="block settings-search-target" id="payments">
-        <AppCard
-          className={`transition active:scale-[0.99] ${
-            hasPendingPayments ? "border-amber-200 bg-amber-50" : ""
-          }`}
+      <SettingsSection
+        title="Personal"
+        description="Tu perfil, preferencias y forma de participar en la liga."
+      >
+        <SettingsLinkRow
+          href="/settings/profile"
+          id="account"
+          title={t.settings.myProfileTitle}
+          description={t.settings.myProfileDescription}
+          leading={<PlayerAvatar player={currentUser} size="md" />}
+        />
+        <SettingsStaticRow
+          id="language"
+          title={t.settings.language}
+          description={t.settings.languageDescription}
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-bold">Mis pagos</p>
-                {hasPendingPayments ? (
-                  <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-white">
-                    {pendingPaymentCount} pendiente{pendingPaymentCount === 1 ? "" : "s"}
-                  </span>
-                ) : null}
+          <LanguageSwitcher />
+        </SettingsStaticRow>
+        <AppearanceSettings />
+        <SettingsLinkRow
+          href="/settings/notifications"
+          id="notifications"
+          title="Notificaciones"
+          description="Activa push y elige qué avisos quieres recibir en este dispositivo."
+        />
+        <SettingsLinkRow
+          href="/availability"
+          id="availability"
+          title="Mi disponibilidad"
+          description="Define cuándo puedes jugar para futuras recomendaciones de horarios."
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Mis ligas"
+        description="Cambia de competición, entra en otra liga o crea una nueva."
+      >
+        {hasLeagues ? (
+          <SettingsLinkRow
+            href="/leagues"
+            id="leagues"
+            title="Mis ligas"
+            description={`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`}
+          />
+        ) : null}
+        <SettingsLinkRow
+          href="/invite"
+          id="join-league"
+          title={t.settings.joinNewExistingLeague}
+          description="Usa un código o enlace de invitación para acceder a otra liga."
+        />
+        {canCreateLeaguesInCurrentView ? (
+          <SettingsLinkRow
+            href="/league/new"
+            id="create-league"
+            title={t.settings.createNewLeague}
+            description="Configura una competición nueva desde cero."
+          />
+        ) : null}
+        {canSelfUnlink ? (
+          <div id="unlink" className="settings-search-target bg-red-50 px-3 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black text-red-950">
+                  Desvincularme de esta liga
+                </p>
+                <p className="mt-0.5 text-xs font-semibold leading-5 text-red-700">
+                  Libera tu jugador en {activeLeague.name} sin borrar partidos, resultados ni temporadas.
+                </p>
               </div>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {hasPendingPayments
-                  ? `Debes ${formatMoney(owedByMeAmount)} · Te deben ${formatMoney(owedToMeAmount)}`
-                  : "Consulta tus pagos, reservas e historial de movimientos."}
-              </p>
+              <button
+                type="button"
+                onClick={handleUnlinkCurrentLeague}
+                disabled={isUnlinkingLeague}
+                className="shrink-0 rounded-xl bg-red-600 px-3 py-2 text-xs font-black text-white disabled:bg-red-200"
+              >
+                {isUnlinkingLeague ? "Saliendo..." : "Desvincular"}
+              </button>
             </div>
-
-            <ClickableChevron className="shrink-0" />
+            {unlinkLeagueError ? (
+              <p className="mt-2 text-xs font-bold text-red-700">
+                {unlinkLeagueError}
+              </p>
+            ) : null}
           </div>
-        </AppCard>
-      </Link>
+        ) : null}
+      </SettingsSection>
 
-      <Link href="/availability" className="block settings-search-target" id="availability">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Mi disponibilidad</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Define cuándo puedes jugar para futuras recomendaciones de horarios.
-              </p>
-            </div>
+      <SettingsSection
+        title="Actividad personal"
+        description="Movimientos económicos e historial de la liga."
+      >
+        <SettingsLinkRow
+          href="/payments"
+          id="payments"
+          title="Mis pagos"
+          description={
+            hasPendingPayments
+              ? `Debes ${formatMoney(owedByMeAmount)} · Te deben ${formatMoney(owedToMeAmount)}`
+              : "Consulta tus pagos, reservas e historial de movimientos."
+          }
+          tone={hasPendingPayments ? "warning" : "default"}
+          badge={
+            hasPendingPayments ? (
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-white">
+                {pendingPaymentCount} pendiente{pendingPaymentCount === 1 ? "" : "s"}
+              </span>
+            ) : null
+          }
+        />
+        <SettingsLinkRow
+          href="/activity?scope=all"
+          id="activity"
+          title="Actividad de la liga"
+          description="Consulta el historial de cambios y acciones desde que te vinculaste."
+        />
+      </SettingsSection>
 
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <Link href="/help" className="block settings-search-target" id="help">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">{t.settings.helpTitle}</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {t.settings.helpDescription}
-              </p>
-            </div>
-
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <Link href="/changelog" className="block settings-search-target" id="changelog">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Registro de cambios</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Consulta las novedades publicadas en cada versión.
-              </p>
-            </div>
-
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-        Liga
-      </p>
-
-      <Link href="/activity?scope=all" className="block settings-search-target" id="activity">
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-bold">Actividad de la liga</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Consulta el historial de cambios y acciones desde que te vinculaste.
-              </p>
-            </div>
-
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      {hasAdminRole ? (
-        <div id="admin-view" className="settings-search-target"><AppCard>
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-bold">Vista admin</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Desactívala para ocultar accesos y acciones de administrador y ver la liga como un jugador normal.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isAdminViewEnabled}
-              onClick={() => setAdminViewEnabled(!isAdminViewEnabled)}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                isAdminViewEnabled ? "bg-neutral-950" : "bg-neutral-300"
-              }`}
+      {hasAdminRole || isSuperuser ? (
+        <SettingsSection
+          title="Administración"
+          description="Herramientas que dependen de tus permisos actuales."
+        >
+          {hasAdminRole ? (
+            <SettingsStaticRow
+              id="admin-view"
+              title="Vista admin"
+              description="Oculta temporalmente accesos y acciones de administración para ver la liga como jugador."
             >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
-                  isAdminViewEnabled ? "left-6" : "left-1"
-                }`}
+              <SettingsToggle
+                checked={isAdminViewEnabled}
+                onChange={() => setAdminViewEnabled(!isAdminViewEnabled)}
+                label="Vista admin"
               />
-            </button>
-          </div>
-        </AppCard></div>
-      ) : null}
-
-      {hasLeagues ? (
-        <Link href="/leagues" className="block settings-search-target" id="leagues">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">Mis ligas</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Liga activa: {activeLeague.name}. Cambia de liga desde una
-                  pantalla propia con resumen de cada competición.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-      ) : null}
-
-      {canAccessAdmin ? (
-        <Link href="/admin" className="block settings-search-target" id="admin">
-          <AppCard className="transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">{t.settings.adminPanelTitle}</p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {t.settings.adminPanelDescription}
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0" />
-            </div>
-          </AppCard>
-        </Link>
-      ) : null}
-
-      {isSuperuser ? (
-        <Link href="/application-admin" className="block settings-search-target" id="application-admin">
-          <AppCard className="border-red-100 bg-red-50 transition active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold text-red-950">Administración de la aplicación</p>
-                <p className="mt-1 text-xs font-semibold text-red-700">
-                  Gestiona cuentas globales, nombres y permisos de creación de ligas.
-                </p>
-              </div>
-
-              <ClickableChevron className="shrink-0 border-red-200 bg-red-100 text-red-700" />
-            </div>
-          </AppCard>
-        </Link>
-      ) : null}
-
-      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-        Cuenta
-      </p>
-
-      <Link
-        href="/settings/profile"
-        id="account"
-        className="block settings-search-target"
-      >
-        <AppCard className="transition active:scale-[0.99]">
-          <div className="flex items-center gap-3">
-            <PlayerAvatar player={currentUser} size="md" />
-            <div className="min-w-0 flex-1">
-              <p className="font-bold">{t.settings.myProfileTitle}</p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {t.settings.myProfileDescription}
-              </p>
-            </div>
-            <ClickableChevron className="shrink-0" />
-          </div>
-        </AppCard>
-      </Link>
-
-      <AppCard>
-        <div className="min-w-0">
-          <p className="font-bold">{t.settings.accountTitle}</p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {t.settings.accountDescription}
-          </p>
-        </div>
-
-        <div className="mt-3 grid gap-2">
-          <Link
-            href="/invite"
-            className="block w-full rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
-          >
-            {t.settings.joinNewExistingLeague}
-          </Link>
-
-          {canCreateLeaguesInCurrentView ? (
-            <Link
-              href="/league/new"
-              className="block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
-            >
-              {t.settings.createNewLeague}
-            </Link>
+            </SettingsStaticRow>
           ) : null}
-        </div>
-      </AppCard>
-
-
-      <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-        Zona sensible
-      </p>
-
-      {canSelfUnlink ? (
-        <div id="unlink" className="settings-search-target"><AppCard className="border-red-100 bg-red-50">
-          <p className="font-bold text-red-950">Desvincularme de esta liga</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-red-700">
-            Saldrás de {activeLeague.name} y tu jugador quedará libre para poder
-            reclamarlo de nuevo con una invitación. No se borran partidos, resultados
-            ni temporadas.
-          </p>
-          <button
-            type="button"
-            onClick={handleUnlinkCurrentLeague}
-            disabled={isUnlinkingLeague}
-            className="mt-3 w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200"
-          >
-            {isUnlinkingLeague ? "Desvinculando..." : "Desvincularme de esta liga"}
-          </button>
-          {unlinkLeagueError ? (
-            <p className="mt-2 text-xs font-bold text-red-700">{unlinkLeagueError}</p>
+          {canAccessAdmin ? (
+            <SettingsLinkRow
+              href="/admin"
+              id="admin"
+              title={t.settings.adminPanelTitle}
+              description="Gestiona la liga por áreas: general, personas, competición, operaciones y datos."
+            />
           ) : null}
-        </AppCard></div>
+          {isSuperuser ? (
+            <SettingsLinkRow
+              href="/application-admin"
+              id="application-admin"
+              title="Administración de la aplicación"
+              description="Gestiona cuentas globales, permisos, suspensiones y auditoría."
+              tone="danger"
+            />
+          ) : null}
+        </SettingsSection>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => signOut({ callbackUrl: "/" })}
-        className="w-full rounded-2xl border border-red-100 bg-white px-3 py-2.5 text-sm font-black text-red-700 shadow-sm"
+      <SettingsSection
+        title="Ayuda e información"
+        description="Documentación, novedades y versión instalada."
       >
-        {t.auth.signOut}
-      </button>
+        <SettingsLinkRow
+          href="/help"
+          id="help"
+          title={t.settings.helpTitle}
+          description={t.settings.helpDescription}
+        />
+        <SettingsLinkRow
+          href="/changelog"
+          id="changelog"
+          title="Registro de cambios"
+          description="Consulta las novedades publicadas en cada versión."
+        />
+        <SettingsLinkRow
+          href="/changelog"
+          title="Versión de la aplicación"
+          description={settingsVersionLabel}
+        />
+      </SettingsSection>
 
-      <Link
-        href="/changelog"
-        className="block pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300"
-      >
-        {settingsVersionLabel}
-      </Link>
+      <SessionSection />
     </div>
   )
 }

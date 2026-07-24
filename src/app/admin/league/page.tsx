@@ -625,6 +625,14 @@ export default function AdminLeaguePage() {
         </div>
       </AppCard>
 
+      <div className="px-1 pt-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Identidad
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Nombre, descripción y logotipo que identifican la competición.
+        </p>
+      </div>
       <div id="identidad" className="settings-search-target">
         <LeagueIdentityForm
           key={`${activeLeague.id}-identity`}
@@ -636,6 +644,14 @@ export default function AdminLeaguePage() {
         />
       </div>
 
+      <div className="px-1 pt-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Lugares habituales
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Clubes, municipios, pistas y enlaces de localización usados con frecuencia.
+        </p>
+      </div>
       <div id="lugares" className="settings-search-target">
         <LeagueLocationsForm
           key={`${activeLeague.id}-locations`}
@@ -645,6 +661,14 @@ export default function AdminLeaguePage() {
         />
       </div>
 
+      <div className="px-1 pt-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Historial y perfiles
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Decide si los perfiles incluyen estadísticas de temporadas anteriores.
+        </p>
+      </div>
       <div id="estadisticas-perfil" className="settings-search-target">
         <ProfileStatisticsVisibilityCard
           leagueId={activeLeague.id}
@@ -653,13 +677,23 @@ export default function AdminLeaguePage() {
       </div>
 
       {canDeleteLeague ? (
-        <div id="zona-sensible" className="settings-search-target">
+        <>
+          <div className="px-1 pt-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400">
+              Zona sensible
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-red-600">
+              Acciones permanentes reservadas al creador de la liga.
+            </p>
+          </div>
+          <div id="zona-sensible" className="settings-search-target">
           <DeleteLeagueCard
             leagueId={activeLeague.id}
             leagueName={activeLeague.name}
             onDeleteLeague={deleteLeague}
           />
-        </div>
+          </div>
+        </>
       ) : null}
     </div>
   )
