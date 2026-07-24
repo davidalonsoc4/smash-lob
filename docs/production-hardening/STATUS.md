@@ -264,3 +264,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Applied the formatter to Activity, match schedule summaries, calendar links and CSV exports.
 - Added consistent Colorful-mode accents to notification, activity and schedule cards.
 - No migration, API contract, permission or persistence change is required.
+
+## v0.16.2 - Colorful appearance palettes (2026-07-25)
+
+- Added five prepared palettes for Colorful mode: indigo/violet, blue/turquoise, emerald, coral/pink and orange/purple.
+- Centralized palette values through CSS variables used by backgrounds, surfaces, navigation, cards, forms, standings and skeletons.
+- Added device-local palette persistence and early startup application to avoid visual flashes.
+- Preserved semantic match, payment, warning, success and error colours independently from the selected palette.
+- Added Spanish, English and Basque labels plus Settings search terms.
+- No database migration, API contract, permission or remote persistence change is required.

@@ -13,7 +13,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { type ThemePreference, useTheme } from "@/context/ThemeProvider"
+import { type ColorfulPalette, type ThemePreference, useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -190,9 +190,31 @@ function AppearancePreview({ mode }: { mode: ThemePreference }) {
   )
 }
 
+const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
+  indigo: ["#5b5ce2", "#7c4dff", "#e94b9b", "#f2a93b"],
+  ocean: ["#087ea4", "#0ea5a8", "#38bdf8", "#f59e0b"],
+  emerald: ["#059669", "#10b981", "#34d399", "#f59e0b"],
+  coral: ["#e65a72", "#ec4899", "#fb7185", "#8b5cf6"],
+  sunset: ["#f06a24", "#7c3aed", "#ec4899", "#fbbf24"],
+}
+
+function ColorfulPalettePreview({ palette }: { palette: ColorfulPalette }) {
+  return (
+    <span aria-hidden="true" className="flex shrink-0 items-center gap-1">
+      {colorfulPaletteSwatches[palette].map((color) => (
+        <span
+          key={color}
+          className="h-4 w-4 rounded-full border border-white/80 shadow-sm"
+          style={{ backgroundColor: color }}
+        />
+      ))}
+    </span>
+  )
+}
+
 function AppearanceSettings() {
   const { t } = useI18n()
-  const { preference, setPreference } = useTheme()
+  const { preference, setPreference, colorfulPalette, setColorfulPalette } = useTheme()
   const options: Array<{ value: ThemePreference; label: string; description: string }> = [
     {
       value: "light",
@@ -213,6 +235,33 @@ function AppearanceSettings() {
       value: "colorful",
       label: t.settings.appearanceColorful,
       description: t.settings.appearanceColorfulDescription,
+    },
+  ]
+  const paletteOptions: Array<{ value: ColorfulPalette; label: string; description: string }> = [
+    {
+      value: "indigo",
+      label: t.settings.colorfulPaletteIndigo,
+      description: t.settings.colorfulPaletteIndigoDescription,
+    },
+    {
+      value: "ocean",
+      label: t.settings.colorfulPaletteOcean,
+      description: t.settings.colorfulPaletteOceanDescription,
+    },
+    {
+      value: "emerald",
+      label: t.settings.colorfulPaletteEmerald,
+      description: t.settings.colorfulPaletteEmeraldDescription,
+    },
+    {
+      value: "coral",
+      label: t.settings.colorfulPaletteCoral,
+      description: t.settings.colorfulPaletteCoralDescription,
+    },
+    {
+      value: "sunset",
+      label: t.settings.colorfulPaletteSunset,
+      description: t.settings.colorfulPaletteSunsetDescription,
     },
   ]
 
@@ -256,6 +305,49 @@ function AppearanceSettings() {
           )
         })}
       </div>
+
+      {preference === "colorful" ? (
+        <div className="colorful-palette-settings mt-4 border-t border-neutral-100 pt-4">
+          <p className="text-xs font-black text-neutral-950">
+            {t.settings.colorfulPaletteTitle}
+          </p>
+          <p className="mt-0.5 text-[10px] font-semibold leading-4 text-neutral-500">
+            {t.settings.colorfulPaletteDescription}
+          </p>
+          <div className="mt-2 grid gap-2">
+            {paletteOptions.map((option) => {
+              const selected = colorfulPalette === option.value
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setColorfulPalette(option.value)}
+                  className={`colorful-palette-option flex min-h-14 items-center gap-3 rounded-2xl border px-3 py-2 text-left transition active:scale-[0.99] ${
+                    selected
+                      ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
+                      : "border-neutral-200 bg-neutral-50"
+                  }`}
+                >
+                  <ColorfulPalettePreview palette={option.value} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-xs font-black text-neutral-950">{option.label}</span>
+                    <span className="mt-0.5 block text-[10px] font-semibold leading-4 text-neutral-500">
+                      {option.description}
+                    </span>
+                  </span>
+                  {selected ? (
+                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-950 text-[10px] font-black text-white">
+                      ✓
+                    </span>
+                  ) : null}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
