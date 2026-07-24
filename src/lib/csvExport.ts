@@ -1,6 +1,7 @@
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile } from "@/data/fakeData"
 import { matchIncidentTypeLabels } from "@/lib/matchIncidents"
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import type { RankingPlayer } from "@/lib/ranking"
 
 function escapeCsvCell(value: unknown) {
@@ -146,7 +147,7 @@ export function exportResultsCsv({
         match.round,
         getResolutionLabel(match),
         match.scheduledAt ?? match.dateLabel ?? "",
-        match.location ?? "",
+        getScheduleLocationDisplayText(match.location) ?? "",
         match.teamA.map((id) => getPlayerName(id, playersById)).join(" / "),
         match.teamB.map((id) => getPlayerName(id, playersById)).join(" / "),
         match.pointsA ?? "",

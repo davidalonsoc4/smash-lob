@@ -255,3 +255,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added success/error feedback to profile, availability, notification, and suggestion actions.
 - Added direct retry controls for recoverable availability, notification, and suggestion failures.
 - No migration, API contract, permission, or database change is required.
+
+
+## v0.16.1 - Location display consistency (2026-07-25)
+
+- Centralized readable formatting for serialized schedule locations and courts.
+- Fixed scheduled-match and upcoming-match notification bodies so legacy JSON values are never shown to users.
+- Applied the formatter to Activity, match schedule summaries, calendar links and CSV exports.
+- Added consistent Colorful-mode accents to notification, activity and schedule cards.
+- No migration, API contract, permission or persistence change is required.

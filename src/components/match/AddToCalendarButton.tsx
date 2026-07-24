@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { getTeamDisplayName } from "@/lib/players"
 import { parseMatchScheduleDate, toCalendarFloatingDate } from "@/lib/matchScheduleTime"
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import type { PlayerProfile } from "@/data/fakeData"
 
 type AddToCalendarButtonProps = {
@@ -53,8 +54,10 @@ function getCalendarData({
     details: description,
   })
 
-  if (location) {
-    googleParams.set("location", location)
+  const locationText = getScheduleLocationDisplayText(location)
+
+  if (locationText) {
+    googleParams.set("location", locationText)
   }
 
   return {

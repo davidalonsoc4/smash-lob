@@ -15,11 +15,7 @@ import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
-import {
-  getLeagueLocationScheduleText,
-  getScheduleLocationFallbackText,
-  normalizeLeagueLocation,
-} from "@/lib/leagueLocations"
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import {
   activityEventCategories,
   configurableNotificationEventTypes,
@@ -159,19 +155,7 @@ function formatActivityScheduleDate(value: unknown) {
 }
 
 function getActivityLocationText(value: unknown) {
-  if (typeof value === "string") {
-    const fallbackText = getScheduleLocationFallbackText(value)
-
-    return fallbackText && fallbackText !== "Ubicación en Maps" ? fallbackText : fallbackText
-  }
-
-  const normalizedLocation = normalizeLeagueLocation(value)
-
-  if (!normalizedLocation) {
-    return null
-  }
-
-  return getLeagueLocationScheduleText(normalizedLocation)
+  return getScheduleLocationDisplayText(value)
 }
 
 function getActivityScheduleDescription({
@@ -357,7 +341,7 @@ function ActivityEventCard({
   const avatarImageUrl = useLeagueLogo ? leagueLogoUrl : event.actorAvatarUrl
 
   return (
-    <AppCard className="p-3">
+    <AppCard className="app-activity-card p-3">
       <div className="flex gap-2.5">
         <ActivityAvatar
           name={event.actorDisplayName}

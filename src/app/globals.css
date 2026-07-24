@@ -523,6 +523,24 @@ html.colorful .app-card::before {
   pointer-events: none;
 }
 
+html.colorful .app-notification-card::before {
+  background: linear-gradient(90deg, var(--colorful-sky), var(--colorful-indigo)) !important;
+}
+
+html.colorful .app-activity-card::before {
+  background: linear-gradient(90deg, var(--colorful-violet), var(--colorful-pink)) !important;
+}
+
+html.colorful .app-schedule-card::before {
+  background: linear-gradient(90deg, var(--colorful-amber), var(--colorful-pink)) !important;
+}
+
+html.colorful .app-notification-card,
+html.colorful .app-activity-card,
+html.colorful .app-schedule-card {
+  overflow: hidden;
+}
+
 html.colorful .app-stat-card {
   position: relative;
   overflow: hidden;

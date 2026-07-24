@@ -2,6 +2,7 @@
 
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 
 type MatchScheduleBoxProps = {
   status: string
@@ -16,9 +17,10 @@ export function MatchScheduleBox({
 }: MatchScheduleBoxProps) {
   const { t } = useI18n()
   const isScheduling = status === "scheduling"
+  const locationText = getScheduleLocationDisplayText(location)
 
   return (
-    <AppCard>
+    <AppCard className="app-schedule-card">
       <p className="text-sm font-semibold text-neutral-500">
         {t.matchDetail.schedule}
       </p>
@@ -38,7 +40,9 @@ export function MatchScheduleBox({
       ) : (
         <div className="mt-3 space-y-2">
           <p className="font-bold">{dateLabel}</p>
-          <p className="text-sm text-neutral-500">{location}</p>
+          {locationText ? (
+            <p className="text-sm text-neutral-500">{locationText}</p>
+          ) : null}
         </div>
       )}
     </AppCard>
