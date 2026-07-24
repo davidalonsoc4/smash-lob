@@ -304,14 +304,13 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
           title="Registro de cambios"
           description="Consulta las novedades publicadas en cada versión."
         />
-        <SettingsLinkRow
-          href="/changelog"
-          title="Versión de la aplicación"
-          description={settingsVersionLabel}
-        />
       </SettingsSection>
 
       <SessionSection />
+
+      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400">
+        {settingsVersionLabel}
+      </p>
     </div>
   )
 }
@@ -607,14 +606,13 @@ function PlayerSettingsPage() {
           title="Registro de cambios"
           description="Consulta las novedades publicadas en cada versión."
         />
-        <SettingsLinkRow
-          href="/changelog"
-          title="Versión de la aplicación"
-          description={settingsVersionLabel}
-        />
       </SettingsSection>
 
       <SessionSection />
+
+      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400">
+        {settingsVersionLabel}
+      </p>
     </div>
   )
 }

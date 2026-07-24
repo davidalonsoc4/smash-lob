@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.14.1",
+    date: "24 de julio de 2026",
+    title: "Ajustes más compactos y claros",
+    summary:
+      "Pulido visual de Ajustes y sus pantallas informativas para reducir duplicidades, altura y elementos innecesarios.",
+    category: "improvement",
+    changes: [
+      "La versión vuelve a mostrarse como texto centrado al final de Ajustes y se elimina el acceso duplicado.",
+      "El Registro de cambios queda centrado únicamente en el historial de versiones.",
+      "Todos los grupos de notificaciones aparecen cerrados al entrar en la pantalla.",
+      "La disponibilidad por días usa filas compactas y desplegables para editar cada jornada.",
+      "Actividad de la liga reduce el tamaño del encabezado y del selector General, Personal y Admin.",
+      "Ayuda y conceptos básicos adapta tipografías, tarjetas y espacios al resto de Ajustes.",
+    ],
+  },
+  {
     version: "v0.14.0",
     date: "24 de julio de 2026",
     title: "Nueva arquitectura de Ajustes",

@@ -1,8 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import {
   CHANGELOG_RELEASES,
   type ChangelogCategory,
@@ -49,27 +46,6 @@ export default function ChangelogPage() {
           versión de la que conservamos un registro fiable.
         </p>
       </header>
-
-      <AppCard className="overflow-hidden bg-neutral-950 text-white">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-              Versión actual
-            </p>
-            <p className="mt-1 text-2xl font-black tracking-tight">
-              Beta cerrada · {APP_VERSION_LABEL}
-            </p>
-          </div>
-          <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-950">
-            Actual
-          </span>
-        </div>
-        <p className="mt-3 text-xs font-semibold leading-5 text-neutral-300">
-          Las revisiones menores aparecen agrupadas cuando comparten una misma
-          línea de trabajo o no existe un detalle público completo de cada
-          parche.
-        </p>
-      </AppCard>
 
       <div className="space-y-2">
         {CHANGELOG_RELEASES.map((release, index) => {
@@ -138,22 +114,6 @@ export default function ChangelogPage() {
         })}
       </div>
 
-      <AppCard className="bg-neutral-100 shadow-none">
-        <p className="text-sm font-black text-neutral-950">
-          Sobre este historial
-        </p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Este registro resume cambios visibles para los usuarios. No incluye
-          credenciales, datos personales, configuraciones de infraestructura ni
-          detalles internos de seguridad.
-        </p>
-        <Link
-          href="/help"
-          className="mt-3 inline-flex rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-700 shadow-sm"
-        >
-          Consultar la ayuda
-        </Link>
-      </AppCard>
     </div>
   )
 }

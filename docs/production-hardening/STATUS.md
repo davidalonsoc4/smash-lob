@@ -136,3 +136,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Replaced remaining text navigation arrows with the shared `ClickableChevron` component.
 - Made the current closed-beta version explicit on the public changelog card.
 - No database migration is required.
+
+## v0.14.1 - Settings polish (2026-07-24)
+
+- Removed the duplicate application-version navigation row from Settings and restored the centered closed-beta version footer.
+- Simplified the public changelog to show only release entries.
+- Changed notification preference groups to load collapsed.
+- Reworked per-day availability into compact expandable rows and removed the redundant profile-return button.
+- Reduced Activity tab and Help screen visual scale to match the Settings architecture.
+- No database migration, API, permission, route, or search-index change is required.
