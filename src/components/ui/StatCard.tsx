@@ -9,7 +9,7 @@ type StatCardProps = {
 
 export function StatCard({ label, value, helper, icon }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-3 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
+    <div className="app-stat-card rounded-xl border border-neutral-200 bg-white p-3 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
       <div className="flex items-center gap-1.5 text-neutral-500">
         {icon ? <span className="shrink-0" aria-hidden="true">{icon}</span> : null}
         <p className="text-xs font-semibold">{label}</p>

@@ -40,8 +40,8 @@
 
 # Production Hardening Status
 
-Last updated: 2026-07-20 18:49:40 +02:00
-Current branch at status update: `staging`
+Last updated: 2026-07-24 23:45:00 +02:00
+Current branch at status update: `feature/v0.16-colorful-design`
 Production branch confirmed from Git + Vercel: `main`
 Production source version retained in this run: `v0.9.71`
 Staging source commit retained in this run: `78f1986` (`v0.10.0`)
@@ -65,6 +65,16 @@ Active milestone state: `H20-H23 complete; environment isolation repair complete
 - TypeScript/TSX syntax transpilation passed for every modified source file, and whitespace/conflict-marker checks are clean.
 - Full dependency installation, lint, typecheck, and build could not be completed in the review container because its npm proxy returned HTTP 503 for required packages; these gates remain mandatory locally before commit.
 
+
+
+## Product experience update — v0.16.0
+
+- Added a fourth device-local appearance preference: `colorful`.
+- The initial layout script and ThemeProvider apply the same resolved theme, preventing a light-theme flash during startup.
+- Colorful styling is centralized in CSS and covers shell backgrounds, cards, statistics, ranking, bottom navigation, floating controls, forms and skeletons.
+- Existing light, dark and system preferences remain supported without data migrations.
+- Status colors remain semantic, and the per-league neutral-color option still takes precedence for status elements.
+- Full local lint, TypeScript and production-build validation remains required before merging the feature branch.
 
 ## Final state summary
 

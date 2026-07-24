@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
-type ThemePreference = "light" | "dark" | "system"
+export type ThemePreference = "light" | "dark" | "system" | "colorful"
 
 type ThemeContextValue = {
   preference: ThemePreference
@@ -12,27 +12,33 @@ type ThemeContextValue = {
 const STORAGE_KEY = "smash-lob-theme"
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
+function isThemePreference(value: string | null): value is ThemePreference {
+  return value === "light" || value === "dark" || value === "system" || value === "colorful"
+}
+
 function readStoredPreference(): ThemePreference {
   if (typeof window === "undefined") return "light"
   const stored = window.localStorage.getItem(STORAGE_KEY)
-  return stored === "light" || stored === "dark" || stored === "system"
-    ? stored
-    : "light"
+  return isThemePreference(stored) ? stored : "light"
 }
 
 function applyTheme(preference: ThemePreference) {
+  const colorful = preference === "colorful"
   const dark =
-    preference === "dark" ||
-    (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-  const resolved = dark ? "dark" : "light"
+    !colorful &&
+    (preference === "dark" ||
+      (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches))
+  const resolved = colorful ? "colorful" : dark ? "dark" : "light"
   const root = document.documentElement
+
   root.classList.toggle("dark", dark)
+  root.classList.toggle("colorful", colorful)
   root.dataset.theme = resolved
-  root.style.colorScheme = resolved
+  root.style.colorScheme = dark ? "dark" : "light"
 
   document
     .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    ?.setAttribute("content", dark ? "#0f0f10" : "#0a0a0a")
+    ?.setAttribute("content", colorful ? "#5b5ce2" : dark ? "#0f0f10" : "#0a0a0a")
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

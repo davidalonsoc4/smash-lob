@@ -67,7 +67,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href={branding.appleTouchIcon} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'light';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('smash-lob-theme')||'light';var c=t==='colorful';var d=!c&&(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));var r=c?'colorful':d?'dark':'light';document.documentElement.classList.toggle('dark',d);document.documentElement.classList.toggle('colorful',c);document.documentElement.dataset.theme=r;document.documentElement.style.colorScheme=d?'dark':'light';var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',c?'#5b5ce2':d?'#0f0f10':'#0a0a0a')}catch(e){}})();`,
           }}
         />
       </head>
