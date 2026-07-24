@@ -1,28 +1,20 @@
-Smash & Lob v0.15.1
+Smash & Lob v0.15.2
 
 Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/app/globals.css
-- src/components/auth/AuthGate.tsx
-- src/components/auth/ProfileCompletionGate.tsx
-- src/components/layout/AppShell.tsx
-- src/components/settings/AccountProfileSettings.tsx
+- src/app/activity/page.tsx
+- src/app/admin/announcements/page.tsx
+- src/app/admin/substitutes/page.tsx
+- src/app/application-admin/suggestions/page.tsx
+- src/app/matches/page.tsx
+- src/app/notifications/page.tsx
+- src/app/settings/suggestions/page.tsx
+- src/app/statistics/page.tsx
 - docs/production-hardening/STATUS.md
 
 Added:
-- src/components/ui/Skeleton.tsx
-- src/components/loading/PageSkeletons.tsx
-- src/app/loading.tsx
-- src/app/activity/loading.tsx
-- src/app/match/[id]/loading.tsx
-- src/app/matches/loading.tsx
-- src/app/notifications/loading.tsx
-- src/app/payments/loading.tsx
-- src/app/player/[id]/loading.tsx
-- src/app/ranking/loading.tsx
-- src/app/settings/loading.tsx
-- src/app/statistics/loading.tsx
-- docs/preproduction/V0.15.1_LOADING_STATES.md
+- src/components/ui/EmptyState.tsx
+- docs/preproduction/V0.15.2_EMPTY_STATES.md

@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.2",
+    date: "24 de julio de 2026",
+    title: "Estados vacíos con acciones útiles",
+    summary:
+      "Las pantallas sin contenido explican qué falta y ofrecen el siguiente paso adecuado en lugar de mostrar mensajes aislados.",
+    category: "improvement",
+    changes: [
+      "Nuevo componente común para estados vacíos con icono, explicación y acciones principal y secundaria.",
+      "Partidos, notificaciones y actividad ofrecen accesos directos para continuar la tarea.",
+      "Los buzones de sugerencias distinguen claramente entre ausencia de propuestas y filtros sin resultados.",
+      "Comunicados, suplentes y estadísticas muestran explicaciones específicas según el contenido pendiente.",
+      "Los estados vacíos se adaptan al modo oscuro y conservan una presentación compacta en pantallas densas.",
+    ],
+  },
+  {
     version: "v0.15.1",
     date: "24 de julio de 2026",
     title: "Cargas más fluidas y predecibles",

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -844,12 +845,11 @@ function ActivityPageContent() {
             ) : null}
 
             {!isLoading && !error && events.length === 0 ? (
-              <AppCard>
-                <p className="font-bold">{t.activity.emptyGeneralTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  {t.activity.emptyGeneralDescription}
-                </p>
-              </AppCard>
+              <EmptyState
+                title={t.activity.emptyGeneralTitle}
+                description={t.activity.emptyGeneralDescription}
+                action={{ label: t.activity.refresh, onClick: () => void loadEvents() }}
+              />
             ) : null}
 
             {events.length > 0 ? (
@@ -900,16 +900,19 @@ function ActivityPageContent() {
           ) : null}
 
           {!isLoading && !error && !hasEvents ? (
-            <AppCard>
-              <p className="font-bold">
-                {effectiveScope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
-              </p>
-              <p className="mt-2 text-sm text-neutral-500">
-                {effectiveScope === "mine"
+            <EmptyState
+              title={
+                effectiveScope === "mine"
+                  ? t.activity.emptyPersonalTitle
+                  : t.activity.emptyGeneralTitle
+              }
+              description={
+                effectiveScope === "mine"
                   ? t.activity.emptyPersonalDescription
-                  : t.activity.emptyGeneralDescription}
-              </p>
-            </AppCard>
+                  : t.activity.emptyGeneralDescription
+              }
+              action={{ label: t.activity.refresh, onClick: () => void loadEvents() }}
+            />
           ) : null}
 
           {!isLoading && !error && !hasEvents && lastActivityError ? (

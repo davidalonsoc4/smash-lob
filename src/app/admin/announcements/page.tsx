@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -390,7 +391,15 @@ export default function AdminAnnouncementsPage() {
         {isLoading ? (
           <AppCard><p className="text-sm font-bold text-neutral-500">Cargando...</p></AppCard>
         ) : announcements.length === 0 ? (
-          <AppCard><p className="text-sm font-bold text-neutral-500">Todavía no hay comunicados.</p></AppCard>
+          <EmptyState
+            compact
+            title="Todavía no hay comunicados"
+            description="Publica el primero para informar a toda la liga, una temporada o jugadores concretos."
+            action={{
+              label: "Crear comunicado",
+              onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }),
+            }}
+          />
         ) : (
           <div className="space-y-2">
             {announcements.map((announcement) => (

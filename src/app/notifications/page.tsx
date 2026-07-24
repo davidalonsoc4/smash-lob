@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { AppCard } from "@/components/ui/AppCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
@@ -716,12 +717,14 @@ export default function NotificationsPage() {
       ) : null}
 
       {!isLoading && !error && notifications.length === 0 ? (
-        <AppCard>
-          <p className="font-bold">Sin notificaciones</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Cuando haya avisos para ti aparecerán aquí.
-          </p>
-        </AppCard>
+        <EmptyState
+          title="Estás al día"
+          description="No tienes avisos pendientes. Los próximos partidos, resultados, pagos y comunicados aparecerán aquí."
+          action={{
+            label: "Configurar avisos",
+            href: "/settings/notifications",
+          }}
+        />
       ) : null}
 
       {notifications.length > 0 ? (

@@ -204,3 +204,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added route skeletons for the most-used list, ranking, settings and detail screens.
 - Skeleton animation respects reduced-motion preferences.
 - No migration, API, permission or persistence change is required.
+
+## v0.15.2 - Actionable empty states (2026-07-24)
+
+- Added a shared empty-state component with context-specific actions.
+- Replaced generic empty messages across matches, notifications, activity, suggestions, announcements, substitutes and statistics.
+- Added compact variants for dense administrative screens.
+- No migration, API, permission or persistence change is required.

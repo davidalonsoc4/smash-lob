@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
@@ -244,11 +245,16 @@ export default function ApplicationSuggestionsPage() {
           ))}
         </div>
       ) : (
-        <AppCard>
-          <p className="text-xs font-semibold text-neutral-500">
-            No hay sugerencias en este estado.
-          </p>
-        </AppCard>
+        <EmptyState
+          compact
+          title="No hay sugerencias en este estado"
+          description="Cambia el filtro para revisar otras propuestas recibidas."
+          action={
+            filter === "all"
+              ? undefined
+              : { label: "Ver todas", onClick: () => setFilter("all") }
+          }
+        />
       )}
     </div>
   )

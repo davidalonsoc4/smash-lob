@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -232,7 +233,13 @@ export default function AdminSubstitutesPage() {
         </form>
         <div className="mt-3 space-y-2">
           {isLoading ? <p className="text-xs font-semibold text-neutral-500">Cargando...</p> : null}
-          {!isLoading && activePool.length === 0 ? <p className="rounded-2xl bg-neutral-50 px-3 py-3 text-xs font-semibold text-neutral-500">Todavía no hay suplentes.</p> : null}
+          {!isLoading && activePool.length === 0 ? (
+            <EmptyState
+              compact
+              title="Todavía no hay suplentes"
+              description="Añade jugadores externos para tenerlos disponibles cuando falte un titular."
+            />
+          ) : null}
           {activePool.map((item) => {
             const profile = getPoolProfile(item)
             return <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"><div><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="text-[11px] font-semibold text-neutral-500">Disponible para sustituciones puntuales</p></div><button type="button" onClick={() => removeSubstitute(item.id)} disabled={isSaving} className="text-xs font-black text-red-600">Retirar</button></div>
@@ -275,7 +282,11 @@ export default function AdminSubstitutesPage() {
         <p className="mt-1 text-xs font-semibold text-neutral-500">Participaciones puntuales registradas durante la temporada.</p>
         <div className="mt-3 space-y-2">
           {substitutionHistory.length === 0 ? (
-            <p className="text-xs font-semibold text-neutral-500">Sin sustituciones puntuales todavía.</p>
+            <EmptyState
+              compact
+              title="Sin sustituciones puntuales"
+              description="Las sustituciones de un solo partido aparecerán aquí cuando se utilice un suplente."
+            />
           ) : (
             substitutionHistory.map((item) => {
               const original = players.find((player) => player.id === item.original_player_id)
@@ -311,7 +322,13 @@ export default function AdminSubstitutesPage() {
       <AppCard>
         <p className="font-black">Rendimiento de suplentes</p>
         <div className="mt-3 space-y-2">
-          {stats.every((item) => item.matchesPlayed === 0) ? <p className="text-xs font-semibold text-neutral-500">Sin participaciones todavía.</p> : stats.filter((item) => item.matchesPlayed > 0).map((item) => {
+          {stats.every((item) => item.matchesPlayed === 0) ? (
+            <EmptyState
+              compact
+              title="Sin participaciones todavía"
+              description="El rendimiento se calculará cuando un suplente complete su primer partido."
+            />
+          ) : stats.filter((item) => item.matchesPlayed > 0).map((item) => {
             const profile = getPoolProfile(payload.substitutes.find((poolItem) => poolItem.player_id === item.playerId) as PoolPlayer)
             return <div key={item.playerId} className="rounded-2xl bg-neutral-50 px-3 py-2.5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="text-sm font-black">{item.points} pts</p></div><p className="mt-1 text-[11px] font-semibold text-neutral-500">{item.matchesPlayed} partidos · {item.wins} victorias · diferencia {item.gamesDiff > 0 ? "+" : ""}{item.gamesDiff}</p></div>
           })}
