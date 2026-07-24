@@ -165,3 +165,18 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - The invitation rules summary now reflects the target season instead of always showing generic fee, calendar, MVP, and substitution rules.
 - No database migration, API, permission, or search-index change is required.
 - TypeScript syntax transpilation and isolated strict validation of the shared guide passed. Full project lint, typecheck, and build remain mandatory locally because dependencies were unavailable in the review container.
+
+## v0.14.4 - Floating search dialog polish (2026-07-24)
+
+- Anchored the Settings search dialog below the top floating controls while keeping its top edge fixed.
+- Made the dialog height content-adaptive up to a responsive maximum.
+- Limited scrolling to the results area and only when the content exceeds the available height.
+- Extended the backdrop beyond the top viewport edge to remove uncovered pixels on mobile devices.
+- No database migration, API, permission, route, or search-index change is required.
+## v0.14.5 - React effect validation (2026-07-24)
+
+- Removed synchronous state updates reached directly from effects in both suggestion screens.
+- Made initial suggestion loads cancel-safe so late responses do not update unmounted pages.
+- Moved notification hash expansion and scrolling into animation-frame callbacks.
+- No database migration, API, permission, route, or search-index change is required.
+

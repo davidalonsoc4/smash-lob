@@ -1,18 +1,14 @@
-Smash & Lob v0.14.3
+Smash & Lob v0.14.5
 
 Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/components/settings/GlobalSettingsSearch.tsx
-- src/app/help/page.tsx
-- src/components/invite/InviteFlow.tsx
-- src/i18n/locales/es.ts
-- src/i18n/locales/en.ts
-- src/i18n/locales/eu.ts
+- src/app/application-admin/suggestions/page.tsx
+- src/app/settings/suggestions/page.tsx
+- src/app/settings/notifications/page.tsx
 - docs/production-hardening/STATUS.md
 
 Added:
-- src/lib/leagueGuide.ts
-- docs/preproduction/V0.14.3_CONTEXTUAL_HELP.md
+- docs/preproduction/V0.14.5_REACT_EFFECT_VALIDATION.md

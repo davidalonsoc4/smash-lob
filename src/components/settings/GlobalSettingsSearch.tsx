@@ -271,7 +271,10 @@ export function GlobalSettingsSearch({
           type="button"
           aria-label="Cerrar búsqueda"
           onClick={closeSearch}
-          className="fixed inset-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
+          className="fixed bottom-0 left-0 right-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
+          style={{
+            top: "calc(-64px - env(safe-area-inset-top, 0px))",
+          }}
         />
       ) : null}
 
@@ -287,7 +290,13 @@ export function GlobalSettingsSearch({
             role="dialog"
             aria-modal="true"
             aria-label={copy.title}
-            className="absolute bottom-12 right-0 flex h-[clamp(380px,58svh,520px)] w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+            className="fixed z-40 flex w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+            style={{
+              top: "max(64px, calc(env(safe-area-inset-top, 0px) + 58px))",
+              right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
+              maxHeight:
+                "min(560px, calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 150px))",
+            }}
           >
             <div className="border-b border-neutral-100 px-3 pb-2.5 pt-3">
               <div className="flex items-center justify-between gap-3">
@@ -353,7 +362,7 @@ export function GlobalSettingsSearch({
             <div
               id={listboxId}
               role="listbox"
-              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
+              className="min-h-0 overflow-y-auto overscroll-contain p-2"
             >
               {hasQuery ? (
                 matchingEntries.length > 0 ? (

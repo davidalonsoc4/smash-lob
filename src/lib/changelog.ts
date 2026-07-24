@@ -15,6 +15,33 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.14.5",
+    date: "24 de julio de 2026",
+    title: "Validación de efectos React",
+    summary:
+      "Las cargas iniciales del buzón y la navegación por anclas de Notificaciones cumplen las reglas de efectos de React sin alterar su funcionamiento.",
+    category: "fix",
+    changes: [
+      "La bandeja de sugerencias de superusuario carga sus datos sin actualizar estado de forma síncrona dentro de un efecto.",
+      "El historial personal de sugerencias usa una carga cancelable que evita actualizaciones después de desmontar la pantalla.",
+      "Las anclas de Notificaciones abren y desplazan el grupo correspondiente mediante callbacks de animación seguros.",
+    ],
+  },
+  {
+    version: "v0.14.4",
+    date: "24 de julio de 2026",
+    title: "Buscador flotante más estable",
+    summary:
+      "La ventana de búsqueda conserva una posición fija, adapta su tamaño al contenido y cubre correctamente toda la pantalla con el fondo desenfocado.",
+    category: "improvement",
+    changes: [
+      "La ventana de búsqueda se sitúa bajo los controles flotantes superiores con un margen constante.",
+      "El panel crece o se compacta según los resultados sin desplazar su borde superior.",
+      "El desplazamiento interno solo aparece cuando el contenido supera la altura máxima disponible.",
+      "El fondo desenfocado se extiende más allá del borde superior para evitar franjas sin blur en móviles.",
+    ],
+  },
+  {
     version: "v0.14.3",
     date: "24 de julio de 2026",
     title: "Ayuda contextual y búsqueda estable",
