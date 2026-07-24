@@ -9,6 +9,12 @@
 - No database migration or remote change is required.
 
 
+## Post-release validation fix (v0.15.5, 2026-07-24)
+
+- Fixed two TypeScript errors introduced by actionable empty states on the Activity screen.
+- Empty-state refresh actions now reuse the same refresh function as the section headers.
+- No database migration, API contract, permission, or data change is required.
+
 ## v0.13.3 public changelog (2026-07-24)
 
 - Added `/changelog` with a public-safe history of documented Smash & Lob releases starting at v0.6.2.
@@ -187,3 +193,41 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Existing matches are reloaded from Supabase without calendar regeneration.
 - No database migration is required.
 
+
+
+## v0.15.0 - Image crop and optimization (2026-07-24)
+
+- Added a reusable crop editor for player avatars and league logos.
+- Added drag, zoom, rotation and final-shape previews before upload.
+- Normalized client images to 512 × 512 compressed WebP data URLs.
+- Added file type and 12 MB input-size validation.
+- No migration, API, permission or database change is required.
+
+## v0.15.1 - Loading states and skeletons (2026-07-24)
+
+- Added reusable skeleton primitives and page compositions.
+- Replaced generic session, profile and league-transition spinners with structured loading states.
+- Added route skeletons for the most-used list, ranking, settings and detail screens.
+- Skeleton animation respects reduced-motion preferences.
+- No migration, API, permission or persistence change is required.
+
+## v0.15.2 - Actionable empty states (2026-07-24)
+
+- Added a shared empty-state component with context-specific actions.
+- Replaced generic empty messages across matches, notifications, activity, suggestions, announcements, substitutes and statistics.
+- Added compact variants for dense administrative screens.
+- No migration, API, permission or persistence change is required.
+
+## v0.15.3 - Contextual onboarding (2026-07-24)
+
+- Added dismissible tips for Settings search, custom availability, Match actions and Season administration.
+- Added a Help control to restore dismissed tips.
+- Added Spanish, English and Basque onboarding copy.
+- Tip state is local to the device and does not add server-side tracking.
+- No migration, API, permission or remote persistence change is required.
+
+## v0.15.4 - Lint cleanup (2026-07-24)
+
+- Removed the unused translation binding reported by ESLint in `ProfileCompletionGate`.
+- Preserved all profile completion, onboarding, and availability behavior.
+- No migration, API, permission, or persistence change is required.

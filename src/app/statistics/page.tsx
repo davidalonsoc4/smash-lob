@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { RankingTable } from "@/components/ranking/RankingTable"
 import { useMatchData } from "@/context/MatchDataProvider"
@@ -264,11 +265,12 @@ export default function StatisticsPage() {
             showAvatars={activeLeague.showRankingAvatars !== false}
           />
         ) : (
-          <AppCard>
-            <p className="text-sm font-bold text-neutral-500">
-              Todavía no hay jugadores ni resultados para esta temporada.
-            </p>
-          </AppCard>
+          <EmptyState
+            compact
+            title="Todavía no hay clasificación"
+            description="La clasificación aparecerá cuando la temporada tenga jugadores y resultados contabilizados."
+            action={{ label: "Ver partidos", href: "/matches" }}
+          />
         )}
       </div>
 
@@ -277,11 +279,11 @@ export default function StatisticsPage() {
           Análisis individual
         </p>
         {statistics.ranking.length === 0 ? (
-          <AppCard>
-            <p className="text-sm font-bold text-neutral-500">
-              Todavía no hay jugadores para analizar.
-            </p>
-          </AppCard>
+          <EmptyState
+            compact
+            title="Sin jugadores para analizar"
+            description="El análisis individual se activará cuando exista una plantilla con estadísticas."
+          />
         ) : (
           <div className="space-y-2">
             <AppCard>
@@ -468,11 +470,12 @@ export default function StatisticsPage() {
           Parejas
         </p>
         {statistics.pairStatistics.length === 0 ? (
-          <AppCard>
-            <p className="text-sm font-bold text-neutral-500">
-              Se necesitan partidos contabilizados para comparar parejas.
-            </p>
-          </AppCard>
+          <EmptyState
+            compact
+            title="Todavía no se pueden comparar parejas"
+            description="Se necesitan partidos contabilizados para calcular rendimiento, victorias y diferencias."
+            action={{ label: "Consultar calendario", href: "/matches" }}
+          />
         ) : (
           <div className="space-y-2">
             {statistics.pairStatistics.slice(0, 8).map((pair, index) => (
@@ -525,11 +528,11 @@ export default function StatisticsPage() {
           Historial de campeones
         </p>
         {seasonHistory.length === 0 ? (
-          <AppCard>
-            <p className="text-sm font-bold text-neutral-500">
-              El historial aparecerá cuando termine la primera temporada.
-            </p>
-          </AppCard>
+          <EmptyState
+            compact
+            title="Todavía no hay campeones históricos"
+            description="El historial se completará cuando termine la primera temporada de la liga."
+          />
         ) : (
           <div className="space-y-2">
             {seasonHistory.map(({ season, statistics: seasonStats }) => (

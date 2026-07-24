@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react"
 import { signOut, useSession } from "next-auth/react"
+import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
 import {
   buildStandardWeeklyAvailability,
@@ -168,7 +169,6 @@ function ProfileCompletionForm({
 }
 
 export function ProfileCompletionGate({ children }: { children: React.ReactNode }) {
-  const { t } = useI18n()
   const { data: session } = useSession()
   const { profile, isLoading, error, saveProfile } = useAccountProfile()
   const googleDefaults = splitGoogleDisplayName(session?.user?.name)
@@ -203,16 +203,7 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-stone-200 text-neutral-950">
-        <div className="mx-auto flex min-h-screen max-w-md items-center bg-stone-50 px-4 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
-          <AppCard className="w-full text-center">
-            <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-950" />
-            <p className="mt-4 font-black">{t.accountProfile.loadingTitle}</p>
-          </AppCard>
-        </div>
-      </div>
-    )
+    return <AppBootSkeleton />
   }
 
   if (profile?.isComplete) {

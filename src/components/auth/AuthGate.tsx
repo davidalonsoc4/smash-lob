@@ -3,6 +3,7 @@
 import { signIn, useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
+import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 
@@ -27,16 +28,7 @@ export function AuthGate({ children }: AuthGateProps) {
   }, [isAccessInviteRoute, pathname, status])
 
   if (status === "loading") {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
-        <AppCard className="w-full max-w-sm">
-          <p className="font-bold">{t.auth.loadingTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
-            {t.auth.loadingDescription}
-          </p>
-        </AppCard>
-      </main>
-    )
+    return <AppBootSkeleton />
   }
 
   if (status === "unauthenticated") {

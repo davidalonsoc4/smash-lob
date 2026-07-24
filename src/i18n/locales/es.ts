@@ -1344,6 +1344,22 @@ export const es = {
     },
   },
 
+  onboardingTips: {
+    dismiss: "Entendido",
+    settingsSearchTitle: "Encuentra cualquier ajuste con la lupa",
+    settingsSearchDescription: "La búsqueda flotante abre accesos directos a opciones personales, de liga, temporada y administración.",
+    availabilityTitle: "Puedes usar varias franjas por día",
+    availabilityDescription: "Activa un día, despliega su fila y añade tantas franjas como necesites. Los días desactivados no se tendrán en cuenta.",
+    matchActionsTitle: "Las acciones adicionales están en la bolita flotante",
+    matchActionsDescription: "Desde Más acciones puedes comunicar incidencias o gestionar suplentes cuando la configuración del partido lo permite.",
+    seasonAdminTitle: "Usa los accesos rápidos para moverte",
+    seasonAdminDescription: "La administración de temporada está dividida por calendario, reglas, personas y estado. Los accesos superiores te llevan directamente a cada bloque.",
+    helpTitle: "Consejos contextuales",
+    helpDescription: "Vuelve a mostrar las ayudas breves que aparecen la primera vez que utilizas algunas funciones.",
+    helpReset: "Mostrar de nuevo",
+    helpResetDone: "Restablecidos",
+  },
+
   language: {
     current: "Español",
     switchToSpanish: "ES",

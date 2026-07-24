@@ -1292,6 +1292,22 @@ export const eu = {
     },
   },
 
+  onboardingTips: {
+    dismiss: "Ulertuta",
+    settingsSearchTitle: "Bilatu edozein ezarpen lupa-botoiarekin",
+    settingsSearchDescription: "Bilaketa flotatzaileak kontu, liga, denboraldi eta administrazio aukeretarako sarbide zuzenak irekitzen ditu.",
+    availabilityTitle: "Egun bakoitzean hainbat tarte gehi ditzakezu",
+    availabilityDescription: "Aktibatu eguna, zabaldu errenkada eta gehitu behar dituzun tarteak. Desaktibatutako egunak ez dira kontuan hartuko.",
+    matchActionsTitle: "Ekintza osagarriak botoi flotatzailean daude",
+    matchActionsDescription: "Ekintza gehiago aukeratik gorabeherak jakinarazi edo ordezkoak kudea ditzakezu konfigurazioak baimentzen duenean.",
+    seasonAdminTitle: "Erabili sarbide azkarrak mugitzeko",
+    seasonAdminDescription: "Denboraldiaren administrazioa egutegi, arau, pertsona eta egoeraren arabera banatuta dago. Goiko sarbideek atal bakoitzera eramaten zaituzte.",
+    helpTitle: "Testuinguruko aholkuak",
+    helpDescription: "Erakutsi berriro funtzio batzuk lehen aldiz erabiltzean agertzen diren laguntza laburrak.",
+    helpReset: "Erakutsi berriro",
+    helpResetDone: "Berrezarrita",
+  },
+
   language: {
     current: "Euskera",
     switchToSpanish: "ES",

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -437,6 +438,11 @@ function ActivityPageContent() {
     () => readLastActivityError()
   )
 
+  function refreshActivity() {
+    setLastActivityError(readLastActivityError())
+    setRefreshKey((current) => current + 1)
+  }
+
   useEffect(() => {
     let isMounted = true
 
@@ -814,10 +820,7 @@ function ActivityPageContent() {
               action={
                 <button
                   type="button"
-                  onClick={() => {
-                    setLastActivityError(readLastActivityError())
-                    setRefreshKey((current) => current + 1)
-                  }}
+                  onClick={refreshActivity}
                   className="text-sm font-semibold text-neutral-600"
                 >
                   {t.activity.refresh}
@@ -844,12 +847,11 @@ function ActivityPageContent() {
             ) : null}
 
             {!isLoading && !error && events.length === 0 ? (
-              <AppCard>
-                <p className="font-bold">{t.activity.emptyGeneralTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  {t.activity.emptyGeneralDescription}
-                </p>
-              </AppCard>
+              <EmptyState
+                title={t.activity.emptyGeneralTitle}
+                description={t.activity.emptyGeneralDescription}
+                action={{ label: t.activity.refresh, onClick: refreshActivity }}
+              />
             ) : null}
 
             {events.length > 0 ? (
@@ -873,10 +875,7 @@ function ActivityPageContent() {
             action={
               <button
                 type="button"
-                onClick={() => {
-                  setLastActivityError(readLastActivityError())
-                  setRefreshKey((current) => current + 1)
-                }}
+                onClick={refreshActivity}
                 className="text-sm font-semibold text-neutral-600"
               >
                 {t.activity.refresh}
@@ -900,16 +899,19 @@ function ActivityPageContent() {
           ) : null}
 
           {!isLoading && !error && !hasEvents ? (
-            <AppCard>
-              <p className="font-bold">
-                {effectiveScope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
-              </p>
-              <p className="mt-2 text-sm text-neutral-500">
-                {effectiveScope === "mine"
+            <EmptyState
+              title={
+                effectiveScope === "mine"
+                  ? t.activity.emptyPersonalTitle
+                  : t.activity.emptyGeneralTitle
+              }
+              description={
+                effectiveScope === "mine"
                   ? t.activity.emptyPersonalDescription
-                  : t.activity.emptyGeneralDescription}
-              </p>
-            </AppCard>
+                  : t.activity.emptyGeneralDescription
+              }
+              action={{ label: t.activity.refresh, onClick: refreshActivity }}
+            />
           ) : null}
 
           {!isLoading && !error && !hasEvents && lastActivityError ? (

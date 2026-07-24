@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ContextualTip } from "@/components/onboarding/ContextualTip";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import { useI18n } from "@/i18n/I18nProvider";
 import {
   countWeeklyAvailabilitySlots,
   createEmptyPlayerAvailability,
@@ -284,6 +286,7 @@ function DayAvailabilityEditor({
 }
 
 export default function AvailabilityPage() {
+  const { t } = useI18n();
   const { userId } = useLeagueAccess();
   const { currentUser } = useCurrentUser();
   const { activeLeague, activeSeason } = useCurrentLeagueData();
@@ -548,6 +551,16 @@ export default function AvailabilityPage() {
           </div>
         </div>
       </AppCard>
+
+      {shouldShowCustomEditor ? (
+        <ContextualTip
+          tipId="availability-custom"
+          title={t.onboardingTips.availabilityTitle}
+          description={t.onboardingTips.availabilityDescription}
+          dismissLabel={t.onboardingTips.dismiss}
+          compact
+        />
+      ) : null}
 
       {!shouldShowCustomEditor ? (
         <>

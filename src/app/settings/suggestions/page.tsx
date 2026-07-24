@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 
 type SuggestionCategory = "improvement" | "feature" | "usability" | "other"
@@ -277,11 +278,11 @@ export default function SuggestionsPage() {
             })}
           </div>
         ) : (
-          <AppCard className="p-3">
-            <p className="text-xs font-semibold leading-5 text-neutral-500">
-              Todavía no has enviado ninguna sugerencia.
-            </p>
-          </AppCard>
+          <EmptyState
+            compact
+            title="Todavía no has enviado propuestas"
+            description="Cuando envíes una idea desde el formulario superior podrás consultar aquí su estado."
+          />
         )}
       </section>
     </div>

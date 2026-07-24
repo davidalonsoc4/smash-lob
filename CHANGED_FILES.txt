@@ -1,13 +1,13 @@
-Smash & Lob v0.14.6
+Smash & Lob v0.15.5
 
 Modified:
+- CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/lib/serverSeasonMutations.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/start/route.ts
+- src/app/activity/page.tsx
 - docs/production-hardening/STATUS.md
 
 Added:
-- docs/preproduction/V0.14.6_REOPEN_SEASON_HOTFIX.md
+- docs/preproduction/V0.15.5_ACTIVITY_REFRESH_FIX.md

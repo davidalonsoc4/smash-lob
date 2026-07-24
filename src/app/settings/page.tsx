@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
+import { ContextualTip } from "@/components/onboarding/ContextualTip"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
@@ -236,6 +237,14 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
 
       <GlobalSettingsSearch locale={locale} entries={searchEntries} />
 
+      <ContextualTip
+        tipId="settings-search"
+        title={t.onboardingTips.settingsSearchTitle}
+        description={t.onboardingTips.settingsSearchDescription}
+        dismissLabel={t.onboardingTips.dismiss}
+        compact
+      />
+
       <AppCard className="border-blue-100 bg-blue-50">
         <p className="text-sm font-black text-blue-950">Modo espectador</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
@@ -441,6 +450,14 @@ function PlayerSettingsPage() {
       </header>
 
       <GlobalSettingsSearch locale={locale} entries={searchEntries} />
+
+      <ContextualTip
+        tipId="settings-search"
+        title={t.onboardingTips.settingsSearchTitle}
+        description={t.onboardingTips.settingsSearchDescription}
+        dismissLabel={t.onboardingTips.dismiss}
+        compact
+      />
 
       <SettingsSection
         title="Personal"

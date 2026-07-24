@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { ContextualTip } from "@/components/onboarding/ContextualTip";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
@@ -4352,6 +4353,14 @@ export default function AdminSeasonPage() {
         canAuditCalendar={canAuditCalendar}
         canReopenFinishedSeason={canReopenFinishedSeason}
         registrationEnabled={roundSettings.registrationFee.enabled}
+      />
+
+      <ContextualTip
+        tipId="season-admin"
+        title={t.onboardingTips.seasonAdminTitle}
+        description={t.onboardingTips.seasonAdminDescription}
+        dismissLabel={t.onboardingTips.dismiss}
+        compact
       />
 
       {hasCreatedLeagueSeason ? (

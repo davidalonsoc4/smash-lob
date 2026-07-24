@@ -2,6 +2,8 @@
 
 import { ChangeEvent, FormEvent, useState } from "react"
 import { useSession } from "next-auth/react"
+import { ImageCropDialog } from "@/components/images/ImageCropDialog"
+import { ProfileCardSkeleton } from "@/components/loading/PageSkeletons"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -9,7 +11,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeProfileName } from "@/lib/accountProfile"
 import { recordActivityEvent } from "@/lib/activity"
-import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import {
   isSafeDataImageUrl,
   isSafeImageUrl,
@@ -47,6 +49,7 @@ function AccountProfileForm({
   const [firstName, setFirstName] = useState(initialProfile.firstName)
   const [lastName, setLastName] = useState(initialProfile.lastName)
   const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
+  const [avatarCropSource, setAvatarCropSource] = useState<string | null>(null)
   const [isSavingName, setIsSavingName] = useState(false)
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
   const [nameFeedback, setNameFeedback] = useState<string | null>(null)
@@ -99,7 +102,7 @@ function AccountProfileForm({
 
   async function saveAvatar(nextAvatarUrl: string | null) {
     if (!canEditAvatar) {
-      return
+      return false
     }
 
     setIsSavingAvatar(true)
@@ -116,7 +119,7 @@ function AccountProfileForm({
 
     if (!updated) {
       setAvatarError(t.settings.avatarSaveError)
-      return
+      return false
     }
 
     setAvatarUrl(nextAvatarUrl)
@@ -143,6 +146,7 @@ function AccountProfileForm({
     }
 
     setAvatarFeedback(t.settings.avatarSaved)
+    return true
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -153,12 +157,10 @@ function AccountProfileForm({
     }
 
     try {
-      const dataUrl = await resizeImageFileToDataUrl({
-        file,
-        maxSize: 512,
-      })
-
-      await saveAvatar(dataUrl)
+      validateImageFile(file)
+      setAvatarError(null)
+      setAvatarFeedback(null)
+      setAvatarCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
       setAvatarError(
         imageError instanceof Error
@@ -298,6 +300,24 @@ function AccountProfileForm({
           ) : null}
         </div>
       ) : null}
+
+      {avatarCropSource ? (
+        <ImageCropDialog
+          src={avatarCropSource}
+          title="Recortar imagen de perfil"
+          description="Ajusta el encuadre, el zoom y la orientación antes de guardar la imagen."
+          shape="circle"
+          outputSize={512}
+          onCancel={() => setAvatarCropSource(null)}
+          onConfirm={async (dataUrl) => {
+            const saved = await saveAvatar(dataUrl)
+            if (saved) {
+              setAvatarCropSource(null)
+            }
+            return saved
+          }}
+        />
+      ) : null}
     </div>
   )
 }
@@ -308,11 +328,7 @@ export function AccountProfileSettings() {
   const { currentUser } = useCurrentUser()
 
   if (isLoading) {
-    return (
-      <div className="rounded-xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-        {t.settings.profileLoading}
-      </div>
-    )
+    return <ProfileCardSkeleton />
   }
 
   if (!profile) {
