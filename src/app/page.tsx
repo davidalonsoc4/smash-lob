@@ -399,12 +399,7 @@ function PlayerAwardCard({
               {badge}
             </div>
             {isWholeCardClickable ? (
-              <span
-                aria-hidden="true"
-                className="text-xl font-black leading-none text-white/70"
-              >
-                ›
-              </span>
+              <ClickableChevron className="shrink-0 border-white/20 bg-white/10 text-white/70" />
             ) : null}
           </div>
         </div>
@@ -1146,7 +1141,7 @@ export default function Home() {
                       Debes {formatMoney(totalAmount)} en {count} movimiento{count === 1 ? "" : "s"} pendiente{count === 1 ? "" : "s"}
                     </p>
                   </div>
-                  <span className="shrink-0 text-lg font-black text-amber-900">›</span>
+                  <ClickableChevron className="shrink-0 border-amber-200 bg-amber-100 text-amber-900" />
                 </Link>
               ))}
             </div>

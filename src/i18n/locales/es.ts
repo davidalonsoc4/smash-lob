@@ -736,9 +736,16 @@ export const es = {
     appearanceLight: "Claro",
     appearanceDark: "Oscuro",
     appearanceSystem: "Sistema",
-    accountTitle: "Cuenta e invitaciones",
+    myProfileTitle: "Mi perfil",
+    myProfileDescription: "Edita tu nombre y la imagen de perfil desde una pantalla compacta.",
+    profileImageTitle: "Imagen de perfil",
+    profileImageDescription: "La imagen se aplica a tu jugador en la liga activa.",
+    profileGoogleImageNotice: "Como espectador se utiliza la imagen de tu cuenta de Google.",
+    profileLoading: "Cargando perfil...",
+    profileLoadError: "No se ha podido cargar el perfil.",
+    accountTitle: "Otras ligas",
     accountDescription:
-      "Gestiona tu sesión, tu imagen y el acceso a nuevas ligas.",
+      "Únete a una liga existente o crea una nueva competición.",
     accountSettingsTitle: "Ajustes de cuenta",
     accountSettingsDescription:
       "Personaliza la imagen que se muestra en tu perfil de esta liga.",

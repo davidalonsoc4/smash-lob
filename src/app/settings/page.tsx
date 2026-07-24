@@ -1,53 +1,27 @@
 "use client"
 
-import { ChangeEvent, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
-import { AccountNameSettings } from "@/components/settings/AccountNameSettings"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
-import { resizeImageFileToDataUrl } from "@/lib/clientImages"
-import {
-  isSafeDataImageUrl,
-  isSafeImageUrl,
-  normalizeImageUrl,
-} from "@/lib/imageUrl"
-import { recordActivityEvent } from "@/lib/activity"
 import { formatMoney } from "@/lib/courtBooking"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 
 
 const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 const settingsVersionLabel = `Beta cerrada · ${APP_VERSION_LABEL}`
-
-function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
-  return {
-    actorEmail: session?.user?.email ?? "system@smash-lob.local",
-    actorDisplayName: session?.user?.name ?? null,
-  }
-}
-
-function normalizeAvatarUrl(value: string | null | undefined) {
-  const cleanValue = normalizeImageUrl(value)
-
-  return cleanValue && isSafeImageUrl(cleanValue) ? cleanValue : null
-}
-
-function isCustomUploadedAvatar(value: string | null | undefined) {
-  return isSafeDataImageUrl(value)
-}
-
-
 
 function AppearanceSettings() {
   const { t } = useI18n()
@@ -86,151 +60,6 @@ function AppearanceSettings() {
   )
 }
 
-function AccountAvatarSettings() {
-  const { t } = useI18n()
-  const { currentUser } = useCurrentUser()
-  const { data: session } = useSession()
-  const googleAvatarUrl = normalizeAvatarUrl(session?.user?.image)
-  const { updateLeaguePlayerAvatar } = useLeagueAccess()
-  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const effectiveAvatarUrl = normalizeAvatarUrl(avatarUrl) ?? googleAvatarUrl
-  const isUsingCustomAvatar = isCustomUploadedAvatar(avatarUrl)
-  const avatarStatusLabel = isUsingCustomAvatar
-    ? t.settings.avatarCustomActive
-    : effectiveAvatarUrl
-      ? t.settings.avatarGoogleFallback
-      : t.settings.avatarInitialsFallback
-
-  async function saveAvatar(nextAvatarUrl: string | null) {
-    setIsSaving(true)
-    setSaved(false)
-    setError(null)
-
-    const updated = await updateLeaguePlayerAvatar(
-      currentUser.leagueId,
-      currentUser.id,
-      nextAvatarUrl
-    )
-
-    setIsSaving(false)
-
-    if (!updated) {
-      setError(t.settings.avatarSaveError)
-      return
-    }
-
-    setAvatarUrl(nextAvatarUrl)
-
-    try {
-      await recordActivityEvent({
-        leagueId: currentUser.leagueId,
-        ...getActorFromSession(session),
-        type: "player_avatar_updated",
-        title: nextAvatarUrl ? "Imagen de perfil actualizada" : "Imagen de perfil eliminada",
-        description: nextAvatarUrl
-          ? `${currentUser.displayName} ha actualizado su imagen de perfil.`
-          : `${currentUser.displayName} ha eliminado su imagen de perfil.`,
-        metadata: {
-          targetPlayerId: currentUser.id,
-          targetPlayerName: currentUser.displayName,
-          hasAvatar: Boolean(nextAvatarUrl),
-        },
-      })
-    } catch {
-      // La imagen ya está guardada; la actividad es auxiliar.
-    }
-
-    setSaved(true)
-  }
-
-  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-
-    if (!file) {
-      return
-    }
-
-    try {
-      const dataUrl = await resizeImageFileToDataUrl({
-        file,
-        maxSize: 512,
-      })
-
-      await saveAvatar(dataUrl)
-    } catch (imageError) {
-      setError(
-        imageError instanceof Error
-          ? imageError.message
-          : t.settings.avatarProcessError
-      )
-    } finally {
-      event.target.value = ""
-    }
-  }
-
-  return (
-    <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className="flex items-center gap-3">
-        <PlayerAvatar
-          player={{
-            ...currentUser,
-            avatarUrl: effectiveAvatarUrl,
-          }}
-          size="md"
-        />
-
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-black text-neutral-950">
-            {currentUser.displayName}
-          </p>
-          <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
-            {session?.user?.email ?? t.settings.accountDescription}
-          </p>
-          <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-400">
-            {avatarStatusLabel}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="block rounded-2xl bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-800 shadow-sm">
-          {isSaving ? t.common.saving : t.settings.uploadAvatar}
-          <input
-            type="file"
-            accept="image/*"
-            disabled={isSaving}
-            onChange={handleFileChange}
-            className="sr-only"
-          />
-        </label>
-
-        <button
-          type="button"
-          onClick={() => saveAvatar(googleAvatarUrl)}
-          disabled={isSaving || !isUsingCustomAvatar}
-          className="rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-300"
-        >
-          {t.settings.removeAvatar}
-        </button>
-      </div>
-
-      {error ? (
-        <p className="mt-2 text-xs font-semibold text-red-600">{error}</p>
-      ) : null}
-
-      {saved ? (
-        <p className="mt-2 text-xs font-semibold text-neutral-600">
-          {t.settings.avatarSaved}
-        </p>
-      ) : null}
-    </div>
-  )
-}
-
-
 function SpectatorSettingsPage({
   leagueName,
 }: {
@@ -263,36 +92,41 @@ function SpectatorSettingsPage({
 
       <GlobalSettingsSearch locale={locale} entries={searchEntries} />
 
-      <div id="spectator-account" className="settings-search-target"><AppCard>
-        <div className="flex items-center gap-3">
-          {session?.user?.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={session.user.image}
-              alt=""
-              className="h-11 w-11 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-200 text-sm font-black text-neutral-700">
-              ES
+      <Link
+        href="/settings/profile"
+        id="spectator-account"
+        className="block settings-search-target"
+      >
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center gap-3">
+            {session?.user?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={session.user.image}
+                alt=""
+                className="h-11 w-11 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-200 text-sm font-black text-neutral-700">
+                ES
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-black">{t.settings.myProfileTitle}</p>
+              <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
+                {t.settings.myProfileDescription}
+              </p>
             </div>
-          )}
-          <div className="min-w-0">
-            <p className="truncate font-black">
-              {session?.user?.name ?? "Espectador"}
-            </p>
-            <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
-              {session?.user?.email}
-            </p>
+            <ClickableChevron className="shrink-0" />
           </div>
-        </div>
+        </AppCard>
+      </Link>
 
-        <div className="mt-3 rounded-2xl bg-neutral-50 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
+      <AppCard>
+        <div className="rounded-2xl bg-neutral-50 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
           Puedes consultar Home, ranking, partidos, resultados y perfiles. No puedes modificar datos ni acceder a la actividad interna.
         </div>
-
-        <AccountNameSettings />
-      </AppCard></div>
+      </AppCard>
 
       <Link href="/leagues" className="block settings-search-target" id="leagues">
         <AppCard className="transition active:scale-[0.99]">
@@ -303,7 +137,7 @@ function SpectatorSettingsPage({
                 Cambia entre ligas donde eres jugador o espectador.
               </p>
             </div>
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -326,7 +160,7 @@ function SpectatorSettingsPage({
                 Consulta cómo funciona Smash & Lob.
               </p>
             </div>
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -340,7 +174,7 @@ function SpectatorSettingsPage({
                 Consulta las novedades publicadas en cada versión.
               </p>
             </div>
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -516,7 +350,7 @@ function PlayerSettingsPage() {
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -544,7 +378,7 @@ function PlayerSettingsPage() {
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -559,7 +393,7 @@ function PlayerSettingsPage() {
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -574,7 +408,7 @@ function PlayerSettingsPage() {
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -589,7 +423,7 @@ function PlayerSettingsPage() {
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -608,7 +442,7 @@ function PlayerSettingsPage() {
               </p>
             </div>
 
-            <span className="text-xl">&gt;</span>
+            <ClickableChevron className="shrink-0" />
           </div>
         </AppCard>
       </Link>
@@ -654,7 +488,7 @@ function PlayerSettingsPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -671,7 +505,7 @@ function PlayerSettingsPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -688,7 +522,7 @@ function PlayerSettingsPage() {
                 </p>
               </div>
 
-              <span className="text-xl text-red-700">&gt;</span>
+              <ClickableChevron className="shrink-0 border-red-200 bg-red-100 text-red-700" />
             </div>
           </AppCard>
         </Link>
@@ -698,16 +532,32 @@ function PlayerSettingsPage() {
         Cuenta
       </p>
 
-      <div id="account" className="settings-search-target"><AppCard>
+      <Link
+        href="/settings/profile"
+        id="account"
+        className="block settings-search-target"
+      >
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center gap-3">
+            <PlayerAvatar player={currentUser} size="md" />
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">{t.settings.myProfileTitle}</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                {t.settings.myProfileDescription}
+              </p>
+            </div>
+            <ClickableChevron className="shrink-0" />
+          </div>
+        </AppCard>
+      </Link>
+
+      <AppCard>
         <div className="min-w-0">
           <p className="font-bold">{t.settings.accountTitle}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
             {t.settings.accountDescription}
           </p>
         </div>
-
-        <AccountNameSettings />
-        <AccountAvatarSettings />
 
         <div className="mt-3 grid gap-2">
           <Link
@@ -726,7 +576,7 @@ function PlayerSettingsPage() {
             </Link>
           ) : null}
         </div>
-      </AppCard></div>
+      </AppCard>
 
 
       <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">

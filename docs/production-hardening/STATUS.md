@@ -117,3 +117,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - No current release blocker is documented for the closed-beta scope.
 - The application is considered Production Ready for controlled sharing with the league participants.
+
+## v0.13.4 - Profile and navigation consistency (2026-07-24)
+
+- Added a compact `/settings/profile` screen that unifies account-name and active-league avatar editing.
+- Kept create-league and join-league actions directly in Settings.
+- Replaced remaining text navigation arrows with the shared `ClickableChevron` component.
+- Made the current closed-beta version explicit on the public changelog card.
+- No database migration is required.

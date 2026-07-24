@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -212,7 +213,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -227,7 +228,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -248,7 +249,7 @@ export default function AdminPage() {
                   Revisa y resuelve las incidencias pendientes de los partidos.
                 </p>
               </div>
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -263,7 +264,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -278,7 +279,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -293,7 +294,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -308,7 +309,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -323,7 +324,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -338,7 +339,7 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <span className="text-xl">&gt;</span>
+              <ClickableChevron className="shrink-0" />
             </div>
           </AppCard>
         </Link>
@@ -359,7 +360,7 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                <span className="text-xl">&gt;</span>
+                <ClickableChevron className="shrink-0" />
               </div>
             </AppCard>
           </Link>

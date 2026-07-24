@@ -1,4 +1,4 @@
-Smash & Lob v0.13.3 - registro público de cambios
+Smash & Lob v0.13.4 - Mi perfil y navegación unificada
 
 Archivos modificados o añadidos:
 - CHANGED_FILES.txt
@@ -6,11 +6,22 @@ Archivos modificados o añadidos:
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
+- src/lib/settingsSearch.ts
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
 - src/app/changelog/page.tsx
 - src/app/settings/page.tsx
-- src/lib/settingsSearch.ts
+- src/app/settings/profile/page.tsx
+- src/app/page.tsx
+- src/app/admin/page.tsx
+- src/app/admin/incidents/page.tsx
+- src/app/ranking/page.tsx
 - src/components/auth/LeagueEntryGate.tsx
-- docs/preproduction/V0.13.3_PUBLIC_CHANGELOG.md
+- src/components/match/MatchActionsMenu.tsx
+- src/components/settings/AccountProfileSettings.tsx
+- src/components/settings/GlobalSettingsSearch.tsx
+- docs/preproduction/V0.13.4_PROFILE_AND_CHEVRONS.md
 - docs/production-hardening/STATUS.md
 
 No requiere migraciones de base de datos.
