@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.14.0",
+    date: "24 de julio de 2026",
+    title: "Nueva arquitectura de Ajustes",
+    summary:
+      "Ajustes y Administración se reorganizan por finalidad para encontrar cada opción con menos desplazamientos y menos mezclas de conceptos.",
+    category: "improvement",
+    changes: [
+      "Ajustes se divide en Personal, Mis ligas, Actividad personal, Administración y Ayuda e información.",
+      "Jugador y espectador comparten la misma arquitectura, mostrando únicamente las opciones permitidas por su rol.",
+      "Administración se agrupa en General, Personas y accesos, Competición, Operaciones y Datos y control.",
+      "Las preferencias de notificación se compactan en categorías desplegables.",
+      "Administrar temporada incorpora navegación y separadores para calendario, reglas, plantilla y ciclo de vida.",
+      "El buscador mantiene su funcionamiento anterior y se adaptará a la nueva arquitectura en una revisión posterior.",
+    ],
+  },
+  {
     version: "v0.13.4",
     date: "24 de julio de 2026",
     title: "Perfil y navegación unificados",

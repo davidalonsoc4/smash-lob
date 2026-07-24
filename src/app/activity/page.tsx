@@ -657,6 +657,14 @@ function ActivityPageContent() {
 
       {effectiveScope === "admin" && canAccessAdmin ? (
         <section className="space-y-4">
+          <div className="px-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+              Comunicaciones y avisos
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+              Define qué eventos generan notificaciones generales para la liga.
+            </p>
+          </div>
           <div id="notification-settings" className="settings-search-target"><AppCard className="p-0">
             <div className="p-3">
               <div className="flex items-center justify-between gap-3">
@@ -793,6 +801,14 @@ function ActivityPageContent() {
           </AppCard></div>
 
           <section>
+            <div className="mb-3 px-1">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+                Historial y auditoría
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                Consulta las acciones administrativas separadas de la configuración de avisos.
+              </p>
+            </div>
             <SectionHeader
               title={t.activity.adminTitle}
               action={
