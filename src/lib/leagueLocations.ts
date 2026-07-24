@@ -405,6 +405,18 @@ export function getLeagueLocationCompactText(location: LeagueLocation) {
     .join(" · ");
 }
 
+export function getScheduleLocationDisplayText(value: unknown) {
+  if (typeof value === "string") {
+    return getScheduleLocationFallbackText(value);
+  }
+
+  const normalizedLocation = normalizeLeagueLocation(value);
+
+  return normalizedLocation
+    ? getLeagueLocationCompactText(normalizedLocation)
+    : null;
+}
+
 export function getScheduleLocationFallbackText(
   scheduleLocation: string | null | undefined,
 ) {

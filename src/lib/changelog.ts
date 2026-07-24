@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.1",
+    date: "25 de julio de 2026",
+    title: "Ubicaciones legibles y consistencia visual",
+    summary:
+      "Las ubicaciones y pistas se presentan con el mismo formato en toda la aplicación y el modo Colorido gana coherencia en avisos, actividad y programación.",
+    category: "fix",
+    changes: [
+      "Las notificaciones de programación reconstruyen el lugar y la pista desde sus datos y dejan de mostrar objetos JSON, incluso en avisos históricos.",
+      "Actividad, detalle de partido, calendario y exportaciones CSV comparten el mismo formateador de ubicaciones.",
+      "Los recordatorios de próximo partido también aparecen en el centro de notificaciones personal con una ubicación legible.",
+      "Las tarjetas de notificaciones, actividad y programación reciben acentos propios y consistentes dentro del modo Colorido.",
+      "No se modifica el valor almacenado de la programación ni se requiere migración de base de datos.",
+    ],
+  },
+  {
     version: "v0.16.0",
     date: "24 de julio de 2026",
     title: "Nueva apariencia Colorida",

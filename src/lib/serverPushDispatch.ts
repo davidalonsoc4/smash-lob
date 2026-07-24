@@ -8,7 +8,7 @@ import {
 } from "@/lib/notificationSettings";
 import type { ActivityEventType } from "@/lib/activity";
 import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
-import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations";
 import {
   getActivityDeliveryMode,
   normalizeLeagueActivitySettings,
@@ -530,11 +530,8 @@ function getNotificationBody(
         ? metadata.dateLabel.trim()
         : null;
     const locationText =
-      typeof metadata.locationText === "string" && metadata.locationText.trim()
-        ? metadata.locationText.trim()
-        : getScheduleLocationFallbackText(
-            typeof metadata.location === "string" ? metadata.location : null,
-          );
+      getScheduleLocationDisplayText(metadata.locationText) ??
+      getScheduleLocationDisplayText(metadata.location);
     const roundLabel = round > 0 ? `Jornada ${round}` : null;
 
     return (
@@ -738,9 +735,8 @@ function getNotificationBody(
   if (event.type === "match_upcoming_reminder") {
     const metadata = toRecord(event.metadata);
     const location =
-      typeof metadata.locationText === "string" && metadata.locationText.trim()
-        ? metadata.locationText.trim()
-        : null;
+      getScheduleLocationDisplayText(metadata.locationText) ??
+      getScheduleLocationDisplayText(metadata.location);
 
     return location
       ? `Prepárate para tu partido en ${location}.`
