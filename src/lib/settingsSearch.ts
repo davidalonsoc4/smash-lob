@@ -119,6 +119,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     payments: { title: "Mis pagos", description: "Consulta deudas, cobros y reservas.", section: "account", keywords: ["dinero", "deuda", "pista", "cuota", "inscripción", "pago de pista", "reserva", "transferencia"] },
     availability: { title: "Mi disponibilidad", description: "Define cuándo puedes jugar.", section: "preferences", keywords: ["horarios", "días", "jugar", "franjas"] },
     help: { title: "Ayuda", description: "Consulta reglas y conceptos de la aplicación.", section: "help", keywords: ["reglas", "star point", "tie break", "tutorial"] },
+    changelog: { title: "Registro de cambios", description: "Consulta novedades y correcciones por versión.", section: "help", keywords: ["versiones", "novedades", "cambios", "actualizaciones", "changelog", "log"] },
     activity: { title: "Actividad de la liga", description: "Consulta el historial de cambios y acciones.", section: "league", keywords: ["historial", "auditoría", "eventos", "cambios"] },
     adminView: { title: "Vista admin", description: "Muestra u oculta los accesos de administrador.", section: "preferences", keywords: ["administrador", "ocultar admin", "modo jugador"] },
     leagues: { title: "Mis ligas", description: "Cambia entre ligas de jugador y espectador.", section: "league", keywords: ["cambiar liga", "selector", "espectador"] },
@@ -159,6 +160,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     payments: { title: "My payments", description: "Review debts, collections and bookings.", section: "account", keywords: ["money", "debt", "court", "fee", "registration", "court payment", "booking", "transfer"] },
     availability: { title: "My availability", description: "Define when you can play.", section: "preferences", keywords: ["schedule", "days", "time slots"] },
     help: { title: "Help", description: "Review rules and application concepts.", section: "help", keywords: ["rules", "star point", "tie break", "tutorial"] },
+    changelog: { title: "Change log", description: "Review updates and fixes by version.", section: "help", keywords: ["versions", "updates", "changes", "releases", "changelog", "log"] },
     activity: { title: "League activity", description: "Review the history of changes and actions.", section: "league", keywords: ["history", "audit", "events", "changes"] },
     adminView: { title: "Admin view", description: "Show or hide administration shortcuts.", section: "preferences", keywords: ["administrator", "player mode"] },
     leagues: { title: "My leagues", description: "Switch between player and spectator leagues.", section: "league", keywords: ["switch league", "selector", "spectator"] },
@@ -199,6 +201,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     payments: { title: "Nire ordainketak", description: "Ikusi zorrak, kobrantzak eta erreserbak.", section: "account", keywords: ["dirua", "zor", "pista", "kuota", "izen-ematea", "pista ordainketa", "erreserba", "transferentzia"] },
     availability: { title: "Nire erabilgarritasuna", description: "Adierazi noiz joka dezakezun.", section: "preferences", keywords: ["ordutegiak", "egunak", "tarteak"] },
     help: { title: "Laguntza", description: "Ikusi arauak eta aplikazioaren kontzeptuak.", section: "help", keywords: ["arauak", "star point", "tie break", "tutoriala"] },
+    changelog: { title: "Aldaketen erregistroa", description: "Ikusi bertsio bakoitzeko berritasunak eta zuzenketak.", section: "help", keywords: ["bertsioak", "berritasunak", "aldaketak", "eguneraketak", "changelog", "log"] },
     activity: { title: "Ligako jarduera", description: "Ikusi aldaketen eta ekintzen historia.", section: "league", keywords: ["historia", "auditoria", "gertaerak", "aldaketak"] },
     adminView: { title: "Admin ikuspegia", description: "Erakutsi edo ezkutatu administrazio sarbideak.", section: "preferences", keywords: ["administratzailea", "jokalari modua"] },
     leagues: { title: "Nire ligak", description: "Aldatu jokalari eta ikusle ligaren artean.", section: "league", keywords: ["liga aldatu", "hautatzailea", "ikuslea"] },
@@ -241,6 +244,7 @@ const routeById: Record<string, string> = {
   payments: "/payments",
   availability: "/availability",
   help: "/help",
+  changelog: "/changelog",
   activity: "/activity?scope=all",
   adminView: "/settings#admin-view",
   leagues: "/leagues",
@@ -498,7 +502,7 @@ export function buildSettingsSearchEntries(
 ): SettingsSearchEntry[] {
   const source = entryCopyByLocale[locale]
   const ids = capabilities.isSpectator
-    ? ["language", "appearance", "leagues", "help"]
+    ? ["language", "appearance", "leagues", "help", "changelog"]
     : [
         "language",
         "appearance",
@@ -506,6 +510,7 @@ export function buildSettingsSearchEntries(
         "payments",
         "availability",
         "help",
+        "changelog",
         "activity",
         ...(capabilities.hasAdminRole ? ["adminView"] : []),
         "leagues",

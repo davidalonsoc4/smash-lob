@@ -331,6 +331,20 @@ function SpectatorSettingsPage({
         </AppCard>
       </Link>
 
+      <Link href="/changelog" className="block settings-search-target" id="changelog">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Registro de cambios</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Consulta las novedades publicadas en cada versión.
+              </p>
+            </div>
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
       <button
         type="button"
         onClick={() => signOut({ callbackUrl: "/" })}
@@ -339,9 +353,12 @@ function SpectatorSettingsPage({
         {t.auth.signOut}
       </button>
 
-      <p className="pb-2 pt-3 text-center text-xs font-semibold text-neutral-400">
+      <Link
+        href="/changelog"
+        className="block pb-2 pt-3 text-center text-xs font-semibold text-neutral-400"
+      >
         {settingsVersionLabel}
-      </p>
+      </Link>
     </div>
   )
 }
@@ -562,6 +579,21 @@ function PlayerSettingsPage() {
         </AppCard>
       </Link>
 
+      <Link href="/changelog" className="block settings-search-target" id="changelog">
+        <AppCard className="transition active:scale-[0.99]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold">Registro de cambios</p>
+              <p className="mt-1 text-xs font-semibold text-neutral-500">
+                Consulta las novedades publicadas en cada versión.
+              </p>
+            </div>
+
+            <span className="text-xl">&gt;</span>
+          </div>
+        </AppCard>
+      </Link>
+
       <p className="pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
         Liga
       </p>
@@ -731,9 +763,12 @@ function PlayerSettingsPage() {
         {t.auth.signOut}
       </button>
 
-      <p className="pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300">
+      <Link
+        href="/changelog"
+        className="block pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-300"
+      >
         {settingsVersionLabel}
-      </p>
+      </Link>
     </div>
   )
 }

@@ -84,6 +84,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname === "/settings" ||
     pathname === "/leagues" ||
     pathname === "/help" ||
+    pathname === "/changelog" ||
     isAccessInviteRoute ||
     isLeagueNavigationRoute
 
