@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.14.6",
+    date: "24 de julio de 2026",
+    title: "Reapertura segura de temporadas",
+    summary:
+      "Las temporadas cerradas pueden reabrirse conservando íntegramente su plantilla, calendario y configuración original.",
+    category: "fix",
+    changes: [
+      "Reabrir una temporada ya no reutiliza el flujo de inicio ni regenera sus partidos.",
+      "Se conservan la modalidad de plantilla, los jugadores, las inscripciones, las reglas y el calendario existentes.",
+      "Los partidos guardados se recuperan de Supabase al reactivar la temporada.",
+    ],
+  },
+  {
     version: "v0.14.5",
     date: "24 de julio de 2026",
     title: "Validación de efectos React",
