@@ -97,6 +97,33 @@ export default function NotificationSettingsPage() {
     payments: false,
   })
 
+  useEffect(() => {
+    const groupId = window.location.hash.slice(1) as NotificationGroupId | "device"
+
+    if (groupId === "device") {
+      window.requestAnimationFrame(() => {
+        document.getElementById("device")?.scrollIntoView({ block: "center" })
+      })
+      return
+    }
+
+    const targetGroup = notificationPreferenceGroups.find(
+      (group) => group.id === groupId,
+    )
+
+    if (targetGroup) {
+      setExpandedGroups((current) => ({
+        ...current,
+        [targetGroup.id]: true,
+      }))
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(targetGroup.id)
+          ?.scrollIntoView({ block: "center" })
+      })
+    }
+  }, [])
+
   const enabledCount = useMemo(() => getEnabledCount(preferences), [preferences])
   const canRequestPush = supportStatus === "supported"
 
@@ -331,6 +358,7 @@ export default function NotificationSettingsPage() {
         </p>
       </header>
 
+      <div id="device" className="settings-search-target">
       <AppCard className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -378,6 +406,7 @@ export default function NotificationSettingsPage() {
           </button>
         </div>
       </AppCard>
+      </div>
 
       <AppCard className="p-3">
         <div className="flex items-start justify-between gap-3">
@@ -426,7 +455,8 @@ export default function NotificationSettingsPage() {
             return (
               <section
                 key={group.id}
-                className="overflow-hidden rounded-2xl border border-neutral-200 bg-white"
+                id={group.id}
+                className="settings-search-target overflow-hidden rounded-2xl border border-neutral-200 bg-white"
               >
                 <button
                   type="button"

@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -17,8 +18,8 @@ import {
 } from "@/lib/settingsSearch"
 
 const recentStorageKey = "smash-lob-recent-settings-search"
-const maximumRecentEntries = 6
-const maximumIdleEntriesPerGroup = 4
+const maximumRecentEntries = 8
+const maximumIdleEntriesPerGroup = 5
 
 function readRecentIds() {
   try {
@@ -34,15 +35,16 @@ function readRecentIds() {
   }
 }
 
-function SearchIcon() {
+function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className="h-4 w-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
+      strokeLinecap="round"
     >
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
@@ -95,9 +97,7 @@ export function GlobalSettingsSearch({
   const suggestedEntries = useMemo(
     () =>
       entries
-        .filter(
-          (entry) => entry.suggested && !recentEntryIds.has(entry.id),
-        )
+        .filter((entry) => entry.suggested && !recentEntryIds.has(entry.id))
         .slice(0, maximumIdleEntriesPerGroup),
     [entries, recentEntryIds],
   )
@@ -108,9 +108,43 @@ export function GlobalSettingsSearch({
     [recentEntries, suggestedEntries],
   )
   const navigableEntries = hasQuery ? matchingEntries : idleEntries
-  const showPanel =
-    isOpen &&
-    (hasQuery || recentEntries.length > 0 || suggestedEntries.length > 0)
+
+  useEffect(() => {
+    if (!isOpen) return
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus())
+    return () => window.cancelAnimationFrame(frame)
+  }, [isOpen])
+
+  useEffect(() => {
+    function handleGlobalShortcut(event: globalThis.KeyboardEvent) {
+      const target = event.target
+      const isTyping =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        setIsOpen(true)
+        return
+      }
+
+      if (!isTyping && event.key === "/") {
+        event.preventDefault()
+        setIsOpen(true)
+      }
+    }
+
+    window.addEventListener("keydown", handleGlobalShortcut)
+    return () => window.removeEventListener("keydown", handleGlobalShortcut)
+  }, [])
+
+  function closeSearch() {
+    setIsOpen(false)
+    setQuery("")
+    setActiveIndex(-1)
+  }
 
   function rememberEntry(entry: SettingsSearchEntry) {
     const nextRecentIds = [
@@ -121,10 +155,7 @@ export function GlobalSettingsSearch({
     setRecentIds(nextRecentIds)
 
     try {
-      window.localStorage.setItem(
-        recentStorageKey,
-        JSON.stringify(nextRecentIds),
-      )
+      window.localStorage.setItem(recentStorageKey, JSON.stringify(nextRecentIds))
     } catch {
       // Searching and navigation still work if storage is unavailable.
     }
@@ -139,30 +170,16 @@ export function GlobalSettingsSearch({
       const destinationWithHash = `${destinationPath}${destination.hash}`
       const scrollToTarget = () => {
         const targetId = decodeURIComponent(destination.hash.slice(1))
-        document.getElementById(targetId)?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        })
+        const target = document.getElementById(targetId)
+        target?.scrollIntoView({ behavior: "smooth", block: "center" })
+        target?.classList.add("settings-search-highlight")
+        window.setTimeout(
+          () => target?.classList.remove("settings-search-highlight"),
+          1600,
+        )
       }
 
-      if (window.location.hash === destination.hash) {
-        window.history.replaceState(window.history.state, "", destinationPath)
-        window.requestAnimationFrame(() => {
-          window.history.pushState(
-            window.history.state,
-            "",
-            destinationWithHash,
-          )
-          scrollToTarget()
-        })
-        return
-      }
-
-      window.history.pushState(
-        window.history.state,
-        "",
-        destinationWithHash,
-      )
+      window.history.pushState(window.history.state, "", destinationWithHash)
       window.requestAnimationFrame(scrollToTarget)
       return
     }
@@ -172,19 +189,14 @@ export function GlobalSettingsSearch({
 
   function openEntry(entry: SettingsSearchEntry) {
     rememberEntry(entry)
-    setQuery("")
-    setIsOpen(false)
-    setActiveIndex(-1)
+    closeSearch()
     navigateToEntry(entry)
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       event.preventDefault()
-      setQuery("")
-      setIsOpen(false)
-      setActiveIndex(-1)
-      inputRef.current?.blur()
+      closeSearch()
       return
     }
 
@@ -192,7 +204,6 @@ export function GlobalSettingsSearch({
 
     if (event.key === "ArrowDown") {
       event.preventDefault()
-      setIsOpen(true)
       setActiveIndex((currentIndex) =>
         currentIndex < navigableEntries.length - 1 ? currentIndex + 1 : 0,
       )
@@ -201,7 +212,6 @@ export function GlobalSettingsSearch({
 
     if (event.key === "ArrowUp") {
       event.preventDefault()
-      setIsOpen(true)
       setActiveIndex((currentIndex) =>
         currentIndex > 0 ? currentIndex - 1 : navigableEntries.length - 1,
       )
@@ -209,9 +219,7 @@ export function GlobalSettingsSearch({
     }
 
     if (event.key === "Enter") {
-      const selectedEntry =
-        navigableEntries[activeIndex] ?? navigableEntries[0]
-
+      const selectedEntry = navigableEntries[activeIndex] ?? navigableEntries[0]
       if (selectedEntry) {
         event.preventDefault()
         openEntry(selectedEntry)
@@ -234,7 +242,7 @@ export function GlobalSettingsSearch({
         aria-selected={isActive}
         onMouseEnter={() => setActiveIndex(entryIndex)}
         onClick={() => openEntry(entry)}
-        className={`flex w-full items-center gap-2 px-2.5 py-2 text-left transition ${
+        className={`flex w-full items-center gap-2 px-3 py-2.5 text-left transition ${
           isActive ? "bg-neutral-100" : "bg-white active:bg-neutral-100"
         }`}
       >
@@ -257,116 +265,166 @@ export function GlobalSettingsSearch({
   }
 
   return (
-    <section
-      className="rounded-xl border border-neutral-200 bg-white p-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)]"
-      onFocusCapture={() => setIsOpen(true)}
-      onBlurCapture={(event) => {
-        const nextTarget = event.relatedTarget
-
-        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
-          setIsOpen(false)
-          setActiveIndex(-1)
-        }
-      }}
-    >
-      <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
-        <span className="shrink-0 text-neutral-400">
-          <SearchIcon />
-        </span>
-        <input
-          ref={inputRef}
-          type="search"
-          role="combobox"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value)
-            setIsOpen(true)
-            setActiveIndex(-1)
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder={copy.placeholder}
-          aria-label={copy.title}
-          aria-autocomplete="list"
-          aria-controls={showPanel ? listboxId : undefined}
-          aria-expanded={showPanel}
-          aria-activedescendant={
-            activeIndex >= 0 && navigableEntries[activeIndex]
-              ? `${listboxId}-${navigableEntries[activeIndex].id}`
-              : undefined
-          }
-          className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2 text-sm font-semibold outline-none"
+    <>
+      {isOpen ? (
+        <button
+          type="button"
+          aria-label="Cerrar búsqueda"
+          onClick={closeSearch}
+          className="fixed inset-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
         />
-        {query ? (
-          <button
-            type="button"
-            onClick={() => {
-              setQuery("")
-              setActiveIndex(-1)
-              inputRef.current?.focus()
-            }}
-            aria-label={copy.clear}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-600"
-          >
-            ×
-          </button>
-        ) : null}
-      </div>
+      ) : null}
 
-      {showPanel ? (
-        <div id={listboxId} role="listbox" className="mt-2 space-y-2">
-          {hasQuery ? (
-            matchingEntries.length > 0 ? (
-              <div className="overflow-hidden rounded-xl border border-neutral-200">
-                <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
-                    {copy.results} · {matchingEntries.length}
+      <div
+        className="fixed z-40"
+        style={{
+          right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
+          bottom: "calc(84px + env(safe-area-inset-bottom, 0px))",
+        }}
+      >
+        {isOpen ? (
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label={copy.title}
+            className="absolute bottom-12 right-0 w-[min(360px,calc(100vw-28px))] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+          >
+            <div className="border-b border-neutral-100 px-3 pb-2.5 pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-neutral-950">{copy.title}</p>
+                  <p className="text-[10px] font-semibold text-neutral-400">
+                    {entries.length} opciones disponibles
                   </p>
                 </div>
-                <div className="divide-y divide-neutral-100">
-                  {matchingEntries.map(renderEntry)}
-                </div>
+                <button
+                  type="button"
+                  onClick={closeSearch}
+                  aria-label="Cerrar"
+                  className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500"
+                >
+                  ×
+                </button>
               </div>
-            ) : (
-              <div className="rounded-xl bg-neutral-50 px-3 py-3 text-center">
-                <p className="text-xs font-black text-neutral-800">
-                  {copy.noResultsTitle}
-                </p>
-                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                  {copy.noResultsDescription}
-                </p>
-              </div>
-            )
-          ) : (
-            <>
-              {recentEntries.length > 0 ? (
-                <div className="overflow-hidden rounded-xl border border-neutral-200">
-                  <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
-                      {copy.recent}
-                    </p>
-                  </div>
-                  <div className="divide-y divide-neutral-100">
-                    {recentEntries.map(renderEntry)}
-                  </div>
-                </div>
-              ) : null}
 
-              {suggestedEntries.length > 0 ? (
-                <div className="overflow-hidden rounded-xl border border-neutral-200">
-                  <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
-                      {copy.suggested}
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
+                <span className="shrink-0 text-neutral-400">
+                  <SearchIcon className="h-4 w-4" />
+                </span>
+                <input
+                  ref={inputRef}
+                  type="search"
+                  role="combobox"
+                  value={query}
+                  onChange={(event) => {
+                    setQuery(event.target.value)
+                    setActiveIndex(-1)
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={copy.placeholder}
+                  aria-label={copy.title}
+                  aria-autocomplete="list"
+                  aria-controls={listboxId}
+                  aria-expanded="true"
+                  aria-activedescendant={
+                    activeIndex >= 0 && navigableEntries[activeIndex]
+                      ? `${listboxId}-${navigableEntries[activeIndex].id}`
+                      : undefined
+                  }
+                  className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none"
+                />
+                {query ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery("")
+                      setActiveIndex(-1)
+                      inputRef.current?.focus()
+                    }}
+                    aria-label={copy.clear}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-600"
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <div
+              id={listboxId}
+              role="listbox"
+              className="max-h-[min(62vh,520px)] overflow-y-auto overscroll-contain p-2"
+            >
+              {hasQuery ? (
+                matchingEntries.length > 0 ? (
+                  <div className="overflow-hidden rounded-xl border border-neutral-200">
+                    <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                        {copy.results} · {matchingEntries.length}
+                      </p>
+                    </div>
+                    <div className="divide-y divide-neutral-100">
+                      {matchingEntries.map(renderEntry)}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl bg-neutral-50 px-3 py-4 text-center">
+                    <p className="text-xs font-black text-neutral-800">
+                      {copy.noResultsTitle}
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold text-neutral-500">
+                      {copy.noResultsDescription}
                     </p>
                   </div>
-                  <div className="divide-y divide-neutral-100">
-                    {suggestedEntries.map(renderEntry)}
-                  </div>
+                )
+              ) : (
+                <div className="space-y-2">
+                  {recentEntries.length > 0 ? (
+                    <div className="overflow-hidden rounded-xl border border-neutral-200">
+                      <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                          {copy.recent}
+                        </p>
+                      </div>
+                      <div className="divide-y divide-neutral-100">
+                        {recentEntries.map(renderEntry)}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {suggestedEntries.length > 0 ? (
+                    <div className="overflow-hidden rounded-xl border border-neutral-200">
+                      <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                          {copy.suggested}
+                        </p>
+                      </div>
+                      <div className="divide-y divide-neutral-100">
+                        {suggestedEntries.map(renderEntry)}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </>
-          )}
-        </div>
-      ) : null}
-    </section>
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-label={copy.title}
+          title={copy.title}
+          onClick={() => setIsOpen((current) => !current)}
+          className={`grid h-10 w-10 place-items-center rounded-full border shadow-lg backdrop-blur transition active:scale-95 ${
+            isOpen
+              ? "border-neutral-950 bg-neutral-950 text-white"
+              : "border-neutral-200 bg-white/95 text-neutral-600 active:bg-neutral-100"
+          }`}
+        >
+          <SearchIcon />
+        </button>
+      </div>
+    </>
   )
 }

@@ -26,6 +26,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     canCreateLeagues,
     hasLeagueAdminRole,
     isLeagueSpectator,
+    isSuperuser,
     userLeagues,
   } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
@@ -83,9 +84,11 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname.startsWith("/player/") ||
     pathname === "/settings" ||
     pathname === "/settings/profile" ||
+    pathname === "/settings/suggestions" ||
     pathname === "/leagues" ||
     pathname === "/help" ||
     pathname === "/changelog" ||
+    (isSuperuser && pathname.startsWith("/application-admin")) ||
     isAccessInviteRoute ||
     isLeagueNavigationRoute
 

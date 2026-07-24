@@ -109,12 +109,12 @@ export function MatchActionsTrigger({
       </button>
 
       {menuOpen ? (
-        <div className="absolute bottom-12 right-0 z-30 min-w-52 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 text-left shadow-xl">
+        <div className="absolute bottom-12 right-0 z-30 w-max min-w-48 max-w-[calc(100vw-28px)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1 text-left shadow-xl">
           {canOpenIncident ? (
             <button
               type="button"
               onClick={() => selectPanel("incident")}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black hover:bg-neutral-100"
+              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left text-[11px] font-black hover:bg-neutral-100"
             >
               <span aria-hidden="true">⚠</span>
               {match.incidentStatus
@@ -127,7 +127,7 @@ export function MatchActionsTrigger({
             <button
               type="button"
               onClick={() => selectPanel("substitution")}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black hover:bg-neutral-100"
+              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left text-[11px] font-black hover:bg-neutral-100"
             >
               <span aria-hidden="true">↔</span>
               Gestionar suplente

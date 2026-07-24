@@ -7,6 +7,7 @@ export type SettingsSearchCapabilities = {
   canCreateLeague: boolean
   canSelfUnlink: boolean
   qaEnabled: boolean
+  isSuperuser: boolean
 }
 
 export type SettingsSearchEntry = {
@@ -52,7 +53,7 @@ const copyByLocale: Record<Locale, SearchCopy> = {
     placeholder: "Buscar notificaciones, MVP, margen...",
     clear: "Limpiar búsqueda",
     results: "Resultados",
-    suggested: "Sugerencias",
+    suggested: "Accesos rápidos",
     recent: "Usados recientemente",
     noResultsTitle: "No se ha encontrado ninguna opción",
     noResultsDescription: "Prueba con otro término o un sinónimo.",
@@ -73,7 +74,7 @@ const copyByLocale: Record<Locale, SearchCopy> = {
     placeholder: "Search notifications, MVP, round window...",
     clear: "Clear search",
     results: "Results",
-    suggested: "Suggestions",
+    suggested: "Quick access",
     recent: "Recently used",
     noResultsTitle: "No setting was found",
     noResultsDescription: "Try another term or a synonym.",
@@ -94,7 +95,7 @@ const copyByLocale: Record<Locale, SearchCopy> = {
     placeholder: "Bilatu jakinarazpenak, MVP, jardunaldi-marjina...",
     clear: "Bilaketa garbitu",
     results: "Emaitzak",
-    suggested: "Iradokizunak",
+    suggested: "Sarbide azkarrak",
     recent: "Duela gutxi erabilitakoak",
     noResultsTitle: "Ez da aukerarik aurkitu",
     noResultsDescription: "Saiatu beste termino edo sinonimo batekin.",
@@ -151,6 +152,21 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     closeSeason: { title: "Cerrar o reabrir temporada", description: "Gestiona el estado final de la competición.", section: "season", keywords: ["terminar", "finalizar", "reabrir", "cerrar temporada", "finalizar temporada", "reabrir temporada"] },
     deleteSeason: { title: "Eliminar temporada", description: "Abre la zona sensible para borrar la temporada.", section: "admin", keywords: ["borrar temporada", "eliminar temporada", "zona sensible", "borrar calendario"] },
     newSeason: { title: "Crear siguiente temporada", description: "Prepara una nueva temporada para la liga.", section: "season", keywords: ["nueva temporada", "siguiente", "crear"] },
+    suggestions: { title: "Buzón de sugerencias", description: "Propón mejoras y nuevas funciones para la aplicación.", section: "help", keywords: ["sugerencia", "idea", "propuesta", "mejora app", "feedback", "buzón", "nueva función"] },
+    notificationDevice: { title: "Push en este dispositivo", description: "Activa o desactiva las notificaciones en el dispositivo actual.", section: "preferences", keywords: ["activar push", "desactivar push", "permiso navegador", "dispositivo", "suscripción"] },
+    notificationMatches: { title: "Avisos de partidos", description: "Configura programación, incidencias y próximo partido.", section: "preferences", keywords: ["notificaciones partidos", "avisos partidos", "programación partido", "incidencia", "próximo partido", "recordatorio partido"] },
+    notificationCompetition: { title: "Avisos de resultados y competición", description: "Configura resultados, confirmaciones, MVP, jornadas y temporadas.", section: "preferences", keywords: ["notificaciones resultados", "avisos competición", "resultado", "confirmación", "mvp", "jornada", "temporada"] },
+    notificationLeague: { title: "Avisos de liga y jugadores", description: "Configura plantilla, comunicados y cambios de cuentas.", section: "preferences", keywords: ["notificaciones liga", "avisos jugadores", "plantilla", "comunicado", "anuncio", "cuenta", "jugador"] },
+    notificationPayments: { title: "Avisos de reservas y pagos", description: "Configura reservas, cobros y recordatorios de pago.", section: "preferences", keywords: ["notificaciones pagos", "avisos reservas", "reserva pista", "pago", "cobro", "recordatorio pago"] },
+    threeSets: { title: "Regla de tres sets", description: "Configura si todos los partidos deben completar tres sets.", section: "season", keywords: ["tres sets", "3 sets", "sets completos", "regla partido"] },
+    matchActions: { title: "Acciones de partido", description: "Permite incidencias y gestión de suplentes durante la temporada.", section: "season", keywords: ["incidencias", "suplentes", "acciones jugadores", "permisos partido"] },
+    incidents: { title: "Buzón de incidencias", description: "Revisa y resuelve incidencias comunicadas en partidos.", section: "admin", keywords: ["incidencias", "problemas partido", "resolver", "buzón incidencias"] },
+    announcements: { title: "Comunicados", description: "Publica avisos para toda la liga, una temporada o jugadores concretos.", section: "admin", keywords: ["anuncios", "comunicados", "mensaje liga", "avisar jugadores"] },
+    substitutes: { title: "Suplentes y reemplazos", description: "Gestiona la bolsa, sustituciones puntuales y reemplazos permanentes.", section: "admin", keywords: ["suplente", "sustitución", "reemplazo", "ausencia"] },
+    adminMvp: { title: "Administrar MVP", description: "Consulta y gestiona los MVP de jornadas y temporada.", section: "admin", keywords: ["mvp jornada", "mvp temporada", "mejor jugador"] },
+    exports: { title: "Exportar datos", description: "Descarga clasificaciones y resultados en CSV.", section: "admin", keywords: ["exportar", "csv", "descargar datos", "clasificación", "resultados"] },
+    applicationAdmin: { title: "Administración de la aplicación", description: "Gestiona cuentas, accesos y controles globales.", section: "admin", keywords: ["superusuario", "usuarios globales", "suspender cuenta", "aplicación"] },
+    applicationSuggestions: { title: "Sugerencias recibidas", description: "Revisa y clasifica las propuestas enviadas por los usuarios.", section: "admin", keywords: ["buzón sugerencias", "feedback usuarios", "ideas recibidas", "propuestas"] },
     qa: { title: "Herramientas de prueba", description: "Simula resultados, votos y confirmaciones.", section: "testing", keywords: ["qa", "test", "simular", "pruebas"] },
   },
   en: {
@@ -192,6 +208,21 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     closeSeason: { title: "Close or reopen season", description: "Manage the final competition status.", section: "season", keywords: ["finish", "close", "reopen", "close season", "finish season", "reopen season"] },
     deleteSeason: { title: "Delete season", description: "Open the danger zone to delete the season.", section: "admin", keywords: ["delete season", "remove season", "danger zone", "delete calendar"] },
     newSeason: { title: "Create next season", description: "Prepare a new season for the league.", section: "season", keywords: ["new season", "next", "create"] },
+    suggestions: { title: "Suggestion box", description: "Propose improvements and new features for the application.", section: "help", keywords: ["suggestion", "idea", "proposal", "app improvement", "feedback", "new feature"] },
+    notificationDevice: { title: "Push on this device", description: "Enable or disable notifications on the current device.", section: "preferences", keywords: ["enable push", "disable push", "browser permission", "device", "subscription"] },
+    notificationMatches: { title: "Match alerts", description: "Configure scheduling, incidents and upcoming-match reminders.", section: "preferences", keywords: ["match schedule", "incident", "upcoming match", "match reminder"] },
+    notificationCompetition: { title: "Results and competition alerts", description: "Configure results, confirmations, MVP, rounds and seasons.", section: "preferences", keywords: ["result", "confirmation", "mvp", "round", "season"] },
+    notificationLeague: { title: "League and player alerts", description: "Configure roster, announcements and account changes.", section: "preferences", keywords: ["roster", "announcement", "account", "player"] },
+    notificationPayments: { title: "Booking and payment alerts", description: "Configure court bookings, collections and payment reminders.", section: "preferences", keywords: ["court booking", "payment", "collection", "payment reminder"] },
+    threeSets: { title: "Three-set rule", description: "Choose whether every match must complete three sets.", section: "season", keywords: ["three sets", "3 sets", "complete sets", "match rule"] },
+    matchActions: { title: "Match actions", description: "Allow incidents and substitute management during the season.", section: "season", keywords: ["incidents", "substitutes", "player actions", "match permissions"] },
+    incidents: { title: "Incident inbox", description: "Review and resolve incidents reported in matches.", section: "admin", keywords: ["incidents", "match problem", "resolve", "incident inbox"] },
+    announcements: { title: "Announcements", description: "Publish messages for the league, a season or selected players.", section: "admin", keywords: ["announcements", "league message", "notify players"] },
+    substitutes: { title: "Substitutes and replacements", description: "Manage the pool, one-off substitutions and permanent replacements.", section: "admin", keywords: ["substitute", "substitution", "replacement", "absence"] },
+    adminMvp: { title: "Manage MVP", description: "Review and manage round and season MVP awards.", section: "admin", keywords: ["round mvp", "season mvp", "best player"] },
+    exports: { title: "Export data", description: "Download standings and results as CSV.", section: "admin", keywords: ["export", "csv", "download data", "standings", "results"] },
+    applicationAdmin: { title: "Application administration", description: "Manage accounts, access and global controls.", section: "admin", keywords: ["superuser", "global users", "suspend account", "application"] },
+    applicationSuggestions: { title: "Received suggestions", description: "Review and classify proposals sent by users.", section: "admin", keywords: ["suggestion inbox", "user feedback", "received ideas", "proposals"] },
     qa: { title: "Testing tools", description: "Simulate results, votes and confirmations.", section: "testing", keywords: ["qa", "test", "simulate", "testing"] },
   },
   eu: {
@@ -233,6 +264,21 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     closeSeason: { title: "Denboraldia itxi edo berrireki", description: "Kudeatu lehiaketaren amaierako egoera.", section: "season", keywords: ["amaitu", "itxi", "berrireki", "denboraldia itxi", "denboraldia amaitu", "denboraldia berrireki"] },
     deleteSeason: { title: "Denboraldia ezabatu", description: "Ireki arrisku-eremua denboraldia ezabatzeko.", section: "admin", keywords: ["denboraldia ezabatu", "denboraldia kendu", "arrisku eremua", "egutegia ezabatu"] },
     newSeason: { title: "Hurrengo denboraldia sortu", description: "Prestatu ligaren denboraldi berria.", section: "season", keywords: ["denboraldi berria", "hurrengoa", "sortu"] },
+    suggestions: { title: "Iradokizun-postontzia", description: "Proposatu aplikaziorako hobekuntzak eta funtzio berriak.", section: "help", keywords: ["iradokizuna", "ideia", "proposamena", "hobekuntza", "feedback", "funtzio berria"] },
+    notificationDevice: { title: "Push gailu honetan", description: "Aktibatu edo desaktibatu jakinarazpenak uneko gailuan.", section: "preferences", keywords: ["push aktibatu", "push desaktibatu", "nabigatzaile baimena", "gailua", "harpidetza"] },
+    notificationMatches: { title: "Partiden abisuak", description: "Konfiguratu programazioa, gorabeherak eta hurrengo partidaren abisuak.", section: "preferences", keywords: ["partida programazioa", "gorabehera", "hurrengo partida", "partida oroigarria"] },
+    notificationCompetition: { title: "Emaitza eta lehiaketa abisuak", description: "Konfiguratu emaitzak, baieztapenak, MVP, jardunaldiak eta denboraldiak.", section: "preferences", keywords: ["emaitza", "baieztapena", "mvp", "jardunaldia", "denboraldia"] },
+    notificationLeague: { title: "Liga eta jokalarien abisuak", description: "Konfiguratu zerrenda, komunikatuak eta kontu aldaketak.", section: "preferences", keywords: ["zerrenda", "komunikatua", "kontua", "jokalaria"] },
+    notificationPayments: { title: "Erreserba eta ordainketa abisuak", description: "Konfiguratu pisten erreserbak, kobrantzak eta ordainketa oroigarriak.", section: "preferences", keywords: ["pista erreserba", "ordainketa", "kobrantza", "ordainketa oroigarria"] },
+    threeSets: { title: "Hiru seteko araua", description: "Konfiguratu partida guztiek hiru set osatu behar dituzten.", section: "season", keywords: ["hiru set", "3 set", "set osoak", "partida araua"] },
+    matchActions: { title: "Partidako ekintzak", description: "Baimendu gorabeherak eta ordezkoen kudeaketa denboraldian.", section: "season", keywords: ["gorabeherak", "ordezkoak", "jokalari ekintzak", "partida baimenak"] },
+    incidents: { title: "Gorabeheren postontzia", description: "Berrikusi eta konpondu partidetan jakinarazitako gorabeherak.", section: "admin", keywords: ["gorabeherak", "partida arazoa", "konpondu", "postontzia"] },
+    announcements: { title: "Komunikatuak", description: "Argitaratu mezuak liga, denboraldi edo jokalari jakinentzat.", section: "admin", keywords: ["iragarkiak", "komunikatuak", "liga mezua", "jokalariak abisatu"] },
+    substitutes: { title: "Ordezkoak eta ordezkapenak", description: "Kudeatu poltsa, behin-behineko ordezkapenak eta behin betiko aldaketak.", section: "admin", keywords: ["ordezkoa", "ordezkapena", "aldaketa", "hutsegitea"] },
+    adminMvp: { title: "MVP administratu", description: "Berrikusi eta kudeatu jardunaldi eta denboraldiko MVP sariak.", section: "admin", keywords: ["jardunaldi mvp", "denboraldi mvp", "jokalari onena"] },
+    exports: { title: "Datuak esportatu", description: "Deskargatu sailkapenak eta emaitzak CSV formatuan.", section: "admin", keywords: ["esportatu", "csv", "datuak deskargatu", "sailkapena", "emaitzak"] },
+    applicationAdmin: { title: "Aplikazioaren administrazioa", description: "Kudeatu kontuak, sarbideak eta kontrol orokorrak.", section: "admin", keywords: ["supererabiltzailea", "erabiltzaile orokorrak", "kontua eten", "aplikazioa"] },
+    applicationSuggestions: { title: "Jasotako iradokizunak", description: "Berrikusi eta sailkatu erabiltzaileek bidalitako proposamenak.", section: "admin", keywords: ["iradokizun postontzia", "erabiltzaile feedback", "jasotako ideiak", "proposamenak"] },
     qa: { title: "Proba tresnak", description: "Simulatu emaitzak, botoak eta baieztapenak.", section: "testing", keywords: ["qa", "test", "simulatu", "probak"] },
   },
 }
@@ -245,6 +291,12 @@ const routeById: Record<string, string> = {
   availability: "/availability",
   help: "/help",
   changelog: "/changelog",
+  suggestions: "/settings/suggestions",
+  notificationDevice: "/settings/notifications#device",
+  notificationMatches: "/settings/notifications#matches",
+  notificationCompetition: "/settings/notifications#competition",
+  notificationLeague: "/settings/notifications#league",
+  notificationPayments: "/settings/notifications#payments",
   activity: "/activity?scope=all",
   adminView: "/settings#admin-view",
   leagues: "/leagues",
@@ -271,15 +323,24 @@ const routeById: Record<string, string> = {
   calendarAudit: "/admin/season#equilibrio-calendario",
   mvp: "/admin/season#mvp",
   confirmations: "/admin/season#confirmaciones",
+  threeSets: "/admin/season#regla-tres-sets",
+  matchActions: "/admin/season#acciones-partido",
   registration: "/admin/season#inscripcion",
   seasonPlayers: "/admin/season#jugadores",
   closeSeason: "/admin/season#cierre",
   deleteSeason: "/admin/season#zona-sensible",
   newSeason: "/admin/season#nueva-temporada",
+  incidents: "/admin/incidents",
+  announcements: "/admin/announcements",
+  substitutes: "/admin/substitutes",
+  adminMvp: "/admin/mvp",
+  exports: "/admin/exports",
+  applicationAdmin: "/application-admin",
+  applicationSuggestions: "/application-admin/suggestions",
   qa: "/admin/qa",
 }
 
-const suggestedIds = new Set(["notifications", "appearance", "leagues", "seasonAdmin", "roundWindow", "users"])
+const suggestedIds = new Set(["notifications", "appearance", "leagues", "suggestions", "seasonAdmin", "users"])
 
 const stopWordsByLocale: Record<Locale, Set<string>> = {
   es: new Set([
@@ -303,6 +364,14 @@ const stopWordsByLocale: Record<Locale, Set<string>> = {
     "un",
     "una",
     "y",
+    "como",
+    "puedo",
+    "quiero",
+    "necesito",
+    "opcion",
+    "opciones",
+    "ajuste",
+    "ajustes",
   ]),
   en: new Set([
     "a",
@@ -317,6 +386,13 @@ const stopWordsByLocale: Record<Locale, Set<string>> = {
     "the",
     "this",
     "to",
+    "how",
+    "can",
+    "want",
+    "setting",
+    "settings",
+    "option",
+    "options",
   ]),
   eu: new Set([
     "bat",
@@ -326,6 +402,10 @@ const stopWordsByLocale: Record<Locale, Set<string>> = {
     "eta",
     "hau",
     "nire",
+    "nola",
+    "aukera",
+    "ezarpen",
+    "ezarpenak",
   ]),
 }
 
@@ -345,6 +425,36 @@ function tokenizeSearchText(value: string, locale: Locale) {
   )
 
   return meaningfulTokens.length > 0 ? meaningfulTokens : tokens
+}
+
+function getTokenVariants(token: string) {
+  const variants = new Set([token])
+
+  if (token.length > 4 && token.endsWith("es")) variants.add(token.slice(0, -2))
+  if (token.length > 3 && token.endsWith("s")) variants.add(token.slice(0, -1))
+  if (token.length > 7 && token.endsWith("ciones")) {
+    variants.add(`${token.slice(0, -6)}cion`)
+  }
+  if (token.length > 6 && token.endsWith("tion")) variants.add(token.slice(0, -4))
+
+  return Array.from(variants)
+}
+
+function isAdjacentTransposition(left: string, right: string) {
+  if (left.length !== right.length) return false
+  const differences: number[] = []
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) differences.push(index)
+    if (differences.length > 2) return false
+  }
+
+  return (
+    differences.length === 2 &&
+    differences[1] === differences[0] + 1 &&
+    left[differences[0]] === right[differences[1]] &&
+    left[differences[1]] === right[differences[0]]
+  )
 }
 
 function boundedEditDistance(left: string, right: string, maximum: number) {
@@ -374,46 +484,53 @@ function boundedEditDistance(left: string, right: string, maximum: number) {
 }
 
 function scoreTokenMatch(queryToken: string, candidateToken: string) {
-  if (queryToken === candidateToken) return 1
+  let bestScore = -1
 
-  if (queryToken.length >= 2 && candidateToken.startsWith(queryToken)) {
-    return 0.9
+  for (const queryVariant of getTokenVariants(queryToken)) {
+    for (const candidateVariant of getTokenVariants(candidateToken)) {
+      if (queryVariant === candidateVariant) bestScore = Math.max(bestScore, 1)
+      else if (queryVariant.length >= 2 && candidateVariant.startsWith(queryVariant)) {
+        bestScore = Math.max(bestScore, 0.9)
+      } else if (candidateVariant.length >= 4 && queryVariant.startsWith(candidateVariant)) {
+        bestScore = Math.max(bestScore, 0.78)
+      } else if (
+        queryVariant.length >= 4 &&
+        candidateVariant.length >= 4 &&
+        candidateVariant.includes(queryVariant)
+      ) {
+        bestScore = Math.max(bestScore, 0.68)
+      } else if (
+        queryVariant.length >= 4 &&
+        candidateVariant.length >= 4 &&
+        isAdjacentTransposition(queryVariant, candidateVariant)
+      ) {
+        bestScore = Math.max(bestScore, 0.74)
+      } else if (
+        queryVariant.length >= 5 &&
+        candidateVariant.length >= 5 &&
+        queryVariant[0] === candidateVariant[0]
+      ) {
+        const maximumDistance =
+          queryVariant.length >= 9 &&
+          candidateVariant.length >= 9 &&
+          queryVariant.slice(0, 3) === candidateVariant.slice(0, 3)
+            ? 2
+            : 1
+        const distance = boundedEditDistance(
+          queryVariant,
+          candidateVariant,
+          maximumDistance,
+        )
+
+        if (distance === 1) bestScore = Math.max(bestScore, 0.72)
+        if (maximumDistance === 2 && distance === 2) {
+          bestScore = Math.max(bestScore, 0.5)
+        }
+      }
+    }
   }
 
-  if (candidateToken.length >= 4 && queryToken.startsWith(candidateToken)) {
-    return 0.78
-  }
-
-  if (
-    queryToken.length >= 4 &&
-    candidateToken.length >= 4 &&
-    candidateToken.includes(queryToken)
-  ) {
-    return 0.68
-  }
-
-  if (
-    queryToken.length >= 5 &&
-    candidateToken.length >= 5 &&
-    queryToken[0] === candidateToken[0]
-  ) {
-    const maximumDistance =
-      queryToken.length >= 9 &&
-      candidateToken.length >= 9 &&
-      queryToken.slice(0, 3) === candidateToken.slice(0, 3)
-        ? 2
-        : 1
-    const distance = boundedEditDistance(
-      queryToken,
-      candidateToken,
-      maximumDistance,
-    )
-
-    if (distance === 1) return 0.72
-    if (maximumDistance === 2 && distance === 2) return 0.5
-  }
-
-  return -1
+  return bestScore
 }
 
 function scoreSettingsSearchEntry(
@@ -438,6 +555,7 @@ function scoreSettingsSearchEntry(
   ]
 
   let score = 0
+  let matchedTokenCount = 0
 
   for (const queryToken of queryTokens) {
     let bestTokenScore = -1
@@ -450,9 +568,20 @@ function scoreSettingsSearchEntry(
       }
     }
 
-    if (bestTokenScore < 0) return -1
-    score += bestTokenScore
+    if (bestTokenScore >= 0) {
+      matchedTokenCount += 1
+      score += bestTokenScore
+    }
   }
+
+  if (matchedTokenCount === 0) return -1
+
+  const coverage = matchedTokenCount / queryTokens.length
+  if (coverage < 1) {
+    if (queryTokens.length <= 2 || coverage < 0.66) return -1
+    score -= (queryTokens.length - matchedTokenCount) * 20
+  }
+  score += coverage * 60
 
   if (title === normalizedQuery) score += 600
   else if (title.startsWith(normalizedQuery)) score += 320
@@ -475,7 +604,7 @@ export function searchSettingsEntries(
   entries: SettingsSearchEntry[],
   query: string,
   locale: Locale,
-  limit = 10,
+  limit = 16,
 ) {
   return entries
     .map((entry) => ({
@@ -502,14 +631,20 @@ export function buildSettingsSearchEntries(
 ): SettingsSearchEntry[] {
   const source = entryCopyByLocale[locale]
   const ids = capabilities.isSpectator
-    ? ["language", "appearance", "leagues", "account", "help", "changelog"]
+    ? ["language", "appearance", "leagues", "account", "help", "suggestions", "changelog"]
     : [
         "language",
         "appearance",
         "notifications",
+        "notificationDevice",
+        "notificationMatches",
+        "notificationCompetition",
+        "notificationLeague",
+        "notificationPayments",
         "payments",
         "availability",
         "help",
+        "suggestions",
         "changelog",
         "activity",
         ...(capabilities.hasAdminRole ? ["adminView"] : []),
@@ -524,6 +659,7 @@ export function buildSettingsSearchEntries(
               "deleteLeague",
               "leagueIdentity",
               "leaguePlaces",
+              "profileHistory",
               "statusColors",
               "playerInvites",
               "users",
@@ -538,17 +674,27 @@ export function buildSettingsSearchEntries(
               "calendarAudit",
               "mvp",
               "confirmations",
+              "threeSets",
+              "matchActions",
               "registration",
               "seasonPlayers",
               "closeSeason",
               "deleteSeason",
               "newSeason",
+              "incidents",
+              "announcements",
+              "substitutes",
+              "adminMvp",
+              "exports",
               ...(capabilities.qaEnabled ? ["qa"] : []),
             ]
           : []),
+        ...(capabilities.isSuperuser
+          ? ["applicationAdmin", "applicationSuggestions"]
+          : []),
       ]
 
-  return ids.map((id) => {
+  return Array.from(new Set(ids)).map((id) => {
     const item = source[id]
 
     return {
