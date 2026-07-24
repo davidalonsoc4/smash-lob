@@ -1,4 +1,4 @@
-Smash & Lob v0.15.4
+Smash & Lob v0.15.5
 
 Modified:
 - CHANGED_FILES.txt
@@ -6,8 +6,8 @@ Modified:
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/components/auth/ProfileCompletionGate.tsx
+- src/app/activity/page.tsx
 - docs/production-hardening/STATUS.md
 
 Added:
-- docs/preproduction/V0.15.4_LINT_CLEANUP.md
+- docs/preproduction/V0.15.5_ACTIVITY_REFRESH_FIX.md

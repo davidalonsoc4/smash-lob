@@ -438,6 +438,11 @@ function ActivityPageContent() {
     () => readLastActivityError()
   )
 
+  function refreshActivity() {
+    setLastActivityError(readLastActivityError())
+    setRefreshKey((current) => current + 1)
+  }
+
   useEffect(() => {
     let isMounted = true
 
@@ -815,10 +820,7 @@ function ActivityPageContent() {
               action={
                 <button
                   type="button"
-                  onClick={() => {
-                    setLastActivityError(readLastActivityError())
-                    setRefreshKey((current) => current + 1)
-                  }}
+                  onClick={refreshActivity}
                   className="text-sm font-semibold text-neutral-600"
                 >
                   {t.activity.refresh}
@@ -848,7 +850,7 @@ function ActivityPageContent() {
               <EmptyState
                 title={t.activity.emptyGeneralTitle}
                 description={t.activity.emptyGeneralDescription}
-                action={{ label: t.activity.refresh, onClick: () => void loadEvents() }}
+                action={{ label: t.activity.refresh, onClick: refreshActivity }}
               />
             ) : null}
 
@@ -873,10 +875,7 @@ function ActivityPageContent() {
             action={
               <button
                 type="button"
-                onClick={() => {
-                  setLastActivityError(readLastActivityError())
-                  setRefreshKey((current) => current + 1)
-                }}
+                onClick={refreshActivity}
                 className="text-sm font-semibold text-neutral-600"
               >
                 {t.activity.refresh}
@@ -911,7 +910,7 @@ function ActivityPageContent() {
                   ? t.activity.emptyPersonalDescription
                   : t.activity.emptyGeneralDescription
               }
-              action={{ label: t.activity.refresh, onClick: () => void loadEvents() }}
+              action={{ label: t.activity.refresh, onClick: refreshActivity }}
             />
           ) : null}
 

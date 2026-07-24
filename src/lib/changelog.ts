@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.5",
+    date: "24 de julio de 2026",
+    title: "Actualización de actividad corregida",
+    summary:
+      "Los estados vacíos de Actividad reutilizan correctamente la recarga existente y vuelven a superar la validación de TypeScript.",
+    category: "fix",
+    changes: [
+      "El botón Actualizar de los estados vacíos ya no referencia una función inexistente.",
+      "La recarga de Actividad se centraliza para actualizar el diagnóstico local y volver a solicitar los eventos.",
+      "La corrección no modifica el historial, los filtros ni la configuración de avisos de la liga.",
+    ],
+  },
+  {
     version: "v0.15.4",
     date: "24 de julio de 2026",
     title: "Validación limpia de onboarding",

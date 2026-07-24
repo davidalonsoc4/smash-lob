@@ -9,6 +9,12 @@
 - No database migration or remote change is required.
 
 
+## Post-release validation fix (v0.15.5, 2026-07-24)
+
+- Fixed two TypeScript errors introduced by actionable empty states on the Activity screen.
+- Empty-state refresh actions now reuse the same refresh function as the section headers.
+- No database migration, API contract, permission, or data change is required.
+
 ## v0.13.3 public changelog (2026-07-24)
 
 - Added `/changelog` with a public-safe history of documented Smash & Lob releases starting at v0.6.2.
@@ -225,4 +231,3 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Removed the unused translation binding reported by ESLint in `ProfileCompletionGate`.
 - Preserved all profile completion, onboarding, and availability behavior.
 - No migration, API, permission, or persistence change is required.
-
