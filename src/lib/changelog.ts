@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.15.3",
+    date: "24 de julio de 2026",
+    title: "Ayudas contextuales y onboarding ligero",
+    summary:
+      "Las funciones menos evidentes muestran consejos breves la primera vez que se utilizan, sin interrumpir el flujo normal de la aplicación.",
+    category: "new",
+    changes: [
+      "Ajustes explica el acceso al buscador flotante la primera vez que se visita la pantalla.",
+      "La disponibilidad por días aclara cómo activar jornadas y añadir varias franjas.",
+      "Los partidos indican dónde encontrar incidencias y suplentes cuando esas acciones están disponibles.",
+      "Administrar temporada explica la nueva organización por accesos rápidos y bloques.",
+      "Cada consejo puede descartarse y volver a activarse desde Ayuda y conceptos básicos.",
+      "Las ayudas están disponibles en español, inglés y euskera y se guardan únicamente en el dispositivo.",
+    ],
+  },
+  {
     version: "v0.15.2",
     date: "24 de julio de 2026",
     title: "Estados vacíos con acciones útiles",

@@ -1,20 +1,21 @@
-Smash & Lob v0.15.2
+Smash & Lob v0.15.3
 
 Modified:
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/app/activity/page.tsx
-- src/app/admin/announcements/page.tsx
-- src/app/admin/substitutes/page.tsx
-- src/app/application-admin/suggestions/page.tsx
-- src/app/matches/page.tsx
-- src/app/notifications/page.tsx
-- src/app/settings/suggestions/page.tsx
-- src/app/statistics/page.tsx
+- src/app/admin/season/page.tsx
+- src/app/availability/page.tsx
+- src/app/help/page.tsx
+- src/app/match/[id]/page.tsx
+- src/app/settings/page.tsx
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
 - docs/production-hardening/STATUS.md
 
 Added:
-- src/components/ui/EmptyState.tsx
-- docs/preproduction/V0.15.2_EMPTY_STATES.md
+- src/lib/onboardingTips.ts
+- src/components/onboarding/ContextualTip.tsx
+- docs/preproduction/V0.15.3_CONTEXTUAL_ONBOARDING.md

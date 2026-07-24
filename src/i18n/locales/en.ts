@@ -1283,6 +1283,22 @@ export const en = {
     },
   },
 
+  onboardingTips: {
+    dismiss: "Got it",
+    settingsSearchTitle: "Find any setting with the search button",
+    settingsSearchDescription: "The floating search opens direct links to personal, league, season and administration options.",
+    availabilityTitle: "You can add several time slots per day",
+    availabilityDescription: "Enable a day, expand its row and add as many slots as needed. Disabled days are ignored.",
+    matchActionsTitle: "Additional actions are in the floating button",
+    matchActionsDescription: "More actions lets you report incidents or manage substitutes when the match configuration allows it.",
+    seasonAdminTitle: "Use shortcuts to move around",
+    seasonAdminDescription: "Season administration is divided into calendar, rules, people and status. The shortcuts take you straight to each section.",
+    helpTitle: "Contextual tips",
+    helpDescription: "Show again the short tips that appear the first time you use selected features.",
+    helpReset: "Show again",
+    helpResetDone: "Reset",
+  },
+
   language: {
     current: "English",
     switchToSpanish: "ES",

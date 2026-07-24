@@ -211,3 +211,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Replaced generic empty messages across matches, notifications, activity, suggestions, announcements, substitutes and statistics.
 - Added compact variants for dense administrative screens.
 - No migration, API, permission or persistence change is required.
+
+## v0.15.3 - Contextual onboarding (2026-07-24)
+
+- Added dismissible tips for Settings search, custom availability, Match actions and Season administration.
+- Added a Help control to restore dismissed tips.
+- Added Spanish, English and Basque onboarding copy.
+- Tip state is local to the device and does not add server-side tracking.
+- No migration, API, permission or remote persistence change is required.
