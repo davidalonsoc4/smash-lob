@@ -13,7 +13,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { useTheme } from "@/context/ThemeProvider"
+import { type ThemePreference, useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -34,7 +34,7 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
   return (
     <section className="space-y-2">
       <div className="px-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="settings-section-label text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
           {title}
         </p>
         {description ? (
@@ -86,7 +86,7 @@ function SettingsLinkRow({
     <Link
       href={href}
       id={id}
-      className={`settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
+      className={`settings-row settings-row-${tone} settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
     >
       {leading ? <div className="shrink-0">{leading}</div> : null}
       <div className="min-w-0 flex-1">
@@ -115,7 +115,7 @@ function SettingsStaticRow({
   children: ReactNode
 }) {
   return (
-    <div id={id} className="settings-search-target px-3 py-3">
+    <div id={id} className="settings-row settings-row-default settings-search-target px-3 py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black text-neutral-950">{title}</p>
@@ -158,38 +158,103 @@ function SettingsToggle({
   )
 }
 
+function AppearancePreview({ mode }: { mode: ThemePreference }) {
+  const previewClassByMode: Record<ThemePreference, string> = {
+    light: "bg-white ring-neutral-200",
+    dark: "bg-neutral-900 ring-neutral-700",
+    system: "bg-gradient-to-r from-white from-50% to-neutral-900 to-50% ring-neutral-300",
+    colorful: "bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500 ring-indigo-200",
+  }
+  const cardClassByMode: Record<ThemePreference, string> = {
+    light: "bg-neutral-100",
+    dark: "bg-neutral-700",
+    system: "bg-gradient-to-r from-neutral-100 from-50% to-neutral-700 to-50%",
+    colorful: "bg-white/90",
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`appearance-preview appearance-preview-${mode} relative block h-11 overflow-hidden rounded-xl ring-1 ${previewClassByMode[mode]}`}
+    >
+      <span className={`appearance-preview-card absolute left-2 right-2 top-2 h-2 rounded-full ${cardClassByMode[mode]}`} />
+      <span className={`appearance-preview-card absolute bottom-2 left-2 h-4 w-8 rounded-md ${cardClassByMode[mode]}`} />
+      <span className={`appearance-preview-chip absolute bottom-2 right-2 h-4 w-4 rounded-full ${
+        mode === "colorful"
+          ? "bg-amber-300"
+          : mode === "dark"
+            ? "bg-neutral-500"
+            : "bg-neutral-300"
+      }`} />
+    </span>
+  )
+}
+
 function AppearanceSettings() {
   const { t } = useI18n()
   const { preference, setPreference } = useTheme()
-  const options = [
-    { value: "light" as const, label: t.settings.appearanceLight },
-    { value: "dark" as const, label: t.settings.appearanceDark },
-    { value: "system" as const, label: t.settings.appearanceSystem },
+  const options: Array<{ value: ThemePreference; label: string; description: string }> = [
+    {
+      value: "light",
+      label: t.settings.appearanceLight,
+      description: t.settings.appearanceLightDescription,
+    },
+    {
+      value: "dark",
+      label: t.settings.appearanceDark,
+      description: t.settings.appearanceDarkDescription,
+    },
+    {
+      value: "system",
+      label: t.settings.appearanceSystem,
+      description: t.settings.appearanceSystemDescription,
+    },
+    {
+      value: "colorful",
+      label: t.settings.appearanceColorful,
+      description: t.settings.appearanceColorfulDescription,
+    },
   ]
 
   return (
-    <div id="appearance" className="settings-search-target px-3 py-3">
+    <div id="appearance" className="settings-search-target appearance-settings px-3 py-3">
       <p className="text-sm font-black text-neutral-950">
         {t.settings.appearanceTitle}
       </p>
       <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
         {t.settings.appearanceDescription}
       </p>
-      <div className="mt-2 grid grid-cols-3 gap-1 rounded-2xl bg-neutral-100 p-1">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setPreference(option.value)}
-            className={`rounded-xl px-2 py-2 text-xs font-black transition ${
-              preference === option.value
-                ? "bg-white text-neutral-950 shadow-sm"
-                : "text-neutral-500"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {options.map((option) => {
+          const selected = preference === option.value
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => setPreference(option.value)}
+              className={`appearance-option rounded-2xl border p-2 text-left transition active:scale-[0.98] ${
+                selected
+                  ? "border-neutral-950 bg-white text-neutral-950 shadow-sm ring-1 ring-neutral-950/10"
+                  : "border-neutral-200 bg-neutral-50 text-neutral-600"
+              }`}
+            >
+              <AppearancePreview mode={option.value} />
+              <span className="mt-2 flex items-center justify-between gap-2">
+                <span className="text-xs font-black">{option.label}</span>
+                {selected ? (
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] font-black text-white">
+                    ✓
+                  </span>
+                ) : null}
+              </span>
+              <span className="mt-0.5 block text-[10px] font-semibold leading-4 text-neutral-500">
+                {option.description}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

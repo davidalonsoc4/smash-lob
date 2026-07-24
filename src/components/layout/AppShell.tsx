@@ -218,11 +218,11 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div
-      className={`min-h-screen bg-stone-200 text-neutral-950 ${
+      className={`app-shell-outer min-h-screen bg-stone-200 text-neutral-950 ${
         statusColorsEnabled ? "" : "status-colors-disabled"
       }`}
     >
-      <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
+      <div className="app-shell-frame mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
 
         {branding.preproduction ? (
@@ -248,7 +248,7 @@ export function AppShell({ children }: AppShellProps) {
             href="/notifications"
             aria-label="Notificaciones"
             title="Notificaciones"
-            className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
               top: getFloatingTop(),
@@ -266,7 +266,7 @@ export function AppShell({ children }: AppShellProps) {
             href="/settings"
             aria-label={t.appHeader.settingsLabel}
             title={t.appHeader.settingsLabel}
-            className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
               top: getFloatingTop(),

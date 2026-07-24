@@ -1,10 +1,24 @@
-Smash & Lob v0.15.7
+Smash & Lob v0.16.0
 
 - CHANGED_FILES.txt
 - package.json
 - package-lock.json
 - src/lib/appVersion.ts
 - src/lib/changelog.ts
-- src/app/availability/page.tsx
-- docs/preproduction/V0.15.7_AVAILABILITY_EFFECT_DEPS.md
+- src/lib/settingsSearch.ts
+- src/context/ThemeProvider.tsx
+- src/app/layout.tsx
+- src/app/globals.css
+- src/app/settings/page.tsx
+- src/components/layout/AppShell.tsx
+- src/components/layout/BottomNav.tsx
+- src/components/layout/LeagueSeasonEyebrow.tsx
+- src/components/ranking/RankingTable.tsx
+- src/components/ui/AppCard.tsx
+- src/components/ui/SectionHeader.tsx
+- src/components/ui/StatCard.tsx
+- src/i18n/locales/es.ts
+- src/i18n/locales/en.ts
+- src/i18n/locales/eu.ts
+- docs/preproduction/V0.16.0_COLORFUL_APPEARANCE.md
 - docs/production-hardening/STATUS.md
