@@ -1032,9 +1032,11 @@ html.colorful .app-card::before {
   content: "";
   position: absolute;
   z-index: 1;
-  inset: 0 0 auto;
+  top: 1px;
+  right: 1px;
+  left: 1px;
   height: 0.2rem;
-  border-radius: inherit;
+  border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 999px 999px;
   background: linear-gradient(
     90deg,
     var(--colorful-primary),
@@ -1144,6 +1146,27 @@ html.colorful .app-floating-control {
   background: var(--colorful-nav-surface) !important;
   color: var(--colorful-primary) !important;
   box-shadow: 0 7px 18px rgb(var(--colorful-primary-rgb) / 0.18) !important;
+}
+
+/* Muted actions must remain visibly interactive on dark Colorful themes. */
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white\/80,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white\/90,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white\/95,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-neutral-50,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-neutral-100 {
+  outline: 1px solid rgb(var(--colorful-primary-rgb) / 0.28);
+  outline-offset: -1px;
+}
+
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white:active,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white\/80:active,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white\/90:active,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-white\/95:active,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-neutral-50:active,
+html.dark.colorful :where(button, a[href], [role="button"]).bg-neutral-100:active {
+  background-color: rgb(var(--colorful-primary-rgb) / 0.16) !important;
+  outline-color: rgb(var(--colorful-primary-rgb) / 0.48);
 }
 
 html.colorful .settings-row-default {

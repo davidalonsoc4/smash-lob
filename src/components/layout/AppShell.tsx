@@ -6,6 +6,7 @@ import { type CSSProperties, type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
+import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
 import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
@@ -14,11 +15,20 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getAppBranding } from "@/lib/appVariant"
+import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
   children: ReactNode
 }
+
+const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
+const settingsSearchHubRoutes = new Set([
+  "/settings",
+  "/admin",
+  "/leagues",
+  "/application-admin",
+])
 
 type InviteFloatingControlsProps = {
   rightOffsetPx: number
@@ -153,7 +163,7 @@ function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProp
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const branding = getAppBranding()
   const pathname = usePathname()
   const {
@@ -162,9 +172,14 @@ export function AppShell({ children }: AppShellProps) {
     transitioningLeagueId,
   } = useActiveLeague()
   const {
+    canCreateLeagues,
     canShareSpectatorInvite,
+    getMembershipForLeague,
+    hasLeagueAdminRole,
+    isAdminViewEnabled,
     isLeagueAdmin,
     isLeagueSpectator,
+    isSuperuser,
     leagues,
   } = useLeagueAccess()
   const { seasons } = useSeasonSettings()
@@ -178,6 +193,26 @@ export function AppShell({ children }: AppShellProps) {
     pathname === "/admin/season" &&
     !seasons.some((season) => season.leagueId === activeLeagueId)
   const spectatorMode = isLeagueSpectator(activeLeagueId)
+  const activeMembership = getMembershipForLeague(activeLeagueId)
+  const canAccessAdmin = isLeagueAdmin(activeLeagueId)
+  const hasAdminRole = hasLeagueAdminRole(activeLeagueId)
+  const canCreateLeague = canCreateLeagues && isAdminViewEnabled
+  const canSelfUnlink = Boolean(
+    activeMembership && activeMembership.role !== "creator",
+  )
+  const shouldShowSettingsSearch =
+    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute
+  const settingsSearchEntries = shouldShowSettingsSearch
+    ? buildSettingsSearchEntries(locale, {
+        isSpectator: !isSuperuser && spectatorMode,
+        canAccessAdmin,
+        hasAdminRole,
+        canCreateLeague,
+        canSelfUnlink,
+        qaEnabled: qaModeEnabled,
+        isSuperuser,
+      })
+    : []
   const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
   const shouldShowNotificationsButton =
     !isInitialSeasonSetupRoute && !isPublicAccessRoute && !spectatorMode
@@ -300,6 +335,10 @@ export function AppShell({ children }: AppShellProps) {
         >
           {children}
         </main>
+
+        {shouldShowSettingsSearch ? (
+          <GlobalSettingsSearch locale={locale} entries={settingsSearchEntries} />
+        ) : null}
 
         <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav} />
 

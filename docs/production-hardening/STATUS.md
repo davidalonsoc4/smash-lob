@@ -290,3 +290,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added an accessible lightbox for main league logos and player profile images.
 - Preserved inline contextual errors, retry behaviour, status colours and all existing business logic.
 - No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.5 - Visual closure and Settings search (2026-07-25)
+
+- Extended the existing floating Settings search to the main navigation hubs for Settings, league administration, leagues and application administration.
+- Kept concrete action and form screens free from the additional launcher.
+- Contained Colorful card accent strips inside rounded borders without globally clipping card content.
+- Added subtle interaction outlines to muted buttons and links on dark Colorful palettes.
+- No database migration, API contract, permission or persistence change is required.

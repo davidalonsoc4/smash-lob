@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { ContextualTip } from "@/components/onboarding/ContextualTip"
-import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -19,9 +18,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { formatMoney } from "@/lib/courtBooking"
-import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 
-const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 const settingsVersionLabel = `Beta cerrada · ${APP_VERSION_LABEL}`
 
 type SettingsSectionProps = {
@@ -264,18 +261,8 @@ function SessionSection() {
 }
 
 function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const { data: session } = useSession()
-  const searchEntries = buildSettingsSearchEntries(locale, {
-    isSpectator: true,
-    canAccessAdmin: false,
-    hasAdminRole: false,
-    canCreateLeague: false,
-    canSelfUnlink: false,
-    qaEnabled: false,
-    isSuperuser: false,
-  })
-
   return (
     <div className="compact-page space-y-4">
       <header className="pt-1">
@@ -286,8 +273,6 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
           Cuenta de espectador · acceso de solo lectura.
         </p>
       </header>
-
-      <GlobalSettingsSearch locale={locale} entries={searchEntries} />
 
       <ContextualTip
         tipId="settings-search"
@@ -395,7 +380,7 @@ export default function SettingsPage() {
 }
 
 function PlayerSettingsPage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, matches } = useCurrentLeagueData()
   const {
@@ -445,16 +430,6 @@ function PlayerSettingsPage() {
   )
   const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
   const hasPendingPayments = pendingPaymentCount > 0
-  const searchEntries = buildSettingsSearchEntries(locale, {
-    isSpectator: false,
-    canAccessAdmin,
-    hasAdminRole,
-    canCreateLeague: canCreateLeaguesInCurrentView,
-    canSelfUnlink,
-    qaEnabled: qaModeEnabled,
-    isSuperuser,
-  })
-
   async function handleUnlinkCurrentLeague() {
     if (!canSelfUnlink || isUnlinkingLeague) {
       return
@@ -500,8 +475,6 @@ function PlayerSettingsPage() {
           Todo lo relacionado con tu cuenta, tus ligas y la aplicación.
         </p>
       </header>
-
-      <GlobalSettingsSearch locale={locale} entries={searchEntries} />
 
       <ContextualTip
         tipId="settings-search"

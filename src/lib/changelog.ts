@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.5",
+    date: "25 de julio de 2026",
+    title: "Cierre visual y búsqueda extendida",
+    summary:
+      "La búsqueda de Ajustes acompaña a los centros de navegación y el modo Colorido termina su revisión de paneles y acciones oscuras.",
+    category: "improvement",
+    changes: [
+      "La lupa flotante de búsqueda aparece en Ajustes, Administración de liga, Mis ligas y Administración de la aplicación, sin invadir las pantallas de formularios concretos.",
+      "La franja degradada superior de las tarjetas Coloridas queda contenida dentro del borde y conserva el redondeado de las esquinas.",
+      "Los botones y enlaces de acción con superficies neutras reciben un contorno sutil en Colorido oscuro para distinguirse del fondo.",
+      "La revisión mantiene intactos Claro, Oscuro y Sistema en estilo Plano y no modifica lógica de negocio, APIs ni persistencia.",
+    ],
+  },
+  {
     version: "v0.16.4",
     date: "25 de julio de 2026",
     title: "Consistencia visual, avisos y visor de imágenes",
