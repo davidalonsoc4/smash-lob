@@ -81,7 +81,6 @@ export default function SuggestionsPage() {
   const [items, setItems] = useState<SuggestionItem[]>([])
   const [loadingItems, setLoadingItems] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const canSubmit = useMemo(
@@ -116,7 +115,6 @@ export default function SuggestionsPage() {
     if (!canSubmit) return
 
     setSubmitting(true)
-    setMessage(null)
     setError(null)
 
     try {
@@ -144,7 +142,6 @@ export default function SuggestionsPage() {
       setDetails("")
       setCategory("improvement")
       const successMessage = "Sugerencia enviada. Gracias por ayudar a mejorar Smash & Lob."
-      setMessage(successMessage)
       showActionFeedback({ tone: "success", message: successMessage })
     } catch (caughtError) {
       const submitError = getSubmitError(
@@ -241,11 +238,6 @@ export default function SuggestionsPage() {
           {submitting ? "Enviando..." : "Enviar sugerencia"}
         </button>
 
-        {message ? (
-          <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold leading-5 text-emerald-700">
-            {message}
-          </p>
-        ) : null}
         {error ? (
           <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-700">
             {error}

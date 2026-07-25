@@ -303,7 +303,6 @@ export default function AvailabilityPage() {
   const [expandedCustomDay, setExpandedCustomDay] = useState<WeekdayId | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isPersistentAvailability =
     isSupabaseBackedAvailabilityId(activeLeague.id) &&
@@ -322,7 +321,6 @@ export default function AvailabilityPage() {
     const resetTimeout = window.setTimeout(() => {
       if (!isCancelled) {
         setAvailability(initialAvailability);
-        setMessage(null);
         setError(null);
       }
     }, 0);
@@ -400,7 +398,6 @@ export default function AvailabilityPage() {
   );
 
   function updateWeeklySlots(nextWeeklySlots: WeeklyAvailability) {
-    setMessage(null);
     setError(null);
     setAvailability((currentAvailability) => ({
       ...currentAvailability,
@@ -467,7 +464,6 @@ export default function AvailabilityPage() {
 
   async function saveAvailability() {
     setIsSaving(true);
-    setMessage(null);
     setError(null);
 
     const nextAvailability: PlayerAvailability = {
@@ -497,7 +493,6 @@ export default function AvailabilityPage() {
       }
 
       const successMessage = "Disponibilidad guardada.";
-      setMessage(successMessage);
       showActionFeedback({ tone: "success", message: successMessage });
     } catch {
       const saveError = "No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.";
@@ -704,12 +699,6 @@ export default function AvailabilityPage() {
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
           {error}
-        </p>
-      ) : null}
-
-      {message ? (
-        <p className="rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
-          {message}
         </p>
       ) : null}
 

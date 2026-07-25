@@ -1397,6 +1397,15 @@ export const es = {
     helpResetDone: "Restablecidos",
   },
 
+  imageViewer: {
+    dialogLabel: "Vista ampliada de imagen",
+    close: "Cerrar imagen",
+    openLeagueLogo: "Ampliar logo de {name}",
+    leagueLogoAlt: "Logo de {name}",
+    openPlayerImage: "Ampliar imagen de {name}",
+    playerImageAlt: "Imagen de perfil de {name}",
+  },
+
   language: {
     current: "Español",
     switchToSpanish: "ES",

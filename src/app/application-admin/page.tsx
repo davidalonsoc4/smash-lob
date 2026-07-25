@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { formatProfileName } from "@/lib/accountProfile"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 type LeagueAccessRole = "creator" | "admin" | "player" | "spectator"
 
@@ -214,7 +215,6 @@ export default function ApplicationAdminPage() {
   const [query, setQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [busyKey, setBusyKey] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [transferTargets, setTransferTargets] = useState<Record<string, string>>({})
 
@@ -309,7 +309,6 @@ export default function ApplicationAdminPage() {
   async function saveUser(user: ApplicationUser) {
     if (busyKey) return
     setBusyKey(`${user.id}:save`)
-    setFeedback(null)
     setError(null)
 
     try {
@@ -325,7 +324,7 @@ export default function ApplicationAdminPage() {
       const result = (await response.json()) as { error?: string }
       if (!response.ok) throw new Error(result.error ?? "application_user_update_failed")
       await loadUsers()
-      setFeedback(`Cuenta de ${user.email} actualizada.`)
+      showActionFeedback({ tone: "success", message: `Cuenta de ${user.email} actualizada.` })
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -351,7 +350,6 @@ export default function ApplicationAdminPage() {
     }
 
     setBusyKey(`${user.id}:${action}`)
-    setFeedback(null)
     setError(null)
 
     try {
@@ -378,7 +376,7 @@ export default function ApplicationAdminPage() {
         revoke_push: `${result.affectedCount ?? 0} dispositivo(s) revocado(s) para ${user.email}.`,
         reset_notifications: `Preferencias de notificación restablecidas para ${user.email}.`,
       }
-      setFeedback(messages[action])
+      showActionFeedback({ tone: "success", message: messages[action] })
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -404,7 +402,6 @@ export default function ApplicationAdminPage() {
     if (!confirmed) return
 
     setBusyKey(`${access.leagueId}:transfer`)
-    setFeedback(null)
     setError(null)
 
     try {
@@ -423,7 +420,10 @@ export default function ApplicationAdminPage() {
       if (!response.ok) throw new Error(result.error ?? "league_ownership_transfer_failed")
       setTransferTargets((current) => ({ ...current, [access.leagueId]: "" }))
       await loadUsers()
-      setFeedback(`Propiedad de ${access.leagueName} transferida a ${newOwner.email}.`)
+      showActionFeedback({
+        tone: "success",
+        message: `Propiedad de ${access.leagueName} transferida a ${newOwner.email}.`,
+      })
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -443,7 +443,6 @@ export default function ApplicationAdminPage() {
     if (!confirmed) return
 
     setBusyKey(`${user.id}:delete`)
-    setFeedback(null)
     setError(null)
 
     try {
@@ -457,7 +456,7 @@ export default function ApplicationAdminPage() {
         })
       }
       await loadUsers()
-      setFeedback(`Cuenta ${user.email} eliminada.`)
+      showActionFeedback({ tone: "success", message: `Cuenta ${user.email} eliminada.` })
     } catch (caughtError) {
       const apiError = caughtError as Error & { leagues?: string[] }
       setError(getApiErrorMessage(apiError.message, apiError.leagues))
@@ -557,12 +556,6 @@ export default function ApplicationAdminPage() {
           className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none"
         />
       </AppCard>
-
-      {feedback ? (
-        <p className="rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
           {error}

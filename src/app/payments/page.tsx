@@ -18,6 +18,7 @@ import {
   type ActivityEvent,
 } from "@/lib/activity"
 import { formatMoney, roundMoney } from "@/lib/courtBooking"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 type PaymentTab = "status" | "movements" | "all"
 
@@ -254,7 +255,6 @@ export default function PaymentsPage() {
   const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [updatingTransferId, setUpdatingTransferId] = useState<string | null>(null)
   const [paymentStatusError, setPaymentStatusError] = useState<string | null>(null)
-  const [reminderMessage, setReminderMessage] = useState<string | null>(null)
   const [reminderError, setReminderError] = useState<string | null>(null)
   const [isEconomyExpanded, setIsEconomyExpanded] = useState(false)
   const [economyScope, setEconomyScope] = useState<EconomyScope>(activeSeason.id)
@@ -477,7 +477,6 @@ export default function PaymentsPage() {
     })
 
     setIsSendingReminder(true)
-    setReminderMessage(null)
     setReminderError(null)
 
     const results = await Promise.all(
@@ -496,11 +495,13 @@ export default function PaymentsPage() {
       return
     }
 
-    setReminderMessage(
-      sentCount === 1
-        ? "Recordatorio enviado."
-        : `Recordatorios enviados para ${sentCount} partidos.`
-    )
+    showActionFeedback({
+      tone: "success",
+      message:
+        sentCount === 1
+          ? "Recordatorio enviado."
+          : `Recordatorios enviados para ${sentCount} partidos.`,
+    })
   }
 
   async function handleMarkTransferPaid({
@@ -617,12 +618,6 @@ export default function PaymentsPage() {
               >
                 {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
               </button>
-            ) : null}
-
-            {reminderMessage ? (
-              <p className="mt-2 text-xs font-bold text-emerald-700">
-                {reminderMessage}
-              </p>
             ) : null}
 
             {reminderError ? (

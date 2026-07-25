@@ -15,6 +15,7 @@ import {
   type AnnouncementAudienceMode,
   type LeagueAnnouncement,
 } from "@/lib/announcements"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 function formatDate(value: string) {
   const date = new Date(value)
@@ -58,7 +59,6 @@ export default function AdminAnnouncementsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -139,7 +139,6 @@ export default function AdminAnnouncementsPage() {
     if (!canSubmit) return
     setIsSaving(true)
     setError(null)
-    setMessage(null)
 
     try {
       const created = await createLeagueAnnouncement({
@@ -159,13 +158,15 @@ export default function AdminAnnouncementsPage() {
       setExpiresAt("")
       setTargetPlayerIds([])
       announceLeagueAnnouncementsRefresh()
-      setMessage(
-        pinned && sendNotification
-          ? "Comunicado publicado y notificación enviada."
-          : pinned
-            ? "Comunicado publicado en la HOME."
-            : "Notificación enviada.",
-      )
+      showActionFeedback({
+        tone: "success",
+        message:
+          pinned && sendNotification
+            ? "Comunicado publicado y notificación enviada."
+            : pinned
+              ? "Comunicado publicado en la HOME."
+              : "Notificación enviada.",
+      })
     } catch (caughtError) {
       const code = caughtError instanceof Error ? caughtError.message : ""
       setError(
@@ -197,6 +198,7 @@ export default function AdminAnnouncementsPage() {
         current.filter((item) => item.id !== announcement.id),
       )
       announceLeagueAnnouncementsRefresh()
+      showActionFeedback({ tone: "success", message: "Comunicado eliminado." })
     } catch {
       setError("No se ha podido eliminar el comunicado.")
     } finally {
@@ -374,9 +376,6 @@ export default function AdminAnnouncementsPage() {
             {isSaving ? "Procesando..." : actionLabel}
           </button>
 
-          {message ? (
-            <p className="text-center text-xs font-bold text-emerald-700">{message}</p>
-          ) : null}
           {error ? (
             <p className="text-center text-xs font-bold text-red-600">{error}</p>
           ) : null}
