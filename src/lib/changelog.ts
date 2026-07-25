@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.3",
+    date: "25 de julio de 2026",
+    title: "Tema base y estilo visual independientes",
+    summary:
+      "Claro, Oscuro y Sistema pueden combinarse con un estilo Plano o Colorido y con cualquiera de las cinco paletas preparadas.",
+    category: "improvement",
+    changes: [
+      "La configuración visual se divide en Tema base, Estilo visual y Paleta de color.",
+      "El estilo Colorido incorpora variantes claras y oscuras específicas para las cinco paletas.",
+      "Sistema + Colorido cambia automáticamente entre la variante clara y oscura sin perder la paleta elegida.",
+      "Ajustes muestra únicamente un resumen compacto y traslada la configuración detallada a Temas y apariencia.",
+      "Las preferencias anteriores se migran automáticamente: Colorido conserva su paleta y el resto mantiene su tema con estilo Plano.",
+      "La configuración sigue siendo local al dispositivo y no requiere migraciones ni cambios de API.",
+    ],
+  },
+  {
     version: "v0.16.2",
     date: "25 de julio de 2026",
     title: "Paletas para la apariencia Colorida",

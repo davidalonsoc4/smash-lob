@@ -1,0 +1,297 @@
+"use client"
+
+import type { ReactNode } from "react"
+import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
+import {
+  type ColorfulPalette,
+  type ThemeMode,
+  type VisualStyle,
+  useTheme,
+} from "@/context/ThemeProvider"
+import { useI18n } from "@/i18n/I18nProvider"
+
+const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
+  indigo: ["#5b5ce2", "#7c4dff", "#e94b9b", "#f2a93b"],
+  ocean: ["#087ea4", "#0ea5a8", "#38bdf8", "#f59e0b"],
+  emerald: ["#059669", "#10b981", "#34d399", "#f59e0b"],
+  coral: ["#e65a72", "#ec4899", "#fb7185", "#8b5cf6"],
+  sunset: ["#f06a24", "#7c3aed", "#ec4899", "#fbbf24"],
+}
+
+function AppearanceSection({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string
+  title: string
+  description: string
+  children: ReactNode
+}) {
+  return (
+    <section id={id} className="settings-search-target space-y-2">
+      <div className="px-1">
+        <h2 className="text-sm font-black text-neutral-950">{title}</h2>
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">{description}</p>
+      </div>
+      <AppCard className="!p-2.5">{children}</AppCard>
+    </section>
+  )
+}
+
+function ThemeModePreview({ mode }: { mode: ThemeMode }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`appearance-preview-${mode} relative block h-8 overflow-hidden rounded-lg ring-1`}
+    >
+      <span className="appearance-preview-card absolute left-1.5 right-1.5 top-1.5 h-1.5 rounded-full" />
+      <span className="appearance-preview-card absolute bottom-1.5 left-1.5 h-3 w-6 rounded" />
+      <span className="appearance-preview-chip absolute bottom-1.5 right-1.5 h-3 w-3 rounded-full" />
+    </span>
+  )
+}
+
+function StylePreview({ style }: { style: VisualStyle }) {
+  if (style === "plain") {
+    return (
+      <span aria-hidden="true" className="relative block h-9 overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
+        <span className="absolute inset-x-2 top-2 h-2 rounded-full bg-white" />
+        <span className="absolute bottom-2 left-2 h-3 w-8 rounded-md bg-white" />
+        <span className="absolute bottom-2 right-2 h-3 w-3 rounded-full bg-neutral-300" />
+      </span>
+    )
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="appearance-preview-colorful relative block h-9 overflow-hidden rounded-xl ring-1"
+    >
+      <span className="appearance-preview-card absolute inset-x-2 top-2 h-2 rounded-full" />
+      <span className="appearance-preview-card absolute bottom-2 left-2 h-3 w-8 rounded-md" />
+      <span className="appearance-preview-chip absolute bottom-2 right-2 h-3 w-3 rounded-full" />
+    </span>
+  )
+}
+
+function PaletteSwatches({ palette }: { palette: ColorfulPalette }) {
+  return (
+    <span aria-hidden="true" className="flex items-center gap-1">
+      {colorfulPaletteSwatches[palette].map((color) => (
+        <span
+          key={color}
+          className="h-4 w-4 rounded-full border border-white/80 shadow-sm"
+          style={{ backgroundColor: color }}
+        />
+      ))}
+    </span>
+  )
+}
+
+export default function AppearancePage() {
+  const { t } = useI18n()
+  const {
+    themeMode,
+    setThemeMode,
+    visualStyle,
+    setVisualStyle,
+    colorfulPalette,
+    setColorfulPalette,
+  } = useTheme()
+
+  const themeOptions: Array<{ value: ThemeMode; label: string }> = [
+    { value: "light", label: t.settings.appearanceLight },
+    { value: "dark", label: t.settings.appearanceDark },
+    { value: "system", label: t.settings.appearanceSystem },
+  ]
+  const styleOptions: Array<{ value: VisualStyle; label: string; description: string }> = [
+    {
+      value: "plain",
+      label: t.settings.visualStylePlain,
+      description: t.settings.visualStylePlainDescription,
+    },
+    {
+      value: "colorful",
+      label: t.settings.visualStyleColorful,
+      description: t.settings.visualStyleColorfulDescription,
+    },
+  ]
+  const paletteOptions: Array<{ value: ColorfulPalette; label: string; description: string }> = [
+    {
+      value: "indigo",
+      label: t.settings.colorfulPaletteIndigo,
+      description: t.settings.colorfulPaletteIndigoDescription,
+    },
+    {
+      value: "ocean",
+      label: t.settings.colorfulPaletteOcean,
+      description: t.settings.colorfulPaletteOceanDescription,
+    },
+    {
+      value: "emerald",
+      label: t.settings.colorfulPaletteEmerald,
+      description: t.settings.colorfulPaletteEmeraldDescription,
+    },
+    {
+      value: "coral",
+      label: t.settings.colorfulPaletteCoral,
+      description: t.settings.colorfulPaletteCoralDescription,
+    },
+    {
+      value: "sunset",
+      label: t.settings.colorfulPaletteSunset,
+      description: t.settings.colorfulPaletteSunsetDescription,
+    },
+  ]
+  const selectedPalette = paletteOptions.find((option) => option.value === colorfulPalette)
+
+  return (
+    <div className="compact-page space-y-4">
+      <header className="pt-1">
+        <BackButton fallbackHref="/settings" label={t.common.back} />
+        <h1 className="mt-1 text-xl font-black tracking-tight">{t.settings.appearancePageTitle}</h1>
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+          {t.settings.appearancePageDescription}
+        </p>
+      </header>
+
+      <AppCard className="appearance-current-summary overflow-hidden !p-3">
+        <div className="flex items-center gap-3">
+          <span className="appearance-summary-orb grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-sm font-black text-white">
+            Aa
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+              {t.settings.appearanceCurrent}
+            </p>
+            <p className="mt-0.5 text-sm font-black text-neutral-950">
+              {themeOptions.find((option) => option.value === themeMode)?.label} · {styleOptions.find((option) => option.value === visualStyle)?.label}
+            </p>
+            {visualStyle === "colorful" ? (
+              <div className="mt-1 flex items-center gap-2">
+                <PaletteSwatches palette={colorfulPalette} />
+                <p className="truncate text-[10px] font-bold text-neutral-500">{selectedPalette?.label}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </AppCard>
+
+      <AppearanceSection
+        id="theme-mode"
+        title={t.settings.themeModeTitle}
+        description={t.settings.themeModeDescription}
+      >
+        <div className="grid grid-cols-3 gap-2">
+          {themeOptions.map((option) => {
+            const selected = themeMode === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setThemeMode(option.value)}
+                className={`appearance-compact-option rounded-xl border p-2 text-left transition active:scale-[0.98] ${
+                  selected
+                    ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
+                    : "border-neutral-200 bg-neutral-50"
+                }`}
+              >
+                <ThemeModePreview mode={option.value} />
+                <span className="mt-1.5 flex items-center justify-between gap-1">
+                  <span className="truncate text-[10px] font-black text-neutral-950">{option.label}</span>
+                  {selected ? (
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 text-[8px] font-black text-white">✓</span>
+                  ) : null}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </AppearanceSection>
+
+      <AppearanceSection
+        id="visual-style"
+        title={t.settings.visualStyleTitle}
+        description={t.settings.visualStyleDescription}
+      >
+        <div className="grid grid-cols-2 gap-2">
+          {styleOptions.map((option) => {
+            const selected = visualStyle === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setVisualStyle(option.value)}
+                className={`appearance-compact-option rounded-xl border p-2 text-left transition active:scale-[0.98] ${
+                  selected
+                    ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
+                    : "border-neutral-200 bg-neutral-50"
+                }`}
+              >
+                <StylePreview style={option.value} />
+                <span className="mt-1.5 flex items-center justify-between gap-2">
+                  <span className="text-xs font-black text-neutral-950">{option.label}</span>
+                  {selected ? (
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 text-[8px] font-black text-white">✓</span>
+                  ) : null}
+                </span>
+                <span className="mt-0.5 block text-[9px] font-semibold leading-3.5 text-neutral-500">
+                  {option.description}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </AppearanceSection>
+
+      {visualStyle === "colorful" ? (
+        <AppearanceSection
+          id="color-palette"
+          title={t.settings.colorfulPaletteTitle}
+          description={t.settings.colorfulPaletteDescription}
+        >
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {paletteOptions.map((option) => {
+              const selected = colorfulPalette === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setColorfulPalette(option.value)}
+                  className={`colorful-palette-option min-h-16 rounded-xl border px-2.5 py-2 text-left transition active:scale-[0.98] ${
+                    selected
+                      ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
+                      : "border-neutral-200 bg-neutral-50"
+                  }`}
+                >
+                  <span className="flex items-start justify-between gap-2">
+                    <PaletteSwatches palette={option.value} />
+                    {selected ? (
+                      <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 text-[8px] font-black text-white">✓</span>
+                    ) : null}
+                  </span>
+                  <span className="mt-1.5 block text-[10px] font-black leading-4 text-neutral-950">{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+          {selectedPalette ? (
+            <p className="mt-2 px-1 text-[10px] font-semibold leading-4 text-neutral-500">
+              {selectedPalette.description}
+            </p>
+          ) : null}
+        </AppearanceSection>
+      ) : null}
+
+      <p className="px-1 pb-1 text-[10px] font-semibold leading-4 text-neutral-400">
+        {t.settings.appearanceDeviceOnly}
+      </p>
+    </div>
+  )
+}
