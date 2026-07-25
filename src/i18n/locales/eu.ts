@@ -1345,6 +1345,15 @@ export const eu = {
     helpResetDone: "Berrezarrita",
   },
 
+  imageViewer: {
+    dialogLabel: "Irudiaren ikuspegi handitua",
+    close: "Itxi irudia",
+    openLeagueLogo: "Handitu {name} ligaren logotipoa",
+    leagueLogoAlt: "{name} ligaren logotipoa",
+    openPlayerImage: "Handitu {name} jokalariaren profileko irudia",
+    playerImageAlt: "{name} jokalariaren profileko irudia",
+  },
+
   language: {
     current: "Euskera",
     switchToSpanish: "ES",

@@ -13,6 +13,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import type { LeagueLocation } from "@/lib/leagueLocations"
 
 type LeagueIdentityFormProps = {
@@ -55,8 +56,6 @@ function LeagueIdentityForm({
   const [description, setDescription] = useState(initialDescription)
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
   const [logoCropSource, setLogoCropSource] = useState<string | null>(null)
-  const [detailsSaved, setDetailsSaved] = useState(false)
-  const [logoSaved, setLogoSaved] = useState(false)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
   const [isSavingLogo, setIsSavingLogo] = useState(false)
   const [detailsError, setDetailsError] = useState<string | null>(null)
@@ -75,7 +74,6 @@ function LeagueIdentityForm({
     }
 
     setIsSavingDetails(true)
-    setDetailsSaved(false)
     setDetailsError(null)
 
     const updated = await updateLeagueDetails(leagueId, {
@@ -111,12 +109,11 @@ function LeagueIdentityForm({
       // Los datos ya están guardados; la actividad es auxiliar.
     }
 
-    setDetailsSaved(true)
+    showActionFeedback({ tone: "success", message: "Datos de liga guardados." })
   }
 
   async function saveLogo(nextLogoUrl: string | null) {
     setIsSavingLogo(true)
-    setLogoSaved(false)
     setLogoError(null)
 
     const updated = await updateLeagueLogo(leagueId, nextLogoUrl)
@@ -151,7 +148,10 @@ function LeagueIdentityForm({
       // El logo ya está guardado; la actividad es auxiliar.
     }
 
-    setLogoSaved(true)
+    showActionFeedback({
+      tone: "success",
+      message: nextLogoUrl ? "Logo guardado." : "Logo eliminado.",
+    })
     return true
   }
 
@@ -165,7 +165,6 @@ function LeagueIdentityForm({
     try {
       validateImageFile(file)
       setLogoError(null)
-      setLogoSaved(false)
       setLogoCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
       setLogoError(
@@ -190,6 +189,7 @@ function LeagueIdentityForm({
           <LeagueLogo
             league={{ name: previewLeagueName, logoUrl }}
             size="lg"
+            previewable
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black">{previewLeagueName}</p>
@@ -227,12 +227,6 @@ function LeagueIdentityForm({
           </p>
         ) : null}
 
-        {logoSaved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-            Logo guardado.
-          </p>
-        ) : null}
-
         <div className="mt-4 space-y-4 border-t border-neutral-100 pt-5">
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
@@ -243,7 +237,6 @@ function LeagueIdentityForm({
               disabled={isSavingDetails}
               onChange={(event) => {
                 setName(event.target.value)
-                setDetailsSaved(false)
                 setDetailsError(null)
               }}
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
@@ -260,7 +253,6 @@ function LeagueIdentityForm({
               rows={3}
               onChange={(event) => {
                 setDescription(event.target.value)
-                setDetailsSaved(false)
                 setDetailsError(null)
               }}
               className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
@@ -282,11 +274,6 @@ function LeagueIdentityForm({
           </p>
         ) : null}
 
-        {detailsSaved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-            Datos de liga guardados.
-          </p>
-        ) : null}
       </AppCard>
 
       {logoCropSource ? (
@@ -469,7 +456,6 @@ function LeagueLocationsForm({
   const { updateLeagueLocations } = useLeagueAccess()
 
   const [locations, setLocations] = useState(initialLocations)
-  const [saved, setSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -477,7 +463,6 @@ function LeagueLocationsForm({
     event.preventDefault()
 
     setIsSaving(true)
-    setSaved(false)
     setError(null)
 
     const updated = await updateLeagueLocations(leagueId, locations)
@@ -508,7 +493,7 @@ function LeagueLocationsForm({
       // Los lugares ya están guardados; la actividad es auxiliar.
     }
 
-    setSaved(true)
+    showActionFeedback({ tone: "success", message: t.adminLeague.saved })
   }
 
   return (
@@ -524,7 +509,6 @@ function LeagueLocationsForm({
             locations={locations}
             onChange={(nextLocations) => {
               setLocations(nextLocations)
-              setSaved(false)
               setError(null)
             }}
             disabled={isSaving}
@@ -566,11 +550,6 @@ function LeagueLocationsForm({
           </p>
         ) : null}
 
-        {saved ? (
-          <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-            {t.adminLeague.saved}
-          </p>
-        ) : null}
       </AppCard>
     </form>
   )

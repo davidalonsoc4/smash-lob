@@ -1336,6 +1336,15 @@ export const en = {
     helpResetDone: "Reset",
   },
 
+  imageViewer: {
+    dialogLabel: "Expanded image view",
+    close: "Close image",
+    openLeagueLogo: "Enlarge {name} logo",
+    leagueLogoAlt: "{name} logo",
+    openPlayerImage: "Enlarge {name} profile image",
+    playerImageAlt: "{name} profile image",
+  },
+
   language: {
     current: "English",
     switchToSpanish: "ES",

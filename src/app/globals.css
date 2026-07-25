@@ -378,6 +378,7 @@ html.dark .app-skeleton::after {
 html.colorful {
   --colorful-primary: #5b5ce2;
   --colorful-primary-rgb: 91 92 226;
+  --colorful-on-primary: #ffffff;
   --colorful-secondary: #7c4dff;
   --colorful-secondary-rgb: 124 77 255;
   --colorful-accent: #e94b9b;
@@ -399,9 +400,9 @@ html.colorful {
   --colorful-text-strong: #20224a;
   --colorful-text-700: #42466f;
   --colorful-text-600: #5d6189;
-  --colorful-text-500: #73779b;
-  --colorful-text-400: #9699b8;
-  --colorful-text-300: #b1b4cd;
+  --colorful-text-500: #696c91;
+  --colorful-text-400: #6d7095;
+  --colorful-text-300: #717498;
   --colorful-neutral-50: #f5f6ff;
   --colorful-neutral-100: #eceeff;
   --colorful-neutral-200: #dde2ff;
@@ -435,6 +436,7 @@ html.colorful {
 html.colorful[data-colorful-palette="ocean"] {
   --colorful-primary: #087ea4;
   --colorful-primary-rgb: 8 126 164;
+  --colorful-on-primary: #ffffff;
   --colorful-secondary: #0ea5a8;
   --colorful-secondary-rgb: 14 165 168;
   --colorful-accent: #38bdf8;
@@ -456,9 +458,9 @@ html.colorful[data-colorful-palette="ocean"] {
   --colorful-text-strong: #123642;
   --colorful-text-700: #285766;
   --colorful-text-600: #47717d;
-  --colorful-text-500: #648894;
-  --colorful-text-400: #8ca7af;
-  --colorful-text-300: #afc2c8;
+  --colorful-text-500: #4d7581;
+  --colorful-text-400: #517984;
+  --colorful-text-300: #567c87;
   --colorful-neutral-50: #f0fbfc;
   --colorful-neutral-100: #e1f5f6;
   --colorful-neutral-200: #cbeaec;
@@ -474,6 +476,7 @@ html.colorful[data-colorful-palette="ocean"] {
 html.colorful[data-colorful-palette="emerald"] {
   --colorful-primary: #059669;
   --colorful-primary-rgb: 5 150 105;
+  --colorful-on-primary: #001b12;
   --colorful-secondary: #10b981;
   --colorful-secondary-rgb: 16 185 129;
   --colorful-accent: #34d399;
@@ -495,9 +498,9 @@ html.colorful[data-colorful-palette="emerald"] {
   --colorful-text-strong: #173d35;
   --colorful-text-700: #2d5c50;
   --colorful-text-600: #4c766b;
-  --colorful-text-500: #688f84;
-  --colorful-text-400: #91aca4;
-  --colorful-text-300: #b3c6c0;
+  --colorful-text-500: #4e776c;
+  --colorful-text-400: #527a70;
+  --colorful-text-300: #577e74;
   --colorful-neutral-50: #f1fbf5;
   --colorful-neutral-100: #e3f5e9;
   --colorful-neutral-200: #ccebd8;
@@ -513,6 +516,7 @@ html.colorful[data-colorful-palette="emerald"] {
 html.colorful[data-colorful-palette="coral"] {
   --colorful-primary: #e65a72;
   --colorful-primary-rgb: 230 90 114;
+  --colorful-on-primary: #3b0817;
   --colorful-secondary: #ec4899;
   --colorful-secondary-rgb: 236 72 153;
   --colorful-accent: #fb7185;
@@ -534,9 +538,9 @@ html.colorful[data-colorful-palette="coral"] {
   --colorful-text-strong: #49242d;
   --colorful-text-700: #70424c;
   --colorful-text-600: #8b5e67;
-  --colorful-text-500: #a47a82;
-  --colorful-text-400: #bd9ba2;
-  --colorful-text-300: #d2b9be;
+  --colorful-text-500: #8f636c;
+  --colorful-text-400: #926770;
+  --colorful-text-300: #956b74;
   --colorful-neutral-50: #fff6f6;
   --colorful-neutral-100: #fdebed;
   --colorful-neutral-200: #f8d9de;
@@ -552,6 +556,7 @@ html.colorful[data-colorful-palette="coral"] {
 html.colorful[data-colorful-palette="sunset"] {
   --colorful-primary: #f06a24;
   --colorful-primary-rgb: 240 106 36;
+  --colorful-on-primary: #431407;
   --colorful-secondary: #7c3aed;
   --colorful-secondary-rgb: 124 58 237;
   --colorful-accent: #ec4899;
@@ -573,9 +578,9 @@ html.colorful[data-colorful-palette="sunset"] {
   --colorful-text-strong: #462c24;
   --colorful-text-700: #674b42;
   --colorful-text-600: #82685f;
-  --colorful-text-500: #9c837a;
-  --colorful-text-400: #b8a19a;
-  --colorful-text-300: #cdbab4;
+  --colorful-text-500: #836a61;
+  --colorful-text-400: #866d65;
+  --colorful-text-300: #8a7169;
   --colorful-neutral-50: #fff8f1;
   --colorful-neutral-100: #faeee4;
   --colorful-neutral-200: #f2ded0;
@@ -591,6 +596,7 @@ html.colorful[data-colorful-palette="sunset"] {
 html.dark.colorful {
   --colorful-primary: #818cf8;
   --colorful-primary-rgb: 129 140 248;
+  --colorful-on-primary: #111225;
   --colorful-secondary: #a78bfa;
   --colorful-secondary-rgb: 167 139 250;
   --colorful-accent: #f472b6;
@@ -613,8 +619,8 @@ html.dark.colorful {
   --colorful-text-700: #d8d5f5;
   --colorful-text-600: #b9b6dc;
   --colorful-text-500: #9997bd;
-  --colorful-text-400: #78769a;
-  --colorful-text-300: #5f5d7d;
+  --colorful-text-400: #9997bd;
+  --colorful-text-300: #8d8bb4;
   --colorful-neutral-50: #1b1c30;
   --colorful-neutral-100: #22233a;
   --colorful-neutral-200: #2d2e49;
@@ -648,6 +654,7 @@ html.dark.colorful {
 html.dark.colorful[data-colorful-palette="ocean"] {
   --colorful-primary: #38bdf8;
   --colorful-primary-rgb: 56 189 248;
+  --colorful-on-primary: #071a22;
   --colorful-secondary: #2dd4bf;
   --colorful-secondary-rgb: 45 212 191;
   --colorful-accent: #67e8f9;
@@ -670,8 +677,8 @@ html.dark.colorful[data-colorful-palette="ocean"] {
   --colorful-text-700: #c2e7ed;
   --colorful-text-600: #9bcbd3;
   --colorful-text-500: #75aab4;
-  --colorful-text-400: #568892;
-  --colorful-text-300: #3c6871;
+  --colorful-text-400: #75aab4;
+  --colorful-text-300: #679da7;
   --colorful-neutral-50: #0d2730;
   --colorful-neutral-100: #12313a;
   --colorful-neutral-200: #193e47;
@@ -698,6 +705,7 @@ html.dark.colorful[data-colorful-palette="ocean"] {
 html.dark.colorful[data-colorful-palette="emerald"] {
   --colorful-primary: #34d399;
   --colorful-primary-rgb: 52 211 153;
+  --colorful-on-primary: #071a16;
   --colorful-secondary: #10b981;
   --colorful-secondary-rgb: 16 185 129;
   --colorful-accent: #6ee7b7;
@@ -720,8 +728,8 @@ html.dark.colorful[data-colorful-palette="emerald"] {
   --colorful-text-700: #c5eadb;
   --colorful-text-600: #9dcebb;
   --colorful-text-500: #77ad99;
-  --colorful-text-400: #568a78;
-  --colorful-text-300: #3d695a;
+  --colorful-text-400: #77ad99;
+  --colorful-text-300: #6fa18f;
   --colorful-neutral-50: #0d281f;
   --colorful-neutral-100: #123329;
   --colorful-neutral-200: #193f33;
@@ -748,6 +756,7 @@ html.dark.colorful[data-colorful-palette="emerald"] {
 html.dark.colorful[data-colorful-palette="coral"] {
   --colorful-primary: #fb7185;
   --colorful-primary-rgb: 251 113 133;
+  --colorful-on-primary: #211015;
   --colorful-secondary: #f472b6;
   --colorful-secondary-rgb: 244 114 182;
   --colorful-accent: #fda4af;
@@ -770,8 +779,8 @@ html.dark.colorful[data-colorful-palette="coral"] {
   --colorful-text-700: #f1d1d9;
   --colorful-text-600: #d7aeb8;
   --colorful-text-500: #b98a95;
-  --colorful-text-400: #976b75;
-  --colorful-text-300: #754e58;
+  --colorful-text-400: #b98a95;
+  --colorful-text-300: #b2818c;
   --colorful-neutral-50: #2c171e;
   --colorful-neutral-100: #361d25;
   --colorful-neutral-200: #45252f;
@@ -798,6 +807,7 @@ html.dark.colorful[data-colorful-palette="coral"] {
 html.dark.colorful[data-colorful-palette="sunset"] {
   --colorful-primary: #fb923c;
   --colorful-primary-rgb: 251 146 60;
+  --colorful-on-primary: #21150f;
   --colorful-secondary: #a78bfa;
   --colorful-secondary-rgb: 167 139 250;
   --colorful-accent: #f472b6;
@@ -820,8 +830,8 @@ html.dark.colorful[data-colorful-palette="sunset"] {
   --colorful-text-700: #eed9c7;
   --colorful-text-600: #d0b6a5;
   --colorful-text-500: #af9283;
-  --colorful-text-400: #8e7165;
-  --colorful-text-300: #6e5349;
+  --colorful-text-400: #af9283;
+  --colorful-text-300: #aa897a;
   --colorful-neutral-50: #2b1d18;
   --colorful-neutral-100: #35241e;
   --colorful-neutral-200: #442e27;
@@ -878,6 +888,10 @@ html.colorful .bg-neutral-700 { background-color: var(--colorful-neutral-700) !i
 html.colorful .bg-neutral-800 { background-color: var(--colorful-neutral-800) !important; }
 html.colorful .bg-neutral-900 { background-color: var(--colorful-neutral-900) !important; }
 html.colorful .bg-neutral-950 { background-color: var(--colorful-primary) !important; }
+html.colorful .bg-neutral-950.text-white,
+html.colorful .app-bottom-nav-active {
+  color: var(--colorful-on-primary) !important;
+}
 html.colorful .bg-white { background-color: var(--colorful-surface) !important; }
 html.colorful .bg-white\/60 { background-color: var(--colorful-surface-60) !important; }
 html.colorful .bg-white\/70 { background-color: var(--colorful-surface-70) !important; }
@@ -927,6 +941,58 @@ html.colorful textarea:focus {
 html.colorful input::placeholder,
 html.colorful textarea::placeholder { color: var(--colorful-text-400); }
 html.colorful option { background-color: var(--colorful-option-surface); color: var(--colorful-text-strong); }
+
+
+/* Keep semantic messages readable on every dark colorful palette. */
+html.dark.colorful .bg-red-50 { background-color: rgb(127 29 29 / 0.36) !important; }
+html.dark.colorful .bg-red-100 { background-color: rgb(127 29 29 / 0.5) !important; }
+html.dark.colorful .text-red-600,
+html.dark.colorful .text-red-700,
+html.dark.colorful .text-red-800,
+html.dark.colorful .text-red-900,
+html.dark.colorful .text-red-950 { color: #fecaca !important; }
+html.dark.colorful .border-red-200,
+html.dark.colorful .border-red-300 { border-color: rgb(248 113 113 / 0.52) !important; }
+
+html.dark.colorful .bg-emerald-50,
+html.dark.colorful .bg-green-50 { background-color: rgb(6 78 59 / 0.42) !important; }
+html.dark.colorful .bg-emerald-100,
+html.dark.colorful .bg-green-100 { background-color: rgb(6 95 70 / 0.52) !important; }
+html.dark.colorful .text-emerald-600,
+html.dark.colorful .text-emerald-700,
+html.dark.colorful .text-emerald-800,
+html.dark.colorful .text-emerald-900,
+html.dark.colorful .text-green-600,
+html.dark.colorful .text-green-700,
+html.dark.colorful .text-green-800,
+html.dark.colorful .text-green-900 { color: #a7f3d0 !important; }
+
+html.dark.colorful .bg-amber-50,
+html.dark.colorful .bg-yellow-50,
+html.dark.colorful .bg-orange-50 { background-color: rgb(120 53 15 / 0.4) !important; }
+html.dark.colorful .bg-amber-100,
+html.dark.colorful .bg-yellow-100,
+html.dark.colorful .bg-orange-100 { background-color: rgb(146 64 14 / 0.5) !important; }
+html.dark.colorful .text-amber-600,
+html.dark.colorful .text-amber-700,
+html.dark.colorful .text-amber-800,
+html.dark.colorful .text-amber-900,
+html.dark.colorful .text-orange-600,
+html.dark.colorful .text-orange-700,
+html.dark.colorful .text-orange-800,
+html.dark.colorful .text-orange-900 { color: #fde68a !important; }
+
+html.dark.colorful .bg-blue-50 { background-color: rgb(30 64 175 / 0.34) !important; }
+html.dark.colorful .bg-blue-100 { background-color: rgb(30 64 175 / 0.48) !important; }
+html.dark.colorful .text-blue-600,
+html.dark.colorful .text-blue-700,
+html.dark.colorful .text-blue-800,
+html.dark.colorful .text-blue-900 { color: #bfdbfe !important; }
+
+html.dark.colorful :where(input, select, textarea):disabled {
+  color: var(--colorful-disabled-text) !important;
+  opacity: 1;
+}
 
 html.colorful .app-main h1 {
   color: var(--colorful-title) !important;
@@ -1060,7 +1126,7 @@ html.colorful .app-bottom-nav {
 
 html.colorful .app-bottom-nav-active {
   background: linear-gradient(135deg, var(--colorful-primary), var(--colorful-secondary)) !important;
-  color: #ffffff !important;
+  color: var(--colorful-on-primary) !important;
   box-shadow: 0 8px 18px rgb(var(--colorful-primary-rgb) / 0.3) !important;
 }
 

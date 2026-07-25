@@ -901,7 +901,7 @@ export default function Home() {
         </div>
 
         <div className="mt-1.5 flex items-center gap-2.5">
-          <LeagueLogo league={activeLeague} size="lg" />
+          <LeagueLogo league={activeLeague} size="lg" previewable />
 
           <h1 className="min-w-0 text-2xl font-black tracking-tight">
             {activeLeague.name}

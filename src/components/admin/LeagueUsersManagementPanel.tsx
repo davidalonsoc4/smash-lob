@@ -8,6 +8,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import type { LeagueMemberRole } from "@/data/fakeData"
 import type { LeagueUserManagementPlayer } from "@/lib/supabaseAdminUsers"
 import { recordActivityEvent } from "@/lib/activity"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 type PlayerUserCardProps = {
   leagueId: string
@@ -60,7 +61,6 @@ function PlayerUserCard({
   const [isSavingName, setIsSavingName] = useState(false)
   const [isUpdatingRole, setIsUpdatingRole] = useState(false)
   const [isUnlinking, setIsUnlinking] = useState(false)
-  const [savedMessage, setSavedMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
 
@@ -77,7 +77,6 @@ function PlayerUserCard({
     if (!canSaveName || isSavingName) return
 
     setIsSavingName(true)
-    setSavedMessage(null)
     setError(null)
 
     const saved = await onRename(item.playerId, cleanDisplayName)
@@ -106,14 +105,13 @@ function PlayerUserCard({
       // El nombre ya está guardado; la actividad es auxiliar.
     }
 
-    setSavedMessage("Nombre actualizado.")
+    showActionFeedback({ tone: "success", message: "Nombre actualizado." })
   }
 
   async function handleChangeRole() {
     if (!canManageLink || isUpdatingRole) return
 
     setIsUpdatingRole(true)
-    setSavedMessage(null)
     setError(null)
 
     const saved = await onChangeRole(item.playerId, nextRole)
@@ -146,11 +144,13 @@ function PlayerUserCard({
       // El rol ya está guardado; la actividad es auxiliar.
     }
 
-    setSavedMessage(
-      nextRole === "admin"
-        ? "Usuario convertido en admin."
-        : "Permiso de admin retirado."
-    )
+    showActionFeedback({
+      tone: "success",
+      message:
+        nextRole === "admin"
+          ? "Usuario convertido en admin."
+          : "Permiso de admin retirado.",
+    })
   }
 
   async function handleUnlink() {
@@ -163,7 +163,6 @@ function PlayerUserCard({
     if (!confirmed) return
 
     setIsUnlinking(true)
-    setSavedMessage(null)
     setError(null)
 
     const saved = await onUnlink(item.playerId)
@@ -192,7 +191,7 @@ function PlayerUserCard({
       // La cuenta ya está desvinculada; la actividad es auxiliar.
     }
 
-    setSavedMessage("Cuenta desvinculada.")
+    showActionFeedback({ tone: "success", message: "Cuenta desvinculada." })
   }
 
   return (
@@ -239,8 +238,7 @@ function PlayerUserCard({
             disabled={isSavingName}
             onChange={(event) => {
               setDisplayName(event.target.value)
-              setSavedMessage(null)
-              setError(null)
+                        setError(null)
             }}
             className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
           />
@@ -287,12 +285,6 @@ function PlayerUserCard({
       ) : isCurrentUser ? (
         <p className="mt-3 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
           No puedes quitarte tus propios permisos ni desvincular tu propia cuenta.
-        </p>
-      ) : null}
-
-      {savedMessage ? (
-        <p className="mt-3 text-sm font-semibold text-neutral-600">
-          {savedMessage}
         </p>
       ) : null}
 

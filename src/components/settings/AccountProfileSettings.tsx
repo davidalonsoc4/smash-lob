@@ -53,9 +53,7 @@ function AccountProfileForm({
   const [avatarCropSource, setAvatarCropSource] = useState<string | null>(null)
   const [isSavingName, setIsSavingName] = useState(false)
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
-  const [nameFeedback, setNameFeedback] = useState<string | null>(null)
   const [nameError, setNameError] = useState<string | null>(null)
-  const [avatarFeedback, setAvatarFeedback] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   const googleAvatarUrl = normalizeAvatarUrl(session?.user?.image)
   const effectiveAvatarUrl = normalizeAvatarUrl(avatarUrl) ?? googleAvatarUrl
@@ -85,7 +83,6 @@ function AccountProfileForm({
     }
 
     setIsSavingName(true)
-    setNameFeedback(null)
     setNameError(null)
 
     const result = await saveProfile(cleanFirstName, cleanLastName)
@@ -101,7 +98,6 @@ function AccountProfileForm({
     await refreshLeagueAccess()
     setFirstName(result.firstName)
     setLastName(result.lastName)
-    setNameFeedback(t.accountProfile.saved)
     showActionFeedback({ tone: "success", message: t.accountProfile.saved })
     setIsSavingName(false)
   }
@@ -112,7 +108,6 @@ function AccountProfileForm({
     }
 
     setIsSavingAvatar(true)
-    setAvatarFeedback(null)
     setAvatarError(null)
 
     const updated = await updateLeaguePlayerAvatar(
@@ -153,7 +148,6 @@ function AccountProfileForm({
       // La imagen ya está guardada; la actividad es auxiliar.
     }
 
-    setAvatarFeedback(t.settings.avatarSaved)
     showActionFeedback({ tone: "success", message: t.settings.avatarSaved })
     return true
   }
@@ -168,8 +162,7 @@ function AccountProfileForm({
     try {
       validateImageFile(file)
       setAvatarError(null)
-      setAvatarFeedback(null)
-      setAvatarCropSource(await readFileAsDataUrl(file))
+        setAvatarCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
       const processError =
         imageError instanceof Error
@@ -192,6 +185,7 @@ function AccountProfileForm({
             avatarUrl: effectiveAvatarUrl,
           }}
           size="lg"
+          previewable
         />
 
         <div className="min-w-0 flex-1">
@@ -257,11 +251,6 @@ function AccountProfileForm({
           {isSavingName ? t.common.saving : t.accountProfile.saveChanges}
         </button>
 
-        {nameFeedback ? (
-          <p className="mt-2 text-xs font-bold text-emerald-700">
-            {nameFeedback}
-          </p>
-        ) : null}
         {nameError ? (
           <p className="mt-2 text-xs font-bold text-red-600">{nameError}</p>
         ) : null}
@@ -301,11 +290,6 @@ function AccountProfileForm({
           {avatarError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">
               {avatarError}
-            </p>
-          ) : null}
-          {avatarFeedback ? (
-            <p className="mt-2 text-xs font-semibold text-neutral-600">
-              {avatarFeedback}
             </p>
           ) : null}
         </div>

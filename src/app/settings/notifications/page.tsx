@@ -89,7 +89,6 @@ export default function NotificationSettingsPage() {
   const [isConfigured, setIsConfigured] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [expandedGroups, setExpandedGroups] = useState<Record<NotificationGroupId, boolean>>({
     matches: false,
@@ -147,7 +146,6 @@ export default function NotificationSettingsPage() {
     async function hydrate() {
       setIsLoading(true)
       setError(null)
-      setMessage(null)
 
       const nextSupportStatus = getPushSupportStatus()
       setSupportStatus(nextSupportStatus)
@@ -207,7 +205,6 @@ export default function NotificationSettingsPage() {
   async function savePreferences(nextPreferences: NotificationPreferences) {
     setIsSaving(true)
     setError(null)
-    setMessage(null)
 
     try {
       const response = await fetch("/api/notifications/preferences", {
@@ -228,7 +225,6 @@ export default function NotificationSettingsPage() {
       const data = (await response.json()) as LoadPreferencesResponse
       setPreferences(normalizeNotificationPreferences(data.preferences))
       setIsConfigured(data.isConfigured !== false)
-      setMessage(t.notifications.preferencesSaved)
       showActionFeedback({
         tone: "success",
         message: t.notifications.preferencesSaved,
@@ -282,7 +278,6 @@ export default function NotificationSettingsPage() {
 
     setIsSaving(true)
     setError(null)
-    setMessage(null)
 
     try {
       const result = await requestPushSubscription()
@@ -313,7 +308,6 @@ export default function NotificationSettingsPage() {
 
       setPushAutoRegistrationDisabled(false)
       setHasSubscription(true)
-      setMessage(t.notifications.deviceEnabled)
       showActionFeedback({ tone: "success", message: t.notifications.deviceEnabled })
     } catch {
       setError(t.notifications.deviceEnableError)
@@ -336,7 +330,6 @@ export default function NotificationSettingsPage() {
 
     setIsSaving(true)
     setError(null)
-    setMessage(null)
     setPushAutoRegistrationDisabled(true)
 
     try {
@@ -360,7 +353,6 @@ export default function NotificationSettingsPage() {
       }
 
       setHasSubscription(false)
-      setMessage(t.notifications.deviceDisabled)
       showActionFeedback({ tone: "success", message: t.notifications.deviceDisabled })
     } catch {
       setError(t.notifications.deviceDisableError)
@@ -569,11 +561,6 @@ export default function NotificationSettingsPage() {
         </div>
       </AppCard>
 
-      {message ? (
-        <p className="text-center text-xs font-semibold text-neutral-600">
-          {message}
-        </p>
-      ) : null}
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-semibold text-red-700">
           {error}

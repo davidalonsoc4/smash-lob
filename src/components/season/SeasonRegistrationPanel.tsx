@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { formatMoney } from "@/lib/courtBooking"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import { getPaymentStatusBadgeClassName } from "@/lib/statusStyles"
 import type { PlayerProfile } from "@/data/fakeData"
 import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
@@ -35,7 +36,6 @@ export function SeasonRegistrationPanel({
 }: SeasonRegistrationPanelProps) {
   const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
-  const [reminderMessage, setReminderMessage] = useState<string | null>(null)
   const [arePaymentsExpanded, setArePaymentsExpanded] = useState(false)
 
   const automaticallySettledPlayerIdSet = useMemo(
@@ -108,15 +108,15 @@ export function SeasonRegistrationPanel({
     }
 
     setIsSendingReminder(true)
-    setReminderMessage(null)
 
     try {
       const sent = await onSendReminder()
-      setReminderMessage(
-        sent
+      showActionFeedback({
+        tone: sent ? "success" : "error",
+        message: sent
           ? "Recordatorio enviado a los jugadores pendientes."
           : "No se ha podido mandar el recordatorio.",
-      )
+      })
     } finally {
       setIsSendingReminder(false)
     }
@@ -172,12 +172,6 @@ export function SeasonRegistrationPanel({
       {isSeasonUpcoming && pendingPlayers.length > 0 ? (
         <p className="mt-1.5 text-[11px] font-semibold leading-4 text-amber-900">
           La temporada no puede comenzar hasta saldar todas las inscripciones.
-        </p>
-      ) : null}
-
-      {reminderMessage ? (
-        <p className="mt-1.5 text-center text-[11px] font-semibold text-emerald-900">
-          {reminderMessage}
         </p>
       ) : null}
 

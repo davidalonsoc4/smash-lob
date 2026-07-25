@@ -282,3 +282,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added automatic legacy localStorage migration and early startup application without visual flashes.
 - Added Spanish, English and Basque copy plus updated Settings search routing.
 - No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.4 - Visual consistency, action feedback and image viewer (2026-07-25)
+
+- Consolidated transient save confirmations in the global accessible feedback center.
+- Improved Colorful-mode contrast for primary actions, secondary text, disabled controls and semantic notices, especially in dark mode.
+- Added an accessible lightbox for main league logos and player profile images.
+- Preserved inline contextual errors, retry behaviour, status colours and all existing business logic.
+- No database migration, API contract, permission or remote persistence change is required.

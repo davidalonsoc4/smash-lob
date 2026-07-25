@@ -16,6 +16,7 @@ import {
   type ActivityEvent,
 } from "@/lib/activity"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import {
   activityEventCategories,
   configurableNotificationEventTypes,
@@ -414,7 +415,6 @@ function ActivityPageContent() {
   const [isSettingsLoading, setIsSettingsLoading] = useState(true)
   const [isSettingsSaving, setIsSettingsSaving] = useState(false)
   const [areSettingsExpanded, setAreSettingsExpanded] = useState(false)
-  const [settingsMessage, setSettingsMessage] = useState<string | null>(null)
   const [settingsError, setSettingsError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -478,7 +478,6 @@ function ActivityPageContent() {
     async function loadSettings() {
       setIsSettingsLoading(true)
       setSettingsError(null)
-      setSettingsMessage(null)
 
       try {
         const settings = await fetchLeagueActivitySettings(activeLeague.id)
@@ -567,7 +566,6 @@ function ActivityPageContent() {
       })
       return nextSettings
     })
-    setSettingsMessage(null)
   }
 
   async function saveActivitySettings() {
@@ -577,7 +575,6 @@ function ActivityPageContent() {
 
     setIsSettingsSaving(true)
     setSettingsError(null)
-    setSettingsMessage(null)
 
     try {
       const savedSettings = await updateLeagueActivitySettings({
@@ -587,7 +584,7 @@ function ActivityPageContent() {
 
       setActivitySettings(savedSettings)
       setDraftSettings(savedSettings)
-      setSettingsMessage(t.activity.settingsSaved)
+      showActionFeedback({ tone: "success", message: t.activity.settingsSaved })
     } catch {
       setSettingsError(t.activity.settingsSaveError)
     } finally {
@@ -753,7 +750,6 @@ function ActivityPageContent() {
                                 aria-label={t.activity.notificationLabels[eventType]}
                                 onClick={() => {
                                   setDraftSettings((currentSettings) => ({ ...currentSettings, [eventType]: isNotificationEnabled ? "personal" : "notify" }))
-                                  setSettingsMessage(null)
                                 }}
                                 className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${isNotificationEnabled ? "bg-neutral-950" : "bg-neutral-300"}`}
                               >
@@ -778,11 +774,6 @@ function ActivityPageContent() {
               </div>
             ) : null}
 
-            {settingsMessage ? (
-              <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-neutral-600">
-                {settingsMessage}
-              </p>
-            ) : null}
             {settingsError ? (
               <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-red-600">
                 {settingsError}
