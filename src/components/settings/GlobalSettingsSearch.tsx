@@ -428,7 +428,7 @@ export function GlobalSettingsSearch({
           className={`grid h-10 w-10 place-items-center rounded-full border shadow-lg backdrop-blur transition active:scale-95 ${
             isOpen
               ? "border-neutral-950 bg-neutral-950 text-white"
-              : "border-neutral-200 bg-white/95 text-neutral-600 active:bg-neutral-100"
+              : "app-floating-control border-neutral-200 bg-white/95 text-neutral-600 active:bg-neutral-100"
           }`}
         >
           <SearchIcon />
