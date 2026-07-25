@@ -8,8 +8,9 @@ src/context/ThemeProvider.tsx
 src/app/layout.tsx
 src/app/globals.css
 src/app/settings/page.tsx
+src/app/settings/appearance/page.tsx
 src/i18n/locales/es.ts
 src/i18n/locales/en.ts
 src/i18n/locales/eu.ts
-docs/preproduction/V0.16.2_COLORFUL_PALETTES.md
+docs/preproduction/V0.16.3_THEME_STYLE_COMBINATIONS.md
 docs/production-hardening/STATUS.md

@@ -13,7 +13,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { type ColorfulPalette, type ThemePreference, useTheme } from "@/context/ThemeProvider"
+import { type ColorfulPalette, type ThemeMode, useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -158,197 +158,92 @@ function SettingsToggle({
   )
 }
 
-function AppearancePreview({ mode }: { mode: ThemePreference }) {
-  const previewClassByMode: Record<ThemePreference, string> = {
-    light: "bg-white ring-neutral-200",
-    dark: "bg-neutral-900 ring-neutral-700",
-    system: "bg-gradient-to-r from-white from-50% to-neutral-900 to-50% ring-neutral-300",
-    colorful: "bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500 ring-indigo-200",
-  }
-  const cardClassByMode: Record<ThemePreference, string> = {
-    light: "bg-neutral-100",
-    dark: "bg-neutral-700",
-    system: "bg-gradient-to-r from-neutral-100 from-50% to-neutral-700 to-50%",
-    colorful: "bg-white/90",
-  }
+const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
+  indigo: ["#5b5ce2", "#7c4dff", "#e94b9b"],
+  ocean: ["#087ea4", "#0ea5a8", "#38bdf8"],
+  emerald: ["#059669", "#10b981", "#34d399"],
+  coral: ["#e65a72", "#ec4899", "#8b5cf6"],
+  sunset: ["#f06a24", "#7c3aed", "#ec4899"],
+}
+
+function AppearanceSummaryPreview({
+  themeMode,
+  colorful,
+  palette,
+}: {
+  themeMode: ThemeMode
+  colorful: boolean
+  palette: ColorfulPalette
+}) {
+  const baseClass =
+    themeMode === "light"
+      ? "bg-white ring-neutral-200"
+      : themeMode === "dark"
+        ? "bg-neutral-900 ring-neutral-700"
+        : "bg-gradient-to-r from-white from-50% to-neutral-900 to-50% ring-neutral-300"
 
   return (
     <span
       aria-hidden="true"
-      className={`appearance-preview appearance-preview-${mode} relative block h-11 overflow-hidden rounded-xl ring-1 ${previewClassByMode[mode]}`}
+      className={`relative block h-10 w-10 overflow-hidden rounded-xl ring-1 ${baseClass}`}
     >
-      <span className={`appearance-preview-card absolute left-2 right-2 top-2 h-2 rounded-full ${cardClassByMode[mode]}`} />
-      <span className={`appearance-preview-card absolute bottom-2 left-2 h-4 w-8 rounded-md ${cardClassByMode[mode]}`} />
-      <span className={`appearance-preview-chip absolute bottom-2 right-2 h-4 w-4 rounded-full ${
-        mode === "colorful"
-          ? "bg-amber-300"
-          : mode === "dark"
-            ? "bg-neutral-500"
-            : "bg-neutral-300"
-      }`} />
+      {colorful ? (
+        <>
+          <span
+            className="absolute inset-x-1.5 top-1.5 h-2 rounded-full"
+            style={{ background: `linear-gradient(90deg, ${colorfulPaletteSwatches[palette].join(", ")})` }}
+          />
+          <span className="absolute bottom-1.5 left-1.5 h-4 w-5 rounded-md bg-white/90" />
+          <span
+            className="absolute bottom-1.5 right-1.5 h-4 w-2 rounded-full"
+            style={{ backgroundColor: colorfulPaletteSwatches[palette][1] }}
+          />
+        </>
+      ) : (
+        <>
+          <span className="absolute inset-x-1.5 top-1.5 h-2 rounded-full bg-neutral-200" />
+          <span className="absolute bottom-1.5 left-1.5 h-4 w-5 rounded-md bg-neutral-200" />
+          <span className="absolute bottom-1.5 right-1.5 h-4 w-2 rounded-full bg-neutral-300" />
+        </>
+      )}
     </span>
   )
 }
 
-const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
-  indigo: ["#5b5ce2", "#7c4dff", "#e94b9b", "#f2a93b"],
-  ocean: ["#087ea4", "#0ea5a8", "#38bdf8", "#f59e0b"],
-  emerald: ["#059669", "#10b981", "#34d399", "#f59e0b"],
-  coral: ["#e65a72", "#ec4899", "#fb7185", "#8b5cf6"],
-  sunset: ["#f06a24", "#7c3aed", "#ec4899", "#fbbf24"],
-}
-
-function ColorfulPalettePreview({ palette }: { palette: ColorfulPalette }) {
-  return (
-    <span aria-hidden="true" className="flex shrink-0 items-center gap-1">
-      {colorfulPaletteSwatches[palette].map((color) => (
-        <span
-          key={color}
-          className="h-4 w-4 rounded-full border border-white/80 shadow-sm"
-          style={{ backgroundColor: color }}
-        />
-      ))}
-    </span>
-  )
-}
-
-function AppearanceSettings() {
+function AppearanceSettingsLink() {
   const { t } = useI18n()
-  const { preference, setPreference, colorfulPalette, setColorfulPalette } = useTheme()
-  const options: Array<{ value: ThemePreference; label: string; description: string }> = [
-    {
-      value: "light",
-      label: t.settings.appearanceLight,
-      description: t.settings.appearanceLightDescription,
-    },
-    {
-      value: "dark",
-      label: t.settings.appearanceDark,
-      description: t.settings.appearanceDarkDescription,
-    },
-    {
-      value: "system",
-      label: t.settings.appearanceSystem,
-      description: t.settings.appearanceSystemDescription,
-    },
-    {
-      value: "colorful",
-      label: t.settings.appearanceColorful,
-      description: t.settings.appearanceColorfulDescription,
-    },
-  ]
-  const paletteOptions: Array<{ value: ColorfulPalette; label: string; description: string }> = [
-    {
-      value: "indigo",
-      label: t.settings.colorfulPaletteIndigo,
-      description: t.settings.colorfulPaletteIndigoDescription,
-    },
-    {
-      value: "ocean",
-      label: t.settings.colorfulPaletteOcean,
-      description: t.settings.colorfulPaletteOceanDescription,
-    },
-    {
-      value: "emerald",
-      label: t.settings.colorfulPaletteEmerald,
-      description: t.settings.colorfulPaletteEmeraldDescription,
-    },
-    {
-      value: "coral",
-      label: t.settings.colorfulPaletteCoral,
-      description: t.settings.colorfulPaletteCoralDescription,
-    },
-    {
-      value: "sunset",
-      label: t.settings.colorfulPaletteSunset,
-      description: t.settings.colorfulPaletteSunsetDescription,
-    },
-  ]
+  const { themeMode, visualStyle, colorfulPalette } = useTheme()
+  const themeLabels: Record<ThemeMode, string> = {
+    light: t.settings.appearanceLight,
+    dark: t.settings.appearanceDark,
+    system: t.settings.appearanceSystem,
+  }
+  const paletteLabels: Record<ColorfulPalette, string> = {
+    indigo: t.settings.colorfulPaletteIndigo,
+    ocean: t.settings.colorfulPaletteOcean,
+    emerald: t.settings.colorfulPaletteEmerald,
+    coral: t.settings.colorfulPaletteCoral,
+    sunset: t.settings.colorfulPaletteSunset,
+  }
+  const colorful = visualStyle === "colorful"
+  const description = colorful
+    ? `${themeLabels[themeMode]} · ${t.settings.visualStyleColorful} · ${paletteLabels[colorfulPalette]}`
+    : `${themeLabels[themeMode]} · ${t.settings.visualStylePlain}`
 
   return (
-    <div id="appearance" className="settings-search-target appearance-settings px-3 py-3">
-      <p className="text-sm font-black text-neutral-950">
-        {t.settings.appearanceTitle}
-      </p>
-      <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-        {t.settings.appearanceDescription}
-      </p>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        {options.map((option) => {
-          const selected = preference === option.value
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => setPreference(option.value)}
-              className={`appearance-option rounded-2xl border p-2 text-left transition active:scale-[0.98] ${
-                selected
-                  ? "border-neutral-950 bg-white text-neutral-950 shadow-sm ring-1 ring-neutral-950/10"
-                  : "border-neutral-200 bg-neutral-50 text-neutral-600"
-              }`}
-            >
-              <AppearancePreview mode={option.value} />
-              <span className="mt-2 flex items-center justify-between gap-2">
-                <span className="text-xs font-black">{option.label}</span>
-                {selected ? (
-                  <span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-950 text-[10px] font-black text-white">
-                    ✓
-                  </span>
-                ) : null}
-              </span>
-              <span className="mt-0.5 block text-[10px] font-semibold leading-4 text-neutral-500">
-                {option.description}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-
-      {preference === "colorful" ? (
-        <div className="colorful-palette-settings mt-4 border-t border-neutral-100 pt-4">
-          <p className="text-xs font-black text-neutral-950">
-            {t.settings.colorfulPaletteTitle}
-          </p>
-          <p className="mt-0.5 text-[10px] font-semibold leading-4 text-neutral-500">
-            {t.settings.colorfulPaletteDescription}
-          </p>
-          <div className="mt-2 grid gap-2">
-            {paletteOptions.map((option) => {
-              const selected = colorfulPalette === option.value
-
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => setColorfulPalette(option.value)}
-                  className={`colorful-palette-option flex min-h-14 items-center gap-3 rounded-2xl border px-3 py-2 text-left transition active:scale-[0.99] ${
-                    selected
-                      ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
-                      : "border-neutral-200 bg-neutral-50"
-                  }`}
-                >
-                  <ColorfulPalettePreview palette={option.value} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-black text-neutral-950">{option.label}</span>
-                    <span className="mt-0.5 block text-[10px] font-semibold leading-4 text-neutral-500">
-                      {option.description}
-                    </span>
-                  </span>
-                  {selected ? (
-                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-950 text-[10px] font-black text-white">
-                      ✓
-                    </span>
-                  ) : null}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      ) : null}
-    </div>
+    <SettingsLinkRow
+      href="/settings/appearance"
+      id="appearance"
+      title={t.settings.appearanceTitle}
+      description={description}
+      leading={
+        <AppearanceSummaryPreview
+          themeMode={themeMode}
+          colorful={colorful}
+          palette={colorfulPalette}
+        />
+      }
+    />
   )
 }
 
@@ -440,7 +335,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         >
           <LanguageSwitcher />
         </SettingsStaticRow>
-        <AppearanceSettings />
+        <AppearanceSettingsLink />
       </SettingsSection>
 
       <SettingsSection
@@ -634,7 +529,7 @@ function PlayerSettingsPage() {
         >
           <LanguageSwitcher />
         </SettingsStaticRow>
-        <AppearanceSettings />
+        <AppearanceSettingsLink />
         <SettingsLinkRow
           href="/settings/notifications"
           id="notifications"

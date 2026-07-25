@@ -115,7 +115,7 @@ const copyByLocale: Record<Locale, SearchCopy> = {
 const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
   es: {
     language: { title: "Idioma", description: "Cambia el idioma de la aplicación.", section: "preferences", keywords: ["lenguaje", "español", "inglés", "euskera"] },
-    appearance: { title: "Apariencia", description: "Elige el modo visual y la paleta del tema Colorido.", section: "preferences", keywords: ["tema", "modo oscuro", "dark", "claro", "sistema", "colorido", "colores", "diseño", "paleta", "índigo", "violeta", "turquesa", "esmeralda", "coral", "rosa", "naranja", "púrpura"] },
+    appearance: { title: "Temas y apariencia", description: "Combina tema claro, oscuro o del sistema con estilo Plano o Colorido.", section: "preferences", keywords: ["tema", "modo oscuro", "dark", "claro", "sistema", "plano", "colorido", "estilo", "colores", "diseño", "paleta", "índigo", "violeta", "turquesa", "esmeralda", "coral", "rosa", "naranja", "púrpura"] },
     notifications: { title: "Notificaciones", description: "Activa push y elige los avisos personales.", section: "preferences", keywords: ["push", "avisos", "recordatorios", "alertas", "partidos", "resultados", "jornadas", "MVP", "pagos", "recordatorio de partido"] },
     payments: { title: "Mis pagos", description: "Consulta deudas, cobros y reservas.", section: "account", keywords: ["dinero", "deuda", "pista", "cuota", "inscripción", "pago de pista", "reserva", "transferencia"] },
     availability: { title: "Mi disponibilidad", description: "Define cuándo puedes jugar.", section: "preferences", keywords: ["horarios", "días", "jugar", "franjas"] },
@@ -171,7 +171,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
   },
   en: {
     language: { title: "Language", description: "Change the application language.", section: "preferences", keywords: ["english", "spanish", "basque", "locale"] },
-    appearance: { title: "Appearance", description: "Choose the visual mode and Colorful theme palette.", section: "preferences", keywords: ["theme", "dark mode", "light", "system", "colorful", "colors", "design", "palette", "indigo", "violet", "turquoise", "emerald", "coral", "pink", "orange", "purple"] },
+    appearance: { title: "Themes and appearance", description: "Combine a light, dark or system theme with Plain or Colorful styling.", section: "preferences", keywords: ["theme", "dark mode", "light", "system", "plain", "flat", "colorful", "style", "colors", "design", "palette", "indigo", "violet", "turquoise", "emerald", "coral", "pink", "orange", "purple"] },
     notifications: { title: "Notifications", description: "Enable push and choose personal alerts.", section: "preferences", keywords: ["push", "alerts", "reminders", "matches", "results", "rounds", "MVP", "payments", "match reminder"] },
     payments: { title: "My payments", description: "Review debts, collections and bookings.", section: "account", keywords: ["money", "debt", "court", "fee", "registration", "court payment", "booking", "transfer"] },
     availability: { title: "My availability", description: "Define when you can play.", section: "preferences", keywords: ["schedule", "days", "time slots"] },
@@ -227,7 +227,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
   },
   eu: {
     language: { title: "Hizkuntza", description: "Aldatu aplikazioaren hizkuntza.", section: "preferences", keywords: ["euskara", "gaztelania", "ingelesa"] },
-    appearance: { title: "Itxura", description: "Aukeratu ikusizko modua eta Koloretsua gaiaren paleta.", section: "preferences", keywords: ["gaia", "modu iluna", "argia", "sistema", "koloretsua", "koloreak", "diseinua", "paleta", "indigoa", "bioleta", "turkesa", "esmeralda", "korala", "arrosa", "laranja", "morea"] },
+    appearance: { title: "Gaiak eta itxura", description: "Konbinatu gai argia, iluna edo sistemakoa Laua edo Koloretsua estiloarekin.", section: "preferences", keywords: ["gaia", "modu iluna", "argia", "sistema", "laua", "koloretsua", "estiloa", "koloreak", "diseinua", "paleta", "indigoa", "bioleta", "turkesa", "esmeralda", "korala", "arrosa", "laranja", "morea"] },
     notifications: { title: "Jakinarazpenak", description: "Aktibatu push eta aukeratu abisu pertsonalak.", section: "preferences", keywords: ["push", "abisuak", "oroigarriak", "partidak", "emaitzak", "jardunaldiak", "MVP", "ordainketak", "partida oroigarria"] },
     payments: { title: "Nire ordainketak", description: "Ikusi zorrak, kobrantzak eta erreserbak.", section: "account", keywords: ["dirua", "zor", "pista", "kuota", "izen-ematea", "pista ordainketa", "erreserba", "transferentzia"] },
     availability: { title: "Nire erabilgarritasuna", description: "Adierazi noiz joka dezakezun.", section: "preferences", keywords: ["ordutegiak", "egunak", "tarteak"] },
@@ -285,7 +285,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
 
 const routeById: Record<string, string> = {
   language: "/settings#language",
-  appearance: "/settings#appearance",
+  appearance: "/settings/appearance",
   notifications: "/settings/notifications",
   payments: "/payments",
   availability: "/availability",

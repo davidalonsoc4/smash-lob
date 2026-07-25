@@ -273,3 +273,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Preserved semantic match, payment, warning, success and error colours independently from the selected palette.
 - Added Spanish, English and Basque labels plus Settings search terms.
 - No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.3 - Independent theme and visual style (2026-07-25)
+
+- Split appearance into Light/Dark/System base theme and Plain/Colorful visual style.
+- Added a compact Themes and appearance screen and reduced the main Settings block to one summary row.
+- Added dedicated dark variants for all five Colorful palettes.
+- Added automatic legacy localStorage migration and early startup application without visual flashes.
+- Added Spanish, English and Basque copy plus updated Settings search routing.
+- No database migration, API contract, permission or remote persistence change is required.
