@@ -402,3 +402,26 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Precomputed progress once per selected season and skipped it in historical summaries.
 - Fixed position chart scaling and shared-summary edge cases.
 - No database migration, API contract or persistence change is required.
+
+## v0.17.5 - Schedule accent consistency (2026-07-26)
+
+- Removed the scheduling-only warm/accent card gradient.
+- Match scheduling now inherits the same shared Colorful accent strip as standard application panels.
+- Preserved panel clipping, rounded corners, layout and all scheduling behavior.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.17.6 - Statistics information architecture (2026-07-26)
+
+- Replaced the overloaded statistics landing page with a compact overview.
+- Split standings, comparison, individual analysis, records and season summary into dedicated routes.
+- Preserved the selected season across statistics navigation through URL state.
+- Reused one shared counted-match and statistics workspace across every detail page.
+- Kept all v0.17 calculations available without changing formulas, APIs or persisted data.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.17.7 - Statistics callback dependency cleanup (2026-07-26)
+
+- Replaced the type-only dependency on the full statistics object with the shared `MatchData` type.
+- Removed the `react-hooks/exhaustive-deps` warning from the statistics workspace callback.
+- Preserved all v0.17.6 routes, calculations and behavior.
+- No database migration, API contract, permission or persistence change is required.

@@ -1172,14 +1172,6 @@ html.colorful .app-activity-card {
   );
 }
 
-html.colorful .app-schedule-card {
-  --app-card-accent-gradient: linear-gradient(
-    90deg,
-    var(--colorful-warm),
-    var(--colorful-accent)
-  );
-}
-
 /* Row-based cards use opaque children. Render their accent as real card content
    so it shares the exact border radius instead of competing with row backgrounds. */
 .app-card-accent-strip {
@@ -1539,4 +1531,29 @@ html.dark[data-style="colorful"] .statistics-quality-card {
     rgb(var(--colorful-primary-rgb) / 0.12),
     var(--colorful-card-end)
   );
+}
+
+/* Statistics overview and detail navigation. */
+.statistics-section-link + .statistics-section-link,
+.statistics-pair-row + .statistics-pair-row,
+.statistics-history-row + .statistics-history-row {
+  border-top: 1px solid rgb(229 229 229 / 0.9);
+}
+
+html.dark .statistics-section-link + .statistics-section-link,
+html.dark .statistics-pair-row + .statistics-pair-row,
+html.dark .statistics-history-row + .statistics-history-row {
+  border-top-color: rgb(82 82 82 / 0.72);
+}
+
+html[data-style="colorful"] .statistics-section-link:active,
+html[data-style="colorful"] .statistics-pair-row:active,
+html[data-style="colorful"] .statistics-history-row:active {
+  background-color: rgb(var(--colorful-primary-rgb) / 0.08) !important;
+}
+
+html[data-style="colorful"] .statistics-section-link + .statistics-section-link,
+html[data-style="colorful"] .statistics-pair-row + .statistics-pair-row,
+html[data-style="colorful"] .statistics-history-row + .statistics-history-row {
+  border-top-color: rgb(var(--colorful-primary-rgb) / 0.14);
 }
