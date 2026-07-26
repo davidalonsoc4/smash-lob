@@ -332,3 +332,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Opaque logos keep the previous WebP format, dimensions and quality, so existing visual behavior remains unchanged.
 - Audited all league-logo render paths; the shared component already uses a transparent container and `object-contain`.
 - No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.10 - Settings panel accent alignment (2026-07-26)
+
+- Replaced the row-card padding workaround with an explicit internal accent strip rendered by `AppCard`.
+- The strip is now clipped by the exact panel border radius and cannot be hidden or displaced by opaque rows.
+- Applied the same shared treatment to Settings, league administration and custom day availability.
+- Plain mode remains unchanged and does not reserve accent-strip space.
+- No database migration, API contract, permission or persistence change is required.
+
