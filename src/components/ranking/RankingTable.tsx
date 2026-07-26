@@ -56,11 +56,11 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
             key={player.id}
             href={`/player/${player.slug}`}
             aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
-            className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
+            className="app-ranking-row grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm transition active:scale-[0.99]"
           >
             <div className="flex min-w-0 items-center gap-1.5">
               <div
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-950"
+                className="app-ranking-position flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-950"
                 aria-hidden="true"
               >
                 {index + 1}

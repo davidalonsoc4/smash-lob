@@ -6,21 +6,19 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
-import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
+import { ContextualTip } from "@/components/onboarding/ContextualTip"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { useTheme } from "@/context/ThemeProvider"
+import { type ColorfulPalette, type ThemeMode, useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { formatMoney } from "@/lib/courtBooking"
-import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 
-const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 const settingsVersionLabel = `Beta cerrada · ${APP_VERSION_LABEL}`
 
 type SettingsSectionProps = {
@@ -33,7 +31,7 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
   return (
     <section className="space-y-2">
       <div className="px-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="settings-section-label text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
           {title}
         </p>
         {description ? (
@@ -42,7 +40,7 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
           </p>
         ) : null}
       </div>
-      <AppCard className="overflow-hidden !p-0">
+      <AppCard accentStrip className="overflow-hidden !p-0">
         <div className="divide-y divide-neutral-100">{children}</div>
       </AppCard>
     </section>
@@ -85,7 +83,7 @@ function SettingsLinkRow({
     <Link
       href={href}
       id={id}
-      className={`settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
+      className={`settings-row settings-row-${tone} settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
     >
       {leading ? <div className="shrink-0">{leading}</div> : null}
       <div className="min-w-0 flex-1">
@@ -114,7 +112,7 @@ function SettingsStaticRow({
   children: ReactNode
 }) {
   return (
-    <div id={id} className="settings-search-target px-3 py-3">
+    <div id={id} className="settings-row settings-row-default settings-search-target px-3 py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black text-neutral-950">{title}</p>
@@ -157,40 +155,94 @@ function SettingsToggle({
   )
 }
 
-function AppearanceSettings() {
-  const { t } = useI18n()
-  const { preference, setPreference } = useTheme()
-  const options = [
-    { value: "light" as const, label: t.settings.appearanceLight },
-    { value: "dark" as const, label: t.settings.appearanceDark },
-    { value: "system" as const, label: t.settings.appearanceSystem },
-  ]
+const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
+  indigo: ["#5b5ce2", "#7c4dff", "#e94b9b"],
+  midnight: ["#365f9d", "#5a78b5", "#87b5df"],
+  sage: ["#55765f", "#7f9b83", "#a6b99d"],
+  burgundy: ["#8b3f57", "#a85c70", "#d2a2ad"],
+  terracotta: ["#a95640", "#c0785e", "#ddaa84"],
+  graphite: ["#4f6379", "#71879b", "#a7c5d8"],
+}
+
+function AppearanceSummaryPreview({
+  themeMode,
+  colorful,
+  palette,
+}: {
+  themeMode: ThemeMode
+  colorful: boolean
+  palette: ColorfulPalette
+}) {
+  const baseClass =
+    themeMode === "light"
+      ? "bg-white ring-neutral-200"
+      : themeMode === "dark"
+        ? "bg-neutral-900 ring-neutral-700"
+        : "bg-gradient-to-r from-white from-50% to-neutral-900 to-50% ring-neutral-300"
 
   return (
-    <div id="appearance" className="settings-search-target px-3 py-3">
-      <p className="text-sm font-black text-neutral-950">
-        {t.settings.appearanceTitle}
-      </p>
-      <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-        {t.settings.appearanceDescription}
-      </p>
-      <div className="mt-2 grid grid-cols-3 gap-1 rounded-2xl bg-neutral-100 p-1">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setPreference(option.value)}
-            className={`rounded-xl px-2 py-2 text-xs font-black transition ${
-              preference === option.value
-                ? "bg-white text-neutral-950 shadow-sm"
-                : "text-neutral-500"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <span
+      aria-hidden="true"
+      className={`relative block h-10 w-10 overflow-hidden rounded-xl ring-1 ${baseClass}`}
+    >
+      {colorful ? (
+        <>
+          <span
+            className="absolute inset-x-1.5 top-1.5 h-2 rounded-full"
+            style={{ background: `linear-gradient(90deg, ${colorfulPaletteSwatches[palette].join(", ")})` }}
+          />
+          <span className="absolute bottom-1.5 left-1.5 h-4 w-5 rounded-md bg-white/90" />
+          <span
+            className="absolute bottom-1.5 right-1.5 h-4 w-2 rounded-full"
+            style={{ backgroundColor: colorfulPaletteSwatches[palette][1] }}
+          />
+        </>
+      ) : (
+        <>
+          <span className="absolute inset-x-1.5 top-1.5 h-2 rounded-full bg-neutral-200" />
+          <span className="absolute bottom-1.5 left-1.5 h-4 w-5 rounded-md bg-neutral-200" />
+          <span className="absolute bottom-1.5 right-1.5 h-4 w-2 rounded-full bg-neutral-300" />
+        </>
+      )}
+    </span>
+  )
+}
+
+function AppearanceSettingsLink() {
+  const { t } = useI18n()
+  const { themeMode, visualStyle, colorfulPalette } = useTheme()
+  const themeLabels: Record<ThemeMode, string> = {
+    light: t.settings.appearanceLight,
+    dark: t.settings.appearanceDark,
+    system: t.settings.appearanceSystem,
+  }
+  const paletteLabels: Record<ColorfulPalette, string> = {
+    indigo: t.settings.colorfulPaletteIndigo,
+    midnight: t.settings.colorfulPaletteMidnight,
+    sage: t.settings.colorfulPaletteSage,
+    burgundy: t.settings.colorfulPaletteBurgundy,
+    terracotta: t.settings.colorfulPaletteTerracotta,
+    graphite: t.settings.colorfulPaletteGraphite,
+  }
+  const colorful = visualStyle === "colorful"
+  const description = colorful
+    ? `${themeLabels[themeMode]} · ${t.settings.visualStyleColorful} · ${paletteLabels[colorfulPalette]}`
+    : `${themeLabels[themeMode]} · ${t.settings.visualStylePlain}`
+
+  return (
+    <SettingsLinkRow
+      href="/settings/appearance"
+      id="appearance"
+      title={t.settings.appearanceTitle}
+      description={description}
+      leading={
+        <AppearanceSummaryPreview
+          themeMode={themeMode}
+          colorful={colorful}
+          palette={colorfulPalette}
+        />
+      }
+    />
   )
 }
 
@@ -211,18 +263,8 @@ function SessionSection() {
 }
 
 function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const { data: session } = useSession()
-  const searchEntries = buildSettingsSearchEntries(locale, {
-    isSpectator: true,
-    canAccessAdmin: false,
-    hasAdminRole: false,
-    canCreateLeague: false,
-    canSelfUnlink: false,
-    qaEnabled: false,
-    isSuperuser: false,
-  })
-
   return (
     <div className="compact-page space-y-4">
       <header className="pt-1">
@@ -234,7 +276,13 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         </p>
       </header>
 
-      <GlobalSettingsSearch locale={locale} entries={searchEntries} />
+      <ContextualTip
+        tipId="settings-search"
+        title={t.onboardingTips.settingsSearchTitle}
+        description={t.onboardingTips.settingsSearchDescription}
+        dismissLabel={t.onboardingTips.dismiss}
+        compact
+      />
 
       <AppCard className="border-blue-100 bg-blue-50">
         <p className="text-sm font-black text-blue-950">Modo espectador</p>
@@ -274,7 +322,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         >
           <LanguageSwitcher />
         </SettingsStaticRow>
-        <AppearanceSettings />
+        <AppearanceSettingsLink />
       </SettingsSection>
 
       <SettingsSection
@@ -334,7 +382,7 @@ export default function SettingsPage() {
 }
 
 function PlayerSettingsPage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, matches } = useCurrentLeagueData()
   const {
@@ -384,16 +432,6 @@ function PlayerSettingsPage() {
   )
   const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
   const hasPendingPayments = pendingPaymentCount > 0
-  const searchEntries = buildSettingsSearchEntries(locale, {
-    isSpectator: false,
-    canAccessAdmin,
-    hasAdminRole,
-    canCreateLeague: canCreateLeaguesInCurrentView,
-    canSelfUnlink,
-    qaEnabled: qaModeEnabled,
-    isSuperuser,
-  })
-
   async function handleUnlinkCurrentLeague() {
     if (!canSelfUnlink || isUnlinkingLeague) {
       return
@@ -440,7 +478,13 @@ function PlayerSettingsPage() {
         </p>
       </header>
 
-      <GlobalSettingsSearch locale={locale} entries={searchEntries} />
+      <ContextualTip
+        tipId="settings-search"
+        title={t.onboardingTips.settingsSearchTitle}
+        description={t.onboardingTips.settingsSearchDescription}
+        dismissLabel={t.onboardingTips.dismiss}
+        compact
+      />
 
       <SettingsSection
         title="Personal"
@@ -460,7 +504,7 @@ function PlayerSettingsPage() {
         >
           <LanguageSwitcher />
         </SettingsStaticRow>
-        <AppearanceSettings />
+        <AppearanceSettingsLink />
         <SettingsLinkRow
           href="/settings/notifications"
           id="notifications"

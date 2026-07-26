@@ -93,7 +93,7 @@ export function FloatingSpectatorShareButton({
         disabled={isWorking}
         aria-label="Compartir enlace de espectador"
         title={copied ? "Enlace copiado" : "Compartir con espectadores"}
-        className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100 disabled:cursor-wait disabled:opacity-60"
+        className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100 disabled:cursor-wait disabled:opacity-60"
       >
         <EyeShareIcon />
       </button>

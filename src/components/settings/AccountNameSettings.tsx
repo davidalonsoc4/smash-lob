@@ -5,6 +5,7 @@ import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeProfileName } from "@/lib/accountProfile"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import type { AccountProfile } from "@/lib/accountProfile"
 
 type AccountNameSettingsFormProps = {
@@ -23,7 +24,6 @@ function AccountNameSettingsForm({
   const [firstName, setFirstName] = useState(initialFirstName)
   const [lastName, setLastName] = useState(initialLastName)
   const [isSaving, setIsSaving] = useState(false)
-  const [feedback, setFeedback] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -41,7 +41,6 @@ function AccountNameSettingsForm({
     }
 
     setIsSaving(true)
-    setFeedback(null)
     setError(null)
 
     const result = await saveProfile(cleanFirstName, cleanLastName)
@@ -53,7 +52,7 @@ function AccountNameSettingsForm({
     }
 
     await refreshLeagueAccess()
-    setFeedback(t.accountProfile.saved)
+    showActionFeedback({ tone: "success", message: t.accountProfile.saved })
     setIsSaving(false)
   }
 
@@ -106,9 +105,6 @@ function AccountNameSettingsForm({
         {isSaving ? t.common.saving : t.accountProfile.saveChanges}
       </button>
 
-      {feedback ? (
-        <p className="mt-2 text-xs font-bold text-emerald-700">{feedback}</p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-xs font-bold text-red-600">{error}</p>
       ) : null}

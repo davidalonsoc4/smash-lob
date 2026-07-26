@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ContextualTip } from "@/components/onboarding/ContextualTip";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import { useI18n } from "@/i18n/I18nProvider";
+import { showActionFeedback } from "@/lib/actionFeedback";
 import {
   countWeeklyAvailabilitySlots,
   createEmptyPlayerAvailability,
@@ -284,6 +287,7 @@ function DayAvailabilityEditor({
 }
 
 export default function AvailabilityPage() {
+  const { t } = useI18n();
   const { userId } = useLeagueAccess();
   const { currentUser } = useCurrentUser();
   const { activeLeague, activeSeason } = useCurrentLeagueData();
@@ -299,7 +303,6 @@ export default function AvailabilityPage() {
   const [expandedCustomDay, setExpandedCustomDay] = useState<WeekdayId | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isPersistentAvailability =
     isSupabaseBackedAvailabilityId(activeLeague.id) &&
@@ -318,7 +321,6 @@ export default function AvailabilityPage() {
     const resetTimeout = window.setTimeout(() => {
       if (!isCancelled) {
         setAvailability(initialAvailability);
-        setMessage(null);
         setError(null);
       }
     }, 0);
@@ -350,7 +352,15 @@ export default function AvailabilityPage() {
         }
       } catch {
         if (!isCancelled) {
-          setError("No se ha podido cargar la disponibilidad guardada. Puedes editarla y volver a guardar.");
+          const loadError = "No se ha podido cargar la disponibilidad guardada. Puedes editarla y volver a guardar.";
+          setError(loadError);
+          showActionFeedback({
+            tone: "error",
+            message: loadError,
+            actionLabel: t.actionFeedback.retry,
+            onAction: () => window.location.reload(),
+            durationMs: 8000,
+          });
         }
       } finally {
         if (!isCancelled) {
@@ -365,7 +375,7 @@ export default function AvailabilityPage() {
       isCancelled = true;
       window.clearTimeout(resetTimeout);
     };
-  }, [activeLeague.id, activeSeason.id, currentUser.id, isPersistentAvailability, userId]);
+  }, [activeLeague.id, activeSeason.id, currentUser.id, isPersistentAvailability, t.actionFeedback.retry, userId]);
 
   const weeklySlots = useMemo(
     () => normalizeWeeklyAvailability(availability.weeklySlots),
@@ -388,7 +398,6 @@ export default function AvailabilityPage() {
   );
 
   function updateWeeklySlots(nextWeeklySlots: WeeklyAvailability) {
-    setMessage(null);
     setError(null);
     setAvailability((currentAvailability) => ({
       ...currentAvailability,
@@ -455,7 +464,6 @@ export default function AvailabilityPage() {
 
   async function saveAvailability() {
     setIsSaving(true);
-    setMessage(null);
     setError(null);
 
     const nextAvailability: PlayerAvailability = {
@@ -484,9 +492,18 @@ export default function AvailabilityPage() {
         });
       }
 
-      setMessage("Disponibilidad guardada.");
+      const successMessage = "Disponibilidad guardada.";
+      showActionFeedback({ tone: "success", message: successMessage });
     } catch {
-      setError("No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.");
+      const saveError = "No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.";
+      setError(saveError);
+      showActionFeedback({
+        tone: "error",
+        message: saveError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void saveAvailability(),
+        durationMs: 0,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -548,6 +565,16 @@ export default function AvailabilityPage() {
           </div>
         </div>
       </AppCard>
+
+      {shouldShowCustomEditor ? (
+        <ContextualTip
+          tipId="availability-custom"
+          title={t.onboardingTips.availabilityTitle}
+          description={t.onboardingTips.availabilityDescription}
+          dismissLabel={t.onboardingTips.dismiss}
+          compact
+        />
+      ) : null}
 
       {!shouldShowCustomEditor ? (
         <>
@@ -636,7 +663,7 @@ export default function AvailabilityPage() {
               Activa únicamente los días disponibles y despliega cada uno para editar sus franjas.
             </p>
           </div>
-          <AppCard className="overflow-hidden !p-0">
+          <AppCard accentStrip className="overflow-hidden !p-0">
             <div className="divide-y divide-neutral-100">
               {weekdayIds.map((weekdayId) => (
                 <DayAvailabilityEditor
@@ -672,12 +699,6 @@ export default function AvailabilityPage() {
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
           {error}
-        </p>
-      ) : null}
-
-      {message ? (
-        <p className="rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
-          {message}
         </p>
       ) : null}
 

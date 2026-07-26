@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 type SuggestionCategory = "improvement" | "feature" | "usability" | "other"
 type SuggestionStatus = "new" | "reviewing" | "planned" | "declined" | "completed"
@@ -79,7 +81,6 @@ export default function SuggestionsPage() {
   const [items, setItems] = useState<SuggestionItem[]>([])
   const [loadingItems, setLoadingItems] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const canSubmit = useMemo(
@@ -114,7 +115,6 @@ export default function SuggestionsPage() {
     if (!canSubmit) return
 
     setSubmitting(true)
-    setMessage(null)
     setError(null)
 
     try {
@@ -141,9 +141,20 @@ export default function SuggestionsPage() {
       setTitle("")
       setDetails("")
       setCategory("improvement")
-      setMessage("Sugerencia enviada. Gracias por ayudar a mejorar Smash & Lob.")
+      const successMessage = "Sugerencia enviada. Gracias por ayudar a mejorar Smash & Lob."
+      showActionFeedback({ tone: "success", message: successMessage })
     } catch (caughtError) {
-      setError(getSubmitError(caughtError instanceof Error ? caughtError.message : undefined))
+      const submitError = getSubmitError(
+        caughtError instanceof Error ? caughtError.message : undefined,
+      )
+      setError(submitError)
+      showActionFeedback({
+        tone: "error",
+        message: submitError,
+        actionLabel: "Reintentar",
+        onAction: () => void submitSuggestion(),
+        durationMs: 0,
+      })
     } finally {
       setSubmitting(false)
     }
@@ -227,11 +238,6 @@ export default function SuggestionsPage() {
           {submitting ? "Enviando..." : "Enviar sugerencia"}
         </button>
 
-        {message ? (
-          <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold leading-5 text-emerald-700">
-            {message}
-          </p>
-        ) : null}
         {error ? (
           <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-700">
             {error}
@@ -277,11 +283,11 @@ export default function SuggestionsPage() {
             })}
           </div>
         ) : (
-          <AppCard className="p-3">
-            <p className="text-xs font-semibold leading-5 text-neutral-500">
-              Todavía no has enviado ninguna sugerencia.
-            </p>
-          </AppCard>
+          <EmptyState
+            compact
+            title="Todavía no has enviado propuestas"
+            description="Cuando envíes una idea desde el formulario superior podrás consultar aquí su estado."
+          />
         )}
       </section>
     </div>

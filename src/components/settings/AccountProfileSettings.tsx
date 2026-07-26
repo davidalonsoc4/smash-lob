@@ -2,14 +2,17 @@
 
 import { ChangeEvent, FormEvent, useState } from "react"
 import { useSession } from "next-auth/react"
+import { ImageCropDialog } from "@/components/images/ImageCropDialog"
+import { ProfileCardSkeleton } from "@/components/loading/PageSkeletons"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeProfileName } from "@/lib/accountProfile"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import { recordActivityEvent } from "@/lib/activity"
-import { resizeImageFileToDataUrl } from "@/lib/clientImages"
+import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import {
   isSafeDataImageUrl,
   isSafeImageUrl,
@@ -47,11 +50,10 @@ function AccountProfileForm({
   const [firstName, setFirstName] = useState(initialProfile.firstName)
   const [lastName, setLastName] = useState(initialProfile.lastName)
   const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
+  const [avatarCropSource, setAvatarCropSource] = useState<string | null>(null)
   const [isSavingName, setIsSavingName] = useState(false)
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
-  const [nameFeedback, setNameFeedback] = useState<string | null>(null)
   const [nameError, setNameError] = useState<string | null>(null)
-  const [avatarFeedback, setAvatarFeedback] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   const googleAvatarUrl = normalizeAvatarUrl(session?.user?.image)
   const effectiveAvatarUrl = normalizeAvatarUrl(avatarUrl) ?? googleAvatarUrl
@@ -70,7 +72,9 @@ function AccountProfileForm({
     const cleanLastName = normalizeProfileName(lastName, 60)
 
     if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
-      setNameError(t.accountProfile.validationError)
+      const validationMessage = t.accountProfile.validationError
+      setNameError(validationMessage)
+      showActionFeedback({ tone: "error", message: validationMessage })
       return
     }
 
@@ -79,13 +83,14 @@ function AccountProfileForm({
     }
 
     setIsSavingName(true)
-    setNameFeedback(null)
     setNameError(null)
 
     const result = await saveProfile(cleanFirstName, cleanLastName)
 
     if (!result) {
-      setNameError(t.accountProfile.saveError)
+      const saveError = t.accountProfile.saveError
+      setNameError(saveError)
+      showActionFeedback({ tone: "error", message: saveError })
       setIsSavingName(false)
       return
     }
@@ -93,17 +98,16 @@ function AccountProfileForm({
     await refreshLeagueAccess()
     setFirstName(result.firstName)
     setLastName(result.lastName)
-    setNameFeedback(t.accountProfile.saved)
+    showActionFeedback({ tone: "success", message: t.accountProfile.saved })
     setIsSavingName(false)
   }
 
   async function saveAvatar(nextAvatarUrl: string | null) {
     if (!canEditAvatar) {
-      return
+      return false
     }
 
     setIsSavingAvatar(true)
-    setAvatarFeedback(null)
     setAvatarError(null)
 
     const updated = await updateLeaguePlayerAvatar(
@@ -115,8 +119,10 @@ function AccountProfileForm({
     setIsSavingAvatar(false)
 
     if (!updated) {
-      setAvatarError(t.settings.avatarSaveError)
-      return
+      const saveError = t.settings.avatarSaveError
+      setAvatarError(saveError)
+      showActionFeedback({ tone: "error", message: saveError })
+      return false
     }
 
     setAvatarUrl(nextAvatarUrl)
@@ -142,7 +148,8 @@ function AccountProfileForm({
       // La imagen ya está guardada; la actividad es auxiliar.
     }
 
-    setAvatarFeedback(t.settings.avatarSaved)
+    showActionFeedback({ tone: "success", message: t.settings.avatarSaved })
+    return true
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -153,18 +160,16 @@ function AccountProfileForm({
     }
 
     try {
-      const dataUrl = await resizeImageFileToDataUrl({
-        file,
-        maxSize: 512,
-      })
-
-      await saveAvatar(dataUrl)
+      validateImageFile(file)
+      setAvatarError(null)
+        setAvatarCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
-      setAvatarError(
+      const processError =
         imageError instanceof Error
           ? imageError.message
-          : t.settings.avatarProcessError,
-      )
+          : t.settings.avatarProcessError
+      setAvatarError(processError)
+      showActionFeedback({ tone: "error", message: processError })
     } finally {
       event.target.value = ""
     }
@@ -180,6 +185,7 @@ function AccountProfileForm({
             avatarUrl: effectiveAvatarUrl,
           }}
           size="lg"
+          previewable
         />
 
         <div className="min-w-0 flex-1">
@@ -245,11 +251,6 @@ function AccountProfileForm({
           {isSavingName ? t.common.saving : t.accountProfile.saveChanges}
         </button>
 
-        {nameFeedback ? (
-          <p className="mt-2 text-xs font-bold text-emerald-700">
-            {nameFeedback}
-          </p>
-        ) : null}
         {nameError ? (
           <p className="mt-2 text-xs font-bold text-red-600">{nameError}</p>
         ) : null}
@@ -291,12 +292,25 @@ function AccountProfileForm({
               {avatarError}
             </p>
           ) : null}
-          {avatarFeedback ? (
-            <p className="mt-2 text-xs font-semibold text-neutral-600">
-              {avatarFeedback}
-            </p>
-          ) : null}
         </div>
+      ) : null}
+
+      {avatarCropSource ? (
+        <ImageCropDialog
+          src={avatarCropSource}
+          title="Recortar imagen de perfil"
+          description="Ajusta el encuadre, el zoom y la orientación antes de guardar la imagen."
+          shape="circle"
+          outputSize={512}
+          onCancel={() => setAvatarCropSource(null)}
+          onConfirm={async (dataUrl) => {
+            const saved = await saveAvatar(dataUrl)
+            if (saved) {
+              setAvatarCropSource(null)
+            }
+            return saved
+          }}
+        />
       ) : null}
     </div>
   )
@@ -308,11 +322,7 @@ export function AccountProfileSettings() {
   const { currentUser } = useCurrentUser()
 
   if (isLoading) {
-    return (
-      <div className="rounded-xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-        {t.settings.profileLoading}
-      </div>
-    )
+    return <ProfileCardSkeleton />
   }
 
   if (!profile) {

@@ -2,61 +2,176 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
-type ThemePreference = "light" | "dark" | "system"
+export type ThemeMode = "light" | "dark" | "system"
+export type VisualStyle = "plain" | "colorful"
+export type ColorfulPalette =
+  | "indigo"
+  | "midnight"
+  | "sage"
+  | "burgundy"
+  | "terracotta"
+  | "graphite"
 
 type ThemeContextValue = {
-  preference: ThemePreference
-  setPreference: (preference: ThemePreference) => void
+  themeMode: ThemeMode
+  setThemeMode: (themeMode: ThemeMode) => void
+  visualStyle: VisualStyle
+  setVisualStyle: (visualStyle: VisualStyle) => void
+  colorfulPalette: ColorfulPalette
+  setColorfulPalette: (palette: ColorfulPalette) => void
 }
 
-const STORAGE_KEY = "smash-lob-theme"
+const LEGACY_THEME_STORAGE_KEY = "smash-lob-theme"
+const THEME_MODE_STORAGE_KEY = "smash-lob-theme-mode"
+const VISUAL_STYLE_STORAGE_KEY = "smash-lob-visual-style"
+const COLORFUL_PALETTE_STORAGE_KEY = "smash-lob-colorful-palette"
+const DEFAULT_THEME_MODE: ThemeMode = "light"
+const DEFAULT_VISUAL_STYLE: VisualStyle = "plain"
+const DEFAULT_COLORFUL_PALETTE: ColorfulPalette = "indigo"
+
+const COLORFUL_THEME_COLORS: Record<ColorfulPalette, { light: string; dark: string }> = {
+  indigo: { light: "#5b5ce2", dark: "#17172e" },
+  midnight: { light: "#365f9d", dark: "#0d1726" },
+  sage: { light: "#55765f", dark: "#101b15" },
+  burgundy: { light: "#8b3f57", dark: "#241219" },
+  terracotta: { light: "#a95640", dark: "#251713" },
+  graphite: { light: "#4f6379", dark: "#121820" },
+}
+
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function readStoredPreference(): ThemePreference {
-  if (typeof window === "undefined") return "light"
-  const stored = window.localStorage.getItem(STORAGE_KEY)
-  return stored === "light" || stored === "dark" || stored === "system"
-    ? stored
-    : "light"
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "light" || value === "dark" || value === "system"
 }
 
-function applyTheme(preference: ThemePreference) {
+function isVisualStyle(value: string | null): value is VisualStyle {
+  return value === "plain" || value === "colorful"
+}
+
+function normalizeColorfulPalette(value: string | null): ColorfulPalette | null {
+  if (
+    value === "indigo" ||
+    value === "midnight" ||
+    value === "sage" ||
+    value === "burgundy" ||
+    value === "terracotta" ||
+    value === "graphite"
+  ) {
+    return value
+  }
+
+  const legacyPaletteMap: Record<string, ColorfulPalette> = {
+    ocean: "midnight",
+    emerald: "sage",
+    coral: "burgundy",
+    sunset: "terracotta",
+  }
+
+  return value ? legacyPaletteMap[value] ?? null : null
+}
+
+function readLegacyTheme(): string | null {
+  if (typeof window === "undefined") return null
+  return window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
+}
+
+function readStoredThemeMode(): ThemeMode {
+  if (typeof window === "undefined") return DEFAULT_THEME_MODE
+
+  const stored = window.localStorage.getItem(THEME_MODE_STORAGE_KEY)
+  if (isThemeMode(stored)) return stored
+
+  const legacy = readLegacyTheme()
+  return isThemeMode(legacy) ? legacy : DEFAULT_THEME_MODE
+}
+
+function readStoredVisualStyle(): VisualStyle {
+  if (typeof window === "undefined") return DEFAULT_VISUAL_STYLE
+
+  const stored = window.localStorage.getItem(VISUAL_STYLE_STORAGE_KEY)
+  if (isVisualStyle(stored)) return stored
+
+  return readLegacyTheme() === "colorful" ? "colorful" : DEFAULT_VISUAL_STYLE
+}
+
+function readStoredColorfulPalette(): ColorfulPalette {
+  if (typeof window === "undefined") return DEFAULT_COLORFUL_PALETTE
+  const stored = window.localStorage.getItem(COLORFUL_PALETTE_STORAGE_KEY)
+  return normalizeColorfulPalette(stored) ?? DEFAULT_COLORFUL_PALETTE
+}
+
+function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, colorfulPalette: ColorfulPalette) {
   const dark =
-    preference === "dark" ||
-    (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-  const resolved = dark ? "dark" : "light"
+    themeMode === "dark" ||
+    (themeMode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  const colorful = visualStyle === "colorful"
+  const resolvedTheme = dark ? "dark" : "light"
   const root = document.documentElement
+
   root.classList.toggle("dark", dark)
-  root.dataset.theme = resolved
-  root.style.colorScheme = resolved
+  root.classList.toggle("colorful", colorful)
+  root.dataset.theme = resolvedTheme
+  root.dataset.style = visualStyle
+  root.dataset.colorfulPalette = colorfulPalette
+  root.style.colorScheme = resolvedTheme
+
+  const themeColor = colorful
+    ? COLORFUL_THEME_COLORS[colorfulPalette][resolvedTheme]
+    : dark
+      ? "#0f0f10"
+      : "#0a0a0a"
 
   document
     .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    ?.setAttribute("content", dark ? "#0f0f10" : "#0a0a0a")
+    ?.setAttribute("content", themeColor)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreferenceState] = useState<ThemePreference>(readStoredPreference)
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(readStoredThemeMode)
+  const [visualStyle, setVisualStyleState] = useState<VisualStyle>(readStoredVisualStyle)
+  const [colorfulPalette, setColorfulPaletteState] = useState<ColorfulPalette>(readStoredColorfulPalette)
 
   useEffect(() => {
-    applyTheme(preference)
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode)
+    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, visualStyle)
+    window.localStorage.setItem(COLORFUL_PALETTE_STORAGE_KEY, colorfulPalette)
+    window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY)
 
-    if (preference !== "system") return
+    applyAppearance(themeMode, visualStyle, colorfulPalette)
+
+    if (themeMode !== "system") return
 
     const media = window.matchMedia("(prefers-color-scheme: dark)")
-    const handleChange = () => applyTheme("system")
+    const handleChange = () => applyAppearance("system", visualStyle, colorfulPalette)
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
-  }, [preference])
+  }, [colorfulPalette, themeMode, visualStyle])
 
-  function setPreference(nextPreference: ThemePreference) {
-    window.localStorage.setItem(STORAGE_KEY, nextPreference)
-    setPreferenceState(nextPreference)
+  function setThemeMode(nextThemeMode: ThemeMode) {
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, nextThemeMode)
+    setThemeModeState(nextThemeMode)
+  }
+
+  function setVisualStyle(nextVisualStyle: VisualStyle) {
+    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, nextVisualStyle)
+    setVisualStyleState(nextVisualStyle)
+  }
+
+  function setColorfulPalette(nextPalette: ColorfulPalette) {
+    window.localStorage.setItem(COLORFUL_PALETTE_STORAGE_KEY, nextPalette)
+    setColorfulPaletteState(nextPalette)
   }
 
   const value = useMemo(
-    () => ({ preference, setPreference }),
-    [preference]
+    () => ({
+      themeMode,
+      setThemeMode,
+      visualStyle,
+      setVisualStyle,
+      colorfulPalette,
+      setColorfulPalette,
+    }),
+    [colorfulPalette, themeMode, visualStyle],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

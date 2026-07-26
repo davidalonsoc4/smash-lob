@@ -99,6 +99,7 @@ export function SpectatorInviteFlow() {
                     logoUrl: invite.leagueLogoUrl,
                   }}
                   size="lg"
+                  previewable
                 />
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">

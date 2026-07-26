@@ -117,7 +117,7 @@ export default function LeaguesPage() {
               }`}
             >
               <div className="flex items-start gap-3">
-                <LeagueLogo league={league} size="lg" />
+                <LeagueLogo league={league} size="lg" previewable />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate text-lg font-black text-neutral-950">

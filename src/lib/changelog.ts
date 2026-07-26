@@ -15,6 +15,315 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.12",
+    date: "26 de julio de 2026",
+    title: "Estilos Clásico y Colorido y remate de premios",
+    summary:
+      "La apariencia neutra adopta el nombre Clásico y las cabeceras de Ganador y MVP encajan con el redondeado de sus paneles.",
+    category: "improvement",
+    changes: [
+      "El estilo visual Plano pasa a mostrarse como Clásico, una denominación más natural y coherente frente a Colorido.",
+      "Colorido conserva su nombre, sus seis paletas y todas las combinaciones con Claro, Oscuro y Sistema.",
+      "La clave interna plain se mantiene para conservar las preferencias guardadas y evitar cualquier migración en los dispositivos.",
+      "Las barras Ganador de temporada y MVP de temporada adoptan el mismo radio superior que la tarjeta que las contiene.",
+      "El buscador reconoce Clásico y también los términos antiguos Plano, Plain y Laua para no perder accesos por costumbre.",
+    ],
+  },
+  {
+    version: "v0.16.11",
+    date: "26 de julio de 2026",
+    title: "Seis paletas naturales y búsqueda contextual de ligas",
+    summary:
+      "El modo Colorido incorpora seis combinaciones más naturales y la lupa de Mis ligas pasa a buscar competiciones en lugar de opciones de Ajustes.",
+    category: "improvement",
+    changes: [
+      "Índigo y violeta se mantiene como paleta predeterminada y se añaden Azul noche y celeste, Salvia y bosque, Borgoña y rosa empolvado, Arena y terracota y Grafito y azul hielo.",
+      "Cada paleta dispone de una variante clara y otra oscura coordinadas para fondos, paneles, navegación, formularios, ranking y controles.",
+      "Las selecciones antiguas Azul y turquesa, Esmeralda, Coral y Naranja se migran automáticamente a sus alternativas naturales equivalentes.",
+      "En Mis ligas, la lupa flotante filtra por nombre, descripción, temporada y rol, e inicia directamente el cambio a la liga seleccionada.",
+      "No se requieren migraciones, cambios de API ni persistencia remota.",
+    ],
+  },
+  {
+    version: "v0.16.10",
+    date: "26 de julio de 2026",
+    title: "Franjas de Ajustes integradas en el panel",
+    summary:
+      "Los degradados de los paneles formados por filas se renderizan como contenido real y encajan exactamente en sus esquinas redondeadas.",
+    category: "fix",
+    changes: [
+      "Ajustes deja de simular la franja mediante padding y una capa de fondo que podía quedar desplazada o parcialmente tapada.",
+      "La franja pasa a ser un elemento interno del panel, recortado por el mismo borde y radio que el resto de la tarjeta.",
+      "Administración de liga y Disponibilidad por días utilizan el mismo componente para evitar inconsistencias equivalentes.",
+      "El estilo Clásico no muestra la franja ni reserva espacio adicional y el resto de tarjetas Coloridas conserva su tratamiento actual.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
+    version: "v0.16.9",
+    date: "26 de julio de 2026",
+    title: "Logos de liga con transparencia",
+    summary:
+      "Los logos PNG transparentes conservan su fondo transparente sin modificar el aspecto ni la optimización de las imágenes opacas.",
+    category: "improvement",
+    changes: [
+      "El recortador detecta transparencia en el resultado final y conserva automáticamente el canal alfa.",
+      "Los logos opacos continúan guardándose como WebP con la misma calidad y apariencia utilizadas hasta ahora.",
+      "Los PNG transparentes se mantienen como PNG cuando caben en el límite seguro; si son demasiado complejos, se usa WebP con transparencia como respaldo.",
+      "Home, selector de ligas, Administración, invitaciones y visor ampliado continúan mostrando el logo mediante fondo transparente y ajuste completo.",
+      "No se requieren migraciones, cambios de API ni modificaciones de los logos ya guardados.",
+    ],
+  },
+  {
+    version: "v0.16.8",
+    date: "26 de julio de 2026",
+    title: "Navegación sin halo y franjas restauradas",
+    summary:
+      "La barra inferior deja de proyectar resplandor y los paneles de opciones recuperan su franja Colorida correctamente integrada.",
+    category: "fix",
+    changes: [
+      "La sombra difuminada sobre la navegación inferior se sustituye por una separación de un píxel, sin halo sobre el contenido.",
+      "Los paneles formados por filas opacas reservan el espacio exacto de la franja superior para que el degradado vuelva a ser visible.",
+      "Ajustes, Administración de liga y Disponibilidad por días comparten ahora el mismo tratamiento robusto.",
+      "La franja continúa formando parte del fondo del panel, respeta las esquinas redondeadas y no requiere recortar menús ni contenido.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
+    version: "v0.16.7",
+    date: "26 de julio de 2026",
+    title: "Franja Colorida integrada en los paneles",
+    summary:
+      "La franja degradada superior pasa a formar parte del fondo del panel y queda recortada exactamente por sus esquinas redondeadas.",
+    category: "fix",
+    changes: [
+      "La franja de color deja de utilizar un pseudo-elemento superpuesto que podía sobresalir visualmente en Home y otras tarjetas.",
+      "El degradado se dibuja ahora dentro del padding box del propio panel, respetando borde y radio en cualquier tamaño de tarjeta.",
+      "Las variantes de notificaciones, actividad y programación conservan sus degradados específicos mediante una variable compartida.",
+      "La corrección no recorta contenido, menús ni elementos emergentes y mantiene intactos los estilos Clásico, Claro y Oscuro.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
+    version: "v0.16.6",
+    date: "26 de julio de 2026",
+    title: "Contraste final en Colorido oscuro",
+    summary:
+      "Los controles flotantes pierden el halo excesivo y los textos secundarios sobre superficies de paleta recuperan una lectura clara.",
+    category: "fix",
+    changes: [
+      "Los botones circulares superiores usan sombras neutras y compactas en Colorido oscuro, sin resplandor tintado alrededor.",
+      "El botón principal de compartir conserva su jerarquía mediante degradado, borde y una sombra breve sin efecto luminoso.",
+      "Los textos secundarios colocados sobre fondos primarios, como Victorias, Balance y otros labels equivalentes, heredan un color compatible con cada paleta.",
+      "La corrección se aplica de forma centralizada a tarjetas, selectores y resúmenes equivalentes sin alterar Claro, Oscuro Clásico ni los colores semánticos.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
+    version: "v0.16.5",
+    date: "25 de julio de 2026",
+    title: "Cierre visual y búsqueda extendida",
+    summary:
+      "La búsqueda de Ajustes acompaña a los centros de navegación y el modo Colorido termina su revisión de paneles y acciones oscuras.",
+    category: "improvement",
+    changes: [
+      "La lupa flotante de búsqueda aparece en Ajustes, Administración de liga, Mis ligas y Administración de la aplicación, sin invadir las pantallas de formularios concretos.",
+      "La franja degradada superior de las tarjetas Coloridas queda contenida dentro del borde y conserva el redondeado de las esquinas.",
+      "Los botones y enlaces de acción con superficies neutras reciben un contorno sutil en Colorido oscuro para distinguirse del fondo.",
+      "La revisión mantiene intactos Claro, Oscuro y Sistema en estilo Clásico y no modifica lógica de negocio, APIs ni persistencia.",
+    ],
+  },
+  {
+    version: "v0.16.4",
+    date: "25 de julio de 2026",
+    title: "Consistencia visual, avisos y visor de imágenes",
+    summary:
+      "El sistema de temas gana legibilidad en todas las paletas, los avisos de guardado se unifican y logos y perfiles pueden ampliarse.",
+    category: "improvement",
+    changes: [
+      "Los avisos de guardado de liga, temporada, usuarios, disponibilidad, notificaciones, sugerencias, incidencias y comunicados pasan al centro flotante global sin duplicarse en los formularios.",
+      "Las paletas Coloridas adaptan el color del texto de botones al brillo del acento y refuerzan textos secundarios, campos deshabilitados y mensajes semánticos en modo oscuro.",
+      "Los logos de liga y las imágenes de perfil principales pueden abrirse a pantalla ampliada con cierre por botón, fondo o tecla Escape.",
+      "El visor conserva la proporción de la imagen, bloquea el desplazamiento de fondo y ofrece navegación accesible mediante teclado.",
+      "La revisión afecta únicamente a presentación y feedback; no requiere migraciones, cambios de API ni permisos nuevos.",
+    ],
+  },
+  {
+    version: "v0.16.3",
+    date: "25 de julio de 2026",
+    title: "Tema base y estilo visual independientes",
+    summary:
+      "Claro, Oscuro y Sistema pueden combinarse con un estilo Clásico o Colorido y con cualquiera de las cinco paletas preparadas.",
+    category: "improvement",
+    changes: [
+      "La configuración visual se divide en Tema base, Estilo visual y Paleta de color.",
+      "El estilo Colorido incorpora variantes claras y oscuras específicas para las cinco paletas.",
+      "Sistema + Colorido cambia automáticamente entre la variante clara y oscura sin perder la paleta elegida.",
+      "Ajustes muestra únicamente un resumen compacto y traslada la configuración detallada a Temas y apariencia.",
+      "Las preferencias anteriores se migran automáticamente: Colorido conserva su paleta y el resto mantiene su tema con estilo Clásico.",
+      "La configuración sigue siendo local al dispositivo y no requiere migraciones ni cambios de API.",
+    ],
+  },
+  {
+    version: "v0.16.2",
+    date: "25 de julio de 2026",
+    title: "Paletas para la apariencia Colorida",
+    summary:
+      "El modo Colorido puede personalizarse con cinco combinaciones visuales preparadas, coherentes y seguras para el contraste.",
+    category: "new",
+    changes: [
+      "Añadidas las paletas Índigo y violeta, Azul y turquesa, Verde esmeralda, Coral y rosa y Naranja y púrpura.",
+      "La paleta se cambia en Ajustes sin recargar y se recuerda únicamente en el dispositivo.",
+      "Fondos, navegación, tarjetas, formularios, clasificación, skeletons y controles adoptan automáticamente la combinación elegida.",
+      "Los colores semánticos de errores, avisos, pagos y estados de partido permanecen independientes de la paleta visual.",
+      "La apariencia seleccionada se aplica antes de hidratar la aplicación para evitar destellos con la paleta predeterminada.",
+      "No se requiere migración, cambio de API ni persistencia remota.",
+    ],
+  },
+  {
+    version: "v0.16.1",
+    date: "25 de julio de 2026",
+    title: "Ubicaciones legibles y consistencia visual",
+    summary:
+      "Las ubicaciones y pistas se presentan con el mismo formato en toda la aplicación y el modo Colorido gana coherencia en avisos, actividad y programación.",
+    category: "fix",
+    changes: [
+      "Las notificaciones de programación reconstruyen el lugar y la pista desde sus datos y dejan de mostrar objetos JSON, incluso en avisos históricos.",
+      "Actividad, detalle de partido, calendario y exportaciones CSV comparten el mismo formateador de ubicaciones.",
+      "Los recordatorios de próximo partido también aparecen en el centro de notificaciones personal con una ubicación legible.",
+      "Las tarjetas de notificaciones, actividad y programación reciben acentos propios y consistentes dentro del modo Colorido.",
+      "No se modifica el valor almacenado de la programación ni se requiere migración de base de datos.",
+    ],
+  },
+  {
+    version: "v0.16.0",
+    date: "24 de julio de 2026",
+    title: "Nueva apariencia Colorida",
+    summary:
+      "Smash & Lob estrena un cuarto modo visual más vivo, con una identidad coherente en navegación, tarjetas, clasificación y Ajustes.",
+    category: "new",
+    changes: [
+      "Nueva opción Colorido en Ajustes, junto a Claro, Oscuro y Sistema, con vista previa de cada apariencia.",
+      "Fondos azul lavanda, acentos índigo, violeta, rosa y ámbar y superficies con mayor profundidad visual.",
+      "Tarjetas, estadísticas, clasificación, navegación inferior y controles flotantes adoptan una presentación propia del nuevo modo.",
+      "Los colores funcionales de partidos, pagos y estados se mantienen reconocibles y pueden seguir neutralizándose desde la configuración de la liga.",
+      "La apariencia se guarda únicamente en el dispositivo, se aplica sin recargar y evita destellos incorrectos al abrir la aplicación.",
+      "El modo Claro, Oscuro y Sistema conservan su comportamiento anterior.",
+    ],
+  },
+  {
+    version: "v0.15.7",
+    date: "24 de julio de 2026",
+    title: "Validación limpia del feedback de disponibilidad",
+    summary:
+      "La carga de disponibilidad declara correctamente todas sus dependencias y deja el lint de la serie v0.15 sin avisos.",
+    category: "fix",
+    changes: [
+      "Añadida la traducción del botón Reintentar a las dependencias del efecto que carga la disponibilidad.",
+      "La corrección no cambia la carga, el guardado ni la recuperación ante errores de conexión.",
+    ],
+  },
+  {
+    version: "v0.15.6",
+    date: "24 de julio de 2026",
+    title: "Feedback de acciones y recuperación de conexión",
+    summary:
+      "Las operaciones importantes confirman su resultado sin perder el contexto y permiten reintentar errores temporales desde un aviso global.",
+    category: "improvement",
+    changes: [
+      "Nuevo centro global de avisos accesibles para confirmaciones, errores e información de acciones.",
+      "La aplicación avisa cuando se pierde la conexión y confirma automáticamente cuándo vuelve a estar disponible.",
+      "Disponibilidad, notificaciones, perfil e ideas muestran confirmaciones visibles aunque la acción se realice fuera de la zona visible.",
+      "Los errores recuperables de disponibilidad, notificaciones y sugerencias ofrecen un botón de reintento directo.",
+      "Los avisos respetan el modo oscuro, el área segura móvil y la navegación inferior sin desplazar el contenido.",
+    ],
+  },
+  {
+    version: "v0.15.5",
+    date: "24 de julio de 2026",
+    title: "Actualización de actividad corregida",
+    summary:
+      "Los estados vacíos de Actividad reutilizan correctamente la recarga existente y vuelven a superar la validación de TypeScript.",
+    category: "fix",
+    changes: [
+      "El botón Actualizar de los estados vacíos ya no referencia una función inexistente.",
+      "La recarga de Actividad se centraliza para actualizar el diagnóstico local y volver a solicitar los eventos.",
+      "La corrección no modifica el historial, los filtros ni la configuración de avisos de la liga.",
+    ],
+  },
+  {
+    version: "v0.15.4",
+    date: "24 de julio de 2026",
+    title: "Validación limpia de onboarding",
+    summary:
+      "El flujo de completado de perfil queda libre de avisos de lint tras la incorporación de los nuevos estados de carga.",
+    category: "fix",
+    changes: [
+      "Eliminada una traducción inicializada pero no utilizada en la puerta de completado del perfil.",
+      "La corrección no cambia el comportamiento del formulario, el onboarding ni la disponibilidad habitual.",
+    ],
+  },
+  {
+    version: "v0.15.3",
+    date: "24 de julio de 2026",
+    title: "Ayudas contextuales y onboarding ligero",
+    summary:
+      "Las funciones menos evidentes muestran consejos breves la primera vez que se utilizan, sin interrumpir el flujo normal de la aplicación.",
+    category: "new",
+    changes: [
+      "Ajustes explica el acceso al buscador flotante la primera vez que se visita la pantalla.",
+      "La disponibilidad por días aclara cómo activar jornadas y añadir varias franjas.",
+      "Los partidos indican dónde encontrar incidencias y suplentes cuando esas acciones están disponibles.",
+      "Administrar temporada explica la nueva organización por accesos rápidos y bloques.",
+      "Cada consejo puede descartarse y volver a activarse desde Ayuda y conceptos básicos.",
+      "Las ayudas están disponibles en español, inglés y euskera y se guardan únicamente en el dispositivo.",
+    ],
+  },
+  {
+    version: "v0.15.2",
+    date: "24 de julio de 2026",
+    title: "Estados vacíos con acciones útiles",
+    summary:
+      "Las pantallas sin contenido explican qué falta y ofrecen el siguiente paso adecuado en lugar de mostrar mensajes aislados.",
+    category: "improvement",
+    changes: [
+      "Nuevo componente común para estados vacíos con icono, explicación y acciones principal y secundaria.",
+      "Partidos, notificaciones y actividad ofrecen accesos directos para continuar la tarea.",
+      "Los buzones de sugerencias distinguen claramente entre ausencia de propuestas y filtros sin resultados.",
+      "Comunicados, suplentes y estadísticas muestran explicaciones específicas según el contenido pendiente.",
+      "Los estados vacíos se adaptan al modo oscuro y conservan una presentación compacta en pantallas densas.",
+    ],
+  },
+  {
+    version: "v0.15.1",
+    date: "24 de julio de 2026",
+    title: "Cargas más fluidas y predecibles",
+    summary:
+      "Las esperas principales muestran skeletons con la estructura real de cada pantalla para reducir saltos visuales y mejorar la percepción de velocidad.",
+    category: "improvement",
+    changes: [
+      "Nuevo sistema reutilizable de skeletons para inicio, listas, clasificación, detalle, ajustes y perfil.",
+      "La carga inicial de sesión y perfil deja de mostrar tarjetas genéricas y presenta la estructura aproximada de la aplicación.",
+      "El cambio entre ligas muestra un estado visual específico con el nombre de la liga de destino.",
+      "Ranking, partidos, estadísticas, Ajustes, notificaciones, actividad, pagos, perfiles y partidos incorporan estados de carga de ruta.",
+      "Las animaciones respetan la preferencia del sistema para reducir movimiento.",
+    ],
+  },
+  {
+    version: "v0.15.0",
+    date: "24 de julio de 2026",
+    title: "Recorte y optimización de imágenes",
+    summary:
+      "Las imágenes de perfil y los logotipos de liga pueden encuadrarse, ampliarse y girarse antes de guardarse.",
+    category: "new",
+    changes: [
+      "Nuevo editor de recorte previo para imágenes de perfil y logotipos de liga.",
+      "El usuario puede arrastrar, ampliar y girar la imagen con una vista previa del resultado final.",
+      "Las imágenes se normalizan a formato cuadrado, 512 × 512 píxeles y se comprimen antes de guardarse.",
+      "El editor usa máscara circular para avatares y cuadrada para logotipos, conservando transparencia cuando el navegador lo permite.",
+    ],
+  },
+  {
     version: "v0.14.6",
     date: "24 de julio de 2026",
     title: "Reapertura segura de temporadas",

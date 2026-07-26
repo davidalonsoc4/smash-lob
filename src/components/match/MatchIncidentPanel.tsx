@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import type { MatchData } from "@/context/MatchDataProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile } from "@/data/fakeData"
@@ -193,7 +194,6 @@ export function MatchIncidentPanel({
   const [winningTeam, setWinningTeam] = useState<"A" | "B">("A")
   const [isWorking, setIsWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
 
   const teamALabel = useMemo(
     () => getTeamLabel(match.teamA, players),
@@ -229,7 +229,6 @@ export function MatchIncidentPanel({
 
     setIsWorking(true)
     setError(null)
-    setMessage(null)
 
     try {
       const updatedMatch = await reportMatchIncident({
@@ -239,7 +238,7 @@ export function MatchIncidentPanel({
       })
       hydrateMatches([updatedMatch])
       setReason("")
-      setMessage("Incidencia comunicada. La organización ha sido avisada.")
+      showActionFeedback({ tone: "success", message: "Incidencia comunicada. La organización ha sido avisada." })
     } catch (caughtError) {
       const code = caughtError instanceof Error ? caughtError.message : ""
       setError(
@@ -259,7 +258,6 @@ export function MatchIncidentPanel({
 
     setIsWorking(true)
     setError(null)
-    setMessage(null)
 
     try {
       const sets = requiresAdministrativeWinner
@@ -277,11 +275,13 @@ export function MatchIncidentPanel({
         },
       })
       hydrateMatches([updatedMatch])
-      setMessage(
-        effectiveResolutionType === "substitute"
-          ? "Incidencia resuelta. Ya puedes gestionar el suplente desde Más acciones."
-          : "Incidencia resuelta.",
-      )
+      showActionFeedback({
+        tone: "success",
+        message:
+          effectiveResolutionType === "substitute"
+            ? "Incidencia resuelta. Ya puedes gestionar el suplente desde Más acciones."
+            : "Incidencia resuelta.",
+      })
     } catch (caughtError) {
       const code = caughtError instanceof Error ? caughtError.message : ""
       setError(
@@ -309,12 +309,11 @@ export function MatchIncidentPanel({
 
     setIsWorking(true)
     setError(null)
-    setMessage(null)
 
     try {
       const updatedMatch = await clearMatchIncident(match.id)
       hydrateMatches([updatedMatch])
-      setMessage("Incidencia eliminada.")
+      showActionFeedback({ tone: "success", message: "Incidencia eliminada." })
     } catch {
       setError("No se ha podido eliminar la incidencia.")
     } finally {
@@ -502,9 +501,6 @@ export function MatchIncidentPanel({
         </button>
       ) : null}
 
-      {message ? (
-        <p className="mt-2 text-[11px] font-bold text-emerald-700">{message}</p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-[11px] font-bold text-red-600">{error}</p>
       ) : null}

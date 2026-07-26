@@ -4,20 +4,31 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { type CSSProperties, type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
+import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
-import { AppCard } from "@/components/ui/AppCard"
+import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
+import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
+import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getAppBranding } from "@/lib/appVariant"
+import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
   children: ReactNode
 }
+
+const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
+const settingsSearchHubRoutes = new Set([
+  "/settings",
+  "/admin",
+  "/application-admin",
+])
 
 type InviteFloatingControlsProps = {
   rightOffsetPx: number
@@ -152,7 +163,7 @@ function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProp
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const branding = getAppBranding()
   const pathname = usePathname()
   const {
@@ -161,9 +172,14 @@ export function AppShell({ children }: AppShellProps) {
     transitioningLeagueId,
   } = useActiveLeague()
   const {
+    canCreateLeagues,
     canShareSpectatorInvite,
+    getMembershipForLeague,
+    hasLeagueAdminRole,
+    isAdminViewEnabled,
     isLeagueAdmin,
     isLeagueSpectator,
+    isSuperuser,
     leagues,
   } = useLeagueAccess()
   const { seasons } = useSeasonSettings()
@@ -177,6 +193,27 @@ export function AppShell({ children }: AppShellProps) {
     pathname === "/admin/season" &&
     !seasons.some((season) => season.leagueId === activeLeagueId)
   const spectatorMode = isLeagueSpectator(activeLeagueId)
+  const activeMembership = getMembershipForLeague(activeLeagueId)
+  const canAccessAdmin = isLeagueAdmin(activeLeagueId)
+  const hasAdminRole = hasLeagueAdminRole(activeLeagueId)
+  const canCreateLeague = canCreateLeagues && isAdminViewEnabled
+  const canSelfUnlink = Boolean(
+    activeMembership && activeMembership.role !== "creator",
+  )
+  const shouldShowSettingsSearch =
+    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute
+  const shouldShowLeagueSearch = pathname === "/leagues" && !isPublicAccessRoute
+  const settingsSearchEntries = shouldShowSettingsSearch
+    ? buildSettingsSearchEntries(locale, {
+        isSpectator: !isSuperuser && spectatorMode,
+        canAccessAdmin,
+        hasAdminRole,
+        canCreateLeague,
+        canSelfUnlink,
+        qaEnabled: qaModeEnabled,
+        isSuperuser,
+      })
+    : []
   const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
   const shouldShowNotificationsButton =
     !isInitialSeasonSetupRoute && !isPublicAccessRoute && !spectatorMode
@@ -212,37 +249,16 @@ export function AppShell({ children }: AppShellProps) {
 
   if (isLeagueTransitioning) {
     const leagueName = transitioningLeague?.name ?? t.common.privateLeague
-
-    return (
-      <div className="min-h-screen bg-stone-200 text-neutral-950">
-        <div className="mx-auto flex min-h-screen max-w-md items-center bg-stone-50 px-4 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
-          <AppCard className="w-full text-center">
-            <div
-              aria-hidden="true"
-              className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-950"
-            />
-            <p className="mt-4 text-lg font-black">
-              {t.invites.enteringLeagueTitle}
-            </p>
-            <p className="mt-2 text-sm text-neutral-500">
-              {t.invites.enteringLeagueDescription.replace(
-                "{leagueName}",
-                leagueName,
-              )}
-            </p>
-          </AppCard>
-        </div>
-      </div>
-    )
+    return <LeagueTransitionSkeleton leagueName={leagueName} />
   }
 
   return (
     <div
-      className={`min-h-screen bg-stone-200 text-neutral-950 ${
+      className={`app-shell-outer min-h-screen bg-stone-200 text-neutral-950 ${
         statusColorsEnabled ? "" : "status-colors-disabled"
       }`}
     >
-      <div className="mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
+      <div className="app-shell-frame mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         <PwaInstallPrompt />
 
         {branding.preproduction ? (
@@ -268,7 +284,7 @@ export function AppShell({ children }: AppShellProps) {
             href="/notifications"
             aria-label="Notificaciones"
             title="Notificaciones"
-            className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
               top: getFloatingTop(),
@@ -286,7 +302,7 @@ export function AppShell({ children }: AppShellProps) {
             href="/settings"
             aria-label={t.appHeader.settingsLabel}
             title={t.appHeader.settingsLabel}
-            className="z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
             style={{
               position: "fixed",
               top: getFloatingTop(),
@@ -320,6 +336,14 @@ export function AppShell({ children }: AppShellProps) {
         >
           {children}
         </main>
+
+        {shouldShowSettingsSearch ? (
+          <GlobalSettingsSearch locale={locale} entries={settingsSearchEntries} />
+        ) : null}
+
+        {shouldShowLeagueSearch ? <GlobalLeagueSearch /> : null}
+
+        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav} />
 
         {shouldShowBottomNav ? <BottomNav /> : null}
       </div>

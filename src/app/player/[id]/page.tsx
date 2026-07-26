@@ -130,7 +130,7 @@ export default function PlayerPage() {
         </p>
 
         <div className="mt-2 flex items-center gap-2.5">
-          <PlayerAvatar player={player} size="md" />
+          <PlayerAvatar player={player} size="md" previewable />
 
           <h1 className="min-w-0 text-2xl font-black tracking-tight">
             {player.displayName}

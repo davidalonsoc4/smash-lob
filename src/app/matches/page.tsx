@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMvp } from "@/context/MvpProvider"
@@ -221,11 +222,27 @@ export default function MatchesPage() {
         })}
 
         {visibleMatches.length === 0 ? (
-          <AppCard>
-            <p className="font-bold">
-              {activeScope === "mine" ? "Todavía no tienes partidos en esta temporada." : t.matches.noMatches}
-            </p>
-          </AppCard>
+          <EmptyState
+            title={
+              activeScope === "mine"
+                ? "Todavía no tienes partidos"
+                : "El calendario todavía está vacío"
+            }
+            description={
+              activeScope === "mine"
+                ? "Cuando formes parte de un partido aparecerá aquí con su jornada, rivales y programación."
+                : isSeasonUpcoming
+                  ? "Los partidos se mostrarán al comenzar la temporada o cuando el administrador termine de preparar el calendario."
+                  : "No hay partidos disponibles para esta temporada."
+            }
+            action={
+              activeScope === "mine"
+                ? { label: "Ver calendario completo", href: "/matches" }
+                : canManageSeason
+                  ? { label: "Administrar temporada", href: "/admin/season" }
+                  : { label: "Revisar mi disponibilidad", href: "/availability" }
+            }
+          />
         ) : null}
       </div>
     </div>

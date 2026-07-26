@@ -56,7 +56,7 @@ export default function PlayerMvpMatchesPage() {
         </p>
 
         <div className="mt-3 flex items-center gap-3">
-          {player ? <PlayerAvatar player={player} size="lg" /> : null}
+          {player ? <PlayerAvatar player={player} size="lg" previewable /> : null}
           <div className="min-w-0">
             <h1 className="text-2xl font-black tracking-tight">
               MVPs de jornada

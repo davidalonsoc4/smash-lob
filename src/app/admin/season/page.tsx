@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { ContextualTip } from "@/components/onboarding/ContextualTip";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
@@ -44,11 +45,16 @@ import type { MvpSystem } from "@/lib/mvp";
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations";
 import type { RosterMode } from "@/data/fakeData";
 import { recordActivityEvent } from "@/lib/activity";
+import { showActionFeedback } from "@/lib/actionFeedback";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { buildSeasonRounds } from "@/lib/rounds";
 
 const allowedPlayerCounts = [8, 12, 16];
+
+function showSavedFeedback(message: string) {
+  showActionFeedback({ tone: "success", message });
+}
 const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error";
 const supabaseUuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -896,7 +902,6 @@ function RequiresThreeSetsSettingsPanel({
     roundSettings.requiresThreeSets,
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const hasChanges = requiresThreeSets !== roundSettings.requiresThreeSets;
 
@@ -910,13 +915,12 @@ function RequiresThreeSetsSettingsPanel({
     };
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     try {
       await updateSupabaseSeasonRoundSettings(nextSettings);
       updateSeasonRoundSettings(nextSettings);
-      setFeedback("Regla de resultados actualizada.");
+      showSavedFeedback("Regla de resultados actualizada.");
     } catch (caughtError) {
       recordSupabaseError("update-three-set-rule", caughtError);
       setError("No se ha podido guardar la regla de los tres sets.");
@@ -938,7 +942,6 @@ function RequiresThreeSetsSettingsPanel({
           checked={requiresThreeSets}
           onChange={(event) => {
             setRequiresThreeSets(event.target.checked);
-            setFeedback(null);
             setError(null);
           }}
           className="mt-1"
@@ -959,8 +962,6 @@ function RequiresThreeSetsSettingsPanel({
       >
         {isSaving ? "Guardando..." : "Guardar regla"}
       </button>
-
-      {feedback ? <p className="mt-2 text-center text-xs font-bold text-emerald-700">{feedback}</p> : null}
       {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{error}</p> : null}
     </AppCard>
   );
@@ -987,7 +988,6 @@ function RoundWindowSettingsPanel({
       : "15",
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const parsedRoundWindowDays = Number(roundWindowDays);
   const isFixedDaysMode = selectedMode === "fixed-days";
@@ -1021,7 +1021,6 @@ function RoundWindowSettingsPanel({
     };
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(roundSettings.seasonId)) {
@@ -1036,7 +1035,7 @@ function RoundWindowSettingsPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    setFeedback(t.adminSeason.roundWindowSaved);
+    showSavedFeedback(t.adminSeason.roundWindowSaved);
     setIsSaving(false);
   }
 
@@ -1064,7 +1063,6 @@ function RoundWindowSettingsPanel({
               checked={selectedMode === mode}
               onChange={() => {
                 setSelectedMode(mode);
-                setFeedback(null);
                 setError(null);
               }}
               className="mt-1"
@@ -1097,7 +1095,6 @@ function RoundWindowSettingsPanel({
               value={seasonStartsAt}
               onChange={(event) => {
                 setSeasonStartsAt(event.target.value);
-                setFeedback(null);
                 setError(null);
               }}
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
@@ -1115,7 +1112,6 @@ function RoundWindowSettingsPanel({
               value={roundWindowDays}
               onChange={(event) => {
                 setRoundWindowDays(event.target.value);
-                setFeedback(null);
                 setError(null);
               }}
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
@@ -1144,12 +1140,6 @@ function RoundWindowSettingsPanel({
           ? t.adminSeason.roundWindowSaving
           : t.adminSeason.roundWindowSave}
       </button>
-
-      {feedback ? (
-        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
@@ -1171,7 +1161,6 @@ function ResultConfirmationSettingsPanel({
     roundSettings.resultConfirmationMode,
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
@@ -1186,7 +1175,6 @@ function ResultConfirmationSettingsPanel({
     };
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(roundSettings.seasonId)) {
@@ -1203,7 +1191,7 @@ function ResultConfirmationSettingsPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    setFeedback("Confirmaciones de resultado actualizadas.");
+    showSavedFeedback("Confirmaciones de resultado actualizadas.");
     setIsSaving(false);
   }
 
@@ -1218,7 +1206,6 @@ function ResultConfirmationSettingsPanel({
         value={selectedMode}
         onChange={(value) => {
           setSelectedMode(value);
-          setFeedback(null);
         }}
       />
 
@@ -1232,12 +1219,6 @@ function ResultConfirmationSettingsPanel({
       >
         {isSaving ? "Guardando..." : "Guardar confirmaciones"}
       </button>
-
-      {feedback ? (
-        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
@@ -1259,7 +1240,6 @@ function MvpSystemSettingsPanel({
     roundSettings.mvpSystem,
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
@@ -1274,7 +1254,6 @@ function MvpSystemSettingsPanel({
     };
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(roundSettings.seasonId)) {
@@ -1291,7 +1270,7 @@ function MvpSystemSettingsPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    setFeedback("Sistema MVP actualizado.");
+    showSavedFeedback("Sistema MVP actualizado.");
     setIsSaving(false);
   }
 
@@ -1307,7 +1286,6 @@ function MvpSystemSettingsPanel({
         value={selectedSystem}
         onChange={(value) => {
           setSelectedSystem(value);
-          setFeedback(null);
         }}
       />
 
@@ -1319,12 +1297,6 @@ function MvpSystemSettingsPanel({
       >
         {isSaving ? "Guardando..." : "Guardar sistema MVP"}
       </button>
-
-      {feedback ? (
-        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
@@ -1346,7 +1318,6 @@ function RegistrationFeeSettingsPanel({
     String(roundSettings.registrationFee.amount),
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const parsedAmount = Number(amount);
   const normalizedAmount = Number.isFinite(parsedAmount)
@@ -1372,7 +1343,6 @@ function RegistrationFeeSettingsPanel({
     };
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(roundSettings.seasonId)) {
@@ -1392,7 +1362,7 @@ function RegistrationFeeSettingsPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    setFeedback("Importe de inscripción actualizado.");
+    showSavedFeedback("Importe de inscripción actualizado.");
     setIsSaving(false);
   }
 
@@ -1420,7 +1390,6 @@ function RegistrationFeeSettingsPanel({
             value={amount}
             onChange={(event) => {
               setAmount(event.target.value);
-              setFeedback(null);
               setError(null);
             }}
             className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
@@ -1443,12 +1412,6 @@ function RegistrationFeeSettingsPanel({
       >
         {isSaving ? "Guardando..." : "Guardar importe"}
       </button>
-
-      {feedback ? (
-        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
@@ -1476,7 +1439,6 @@ function BalancedCalendarAuditPanel({
   const { t } = useI18n();
   const { replaceSeasonMatches } = useMatchData();
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const seasonMatches = useMemo(
     () => matches.filter((match) => match.seasonId === activeSeason.id),
@@ -1624,7 +1586,6 @@ function BalancedCalendarAuditPanel({
     }
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     try {
@@ -1655,7 +1616,7 @@ function BalancedCalendarAuditPanel({
           }));
 
       replaceSeasonMatches(activeSeason.id, repairedMatches);
-      setFeedback(t.adminSeason.repairCalendarSuccess);
+      showSavedFeedback(t.adminSeason.repairCalendarSuccess);
     } catch (repairError) {
       recordSupabaseError("repair-balanced-calendar", repairError);
       setError(
@@ -1771,12 +1732,6 @@ function BalancedCalendarAuditPanel({
           </button>
         </>
       ) : null}
-
-      {feedback ? (
-        <p className="mt-3 text-center text-xs font-semibold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="mt-3 text-center text-xs font-semibold text-red-600">
           {error}
@@ -1827,7 +1782,6 @@ function RoundManagementPanel({
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingRoundOrder, setIsSavingRoundOrder] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const defaultRoundOrder = useMemo(
     () =>
       Array.from(
@@ -1844,7 +1798,6 @@ function RoundManagementPanel({
   async function persistRoundSettings(nextSettings: SeasonRoundSettings) {
     setIsSaving(true);
     setError(null);
-    setFeedback(null);
 
     if (isSupabaseBackedId(activeSeason.id)) {
       try {
@@ -1860,7 +1813,7 @@ function RoundManagementPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    setFeedback("Gestión de jornadas actualizada.");
+    showSavedFeedback("Gestión de jornadas actualizada.");
     setIsSaving(false);
   }
 
@@ -1918,7 +1871,6 @@ function RoundManagementPanel({
 
     setIsSavingRoundOrder(true);
     setError(null);
-    setFeedback(null);
 
     const nextRoundByCurrentRound = new Map(
       roundOrder.map((round, index) => [round, index + 1]),
@@ -1964,7 +1916,7 @@ function RoundManagementPanel({
       nextRoundByCurrentRound.get(currentRound) ?? currentRound,
     );
     setRoundOrder(defaultRoundOrder);
-    setFeedback("Gestión y orden de jornadas actualizados.");
+    showSavedFeedback("Gestión y orden de jornadas actualizados.");
     setIsSavingRoundOrder(false);
   }
 
@@ -2207,7 +2159,6 @@ function RoundManagementPanel({
               type="button"
               onClick={() => {
                 setRoundOrder(defaultRoundOrder);
-                setFeedback(null);
                 setError(null);
               }}
               disabled={isSavingRoundOrder || !hasRoundOrderChanges}
@@ -2232,12 +2183,6 @@ function RoundManagementPanel({
           {error}
         </p>
       ) : null}
-
-      {feedback ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-          {feedback}
-        </p>
-      ) : null}
     </AppCard>
   );
 }
@@ -2256,7 +2201,6 @@ function SeasonPlayerNamesPanel({
   );
   const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   async function handleSave(player: SeasonPlayerSummary) {
     if (savingPlayerId) {
@@ -2271,7 +2215,6 @@ function SeasonPlayerNamesPanel({
 
     setSavingPlayerId(player.id);
     setError(null);
-    setFeedback(null);
 
     const updated = await updateLeaguePlayerName(
       activeLeagueId,
@@ -2288,7 +2231,7 @@ function SeasonPlayerNamesPanel({
       return;
     }
 
-    setFeedback(`${player.displayName} actualizado a ${nextName}.`);
+    showSavedFeedback(`${player.displayName} actualizado a ${nextName}.`);
   }
 
   if (players.length === 0) {
@@ -2340,7 +2283,6 @@ function SeasonPlayerNamesPanel({
                         [player.id]: event.target.value,
                       }));
                       setError(null);
-                      setFeedback(null);
                     }}
                     className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
                   />
@@ -2366,12 +2308,6 @@ function SeasonPlayerNamesPanel({
           {error}
         </p>
       ) : null}
-
-      {feedback ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-          {feedback}
-        </p>
-      ) : null}
     </AppCard>
   );
 }
@@ -2389,7 +2325,6 @@ function FinishSeasonPanel({
   const router = useRouter();
   const { data: session } = useSession();
   const { finishActiveSeason, hydrateSeasonSnapshot } = useSeasonSettings();
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -2405,7 +2340,6 @@ function FinishSeasonPanel({
     }
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(activeSeasonId)) {
@@ -2446,7 +2380,7 @@ function FinishSeasonPanel({
       // El cierre no debe fallar si el registro de actividad no entra.
     }
 
-    setFeedback(t.adminSeason.seasonFinished);
+    showSavedFeedback(t.adminSeason.seasonFinished);
     setIsSaving(false);
     router.push("/");
   }
@@ -2471,12 +2405,6 @@ function FinishSeasonPanel({
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
-        </p>
-      ) : null}
-
-      {feedback ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-          {feedback}
         </p>
       ) : null}
     </AppCard>
@@ -2718,7 +2646,6 @@ function SeasonDangerZone({
   const { userLeagues } = useLeagueAccess();
   const [selectedRound, setSelectedRound] = useState(1);
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   async function handleDeleteRound() {
@@ -2736,7 +2663,6 @@ function SeasonDangerZone({
 
     setIsSaving(true);
     setError(null);
-    setFeedback(null);
 
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
@@ -2756,7 +2682,7 @@ function SeasonDangerZone({
     }
 
     deleteRoundMatches(activeSeasonId, selectedRound);
-    setFeedback(`Jornada ${selectedRound} eliminada.`);
+    showSavedFeedback(`Jornada ${selectedRound} eliminada.`);
     setIsSaving(false);
   }
 
@@ -2775,7 +2701,6 @@ function SeasonDangerZone({
 
     setIsSaving(true);
     setError(null);
-    setFeedback(null);
 
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
@@ -2852,12 +2777,6 @@ function SeasonDangerZone({
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
           {error}
-        </p>
-      ) : null}
-
-      {feedback ? (
-        <p className="mt-3 text-center text-sm font-semibold text-neutral-600">
-          {feedback}
         </p>
       ) : null}
     </AppCard>
@@ -2944,7 +2863,7 @@ function NewSeasonForm({
   const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
     "Premios, bolas y gastos comunes de organización.",
   );
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [creationFeedback, setCreationFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inviteCode = getLeagueInviteCode(activeLeagueId);
@@ -3059,7 +2978,7 @@ function NewSeasonForm({
       setSelectedPlayerIds([]);
       setNewPlayerNames([]);
       setSelfPlayerValue(null);
-      setFeedback(null);
+      setCreationFeedback(null);
       return;
     }
 
@@ -3098,7 +3017,7 @@ function NewSeasonForm({
         setSelfPlayerValue(null);
       }
     }
-    setFeedback(null);
+    setCreationFeedback(null);
   }
 
   function toggleExistingPlayer(playerId: string) {
@@ -3128,7 +3047,7 @@ function NewSeasonForm({
     ) {
       setSelfPlayerValue(null);
     }
-    setFeedback(null);
+    setCreationFeedback(null);
   }
 
   async function handleStartSeason(event: FormEvent<HTMLFormElement>) {
@@ -3169,7 +3088,7 @@ function NewSeasonForm({
     };
 
     setIsSaving(true);
-    setFeedback(null);
+    setCreationFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(activeLeagueId)) {
@@ -3283,9 +3202,10 @@ function NewSeasonForm({
 
     setNewSeasonName("");
     setRegistrationFeePurpose("Premios, bolas y gastos comunes de organización.");
-    setFeedback(
-      "Temporada creada. Puedes comenzarla cuando esté todo preparado.",
-    );
+    const successMessage =
+      "Temporada creada. Puedes comenzarla cuando esté todo preparado.";
+    setCreationFeedback(successMessage);
+    showSavedFeedback(successMessage);
     setIsSaving(false);
     router.replace("/");
   }
@@ -3321,7 +3241,7 @@ function NewSeasonForm({
               value={newSeasonName}
               onChange={(event) => {
                 setNewSeasonName(event.target.value);
-                setFeedback(null);
+                setCreationFeedback(null);
               }}
               placeholder={t.adminSeason.newSeasonNamePlaceholder}
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
@@ -3360,7 +3280,7 @@ function NewSeasonForm({
                           count: playerCount,
                         });
                       }
-                      setFeedback(null);
+                      setCreationFeedback(null);
                     }}
                     className={`rounded-2xl border px-3 py-3 text-left ${
                       selected
@@ -3537,7 +3457,7 @@ function NewSeasonForm({
                     const nextNames = [...visibleNewPlayerNames];
                     nextNames[index] = event.target.value;
                     setNewPlayerNames(nextNames);
-                    setFeedback(null);
+                    setCreationFeedback(null);
                   }}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
                 />
@@ -3600,7 +3520,7 @@ function NewSeasonForm({
                         count: playerCount,
                         mode,
                       });
-                      setFeedback(null);
+                      setCreationFeedback(null);
                     }}
                     className={`rounded-2xl border px-3 py-2.5 text-left transition ${
                       isSelected
@@ -3645,7 +3565,7 @@ function NewSeasonForm({
             value={calendarMode}
             onChange={(event) => {
               setCalendarMode(event.target.value as CalendarMode);
-              setFeedback(null);
+              setCreationFeedback(null);
             }}
             className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
           >
@@ -3691,7 +3611,7 @@ function NewSeasonForm({
                     count: playerCount,
                     mode: scheduleMode,
                   });
-                  setFeedback(null);
+                  setCreationFeedback(null);
                 }}
                 className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm"
               >
@@ -3798,7 +3718,7 @@ function NewSeasonForm({
                                               value: event.target.value,
                                             }),
                                           );
-                                          setFeedback(null);
+                                          setCreationFeedback(null);
                                         }}
                                         className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
                                       >
@@ -3850,7 +3770,7 @@ function NewSeasonForm({
             checked={requiresThreeSets}
             onChange={(event) => {
               setRequiresThreeSets(event.target.checked);
-              setFeedback(null);
+              setCreationFeedback(null);
             }}
             className="mt-1"
           />
@@ -3876,7 +3796,7 @@ function NewSeasonForm({
           value={mvpSystem}
           onChange={(nextSystem) => {
             setMvpSystem(nextSystem);
-            setFeedback(null);
+            setCreationFeedback(null);
           }}
         />
       </AppCard>
@@ -3893,7 +3813,7 @@ function NewSeasonForm({
           value={resultConfirmationMode}
           onChange={(nextMode) => {
             setResultConfirmationMode(nextMode);
-            setFeedback(null);
+            setCreationFeedback(null);
           }}
         />
       </AppCard>
@@ -3910,7 +3830,7 @@ function NewSeasonForm({
             checked={hasRegistrationFee}
             onChange={(event) => {
               setHasRegistrationFee(event.target.checked);
-              setFeedback(null);
+              setCreationFeedback(null);
             }}
             className="mt-1"
           />
@@ -3938,7 +3858,7 @@ function NewSeasonForm({
                 value={registrationFeeAmount}
                 onChange={(event) => {
                   setRegistrationFeeAmount(event.target.value);
-                  setFeedback(null);
+                  setCreationFeedback(null);
                 }}
                 className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
               />
@@ -3961,7 +3881,7 @@ function NewSeasonForm({
               value={registrationFeePurpose}
               onChange={(event) => {
                 setRegistrationFeePurpose(event.target.value);
-                setFeedback(null);
+                setCreationFeedback(null);
               }}
               rows={3}
               placeholder="Ejemplo: premios, bolas, bote final o gastos comunes de organización."
@@ -3993,7 +3913,7 @@ function NewSeasonForm({
                 checked={roundWindowMode === mode}
                 onChange={() => {
                   setRoundWindowMode(mode);
-                  setFeedback(null);
+                  setCreationFeedback(null);
                 }}
                 className="mt-1"
               />
@@ -4026,7 +3946,7 @@ function NewSeasonForm({
                 value={seasonStartsAt}
                 onChange={(event) => {
                   setSeasonStartsAt(event.target.value);
-                  setFeedback(null);
+                  setCreationFeedback(null);
                 }}
                 className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
@@ -4043,7 +3963,7 @@ function NewSeasonForm({
                 value={roundWindowDays}
                 onChange={(event) => {
                   setRoundWindowDays(event.target.value);
-                  setFeedback(null);
+                  setCreationFeedback(null);
                 }}
                 className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
@@ -4066,13 +3986,7 @@ function NewSeasonForm({
         </p>
       ) : null}
 
-      {feedback ? (
-        <p className="text-center text-sm font-semibold text-neutral-600">
-          {feedback}
-        </p>
-      ) : null}
-
-      {feedback && inviteCode ? (
+      {creationFeedback && inviteCode ? (
         <InviteLinkCard
           inviteCode={inviteCode}
           leagueName={activeLeagueName}
@@ -4098,7 +4012,6 @@ function PlayerMatchActionsSettingsPanel({
     roundSettings.allowPlayerSubstitutions,
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const hasChanges =
@@ -4116,7 +4029,6 @@ function PlayerMatchActionsSettingsPanel({
     };
 
     setIsSaving(true);
-    setFeedback(null);
     setError(null);
 
     if (isSupabaseBackedId(roundSettings.seasonId)) {
@@ -4131,7 +4043,7 @@ function PlayerMatchActionsSettingsPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    setFeedback("Permisos de los jugadores actualizados.");
+    showSavedFeedback("Permisos de los jugadores actualizados.");
     setIsSaving(false);
   }
 
@@ -4150,7 +4062,6 @@ function PlayerMatchActionsSettingsPanel({
             checked={allowIncidents}
             onChange={(event) => {
               setAllowIncidents(event.target.checked);
-              setFeedback(null);
             }}
             className="mt-0.5 h-4 w-4"
           />
@@ -4168,7 +4079,6 @@ function PlayerMatchActionsSettingsPanel({
             checked={allowSubstitutions}
             onChange={(event) => {
               setAllowSubstitutions(event.target.checked);
-              setFeedback(null);
             }}
             className="mt-0.5 h-4 w-4"
           />
@@ -4189,12 +4099,6 @@ function PlayerMatchActionsSettingsPanel({
       >
         {isSaving ? "Guardando..." : "Guardar permisos"}
       </button>
-
-      {feedback ? (
-        <p className="mt-2 text-center text-xs font-semibold text-emerald-700">
-          {feedback}
-        </p>
-      ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
           {error}
@@ -4352,6 +4256,14 @@ export default function AdminSeasonPage() {
         canAuditCalendar={canAuditCalendar}
         canReopenFinishedSeason={canReopenFinishedSeason}
         registrationEnabled={roundSettings.registrationFee.enabled}
+      />
+
+      <ContextualTip
+        tipId="season-admin"
+        title={t.onboardingTips.seasonAdminTitle}
+        description={t.onboardingTips.seasonAdminDescription}
+        dismissLabel={t.onboardingTips.dismiss}
+        compact
       />
 
       {hasCreatedLeagueSeason ? (

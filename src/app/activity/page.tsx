@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
 import { AppCard } from "@/components/ui/AppCard"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -14,11 +15,8 @@ import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
 } from "@/lib/activity"
-import {
-  getLeagueLocationScheduleText,
-  getScheduleLocationFallbackText,
-  normalizeLeagueLocation,
-} from "@/lib/leagueLocations"
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import {
   activityEventCategories,
   configurableNotificationEventTypes,
@@ -158,19 +156,7 @@ function formatActivityScheduleDate(value: unknown) {
 }
 
 function getActivityLocationText(value: unknown) {
-  if (typeof value === "string") {
-    const fallbackText = getScheduleLocationFallbackText(value)
-
-    return fallbackText && fallbackText !== "Ubicación en Maps" ? fallbackText : fallbackText
-  }
-
-  const normalizedLocation = normalizeLeagueLocation(value)
-
-  if (!normalizedLocation) {
-    return null
-  }
-
-  return getLeagueLocationScheduleText(normalizedLocation)
+  return getScheduleLocationDisplayText(value)
 }
 
 function getActivityScheduleDescription({
@@ -356,7 +342,7 @@ function ActivityEventCard({
   const avatarImageUrl = useLeagueLogo ? leagueLogoUrl : event.actorAvatarUrl
 
   return (
-    <AppCard className="p-3">
+    <AppCard className="app-activity-card p-3">
       <div className="flex gap-2.5">
         <ActivityAvatar
           name={event.actorDisplayName}
@@ -429,13 +415,17 @@ function ActivityPageContent() {
   const [isSettingsLoading, setIsSettingsLoading] = useState(true)
   const [isSettingsSaving, setIsSettingsSaving] = useState(false)
   const [areSettingsExpanded, setAreSettingsExpanded] = useState(false)
-  const [settingsMessage, setSettingsMessage] = useState<string | null>(null)
   const [settingsError, setSettingsError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [lastActivityError, setLastActivityError] = useState<string | null>(
     () => readLastActivityError()
   )
+
+  function refreshActivity() {
+    setLastActivityError(readLastActivityError())
+    setRefreshKey((current) => current + 1)
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -488,7 +478,6 @@ function ActivityPageContent() {
     async function loadSettings() {
       setIsSettingsLoading(true)
       setSettingsError(null)
-      setSettingsMessage(null)
 
       try {
         const settings = await fetchLeagueActivitySettings(activeLeague.id)
@@ -577,7 +566,6 @@ function ActivityPageContent() {
       })
       return nextSettings
     })
-    setSettingsMessage(null)
   }
 
   async function saveActivitySettings() {
@@ -587,7 +575,6 @@ function ActivityPageContent() {
 
     setIsSettingsSaving(true)
     setSettingsError(null)
-    setSettingsMessage(null)
 
     try {
       const savedSettings = await updateLeagueActivitySettings({
@@ -597,7 +584,7 @@ function ActivityPageContent() {
 
       setActivitySettings(savedSettings)
       setDraftSettings(savedSettings)
-      setSettingsMessage(t.activity.settingsSaved)
+      showActionFeedback({ tone: "success", message: t.activity.settingsSaved })
     } catch {
       setSettingsError(t.activity.settingsSaveError)
     } finally {
@@ -763,7 +750,6 @@ function ActivityPageContent() {
                                 aria-label={t.activity.notificationLabels[eventType]}
                                 onClick={() => {
                                   setDraftSettings((currentSettings) => ({ ...currentSettings, [eventType]: isNotificationEnabled ? "personal" : "notify" }))
-                                  setSettingsMessage(null)
                                 }}
                                 className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${isNotificationEnabled ? "bg-neutral-950" : "bg-neutral-300"}`}
                               >
@@ -788,11 +774,6 @@ function ActivityPageContent() {
               </div>
             ) : null}
 
-            {settingsMessage ? (
-              <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-neutral-600">
-                {settingsMessage}
-              </p>
-            ) : null}
             {settingsError ? (
               <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-red-600">
                 {settingsError}
@@ -814,10 +795,7 @@ function ActivityPageContent() {
               action={
                 <button
                   type="button"
-                  onClick={() => {
-                    setLastActivityError(readLastActivityError())
-                    setRefreshKey((current) => current + 1)
-                  }}
+                  onClick={refreshActivity}
                   className="text-sm font-semibold text-neutral-600"
                 >
                   {t.activity.refresh}
@@ -844,12 +822,11 @@ function ActivityPageContent() {
             ) : null}
 
             {!isLoading && !error && events.length === 0 ? (
-              <AppCard>
-                <p className="font-bold">{t.activity.emptyGeneralTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">
-                  {t.activity.emptyGeneralDescription}
-                </p>
-              </AppCard>
+              <EmptyState
+                title={t.activity.emptyGeneralTitle}
+                description={t.activity.emptyGeneralDescription}
+                action={{ label: t.activity.refresh, onClick: refreshActivity }}
+              />
             ) : null}
 
             {events.length > 0 ? (
@@ -873,10 +850,7 @@ function ActivityPageContent() {
             action={
               <button
                 type="button"
-                onClick={() => {
-                  setLastActivityError(readLastActivityError())
-                  setRefreshKey((current) => current + 1)
-                }}
+                onClick={refreshActivity}
                 className="text-sm font-semibold text-neutral-600"
               >
                 {t.activity.refresh}
@@ -900,16 +874,19 @@ function ActivityPageContent() {
           ) : null}
 
           {!isLoading && !error && !hasEvents ? (
-            <AppCard>
-              <p className="font-bold">
-                {effectiveScope === "mine" ? t.activity.emptyPersonalTitle : t.activity.emptyGeneralTitle}
-              </p>
-              <p className="mt-2 text-sm text-neutral-500">
-                {effectiveScope === "mine"
+            <EmptyState
+              title={
+                effectiveScope === "mine"
+                  ? t.activity.emptyPersonalTitle
+                  : t.activity.emptyGeneralTitle
+              }
+              description={
+                effectiveScope === "mine"
                   ? t.activity.emptyPersonalDescription
-                  : t.activity.emptyGeneralDescription}
-              </p>
-            </AppCard>
+                  : t.activity.emptyGeneralDescription
+              }
+              action={{ label: t.activity.refresh, onClick: refreshActivity }}
+            />
           ) : null}
 
           {!isLoading && !error && !hasEvents && lastActivityError ? (

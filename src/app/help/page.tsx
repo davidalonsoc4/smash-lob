@@ -1,5 +1,6 @@
 "use client"
 
+import { OnboardingTipsReset } from "@/components/onboarding/ContextualTip"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -419,6 +420,15 @@ export default function HelpPage() {
           <p>{activeMvpItem.description}</p>
         </HelpBlock>
       ) : null}
+
+      <HelpBlock title={t.onboardingTips.helpTitle}>
+        <OnboardingTipsReset
+          title={t.onboardingTips.helpTitle}
+          description={t.onboardingTips.helpDescription}
+          actionLabel={t.onboardingTips.helpReset}
+          doneLabel={t.onboardingTips.helpResetDone}
+        />
+      </HelpBlock>
     </div>
   )
 }

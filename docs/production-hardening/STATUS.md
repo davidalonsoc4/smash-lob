@@ -1,3 +1,17 @@
+## v0.16.12 — Classic style naming and award header polish
+
+- Renamed the visible neutral appearance style to Clásico/Classic/Klasikoa while preserving the internal `plain` storage key.
+- Kept Colorido and all six palettes unchanged.
+- Rounded the Home season-winner and season-MVP title bars to align with the containing cards.
+- No API, permission, routing, database or remote-environment change.
+- Local lint, typecheck and production build remain required before commit and promotion.
+
+## v0.15.7 — Availability effect dependency cleanup
+
+- ESLint exhaustive-deps warning removed from the availability screen.
+- No API, permission or database changes.
+- Local lint, typecheck and production build remain required before commit.
+
 ## v0.14.0 settings architecture (2026-07-24)
 
 - Reorganized Settings into Personal, My leagues, Personal activity, Administration, Help and information, and Session.
@@ -8,6 +22,12 @@
 - Preserved all existing routes, anchors, APIs, permissions, and the current settings-search implementation.
 - No database migration or remote change is required.
 
+
+## Post-release validation fix (v0.15.5, 2026-07-24)
+
+- Fixed two TypeScript errors introduced by actionable empty states on the Activity screen.
+- Empty-state refresh actions now reuse the same refresh function as the section headers.
+- No database migration, API contract, permission, or data change is required.
 
 ## v0.13.3 public changelog (2026-07-24)
 
@@ -28,8 +48,8 @@
 
 # Production Hardening Status
 
-Last updated: 2026-07-20 18:49:40 +02:00
-Current branch at status update: `staging`
+Last updated: 2026-07-26 20:43:00 +02:00
+Current branch at status update: `feature/v0.16-colorful-design`
 Production branch confirmed from Git + Vercel: `main`
 Production source version retained in this run: `v0.9.71`
 Staging source commit retained in this run: `78f1986` (`v0.10.0`)
@@ -53,6 +73,16 @@ Active milestone state: `H20-H23 complete; environment isolation repair complete
 - TypeScript/TSX syntax transpilation passed for every modified source file, and whitespace/conflict-marker checks are clean.
 - Full dependency installation, lint, typecheck, and build could not be completed in the review container because its npm proxy returned HTTP 503 for required packages; these gates remain mandatory locally before commit.
 
+
+
+## Product experience update — v0.16.0
+
+- Added a fourth device-local appearance preference: `colorful`.
+- The initial layout script and ThemeProvider apply the same resolved theme, preventing a light-theme flash during startup.
+- Colorful styling is centralized in CSS and covers shell backgrounds, cards, statistics, ranking, bottom navigation, floating controls, forms and skeletons.
+- Existing light, dark and system preferences remain supported without data migrations.
+- Status colors remain semantic, and the per-league neutral-color option still takes precedence for status elements.
+- Full local lint, TypeScript and production-build validation remains required before merging the feature branch.
 
 ## Final state summary
 
@@ -187,3 +217,143 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Existing matches are reloaded from Supabase without calendar regeneration.
 - No database migration is required.
 
+
+
+## v0.15.0 - Image crop and optimization (2026-07-24)
+
+- Added a reusable crop editor for player avatars and league logos.
+- Added drag, zoom, rotation and final-shape previews before upload.
+- Normalized client images to 512 × 512 compressed WebP data URLs.
+- Added file type and 12 MB input-size validation.
+- No migration, API, permission or database change is required.
+
+## v0.15.1 - Loading states and skeletons (2026-07-24)
+
+- Added reusable skeleton primitives and page compositions.
+- Replaced generic session, profile and league-transition spinners with structured loading states.
+- Added route skeletons for the most-used list, ranking, settings and detail screens.
+- Skeleton animation respects reduced-motion preferences.
+- No migration, API, permission or persistence change is required.
+
+## v0.15.2 - Actionable empty states (2026-07-24)
+
+- Added a shared empty-state component with context-specific actions.
+- Replaced generic empty messages across matches, notifications, activity, suggestions, announcements, substitutes and statistics.
+- Added compact variants for dense administrative screens.
+- No migration, API, permission or persistence change is required.
+
+## v0.15.3 - Contextual onboarding (2026-07-24)
+
+- Added dismissible tips for Settings search, custom availability, Match actions and Season administration.
+- Added a Help control to restore dismissed tips.
+- Added Spanish, English and Basque onboarding copy.
+- Tip state is local to the device and does not add server-side tracking.
+- No migration, API, permission or remote persistence change is required.
+
+## v0.15.4 - Lint cleanup (2026-07-24)
+
+- Removed the unused translation binding reported by ESLint in `ProfileCompletionGate`.
+- Preserved all profile completion, onboarding, and availability behavior.
+- No migration, API, permission, or persistence change is required.
+
+## v0.15.6 - Action feedback and connection recovery (2026-07-24)
+
+- Added a global accessible action-feedback center above the bottom navigation.
+- Added persistent offline status and a connection-restored confirmation.
+- Added success/error feedback to profile, availability, notification, and suggestion actions.
+- Added direct retry controls for recoverable availability, notification, and suggestion failures.
+- No migration, API contract, permission, or database change is required.
+
+
+## v0.16.1 - Location display consistency (2026-07-25)
+
+- Centralized readable formatting for serialized schedule locations and courts.
+- Fixed scheduled-match and upcoming-match notification bodies so legacy JSON values are never shown to users.
+- Applied the formatter to Activity, match schedule summaries, calendar links and CSV exports.
+- Added consistent Colorful-mode accents to notification, activity and schedule cards.
+- No migration, API contract, permission or persistence change is required.
+
+## v0.16.2 - Colorful appearance palettes (2026-07-25)
+
+- Added five prepared palettes for Colorful mode: indigo/violet, blue/turquoise, emerald, coral/pink and orange/purple.
+- Centralized palette values through CSS variables used by backgrounds, surfaces, navigation, cards, forms, standings and skeletons.
+- Added device-local palette persistence and early startup application to avoid visual flashes.
+- Preserved semantic match, payment, warning, success and error colours independently from the selected palette.
+- Added Spanish, English and Basque labels plus Settings search terms.
+- No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.3 - Independent theme and visual style (2026-07-25)
+
+- Split appearance into Light/Dark/System base theme and Plain/Colorful visual style.
+- Added a compact Themes and appearance screen and reduced the main Settings block to one summary row.
+- Added dedicated dark variants for all five Colorful palettes.
+- Added automatic legacy localStorage migration and early startup application without visual flashes.
+- Added Spanish, English and Basque copy plus updated Settings search routing.
+- No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.4 - Visual consistency, action feedback and image viewer (2026-07-25)
+
+- Consolidated transient save confirmations in the global accessible feedback center.
+- Improved Colorful-mode contrast for primary actions, secondary text, disabled controls and semantic notices, especially in dark mode.
+- Added an accessible lightbox for main league logos and player profile images.
+- Preserved inline contextual errors, retry behaviour, status colours and all existing business logic.
+- No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.5 - Visual closure and Settings search (2026-07-25)
+
+- Extended the existing floating Settings search to the main navigation hubs for Settings, league administration, leagues and application administration.
+- Kept concrete action and form screens free from the additional launcher.
+- Contained Colorful card accent strips inside rounded borders without globally clipping card content.
+- Added subtle interaction outlines to muted buttons and links on dark Colorful palettes.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.16.6 - Dark Colorful contrast closure (2026-07-26)
+
+- Removed palette-coloured glow from fixed top action controls in dark Colorful themes.
+- Added a dedicated compact primary treatment for the invite share control.
+- Restored readable muted labels on palette-primary surfaces, including player statistics and MVP summaries.
+- Centralized the correction in theme CSS so selected cards and equivalent components inherit the same contrast fix.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.16.7 - Colorful card accent strip alignment (2026-07-26)
+
+- Replaced the absolutely positioned Colorful card accent strip with a layered card background.
+- The strip is now clipped by the card padding box and follows the exact rounded border geometry.
+- Preserved dedicated notification, activity and schedule gradients through a shared CSS variable.
+- Avoided global overflow clipping, so menus and interactive card content remain unaffected.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.16.8 - Bottom navigation and panel accent cleanup (2026-07-26)
+
+- Removed the blurred palette-coloured glow projected above the bottom navigation.
+- Replaced it with a one-pixel separator and a minimal inner highlight in light and dark Colorful combinations.
+- Restored the top accent gradient in row-based cards whose opaque children covered the layered card background.
+- Applied the shared accent-reveal treatment to Settings, league administration and custom availability panels.
+- Preserved exact rounded-corner clipping, active navigation gradients, safe-area layout and all navigation behavior.
+- No database migration, API contract, permission or persistence change is required.
+
+
+## v0.16.9 - Transparent league logos (2026-07-26)
+
+- Added automatic alpha detection to the shared crop output.
+- Transparent league logos preserve their background through PNG output, with transparent WebP fallback when needed to stay within the existing server size limit.
+- Opaque logos keep the previous WebP format, dimensions and quality, so existing visual behavior remains unchanged.
+- Audited all league-logo render paths; the shared component already uses a transparent container and `object-contain`.
+- No database migration, API contract, permission or remote persistence change is required.
+
+## v0.16.10 - Settings panel accent alignment (2026-07-26)
+
+- Replaced the row-card padding workaround with an explicit internal accent strip rendered by `AppCard`.
+- The strip is now clipped by the exact panel border radius and cannot be hidden or displaced by opaque rows.
+- Applied the same shared treatment to Settings, league administration and custom day availability.
+- Plain mode remains unchanged and does not reserve accent-strip space.
+- No database migration, API contract, permission or persistence change is required.
+
+
+
+## v0.16.11 · Paletas naturales y búsqueda de ligas
+
+- Seis paletas Coloridas con variantes clara y oscura.
+- Migración local de las cuatro paletas retiradas.
+- Buscador contextual de ligas en `/leagues`.
+- Sin migraciones ni cambios de API.

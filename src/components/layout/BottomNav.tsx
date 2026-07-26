@@ -217,8 +217,8 @@ export function BottomNav() {
               }}
               className={
                 isActive
-                  ? "flex flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-center text-[10px] font-black text-white shadow-sm"
-                  : "flex flex-col items-center justify-center gap-0.5 rounded-xl bg-transparent px-1 text-center text-[10px] font-black text-neutral-500 transition active:bg-neutral-100"
+                  ? "app-bottom-nav-active flex flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-center text-[10px] font-black text-white shadow-sm"
+                  : "app-bottom-nav-item flex flex-col items-center justify-center gap-0.5 rounded-xl bg-transparent px-1 text-center text-[10px] font-black text-neutral-500 transition active:bg-neutral-100"
               }
               style={{
                 minHeight: "52px",

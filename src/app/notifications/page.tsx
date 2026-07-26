@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { AppCard } from "@/components/ui/AppCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
@@ -16,6 +17,7 @@ import {
 } from "@/lib/activity";
 import { formatMoney } from "@/lib/courtBooking";
 import { buildLeagueNavigationUrl } from "@/lib/leagueNavigation";
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations";
 import {
   getNotificationPreferenceKeyForEvent,
   isAlwaysEnabledNotificationEvent,
@@ -117,6 +119,7 @@ function isMatchParticipantNotification(event: ActivityEvent) {
   return (
     event.type === "match_scheduled" ||
     event.type === "match_schedule_updated" ||
+    event.type === "match_upcoming_reminder" ||
     event.type === "match_postponed" ||
     event.type === "match_incident_reported" ||
     event.type === "match_incident_resolved" ||
@@ -351,6 +354,43 @@ function getNotificationBody({
 }) {
   const metadata = event.metadata;
 
+  if (
+    event.type === "match_scheduled" ||
+    event.type === "match_schedule_updated"
+  ) {
+    const round = metadata.round;
+    const roundText =
+      typeof round === "number" || typeof round === "string"
+        ? `Jornada ${round}`
+        : null;
+    const dateText =
+      typeof metadata.dateLabel === "string" && metadata.dateLabel.trim()
+        ? metadata.dateLabel.trim()
+        : typeof metadata.scheduledAt === "string"
+          ? formatNotificationDate(metadata.scheduledAt)
+          : null;
+    const locationText =
+      getScheduleLocationDisplayText(metadata.locationText) ??
+      getScheduleLocationDisplayText(metadata.location);
+
+    return (
+      [roundText, dateText, locationText]
+        .filter((item): item is string => Boolean(item?.trim()))
+        .join(" · ") ||
+      "Consulta la fecha, hora y ubicación del partido."
+    );
+  }
+
+  if (event.type === "match_upcoming_reminder") {
+    const locationText =
+      getScheduleLocationDisplayText(metadata.locationText) ??
+      getScheduleLocationDisplayText(metadata.location);
+
+    return locationText
+      ? `Prepárate para tu partido en ${locationText}.`
+      : "Prepárate para tu partido.";
+  }
+
   if (event.type === "season_created") {
     const playerCount = Number(metadata.playerCount);
     const totalRounds = Number(metadata.totalRounds);
@@ -564,7 +604,7 @@ function NotificationCard({
 
   return (
     <Link href={href} className="block">
-      <AppCard className="p-3 transition active:scale-[0.99]">
+      <AppCard className="app-notification-card p-3 transition active:scale-[0.99]">
         <div className="flex items-start justify-between gap-2">
           <p className="min-w-0 text-sm font-black text-neutral-950">
             {getNotificationTitle(event, currentUserId)}
@@ -716,12 +756,14 @@ export default function NotificationsPage() {
       ) : null}
 
       {!isLoading && !error && notifications.length === 0 ? (
-        <AppCard>
-          <p className="font-bold">Sin notificaciones</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Cuando haya avisos para ti aparecerán aquí.
-          </p>
-        </AppCard>
+        <EmptyState
+          title="Estás al día"
+          description="No tienes avisos pendientes. Los próximos partidos, resultados, pagos y comunicados aparecerán aquí."
+          action={{
+            label: "Configurar avisos",
+            href: "/settings/notifications",
+          }}
+        />
       ) : null}
 
       {notifications.length > 0 ? (

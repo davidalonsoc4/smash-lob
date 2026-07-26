@@ -1,13 +1,13 @@
-Smash & Lob v0.14.6
-
-Modified:
-- package.json
-- package-lock.json
-- src/lib/appVersion.ts
-- src/lib/changelog.ts
-- src/lib/serverSeasonMutations.ts
-- src/app/api/leagues/[id]/seasons/[seasonId]/start/route.ts
-- docs/production-hardening/STATUS.md
-
-Added:
-- docs/preproduction/V0.14.6_REOPEN_SEASON_HOTFIX.md
+CHANGED_FILES.txt
+docs/preproduction/V0.16.12_CLASSIC_STYLE_AND_AWARD_HEADERS.md
+docs/production-hardening/STATUS.md
+package-lock.json
+package.json
+src/app/globals.css
+src/app/page.tsx
+src/i18n/locales/en.ts
+src/i18n/locales/es.ts
+src/i18n/locales/eu.ts
+src/lib/appVersion.ts
+src/lib/changelog.ts
+src/lib/settingsSearch.ts

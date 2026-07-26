@@ -11,7 +11,7 @@ type LeagueSeasonEyebrowProps = {
 }
 
 const eyebrowClassName =
-  "text-xs font-bold uppercase leading-4 tracking-[0.14em] text-neutral-500"
+  "app-eyebrow text-xs font-bold uppercase leading-4 tracking-[0.14em] text-neutral-500"
 
 export function LeagueSeasonEyebrow({
   leagueName,

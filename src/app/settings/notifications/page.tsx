@@ -6,6 +6,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import {
   defaultNotificationPreferences,
@@ -88,7 +89,6 @@ export default function NotificationSettingsPage() {
   const [isConfigured, setIsConfigured] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [expandedGroups, setExpandedGroups] = useState<Record<NotificationGroupId, boolean>>({
     matches: false,
@@ -146,7 +146,6 @@ export default function NotificationSettingsPage() {
     async function hydrate() {
       setIsLoading(true)
       setError(null)
-      setMessage(null)
 
       const nextSupportStatus = getPushSupportStatus()
       setSupportStatus(nextSupportStatus)
@@ -206,7 +205,6 @@ export default function NotificationSettingsPage() {
   async function savePreferences(nextPreferences: NotificationPreferences) {
     setIsSaving(true)
     setError(null)
-    setMessage(null)
 
     try {
       const response = await fetch("/api/notifications/preferences", {
@@ -227,9 +225,19 @@ export default function NotificationSettingsPage() {
       const data = (await response.json()) as LoadPreferencesResponse
       setPreferences(normalizeNotificationPreferences(data.preferences))
       setIsConfigured(data.isConfigured !== false)
-      setMessage(t.notifications.preferencesSaved)
+      showActionFeedback({
+        tone: "success",
+        message: t.notifications.preferencesSaved,
+      })
     } catch {
       setError(t.notifications.preferencesSaveError)
+      showActionFeedback({
+        tone: "error",
+        message: t.notifications.preferencesSaveError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void savePreferences(nextPreferences),
+        durationMs: 0,
+      })
     } finally {
       setIsSaving(false)
     }
@@ -270,14 +278,15 @@ export default function NotificationSettingsPage() {
 
     setIsSaving(true)
     setError(null)
-    setMessage(null)
 
     try {
       const result = await requestPushSubscription()
 
       if (!result.ok) {
+        const supportMessage = getSupportMessage(result.reason)
         setSupportStatus(result.reason)
-        setError(getSupportMessage(result.reason))
+        setError(supportMessage)
+        showActionFeedback({ tone: "error", message: supportMessage })
         return
       }
 
@@ -299,9 +308,16 @@ export default function NotificationSettingsPage() {
 
       setPushAutoRegistrationDisabled(false)
       setHasSubscription(true)
-      setMessage(t.notifications.deviceEnabled)
+      showActionFeedback({ tone: "success", message: t.notifications.deviceEnabled })
     } catch {
       setError(t.notifications.deviceEnableError)
+      showActionFeedback({
+        tone: "error",
+        message: t.notifications.deviceEnableError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void enablePushOnThisDevice(),
+        durationMs: 0,
+      })
     } finally {
       setIsSaving(false)
     }
@@ -314,7 +330,6 @@ export default function NotificationSettingsPage() {
 
     setIsSaving(true)
     setError(null)
-    setMessage(null)
     setPushAutoRegistrationDisabled(true)
 
     try {
@@ -338,9 +353,16 @@ export default function NotificationSettingsPage() {
       }
 
       setHasSubscription(false)
-      setMessage(t.notifications.deviceDisabled)
+      showActionFeedback({ tone: "success", message: t.notifications.deviceDisabled })
     } catch {
       setError(t.notifications.deviceDisableError)
+      showActionFeedback({
+        tone: "error",
+        message: t.notifications.deviceDisableError,
+        actionLabel: t.actionFeedback.retry,
+        onAction: () => void disablePushOnThisDevice(),
+        durationMs: 0,
+      })
     } finally {
       setIsSaving(false)
     }
@@ -539,11 +561,6 @@ export default function NotificationSettingsPage() {
         </div>
       </AppCard>
 
-      {message ? (
-        <p className="text-center text-xs font-semibold text-neutral-600">
-          {message}
-        </p>
-      ) : null}
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-semibold text-red-700">
           {error}
