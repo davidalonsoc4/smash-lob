@@ -1,3 +1,11 @@
+## v0.16.12 — Classic style naming and award header polish
+
+- Renamed the visible neutral appearance style to Clásico/Classic/Klasikoa while preserving the internal `plain` storage key.
+- Kept Colorido and all six palettes unchanged.
+- Rounded the Home season-winner and season-MVP title bars to align with the containing cards.
+- No API, permission, routing, database or remote-environment change.
+- Local lint, typecheck and production build remain required before commit and promotion.
+
 ## v0.15.7 — Availability effect dependency cleanup
 
 - ESLint exhaustive-deps warning removed from the availability screen.
@@ -40,7 +48,7 @@
 
 # Production Hardening Status
 
-Last updated: 2026-07-24 23:45:00 +02:00
+Last updated: 2026-07-26 20:43:00 +02:00
 Current branch at status update: `feature/v0.16-colorful-design`
 Production branch confirmed from Git + Vercel: `main`
 Production source version retained in this run: `v0.9.71`
