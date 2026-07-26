@@ -1,6 +1,7 @@
 "use client"
 
 import { TeamPlayers } from "@/components/player/TeamPlayers"
+import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { MatchSubstitution } from "@/lib/substitutes"
 import { getMatchSubstituteLabels } from "@/lib/substitutes"
@@ -35,7 +36,7 @@ export function MatchScoreboard({
   const isFinished = pointsA !== null && pointsB !== null
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-2.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
+    <AppCard className="!p-2.5">
       {isFinished ? (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-2.5 rounded-lg bg-neutral-50 px-2.5 py-1.5">
@@ -130,6 +131,6 @@ export function MatchScoreboard({
           ))}
         </div>
       ) : null}
-    </section>
+    </AppCard>
   )
 }
