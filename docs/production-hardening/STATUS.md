@@ -374,3 +374,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added compact period records to player profiles.
 - Kept all calculations client-side over counted finished matches.
 - No database migration, API contract or persistence change is required.
+
+
+## v0.17.2 - Competitive progress charts (2026-07-26)
+
+- Added comparative position and cumulative-points charts by round.
+- Reused the player comparison selectors and existing calculated progress.
+- Added palette-aware series and accessible SVG descriptions.
+- Added no external chart dependency.
+- No database migration, API contract or persistence change is required.

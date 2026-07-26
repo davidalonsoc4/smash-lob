@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.2",
+    date: "26 de julio de 2026",
+    title: "Gráficos de evolución competitiva",
+    summary:
+      "La comparación entre jugadores incorpora gráficos de posición y puntos acumulados por jornada.",
+    category: "new",
+    changes: [
+      "La comparativa de jugadores añade un gráfico alternable entre posición y puntos acumulados.",
+      "Las dos series siguen los jugadores seleccionados y reutilizan su evolución por jornada ya calculada.",
+      "Los colores del gráfico se adaptan a la paleta Colorida activa y mantienen contraste en Clásico claro y oscuro.",
+      "El gráfico incluye etiquetas, detalles por punto y una descripción accesible para lectores de pantalla.",
+      "No se añaden librerías externas, migraciones ni cambios de API.",
+    ],
+  },
+  {
     version: "v0.17.1",
     date: "26 de julio de 2026",
     title: "Evolución y récords de temporada",

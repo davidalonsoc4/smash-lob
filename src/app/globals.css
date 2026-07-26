@@ -1457,3 +1457,61 @@ html.colorful .status-colors-disabled :where(
     transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
   }
 }
+
+.statistics-chart-grid {
+  stroke: rgb(163 163 163 / 0.24);
+  stroke-width: 1;
+}
+
+.statistics-chart-label {
+  fill: currentColor;
+  color: rgb(115 115 115);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.statistics-chart-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.statistics-chart-point {
+  fill: currentColor;
+  stroke: var(--background);
+  stroke-width: 3;
+}
+
+.statistics-chart-dot {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.statistics-chart-series-a {
+  color: #4f46e5;
+}
+
+.statistics-chart-series-b {
+  color: #db2777;
+}
+
+html[data-style="colorful"] .statistics-chart-series-a {
+  color: var(--colorful-primary);
+}
+
+html[data-style="colorful"] .statistics-chart-series-b {
+  color: var(--colorful-accent);
+}
+
+html.dark .statistics-chart-grid {
+  stroke: rgb(163 163 163 / 0.18);
+}
+
+html.dark .statistics-chart-label {
+  color: rgb(163 163 163);
+}

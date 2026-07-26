@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { RankingTable } from "@/components/ranking/RankingTable"
 import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonPanel"
+import { SeasonProgressChart } from "@/components/statistics/SeasonProgressChart"
 import {
   PlayerSeasonRecordsPanel,
   SeasonRecordsPanel,
@@ -129,6 +130,48 @@ export default function StatisticsPage() {
       leaguePlayers,
       seasonPlayers,
       selectedSeason.id,
+    ],
+  )
+  const comparisonPlayerADetail = useMemo(
+    () =>
+      comparisonPlayerAId
+        ? calculatePlayerSeasonDetail({
+            seasonId: selectedSeason.id,
+            playerId: comparisonPlayerAId,
+            playerProfiles: leaguePlayers,
+            seasonPlayers,
+            matches: countedMatches,
+            pairStatistics: statistics.pairStatistics,
+          })
+        : null,
+    [
+      comparisonPlayerAId,
+      countedMatches,
+      leaguePlayers,
+      seasonPlayers,
+      selectedSeason.id,
+      statistics.pairStatistics,
+    ],
+  )
+  const comparisonPlayerBDetail = useMemo(
+    () =>
+      comparisonPlayerBId
+        ? calculatePlayerSeasonDetail({
+            seasonId: selectedSeason.id,
+            playerId: comparisonPlayerBId,
+            playerProfiles: leaguePlayers,
+            seasonPlayers,
+            matches: countedMatches,
+            pairStatistics: statistics.pairStatistics,
+          })
+        : null,
+    [
+      comparisonPlayerBId,
+      countedMatches,
+      leaguePlayers,
+      seasonPlayers,
+      selectedSeason.id,
+      statistics.pairStatistics,
     ],
   )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
@@ -349,6 +392,28 @@ export default function StatisticsPage() {
             }
           }}
         />
+        <div className="mt-2">
+          <SeasonProgressChart
+            playerA={
+              comparisonPlayerADetail
+                ? {
+                    playerId: comparisonPlayerADetail.player.id,
+                    displayName: comparisonPlayerADetail.player.displayName,
+                    progress: comparisonPlayerADetail.progress,
+                  }
+                : null
+            }
+            playerB={
+              comparisonPlayerBDetail
+                ? {
+                    playerId: comparisonPlayerBDetail.player.id,
+                    displayName: comparisonPlayerBDetail.player.displayName,
+                    progress: comparisonPlayerBDetail.progress,
+                  }
+                : null
+            }
+          />
+        </div>
       </div>
 
       <div>

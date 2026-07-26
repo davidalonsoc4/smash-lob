@@ -1,11 +1,10 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.17.1_SEASON_EVOLUTION_AND_RECORDS.md
+docs/preproduction/V0.17.2_PROGRESS_CHARTS.md
 docs/production-hardening/STATUS.md
 package-lock.json
 package.json
+src/app/globals.css
 src/app/statistics/page.tsx
-src/components/player/PlayerStatsPanel.tsx
-src/components/statistics/SeasonRecordsPanel.tsx
+src/components/statistics/SeasonProgressChart.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/lib/seasonStatistics.ts
