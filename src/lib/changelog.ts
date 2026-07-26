@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.7",
+    date: "26 de julio de 2026",
+    title: "Franja Colorida integrada en los paneles",
+    summary:
+      "La franja degradada superior pasa a formar parte del fondo del panel y queda recortada exactamente por sus esquinas redondeadas.",
+    category: "fix",
+    changes: [
+      "La franja de color deja de utilizar un pseudo-elemento superpuesto que podía sobresalir visualmente en Home y otras tarjetas.",
+      "El degradado se dibuja ahora dentro del padding box del propio panel, respetando borde y radio en cualquier tamaño de tarjeta.",
+      "Las variantes de notificaciones, actividad y programación conservan sus degradados específicos mediante una variable compartida.",
+      "La corrección no recorta contenido, menús ni elementos emergentes y mantiene intactos los estilos Plano, Claro y Oscuro.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
     version: "v0.16.6",
     date: "26 de julio de 2026",
     title: "Contraste final en Colorido oscuro",

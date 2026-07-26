@@ -1014,7 +1014,6 @@ html.colorful .app-section-header h2::after {
   background: linear-gradient(90deg, var(--colorful-primary), var(--colorful-accent));
 }
 
-html.colorful .app-card,
 html.colorful .app-stat-card,
 html.colorful .app-ranking-row {
   border-color: var(--colorful-border) !important;
@@ -1024,40 +1023,44 @@ html.colorful .app-ranking-row {
 }
 
 html.colorful .app-card {
-  position: relative;
-  isolation: isolate;
-}
-
-html.colorful .app-card::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 1px;
-  right: 1px;
-  left: 1px;
-  height: 0.2rem;
-  border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 999px 999px;
-  background: linear-gradient(
+  --app-card-accent-gradient: linear-gradient(
     90deg,
     var(--colorful-primary),
     var(--colorful-secondary),
     var(--colorful-accent),
     var(--colorful-warm)
   );
-  opacity: 0.84;
-  pointer-events: none;
+  position: relative;
+  isolation: isolate;
+  border-color: var(--colorful-border) !important;
+  background:
+    var(--app-card-accent-gradient) top left / 100% 0.2rem no-repeat padding-box,
+    linear-gradient(145deg, var(--colorful-card-start), var(--colorful-card-end)) padding-box !important;
+  box-shadow: var(--colorful-shadow) !important;
 }
 
-html.colorful .app-notification-card::before {
-  background: linear-gradient(90deg, var(--colorful-cool), var(--colorful-primary)) !important;
+html.colorful .app-notification-card {
+  --app-card-accent-gradient: linear-gradient(
+    90deg,
+    var(--colorful-cool),
+    var(--colorful-primary)
+  );
 }
 
-html.colorful .app-activity-card::before {
-  background: linear-gradient(90deg, var(--colorful-secondary), var(--colorful-accent)) !important;
+html.colorful .app-activity-card {
+  --app-card-accent-gradient: linear-gradient(
+    90deg,
+    var(--colorful-secondary),
+    var(--colorful-accent)
+  );
 }
 
-html.colorful .app-schedule-card::before {
-  background: linear-gradient(90deg, var(--colorful-warm), var(--colorful-accent)) !important;
+html.colorful .app-schedule-card {
+  --app-card-accent-gradient: linear-gradient(
+    90deg,
+    var(--colorful-warm),
+    var(--colorful-accent)
+  );
 }
 
 html.colorful .app-notification-card,
