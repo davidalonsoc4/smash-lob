@@ -6,6 +6,7 @@ import {
   cropImageElementToDataUrl,
   getCropDisplayMetrics,
   type ImageCropRotation,
+  type ImageOutputType,
 } from "@/lib/clientImages"
 
 type ImageCropDialogProps = {
@@ -14,7 +15,8 @@ type ImageCropDialogProps = {
   description: string
   shape?: "circle" | "square"
   outputSize?: number
-  outputType?: "image/webp" | "image/jpeg"
+  outputType?: ImageOutputType
+  maxOutputBytes?: number
   confirmLabel?: string
   cancelLabel?: string
   onCancel: () => void
@@ -58,6 +60,7 @@ export function ImageCropDialog({
   shape = "square",
   outputSize = 512,
   outputType = "image/webp",
+  maxOutputBytes,
   confirmLabel = "Usar imagen",
   cancelLabel = "Cancelar",
   onCancel,
@@ -208,6 +211,7 @@ export function ImageCropDialog({
         offsetY: visibleOffset.y,
         outputType,
         quality: 0.88,
+        maxOutputBytes,
       })
       const result = await onConfirm(dataUrl)
       if (result === false) {

@@ -1,4 +1,5 @@
 export type ImageCropRotation = 0 | 90 | 180 | 270
+export type ImageOutputType = "image/webp" | "image/jpeg" | "image/png" | "auto"
 
 export function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -78,6 +79,82 @@ export function clampCropOffset({
   }
 }
 
+function canvasHasTransparentPixels(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const pixels = context.getImageData(0, 0, width, height).data
+
+  for (let index = 3; index < pixels.length; index += 4) {
+    if (pixels[index] < 255) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function getDataUrlByteLength(dataUrl: string) {
+  const separatorIndex = dataUrl.indexOf(",")
+
+  if (separatorIndex < 0) {
+    return Number.POSITIVE_INFINITY
+  }
+
+  const payload = dataUrl.slice(separatorIndex + 1)
+  const padding = payload.endsWith("==") ? 2 : payload.endsWith("=") ? 1 : 0
+
+  return Math.max(0, Math.floor((payload.length * 3) / 4) - padding)
+}
+
+function encodeCanvasWithinLimit({
+  canvas,
+  preferredType,
+  quality,
+  maxOutputBytes,
+}: {
+  canvas: HTMLCanvasElement
+  preferredType: Exclude<ImageOutputType, "auto">
+  quality: number
+  maxOutputBytes?: number
+}) {
+  const preferredDataUrl = canvas.toDataURL(preferredType, quality)
+
+  if (
+    !maxOutputBytes ||
+    getDataUrlByteLength(preferredDataUrl) <= maxOutputBytes ||
+    preferredType !== "image/png"
+  ) {
+    return preferredDataUrl
+  }
+
+  // WebP conserva el canal alfa y permite reducir logos PNG complejos sin
+  // superar el límite de almacenamiento de imágenes embebidas del servidor.
+  const fallbackQualities = [quality, 0.82, 0.74, 0.66]
+  let smallestDataUrl = preferredDataUrl
+
+  for (const fallbackQuality of fallbackQualities) {
+    const dataUrl = canvas.toDataURL("image/webp", fallbackQuality)
+
+    if (dataUrl.length < smallestDataUrl.length) {
+      smallestDataUrl = dataUrl
+    }
+
+    if (getDataUrlByteLength(dataUrl) <= maxOutputBytes) {
+      return dataUrl
+    }
+  }
+
+  if (getDataUrlByteLength(smallestDataUrl) > maxOutputBytes) {
+    throw new Error(
+      "La imagen recortada sigue siendo demasiado grande. Prueba con un encuadre o archivo más sencillo.",
+    )
+  }
+
+  return smallestDataUrl
+}
+
 export function cropImageElementToDataUrl({
   image,
   cropSize,
@@ -88,6 +165,7 @@ export function cropImageElementToDataUrl({
   offsetY,
   outputType = "image/webp",
   quality = 0.88,
+  maxOutputBytes,
 }: {
   image: HTMLImageElement
   cropSize: number
@@ -96,8 +174,9 @@ export function cropImageElementToDataUrl({
   rotation: ImageCropRotation
   offsetX: number
   offsetY: number
-  outputType?: "image/webp" | "image/jpeg"
+  outputType?: ImageOutputType
   quality?: number
+  maxOutputBytes?: number
 }) {
   const canvas = document.createElement("canvas")
   const context = canvas.getContext("2d")
@@ -139,7 +218,19 @@ export function cropImageElementToDataUrl({
     -image.naturalHeight / 2,
   )
 
-  return canvas.toDataURL(outputType, quality)
+  const resolvedOutputType =
+    outputType === "auto"
+      ? canvasHasTransparentPixels(context, outputSize, outputSize)
+        ? "image/png"
+        : "image/webp"
+      : outputType
+
+  return encodeCanvasWithinLimit({
+    canvas,
+    preferredType: resolvedOutputType,
+    quality,
+    maxOutputBytes,
+  })
 }
 
 export async function resizeImageFileToDataUrl({

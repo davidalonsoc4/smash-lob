@@ -323,3 +323,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Applied the shared accent-reveal treatment to Settings, league administration and custom availability panels.
 - Preserved exact rounded-corner clipping, active navigation gradients, safe-area layout and all navigation behavior.
 - No database migration, API contract, permission or persistence change is required.
+
+
+## v0.16.9 - Transparent league logos (2026-07-26)
+
+- Added automatic alpha detection to the shared crop output.
+- Transparent league logos preserve their background through PNG output, with transparent WebP fallback when needed to stay within the existing server size limit.
+- Opaque logos keep the previous WebP format, dimensions and quality, so existing visual behavior remains unchanged.
+- Audited all league-logo render paths; the shared component already uses a transparent container and `object-contain`.
+- No database migration, API contract, permission or remote persistence change is required.

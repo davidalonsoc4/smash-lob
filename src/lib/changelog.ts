@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.9",
+    date: "26 de julio de 2026",
+    title: "Logos de liga con transparencia",
+    summary:
+      "Los logos PNG transparentes conservan su fondo transparente sin modificar el aspecto ni la optimización de las imágenes opacas.",
+    category: "improvement",
+    changes: [
+      "El recortador detecta transparencia en el resultado final y conserva automáticamente el canal alfa.",
+      "Los logos opacos continúan guardándose como WebP con la misma calidad y apariencia utilizadas hasta ahora.",
+      "Los PNG transparentes se mantienen como PNG cuando caben en el límite seguro; si son demasiado complejos, se usa WebP con transparencia como respaldo.",
+      "Home, selector de ligas, Administración, invitaciones y visor ampliado continúan mostrando el logo mediante fondo transparente y ajuste completo.",
+      "No se requieren migraciones, cambios de API ni modificaciones de los logos ya guardados.",
+    ],
+  },
+  {
     version: "v0.16.8",
     date: "26 de julio de 2026",
     title: "Navegación sin halo y franjas restauradas",

@@ -280,9 +280,11 @@ function LeagueIdentityForm({
         <ImageCropDialog
           src={logoCropSource}
           title="Recortar logo de la liga"
-          description="Ajusta el encuadre. La transparencia se conservará cuando el formato lo permita."
+          description="Ajusta el encuadre. Los PNG transparentes conservarán el fondo transparente."
           shape="square"
           outputSize={512}
+          outputType="auto"
+          maxOutputBytes={512 * 1024}
           onCancel={() => setLogoCropSource(null)}
           onConfirm={async (dataUrl) => {
             const saved = await saveLogo(dataUrl)
