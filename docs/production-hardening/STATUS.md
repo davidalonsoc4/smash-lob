@@ -365,3 +365,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Brought Match scheduling and scoreboard panels into the shared Colorful accent treatment and removed the schedule-header divider.
 - Made Home winner and MVP headers inherit the active Colorful palette while preserving Classic styling.
 - No database migration, API contract, permission or remote persistence change is required.
+
+
+## v0.17.1 - Season evolution and records (2026-07-26)
+
+- Added global season records and personal competitive milestones.
+- Added best/worst position, personal streaks and opponent records.
+- Added compact period records to player profiles.
+- Kept all calculations client-side over counted finished matches.
+- No database migration, API contract or persistence change is required.

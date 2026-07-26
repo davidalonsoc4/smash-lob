@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.1",
+    date: "26 de julio de 2026",
+    title: "Evolución y récords de temporada",
+    summary:
+      "Las estadísticas convierten el historial de resultados en récords de liga y marcas personales consultables.",
+    category: "new",
+    changes: [
+      "Historial y estadísticas incorpora récords globales de racha, parejas, remontadas y partidos destacados.",
+      "El análisis individual muestra mejor y peor posición, racha personal, rivales más vencidos y derrotas más repetidas.",
+      "Los perfiles de jugador añaden un resumen compacto de récords del periodo seleccionado.",
+      "Las remontadas solo se calculan cuando el ganador perdió el primer set y la mejor pareja por porcentaje exige al menos dos partidos.",
+      "Todos los cálculos reutilizan resultados contabilizados y no requieren migraciones, API ni persistencia adicional.",
+    ],
+  },
+  {
     version: "v0.17.0",
     date: "26 de julio de 2026",
     title: "Comparativas competitivas y coherencia final de paneles",

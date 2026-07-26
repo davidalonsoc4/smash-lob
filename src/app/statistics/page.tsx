@@ -6,6 +6,10 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { RankingTable } from "@/components/ranking/RankingTable"
 import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonPanel"
+import {
+  PlayerSeasonRecordsPanel,
+  SeasonRecordsPanel,
+} from "@/components/statistics/SeasonRecordsPanel"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -311,6 +315,16 @@ export default function StatisticsPage() {
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Récords de la temporada
+        </p>
+        <SeasonRecordsPanel
+          records={statistics.records}
+          getMatchLabel={getMatchLabel}
+        />
+      </div>
+
+      <div>
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
           Comparar jugadores
         </p>
         <PlayerComparisonPanel
@@ -478,6 +492,16 @@ export default function StatisticsPage() {
                         : "Sin datos"}
                     </p>
                   </AppCard>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+                    Récords del jugador
+                  </p>
+                  <PlayerSeasonRecordsPanel
+                    detail={playerDetail}
+                    getMatchLabel={getMatchLabel}
+                  />
                 </div>
 
                 {playerDetail.progress.length > 0 ? (
