@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.3",
+    date: "26 de julio de 2026",
+    title: "Resumen final compartible de temporada",
+    summary:
+      "Las temporadas terminadas reúnen campeón, MVP, podio y récords en una tarjeta preparada para compartir.",
+    category: "new",
+    changes: [
+      "Las temporadas cerradas muestran un resumen final con campeón, MVP, podio, mejor racha, mejor pareja y partidos destacados.",
+      "El resumen puede compartirse como archivo PNG mediante el menú nativo del dispositivo.",
+      "Cuando compartir archivos no está disponible, la aplicación permite guardar directamente la imagen generada.",
+      "La imagen adapta sus colores al estilo Clásico o a la paleta Colorida activa sin capturar datos externos.",
+      "No se incorporan dependencias, migraciones ni cambios de API.",
+    ],
+  },
+  {
     version: "v0.17.2",
     date: "26 de julio de 2026",
     title: "Gráficos de evolución competitiva",

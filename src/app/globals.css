@@ -1515,3 +1515,16 @@ html.dark .statistics-chart-grid {
 html.dark .statistics-chart-label {
   color: rgb(163 163 163);
 }
+
+.season-summary-hero {
+  background: linear-gradient(135deg, #171717, #404040);
+}
+
+html[data-style="colorful"] .season-summary-hero {
+  background: linear-gradient(
+    135deg,
+    var(--colorful-primary),
+    var(--colorful-secondary) 62%,
+    var(--colorful-accent)
+  );
+}

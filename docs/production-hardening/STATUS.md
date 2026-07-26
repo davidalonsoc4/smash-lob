@@ -383,3 +383,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added palette-aware series and accessible SVG descriptions.
 - Added no external chart dependency.
 - No database migration, API contract or persistence change is required.
+
+
+## v0.17.3 - Shareable final season summary (2026-07-26)
+
+- Added a final-season card with champion, MVP, podium and competitive highlights.
+- Added local PNG generation and native file sharing with download fallback.
+- Adapted generated image colors to Classic and Colorful appearance settings.
+- Added no external capture or chart dependency.
+- No database migration, API contract or persistence change is required.

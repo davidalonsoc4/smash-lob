@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { RankingTable } from "@/components/ranking/RankingTable"
 import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonPanel"
 import { SeasonProgressChart } from "@/components/statistics/SeasonProgressChart"
+import { SeasonSummaryCard } from "@/components/statistics/SeasonSummaryCard"
 import {
   PlayerSeasonRecordsPanel,
   SeasonRecordsPanel,
@@ -15,7 +16,7 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
-import { getPlayerMvpSummary } from "@/lib/mvp"
+import { getPlayerMvpSummary, getSeasonMvpSelection } from "@/lib/mvp"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import {
   calculatePlayerComparison,
@@ -241,6 +242,32 @@ export default function StatisticsPage() {
         .reverse(),
     [countedMatches, leaguePlayers, leagueSeasons, seasonPlayers],
   )
+
+  const seasonMvp = useMemo(
+    () =>
+      selectedSeason.status === "finished"
+        ? getSeasonMvpSelection({
+            votes,
+            leagueId: activeLeague.id,
+            seasonId: selectedSeason.id,
+            matches: countedMatches,
+            mvpSystem: getSeasonRoundSettings(selectedSeason.id).mvpSystem,
+          })
+        : null,
+    [
+      activeLeague.id,
+      countedMatches,
+      getSeasonRoundSettings,
+      selectedSeason.id,
+      selectedSeason.status,
+      votes,
+    ],
+  )
+  const seasonMvpNames = seasonMvp
+    ? seasonMvp.playerIds
+        .map((playerId) => playersById.get(playerId) ?? "Jugador")
+        .join(" / ")
+    : "Sin MVP calculado"
 
   function getMatchLabel(match: typeof statistics.closestMatch) {
     if (!match) return "—"
@@ -687,6 +714,37 @@ export default function StatisticsPage() {
           </AppCard>
         </div>
       </div>
+
+      {selectedSeason.status === "finished" && statistics.leader ? (
+        <div>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            Resumen final de temporada
+          </p>
+          <SeasonSummaryCard
+            data={{
+              leagueName: activeLeague.name,
+              seasonName: selectedSeason.name,
+              champion: statistics.leader.displayName,
+              mvp: seasonMvpNames,
+              podium: statistics.ranking.slice(0, 3).map((player, index) => ({
+                position: index + 1,
+                name: player.displayName,
+                points: player.points,
+              })),
+              bestStreak: statistics.records.longestWinStreak
+                ? `${statistics.records.longestWinStreak.displayName} · ${statistics.records.longestWinStreak.wins} victorias`
+                : "Sin datos",
+              bestPair: statistics.records.bestPairRate
+                ? `${statistics.records.bestPairRate.playerNames.join(" / ")} · ${formatPercent(statistics.records.bestPairRate.winRate)}`
+                : statistics.records.mostWinsPair
+                  ? `${statistics.records.mostWinsPair.playerNames.join(" / ")} · ${statistics.records.mostWinsPair.wins} victorias`
+                  : "Sin datos",
+              closestMatch: getMatchLabel(statistics.records.closestMatch),
+              biggestWin: getMatchLabel(statistics.records.biggestWin),
+            }}
+          />
+        </div>
+      ) : null}
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
