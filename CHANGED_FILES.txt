@@ -1,11 +1,10 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.16.5_VISUAL_CLOSURE_AND_SETTINGS_SEARCH.md
+docs/preproduction/V0.16.6_DARK_COLORFUL_CONTRAST.md
 docs/production-hardening/STATUS.md
 package-lock.json
 package.json
 src/app/globals.css
-src/app/settings/page.tsx
-src/components/layout/AppShell.tsx
-src/components/settings/GlobalSettingsSearch.tsx
+src/components/invite/FloatingInviteShareButton.tsx
+src/components/spectator/FloatingSpectatorShareButton.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
