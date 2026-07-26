@@ -1113,6 +1113,11 @@ html.colorful .app-ranking-row {
   box-shadow: var(--colorful-shadow) !important;
 }
 
+
+.player-award-card-header {
+  border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 0 0;
+}
+
 html.colorful .app-card {
   --app-card-accent-gradient: linear-gradient(
     90deg,

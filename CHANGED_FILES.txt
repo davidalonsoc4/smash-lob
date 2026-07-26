@@ -1,15 +1,10 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.16.11_NATURAL_PALETTES_AND_LEAGUE_SEARCH.md
+docs/preproduction/V0.16.12_CLASSIC_STYLE_AND_AWARD_HEADERS.md
 docs/production-hardening/STATUS.md
 package-lock.json
 package.json
 src/app/globals.css
-src/app/layout.tsx
-src/app/settings/appearance/page.tsx
-src/app/settings/page.tsx
-src/components/layout/AppShell.tsx
-src/components/league/GlobalLeagueSearch.tsx
-src/context/ThemeProvider.tsx
+src/app/page.tsx
 src/i18n/locales/en.ts
 src/i18n/locales/es.ts
 src/i18n/locales/eu.ts

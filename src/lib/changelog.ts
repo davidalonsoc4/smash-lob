@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.12",
+    date: "26 de julio de 2026",
+    title: "Estilos Clásico y Colorido y remate de premios",
+    summary:
+      "La apariencia neutra adopta el nombre Clásico y las cabeceras de Ganador y MVP encajan con el redondeado de sus paneles.",
+    category: "improvement",
+    changes: [
+      "El estilo visual Plano pasa a mostrarse como Clásico, una denominación más natural y coherente frente a Colorido.",
+      "Colorido conserva su nombre, sus seis paletas y todas las combinaciones con Claro, Oscuro y Sistema.",
+      "La clave interna plain se mantiene para conservar las preferencias guardadas y evitar cualquier migración en los dispositivos.",
+      "Las barras Ganador de temporada y MVP de temporada adoptan el mismo radio superior que la tarjeta que las contiene.",
+      "El buscador reconoce Clásico y también los términos antiguos Plano, Plain y Laua para no perder accesos por costumbre.",
+    ],
+  },
+  {
     version: "v0.16.11",
     date: "26 de julio de 2026",
     title: "Seis paletas naturales y búsqueda contextual de ligas",
@@ -40,7 +55,7 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "Ajustes deja de simular la franja mediante padding y una capa de fondo que podía quedar desplazada o parcialmente tapada.",
       "La franja pasa a ser un elemento interno del panel, recortado por el mismo borde y radio que el resto de la tarjeta.",
       "Administración de liga y Disponibilidad por días utilizan el mismo componente para evitar inconsistencias equivalentes.",
-      "El estilo Plano no muestra la franja ni reserva espacio adicional y el resto de tarjetas Coloridas conserva su tratamiento actual.",
+      "El estilo Clásico no muestra la franja ni reserva espacio adicional y el resto de tarjetas Coloridas conserva su tratamiento actual.",
       "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
     ],
   },
@@ -85,7 +100,7 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "La franja de color deja de utilizar un pseudo-elemento superpuesto que podía sobresalir visualmente en Home y otras tarjetas.",
       "El degradado se dibuja ahora dentro del padding box del propio panel, respetando borde y radio en cualquier tamaño de tarjeta.",
       "Las variantes de notificaciones, actividad y programación conservan sus degradados específicos mediante una variable compartida.",
-      "La corrección no recorta contenido, menús ni elementos emergentes y mantiene intactos los estilos Plano, Claro y Oscuro.",
+      "La corrección no recorta contenido, menús ni elementos emergentes y mantiene intactos los estilos Clásico, Claro y Oscuro.",
       "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
     ],
   },
@@ -100,7 +115,7 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "Los botones circulares superiores usan sombras neutras y compactas en Colorido oscuro, sin resplandor tintado alrededor.",
       "El botón principal de compartir conserva su jerarquía mediante degradado, borde y una sombra breve sin efecto luminoso.",
       "Los textos secundarios colocados sobre fondos primarios, como Victorias, Balance y otros labels equivalentes, heredan un color compatible con cada paleta.",
-      "La corrección se aplica de forma centralizada a tarjetas, selectores y resúmenes equivalentes sin alterar Claro, Oscuro Plano ni los colores semánticos.",
+      "La corrección se aplica de forma centralizada a tarjetas, selectores y resúmenes equivalentes sin alterar Claro, Oscuro Clásico ni los colores semánticos.",
       "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
     ],
   },
@@ -115,7 +130,7 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "La lupa flotante de búsqueda aparece en Ajustes, Administración de liga, Mis ligas y Administración de la aplicación, sin invadir las pantallas de formularios concretos.",
       "La franja degradada superior de las tarjetas Coloridas queda contenida dentro del borde y conserva el redondeado de las esquinas.",
       "Los botones y enlaces de acción con superficies neutras reciben un contorno sutil en Colorido oscuro para distinguirse del fondo.",
-      "La revisión mantiene intactos Claro, Oscuro y Sistema en estilo Plano y no modifica lógica de negocio, APIs ni persistencia.",
+      "La revisión mantiene intactos Claro, Oscuro y Sistema en estilo Clásico y no modifica lógica de negocio, APIs ni persistencia.",
     ],
   },
   {
@@ -138,14 +153,14 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
     date: "25 de julio de 2026",
     title: "Tema base y estilo visual independientes",
     summary:
-      "Claro, Oscuro y Sistema pueden combinarse con un estilo Plano o Colorido y con cualquiera de las cinco paletas preparadas.",
+      "Claro, Oscuro y Sistema pueden combinarse con un estilo Clásico o Colorido y con cualquiera de las cinco paletas preparadas.",
     category: "improvement",
     changes: [
       "La configuración visual se divide en Tema base, Estilo visual y Paleta de color.",
       "El estilo Colorido incorpora variantes claras y oscuras específicas para las cinco paletas.",
       "Sistema + Colorido cambia automáticamente entre la variante clara y oscura sin perder la paleta elegida.",
       "Ajustes muestra únicamente un resumen compacto y traslada la configuración detallada a Temas y apariencia.",
-      "Las preferencias anteriores se migran automáticamente: Colorido conserva su paleta y el resto mantiene su tema con estilo Plano.",
+      "Las preferencias anteriores se migran automáticamente: Colorido conserva su paleta y el resto mantiene su tema con estilo Clásico.",
       "La configuración sigue siendo local al dispositivo y no requiere migraciones ni cambios de API.",
     ],
   },
