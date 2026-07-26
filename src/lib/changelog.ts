@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.8",
+    date: "26 de julio de 2026",
+    title: "Navegación sin halo y franjas restauradas",
+    summary:
+      "La barra inferior deja de proyectar resplandor y los paneles de opciones recuperan su franja Colorida correctamente integrada.",
+    category: "fix",
+    changes: [
+      "La sombra difuminada sobre la navegación inferior se sustituye por una separación de un píxel, sin halo sobre el contenido.",
+      "Los paneles formados por filas opacas reservan el espacio exacto de la franja superior para que el degradado vuelva a ser visible.",
+      "Ajustes, Administración de liga y Disponibilidad por días comparten ahora el mismo tratamiento robusto.",
+      "La franja continúa formando parte del fondo del panel, respeta las esquinas redondeadas y no requiere recortar menús ni contenido.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
     version: "v0.16.7",
     date: "26 de julio de 2026",
     title: "Franja Colorida integrada en los paneles",

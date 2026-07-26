@@ -314,3 +314,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Preserved dedicated notification, activity and schedule gradients through a shared CSS variable.
 - Avoided global overflow clipping, so menus and interactive card content remain unaffected.
 - No database migration, API contract, permission or persistence change is required.
+
+## v0.16.8 - Bottom navigation and panel accent cleanup (2026-07-26)
+
+- Removed the blurred palette-coloured glow projected above the bottom navigation.
+- Replaced it with a one-pixel separator and a minimal inner highlight in light and dark Colorful combinations.
+- Restored the top accent gradient in row-based cards whose opaque children covered the layered card background.
+- Applied the shared accent-reveal treatment to Settings, league administration and custom availability panels.
+- Preserved exact rounded-corner clipping, active navigation gradients, safe-area layout and all navigation behavior.
+- No database migration, API contract, permission or persistence change is required.
