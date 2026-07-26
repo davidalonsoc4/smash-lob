@@ -68,6 +68,18 @@ function getTeamGames(match: PlayerStatsMatch, team: "A" | "B") {
   );
 }
 
+function isValidStatisticsMatch(match: PlayerStatsMatch) {
+  if (
+    match.status !== "finished" ||
+    match.resultCounts === false ||
+    match.sets.length === 0
+  ) {
+    return false;
+  }
+
+  return getTeamSetPoints(match, "A") !== getTeamSetPoints(match, "B");
+}
+
 function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
   return Array.from(relationStats.values()).sort((a, b) => {
     const diffA = a.gamesFor - a.gamesAgainst;
@@ -91,6 +103,28 @@ function getToughestRival(relationStats: Map<string, PlayerRelationStats>) {
     if (b.matches !== a.matches) return b.matches - a.matches;
     return a.playerId.localeCompare(b.playerId);
   })[0];
+}
+
+function getMostBeatenRival(relationStats: Map<string, PlayerRelationStats>) {
+  return Array.from(relationStats.values())
+    .filter((row) => row.wins > 0)
+    .sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      return b.gamesFor - b.gamesAgainst - (a.gamesFor - a.gamesAgainst);
+    })[0];
+}
+
+function getMostLostRival(relationStats: Map<string, PlayerRelationStats>) {
+  return Array.from(relationStats.values())
+    .filter((row) => row.matches - row.wins > 0)
+    .sort((a, b) => {
+      const lossesA = a.matches - a.wins;
+      const lossesB = b.matches - b.wins;
+      if (lossesB !== lossesA) return lossesB - lossesA;
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      return a.gamesFor - a.gamesAgainst - (b.gamesFor - b.gamesAgainst);
+    })[0];
 }
 
 function upsertRelation(
@@ -161,8 +195,7 @@ export function PlayerStatsPanel({
   const { t } = useI18n();
   const finishedMatches = matches.filter(
     (match) =>
-      match.status === "finished" &&
-      match.resultCounts !== false &&
+      isValidStatisticsMatch(match) &&
       (match.teamA.includes(playerId) || match.teamB.includes(playerId)),
   );
 
@@ -238,6 +271,20 @@ export function PlayerStatsPanel({
   const toughestRivalDiff = toughestRival
     ? toughestRival.gamesFor - toughestRival.gamesAgainst
     : 0;
+  const mostBeatenRival = getMostBeatenRival(rivalStats);
+  const mostLostRival = getMostLostRival(rivalStats);
+  let currentWinStreak = 0;
+  let bestWinStreak = 0;
+  [...finishedMatches]
+    .sort((a, b) => a.round - b.round)
+    .forEach((match) => {
+      const isTeamA = match.teamA.includes(playerId);
+      const won =
+        getTeamSetPoints(match, isTeamA ? "A" : "B") >
+        getTeamSetPoints(match, isTeamA ? "B" : "A");
+      currentWinStreak = won ? currentWinStreak + 1 : 0;
+      bestWinStreak = Math.max(bestWinStreak, currentWinStreak);
+    });
   const mvpSummary = getPlayerMvpSummary({
     leagueId,
     seasonId,
@@ -368,6 +415,53 @@ export function PlayerStatsPanel({
               ? `${formatSignedNumber(toughestRivalDiff)} ${t.ranking.diff}`
               : emptyValue}
           </p>
+        </div>
+      </div>
+
+      <div className="mt-2">
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+          Récords del periodo
+        </p>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Mejor racha</p>
+            <p className="mt-1 font-black">
+              {bestWinStreak > 0 ? `${bestWinStreak} victorias` : emptyValue}
+            </p>
+          </div>
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Rival más vencido</p>
+            <p className="mt-1 truncate font-black">
+              {mostBeatenRival
+                ? getDisplayName(mostBeatenRival.playerId, players)
+                : emptyValue}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {mostBeatenRival ? `${mostBeatenRival.wins} victorias` : emptyValue}
+            </p>
+          </div>
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Rival con más derrotas</p>
+            <p className="mt-1 truncate font-black">
+              {mostLostRival
+                ? getDisplayName(mostLostRival.playerId, players)
+                : emptyValue}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {mostLostRival
+                ? `${mostLostRival.matches - mostLostRival.wins} derrotas`
+                : emptyValue}
+            </p>
+          </div>
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Mayor diferencia</p>
+            <p className="mt-1 font-black">
+              {bestMatch ? formatSignedNumber(bestMatch.diff) : emptyValue}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {bestMatch ? `${t.matches.round} ${bestMatch.round}` : emptyValue}
+            </p>
+          </div>
         </div>
       </div>
 

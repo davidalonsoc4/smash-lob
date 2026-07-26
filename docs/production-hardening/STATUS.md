@@ -365,3 +365,40 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Brought Match scheduling and scoreboard panels into the shared Colorful accent treatment and removed the schedule-header divider.
 - Made Home winner and MVP headers inherit the active Colorful palette while preserving Classic styling.
 - No database migration, API contract, permission or remote persistence change is required.
+
+
+## v0.17.1 - Season evolution and records (2026-07-26)
+
+- Added global season records and personal competitive milestones.
+- Added best/worst position, personal streaks and opponent records.
+- Added compact period records to player profiles.
+- Kept all calculations client-side over counted finished matches.
+- No database migration, API contract or persistence change is required.
+
+
+## v0.17.2 - Competitive progress charts (2026-07-26)
+
+- Added comparative position and cumulative-points charts by round.
+- Reused the player comparison selectors and existing calculated progress.
+- Added palette-aware series and accessible SVG descriptions.
+- Added no external chart dependency.
+- No database migration, API contract or persistence change is required.
+
+
+## v0.17.3 - Shareable final season summary (2026-07-26)
+
+- Added a final-season card with champion, MVP, podium and competitive highlights.
+- Added local PNG generation and native file sharing with download fallback.
+- Adapted generated image colors to Classic and Colorful appearance settings.
+- Added no external capture or chart dependency.
+- No database migration, API contract or persistence change is required.
+
+
+## v0.17.4 - Advanced statistics hardening (2026-07-26)
+
+- Added tie-aware positions and shared champion handling.
+- Excluded empty, tied or otherwise invalid finished results from all statistical calculations.
+- Added data-quality visibility for pending, excluded and invalid matches plus roster changes.
+- Precomputed progress once per selected season and skipped it in historical summaries.
+- Fixed position chart scaling and shared-summary edge cases.
+- No database migration, API contract or persistence change is required.

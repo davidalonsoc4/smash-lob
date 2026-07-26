@@ -2,7 +2,7 @@ import type { MatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile, SeasonPlayer } from "@/data/fakeData"
 import { calculateSeasonRanking, type RankingPlayer } from "@/lib/ranking"
 
-type PlayerStreak = {
+export type PlayerStreak = {
   playerId: string
   displayName: string
   wins: number
@@ -26,6 +26,31 @@ export type PlayerOpponentStatistics = {
   losses: number
   winRate: number
   gamesDiff: number
+}
+
+
+export type SeasonComebackRecord = {
+  match: MatchData
+  winnerPlayerIds: string[]
+  firstSetDeficit: number
+}
+
+export type SeasonRecords = {
+  longestWinStreak: PlayerStreak | null
+  closestMatch: MatchData | null
+  biggestWin: MatchData | null
+  biggestComeback: SeasonComebackRecord | null
+  mostWinsPair: PairStatistics | null
+  bestPairRate: PairStatistics | null
+}
+
+export type SeasonDataQuality = {
+  pendingMatches: number
+  excludedFinishedMatches: number
+  invalidFinishedMatches: number
+  withdrawnPlayers: number
+  replacementPlayers: number
+  hasCountedResults: boolean
 }
 
 export type PlayerRoundProgress = {
@@ -81,6 +106,13 @@ export type PlayerSeasonDetail = {
   toughestOpponent: PlayerOpponentStatistics | null
   opponents: PlayerOpponentStatistics[]
   progress: PlayerRoundProgress[]
+  bestPosition: number | null
+  worstPosition: number | null
+  biggestWin: MatchData | null
+  closestMatch: MatchData | null
+  biggestComeback: SeasonComebackRecord | null
+  mostBeatenOpponent: PlayerOpponentStatistics | null
+  mostLostOpponent: PlayerOpponentStatistics | null
 }
 
 export type SeasonStatistics = {
@@ -93,11 +125,15 @@ export type SeasonStatistics = {
   totalGames: number
   averageGamesPerMatch: number
   leader: RankingPlayer | null
+  leaders: RankingPlayer[]
   longestWinStreak: PlayerStreak | null
   bestPair: PairStatistics | null
   pairStatistics: PairStatistics[]
   closestMatch: MatchData | null
   biggestWin: MatchData | null
+  records: SeasonRecords
+  progressByPlayer: Record<string, PlayerRoundProgress[]>
+  dataQuality: SeasonDataQuality
 }
 
 function getMatchGames(match: MatchData) {
@@ -113,20 +149,71 @@ function getMatchGamesDiff(match: MatchData) {
   return Math.abs(gamesA - gamesB)
 }
 
-function getWinningTeam(match: MatchData) {
-  if (match.pointsA === null || match.pointsB === null) {
-    return null
-  }
+function getMatchComeback(match: MatchData): SeasonComebackRecord | null {
+  const winner = getWinningTeam(match)
+  const firstSet = match.sets[0]
 
-  if (match.pointsA > match.pointsB) {
+  if (!winner || !firstSet) return null
+
+  const winnerLostFirstSet =
+    winner === "A" ? firstSet.a < firstSet.b : firstSet.b < firstSet.a
+
+  if (!winnerLostFirstSet) return null
+
+  return {
+    match,
+    winnerPlayerIds: winner === "A" ? match.teamA : match.teamB,
+    firstSetDeficit:
+      winner === "A" ? firstSet.b - firstSet.a : firstSet.a - firstSet.b,
+  }
+}
+
+function getBiggestComeback(matches: MatchData[]) {
+  return matches
+    .map(getMatchComeback)
+    .filter((record): record is SeasonComebackRecord => Boolean(record))
+    .sort((a, b) => {
+      if (b.firstSetDeficit !== a.firstSetDeficit) {
+        return b.firstSetDeficit - a.firstSetDeficit
+      }
+      return getMatchGamesDiff(b.match) - getMatchGamesDiff(a.match)
+    })[0] ?? null
+}
+
+function getWinningTeam(match: MatchData) {
+  const pointsA =
+    match.pointsA ?? match.sets.filter((set) => set.a > set.b).length
+  const pointsB =
+    match.pointsB ?? match.sets.filter((set) => set.b > set.a).length
+
+  if (pointsA > pointsB) {
     return "A" as const
   }
 
-  if (match.pointsB > match.pointsA) {
+  if (pointsB > pointsA) {
     return "B" as const
   }
 
   return null
+}
+
+function isValidCountedMatch(match: MatchData) {
+  return (
+    match.status === "finished" &&
+    match.resultCounts !== false &&
+    match.sets.length > 0 &&
+    Boolean(getWinningTeam(match))
+  )
+}
+
+function excludeInvalidStatisticsResults(matches: MatchData[]) {
+  return matches.map((match) =>
+    match.status === "finished" &&
+    match.resultCounts !== false &&
+    !isValidCountedMatch(match)
+      ? { ...match, resultCounts: false }
+      : match,
+  )
 }
 
 
@@ -144,6 +231,86 @@ function sortFinishedMatchesLatestFirst(matches: MatchData[]) {
     if (b.round !== a.round) return b.round - a.round
     return getMatchRecordedTime(b) - getMatchRecordedTime(a)
   })
+}
+
+function rankingRowsAreTied(first: RankingPlayer, second: RankingPlayer) {
+  return (
+    first.points === second.points &&
+    first.gamesDiff === second.gamesDiff &&
+    first.gamesFor === second.gamesFor
+  )
+}
+
+export function getRankingPosition(ranking: RankingPlayer[], playerId: string) {
+  const index = ranking.findIndex((player) => player.id === playerId)
+  if (index < 0) return null
+
+  const player = ranking[index]
+  const firstTiedIndex = ranking.findIndex((candidate) =>
+    rankingRowsAreTied(candidate, player),
+  )
+  return firstTiedIndex + 1
+}
+
+export function getLeadingPlayers(ranking: RankingPlayer[]) {
+  const leader = ranking[0]
+  return leader
+    ? ranking.filter((player) => rankingRowsAreTied(player, leader))
+    : []
+}
+
+function calculateProgressByPlayer({
+  seasonId,
+  playerProfiles,
+  seasonPlayers,
+  matches,
+}: {
+  seasonId: string
+  playerProfiles: PlayerProfile[]
+  seasonPlayers: SeasonPlayer[]
+  matches: MatchData[]
+}) {
+  const countedSeasonMatches = matches.filter(
+    (match) =>
+      match.seasonId === seasonId &&
+      match.status === "finished" &&
+      match.resultCounts !== false,
+  )
+  const rounds = Array.from(
+    new Set(countedSeasonMatches.map((match) => match.round)),
+  ).sort((a, b) => a - b)
+  const progressByPlayer: Record<string, PlayerRoundProgress[]> = {}
+
+  rounds.forEach((round) => {
+    const roundRanking = calculateSeasonRanking({
+      seasonId,
+      playerProfiles,
+      seasonPlayers,
+      matches: matches.map((match) => ({
+        ...match,
+        resultCounts:
+          match.seasonId === seasonId && match.round > round
+            ? false
+            : match.resultCounts,
+      })),
+    })
+
+    roundRanking.forEach((row) => {
+      const position = getRankingPosition(roundRanking, row.id)
+      if (position === null) return
+      progressByPlayer[row.id] = [
+        ...(progressByPlayer[row.id] ?? []),
+        {
+          round,
+          position,
+          points: row.points,
+          gamesDiff: row.gamesDiff,
+        },
+      ]
+    })
+  })
+
+  return progressByPlayer
 }
 
 function getPlayerMatchResult(match: MatchData, playerId: string) {
@@ -190,8 +357,7 @@ export function calculatePlayerRecentForm({
     matches.filter(
       (match) =>
         match.seasonId === seasonId &&
-        match.status === "finished" &&
-        match.resultCounts !== false &&
+        isValidCountedMatch(match) &&
         [...match.teamA, ...match.teamB].includes(playerId),
     ),
   )
@@ -244,11 +410,12 @@ export function calculatePlayerComparison({
     return null
   }
 
+  const normalizedMatches = excludeInvalidStatisticsResults(matches)
   const ranking = calculateSeasonRanking({
     seasonId,
     playerProfiles,
     seasonPlayers,
-    matches,
+    matches: normalizedMatches,
   })
   const playerA = ranking.find((player) => player.id === playerAId)
   const playerB = ranking.find((player) => player.id === playerBId)
@@ -275,8 +442,7 @@ export function calculatePlayerComparison({
     .filter(
       (match) =>
         match.seasonId === seasonId &&
-        match.status === "finished" &&
-        match.resultCounts !== false &&
+        isValidCountedMatch(match) &&
         [...match.teamA, ...match.teamB].includes(playerAId) &&
         [...match.teamA, ...match.teamB].includes(playerBId),
     )
@@ -478,8 +644,7 @@ function getPlayerBestWinStreak({
   ;[...matches]
     .filter(
       (match) =>
-        match.status === "finished" &&
-        match.resultCounts !== false &&
+        isValidCountedMatch(match) &&
         [...match.teamA, ...match.teamB].includes(playerId),
     )
     .sort((a, b) => {
@@ -512,6 +677,7 @@ export function calculatePlayerSeasonDetail({
   seasonPlayers,
   matches,
   pairStatistics,
+  precomputedProgress,
 }: {
   seasonId: string
   playerId: string
@@ -519,18 +685,17 @@ export function calculatePlayerSeasonDetail({
   seasonPlayers: SeasonPlayer[]
   matches: MatchData[]
   pairStatistics?: PairStatistics[]
+  precomputedProgress?: PlayerRoundProgress[]
 }): PlayerSeasonDetail | null {
-  const seasonMatches = matches.filter(
-    (match) =>
-      match.seasonId === seasonId &&
-      match.status === "finished" &&
-      match.resultCounts !== false,
+  const normalizedMatches = excludeInvalidStatisticsResults(matches)
+  const seasonMatches = normalizedMatches.filter(
+    (match) => match.seasonId === seasonId && isValidCountedMatch(match),
   )
   const ranking = calculateSeasonRanking({
     seasonId,
     playerProfiles,
     seasonPlayers,
-    matches,
+    matches: normalizedMatches,
   })
   const player = ranking.find((item) => item.id === playerId)
 
@@ -611,35 +776,55 @@ export function calculatePlayerSeasonDetail({
     if (b.matchesPlayed !== a.matchesPlayed) return b.matchesPlayed - a.matchesPlayed
     return a.gamesDiff - b.gamesDiff
   })[0] ?? null
-  const rounds = Array.from(
-    new Set(seasonMatches.map((match) => match.round)),
-  ).sort((a, b) => a - b)
-  const progress = rounds
-    .map((round): PlayerRoundProgress | null => {
-      const roundRanking = calculateSeasonRanking({
-        seasonId,
-        playerProfiles,
-        seasonPlayers,
-        matches: matches.map((match) => ({
-          ...match,
-          resultCounts:
-            match.seasonId === seasonId && match.round > round
-              ? false
-              : match.resultCounts,
-        })),
-      })
-      const row = roundRanking.find((item) => item.id === playerId)
-
-      return row
-        ? {
-            round,
-            position: roundRanking.findIndex((item) => item.id === playerId) + 1,
-            points: row.points,
-            gamesDiff: row.gamesDiff,
-          }
-        : null
-    })
-    .filter((row): row is PlayerRoundProgress => Boolean(row))
+  const progress =
+    precomputedProgress ??
+    calculateProgressByPlayer({
+      seasonId,
+      playerProfiles,
+      seasonPlayers,
+      matches: normalizedMatches,
+    })[playerId] ??
+    []
+  const playerMatches = seasonMatches.filter((match) =>
+    [...match.teamA, ...match.teamB].includes(playerId),
+  )
+  const sortablePlayerMatches = playerMatches.filter((match) => match.sets.length > 0)
+  const biggestWin = [...sortablePlayerMatches]
+    .filter((match) => getPlayerMatchResult(match, playerId)?.outcome === "win")
+    .sort((a, b) => {
+      const resultA = getPlayerMatchResult(a, playerId)
+      const resultB = getPlayerMatchResult(b, playerId)
+      return (resultB?.gamesDiff ?? 0) - (resultA?.gamesDiff ?? 0)
+    })[0] ?? null
+  const closestMatch = [...sortablePlayerMatches].sort((a, b) => {
+    const resultA = getPlayerMatchResult(a, playerId)
+    const resultB = getPlayerMatchResult(b, playerId)
+    return Math.abs(resultA?.gamesDiff ?? 0) - Math.abs(resultB?.gamesDiff ?? 0)
+  })[0] ?? null
+  const biggestComeback = getBiggestComeback(
+    playerMatches.filter((match) => {
+      const comeback = getMatchComeback(match)
+      return comeback?.winnerPlayerIds.includes(playerId)
+    }),
+  )
+  const mostBeatenOpponent = [...opponents]
+    .filter((opponent) => opponent.wins > 0)
+    .sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins
+      if (b.matchesPlayed !== a.matchesPlayed) {
+        return b.matchesPlayed - a.matchesPlayed
+      }
+      return b.gamesDiff - a.gamesDiff
+    })[0] ?? null
+  const mostLostOpponent = [...opponents]
+    .filter((opponent) => opponent.losses > 0)
+    .sort((a, b) => {
+      if (b.losses !== a.losses) return b.losses - a.losses
+      if (b.matchesPlayed !== a.matchesPlayed) {
+        return b.matchesPlayed - a.matchesPlayed
+      }
+      return a.gamesDiff - b.gamesDiff
+    })[0] ?? null
 
   return {
     player,
@@ -652,6 +837,13 @@ export function calculatePlayerSeasonDetail({
     toughestOpponent,
     opponents,
     progress,
+    bestPosition: progress.length > 0 ? Math.min(...progress.map((row) => row.position)) : null,
+    worstPosition: progress.length > 0 ? Math.max(...progress.map((row) => row.position)) : null,
+    biggestWin,
+    closestMatch,
+    biggestComeback,
+    mostBeatenOpponent,
+    mostLostOpponent,
   }
 }
 
@@ -660,24 +852,31 @@ export function calculateSeasonStatistics({
   playerProfiles,
   seasonPlayers,
   matches,
+  includeProgress = true,
 }: {
   seasonId: string
   playerProfiles: PlayerProfile[]
   seasonPlayers: SeasonPlayer[]
   matches: MatchData[]
+  includeProgress?: boolean
 }): SeasonStatistics {
   const seasonMatches = matches.filter((match) => match.seasonId === seasonId)
   const completedMatches = seasonMatches.filter(
     (match) => match.status === "finished",
   )
-  const countedMatches = completedMatches.filter(
+  const eligibleFinishedMatches = completedMatches.filter(
     (match) => match.resultCounts !== false,
   )
+  const invalidFinishedMatches = eligibleFinishedMatches.filter(
+    (match) => !isValidCountedMatch(match),
+  )
+  const countedMatches = eligibleFinishedMatches.filter(isValidCountedMatch)
+  const normalizedMatches = excludeInvalidStatisticsResults(matches)
   const ranking = calculateSeasonRanking({
     seasonId,
     playerProfiles,
     seasonPlayers,
-    matches,
+    matches: normalizedMatches,
   })
   const playersById = new Map(
     playerProfiles.map((player) => [player.id, player]),
@@ -697,6 +896,57 @@ export function calculateSeasonStatistics({
   const biggestWin = [...sortableMatches].sort(
     (a, b) => getMatchGamesDiff(b) - getMatchGamesDiff(a),
   )[0] ?? null
+  const longestWinStreak = calculateLongestWinStreak({
+    matches: countedMatches,
+    playersById,
+  })
+  const mostWinsPair = [...pairStatistics].sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins
+    if (b.matchesPlayed !== a.matchesPlayed) return b.matchesPlayed - a.matchesPlayed
+    return b.gamesDiff - a.gamesDiff
+  })[0] ?? null
+  const bestPairRate = [...pairStatistics]
+    .filter((pair) => pair.matchesPlayed >= 2)
+    .sort((a, b) => {
+      if (b.winRate !== a.winRate) return b.winRate - a.winRate
+      if (b.wins !== a.wins) return b.wins - a.wins
+      return b.gamesDiff - a.gamesDiff
+    })[0] ?? null
+  const records: SeasonRecords = {
+    longestWinStreak,
+    closestMatch,
+    biggestWin,
+    biggestComeback: getBiggestComeback(sortableMatches),
+    mostWinsPair,
+    bestPairRate,
+  }
+  const progressByPlayer = includeProgress
+    ? calculateProgressByPlayer({
+        seasonId,
+        playerProfiles,
+        seasonPlayers,
+        matches: normalizedMatches,
+      })
+    : {}
+  const seasonRoster = seasonPlayers.filter((player) => player.seasonId === seasonId)
+  const dataQuality: SeasonDataQuality = {
+    pendingMatches: seasonMatches.filter((match) => match.status !== "finished").length,
+    excludedFinishedMatches: completedMatches.filter(
+      (match) => match.resultCounts === false,
+    ).length,
+    invalidFinishedMatches: invalidFinishedMatches.length,
+    withdrawnPlayers: seasonRoster.filter((player) => player.status === "withdrawn").length,
+    replacementPlayers: (() => {
+      const incomingReplacements = seasonRoster.filter(
+        (player) => Boolean(player.replacesPlayerId),
+      ).length
+      return incomingReplacements > 0
+        ? incomingReplacements
+        : seasonRoster.filter((player) => Boolean(player.replacedByPlayerId)).length
+    })(),
+    hasCountedResults: countedMatches.length > 0,
+  }
+  const leaders = getLeadingPlayers(ranking)
 
   return {
     ranking,
@@ -714,14 +964,15 @@ export function calculateSeasonStatistics({
     totalGames,
     averageGamesPerMatch:
       countedMatches.length > 0 ? totalGames / countedMatches.length : 0,
-    leader: ranking[0] ?? null,
-    longestWinStreak: calculateLongestWinStreak({
-      matches: countedMatches,
-      playersById,
-    }),
+    leader: leaders[0] ?? null,
+    leaders,
+    longestWinStreak,
     bestPair: pairStatistics[0] ?? null,
     pairStatistics,
     closestMatch,
     biggestWin,
+    records,
+    progressByPlayer,
+    dataQuality,
   }
 }

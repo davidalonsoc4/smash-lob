@@ -15,6 +15,66 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.4",
+    date: "26 de julio de 2026",
+    title: "Validación y cierre de estadísticas avanzadas",
+    summary:
+      "La serie estadística se endurece ante empates, resultados excluidos, plantillas modificadas y temporadas incompletas.",
+    category: "improvement",
+    changes: [
+      "Las posiciones y campeones reconocen empates reales por puntos, diferencia y juegos ganados.",
+      "Los resultados vacíos o sin ganador quedan fuera de clasificación, récords, comparativas, gráficos y perfiles.",
+      "Un panel de estado informa de partidos pendientes, resultados excluidos o no válidos, retiradas y movimientos de plantilla.",
+      "La evolución de todos los jugadores se calcula una sola vez por temporada y el historial evita generar gráficos que no necesita.",
+      "Se corrigen las escalas de posición, los resúmenes compartidos con campeones empatados y diversos casos de accesibilidad y contraste.",
+    ],
+  },
+  {
+    version: "v0.17.3",
+    date: "26 de julio de 2026",
+    title: "Resumen final compartible de temporada",
+    summary:
+      "Las temporadas terminadas reúnen campeón, MVP, podio y récords en una tarjeta preparada para compartir.",
+    category: "new",
+    changes: [
+      "Las temporadas cerradas muestran un resumen final con campeón, MVP, podio, mejor racha, mejor pareja y partidos destacados.",
+      "El resumen puede compartirse como archivo PNG mediante el menú nativo del dispositivo.",
+      "Cuando compartir archivos no está disponible, la aplicación permite guardar directamente la imagen generada.",
+      "La imagen adapta sus colores al estilo Clásico o a la paleta Colorida activa sin capturar datos externos.",
+      "No se incorporan dependencias, migraciones ni cambios de API.",
+    ],
+  },
+  {
+    version: "v0.17.2",
+    date: "26 de julio de 2026",
+    title: "Gráficos de evolución competitiva",
+    summary:
+      "La comparación entre jugadores incorpora gráficos de posición y puntos acumulados por jornada.",
+    category: "new",
+    changes: [
+      "La comparativa de jugadores añade un gráfico alternable entre posición y puntos acumulados.",
+      "Las dos series siguen los jugadores seleccionados y reutilizan su evolución por jornada ya calculada.",
+      "Los colores del gráfico se adaptan a la paleta Colorida activa y mantienen contraste en Clásico claro y oscuro.",
+      "El gráfico incluye etiquetas, detalles por punto y una descripción accesible para lectores de pantalla.",
+      "No se añaden librerías externas, migraciones ni cambios de API.",
+    ],
+  },
+  {
+    version: "v0.17.1",
+    date: "26 de julio de 2026",
+    title: "Evolución y récords de temporada",
+    summary:
+      "Las estadísticas convierten el historial de resultados en récords de liga y marcas personales consultables.",
+    category: "new",
+    changes: [
+      "Historial y estadísticas incorpora récords globales de racha, parejas, remontadas y partidos destacados.",
+      "El análisis individual muestra mejor y peor posición, racha personal, rivales más vencidos y derrotas más repetidas.",
+      "Los perfiles de jugador añaden un resumen compacto de récords del periodo seleccionado.",
+      "Las remontadas solo se calculan cuando el ganador perdió el primer set y la mejor pareja por porcentaje exige al menos dos partidos.",
+      "Todos los cálculos reutilizan resultados contabilizados y no requieren migraciones, API ni persistencia adicional.",
+    ],
+  },
+  {
     version: "v0.17.0",
     date: "26 de julio de 2026",
     title: "Comparativas competitivas y coherencia final de paneles",
