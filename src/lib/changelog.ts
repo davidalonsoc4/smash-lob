@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.10",
+    date: "26 de julio de 2026",
+    title: "Franjas de Ajustes integradas en el panel",
+    summary:
+      "Los degradados de los paneles formados por filas se renderizan como contenido real y encajan exactamente en sus esquinas redondeadas.",
+    category: "fix",
+    changes: [
+      "Ajustes deja de simular la franja mediante padding y una capa de fondo que podía quedar desplazada o parcialmente tapada.",
+      "La franja pasa a ser un elemento interno del panel, recortado por el mismo borde y radio que el resto de la tarjeta.",
+      "Administración de liga y Disponibilidad por días utilizan el mismo componente para evitar inconsistencias equivalentes.",
+      "El estilo Plano no muestra la franja ni reserva espacio adicional y el resto de tarjetas Coloridas conserva su tratamiento actual.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
     version: "v0.16.9",
     date: "26 de julio de 2026",
     title: "Logos de liga con transparencia",

@@ -1063,9 +1063,25 @@ html.colorful .app-schedule-card {
   );
 }
 
-/* Row-based cards use opaque children, so reserve the accent strip inside the card. */
-html.colorful .app-card-accent-reveal {
-  padding-top: 0.2rem !important;
+/* Row-based cards use opaque children. Render their accent as real card content
+   so it shares the exact border radius instead of competing with row backgrounds. */
+.app-card-accent-strip {
+  display: none;
+}
+
+html.colorful .app-card-explicit-accent {
+  background:
+    linear-gradient(145deg, var(--colorful-card-start), var(--colorful-card-end)) padding-box !important;
+}
+
+html.colorful .app-card-explicit-accent > .app-card-accent-strip {
+  display: block;
+  width: 100%;
+  height: 0.2rem;
+  flex: 0 0 0.2rem;
+  background: var(--app-card-accent-gradient);
+  border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 0 0;
+  pointer-events: none;
 }
 
 html.colorful .app-notification-card,

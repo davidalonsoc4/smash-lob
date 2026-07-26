@@ -40,7 +40,7 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
           </p>
         ) : null}
       </div>
-      <AppCard className="app-card-accent-reveal overflow-hidden !p-0">
+      <AppCard accentStrip className="overflow-hidden !p-0">
         <div className="divide-y divide-neutral-100">{children}</div>
       </AppCard>
     </section>
