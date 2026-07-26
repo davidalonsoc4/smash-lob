@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { type CSSProperties, type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
+import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
@@ -26,7 +27,6 @@ const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 const settingsSearchHubRoutes = new Set([
   "/settings",
   "/admin",
-  "/leagues",
   "/application-admin",
 ])
 
@@ -202,6 +202,7 @@ export function AppShell({ children }: AppShellProps) {
   )
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute
+  const shouldShowLeagueSearch = pathname === "/leagues" && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
     ? buildSettingsSearchEntries(locale, {
         isSpectator: !isSuperuser && spectatorMode,
@@ -339,6 +340,8 @@ export function AppShell({ children }: AppShellProps) {
         {shouldShowSettingsSearch ? (
           <GlobalSettingsSearch locale={locale} entries={settingsSearchEntries} />
         ) : null}
+
+        {shouldShowLeagueSearch ? <GlobalLeagueSearch /> : null}
 
         <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav} />
 

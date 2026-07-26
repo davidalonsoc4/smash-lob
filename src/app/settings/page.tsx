@@ -157,10 +157,11 @@ function SettingsToggle({
 
 const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b"],
-  ocean: ["#087ea4", "#0ea5a8", "#38bdf8"],
-  emerald: ["#059669", "#10b981", "#34d399"],
-  coral: ["#e65a72", "#ec4899", "#8b5cf6"],
-  sunset: ["#f06a24", "#7c3aed", "#ec4899"],
+  midnight: ["#365f9d", "#5a78b5", "#87b5df"],
+  sage: ["#55765f", "#7f9b83", "#a6b99d"],
+  burgundy: ["#8b3f57", "#a85c70", "#d2a2ad"],
+  terracotta: ["#a95640", "#c0785e", "#ddaa84"],
+  graphite: ["#4f6379", "#71879b", "#a7c5d8"],
 }
 
 function AppearanceSummaryPreview({
@@ -217,10 +218,11 @@ function AppearanceSettingsLink() {
   }
   const paletteLabels: Record<ColorfulPalette, string> = {
     indigo: t.settings.colorfulPaletteIndigo,
-    ocean: t.settings.colorfulPaletteOcean,
-    emerald: t.settings.colorfulPaletteEmerald,
-    coral: t.settings.colorfulPaletteCoral,
-    sunset: t.settings.colorfulPaletteSunset,
+    midnight: t.settings.colorfulPaletteMidnight,
+    sage: t.settings.colorfulPaletteSage,
+    burgundy: t.settings.colorfulPaletteBurgundy,
+    terracotta: t.settings.colorfulPaletteTerracotta,
+    graphite: t.settings.colorfulPaletteGraphite,
   }
   const colorful = visualStyle === "colorful"
   const description = colorful

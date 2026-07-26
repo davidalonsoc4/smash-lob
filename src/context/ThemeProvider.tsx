@@ -4,7 +4,13 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
 export type ThemeMode = "light" | "dark" | "system"
 export type VisualStyle = "plain" | "colorful"
-export type ColorfulPalette = "indigo" | "ocean" | "emerald" | "coral" | "sunset"
+export type ColorfulPalette =
+  | "indigo"
+  | "midnight"
+  | "sage"
+  | "burgundy"
+  | "terracotta"
+  | "graphite"
 
 type ThemeContextValue = {
   themeMode: ThemeMode
@@ -25,10 +31,11 @@ const DEFAULT_COLORFUL_PALETTE: ColorfulPalette = "indigo"
 
 const COLORFUL_THEME_COLORS: Record<ColorfulPalette, { light: string; dark: string }> = {
   indigo: { light: "#5b5ce2", dark: "#17172e" },
-  ocean: { light: "#087ea4", dark: "#082b35" },
-  emerald: { light: "#059669", dark: "#082c24" },
-  coral: { light: "#e65a72", dark: "#351923" },
-  sunset: { light: "#f06a24", dark: "#321d22" },
+  midnight: { light: "#365f9d", dark: "#0d1726" },
+  sage: { light: "#55765f", dark: "#101b15" },
+  burgundy: { light: "#8b3f57", dark: "#241219" },
+  terracotta: { light: "#a95640", dark: "#251713" },
+  graphite: { light: "#4f6379", dark: "#121820" },
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -41,8 +48,26 @@ function isVisualStyle(value: string | null): value is VisualStyle {
   return value === "plain" || value === "colorful"
 }
 
-function isColorfulPalette(value: string | null): value is ColorfulPalette {
-  return value === "indigo" || value === "ocean" || value === "emerald" || value === "coral" || value === "sunset"
+function normalizeColorfulPalette(value: string | null): ColorfulPalette | null {
+  if (
+    value === "indigo" ||
+    value === "midnight" ||
+    value === "sage" ||
+    value === "burgundy" ||
+    value === "terracotta" ||
+    value === "graphite"
+  ) {
+    return value
+  }
+
+  const legacyPaletteMap: Record<string, ColorfulPalette> = {
+    ocean: "midnight",
+    emerald: "sage",
+    coral: "burgundy",
+    sunset: "terracotta",
+  }
+
+  return value ? legacyPaletteMap[value] ?? null : null
 }
 
 function readLegacyTheme(): string | null {
@@ -72,7 +97,7 @@ function readStoredVisualStyle(): VisualStyle {
 function readStoredColorfulPalette(): ColorfulPalette {
   if (typeof window === "undefined") return DEFAULT_COLORFUL_PALETTE
   const stored = window.localStorage.getItem(COLORFUL_PALETTE_STORAGE_KEY)
-  return isColorfulPalette(stored) ? stored : DEFAULT_COLORFUL_PALETTE
+  return normalizeColorfulPalette(stored) ?? DEFAULT_COLORFUL_PALETTE
 }
 
 function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, colorfulPalette: ColorfulPalette) {

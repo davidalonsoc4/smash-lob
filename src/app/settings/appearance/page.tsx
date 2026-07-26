@@ -13,10 +13,11 @@ import { useI18n } from "@/i18n/I18nProvider"
 
 const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b", "#f2a93b"],
-  ocean: ["#087ea4", "#0ea5a8", "#38bdf8", "#f59e0b"],
-  emerald: ["#059669", "#10b981", "#34d399", "#f59e0b"],
-  coral: ["#e65a72", "#ec4899", "#fb7185", "#8b5cf6"],
-  sunset: ["#f06a24", "#7c3aed", "#ec4899", "#fbbf24"],
+  midnight: ["#365f9d", "#5a78b5", "#87b5df", "#d6a45a"],
+  sage: ["#55765f", "#7f9b83", "#a6b99d", "#c39a62"],
+  burgundy: ["#8b3f57", "#a85c70", "#d2a2ad", "#c29572"],
+  terracotta: ["#a95640", "#c0785e", "#ddaa84", "#c89a58"],
+  graphite: ["#4f6379", "#71879b", "#a7c5d8", "#c2a36d"],
 }
 
 function AppearanceSection({
@@ -126,24 +127,29 @@ export default function AppearancePage() {
       description: t.settings.colorfulPaletteIndigoDescription,
     },
     {
-      value: "ocean",
-      label: t.settings.colorfulPaletteOcean,
-      description: t.settings.colorfulPaletteOceanDescription,
+      value: "midnight",
+      label: t.settings.colorfulPaletteMidnight,
+      description: t.settings.colorfulPaletteMidnightDescription,
     },
     {
-      value: "emerald",
-      label: t.settings.colorfulPaletteEmerald,
-      description: t.settings.colorfulPaletteEmeraldDescription,
+      value: "sage",
+      label: t.settings.colorfulPaletteSage,
+      description: t.settings.colorfulPaletteSageDescription,
     },
     {
-      value: "coral",
-      label: t.settings.colorfulPaletteCoral,
-      description: t.settings.colorfulPaletteCoralDescription,
+      value: "burgundy",
+      label: t.settings.colorfulPaletteBurgundy,
+      description: t.settings.colorfulPaletteBurgundyDescription,
     },
     {
-      value: "sunset",
-      label: t.settings.colorfulPaletteSunset,
-      description: t.settings.colorfulPaletteSunsetDescription,
+      value: "terracotta",
+      label: t.settings.colorfulPaletteTerracotta,
+      description: t.settings.colorfulPaletteTerracottaDescription,
+    },
+    {
+      value: "graphite",
+      label: t.settings.colorfulPaletteGraphite,
+      description: t.settings.colorfulPaletteGraphiteDescription,
     },
   ]
   const selectedPalette = paletteOptions.find((option) => option.value === colorfulPalette)
