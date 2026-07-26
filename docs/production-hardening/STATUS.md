@@ -341,3 +341,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Plain mode remains unchanged and does not reserve accent-strip space.
 - No database migration, API contract, permission or persistence change is required.
 
+
+
+## v0.16.11 · Paletas naturales y búsqueda de ligas
+
+- Seis paletas Coloridas con variantes clara y oscura.
+- Migración local de las cuatro paletas retiradas.
+- Buscador contextual de ligas en `/leagues`.
+- Sin migraciones ni cambios de API.

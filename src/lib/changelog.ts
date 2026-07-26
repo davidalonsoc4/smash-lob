@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.11",
+    date: "26 de julio de 2026",
+    title: "Seis paletas naturales y búsqueda contextual de ligas",
+    summary:
+      "El modo Colorido incorpora seis combinaciones más naturales y la lupa de Mis ligas pasa a buscar competiciones en lugar de opciones de Ajustes.",
+    category: "improvement",
+    changes: [
+      "Índigo y violeta se mantiene como paleta predeterminada y se añaden Azul noche y celeste, Salvia y bosque, Borgoña y rosa empolvado, Arena y terracota y Grafito y azul hielo.",
+      "Cada paleta dispone de una variante clara y otra oscura coordinadas para fondos, paneles, navegación, formularios, ranking y controles.",
+      "Las selecciones antiguas Azul y turquesa, Esmeralda, Coral y Naranja se migran automáticamente a sus alternativas naturales equivalentes.",
+      "En Mis ligas, la lupa flotante filtra por nombre, descripción, temporada y rol, e inicia directamente el cambio a la liga seleccionada.",
+      "No se requieren migraciones, cambios de API ni persistencia remota.",
+    ],
+  },
+  {
     version: "v0.16.10",
     date: "26 de julio de 2026",
     title: "Franjas de Ajustes integradas en el panel",
