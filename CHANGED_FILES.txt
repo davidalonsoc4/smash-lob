@@ -1,10 +1,8 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.16.6_DARK_COLORFUL_CONTRAST.md
+docs/preproduction/V0.16.7_CARD_ACCENT_STRIP_ALIGNMENT.md
 docs/production-hardening/STATUS.md
 package-lock.json
 package.json
 src/app/globals.css
-src/components/invite/FloatingInviteShareButton.tsx
-src/components/spectator/FloatingSpectatorShareButton.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts

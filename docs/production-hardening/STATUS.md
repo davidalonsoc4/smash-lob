@@ -306,3 +306,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Restored readable muted labels on palette-primary surfaces, including player statistics and MVP summaries.
 - Centralized the correction in theme CSS so selected cards and equivalent components inherit the same contrast fix.
 - No database migration, API contract, permission or persistence change is required.
+
+## v0.16.7 - Colorful card accent strip alignment (2026-07-26)
+
+- Replaced the absolutely positioned Colorful card accent strip with a layered card background.
+- The strip is now clipped by the card padding box and follows the exact rounded border geometry.
+- Preserved dedicated notification, activity and schedule gradients through a shared CSS variable.
+- Avoided global overflow clipping, so menus and interactive card content remain unaffected.
+- No database migration, API contract, permission or persistence change is required.
