@@ -383,7 +383,7 @@ function PlayerAwardCard({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             {eyebrow ? (
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
+              <p className="player-award-card-eyebrow text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
                 {eyebrow}
               </p>
             ) : null}
@@ -399,7 +399,7 @@ function PlayerAwardCard({
               {badge}
             </div>
             {isWholeCardClickable ? (
-              <ClickableChevron className="shrink-0 border-white/20 bg-white/10 text-white/70" />
+              <ClickableChevron className="player-award-card-chevron shrink-0 border-white/20 bg-white/10 text-white/70" />
             ) : null}
           </div>
         </div>

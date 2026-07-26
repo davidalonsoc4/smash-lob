@@ -35,12 +35,49 @@ export type PlayerRoundProgress = {
   gamesDiff: number
 }
 
+export type PlayerRecentMatch = {
+  matchId: string
+  round: number
+  outcome: "win" | "loss"
+  gamesDiff: number
+}
+
+export type PlayerRecentForm = {
+  playerId: string
+  matches: PlayerRecentMatch[]
+  wins: number
+  losses: number
+  currentStreak: number
+  currentStreakOutcome: "win" | "loss" | null
+}
+
+export type PlayerComparison = {
+  playerA: RankingPlayer
+  playerB: RankingPlayer
+  playerAForm: PlayerRecentForm
+  playerBForm: PlayerRecentForm
+  rivalry: {
+    matchesPlayed: number
+    playerAWins: number
+    playerBWins: number
+    gamesDiffA: number
+  }
+  partnership: {
+    matchesPlayed: number
+    wins: number
+    losses: number
+    winRate: number
+    gamesDiff: number
+  }
+}
+
 export type PlayerSeasonDetail = {
   player: RankingPlayer
   winRate: number
   bestWinStreak: number
   bestPartner: PairStatistics | null
   mostFrequentPartner: PairStatistics | null
+  mostFrequentOpponent: PlayerOpponentStatistics | null
   toughestOpponent: PlayerOpponentStatistics | null
   opponents: PlayerOpponentStatistics[]
   progress: PlayerRoundProgress[]
@@ -90,6 +127,211 @@ function getWinningTeam(match: MatchData) {
   }
 
   return null
+}
+
+
+function getMatchRecordedTime(match: MatchData) {
+  if (!match.resultRecordedAt) {
+    return 0
+  }
+
+  const value = new Date(match.resultRecordedAt).getTime()
+  return Number.isFinite(value) ? value : 0
+}
+
+function sortFinishedMatchesLatestFirst(matches: MatchData[]) {
+  return [...matches].sort((a, b) => {
+    if (b.round !== a.round) return b.round - a.round
+    return getMatchRecordedTime(b) - getMatchRecordedTime(a)
+  })
+}
+
+function getPlayerMatchResult(match: MatchData, playerId: string) {
+  const inTeamA = match.teamA.includes(playerId)
+  const inTeamB = match.teamB.includes(playerId)
+
+  if (!inTeamA && !inTeamB) {
+    return null
+  }
+
+  const winner = getWinningTeam(match)
+  if (!winner) {
+    return null
+  }
+
+  const ownGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.a : set.b),
+    0,
+  )
+  const opponentGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.b : set.a),
+    0,
+  )
+  const won = (inTeamA && winner === "A") || (inTeamB && winner === "B")
+
+  return {
+    outcome: won ? ("win" as const) : ("loss" as const),
+    gamesDiff: ownGames - opponentGames,
+  }
+}
+
+export function calculatePlayerRecentForm({
+  seasonId,
+  playerId,
+  matches,
+  limit = 5,
+}: {
+  seasonId: string
+  playerId: string
+  matches: MatchData[]
+  limit?: number
+}): PlayerRecentForm {
+  const recentMatches = sortFinishedMatchesLatestFirst(
+    matches.filter(
+      (match) =>
+        match.seasonId === seasonId &&
+        match.status === "finished" &&
+        match.resultCounts !== false &&
+        [...match.teamA, ...match.teamB].includes(playerId),
+    ),
+  )
+    .map((match): PlayerRecentMatch | null => {
+      const result = getPlayerMatchResult(match, playerId)
+      return result
+        ? {
+            matchId: match.id,
+            round: match.round,
+            ...result,
+          }
+        : null
+    })
+    .filter((match): match is PlayerRecentMatch => Boolean(match))
+    .slice(0, Math.max(1, limit))
+
+  const currentStreakOutcome = recentMatches[0]?.outcome ?? null
+  const currentStreak = currentStreakOutcome
+    ? recentMatches.findIndex((match) => match.outcome !== currentStreakOutcome)
+    : 0
+  const normalizedCurrentStreak =
+    currentStreak === -1 ? recentMatches.length : currentStreak
+
+  return {
+    playerId,
+    matches: recentMatches,
+    wins: recentMatches.filter((match) => match.outcome === "win").length,
+    losses: recentMatches.filter((match) => match.outcome === "loss").length,
+    currentStreak: normalizedCurrentStreak,
+    currentStreakOutcome,
+  }
+}
+
+export function calculatePlayerComparison({
+  seasonId,
+  playerAId,
+  playerBId,
+  playerProfiles,
+  seasonPlayers,
+  matches,
+}: {
+  seasonId: string
+  playerAId: string
+  playerBId: string
+  playerProfiles: PlayerProfile[]
+  seasonPlayers: SeasonPlayer[]
+  matches: MatchData[]
+}): PlayerComparison | null {
+  if (!playerAId || !playerBId || playerAId === playerBId) {
+    return null
+  }
+
+  const ranking = calculateSeasonRanking({
+    seasonId,
+    playerProfiles,
+    seasonPlayers,
+    matches,
+  })
+  const playerA = ranking.find((player) => player.id === playerAId)
+  const playerB = ranking.find((player) => player.id === playerBId)
+
+  if (!playerA || !playerB) {
+    return null
+  }
+
+  const rivalry = {
+    matchesPlayed: 0,
+    playerAWins: 0,
+    playerBWins: 0,
+    gamesDiffA: 0,
+  }
+  const partnership = {
+    matchesPlayed: 0,
+    wins: 0,
+    losses: 0,
+    winRate: 0,
+    gamesDiff: 0,
+  }
+
+  matches
+    .filter(
+      (match) =>
+        match.seasonId === seasonId &&
+        match.status === "finished" &&
+        match.resultCounts !== false &&
+        [...match.teamA, ...match.teamB].includes(playerAId) &&
+        [...match.teamA, ...match.teamB].includes(playerBId),
+    )
+    .forEach((match) => {
+      const winner = getWinningTeam(match)
+      if (!winner) return
+
+      const aInTeamA = match.teamA.includes(playerAId)
+      const bInTeamA = match.teamA.includes(playerBId)
+      const gamesA = match.sets.reduce((total, set) => total + set.a, 0)
+      const gamesB = match.sets.reduce((total, set) => total + set.b, 0)
+
+      if (aInTeamA === bInTeamA) {
+        const pairWon = (aInTeamA && winner === "A") || (!aInTeamA && winner === "B")
+        const ownGames = aInTeamA ? gamesA : gamesB
+        const opponentGames = aInTeamA ? gamesB : gamesA
+
+        partnership.matchesPlayed += 1
+        partnership.gamesDiff += ownGames - opponentGames
+        if (pairWon) partnership.wins += 1
+        else partnership.losses += 1
+        return
+      }
+
+      const playerAWon = (aInTeamA && winner === "A") || (!aInTeamA && winner === "B")
+      const ownGamesA = aInTeamA ? gamesA : gamesB
+      const opponentGamesA = aInTeamA ? gamesB : gamesA
+
+      rivalry.matchesPlayed += 1
+      rivalry.gamesDiffA += ownGamesA - opponentGamesA
+      if (playerAWon) rivalry.playerAWins += 1
+      else rivalry.playerBWins += 1
+    })
+
+  partnership.winRate =
+    partnership.matchesPlayed > 0
+      ? (partnership.wins / partnership.matchesPlayed) * 100
+      : 0
+
+  return {
+    playerA,
+    playerB,
+    playerAForm: calculatePlayerRecentForm({
+      seasonId,
+      playerId: playerAId,
+      matches,
+    }),
+    playerBForm: calculatePlayerRecentForm({
+      seasonId,
+      playerId: playerBId,
+      matches,
+    }),
+    rivalry,
+    partnership,
+  }
 }
 
 function pairKey(playerIds: string[]) {
@@ -406,6 +648,7 @@ export function calculatePlayerSeasonDetail({
     bestWinStreak: getPlayerBestWinStreak({ playerId, matches: seasonMatches }),
     bestPartner,
     mostFrequentPartner,
+    mostFrequentOpponent: opponents[0] ?? null,
     toughestOpponent,
     opponents,
     progress,

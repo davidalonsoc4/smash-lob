@@ -5,6 +5,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { RankingTable } from "@/components/ranking/RankingTable"
+import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonPanel"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -12,6 +13,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { getPlayerMvpSummary } from "@/lib/mvp"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import {
+  calculatePlayerComparison,
   calculatePlayerSeasonDetail,
   calculateSeasonStatistics,
   type PairStatistics,
@@ -91,6 +93,39 @@ export default function StatisticsPage() {
   const leaguePlayers = useMemo(
     () => playerProfiles.filter((player) => player.leagueId === activeLeague.id),
     [activeLeague.id, playerProfiles],
+  )
+  const [comparisonPlayerASelection, setComparisonPlayerASelection] = useState("")
+  const [comparisonPlayerBSelection, setComparisonPlayerBSelection] = useState("")
+  const comparisonPlayerAId =
+    statistics.ranking.some((player) => player.id === comparisonPlayerASelection)
+      ? comparisonPlayerASelection
+      : statistics.ranking[0]?.id ?? ""
+  const comparisonPlayerBId =
+    statistics.ranking.some(
+      (player) =>
+        player.id === comparisonPlayerBSelection &&
+        player.id !== comparisonPlayerAId,
+    )
+      ? comparisonPlayerBSelection
+      : statistics.ranking.find((player) => player.id !== comparisonPlayerAId)?.id ?? ""
+  const playerComparison = useMemo(
+    () =>
+      calculatePlayerComparison({
+        seasonId: selectedSeason.id,
+        playerAId: comparisonPlayerAId,
+        playerBId: comparisonPlayerBId,
+        playerProfiles: leaguePlayers,
+        seasonPlayers,
+        matches: countedMatches,
+      }),
+    [
+      comparisonPlayerAId,
+      comparisonPlayerBId,
+      countedMatches,
+      leaguePlayers,
+      seasonPlayers,
+      selectedSeason.id,
+    ],
   )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const selectedPlayer =
@@ -276,6 +311,34 @@ export default function StatisticsPage() {
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Comparar jugadores
+        </p>
+        <PlayerComparisonPanel
+          players={statistics.ranking}
+          playerAId={comparisonPlayerAId}
+          playerBId={comparisonPlayerBId}
+          comparison={playerComparison}
+          onPlayerAChange={(playerId) => {
+            setComparisonPlayerASelection(playerId)
+            if (playerId === comparisonPlayerBId) {
+              setComparisonPlayerBSelection(
+                statistics.ranking.find((player) => player.id !== playerId)?.id ?? "",
+              )
+            }
+          }}
+          onPlayerBChange={(playerId) => {
+            setComparisonPlayerBSelection(playerId)
+            if (playerId === comparisonPlayerAId) {
+              setComparisonPlayerASelection(
+                statistics.ranking.find((player) => player.id !== playerId)?.id ?? "",
+              )
+            }
+          }}
+        />
+      </div>
+
+      <div>
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
           Análisis individual
         </p>
         {statistics.ranking.length === 0 ? (
@@ -356,7 +419,7 @@ export default function StatisticsPage() {
                   </AppCard>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-4">
                   <AppCard>
                     <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                       Mejor pareja
@@ -386,6 +449,19 @@ export default function StatisticsPage() {
                     <p className="mt-0.5 text-xs font-semibold text-neutral-500">
                       {playerDetail.mostFrequentPartner
                         ? `${playerDetail.mostFrequentPartner.matchesPlayed} partidos juntos`
+                        : "Sin datos"}
+                    </p>
+                  </AppCard>
+                  <AppCard>
+                    <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                      Rival más habitual
+                    </p>
+                    <p className="mt-1 truncate font-black">
+                      {playerDetail.mostFrequentOpponent?.displayName ?? "—"}
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+                      {playerDetail.mostFrequentOpponent
+                        ? `${playerDetail.mostFrequentOpponent.matchesPlayed} duelos · ${playerDetail.mostFrequentOpponent.wins}V/${playerDetail.mostFrequentOpponent.losses}D`
                         : "Sin datos"}
                     </p>
                   </AppCard>

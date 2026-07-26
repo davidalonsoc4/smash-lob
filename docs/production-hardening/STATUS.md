@@ -357,3 +357,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Migración local de las cuatro paletas retiradas.
 - Buscador contextual de ligas en `/leagues`.
 - Sin migraciones ni cambios de API.
+
+## v0.17.0 - Advanced statistics foundation (2026-07-26)
+
+- Added season player comparisons with recent form, direct rivalry results and shared-partnership performance.
+- Added the most frequent opponent to the existing individual season analysis.
+- Brought Match scheduling and scoreboard panels into the shared Colorful accent treatment and removed the schedule-header divider.
+- Made Home winner and MVP headers inherit the active Colorful palette while preserving Classic styling.
+- No database migration, API contract, permission or remote persistence change is required.

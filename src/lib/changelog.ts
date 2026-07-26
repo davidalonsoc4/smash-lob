@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.0",
+    date: "26 de julio de 2026",
+    title: "Comparativas competitivas y coherencia final de paneles",
+    summary:
+      "Las estadísticas estrenan comparativas directas, forma reciente y relaciones frecuentes, mientras Partido y los premios completan su integración con Colorido.",
+    category: "new",
+    changes: [
+      "Historial y estadísticas permite comparar dos jugadores de la temporada con posición, puntos, victorias y forma de sus últimos cinco partidos.",
+      "La comparativa distingue los enfrentamientos como rivales de los partidos disputados como pareja, incluyendo balance, porcentaje y diferencia de juegos.",
+      "El análisis individual añade el rival más habitual junto a la mejor pareja, la pareja más frecuente y el rival más difícil.",
+      "Programación y el marcador de Partido adoptan la misma franja Colorida que el resto de paneles y se elimina la línea innecesaria bajo la cabecera de Programación.",
+      "Las cabeceras de Ganador y MVP utilizan el degradado correspondiente a la paleta Colorida activa y conservan su aspecto Clásico fuera de ese estilo.",
+      "No se requieren migraciones, cambios de API ni persistencia adicional.",
+    ],
+  },
+  {
     version: "v0.16.12",
     date: "26 de julio de 2026",
     title: "Estilos Clásico y Colorido y remate de premios",

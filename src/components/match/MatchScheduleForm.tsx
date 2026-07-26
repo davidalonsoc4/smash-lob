@@ -4,6 +4,7 @@ import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef
 import type { PlayerProfile } from "@/data/fakeData";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
+import { AppCard } from "@/components/ui/AppCard";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   createScheduledLeagueLocationValue,
@@ -365,7 +366,7 @@ export function MatchScheduleForm({
 
 
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
+    <AppCard accentStrip className="app-schedule-card overflow-hidden !p-0">
       {canExpandScheduleActions ? (
         <button
           type="button"
@@ -404,7 +405,7 @@ export function MatchScheduleForm({
       )}
 
       {hasSchedule ? (
-        <div className="border-t border-neutral-100 px-3 pb-3 pt-2.5">
+        <div className="px-3 pb-3 pt-2.5">
           <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-black text-neutral-950">
               {capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
@@ -435,7 +436,7 @@ export function MatchScheduleForm({
 
       {isPanelOpen ? (
         <div
-          className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "border-t border-neutral-100 pt-2.5"}`}
+          className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "pt-2.5"}`}
         >
           {canManage && !isEditing && !isFinished ? (
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -693,6 +694,6 @@ export function MatchScheduleForm({
           ) : null}
         </div>
       ) : null}
-    </section>
+    </AppCard>
   );
 }
