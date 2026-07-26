@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.4",
+    date: "26 de julio de 2026",
+    title: "Validación y cierre de estadísticas avanzadas",
+    summary:
+      "La serie estadística se endurece ante empates, resultados excluidos, plantillas modificadas y temporadas incompletas.",
+    category: "improvement",
+    changes: [
+      "Las posiciones y campeones reconocen empates reales por puntos, diferencia y juegos ganados.",
+      "Los resultados vacíos o sin ganador quedan fuera de clasificación, récords, comparativas, gráficos y perfiles.",
+      "Un panel de estado informa de partidos pendientes, resultados excluidos o no válidos, retiradas y movimientos de plantilla.",
+      "La evolución de todos los jugadores se calcula una sola vez por temporada y el historial evita generar gráficos que no necesita.",
+      "Se corrigen las escalas de posición, los resúmenes compartidos con campeones empatados y diversos casos de accesibilidad y contraste.",
+    ],
+  },
+  {
     version: "v0.17.3",
     date: "26 de julio de 2026",
     title: "Resumen final compartible de temporada",

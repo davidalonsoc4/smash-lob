@@ -68,6 +68,18 @@ function getTeamGames(match: PlayerStatsMatch, team: "A" | "B") {
   );
 }
 
+function isValidStatisticsMatch(match: PlayerStatsMatch) {
+  if (
+    match.status !== "finished" ||
+    match.resultCounts === false ||
+    match.sets.length === 0
+  ) {
+    return false;
+  }
+
+  return getTeamSetPoints(match, "A") !== getTeamSetPoints(match, "B");
+}
+
 function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
   return Array.from(relationStats.values()).sort((a, b) => {
     const diffA = a.gamesFor - a.gamesAgainst;
@@ -94,21 +106,25 @@ function getToughestRival(relationStats: Map<string, PlayerRelationStats>) {
 }
 
 function getMostBeatenRival(relationStats: Map<string, PlayerRelationStats>) {
-  return Array.from(relationStats.values()).sort((a, b) => {
-    if (b.wins !== a.wins) return b.wins - a.wins;
-    if (b.matches !== a.matches) return b.matches - a.matches;
-    return b.gamesFor - b.gamesAgainst - (a.gamesFor - a.gamesAgainst);
-  })[0];
+  return Array.from(relationStats.values())
+    .filter((row) => row.wins > 0)
+    .sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      return b.gamesFor - b.gamesAgainst - (a.gamesFor - a.gamesAgainst);
+    })[0];
 }
 
 function getMostLostRival(relationStats: Map<string, PlayerRelationStats>) {
-  return Array.from(relationStats.values()).sort((a, b) => {
-    const lossesA = a.matches - a.wins;
-    const lossesB = b.matches - b.wins;
-    if (lossesB !== lossesA) return lossesB - lossesA;
-    if (b.matches !== a.matches) return b.matches - a.matches;
-    return a.gamesFor - a.gamesAgainst - (b.gamesFor - b.gamesAgainst);
-  })[0];
+  return Array.from(relationStats.values())
+    .filter((row) => row.matches - row.wins > 0)
+    .sort((a, b) => {
+      const lossesA = a.matches - a.wins;
+      const lossesB = b.matches - b.wins;
+      if (lossesB !== lossesA) return lossesB - lossesA;
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      return a.gamesFor - a.gamesAgainst - (b.gamesFor - b.gamesAgainst);
+    })[0];
 }
 
 function upsertRelation(
@@ -179,8 +195,7 @@ export function PlayerStatsPanel({
   const { t } = useI18n();
   const finishedMatches = matches.filter(
     (match) =>
-      match.status === "finished" &&
-      match.resultCounts !== false &&
+      isValidStatisticsMatch(match) &&
       (match.teamA.includes(playerId) || match.teamB.includes(playerId)),
   );
 

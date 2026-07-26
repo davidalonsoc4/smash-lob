@@ -1528,3 +1528,15 @@ html[data-style="colorful"] .season-summary-hero {
     var(--colorful-accent)
   );
 }
+
+html[data-style="colorful"] .statistics-quality-card {
+  border-color: rgb(var(--colorful-secondary-rgb) / 0.22);
+}
+
+html.dark[data-style="colorful"] .statistics-quality-card {
+  background: linear-gradient(
+    145deg,
+    rgb(var(--colorful-primary-rgb) / 0.12),
+    var(--colorful-card-end)
+  );
+}

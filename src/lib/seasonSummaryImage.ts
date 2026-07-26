@@ -181,7 +181,7 @@ export async function createSeasonSummaryImage(data: SeasonSummaryImageData) {
   context.fill()
   context.fillStyle = "#ffffff"
   context.font = "800 27px Arial, sans-serif"
-  context.fillText("CAMPEÓN", 112, 358)
+  context.fillText(data.champion.includes(" / ") ? "CAMPEONES" : "CAMPEÓN", 112, 358)
   context.font = "900 52px Arial, sans-serif"
   drawWrappedText({
     context,

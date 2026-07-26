@@ -58,7 +58,7 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
     const file = new File([blob], filename, { type: "image/png" })
 
     try {
-      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `${data.leagueName} · ${data.seasonName}`,
           text: "Resumen final de temporada de Smash & Lob",
@@ -91,7 +91,7 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div>
             <p className="text-[10px] font-black uppercase tracking-wide text-white/70">
-              Campeón
+              {data.champion.includes(" / ") ? "Campeones" : "Campeón"}
             </p>
             <p className="mt-1 text-xl font-black">{data.champion}</p>
           </div>
@@ -112,7 +112,7 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
           <div className="mt-2 space-y-1.5">
             {data.podium.map((row) => (
               <div
-                key={row.position}
+                key={`${row.position}-${row.name}`}
                 className="flex items-center justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
               >
                 <p className="min-w-0 truncate text-sm font-black">

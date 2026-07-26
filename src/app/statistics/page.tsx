@@ -8,6 +8,7 @@ import { RankingTable } from "@/components/ranking/RankingTable"
 import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonPanel"
 import { SeasonProgressChart } from "@/components/statistics/SeasonProgressChart"
 import { SeasonSummaryCard } from "@/components/statistics/SeasonSummaryCard"
+import { StatisticsDataQualityPanel } from "@/components/statistics/StatisticsDataQualityPanel"
 import {
   PlayerSeasonRecordsPanel,
   SeasonRecordsPanel,
@@ -22,6 +23,7 @@ import {
   calculatePlayerComparison,
   calculatePlayerSeasonDetail,
   calculateSeasonStatistics,
+  getRankingPosition,
   type PairStatistics,
 } from "@/lib/seasonStatistics"
 
@@ -143,6 +145,7 @@ export default function StatisticsPage() {
             seasonPlayers,
             matches: countedMatches,
             pairStatistics: statistics.pairStatistics,
+            precomputedProgress: statistics.progressByPlayer[comparisonPlayerAId],
           })
         : null,
     [
@@ -152,6 +155,7 @@ export default function StatisticsPage() {
       seasonPlayers,
       selectedSeason.id,
       statistics.pairStatistics,
+      statistics.progressByPlayer,
     ],
   )
   const comparisonPlayerBDetail = useMemo(
@@ -164,6 +168,7 @@ export default function StatisticsPage() {
             seasonPlayers,
             matches: countedMatches,
             pairStatistics: statistics.pairStatistics,
+            precomputedProgress: statistics.progressByPlayer[comparisonPlayerBId],
           })
         : null,
     [
@@ -173,6 +178,7 @@ export default function StatisticsPage() {
       seasonPlayers,
       selectedSeason.id,
       statistics.pairStatistics,
+      statistics.progressByPlayer,
     ],
   )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
@@ -190,6 +196,7 @@ export default function StatisticsPage() {
             seasonPlayers,
             matches: countedMatches,
             pairStatistics: statistics.pairStatistics,
+            precomputedProgress: statistics.progressByPlayer[selectedPlayer.id],
           })
         : null,
     [
@@ -199,6 +206,7 @@ export default function StatisticsPage() {
       selectedPlayer,
       selectedSeason.id,
       statistics.pairStatistics,
+      statistics.progressByPlayer,
     ],
   )
   const playerMvpSummary = useMemo(
@@ -237,6 +245,7 @@ export default function StatisticsPage() {
             playerProfiles: leaguePlayers,
             seasonPlayers,
             matches: countedMatches,
+            includeProgress: false,
           }),
         }))
         .reverse(),
@@ -343,7 +352,9 @@ export default function StatisticsPage() {
             Líder
           </p>
           <p className="mt-1 truncate text-base font-black">
-            {statistics.leader?.displayName ?? "—"}
+            {statistics.leaders.length > 0
+              ? statistics.leaders.map((player) => player.displayName).join(" / ")
+              : "—"}
           </p>
           <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
             {statistics.leader ? `${statistics.leader.points} puntos` : "Sin datos"}
@@ -363,6 +374,11 @@ export default function StatisticsPage() {
           </p>
         </AppCard>
       </div>
+
+      <StatisticsDataQualityPanel
+        quality={statistics.dataQuality}
+        seasonStatus={selectedSeason.status}
+      />
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
@@ -515,12 +531,11 @@ export default function StatisticsPage() {
                       Posición
                     </p>
                     <p className="mt-1 text-xl font-black">
-                      {statistics.ranking.findIndex(
-                        (player) => player.id === selectedPlayer.id,
-                      ) + 1}
+                      {getRankingPosition(statistics.ranking, selectedPlayer.id) ?? "—"}
                     </p>
                     <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                       {selectedPlayer.points} puntos
+                      {selectedPlayer.seasonPlayerStatus === "withdrawn" ? " · retirado" : ""}
                     </p>
                   </AppCard>
                 </div>
@@ -715,7 +730,9 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      {selectedSeason.status === "finished" && statistics.leader ? (
+      {selectedSeason.status === "finished" &&
+      statistics.leader &&
+      statistics.dataQuality.hasCountedResults ? (
         <div>
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
             Resumen final de temporada
@@ -724,10 +741,10 @@ export default function StatisticsPage() {
             data={{
               leagueName: activeLeague.name,
               seasonName: selectedSeason.name,
-              champion: statistics.leader.displayName,
+              champion: statistics.leaders.map((player) => player.displayName).join(" / "),
               mvp: seasonMvpNames,
-              podium: statistics.ranking.slice(0, 3).map((player, index) => ({
-                position: index + 1,
+              podium: statistics.ranking.slice(0, 3).map((player) => ({
+                position: getRankingPosition(statistics.ranking, player.id) ?? 1,
                 name: player.displayName,
                 points: player.points,
               })),
@@ -764,7 +781,9 @@ export default function StatisticsPage() {
                   <div className="min-w-0">
                     <p className="font-black">{season.name}</p>
                     <p className="mt-0.5 truncate text-sm font-semibold text-neutral-600">
-                      {seasonStats.leader?.displayName ?? "Sin campeón calculado"}
+                      {seasonStats.leaders.length > 0
+                        ? seasonStats.leaders.map((player) => player.displayName).join(" / ")
+                        : "Sin campeón calculado"}
                     </p>
                   </div>
                   <span className="shrink-0 text-lg font-black">

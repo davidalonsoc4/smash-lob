@@ -116,7 +116,7 @@ export function SeasonProgressChart({
     const y = PADDING.top + ratio * chartHeight
     const value =
       mode === "position"
-        ? chart.maxValue - ratio * (chart.maxValue - chart.minValue)
+        ? chart.minValue + ratio * (chart.maxValue - chart.minValue)
         : chart.maxValue - ratio * (chart.maxValue - chart.minValue)
     return { y, value }
   })

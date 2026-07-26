@@ -392,3 +392,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Adapted generated image colors to Classic and Colorful appearance settings.
 - Added no external capture or chart dependency.
 - No database migration, API contract or persistence change is required.
+
+
+## v0.17.4 - Advanced statistics hardening (2026-07-26)
+
+- Added tie-aware positions and shared champion handling.
+- Excluded empty, tied or otherwise invalid finished results from all statistical calculations.
+- Added data-quality visibility for pending, excluded and invalid matches plus roster changes.
+- Precomputed progress once per selected season and skipped it in historical summaries.
+- Fixed position chart scaling and shared-summary edge cases.
+- No database migration, API contract or persistence change is required.
