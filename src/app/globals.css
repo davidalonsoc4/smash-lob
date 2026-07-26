@@ -1532,3 +1532,28 @@ html.dark[data-style="colorful"] .statistics-quality-card {
     var(--colorful-card-end)
   );
 }
+
+/* Statistics overview and detail navigation. */
+.statistics-section-link + .statistics-section-link,
+.statistics-pair-row + .statistics-pair-row,
+.statistics-history-row + .statistics-history-row {
+  border-top: 1px solid rgb(229 229 229 / 0.9);
+}
+
+html.dark .statistics-section-link + .statistics-section-link,
+html.dark .statistics-pair-row + .statistics-pair-row,
+html.dark .statistics-history-row + .statistics-history-row {
+  border-top-color: rgb(82 82 82 / 0.72);
+}
+
+html[data-style="colorful"] .statistics-section-link:active,
+html[data-style="colorful"] .statistics-pair-row:active,
+html[data-style="colorful"] .statistics-history-row:active {
+  background-color: rgb(var(--colorful-primary-rgb) / 0.08) !important;
+}
+
+html[data-style="colorful"] .statistics-section-link + .statistics-section-link,
+html[data-style="colorful"] .statistics-pair-row + .statistics-pair-row,
+html[data-style="colorful"] .statistics-history-row + .statistics-history-row {
+  border-top-color: rgb(var(--colorful-primary-rgb) / 0.14);
+}

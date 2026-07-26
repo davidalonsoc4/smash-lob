@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.6",
+    date: "26 de julio de 2026",
+    title: "Estadísticas más claras y organizadas",
+    summary:
+      "La pantalla principal de Estadísticas se convierte en un resumen compacto y distribuye el detalle en apartados específicos.",
+    category: "improvement",
+    changes: [
+      "La portada de Estadísticas muestra solo progreso, líder, mejor racha, mejor pareja y podio provisional.",
+      "Clasificación, comparativas, análisis individual, récords y resumen de temporada disponen ahora de pantallas propias.",
+      "La temporada seleccionada se conserva al navegar entre todos los apartados estadísticos.",
+      "El detalle completo sigue disponible, pero se evita concentrar tablas, gráficos, récords y resúmenes en una única pantalla extensa.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos.",
+    ],
+  },
+  {
     version: "v0.17.5",
     date: "26 de julio de 2026",
     title: "Degradado coherente en Programación",
