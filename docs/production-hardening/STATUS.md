@@ -298,3 +298,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Contained Colorful card accent strips inside rounded borders without globally clipping card content.
 - Added subtle interaction outlines to muted buttons and links on dark Colorful palettes.
 - No database migration, API contract, permission or persistence change is required.
+
+## v0.16.6 - Dark Colorful contrast closure (2026-07-26)
+
+- Removed palette-coloured glow from fixed top action controls in dark Colorful themes.
+- Added a dedicated compact primary treatment for the invite share control.
+- Restored readable muted labels on palette-primary surfaces, including player statistics and MVP summaries.
+- Centralized the correction in theme CSS so selected cards and equivalent components inherit the same contrast fix.
+- No database migration, API contract, permission or persistence change is required.

@@ -141,7 +141,7 @@ export function FloatingInviteShareButton({
               ? "Enlace copiado"
               : "Compartir invitación"
         }
-        className="flex items-center justify-center rounded-full bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800 disabled:cursor-wait disabled:opacity-70"
+        className="app-floating-primary-control flex items-center justify-center rounded-full border border-neutral-200 bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800 disabled:cursor-wait disabled:opacity-70"
         style={{
           width: "34px",
           height: "34px",

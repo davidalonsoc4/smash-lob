@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.16.6",
+    date: "26 de julio de 2026",
+    title: "Contraste final en Colorido oscuro",
+    summary:
+      "Los controles flotantes pierden el halo excesivo y los textos secundarios sobre superficies de paleta recuperan una lectura clara.",
+    category: "fix",
+    changes: [
+      "Los botones circulares superiores usan sombras neutras y compactas en Colorido oscuro, sin resplandor tintado alrededor.",
+      "El botón principal de compartir conserva su jerarquía mediante degradado, borde y una sombra breve sin efecto luminoso.",
+      "Los textos secundarios colocados sobre fondos primarios, como Victorias, Balance y otros labels equivalentes, heredan un color compatible con cada paleta.",
+      "La corrección se aplica de forma centralizada a tarjetas, selectores y resúmenes equivalentes sin alterar Claro, Oscuro Plano ni los colores semánticos.",
+      "No se requieren migraciones, cambios de API ni modificaciones de lógica de negocio.",
+    ],
+  },
+  {
     version: "v0.16.5",
     date: "25 de julio de 2026",
     title: "Cierre visual y búsqueda extendida",

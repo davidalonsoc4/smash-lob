@@ -1142,10 +1142,41 @@ html.colorful .app-bottom-nav-item:active {
 }
 
 html.colorful .app-floating-control {
-  border-color: rgb(var(--colorful-primary-rgb) / 0.2) !important;
+  border-color: rgb(var(--colorful-primary-rgb) / 0.24) !important;
   background: var(--colorful-nav-surface) !important;
   color: var(--colorful-primary) !important;
-  box-shadow: 0 7px 18px rgb(var(--colorful-primary-rgb) / 0.18) !important;
+  box-shadow: 0 3px 10px rgb(15 23 42 / 0.14) !important;
+}
+
+html.colorful .app-floating-primary-control {
+  border-color: rgb(var(--colorful-primary-rgb) / 0.42) !important;
+  background: linear-gradient(145deg, var(--colorful-primary), var(--colorful-secondary)) !important;
+  color: var(--colorful-on-primary) !important;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 0.18) !important;
+}
+
+html.dark.colorful .app-floating-control {
+  border-color: rgb(var(--colorful-primary-rgb) / 0.34) !important;
+  background: color-mix(in srgb, var(--colorful-nav-surface) 92%, var(--colorful-primary) 8%) !important;
+  box-shadow:
+    0 2px 8px rgb(0 0 0 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.05) !important;
+}
+
+html.dark.colorful .app-floating-primary-control {
+  border-color: rgb(var(--colorful-primary-rgb) / 0.5) !important;
+  box-shadow:
+    0 2px 8px rgb(0 0 0 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.12) !important;
+}
+
+/* Muted copy placed on a palette primary surface must inherit its readable foreground. */
+html.colorful .bg-neutral-950.text-white :where(
+  .text-neutral-300,
+  .text-neutral-400,
+  .text-neutral-500
+) {
+  color: color-mix(in srgb, var(--colorful-on-primary) 90%, transparent) !important;
 }
 
 /* Muted actions must remain visibly interactive on dark Colorful themes. */
