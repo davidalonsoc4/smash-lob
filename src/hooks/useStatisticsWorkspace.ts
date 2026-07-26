@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useMatchData } from "@/context/MatchDataProvider"
+import { useMatchData, type MatchData } from "@/context/MatchDataProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -89,7 +89,7 @@ export function useStatisticsWorkspace() {
   )
 
   const getMatchLabel = useCallback(
-    (match: typeof statistics.closestMatch) => {
+    (match: MatchData | null) => {
       if (!match) return "—"
       const teamA = match.teamA
         .map((playerId) => playersById.get(playerId) ?? "Jugador")

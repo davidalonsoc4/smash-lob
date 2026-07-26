@@ -418,3 +418,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Reused one shared counted-match and statistics workspace across every detail page.
 - Kept all v0.17 calculations available without changing formulas, APIs or persisted data.
 - No database migration, API contract, permission or persistence change is required.
+
+## v0.17.7 - Statistics callback dependency cleanup (2026-07-26)
+
+- Replaced the type-only dependency on the full statistics object with the shared `MatchData` type.
+- Removed the `react-hooks/exhaustive-deps` warning from the statistics workspace callback.
+- Preserved all v0.17.6 routes, calculations and behavior.
+- No database migration, API contract, permission or persistence change is required.

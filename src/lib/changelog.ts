@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.7",
+    date: "26 de julio de 2026",
+    title: "Validación limpia del espacio de estadísticas",
+    summary:
+      "Se corrige la dependencia del callback compartido de Estadísticas para dejar ESLint completamente limpio.",
+    category: "fix",
+    changes: [
+      "El formateador compartido de partidos utiliza ahora el tipo MatchData directamente, sin depender del objeto completo de estadísticas.",
+      "Se elimina el aviso react-hooks/exhaustive-deps detectado en useStatisticsWorkspace.",
+      "No cambia ningún cálculo, pantalla, API, permiso ni dato persistido.",
+      "No se requieren migraciones de Supabase.",
+    ],
+  },
+  {
     version: "v0.17.6",
     date: "26 de julio de 2026",
     title: "Estadísticas más claras y organizadas",
