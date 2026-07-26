@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.5",
+    date: "26 de julio de 2026",
+    title: "Degradado coherente en Programación",
+    summary:
+      "El panel Programación adopta exactamente la misma franja Colorida que el resto de tarjetas de la aplicación.",
+    category: "fix",
+    changes: [
+      "Se elimina el degradado específico ámbar y rosa que diferenciaba Programación del resto de paneles.",
+      "Programación hereda ahora la combinación principal, secundaria, acento y cálida definida por cada paleta Colorida.",
+      "Se mantienen intactos el recorte de la franja, el redondeado, el contenido y el comportamiento del panel.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos.",
+    ],
+  },
+  {
     version: "v0.17.4",
     date: "26 de julio de 2026",
     title: "Validación y cierre de estadísticas avanzadas",

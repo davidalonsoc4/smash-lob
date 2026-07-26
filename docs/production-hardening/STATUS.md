@@ -402,3 +402,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Precomputed progress once per selected season and skipped it in historical summaries.
 - Fixed position chart scaling and shared-summary edge cases.
 - No database migration, API contract or persistence change is required.
+
+## v0.17.5 - Schedule accent consistency (2026-07-26)
+
+- Removed the scheduling-only warm/accent card gradient.
+- Match scheduling now inherits the same shared Colorful accent strip as standard application panels.
+- Preserved panel clipping, rounded corners, layout and all scheduling behavior.
+- No database migration, API contract, permission or persistence change is required.

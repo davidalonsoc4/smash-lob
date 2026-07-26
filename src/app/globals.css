@@ -1172,14 +1172,6 @@ html.colorful .app-activity-card {
   );
 }
 
-html.colorful .app-schedule-card {
-  --app-card-accent-gradient: linear-gradient(
-    90deg,
-    var(--colorful-warm),
-    var(--colorful-accent)
-  );
-}
-
 /* Row-based cards use opaque children. Render their accent as real card content
    so it shares the exact border radius instead of competing with row backgrounds. */
 .app-card-accent-strip {
