@@ -32,7 +32,7 @@ function AdminGroup({
           {description}
         </p>
       </div>
-      <AppCard className="overflow-hidden !p-0">
+      <AppCard className="app-card-accent-reveal overflow-hidden !p-0">
         <div className="divide-y divide-neutral-100">{children}</div>
       </AppCard>
     </section>

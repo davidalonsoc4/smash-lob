@@ -1063,6 +1063,11 @@ html.colorful .app-schedule-card {
   );
 }
 
+/* Row-based cards use opaque children, so reserve the accent strip inside the card. */
+html.colorful .app-card-accent-reveal {
+  padding-top: 0.2rem !important;
+}
+
 html.colorful .app-notification-card,
 html.colorful .app-activity-card,
 html.colorful .app-schedule-card {
@@ -1124,9 +1129,18 @@ html.colorful .app-ranking-row:nth-child(3) .app-ranking-position {
 }
 
 html.colorful .app-bottom-nav {
-  border-top-color: rgb(var(--colorful-primary-rgb) / 0.17) !important;
+  border-top-color: rgb(var(--colorful-primary-rgb) / 0.2) !important;
   background: var(--colorful-nav-surface) !important;
-  box-shadow: 0 -10px 28px rgb(var(--colorful-primary-rgb) / 0.14) !important;
+  box-shadow:
+    0 -1px 0 rgb(var(--colorful-primary-rgb) / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.32) !important;
+}
+
+html.dark.colorful .app-bottom-nav {
+  border-top-color: rgb(var(--colorful-primary-rgb) / 0.24) !important;
+  box-shadow:
+    0 -1px 0 rgb(var(--colorful-primary-rgb) / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.045) !important;
 }
 
 html.colorful .app-bottom-nav-active {

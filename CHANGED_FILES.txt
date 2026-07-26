@@ -1,8 +1,11 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.16.7_CARD_ACCENT_STRIP_ALIGNMENT.md
+docs/preproduction/V0.16.8_BOTTOM_NAV_AND_PANEL_ACCENTS.md
 docs/production-hardening/STATUS.md
 package-lock.json
 package.json
+src/app/admin/page.tsx
+src/app/availability/page.tsx
 src/app/globals.css
+src/app/settings/page.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
