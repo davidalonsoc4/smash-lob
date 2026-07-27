@@ -55,6 +55,7 @@ export function useStatisticsWorkspace() {
   const selectedSeason =
     leagueSeasons.find((season) => season.id === selectedSeasonId) ??
     activeSeason
+  const selectedSeasonSettings = getSeasonRoundSettings(selectedSeason.id)
   const leaguePlayers = useMemo(
     () => playerProfiles.filter((player) => player.leagueId === activeLeague.id),
     [activeLeague.id, playerProfiles],
@@ -107,6 +108,8 @@ export function useStatisticsWorkspace() {
     activeLeague,
     activeSeason,
     selectedSeason,
+    selectedSeasonSettings,
+    isBalancedCalendar: selectedSeasonSettings.calendarMode === "balanced",
     leagueSeasons,
     selectSeason,
     statistics,

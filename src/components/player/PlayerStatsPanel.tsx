@@ -43,6 +43,8 @@ type PlayerRelationStats = {
   playerId: string;
   matches: number;
   wins: number;
+  setsFor: number;
+  setsAgainst: number;
   gamesFor: number;
   gamesAgainst: number;
 };
@@ -80,14 +82,17 @@ function isValidStatisticsMatch(match: PlayerStatsMatch) {
   return getTeamSetPoints(match, "A") !== getTeamSetPoints(match, "B");
 }
 
-function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
+function getStrongestTeammate(
+  relationStats: Map<string, PlayerRelationStats>,
+) {
   return Array.from(relationStats.values()).sort((a, b) => {
-    const diffA = a.gamesFor - a.gamesAgainst;
-    const diffB = b.gamesFor - b.gamesAgainst;
+    const setsDiffA = a.setsFor - a.setsAgainst;
+    const setsDiffB = b.setsFor - b.setsAgainst;
+    const gamesDiffA = a.gamesFor - a.gamesAgainst;
+    const gamesDiffB = b.gamesFor - b.gamesAgainst;
 
-    if (diffB !== diffA) return diffB - diffA;
-    if (b.wins !== a.wins) return b.wins - a.wins;
-    if (b.matches !== a.matches) return b.matches - a.matches;
+    if (setsDiffB !== setsDiffA) return setsDiffB - setsDiffA;
+    if (gamesDiffB !== gamesDiffA) return gamesDiffB - gamesDiffA;
     return a.playerId.localeCompare(b.playerId);
   })[0];
 }
@@ -131,6 +136,8 @@ function upsertRelation(
   relationStats: Map<string, PlayerRelationStats>,
   playerId: string,
   won: boolean,
+  setsFor: number,
+  setsAgainst: number,
   gamesFor: number,
   gamesAgainst: number,
 ) {
@@ -138,11 +145,15 @@ function upsertRelation(
     playerId,
     matches: 0,
     wins: 0,
+    setsFor: 0,
+    setsAgainst: 0,
     gamesFor: 0,
     gamesAgainst: 0,
   };
 
   current.matches += 1;
+  current.setsFor += setsFor;
+  current.setsAgainst += setsAgainst;
   current.gamesFor += gamesFor;
   current.gamesAgainst += gamesAgainst;
 
@@ -199,7 +210,7 @@ export function PlayerStatsPanel({
       (match.teamA.includes(playerId) || match.teamB.includes(playerId)),
   );
 
-  const partnerStats = new Map<string, PlayerRelationStats>();
+  const teammateStats = new Map<string, PlayerRelationStats>();
   const rivalStats = new Map<string, PlayerRelationStats>();
   let setsFor = 0;
   let setsAgainst = 0;
@@ -237,11 +248,27 @@ export function PlayerStatsPanel({
     ownTeam
       .filter((teammateId) => teammateId !== playerId)
       .forEach((teammateId) =>
-        upsertRelation(partnerStats, teammateId, won, ownGames, opponentGames),
+        upsertRelation(
+          teammateStats,
+          teammateId,
+          won,
+          ownSets,
+          opponentSets,
+          ownGames,
+          opponentGames,
+        ),
       );
 
     opponentTeam.forEach((opponentId) =>
-      upsertRelation(rivalStats, opponentId, won, ownGames, opponentGames),
+      upsertRelation(
+        rivalStats,
+        opponentId,
+        won,
+        ownSets,
+        opponentSets,
+        ownGames,
+        opponentGames,
+      ),
     );
 
     if (!bestMatch || gamesDiff > bestMatch.diff) {
@@ -263,9 +290,12 @@ export function PlayerStatsPanel({
 
   const matchesPlayed = finishedMatches.length;
   const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0;
-  const bestPartner = getBestRelation(partnerStats);
-  const bestPartnerDiff = bestPartner
-    ? bestPartner.gamesFor - bestPartner.gamesAgainst
+  const strongestTeammate = getStrongestTeammate(teammateStats);
+  const strongestTeammateSetsDiff = strongestTeammate
+    ? strongestTeammate.setsFor - strongestTeammate.setsAgainst
+    : 0;
+  const strongestTeammateGamesDiff = strongestTeammate
+    ? strongestTeammate.gamesFor - strongestTeammate.gamesAgainst
     : 0;
   const toughestRival = getToughestRival(rivalStats);
   const toughestRivalDiff = toughestRival
@@ -374,22 +404,22 @@ export function PlayerStatsPanel({
         <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 p-2.5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
-              {t.playerStats.bestPartner}
+              {t.playerStats.strongestTeammate}
             </p>
-            {bestPartner ? (
+            {strongestTeammate ? (
               <Link
-                href={getPlayerHref(bestPartner.playerId, players)}
+                href={getPlayerHref(strongestTeammate.playerId, players)}
                 className="mt-1 block font-black underline-offset-2 active:underline"
               >
-                {getDisplayName(bestPartner.playerId, players)}
+                {getDisplayName(strongestTeammate.playerId, players)}
               </Link>
             ) : (
               <p className="mt-1 font-black">{emptyValue}</p>
             )}
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
-            {bestPartner
-              ? `${formatSignedNumber(bestPartnerDiff)} ${t.ranking.diff}`
+            {strongestTeammate
+              ? `${formatSignedNumber(strongestTeammateSetsDiff)} ${t.playerStats.setsShort} · ${formatSignedNumber(strongestTeammateGamesDiff)} ${t.playerStats.gamesShort}`
               : emptyValue}
           </p>
         </div>

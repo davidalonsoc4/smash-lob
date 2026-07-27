@@ -127,7 +127,7 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
         <div className="grid grid-cols-2 gap-2 text-xs">
           {[
             ["Mejor racha", data.bestStreak],
-            ["Mejor pareja", data.bestPair],
+            ["Mayor remontada", data.biggestComeback],
             ["Más igualado", data.closestMatch],
             ["Mayor victoria", data.biggestWin],
           ].map(([label, value]) => (

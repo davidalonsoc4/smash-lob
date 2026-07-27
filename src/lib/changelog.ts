@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.8",
+    date: "27 de julio de 2026",
+    title: "Estadísticas individuales y evolución global",
+    summary:
+      "Las estadísticas se centran en el rendimiento individual, añaden la evolución completa de la liga y simplifican la navegación por temporada.",
+    category: "improvement",
+    changes: [
+      "Al guardar o editar un resultado aparece una confirmación flotante accesible.",
+      "La nueva pantalla Evolución de la liga permite comparar posición y puntos de todos los jugadores, ocultar series y destacar el top 4.",
+      "Las pantallas de detalle utilizan la temporada elegida en la portada de Estadísticas y ya no repiten su selector.",
+      "Se eliminan rankings, contadores y comparativas de pareja; el compañero más fuerte se determina por diferencia de sets y después de juegos.",
+      "En calendarios equilibrados no se muestra Rival habitual, porque todos los cruces tienen una frecuencia equivalente.",
+      "Los gráficos utilizan colores, trazos y marcadores diferenciados para mantener la lectura en todos los temas.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.7",
     date: "26 de julio de 2026",
     title: "Validación limpia del espacio de estadísticas",
@@ -36,7 +53,7 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "La pantalla principal de Estadísticas se convierte en un resumen compacto y distribuye el detalle en apartados específicos.",
     category: "improvement",
     changes: [
-      "La portada de Estadísticas muestra solo progreso, líder, mejor racha, mejor pareja y podio provisional.",
+      "La portada de Estadísticas muestra solo progreso, líder, mejor racha, resultados válidos y podio provisional.",
       "Clasificación, comparativas, análisis individual, récords y resumen de temporada disponen ahora de pantallas propias.",
       "La temporada seleccionada se conserva al navegar entre todos los apartados estadísticos.",
       "El detalle completo sigue disponible, pero se evita concentrar tablas, gráficos, récords y resúmenes en una única pantalla extensa.",
@@ -80,7 +97,7 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "Las temporadas terminadas reúnen campeón, MVP, podio y récords en una tarjeta preparada para compartir.",
     category: "new",
     changes: [
-      "Las temporadas cerradas muestran un resumen final con campeón, MVP, podio, mejor racha, mejor pareja y partidos destacados.",
+      "Las temporadas cerradas muestran un resumen final con campeón, MVP, podio, mejor racha, remontada y partidos destacados.",
       "El resumen puede compartirse como archivo PNG mediante el menú nativo del dispositivo.",
       "Cuando compartir archivos no está disponible, la aplicación permite guardar directamente la imagen generada.",
       "La imagen adapta sus colores al estilo Clásico o a la paleta Colorida activa sin capturar datos externos.",
@@ -110,10 +127,10 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "Las estadísticas convierten el historial de resultados en récords de liga y marcas personales consultables.",
     category: "new",
     changes: [
-      "Historial y estadísticas incorpora récords globales de racha, parejas, remontadas y partidos destacados.",
+      "Historial y estadísticas incorpora récords globales de racha, remontadas y partidos destacados.",
       "El análisis individual muestra mejor y peor posición, racha personal, rivales más vencidos y derrotas más repetidas.",
       "Los perfiles de jugador añaden un resumen compacto de récords del periodo seleccionado.",
-      "Las remontadas solo se calculan cuando el ganador perdió el primer set y la mejor pareja por porcentaje exige al menos dos partidos.",
+      "Las remontadas solo se calculan cuando el ganador perdió el primer set y todos los récords excluyen resultados no contabilizados.",
       "Todos los cálculos reutilizan resultados contabilizados y no requieren migraciones, API ni persistencia adicional.",
     ],
   },
@@ -126,8 +143,8 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
     category: "new",
     changes: [
       "Historial y estadísticas permite comparar dos jugadores de la temporada con posición, puntos, victorias y forma de sus últimos cinco partidos.",
-      "La comparativa distingue los enfrentamientos como rivales de los partidos disputados como pareja, incluyendo balance, porcentaje y diferencia de juegos.",
-      "El análisis individual añade el rival más habitual junto a la mejor pareja, la pareja más frecuente y el rival más difícil.",
+      "La comparativa analiza los enfrentamientos directos como rivales, incluyendo victorias y diferencia de juegos.",
+      "El análisis individual añade forma reciente, rachas, rival más habitual o más difícil según el calendario y evolución por jornada.",
       "Programación y el marcador de Partido adoptan la misma franja Colorida que el resto de paneles y se elimina la línea innecesaria bajo la cabecera de Programación.",
       "Las cabeceras de Ganador y MVP utilizan el degradado correspondiente a la paleta Colorida activa y conservan su aspecto Clásico fuera de ese estilo.",
       "No se requieren migraciones, cambios de API ni persistencia adicional.",

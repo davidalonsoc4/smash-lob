@@ -275,6 +275,8 @@ export const eu = {
 
   ranking: {
     subtitle: "Sailkapen orokorra",
+    closedSeasonHistoricalDescription:
+      "Sailkapen hau {seasonName} denboraldiaren historiko gisa geratzen da.",
     description:
       "PTS, joko-diferentziaren eta berdinketan aldeko jokoen arabera ordenatuta.",
     gamesDiff: "Jokoen dif.",
@@ -436,6 +438,8 @@ export const eu = {
     save: "Emaitza gorde",
     update: "Aldaketak gorde",
     cancelEdit: "Utzi",
+    savedFeedback: "Emaitza behar bezala gorde da.",
+    updatedFeedback: "Emaitzaren aldaketak behar bezala gorde dira.",
     pendingScheduleTitle: "Emaitza pendiente",
     pendingScheduleDescription:
       "Programatu partida emaitza erregistratu aurretik.",
@@ -447,8 +451,6 @@ export const eu = {
   profile: {
     title: "Nire profila",
     subtitle: "Uneko erabiltzailea",
-    closedSeasonHistoricalDescription:
-      "Sailkapen hau {seasonName} denboraldiaren historiko gisa geratzen da.",
     description: "Zure estatistikak jokalari gisa denboraldi aktiboan.",
     notFound: "Ez da aurkitu uneko erabiltzaileari lotutako jokalaririk.",
     points: "Puntuak",
@@ -495,7 +497,7 @@ export const eu = {
       "Hautatutako denboraldiko partida guztiak, egoeraren araberako iragazki azkarrekin.",
     futureTitle: "Historiala eta joerak",
     futureDescription:
-      "Aurrerago hemen bikote onenak, aurkari ohikoenak eta rankingaren bilakaera erakutsiko dira.",
+      "Hemen taldekiderik indartsuena, aurkariak eta rankingaren bilakaera erakusten dira.",
   },
 
   playerStats: {
@@ -508,7 +510,9 @@ export const eu = {
     mvpWon: "Irabazitako MVPak",
     wonPercentage: "irabazita",
     forPercentage: "alde",
-    bestPartner: "Bikoterik onena",
+    strongestTeammate: "Taldekiderik indartsuena",
+    setsShort: "set",
+    gamesShort: "joko",
     toughestRival: "Aurkaririk gogorrena",
     bestRound: "Jardunaldirik onena",
     roundShort: "J",

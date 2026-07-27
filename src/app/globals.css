@@ -1450,6 +1450,36 @@ html.colorful .status-colors-disabled :where(
   }
 }
 
+:root {
+  --statistics-series-1: #1d4ed8;
+  --statistics-series-2: #c2410c;
+  --statistics-series-3: #15803d;
+  --statistics-series-4: #7e22ce;
+  --statistics-series-5: #be185d;
+  --statistics-series-6: #0e7490;
+  --statistics-series-7: #a16207;
+  --statistics-series-8: #4338ca;
+  --statistics-series-9: #b91c1c;
+  --statistics-series-10: #0f766e;
+  --statistics-series-11: #6d28d9;
+  --statistics-series-12: #4d7c0f;
+}
+
+html.dark {
+  --statistics-series-1: #60a5fa;
+  --statistics-series-2: #fb923c;
+  --statistics-series-3: #4ade80;
+  --statistics-series-4: #c084fc;
+  --statistics-series-5: #f472b6;
+  --statistics-series-6: #22d3ee;
+  --statistics-series-7: #facc15;
+  --statistics-series-8: #818cf8;
+  --statistics-series-9: #f87171;
+  --statistics-series-10: #2dd4bf;
+  --statistics-series-11: #a78bfa;
+  --statistics-series-12: #a3e635;
+}
+
 .statistics-chart-grid {
   stroke: rgb(163 163 163 / 0.24);
   stroke-width: 1;
@@ -1485,22 +1515,56 @@ html.colorful .status-colors-disabled :where(
 }
 
 .statistics-chart-series-a {
-  color: #4f46e5;
+  color: #2563eb;
 }
 
 .statistics-chart-series-b {
-  color: #db2777;
+  color: #f97316;
 }
 
-html[data-style="colorful"] .statistics-chart-series-a {
-  color: var(--colorful-primary);
+.statistics-chart-dot-square {
+  border-radius: 0.15rem;
 }
 
-html[data-style="colorful"] .statistics-chart-series-b {
-  color: var(--colorful-accent);
+html.dark .statistics-chart-series-a {
+  color: #60a5fa;
 }
 
-html.dark .statistics-chart-grid {
+html.dark .statistics-chart-series-b {
+  color: #fb923c;
+}
+
+html.dark :root {
+  --statistics-series-1: #1d4ed8;
+  --statistics-series-2: #c2410c;
+  --statistics-series-3: #15803d;
+  --statistics-series-4: #7e22ce;
+  --statistics-series-5: #be185d;
+  --statistics-series-6: #0e7490;
+  --statistics-series-7: #a16207;
+  --statistics-series-8: #4338ca;
+  --statistics-series-9: #b91c1c;
+  --statistics-series-10: #0f766e;
+  --statistics-series-11: #6d28d9;
+  --statistics-series-12: #4d7c0f;
+}
+
+html.dark {
+  --statistics-series-1: #60a5fa;
+  --statistics-series-2: #fb923c;
+  --statistics-series-3: #4ade80;
+  --statistics-series-4: #c084fc;
+  --statistics-series-5: #f472b6;
+  --statistics-series-6: #22d3ee;
+  --statistics-series-7: #facc15;
+  --statistics-series-8: #818cf8;
+  --statistics-series-9: #f87171;
+  --statistics-series-10: #2dd4bf;
+  --statistics-series-11: #a78bfa;
+  --statistics-series-12: #a3e635;
+}
+
+.statistics-chart-grid {
   stroke: rgb(163 163 163 / 0.18);
 }
 

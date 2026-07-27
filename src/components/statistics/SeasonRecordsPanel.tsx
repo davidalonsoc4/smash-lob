@@ -5,14 +5,6 @@ import type {
   SeasonRecords,
 } from "@/lib/seasonStatistics"
 
-function formatPercent(value: number) {
-  return `${Math.round(value)}%`
-}
-
-function formatPair(names: [string, string]) {
-  return names.join(" / ")
-}
-
 function recordCard({
   label,
   value,
@@ -50,24 +42,6 @@ export function SeasonRecordsPanel({
         detail: records.longestWinStreak
           ? `${records.longestWinStreak.wins} victorias consecutivas`
           : "Sin resultados suficientes",
-      })}
-      {recordCard({
-        label: "Más victorias como pareja",
-        value: records.mostWinsPair
-          ? formatPair(records.mostWinsPair.playerNames)
-          : "—",
-        detail: records.mostWinsPair
-          ? `${records.mostWinsPair.wins} victorias en ${records.mostWinsPair.matchesPlayed} partidos`
-          : "Sin parejas contabilizadas",
-      })}
-      {recordCard({
-        label: "Mejor porcentaje como pareja",
-        value: records.bestPairRate
-          ? formatPair(records.bestPairRate.playerNames)
-          : "—",
-        detail: records.bestPairRate
-          ? `${formatPercent(records.bestPairRate.winRate)} en ${records.bestPairRate.matchesPlayed} partidos`
-          : "Se requieren al menos 2 partidos juntos",
       })}
       {recordCard({
         label: "Mayor remontada",

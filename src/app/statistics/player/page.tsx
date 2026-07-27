@@ -21,8 +21,6 @@ export default function StatisticsPlayerPage() {
   const {
     activeLeague,
     selectedSeason,
-    leagueSeasons,
-    selectSeason,
     buildStatisticsHref,
     statistics,
     countedMatches,
@@ -31,6 +29,7 @@ export default function StatisticsPlayerPage() {
     votes,
     getSeasonRoundSettings,
     getMatchLabel,
+    isBalancedCalendar,
   } = useStatisticsWorkspace()
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const selectedPlayer =
@@ -46,7 +45,6 @@ export default function StatisticsPlayerPage() {
             playerProfiles: leaguePlayers,
             seasonPlayers,
             matches: countedMatches,
-            pairStatistics: statistics.pairStatistics,
             precomputedProgress: statistics.progressByPlayer[selectedPlayer.id],
           })
         : null,
@@ -56,7 +54,6 @@ export default function StatisticsPlayerPage() {
       seasonPlayers,
       selectedPlayer,
       selectedSeason.id,
-      statistics.pairStatistics,
       statistics.progressByPlayer,
     ],
   )
@@ -87,10 +84,8 @@ export default function StatisticsPlayerPage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Análisis individual"
-        description="Rendimiento, rachas, compañeros, rivales y récords de un jugador."
-        seasons={leagueSeasons}
+        description="Rendimiento, rachas, compañero más fuerte, rivales y récords de un jugador."
         selectedSeason={selectedSeason}
-        onSeasonChange={selectSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
 
@@ -173,33 +168,35 @@ export default function StatisticsPlayerPage() {
               <div className="grid gap-2 sm:grid-cols-2">
                 <AppCard>
                   <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                    Mejor compañero
+                    Compañero más fuerte
                   </p>
                   <p className="mt-1 truncate font-black">
-                    {playerDetail.bestPartner
-                      ? playerDetail.bestPartner.playerNames.find(
-                          (_, index) =>
-                            playerDetail.bestPartner?.playerIds[index] !== selectedPlayer.id,
-                        ) ?? "—"
-                      : "—"}
+                    {playerDetail.strongestTeammate?.displayName ?? "—"}
                   </p>
                   <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                    {playerDetail.bestPartner
-                      ? `${formatPercent(playerDetail.bestPartner.winRate)} · ${playerDetail.bestPartner.matchesPlayed} partidos`
+                    {playerDetail.strongestTeammate
+                      ? `Dif. sets ${formatSigned(playerDetail.strongestTeammate.setsDiff)} · Dif. juegos ${formatSigned(playerDetail.strongestTeammate.gamesDiff)}`
                       : "Sin datos suficientes"}
                   </p>
                 </AppCard>
                 <AppCard>
                   <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                    Rival más habitual
+                    {isBalancedCalendar ? "Rival más difícil" : "Rival más habitual"}
                   </p>
                   <p className="mt-1 truncate font-black">
-                    {playerDetail.mostFrequentOpponent?.displayName ?? "—"}
+                    {(isBalancedCalendar
+                      ? playerDetail.toughestOpponent
+                      : playerDetail.mostFrequentOpponent
+                    )?.displayName ?? "—"}
                   </p>
                   <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                    {playerDetail.mostFrequentOpponent
-                      ? `${playerDetail.mostFrequentOpponent.matchesPlayed} duelos · ${playerDetail.mostFrequentOpponent.wins}V/${playerDetail.mostFrequentOpponent.losses}D`
-                      : "Sin datos suficientes"}
+                    {isBalancedCalendar
+                      ? playerDetail.toughestOpponent
+                        ? `${formatPercent(playerDetail.toughestOpponent.winRate)} de victorias · Dif. ${formatSigned(playerDetail.toughestOpponent.gamesDiff)}`
+                        : "Sin datos suficientes"
+                      : playerDetail.mostFrequentOpponent
+                        ? `${playerDetail.mostFrequentOpponent.matchesPlayed} duelos · ${playerDetail.mostFrequentOpponent.wins}V/${playerDetail.mostFrequentOpponent.losses}D`
+                        : "Sin datos suficientes"}
                   </p>
                 </AppCard>
               </div>

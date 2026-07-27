@@ -162,7 +162,7 @@ export function SeasonProgressChart({
           {playerA.displayName}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="statistics-chart-dot statistics-chart-series-b" />
+          <span className="statistics-chart-dot statistics-chart-dot-square statistics-chart-series-b" />
           {playerB.displayName}
         </span>
       </div>
@@ -225,6 +225,7 @@ export function SeasonProgressChart({
           <polyline
             points={chart.pointsB.map((point) => `${point.x},${point.y}`).join(" ")}
             className="statistics-chart-line statistics-chart-series-b"
+            strokeDasharray="10 7"
           />
 
           {chart.pointsA.map((point) => (
@@ -241,17 +242,19 @@ export function SeasonProgressChart({
             </circle>
           ))}
           {chart.pointsB.map((point) => (
-            <circle
+            <rect
               key={`b-${point.round}`}
-              cx={point.x}
-              cy={point.y}
-              r="5"
+              x={point.x - 5}
+              y={point.y - 5}
+              width="10"
+              height="10"
+              rx="2"
               className="statistics-chart-point statistics-chart-series-b"
             >
               <title>
                 {playerB.displayName} · J{point.round} · {point.value}
               </title>
-            </circle>
+            </rect>
           ))}
         </svg>
       </div>

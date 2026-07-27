@@ -360,7 +360,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 ## v0.17.0 - Advanced statistics foundation (2026-07-26)
 
-- Added season player comparisons with recent form, direct rivalry results and shared-partnership performance.
+- Added season player comparisons with recent form, direct rivalry results and individual progress.
 - Added the most frequent opponent to the existing individual season analysis.
 - Brought Match scheduling and scoreboard panels into the shared Colorful accent treatment and removed the schedule-header divider.
 - Made Home winner and MVP headers inherit the active Colorful palette while preserving Classic styling.
@@ -424,4 +424,16 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Replaced the type-only dependency on the full statistics object with the shared `MatchData` type.
 - Removed the `react-hooks/exhaustive-deps` warning from the statistics workspace callback.
 - Preserved all v0.17.6 routes, calculations and behavior.
+- No database migration, API contract, permission or persistence change is required.
+
+
+## v0.17.8 - Individual statistics refinement (2026-07-27)
+
+- Added floating confirmation after creating or editing a match result.
+- Added an all-player evolution route with position and accumulated-points views.
+- Removed statistical pair rankings and shared-match counters from the v0.17 workspace.
+- Ranked the strongest teammate by set differential and then game differential.
+- Hid habitual-opponent frequency in balanced calendars.
+- Reused the season selected on the statistics landing page across detail routes.
+- Strengthened chart distinction through categorical colors, dash patterns and marker shapes.
 - No database migration, API contract, permission or persistence change is required.

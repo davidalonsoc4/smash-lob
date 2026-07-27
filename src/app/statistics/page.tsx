@@ -4,6 +4,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import {
   StatisticsPageHeader,
+  StatisticsSectionIcon,
   StatisticsSectionLink,
 } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
@@ -15,14 +16,6 @@ function formatPercent(value: number) {
 
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
-}
-
-function NavigationBadge({ label }: { label: string }) {
-  return (
-    <span className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-100 text-[11px] font-black text-neutral-700">
-      {label}
-    </span>
-  )
 }
 
 export default function StatisticsPage() {
@@ -40,8 +33,6 @@ export default function StatisticsPage() {
     statistics.dataQuality.excludedFinishedMatches +
     statistics.dataQuality.invalidFinishedMatches
   const topPlayers = statistics.ranking.slice(0, 3)
-  const bestPair =
-    statistics.records.bestPairRate ?? statistics.records.mostWinsPair
 
   return (
     <div className="compact-page space-y-3">
@@ -95,15 +86,15 @@ export default function StatisticsPage() {
         </AppCard>
         <AppCard>
           <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-            Mejor pareja
+            Resultados válidos
           </p>
-          <p className="mt-1 truncate text-base font-black">
-            {bestPair ? bestPair.playerNames.join(" / ") : "—"}
+          <p className="mt-1 text-2xl font-black">
+            {statistics.countedMatches}
           </p>
           <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {bestPair
-              ? `${formatPercent(bestPair.winRate)} · ${bestPair.matchesPlayed} partidos`
-              : "Sin datos"}
+            {statistics.countedMatches > 0
+              ? `${new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(statistics.averageGamesPerMatch)} juegos por partido`
+              : "Sin resultados"}
           </p>
         </AppCard>
       </div>
@@ -156,28 +147,35 @@ export default function StatisticsPage() {
             title="Clasificación"
             description="Tabla completa, puntos, balance y evolución de la temporada."
             summary={`${statistics.ranking.length} jugadores`}
-            leading={<NavigationBadge label="CL" />}
+            leading={<StatisticsSectionIcon name="standings" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/compare")}
             title="Comparar jugadores"
-            description="Cara a cara, rendimiento como pareja, forma reciente y gráficos."
+            description="Cara a cara, forma reciente y evolución entre dos jugadores."
             summary={statistics.ranking.length >= 2 ? "Disponible" : "Sin datos"}
-            leading={<NavigationBadge label="VS" />}
+            leading={<StatisticsSectionIcon name="compare" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/player")}
             title="Análisis individual"
-            description="Rachas, compañeros, rivales, récords y evolución de un jugador."
+            description="Rendimiento, compañero más fuerte, rivales, récords y evolución."
             summary={statistics.ranking[0]?.displayName}
-            leading={<NavigationBadge label="JU" />}
+            leading={<StatisticsSectionIcon name="player" />}
+          />
+          <StatisticsSectionLink
+            href={buildStatisticsHref("/statistics/evolution")}
+            title="Evolución de la liga"
+            description="Gráfico conjunto de posición y puntos de todos los jugadores."
+            summary={`${statistics.ranking.length} series`}
+            leading={<StatisticsSectionIcon name="evolution" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/records")}
-            title="Récords y parejas"
-            description="Mejores rachas, remontadas, partidos destacados y ranking de parejas."
-            summary={`${statistics.pairStatistics.length} parejas`}
-            leading={<NavigationBadge label="RE" />}
+            title="Récords de temporada"
+            description="Mejores rachas, remontadas y partidos destacados."
+            summary={statistics.records.biggestComeback ? "Con remontada" : "Partidos destacados"}
+            leading={<StatisticsSectionIcon name="records" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/season")}
@@ -190,7 +188,7 @@ export default function StatisticsPage() {
                   ? "Temporada cerrada"
                   : "Datos al día"
             }
-            leading={<NavigationBadge label="TE" />}
+            leading={<StatisticsSectionIcon name="season" />}
           />
         </AppCard>
       </div>
