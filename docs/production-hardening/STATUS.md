@@ -499,3 +499,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Kept sharing and downloading on the same generated asset.
 - No database migration, API contract, permission or persistence change is required.
 - Full lint, type-check and build remain pending in the local worktree with installed dependencies.
+
+
+## v0.17.15 - Season summary export polish (2026-07-27)
+
+- Combined champion and MVP into a single panel whenever they refer to the same player set.
+- Added key player stats (points, wins, games difference) to hero panels in the page preview and exported image.
+- Added games difference to podium rows in both the preview card and the exported image.
+- Removed the intermediate badges for highlighted positions/moments and increased spacing between podium and highlights.
+- Switched the generated summary image to a primarily light background regardless of the active app theme.
+- No database migration, API contract, permission or persistence change is required.
