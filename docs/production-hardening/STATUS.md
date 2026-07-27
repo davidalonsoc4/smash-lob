@@ -519,3 +519,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Rendered highlights as a 2x2 grid in the exported image and two columns in the page preview when space allows.
 - Switched the export canvas to a substantially shorter dynamic height.
 - No database migration, API contract, permission or persistence change is required.
+
+
+## v0.17.17 - Taller season summary readability pass (2026-07-27)
+
+- Replaced the 2x2 highlight grid with a single-column list so long highlight text remains readable.
+- Restored full-width champion/MVP hero cards to avoid displaced names and unused horizontal space.
+- Increased the export canvas height slightly to improve breathing room and visual rhythm.
+- Synced the in-page preview card with the same stacked hero/highlight presentation.
+- No database migration, API contract, permission or persistence change is required.

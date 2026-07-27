@@ -1,5 +1,5 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.17.16_COMPACT_MONOCHROME_SEASON_SUMMARY.md
+docs/preproduction/V0.17.17_TALLER_SEASON_SUMMARY_READABILITY.md
 docs/production-hardening/STATUS.md
 package.json
 package-lock.json

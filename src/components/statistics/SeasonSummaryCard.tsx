@@ -120,7 +120,7 @@ export function SeasonSummaryCard({
 
   return (
     <AppCard className="overflow-hidden p-0">
-      <div className="space-y-2.5 bg-neutral-50 p-3">
+      <div className="space-y-3 bg-neutral-50 p-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
             Resumen final
@@ -128,18 +128,18 @@ export function SeasonSummaryCard({
           <p className="mt-1 text-lg font-black text-neutral-950">{data.seasonName}</p>
         </div>
 
-        <div className={`grid gap-3 ${data.heroes.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+        <div className="grid gap-3">
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="rounded-2xl border border-neutral-200 bg-white p-3"
+              className="rounded-2xl border border-neutral-200 bg-white p-3.5"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
                 {hero.label}
               </p>
               <p className="mt-1.5 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
               {hero.stats.length > 0 ? (
-                <div className="mt-2.5 grid grid-cols-3 gap-1.5 border-t border-neutral-100 pt-2.5">
+                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3">
                   {hero.stats.slice(0, 3).map((stat) => (
                     <div key={stat.label} className="min-w-0 text-center">
                       <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
@@ -164,7 +164,7 @@ export function SeasonSummaryCard({
             {data.podium.map((row) => (
               <div
                 key={`${row.position}-${row.name}`}
-                className="flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2"
+                className="flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2.5"
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-xs font-black text-white">
                   {row.position}º
@@ -187,13 +187,13 @@ export function SeasonSummaryCard({
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
             Lo más destacado
           </p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-2.5">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-3">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>
-                <p className="mt-1 text-sm font-black leading-4 text-neutral-950">
+                <p className="mt-1 text-sm font-black leading-5 text-neutral-950">
                   {highlight.headline}
                 </p>
                 <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
