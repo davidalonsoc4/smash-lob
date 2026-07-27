@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import {
   createSeasonSummaryImage,
   downloadSeasonSummaryImage,
   type SeasonSummaryImageData,
+  type SeasonSummaryImageOptions,
 } from "@/lib/seasonSummaryImage"
 
 function sanitizeFilename(value: string) {
@@ -33,6 +34,19 @@ export function SeasonSummaryCard({
   exportBlockedReason?: string
 }) {
   const [busyAction, setBusyAction] = useState<"share" | "download" | null>(null)
+  const [includeLeagueLogo, setIncludeLeagueLogo] = useState(true)
+  const [includeHeroImages, setIncludeHeroImages] = useState(true)
+
+  const hasLeagueLogo = Boolean(data.leagueLogoUrl)
+  const hasHeroImages = useMemo(
+    () => data.heroes.some((hero) => Boolean(hero.imageUrl)),
+    [data.heroes],
+  )
+
+  const imageOptions: SeasonSummaryImageOptions = {
+    includeLeagueLogo: hasLeagueLogo && includeLeagueLogo,
+    includeHeroImages: hasHeroImages && includeHeroImages,
+  }
 
   function reportBlockedExport() {
     showActionFeedback({
@@ -50,7 +64,7 @@ export function SeasonSummaryCard({
     }
 
     try {
-      return await createSeasonSummaryImage(data)
+      return await createSeasonSummaryImage(data, imageOptions)
     } catch {
       showActionFeedback({
         tone: "error",
@@ -105,7 +119,8 @@ export function SeasonSummaryCard({
         downloadSeasonSummaryImage(blob, filename)
         showActionFeedback({
           tone: "info",
-          message: "Tu dispositivo no permite compartir archivos desde aquí; se ha descargado la imagen.",
+          message:
+            "Tu dispositivo no permite compartir archivos desde aquí; se ha descargado la imagen.",
         })
       }
     } catch (error) {
@@ -134,10 +149,24 @@ export function SeasonSummaryCard({
               key={`${hero.label}-${hero.value}`}
               className="rounded-2xl border border-neutral-200 bg-white p-3.5"
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-                {hero.label}
-              </p>
-              <p className="mt-1.5 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
+              <div className="flex items-start gap-3">
+                {hero.imageUrl ? (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={hero.imageUrl}
+                      alt={hero.value}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+                    {hero.label}
+                  </p>
+                  <p className="mt-1.5 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
+                </div>
+              </div>
               {hero.stats.length > 0 ? (
                 <div className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3">
                   {hero.stats.slice(0, 3).map((stat) => (
@@ -201,6 +230,46 @@ export function SeasonSummaryCard({
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+          <p className="text-xs font-black text-neutral-900">Opciones de la imagen</p>
+          <div className="mt-3 space-y-2">
+            <label className="flex items-start gap-2 text-sm font-semibold text-neutral-700">
+              <input
+                type="checkbox"
+                checked={hasLeagueLogo && includeLeagueLogo}
+                disabled={!hasLeagueLogo || busyAction !== null}
+                onChange={(event) => setIncludeLeagueLogo(event.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-neutral-300"
+              />
+              <span>
+                Incluir logo de la liga
+                {!hasLeagueLogo ? (
+                  <span className="block text-xs font-medium text-neutral-500">
+                    Esta liga no tiene logo guardado.
+                  </span>
+                ) : null}
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm font-semibold text-neutral-700">
+              <input
+                type="checkbox"
+                checked={hasHeroImages && includeHeroImages}
+                disabled={!hasHeroImages || busyAction !== null}
+                onChange={(event) => setIncludeHeroImages(event.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-neutral-300"
+              />
+              <span>
+                Incluir fotos de campeón / MVP
+                {!hasHeroImages ? (
+                  <span className="block text-xs font-medium text-neutral-500">
+                    No hay imágenes de perfil disponibles para mostrar.
+                  </span>
+                ) : null}
+              </span>
+            </label>
           </div>
         </div>
 

@@ -83,6 +83,7 @@ type LeagueAccessContextValue = {
   createLeague: (settings: {
     name: string;
     description: string;
+    recommendations: string;
     locations: LeagueLocation[];
   }) => Promise<League | null>;
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null;
@@ -91,7 +92,7 @@ type LeagueAccessContextValue = {
   regenerateLeagueInviteCode: (leagueId: string) => Promise<string | null>;
   updateLeagueDetails: (
     leagueId: string,
-    details: { name: string; description: string },
+    details: { name: string; description: string; recommendations: string },
   ) => Promise<boolean>;
   updateLeagueLogo: (
     leagueId: string,
@@ -286,7 +287,8 @@ function normalizeStoredLeague(league: unknown): League | null {
       typeof item.logoUrl !== "string") ||
     (typeof item.createdByUserId !== "undefined" &&
       item.createdByUserId !== null &&
-      typeof item.createdByUserId !== "string")
+      typeof item.createdByUserId !== "string") ||
+    (typeof item.recommendations !== "undefined" && typeof item.recommendations !== "string")
   ) {
     return null;
   }
@@ -306,6 +308,7 @@ function normalizeStoredLeague(league: unknown): League | null {
     showHistoricalProfileStats: item.showHistoricalProfileStats === true,
     createdByUserId:
       typeof item.createdByUserId === "string" ? item.createdByUserId : null,
+    recommendations: typeof item.recommendations === "string" ? item.recommendations : "",
   };
 }
 
@@ -724,9 +727,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       name,
       description,
       locations,
+      recommendations,
     }: {
       name: string;
       description: string;
+      recommendations: string;
       locations: LeagueLocation[];
     }) => {
       if (!userId || !canCreateLeagues) {
@@ -755,6 +760,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           leagueSlug: slug,
           inviteCode,
           locations,
+          leagueRecommendations: recommendations.trim(),
         });
 
         setLeagues((currentLeagues) => {
@@ -926,10 +932,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const updateLeagueDetails = useCallback(
     async (
       leagueId: string,
-      details: { name: string; description: string },
+      details: { name: string; description: string; recommendations: string },
     ) => {
       const name = details.name.trim();
       const description = details.description.trim();
+      const recommendations = details.recommendations.trim();
 
       if (!name) {
         return false;
@@ -941,6 +948,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
             leagueId,
             name,
             description,
+            recommendations,
           });
 
           setLeagues((currentLeagues) => {
@@ -950,6 +958,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
                     ...league,
                     name: result.name,
                     description: result.description,
+                    recommendations: result.recommendations,
                   }
                 : league,
             );
@@ -973,6 +982,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
                 ...league,
                 name,
                 description,
+                recommendations,
               }
             : league,
         );

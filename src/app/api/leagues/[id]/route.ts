@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic"
 type UpdateLeagueBody = {
   name?: unknown
   description?: unknown
+  recommendations?: unknown
   logoUrl?: unknown
   locations?: unknown
   statusColorsEnabled?: unknown
@@ -46,11 +47,13 @@ export async function PATCH(
   const hasName = Boolean(body && "name" in body)
   const hasDescription = Boolean(body && "description" in body)
   const hasLogoUrl = Boolean(body && "logoUrl" in body)
+  const hasRecommendations = Boolean(body && "recommendations" in body)
   const hasLocations = Boolean(body && "locations" in body)
   const hasInvalidLogoUrlType =
     hasLogoUrl && body?.logoUrl !== null && typeof body?.logoUrl !== "string"
   const name = hasName ? cleanString(body?.name) : undefined
   const description = hasDescription ? cleanString(body?.description) : undefined
+  const recommendations = hasRecommendations ? cleanString(body?.recommendations) : undefined
   const rawLogoUrl =
     hasLogoUrl && body?.logoUrl !== null && typeof body?.logoUrl === "string"
       ? body.logoUrl
@@ -90,6 +93,17 @@ export async function PATCH(
     }
 
     updatePayload.description = description
+  }
+
+  if (hasRecommendations) {
+    if (typeof body?.recommendations !== "string") {
+      return NextResponse.json(
+        { error: "invalid_recommendations" },
+        { status: 400 }
+      )
+    }
+
+    updatePayload.recommendations = recommendations
   }
 
   if (hasLogoUrl) {
@@ -146,13 +160,13 @@ export async function PATCH(
   }
 
   const { supabase } = access.actor
-  const shouldTrackActivity = hasName || hasDescription || hasLogoUrl || hasLocations
+  const shouldTrackActivity = hasName || hasDescription || hasRecommendations || hasLogoUrl || hasLocations
 
   const { data: previousLeague, error: previousLeagueError } =
     shouldTrackActivity
       ? await supabase
           .from("leagues")
-          .select("name,description,logo_url,locations,active_season_id")
+          .select("name,description,recommendations,logo_url,locations,active_season_id")
           .eq("id", leagueId)
           .maybeSingle()
       : { data: null, error: null }
@@ -167,7 +181,7 @@ export async function PATCH(
       .update(updatePayload)
       .eq("id", leagueId)
       .select(
-        "id,name,description,logo_url,locations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,active_season_id"
+        "id,name,description,recommendations,logo_url,locations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,active_season_id"
       )
       .single()
 
@@ -175,7 +189,7 @@ export async function PATCH(
       throw error
     }
 
-    if (hasName || hasDescription) {
+    if (hasName || hasDescription || hasRecommendations) {
       await recordServerActorActivity({
         supabase,
         user: access.actor.user,
@@ -194,6 +208,8 @@ export async function PATCH(
           nextName: data.name,
           previousDescription: previousLeague?.description ?? "",
           nextDescription: data.description ?? "",
+          previousRecommendations: previousLeague?.recommendations ?? "",
+          nextRecommendations: data.recommendations ?? "",
         },
       }).catch(() => null)
     } else if (hasLogoUrl) {
@@ -242,6 +258,7 @@ export async function PATCH(
       leagueId: data.id,
       name: data.name,
       description: data.description ?? "",
+      recommendations: data.recommendations ?? "",
       logoUrl: typeof data.logo_url === "string" ? data.logo_url : null,
       locations: normalizeLeagueLocations(data.locations),
       statusColorsEnabled: data.status_colors_enabled !== false,

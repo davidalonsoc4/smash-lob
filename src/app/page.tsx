@@ -921,6 +921,18 @@ export default function Home() {
 
       <LeagueAnnouncementsCard leagueId={activeLeague.id} />
 
+
+      {activeLeague.recommendations?.trim() ? (
+        <AppCard>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+            Recomendaciones de la liga
+          </p>
+          <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6 text-neutral-700">
+            {activeLeague.recommendations.trim()}
+          </p>
+        </AppCard>
+      ) : null}
+
       {isSeasonUpcoming ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">

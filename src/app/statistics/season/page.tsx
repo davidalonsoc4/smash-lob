@@ -7,6 +7,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 import { getSeasonMvpSelection } from "@/lib/mvp"
+import type { RankingPlayer } from "@/lib/ranking"
 import {
   calculateSeasonStatistics,
   getRankingPosition,
@@ -84,7 +85,7 @@ export default function StatisticsSeasonPage() {
       .filter((player): player is NonNullable<typeof player> => Boolean(player))
     const mvpNames = seasonMvpNames
 
-    function buildStats(player: (typeof statistics.ranking)[number] | undefined): SeasonSummaryStat[] {
+    function buildStats(player: RankingPlayer | undefined): SeasonSummaryStat[] {
       if (!player) {
         return [
           { label: "Puntos", value: "—" },
@@ -106,6 +107,7 @@ export default function StatisticsSeasonPage() {
           label: championPlayers.length > 1 ? "Campeones y MVP" : "Campeón y MVP",
           value: championNames,
           stats: buildStats(championPlayers[0]),
+          imageUrl: championPlayers[0]?.avatarUrl ?? null,
         },
       ]
     }
@@ -115,11 +117,13 @@ export default function StatisticsSeasonPage() {
         label: championPlayers.length > 1 ? "Campeones" : "Campeón",
         value: championNames,
         stats: buildStats(championPlayers[0]),
+        imageUrl: championPlayers[0]?.avatarUrl ?? null,
       },
       {
         label: "MVP",
         value: mvpNames,
         stats: buildStats(mvpPlayers[0]),
+        imageUrl: mvpPlayers[0]?.avatarUrl ?? null,
       },
     ]
   }, [seasonMvp, seasonMvpNames, statistics.leaders, statistics.ranking])
@@ -257,6 +261,7 @@ export default function StatisticsSeasonPage() {
             data={{
               leagueName: activeLeague.name,
               seasonName: selectedSeason.name,
+              leagueLogoUrl: activeLeague.logoUrl ?? null,
               heroes: summaryHeroes,
               podium: statistics.ranking.slice(0, 3).map((player) => ({
                 position: getRankingPosition(statistics.ranking, player.id) ?? 1,

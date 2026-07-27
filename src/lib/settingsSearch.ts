@@ -186,7 +186,7 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     unlink: { title: "Unlink from this league", description: "Release your player without deleting history.", section: "account", keywords: ["leave", "unlink", "exit", "leave league", "release player"] },
     adminPanel: { title: "Admin panel", description: "Open all league management tools.", section: "admin", keywords: ["admin", "management", "configure", "league administration"] },
     deleteLeague: { title: "Delete league", description: "Open the danger zone to delete the league.", section: "admin", keywords: ["delete league", "remove league", "danger zone", "close league permanently"] },
-    leagueIdentity: { title: "League identity", description: "Edit name, description and logo.", section: "league", keywords: ["logo", "name", "description", "image", "change league name", "edit league", "league logo"] },
+    leagueIdentity: { title: "League identity", description: "Edit name, description, logo and recommendations.", section: "league", keywords: ["logo", "name", "description", "image", "change league name", "edit league", "league logo", "recommendations", "balls", "courts", "equipment"] },
     leaguePlaces: { title: "Regular venues", description: "Manage courts and locations.", section: "league", keywords: ["courts", "locations", "address", "club"] },
     profileHistory: { title: "Historical statistics", description: "Allow previous seasons to be viewed from player profiles.", section: "league", keywords: ["profile", "statistics", "history", "seasons", "current season"] },
     statusColors: { title: "Status colours", description: "Enable or disable colours in labels.", section: "league", keywords: ["colors", "labels", "status", "grey"] },
