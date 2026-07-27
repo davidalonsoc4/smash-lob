@@ -2,13 +2,9 @@
 
 import { useMemo, useState } from "react"
 import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonPanel"
-import { SeasonProgressChart } from "@/components/statistics/SeasonProgressChart"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
-import {
-  calculatePlayerComparison,
-  calculatePlayerSeasonDetail,
-} from "@/lib/seasonStatistics"
+import { calculatePlayerComparison } from "@/lib/seasonStatistics"
 
 export default function StatisticsComparePage() {
   const {
@@ -53,55 +49,12 @@ export default function StatisticsComparePage() {
       selectedSeason.id,
     ],
   )
-  const playerADetail = useMemo(
-    () =>
-      playerAId
-        ? calculatePlayerSeasonDetail({
-            seasonId: selectedSeason.id,
-            playerId: playerAId,
-            playerProfiles: leaguePlayers,
-            seasonPlayers,
-            matches: countedMatches,
-            precomputedProgress: statistics.progressByPlayer[playerAId],
-          })
-        : null,
-    [
-      countedMatches,
-      leaguePlayers,
-      playerAId,
-      seasonPlayers,
-      selectedSeason.id,
-      statistics.progressByPlayer,
-    ],
-  )
-  const playerBDetail = useMemo(
-    () =>
-      playerBId
-        ? calculatePlayerSeasonDetail({
-            seasonId: selectedSeason.id,
-            playerId: playerBId,
-            playerProfiles: leaguePlayers,
-            seasonPlayers,
-            matches: countedMatches,
-            precomputedProgress: statistics.progressByPlayer[playerBId],
-          })
-        : null,
-    [
-      countedMatches,
-      leaguePlayers,
-      playerBId,
-      seasonPlayers,
-      selectedSeason.id,
-      statistics.progressByPlayer,
-    ],
-  )
-
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
-        title="Comparar jugadores"
-        description="Cara a cara, forma reciente y evolución por jornada entre dos jugadores."
+        title="Cara a cara"
+        description="Compara la clasificación, la forma reciente y los enfrentamientos directos entre dos jugadores."
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
@@ -127,27 +80,6 @@ export default function StatisticsComparePage() {
             )
           }
         }}
-      />
-
-      <SeasonProgressChart
-        playerA={
-          playerADetail
-            ? {
-                playerId: playerADetail.player.id,
-                displayName: playerADetail.player.displayName,
-                progress: playerADetail.progress,
-              }
-            : null
-        }
-        playerB={
-          playerBDetail
-            ? {
-                playerId: playerBDetail.player.id,
-                displayName: playerBDetail.player.displayName,
-                progress: playerBDetail.progress,
-              }
-            : null
-        }
       />
     </div>
   )

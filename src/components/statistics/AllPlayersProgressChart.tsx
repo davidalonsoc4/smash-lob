@@ -27,8 +27,9 @@ const SERIES_COLORS = [
   "var(--statistics-series-12)",
 ]
 const DASH_PATTERNS = ["", "10 6", "3 5", "14 5 3 5"]
-const HEIGHT = 330
-const PADDING = { top: 24, right: 28, bottom: 42, left: 48 }
+const HEIGHT = 300
+const PADDING = { top: 18, right: 18, bottom: 38, left: 42 }
+const VISIBLE_ROUNDS_WITHOUT_SCROLL = 7
 
 function getMarkerType(index: number) {
   return index % 3
@@ -59,7 +60,7 @@ export function AllPlayersProgressChart({
         series.flatMap((player) => player.progress.map((row) => row.round)),
       ),
     ).sort((a, b) => a - b)
-    const width = Math.max(720, 120 + Math.max(1, rounds.length - 1) * 92)
+    const width = Math.max(410, 86 + Math.max(1, rounds.length - 1) * 54)
     const values = visibleSeries.flatMap((player) =>
       player.progress.map((row) =>
         mode === "position" ? row.position : row.points,
@@ -68,7 +69,10 @@ export function AllPlayersProgressChart({
     const rawMin = values.length > 0 ? Math.min(...values) : 0
     const rawMax = values.length > 0 ? Math.max(...values) : 1
     const minValue = mode === "position" ? Math.max(1, rawMin) : 0
-    const maxValue = Math.max(minValue + 1, rawMax)
+    const maxValue =
+      mode === "position"
+        ? Math.max(minValue, rawMax)
+        : Math.max(minValue + 1, rawMax)
     const range = Math.max(1, maxValue - minValue)
     const chartWidth = width - PADDING.left - PADDING.right
     const chartHeight = HEIGHT - PADDING.top - PADDING.bottom
@@ -91,7 +95,9 @@ export function AllPlayersProgressChart({
               : (index / (rounds.length - 1)) * chartWidth)
           const normalized =
             mode === "position"
-              ? (maxValue - value) / range
+              ? maxValue === minValue
+                ? 0.5
+                : (maxValue - value) / range
               : (value - minValue) / range
           const y = PADDING.top + (1 - normalized) * chartHeight
           return { round, value, x, y }
@@ -117,6 +123,10 @@ export function AllPlayersProgressChart({
       minValue,
       maxValue,
       chartHeight,
+      minWidthPercent: Math.max(
+        100,
+        (rounds.length / VISIBLE_ROUNDS_WITHOUT_SCROLL) * 100,
+      ),
       playerSeries,
     }
   }, [mode, series, visibleSeries])
@@ -124,7 +134,7 @@ export function AllPlayersProgressChart({
   if (series.length === 0 || chart.rounds.length === 0) {
     return (
       <AppCard>
-        <p className="font-black">Evolución de la liga</p>
+        <p className="font-black">Todavía no hay evolución</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           Se necesitan resultados contabilizados en varias jornadas para
           representar la evolución.
@@ -133,15 +143,37 @@ export function AllPlayersProgressChart({
     )
   }
 
-  const ticks = Array.from({ length: 5 }, (_, index) => {
-    const ratio = index / 4
-    const y = PADDING.top + ratio * chart.chartHeight
-    const value =
-      mode === "position"
-        ? chart.minValue + ratio * (chart.maxValue - chart.minValue)
-        : chart.maxValue - ratio * (chart.maxValue - chart.minValue)
-    return { y, value }
-  })
+  const ticks =
+    mode === "position"
+      ? Array.from(
+          { length: chart.maxValue - chart.minValue + 1 },
+          (_, index) => {
+            const value = chart.minValue + index
+            const ratio =
+              chart.maxValue === chart.minValue
+                ? 0.5
+                : (value - chart.minValue) / (chart.maxValue - chart.minValue)
+            return {
+              y: PADDING.top + ratio * chart.chartHeight,
+              value,
+            }
+          },
+        )
+      : Array.from({ length: 5 }, (_, index) => {
+          const ratio = index / 4
+          return {
+            y: PADDING.top + ratio * chart.chartHeight,
+            value: chart.maxValue - ratio * (chart.maxValue - chart.minValue),
+          }
+        })
+
+  const allPlayersVisible = visibleSeries.length === series.length
+  const topThreePlayerIds = new Set(
+    series.slice(0, 3).map((player) => player.playerId),
+  )
+  const topThreeVisible =
+    visibleSeries.length === Math.min(3, series.length) &&
+    visibleSeries.every((player) => topThreePlayerIds.has(player.playerId))
 
   function togglePlayer(playerId: string) {
     setHiddenPlayerIds((current) => {
@@ -154,14 +186,7 @@ export function AllPlayersProgressChart({
 
   return (
     <AppCard>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="font-black">Evolución comparada de la liga</p>
-          <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-            Todos los jugadores sobre la misma escala. Pulsa una leyenda para
-            mostrar u ocultar su línea.
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-2">
         <div className="flex rounded-xl bg-neutral-100 p-1 text-xs font-black">
           <button
             type="button"
@@ -186,33 +211,50 @@ export function AllPlayersProgressChart({
             Puntos
           </button>
         </div>
+        <div className="flex rounded-xl bg-neutral-100 p-1 text-xs font-black">
+          <button
+            type="button"
+            onClick={() => setHiddenPlayerIds(new Set())}
+            aria-pressed={allPlayersVisible}
+            aria-label="Mostrar todos los jugadores"
+            className={`rounded-lg px-2.5 py-1.5 transition ${
+              allPlayersVisible
+                ? "bg-white text-neutral-950 shadow-sm"
+                : "text-neutral-500"
+            }`}
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setHiddenPlayerIds(
+                new Set(series.slice(3).map((player) => player.playerId)),
+              )
+            }
+            aria-pressed={topThreeVisible}
+            aria-label="Mostrar los tres primeros jugadores"
+            className={`rounded-lg px-2.5 py-1.5 transition ${
+              topThreeVisible
+                ? "bg-white text-neutral-950 shadow-sm"
+                : "text-neutral-500"
+            }`}
+          >
+            Top 3
+          </button>
+        </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setHiddenPlayerIds(new Set())}
-          className="rounded-full bg-neutral-950 px-3 py-1.5 text-[11px] font-black text-white"
-        >
-          Mostrar todos
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setHiddenPlayerIds(
-              new Set(series.slice(4).map((player) => player.playerId)),
-            )
-          }
-          className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-[11px] font-black text-neutral-700"
-        >
-          Mostrar top 4
-        </button>
-        <span className="text-[11px] font-bold text-neutral-500">
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-[10px] font-semibold text-neutral-500">
+          Pulsa un jugador para mostrar u ocultar su línea.
+        </p>
+        <span className="shrink-0 text-[10px] font-bold text-neutral-500">
           {visibleSeries.length}/{series.length} visibles
         </span>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mt-2 flex flex-wrap gap-1.5">
         {series.map((player, index) => {
           const hidden = hiddenPlayerIds.has(player.playerId)
           const color = SERIES_COLORS[index % SERIES_COLORS.length]
@@ -252,7 +294,8 @@ export function AllPlayersProgressChart({
         <div className="mt-3 overflow-x-auto">
           <svg
             viewBox={`0 0 ${chart.width} ${HEIGHT}`}
-            className="min-w-[680px] w-full"
+            className="w-full"
+            style={{ minWidth: `${chart.minWidthPercent}%` }}
             role="img"
             aria-label={`Evolución de ${visibleSeries.length} jugadores por ${
               mode === "position" ? "posición" : "puntos"

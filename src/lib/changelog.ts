@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.9",
+    date: "27 de julio de 2026",
+    title: "Cara a cara y evolución compacta",
+    summary:
+      "La comparación vuelve a centrarse exclusivamente en dos jugadores y la evolución global gana espacio, precisión y un acceso rápido al podio.",
+    category: "improvement",
+    changes: [
+      "Comparar jugadores pasa a llamarse Cara a cara y conserva únicamente la información competitiva de los dos jugadores seleccionados.",
+      "El gráfico de evolución se elimina del Cara a cara porque la comparación temporal completa ya está disponible en Evolución de la liga.",
+      "El filtro destacado de Evolución de la liga cambia de top 4 a top 3 para reflejar el podio como referencia principal.",
+      "Los selectores Posición/Puntos y Todos/Top 3 comparten una sola fila y se elimina el encabezado repetido dentro del panel.",
+      "La escala de posiciones muestra cada puesto entero comprendido entre la mejor y la peor posición visibles.",
+      "Los gráficos muestran hasta siete jornadas sin desplazamiento horizontal y reducen proporcionalmente el scroll en temporadas más largas.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.8",
     date: "27 de julio de 2026",
     title: "Estadísticas individuales y evolución global",
