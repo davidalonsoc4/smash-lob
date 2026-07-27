@@ -11,12 +11,26 @@ import {
   calculateSeasonStatistics,
   getRankingPosition,
 } from "@/lib/seasonStatistics"
-import type { SeasonSummaryHighlight } from "@/lib/seasonSummaryImage"
+import type {
+  SeasonSummaryHeroPanel,
+  SeasonSummaryHighlight,
+  SeasonSummaryStat,
+} from "@/lib/seasonSummaryImage"
 import {
   formatFriendlyMatchLine,
   formatGamesDifference,
   getFriendlyMatchSummary,
 } from "@/lib/statisticsPresentation"
+
+function formatSignedGamesDiff(value: number) {
+  if (value > 0) return `+${value}`
+  return `${value}`
+}
+
+function haveSamePlayerIds(first: string[], second: string[]) {
+  if (first.length === 0 || first.length !== second.length) return false
+  return [...first].sort().join("|") === [...second].sort().join("|")
+}
 
 export default function StatisticsSeasonPage() {
   const {
@@ -60,6 +74,55 @@ export default function StatisticsSeasonPage() {
         .map((playerId) => playersById.get(playerId) ?? "Jugador")
         .join(" / ")
     : "Sin MVP calculado"
+  const summaryHeroes = useMemo((): SeasonSummaryHeroPanel[] => {
+    const championPlayers = statistics.leaders
+    const championPlayerIds = championPlayers.map((player) => player.id)
+    const championNames = championPlayers.map((player) => player.displayName).join(" / ")
+    const mvpPlayerIds = seasonMvp?.playerIds ?? []
+    const mvpPlayers = mvpPlayerIds
+      .map((playerId) => statistics.ranking.find((player) => player.id === playerId))
+      .filter((player): player is NonNullable<typeof player> => Boolean(player))
+    const mvpNames = seasonMvpNames
+
+    function buildStats(player: (typeof statistics.ranking)[number] | undefined): SeasonSummaryStat[] {
+      if (!player) {
+        return [
+          { label: "Puntos", value: "—" },
+          { label: "Victorias", value: "—" },
+          { label: "Dif. juegos", value: "—" },
+        ]
+      }
+
+      return [
+        { label: "Puntos", value: `${player.points}` },
+        { label: "Victorias", value: `${player.wins}` },
+        { label: "Dif. juegos", value: formatSignedGamesDiff(player.gamesDiff) },
+      ]
+    }
+
+    if (haveSamePlayerIds(championPlayerIds, mvpPlayerIds)) {
+      return [
+        {
+          label: championPlayers.length > 1 ? "Campeones y MVP" : "Campeón y MVP",
+          value: championNames,
+          stats: buildStats(championPlayers[0]),
+        },
+      ]
+    }
+
+    return [
+      {
+        label: championPlayers.length > 1 ? "Campeones" : "Campeón",
+        value: championNames,
+        stats: buildStats(championPlayers[0]),
+      },
+      {
+        label: "MVP",
+        value: mvpNames,
+        stats: buildStats(mvpPlayers[0]),
+      },
+    ]
+  }, [seasonMvp, seasonMvpNames, statistics.leaders, statistics.ranking])
   const seasonHistory = useMemo(
     () =>
       leagueSeasons
@@ -194,14 +257,12 @@ export default function StatisticsSeasonPage() {
             data={{
               leagueName: activeLeague.name,
               seasonName: selectedSeason.name,
-              champion: statistics.leaders
-                .map((player) => player.displayName)
-                .join(" / "),
-              mvp: seasonMvpNames,
+              heroes: summaryHeroes,
               podium: statistics.ranking.slice(0, 3).map((player) => ({
                 position: getRankingPosition(statistics.ranking, player.id) ?? 1,
                 name: player.displayName,
                 points: player.points,
+                gamesDiff: player.gamesDiff,
               })),
               highlights: summaryHighlights,
             }}

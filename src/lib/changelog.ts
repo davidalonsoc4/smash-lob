@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.15",
+    date: "27 de julio de 2026",
+    title: "Resumen final exportable más claro y con mejor contexto competitivo",
+    summary:
+      "La imagen final de temporada reorganiza campeón y MVP, añade estadísticas clave, muestra la diferencia de juegos en el podio y adopta un fondo claro incluso con temas oscuros.",
+    category: "fix",
+    changes: [
+      "Si campeón y MVP coinciden, ambos se unifican en un único panel para reducir altura y duplicidad visual.",
+      "Los paneles de campeón y MVP se ajustan para dar más protagonismo al nombre y menos espacio vacío, incluyendo puntos, victorias y diferencia de juegos.",
+      "Se eliminan las etiquetas intermedias de puestos destacados y momentos clave para compactar la imagen final.",
+      "El podio incorpora también la diferencia de juegos, tanto en la vista previa de la página como en la imagen exportada.",
+      "Se incrementa la separación visual entre Podio final y Lo más destacado para mejorar la lectura.",
+      "La exportación utiliza ahora un fondo claramente luminoso y estable, independientemente del tema activo de la aplicación.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.14",
     date: "27 de julio de 2026",
     title: "Resumen exportado más legible y sin solapes",

@@ -18,6 +18,11 @@ function sanitizeFilename(value: string) {
     .toLowerCase()
 }
 
+function formatGamesDiff(value: number) {
+  if (value > 0) return `+${value}`
+  return `${value}`
+}
+
 export function SeasonSummaryCard({
   data,
   canExport,
@@ -114,25 +119,39 @@ export function SeasonSummaryCard({
   }
 
   return (
-    <AppCard className="season-summary-card overflow-hidden p-0">
-      <div className="season-summary-hero p-4 text-white">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/75">
-          Resumen final
-        </p>
-        <p className="mt-1 text-lg font-black">{data.seasonName}</p>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wide text-white/70">
-              {data.champion.includes(" / ") ? "Campeones" : "Campeón"}
-            </p>
-            <p className="mt-1 text-xl font-black">{data.champion}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wide text-white/70">
-              MVP
-            </p>
-            <p className="mt-1 text-base font-black">{data.mvp}</p>
-          </div>
+    <AppCard className="overflow-hidden p-0">
+      <div className="space-y-3 bg-neutral-50/90 p-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            Resumen final
+          </p>
+          <p className="mt-1 text-lg font-black text-neutral-950">{data.seasonName}</p>
+        </div>
+
+        <div className={`grid gap-3 ${data.heroes.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+          {data.heroes.map((hero) => (
+            <div
+              key={`${hero.label}-${hero.value}`}
+              className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+                {hero.label}
+              </p>
+              <p className="mt-2 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
+              {hero.stats.length > 0 ? (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {hero.stats.slice(0, 3).map((stat) => (
+                    <div key={stat.label} className="rounded-xl bg-neutral-50 px-2 py-2 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                        {stat.label}
+                      </p>
+                      <p className="mt-1 text-sm font-black text-neutral-950">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -141,16 +160,24 @@ export function SeasonSummaryCard({
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
             Podio final
           </p>
-          <div className="mt-2 space-y-1.5">
+          <div className="mt-2 space-y-2">
             {data.podium.map((row) => (
               <div
                 key={`${row.position}-${row.name}`}
-                className="flex items-center justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
+                className="flex items-center gap-3 rounded-2xl bg-neutral-50 px-3 py-3"
               >
-                <p className="min-w-0 truncate text-sm font-black">
-                  {row.position}º · {row.name}
-                </p>
-                <span className="shrink-0 text-xs font-black">{row.points} pts</span>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-neutral-950 text-sm font-black text-white">
+                  {row.position}º
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-black text-neutral-950">{row.name}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-xs font-black text-neutral-950">{row.points} pts</p>
+                  <p className="text-[11px] font-semibold text-neutral-500">
+                    DG {formatGamesDiff(row.gamesDiff)}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -160,13 +187,13 @@ export function SeasonSummaryCard({
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
             Lo más destacado
           </p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-2.5">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-3">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>
-                <p className="mt-1 text-sm font-black leading-5">
+                <p className="mt-1 text-sm font-black leading-5 text-neutral-950">
                   {highlight.headline}
                 </p>
                 <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">

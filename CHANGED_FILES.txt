@@ -1,8 +1,10 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.17.14_EXPORT_SUMMARY_READABILITY_FIX.md
+docs/preproduction/V0.17.15_SEASON_SUMMARY_EXPORT_POLISH.md
 docs/production-hardening/STATUS.md
 package.json
 package-lock.json
+src/app/statistics/season/page.tsx
+src/components/statistics/SeasonSummaryCard.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
 src/lib/seasonSummaryImage.ts
