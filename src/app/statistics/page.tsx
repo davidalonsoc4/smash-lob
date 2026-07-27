@@ -8,14 +8,13 @@ import {
   StatisticsSectionLink,
 } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
-import { getRankingPosition } from "@/lib/seasonStatistics"
-
-function formatPercent(value: number) {
-  return `${Math.round(value)}%`
-}
 
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
+}
+
+function formatNames(names: string[]) {
+  return names.length > 0 ? names.join(" / ") : "—"
 }
 
 export default function StatisticsPage() {
@@ -29,105 +28,90 @@ export default function StatisticsPage() {
   } = useStatisticsWorkspace()
 
   const issueCount =
-    statistics.dataQuality.pendingMatches +
+    (selectedSeason.status === "finished"
+      ? statistics.dataQuality.pendingMatches
+      : 0) +
     statistics.dataQuality.excludedFinishedMatches +
     statistics.dataQuality.invalidFinishedMatches
-  const topPlayers = statistics.ranking.slice(0, 3)
+  const maximumWins = Math.max(0, ...statistics.ranking.map((player) => player.wins))
+  const mostWinsPlayers = statistics.ranking.filter(
+    (player) => player.wins === maximumWins && maximumWins > 0,
+  )
+  const maximumGamesDiff =
+    statistics.ranking.length > 0
+      ? Math.max(...statistics.ranking.map((player) => player.gamesDiff))
+      : 0
+  const bestGamesDiffPlayers = statistics.ranking.filter(
+    (player) => player.gamesDiff === maximumGamesDiff,
+  )
 
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Estadísticas"
-        description="Un resumen rápido de la temporada y accesos directos al detalle que quieras consultar."
+        description="Lo más destacado de la temporada y accesos directos a cada análisis."
         seasons={leagueSeasons}
         selectedSeason={selectedSeason}
         onSeasonChange={selectSeason}
         fallbackHref="/ranking"
       />
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-            Progreso
-          </p>
-          <p className="mt-1 text-2xl font-black">
-            {statistics.completedMatches}/{statistics.totalMatches}
-          </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {formatPercent(statistics.completionRate)} completado
-          </p>
-        </AppCard>
-        <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-            Líder
-          </p>
-          <p className="mt-1 truncate text-base font-black">
-            {statistics.leaders.length > 0
-              ? statistics.leaders.map((player) => player.displayName).join(" / ")
-              : "—"}
-          </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {statistics.leader ? `${statistics.leader.points} puntos` : "Sin datos"}
-          </p>
-        </AppCard>
-        <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-            Mejor racha
-          </p>
-          <p className="mt-1 truncate text-base font-black">
-            {statistics.longestWinStreak?.displayName ?? "—"}
-          </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {statistics.longestWinStreak
-              ? `${statistics.longestWinStreak.wins} victorias`
-              : "Sin datos"}
-          </p>
-        </AppCard>
-        <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-            Resultados válidos
-          </p>
-          <p className="mt-1 text-2xl font-black">
-            {statistics.countedMatches}
-          </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-            {statistics.countedMatches > 0
-              ? `${new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(statistics.averageGamesPerMatch)} juegos por partido`
-              : "Sin resultados"}
-          </p>
-        </AppCard>
-      </div>
-
       {statistics.ranking.length > 0 ? (
-        <AppCard accentStrip>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-                Podio provisional
-              </p>
-              <p className="mt-1 text-sm font-black">{selectedSeason.name}</p>
-            </div>
-            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-700">
-              {selectedSeason.status === "finished" ? "Final" : "En curso"}
-            </span>
-          </div>
-          <div className="mt-3 space-y-1.5">
-            {topPlayers.map((player) => (
-              <div
-                key={player.id}
-                className="flex items-center justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
-              >
-                <p className="min-w-0 truncate text-sm font-black">
-                  {getRankingPosition(statistics.ranking, player.id)}º · {player.displayName}
-                </p>
-                <span className="shrink-0 text-xs font-black">
-                  {player.points} pts · {formatSigned(player.gamesDiff)} juegos
-                </span>
-              </div>
-            ))}
-          </div>
-        </AppCard>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <AppCard>
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+              {selectedSeason.status === "finished"
+                ? statistics.leaders.length > 1
+                  ? "Campeones"
+                  : "Campeón"
+                : statistics.leaders.length > 1
+                  ? "Líderes"
+                  : "Líder"}
+            </p>
+            <p className="mt-1 truncate text-base font-black">
+              {formatNames(statistics.leaders.map((player) => player.displayName))}
+            </p>
+            <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+              {statistics.leader ? `${statistics.leader.points} puntos` : "Sin datos"}
+            </p>
+          </AppCard>
+          <AppCard>
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+              Más victorias
+            </p>
+            <p className="mt-1 truncate text-base font-black">
+              {formatNames(mostWinsPlayers.map((player) => player.displayName))}
+            </p>
+            <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+              {maximumWins > 0 ? `${maximumWins} victorias` : "Sin victorias"}
+            </p>
+          </AppCard>
+          <AppCard>
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+              Mejor diferencia
+            </p>
+            <p className="mt-1 truncate text-base font-black">
+              {formatNames(bestGamesDiffPlayers.map((player) => player.displayName))}
+            </p>
+            <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+              {formatSigned(maximumGamesDiff)} juegos
+            </p>
+          </AppCard>
+          <AppCard>
+            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+              Mejor racha
+            </p>
+            <p className="mt-1 truncate text-base font-black">
+              {statistics.longestWinStreak?.displayName ?? "—"}
+            </p>
+            <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+              {statistics.longestWinStreak
+                ? `${statistics.longestWinStreak.wins} victorias seguidas`
+                : "Sin racha registrada"}
+            </p>
+          </AppCard>
+        </div>
       ) : (
         <EmptyState
           compact
@@ -146,48 +130,36 @@ export default function StatisticsPage() {
             href={buildStatisticsHref("/statistics/standings")}
             title="Clasificación"
             description="Tabla completa, puntos, balance y evolución de la temporada."
-            summary={`${statistics.ranking.length} jugadores`}
             leading={<StatisticsSectionIcon name="standings" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/compare")}
             title="Cara a cara"
-            description="Clasificación, forma reciente y enfrentamientos directos entre dos jugadores."
-            summary={statistics.ranking.length >= 2 ? "Disponible" : "Sin datos"}
+            description="Compara a dos jugadores, sus rachas y su rendimiento ante los mismos rivales."
             leading={<StatisticsSectionIcon name="compare" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/player")}
             title="Análisis individual"
             description="Rendimiento, compañero más fuerte, rivales, récords y evolución."
-            summary={statistics.ranking[0]?.displayName}
             leading={<StatisticsSectionIcon name="player" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/evolution")}
             title="Evolución de la liga"
-            description="Gráfico conjunto de posición y puntos de todos los jugadores."
-            summary={`${statistics.ranking.length} series`}
+            description="Posición, puntos y diferencia de juegos de todos los jugadores."
             leading={<StatisticsSectionIcon name="evolution" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/records")}
             title="Récords de temporada"
-            description="Mejores rachas, remontadas y partidos destacados."
-            summary={statistics.records.biggestComeback ? "Con remontada" : "Partidos destacados"}
+            description="Mejores rachas, remontadas y partidos que marcaron la temporada."
             leading={<StatisticsSectionIcon name="records" />}
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/season")}
             title="Resumen de temporada"
-            description="Calidad de los datos, resumen final compartible e historial de campeones."
-            summary={
-              issueCount > 0
-                ? `${issueCount} avisos`
-                : selectedSeason.status === "finished"
-                  ? "Temporada cerrada"
-                  : "Datos al día"
-            }
+            description="Resumen final compartible e historial de campeones."
             leading={<StatisticsSectionIcon name="season" />}
           />
         </AppCard>
@@ -199,7 +171,7 @@ export default function StatisticsPage() {
             Hay {issueCount} elementos que conviene revisar
           </p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-amber-800">
-            Los partidos pendientes, excluidos o no válidos no se incluyen en los cálculos competitivos.
+            Los resultados excluidos o no válidos no se incluyen en los cálculos competitivos. Los pendientes solo requieren revisión al cerrar la temporada.
           </p>
         </AppCard>
       ) : null}

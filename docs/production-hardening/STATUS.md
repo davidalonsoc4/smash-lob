@@ -447,3 +447,15 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added one tick for every visible integer position and made seven rounds fit without horizontal scrolling.
 - No database migration, API contract, permission or persistence change is required.
 - Focused TypeScript syntax and chart-logic checks pass; full lint, project type-check and build remain pending in the local worktree because this review archive excluded `node_modules` and the package registry returned HTTP 503.
+
+## v0.17.10 - Statistics usability and richer comparisons (2026-07-27)
+
+- Differentiated participant and spectator invitation actions with dedicated user-plus and share icons.
+- Removed the provisional podium, progress percentage, technical result counters and redundant navigation badges from the statistics landing page.
+- Added sticky, editable player selectors to Head-to-head and Individual analysis.
+- Expanded Head-to-head with direct set/game totals and performance against common opponents without double-counting aggregate matches.
+- Reworked global and personal season records into plain-language cards with match context.
+- Removed the standalone data-quality panel from the season summary, moved incomplete status beside the season label and blocked image export until the summary is complete.
+- Rebuilt the shareable summary highlights and added cumulative game differential to league evolution.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript transpilation and structural checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes `node_modules`.

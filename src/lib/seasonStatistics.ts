@@ -71,6 +71,20 @@ export type PlayerRecentForm = {
   currentStreakOutcome: "win" | "loss" | null
 }
 
+export type PlayerComparisonOpponentPerformance = {
+  matchesPlayed: number
+  wins: number
+  losses: number
+  gamesDiff: number
+}
+
+export type PlayerComparisonCommonOpponent = {
+  playerId: string
+  displayName: string
+  playerA: PlayerComparisonOpponentPerformance
+  playerB: PlayerComparisonOpponentPerformance
+}
+
 export type PlayerComparison = {
   playerA: RankingPlayer
   playerB: RankingPlayer
@@ -80,7 +94,16 @@ export type PlayerComparison = {
     matchesPlayed: number
     playerAWins: number
     playerBWins: number
+    playerASets: number
+    playerBSets: number
+    playerAGames: number
+    playerBGames: number
     gamesDiffA: number
+  }
+  commonOpponents: {
+    rows: PlayerComparisonCommonOpponent[]
+    playerA: PlayerComparisonOpponentPerformance
+    playerB: PlayerComparisonOpponentPerformance
   }
 }
 
@@ -409,17 +432,23 @@ export function calculatePlayerComparison({
     return null
   }
 
+  const seasonMatches = normalizedMatches.filter(
+    (match) => match.seasonId === seasonId && isValidCountedMatch(match),
+  )
   const rivalry = {
     matchesPlayed: 0,
     playerAWins: 0,
     playerBWins: 0,
+    playerASets: 0,
+    playerBSets: 0,
+    playerAGames: 0,
+    playerBGames: 0,
     gamesDiffA: 0,
   }
-  matches
+
+  seasonMatches
     .filter(
       (match) =>
-        match.seasonId === seasonId &&
-        isValidCountedMatch(match) &&
         [...match.teamA, ...match.teamB].includes(playerAId) &&
         [...match.teamA, ...match.teamB].includes(playerBId),
     )
@@ -429,22 +458,134 @@ export function calculatePlayerComparison({
 
       const aInTeamA = match.teamA.includes(playerAId)
       const bInTeamA = match.teamA.includes(playerBId)
-      const gamesA = match.sets.reduce((total, set) => total + set.a, 0)
-      const gamesB = match.sets.reduce((total, set) => total + set.b, 0)
 
       if (aInTeamA === bInTeamA) {
         return
       }
 
-      const playerAWon = (aInTeamA && winner === "A") || (!aInTeamA && winner === "B")
-      const ownGamesA = aInTeamA ? gamesA : gamesB
-      const opponentGamesA = aInTeamA ? gamesB : gamesA
+      const playerAWon =
+        (aInTeamA && winner === "A") || (!aInTeamA && winner === "B")
+      const gamesA = match.sets.reduce((total, set) => total + set.a, 0)
+      const gamesB = match.sets.reduce((total, set) => total + set.b, 0)
+      const playerAGames = aInTeamA ? gamesA : gamesB
+      const playerBGames = aInTeamA ? gamesB : gamesA
+      const playerASets = match.sets.filter((set) =>
+        aInTeamA ? set.a > set.b : set.b > set.a,
+      ).length
+      const playerBSets = match.sets.filter((set) =>
+        aInTeamA ? set.b > set.a : set.a > set.b,
+      ).length
 
       rivalry.matchesPlayed += 1
-      rivalry.gamesDiffA += ownGamesA - opponentGamesA
+      rivalry.playerAGames += playerAGames
+      rivalry.playerBGames += playerBGames
+      rivalry.playerASets += playerASets
+      rivalry.playerBSets += playerBSets
+      rivalry.gamesDiffA += playerAGames - playerBGames
       if (playerAWon) rivalry.playerAWins += 1
       else rivalry.playerBWins += 1
     })
+
+  const playersById = new Map(
+    playerProfiles.map((profile) => [profile.id, profile.displayName]),
+  )
+  const emptyPerformance = (): PlayerComparisonOpponentPerformance => ({
+    matchesPlayed: 0,
+    wins: 0,
+    losses: 0,
+    gamesDiff: 0,
+  })
+  const commonOpponentRows = new Map<
+    string,
+    {
+      playerA: PlayerComparisonOpponentPerformance
+      playerB: PlayerComparisonOpponentPerformance
+    }
+  >()
+
+  function addOpponentResult(
+    selectedPlayerId: string,
+    selectedPlayer: "playerA" | "playerB",
+    match: MatchData,
+  ) {
+    const inTeamA = match.teamA.includes(selectedPlayerId)
+    const inTeamB = match.teamB.includes(selectedPlayerId)
+    if (!inTeamA && !inTeamB) return
+
+    const result = getPlayerMatchResult(match, selectedPlayerId)
+    if (!result) return
+
+    const opponents = (inTeamA ? match.teamB : match.teamA).filter(
+      (opponentId) =>
+        opponentId !== playerAId && opponentId !== playerBId,
+    )
+
+    opponents.forEach((opponentId) => {
+      const row = commonOpponentRows.get(opponentId) ?? {
+        playerA: emptyPerformance(),
+        playerB: emptyPerformance(),
+      }
+      const performance = row[selectedPlayer]
+      performance.matchesPlayed += 1
+      performance.gamesDiff += result.gamesDiff
+      if (result.outcome === "win") performance.wins += 1
+      else performance.losses += 1
+      commonOpponentRows.set(opponentId, row)
+    })
+  }
+
+  seasonMatches.forEach((match) => {
+    addOpponentResult(playerAId, "playerA", match)
+    addOpponentResult(playerBId, "playerB", match)
+  })
+
+  const commonRows = Array.from(commonOpponentRows.entries())
+    .filter(
+      ([, row]) =>
+        row.playerA.matchesPlayed > 0 && row.playerB.matchesPlayed > 0,
+    )
+    .map(([playerId, row]): PlayerComparisonCommonOpponent => ({
+      playerId,
+      displayName: playersById.get(playerId) ?? "Jugador",
+      playerA: row.playerA,
+      playerB: row.playerB,
+    }))
+    .sort((first, second) => {
+      const firstMatches =
+        first.playerA.matchesPlayed + first.playerB.matchesPlayed
+      const secondMatches =
+        second.playerA.matchesPlayed + second.playerB.matchesPlayed
+      if (secondMatches !== firstMatches) return secondMatches - firstMatches
+      return first.displayName.localeCompare(second.displayName, "es")
+    })
+
+  const commonOpponentIds = new Set(commonRows.map((row) => row.playerId))
+  const aggregateCommonPerformance = (
+    playerId: string,
+  ): PlayerComparisonOpponentPerformance => {
+    const total = emptyPerformance()
+
+    seasonMatches.forEach((match) => {
+      const inTeamA = match.teamA.includes(playerId)
+      const inTeamB = match.teamB.includes(playerId)
+      if (!inTeamA && !inTeamB) return
+
+      const opponents = inTeamA ? match.teamB : match.teamA
+      if (!opponents.some((opponentId) => commonOpponentIds.has(opponentId))) {
+        return
+      }
+
+      const result = getPlayerMatchResult(match, playerId)
+      if (!result) return
+
+      total.matchesPlayed += 1
+      total.gamesDiff += result.gamesDiff
+      if (result.outcome === "win") total.wins += 1
+      else total.losses += 1
+    })
+
+    return total
+  }
 
   return {
     playerA,
@@ -452,14 +593,19 @@ export function calculatePlayerComparison({
     playerAForm: calculatePlayerRecentForm({
       seasonId,
       playerId: playerAId,
-      matches,
+      matches: normalizedMatches,
     }),
     playerBForm: calculatePlayerRecentForm({
       seasonId,
       playerId: playerBId,
-      matches,
+      matches: normalizedMatches,
     }),
     rivalry,
+    commonOpponents: {
+      rows: commonRows,
+      playerA: aggregateCommonPerformance(playerAId),
+      playerB: aggregateCommonPerformance(playerBId),
+    },
   }
 }
 

@@ -2,7 +2,6 @@
 
 import { useMemo } from "react"
 import { SeasonSummaryCard } from "@/components/statistics/SeasonSummaryCard"
-import { StatisticsDataQualityPanel } from "@/components/statistics/StatisticsDataQualityPanel"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -12,6 +11,12 @@ import {
   calculateSeasonStatistics,
   getRankingPosition,
 } from "@/lib/seasonStatistics"
+import type { SeasonSummaryHighlight } from "@/lib/seasonSummaryImage"
+import {
+  formatFriendlyMatchLine,
+  formatGamesDifference,
+  getFriendlyMatchSummary,
+} from "@/lib/statisticsPresentation"
 
 export default function StatisticsSeasonPage() {
   const {
@@ -26,7 +31,6 @@ export default function StatisticsSeasonPage() {
     playersById,
     votes,
     getSeasonRoundSettings,
-    getMatchLabel,
   } = useStatisticsWorkspace()
 
   const seasonMvp = useMemo(
@@ -72,19 +76,85 @@ export default function StatisticsSeasonPage() {
     [countedMatches, leaguePlayers, leagueSeasons, seasonPlayers],
   )
 
+  const summaryIsComplete =
+    selectedSeason.status === "finished" &&
+    statistics.dataQuality.pendingMatches === 0 &&
+    statistics.dataQuality.excludedFinishedMatches === 0 &&
+    statistics.dataQuality.invalidFinishedMatches === 0 &&
+    statistics.dataQuality.hasCountedResults
+  const blockingIssueCount =
+    statistics.dataQuality.pendingMatches +
+    statistics.dataQuality.excludedFinishedMatches +
+    statistics.dataQuality.invalidFinishedMatches
+  const exportBlockedReason =
+    blockingIssueCount > 0
+      ? `Revisa ${blockingIssueCount} ${blockingIssueCount === 1 ? "partido pendiente, excluido o no válido" : "partidos pendientes, excluidos o no válidos"} antes de generar la imagen.`
+      : "La temporada necesita al menos un resultado válido para generar la imagen."
+
+  const summaryHighlights = useMemo((): SeasonSummaryHighlight[] => {
+    const comebackRecord = statistics.records.biggestComeback
+    const comeback = comebackRecord
+      ? getFriendlyMatchSummary(comebackRecord.match, playersById)
+      : null
+    const closest = statistics.records.closestMatch
+      ? getFriendlyMatchSummary(statistics.records.closestMatch, playersById)
+      : null
+    const biggestWin = statistics.records.biggestWin
+      ? getFriendlyMatchSummary(statistics.records.biggestWin, playersById)
+      : null
+
+    return [
+      {
+        label: "Mejor racha",
+        headline: statistics.records.longestWinStreak
+          ? `${statistics.records.longestWinStreak.displayName}: ${statistics.records.longestWinStreak.wins} victorias seguidas`
+          : "Sin racha de victorias",
+        detail: "La mejor serie individual de la temporada.",
+      },
+      {
+        label: "Mayor remontada",
+        headline:
+          comeback && comebackRecord
+            ? `${comeback.winnerNames} remontaron desde -${comebackRecord.firstSetDeficit} juegos`
+            : "No hubo remontadas",
+        detail: comeback
+          ? formatFriendlyMatchLine(comeback)
+          : "Ningún ganador perdió el primer set.",
+      },
+      {
+        label: "Partido más igualado",
+        headline: closest
+          ? formatGamesDifference(closest.gamesMargin)
+          : "Sin partido destacado",
+        detail: closest
+          ? formatFriendlyMatchLine(closest)
+          : "No hay resultados suficientes.",
+      },
+      {
+        label: "Victoria más contundente",
+        headline: biggestWin
+          ? `${biggestWin.winnerNames} ganaron por ${biggestWin.gamesMargin} ${biggestWin.gamesMargin === 1 ? "juego" : "juegos"}`
+          : "Sin victoria destacada",
+        detail: biggestWin
+          ? formatFriendlyMatchLine(biggestWin)
+          : "No hay resultados suficientes.",
+      },
+    ]
+  }, [playersById, statistics.records])
+
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Resumen de temporada"
-        description="Estado de los datos, cierre compartible e historial competitivo de la liga."
+        description="Resumen final compartible e historial competitivo de la liga."
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
-      />
-
-      <StatisticsDataQualityPanel
-        quality={statistics.dataQuality}
-        seasonStatus={selectedSeason.status}
+        statusBadge={
+          selectedSeason.status === "finished" && !summaryIsComplete
+            ? { label: "Datos incompletos", tone: "warning" }
+            : undefined
+        }
       />
 
       {selectedSeason.status === "finished" &&
@@ -92,9 +162,11 @@ export default function StatisticsSeasonPage() {
       statistics.dataQuality.hasCountedResults ? (
         <div>
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-            Resumen final compartible
+            Resumen final
           </p>
           <SeasonSummaryCard
+            canExport={summaryIsComplete}
+            exportBlockedReason={exportBlockedReason}
             data={{
               leagueName: activeLeague.name,
               seasonName: selectedSeason.name,
@@ -107,14 +179,7 @@ export default function StatisticsSeasonPage() {
                 name: player.displayName,
                 points: player.points,
               })),
-              bestStreak: statistics.records.longestWinStreak
-                ? `${statistics.records.longestWinStreak.displayName} · ${statistics.records.longestWinStreak.wins} victorias`
-                : "Sin datos",
-              biggestComeback: statistics.records.biggestComeback
-                ? `Déficit de ${statistics.records.biggestComeback.firstSetDeficit} juegos · ${getMatchLabel(statistics.records.biggestComeback.match)}`
-                : "Sin remontadas registradas",
-              closestMatch: getMatchLabel(statistics.records.closestMatch),
-              biggestWin: getMatchLabel(statistics.records.biggestWin),
+              highlights: summaryHighlights,
             }}
           />
         </div>

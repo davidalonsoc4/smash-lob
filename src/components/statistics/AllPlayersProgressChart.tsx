@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import type { PlayerRoundProgress } from "@/lib/seasonStatistics"
 
-type ChartMode = "position" | "points"
+type ChartMode = "position" | "points" | "gamesDiff"
 
 export type LeagueProgressSeries = {
   playerId: string
@@ -39,6 +39,10 @@ function formatPosition(value: number) {
   return `${value}º`
 }
 
+function formatSigned(value: number) {
+  return `${value > 0 ? "+" : ""}${value}`
+}
+
 export function AllPlayersProgressChart({
   series,
 }: {
@@ -63,25 +67,40 @@ export function AllPlayersProgressChart({
     const width = Math.max(410, 86 + Math.max(1, rounds.length - 1) * 54)
     const values = visibleSeries.flatMap((player) =>
       player.progress.map((row) =>
-        mode === "position" ? row.position : row.points,
+        mode === "position"
+          ? row.position
+          : mode === "points"
+            ? row.points
+            : row.gamesDiff,
       ),
     )
     const rawMin = values.length > 0 ? Math.min(...values) : 0
     const rawMax = values.length > 0 ? Math.max(...values) : 1
-    const minValue = mode === "position" ? Math.max(1, rawMin) : 0
+    const minValue =
+      mode === "position"
+        ? Math.max(1, rawMin)
+        : mode === "points"
+          ? 0
+          : Math.min(0, rawMin)
     const maxValue =
       mode === "position"
         ? Math.max(minValue, rawMax)
-        : Math.max(minValue + 1, rawMax)
+        : mode === "points"
+          ? Math.max(minValue + 1, rawMax)
+          : Math.max(minValue + 1, rawMax, 0)
     const range = Math.max(1, maxValue - minValue)
     const chartWidth = width - PADDING.left - PADDING.right
     const chartHeight = HEIGHT - PADDING.top - PADDING.bottom
 
     const playerSeries = visibleSeries.map((player) => {
-      const valuesByRound = new Map(
+      const valuesByRound = new Map<number, number>(
         player.progress.map((row) => [
           row.round,
-          mode === "position" ? row.position : row.points,
+          mode === "position"
+            ? row.position
+            : mode === "points"
+              ? row.points
+              : row.gamesDiff,
         ]),
       )
       const points = rounds
@@ -187,11 +206,11 @@ export function AllPlayersProgressChart({
   return (
     <AppCard>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex rounded-xl bg-neutral-100 p-1 text-xs font-black">
+        <div className="flex rounded-xl bg-neutral-100 p-1 text-[10px] font-black">
           <button
             type="button"
             onClick={() => setMode("position")}
-            className={`rounded-lg px-3 py-1.5 transition ${
+            className={`rounded-lg px-2 py-1.5 transition ${
               mode === "position"
                 ? "bg-white text-neutral-950 shadow-sm"
                 : "text-neutral-500"
@@ -202,7 +221,7 @@ export function AllPlayersProgressChart({
           <button
             type="button"
             onClick={() => setMode("points")}
-            className={`rounded-lg px-3 py-1.5 transition ${
+            className={`rounded-lg px-2 py-1.5 transition ${
               mode === "points"
                 ? "bg-white text-neutral-950 shadow-sm"
                 : "text-neutral-500"
@@ -210,8 +229,19 @@ export function AllPlayersProgressChart({
           >
             Puntos
           </button>
+          <button
+            type="button"
+            onClick={() => setMode("gamesDiff")}
+            className={`rounded-lg px-2 py-1.5 transition ${
+              mode === "gamesDiff"
+                ? "bg-white text-neutral-950 shadow-sm"
+                : "text-neutral-500"
+            }`}
+          >
+            Dif. juegos
+          </button>
         </div>
-        <div className="flex rounded-xl bg-neutral-100 p-1 text-xs font-black">
+        <div className="flex rounded-xl bg-neutral-100 p-1 text-[10px] font-black">
           <button
             type="button"
             onClick={() => setHiddenPlayerIds(new Set())}
@@ -298,7 +328,11 @@ export function AllPlayersProgressChart({
             style={{ minWidth: `${chart.minWidthPercent}%` }}
             role="img"
             aria-label={`Evolución de ${visibleSeries.length} jugadores por ${
-              mode === "position" ? "posición" : "puntos"
+              mode === "position"
+                ? "posición"
+                : mode === "points"
+                  ? "puntos"
+                  : "diferencia de juegos"
             }`}
           >
             {ticks.map((tick, index) => (
@@ -318,7 +352,9 @@ export function AllPlayersProgressChart({
                 >
                   {mode === "position"
                     ? formatPosition(Math.max(1, Math.round(tick.value)))
-                    : Math.round(tick.value)}
+                    : mode === "gamesDiff"
+                      ? formatSigned(Math.round(tick.value))
+                      : Math.round(tick.value)}
                 </text>
               </g>
             ))}
@@ -357,7 +393,13 @@ export function AllPlayersProgressChart({
                   strokeDasharray={player.dash || undefined}
                 />
                 {player.points.map((point) => {
-                  const title = `${player.displayName} · J${point.round} · ${point.value}`
+                  const title = `${player.displayName} · J${point.round} · ${
+                    mode === "position"
+                      ? formatPosition(point.value)
+                      : mode === "gamesDiff"
+                        ? `${formatSigned(point.value)} juegos`
+                        : `${point.value} puntos`
+                  }`
                   if (player.marker === 1) {
                     return (
                       <rect
@@ -420,7 +462,7 @@ export function AllPlayersProgressChart({
             {player.progress
               .map(
                 (row) =>
-                  `jornada ${row.round}, ${row.position}ª posición, ${row.points} puntos`,
+                  `jornada ${row.round}, ${row.position}ª posición, ${row.points} puntos y ${formatSigned(row.gamesDiff)} de diferencia de juegos`,
               )
               .join("; ")}
           </p>

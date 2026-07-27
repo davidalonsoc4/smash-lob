@@ -10,7 +10,7 @@ type FloatingSpectatorShareButtonProps = {
   rightOffsetPx: number
 }
 
-function EyeShareIcon() {
+function ShareIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -22,8 +22,11 @@ function EyeShareIcon() {
       strokeLinejoin="round"
       className="h-[15px] w-[15px]"
     >
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-      <circle cx="12" cy="12" r="2.5" />
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.59 13.51 15.42 17.49" />
+      <path d="M15.41 6.51 8.59 10.49" />
     </svg>
   )
 }
@@ -95,7 +98,7 @@ export function FloatingSpectatorShareButton({
         title={copied ? "Enlace copiado" : "Compartir con espectadores"}
         className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100 disabled:cursor-wait disabled:opacity-60"
       >
-        <EyeShareIcon />
+        <ShareIcon />
       </button>
 
       {copied ? (

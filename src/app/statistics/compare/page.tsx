@@ -54,7 +54,7 @@ export default function StatisticsComparePage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Cara a cara"
-        description="Compara la clasificación, la forma reciente y los enfrentamientos directos entre dos jugadores."
+        description="Compara su rendimiento general, la forma reciente, los duelos directos y los resultados ante rivales comunes."
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
