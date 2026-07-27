@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.14",
+    date: "27 de julio de 2026",
+    title: "Resumen exportado más legible y sin solapes",
+    summary:
+      "La imagen exportada de final de temporada gana aún más altura, reorganiza su contenido en una sola columna y evita que los textos se pisen entre campeón, MVP y destacados.",
+    category: "fix",
+    changes: [
+      "La imagen de resumen final adopta una estructura más vertical y de una sola columna para evitar cruces entre bloques de texto.",
+      "Campeón y MVP pasan a mostrarse en tarjetas independientes con más espacio y jerarquía visual.",
+      "El podio mantiene una lectura más limpia con nombres y puntos mejor separados.",
+      "Los momentos destacados se apilan en tarjetas completas, con menos riesgo de solape y mejor claridad al compartir o descargar.",
+      "Se refuerza el truncado controlado de textos largos para que nunca invadan otras zonas de la imagen.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.13",
     date: "27 de julio de 2026",
     title: "Imagen de temporada más vertical y más clara",

@@ -1,5 +1,5 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.17.13_TALLER_SEASON_SUMMARY_IMAGE.md
+docs/preproduction/V0.17.14_EXPORT_SUMMARY_READABILITY_FIX.md
 docs/production-hardening/STATUS.md
 package.json
 package-lock.json

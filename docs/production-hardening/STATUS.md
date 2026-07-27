@@ -489,3 +489,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Enlarged highlight cards and simplified podium rows to improve readability in the exported image.
 - No database migration, API contract, permission or persistence change is required.
 - Focused TypeScript syntax checks pass locally on the modified renderer; full lint, project type-check and build remain pending in the staging worktree with installed dependencies.
+
+
+## v0.17.14 - Exported season summary readability fix (2026-07-27)
+
+- Rebuilt the exported season-summary image with a taller single-column layout to avoid text collisions.
+- Split champion and MVP into independent hero cards with more vertical space and stronger hierarchy.
+- Stacked highlight cards vertically and constrained long copy to controlled wrapped lines with ellipsis.
+- Kept sharing and downloading on the same generated asset.
+- No database migration, API contract, permission or persistence change is required.
+- Full lint, type-check and build remain pending in the local worktree with installed dependencies.
