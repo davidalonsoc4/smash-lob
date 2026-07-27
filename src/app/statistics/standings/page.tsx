@@ -18,8 +18,6 @@ export default function StatisticsStandingsPage() {
   const {
     activeLeague,
     selectedSeason,
-    leagueSeasons,
-    selectSeason,
     buildStatisticsHref,
     statistics,
   } = useStatisticsWorkspace()
@@ -30,9 +28,7 @@ export default function StatisticsStandingsPage() {
         leagueName={activeLeague.name}
         title="Clasificación"
         description="Posiciones, puntos y balance completo de la temporada seleccionada."
-        seasons={leagueSeasons}
         selectedSeason={selectedSeason}
-        onSeasonChange={selectSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
 

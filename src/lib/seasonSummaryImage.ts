@@ -5,7 +5,7 @@ export type SeasonSummaryImageData = {
   mvp: string
   podium: { position: number; name: string; points: number }[]
   bestStreak: string
-  bestPair: string
+  biggestComeback: string
   closestMatch: string
   biggestWin: string
 }
@@ -226,7 +226,7 @@ export async function createSeasonSummaryImage(data: SeasonSummaryImageData) {
 
   const metrics = [
     ["Mejor racha", data.bestStreak],
-    ["Mejor pareja", data.bestPair],
+    ["Mayor remontada", data.biggestComeback],
     ["Partido más igualado", data.closestMatch],
     ["Victoria más amplia", data.biggestWin],
   ] as const

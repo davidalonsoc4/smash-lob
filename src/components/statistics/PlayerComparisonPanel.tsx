@@ -7,10 +7,6 @@ import type {
   PlayerRecentForm,
 } from "@/lib/seasonStatistics"
 
-function formatPercent(value: number) {
-  return `${Math.round(value)}%`
-}
-
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
 }
@@ -201,28 +197,6 @@ export function PlayerComparisonPanel({
             )}
           </AppCard>
 
-          <AppCard>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
-                  Como pareja
-                </p>
-                <p className="mt-1 truncate text-sm font-black">
-                  {comparison.playerA.displayName} / {comparison.playerB.displayName}
-                </p>
-                <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                  {comparison.partnership.matchesPlayed > 0
-                    ? `${comparison.partnership.matchesPlayed} partidos · ${comparison.partnership.wins}V · ${comparison.partnership.losses}D · Dif. ${formatSigned(comparison.partnership.gamesDiff)}`
-                    : "Todavía no han jugado juntos esta temporada"}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-black text-neutral-800">
-                {comparison.partnership.matchesPlayed > 0
-                  ? formatPercent(comparison.partnership.winRate)
-                  : "—"}
-              </span>
-            </div>
-          </AppCard>
         </>
       ) : null}
     </div>

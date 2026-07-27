@@ -13,16 +13,11 @@ import {
   getRankingPosition,
 } from "@/lib/seasonStatistics"
 
-function formatPercent(value: number) {
-  return `${Math.round(value)}%`
-}
-
 export default function StatisticsSeasonPage() {
   const {
     activeLeague,
     selectedSeason,
     leagueSeasons,
-    selectSeason,
     buildStatisticsHref,
     statistics,
     countedMatches,
@@ -83,9 +78,7 @@ export default function StatisticsSeasonPage() {
         leagueName={activeLeague.name}
         title="Resumen de temporada"
         description="Estado de los datos, cierre compartible e historial competitivo de la liga."
-        seasons={leagueSeasons}
         selectedSeason={selectedSeason}
-        onSeasonChange={selectSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
 
@@ -117,11 +110,9 @@ export default function StatisticsSeasonPage() {
               bestStreak: statistics.records.longestWinStreak
                 ? `${statistics.records.longestWinStreak.displayName} · ${statistics.records.longestWinStreak.wins} victorias`
                 : "Sin datos",
-              bestPair: statistics.records.bestPairRate
-                ? `${statistics.records.bestPairRate.playerNames.join(" / ")} · ${formatPercent(statistics.records.bestPairRate.winRate)}`
-                : statistics.records.mostWinsPair
-                  ? `${statistics.records.mostWinsPair.playerNames.join(" / ")} · ${statistics.records.mostWinsPair.wins} victorias`
-                  : "Sin datos",
+              biggestComeback: statistics.records.biggestComeback
+                ? `Déficit de ${statistics.records.biggestComeback.firstSetDeficit} juegos · ${getMatchLabel(statistics.records.biggestComeback.match)}`
+                : "Sin remontadas registradas",
               closestMatch: getMatchLabel(statistics.records.closestMatch),
               biggestWin: getMatchLabel(statistics.records.biggestWin),
             }}

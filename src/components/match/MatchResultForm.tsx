@@ -4,6 +4,7 @@ import { type FormEvent, type KeyboardEvent, useMemo, useRef, useState } from "r
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { showActionFeedback } from "@/lib/actionFeedback"
 
 type MatchResultFormProps = {
   matchId: string
@@ -226,6 +227,13 @@ export function MatchResultForm({
       return
     }
 
+    showActionFeedback({
+      tone: "success",
+      message:
+        mode === "edit"
+          ? t.matchResult.updatedFeedback
+          : t.matchResult.savedFeedback,
+    })
     onSaved?.()
   }
 
@@ -249,78 +257,78 @@ export function MatchResultForm({
           <div className="grid grid-cols-[34px_repeat(3,minmax(38px,1fr))_34px] items-center gap-1.5">
             <div />
 
-            {sets.map((set, index) => (
-                <p
-                  key={index}
-                  className="text-center text-[10px] font-black uppercase text-neutral-500"
-                >
-                  {t.matchResult.set} {index + 1}
-                </p>
-              ))}
-
-              <p className="text-center text-[10px] font-black uppercase text-neutral-500">
-                {t.common.pointsShort}
+            {sets.map((_, index) => (
+              <p
+                key={index}
+                className="text-center text-[10px] font-black uppercase text-neutral-500"
+              >
+                {t.matchResult.set} {index + 1}
               </p>
+            ))}
 
-              <p className="text-xs font-black text-neutral-500">A</p>
+            <p className="text-center text-[10px] font-black uppercase text-neutral-500">
+              {t.common.pointsShort}
+            </p>
 
-              {sets.map((set, index) => (
-                <label key={index}>
-                  <span className="sr-only">
-                    {t.matchResult.teamA} {t.matchResult.set} {index + 1}
-                  </span>
+            <p className="text-xs font-black text-neutral-500">A</p>
 
-                  <input
-                    ref={(element) => {
-                      scoreInputRefs.current[index * 2] = element
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-7]*"
-                    maxLength={1}
-                    value={set.a}
-                    disabled={isSaving}
-                    onChange={(event) =>
-                      updateSet(index, "a", event.target.value)
-                    }
-                    onKeyDown={(event) =>
-                      handleScoreKeyDown(event, index * 2)
-                    }
-                    className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
-                  />
-                </label>
-              ))}
+            {sets.map((set, index) => (
+              <label key={index}>
+                <span className="sr-only">
+                  {t.matchResult.teamA} {t.matchResult.set} {index + 1}
+                </span>
 
-              <p className="text-center text-lg font-black">{pointsA}</p>
+                <input
+                  ref={(element) => {
+                    scoreInputRefs.current[index * 2] = element
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-7]*"
+                  maxLength={1}
+                  value={set.a}
+                  disabled={isSaving}
+                  onChange={(event) =>
+                    updateSet(index, "a", event.target.value)
+                  }
+                  onKeyDown={(event) =>
+                    handleScoreKeyDown(event, index * 2)
+                  }
+                  className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
+                />
+              </label>
+            ))}
 
-              <p className="text-xs font-black text-neutral-500">B</p>
+            <p className="text-center text-lg font-black">{pointsA}</p>
 
-              {sets.map((set, index) => (
-                <label key={index}>
-                  <span className="sr-only">
-                    {t.matchResult.teamB} {t.matchResult.set} {index + 1}
-                  </span>
+            <p className="text-xs font-black text-neutral-500">B</p>
 
-                  <input
-                    ref={(element) => {
-                      scoreInputRefs.current[index * 2 + 1] = element
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-7]*"
-                    maxLength={1}
-                    value={set.b}
-                    disabled={isSaving}
-                    onChange={(event) =>
-                      updateSet(index, "b", event.target.value)
-                    }
-                    onKeyDown={(event) =>
-                      handleScoreKeyDown(event, index * 2 + 1)
-                    }
-                    className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
-                  />
-                </label>
-              ))}
+            {sets.map((set, index) => (
+              <label key={index}>
+                <span className="sr-only">
+                  {t.matchResult.teamB} {t.matchResult.set} {index + 1}
+                </span>
+
+                <input
+                  ref={(element) => {
+                    scoreInputRefs.current[index * 2 + 1] = element
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-7]*"
+                  maxLength={1}
+                  value={set.b}
+                  disabled={isSaving}
+                  onChange={(event) =>
+                    updateSet(index, "b", event.target.value)
+                  }
+                  onKeyDown={(event) =>
+                    handleScoreKeyDown(event, index * 2 + 1)
+                  }
+                  className="h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 text-center text-sm font-black text-neutral-900 shadow-sm outline-none focus:border-neutral-500 disabled:bg-neutral-100"
+                />
+              </label>
+            ))}
 
             <p className="text-center text-lg font-black">{pointsB}</p>
           </div>

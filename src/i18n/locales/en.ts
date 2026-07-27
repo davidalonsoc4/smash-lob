@@ -27,8 +27,6 @@ export const en = {
   auth: {
     subtitle: "Private league",
     title: "Smash & Lob",
-    closedSeasonHistoricalDescription:
-      "This ranking remains as the history for {seasonName}.",
     description:
       "Sign in with Google to access your leagues, matches and results.",
     signInWithGoogle: "Sign in with Google",
@@ -274,6 +272,8 @@ export const en = {
 
   ranking: {
     subtitle: "Overall standings",
+    closedSeasonHistoricalDescription:
+      "This ranking remains as the history for {seasonName}.",
     description:
       "Sorted by PTS, game difference and games for as a tiebreaker.",
     gamesDiff: "Game diff.",
@@ -432,6 +432,8 @@ export const en = {
     save: "Save result",
     update: "Save changes",
     cancelEdit: "Cancel",
+    savedFeedback: "Result saved successfully.",
+    updatedFeedback: "Result changes saved successfully.",
     pendingScheduleTitle: "Result pending",
     pendingScheduleDescription:
       "Schedule the match before recording the result.",
@@ -489,7 +491,7 @@ export const en = {
       "All their matches from the selected season, with quick status filters.",
     futureTitle: "History and trends",
     futureDescription:
-      "Later this will show best partners, most frequent rivals and ranking evolution.",
+      "This area shows the strongest teammate, opponents and ranking evolution.",
   },
 
   playerStats: {
@@ -502,7 +504,9 @@ export const en = {
     mvpWon: "MVPs won",
     wonPercentage: "won",
     forPercentage: "for",
-    bestPartner: "Best partner",
+    strongestTeammate: "Strongest teammate",
+    setsShort: "sets",
+    gamesShort: "games",
     toughestRival: "Toughest rival",
     bestRound: "Best round",
     roundShort: "R",

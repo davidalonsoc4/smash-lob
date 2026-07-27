@@ -14,8 +14,6 @@ export default function StatisticsComparePage() {
   const {
     activeLeague,
     selectedSeason,
-    leagueSeasons,
-    selectSeason,
     buildStatisticsHref,
     statistics,
     countedMatches,
@@ -64,7 +62,6 @@ export default function StatisticsComparePage() {
             playerProfiles: leaguePlayers,
             seasonPlayers,
             matches: countedMatches,
-            pairStatistics: statistics.pairStatistics,
             precomputedProgress: statistics.progressByPlayer[playerAId],
           })
         : null,
@@ -74,7 +71,6 @@ export default function StatisticsComparePage() {
       playerAId,
       seasonPlayers,
       selectedSeason.id,
-      statistics.pairStatistics,
       statistics.progressByPlayer,
     ],
   )
@@ -87,7 +83,6 @@ export default function StatisticsComparePage() {
             playerProfiles: leaguePlayers,
             seasonPlayers,
             matches: countedMatches,
-            pairStatistics: statistics.pairStatistics,
             precomputedProgress: statistics.progressByPlayer[playerBId],
           })
         : null,
@@ -97,7 +92,6 @@ export default function StatisticsComparePage() {
       playerBId,
       seasonPlayers,
       selectedSeason.id,
-      statistics.pairStatistics,
       statistics.progressByPlayer,
     ],
   )
@@ -107,10 +101,8 @@ export default function StatisticsComparePage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Comparar jugadores"
-        description="Cara a cara, rendimiento como pareja, forma reciente y evolución por jornada."
-        seasons={leagueSeasons}
+        description="Cara a cara, forma reciente y evolución por jornada entre dos jugadores."
         selectedSeason={selectedSeason}
-        onSeasonChange={selectSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
 
