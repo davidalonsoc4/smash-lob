@@ -11,14 +11,19 @@ export default function StatisticsRecordsPage() {
     buildStatisticsHref,
     statistics,
     playersById,
+    isLeagueWide,
   } = useStatisticsWorkspace()
 
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
-        title="Récords de temporada"
-        description="Las mejores rachas y los partidos que marcaron la competición."
+        title={isLeagueWide ? "Récords de la liga" : "Récords de temporada"}
+        description={
+          isLeagueWide
+            ? "Las mejores rachas y los partidos más destacados de todo el historial de la liga."
+            : "Las mejores rachas y los partidos que marcaron la competición."
+        }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
@@ -26,6 +31,7 @@ export default function StatisticsRecordsPage() {
       <SeasonRecordsPanel
         records={statistics.records}
         playersById={playersById}
+        isLeagueWide={isLeagueWide}
       />
     </div>
   )

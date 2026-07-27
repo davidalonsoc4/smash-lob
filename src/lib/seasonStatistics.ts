@@ -1,4 +1,11 @@
 import type { MatchData } from "@/context/MatchDataProvider"
+
+export type StatisticsMatchData = MatchData & {
+  statisticsSeasonId?: string
+  statisticsOriginalRound?: number
+  statisticsRoundLabel?: string
+  statisticsRoundShortLabel?: string
+}
 import type { PlayerProfile, SeasonPlayer } from "@/data/fakeData"
 import { calculateSeasonRanking, type RankingPlayer } from "@/lib/ranking"
 
@@ -53,11 +60,22 @@ export type PlayerRoundProgress = {
   position: number
   points: number
   gamesDiff: number
+  label?: string
+  shortLabel?: string
+  seasonId?: string
+  originalRound?: number
+  teammateNames?: string
+  opponentNames?: string
+  resultLabel?: string
+  outcome?: "win" | "loss"
+  roundGamesDiff?: number
 }
 
 export type PlayerRecentMatch = {
   matchId: string
   round: number
+  roundLabel?: string
+  seasonId?: string
   outcome: "win" | "loss"
   gamesDiff: number
 }
@@ -234,6 +252,20 @@ function getMatchRecordedTime(match: MatchData) {
   return Number.isFinite(value) ? value : 0
 }
 
+function getStatisticsSeasonId(match: MatchData) {
+  return (match as StatisticsMatchData).statisticsSeasonId ?? match.seasonId
+}
+
+function getStatisticsRoundMetadata(match: MatchData) {
+  const statisticsMatch = match as StatisticsMatchData
+  return {
+    label: statisticsMatch.statisticsRoundLabel,
+    shortLabel: statisticsMatch.statisticsRoundShortLabel,
+    seasonId: statisticsMatch.statisticsSeasonId ?? match.seasonId,
+    originalRound: statisticsMatch.statisticsOriginalRound ?? match.round,
+  }
+}
+
 function sortFinishedMatchesLatestFirst(matches: MatchData[]) {
   return [...matches].sort((a, b) => {
     if (b.round !== a.round) return b.round - a.round
@@ -267,6 +299,52 @@ export function getLeadingPlayers(ranking: RankingPlayer[]) {
     : []
 }
 
+function getPlayerRoundContext({
+  match,
+  playerId,
+  playersById,
+}: {
+  match: MatchData | undefined
+  playerId: string
+  playersById: Map<string, string>
+}) {
+  if (!match) return {}
+
+  const inTeamA = match.teamA.includes(playerId)
+  const inTeamB = match.teamB.includes(playerId)
+  if (!inTeamA && !inTeamB) return {}
+
+  const ownTeam = inTeamA ? match.teamA : match.teamB
+  const opponentTeam = inTeamA ? match.teamB : match.teamA
+  const ownGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.a : set.b),
+    0,
+  )
+  const opponentGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.b : set.a),
+    0,
+  )
+  const winner = getWinningTeam(match)
+  const playerWon =
+    (inTeamA && winner === "A") || (inTeamB && winner === "B")
+  const score = match.sets
+    .map((set) => (inTeamA ? `${set.a}-${set.b}` : `${set.b}-${set.a}`))
+    .join(", ")
+
+  return {
+    teammateNames: ownTeam
+      .filter((teammateId) => teammateId !== playerId)
+      .map((teammateId) => playersById.get(teammateId) ?? "Jugador")
+      .join(" / "),
+    opponentNames: opponentTeam
+      .map((opponentId) => playersById.get(opponentId) ?? "Jugador")
+      .join(" / "),
+    resultLabel: score || "Sin marcador",
+    outcome: playerWon ? ("win" as const) : ("loss" as const),
+    roundGamesDiff: ownGames - opponentGames,
+  }
+}
+
 function calculateProgressByPlayer({
   seasonId,
   playerProfiles,
@@ -288,6 +366,9 @@ function calculateProgressByPlayer({
     new Set(countedSeasonMatches.map((match) => match.round)),
   ).sort((a, b) => a - b)
   const progressByPlayer: Record<string, PlayerRoundProgress[]> = {}
+  const playersById = new Map(
+    playerProfiles.map((player) => [player.id, player.displayName]),
+  )
 
   rounds.forEach((round) => {
     const roundRanking = calculateSeasonRanking({
@@ -303,9 +384,29 @@ function calculateProgressByPlayer({
       })),
     })
 
+    const roundMatch = countedSeasonMatches.find((match) => match.round === round)
+    const roundMetadata = roundMatch
+      ? getStatisticsRoundMetadata(roundMatch)
+      : {
+          label: undefined,
+          shortLabel: undefined,
+          seasonId,
+          originalRound: round,
+        }
+
     roundRanking.forEach((row) => {
       const position = getRankingPosition(roundRanking, row.id)
       if (position === null) return
+      const playerRoundMatch = countedSeasonMatches.find(
+        (match) =>
+          match.round === round &&
+          [...match.teamA, ...match.teamB].includes(row.id),
+      )
+      const playerRoundContext = getPlayerRoundContext({
+        match: playerRoundMatch,
+        playerId: row.id,
+        playersById,
+      })
       progressByPlayer[row.id] = [
         ...(progressByPlayer[row.id] ?? []),
         {
@@ -313,6 +414,8 @@ function calculateProgressByPlayer({
           position,
           points: row.points,
           gamesDiff: row.gamesDiff,
+          ...roundMetadata,
+          ...playerRoundContext,
         },
       ]
     })
@@ -375,6 +478,10 @@ export function calculatePlayerRecentForm({
         ? {
             matchId: match.id,
             round: match.round,
+            roundLabel:
+              (match as StatisticsMatchData).statisticsRoundShortLabel ??
+              `J${match.round}`,
+            seasonId: getStatisticsSeasonId(match),
             ...result,
           }
         : null
@@ -383,8 +490,14 @@ export function calculatePlayerRecentForm({
     .slice(0, Math.max(1, limit))
 
   const currentStreakOutcome = recentMatches[0]?.outcome ?? null
+  const currentStreakSeasonId = recentMatches[0]?.seasonId
   const currentStreak = currentStreakOutcome
-    ? recentMatches.findIndex((match) => match.outcome !== currentStreakOutcome)
+    ? recentMatches.findIndex(
+        (match) =>
+          match.outcome !== currentStreakOutcome ||
+          (currentStreakSeasonId !== undefined &&
+            match.seasonId !== currentStreakSeasonId),
+      )
     : 0
   const normalizedCurrentStreak =
     currentStreak === -1 ? recentMatches.length : currentStreak
@@ -618,6 +731,7 @@ function calculateLongestWinStreak({
 }) {
   const currentStreaks = new Map<string, number>()
   const bestStreaks = new Map<string, number>()
+  let previousSeasonId: string | null = null
 
   ;[...matches]
     .filter(
@@ -634,6 +748,12 @@ function calculateLongestWinStreak({
       return dateA - dateB
     })
     .forEach((match) => {
+      const statisticsSeasonId = getStatisticsSeasonId(match)
+      if (previousSeasonId !== null && statisticsSeasonId !== previousSeasonId) {
+        currentStreaks.clear()
+      }
+      previousSeasonId = statisticsSeasonId
+
       const winner = getWinningTeam(match)
       const winners = winner === "A" ? match.teamA : winner === "B" ? match.teamB : []
       const losers = winner === "A" ? match.teamB : winner === "B" ? match.teamA : []
@@ -668,6 +788,7 @@ function getPlayerBestWinStreak({
 }) {
   let current = 0
   let best = 0
+  let previousSeasonId: string | null = null
 
   ;[...matches]
     .filter(
@@ -686,6 +807,12 @@ function getPlayerBestWinStreak({
       return dateA - dateB
     })
     .forEach((match) => {
+      const statisticsSeasonId = getStatisticsSeasonId(match)
+      if (previousSeasonId !== null && statisticsSeasonId !== previousSeasonId) {
+        current = 0
+      }
+      previousSeasonId = statisticsSeasonId
+
       const winner = getWinningTeam(match)
       const playerWon =
         (winner === "A" && match.teamA.includes(playerId)) ||

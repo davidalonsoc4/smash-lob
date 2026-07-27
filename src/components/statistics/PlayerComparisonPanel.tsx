@@ -39,7 +39,7 @@ function RecentForm({ form }: { form: PlayerRecentForm }) {
       {form.matches.map((match) => (
         <span
           key={match.matchId}
-          title={`Jornada ${match.round} · Dif. ${formatSigned(match.gamesDiff)}`}
+          title={`${match.roundLabel ?? `J${match.round}`} · Dif. ${formatSigned(match.gamesDiff)}`}
           className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-black ${
             match.outcome === "win"
               ? "bg-emerald-100 text-emerald-800"
@@ -84,6 +84,7 @@ type PlayerComparisonPanelProps = {
   playerAId: string
   playerBId: string
   comparison: PlayerComparison | null
+  isLeagueWide?: boolean
   onPlayerAChange: (playerId: string) => void
   onPlayerBChange: (playerId: string) => void
 }
@@ -93,6 +94,7 @@ export function PlayerComparisonPanel({
   playerAId,
   playerBId,
   comparison,
+  isLeagueWide = false,
   onPlayerAChange,
   onPlayerBChange,
 }: PlayerComparisonPanelProps) {
@@ -101,7 +103,7 @@ export function PlayerComparisonPanel({
       <AppCard>
         <p className="font-black">Cara a cara no disponible</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Se necesitan al menos dos jugadores en la temporada.
+          Se necesitan al menos dos jugadores con estadísticas.
         </p>
       </AppCard>
     )
@@ -235,7 +237,9 @@ export function PlayerComparisonPanel({
                     <p className="mt-0.5 text-xl font-black">
                       {comparison.rivalry.matchesPlayed}
                     </p>
-                    <p className="text-[9px] font-semibold text-neutral-500">esta temporada</p>
+                    <p className="text-[9px] font-semibold text-neutral-500">
+                      {isLeagueWide ? "en la liga" : "esta temporada"}
+                    </p>
                   </div>
                   <div className="rounded-xl bg-neutral-50 px-2 py-2">
                     <p className="truncate text-[10px] font-bold text-neutral-500">
@@ -264,7 +268,9 @@ export function PlayerComparisonPanel({
               </>
             ) : (
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Todavía no se han enfrentado como rivales esta temporada.
+                {isLeagueWide
+                  ? "Todavía no se han enfrentado como rivales en ninguna temporada."
+                  : "Todavía no se han enfrentado como rivales esta temporada."}
               </p>
             )}
           </AppCard>

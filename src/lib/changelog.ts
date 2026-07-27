@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.12",
+    date: "27 de julio de 2026",
+    title: "Histórico completo y evolución individual gráfica",
+    summary:
+      "Las estadísticas pueden evaluar toda la liga, el análisis individual sustituye la tabla por un gráfico y los selectores flotantes ganan una superficie completamente opaca.",
+    category: "improvement",
+    changes: [
+      "Cuando una liga tiene varias temporadas, Estadísticas incorpora el ámbito Toda la liga y agrega partidos, victorias, puntos, sets, juegos, rachas, rivales, compañeros y récords de todo el historial.",
+      "Las ligas con una sola temporada mantienen el comportamiento anterior y no muestran un selector redundante.",
+      "Las rachas históricas no continúan artificialmente entre temporadas y los gráficos separan cada competición, reiniciando posición, puntos y diferencia de juegos.",
+      "Análisis individual reemplaza la tabla Evolución por jornada por un gráfico con vistas de Posición, Puntos y Diferencia de juegos.",
+      "Cada punto del gráfico individual conserva jornada, compañero, rivales, resultado y cambio respecto a la jornada anterior.",
+      "Los selectores flotantes de Cara a cara y Análisis individual usan fondos totalmente opacos, bordes definidos y una sombra exterior más clara en todos los temas.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.11",
     date: "27 de julio de 2026",
     title: "Selectores flotantes reales y acentos clásicos",
