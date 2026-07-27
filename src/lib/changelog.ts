@@ -15,6 +15,36 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.19",
+    date: "27 de julio de 2026",
+    title: "Validación estricta sin avisos en estadísticas",
+    summary:
+      "Se corrige el aviso de dependencias del resumen de temporada y la entrega queda preparada para tratar cualquier warning de ESLint como un fallo antes de publicar.",
+    category: "fix",
+    changes: [
+      "El cálculo memorizado del resumen final usa ahora el tipo explícito del ranking y deja de depender implícitamente del objeto completo de estadísticas.",
+      "Se elimina el warning react-hooks/exhaustive-deps detectado en la pantalla Resumen de temporada.",
+      "La validación recomendada ejecuta ESLint con max-warnings=0 para detener el flujo ante cualquier error o aviso.",
+      "No se requieren nuevas migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.18",
+    date: "27 de julio de 2026",
+    title: "Recomendaciones de liga y resumen final con logo/fotos opcionales",
+    summary:
+      "La administración de liga ya permite guardar recomendaciones útiles para los jugadores y la imagen final de temporada puede incluir, antes de compartir o descargar, el logo de la liga y las fotos del campeón o MVP.",
+    category: "improvement",
+    changes: [
+      "La creación y edición de ligas incorporan un nuevo campo de recomendaciones para indicar bolas sugeridas, pistas habituales, equipamiento o notas prácticas.",
+      "Las recomendaciones guardadas se muestran en la portada de la liga para que todos los miembros las tengan visibles.",
+      "La insignia de PRE ahora enseña también la versión activa de la aplicación para identificar mejor cada build interna.",
+      "El resumen final de temporada añade dos opciones previas a exportar: incluir el logo de la liga e incluir las fotos del campeón / MVP cuando existan.",
+      "La composición exportable del resumen se reajusta para centrar mejor el contenido, suavizar la barra lateral y mejorar el encaje visual de los paneles principales.",
+      "Se añade migración para persistir las recomendaciones de liga en Supabase y se actualiza la versión visible de la app a v0.17.18.",
+    ],
+  },
+  {
     version: "v0.17.17",
     date: "27 de julio de 2026",
     title: "Resumen final más legible con destacados en columna",

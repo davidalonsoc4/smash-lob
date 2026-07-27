@@ -22,6 +22,7 @@ type SupabaseLeagueRow = {
   active_season_id: string | null
   locations: unknown
   logo_url?: string | null
+  recommendations?: string | null
   status_colors_enabled?: boolean | null
   show_ranking_avatars?: boolean | null
   show_historical_profile_stats?: boolean | null
@@ -38,7 +39,7 @@ type SerializedError = {
 }
 
 const leagueInviteSelect =
-  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+  "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
 const seasonSettingsSelect =
   "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions"
 function normalizeInviteCode(code: string) {
@@ -69,6 +70,7 @@ function mapLeague(league: SupabaseLeagueRow): League {
     statusColorsEnabled: league.status_colors_enabled !== false,
     showRankingAvatars: league.show_ranking_avatars !== false,
     showHistoricalProfileStats: league.show_historical_profile_stats === true,
+    recommendations: typeof league.recommendations === "string" ? league.recommendations : "",
     createdByUserId:
       typeof league.created_by_user_id === "string"
         ? league.created_by_user_id

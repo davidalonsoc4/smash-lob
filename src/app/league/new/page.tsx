@@ -18,6 +18,7 @@ export default function NewLeaguePage() {
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
   const [locations, setLocations] = useState<LeagueLocation[]>([])
+  const [leagueRecommendations, setLeagueRecommendations] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
@@ -36,6 +37,7 @@ export default function NewLeaguePage() {
     const league = await createLeague({
       name: leagueName.trim(),
       description: leagueDescription.trim() || t.newLeague.defaultDescription,
+      recommendations: leagueRecommendations.trim(),
       locations,
     })
 
@@ -124,6 +126,24 @@ export default function NewLeaguePage() {
                 rows={3}
                 className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
+            </label>
+
+
+            <label className="block">
+              <span className="text-sm font-semibold text-neutral-700">
+                Recomendaciones de la liga
+              </span>
+              <textarea
+                value={leagueRecommendations}
+                onChange={(event) => setLeagueRecommendations(event.target.value)}
+                disabled={isCreating}
+                placeholder="Bolas recomendadas, pistas habituales, equipamiento o normas prácticas para jugar la liga."
+                rows={4}
+                className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              />
+              <p className="mt-1 text-xs text-neutral-500">
+                Campo opcional para dejar indicaciones útiles a todos los jugadores.
+              </p>
             </label>
           </div>
         </AppCard>
