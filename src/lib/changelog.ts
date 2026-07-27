@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.13",
+    date: "27 de julio de 2026",
+    title: "Imagen de temporada más vertical y más clara",
+    summary:
+      "La imagen compartida y descargada adopta un formato vertical más alto y aprovecha mejor el espacio para presentar campeón, podio y momentos destacados con más claridad.",
+    category: "improvement",
+    changes: [
+      "La imagen de Resumen de temporada pasa a un formato vertical más alto, pensado para compartir mejor en redes y mensajería.",
+      "Compartir y Guardar imagen siguen utilizando exactamente el mismo archivo generado, sin variantes distintas.",
+      "La cabecera destaca mejor al campeón y al MVP con más espacio y jerarquía visual.",
+      "El podio se presenta con filas más claras, marcadores más legibles y puntos mejor separados visualmente.",
+      "Los paneles de momentos destacados crecen y disponen de más espacio para explicar mejor cada estadística.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.12",
     date: "27 de julio de 2026",
     title: "Histórico completo y evolución individual gráfica",

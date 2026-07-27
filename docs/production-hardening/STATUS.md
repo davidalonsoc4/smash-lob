@@ -481,3 +481,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Kept shareable final-summary images season-specific to avoid mixing champions, MVPs and podiums from different seasons.
 - No database migration, API contract, permission or persistence change is required.
 - Focused TypeScript syntax, semantic and aggregation smoke checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes installed dependencies.
+
+## v0.17.13 - Taller and clearer season summary image (2026-07-27)
+
+- Switched the generated season-summary asset used for both sharing and downloading to a taller vertical format.
+- Reworked the image layout so champion, MVP, podium and highlights use the extra height with clearer spacing and hierarchy.
+- Enlarged highlight cards and simplified podium rows to improve readability in the exported image.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript syntax checks pass locally on the modified renderer; full lint, project type-check and build remain pending in the staging worktree with installed dependencies.
