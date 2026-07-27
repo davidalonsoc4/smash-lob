@@ -459,3 +459,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Rebuilt the shareable summary highlights and added cumulative game differential to league evolution.
 - No database migration, API contract, permission or persistence change is required.
 - Focused TypeScript transpilation and structural checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes `node_modules`.
+
+## v0.17.11 - Floating statistics selectors and Classic accents (2026-07-27)
+
+- Replaced the CSS-only sticky selectors with a shared intersection-driven fixed selector in Head-to-head and Individual analysis.
+- Preserved the original selector height while floating to prevent content jumps and kept every player field editable.
+- Positioned the floating layer below the existing top controls and restored it to normal flow when scrolling upward.
+- Added restrained grayscale gradient accent strips to cards in Classic light and Classic dark while leaving Colorful palettes unchanged.
+- Added reduced-motion handling for the selector entrance transition.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript transpilation and structural checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes `node_modules`.

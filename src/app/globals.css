@@ -1139,6 +1139,39 @@ html.colorful .player-award-card-header .player-award-card-chevron {
   color: color-mix(in srgb, var(--colorful-on-primary) 78%, transparent) !important;
 }
 
+/* Classic themes keep the flat surfaces while gaining a restrained neutral accent. */
+html[data-style="plain"] .app-card {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-style="plain"] .app-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 0.16rem;
+  border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 0 0;
+  background: linear-gradient(
+    90deg,
+    #262626 0%,
+    #737373 42%,
+    #d4d4d4 72%,
+    #525252 100%
+  );
+  pointer-events: none;
+}
+
+html.dark[data-style="plain"] .app-card::before {
+  background: linear-gradient(
+    90deg,
+    #f5f5f5 0%,
+    #a3a3a3 40%,
+    #525252 72%,
+    #d4d4d4 100%
+  );
+}
+
 html.colorful .app-card {
   --app-card-accent-gradient: linear-gradient(
     90deg,
@@ -1622,18 +1655,56 @@ html[data-style="colorful"] .statistics-history-row + .statistics-history-row {
   border-top-color: rgb(var(--colorful-primary-rgb) / 0.14);
 }
 
-/* Keep player selectors available while reviewing long statistics pages. */
-.statistics-sticky-selector {
-  position: sticky;
-  top: max(58px, calc(env(safe-area-inset-top, 0px) + 54px));
-  z-index: 35;
-  box-shadow:
-    0 10px 24px rgb(15 23 42 / 0.1),
-    0 1px 0 rgb(255 255 255 / 0.72) inset;
+/* Mount a real fixed selector only after its original position leaves the viewport. */
+.statistics-floating-selector-anchor {
+  height: 1px;
+  margin-bottom: -1px;
+  pointer-events: none;
 }
 
-html.dark .statistics-sticky-selector {
+.statistics-floating-selector-slot,
+.statistics-floating-selector {
+  min-width: 0;
+  width: 100%;
+}
+
+.statistics-floating-selector-active {
+  position: fixed;
+  top: max(54px, calc(env(safe-area-inset-top, 0px) + 52px));
+  left: 50%;
+  z-index: 45;
+  width: min(424px, calc(100vw - 24px));
+  transform: translateX(-50%);
+  animation: statistics-floating-selector-enter 140ms ease-out;
+}
+
+.statistics-floating-selector-active .app-card {
   box-shadow:
-    0 10px 24px rgb(0 0 0 / 0.32),
-    0 1px 0 rgb(255 255 255 / 0.05) inset;
+    0 14px 30px rgb(15 23 42 / 0.18),
+    0 1px 0 rgb(255 255 255 / 0.76) inset;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+html.dark .statistics-floating-selector-active .app-card {
+  box-shadow:
+    0 16px 32px rgb(0 0 0 / 0.44),
+    0 1px 0 rgb(255 255 255 / 0.06) inset;
+}
+
+@keyframes statistics-floating-selector-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statistics-floating-selector-active {
+    animation: none;
+  }
 }

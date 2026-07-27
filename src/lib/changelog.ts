@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.11",
+    date: "27 de julio de 2026",
+    title: "Selectores flotantes reales y acentos clásicos",
+    summary:
+      "Los selectores de jugadores pasan a una capa fija funcional durante el desplazamiento y los temas Clásicos ganan una franja neutra coherente con su estilo minimalista.",
+    category: "fix",
+    changes: [
+      "Cara a cara y Análisis individual mantienen el selector en su posición normal hasta que sale de la pantalla y entonces muestran una versión realmente fija bajo los controles superiores.",
+      "El selector flotante conserva su espacio original, se puede seguir utilizando y vuelve a su sitio al desplazarse hacia arriba.",
+      "Se sustituye la implementación sticky anterior, que dependía del flujo de la página y no se comportaba correctamente en todos los dispositivos.",
+      "Los estilos Clásicos claro y oscuro incorporan una franja superior en escala de grises en todas las tarjetas, sin añadir color ni perder el acabado plano.",
+      "El movimiento de entrada respeta la preferencia de reducción de animaciones del dispositivo.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.10",
     date: "27 de julio de 2026",
     title: "Estadísticas más útiles y comparativas completas",

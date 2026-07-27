@@ -1,5 +1,6 @@
 "use client"
 
+import { FloatingStatisticsSelector } from "@/components/statistics/FloatingStatisticsSelector"
 import { AppCard } from "@/components/ui/AppCard"
 import type { RankingPlayer } from "@/lib/ranking"
 import type {
@@ -115,7 +116,7 @@ export function PlayerComparisonPanel({
 
   return (
     <div className="space-y-2">
-      <AppCard className="statistics-sticky-selector p-2.5">
+      <FloatingStatisticsSelector>
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
           <label className="min-w-0">
             <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
@@ -159,7 +160,7 @@ export function PlayerComparisonPanel({
             </select>
           </label>
         </div>
-      </AppCard>
+      </FloatingStatisticsSelector>
 
       {comparison ? (
         <>
