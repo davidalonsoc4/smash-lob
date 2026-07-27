@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.20",
+    date: "27 de julio de 2026",
+    title: "Exportación final pulida y ajustes localizables",
+    summary:
+      "La imagen compartible respeta la transparencia del logo, centra con precisión todos sus bloques y estrena controles visuales más cuidados, mientras el buscador incorpora las recomendaciones de liga.",
+    category: "fix",
+    changes: [
+      "El logo de la liga se dibuja en la imagen final con ajuste contain y sin fondo artificial, conservando las transparencias igual que en Home.",
+      "Los controles para incluir logo y fotos se sustituyen por interruptores visuales accesibles, con iconos, estados claros y mensajes contextuales.",
+      "La opción Recomendaciones de la liga obtiene una entrada propia en el buscador de Ajustes, con acceso directo al campo correspondiente y sinónimos en español, inglés y euskera.",
+      "Las barras superiores de degradado del modo Clásico quedan encajadas dentro del borde redondeado de cada panel, incluso cuando la tarjeta no oculta el desbordamiento.",
+      "La composición Canvas usa alineación vertical por bloques para cabecera, campeón/MVP, estadísticas, podio y destacados, eliminando los textos desplazados.",
+      "No se requieren nuevas migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.19",
     date: "27 de julio de 2026",
     title: "Validación estricta sin avisos en estadísticas",

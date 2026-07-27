@@ -1148,10 +1148,10 @@ html[data-style="plain"] .app-card {
 html[data-style="plain"] .app-card::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
+  inset: 1px 1px auto;
   z-index: 1;
   height: 0.16rem;
-  border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 0 0;
+  border-radius: calc(0.75rem - 2px) calc(0.75rem - 2px) 0 0;
   background: linear-gradient(
     90deg,
     #262626 0%,
