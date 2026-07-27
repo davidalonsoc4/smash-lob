@@ -15,6 +15,25 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.10",
+    date: "27 de julio de 2026",
+    title: "Estadísticas más útiles y comparativas completas",
+    summary:
+      "La portada estadística elimina información redundante, el cara a cara gana contexto competitivo y los récords y resúmenes explican mejor qué ocurrió en la temporada.",
+    category: "improvement",
+    changes: [
+      "Los accesos flotantes diferencian claramente la invitación de jugadores del enlace para espectadores mediante iconos específicos.",
+      "La portada de Estadísticas elimina el podio provisional, el progreso y los contadores técnicos para destacar líder, victorias, diferencia de juegos y mejor racha.",
+      "Los accesos a los apartados estadísticos pierden las etiquetas laterales redundantes y alinean iconos, contenido y chevrón de forma simétrica.",
+      "Cara a cara y Análisis individual mantienen sus selectores visibles al desplazarse y permiten cambiar de jugador sin volver al inicio.",
+      "Cara a cara incorpora posición, porcentaje de victorias, balance, diferencia de juegos, forma reciente, duelos directos y rendimiento frente a rivales comunes.",
+      "Récords de temporada y Resumen de temporada explican remontadas, partidos igualados y victorias amplias con protagonistas, marcador y contexto legible.",
+      "El resumen final muestra el aviso de datos incompletos junto a la temporada y bloquea compartir o guardar la imagen hasta resolverlos.",
+      "Evolución de la liga añade la diferencia de juegos acumulada como tercera vista del gráfico.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.9",
     date: "27 de julio de 2026",
     title: "Cara a cara y evolución compacta",

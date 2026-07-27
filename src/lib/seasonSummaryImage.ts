@@ -1,13 +1,16 @@
+export type SeasonSummaryHighlight = {
+  label: string
+  headline: string
+  detail: string
+}
+
 export type SeasonSummaryImageData = {
   leagueName: string
   seasonName: string
   champion: string
   mvp: string
   podium: { position: number; name: string; points: number }[]
-  bestStreak: string
-  biggestComeback: string
-  closestMatch: string
-  biggestWin: string
+  highlights: SeasonSummaryHighlight[]
 }
 
 type CanvasPalette = {
@@ -103,18 +106,16 @@ function drawMetricCard({
   x,
   y,
   width,
-  label,
-  value,
+  highlight,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
   x: number
   y: number
   width: number
-  label: string
-  value: string
+  highlight: SeasonSummaryHighlight
 }) {
-  roundedRect(context, x, y, width, 150, 28)
+  roundedRect(context, x, y, width, 172, 28)
   context.fillStyle = palette.surface
   context.fill()
   context.strokeStyle = `${palette.primary}55`
@@ -122,17 +123,30 @@ function drawMetricCard({
   context.stroke()
 
   context.fillStyle = palette.muted
-  context.font = "800 25px Arial, sans-serif"
-  context.fillText(label.toUpperCase(), x + 28, y + 44)
+  context.font = "800 22px Arial, sans-serif"
+  context.fillText(highlight.label.toUpperCase(), x + 26, y + 36)
+
   context.fillStyle = palette.text
-  context.font = "900 32px Arial, sans-serif"
+  context.font = "900 29px Arial, sans-serif"
   drawWrappedText({
     context,
-    text: value,
-    x: x + 28,
-    y: y + 92,
-    maxWidth: width - 56,
-    lineHeight: 36,
+    text: highlight.headline,
+    x: x + 26,
+    y: y + 76,
+    maxWidth: width - 52,
+    lineHeight: 32,
+    maxLines: 2,
+  })
+
+  context.fillStyle = palette.muted
+  context.font = "700 19px Arial, sans-serif"
+  drawWrappedText({
+    context,
+    text: highlight.detail,
+    x: x + 26,
+    y: y + 137,
+    maxWidth: width - 52,
+    lineHeight: 21,
     maxLines: 2,
   })
 }
@@ -224,23 +238,16 @@ export async function createSeasonSummaryImage(data: SeasonSummaryImageData) {
     context.textAlign = "left"
   })
 
-  const metrics = [
-    ["Mejor racha", data.bestStreak],
-    ["Mayor remontada", data.biggestComeback],
-    ["Partido más igualado", data.closestMatch],
-    ["Victoria más amplia", data.biggestWin],
-  ] as const
-  metrics.forEach(([label, value], index) => {
+  data.highlights.slice(0, 4).forEach((highlight, index) => {
     const column = index % 2
     const row = Math.floor(index / 2)
     drawMetricCard({
       context,
       palette,
       x: 72 + column * 478,
-      y: 940 + row * 170,
+      y: 920 + row * 180,
       width: 458,
-      label,
-      value,
+      highlight,
     })
   })
 

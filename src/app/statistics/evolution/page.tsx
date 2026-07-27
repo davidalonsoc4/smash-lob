@@ -23,7 +23,7 @@ export default function StatisticsEvolutionPage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Evolución de la liga"
-        description="Compara en un único gráfico la posición y los puntos acumulados de todos los jugadores."
+        description="Compara en un único gráfico la posición, los puntos y la diferencia de juegos de todos los jugadores."
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />

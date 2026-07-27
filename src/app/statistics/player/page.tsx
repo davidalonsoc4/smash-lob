@@ -28,7 +28,7 @@ export default function StatisticsPlayerPage() {
     seasonPlayers,
     votes,
     getSeasonRoundSettings,
-    getMatchLabel,
+    playersById,
     isBalancedCalendar,
   } = useStatisticsWorkspace()
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
@@ -97,7 +97,7 @@ export default function StatisticsPlayerPage() {
         />
       ) : (
         <>
-          <AppCard className="p-2.5">
+          <AppCard className="statistics-sticky-selector p-2.5">
             <label className="flex items-center gap-2">
               <span className="shrink-0 text-xs font-black text-neutral-700">
                 Jugador
@@ -207,7 +207,7 @@ export default function StatisticsPlayerPage() {
                 </p>
                 <PlayerSeasonRecordsPanel
                   detail={playerDetail}
-                  getMatchLabel={getMatchLabel}
+                  playersById={playersById}
                 />
               </div>
 

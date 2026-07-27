@@ -20,14 +20,26 @@ type StatisticsSectionIconName =
   | "records"
   | "season"
 
+type StatusBadge = {
+  label: string
+  tone?: "neutral" | "warning" | "error" | "success"
+}
+
+function getStatusBadgeClassName(tone: StatusBadge["tone"] = "neutral") {
+  if (tone === "warning") return "bg-amber-100 text-amber-800"
+  if (tone === "error") return "bg-red-100 text-red-800"
+  if (tone === "success") return "bg-emerald-100 text-emerald-800"
+  return "bg-neutral-100 text-neutral-700"
+}
+
 export function StatisticsSectionIcon({
   name,
 }: {
   name: StatisticsSectionIconName
 }) {
   const commonProps = {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
@@ -90,7 +102,7 @@ export function StatisticsSectionIcon({
   }
 
   return (
-    <span className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-100 text-neutral-700">
+    <span className="grid h-8 w-8 place-items-center rounded-xl bg-neutral-100 text-neutral-700">
       <svg {...commonProps}>{paths[name]}</svg>
     </span>
   )
@@ -104,6 +116,7 @@ export function StatisticsPageHeader({
   selectedSeason,
   onSeasonChange,
   fallbackHref = "/statistics",
+  statusBadge,
 }: {
   leagueName: string
   title: string
@@ -112,6 +125,7 @@ export function StatisticsPageHeader({
   selectedSeason: SeasonOption
   onSeasonChange?: (seasonId: string) => void
   fallbackHref?: string
+  statusBadge?: StatusBadge
 }) {
   const canChooseSeason = Boolean(
     seasons && seasons.length > 1 && onSeasonChange,
@@ -127,6 +141,13 @@ export function StatisticsPageHeader({
           {!canChooseSeason ? (
             <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-700">
               {selectedSeason.name}
+            </span>
+          ) : null}
+          {statusBadge ? (
+            <span
+              className={`rounded-full px-2.5 py-1 text-[10px] font-black ${getStatusBadgeClassName(statusBadge.tone)}`}
+            >
+              {statusBadge.label}
             </span>
           ) : null}
         </div>
@@ -163,35 +184,28 @@ export function StatisticsSectionLink({
   href,
   title,
   description,
-  summary,
   leading,
 }: {
   href: string
   title: string
   description: string
-  summary?: string
   leading?: ReactNode
 }) {
   return (
     <Link
       href={href}
-      className="statistics-section-link flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50"
+      className="statistics-section-link grid grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-2.5 px-3 py-3 transition active:bg-neutral-50"
     >
-      {leading ? <span className="shrink-0">{leading}</span> : null}
-      <span className="min-w-0 flex-1">
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-black text-neutral-950">{title}</span>
-          {summary ? (
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-black text-neutral-700">
-              {summary}
-            </span>
-          ) : null}
-        </span>
+      <span className="grid h-8 w-8 place-items-center">
+        {leading ?? null}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-black text-neutral-950">{title}</span>
         <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
           {description}
         </span>
       </span>
-      <ClickableChevron className="shrink-0" />
+      <ClickableChevron className="justify-self-center" />
     </Link>
   )
 }

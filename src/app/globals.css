@@ -1621,3 +1621,19 @@ html[data-style="colorful"] .statistics-pair-row + .statistics-pair-row,
 html[data-style="colorful"] .statistics-history-row + .statistics-history-row {
   border-top-color: rgb(var(--colorful-primary-rgb) / 0.14);
 }
+
+/* Keep player selectors available while reviewing long statistics pages. */
+.statistics-sticky-selector {
+  position: sticky;
+  top: max(58px, calc(env(safe-area-inset-top, 0px) + 54px));
+  z-index: 35;
+  box-shadow:
+    0 10px 24px rgb(15 23 42 / 0.1),
+    0 1px 0 rgb(255 255 255 / 0.72) inset;
+}
+
+html.dark .statistics-sticky-selector {
+  box-shadow:
+    0 10px 24px rgb(0 0 0 / 0.32),
+    0 1px 0 rgb(255 255 255 / 0.05) inset;
+}

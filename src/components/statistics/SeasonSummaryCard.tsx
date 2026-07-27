@@ -18,10 +18,32 @@ function sanitizeFilename(value: string) {
     .toLowerCase()
 }
 
-export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
+export function SeasonSummaryCard({
+  data,
+  canExport,
+  exportBlockedReason,
+}: {
+  data: SeasonSummaryImageData
+  canExport: boolean
+  exportBlockedReason?: string
+}) {
   const [busyAction, setBusyAction] = useState<"share" | "download" | null>(null)
 
+  function reportBlockedExport() {
+    showActionFeedback({
+      tone: "info",
+      message:
+        exportBlockedReason ??
+        "Revisa los datos pendientes antes de guardar el resumen.",
+    })
+  }
+
   async function createImage() {
+    if (!canExport) {
+      reportBlockedExport()
+      return null
+    }
+
     try {
       return await createSeasonSummaryImage(data)
     } catch {
@@ -34,6 +56,11 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
   }
 
   async function handleDownload() {
+    if (!canExport) {
+      reportBlockedExport()
+      return
+    }
+
     setBusyAction("download")
     const blob = await createImage()
     if (blob) {
@@ -47,6 +74,11 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
   }
 
   async function handleShare() {
+    if (!canExport) {
+      reportBlockedExport()
+      return
+    }
+
     setBusyAction("share")
     const blob = await createImage()
     if (!blob) {
@@ -107,7 +139,7 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
       <div className="space-y-3 p-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-            Podio
+            Podio final
           </p>
           <div className="mt-2 space-y-1.5">
             {data.podium.map((row) => (
@@ -124,34 +156,52 @@ export function SeasonSummaryCard({ data }: { data: SeasonSummaryImageData }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          {[
-            ["Mejor racha", data.bestStreak],
-            ["Mayor remontada", data.biggestComeback],
-            ["Más igualado", data.closestMatch],
-            ["Mayor victoria", data.biggestWin],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-xl bg-neutral-50 p-2.5">
-              <p className="font-black uppercase tracking-wide text-neutral-400">{label}</p>
-              <p className="mt-1 font-bold leading-5">{value}</p>
-            </div>
-          ))}
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+            Lo más destacado
+          </p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {data.highlights.map((highlight) => (
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-2.5">
+                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  {highlight.label}
+                </p>
+                <p className="mt-1 text-sm font-black leading-5">
+                  {highlight.headline}
+                </p>
+                <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
+                  {highlight.detail}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {!canExport ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+            <p className="text-xs font-black text-amber-900">
+              Imagen bloqueada hasta completar los datos
+            </p>
+            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-amber-800">
+              {exportBlockedReason ?? "Revisa los partidos pendientes o no válidos de la temporada."}
+            </p>
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => void handleShare()}
-            disabled={busyAction !== null}
-            className="rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:opacity-60"
+            disabled={busyAction !== null || !canExport}
+            className="rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
           >
             {busyAction === "share" ? "Preparando…" : "Compartir"}
           </button>
           <button
             type="button"
             onClick={() => void handleDownload()}
-            disabled={busyAction !== null}
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black disabled:opacity-60"
+            disabled={busyAction !== null || !canExport}
+            className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-45"
           >
             {busyAction === "download" ? "Generando…" : "Guardar imagen"}
           </button>

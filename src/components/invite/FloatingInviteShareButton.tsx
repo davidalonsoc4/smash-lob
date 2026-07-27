@@ -11,7 +11,7 @@ type FloatingInviteShareButtonProps = {
   onGenerateInviteCode: () => Promise<string | null>
 }
 
-function ShareIcon() {
+function InvitePlayersIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -22,16 +22,15 @@ function ShareIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        width: "15px",
-        height: "15px",
+        width: "16px",
+        height: "16px",
         display: "block",
       }}
     >
-      <circle cx="18" cy="5" r="3" />
-      <circle cx="6" cy="12" r="3" />
-      <circle cx="18" cy="19" r="3" />
-      <path d="M8.59 13.51 15.42 17.49" />
-      <path d="M15.41 6.51 8.59 10.49" />
+      <circle cx="8" cy="7" r="3.5" />
+      <path d="M2.5 20c.5-4 2.5-6 5.5-6s5 2 5.5 6" />
+      <path d="M18 8v6" />
+      <path d="M15 11h6" />
     </svg>
   )
 }
@@ -133,13 +132,13 @@ export function FloatingInviteShareButton({
         type="button"
         onClick={handleShare}
         disabled={isGenerating}
-        aria-label="Compartir invitación"
+        aria-label="Invitar jugadores a la liga"
         title={
           isGenerating
             ? "Generando invitación"
             : copied
               ? "Enlace copiado"
-              : "Compartir invitación"
+              : "Invitar jugadores a la liga"
         }
         className="app-floating-primary-control flex items-center justify-center rounded-full border border-neutral-200 bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800 disabled:cursor-wait disabled:opacity-70"
         style={{
@@ -147,7 +146,7 @@ export function FloatingInviteShareButton({
           height: "34px",
         }}
       >
-        <ShareIcon />
+        <InvitePlayersIcon />
       </button>
 
       {copied ? (
