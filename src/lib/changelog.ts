@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.17",
+    date: "27 de julio de 2026",
+    title: "Resumen final más legible con destacados en columna",
+    summary:
+      "La imagen compartible deja de usar la cuadrícula 2×2 para los destacados, devuelve más protagonismo al ganador y recupera algo más de altura para mejorar la lectura.",
+    category: "fix",
+    changes: [
+      "Los destacados vuelven a mostrarse en una sola columna para evitar recortes y mejorar la legibilidad de textos largos.",
+      "Los paneles de campeón y MVP pasan a ocupar todo el ancho disponible, evitando nombres desplazados y espacios desaprovechados.",
+      "La imagen exportada gana algo de altura y aire vertical para que el contenido respire mejor.",
+      "Se mantiene la paleta monocroma, el podio con diferencia de juegos y la exportación con fondo claro estable.",
+      "También se alinea la vista previa de la página con el nuevo apilado vertical de héroes y destacados.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.16",
     date: "27 de julio de 2026",
     title: "Resumen final más sobrio, compacto y legible",

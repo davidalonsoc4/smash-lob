@@ -215,22 +215,22 @@ function drawHeroStats({
 }) {
   if (stats.length === 0) return
 
-  const gap = 8
+  const gap = 10
   const visibleStats = stats.slice(0, 3)
   const statWidth = (width - gap * (visibleStats.length - 1)) / visibleStats.length
 
   visibleStats.forEach((stat, index) => {
     const statX = x + index * (statWidth + gap)
-    fillRoundedRect(context, statX, y, statWidth, 56, 14, palette.surfaceAlt)
+    fillRoundedRect(context, statX, y, statWidth, 62, 14, palette.surfaceAlt)
 
     context.fillStyle = palette.muted
     context.font = "800 14px Arial, sans-serif"
     context.textAlign = "center"
-    context.fillText(stat.label.toUpperCase(), statX + statWidth / 2, y + 20)
+    context.fillText(stat.label.toUpperCase(), statX + statWidth / 2, y + 21)
 
     context.fillStyle = palette.text
-    context.font = "900 22px Arial, sans-serif"
-    context.fillText(stat.value, statX + statWidth / 2, y + 44)
+    context.font = "900 24px Arial, sans-serif"
+    context.fillText(stat.value, statX + statWidth / 2, y + 47)
     context.textAlign = "left"
   })
 }
@@ -250,25 +250,25 @@ function drawHeroCard({
   width: number
   hero: SeasonSummaryHeroPanel
 }) {
-  const height = 214
+  const height = 228
   fillRoundedRect(context, x, y, width, height, 26, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 26, palette.line)
   fillRoundedRect(context, x, y, 8, height, 4, palette.accent)
 
-  fillRoundedRect(context, x + 24, y + 20, Math.min(230, width - 48), 32, 12, palette.accentSoft)
+  fillRoundedRect(context, x + 24, y + 20, Math.min(250, width - 48), 32, 12, palette.accentSoft)
   context.fillStyle = palette.text
   context.font = "800 17px Arial, sans-serif"
   context.fillText(hero.label.toUpperCase(), x + 38, y + 42)
 
   context.fillStyle = palette.text
-  context.font = width < 600 ? "900 38px Arial, sans-serif" : "900 42px Arial, sans-serif"
+  context.font = "900 43px Arial, sans-serif"
   drawWrappedText({
     context,
     text: hero.value,
     x: x + 28,
-    y: y + 94,
+    y: y + 96,
     maxWidth: width - 56,
-    lineHeight: 42,
+    lineHeight: 44,
     maxLines: 2,
   })
 
@@ -276,7 +276,7 @@ function drawHeroCard({
     context,
     palette,
     x: x + 28,
-    y: y + 148,
+    y: y + 154,
     width: width - 56,
     stats: hero.stats,
   })
@@ -297,17 +297,17 @@ function drawPodiumRow({
   width: number
   row: SeasonSummaryPodiumRow
 }) {
-  const height = 86
+  const height = 92
   fillRoundedRect(context, x, y, width, height, 20, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 20, palette.line)
 
   const badgeFill = row.position === 1 ? palette.accent : palette.accentSoft
   const badgeText = row.position === 1 ? "#ffffff" : palette.text
-  fillRoundedRect(context, x + 14, y + 13, 60, 60, 18, badgeFill)
+  fillRoundedRect(context, x + 14, y + 16, 60, 60, 18, badgeFill)
   context.fillStyle = badgeText
   context.font = "900 25px Arial, sans-serif"
   context.textAlign = "center"
-  context.fillText(`${row.position}º`, x + 44, y + 51)
+  context.fillText(`${row.position}º`, x + 44, y + 54)
   context.textAlign = "left"
 
   context.fillStyle = palette.text
@@ -316,7 +316,7 @@ function drawPodiumRow({
     context,
     text: row.name,
     x: x + 96,
-    y: y + 51,
+    y: y + 54,
     maxWidth: width - 390,
     lineHeight: 31,
     maxLines: 1,
@@ -325,14 +325,14 @@ function drawPodiumRow({
   const statsX = x + width - 262
   context.fillStyle = palette.muted
   context.font = "800 15px Arial, sans-serif"
-  context.fillText("PUNTOS", statsX, y + 31)
-  context.fillText("DIF. JUEGOS", statsX, y + 60)
+  context.fillText("PUNTOS", statsX, y + 34)
+  context.fillText("DIF. JUEGOS", statsX, y + 64)
 
   context.fillStyle = palette.text
   context.font = "900 21px Arial, sans-serif"
   context.textAlign = "right"
-  context.fillText(`${row.points} pts`, x + width - 22, y + 31)
-  context.fillText(formatGamesDiff(row.gamesDiff), x + width - 22, y + 60)
+  context.fillText(`${row.points} pts`, x + width - 22, y + 34)
+  context.fillText(formatGamesDiff(row.gamesDiff), x + width - 22, y + 64)
   context.textAlign = "left"
 }
 
@@ -351,7 +351,7 @@ function drawHighlightCard({
   width: number
   highlight: SeasonSummaryHighlight
 }) {
-  const height = 154
+  const height = 168
   fillRoundedRect(context, x, y, width, height, 20, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 20, palette.line)
 
@@ -377,22 +377,23 @@ function drawHighlightCard({
     context,
     text: highlight.detail,
     x: x + 20,
-    y: y + 130,
+    y: y + 126,
     maxWidth: width - 40,
     lineHeight: 21,
-    maxLines: 1,
+    maxLines: 2,
   })
 }
 
 export async function createSeasonSummaryImage(data: SeasonSummaryImageData) {
   const heroCount = Math.max(1, Math.min(data.heroes.length, 2))
-  const heroHeight = 214
-  const heroGap = 16
+  const heroHeight = 228
+  const heroGap = 18
   const podiumRows = Math.min(data.podium.length, 3)
-  const highlightRows = Math.ceil(Math.min(data.highlights.length, 4) / 2)
-  const podiumHeight = podiumRows * 98
-  const highlightsHeight = highlightRows * 170
-  const canvasHeight = 238 + heroHeight + 64 + 30 + podiumHeight + 58 + 30 + highlightsHeight + 84
+  const highlightRows = Math.min(data.highlights.length, 4)
+  const podiumHeight = podiumRows * 104
+  const highlightsHeight = highlightRows * 180
+  const canvasHeight =
+    238 + heroCount * heroHeight + (heroCount - 1) * heroGap + 70 + 30 + podiumHeight + 66 + 30 + highlightsHeight + 92
 
   const canvas = document.createElement("canvas")
   canvas.width = CANVAS_WIDTH
@@ -427,43 +428,31 @@ export async function createSeasonSummaryImage(data: SeasonSummaryImageData) {
   context.fillText("RESUMEN FINAL DE TEMPORADA", HORIZONTAL_PADDING, 178)
 
   const heroY = 210
-  if (heroCount === 1) {
+  data.heroes.slice(0, 2).forEach((hero, index) => {
     drawHeroCard({
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: heroY,
+      y: heroY + index * (heroHeight + heroGap),
       width: CONTENT_WIDTH,
-      hero: data.heroes[0],
+      hero,
     })
-  } else {
-    const heroWidth = (CONTENT_WIDTH - heroGap) / 2
-    data.heroes.slice(0, 2).forEach((hero, index) => {
-      drawHeroCard({
-        context,
-        palette,
-        x: HORIZONTAL_PADDING + index * (heroWidth + heroGap),
-        y: heroY,
-        width: heroWidth,
-        hero,
-      })
-    })
-  }
+  })
 
-  const podiumY = heroY + heroHeight + 58
+  const podiumY = heroY + heroCount * heroHeight + (heroCount - 1) * heroGap + 64
   drawSectionLabel({ context, palette, text: "Podio final", x: HORIZONTAL_PADDING, y: podiumY })
   data.podium.slice(0, 3).forEach((row, index) => {
     drawPodiumRow({
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: podiumY + 22 + index * 98,
+      y: podiumY + 24 + index * 104,
       width: CONTENT_WIDTH,
       row,
     })
   })
 
-  const highlightsY = podiumY + 22 + podiumHeight + 52
+  const highlightsY = podiumY + 24 + podiumHeight + 60
   drawSectionLabel({
     context,
     palette,
@@ -472,17 +461,13 @@ export async function createSeasonSummaryImage(data: SeasonSummaryImageData) {
     y: highlightsY,
   })
 
-  const highlightGap = 16
-  const highlightWidth = (CONTENT_WIDTH - highlightGap) / 2
   data.highlights.slice(0, 4).forEach((highlight, index) => {
-    const column = index % 2
-    const row = Math.floor(index / 2)
     drawHighlightCard({
       context,
       palette,
-      x: HORIZONTAL_PADDING + column * (highlightWidth + highlightGap),
-      y: highlightsY + 22 + row * 170,
-      width: highlightWidth,
+      x: HORIZONTAL_PADDING,
+      y: highlightsY + 24 + index * 180,
+      width: CONTENT_WIDTH,
       highlight,
     })
   })
