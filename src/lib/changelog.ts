@@ -15,6 +15,24 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.16",
+    date: "27 de julio de 2026",
+    title: "Resumen final más sobrio, compacto y legible",
+    summary:
+      "La imagen exportada adopta una paleta casi monocroma, reduce notablemente su altura y reorganiza campeón, MVP y destacados para evitar ruido visual.",
+    category: "fix",
+    changes: [
+      "Se elimina la mezcla de colores dependiente del tema y se sustituye por una paleta estable de blanco, grises y negro.",
+      "Campeón y MVP se colocan en la misma fila cuando son distintos; si coinciden, se mantiene un único panel de ancho completo.",
+      "Se refuerza la jerarquía tipográfica para priorizar temporada, nombres y resultados sobre etiquetas secundarias.",
+      "Los datos de puntos, victorias y diferencia de juegos se compactan dentro de los paneles principales.",
+      "El podio reduce su altura sin perder puntos ni diferencia de juegos.",
+      "Lo más destacado pasa a una cuadrícula 2x2 en la imagen exportada y a dos columnas cuando hay espacio en la vista previa.",
+      "La altura total de la imagen se calcula dinámicamente con un formato mucho más corto y fácil de compartir.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.15",
     date: "27 de julio de 2026",
     title: "Resumen final exportable más claro y con mejor contexto competitivo",

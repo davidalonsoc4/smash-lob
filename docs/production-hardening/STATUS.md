@@ -509,3 +509,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Removed the intermediate badges for highlighted positions/moments and increased spacing between podium and highlights.
 - Switched the generated summary image to a primarily light background regardless of the active app theme.
 - No database migration, API contract, permission or persistence change is required.
+
+
+## v0.17.16 - Compact monochrome season summary (2026-07-27)
+
+- Replaced theme-driven export colors with a stable monochrome palette.
+- Rendered separate champion and MVP panels side by side instead of vertically.
+- Reduced hero, podium and highlight-card heights and tightened typographic hierarchy.
+- Rendered highlights as a 2x2 grid in the exported image and two columns in the page preview when space allows.
+- Switched the export canvas to a substantially shorter dynamic height.
+- No database migration, API contract, permission or persistence change is required.
