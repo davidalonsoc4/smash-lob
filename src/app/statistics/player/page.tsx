@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { FloatingStatisticsSelector } from "@/components/statistics/FloatingStatisticsSelector"
 import { PlayerSeasonRecordsPanel } from "@/components/statistics/SeasonRecordsPanel"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
@@ -97,7 +98,7 @@ export default function StatisticsPlayerPage() {
         />
       ) : (
         <>
-          <AppCard className="statistics-sticky-selector p-2.5">
+          <FloatingStatisticsSelector>
             <label className="flex items-center gap-2">
               <span className="shrink-0 text-xs font-black text-neutral-700">
                 Jugador
@@ -114,7 +115,7 @@ export default function StatisticsPlayerPage() {
                 ))}
               </select>
             </label>
-          </AppCard>
+          </FloatingStatisticsSelector>
 
           {playerDetail && selectedPlayer ? (
             <>
