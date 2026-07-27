@@ -48,6 +48,8 @@ type CanvasPalette = {
   accentSoft: string
 }
 
+type TextAlignment = "left" | "center" | "right"
+
 const CANVAS_WIDTH = 1080
 const HORIZONTAL_PADDING = 64
 const CONTENT_WIDTH = CANVAS_WIDTH - HORIZONTAL_PADDING * 2
@@ -144,42 +146,59 @@ function wrapTextLines({
   return visible
 }
 
-function drawLines({
-  context,
-  lines,
-  x,
-  y,
-  lineHeight,
-}: {
-  context: CanvasRenderingContext2D
-  lines: string[]
-  x: number
-  y: number
-  lineHeight: number
-}) {
-  lines.forEach((line, index) => context.fillText(line, x, y + index * lineHeight))
-}
-
-function drawWrappedText({
+function drawTextBlock({
   context,
   text,
   x,
   y,
-  maxWidth,
+  width,
+  height,
   lineHeight,
   maxLines = 2,
+  align = "left",
 }: {
   context: CanvasRenderingContext2D
   text: string
   x: number
   y: number
-  maxWidth: number
+  width: number
+  height: number
   lineHeight: number
   maxLines?: number
+  align?: TextAlignment
 }) {
-  const lines = wrapTextLines({ context, text, maxWidth, maxLines })
-  drawLines({ context, lines, x, y, lineHeight })
+  const lines = wrapTextLines({ context, text, maxWidth: width, maxLines })
+  const centerY = y + height / 2
+  const firstLineY = centerY - ((lines.length - 1) * lineHeight) / 2
+  const textX = align === "center" ? x + width / 2 : align === "right" ? x + width : x
+
+  context.save()
+  context.textAlign = align
+  context.textBaseline = "middle"
+  lines.forEach((line, index) => {
+    context.fillText(line, textX, firstLineY + index * lineHeight)
+  })
+  context.restore()
+
   return lines
+}
+
+function drawCenteredText({
+  context,
+  text,
+  x,
+  y,
+}: {
+  context: CanvasRenderingContext2D
+  text: string
+  x: number
+  y: number
+}) {
+  context.save()
+  context.textAlign = "center"
+  context.textBaseline = "middle"
+  context.fillText(text, x, y)
+  context.restore()
 }
 
 function drawSectionLabel({
@@ -197,7 +216,10 @@ function drawSectionLabel({
 }) {
   context.fillStyle = palette.muted
   context.font = "800 21px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "middle"
   context.fillText(text.toUpperCase(), x, y)
+  context.restore()
 }
 
 function formatGamesDiff(value: number) {
@@ -215,6 +237,69 @@ async function loadOptionalImage(src?: string | null) {
     image.onerror = () => resolve(null)
     image.src = src
   })
+}
+
+function getContainedImagePlacement({
+  image,
+  x,
+  y,
+  width,
+  height,
+}: {
+  image: HTMLImageElement
+  x: number
+  y: number
+  width: number
+  height: number
+}) {
+  const sourceRatio = image.width / image.height
+  const targetRatio = width / height
+  let drawWidth = width
+  let drawHeight = height
+
+  if (sourceRatio > targetRatio) {
+    drawHeight = width / sourceRatio
+  } else {
+    drawWidth = height * sourceRatio
+  }
+
+  return {
+    x: x + (width - drawWidth) / 2,
+    y: y + (height - drawHeight) / 2,
+    width: drawWidth,
+    height: drawHeight,
+  }
+}
+
+function drawTransparentImageContain({
+  context,
+  image,
+  x,
+  y,
+  width,
+  height,
+}: {
+  context: CanvasRenderingContext2D
+  image: HTMLImageElement
+  x: number
+  y: number
+  width: number
+  height: number
+}) {
+  const placement = getContainedImagePlacement({ image, x, y, width, height })
+
+  context.save()
+  context.shadowColor = "rgba(15, 23, 42, 0.14)"
+  context.shadowBlur = 8
+  context.shadowOffsetY = 2
+  context.drawImage(
+    image,
+    placement.x,
+    placement.y,
+    placement.width,
+    placement.height,
+  )
+  context.restore()
 }
 
 function drawImageCover({
@@ -278,22 +363,31 @@ function drawHeroStats({
   if (stats.length === 0) return
 
   const gap = 10
+  const height = 66
   const visibleStats = stats.slice(0, 3)
   const statWidth = (width - gap * (visibleStats.length - 1)) / visibleStats.length
 
   visibleStats.forEach((stat, index) => {
     const statX = x + index * (statWidth + gap)
-    fillRoundedRect(context, statX, y, statWidth, 66, 16, palette.surfaceAlt)
+    fillRoundedRect(context, statX, y, statWidth, height, 16, palette.surfaceAlt)
 
     context.fillStyle = palette.muted
     context.font = "800 13px Arial, sans-serif"
-    context.textAlign = "center"
-    context.fillText(stat.label.toUpperCase(), statX + statWidth / 2, y + 22)
+    drawCenteredText({
+      context,
+      text: stat.label.toUpperCase(),
+      x: statX + statWidth / 2,
+      y: y + 20,
+    })
 
     context.fillStyle = palette.text
     context.font = "900 24px Arial, sans-serif"
-    context.fillText(stat.value, statX + statWidth / 2, y + 48)
-    context.textAlign = "left"
+    drawCenteredText({
+      context,
+      text: stat.value,
+      x: statX + statWidth / 2,
+      y: y + 46,
+    })
   })
 }
 
@@ -315,64 +409,82 @@ function drawHeroCard({
   heroImage: HTMLImageElement | null
 }) {
   const height = 224
+  const horizontalPadding = 42
+  const statsY = y + height - 82
+
   fillRoundedRect(context, x, y, width, height, 28, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 28, palette.line)
   fillRoundedRect(context, x + 18, y + 18, 12, height - 36, 10, palette.accent)
 
-  const paddingX = 42
-  const labelWidth = Math.min(280, width - 84)
-  fillRoundedRect(context, x + paddingX, y + 24, labelWidth, 34, 14, palette.accentSoft)
-  context.fillStyle = palette.text
   context.font = "800 17px Arial, sans-serif"
-  context.fillText(hero.label.toUpperCase(), x + paddingX + 14, y + 46)
+  const labelText = hero.label.toUpperCase()
+  const labelWidth = Math.min(
+    width - horizontalPadding * 2,
+    Math.max(190, context.measureText(labelText).width + 32),
+  )
+  const labelX = x + horizontalPadding
+  const labelY = y + 22
+  const labelHeight = 36
+  fillRoundedRect(context, labelX, labelY, labelWidth, labelHeight, 14, palette.accentSoft)
+  context.fillStyle = palette.text
+  drawCenteredText({
+    context,
+    text: labelText,
+    x: labelX + labelWidth / 2,
+    y: labelY + labelHeight / 2,
+  })
 
-  const imageSize = heroImage ? 118 : 0
+  const imageSize = heroImage ? 96 : 0
   const imageGap = heroImage ? 20 : 0
-  const textWidth = width - paddingX * 2 - imageSize - imageGap
-  const textX = x + paddingX
-  const nameTop = y + 82
+  const imageX = x + width - horizontalPadding - imageSize
+  const imageY = y + 62
+  const nameX = x + horizontalPadding
+  const nameY = y + 64
+  const nameWidth = width - horizontalPadding * 2 - imageSize - imageGap
+  const nameHeight = statsY - nameY - 10
 
   if (heroImage) {
     drawImageCover({
       context,
       image: heroImage,
-      x: x + width - paddingX - imageSize,
-      y: y + 60,
+      x: imageX,
+      y: imageY,
       width: imageSize,
       height: imageSize,
-      radius: 26,
+      radius: 24,
       background: palette.surfaceAlt,
     })
     strokeRoundedRect(
       context,
-      x + width - paddingX - imageSize,
-      y + 60,
+      imageX,
+      imageY,
       imageSize,
       imageSize,
-      26,
+      24,
       palette.line,
     )
   }
 
   context.fillStyle = palette.text
   context.font = "900 40px Arial, sans-serif"
-  const lines = wrapTextLines({
+  drawTextBlock({
     context,
     text: hero.value,
-    maxWidth: textWidth,
+    x: nameX,
+    y: nameY,
+    width: nameWidth,
+    height: nameHeight,
+    lineHeight: 42,
     maxLines: 2,
+    align: "center",
   })
-  const lineHeight = 42
-  const nameBlockHeight = lineHeight * lines.length
-  const nameY = nameTop + Math.max(0, (54 - nameBlockHeight) / 2) + 34
-  drawLines({ context, lines, x: textX, y: nameY, lineHeight })
 
   drawHeroStats({
     context,
     palette,
-    x: textX,
-    y: y + height - 86,
-    width: width - paddingX * 2,
+    x: x + horizontalPadding,
+    y: statsY,
+    width: width - horizontalPadding * 2,
     stats: hero.stats,
   })
 }
@@ -398,21 +510,28 @@ function drawPodiumRow({
 
   const badgeFill = row.position === 1 ? palette.accent : palette.accentSoft
   const badgeText = row.position === 1 ? "#ffffff" : palette.text
-  fillRoundedRect(context, x + 14, y + 17, 60, 60, 18, badgeFill)
+  const badgeX = x + 14
+  const badgeY = y + 17
+  const badgeSize = 60
+  fillRoundedRect(context, badgeX, badgeY, badgeSize, badgeSize, 18, badgeFill)
   context.fillStyle = badgeText
   context.font = "900 25px Arial, sans-serif"
-  context.textAlign = "center"
-  context.fillText(`${row.position}º`, x + 44, y + 56)
-  context.textAlign = "left"
+  drawCenteredText({
+    context,
+    text: `${row.position}º`,
+    x: badgeX + badgeSize / 2,
+    y: badgeY + badgeSize / 2,
+  })
 
   context.fillStyle = palette.text
   context.font = "900 28px Arial, sans-serif"
-  drawWrappedText({
+  drawTextBlock({
     context,
     text: row.name,
     x: x + 98,
-    y: y + 54,
-    maxWidth: width - 386,
+    y,
+    width: width - 386,
+    height,
     lineHeight: 30,
     maxLines: 1,
   })
@@ -420,15 +539,20 @@ function drawPodiumRow({
   const statsX = x + width - 248
   context.fillStyle = palette.muted
   context.font = "800 15px Arial, sans-serif"
-  context.fillText("PUNTOS", statsX, y + 34)
-  context.fillText("DIF. JUEGOS", statsX, y + 65)
+  context.save()
+  context.textBaseline = "middle"
+  context.fillText("PUNTOS", statsX, y + 31)
+  context.fillText("DIF. JUEGOS", statsX, y + 63)
+  context.restore()
 
   context.fillStyle = palette.text
   context.font = "900 21px Arial, sans-serif"
+  context.save()
   context.textAlign = "right"
-  context.fillText(`${row.points} pts`, x + width - 22, y + 34)
-  context.fillText(formatGamesDiff(row.gamesDiff), x + width - 22, y + 65)
-  context.textAlign = "left"
+  context.textBaseline = "middle"
+  context.fillText(`${row.points} pts`, x + width - 22, y + 31)
+  context.fillText(formatGamesDiff(row.gamesDiff), x + width - 22, y + 63)
+  context.restore()
 }
 
 function drawHighlightCard({
@@ -447,33 +571,45 @@ function drawHighlightCard({
   highlight: SeasonSummaryHighlight
 }) {
   const height = 172
+  const horizontalPadding = 20
   fillRoundedRect(context, x, y, width, height, 20, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 20, palette.line)
 
   context.fillStyle = palette.muted
   context.font = "800 15px Arial, sans-serif"
-  context.fillText(highlight.label.toUpperCase(), x + 20, y + 30)
+  drawTextBlock({
+    context,
+    text: highlight.label.toUpperCase(),
+    x: x + horizontalPadding,
+    y: y + 12,
+    width: width - horizontalPadding * 2,
+    height: 28,
+    lineHeight: 18,
+    maxLines: 1,
+  })
 
   context.fillStyle = palette.text
   context.font = "900 27px Arial, sans-serif"
-  drawWrappedText({
+  drawTextBlock({
     context,
     text: highlight.headline,
-    x: x + 20,
-    y: y + 69,
-    maxWidth: width - 40,
+    x: x + horizontalPadding,
+    y: y + 42,
+    width: width - horizontalPadding * 2,
+    height: 62,
     lineHeight: 30,
     maxLines: 2,
   })
 
   context.fillStyle = palette.muted
   context.font = "700 18px Arial, sans-serif"
-  drawWrappedText({
+  drawTextBlock({
     context,
     text: highlight.detail,
-    x: x + 20,
-    y: y + 127,
-    maxWidth: width - 40,
+    x: x + horizontalPadding,
+    y: y + 106,
+    width: width - horizontalPadding * 2,
+    height: 50,
     lineHeight: 21,
     maxLines: 2,
   })
@@ -530,40 +666,57 @@ export async function createSeasonSummaryImage(
   const logoSize = leagueLogoImage ? 92 : 0
   const headerTextX = HORIZONTAL_PADDING
   const headerTitleX = HORIZONTAL_PADDING + (leagueLogoImage ? logoSize + 24 : 0)
+  const headerTextWidth = CONTENT_WIDTH - (leagueLogoImage ? logoSize + 24 : 0)
 
   if (leagueLogoImage) {
-    drawImageCover({
+    drawTransparentImageContain({
       context,
       image: leagueLogoImage,
       x: HORIZONTAL_PADDING,
       y: 42,
       width: logoSize,
       height: logoSize,
-      radius: 26,
-      background: palette.surface,
     })
-    strokeRoundedRect(context, HORIZONTAL_PADDING, 42, logoSize, logoSize, 26, palette.line)
   }
 
   context.fillStyle = palette.muted
   context.font = "800 22px Arial, sans-serif"
-  context.fillText(data.leagueName.toUpperCase(), headerTitleX, 70)
+  drawTextBlock({
+    context,
+    text: data.leagueName.toUpperCase(),
+    x: headerTitleX,
+    y: 46,
+    width: headerTextWidth,
+    height: 34,
+    lineHeight: 24,
+    maxLines: 1,
+  })
 
   context.fillStyle = palette.text
   context.font = "900 54px Arial, sans-serif"
-  drawWrappedText({
+  drawTextBlock({
     context,
     text: data.seasonName,
     x: headerTitleX,
-    y: 132,
-    maxWidth: CONTENT_WIDTH - (leagueLogoImage ? logoSize + 24 : 0),
+    y: 82,
+    width: headerTextWidth,
+    height: 76,
     lineHeight: 58,
     maxLines: 1,
   })
 
   context.fillStyle = palette.muted
   context.font = "800 21px Arial, sans-serif"
-  context.fillText("RESUMEN FINAL DE TEMPORADA", headerTitleX, 182)
+  drawTextBlock({
+    context,
+    text: "RESUMEN FINAL DE TEMPORADA",
+    x: headerTitleX,
+    y: 160,
+    width: headerTextWidth,
+    height: 40,
+    lineHeight: 24,
+    maxLines: 1,
+  })
 
   const heroY = headerHeight
   data.heroes.slice(0, 2).forEach((hero, index) => {
@@ -613,9 +766,12 @@ export async function createSeasonSummaryImage(
 
   context.fillStyle = palette.muted
   context.font = "700 18px Arial, sans-serif"
-  context.textAlign = "center"
-  context.fillText("Smash & Lob", CANVAS_WIDTH / 2, canvasHeight - 30)
-  context.textAlign = "left"
+  drawCenteredText({
+    context,
+    text: "Smash & Lob",
+    x: CANVAS_WIDTH / 2,
+    y: canvasHeight - 30,
+  })
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(

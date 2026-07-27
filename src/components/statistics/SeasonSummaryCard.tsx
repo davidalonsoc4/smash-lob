@@ -24,6 +24,105 @@ function formatGamesDiff(value: number) {
   return `${value}`
 }
 
+function ImageOptionIcon({ type }: { type: "logo" | "profiles" }) {
+  if (type === "profiles") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+        <path
+          d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    )
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <rect
+        x="4"
+        y="4"
+        width="16"
+        height="16"
+        rx="4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path
+        d="m7.5 16 3.25-3.25 2.25 2.25 2.5-2.5L19 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="15.75" cy="8.25" r="1.25" fill="currentColor" />
+    </svg>
+  )
+}
+
+function ImageOptionToggle({
+  checked,
+  disabled,
+  title,
+  description,
+  type,
+  onChange,
+}: {
+  checked: boolean
+  disabled: boolean
+  title: string
+  description: string
+  type: "logo" | "profiles"
+  onChange: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={onChange}
+      className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-55 ${
+        checked
+          ? "border-neutral-300 bg-white shadow-sm"
+          : "border-neutral-200 bg-neutral-100/70"
+      }`}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          checked ? "bg-neutral-950 text-white" : "bg-white text-neutral-500"
+        }`}
+      >
+        <ImageOptionIcon type={type} />
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-black text-neutral-900">{title}</span>
+        <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-neutral-500">
+          {description}
+        </span>
+      </span>
+
+      <span
+        aria-hidden="true"
+        className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+          checked ? "bg-neutral-950" : "bg-neutral-300"
+        }`}
+      >
+        <span
+          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+            checked ? "left-6" : "left-1"
+          }`}
+        />
+      </span>
+    </button>
+  )
+}
+
 export function SeasonSummaryCard({
   data,
   canExport,
@@ -233,43 +332,38 @@ export function SeasonSummaryCard({
           </div>
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
-          <p className="text-xs font-black text-neutral-900">Opciones de la imagen</p>
-          <div className="mt-3 space-y-2">
-            <label className="flex items-start gap-2 text-sm font-semibold text-neutral-700">
-              <input
-                type="checkbox"
-                checked={hasLeagueLogo && includeLeagueLogo}
-                disabled={!hasLeagueLogo || busyAction !== null}
-                onChange={(event) => setIncludeLeagueLogo(event.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-neutral-300"
-              />
-              <span>
-                Incluir logo de la liga
-                {!hasLeagueLogo ? (
-                  <span className="block text-xs font-medium text-neutral-500">
-                    Esta liga no tiene logo guardado.
-                  </span>
-                ) : null}
-              </span>
-            </label>
-            <label className="flex items-start gap-2 text-sm font-semibold text-neutral-700">
-              <input
-                type="checkbox"
-                checked={hasHeroImages && includeHeroImages}
-                disabled={!hasHeroImages || busyAction !== null}
-                onChange={(event) => setIncludeHeroImages(event.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-neutral-300"
-              />
-              <span>
-                Incluir fotos de campeón / MVP
-                {!hasHeroImages ? (
-                  <span className="block text-xs font-medium text-neutral-500">
-                    No hay imágenes de perfil disponibles para mostrar.
-                  </span>
-                ) : null}
-              </span>
-            </label>
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+          <div>
+            <p className="text-xs font-black text-neutral-900">Personaliza la imagen</p>
+            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+              Elige qué elementos visuales se incluyen al compartir o guardar.
+            </p>
+          </div>
+          <div className="mt-3 grid gap-2">
+            <ImageOptionToggle
+              checked={hasLeagueLogo && includeLeagueLogo}
+              disabled={!hasLeagueLogo || busyAction !== null}
+              title="Logo de la liga"
+              description={
+                hasLeagueLogo
+                  ? "Se mostrará respetando su fondo transparente."
+                  : "Esta liga no tiene un logo guardado."
+              }
+              type="logo"
+              onChange={() => setIncludeLeagueLogo((current) => !current)}
+            />
+            <ImageOptionToggle
+              checked={hasHeroImages && includeHeroImages}
+              disabled={!hasHeroImages || busyAction !== null}
+              title="Fotos de campeón / MVP"
+              description={
+                hasHeroImages
+                  ? "Añade los avatares disponibles a los paneles principales."
+                  : "No hay imágenes de perfil disponibles para mostrar."
+              }
+              type="profiles"
+              onChange={() => setIncludeHeroImages((current) => !current)}
+            />
           </div>
         </div>
 

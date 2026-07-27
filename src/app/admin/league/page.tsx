@@ -265,7 +265,10 @@ function LeagueIdentityForm({
             />
           </label>
 
-          <label className="block">
+          <label
+            id="recomendaciones"
+            className="settings-search-target block scroll-mt-28"
+          >
             <span className="text-sm font-semibold text-neutral-700">
               Recomendaciones de la liga
             </span>
