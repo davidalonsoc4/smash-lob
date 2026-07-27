@@ -120,7 +120,7 @@ export function SeasonSummaryCard({
 
   return (
     <AppCard className="overflow-hidden p-0">
-      <div className="space-y-3 bg-neutral-50/90 p-3">
+      <div className="space-y-2.5 bg-neutral-50 p-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
             Resumen final
@@ -132,20 +132,20 @@ export function SeasonSummaryCard({
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
+              className="rounded-2xl border border-neutral-200 bg-white p-3"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
                 {hero.label}
               </p>
-              <p className="mt-2 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
+              <p className="mt-1.5 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
               {hero.stats.length > 0 ? (
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="mt-2.5 grid grid-cols-3 gap-1.5 border-t border-neutral-100 pt-2.5">
                   {hero.stats.slice(0, 3).map((stat) => (
-                    <div key={stat.label} className="rounded-xl bg-neutral-50 px-2 py-2 text-center">
+                    <div key={stat.label} className="min-w-0 text-center">
                       <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                         {stat.label}
                       </p>
-                      <p className="mt-1 text-sm font-black text-neutral-950">{stat.value}</p>
+                      <p className="mt-0.5 text-sm font-black text-neutral-950">{stat.value}</p>
                     </div>
                   ))}
                 </div>
@@ -155,18 +155,18 @@ export function SeasonSummaryCard({
         </div>
       </div>
 
-      <div className="space-y-3 p-3">
+      <div className="space-y-4 p-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
             Podio final
           </p>
-          <div className="mt-2 space-y-2">
+          <div className="mt-2 space-y-1.5">
             {data.podium.map((row) => (
               <div
                 key={`${row.position}-${row.name}`}
-                className="flex items-center gap-3 rounded-2xl bg-neutral-50 px-3 py-3"
+                className="flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-neutral-950 text-sm font-black text-white">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-xs font-black text-white">
                   {row.position}º
                 </div>
                 <div className="min-w-0 flex-1">
@@ -187,13 +187,13 @@ export function SeasonSummaryCard({
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
             Lo más destacado
           </p>
-          <div className="mt-2 grid gap-2">
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-3">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-2.5">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>
-                <p className="mt-1 text-sm font-black leading-5 text-neutral-950">
+                <p className="mt-1 text-sm font-black leading-4 text-neutral-950">
                   {highlight.headline}
                 </p>
                 <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
