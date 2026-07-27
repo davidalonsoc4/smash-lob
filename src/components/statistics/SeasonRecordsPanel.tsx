@@ -45,9 +45,11 @@ function RecordCard({
 export function SeasonRecordsPanel({
   records,
   playersById,
+  isLeagueWide = false,
 }: {
   records: SeasonRecords
   playersById: Map<string, string>
+  isLeagueWide?: boolean
 }) {
   const comeback = records.biggestComeback
     ? getFriendlyMatchSummary(records.biggestComeback.match, playersById)
@@ -78,7 +80,9 @@ export function SeasonRecordsPanel({
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-          Partidos que marcaron la temporada
+          {isLeagueWide
+            ? "Partidos que marcaron la liga"
+            : "Partidos que marcaron la temporada"}
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           <RecordCard
@@ -118,7 +122,7 @@ export function SeasonRecordsPanel({
             }
             description={
               biggestWin
-                ? "Fue el resultado con mayor diferencia total de juegos de la temporada."
+                ? `Fue el resultado con mayor diferencia total de juegos ${isLeagueWide ? "de la liga" : "de la temporada"}.`
                 : "Se necesita al menos un resultado válido."
             }
             matchLine={biggestWin ? formatFriendlyMatchLine(biggestWin) : undefined}
@@ -132,9 +136,11 @@ export function SeasonRecordsPanel({
 export function PlayerSeasonRecordsPanel({
   detail,
   playersById,
+  isLeagueWide = false,
 }: {
   detail: PlayerSeasonDetail
   playersById: Map<string, string>
+  isLeagueWide?: boolean
 }) {
   const positionRange =
     detail.bestPosition !== null && detail.worstPosition !== null
@@ -155,7 +161,7 @@ export function PlayerSeasonRecordsPanel({
   return (
     <div className="grid gap-2 sm:grid-cols-2">
       <RecordCard
-        eyebrow="Posiciones de la temporada"
+        eyebrow={isLeagueWide ? "Posiciones históricas" : "Posiciones de la temporada"}
         headline={positionRange}
         description={
           detail.bestPosition !== null
@@ -170,7 +176,7 @@ export function PlayerSeasonRecordsPanel({
             ? `${detail.bestWinStreak} victorias seguidas`
             : "Sin racha de victorias"
         }
-        description="Mayor número de triunfos consecutivos durante la temporada."
+        description={`Mayor número de triunfos consecutivos ${isLeagueWide ? "en una misma temporada" : "durante la temporada"}.`}
       />
       <RecordCard
         eyebrow="Rival más vencido"

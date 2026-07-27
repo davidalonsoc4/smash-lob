@@ -31,11 +31,12 @@ export default function StatisticsSeasonPage() {
     playersById,
     votes,
     getSeasonRoundSettings,
+    isLeagueWide,
   } = useStatisticsWorkspace()
 
   const seasonMvp = useMemo(
     () =>
-      selectedSeason.status === "finished"
+      !isLeagueWide && selectedSeason.status === "finished"
         ? getSeasonMvpSelection({
             votes,
             leagueId: activeLeague.id,
@@ -48,6 +49,7 @@ export default function StatisticsSeasonPage() {
       activeLeague.id,
       countedMatches,
       getSeasonRoundSettings,
+      isLeagueWide,
       selectedSeason.id,
       selectedSeason.status,
       votes,
@@ -77,6 +79,7 @@ export default function StatisticsSeasonPage() {
   )
 
   const summaryIsComplete =
+    !isLeagueWide &&
     selectedSeason.status === "finished" &&
     statistics.dataQuality.pendingMatches === 0 &&
     statistics.dataQuality.excludedFinishedMatches === 0 &&
@@ -146,18 +149,39 @@ export default function StatisticsSeasonPage() {
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
-        title="Resumen de temporada"
-        description="Resumen final compartible e historial competitivo de la liga."
+        title={isLeagueWide ? "Resumen de la liga" : "Resumen de temporada"}
+        description={
+          isLeagueWide
+            ? "Vista histórica de todas las temporadas y campeones de la liga."
+            : "Resumen final compartible e historial competitivo de la liga."
+        }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
         statusBadge={
-          selectedSeason.status === "finished" && !summaryIsComplete
+          !isLeagueWide && selectedSeason.status === "finished" && !summaryIsComplete
             ? { label: "Datos incompletos", tone: "warning" }
             : undefined
         }
       />
 
-      {selectedSeason.status === "finished" &&
+      {isLeagueWide ? (
+        <AppCard>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+            Histórico completo
+          </p>
+          <p className="mt-1 text-xl font-black">
+            {leagueSeasons.length} temporadas · {statistics.countedMatches} partidos válidos
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            {statistics.leader
+              ? `${statistics.leader.displayName} lidera el histórico con ${statistics.leader.points} puntos y ${statistics.leader.wins} victorias.`
+              : "Todavía no hay resultados suficientes para calcular el histórico."}
+          </p>
+          <p className="mt-2 text-[11px] font-semibold leading-5 text-neutral-500">
+            Las imágenes compartibles se generan por temporada para no mezclar campeones, MVP y podios de competiciones diferentes.
+          </p>
+        </AppCard>
+      ) : selectedSeason.status === "finished" &&
       statistics.leader &&
       statistics.dataQuality.hasCountedResults ? (
         <div>

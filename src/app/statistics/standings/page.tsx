@@ -20,14 +20,19 @@ export default function StatisticsStandingsPage() {
     selectedSeason,
     buildStatisticsHref,
     statistics,
+    isLeagueWide,
   } = useStatisticsWorkspace()
 
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
-        title="Clasificación"
-        description="Posiciones, puntos y balance completo de la temporada seleccionada."
+        title={isLeagueWide ? "Clasificación histórica" : "Clasificación"}
+        description={
+          isLeagueWide
+            ? "Puntos, victorias y balance acumulados en todas las temporadas de la liga."
+            : "Posiciones, puntos y balance completo de la temporada seleccionada."
+        }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
@@ -64,7 +69,7 @@ export default function StatisticsStandingsPage() {
         </AppCard>
         <AppCard>
           <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-            Liderato
+            {isLeagueWide ? "Liderato histórico" : "Liderato"}
           </p>
           <p className="mt-1 truncate text-base font-black">
             {statistics.leaders.length > 0

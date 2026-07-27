@@ -10,6 +10,7 @@ type SeasonOption = {
   id: string
   name: string
   status: "upcoming" | "active" | "finished"
+  isLeagueWide?: boolean
 }
 
 type StatisticsSectionIconName =
@@ -130,6 +131,9 @@ export function StatisticsPageHeader({
   const canChooseSeason = Boolean(
     seasons && seasons.length > 1 && onSeasonChange,
   )
+  const includesLeagueWideScope = Boolean(
+    seasons?.some((season) => season.isLeagueWide),
+  )
 
   return (
     <>
@@ -160,7 +164,7 @@ export function StatisticsPageHeader({
         <AppCard className="p-2">
           <label className="flex items-center gap-2">
             <span className="shrink-0 text-[11px] font-black text-neutral-700">
-              Temporada
+              {includesLeagueWideScope ? "Ámbito" : "Temporada"}
             </span>
             <select
               value={selectedSeason.id}
@@ -169,7 +173,15 @@ export function StatisticsPageHeader({
             >
               {seasons.map((season) => (
                 <option key={season.id} value={season.id}>
-                  {season.name} · {season.status === "finished" ? "Terminada" : season.status === "active" ? "Activa" : "Próxima"}
+                  {season.isLeagueWide
+                    ? season.name
+                    : `${season.name} · ${
+                        season.status === "finished"
+                          ? "Terminada"
+                          : season.status === "active"
+                            ? "Activa"
+                            : "Próxima"
+                      }`}
                 </option>
               ))}
             </select>

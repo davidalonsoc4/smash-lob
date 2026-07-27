@@ -469,3 +469,15 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Added reduced-motion handling for the selector entrance transition.
 - No database migration, API contract, permission or persistence change is required.
 - Focused TypeScript transpilation and structural checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes `node_modules`.
+
+## v0.17.12 - League-wide statistics and individual evolution chart (2026-07-27)
+
+- Made the fixed Head-to-head and Individual analysis selectors fully opaque with theme-aware borders and stronger exterior shadows.
+- Added a `Toda la liga` statistics scope whenever a league contains more than one season; single-season leagues keep the selector hidden.
+- Aggregated valid matches, rankings, comparisons, player details and records across all real seasons while resetting win streaks at season boundaries.
+- Replaced the Individual analysis round table with a line chart for position, points and cumulative game differential.
+- Preserved teammate, opponents, result and round context for every individual chart point.
+- Rebuilt whole-league progress from each real season so metrics restart correctly, season boundaries are visible and lines do not imply continuity between competitions.
+- Kept shareable final-summary images season-specific to avoid mixing champions, MVPs and podiums from different seasons.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript syntax, semantic and aggregation smoke checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes installed dependencies.

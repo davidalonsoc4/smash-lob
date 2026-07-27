@@ -1,7 +1,9 @@
 import type { MatchData } from "@/context/MatchDataProvider"
+import type { StatisticsMatchData } from "@/lib/seasonStatistics"
 
 export type FriendlyMatchSummary = {
   round: number
+  roundLabel: string
   matchup: string
   score: string
   winnerNames: string
@@ -55,8 +57,11 @@ export function getFriendlyMatchSummary(
   const teamAName = formatPlayerNames(match.teamA, playersById)
   const teamBName = formatPlayerNames(match.teamB, playersById)
 
+  const statisticsMatch = match as StatisticsMatchData
+
   return {
     round: match.round,
+    roundLabel: statisticsMatch.statisticsRoundShortLabel ?? `J${match.round}`,
     matchup: `${teamAName} vs ${teamBName}`,
     score: formatMatchScore(match),
     winnerNames:
@@ -77,7 +82,7 @@ export function formatGamesDifference(gamesMargin: number) {
 }
 
 export function formatFriendlyMatchLine(summary: FriendlyMatchSummary) {
-  return `J${summary.round} · ${summary.matchup}${
+  return `${summary.roundLabel} · ${summary.matchup}${
     summary.score ? ` · ${summary.score}` : ""
   }`
 }

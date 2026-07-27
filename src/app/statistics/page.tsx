@@ -21,14 +21,15 @@ export default function StatisticsPage() {
   const {
     activeLeague,
     selectedSeason,
-    leagueSeasons,
+    seasonOptions,
     selectSeason,
     statistics,
     buildStatisticsHref,
+    isLeagueWide,
   } = useStatisticsWorkspace()
 
   const issueCount =
-    (selectedSeason.status === "finished"
+    (selectedSeason.status === "finished" || isLeagueWide
       ? statistics.dataQuality.pendingMatches
       : 0) +
     statistics.dataQuality.excludedFinishedMatches +
@@ -50,8 +51,12 @@ export default function StatisticsPage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Estadísticas"
-        description="Lo más destacado de la temporada y accesos directos a cada análisis."
-        seasons={leagueSeasons}
+        description={
+          isLeagueWide
+            ? "El histórico completo de la liga y accesos directos a cada análisis."
+            : "Lo más destacado de la temporada y accesos directos a cada análisis."
+        }
+        seasons={seasonOptions}
         selectedSeason={selectedSeason}
         onSeasonChange={selectSeason}
         fallbackHref="/ranking"
@@ -61,13 +66,17 @@ export default function StatisticsPage() {
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <AppCard>
             <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-              {selectedSeason.status === "finished"
+              {isLeagueWide
                 ? statistics.leaders.length > 1
-                  ? "Campeones"
-                  : "Campeón"
-                : statistics.leaders.length > 1
-                  ? "Líderes"
-                  : "Líder"}
+                  ? "Líderes históricos"
+                  : "Líder histórico"
+                : selectedSeason.status === "finished"
+                  ? statistics.leaders.length > 1
+                    ? "Campeones"
+                    : "Campeón"
+                  : statistics.leaders.length > 1
+                    ? "Líderes"
+                    : "Líder"}
             </p>
             <p className="mt-1 truncate text-base font-black">
               {formatNames(statistics.leaders.map((player) => player.displayName))}
@@ -129,7 +138,11 @@ export default function StatisticsPage() {
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/standings")}
             title="Clasificación"
-            description="Tabla completa, puntos, balance y evolución de la temporada."
+            description={
+              isLeagueWide
+                ? "Clasificación histórica acumulada, puntos y balance de todas las temporadas."
+                : "Tabla completa, puntos, balance y evolución de la temporada."
+            }
             leading={<StatisticsSectionIcon name="standings" />}
           />
           <StatisticsSectionLink
@@ -152,8 +165,12 @@ export default function StatisticsPage() {
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/records")}
-            title="Récords de temporada"
-            description="Mejores rachas, remontadas y partidos que marcaron la temporada."
+            title={isLeagueWide ? "Récords de la liga" : "Récords de temporada"}
+            description={
+              isLeagueWide
+                ? "Mejores rachas, remontadas y partidos de todo el historial."
+                : "Mejores rachas, remontadas y partidos que marcaron la temporada."
+            }
             leading={<StatisticsSectionIcon name="records" />}
           />
           <StatisticsSectionLink

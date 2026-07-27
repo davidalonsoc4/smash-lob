@@ -53,6 +53,13 @@ export function AllPlayersProgressChart({
     () => new Set(),
   )
 
+  const spansMultipleSeasons =
+    new Set(
+      series.flatMap((player) =>
+        player.progress.map((row) => row.seasonId).filter(Boolean),
+      ),
+    ).size > 1
+
   const visibleSeries = useMemo(
     () => series.filter((player) => !hiddenPlayerIds.has(player.playerId)),
     [hiddenPlayerIds, series],
@@ -64,6 +71,12 @@ export function AllPlayersProgressChart({
         series.flatMap((player) => player.progress.map((row) => row.round)),
       ),
     ).sort((a, b) => a - b)
+    const roundRows = new Map<number, PlayerRoundProgress>()
+    series.forEach((player) => {
+      player.progress.forEach((row) => {
+        if (!roundRows.has(row.round)) roundRows.set(row.round, row)
+      })
+    })
     const width = Math.max(410, 86 + Math.max(1, rounds.length - 1) * 54)
     const values = visibleSeries.flatMap((player) =>
       player.progress.map((row) =>
@@ -93,20 +106,19 @@ export function AllPlayersProgressChart({
     const chartHeight = HEIGHT - PADDING.top - PADDING.bottom
 
     const playerSeries = visibleSeries.map((player) => {
-      const valuesByRound = new Map<number, number>(
-        player.progress.map((row) => [
-          row.round,
-          mode === "position"
-            ? row.position
-            : mode === "points"
-              ? row.points
-              : row.gamesDiff,
-        ]),
+      const rowsByRound = new Map<number, PlayerRoundProgress>(
+        player.progress.map((row) => [row.round, row]),
       )
       const points = rounds
         .map((round, index) => {
-          const value = valuesByRound.get(round)
-          if (value === undefined) return null
+          const row = rowsByRound.get(round)
+          if (!row) return null
+          const value =
+            mode === "position"
+              ? row.position
+              : mode === "points"
+                ? row.points
+                : row.gamesDiff
           const x =
             PADDING.left +
             (rounds.length <= 1
@@ -119,7 +131,7 @@ export function AllPlayersProgressChart({
                 : (maxValue - value) / range
               : (value - minValue) / range
           const y = PADDING.top + (1 - normalized) * chartHeight
-          return { round, value, x, y }
+          return { round, value, x, y, row }
         })
         .filter((point): point is NonNullable<typeof point> => Boolean(point))
 
@@ -127,17 +139,59 @@ export function AllPlayersProgressChart({
         (candidate) => candidate.playerId === player.playerId,
       )
 
+      const segments = points.reduce<(typeof points)[]>((all, point) => {
+        const current = all.at(-1)
+        const previousPoint = current?.at(-1)
+        if (
+          !current ||
+          (previousPoint?.row.seasonId &&
+            point.row.seasonId &&
+            previousPoint.row.seasonId !== point.row.seasonId)
+        ) {
+          all.push([point])
+        } else {
+          current.push(point)
+        }
+        return all
+      }, [])
+
       return {
         ...player,
         points,
+        segments,
         color: SERIES_COLORS[originalIndex % SERIES_COLORS.length],
         dash: DASH_PATTERNS[originalIndex % DASH_PATTERNS.length],
         marker: getMarkerType(originalIndex),
       }
     })
 
+    const seasonBoundaries = rounds
+      .map((round, index) => {
+        const previousRound = rounds[index - 1]
+        const previousRow = roundRows.get(previousRound)
+        const row = roundRows.get(round)
+        if (
+          index === 0 ||
+          !previousRow?.seasonId ||
+          !row?.seasonId ||
+          previousRow.seasonId === row.seasonId
+        ) {
+          return null
+        }
+        const previousX =
+          PADDING.left +
+          ((index - 1) / Math.max(1, rounds.length - 1)) * chartWidth
+        const currentX =
+          PADDING.left +
+          (index / Math.max(1, rounds.length - 1)) * chartWidth
+        return (previousX + currentX) / 2
+      })
+      .filter((x): x is number => x !== null)
+
     return {
       rounds,
+      roundRows,
+      seasonBoundaries,
       width,
       minValue,
       maxValue,
@@ -278,6 +332,9 @@ export function AllPlayersProgressChart({
       <div className="mt-2 flex items-center justify-between gap-2">
         <p className="text-[10px] font-semibold text-neutral-500">
           Pulsa un jugador para mostrar u ocultar su línea.
+          {spansMultipleSeasons
+            ? " Las temporadas se separan y reinician sus métricas."
+            : ""}
         </p>
         <span className="shrink-0 text-[10px] font-bold text-neutral-500">
           {visibleSeries.length}/{series.length} visibles
@@ -374,26 +431,45 @@ export function AllPlayersProgressChart({
                   textAnchor="middle"
                   className="statistics-chart-label"
                 >
-                  J{round}
+                  {chart.roundRows.get(round)?.shortLabel ?? `J${round}`}
                 </text>
               )
             })}
 
+            {chart.seasonBoundaries.map((x) => (
+              <line
+                key={`season-boundary-${x}`}
+                x1={x}
+                x2={x}
+                y1={PADDING.top}
+                y2={HEIGHT - PADDING.bottom}
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeDasharray="4 5"
+                opacity="0.18"
+              />
+            ))}
+
             {chart.playerSeries.map((player) => (
               <g key={player.playerId}>
-                <polyline
-                  points={player.points
-                    .map((point) => `${point.x},${point.y}`)
-                    .join(" ")}
-                  fill="none"
-                  stroke={player.color}
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray={player.dash || undefined}
-                />
+                {player.segments.map((segment, index) => (
+                  <polyline
+                    key={`segment-${index}`}
+                    points={segment
+                      .map((point) => `${point.x},${point.y}`)
+                      .join(" ")}
+                    fill="none"
+                    stroke={player.color}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray={player.dash || undefined}
+                  />
+                ))}
                 {player.points.map((point) => {
-                  const title = `${player.displayName} · J${point.round} · ${
+                  const roundLabel =
+                    chart.roundRows.get(point.round)?.shortLabel ?? `J${point.round}`
+                  const title = `${player.displayName} · ${roundLabel} · ${
                     mode === "position"
                       ? formatPosition(point.value)
                       : mode === "gamesDiff"
@@ -462,7 +538,7 @@ export function AllPlayersProgressChart({
             {player.progress
               .map(
                 (row) =>
-                  `jornada ${row.round}, ${row.position}ª posición, ${row.points} puntos y ${formatSigned(row.gamesDiff)} de diferencia de juegos`,
+                  `${row.label ?? `jornada ${row.round}`}, ${row.position}ª posición, ${row.points} puntos y ${formatSigned(row.gamesDiff)} de diferencia de juegos`,
               )
               .join("; ")}
           </p>

@@ -10,6 +10,7 @@ export default function StatisticsEvolutionPage() {
     selectedSeason,
     buildStatisticsHref,
     statistics,
+    isLeagueWide,
   } = useStatisticsWorkspace()
 
   const series = statistics.ranking.map((player) => ({
@@ -23,7 +24,11 @@ export default function StatisticsEvolutionPage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Evolución de la liga"
-        description="Compara en un único gráfico la posición, los puntos y la diferencia de juegos de todos los jugadores."
+        description={
+          isLeagueWide
+            ? "Compara a todos los jugadores a través de cada temporada, separando los periodos y reiniciando sus métricas."
+            : "Compara en un único gráfico la posición, los puntos y la diferencia de juegos de todos los jugadores."
+        }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />

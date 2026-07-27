@@ -12,9 +12,10 @@ export default function StatisticsComparePage() {
     selectedSeason,
     buildStatisticsHref,
     statistics,
-    countedMatches,
+    statisticsMatches,
     leaguePlayers,
-    seasonPlayers,
+    statisticsSeasonPlayers,
+    isLeagueWide,
   } = useStatisticsWorkspace()
   const [playerASelection, setPlayerASelection] = useState("")
   const [playerBSelection, setPlayerBSelection] = useState("")
@@ -37,15 +38,15 @@ export default function StatisticsComparePage() {
         playerAId,
         playerBId,
         playerProfiles: leaguePlayers,
-        seasonPlayers,
-        matches: countedMatches,
+        seasonPlayers: statisticsSeasonPlayers,
+        matches: statisticsMatches,
       }),
     [
-      countedMatches,
+      statisticsMatches,
       leaguePlayers,
       playerAId,
       playerBId,
-      seasonPlayers,
+      statisticsSeasonPlayers,
       selectedSeason.id,
     ],
   )
@@ -54,7 +55,11 @@ export default function StatisticsComparePage() {
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Cara a cara"
-        description="Compara su rendimiento general, la forma reciente, los duelos directos y los resultados ante rivales comunes."
+        description={
+          isLeagueWide
+            ? "Compara su rendimiento histórico, las rachas, los duelos directos y los resultados ante rivales comunes de todas las temporadas."
+            : "Compara su rendimiento general, la forma reciente, los duelos directos y los resultados ante rivales comunes."
+        }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
@@ -64,6 +69,7 @@ export default function StatisticsComparePage() {
         playerAId={playerAId}
         playerBId={playerBId}
         comparison={comparison}
+        isLeagueWide={isLeagueWide}
         onPlayerAChange={(playerId) => {
           setPlayerASelection(playerId)
           if (playerId === playerBId) {

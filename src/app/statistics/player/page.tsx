@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { FloatingStatisticsSelector } from "@/components/statistics/FloatingStatisticsSelector"
+import { PlayerProgressChart } from "@/components/statistics/PlayerProgressChart"
 import { PlayerSeasonRecordsPanel } from "@/components/statistics/SeasonRecordsPanel"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
@@ -25,12 +26,15 @@ export default function StatisticsPlayerPage() {
     buildStatisticsHref,
     statistics,
     countedMatches,
+    statisticsMatches,
     leaguePlayers,
-    seasonPlayers,
+    statisticsSeasonPlayers,
+    leagueSeasons,
     votes,
     getSeasonRoundSettings,
     playersById,
     isBalancedCalendar,
+    isLeagueWide,
   } = useStatisticsWorkspace()
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const selectedPlayer =
@@ -44,48 +48,72 @@ export default function StatisticsPlayerPage() {
             seasonId: selectedSeason.id,
             playerId: selectedPlayer.id,
             playerProfiles: leaguePlayers,
-            seasonPlayers,
-            matches: countedMatches,
+            seasonPlayers: statisticsSeasonPlayers,
+            matches: statisticsMatches,
             precomputedProgress: statistics.progressByPlayer[selectedPlayer.id],
           })
         : null,
     [
-      countedMatches,
+      statisticsMatches,
       leaguePlayers,
-      seasonPlayers,
+      statisticsSeasonPlayers,
       selectedPlayer,
       selectedSeason.id,
       statistics.progressByPlayer,
     ],
   )
-  const playerMvpSummary = useMemo(
-    () =>
-      selectedPlayer
-        ? getPlayerMvpSummary({
-            votes,
-            leagueId: activeLeague.id,
-            seasonId: selectedSeason.id,
-            matches: countedMatches,
-            playerId: selectedPlayer.id,
-            mvpSystem: getSeasonRoundSettings(selectedSeason.id).mvpSystem,
-          })
-        : null,
-    [
-      activeLeague.id,
-      countedMatches,
-      getSeasonRoundSettings,
-      selectedPlayer,
-      selectedSeason.id,
-      votes,
-    ],
-  )
+  const playerMvpSummary = useMemo(() => {
+    if (!selectedPlayer) return null
+
+    const seasonIds = isLeagueWide
+      ? leagueSeasons.map((season) => season.id)
+      : [selectedSeason.id]
+    const summaries = seasonIds.map((seasonId) =>
+      getPlayerMvpSummary({
+        votes,
+        leagueId: activeLeague.id,
+        seasonId,
+        matches: countedMatches,
+        playerId: selectedPlayer.id,
+        mvpSystem: getSeasonRoundSettings(seasonId).mvpSystem,
+      }),
+    )
+
+    return summaries.reduce(
+      (total, summary) => ({
+        roundMvpCount: total.roundMvpCount + summary.roundMvpCount,
+        roundMvpRounds: [...total.roundMvpRounds, ...summary.roundMvpRounds],
+        seasonMvpCount: total.seasonMvpCount + summary.seasonMvpCount,
+        votesReceived: total.votesReceived + summary.votesReceived,
+      }),
+      {
+        roundMvpCount: 0,
+        roundMvpRounds: [] as number[],
+        seasonMvpCount: 0,
+        votesReceived: 0,
+      },
+    )
+  }, [
+    activeLeague.id,
+    countedMatches,
+    getSeasonRoundSettings,
+    isLeagueWide,
+    leagueSeasons,
+    selectedPlayer,
+    selectedSeason.id,
+    votes,
+  ])
 
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
         leagueName={activeLeague.name}
         title="Análisis individual"
-        description="Rendimiento, rachas, compañero más fuerte, rivales y récords de un jugador."
+        description={
+          isLeagueWide
+            ? "Rendimiento histórico, rachas, compañero más fuerte, rivales y récords de un jugador en toda la liga."
+            : "Rendimiento, rachas, compañero más fuerte, rivales y récords de un jugador."
+        }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
@@ -209,37 +237,15 @@ export default function StatisticsPlayerPage() {
                 <PlayerSeasonRecordsPanel
                   detail={playerDetail}
                   playersById={playersById}
+                  isLeagueWide={isLeagueWide}
                 />
               </div>
 
               {playerDetail.progress.length > 0 ? (
-                <AppCard>
-                  <p className="font-black">Evolución por jornada</p>
-                  <div className="mt-3 overflow-x-auto">
-                    <table className="w-full min-w-[420px] text-left text-xs">
-                      <thead>
-                        <tr className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                          <th className="pb-2">Jornada</th>
-                          <th className="pb-2">Posición</th>
-                          <th className="pb-2">Puntos</th>
-                          <th className="pb-2">Dif. juegos</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {playerDetail.progress.map((row) => (
-                          <tr key={row.round} className="border-t border-neutral-100">
-                            <td className="py-2 font-black">J{row.round}</td>
-                            <td className="py-2 font-bold">{row.position}º</td>
-                            <td className="py-2 font-bold">{row.points}</td>
-                            <td className="py-2 font-bold">
-                              {formatSigned(row.gamesDiff)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </AppCard>
+                <PlayerProgressChart
+                  displayName={selectedPlayer.displayName}
+                  progress={playerDetail.progress}
+                />
               ) : null}
 
               {playerDetail.opponents.length > 0 ? (
