@@ -65,7 +65,7 @@ export function PlayerComparisonPanel({
   if (players.length < 2) {
     return (
       <AppCard>
-        <p className="font-black">Comparativa no disponible</p>
+        <p className="font-black">Cara a cara no disponible</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           Se necesitan al menos dos jugadores en la temporada.
         </p>

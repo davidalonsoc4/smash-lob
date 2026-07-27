@@ -437,3 +437,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Reused the season selected on the statistics landing page across detail routes.
 - Strengthened chart distinction through categorical colors, dash patterns and marker shapes.
 - No database migration, API contract, permission or persistence change is required.
+
+## v0.17.9 - Head-to-head and compact league evolution (2026-07-27)
+
+- Renamed the two-player comparison route to Cara a cara and removed its duplicated evolution chart.
+- Kept player summaries, recent form and direct-rivalry information focused on exactly two selected players.
+- Replaced the league-evolution Top 4 shortcut with Top 3.
+- Placed chart-mode and visibility selectors on one compact row and removed the repeated internal heading.
+- Added one tick for every visible integer position and made seven rounds fit without horizontal scrolling.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript syntax and chart-logic checks pass; full lint, project type-check and build remain pending in the local worktree because this review archive excluded `node_modules` and the package registry returned HTTP 503.

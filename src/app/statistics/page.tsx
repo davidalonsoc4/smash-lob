@@ -151,8 +151,8 @@ export default function StatisticsPage() {
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/compare")}
-            title="Comparar jugadores"
-            description="Cara a cara, forma reciente y evolución entre dos jugadores."
+            title="Cara a cara"
+            description="Clasificación, forma reciente y enfrentamientos directos entre dos jugadores."
             summary={statistics.ranking.length >= 2 ? "Disponible" : "Sin datos"}
             leading={<StatisticsSectionIcon name="compare" />}
           />
