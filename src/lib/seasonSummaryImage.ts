@@ -48,25 +48,42 @@ type CanvasPalette = {
   muted: string
   line: string
   accent: string
-  accentSoft: string
+  accentMuted: string
+  inverseText: string
+  inverseMuted: string
 }
 
 type TextAlignment = "left" | "center" | "right"
 
+type TextLayout = {
+  fontSize: number
+  lineHeight: number
+  lines: string[]
+}
+
+type HighlightLayout = {
+  height: number
+  headline: TextLayout
+  detail: TextLayout
+}
+
 const CANVAS_WIDTH = 1080
-const HORIZONTAL_PADDING = 64
+const HORIZONTAL_PADDING = 54
 const CONTENT_WIDTH = CANVAS_WIDTH - HORIZONTAL_PADDING * 2
+const APP_ICON_PATH = "/icon-192.png"
 
 function getCanvasPalette(): CanvasPalette {
   return {
-    background: "#f4f4f2",
+    background: "#f3f4f2",
     surface: "#ffffff",
-    surfaceAlt: "#f0f0ee",
-    text: "#171717",
-    muted: "#6b6b67",
-    line: "#d8d8d3",
-    accent: "#202020",
-    accentSoft: "#e7e7e3",
+    surfaceAlt: "#f1f2ef",
+    text: "#171817",
+    muted: "#676c68",
+    line: "#dfe1dc",
+    accent: "#151615",
+    accentMuted: "#cfd3ce",
+    inverseText: "#ffffff",
+    inverseMuted: "#c9ceca",
   }
 }
 
@@ -112,6 +129,50 @@ function strokeRoundedRect(
   context.stroke()
 }
 
+function drawSurfaceCard({
+  context,
+  palette,
+  x,
+  y,
+  width,
+  height,
+  radius,
+  shadow = true,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  x: number
+  y: number
+  width: number
+  height: number
+  radius: number
+  shadow?: boolean
+}) {
+  context.save()
+  if (shadow) {
+    context.shadowColor = "rgba(23, 24, 23, 0.08)"
+    context.shadowBlur = 24
+    context.shadowOffsetY = 10
+  }
+  fillRoundedRect(context, x, y, width, height, radius, palette.surface)
+  context.restore()
+  strokeRoundedRect(context, x, y, width, height, radius, palette.line)
+}
+
+function truncateTextToWidth(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+) {
+  if (context.measureText(text).width <= maxWidth) return text
+
+  let visible = text
+  while (visible.length > 1 && context.measureText(`${visible}…`).width > maxWidth) {
+    visible = visible.slice(0, -1)
+  }
+  return `${visible.trimEnd()}…`
+}
+
 function wrapTextLines({
   context,
   text,
@@ -123,54 +184,100 @@ function wrapTextLines({
   maxWidth: number
   maxLines: number
 }) {
-  const words = text.split(/\s+/).filter(Boolean)
+  const normalized = text.trim().replace(/\s+/g, " ")
+  if (!normalized) return [""]
+
+  const words = normalized.split(" ")
   const lines: string[] = []
   let current = ""
 
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word
-    if (context.measureText(candidate).width <= maxWidth || !current) {
+    if (context.measureText(candidate).width <= maxWidth) {
       current = candidate
       continue
     }
-    lines.push(current)
-    current = word
+
+    if (current) {
+      lines.push(current)
+      current = word
+    } else {
+      lines.push(truncateTextToWidth(context, word, maxWidth))
+      current = ""
+    }
   }
 
   if (current) lines.push(current)
-  if (lines.length <= maxLines) return lines
+  const normalizedLines = lines.map((line) =>
+    truncateTextToWidth(context, line, maxWidth),
+  )
+  if (normalizedLines.length <= maxLines) return normalizedLines
 
-  const visible = lines.slice(0, maxLines)
-  let last = visible[visible.length - 1] ?? ""
-  while (last.length > 1 && context.measureText(`${last}…`).width > maxWidth) {
-    last = last.slice(0, -1)
-  }
-  visible[visible.length - 1] = `${last}…`
+  const visible = normalizedLines.slice(0, maxLines)
+  const overflowText = lines.slice(maxLines - 1).join(" ")
+  visible[maxLines - 1] = truncateTextToWidth(context, overflowText, maxWidth)
   return visible
 }
 
-function drawTextBlock({
+function fitTextLayout({
   context,
   text,
+  maxWidth,
+  maxLines,
+  maxFontSize,
+  minFontSize,
+  fontWeight,
+  lineHeightRatio = 1.08,
+}: {
+  context: CanvasRenderingContext2D
+  text: string
+  maxWidth: number
+  maxLines: number
+  maxFontSize: number
+  minFontSize: number
+  fontWeight: number
+  lineHeightRatio?: number
+}): TextLayout {
+  for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 2) {
+    context.font = `${fontWeight} ${fontSize}px Arial, sans-serif`
+    const lines = wrapTextLines({ context, text, maxWidth, maxLines })
+    const hasTruncation = lines.some((line) => line.endsWith("…"))
+    if (!hasTruncation || fontSize === minFontSize) {
+      return {
+        fontSize,
+        lineHeight: Math.round(fontSize * lineHeightRatio),
+        lines,
+      }
+    }
+  }
+
+  context.font = `${fontWeight} ${minFontSize}px Arial, sans-serif`
+  return {
+    fontSize: minFontSize,
+    lineHeight: Math.round(minFontSize * lineHeightRatio),
+    lines: wrapTextLines({ context, text, maxWidth, maxLines }),
+  }
+}
+
+function drawTextLines({
+  context,
+  lines,
   x,
   y,
   width,
   height,
   lineHeight,
-  maxLines = 2,
   align = "left",
 }: {
   context: CanvasRenderingContext2D
-  text: string
+  lines: string[]
   x: number
   y: number
   width: number
   height: number
   lineHeight: number
-  maxLines?: number
   align?: TextAlignment
 }) {
-  const lines = wrapTextLines({ context, text, maxWidth: width, maxLines })
   const centerY = y + height / 2
   const firstLineY = centerY - ((lines.length - 1) * lineHeight) / 2
   const textX = align === "center" ? x + width / 2 : align === "right" ? x + width : x
@@ -182,8 +289,6 @@ function drawTextBlock({
     context.fillText(line, textX, firstLineY + index * lineHeight)
   })
   context.restore()
-
-  return lines
 }
 
 function drawCenteredText({
@@ -210,18 +315,28 @@ function drawSectionLabel({
   text,
   x,
   y,
+  width,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
   text: string
   x: number
   y: number
+  width: number
 }) {
-  context.fillStyle = palette.muted
-  context.font = "800 21px Arial, sans-serif"
+  fillRoundedRect(context, x, y - 8, 16, 16, 6, palette.accent)
+  context.fillStyle = palette.text
+  context.font = "900 21px Arial, sans-serif"
   context.save()
   context.textBaseline = "middle"
-  context.fillText(text.toUpperCase(), x, y)
+  context.fillText(text.toUpperCase(), x + 28, y)
+  const labelWidth = context.measureText(text.toUpperCase()).width
+  context.strokeStyle = palette.line
+  context.lineWidth = 2
+  context.beginPath()
+  context.moveTo(x + 48 + labelWidth, y)
+  context.lineTo(x + width, y)
+  context.stroke()
   context.restore()
 }
 
@@ -281,6 +396,7 @@ function drawTransparentImageContain({
   y,
   width,
   height,
+  withShadow = false,
 }: {
   context: CanvasRenderingContext2D
   image: HTMLImageElement
@@ -288,13 +404,16 @@ function drawTransparentImageContain({
   y: number
   width: number
   height: number
+  withShadow?: boolean
 }) {
   const placement = getContainedImagePlacement({ image, x, y, width, height })
 
   context.save()
-  context.shadowColor = "rgba(15, 23, 42, 0.14)"
-  context.shadowBlur = 8
-  context.shadowOffsetY = 2
+  if (withShadow) {
+    context.shadowColor = "rgba(15, 23, 42, 0.14)"
+    context.shadowBlur = 8
+    context.shadowOffsetY = 2
+  }
   context.drawImage(
     image,
     placement.x,
@@ -370,13 +489,13 @@ function drawCrownOutline({
   context.lineJoin = "round"
 
   context.beginPath()
-  context.moveTo(x + size * 0.16, y + size * 0.34)
-  context.lineTo(x + size * 0.34, y + size * 0.54)
-  context.lineTo(x + size * 0.5, y + size * 0.24)
-  context.lineTo(x + size * 0.66, y + size * 0.54)
-  context.lineTo(x + size * 0.84, y + size * 0.34)
-  context.lineTo(x + size * 0.76, y + size * 0.72)
-  context.lineTo(x + size * 0.24, y + size * 0.72)
+  context.moveTo(x + size * 0.12, y + size * 0.28)
+  context.lineTo(x + size * 0.3, y + size * 0.53)
+  context.lineTo(x + size * 0.5, y + size * 0.18)
+  context.lineTo(x + size * 0.7, y + size * 0.53)
+  context.lineTo(x + size * 0.88, y + size * 0.28)
+  context.lineTo(x + size * 0.78, y + size * 0.72)
+  context.lineTo(x + size * 0.22, y + size * 0.72)
   context.closePath()
   context.stroke()
 
@@ -443,8 +562,8 @@ function drawHeroRoleIcon({
   y: number
   size: number
 }) {
-  fillRoundedRect(context, x, y, size, size, 24, palette.surfaceAlt)
-  strokeRoundedRect(context, x, y, size, size, 24, palette.line)
+  fillRoundedRect(context, x, y, size, size, 26, palette.surfaceAlt)
+  strokeRoundedRect(context, x, y, size, size, 26, palette.line)
 
   if (kind === "champion") {
     drawCrownOutline({
@@ -504,16 +623,16 @@ function drawHeroStats({
   if (stats.length === 0) return
 
   const gap = 10
-  const height = 68
+  const height = 64
   const visibleStats = stats.slice(0, 3)
   const statWidth = (width - gap * (visibleStats.length - 1)) / visibleStats.length
 
   visibleStats.forEach((stat, index) => {
     const statX = x + index * (statWidth + gap)
-    fillRoundedRect(context, statX, y, statWidth, height, 16, palette.surfaceAlt)
+    fillRoundedRect(context, statX, y, statWidth, height, 17, palette.surfaceAlt)
 
     context.fillStyle = palette.muted
-    context.font = "800 13px Arial, sans-serif"
+    context.font = "900 13px Arial, sans-serif"
     drawCenteredText({
       context,
       text: stat.label.toUpperCase(),
@@ -527,7 +646,7 @@ function drawHeroStats({
       context,
       text: stat.value,
       x: statX + statWidth / 2,
-      y: y + 47,
+      y: y + 45,
     })
   })
 }
@@ -538,6 +657,7 @@ function drawHeroCard({
   x,
   y,
   width,
+  height,
   hero,
   heroImage,
 }: {
@@ -546,29 +666,28 @@ function drawHeroCard({
   x: number
   y: number
   width: number
+  height: number
   hero: SeasonSummaryHeroPanel
   heroImage: HTMLImageElement | null
 }) {
-  const height = 214
-  const cardRadius = 28
-  const sidePadding = 30
-  const accentWidth = 14
-  const roleSize = 94
-  const roleX = x + sidePadding + accentWidth
-  const roleY = y + 24
-  const statsY = y + height - 82
-  const mainY = y + 18
-  const mainHeight = statsY - mainY - 10
+  const cardRadius = 32
+  const accentX = x + 18
+  const accentY = y + 18
+  const accentWidth = 10
+  const roleSize = 88
+  const roleX = x + 48
+  const roleY = y + 38
 
-  fillRoundedRect(context, x, y, width, height, cardRadius, palette.surface)
-  strokeRoundedRect(context, x, y, width, height, cardRadius, palette.line)
-
-  context.save()
-  roundedRect(context, x, y, width, height, cardRadius)
-  context.clip()
-  context.fillStyle = palette.accent
-  context.fillRect(x, y, accentWidth, height)
-  context.restore()
+  drawSurfaceCard({ context, palette, x, y, width, height, radius: cardRadius })
+  fillRoundedRect(
+    context,
+    accentX,
+    accentY,
+    accentWidth,
+    height - 36,
+    accentWidth / 2,
+    palette.accent,
+  )
 
   drawHeroRoleIcon({
     context,
@@ -580,28 +699,41 @@ function drawHeroCard({
   })
 
   const contentX = roleX + roleSize + 28
-  const contentRight = x + width - sidePadding
+  const contentRight = x + width - 28
   const contentWidth = contentRight - contentX
-  const imageSize = heroImage ? 78 : 0
+  const statsY = y + height - 80
+  const imageSize = heroImage ? 76 : 0
   const imageGap = heroImage ? 18 : 0
-  const maximumTextWidth = Math.max(180, contentWidth - imageSize - imageGap)
-
-  context.font = "900 46px Arial, sans-serif"
-  const nameLines = wrapTextLines({
+  const maximumTextWidth = Math.max(200, contentWidth - imageSize - imageGap)
+  const nameLayout = fitTextLayout({
     context,
     text: hero.value,
     maxWidth: maximumTextWidth,
     maxLines: 2,
+    maxFontSize: 44,
+    minFontSize: 28,
+    fontWeight: 900,
   })
   const measuredNameWidth = Math.min(
     maximumTextWidth,
-    Math.max(140, ...nameLines.map((line) => context.measureText(line).width + 4)),
+    Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
   )
   const groupWidth = imageSize + imageGap + measuredNameWidth
   const groupX = contentX + Math.max(0, (contentWidth - groupWidth) / 2)
+  const nameAreaY = y + 50
+  const nameAreaHeight = 80
+
+  context.fillStyle = palette.muted
+  context.font = "900 15px Arial, sans-serif"
+  drawCenteredText({
+    context,
+    text: hero.label.toUpperCase(),
+    x: contentX + contentWidth / 2,
+    y: y + 31,
+  })
 
   if (heroImage) {
-    const imageY = mainY + (mainHeight - imageSize) / 2
+    const imageY = nameAreaY + (nameAreaHeight - imageSize) / 2
     drawImageCover({
       context,
       image: heroImage,
@@ -609,7 +741,7 @@ function drawHeroCard({
       y: imageY,
       width: imageSize,
       height: imageSize,
-      radius: 22,
+      radius: 23,
       background: palette.surfaceAlt,
     })
     strokeRoundedRect(
@@ -618,31 +750,30 @@ function drawHeroCard({
       imageY,
       imageSize,
       imageSize,
-      22,
+      23,
       palette.line,
     )
   }
 
   context.fillStyle = palette.text
-  context.font = "900 46px Arial, sans-serif"
-  drawTextBlock({
+  context.font = `900 ${nameLayout.fontSize}px Arial, sans-serif`
+  drawTextLines({
     context,
-    text: hero.value,
+    lines: nameLayout.lines,
     x: groupX + imageSize + imageGap,
-    y: mainY,
+    y: nameAreaY,
     width: measuredNameWidth,
-    height: mainHeight,
-    lineHeight: 48,
-    maxLines: 2,
+    height: nameAreaHeight,
+    lineHeight: nameLayout.lineHeight,
     align: "center",
   })
 
   drawHeroStats({
     context,
     palette,
-    x: x + sidePadding + accentWidth,
+    x: contentX,
     y: statsY,
-    width: width - sidePadding * 2 - accentWidth,
+    width: contentWidth,
     stats: hero.stats,
   })
 }
@@ -653,6 +784,7 @@ function drawPodiumRowContent({
   x,
   y,
   width,
+  height,
   row,
 }: {
   context: CanvasRenderingContext2D
@@ -660,14 +792,18 @@ function drawPodiumRowContent({
   x: number
   y: number
   width: number
+  height: number
   row: SeasonSummaryPodiumRow
 }) {
-  const badgeFill = row.position === 1 ? palette.accent : palette.accentSoft
-  const badgeText = row.position === 1 ? "#ffffff" : palette.text
-  const badgeX = x + 14
-  const badgeY = y + 17
-  const badgeSize = 60
-  fillRoundedRect(context, badgeX, badgeY, badgeSize, badgeSize, 18, badgeFill)
+  const badgeFill = row.position === 1 ? palette.accent : palette.surfaceAlt
+  const badgeText = row.position === 1 ? palette.inverseText : palette.text
+  const badgeSize = 62
+  const badgeX = x + 18
+  const badgeY = y + (height - badgeSize) / 2
+  fillRoundedRect(context, badgeX, badgeY, badgeSize, badgeSize, 19, badgeFill)
+  if (row.position !== 1) {
+    strokeRoundedRect(context, badgeX, badgeY, badgeSize, badgeSize, 19, palette.line)
+  }
   context.fillStyle = badgeText
   context.font = "900 25px Arial, sans-serif"
   drawCenteredText({
@@ -677,36 +813,56 @@ function drawPodiumRowContent({
     y: badgeY + badgeSize / 2,
   })
 
-  context.fillStyle = palette.text
-  context.font = "900 28px Arial, sans-serif"
-  drawTextBlock({
+  const metricsWidth = 252
+  const nameX = x + 102
+  const nameWidth = width - (nameX - x) - metricsWidth - 20
+  const nameLayout = fitTextLayout({
     context,
     text: row.name,
-    x: x + 98,
-    y,
-    width: width - 386,
-    height: 94,
-    lineHeight: 30,
-    maxLines: 1,
+    maxWidth: nameWidth,
+    maxLines: 2,
+    maxFontSize: 29,
+    minFontSize: 22,
+    fontWeight: 900,
   })
 
-  const statsX = x + width - 248
-  context.fillStyle = palette.muted
-  context.font = "800 15px Arial, sans-serif"
+  context.fillStyle = palette.text
+  context.font = `900 ${nameLayout.fontSize}px Arial, sans-serif`
+  drawTextLines({
+    context,
+    lines: nameLayout.lines,
+    x: nameX,
+    y,
+    width: nameWidth,
+    height,
+    lineHeight: nameLayout.lineHeight,
+  })
+
+  const metricsX = x + width - metricsWidth
   context.save()
-  context.textBaseline = "middle"
-  context.fillText("PUNTOS", statsX, y + 31)
-  context.fillText("DIF. JUEGOS", statsX, y + 63)
+  context.strokeStyle = palette.line
+  context.lineWidth = 1
+  context.beginPath()
+  context.moveTo(metricsX, y + 22)
+  context.lineTo(metricsX, y + height - 22)
+  context.stroke()
   context.restore()
 
-  context.fillStyle = palette.text
-  context.font = "900 21px Arial, sans-serif"
-  context.save()
-  context.textAlign = "right"
-  context.textBaseline = "middle"
-  context.fillText(`${row.points} pts`, x + width - 22, y + 31)
-  context.fillText(formatGamesDiff(row.gamesDiff), x + width - 22, y + 63)
-  context.restore()
+  const metricWidth = metricsWidth / 2
+  const metrics = [
+    { label: "PUNTOS", value: `${row.points}` },
+    { label: "DIF. JUEGOS", value: formatGamesDiff(row.gamesDiff) },
+  ]
+
+  metrics.forEach((metric, index) => {
+    const metricCenterX = metricsX + metricWidth * index + metricWidth / 2
+    context.fillStyle = palette.muted
+    context.font = "900 13px Arial, sans-serif"
+    drawCenteredText({ context, text: metric.label, x: metricCenterX, y: y + 37 })
+    context.fillStyle = palette.text
+    context.font = "900 24px Arial, sans-serif"
+    drawCenteredText({ context, text: metric.value, x: metricCenterX, y: y + 68 })
+  })
 }
 
 function drawPodiumPanel({
@@ -724,10 +880,9 @@ function drawPodiumPanel({
   width: number
   rows: SeasonSummaryPodiumRow[]
 }) {
-  const rowHeight = 94
+  const rowHeight = 100
   const panelHeight = rowHeight * rows.length
-  fillRoundedRect(context, x, y, width, panelHeight, 20, palette.surface)
-  strokeRoundedRect(context, x, y, width, panelHeight, 20, palette.line)
+  drawSurfaceCard({ context, palette, x, y, width, height: panelHeight, radius: 28 })
 
   rows.forEach((row, index) => {
     const rowY = y + index * rowHeight
@@ -737,6 +892,7 @@ function drawPodiumPanel({
       x,
       y: rowY,
       width,
+      height: rowHeight,
       row,
     })
 
@@ -745,12 +901,51 @@ function drawPodiumPanel({
       context.strokeStyle = palette.line
       context.lineWidth = 1
       context.beginPath()
-      context.moveTo(x + 18, rowY + rowHeight)
-      context.lineTo(x + width - 18, rowY + rowHeight)
+      context.moveTo(x + 20, rowY + rowHeight)
+      context.lineTo(x + width - 20, rowY + rowHeight)
       context.stroke()
       context.restore()
     }
   })
+}
+
+function getHighlightLayout({
+  context,
+  highlight,
+  width,
+}: {
+  context: CanvasRenderingContext2D
+  highlight: SeasonSummaryHighlight
+  width: number
+}): HighlightLayout {
+  const textWidth = width - 68
+  const headline = fitTextLayout({
+    context,
+    text: highlight.headline,
+    maxWidth: textWidth,
+    maxLines: 3,
+    maxFontSize: 27,
+    minFontSize: 23,
+    fontWeight: 900,
+  })
+  const detail = fitTextLayout({
+    context,
+    text: highlight.detail,
+    maxWidth: textWidth,
+    maxLines: 2,
+    maxFontSize: 18,
+    minFontSize: 16,
+    fontWeight: 700,
+    lineHeightRatio: 1.15,
+  })
+  const contentHeight =
+    18 + 10 + headline.lines.length * headline.lineHeight + 8 + detail.lines.length * detail.lineHeight
+
+  return {
+    height: Math.max(124, contentHeight + 36),
+    headline,
+    detail,
+  }
 }
 
 function drawHighlightCard({
@@ -760,6 +955,7 @@ function drawHighlightCard({
   y,
   width,
   highlight,
+  layout,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
@@ -767,50 +963,276 @@ function drawHighlightCard({
   y: number
   width: number
   highlight: SeasonSummaryHighlight
+  layout: HighlightLayout
 }) {
-  const height = 132
-  const horizontalPadding = 18
-  fillRoundedRect(context, x, y, width, height, 20, palette.surface)
-  strokeRoundedRect(context, x, y, width, height, 20, palette.line)
+  drawSurfaceCard({
+    context,
+    palette,
+    x,
+    y,
+    width,
+    height: layout.height,
+    radius: 24,
+    shadow: false,
+  })
+  fillRoundedRect(context, x + 16, y + 18, 8, layout.height - 36, 4, palette.accentMuted)
+
+  const textX = x + 42
+  const contentHeight =
+    18 + 10 + layout.headline.lines.length * layout.headline.lineHeight + 8 + layout.detail.lines.length * layout.detail.lineHeight
+  let cursorY = y + (layout.height - contentHeight) / 2
+
+  context.fillStyle = palette.muted
+  context.font = "900 15px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "top"
+  context.fillText(highlight.label.toUpperCase(), textX, cursorY)
+  context.restore()
+  cursorY += 28
+
+  context.fillStyle = palette.text
+  context.font = `900 ${layout.headline.fontSize}px Arial, sans-serif`
+  context.save()
+  context.textBaseline = "top"
+  layout.headline.lines.forEach((line, index) => {
+    context.fillText(line, textX, cursorY + index * layout.headline.lineHeight)
+  })
+  context.restore()
+  cursorY += layout.headline.lines.length * layout.headline.lineHeight + 8
+
+  context.fillStyle = palette.muted
+  context.font = `700 ${layout.detail.fontSize}px Arial, sans-serif`
+  context.save()
+  context.textBaseline = "top"
+  layout.detail.lines.forEach((line, index) => {
+    context.fillText(line, textX, cursorY + index * layout.detail.lineHeight)
+  })
+  context.restore()
+
+}
+
+function drawBrandMark({
+  context,
+  palette,
+  appIcon,
+  x,
+  y,
+  size,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  appIcon: HTMLImageElement | null
+  x: number
+  y: number
+  size: number
+}) {
+  if (appIcon) {
+    drawImageCover({
+      context,
+      image: appIcon,
+      x,
+      y,
+      width: size,
+      height: size,
+      radius: Math.round(size * 0.24),
+      background: palette.surface,
+    })
+    return
+  }
+
+  fillRoundedRect(context, x, y, size, size, Math.round(size * 0.24), palette.surface)
+  context.fillStyle = palette.accent
+  context.font = `900 ${Math.round(size * 0.28)}px Arial, sans-serif`
+  drawCenteredText({ context, text: "S&L", x: x + size / 2, y: y + size / 2 })
+}
+
+function drawHeader({
+  context,
+  palette,
+  appIcon,
+  leagueLogo,
+  data,
+  x,
+  y,
+  width,
+  height,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  appIcon: HTMLImageElement | null
+  leagueLogo: HTMLImageElement | null
+  data: SeasonSummaryImageData
+  x: number
+  y: number
+  width: number
+  height: number
+}) {
+  fillRoundedRect(context, x, y, width, height, 38, palette.accent)
+
+  context.save()
+  roundedRect(context, x, y, width, height, 38)
+  context.clip()
+  context.strokeStyle = "rgba(255, 255, 255, 0.075)"
+  context.lineWidth = 3
+  context.beginPath()
+  context.arc(x + width - 36, y + height + 10, 248, Math.PI, Math.PI * 1.65)
+  context.stroke()
+  context.beginPath()
+  context.moveTo(x + width * 0.55, y - 20)
+  context.lineTo(x + width + 40, y + height * 0.65)
+  context.stroke()
+  context.restore()
+
+  drawBrandMark({ context, palette, appIcon, x: x + 30, y: y + 28, size: 70 })
+
+  context.fillStyle = palette.inverseText
+  context.font = "900 20px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "middle"
+  context.fillText("SMASH & LOB", x + 118, y + 49)
+  context.restore()
+
+  context.fillStyle = palette.inverseMuted
+  context.font = "800 15px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "middle"
+  context.fillText("RESUMEN FINAL DE TEMPORADA", x + 118, y + 78)
+  context.restore()
+
+  const leagueLogoSize = leagueLogo ? 108 : 0
+  const leagueLogoX = x + width - leagueLogoSize - 30
+  if (leagueLogo) {
+    fillRoundedRect(
+      context,
+      leagueLogoX,
+      y + 28,
+      leagueLogoSize,
+      leagueLogoSize,
+      28,
+      palette.surface,
+    )
+    drawTransparentImageContain({
+      context,
+      image: leagueLogo,
+      x: leagueLogoX + 10,
+      y: y + 38,
+      width: leagueLogoSize - 20,
+      height: leagueLogoSize - 20,
+    })
+  }
+
+  const titleWidth = width - 60 - (leagueLogo ? leagueLogoSize + 28 : 0)
+  const leagueLayout = fitTextLayout({
+    context,
+    text: data.leagueName.toUpperCase(),
+    maxWidth: titleWidth,
+    maxLines: 2,
+    maxFontSize: 22,
+    minFontSize: 17,
+    fontWeight: 900,
+  })
+  context.fillStyle = palette.inverseMuted
+  context.font = `900 ${leagueLayout.fontSize}px Arial, sans-serif`
+  drawTextLines({
+    context,
+    lines: leagueLayout.lines,
+    x: x + 30,
+    y: y + 108,
+    width: titleWidth,
+    height: 42,
+    lineHeight: leagueLayout.lineHeight,
+  })
+
+  const seasonLayout = fitTextLayout({
+    context,
+    text: data.seasonName,
+    maxWidth: width - 60,
+    maxLines: 2,
+    maxFontSize: 52,
+    minFontSize: 34,
+    fontWeight: 900,
+  })
+  context.fillStyle = palette.inverseText
+  context.font = `900 ${seasonLayout.fontSize}px Arial, sans-serif`
+  drawTextLines({
+    context,
+    lines: seasonLayout.lines,
+    x: x + 30,
+    y: y + 154,
+    width: width - 60,
+    height: 78,
+    lineHeight: seasonLayout.lineHeight,
+  })
+}
+
+function drawCanvasBackground({
+  context,
+  palette,
+  width,
+  height,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  width: number
+  height: number
+}) {
+  context.fillStyle = palette.background
+  context.fillRect(0, 0, width, height)
+
+  context.save()
+  context.strokeStyle = "rgba(112, 119, 113, 0.08)"
+  context.lineWidth = 2
+  roundedRect(context, 28, 28, width - 56, height - 56, 48)
+  context.stroke()
+  context.setLineDash([10, 16])
+  context.beginPath()
+  context.moveTo(width / 2, 28)
+  context.lineTo(width / 2, height - 28)
+  context.stroke()
+  context.restore()
+}
+
+function drawFooter({
+  context,
+  palette,
+  appIcon,
+  x,
+  y,
+  width,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  appIcon: HTMLImageElement | null
+  x: number
+  y: number
+  width: number
+}) {
+  const height = 78
+  fillRoundedRect(context, x, y, width, height, 26, palette.surface)
+  strokeRoundedRect(context, x, y, width, height, 26, palette.line)
+  drawBrandMark({ context, palette, appIcon, x: x + 14, y: y + 13, size: 52 })
+
+  context.fillStyle = palette.muted
+  context.font = "700 15px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "middle"
+  context.fillText("Creado con", x + 82, y + 28)
+  context.restore()
+
+  context.fillStyle = palette.text
+  context.font = "900 21px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "middle"
+  context.fillText("Smash & Lob", x + 82, y + 51)
+  context.restore()
 
   context.fillStyle = palette.muted
   context.font = "800 15px Arial, sans-serif"
-  drawTextBlock({
-    context,
-    text: highlight.label.toUpperCase(),
-    x: x + horizontalPadding,
-    y: y + 23,
-    width: width - horizontalPadding * 2,
-    height: 18,
-    lineHeight: 18,
-    maxLines: 1,
-  })
-
-  context.fillStyle = palette.text
-  context.font = "900 27px Arial, sans-serif"
-  drawTextBlock({
-    context,
-    text: highlight.headline,
-    x: x + horizontalPadding,
-    y: y + 42,
-    width: width - horizontalPadding * 2,
-    height: 48,
-    lineHeight: 29,
-    maxLines: 2,
-  })
-
-  context.fillStyle = palette.muted
-  context.font = "700 18px Arial, sans-serif"
-  drawTextBlock({
-    context,
-    text: highlight.detail,
-    x: x + horizontalPadding,
-    y: y + 88,
-    width: width - horizontalPadding * 2,
-    height: 26,
-    lineHeight: 18,
-    maxLines: 2,
-  })
+  context.save()
+  context.textAlign = "right"
+  context.textBaseline = "middle"
+  context.fillText("LIGAS PRIVADAS DE PÁDEL", x + width - 22, y + height / 2)
+  context.restore()
 }
 
 export async function createSeasonSummaryImage(
@@ -819,35 +1241,69 @@ export async function createSeasonSummaryImage(
 ) {
   const includeLeagueLogo = options.includeLeagueLogo === true
   const includeHeroImages = options.includeHeroImages === true
-  const heroCount = Math.max(1, Math.min(data.heroes.length, 2))
-  const heroHeight = 214
-  const heroGap = 18
-  const podiumRows = Math.min(data.podium.length, 3)
-  const highlightRows = Math.min(data.highlights.length, 4)
-  const podiumHeight = podiumRows * 94
-  const highlightsHeight = highlightRows * 142
+  const heroes = data.heroes.slice(0, 2)
+  const heroCount = Math.max(1, heroes.length)
+  const podiumRowsData = data.podium.slice(0, 3)
+  const highlights = data.highlights.slice(0, 4)
 
-  const [leagueLogoImage, heroImages] = await Promise.all([
+  const [appIconImage, leagueLogoImage, heroImages] = await Promise.all([
+    loadOptionalImage(APP_ICON_PATH),
     includeLeagueLogo ? loadOptionalImage(data.leagueLogoUrl ?? null) : Promise.resolve(null),
     Promise.all(
-      data.heroes.slice(0, 2).map((hero) =>
+      heroes.map((hero) =>
         includeHeroImages ? loadOptionalImage(hero.imageUrl ?? null) : Promise.resolve(null),
       ),
     ),
   ])
 
-  const headerHeight = 244
+  const measurementCanvas = document.createElement("canvas")
+  const measurementContext = measurementCanvas.getContext("2d")
+  if (!measurementContext) throw new Error("No se pudo preparar la imagen")
+
+  const headerHeight = 254
+  const heroHeight = 214
+  const heroGap = 16
+  const podiumRowHeight = 100
+  const podiumHeight = podiumRowsData.length * podiumRowHeight
+  const highlightGap = 12
+  const highlightLayouts = highlights.map((highlight) =>
+    getHighlightLayout({
+      context: measurementContext,
+      highlight,
+      width: CONTENT_WIDTH,
+    }),
+  )
+  const highlightsHeight =
+    highlightLayouts.reduce((total, layout) => total + layout.height, 0) +
+    Math.max(0, highlightLayouts.length - 1) * highlightGap
+
+  const topPadding = 34
+  const headerGap = 22
+  const afterHeroesGap = 40
+  const sectionLabelHeight = 28
+  const labelToPanelGap = 14
+  const betweenSectionsGap = 40
+  const footerGap = 32
+  const footerHeight = 78
+  const bottomPadding = 34
+
+  const heroesHeight = heroCount * heroHeight + Math.max(0, heroCount - 1) * heroGap
   const canvasHeight =
+    topPadding +
     headerHeight +
-    heroCount * heroHeight +
-    (heroCount - 1) * heroGap +
-    62 +
-    30 +
+    headerGap +
+    heroesHeight +
+    afterHeroesGap +
+    sectionLabelHeight +
+    labelToPanelGap +
     podiumHeight +
-    60 +
-    30 +
+    betweenSectionsGap +
+    sectionLabelHeight +
+    labelToPanelGap +
     highlightsHeight +
-    92
+    footerGap +
+    footerHeight +
+    bottomPadding
 
   const canvas = document.createElement("canvas")
   canvas.width = CANVAS_WIDTH
@@ -856,122 +1312,90 @@ export async function createSeasonSummaryImage(
   if (!context) throw new Error("No se pudo preparar la imagen")
 
   const palette = getCanvasPalette()
-  context.fillStyle = palette.background
-  context.fillRect(0, 0, canvas.width, canvas.height)
-  context.fillStyle = palette.accent
-  context.fillRect(0, 0, canvas.width, 10)
+  drawCanvasBackground({ context, palette, width: canvas.width, height: canvas.height })
 
-  const logoSize = leagueLogoImage ? 176 : 0
-  const logoTopBoundary = 10
-  const logoY = logoTopBoundary + (headerHeight - logoTopBoundary - logoSize) / 2
-  const headerTextX = HORIZONTAL_PADDING
-  const headerTitleX = HORIZONTAL_PADDING + (leagueLogoImage ? logoSize + 28 : 0)
-  const headerTextWidth = CONTENT_WIDTH - (leagueLogoImage ? logoSize + 28 : 0)
-
-  if (leagueLogoImage) {
-    drawTransparentImageContain({
-      context,
-      image: leagueLogoImage,
-      x: HORIZONTAL_PADDING,
-      y: logoY,
-      width: logoSize,
-      height: logoSize,
-    })
-  }
-
-  context.fillStyle = palette.muted
-  context.font = "800 22px Arial, sans-serif"
-  drawTextBlock({
+  let currentY = topPadding
+  drawHeader({
     context,
-    text: data.leagueName.toUpperCase(),
-    x: headerTitleX,
-    y: 46,
-    width: headerTextWidth,
-    height: 34,
-    lineHeight: 24,
-    maxLines: 1,
+    palette,
+    appIcon: appIconImage,
+    leagueLogo: leagueLogoImage,
+    data,
+    x: HORIZONTAL_PADDING,
+    y: currentY,
+    width: CONTENT_WIDTH,
+    height: headerHeight,
   })
+  currentY += headerHeight + headerGap
 
-  context.fillStyle = palette.text
-  context.font = "900 54px Arial, sans-serif"
-  drawTextBlock({
-    context,
-    text: data.seasonName,
-    x: headerTitleX,
-    y: 82,
-    width: headerTextWidth,
-    height: 76,
-    lineHeight: 58,
-    maxLines: 1,
-  })
-
-  context.fillStyle = palette.muted
-  context.font = "800 21px Arial, sans-serif"
-  drawTextBlock({
-    context,
-    text: "RESUMEN FINAL DE TEMPORADA",
-    x: headerTitleX,
-    y: 160,
-    width: headerTextWidth,
-    height: 40,
-    lineHeight: 24,
-    maxLines: 1,
-  })
-
-  const heroY = headerHeight
-  data.heroes.slice(0, 2).forEach((hero, index) => {
+  const heroesToDraw = heroes.length > 0 ? heroes : data.heroes.slice(0, 1)
+  heroesToDraw.forEach((hero, index) => {
     drawHeroCard({
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: heroY + index * (heroHeight + heroGap),
+      y: currentY + index * (heroHeight + heroGap),
       width: CONTENT_WIDTH,
+      height: heroHeight,
       hero,
       heroImage: heroImages[index] ?? null,
     })
   })
+  currentY += heroesHeight + afterHeroesGap
 
-  const podiumY = heroY + heroCount * heroHeight + (heroCount - 1) * heroGap + 58
-  drawSectionLabel({ context, palette, text: "Podio final", x: headerTextX, y: podiumY })
-  const podiumRowsData = data.podium.slice(0, 3)
+  drawSectionLabel({
+    context,
+    palette,
+    text: "Podio final",
+    x: HORIZONTAL_PADDING,
+    y: currentY + sectionLabelHeight / 2,
+    width: CONTENT_WIDTH,
+  })
+  currentY += sectionLabelHeight + labelToPanelGap
   if (podiumRowsData.length > 0) {
     drawPodiumPanel({
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: podiumY + 24,
+      y: currentY,
       width: CONTENT_WIDTH,
       rows: podiumRowsData,
     })
   }
+  currentY += podiumHeight + betweenSectionsGap
 
-  const highlightsY = podiumY + 24 + podiumHeight + 58
   drawSectionLabel({
     context,
     palette,
     text: "Lo más destacado",
-    x: headerTextX,
-    y: highlightsY,
+    x: HORIZONTAL_PADDING,
+    y: currentY + sectionLabelHeight / 2,
+    width: CONTENT_WIDTH,
   })
+  currentY += sectionLabelHeight + labelToPanelGap
 
-  data.highlights.slice(0, 4).forEach((highlight, index) => {
+  highlights.forEach((highlight, index) => {
+    const layout = highlightLayouts[index]
     drawHighlightCard({
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: highlightsY + 24 + index * 142,
+      y: currentY,
       width: CONTENT_WIDTH,
       highlight,
+      layout,
     })
+    currentY += layout.height + (index < highlights.length - 1 ? highlightGap : 0)
   })
 
-  context.fillStyle = palette.muted
-  context.font = "700 18px Arial, sans-serif"
-  drawCenteredText({
+  currentY += footerGap
+  drawFooter({
     context,
-    text: "Smash & Lob",
-    x: CANVAS_WIDTH / 2,
-    y: canvasHeight - 30,
+    palette,
+    appIcon: appIconImage,
+    x: HORIZONTAL_PADDING,
+    y: currentY,
+    width: CONTENT_WIDTH,
   })
 
   return new Promise<Blob>((resolve, reject) => {
