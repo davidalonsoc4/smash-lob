@@ -527,7 +527,7 @@ function drawHeroStats({
       context,
       text: stat.value,
       x: statX + statWidth / 2,
-      y: y + 42,
+      y: y + 50,
     })
   })
 }
@@ -739,7 +739,7 @@ function drawHighlightCard({
     context,
     text: highlight.label.toUpperCase(),
     x: x + horizontalPadding,
-    y: y + 7,
+    y: y + 15,
     width: width - horizontalPadding * 2,
     height: 18,
     lineHeight: 18,
@@ -752,7 +752,7 @@ function drawHighlightCard({
     context,
     text: highlight.headline,
     x: x + horizontalPadding,
-    y: y + 26,
+    y: y + 34,
     width: width - horizontalPadding * 2,
     height: 48,
     lineHeight: 29,
@@ -765,7 +765,7 @@ function drawHighlightCard({
     context,
     text: highlight.detail,
     x: x + horizontalPadding,
-    y: y + 72,
+    y: y + 80,
     width: width - horizontalPadding * 2,
     height: 26,
     lineHeight: 18,
