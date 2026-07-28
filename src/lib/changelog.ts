@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.36",
+    date: "29 de julio de 2026",
+    title: "Resumen final con identidad Smash & Lob",
+    summary:
+      "La imagen compartible de fin de temporada adopta un diseño propio de Smash & Lob, más equilibrado, legible y preparado para nombres y textos variables.",
+    category: "improvement",
+    changes: [
+      "La cabecera integra la identidad visual de Smash & Lob, el nombre de la liga, la temporada y el logo opcional dentro de una composición clara y vertical.",
+      "Los paneles de campeón y MVP centran correctamente nombre, foto y contenido, eliminan espacios sobrantes y sustituyen la barra lateral recortada por un acento interior redondeado.",
+      "El podio final alinea verticalmente nombres y métricas, admite nombres en dos líneas y mantiene el Top 3 dentro de un único panel agrupado.",
+      "Los destacados calculan su altura según el contenido para evitar solapamientos, cortes y desalineaciones con textos de una, dos o tres líneas.",
+      "El fondo, los separadores, los radios, las sombras y la firma final se unifican con el lenguaje visual de la aplicación y permanecen legibles aunque la app use un tema oscuro.",
+      "Se conservan las opciones existentes para incluir o excluir el logo de la liga y las imágenes de campeón o MVP.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.35",
     date: "29 de julio de 2026",
     title: "Actualización de seguridad de dependencias",
