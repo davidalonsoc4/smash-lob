@@ -1249,16 +1249,6 @@ html.colorful .settings-section-label {
   color: var(--colorful-primary) !important;
 }
 
-html.colorful .app-section-header h2::after {
-  content: "";
-  display: block;
-  width: 2.25rem;
-  height: 0.18rem;
-  margin-top: 0.22rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--colorful-primary), var(--colorful-accent));
-}
-
 html.colorful .app-stat-card,
 html.colorful .app-ranking-row {
   border-color: var(--colorful-border) !important;
@@ -1454,24 +1444,6 @@ html.colorful .app-stat-card::after {
 html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(var(--colorful-cool-rgb) / 0.1); }
 html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(var(--colorful-accent-rgb) / 0.1); }
 html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(var(--colorful-warm-rgb) / 0.12); }
-
-html.colorful .app-ranking-row {
-  position: relative;
-  overflow: hidden;
-}
-
-html.colorful .app-ranking-row::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 0.22rem;
-  background: var(--colorful-primary);
-  opacity: 0.5;
-}
-
-html.colorful .app-ranking-row:nth-child(2)::before { background: var(--colorful-cool); }
-html.colorful .app-ranking-row:nth-child(3)::before { background: var(--colorful-accent); }
-html.colorful .app-ranking-row:nth-child(4)::before { background: var(--colorful-warm); }
 
 html.colorful .app-ranking-row:nth-child(1) .app-ranking-position {
   background: linear-gradient(145deg, #ffd768, #f2a93b) !important;
