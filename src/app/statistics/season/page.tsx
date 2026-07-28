@@ -104,6 +104,7 @@ export default function StatisticsSeasonPage() {
     if (haveSamePlayerIds(championPlayerIds, mvpPlayerIds)) {
       return [
         {
+          kind: "combined",
           label: championPlayers.length > 1 ? "Campeones y MVP" : "Campeón y MVP",
           value: championNames,
           stats: buildStats(championPlayers[0]),
@@ -114,12 +115,14 @@ export default function StatisticsSeasonPage() {
 
     return [
       {
+        kind: "champion",
         label: championPlayers.length > 1 ? "Campeones" : "Campeón",
         value: championNames,
         stats: buildStats(championPlayers[0]),
         imageUrl: championPlayers[0]?.avatarUrl ?? null,
       },
       {
+        kind: "mvp",
         label: "MVP",
         value: mvpNames,
         stats: buildStats(mvpPlayers[0]),

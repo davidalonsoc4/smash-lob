@@ -2,4 +2,6 @@ package.json
 package-lock.json
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/app/globals.css
+src/app/statistics/season/page.tsx
+src/components/statistics/SeasonSummaryCard.tsx
+src/lib/seasonSummaryImage.ts
