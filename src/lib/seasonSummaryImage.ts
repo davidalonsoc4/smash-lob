@@ -671,21 +671,29 @@ function drawHeroCard({
   heroImage: HTMLImageElement | null
 }) {
   const cardRadius = 32
-  const accentX = x + 18
-  const accentY = y + 18
-  const accentWidth = 10
+  const innerX = x + 34
+  const innerWidth = width - 68
+  const topRowY = y + 30
   const roleSize = 88
-  const roleX = x + 48
-  const roleY = y + 38
+  const roleX = innerX
+  const roleY = topRowY + 2
+  const topContentX = roleX + roleSize + 26
+  const topContentWidth = innerWidth - roleSize - 26
+  const statsY = y + height - 86
+  const nameAreaY = topRowY + 24
+  const nameAreaHeight = 68
+  const imageSize = heroImage ? 76 : 0
+  const imageGap = heroImage ? 18 : 0
+  const maximumTextWidth = Math.max(220, topContentWidth - imageSize - imageGap)
 
   drawSurfaceCard({ context, palette, x, y, width, height, radius: cardRadius })
   fillRoundedRect(
     context,
-    accentX,
-    accentY,
-    accentWidth,
+    x + 18,
+    y + 18,
+    10,
     height - 36,
-    accentWidth / 2,
+    5,
     palette.accent,
   )
 
@@ -698,13 +706,15 @@ function drawHeroCard({
     size: roleSize,
   })
 
-  const contentX = roleX + roleSize + 28
-  const contentRight = x + width - 28
-  const contentWidth = contentRight - contentX
-  const statsY = y + height - 80
-  const imageSize = heroImage ? 76 : 0
-  const imageGap = heroImage ? 18 : 0
-  const maximumTextWidth = Math.max(200, contentWidth - imageSize - imageGap)
+  context.fillStyle = palette.muted
+  context.font = "900 15px Arial, sans-serif"
+  drawCenteredText({
+    context,
+    text: hero.label.toUpperCase(),
+    x: topContentX + topContentWidth / 2,
+    y: topRowY + 12,
+  })
+
   const nameLayout = fitTextLayout({
     context,
     text: hero.value,
@@ -719,18 +729,7 @@ function drawHeroCard({
     Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
   )
   const groupWidth = imageSize + imageGap + measuredNameWidth
-  const groupX = contentX + Math.max(0, (contentWidth - groupWidth) / 2)
-  const nameAreaY = y + 50
-  const nameAreaHeight = 80
-
-  context.fillStyle = palette.muted
-  context.font = "900 15px Arial, sans-serif"
-  drawCenteredText({
-    context,
-    text: hero.label.toUpperCase(),
-    x: contentX + contentWidth / 2,
-    y: y + 31,
-  })
+  const groupX = topContentX + Math.max(0, (topContentWidth - groupWidth) / 2)
 
   if (heroImage) {
     const imageY = nameAreaY + (nameAreaHeight - imageSize) / 2
@@ -771,9 +770,9 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: contentX,
+    x: innerX,
     y: statsY,
-    width: contentWidth,
+    width: innerWidth,
     stats: hero.stats,
   })
 }
@@ -1102,22 +1101,14 @@ function drawHeader({
   const leagueLogoSize = leagueLogo ? 108 : 0
   const leagueLogoX = x + width - leagueLogoSize - 30
   if (leagueLogo) {
-    fillRoundedRect(
-      context,
-      leagueLogoX,
-      y + 28,
-      leagueLogoSize,
-      leagueLogoSize,
-      28,
-      palette.surface,
-    )
     drawTransparentImageContain({
       context,
       image: leagueLogo,
-      x: leagueLogoX + 10,
-      y: y + 38,
-      width: leagueLogoSize - 20,
-      height: leagueLogoSize - 20,
+      x: leagueLogoX,
+      y: y + 28,
+      width: leagueLogoSize,
+      height: leagueLogoSize,
+      withShadow: true,
     })
   }
 
@@ -1261,7 +1252,7 @@ export async function createSeasonSummaryImage(
   if (!measurementContext) throw new Error("No se pudo preparar la imagen")
 
   const headerHeight = 254
-  const heroHeight = 214
+  const heroHeight = 220
   const heroGap = 16
   const podiumRowHeight = 100
   const podiumHeight = podiumRowsData.length * podiumRowHeight

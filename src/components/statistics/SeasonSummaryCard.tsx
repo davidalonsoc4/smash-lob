@@ -100,7 +100,7 @@ function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
 
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
-      <g transform="translate(0 -1)">
+      <g transform="translate(1 -1)">
         <path
           d="m5 13 6.5 7.5L18 9l6.5 11.5L31 13l-3.5 17h-19L5 13Zm6 22h14"
           fill="none"
@@ -111,10 +111,10 @@ function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
         />
       </g>
       <path
-        d="m35 24 2.2 4.5 5 .7-3.6 3.5.9 4.9-4.5-2.3-4.5 2.3.9-4.9-3.6-3.5 5-.7L35 24Z"
+        d="m33.5 24 2 4.2 4.7.7-3.4 3.3.8 4.6-4.1-2.1-4.1 2.1.8-4.6-3.4-3.3 4.7-.7 2-4.2Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2.15"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -334,20 +334,20 @@ export function SeasonSummaryCard({
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="relative overflow-hidden rounded-[1.35rem] border border-neutral-200 bg-white p-3 pl-5 shadow-sm"
+              className="relative overflow-hidden rounded-[1.35rem] border border-neutral-200 bg-white p-4 pl-6 shadow-sm"
             >
               <span
                 aria-hidden="true"
-                className="absolute inset-y-3 left-2 w-1.5 rounded-full bg-neutral-950"
+                className="absolute inset-y-4 left-3 w-1.5 rounded-full bg-neutral-950"
               />
               <div className="grid gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-neutral-950">
-                    <div className="flex h-9 w-9 items-center justify-center">
+                <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3">
+                  <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] border border-neutral-200 bg-neutral-100 text-neutral-950">
+                    <div className="flex h-10 w-10 items-center justify-center">
                       <HeroRoleIcon kind={hero.kind} />
                     </div>
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0">
                     <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
                       {hero.label}
                     </p>
@@ -374,12 +374,12 @@ export function SeasonSummaryCard({
                     {hero.stats.slice(0, 3).map((stat) => (
                       <div
                         key={stat.label}
-                        className="flex min-h-[3.5rem] min-w-0 flex-col justify-center rounded-xl bg-neutral-100 px-1.5 py-2 text-center"
+                        className="flex min-h-[4.25rem] min-w-0 flex-col justify-center rounded-[1.1rem] bg-neutral-100 px-2 py-2.5 text-center"
                       >
                         <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
                           {stat.label}
                         </p>
-                        <p className="mt-0.5 text-sm font-black leading-none text-neutral-950">
+                        <p className="mt-1 text-base font-black leading-none text-neutral-950">
                           {stat.value}
                         </p>
                       </div>
@@ -450,20 +450,20 @@ export function SeasonSummaryCard({
             {data.highlights.map((highlight) => (
               <div
                 key={highlight.label}
-                className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-3 pl-6"
+                className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-4 pl-10"
               >
                 <span
                   aria-hidden="true"
-                  className="absolute inset-y-3 left-3 w-1 rounded-full bg-neutral-300"
+                  className="absolute inset-y-4 left-4 w-1.5 rounded-full bg-neutral-300"
                 />
-                <div className="flex min-h-[4.75rem] flex-col justify-center">
+                <div className="flex min-h-[5.25rem] flex-col justify-center pr-1">
                   <p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
                     {highlight.label}
                   </p>
-                  <p className="mt-1 break-words text-sm font-black leading-[1.15rem] text-neutral-950">
+                  <p className="mt-1.5 break-words text-sm font-black leading-[1.2rem] text-neutral-950">
                     {highlight.headline}
                   </p>
-                  <p className="mt-1 break-words text-[11px] font-semibold leading-4 text-neutral-500">
+                  <p className="mt-1.5 break-words text-[11px] font-semibold leading-4 text-neutral-500">
                     {highlight.detail}
                   </p>
                 </div>
