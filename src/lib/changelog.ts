@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.27",
+    date: "28 de julio de 2026",
+    title: "Resumen final con logo más visible y destacados más compactos",
+    summary:
+      "El resumen compartible agranda el logo de la liga, devuelve la barra de acento al lado izquierdo de campeón y MVP, y recorta todavía más los márgenes de las descripciones en los destacados.",
+    category: "fix",
+    changes: [
+      "El logo de la liga gana bastante tamaño en la cabecera de la imagen compartible para que se identifique de un vistazo.",
+      "Los paneles de campeón, MVP y combinado recuperan la barra de acento en el lateral izquierdo tanto en la vista previa como en la imagen exportada.",
+      "La distribución interna de los paneles principales se ajusta para conservar el centrado del bloque foto + nombre con la barra situada a la izquierda.",
+      "Las tarjetas de Lo más destacado reducen todavía más la altura sobrante y acercan la descripción al titular en la vista previa y en el PNG final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.26",
     date: "28 de julio de 2026",
     title: "Campeón y MVP centrados con iconografía propia",

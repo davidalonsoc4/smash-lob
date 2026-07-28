@@ -300,9 +300,9 @@ export function SeasonSummaryCard({
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3.5 pr-5"
+              className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 pl-5"
             >
-              <span aria-hidden="true" className="absolute inset-y-0 right-0 w-1.5 bg-neutral-950" />
+              <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1.5 bg-neutral-950" />
               <div className="flex items-center gap-3">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-neutral-950">
                   <HeroRoleIcon kind={hero.kind} />
@@ -376,14 +376,14 @@ export function SeasonSummaryCard({
           </p>
           <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 py-2.5">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 py-2">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>
-                <p className="mt-0.5 text-sm font-black leading-5 text-neutral-950">
+                <p className="mt-0.5 text-sm font-black leading-[1.15rem] text-neutral-950">
                   {highlight.headline}
                 </p>
-                <p className="mt-0.5 text-[11px] font-semibold leading-[0.95rem] text-neutral-500">
+                <p className="mt-0 text-[11px] font-semibold leading-[0.85rem] text-neutral-500">
                   {highlight.detail}
                 </p>
               </div>

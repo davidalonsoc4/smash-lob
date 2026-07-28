@@ -551,10 +551,10 @@ function drawHeroCard({
 }) {
   const height = 214
   const cardRadius = 28
-  const sidePadding = 34
+  const sidePadding = 30
   const accentWidth = 14
   const roleSize = 94
-  const roleX = x + sidePadding
+  const roleX = x + sidePadding + accentWidth
   const roleY = y + 24
   const statsY = y + height - 74
   const mainY = y + 18
@@ -567,7 +567,7 @@ function drawHeroCard({
   roundedRect(context, x, y, width, height, cardRadius)
   context.clip()
   context.fillStyle = palette.accent
-  context.fillRect(x + width - accentWidth, y, accentWidth, height)
+  context.fillRect(x, y, accentWidth, height)
   context.restore()
 
   drawHeroRoleIcon({
@@ -580,7 +580,7 @@ function drawHeroCard({
   })
 
   const contentX = roleX + roleSize + 28
-  const contentRight = x + width - sidePadding - accentWidth
+  const contentRight = x + width - sidePadding
   const contentWidth = contentRight - contentX
   const imageSize = heroImage ? 78 : 0
   const imageGap = heroImage ? 18 : 0
@@ -640,7 +640,7 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: x + sidePadding,
+    x: x + sidePadding + accentWidth,
     y: statsY,
     width: width - sidePadding * 2 - accentWidth,
     stats: hero.stats,
@@ -728,8 +728,8 @@ function drawHighlightCard({
   width: number
   highlight: SeasonSummaryHighlight
 }) {
-  const height = 144
-  const horizontalPadding = 20
+  const height = 132
+  const horizontalPadding = 18
   fillRoundedRect(context, x, y, width, height, 20, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 20, palette.line)
 
@@ -739,9 +739,9 @@ function drawHighlightCard({
     context,
     text: highlight.label.toUpperCase(),
     x: x + horizontalPadding,
-    y: y + 8,
+    y: y + 7,
     width: width - horizontalPadding * 2,
-    height: 22,
+    height: 18,
     lineHeight: 18,
     maxLines: 1,
   })
@@ -752,9 +752,9 @@ function drawHighlightCard({
     context,
     text: highlight.headline,
     x: x + horizontalPadding,
-    y: y + 30,
+    y: y + 22,
     width: width - horizontalPadding * 2,
-    height: 58,
+    height: 52,
     lineHeight: 29,
     maxLines: 2,
   })
@@ -765,10 +765,10 @@ function drawHighlightCard({
     context,
     text: highlight.detail,
     x: x + horizontalPadding,
-    y: y + 86,
+    y: y + 72,
     width: width - horizontalPadding * 2,
-    height: 42,
-    lineHeight: 20,
+    height: 34,
+    lineHeight: 18,
     maxLines: 2,
   })
 }
@@ -785,7 +785,7 @@ export async function createSeasonSummaryImage(
   const podiumRows = Math.min(data.podium.length, 3)
   const highlightRows = Math.min(data.highlights.length, 4)
   const podiumHeight = podiumRows * 106
-  const highlightsHeight = highlightRows * 156
+  const highlightsHeight = highlightRows * 142
 
   const [leagueLogoImage, heroImages] = await Promise.all([
     includeLeagueLogo ? loadOptionalImage(data.leagueLogoUrl ?? null) : Promise.resolve(null),
@@ -796,7 +796,7 @@ export async function createSeasonSummaryImage(
     ),
   ])
 
-  const headerHeight = 228
+  const headerHeight = 244
   const canvasHeight =
     headerHeight +
     heroCount * heroHeight +
@@ -821,7 +821,7 @@ export async function createSeasonSummaryImage(
   context.fillStyle = palette.accent
   context.fillRect(0, 0, canvas.width, 10)
 
-  const logoSize = leagueLogoImage ? 92 : 0
+  const logoSize = leagueLogoImage ? 132 : 0
   const headerTextX = HORIZONTAL_PADDING
   const headerTitleX = HORIZONTAL_PADDING + (leagueLogoImage ? logoSize + 24 : 0)
   const headerTextWidth = CONTENT_WIDTH - (leagueLogoImage ? logoSize + 24 : 0)
@@ -831,7 +831,7 @@ export async function createSeasonSummaryImage(
       context,
       image: leagueLogoImage,
       x: HORIZONTAL_PADDING,
-      y: 42,
+      y: 36,
       width: logoSize,
       height: logoSize,
     })
@@ -916,7 +916,7 @@ export async function createSeasonSummaryImage(
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: highlightsY + 24 + index * 156,
+      y: highlightsY + 24 + index * 142,
       width: CONTENT_WIDTH,
       highlight,
     })
