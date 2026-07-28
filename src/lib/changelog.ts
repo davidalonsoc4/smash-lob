@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.35",
+    date: "29 de julio de 2026",
+    title: "Actualización de seguridad de dependencias",
+    summary:
+      "Se actualizan las dependencias afectadas por vulnerabilidades críticas y altas, manteniendo la compatibilidad y el funcionamiento completo de la aplicación.",
+    category: "fix",
+    changes: [
+      "Next.js se actualiza a la versión 16.2.12.",
+      "NextAuth y Auth.js se actualizan a sus primeras versiones corregidas.",
+      "PostCSS y Sharp se fuerzan a versiones sin vulnerabilidades conocidas en producción.",
+      "La auditoría de dependencias de producción queda en cero vulnerabilidades.",
+      "ESLint, TypeScript y el build de producción se validan correctamente.",
+      "Persisten avisos exclusivamente en herramientas de desarrollo de ESLint, cuya actualización mayor todavía no es compatible con eslint-config-next.",
+    ],
+  },
+  {
     version: "v0.17.34",
     date: "28 de julio de 2026",
     title: "Cajas de estadísticas del resumen final corregidas",
