@@ -15,6 +15,34 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.31",
+    date: "28 de julio de 2026",
+    title: "Destacados desplazados hacia abajo",
+    summary:
+      "El contenido de los paneles de 'Lo más destacado' se baja un poco para separarlo del borde superior y equilibrarlo mejor con el borde inferior.",
+    category: "fix",
+    changes: [
+      "Las tarjetas de 'Lo más destacado' desplazan hacia abajo su etiqueta, titular y detalle en la imagen exportada.",
+      "La vista previa en pantalla también aumenta el padding superior para reproducir el mismo equilibrio visual.",
+      "El resto de ajustes recientes del resumen final se mantiene intacto, incluido el logo de liga ampliado y las opciones de inclusión de imágenes.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.30",
+    date: "28 de julio de 2026",
+    title: "Ajuste vertical de las tarjetas de destacados",
+    summary:
+      "El contenido de 'Lo más destacado' se desplaza ligeramente hacia abajo para que quede menos pegado al borde superior y mejor equilibrado dentro del panel.",
+    category: "fix",
+    changes: [
+      "Las tarjetas de 'Lo más destacado' ganan más aire arriba y un reparto vertical más equilibrado tanto en la vista previa como en la imagen exportada.",
+      "Se ajusta el bloque de etiqueta, titular y detalle para que todo el contenido quede visualmente más centrado dentro de cada panel.",
+      "Se mantiene el resto del diseño, incluido el logo de liga ampliado y las opciones para incluir logo y fotos de perfil en la exportación.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.29",
     date: "28 de julio de 2026",
     title: "Logo de liga más grande y centrado en el resumen",
