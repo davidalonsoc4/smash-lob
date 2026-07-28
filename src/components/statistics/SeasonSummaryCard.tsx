@@ -68,22 +68,24 @@ function ImageOptionIcon({ type }: { type: "logo" | "profiles" }) {
 function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
   if (kind === "champion") {
     return (
-      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
-        <path
-          d="m8 16 8 9 8-14 8 14 8-9-4 20H12L8 16Zm7 25h18"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
+        <g transform="translate(0 -1)">
+          <path
+            d="m8 16 8 9 8-14 8 14 8-9-4 20H12L8 16Zm7 25h18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
       </svg>
     )
   }
 
   if (kind === "mvp") {
     return (
-      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
+      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
         <path
           d="m24 7 5.1 10.4 11.5 1.7-8.3 8.1 2 11.4L24 33.2l-10.3 5.4 2-11.4-8.3-8.1 11.5-1.7L24 7Z"
           fill="none"
@@ -97,15 +99,17 @@ function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
   }
 
   return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
-      <path
-        d="m5 13 6.5 7.5L18 9l6.5 11.5L31 13l-3.5 17h-19L5 13Zm6 22h14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
+      <g transform="translate(0 -1)">
+        <path
+          d="m5 13 6.5 7.5L18 9l6.5 11.5L31 13l-3.5 17h-19L5 13Zm6 22h14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
       <path
         d="m35 24 2.2 4.5 5 .7-3.6 3.5.9 4.9-4.5-2.3-4.5 2.3.9-4.9-3.6-3.5 5-.7L35 24Z"
         fill="none"
@@ -336,46 +340,53 @@ export function SeasonSummaryCard({
                 aria-hidden="true"
                 className="absolute inset-y-3 left-2 w-1.5 rounded-full bg-neutral-950"
               />
-              <div className="flex items-center gap-3">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-neutral-950">
-                  <HeroRoleIcon kind={hero.kind} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
-                    {hero.label}
-                  </p>
-                  <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
-                    {includeHeroImages && hero.imageUrl ? (
-                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={hero.imageUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : null}
-                    <p className="min-w-0 break-words text-center text-xl font-black leading-6 text-neutral-950">
-                      {hero.value}
-                    </p>
+              <div className="grid gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-neutral-950">
+                    <div className="flex h-9 w-9 items-center justify-center">
+                      <HeroRoleIcon kind={hero.kind} />
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              {hero.stats.length > 0 ? (
-                <div className="mt-3 grid grid-cols-3 gap-2 pl-[4.75rem]">
-                  {hero.stats.slice(0, 3).map((stat) => (
-                    <div key={stat.label} className="min-w-0 rounded-xl bg-neutral-100 px-1 py-2 text-center">
-                      <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
-                        {stat.label}
-                      </p>
-                      <p className="mt-0.5 text-sm font-black leading-none text-neutral-950">
-                        {stat.value}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                      {hero.label}
+                    </p>
+                    <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
+                      {includeHeroImages && hero.imageUrl ? (
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={hero.imageUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : null}
+                      <p className="min-w-0 break-words text-center text-xl font-black leading-6 text-neutral-950">
+                        {hero.value}
                       </p>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : null}
+
+                {hero.stats.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {hero.stats.slice(0, 3).map((stat) => (
+                      <div
+                        key={stat.label}
+                        className="flex min-h-[3.5rem] min-w-0 flex-col justify-center rounded-xl bg-neutral-100 px-1.5 py-2 text-center"
+                      >
+                        <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
+                          {stat.label}
+                        </p>
+                        <p className="mt-0.5 text-sm font-black leading-none text-neutral-950">
+                          {stat.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
@@ -445,15 +456,17 @@ export function SeasonSummaryCard({
                   aria-hidden="true"
                   className="absolute inset-y-3 left-3 w-1 rounded-full bg-neutral-300"
                 />
-                <p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
-                  {highlight.label}
-                </p>
-                <p className="mt-1 break-words text-sm font-black leading-[1.15rem] text-neutral-950">
-                  {highlight.headline}
-                </p>
-                <p className="mt-1 break-words text-[11px] font-semibold leading-4 text-neutral-500">
-                  {highlight.detail}
-                </p>
+                <div className="flex min-h-[4.75rem] flex-col justify-center">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
+                    {highlight.label}
+                  </p>
+                  <p className="mt-1 break-words text-sm font-black leading-[1.15rem] text-neutral-950">
+                    {highlight.headline}
+                  </p>
+                  <p className="mt-1 break-words text-[11px] font-semibold leading-4 text-neutral-500">
+                    {highlight.detail}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

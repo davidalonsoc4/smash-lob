@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.37",
+    date: "29 de julio de 2026",
+    title: "Ajustes de alineación en la vista previa del resumen final",
+    summary:
+      "La vista previa dentro de la app corrige el descuadre del panel principal y de 'Lo más destacado' para reproducir mejor el diseño del resumen final.",
+    category: "fix",
+    changes: [
+      "El icono de corona/MVP del panel principal se recentra visualmente y se integra mejor dentro de su contenedor en la vista previa.",
+      "Las estadísticas de campeón/MVP dejan de quedar desplazadas a la derecha en la vista previa y pasan a ocupar todo el ancho del panel, sin huecos innecesarios bajo el icono.",
+      "El contenido de las tarjetas de 'Lo más destacado' se reorganiza dentro de un bloque centrado verticalmente para evitar sensación de descuadre.",
+      "Las cajas de métricas de la vista previa también igualan mejor su altura y su reparto interno para mantener una jerarquía visual más consistente.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.36",
     date: "29 de julio de 2026",
     title: "Resumen final con identidad Smash & Lob",
