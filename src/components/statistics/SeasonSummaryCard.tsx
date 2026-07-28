@@ -347,11 +347,13 @@ export function SeasonSummaryCard({
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
             Podio final
           </p>
-          <div className="mt-2 space-y-1.5">
-            {data.podium.map((row) => (
+          <div className="mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+            {data.podium.map((row, index) => (
               <div
                 key={`${row.position}-${row.name}`}
-                className="flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-2.5"
+                className={`flex items-center gap-3 px-3 py-2.5 ${
+                  index !== data.podium.length - 1 ? "border-b border-neutral-100" : ""
+                }`}
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-xs font-black text-white">
                   {row.position}º

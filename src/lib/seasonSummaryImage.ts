@@ -647,7 +647,7 @@ function drawHeroCard({
   })
 }
 
-function drawPodiumRow({
+function drawPodiumRowContent({
   context,
   palette,
   x,
@@ -662,10 +662,6 @@ function drawPodiumRow({
   width: number
   row: SeasonSummaryPodiumRow
 }) {
-  const height = 94
-  fillRoundedRect(context, x, y, width, height, 20, palette.surface)
-  strokeRoundedRect(context, x, y, width, height, 20, palette.line)
-
   const badgeFill = row.position === 1 ? palette.accent : palette.accentSoft
   const badgeText = row.position === 1 ? "#ffffff" : palette.text
   const badgeX = x + 14
@@ -689,7 +685,7 @@ function drawPodiumRow({
     x: x + 98,
     y,
     width: width - 386,
-    height,
+    height: 94,
     lineHeight: 30,
     maxLines: 1,
   })
@@ -711,6 +707,50 @@ function drawPodiumRow({
   context.fillText(`${row.points} pts`, x + width - 22, y + 31)
   context.fillText(formatGamesDiff(row.gamesDiff), x + width - 22, y + 63)
   context.restore()
+}
+
+function drawPodiumPanel({
+  context,
+  palette,
+  x,
+  y,
+  width,
+  rows,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  x: number
+  y: number
+  width: number
+  rows: SeasonSummaryPodiumRow[]
+}) {
+  const rowHeight = 94
+  const panelHeight = rowHeight * rows.length
+  fillRoundedRect(context, x, y, width, panelHeight, 20, palette.surface)
+  strokeRoundedRect(context, x, y, width, panelHeight, 20, palette.line)
+
+  rows.forEach((row, index) => {
+    const rowY = y + index * rowHeight
+    drawPodiumRowContent({
+      context,
+      palette,
+      x,
+      y: rowY,
+      width,
+      row,
+    })
+
+    if (index < rows.length - 1) {
+      context.save()
+      context.strokeStyle = palette.line
+      context.lineWidth = 1
+      context.beginPath()
+      context.moveTo(x + 18, rowY + rowHeight)
+      context.lineTo(x + width - 18, rowY + rowHeight)
+      context.stroke()
+      context.restore()
+    }
+  })
 }
 
 function drawHighlightCard({
@@ -784,7 +824,7 @@ export async function createSeasonSummaryImage(
   const heroGap = 18
   const podiumRows = Math.min(data.podium.length, 3)
   const highlightRows = Math.min(data.highlights.length, 4)
-  const podiumHeight = podiumRows * 106
+  const podiumHeight = podiumRows * 94
   const highlightsHeight = highlightRows * 142
 
   const [leagueLogoImage, heroImages] = await Promise.all([
@@ -893,16 +933,17 @@ export async function createSeasonSummaryImage(
 
   const podiumY = heroY + heroCount * heroHeight + (heroCount - 1) * heroGap + 58
   drawSectionLabel({ context, palette, text: "Podio final", x: headerTextX, y: podiumY })
-  data.podium.slice(0, 3).forEach((row, index) => {
-    drawPodiumRow({
+  const podiumRowsData = data.podium.slice(0, 3)
+  if (podiumRowsData.length > 0) {
+    drawPodiumPanel({
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: podiumY + 24 + index * 106,
+      y: podiumY + 24,
       width: CONTENT_WIDTH,
-      row,
+      rows: podiumRowsData,
     })
-  })
+  }
 
   const highlightsY = podiumY + 24 + podiumHeight + 58
   drawSectionLabel({
