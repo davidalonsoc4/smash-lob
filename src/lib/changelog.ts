@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.38",
+    date: "29 de julio de 2026",
+    title: "Ajustes finales del resumen exportable y su vista previa",
+    summary:
+      "La imagen exportada integra mejor el logo de la liga y equilibra el panel principal, mientras la vista previa corrige los descuadres restantes en campeón/MVP y en 'Lo más destacado'.",
+    category: "fix",
+    changes: [
+      "El logo de la liga en la imagen exportada se integra directamente sobre la cabecera sin el recuadro blanco cuando el archivo tiene fondo transparente.",
+      "Los paneles de puntos, victorias y diferencia de juegos del bloque campeón/MVP pasan a ocupar todo el ancho útil del panel exportado para eliminar el hueco visual que quedaba bajo el icono.",
+      "La vista previa dentro de la app reorganiza el bloque campeón/MVP para alinear mejor el icono, el nombre y las métricas dentro del mismo panel.",
+      "Las tarjetas de 'Lo más destacado' aumentan su separación respecto a la barra lateral y centran mejor el contenido para evitar cortes visuales y descuadres.",
+      "Se mantiene intacta la opción de incluir o excluir el logo de la liga y las fotos del campeón o MVP al generar la imagen final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.37",
     date: "29 de julio de 2026",
     title: "Ajustes de alineación en la vista previa del resumen final",
