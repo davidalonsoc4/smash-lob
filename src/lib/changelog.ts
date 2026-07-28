@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.32",
+    date: "28 de julio de 2026",
+    title: "Ajuste fino final de los destacados exportados",
+    summary:
+      "La vista previa de la app vuelve al equilibrio anterior y solo la imagen exportada baja aún más el contenido de 'Lo más destacado'.",
+    category: "fix",
+    changes: [
+      "La vista previa dentro de la app recupera el espaciado anterior de las tarjetas de 'Lo más destacado'.",
+      "La imagen exportada desplaza todavía más hacia abajo la etiqueta, el titular y el detalle de cada destacado para separarlos más del borde superior.",
+      "El resto del diseño del resumen final se mantiene sin cambios, incluidas las opciones de logo de liga y fotos de perfil.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.31",
     date: "28 de julio de 2026",
     title: "Destacados desplazados hacia abajo",
