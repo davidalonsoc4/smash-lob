@@ -821,17 +821,19 @@ export async function createSeasonSummaryImage(
   context.fillStyle = palette.accent
   context.fillRect(0, 0, canvas.width, 10)
 
-  const logoSize = leagueLogoImage ? 132 : 0
+  const logoSize = leagueLogoImage ? 176 : 0
+  const logoTopBoundary = 10
+  const logoY = logoTopBoundary + (headerHeight - logoTopBoundary - logoSize) / 2
   const headerTextX = HORIZONTAL_PADDING
-  const headerTitleX = HORIZONTAL_PADDING + (leagueLogoImage ? logoSize + 24 : 0)
-  const headerTextWidth = CONTENT_WIDTH - (leagueLogoImage ? logoSize + 24 : 0)
+  const headerTitleX = HORIZONTAL_PADDING + (leagueLogoImage ? logoSize + 28 : 0)
+  const headerTextWidth = CONTENT_WIDTH - (leagueLogoImage ? logoSize + 28 : 0)
 
   if (leagueLogoImage) {
     drawTransparentImageContain({
       context,
       image: leagueLogoImage,
       x: HORIZONTAL_PADDING,
-      y: 36,
+      y: logoY,
       width: logoSize,
       height: logoSize,
     })
