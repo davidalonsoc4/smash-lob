@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.21",
+    date: "28 de julio de 2026",
+    title: "Paneles clásicos con la misma estructura visual",
+    summary:
+      "Los modos Clásico claro y oscuro reutilizan ahora la misma construcción de tarjetas y franjas decorativas que los temas coloridos, manteniendo su paleta neutra.",
+    category: "fix",
+    changes: [
+      "Las tarjetas de los modos clásicos dejan de dibujar la franja superior mediante un pseudo-elemento independiente.",
+      "La franja neutra pasa a formar parte del fondo interno del panel, igual que en los temas coloridos, respetando siempre el borde y las esquinas redondeadas.",
+      "Los paneles con filas opacas reutilizan también la misma franja estructural interna en todos los temas.",
+      "Se corrige el desbordamiento visible en tarjetas como la vista previa de clasificación de Home sin alterar los colores actuales de Clásico claro y Clásico oscuro.",
+      "El replanteamiento general de contraste y botones del modo Clásico oscuro queda reservado para una mejora posterior.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.20",
     date: "27 de julio de 2026",
     title: "Exportación final pulida y ajustes localizables",

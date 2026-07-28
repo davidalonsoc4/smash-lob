@@ -1139,31 +1139,20 @@ html.colorful .player-award-card-header .player-award-card-chevron {
   color: color-mix(in srgb, var(--colorful-on-primary) 78%, transparent) !important;
 }
 
-/* Classic themes keep the flat surfaces while gaining a restrained neutral accent. */
+/* Every appearance uses the same card/accent structure. Themes only provide
+   their own colors, preventing the classic strip from escaping rounded cards. */
 html[data-style="plain"] .app-card {
-  position: relative;
-  isolation: isolate;
-}
-
-html[data-style="plain"] .app-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px 1px auto;
-  z-index: 1;
-  height: 0.16rem;
-  border-radius: calc(0.75rem - 2px) calc(0.75rem - 2px) 0 0;
-  background: linear-gradient(
+  --app-card-accent-gradient: linear-gradient(
     90deg,
     #262626 0%,
     #737373 42%,
     #d4d4d4 72%,
     #525252 100%
   );
-  pointer-events: none;
 }
 
-html.dark[data-style="plain"] .app-card::before {
-  background: linear-gradient(
+html.dark[data-style="plain"] .app-card {
+  --app-card-accent-gradient: linear-gradient(
     90deg,
     #f5f5f5 0%,
     #a3a3a3 40%,
@@ -1180,13 +1169,28 @@ html.colorful .app-card {
     var(--colorful-accent),
     var(--colorful-warm)
   );
+  border-color: var(--colorful-border) !important;
+  box-shadow: var(--colorful-shadow) !important;
+}
+
+:is(html[data-style="plain"], html.colorful) .app-card {
   position: relative;
   isolation: isolate;
-  border-color: var(--colorful-border) !important;
-  background:
-    var(--app-card-accent-gradient) top left / 100% 0.2rem no-repeat padding-box,
-    linear-gradient(145deg, var(--colorful-card-start), var(--colorful-card-end)) padding-box !important;
-  box-shadow: var(--colorful-shadow) !important;
+  background-position: top left, top left !important;
+  background-size: 100% 0.2rem, 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-origin: padding-box !important;
+  background-clip: padding-box !important;
+}
+
+html[data-style="plain"] .app-card {
+  background-image: var(--app-card-accent-gradient) !important;
+}
+
+html.colorful .app-card {
+  background-image:
+    var(--app-card-accent-gradient),
+    linear-gradient(145deg, var(--colorful-card-start), var(--colorful-card-end)) !important;
 }
 
 html.colorful .app-notification-card {
@@ -1205,18 +1209,28 @@ html.colorful .app-activity-card {
   );
 }
 
-/* Row-based cards use opaque children. Render their accent as real card content
-   so it shares the exact border radius instead of competing with row backgrounds. */
+/* Row-based cards use opaque children. All themes render their accent as real
+   card content so classic and colorful appearances share the same structure. */
 .app-card-accent-strip {
   display: none;
 }
 
-html.colorful .app-card-explicit-accent {
-  background:
-    linear-gradient(145deg, var(--colorful-card-start), var(--colorful-card-end)) padding-box !important;
+html[data-style="plain"] .app-card-explicit-accent {
+  background-image: none !important;
 }
 
-html.colorful .app-card-explicit-accent > .app-card-accent-strip {
+html.colorful .app-card-explicit-accent {
+  background-image: linear-gradient(
+    145deg,
+    var(--colorful-card-start),
+    var(--colorful-card-end)
+  ) !important;
+  background-size: 100% 100% !important;
+}
+
+:is(html[data-style="plain"], html.colorful)
+  .app-card-explicit-accent
+  > .app-card-accent-strip {
   display: block;
   width: 100%;
   height: 0.2rem;

@@ -1,10 +1,5 @@
-CHANGED_FILES.txt
 package.json
 package-lock.json
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/lib/seasonSummaryImage.ts
-src/lib/settingsSearch.ts
 src/app/globals.css
-src/app/admin/league/page.tsx
-src/components/statistics/SeasonSummaryCard.tsx
