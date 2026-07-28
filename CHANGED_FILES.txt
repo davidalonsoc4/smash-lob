@@ -2,4 +2,7 @@ package.json
 package-lock.json
 src/lib/appVersion.ts
 src/lib/changelog.ts
+src/components/ranking/RankingTable.tsx
 src/app/globals.css
+src/context/ThemeProvider.tsx
+src/app/layout.tsx

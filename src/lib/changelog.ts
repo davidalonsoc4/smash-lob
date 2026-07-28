@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.22",
+    date: "28 de julio de 2026",
+    title: "Ranking compacto y Clásico oscuro con más profundidad",
+    summary:
+      "La clasificación se presenta como un único panel continuo y el modo Clásico oscuro adopta una paleta por capas que diferencia mejor fondos, tarjetas, controles y acciones.",
+    category: "improvement",
+    changes: [
+      "Las filas del Ranking quedan unidas dentro de un único contenedor, sin márgenes intermedios ni esquinas redondeadas independientes.",
+      "La primera fila conserva únicamente las esquinas superiores y la última las inferiores gracias al recorte del panel exterior.",
+      "Se mantienen separadores discretos entre jugadores y los acentos individuales de los temas coloridos sin aumentar la altura de la clasificación.",
+      "Clásico oscuro estrena una escala azul grisácea neutra con diferencias claras entre fondo exterior, marco de la aplicación, tarjetas y superficies elevadas.",
+      "Los bordes, campos, botones secundarios, controles flotantes y navegación inferior ganan contraste sin convertir el tema clásico en un tema colorido.",
+      "Las acciones principales usan una superficie clara de alto contraste y la barra del navegador adopta el nuevo color de fondo del modo oscuro.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.21",
     date: "28 de julio de 2026",
     title: "Paneles clásicos con la misma estructura visual",

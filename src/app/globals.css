@@ -280,6 +280,160 @@ html.dark .status-colors-disabled :where(
   --tw-ring-color: #4a4a50 !important;
 }
 
+/* Classic dark palette ---------------------------------------------------
+   A layered blue-grey neutral system keeps the classic appearance sober
+   while separating the shell, cards, controls and primary actions. */
+html.dark[data-style="plain"] {
+  --background: #0b1119;
+  --foreground: #f4f7fb;
+  --classic-dark-shell: #0f1722;
+  --classic-dark-surface: #17212e;
+  --classic-dark-surface-raised: #1e2b3a;
+  --classic-dark-surface-muted: #263548;
+  --classic-dark-border: #34465d;
+  --classic-dark-border-strong: #526985;
+  --classic-dark-text: #f4f7fb;
+  --classic-dark-text-muted: #bac5d3;
+  --classic-dark-text-subtle: #8d9aad;
+  --classic-dark-primary: #dbe6f3;
+  --classic-dark-on-primary: #101722;
+}
+
+html.dark[data-style="plain"] body {
+  background-color: var(--background) !important;
+  color: var(--classic-dark-text);
+}
+
+html.dark[data-style="plain"] .app-shell-outer,
+html.dark[data-style="plain"] .bg-stone-200 {
+  background-color: #080d14 !important;
+}
+
+html.dark[data-style="plain"] .app-shell-frame,
+html.dark[data-style="plain"] .bg-stone-50 {
+  background-color: var(--classic-dark-shell) !important;
+}
+
+html.dark[data-style="plain"] .bg-stone-100 { background-color: #151f2b !important; }
+html.dark[data-style="plain"] .bg-stone-200 { background-color: #080d14 !important; }
+html.dark[data-style="plain"] .bg-neutral-50 { background-color: #1b2735 !important; }
+html.dark[data-style="plain"] .bg-neutral-100 { background-color: var(--classic-dark-surface-raised) !important; }
+html.dark[data-style="plain"] .bg-neutral-200 { background-color: var(--classic-dark-surface-muted) !important; }
+html.dark[data-style="plain"] .bg-neutral-300 { background-color: #3a4c63 !important; }
+html.dark[data-style="plain"] .bg-white { background-color: var(--classic-dark-surface) !important; }
+html.dark[data-style="plain"] .bg-white\/60 { background-color: rgb(23 33 46 / 0.72) !important; }
+html.dark[data-style="plain"] .bg-white\/80 { background-color: rgb(23 33 46 / 0.86) !important; }
+html.dark[data-style="plain"] .bg-white\/90 { background-color: rgb(23 33 46 / 0.93) !important; }
+html.dark[data-style="plain"] .bg-white\/95 { background-color: rgb(23 33 46 / 0.97) !important; }
+
+html.dark[data-style="plain"] .text-neutral-950,
+html.dark[data-style="plain"] .text-neutral-900,
+html.dark[data-style="plain"] .text-neutral-800,
+html.dark[data-style="plain"] .text-stone-950,
+html.dark[data-style="plain"] .text-stone-900,
+html.dark[data-style="plain"] .text-stone-800 { color: var(--classic-dark-text) !important; }
+html.dark[data-style="plain"] .text-neutral-700,
+html.dark[data-style="plain"] .text-neutral-600,
+html.dark[data-style="plain"] .text-stone-700,
+html.dark[data-style="plain"] .text-stone-600 { color: var(--classic-dark-text-muted) !important; }
+html.dark[data-style="plain"] .text-neutral-500,
+html.dark[data-style="plain"] .text-stone-500 { color: #9ba8b9 !important; }
+html.dark[data-style="plain"] .text-neutral-400 { color: var(--classic-dark-text-subtle) !important; }
+html.dark[data-style="plain"] .text-neutral-300 { color: #718096 !important; }
+
+html.dark[data-style="plain"] .border-neutral-100 { border-color: #29394c !important; }
+html.dark[data-style="plain"] .border-neutral-200,
+html.dark[data-style="plain"] .border-stone-100,
+html.dark[data-style="plain"] .border-stone-200 { border-color: var(--classic-dark-border) !important; }
+html.dark[data-style="plain"] .border-neutral-300 { border-color: var(--classic-dark-border-strong) !important; }
+html.dark[data-style="plain"] .ring-neutral-100 { --tw-ring-color: #29394c !important; }
+html.dark[data-style="plain"] .ring-neutral-200 { --tw-ring-color: var(--classic-dark-border) !important; }
+html.dark[data-style="plain"] .ring-neutral-950 { --tw-ring-color: #8fa6c1 !important; }
+
+html.dark[data-style="plain"] input,
+html.dark[data-style="plain"] select,
+html.dark[data-style="plain"] textarea {
+  background-color: #131d29;
+  border-color: #40546d;
+  color: var(--classic-dark-text);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+html.dark[data-style="plain"] input:focus,
+html.dark[data-style="plain"] select:focus,
+html.dark[data-style="plain"] textarea:focus {
+  border-color: #7791b0;
+  outline-color: rgb(119 145 176 / 0.28);
+}
+html.dark[data-style="plain"] input::placeholder,
+html.dark[data-style="plain"] textarea::placeholder { color: #738197; }
+html.dark[data-style="plain"] option { background-color: #131d29; color: var(--classic-dark-text); }
+
+html.dark[data-style="plain"] .app-card,
+html.dark[data-style="plain"] .app-ranking-list {
+  border-color: var(--classic-dark-border) !important;
+  box-shadow:
+    0 10px 24px rgb(0 0 0 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.025) !important;
+}
+
+html.dark[data-style="plain"] :where(button, a, label).bg-white,
+html.dark[data-style="plain"] :where(button, a, label).bg-white\/90,
+html.dark[data-style="plain"] :where(button, a, label).bg-white\/95 {
+  background-color: var(--classic-dark-surface-raised) !important;
+  border-color: var(--classic-dark-border-strong) !important;
+}
+
+html.dark[data-style="plain"] :where(button, a, label).bg-neutral-950,
+html.dark[data-style="plain"] .app-bottom-nav-active {
+  background-color: var(--classic-dark-primary) !important;
+  border-color: var(--classic-dark-primary) !important;
+  color: var(--classic-dark-on-primary) !important;
+  box-shadow: 0 7px 18px rgb(0 0 0 / 0.28) !important;
+}
+
+html.dark[data-style="plain"] :where(button, a, label).bg-neutral-950.text-white,
+html.dark[data-style="plain"] .app-bottom-nav-active.text-white {
+  color: var(--classic-dark-on-primary) !important;
+}
+
+html.dark[data-style="plain"] :where(button, a, label).border-neutral-950 {
+  border-color: #aebed1 !important;
+}
+
+html.dark[data-style="plain"] :where(button, a, label):active.bg-neutral-100,
+html.dark[data-style="plain"] :where(button, a, label):active.bg-neutral-50 {
+  background-color: #2b3b4f !important;
+}
+
+html.dark[data-style="plain"] .app-bottom-nav {
+  background-color: rgb(18 27 38 / 0.97) !important;
+  border-top-color: var(--classic-dark-border) !important;
+  box-shadow:
+    0 -8px 24px rgb(0 0 0 / 0.34),
+    inset 0 1px 0 rgb(255 255 255 / 0.025) !important;
+}
+
+html.dark[data-style="plain"] .app-floating-control {
+  background-color: rgb(30 43 58 / 0.96) !important;
+  border-color: var(--classic-dark-border-strong) !important;
+  color: #c5d0de !important;
+}
+
+html.dark[data-style="plain"] .status-colors-disabled :where(
+  .status-tone-neutral,
+  .status-tone-dark,
+  .status-tone-blue,
+  .status-tone-green,
+  .status-tone-amber,
+  .status-tone-orange,
+  .status-tone-red,
+  .status-tone-gold
+) {
+  background-color: var(--classic-dark-surface-muted) !important;
+  color: var(--classic-dark-text-muted) !important;
+  --tw-ring-color: var(--classic-dark-border-strong) !important;
+}
+
 /* Global settings search destinations ----------------------------------- */
 .settings-search-target,
 .app-main [id] {
@@ -1113,6 +1267,41 @@ html.colorful .app-ranking-row {
   box-shadow: var(--colorful-shadow) !important;
 }
 
+/* Ranking rows form a single compact panel. The outer container owns the
+   rounded corners and shadow; rows only provide separators and interactions. */
+.app-ranking-list .app-ranking-row {
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.app-ranking-list .app-ranking-row + .app-ranking-row {
+  border-top: 1px solid #e5e5e5;
+}
+
+html.dark .app-ranking-list .app-ranking-row + .app-ranking-row {
+  border-top-color: #3a3a3f;
+}
+
+html.dark[data-style="plain"] .app-ranking-list .app-ranking-row + .app-ranking-row {
+  border-top-color: var(--classic-dark-border);
+}
+
+html.colorful .app-ranking-list {
+  border-color: var(--colorful-border) !important;
+  background: linear-gradient(145deg, var(--colorful-card-start), var(--colorful-card-end)) !important;
+  box-shadow: var(--colorful-shadow) !important;
+}
+
+html.colorful .app-ranking-list .app-ranking-row {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.colorful .app-ranking-list .app-ranking-row + .app-ranking-row {
+  border-top-color: rgb(var(--colorful-primary-rgb) / 0.14);
+}
+
 
 .player-award-card-header {
   border-radius: calc(0.75rem - 1px) calc(0.75rem - 1px) 0 0;
@@ -1154,10 +1343,10 @@ html[data-style="plain"] .app-card {
 html.dark[data-style="plain"] .app-card {
   --app-card-accent-gradient: linear-gradient(
     90deg,
-    #f5f5f5 0%,
-    #a3a3a3 40%,
-    #525252 72%,
-    #d4d4d4 100%
+    #dbe6f3 0%,
+    #9fb1c7 40%,
+    #536a84 72%,
+    #bdcad9 100%
   );
 }
 
@@ -1429,9 +1618,9 @@ html.colorful .appearance-summary-orb {
 .appearance-preview-light { background: #ffffff !important; --tw-ring-color: #e5e7eb !important; }
 .appearance-preview-light .appearance-preview-card { background: #f3f4f6 !important; }
 .appearance-preview-light .appearance-preview-chip { background: #d1d5db !important; }
-.appearance-preview-dark { background: #171717 !important; --tw-ring-color: #525252 !important; }
-.appearance-preview-dark .appearance-preview-card { background: #404040 !important; }
-.appearance-preview-dark .appearance-preview-chip { background: #737373 !important; }
+.appearance-preview-dark { background: #0f1722 !important; --tw-ring-color: #526985 !important; }
+.appearance-preview-dark .appearance-preview-card { background: #1e2b3a !important; }
+.appearance-preview-dark .appearance-preview-chip { background: #dbe6f3 !important; }
 .appearance-preview-system {
   background: linear-gradient(90deg, #ffffff 0 50%, #171717 50% 100%) !important;
   --tw-ring-color: #d4d4d8 !important;
