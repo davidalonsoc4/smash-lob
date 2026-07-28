@@ -1,5 +1,6 @@
 CHANGED_FILES.txt
 docs/preproduction/V0.17.28_HIGHLIGHT_DETAIL_SPACING_TWEAK.md
+docs/preproduction/V0.17.29_LEAGUE_LOGO_HEADER_ALIGNMENT.md
 package.json
 package-lock.json
 src/lib/appVersion.ts

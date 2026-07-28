@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.29",
+    date: "28 de julio de 2026",
+    title: "Logo de liga más grande y centrado en el resumen",
+    summary:
+      "El logo de la liga gana presencia en la cabecera de la imagen compartible y queda centrado verticalmente entre el borde superior y el primer panel.",
+    category: "fix",
+    changes: [
+      "El logo aumenta de 132 a 176 píxeles en la imagen exportada.",
+      "Su posición vertical se calcula con el espacio real disponible entre la franja superior y el panel de campeón o MVP.",
+      "Se amplía ligeramente la separación horizontal respecto al texto para conservar una cabecera limpia.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.28",
     date: "28 de julio de 2026",
     title: "Destacados con subtítulo más pegado y titular con más aire",
