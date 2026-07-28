@@ -1445,20 +1445,33 @@ html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(
 html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(var(--colorful-accent-rgb) / 0.1); }
 html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(var(--colorful-warm-rgb) / 0.12); }
 
-/* From fifth place onward, ranking rows keep the same neutral theme accent.
-   The first four positions intentionally have no side bar. */
-html.colorful .app-ranking-row:nth-child(n + 5) {
+/* Every ranking position uses the same theme-coherent side accent.
+   Position is communicated by the number and podium badge, not by bar color. */
+.app-ranking-list {
+  --ranking-row-accent: #64748b;
+}
+
+html.dark[data-style="plain"] .app-ranking-list {
+  --ranking-row-accent: var(--classic-dark-primary);
+}
+
+html.colorful .app-ranking-list {
+  --ranking-row-accent: var(--colorful-primary);
+}
+
+.app-ranking-list .app-ranking-row {
   position: relative;
   overflow: hidden;
 }
 
-html.colorful .app-ranking-row:nth-child(n + 5)::before {
+.app-ranking-list .app-ranking-row::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
   width: 0.22rem;
-  background: var(--colorful-primary);
-  opacity: 0.5;
+  background: var(--ranking-row-accent);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 html.colorful .app-ranking-row:nth-child(1) .app-ranking-position {
