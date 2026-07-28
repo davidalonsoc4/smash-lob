@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.25",
+    date: "28 de julio de 2026",
+    title: "Acento lateral uniforme en toda la clasificación",
+    summary:
+      "Todas las posiciones del Ranking recuperan una barra lateral coherente con el tema, sin usar colores distintos según el puesto.",
+    category: "fix",
+    changes: [
+      "La barra lateral aparece desde la primera hasta la última posición, tanto en los modos clásicos como en los coloridos.",
+      "Todas las filas usan exactamente el mismo color de acento dentro de cada tema.",
+      "Los temas coloridos reutilizan su color principal; Clásico claro usa un acento neutro y Clásico oscuro su color principal renovado.",
+      "Las medallas y números de posición siguen comunicando el podio sin alterar el color de la barra.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.24",
     date: "28 de julio de 2026",
     title: "Acentos uniformes desde la quinta posición",
