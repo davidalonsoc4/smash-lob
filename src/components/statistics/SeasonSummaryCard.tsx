@@ -6,6 +6,7 @@ import { showActionFeedback } from "@/lib/actionFeedback"
 import {
   createSeasonSummaryImage,
   downloadSeasonSummaryImage,
+  type SeasonSummaryHeroKind,
   type SeasonSummaryImageData,
   type SeasonSummaryImageOptions,
 } from "@/lib/seasonSummaryImage"
@@ -60,6 +61,59 @@ function ImageOptionIcon({ type }: { type: "logo" | "profiles" }) {
         strokeLinejoin="round"
       />
       <circle cx="15.75" cy="8.25" r="1.25" fill="currentColor" />
+    </svg>
+  )
+}
+
+function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
+  if (kind === "champion") {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
+        <path
+          d="m8 16 8 9 8-14 8 14 8-9-4 20H12L8 16Zm7 25h18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+
+  if (kind === "mvp") {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
+        <path
+          d="m24 7 5.1 10.4 11.5 1.7-8.3 8.1 2 11.4L24 33.2l-10.3 5.4 2-11.4-8.3-8.1 11.5-1.7L24 7Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
+      <path
+        d="m5 13 6.5 7.5L18 9l6.5 11.5L31 13l-3.5 17h-19L5 13Zm6 22h14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m35 24 2.2 4.5 5 .7-3.6 3.5.9 4.9-4.5-2.3-4.5 2.3.9-4.9-3.6-3.5 5-.7L35 24Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -246,24 +300,29 @@ export function SeasonSummaryCard({
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="rounded-2xl border border-neutral-200 bg-white p-3.5"
+              className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3.5 pr-5"
             >
-              <div className="flex items-start gap-3">
-                {hero.imageUrl ? (
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={hero.imageUrl}
-                      alt={hero.value}
-                      className="h-full w-full object-cover"
-                    />
+              <span aria-hidden="true" className="absolute inset-y-0 right-0 w-1.5 bg-neutral-950" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-neutral-950">
+                  <HeroRoleIcon kind={hero.kind} />
+                </div>
+                <div className="flex min-w-0 flex-1 justify-center">
+                  <div className="inline-flex min-w-0 max-w-full items-center justify-center gap-3">
+                    {includeHeroImages && hero.imageUrl ? (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={hero.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : null}
+                    <p className="min-w-0 text-center text-[1.35rem] font-black leading-6 text-neutral-950">
+                      {hero.value}
+                    </p>
                   </div>
-                ) : null}
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-                    {hero.label}
-                  </p>
-                  <p className="mt-1.5 text-xl font-black leading-6 text-neutral-950">{hero.value}</p>
                 </div>
               </div>
               {hero.stats.length > 0 ? (
@@ -317,14 +376,14 @@ export function SeasonSummaryCard({
           </p>
           <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 p-3">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 py-2.5">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>
-                <p className="mt-1 text-sm font-black leading-5 text-neutral-950">
+                <p className="mt-0.5 text-sm font-black leading-5 text-neutral-950">
                   {highlight.headline}
                 </p>
-                <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
+                <p className="mt-0.5 text-[11px] font-semibold leading-[0.95rem] text-neutral-500">
                   {highlight.detail}
                 </p>
               </div>

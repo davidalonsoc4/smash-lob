@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.26",
+    date: "28 de julio de 2026",
+    title: "Campeón y MVP centrados con iconografía propia",
+    summary:
+      "Los paneles principales del resumen final se reconstruyen para centrar foto y nombre como un único bloque, diferenciar campeón y MVP mediante iconos de contorno y compactar los textos destacados.",
+    category: "fix",
+    changes: [
+      "Los paneles de campeón y MVP eliminan la etiqueta textual superior y reservan una zona cuadrada a la izquierda para una corona o una estrella de contorno.",
+      "La foto de perfil aparece a la izquierda del nombre y ambos elementos se centran juntos dentro del espacio útil del panel.",
+      "La barra de acento pasa al lado derecho y queda recortada por las esquinas redondeadas del panel, sin sobresalir del contorno.",
+      "El nombre gana tamaño y los bloques de estadísticas mantienen una distribución uniforme en campeón, MVP y panel combinado.",
+      "Los textos descriptivos de Lo más destacado se acercan al titular y reducen el espacio vertical sobrante en la vista previa y en la imagen exportada.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.25",
     date: "28 de julio de 2026",
     title: "Acento lateral uniforme en toda la clasificación",

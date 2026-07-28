@@ -9,7 +9,10 @@ export type SeasonSummaryStat = {
   value: string
 }
 
+export type SeasonSummaryHeroKind = "champion" | "mvp" | "combined"
+
 export type SeasonSummaryHeroPanel = {
+  kind: SeasonSummaryHeroKind
   label: string
   value: string
   stats: SeasonSummaryStat[]
@@ -345,6 +348,144 @@ function drawImageCover({
   context.restore()
 }
 
+function drawCrownOutline({
+  context,
+  x,
+  y,
+  size,
+  strokeStyle,
+  lineWidth = 5,
+}: {
+  context: CanvasRenderingContext2D
+  x: number
+  y: number
+  size: number
+  strokeStyle: string
+  lineWidth?: number
+}) {
+  context.save()
+  context.strokeStyle = strokeStyle
+  context.lineWidth = lineWidth
+  context.lineCap = "round"
+  context.lineJoin = "round"
+
+  context.beginPath()
+  context.moveTo(x + size * 0.16, y + size * 0.34)
+  context.lineTo(x + size * 0.34, y + size * 0.54)
+  context.lineTo(x + size * 0.5, y + size * 0.24)
+  context.lineTo(x + size * 0.66, y + size * 0.54)
+  context.lineTo(x + size * 0.84, y + size * 0.34)
+  context.lineTo(x + size * 0.76, y + size * 0.72)
+  context.lineTo(x + size * 0.24, y + size * 0.72)
+  context.closePath()
+  context.stroke()
+
+  context.beginPath()
+  context.moveTo(x + size * 0.28, y + size * 0.82)
+  context.lineTo(x + size * 0.72, y + size * 0.82)
+  context.stroke()
+  context.restore()
+}
+
+function drawStarOutline({
+  context,
+  x,
+  y,
+  size,
+  strokeStyle,
+  lineWidth = 5,
+}: {
+  context: CanvasRenderingContext2D
+  x: number
+  y: number
+  size: number
+  strokeStyle: string
+  lineWidth?: number
+}) {
+  const centerX = x + size / 2
+  const centerY = y + size / 2
+  const outerRadius = size * 0.38
+  const innerRadius = outerRadius * 0.46
+
+  context.save()
+  context.strokeStyle = strokeStyle
+  context.lineWidth = lineWidth
+  context.lineCap = "round"
+  context.lineJoin = "round"
+  context.beginPath()
+
+  for (let point = 0; point < 10; point += 1) {
+    const radius = point % 2 === 0 ? outerRadius : innerRadius
+    const angle = -Math.PI / 2 + (point * Math.PI) / 5
+    const pointX = centerX + Math.cos(angle) * radius
+    const pointY = centerY + Math.sin(angle) * radius
+    if (point === 0) context.moveTo(pointX, pointY)
+    else context.lineTo(pointX, pointY)
+  }
+
+  context.closePath()
+  context.stroke()
+  context.restore()
+}
+
+function drawHeroRoleIcon({
+  context,
+  palette,
+  kind,
+  x,
+  y,
+  size,
+}: {
+  context: CanvasRenderingContext2D
+  palette: CanvasPalette
+  kind: SeasonSummaryHeroKind
+  x: number
+  y: number
+  size: number
+}) {
+  fillRoundedRect(context, x, y, size, size, 24, palette.surfaceAlt)
+  strokeRoundedRect(context, x, y, size, size, 24, palette.line)
+
+  if (kind === "champion") {
+    drawCrownOutline({
+      context,
+      x: x + size * 0.16,
+      y: y + size * 0.16,
+      size: size * 0.68,
+      strokeStyle: palette.text,
+    })
+    return
+  }
+
+  if (kind === "mvp") {
+    drawStarOutline({
+      context,
+      x: x + size * 0.16,
+      y: y + size * 0.16,
+      size: size * 0.68,
+      strokeStyle: palette.text,
+    })
+    return
+  }
+
+  drawCrownOutline({
+    context,
+    x: x + size * 0.12,
+    y: y + size * 0.12,
+    size: size * 0.56,
+    strokeStyle: palette.text,
+    lineWidth: 4,
+  })
+  drawStarOutline({
+    context,
+    x: x + size * 0.45,
+    y: y + size * 0.43,
+    size: size * 0.42,
+    strokeStyle: palette.text,
+    lineWidth: 4,
+  })
+}
+
 function drawHeroStats({
   context,
   palette,
@@ -363,7 +504,7 @@ function drawHeroStats({
   if (stats.length === 0) return
 
   const gap = 10
-  const height = 66
+  const height = 60
   const visibleStats = stats.slice(0, 3)
   const statWidth = (width - gap * (visibleStats.length - 1)) / visibleStats.length
 
@@ -377,7 +518,7 @@ function drawHeroStats({
       context,
       text: stat.label.toUpperCase(),
       x: statX + statWidth / 2,
-      y: y + 20,
+      y: y + 18,
     })
 
     context.fillStyle = palette.text
@@ -386,7 +527,7 @@ function drawHeroStats({
       context,
       text: stat.value,
       x: statX + statWidth / 2,
-      y: y + 46,
+      y: y + 42,
     })
   })
 }
@@ -408,73 +549,90 @@ function drawHeroCard({
   hero: SeasonSummaryHeroPanel
   heroImage: HTMLImageElement | null
 }) {
-  const height = 224
-  const horizontalPadding = 42
-  const statsY = y + height - 82
+  const height = 214
+  const cardRadius = 28
+  const sidePadding = 34
+  const accentWidth = 14
+  const roleSize = 94
+  const roleX = x + sidePadding
+  const roleY = y + 24
+  const statsY = y + height - 74
+  const mainY = y + 18
+  const mainHeight = statsY - mainY - 10
 
-  fillRoundedRect(context, x, y, width, height, 28, palette.surface)
-  strokeRoundedRect(context, x, y, width, height, 28, palette.line)
-  fillRoundedRect(context, x + 18, y + 18, 12, height - 36, 10, palette.accent)
+  fillRoundedRect(context, x, y, width, height, cardRadius, palette.surface)
+  strokeRoundedRect(context, x, y, width, height, cardRadius, palette.line)
 
-  context.font = "800 17px Arial, sans-serif"
-  const labelText = hero.label.toUpperCase()
-  const labelWidth = Math.min(
-    width - horizontalPadding * 2,
-    Math.max(190, context.measureText(labelText).width + 32),
-  )
-  const labelX = x + horizontalPadding
-  const labelY = y + 22
-  const labelHeight = 36
-  fillRoundedRect(context, labelX, labelY, labelWidth, labelHeight, 14, palette.accentSoft)
-  context.fillStyle = palette.text
-  drawCenteredText({
+  context.save()
+  roundedRect(context, x, y, width, height, cardRadius)
+  context.clip()
+  context.fillStyle = palette.accent
+  context.fillRect(x + width - accentWidth, y, accentWidth, height)
+  context.restore()
+
+  drawHeroRoleIcon({
     context,
-    text: labelText,
-    x: labelX + labelWidth / 2,
-    y: labelY + labelHeight / 2,
+    palette,
+    kind: hero.kind,
+    x: roleX,
+    y: roleY,
+    size: roleSize,
   })
 
-  const imageSize = heroImage ? 96 : 0
-  const imageGap = heroImage ? 20 : 0
-  const imageX = x + width - horizontalPadding - imageSize
-  const imageY = y + 62
-  const nameX = x + horizontalPadding
-  const nameY = y + 64
-  const nameWidth = width - horizontalPadding * 2 - imageSize - imageGap
-  const nameHeight = statsY - nameY - 10
+  const contentX = roleX + roleSize + 28
+  const contentRight = x + width - sidePadding - accentWidth
+  const contentWidth = contentRight - contentX
+  const imageSize = heroImage ? 78 : 0
+  const imageGap = heroImage ? 18 : 0
+  const maximumTextWidth = Math.max(180, contentWidth - imageSize - imageGap)
+
+  context.font = "900 46px Arial, sans-serif"
+  const nameLines = wrapTextLines({
+    context,
+    text: hero.value,
+    maxWidth: maximumTextWidth,
+    maxLines: 2,
+  })
+  const measuredNameWidth = Math.min(
+    maximumTextWidth,
+    Math.max(140, ...nameLines.map((line) => context.measureText(line).width + 4)),
+  )
+  const groupWidth = imageSize + imageGap + measuredNameWidth
+  const groupX = contentX + Math.max(0, (contentWidth - groupWidth) / 2)
 
   if (heroImage) {
+    const imageY = mainY + (mainHeight - imageSize) / 2
     drawImageCover({
       context,
       image: heroImage,
-      x: imageX,
+      x: groupX,
       y: imageY,
       width: imageSize,
       height: imageSize,
-      radius: 24,
+      radius: 22,
       background: palette.surfaceAlt,
     })
     strokeRoundedRect(
       context,
-      imageX,
+      groupX,
       imageY,
       imageSize,
       imageSize,
-      24,
+      22,
       palette.line,
     )
   }
 
   context.fillStyle = palette.text
-  context.font = "900 40px Arial, sans-serif"
+  context.font = "900 46px Arial, sans-serif"
   drawTextBlock({
     context,
     text: hero.value,
-    x: nameX,
-    y: nameY,
-    width: nameWidth,
-    height: nameHeight,
-    lineHeight: 42,
+    x: groupX + imageSize + imageGap,
+    y: mainY,
+    width: measuredNameWidth,
+    height: mainHeight,
+    lineHeight: 48,
     maxLines: 2,
     align: "center",
   })
@@ -482,9 +640,9 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: x + horizontalPadding,
+    x: x + sidePadding,
     y: statsY,
-    width: width - horizontalPadding * 2,
+    width: width - sidePadding * 2 - accentWidth,
     stats: hero.stats,
   })
 }
@@ -570,7 +728,7 @@ function drawHighlightCard({
   width: number
   highlight: SeasonSummaryHighlight
 }) {
-  const height = 172
+  const height = 144
   const horizontalPadding = 20
   fillRoundedRect(context, x, y, width, height, 20, palette.surface)
   strokeRoundedRect(context, x, y, width, height, 20, palette.line)
@@ -581,9 +739,9 @@ function drawHighlightCard({
     context,
     text: highlight.label.toUpperCase(),
     x: x + horizontalPadding,
-    y: y + 12,
+    y: y + 8,
     width: width - horizontalPadding * 2,
-    height: 28,
+    height: 22,
     lineHeight: 18,
     maxLines: 1,
   })
@@ -594,10 +752,10 @@ function drawHighlightCard({
     context,
     text: highlight.headline,
     x: x + horizontalPadding,
-    y: y + 42,
+    y: y + 30,
     width: width - horizontalPadding * 2,
-    height: 62,
-    lineHeight: 30,
+    height: 58,
+    lineHeight: 29,
     maxLines: 2,
   })
 
@@ -607,10 +765,10 @@ function drawHighlightCard({
     context,
     text: highlight.detail,
     x: x + horizontalPadding,
-    y: y + 106,
+    y: y + 86,
     width: width - horizontalPadding * 2,
-    height: 50,
-    lineHeight: 21,
+    height: 42,
+    lineHeight: 20,
     maxLines: 2,
   })
 }
@@ -622,12 +780,12 @@ export async function createSeasonSummaryImage(
   const includeLeagueLogo = options.includeLeagueLogo === true
   const includeHeroImages = options.includeHeroImages === true
   const heroCount = Math.max(1, Math.min(data.heroes.length, 2))
-  const heroHeight = 224
+  const heroHeight = 214
   const heroGap = 18
   const podiumRows = Math.min(data.podium.length, 3)
   const highlightRows = Math.min(data.highlights.length, 4)
   const podiumHeight = podiumRows * 106
-  const highlightsHeight = highlightRows * 184
+  const highlightsHeight = highlightRows * 156
 
   const [leagueLogoImage, heroImages] = await Promise.all([
     includeLeagueLogo ? loadOptionalImage(data.leagueLogoUrl ?? null) : Promise.resolve(null),
@@ -758,7 +916,7 @@ export async function createSeasonSummaryImage(
       context,
       palette,
       x: HORIZONTAL_PADDING,
-      y: highlightsY + 24 + index * 184,
+      y: highlightsY + 24 + index * 156,
       width: CONTENT_WIDTH,
       highlight,
     })
