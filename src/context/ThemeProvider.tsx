@@ -118,7 +118,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, colorfu
   const themeColor = colorful
     ? COLORFUL_THEME_COLORS[colorfulPalette][resolvedTheme]
     : dark
-      ? "#0f0f10"
+      ? "#0b1119"
       : "#0a0a0a"
 
   document
