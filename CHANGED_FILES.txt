@@ -1,4 +1,5 @@
-docs/preproduction/V0.17.27_SEASON_SUMMARY_LOGO_AND_TIGHTER_HIGHLIGHTS.md
+CHANGED_FILES.txt
+docs/preproduction/V0.17.28_HIGHLIGHT_DETAIL_SPACING_TWEAK.md
 package.json
 package-lock.json
 src/lib/appVersion.ts

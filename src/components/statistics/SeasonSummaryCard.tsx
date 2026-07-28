@@ -376,11 +376,11 @@ export function SeasonSummaryCard({
           </p>
           <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 py-2">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 pt-2 pb-1.5">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>
-                <p className="mt-0.5 text-sm font-black leading-[1.15rem] text-neutral-950">
+                <p className="mt-1 text-sm font-black leading-[1.15rem] text-neutral-950">
                   {highlight.headline}
                 </p>
                 <p className="mt-0 text-[11px] font-semibold leading-[0.85rem] text-neutral-500">

@@ -752,9 +752,9 @@ function drawHighlightCard({
     context,
     text: highlight.headline,
     x: x + horizontalPadding,
-    y: y + 22,
+    y: y + 26,
     width: width - horizontalPadding * 2,
-    height: 52,
+    height: 48,
     lineHeight: 29,
     maxLines: 2,
   })
@@ -767,7 +767,7 @@ function drawHighlightCard({
     x: x + horizontalPadding,
     y: y + 72,
     width: width - horizontalPadding * 2,
-    height: 34,
+    height: 26,
     lineHeight: 18,
     maxLines: 2,
   })

@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.28",
+    date: "28 de julio de 2026",
+    title: "Destacados con subtítulo más pegado y titular con más aire",
+    summary:
+      "La sección Lo más destacado ajusta el espaciado vertical para acercar la línea descriptiva y dar un poco más de margen superior al titular principal.",
+    category: "fix",
+    changes: [
+      "La línea descriptiva de tarjetas como 'La mejor serie individual de la temporada' reduce su margen vertical tanto en la vista previa como en la imagen exportada.",
+      "El titular superior gana un poco más de margen por arriba para respirar mejor sin cambiar su tamaño de fuente.",
+      "Se retoca el padding vertical de las tarjetas destacadas en la vista previa para que el comportamiento coincida con el PNG final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.27",
     date: "28 de julio de 2026",
     title: "Resumen final con logo más visible y destacados más compactos",
