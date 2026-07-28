@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.33",
+    date: "28 de julio de 2026",
+    title: "Podio unificado como panel único",
+    summary:
+      "La clasificación del resumen final se presenta ahora como un solo bloque continuo tanto en la app como en la imagen exportada, igual que en la pantalla de ranking.",
+    category: "improvement",
+    changes: [
+      "El podio final de la vista previa deja de mostrarse como tarjetas separadas y pasa a mostrarse dentro de un único panel con divisores internos.",
+      "La imagen exportada replica el mismo enfoque con un bloque agrupado de clasificación en lugar de filas visualmente independientes.",
+      "Se mantiene intacta la información de posición, puntos y diferencia de juegos de cada jugador del Top 3.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.32",
     date: "28 de julio de 2026",
     title: "Ajuste fino final de los destacados exportados",
