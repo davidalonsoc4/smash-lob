@@ -1,7 +1,7 @@
+docs/preproduction/V0.17.27_SEASON_SUMMARY_LOGO_AND_TIGHTER_HIGHLIGHTS.md
 package.json
 package-lock.json
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/app/statistics/season/page.tsx
 src/components/statistics/SeasonSummaryCard.tsx
 src/lib/seasonSummaryImage.ts
