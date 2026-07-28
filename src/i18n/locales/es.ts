@@ -440,6 +440,8 @@ export const es = {
     save: "Guardar resultado",
     update: "Guardar cambios",
     cancelEdit: "Cancelar",
+    savedFeedback: "Resultado guardado correctamente.",
+    updatedFeedback: "Cambios del resultado guardados correctamente.",
     pendingScheduleTitle: "Resultado pendiente",
     pendingScheduleDescription:
       "Programa el partido antes de registrar el resultado.",
@@ -498,7 +500,7 @@ export const es = {
       "Todos sus partidos de la temporada seleccionada, con filtros rápidos por estado.",
     futureTitle: "Historial y tendencias",
     futureDescription:
-      "Más adelante aquí se mostrarán mejores parejas, rivales más frecuentes y evolución del ranking.",
+      "Aquí se mostrarán el compañero más fuerte, los rivales y la evolución del ranking.",
   },
 
   playerStats: {
@@ -511,7 +513,9 @@ export const es = {
     mvpWon: "MVPs ganados",
     wonPercentage: "ganados",
     forPercentage: "a favor",
-    bestPartner: "Mejor compañero",
+    strongestTeammate: "Compañero más fuerte",
+    setsShort: "sets",
+    gamesShort: "juegos",
     toughestRival: "Rival más duro",
     bestRound: "Mejor jornada",
     roundShort: "J",

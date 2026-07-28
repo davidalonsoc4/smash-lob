@@ -43,6 +43,8 @@ type PlayerRelationStats = {
   playerId: string;
   matches: number;
   wins: number;
+  setsFor: number;
+  setsAgainst: number;
   gamesFor: number;
   gamesAgainst: number;
 };
@@ -68,14 +70,29 @@ function getTeamGames(match: PlayerStatsMatch, team: "A" | "B") {
   );
 }
 
-function getBestRelation(relationStats: Map<string, PlayerRelationStats>) {
-  return Array.from(relationStats.values()).sort((a, b) => {
-    const diffA = a.gamesFor - a.gamesAgainst;
-    const diffB = b.gamesFor - b.gamesAgainst;
+function isValidStatisticsMatch(match: PlayerStatsMatch) {
+  if (
+    match.status !== "finished" ||
+    match.resultCounts === false ||
+    match.sets.length === 0
+  ) {
+    return false;
+  }
 
-    if (diffB !== diffA) return diffB - diffA;
-    if (b.wins !== a.wins) return b.wins - a.wins;
-    if (b.matches !== a.matches) return b.matches - a.matches;
+  return getTeamSetPoints(match, "A") !== getTeamSetPoints(match, "B");
+}
+
+function getStrongestTeammate(
+  relationStats: Map<string, PlayerRelationStats>,
+) {
+  return Array.from(relationStats.values()).sort((a, b) => {
+    const setsDiffA = a.setsFor - a.setsAgainst;
+    const setsDiffB = b.setsFor - b.setsAgainst;
+    const gamesDiffA = a.gamesFor - a.gamesAgainst;
+    const gamesDiffB = b.gamesFor - b.gamesAgainst;
+
+    if (setsDiffB !== setsDiffA) return setsDiffB - setsDiffA;
+    if (gamesDiffB !== gamesDiffA) return gamesDiffB - gamesDiffA;
     return a.playerId.localeCompare(b.playerId);
   })[0];
 }
@@ -93,10 +110,34 @@ function getToughestRival(relationStats: Map<string, PlayerRelationStats>) {
   })[0];
 }
 
+function getMostBeatenRival(relationStats: Map<string, PlayerRelationStats>) {
+  return Array.from(relationStats.values())
+    .filter((row) => row.wins > 0)
+    .sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      return b.gamesFor - b.gamesAgainst - (a.gamesFor - a.gamesAgainst);
+    })[0];
+}
+
+function getMostLostRival(relationStats: Map<string, PlayerRelationStats>) {
+  return Array.from(relationStats.values())
+    .filter((row) => row.matches - row.wins > 0)
+    .sort((a, b) => {
+      const lossesA = a.matches - a.wins;
+      const lossesB = b.matches - b.wins;
+      if (lossesB !== lossesA) return lossesB - lossesA;
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      return a.gamesFor - a.gamesAgainst - (b.gamesFor - b.gamesAgainst);
+    })[0];
+}
+
 function upsertRelation(
   relationStats: Map<string, PlayerRelationStats>,
   playerId: string,
   won: boolean,
+  setsFor: number,
+  setsAgainst: number,
   gamesFor: number,
   gamesAgainst: number,
 ) {
@@ -104,11 +145,15 @@ function upsertRelation(
     playerId,
     matches: 0,
     wins: 0,
+    setsFor: 0,
+    setsAgainst: 0,
     gamesFor: 0,
     gamesAgainst: 0,
   };
 
   current.matches += 1;
+  current.setsFor += setsFor;
+  current.setsAgainst += setsAgainst;
   current.gamesFor += gamesFor;
   current.gamesAgainst += gamesAgainst;
 
@@ -161,12 +206,11 @@ export function PlayerStatsPanel({
   const { t } = useI18n();
   const finishedMatches = matches.filter(
     (match) =>
-      match.status === "finished" &&
-      match.resultCounts !== false &&
+      isValidStatisticsMatch(match) &&
       (match.teamA.includes(playerId) || match.teamB.includes(playerId)),
   );
 
-  const partnerStats = new Map<string, PlayerRelationStats>();
+  const teammateStats = new Map<string, PlayerRelationStats>();
   const rivalStats = new Map<string, PlayerRelationStats>();
   let setsFor = 0;
   let setsAgainst = 0;
@@ -204,11 +248,27 @@ export function PlayerStatsPanel({
     ownTeam
       .filter((teammateId) => teammateId !== playerId)
       .forEach((teammateId) =>
-        upsertRelation(partnerStats, teammateId, won, ownGames, opponentGames),
+        upsertRelation(
+          teammateStats,
+          teammateId,
+          won,
+          ownSets,
+          opponentSets,
+          ownGames,
+          opponentGames,
+        ),
       );
 
     opponentTeam.forEach((opponentId) =>
-      upsertRelation(rivalStats, opponentId, won, ownGames, opponentGames),
+      upsertRelation(
+        rivalStats,
+        opponentId,
+        won,
+        ownSets,
+        opponentSets,
+        ownGames,
+        opponentGames,
+      ),
     );
 
     if (!bestMatch || gamesDiff > bestMatch.diff) {
@@ -230,14 +290,31 @@ export function PlayerStatsPanel({
 
   const matchesPlayed = finishedMatches.length;
   const winRate = matchesPlayed > 0 ? (wins / matchesPlayed) * 100 : 0;
-  const bestPartner = getBestRelation(partnerStats);
-  const bestPartnerDiff = bestPartner
-    ? bestPartner.gamesFor - bestPartner.gamesAgainst
+  const strongestTeammate = getStrongestTeammate(teammateStats);
+  const strongestTeammateSetsDiff = strongestTeammate
+    ? strongestTeammate.setsFor - strongestTeammate.setsAgainst
+    : 0;
+  const strongestTeammateGamesDiff = strongestTeammate
+    ? strongestTeammate.gamesFor - strongestTeammate.gamesAgainst
     : 0;
   const toughestRival = getToughestRival(rivalStats);
   const toughestRivalDiff = toughestRival
     ? toughestRival.gamesFor - toughestRival.gamesAgainst
     : 0;
+  const mostBeatenRival = getMostBeatenRival(rivalStats);
+  const mostLostRival = getMostLostRival(rivalStats);
+  let currentWinStreak = 0;
+  let bestWinStreak = 0;
+  [...finishedMatches]
+    .sort((a, b) => a.round - b.round)
+    .forEach((match) => {
+      const isTeamA = match.teamA.includes(playerId);
+      const won =
+        getTeamSetPoints(match, isTeamA ? "A" : "B") >
+        getTeamSetPoints(match, isTeamA ? "B" : "A");
+      currentWinStreak = won ? currentWinStreak + 1 : 0;
+      bestWinStreak = Math.max(bestWinStreak, currentWinStreak);
+    });
   const mvpSummary = getPlayerMvpSummary({
     leagueId,
     seasonId,
@@ -327,22 +404,22 @@ export function PlayerStatsPanel({
         <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 p-2.5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
-              {t.playerStats.bestPartner}
+              {t.playerStats.strongestTeammate}
             </p>
-            {bestPartner ? (
+            {strongestTeammate ? (
               <Link
-                href={getPlayerHref(bestPartner.playerId, players)}
+                href={getPlayerHref(strongestTeammate.playerId, players)}
                 className="mt-1 block font-black underline-offset-2 active:underline"
               >
-                {getDisplayName(bestPartner.playerId, players)}
+                {getDisplayName(strongestTeammate.playerId, players)}
               </Link>
             ) : (
               <p className="mt-1 font-black">{emptyValue}</p>
             )}
           </div>
           <p className="shrink-0 text-sm font-semibold text-neutral-500">
-            {bestPartner
-              ? `${formatSignedNumber(bestPartnerDiff)} ${t.ranking.diff}`
+            {strongestTeammate
+              ? `${formatSignedNumber(strongestTeammateSetsDiff)} ${t.playerStats.setsShort} · ${formatSignedNumber(strongestTeammateGamesDiff)} ${t.playerStats.gamesShort}`
               : emptyValue}
           </p>
         </div>
@@ -368,6 +445,53 @@ export function PlayerStatsPanel({
               ? `${formatSignedNumber(toughestRivalDiff)} ${t.ranking.diff}`
               : emptyValue}
           </p>
+        </div>
+      </div>
+
+      <div className="mt-2">
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+          Récords del periodo
+        </p>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Mejor racha</p>
+            <p className="mt-1 font-black">
+              {bestWinStreak > 0 ? `${bestWinStreak} victorias` : emptyValue}
+            </p>
+          </div>
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Rival más vencido</p>
+            <p className="mt-1 truncate font-black">
+              {mostBeatenRival
+                ? getDisplayName(mostBeatenRival.playerId, players)
+                : emptyValue}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {mostBeatenRival ? `${mostBeatenRival.wins} victorias` : emptyValue}
+            </p>
+          </div>
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Rival con más derrotas</p>
+            <p className="mt-1 truncate font-black">
+              {mostLostRival
+                ? getDisplayName(mostLostRival.playerId, players)
+                : emptyValue}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {mostLostRival
+                ? `${mostLostRival.matches - mostLostRival.wins} derrotas`
+                : emptyValue}
+            </p>
+          </div>
+          <div className="rounded-xl bg-neutral-50 p-2.5">
+            <p className="text-xs font-semibold text-neutral-500">Mayor diferencia</p>
+            <p className="mt-1 font-black">
+              {bestMatch ? formatSignedNumber(bestMatch.diff) : emptyValue}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {bestMatch ? `${t.matches.round} ${bestMatch.round}` : emptyValue}
+            </p>
+          </div>
         </div>
       </div>
 

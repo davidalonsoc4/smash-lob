@@ -4,6 +4,7 @@ type LeagueAdminUpdateResult = {
   leagueId: string
   name: string
   description: string
+  recommendations: string
   logoUrl: string | null
   locations: LeagueLocation[]
   statusColorsEnabled: boolean
@@ -33,13 +34,16 @@ export async function updateSupabaseLeagueDetails({
   leagueId,
   name,
   description,
+  recommendations,
 }: {
   leagueId: string
   name: string
   description: string
+  recommendations: string
 }) {
   const cleanName = name.trim()
   const cleanDescription = description.trim()
+  const cleanRecommendations = recommendations.trim()
 
   if (!cleanName) {
     throw new Error("El nombre de la liga no puede estar vacio")
@@ -48,12 +52,14 @@ export async function updateSupabaseLeagueDetails({
   const data = await patchLeague(leagueId, {
     name: cleanName,
     description: cleanDescription,
+    recommendations: cleanRecommendations,
   })
 
   return {
     leagueId: data.leagueId,
     name: data.name,
     description: data.description,
+    recommendations: data.recommendations,
     logoUrl: data.logoUrl,
   }
 }

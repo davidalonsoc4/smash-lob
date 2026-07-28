@@ -16,6 +16,7 @@ export type League = {
   joinMode: "closed" | "open"
   locations: LeagueLocation[]
   logoUrl?: string | null
+  recommendations?: string
   statusColorsEnabled?: boolean
   showRankingAvatars?: boolean
   showHistoricalProfileStats?: boolean
@@ -154,6 +155,7 @@ export const leagues: League[] = [
         longitude: null,
       },
     ],
+    recommendations: "",
   },
   {
     id: "league-work",
@@ -195,6 +197,7 @@ export const leagues: League[] = [
         longitude: null,
       },
     ],
+    recommendations: "",
   },
 ]
 

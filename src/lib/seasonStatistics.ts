@@ -1,20 +1,24 @@
 import type { MatchData } from "@/context/MatchDataProvider"
+
+export type StatisticsMatchData = MatchData & {
+  statisticsSeasonId?: string
+  statisticsOriginalRound?: number
+  statisticsRoundLabel?: string
+  statisticsRoundShortLabel?: string
+}
 import type { PlayerProfile, SeasonPlayer } from "@/data/fakeData"
 import { calculateSeasonRanking, type RankingPlayer } from "@/lib/ranking"
 
-type PlayerStreak = {
+export type PlayerStreak = {
   playerId: string
   displayName: string
   wins: number
 }
 
-export type PairStatistics = {
-  playerIds: [string, string]
-  playerNames: [string, string]
-  matchesPlayed: number
-  wins: number
-  losses: number
-  winRate: number
+export type PlayerTeammatePerformance = {
+  playerId: string
+  displayName: string
+  setsDiff: number
   gamesDiff: number
 }
 
@@ -28,22 +32,115 @@ export type PlayerOpponentStatistics = {
   gamesDiff: number
 }
 
+
+export type SeasonComebackRecord = {
+  match: MatchData
+  winnerPlayerIds: string[]
+  firstSetDeficit: number
+}
+
+export type SeasonRecords = {
+  longestWinStreak: PlayerStreak | null
+  closestMatch: MatchData | null
+  biggestWin: MatchData | null
+  biggestComeback: SeasonComebackRecord | null
+}
+
+export type SeasonDataQuality = {
+  pendingMatches: number
+  excludedFinishedMatches: number
+  invalidFinishedMatches: number
+  withdrawnPlayers: number
+  replacementPlayers: number
+  hasCountedResults: boolean
+}
+
 export type PlayerRoundProgress = {
   round: number
   position: number
   points: number
   gamesDiff: number
+  label?: string
+  shortLabel?: string
+  seasonId?: string
+  originalRound?: number
+  teammateNames?: string
+  opponentNames?: string
+  resultLabel?: string
+  outcome?: "win" | "loss"
+  roundGamesDiff?: number
+}
+
+export type PlayerRecentMatch = {
+  matchId: string
+  round: number
+  roundLabel?: string
+  seasonId?: string
+  outcome: "win" | "loss"
+  gamesDiff: number
+}
+
+export type PlayerRecentForm = {
+  playerId: string
+  matches: PlayerRecentMatch[]
+  wins: number
+  losses: number
+  currentStreak: number
+  currentStreakOutcome: "win" | "loss" | null
+}
+
+export type PlayerComparisonOpponentPerformance = {
+  matchesPlayed: number
+  wins: number
+  losses: number
+  gamesDiff: number
+}
+
+export type PlayerComparisonCommonOpponent = {
+  playerId: string
+  displayName: string
+  playerA: PlayerComparisonOpponentPerformance
+  playerB: PlayerComparisonOpponentPerformance
+}
+
+export type PlayerComparison = {
+  playerA: RankingPlayer
+  playerB: RankingPlayer
+  playerAForm: PlayerRecentForm
+  playerBForm: PlayerRecentForm
+  rivalry: {
+    matchesPlayed: number
+    playerAWins: number
+    playerBWins: number
+    playerASets: number
+    playerBSets: number
+    playerAGames: number
+    playerBGames: number
+    gamesDiffA: number
+  }
+  commonOpponents: {
+    rows: PlayerComparisonCommonOpponent[]
+    playerA: PlayerComparisonOpponentPerformance
+    playerB: PlayerComparisonOpponentPerformance
+  }
 }
 
 export type PlayerSeasonDetail = {
   player: RankingPlayer
   winRate: number
   bestWinStreak: number
-  bestPartner: PairStatistics | null
-  mostFrequentPartner: PairStatistics | null
+  strongestTeammate: PlayerTeammatePerformance | null
+  mostFrequentOpponent: PlayerOpponentStatistics | null
   toughestOpponent: PlayerOpponentStatistics | null
   opponents: PlayerOpponentStatistics[]
   progress: PlayerRoundProgress[]
+  bestPosition: number | null
+  worstPosition: number | null
+  biggestWin: MatchData | null
+  closestMatch: MatchData | null
+  biggestComeback: SeasonComebackRecord | null
+  mostBeatenOpponent: PlayerOpponentStatistics | null
+  mostLostOpponent: PlayerOpponentStatistics | null
 }
 
 export type SeasonStatistics = {
@@ -56,11 +153,13 @@ export type SeasonStatistics = {
   totalGames: number
   averageGamesPerMatch: number
   leader: RankingPlayer | null
+  leaders: RankingPlayer[]
   longestWinStreak: PlayerStreak | null
-  bestPair: PairStatistics | null
-  pairStatistics: PairStatistics[]
   closestMatch: MatchData | null
   biggestWin: MatchData | null
+  records: SeasonRecords
+  progressByPlayer: Record<string, PlayerRoundProgress[]>
+  dataQuality: SeasonDataQuality
 }
 
 function getMatchGames(match: MatchData) {
@@ -76,101 +175,551 @@ function getMatchGamesDiff(match: MatchData) {
   return Math.abs(gamesA - gamesB)
 }
 
-function getWinningTeam(match: MatchData) {
-  if (match.pointsA === null || match.pointsB === null) {
-    return null
-  }
+function getMatchComeback(match: MatchData): SeasonComebackRecord | null {
+  const winner = getWinningTeam(match)
+  const firstSet = match.sets[0]
 
-  if (match.pointsA > match.pointsB) {
+  if (!winner || !firstSet) return null
+
+  const winnerLostFirstSet =
+    winner === "A" ? firstSet.a < firstSet.b : firstSet.b < firstSet.a
+
+  if (!winnerLostFirstSet) return null
+
+  return {
+    match,
+    winnerPlayerIds: winner === "A" ? match.teamA : match.teamB,
+    firstSetDeficit:
+      winner === "A" ? firstSet.b - firstSet.a : firstSet.a - firstSet.b,
+  }
+}
+
+function getBiggestComeback(matches: MatchData[]) {
+  return matches
+    .map(getMatchComeback)
+    .filter((record): record is SeasonComebackRecord => Boolean(record))
+    .sort((a, b) => {
+      if (b.firstSetDeficit !== a.firstSetDeficit) {
+        return b.firstSetDeficit - a.firstSetDeficit
+      }
+      return getMatchGamesDiff(b.match) - getMatchGamesDiff(a.match)
+    })[0] ?? null
+}
+
+function getWinningTeam(match: MatchData) {
+  const pointsA =
+    match.pointsA ?? match.sets.filter((set) => set.a > set.b).length
+  const pointsB =
+    match.pointsB ?? match.sets.filter((set) => set.b > set.a).length
+
+  if (pointsA > pointsB) {
     return "A" as const
   }
 
-  if (match.pointsB > match.pointsA) {
+  if (pointsB > pointsA) {
     return "B" as const
   }
 
   return null
 }
 
-function pairKey(playerIds: string[]) {
-  return [...playerIds].sort().join("|")
+function isValidCountedMatch(match: MatchData) {
+  return (
+    match.status === "finished" &&
+    match.resultCounts !== false &&
+    match.sets.length > 0 &&
+    Boolean(getWinningTeam(match))
+  )
 }
 
-function calculatePairs({
-  matches,
+function excludeInvalidStatisticsResults(matches: MatchData[]) {
+  return matches.map((match) =>
+    match.status === "finished" &&
+    match.resultCounts !== false &&
+    !isValidCountedMatch(match)
+      ? { ...match, resultCounts: false }
+      : match,
+  )
+}
+
+
+function getMatchRecordedTime(match: MatchData) {
+  if (!match.resultRecordedAt) {
+    return 0
+  }
+
+  const value = new Date(match.resultRecordedAt).getTime()
+  return Number.isFinite(value) ? value : 0
+}
+
+function getStatisticsSeasonId(match: MatchData) {
+  return (match as StatisticsMatchData).statisticsSeasonId ?? match.seasonId
+}
+
+function getStatisticsRoundMetadata(match: MatchData) {
+  const statisticsMatch = match as StatisticsMatchData
+  return {
+    label: statisticsMatch.statisticsRoundLabel,
+    shortLabel: statisticsMatch.statisticsRoundShortLabel,
+    seasonId: statisticsMatch.statisticsSeasonId ?? match.seasonId,
+    originalRound: statisticsMatch.statisticsOriginalRound ?? match.round,
+  }
+}
+
+function sortFinishedMatchesLatestFirst(matches: MatchData[]) {
+  return [...matches].sort((a, b) => {
+    if (b.round !== a.round) return b.round - a.round
+    return getMatchRecordedTime(b) - getMatchRecordedTime(a)
+  })
+}
+
+function rankingRowsAreTied(first: RankingPlayer, second: RankingPlayer) {
+  return (
+    first.points === second.points &&
+    first.gamesDiff === second.gamesDiff &&
+    first.gamesFor === second.gamesFor
+  )
+}
+
+export function getRankingPosition(ranking: RankingPlayer[], playerId: string) {
+  const index = ranking.findIndex((player) => player.id === playerId)
+  if (index < 0) return null
+
+  const player = ranking[index]
+  const firstTiedIndex = ranking.findIndex((candidate) =>
+    rankingRowsAreTied(candidate, player),
+  )
+  return firstTiedIndex + 1
+}
+
+export function getLeadingPlayers(ranking: RankingPlayer[]) {
+  const leader = ranking[0]
+  return leader
+    ? ranking.filter((player) => rankingRowsAreTied(player, leader))
+    : []
+}
+
+function getPlayerRoundContext({
+  match,
+  playerId,
   playersById,
 }: {
-  matches: MatchData[]
-  playersById: Map<string, PlayerProfile>
+  match: MatchData | undefined
+  playerId: string
+  playersById: Map<string, string>
 }) {
-  const pairs = new Map<
-    string,
-    {
-      playerIds: [string, string]
-      matchesPlayed: number
-      wins: number
-      losses: number
-      gamesDiff: number
-    }
-  >()
+  if (!match) return {}
 
-  matches.forEach((match) => {
-    if (
-      match.status !== "finished" ||
-      match.resultCounts === false ||
-      match.teamA.length !== 2 ||
-      match.teamB.length !== 2
-    ) {
-      return
-    }
+  const inTeamA = match.teamA.includes(playerId)
+  const inTeamB = match.teamB.includes(playerId)
+  if (!inTeamA && !inTeamB) return {}
 
-    const winner = getWinningTeam(match)
-    const gamesA = match.sets.reduce((total, set) => total + set.a, 0)
-    const gamesB = match.sets.reduce((total, set) => total + set.b, 0)
+  const ownTeam = inTeamA ? match.teamA : match.teamB
+  const opponentTeam = inTeamA ? match.teamB : match.teamA
+  const ownGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.a : set.b),
+    0,
+  )
+  const opponentGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.b : set.a),
+    0,
+  )
+  const winner = getWinningTeam(match)
+  const playerWon =
+    (inTeamA && winner === "A") || (inTeamB && winner === "B")
+  const score = match.sets
+    .map((set) => (inTeamA ? `${set.a}-${set.b}` : `${set.b}-${set.a}`))
+    .join(", ")
 
-    ;([
-      { team: match.teamA, won: winner === "A", gamesDiff: gamesA - gamesB },
-      { team: match.teamB, won: winner === "B", gamesDiff: gamesB - gamesA },
-    ] as const).forEach(({ team, won, gamesDiff }) => {
-      const sortedTeam = [...team].sort() as [string, string]
-      const key = pairKey(sortedTeam)
-      const current = pairs.get(key) ?? {
-        playerIds: sortedTeam,
-        matchesPlayed: 0,
-        wins: 0,
-        losses: 0,
-        gamesDiff: 0,
-      }
+  return {
+    teammateNames: ownTeam
+      .filter((teammateId) => teammateId !== playerId)
+      .map((teammateId) => playersById.get(teammateId) ?? "Jugador")
+      .join(" / "),
+    opponentNames: opponentTeam
+      .map((opponentId) => playersById.get(opponentId) ?? "Jugador")
+      .join(" / "),
+    resultLabel: score || "Sin marcador",
+    outcome: playerWon ? ("win" as const) : ("loss" as const),
+    roundGamesDiff: ownGames - opponentGames,
+  }
+}
 
-      current.matchesPlayed += 1
-      current.gamesDiff += gamesDiff
+function calculateProgressByPlayer({
+  seasonId,
+  playerProfiles,
+  seasonPlayers,
+  matches,
+}: {
+  seasonId: string
+  playerProfiles: PlayerProfile[]
+  seasonPlayers: SeasonPlayer[]
+  matches: MatchData[]
+}) {
+  const countedSeasonMatches = matches.filter(
+    (match) =>
+      match.seasonId === seasonId &&
+      match.status === "finished" &&
+      match.resultCounts !== false,
+  )
+  const rounds = Array.from(
+    new Set(countedSeasonMatches.map((match) => match.round)),
+  ).sort((a, b) => a - b)
+  const progressByPlayer: Record<string, PlayerRoundProgress[]> = {}
+  const playersById = new Map(
+    playerProfiles.map((player) => [player.id, player.displayName]),
+  )
 
-      if (won) {
-        current.wins += 1
-      } else {
-        current.losses += 1
-      }
+  rounds.forEach((round) => {
+    const roundRanking = calculateSeasonRanking({
+      seasonId,
+      playerProfiles,
+      seasonPlayers,
+      matches: matches.map((match) => ({
+        ...match,
+        resultCounts:
+          match.seasonId === seasonId && match.round > round
+            ? false
+            : match.resultCounts,
+      })),
+    })
 
-      pairs.set(key, current)
+    const roundMatch = countedSeasonMatches.find((match) => match.round === round)
+    const roundMetadata = roundMatch
+      ? getStatisticsRoundMetadata(roundMatch)
+      : {
+          label: undefined,
+          shortLabel: undefined,
+          seasonId,
+          originalRound: round,
+        }
+
+    roundRanking.forEach((row) => {
+      const position = getRankingPosition(roundRanking, row.id)
+      if (position === null) return
+      const playerRoundMatch = countedSeasonMatches.find(
+        (match) =>
+          match.round === round &&
+          [...match.teamA, ...match.teamB].includes(row.id),
+      )
+      const playerRoundContext = getPlayerRoundContext({
+        match: playerRoundMatch,
+        playerId: row.id,
+        playersById,
+      })
+      progressByPlayer[row.id] = [
+        ...(progressByPlayer[row.id] ?? []),
+        {
+          round,
+          position,
+          points: row.points,
+          gamesDiff: row.gamesDiff,
+          ...roundMetadata,
+          ...playerRoundContext,
+        },
+      ]
     })
   })
 
-  return Array.from(pairs.values())
-    .map((pair): PairStatistics => ({
-      ...pair,
-      playerNames: pair.playerIds.map(
-        (playerId) => playersById.get(playerId)?.displayName ?? "Jugador",
-      ) as [string, string],
-      winRate:
-        pair.matchesPlayed > 0 ? (pair.wins / pair.matchesPlayed) * 100 : 0,
-    }))
-    .sort((a, b) => {
-      if (b.matchesPlayed >= 2 && a.matchesPlayed < 2) return 1
-      if (a.matchesPlayed >= 2 && b.matchesPlayed < 2) return -1
-      if (b.winRate !== a.winRate) return b.winRate - a.winRate
-      if (b.wins !== a.wins) return b.wins - a.wins
-      return b.gamesDiff - a.gamesDiff
+  return progressByPlayer
+}
+
+function getPlayerMatchResult(match: MatchData, playerId: string) {
+  const inTeamA = match.teamA.includes(playerId)
+  const inTeamB = match.teamB.includes(playerId)
+
+  if (!inTeamA && !inTeamB) {
+    return null
+  }
+
+  const winner = getWinningTeam(match)
+  if (!winner) {
+    return null
+  }
+
+  const ownGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.a : set.b),
+    0,
+  )
+  const opponentGames = match.sets.reduce(
+    (total, set) => total + (inTeamA ? set.b : set.a),
+    0,
+  )
+  const won = (inTeamA && winner === "A") || (inTeamB && winner === "B")
+
+  return {
+    outcome: won ? ("win" as const) : ("loss" as const),
+    gamesDiff: ownGames - opponentGames,
+  }
+}
+
+export function calculatePlayerRecentForm({
+  seasonId,
+  playerId,
+  matches,
+  limit = 5,
+}: {
+  seasonId: string
+  playerId: string
+  matches: MatchData[]
+  limit?: number
+}): PlayerRecentForm {
+  const recentMatches = sortFinishedMatchesLatestFirst(
+    matches.filter(
+      (match) =>
+        match.seasonId === seasonId &&
+        isValidCountedMatch(match) &&
+        [...match.teamA, ...match.teamB].includes(playerId),
+    ),
+  )
+    .map((match): PlayerRecentMatch | null => {
+      const result = getPlayerMatchResult(match, playerId)
+      return result
+        ? {
+            matchId: match.id,
+            round: match.round,
+            roundLabel:
+              (match as StatisticsMatchData).statisticsRoundShortLabel ??
+              `J${match.round}`,
+            seasonId: getStatisticsSeasonId(match),
+            ...result,
+          }
+        : null
     })
+    .filter((match): match is PlayerRecentMatch => Boolean(match))
+    .slice(0, Math.max(1, limit))
+
+  const currentStreakOutcome = recentMatches[0]?.outcome ?? null
+  const currentStreakSeasonId = recentMatches[0]?.seasonId
+  const currentStreak = currentStreakOutcome
+    ? recentMatches.findIndex(
+        (match) =>
+          match.outcome !== currentStreakOutcome ||
+          (currentStreakSeasonId !== undefined &&
+            match.seasonId !== currentStreakSeasonId),
+      )
+    : 0
+  const normalizedCurrentStreak =
+    currentStreak === -1 ? recentMatches.length : currentStreak
+
+  return {
+    playerId,
+    matches: recentMatches,
+    wins: recentMatches.filter((match) => match.outcome === "win").length,
+    losses: recentMatches.filter((match) => match.outcome === "loss").length,
+    currentStreak: normalizedCurrentStreak,
+    currentStreakOutcome,
+  }
+}
+
+export function calculatePlayerComparison({
+  seasonId,
+  playerAId,
+  playerBId,
+  playerProfiles,
+  seasonPlayers,
+  matches,
+}: {
+  seasonId: string
+  playerAId: string
+  playerBId: string
+  playerProfiles: PlayerProfile[]
+  seasonPlayers: SeasonPlayer[]
+  matches: MatchData[]
+}): PlayerComparison | null {
+  if (!playerAId || !playerBId || playerAId === playerBId) {
+    return null
+  }
+
+  const normalizedMatches = excludeInvalidStatisticsResults(matches)
+  const ranking = calculateSeasonRanking({
+    seasonId,
+    playerProfiles,
+    seasonPlayers,
+    matches: normalizedMatches,
+  })
+  const playerA = ranking.find((player) => player.id === playerAId)
+  const playerB = ranking.find((player) => player.id === playerBId)
+
+  if (!playerA || !playerB) {
+    return null
+  }
+
+  const seasonMatches = normalizedMatches.filter(
+    (match) => match.seasonId === seasonId && isValidCountedMatch(match),
+  )
+  const rivalry = {
+    matchesPlayed: 0,
+    playerAWins: 0,
+    playerBWins: 0,
+    playerASets: 0,
+    playerBSets: 0,
+    playerAGames: 0,
+    playerBGames: 0,
+    gamesDiffA: 0,
+  }
+
+  seasonMatches
+    .filter(
+      (match) =>
+        [...match.teamA, ...match.teamB].includes(playerAId) &&
+        [...match.teamA, ...match.teamB].includes(playerBId),
+    )
+    .forEach((match) => {
+      const winner = getWinningTeam(match)
+      if (!winner) return
+
+      const aInTeamA = match.teamA.includes(playerAId)
+      const bInTeamA = match.teamA.includes(playerBId)
+
+      if (aInTeamA === bInTeamA) {
+        return
+      }
+
+      const playerAWon =
+        (aInTeamA && winner === "A") || (!aInTeamA && winner === "B")
+      const gamesA = match.sets.reduce((total, set) => total + set.a, 0)
+      const gamesB = match.sets.reduce((total, set) => total + set.b, 0)
+      const playerAGames = aInTeamA ? gamesA : gamesB
+      const playerBGames = aInTeamA ? gamesB : gamesA
+      const playerASets = match.sets.filter((set) =>
+        aInTeamA ? set.a > set.b : set.b > set.a,
+      ).length
+      const playerBSets = match.sets.filter((set) =>
+        aInTeamA ? set.b > set.a : set.a > set.b,
+      ).length
+
+      rivalry.matchesPlayed += 1
+      rivalry.playerAGames += playerAGames
+      rivalry.playerBGames += playerBGames
+      rivalry.playerASets += playerASets
+      rivalry.playerBSets += playerBSets
+      rivalry.gamesDiffA += playerAGames - playerBGames
+      if (playerAWon) rivalry.playerAWins += 1
+      else rivalry.playerBWins += 1
+    })
+
+  const playersById = new Map(
+    playerProfiles.map((profile) => [profile.id, profile.displayName]),
+  )
+  const emptyPerformance = (): PlayerComparisonOpponentPerformance => ({
+    matchesPlayed: 0,
+    wins: 0,
+    losses: 0,
+    gamesDiff: 0,
+  })
+  const commonOpponentRows = new Map<
+    string,
+    {
+      playerA: PlayerComparisonOpponentPerformance
+      playerB: PlayerComparisonOpponentPerformance
+    }
+  >()
+
+  function addOpponentResult(
+    selectedPlayerId: string,
+    selectedPlayer: "playerA" | "playerB",
+    match: MatchData,
+  ) {
+    const inTeamA = match.teamA.includes(selectedPlayerId)
+    const inTeamB = match.teamB.includes(selectedPlayerId)
+    if (!inTeamA && !inTeamB) return
+
+    const result = getPlayerMatchResult(match, selectedPlayerId)
+    if (!result) return
+
+    const opponents = (inTeamA ? match.teamB : match.teamA).filter(
+      (opponentId) =>
+        opponentId !== playerAId && opponentId !== playerBId,
+    )
+
+    opponents.forEach((opponentId) => {
+      const row = commonOpponentRows.get(opponentId) ?? {
+        playerA: emptyPerformance(),
+        playerB: emptyPerformance(),
+      }
+      const performance = row[selectedPlayer]
+      performance.matchesPlayed += 1
+      performance.gamesDiff += result.gamesDiff
+      if (result.outcome === "win") performance.wins += 1
+      else performance.losses += 1
+      commonOpponentRows.set(opponentId, row)
+    })
+  }
+
+  seasonMatches.forEach((match) => {
+    addOpponentResult(playerAId, "playerA", match)
+    addOpponentResult(playerBId, "playerB", match)
+  })
+
+  const commonRows = Array.from(commonOpponentRows.entries())
+    .filter(
+      ([, row]) =>
+        row.playerA.matchesPlayed > 0 && row.playerB.matchesPlayed > 0,
+    )
+    .map(([playerId, row]): PlayerComparisonCommonOpponent => ({
+      playerId,
+      displayName: playersById.get(playerId) ?? "Jugador",
+      playerA: row.playerA,
+      playerB: row.playerB,
+    }))
+    .sort((first, second) => {
+      const firstMatches =
+        first.playerA.matchesPlayed + first.playerB.matchesPlayed
+      const secondMatches =
+        second.playerA.matchesPlayed + second.playerB.matchesPlayed
+      if (secondMatches !== firstMatches) return secondMatches - firstMatches
+      return first.displayName.localeCompare(second.displayName, "es")
+    })
+
+  const commonOpponentIds = new Set(commonRows.map((row) => row.playerId))
+  const aggregateCommonPerformance = (
+    playerId: string,
+  ): PlayerComparisonOpponentPerformance => {
+    const total = emptyPerformance()
+
+    seasonMatches.forEach((match) => {
+      const inTeamA = match.teamA.includes(playerId)
+      const inTeamB = match.teamB.includes(playerId)
+      if (!inTeamA && !inTeamB) return
+
+      const opponents = inTeamA ? match.teamB : match.teamA
+      if (!opponents.some((opponentId) => commonOpponentIds.has(opponentId))) {
+        return
+      }
+
+      const result = getPlayerMatchResult(match, playerId)
+      if (!result) return
+
+      total.matchesPlayed += 1
+      total.gamesDiff += result.gamesDiff
+      if (result.outcome === "win") total.wins += 1
+      else total.losses += 1
+    })
+
+    return total
+  }
+
+  return {
+    playerA,
+    playerB,
+    playerAForm: calculatePlayerRecentForm({
+      seasonId,
+      playerId: playerAId,
+      matches: normalizedMatches,
+    }),
+    playerBForm: calculatePlayerRecentForm({
+      seasonId,
+      playerId: playerBId,
+      matches: normalizedMatches,
+    }),
+    rivalry,
+    commonOpponents: {
+      rows: commonRows,
+      playerA: aggregateCommonPerformance(playerAId),
+      playerB: aggregateCommonPerformance(playerBId),
+    },
+  }
 }
 
 function calculateLongestWinStreak({
@@ -182,6 +731,7 @@ function calculateLongestWinStreak({
 }) {
   const currentStreaks = new Map<string, number>()
   const bestStreaks = new Map<string, number>()
+  let previousSeasonId: string | null = null
 
   ;[...matches]
     .filter(
@@ -198,6 +748,12 @@ function calculateLongestWinStreak({
       return dateA - dateB
     })
     .forEach((match) => {
+      const statisticsSeasonId = getStatisticsSeasonId(match)
+      if (previousSeasonId !== null && statisticsSeasonId !== previousSeasonId) {
+        currentStreaks.clear()
+      }
+      previousSeasonId = statisticsSeasonId
+
       const winner = getWinningTeam(match)
       const winners = winner === "A" ? match.teamA : winner === "B" ? match.teamB : []
       const losers = winner === "A" ? match.teamB : winner === "B" ? match.teamA : []
@@ -232,12 +788,12 @@ function getPlayerBestWinStreak({
 }) {
   let current = 0
   let best = 0
+  let previousSeasonId: string | null = null
 
   ;[...matches]
     .filter(
       (match) =>
-        match.status === "finished" &&
-        match.resultCounts !== false &&
+        isValidCountedMatch(match) &&
         [...match.teamA, ...match.teamB].includes(playerId),
     )
     .sort((a, b) => {
@@ -251,6 +807,12 @@ function getPlayerBestWinStreak({
       return dateA - dateB
     })
     .forEach((match) => {
+      const statisticsSeasonId = getStatisticsSeasonId(match)
+      if (previousSeasonId !== null && statisticsSeasonId !== previousSeasonId) {
+        current = 0
+      }
+      previousSeasonId = statisticsSeasonId
+
       const winner = getWinningTeam(match)
       const playerWon =
         (winner === "A" && match.teamA.includes(playerId)) ||
@@ -269,26 +831,24 @@ export function calculatePlayerSeasonDetail({
   playerProfiles,
   seasonPlayers,
   matches,
-  pairStatistics,
+  precomputedProgress,
 }: {
   seasonId: string
   playerId: string
   playerProfiles: PlayerProfile[]
   seasonPlayers: SeasonPlayer[]
   matches: MatchData[]
-  pairStatistics?: PairStatistics[]
+  precomputedProgress?: PlayerRoundProgress[]
 }): PlayerSeasonDetail | null {
-  const seasonMatches = matches.filter(
-    (match) =>
-      match.seasonId === seasonId &&
-      match.status === "finished" &&
-      match.resultCounts !== false,
+  const normalizedMatches = excludeInvalidStatisticsResults(matches)
+  const seasonMatches = normalizedMatches.filter(
+    (match) => match.seasonId === seasonId && isValidCountedMatch(match),
   )
   const ranking = calculateSeasonRanking({
     seasonId,
     playerProfiles,
     seasonPlayers,
-    matches,
+    matches: normalizedMatches,
   })
   const player = ranking.find((item) => item.id === playerId)
 
@@ -300,6 +860,11 @@ export function calculatePlayerSeasonDetail({
   const opponentRows = new Map<
     string,
     { matchesPlayed: number; wins: number; losses: number; gamesDiff: number }
+  >()
+
+  const teammateRows = new Map<
+    string,
+    { setsDiff: number; gamesDiff: number }
   >()
 
   seasonMatches.forEach((match) => {
@@ -319,6 +884,25 @@ export function calculatePlayerSeasonDetail({
       0,
     )
     const opponents = inTeamA ? match.teamB : match.teamA
+    const teammates = (inTeamA ? match.teamA : match.teamB).filter(
+      (teammateId) => teammateId !== playerId,
+    )
+    const ownSets = match.sets.filter((set) =>
+      inTeamA ? set.a > set.b : set.b > set.a,
+    ).length
+    const opponentSets = match.sets.filter((set) =>
+      inTeamA ? set.b > set.a : set.a > set.b,
+    ).length
+
+    teammates.forEach((teammateId) => {
+      const current = teammateRows.get(teammateId) ?? {
+        setsDiff: 0,
+        gamesDiff: 0,
+      }
+      current.setsDiff += ownSets - opponentSets
+      current.gamesDiff += ownGames - opponentGames
+      teammateRows.set(teammateId, current)
+    })
 
     opponents.forEach((opponentId) => {
       const current = opponentRows.get(opponentId) ?? {
@@ -351,64 +935,89 @@ export function calculatePlayerSeasonDetail({
       return b.gamesDiff - a.gamesDiff
     })
 
-  const playerPairs = (
-    pairStatistics ?? calculatePairs({ matches: seasonMatches, playersById })
-  ).filter((pair) => pair.playerIds.includes(playerId))
-  const bestPartner = [...playerPairs].sort((a, b) => {
-    if (b.winRate !== a.winRate) return b.winRate - a.winRate
-    if (b.matchesPlayed !== a.matchesPlayed) return b.matchesPlayed - a.matchesPlayed
-    return b.gamesDiff - a.gamesDiff
-  })[0] ?? null
-  const mostFrequentPartner = [...playerPairs].sort((a, b) => {
-    if (b.matchesPlayed !== a.matchesPlayed) return b.matchesPlayed - a.matchesPlayed
-    if (b.winRate !== a.winRate) return b.winRate - a.winRate
-    return b.gamesDiff - a.gamesDiff
-  })[0] ?? null
+  const strongestTeammate = Array.from(teammateRows.entries())
+    .map(([teammateId, row]): PlayerTeammatePerformance => ({
+      playerId: teammateId,
+      displayName: playersById.get(teammateId)?.displayName ?? "Jugador",
+      ...row,
+    }))
+    .sort((a, b) => {
+      if (b.setsDiff !== a.setsDiff) return b.setsDiff - a.setsDiff
+      if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff
+      return a.displayName.localeCompare(b.displayName, "es")
+    })[0] ?? null
   const toughestOpponent = [...opponents].sort((a, b) => {
     if (a.winRate !== b.winRate) return a.winRate - b.winRate
     if (b.matchesPlayed !== a.matchesPlayed) return b.matchesPlayed - a.matchesPlayed
     return a.gamesDiff - b.gamesDiff
   })[0] ?? null
-  const rounds = Array.from(
-    new Set(seasonMatches.map((match) => match.round)),
-  ).sort((a, b) => a - b)
-  const progress = rounds
-    .map((round): PlayerRoundProgress | null => {
-      const roundRanking = calculateSeasonRanking({
-        seasonId,
-        playerProfiles,
-        seasonPlayers,
-        matches: matches.map((match) => ({
-          ...match,
-          resultCounts:
-            match.seasonId === seasonId && match.round > round
-              ? false
-              : match.resultCounts,
-        })),
-      })
-      const row = roundRanking.find((item) => item.id === playerId)
-
-      return row
-        ? {
-            round,
-            position: roundRanking.findIndex((item) => item.id === playerId) + 1,
-            points: row.points,
-            gamesDiff: row.gamesDiff,
-          }
-        : null
-    })
-    .filter((row): row is PlayerRoundProgress => Boolean(row))
+  const progress =
+    precomputedProgress ??
+    calculateProgressByPlayer({
+      seasonId,
+      playerProfiles,
+      seasonPlayers,
+      matches: normalizedMatches,
+    })[playerId] ??
+    []
+  const playerMatches = seasonMatches.filter((match) =>
+    [...match.teamA, ...match.teamB].includes(playerId),
+  )
+  const sortablePlayerMatches = playerMatches.filter((match) => match.sets.length > 0)
+  const biggestWin = [...sortablePlayerMatches]
+    .filter((match) => getPlayerMatchResult(match, playerId)?.outcome === "win")
+    .sort((a, b) => {
+      const resultA = getPlayerMatchResult(a, playerId)
+      const resultB = getPlayerMatchResult(b, playerId)
+      return (resultB?.gamesDiff ?? 0) - (resultA?.gamesDiff ?? 0)
+    })[0] ?? null
+  const closestMatch = [...sortablePlayerMatches].sort((a, b) => {
+    const resultA = getPlayerMatchResult(a, playerId)
+    const resultB = getPlayerMatchResult(b, playerId)
+    return Math.abs(resultA?.gamesDiff ?? 0) - Math.abs(resultB?.gamesDiff ?? 0)
+  })[0] ?? null
+  const biggestComeback = getBiggestComeback(
+    playerMatches.filter((match) => {
+      const comeback = getMatchComeback(match)
+      return comeback?.winnerPlayerIds.includes(playerId)
+    }),
+  )
+  const mostBeatenOpponent = [...opponents]
+    .filter((opponent) => opponent.wins > 0)
+    .sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins
+      if (b.matchesPlayed !== a.matchesPlayed) {
+        return b.matchesPlayed - a.matchesPlayed
+      }
+      return b.gamesDiff - a.gamesDiff
+    })[0] ?? null
+  const mostLostOpponent = [...opponents]
+    .filter((opponent) => opponent.losses > 0)
+    .sort((a, b) => {
+      if (b.losses !== a.losses) return b.losses - a.losses
+      if (b.matchesPlayed !== a.matchesPlayed) {
+        return b.matchesPlayed - a.matchesPlayed
+      }
+      return a.gamesDiff - b.gamesDiff
+    })[0] ?? null
 
   return {
     player,
     winRate:
       player.matchesPlayed > 0 ? (player.wins / player.matchesPlayed) * 100 : 0,
     bestWinStreak: getPlayerBestWinStreak({ playerId, matches: seasonMatches }),
-    bestPartner,
-    mostFrequentPartner,
+    strongestTeammate,
+    mostFrequentOpponent: opponents[0] ?? null,
     toughestOpponent,
     opponents,
     progress,
+    bestPosition: progress.length > 0 ? Math.min(...progress.map((row) => row.position)) : null,
+    worstPosition: progress.length > 0 ? Math.max(...progress.map((row) => row.position)) : null,
+    biggestWin,
+    closestMatch,
+    biggestComeback,
+    mostBeatenOpponent,
+    mostLostOpponent,
   }
 }
 
@@ -417,24 +1026,31 @@ export function calculateSeasonStatistics({
   playerProfiles,
   seasonPlayers,
   matches,
+  includeProgress = true,
 }: {
   seasonId: string
   playerProfiles: PlayerProfile[]
   seasonPlayers: SeasonPlayer[]
   matches: MatchData[]
+  includeProgress?: boolean
 }): SeasonStatistics {
   const seasonMatches = matches.filter((match) => match.seasonId === seasonId)
   const completedMatches = seasonMatches.filter(
     (match) => match.status === "finished",
   )
-  const countedMatches = completedMatches.filter(
+  const eligibleFinishedMatches = completedMatches.filter(
     (match) => match.resultCounts !== false,
   )
+  const invalidFinishedMatches = eligibleFinishedMatches.filter(
+    (match) => !isValidCountedMatch(match),
+  )
+  const countedMatches = eligibleFinishedMatches.filter(isValidCountedMatch)
+  const normalizedMatches = excludeInvalidStatisticsResults(matches)
   const ranking = calculateSeasonRanking({
     seasonId,
     playerProfiles,
     seasonPlayers,
-    matches,
+    matches: normalizedMatches,
   })
   const playersById = new Map(
     playerProfiles.map((player) => [player.id, player]),
@@ -443,10 +1059,6 @@ export function calculateSeasonStatistics({
     (total, match) => total + getMatchGames(match),
     0,
   )
-  const pairStatistics = calculatePairs({
-    matches: countedMatches,
-    playersById,
-  })
   const sortableMatches = countedMatches.filter((match) => match.sets.length > 0)
   const closestMatch = [...sortableMatches].sort(
     (a, b) => getMatchGamesDiff(a) - getMatchGamesDiff(b),
@@ -454,6 +1066,43 @@ export function calculateSeasonStatistics({
   const biggestWin = [...sortableMatches].sort(
     (a, b) => getMatchGamesDiff(b) - getMatchGamesDiff(a),
   )[0] ?? null
+  const longestWinStreak = calculateLongestWinStreak({
+    matches: countedMatches,
+    playersById,
+  })
+  const records: SeasonRecords = {
+    longestWinStreak,
+    closestMatch,
+    biggestWin,
+    biggestComeback: getBiggestComeback(sortableMatches),
+  }
+  const progressByPlayer = includeProgress
+    ? calculateProgressByPlayer({
+        seasonId,
+        playerProfiles,
+        seasonPlayers,
+        matches: normalizedMatches,
+      })
+    : {}
+  const seasonRoster = seasonPlayers.filter((player) => player.seasonId === seasonId)
+  const dataQuality: SeasonDataQuality = {
+    pendingMatches: seasonMatches.filter((match) => match.status !== "finished").length,
+    excludedFinishedMatches: completedMatches.filter(
+      (match) => match.resultCounts === false,
+    ).length,
+    invalidFinishedMatches: invalidFinishedMatches.length,
+    withdrawnPlayers: seasonRoster.filter((player) => player.status === "withdrawn").length,
+    replacementPlayers: (() => {
+      const incomingReplacements = seasonRoster.filter(
+        (player) => Boolean(player.replacesPlayerId),
+      ).length
+      return incomingReplacements > 0
+        ? incomingReplacements
+        : seasonRoster.filter((player) => Boolean(player.replacedByPlayerId)).length
+    })(),
+    hasCountedResults: countedMatches.length > 0,
+  }
+  const leaders = getLeadingPlayers(ranking)
 
   return {
     ranking,
@@ -471,14 +1120,13 @@ export function calculateSeasonStatistics({
     totalGames,
     averageGamesPerMatch:
       countedMatches.length > 0 ? totalGames / countedMatches.length : 0,
-    leader: ranking[0] ?? null,
-    longestWinStreak: calculateLongestWinStreak({
-      matches: countedMatches,
-      playersById,
-    }),
-    bestPair: pairStatistics[0] ?? null,
-    pairStatistics,
+    leader: leaders[0] ?? null,
+    leaders,
+    longestWinStreak,
     closestMatch,
     biggestWin,
+    records,
+    progressByPlayer,
+    dataQuality,
   }
 }

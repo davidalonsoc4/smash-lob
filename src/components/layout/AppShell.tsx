@@ -15,6 +15,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { BottomNav } from "./BottomNav"
@@ -267,7 +268,7 @@ export function AppShell({ children }: AppShellProps) {
             className="pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-white shadow-lg"
             style={{ top: getFloatingTop() }}
           >
-            {branding.internalBadgeText}
+            {branding.internalBadgeText} · {APP_VERSION_LABEL}
           </div>
         ) : null}
 

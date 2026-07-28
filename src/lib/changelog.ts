@@ -15,6 +15,562 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.35",
+    date: "29 de julio de 2026",
+    title: "Actualización de seguridad de dependencias",
+    summary:
+      "Se actualizan las dependencias afectadas por vulnerabilidades críticas y altas, manteniendo la compatibilidad y el funcionamiento completo de la aplicación.",
+    category: "fix",
+    changes: [
+      "Next.js se actualiza a la versión 16.2.12.",
+      "NextAuth y Auth.js se actualizan a sus primeras versiones corregidas.",
+      "PostCSS y Sharp se fuerzan a versiones sin vulnerabilidades conocidas en producción.",
+      "La auditoría de dependencias de producción queda en cero vulnerabilidades.",
+      "ESLint, TypeScript y el build de producción se validan correctamente.",
+      "Persisten avisos exclusivamente en herramientas de desarrollo de ESLint, cuya actualización mayor todavía no es compatible con eslint-config-next.",
+    ],
+  },
+  {
+    version: "v0.17.34",
+    date: "28 de julio de 2026",
+    title: "Cajas de estadísticas del resumen final corregidas",
+    summary:
+      "Los valores de puntos, victorias y diferencia de juegos vuelven a quedar completamente dentro de sus cajas en la imagen exportada.",
+    category: "fix",
+    changes: [
+      "Las cajas de estadísticas de campeón y MVP ganan algo más de altura en la imagen exportada.",
+      "Los números se recolocan verticalmente para que no queden pegados ni sobresalgan por la parte inferior.",
+      "La fila de estadísticas también se sube ligeramente dentro del panel para mantener un equilibrio visual correcto.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.33",
+    date: "28 de julio de 2026",
+    title: "Podio unificado como panel único",
+    summary:
+      "La clasificación del resumen final se presenta ahora como un solo bloque continuo tanto en la app como en la imagen exportada, igual que en la pantalla de ranking.",
+    category: "improvement",
+    changes: [
+      "El podio final de la vista previa deja de mostrarse como tarjetas separadas y pasa a mostrarse dentro de un único panel con divisores internos.",
+      "La imagen exportada replica el mismo enfoque con un bloque agrupado de clasificación en lugar de filas visualmente independientes.",
+      "Se mantiene intacta la información de posición, puntos y diferencia de juegos de cada jugador del Top 3.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.32",
+    date: "28 de julio de 2026",
+    title: "Ajuste fino final de los destacados exportados",
+    summary:
+      "La vista previa de la app vuelve al equilibrio anterior y solo la imagen exportada baja aún más el contenido de 'Lo más destacado'.",
+    category: "fix",
+    changes: [
+      "La vista previa dentro de la app recupera el espaciado anterior de las tarjetas de 'Lo más destacado'.",
+      "La imagen exportada desplaza todavía más hacia abajo la etiqueta, el titular y el detalle de cada destacado para separarlos más del borde superior.",
+      "El resto del diseño del resumen final se mantiene sin cambios, incluidas las opciones de logo de liga y fotos de perfil.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.31",
+    date: "28 de julio de 2026",
+    title: "Destacados desplazados hacia abajo",
+    summary:
+      "El contenido de los paneles de 'Lo más destacado' se baja un poco para separarlo del borde superior y equilibrarlo mejor con el borde inferior.",
+    category: "fix",
+    changes: [
+      "Las tarjetas de 'Lo más destacado' desplazan hacia abajo su etiqueta, titular y detalle en la imagen exportada.",
+      "La vista previa en pantalla también aumenta el padding superior para reproducir el mismo equilibrio visual.",
+      "El resto de ajustes recientes del resumen final se mantiene intacto, incluido el logo de liga ampliado y las opciones de inclusión de imágenes.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.30",
+    date: "28 de julio de 2026",
+    title: "Ajuste vertical de las tarjetas de destacados",
+    summary:
+      "El contenido de 'Lo más destacado' se desplaza ligeramente hacia abajo para que quede menos pegado al borde superior y mejor equilibrado dentro del panel.",
+    category: "fix",
+    changes: [
+      "Las tarjetas de 'Lo más destacado' ganan más aire arriba y un reparto vertical más equilibrado tanto en la vista previa como en la imagen exportada.",
+      "Se ajusta el bloque de etiqueta, titular y detalle para que todo el contenido quede visualmente más centrado dentro de cada panel.",
+      "Se mantiene el resto del diseño, incluido el logo de liga ampliado y las opciones para incluir logo y fotos de perfil en la exportación.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.29",
+    date: "28 de julio de 2026",
+    title: "Logo de liga más grande y centrado en el resumen",
+    summary:
+      "El logo de la liga gana presencia en la cabecera de la imagen compartible y queda centrado verticalmente entre el borde superior y el primer panel.",
+    category: "fix",
+    changes: [
+      "El logo aumenta de 132 a 176 píxeles en la imagen exportada.",
+      "Su posición vertical se calcula con el espacio real disponible entre la franja superior y el panel de campeón o MVP.",
+      "Se amplía ligeramente la separación horizontal respecto al texto para conservar una cabecera limpia.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.28",
+    date: "28 de julio de 2026",
+    title: "Destacados con subtítulo más pegado y titular con más aire",
+    summary:
+      "La sección Lo más destacado ajusta el espaciado vertical para acercar la línea descriptiva y dar un poco más de margen superior al titular principal.",
+    category: "fix",
+    changes: [
+      "La línea descriptiva de tarjetas como 'La mejor serie individual de la temporada' reduce su margen vertical tanto en la vista previa como en la imagen exportada.",
+      "El titular superior gana un poco más de margen por arriba para respirar mejor sin cambiar su tamaño de fuente.",
+      "Se retoca el padding vertical de las tarjetas destacadas en la vista previa para que el comportamiento coincida con el PNG final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.27",
+    date: "28 de julio de 2026",
+    title: "Resumen final con logo más visible y destacados más compactos",
+    summary:
+      "El resumen compartible agranda el logo de la liga, devuelve la barra de acento al lado izquierdo de campeón y MVP, y recorta todavía más los márgenes de las descripciones en los destacados.",
+    category: "fix",
+    changes: [
+      "El logo de la liga gana bastante tamaño en la cabecera de la imagen compartible para que se identifique de un vistazo.",
+      "Los paneles de campeón, MVP y combinado recuperan la barra de acento en el lateral izquierdo tanto en la vista previa como en la imagen exportada.",
+      "La distribución interna de los paneles principales se ajusta para conservar el centrado del bloque foto + nombre con la barra situada a la izquierda.",
+      "Las tarjetas de Lo más destacado reducen todavía más la altura sobrante y acercan la descripción al titular en la vista previa y en el PNG final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.26",
+    date: "28 de julio de 2026",
+    title: "Campeón y MVP centrados con iconografía propia",
+    summary:
+      "Los paneles principales del resumen final se reconstruyen para centrar foto y nombre como un único bloque, diferenciar campeón y MVP mediante iconos de contorno y compactar los textos destacados.",
+    category: "fix",
+    changes: [
+      "Los paneles de campeón y MVP eliminan la etiqueta textual superior y reservan una zona cuadrada a la izquierda para una corona o una estrella de contorno.",
+      "La foto de perfil aparece a la izquierda del nombre y ambos elementos se centran juntos dentro del espacio útil del panel.",
+      "La barra de acento pasa al lado derecho y queda recortada por las esquinas redondeadas del panel, sin sobresalir del contorno.",
+      "El nombre gana tamaño y los bloques de estadísticas mantienen una distribución uniforme en campeón, MVP y panel combinado.",
+      "Los textos descriptivos de Lo más destacado se acercan al titular y reducen el espacio vertical sobrante en la vista previa y en la imagen exportada.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.25",
+    date: "28 de julio de 2026",
+    title: "Acento lateral uniforme en toda la clasificación",
+    summary:
+      "Todas las posiciones del Ranking recuperan una barra lateral coherente con el tema, sin usar colores distintos según el puesto.",
+    category: "fix",
+    changes: [
+      "La barra lateral aparece desde la primera hasta la última posición, tanto en los modos clásicos como en los coloridos.",
+      "Todas las filas usan exactamente el mismo color de acento dentro de cada tema.",
+      "Los temas coloridos reutilizan su color principal; Clásico claro usa un acento neutro y Clásico oscuro su color principal renovado.",
+      "Las medallas y números de posición siguen comunicando el podio sin alterar el color de la barra.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.24",
+    date: "28 de julio de 2026",
+    title: "Acentos uniformes desde la quinta posición",
+    summary:
+      "La clasificación recupera las barras laterales únicamente desde el quinto puesto, usando el mismo color para todas esas filas.",
+    category: "fix",
+    changes: [
+      "Las posiciones 1.ª a 4.ª permanecen sin barra lateral de color.",
+      "Desde la 5.ª posición en adelante se recupera una barra uniforme con el color principal del tema.",
+      "Se mantienen intactos los distintivos de oro, plata y bronce de las tres primeras posiciones.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.23",
+    date: "28 de julio de 2026",
+    title: "Paneles coloridos más limpios y Ranking sin barras laterales",
+    summary:
+      "Los títulos de los paneles coloridos pierden el subrayado decorativo y la clasificación elimina las barras de color laterales para mantener una lectura más uniforme.",
+    category: "fix",
+    changes: [
+      "Se elimina la línea degradada situada bajo títulos de sección como Clasificación y Próximo partido en los temas coloridos.",
+      "Las filas del Ranking dejan de mostrar barras verticales de color a la izquierda de los jugadores.",
+      "Los distintivos de posición del podio se mantienen para conservar la jerarquía visual de los tres primeros puestos.",
+      "La clasificación conserva su estructura compacta de panel único, sus separadores y sus esquinas exteriores.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.22",
+    date: "28 de julio de 2026",
+    title: "Ranking compacto y Clásico oscuro con más profundidad",
+    summary:
+      "La clasificación se presenta como un único panel continuo y el modo Clásico oscuro adopta una paleta por capas que diferencia mejor fondos, tarjetas, controles y acciones.",
+    category: "improvement",
+    changes: [
+      "Las filas del Ranking quedan unidas dentro de un único contenedor, sin márgenes intermedios ni esquinas redondeadas independientes.",
+      "La primera fila conserva únicamente las esquinas superiores y la última las inferiores gracias al recorte del panel exterior.",
+      "Se mantienen separadores discretos entre jugadores y los acentos individuales de los temas coloridos sin aumentar la altura de la clasificación.",
+      "Clásico oscuro estrena una escala azul grisácea neutra con diferencias claras entre fondo exterior, marco de la aplicación, tarjetas y superficies elevadas.",
+      "Los bordes, campos, botones secundarios, controles flotantes y navegación inferior ganan contraste sin convertir el tema clásico en un tema colorido.",
+      "Las acciones principales usan una superficie clara de alto contraste y la barra del navegador adopta el nuevo color de fondo del modo oscuro.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.21",
+    date: "28 de julio de 2026",
+    title: "Paneles clásicos con la misma estructura visual",
+    summary:
+      "Los modos Clásico claro y oscuro reutilizan ahora la misma construcción de tarjetas y franjas decorativas que los temas coloridos, manteniendo su paleta neutra.",
+    category: "fix",
+    changes: [
+      "Las tarjetas de los modos clásicos dejan de dibujar la franja superior mediante un pseudo-elemento independiente.",
+      "La franja neutra pasa a formar parte del fondo interno del panel, igual que en los temas coloridos, respetando siempre el borde y las esquinas redondeadas.",
+      "Los paneles con filas opacas reutilizan también la misma franja estructural interna en todos los temas.",
+      "Se corrige el desbordamiento visible en tarjetas como la vista previa de clasificación de Home sin alterar los colores actuales de Clásico claro y Clásico oscuro.",
+      "El replanteamiento general de contraste y botones del modo Clásico oscuro queda reservado para una mejora posterior.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.20",
+    date: "27 de julio de 2026",
+    title: "Exportación final pulida y ajustes localizables",
+    summary:
+      "La imagen compartible respeta la transparencia del logo, centra con precisión todos sus bloques y estrena controles visuales más cuidados, mientras el buscador incorpora las recomendaciones de liga.",
+    category: "fix",
+    changes: [
+      "El logo de la liga se dibuja en la imagen final con ajuste contain y sin fondo artificial, conservando las transparencias igual que en Home.",
+      "Los controles para incluir logo y fotos se sustituyen por interruptores visuales accesibles, con iconos, estados claros y mensajes contextuales.",
+      "La opción Recomendaciones de la liga obtiene una entrada propia en el buscador de Ajustes, con acceso directo al campo correspondiente y sinónimos en español, inglés y euskera.",
+      "Las barras superiores de degradado del modo Clásico quedan encajadas dentro del borde redondeado de cada panel, incluso cuando la tarjeta no oculta el desbordamiento.",
+      "La composición Canvas usa alineación vertical por bloques para cabecera, campeón/MVP, estadísticas, podio y destacados, eliminando los textos desplazados.",
+      "No se requieren nuevas migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.19",
+    date: "27 de julio de 2026",
+    title: "Validación estricta sin avisos en estadísticas",
+    summary:
+      "Se corrige el aviso de dependencias del resumen de temporada y la entrega queda preparada para tratar cualquier warning de ESLint como un fallo antes de publicar.",
+    category: "fix",
+    changes: [
+      "El cálculo memorizado del resumen final usa ahora el tipo explícito del ranking y deja de depender implícitamente del objeto completo de estadísticas.",
+      "Se elimina el warning react-hooks/exhaustive-deps detectado en la pantalla Resumen de temporada.",
+      "La validación recomendada ejecuta ESLint con max-warnings=0 para detener el flujo ante cualquier error o aviso.",
+      "No se requieren nuevas migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.18",
+    date: "27 de julio de 2026",
+    title: "Recomendaciones de liga y resumen final con logo/fotos opcionales",
+    summary:
+      "La administración de liga ya permite guardar recomendaciones útiles para los jugadores y la imagen final de temporada puede incluir, antes de compartir o descargar, el logo de la liga y las fotos del campeón o MVP.",
+    category: "improvement",
+    changes: [
+      "La creación y edición de ligas incorporan un nuevo campo de recomendaciones para indicar bolas sugeridas, pistas habituales, equipamiento o notas prácticas.",
+      "Las recomendaciones guardadas se muestran en la portada de la liga para que todos los miembros las tengan visibles.",
+      "La insignia de PRE ahora enseña también la versión activa de la aplicación para identificar mejor cada build interna.",
+      "El resumen final de temporada añade dos opciones previas a exportar: incluir el logo de la liga e incluir las fotos del campeón / MVP cuando existan.",
+      "La composición exportable del resumen se reajusta para centrar mejor el contenido, suavizar la barra lateral y mejorar el encaje visual de los paneles principales.",
+      "Se añade migración para persistir las recomendaciones de liga en Supabase y se actualiza la versión visible de la app a v0.17.18.",
+    ],
+  },
+  {
+    version: "v0.17.17",
+    date: "27 de julio de 2026",
+    title: "Resumen final más legible con destacados en columna",
+    summary:
+      "La imagen compartible deja de usar la cuadrícula 2×2 para los destacados, devuelve más protagonismo al ganador y recupera algo más de altura para mejorar la lectura.",
+    category: "fix",
+    changes: [
+      "Los destacados vuelven a mostrarse en una sola columna para evitar recortes y mejorar la legibilidad de textos largos.",
+      "Los paneles de campeón y MVP pasan a ocupar todo el ancho disponible, evitando nombres desplazados y espacios desaprovechados.",
+      "La imagen exportada gana algo de altura y aire vertical para que el contenido respire mejor.",
+      "Se mantiene la paleta monocroma, el podio con diferencia de juegos y la exportación con fondo claro estable.",
+      "También se alinea la vista previa de la página con el nuevo apilado vertical de héroes y destacados.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.16",
+    date: "27 de julio de 2026",
+    title: "Resumen final más sobrio, compacto y legible",
+    summary:
+      "La imagen exportada adopta una paleta casi monocroma, reduce notablemente su altura y reorganiza campeón, MVP y destacados para evitar ruido visual.",
+    category: "fix",
+    changes: [
+      "Se elimina la mezcla de colores dependiente del tema y se sustituye por una paleta estable de blanco, grises y negro.",
+      "Campeón y MVP se colocan en la misma fila cuando son distintos; si coinciden, se mantiene un único panel de ancho completo.",
+      "Se refuerza la jerarquía tipográfica para priorizar temporada, nombres y resultados sobre etiquetas secundarias.",
+      "Los datos de puntos, victorias y diferencia de juegos se compactan dentro de los paneles principales.",
+      "El podio reduce su altura sin perder puntos ni diferencia de juegos.",
+      "Lo más destacado pasa a una cuadrícula 2x2 en la imagen exportada y a dos columnas cuando hay espacio en la vista previa.",
+      "La altura total de la imagen se calcula dinámicamente con un formato mucho más corto y fácil de compartir.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.15",
+    date: "27 de julio de 2026",
+    title: "Resumen final exportable más claro y con mejor contexto competitivo",
+    summary:
+      "La imagen final de temporada reorganiza campeón y MVP, añade estadísticas clave, muestra la diferencia de juegos en el podio y adopta un fondo claro incluso con temas oscuros.",
+    category: "fix",
+    changes: [
+      "Si campeón y MVP coinciden, ambos se unifican en un único panel para reducir altura y duplicidad visual.",
+      "Los paneles de campeón y MVP se ajustan para dar más protagonismo al nombre y menos espacio vacío, incluyendo puntos, victorias y diferencia de juegos.",
+      "Se eliminan las etiquetas intermedias de puestos destacados y momentos clave para compactar la imagen final.",
+      "El podio incorpora también la diferencia de juegos, tanto en la vista previa de la página como en la imagen exportada.",
+      "Se incrementa la separación visual entre Podio final y Lo más destacado para mejorar la lectura.",
+      "La exportación utiliza ahora un fondo claramente luminoso y estable, independientemente del tema activo de la aplicación.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.14",
+    date: "27 de julio de 2026",
+    title: "Resumen exportado más legible y sin solapes",
+    summary:
+      "La imagen exportada de final de temporada gana aún más altura, reorganiza su contenido en una sola columna y evita que los textos se pisen entre campeón, MVP y destacados.",
+    category: "fix",
+    changes: [
+      "La imagen de resumen final adopta una estructura más vertical y de una sola columna para evitar cruces entre bloques de texto.",
+      "Campeón y MVP pasan a mostrarse en tarjetas independientes con más espacio y jerarquía visual.",
+      "El podio mantiene una lectura más limpia con nombres y puntos mejor separados.",
+      "Los momentos destacados se apilan en tarjetas completas, con menos riesgo de solape y mejor claridad al compartir o descargar.",
+      "Se refuerza el truncado controlado de textos largos para que nunca invadan otras zonas de la imagen.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.13",
+    date: "27 de julio de 2026",
+    title: "Imagen de temporada más vertical y más clara",
+    summary:
+      "La imagen compartida y descargada adopta un formato vertical más alto y aprovecha mejor el espacio para presentar campeón, podio y momentos destacados con más claridad.",
+    category: "improvement",
+    changes: [
+      "La imagen de Resumen de temporada pasa a un formato vertical más alto, pensado para compartir mejor en redes y mensajería.",
+      "Compartir y Guardar imagen siguen utilizando exactamente el mismo archivo generado, sin variantes distintas.",
+      "La cabecera destaca mejor al campeón y al MVP con más espacio y jerarquía visual.",
+      "El podio se presenta con filas más claras, marcadores más legibles y puntos mejor separados visualmente.",
+      "Los paneles de momentos destacados crecen y disponen de más espacio para explicar mejor cada estadística.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.12",
+    date: "27 de julio de 2026",
+    title: "Histórico completo y evolución individual gráfica",
+    summary:
+      "Las estadísticas pueden evaluar toda la liga, el análisis individual sustituye la tabla por un gráfico y los selectores flotantes ganan una superficie completamente opaca.",
+    category: "improvement",
+    changes: [
+      "Cuando una liga tiene varias temporadas, Estadísticas incorpora el ámbito Toda la liga y agrega partidos, victorias, puntos, sets, juegos, rachas, rivales, compañeros y récords de todo el historial.",
+      "Las ligas con una sola temporada mantienen el comportamiento anterior y no muestran un selector redundante.",
+      "Las rachas históricas no continúan artificialmente entre temporadas y los gráficos separan cada competición, reiniciando posición, puntos y diferencia de juegos.",
+      "Análisis individual reemplaza la tabla Evolución por jornada por un gráfico con vistas de Posición, Puntos y Diferencia de juegos.",
+      "Cada punto del gráfico individual conserva jornada, compañero, rivales, resultado y cambio respecto a la jornada anterior.",
+      "Los selectores flotantes de Cara a cara y Análisis individual usan fondos totalmente opacos, bordes definidos y una sombra exterior más clara en todos los temas.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.11",
+    date: "27 de julio de 2026",
+    title: "Selectores flotantes reales y acentos clásicos",
+    summary:
+      "Los selectores de jugadores pasan a una capa fija funcional durante el desplazamiento y los temas Clásicos ganan una franja neutra coherente con su estilo minimalista.",
+    category: "fix",
+    changes: [
+      "Cara a cara y Análisis individual mantienen el selector en su posición normal hasta que sale de la pantalla y entonces muestran una versión realmente fija bajo los controles superiores.",
+      "El selector flotante conserva su espacio original, se puede seguir utilizando y vuelve a su sitio al desplazarse hacia arriba.",
+      "Se sustituye la implementación sticky anterior, que dependía del flujo de la página y no se comportaba correctamente en todos los dispositivos.",
+      "Los estilos Clásicos claro y oscuro incorporan una franja superior en escala de grises en todas las tarjetas, sin añadir color ni perder el acabado plano.",
+      "El movimiento de entrada respeta la preferencia de reducción de animaciones del dispositivo.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.10",
+    date: "27 de julio de 2026",
+    title: "Estadísticas más útiles y comparativas completas",
+    summary:
+      "La portada estadística elimina información redundante, el cara a cara gana contexto competitivo y los récords y resúmenes explican mejor qué ocurrió en la temporada.",
+    category: "improvement",
+    changes: [
+      "Los accesos flotantes diferencian claramente la invitación de jugadores del enlace para espectadores mediante iconos específicos.",
+      "La portada de Estadísticas elimina el podio provisional, el progreso y los contadores técnicos para destacar líder, victorias, diferencia de juegos y mejor racha.",
+      "Los accesos a los apartados estadísticos pierden las etiquetas laterales redundantes y alinean iconos, contenido y chevrón de forma simétrica.",
+      "Cara a cara y Análisis individual mantienen sus selectores visibles al desplazarse y permiten cambiar de jugador sin volver al inicio.",
+      "Cara a cara incorpora posición, porcentaje de victorias, balance, diferencia de juegos, forma reciente, duelos directos y rendimiento frente a rivales comunes.",
+      "Récords de temporada y Resumen de temporada explican remontadas, partidos igualados y victorias amplias con protagonistas, marcador y contexto legible.",
+      "El resumen final muestra el aviso de datos incompletos junto a la temporada y bloquea compartir o guardar la imagen hasta resolverlos.",
+      "Evolución de la liga añade la diferencia de juegos acumulada como tercera vista del gráfico.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.9",
+    date: "27 de julio de 2026",
+    title: "Cara a cara y evolución compacta",
+    summary:
+      "La comparación vuelve a centrarse exclusivamente en dos jugadores y la evolución global gana espacio, precisión y un acceso rápido al podio.",
+    category: "improvement",
+    changes: [
+      "Comparar jugadores pasa a llamarse Cara a cara y conserva únicamente la información competitiva de los dos jugadores seleccionados.",
+      "El gráfico de evolución se elimina del Cara a cara porque la comparación temporal completa ya está disponible en Evolución de la liga.",
+      "El filtro destacado de Evolución de la liga cambia de top 4 a top 3 para reflejar el podio como referencia principal.",
+      "Los selectores Posición/Puntos y Todos/Top 3 comparten una sola fila y se elimina el encabezado repetido dentro del panel.",
+      "La escala de posiciones muestra cada puesto entero comprendido entre la mejor y la peor posición visibles.",
+      "Los gráficos muestran hasta siete jornadas sin desplazamiento horizontal y reducen proporcionalmente el scroll en temporadas más largas.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.8",
+    date: "27 de julio de 2026",
+    title: "Estadísticas individuales y evolución global",
+    summary:
+      "Las estadísticas se centran en el rendimiento individual, añaden la evolución completa de la liga y simplifican la navegación por temporada.",
+    category: "improvement",
+    changes: [
+      "Al guardar o editar un resultado aparece una confirmación flotante accesible.",
+      "La nueva pantalla Evolución de la liga permite comparar posición y puntos de todos los jugadores, ocultar series y destacar el top 4.",
+      "Las pantallas de detalle utilizan la temporada elegida en la portada de Estadísticas y ya no repiten su selector.",
+      "Se eliminan rankings, contadores y comparativas de pareja; el compañero más fuerte se determina por diferencia de sets y después de juegos.",
+      "En calendarios equilibrados no se muestra Rival habitual, porque todos los cruces tienen una frecuencia equivalente.",
+      "Los gráficos utilizan colores, trazos y marcadores diferenciados para mantener la lectura en todos los temas.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.7",
+    date: "26 de julio de 2026",
+    title: "Validación limpia del espacio de estadísticas",
+    summary:
+      "Se corrige la dependencia del callback compartido de Estadísticas para dejar ESLint completamente limpio.",
+    category: "fix",
+    changes: [
+      "El formateador compartido de partidos utiliza ahora el tipo MatchData directamente, sin depender del objeto completo de estadísticas.",
+      "Se elimina el aviso react-hooks/exhaustive-deps detectado en useStatisticsWorkspace.",
+      "No cambia ningún cálculo, pantalla, API, permiso ni dato persistido.",
+      "No se requieren migraciones de Supabase.",
+    ],
+  },
+  {
+    version: "v0.17.6",
+    date: "26 de julio de 2026",
+    title: "Estadísticas más claras y organizadas",
+    summary:
+      "La pantalla principal de Estadísticas se convierte en un resumen compacto y distribuye el detalle en apartados específicos.",
+    category: "improvement",
+    changes: [
+      "La portada de Estadísticas muestra solo progreso, líder, mejor racha, resultados válidos y podio provisional.",
+      "Clasificación, comparativas, análisis individual, récords y resumen de temporada disponen ahora de pantallas propias.",
+      "La temporada seleccionada se conserva al navegar entre todos los apartados estadísticos.",
+      "El detalle completo sigue disponible, pero se evita concentrar tablas, gráficos, récords y resúmenes en una única pantalla extensa.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos.",
+    ],
+  },
+  {
+    version: "v0.17.5",
+    date: "26 de julio de 2026",
+    title: "Degradado coherente en Programación",
+    summary:
+      "El panel Programación adopta exactamente la misma franja Colorida que el resto de tarjetas de la aplicación.",
+    category: "fix",
+    changes: [
+      "Se elimina el degradado específico ámbar y rosa que diferenciaba Programación del resto de paneles.",
+      "Programación hereda ahora la combinación principal, secundaria, acento y cálida definida por cada paleta Colorida.",
+      "Se mantienen intactos el recorte de la franja, el redondeado, el contenido y el comportamiento del panel.",
+      "No se requieren migraciones, cambios de API ni modificaciones de datos.",
+    ],
+  },
+  {
+    version: "v0.17.4",
+    date: "26 de julio de 2026",
+    title: "Validación y cierre de estadísticas avanzadas",
+    summary:
+      "La serie estadística se endurece ante empates, resultados excluidos, plantillas modificadas y temporadas incompletas.",
+    category: "improvement",
+    changes: [
+      "Las posiciones y campeones reconocen empates reales por puntos, diferencia y juegos ganados.",
+      "Los resultados vacíos o sin ganador quedan fuera de clasificación, récords, comparativas, gráficos y perfiles.",
+      "Un panel de estado informa de partidos pendientes, resultados excluidos o no válidos, retiradas y movimientos de plantilla.",
+      "La evolución de todos los jugadores se calcula una sola vez por temporada y el historial evita generar gráficos que no necesita.",
+      "Se corrigen las escalas de posición, los resúmenes compartidos con campeones empatados y diversos casos de accesibilidad y contraste.",
+    ],
+  },
+  {
+    version: "v0.17.3",
+    date: "26 de julio de 2026",
+    title: "Resumen final compartible de temporada",
+    summary:
+      "Las temporadas terminadas reúnen campeón, MVP, podio y récords en una tarjeta preparada para compartir.",
+    category: "new",
+    changes: [
+      "Las temporadas cerradas muestran un resumen final con campeón, MVP, podio, mejor racha, remontada y partidos destacados.",
+      "El resumen puede compartirse como archivo PNG mediante el menú nativo del dispositivo.",
+      "Cuando compartir archivos no está disponible, la aplicación permite guardar directamente la imagen generada.",
+      "La imagen adapta sus colores al estilo Clásico o a la paleta Colorida activa sin capturar datos externos.",
+      "No se incorporan dependencias, migraciones ni cambios de API.",
+    ],
+  },
+  {
+    version: "v0.17.2",
+    date: "26 de julio de 2026",
+    title: "Gráficos de evolución competitiva",
+    summary:
+      "La comparación entre jugadores incorpora gráficos de posición y puntos acumulados por jornada.",
+    category: "new",
+    changes: [
+      "La comparativa de jugadores añade un gráfico alternable entre posición y puntos acumulados.",
+      "Las dos series siguen los jugadores seleccionados y reutilizan su evolución por jornada ya calculada.",
+      "Los colores del gráfico se adaptan a la paleta Colorida activa y mantienen contraste en Clásico claro y oscuro.",
+      "El gráfico incluye etiquetas, detalles por punto y una descripción accesible para lectores de pantalla.",
+      "No se añaden librerías externas, migraciones ni cambios de API.",
+    ],
+  },
+  {
+    version: "v0.17.1",
+    date: "26 de julio de 2026",
+    title: "Evolución y récords de temporada",
+    summary:
+      "Las estadísticas convierten el historial de resultados en récords de liga y marcas personales consultables.",
+    category: "new",
+    changes: [
+      "Historial y estadísticas incorpora récords globales de racha, remontadas y partidos destacados.",
+      "El análisis individual muestra mejor y peor posición, racha personal, rivales más vencidos y derrotas más repetidas.",
+      "Los perfiles de jugador añaden un resumen compacto de récords del periodo seleccionado.",
+      "Las remontadas solo se calculan cuando el ganador perdió el primer set y todos los récords excluyen resultados no contabilizados.",
+      "Todos los cálculos reutilizan resultados contabilizados y no requieren migraciones, API ni persistencia adicional.",
+    ],
+  },
+  {
+    version: "v0.17.0",
+    date: "26 de julio de 2026",
+    title: "Comparativas competitivas y coherencia final de paneles",
+    summary:
+      "Las estadísticas estrenan comparativas directas, forma reciente y relaciones frecuentes, mientras Partido y los premios completan su integración con Colorido.",
+    category: "new",
+    changes: [
+      "Historial y estadísticas permite comparar dos jugadores de la temporada con posición, puntos, victorias y forma de sus últimos cinco partidos.",
+      "La comparativa analiza los enfrentamientos directos como rivales, incluyendo victorias y diferencia de juegos.",
+      "El análisis individual añade forma reciente, rachas, rival más habitual o más difícil según el calendario y evolución por jornada.",
+      "Programación y el marcador de Partido adoptan la misma franja Colorida que el resto de paneles y se elimina la línea innecesaria bajo la cabecera de Programación.",
+      "Las cabeceras de Ganador y MVP utilizan el degradado correspondiente a la paleta Colorida activa y conservan su aspecto Clásico fuera de ese estilo.",
+      "No se requieren migraciones, cambios de API ni persistencia adicional.",
+    ],
+  },
+  {
     version: "v0.16.12",
     date: "26 de julio de 2026",
     title: "Estilos Clásico y Colorido y remate de premios",

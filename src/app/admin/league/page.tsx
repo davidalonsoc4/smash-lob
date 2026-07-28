@@ -22,6 +22,7 @@ type LeagueIdentityFormProps = {
   initialName: string
   initialDescription: string
   initialLogoUrl?: string | null
+  initialRecommendations: string
 }
 
 type LeagueLocationsFormProps = {
@@ -49,12 +50,14 @@ function LeagueIdentityForm({
   initialName,
   initialDescription,
   initialLogoUrl,
+  initialRecommendations,
 }: LeagueIdentityFormProps) {
   const { data: session } = useSession()
   const { updateLeagueDetails, updateLeagueLogo } = useLeagueAccess()
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
+  const [recommendations, setRecommendations] = useState(initialRecommendations)
   const [logoCropSource, setLogoCropSource] = useState<string | null>(null)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
   const [isSavingLogo, setIsSavingLogo] = useState(false)
@@ -79,6 +82,7 @@ function LeagueIdentityForm({
     const updated = await updateLeagueDetails(leagueId, {
       name: cleanName,
       description: cleanDescription,
+      recommendations: recommendations.trim(),
     })
 
     setIsSavingDetails(false)
@@ -103,6 +107,8 @@ function LeagueIdentityForm({
           nextName: cleanName,
           previousDescription: initialDescription,
           nextDescription: cleanDescription,
+          previousRecommendations: initialRecommendations,
+          nextRecommendations: recommendations.trim(),
         },
       })
     } catch {
@@ -257,6 +263,29 @@ function LeagueIdentityForm({
               }}
               className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
+          </label>
+
+          <label
+            id="recomendaciones"
+            className="settings-search-target block scroll-mt-28"
+          >
+            <span className="text-sm font-semibold text-neutral-700">
+              Recomendaciones de la liga
+            </span>
+            <textarea
+              value={recommendations}
+              disabled={isSavingDetails}
+              rows={5}
+              onChange={(event) => {
+                setRecommendations(event.target.value)
+                setDetailsError(null)
+              }}
+              placeholder="Bolas recomendadas, pistas habituales, equipamiento o cualquier sugerencia práctica para los jugadores."
+              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+            <p className="mt-1 text-xs text-neutral-500">
+              Este bloque aparecerá como guía rápida para todos los miembros de la liga.
+            </p>
           </label>
         </div>
 
@@ -641,6 +670,7 @@ export default function AdminLeaguePage() {
           initialName={activeLeague.name}
           initialDescription={activeLeague.description}
           initialLogoUrl={activeLeague.logoUrl}
+          initialRecommendations={activeLeague.recommendations ?? ""}
         />
       </div>
 

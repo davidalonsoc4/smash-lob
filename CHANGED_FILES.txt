@@ -1,13 +1,6 @@
 CHANGED_FILES.txt
-docs/preproduction/V0.16.12_CLASSIC_STYLE_AND_AWARD_HEADERS.md
-docs/production-hardening/STATUS.md
-package-lock.json
+docs/preproduction/V0.17.35_SECURITY_DEPENDENCY_UPDATES.md
 package.json
-src/app/globals.css
-src/app/page.tsx
-src/i18n/locales/en.ts
-src/i18n/locales/es.ts
-src/i18n/locales/eu.ts
+package-lock.json
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/lib/settingsSearch.ts

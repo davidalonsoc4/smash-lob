@@ -357,3 +357,174 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Migración local de las cuatro paletas retiradas.
 - Buscador contextual de ligas en `/leagues`.
 - Sin migraciones ni cambios de API.
+
+## v0.17.0 - Advanced statistics foundation (2026-07-26)
+
+- Added season player comparisons with recent form, direct rivalry results and individual progress.
+- Added the most frequent opponent to the existing individual season analysis.
+- Brought Match scheduling and scoreboard panels into the shared Colorful accent treatment and removed the schedule-header divider.
+- Made Home winner and MVP headers inherit the active Colorful palette while preserving Classic styling.
+- No database migration, API contract, permission or remote persistence change is required.
+
+
+## v0.17.1 - Season evolution and records (2026-07-26)
+
+- Added global season records and personal competitive milestones.
+- Added best/worst position, personal streaks and opponent records.
+- Added compact period records to player profiles.
+- Kept all calculations client-side over counted finished matches.
+- No database migration, API contract or persistence change is required.
+
+
+## v0.17.2 - Competitive progress charts (2026-07-26)
+
+- Added comparative position and cumulative-points charts by round.
+- Reused the player comparison selectors and existing calculated progress.
+- Added palette-aware series and accessible SVG descriptions.
+- Added no external chart dependency.
+- No database migration, API contract or persistence change is required.
+
+
+## v0.17.3 - Shareable final season summary (2026-07-26)
+
+- Added a final-season card with champion, MVP, podium and competitive highlights.
+- Added local PNG generation and native file sharing with download fallback.
+- Adapted generated image colors to Classic and Colorful appearance settings.
+- Added no external capture or chart dependency.
+- No database migration, API contract or persistence change is required.
+
+
+## v0.17.4 - Advanced statistics hardening (2026-07-26)
+
+- Added tie-aware positions and shared champion handling.
+- Excluded empty, tied or otherwise invalid finished results from all statistical calculations.
+- Added data-quality visibility for pending, excluded and invalid matches plus roster changes.
+- Precomputed progress once per selected season and skipped it in historical summaries.
+- Fixed position chart scaling and shared-summary edge cases.
+- No database migration, API contract or persistence change is required.
+
+## v0.17.5 - Schedule accent consistency (2026-07-26)
+
+- Removed the scheduling-only warm/accent card gradient.
+- Match scheduling now inherits the same shared Colorful accent strip as standard application panels.
+- Preserved panel clipping, rounded corners, layout and all scheduling behavior.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.17.6 - Statistics information architecture (2026-07-26)
+
+- Replaced the overloaded statistics landing page with a compact overview.
+- Split standings, comparison, individual analysis, records and season summary into dedicated routes.
+- Preserved the selected season across statistics navigation through URL state.
+- Reused one shared counted-match and statistics workspace across every detail page.
+- Kept all v0.17 calculations available without changing formulas, APIs or persisted data.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.17.7 - Statistics callback dependency cleanup (2026-07-26)
+
+- Replaced the type-only dependency on the full statistics object with the shared `MatchData` type.
+- Removed the `react-hooks/exhaustive-deps` warning from the statistics workspace callback.
+- Preserved all v0.17.6 routes, calculations and behavior.
+- No database migration, API contract, permission or persistence change is required.
+
+
+## v0.17.8 - Individual statistics refinement (2026-07-27)
+
+- Added floating confirmation after creating or editing a match result.
+- Added an all-player evolution route with position and accumulated-points views.
+- Removed statistical pair rankings and shared-match counters from the v0.17 workspace.
+- Ranked the strongest teammate by set differential and then game differential.
+- Hid habitual-opponent frequency in balanced calendars.
+- Reused the season selected on the statistics landing page across detail routes.
+- Strengthened chart distinction through categorical colors, dash patterns and marker shapes.
+- No database migration, API contract, permission or persistence change is required.
+
+## v0.17.9 - Head-to-head and compact league evolution (2026-07-27)
+
+- Renamed the two-player comparison route to Cara a cara and removed its duplicated evolution chart.
+- Kept player summaries, recent form and direct-rivalry information focused on exactly two selected players.
+- Replaced the league-evolution Top 4 shortcut with Top 3.
+- Placed chart-mode and visibility selectors on one compact row and removed the repeated internal heading.
+- Added one tick for every visible integer position and made seven rounds fit without horizontal scrolling.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript syntax and chart-logic checks pass; full lint, project type-check and build remain pending in the local worktree because this review archive excluded `node_modules` and the package registry returned HTTP 503.
+
+## v0.17.10 - Statistics usability and richer comparisons (2026-07-27)
+
+- Differentiated participant and spectator invitation actions with dedicated user-plus and share icons.
+- Removed the provisional podium, progress percentage, technical result counters and redundant navigation badges from the statistics landing page.
+- Added sticky, editable player selectors to Head-to-head and Individual analysis.
+- Expanded Head-to-head with direct set/game totals and performance against common opponents without double-counting aggregate matches.
+- Reworked global and personal season records into plain-language cards with match context.
+- Removed the standalone data-quality panel from the season summary, moved incomplete status beside the season label and blocked image export until the summary is complete.
+- Rebuilt the shareable summary highlights and added cumulative game differential to league evolution.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript transpilation and structural checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes `node_modules`.
+
+## v0.17.11 - Floating statistics selectors and Classic accents (2026-07-27)
+
+- Replaced the CSS-only sticky selectors with a shared intersection-driven fixed selector in Head-to-head and Individual analysis.
+- Preserved the original selector height while floating to prevent content jumps and kept every player field editable.
+- Positioned the floating layer below the existing top controls and restored it to normal flow when scrolling upward.
+- Added restrained grayscale gradient accent strips to cards in Classic light and Classic dark while leaving Colorful palettes unchanged.
+- Added reduced-motion handling for the selector entrance transition.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript transpilation and structural checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes `node_modules`.
+
+## v0.17.12 - League-wide statistics and individual evolution chart (2026-07-27)
+
+- Made the fixed Head-to-head and Individual analysis selectors fully opaque with theme-aware borders and stronger exterior shadows.
+- Added a `Toda la liga` statistics scope whenever a league contains more than one season; single-season leagues keep the selector hidden.
+- Aggregated valid matches, rankings, comparisons, player details and records across all real seasons while resetting win streaks at season boundaries.
+- Replaced the Individual analysis round table with a line chart for position, points and cumulative game differential.
+- Preserved teammate, opponents, result and round context for every individual chart point.
+- Rebuilt whole-league progress from each real season so metrics restart correctly, season boundaries are visible and lines do not imply continuity between competitions.
+- Kept shareable final-summary images season-specific to avoid mixing champions, MVPs and podiums from different seasons.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript syntax, semantic and aggregation smoke checks pass; full lint, project type-check and build remain pending in the local staging worktree because this review archive excludes installed dependencies.
+
+## v0.17.13 - Taller and clearer season summary image (2026-07-27)
+
+- Switched the generated season-summary asset used for both sharing and downloading to a taller vertical format.
+- Reworked the image layout so champion, MVP, podium and highlights use the extra height with clearer spacing and hierarchy.
+- Enlarged highlight cards and simplified podium rows to improve readability in the exported image.
+- No database migration, API contract, permission or persistence change is required.
+- Focused TypeScript syntax checks pass locally on the modified renderer; full lint, project type-check and build remain pending in the staging worktree with installed dependencies.
+
+
+## v0.17.14 - Exported season summary readability fix (2026-07-27)
+
+- Rebuilt the exported season-summary image with a taller single-column layout to avoid text collisions.
+- Split champion and MVP into independent hero cards with more vertical space and stronger hierarchy.
+- Stacked highlight cards vertically and constrained long copy to controlled wrapped lines with ellipsis.
+- Kept sharing and downloading on the same generated asset.
+- No database migration, API contract, permission or persistence change is required.
+- Full lint, type-check and build remain pending in the local worktree with installed dependencies.
+
+
+## v0.17.15 - Season summary export polish (2026-07-27)
+
+- Combined champion and MVP into a single panel whenever they refer to the same player set.
+- Added key player stats (points, wins, games difference) to hero panels in the page preview and exported image.
+- Added games difference to podium rows in both the preview card and the exported image.
+- Removed the intermediate badges for highlighted positions/moments and increased spacing between podium and highlights.
+- Switched the generated summary image to a primarily light background regardless of the active app theme.
+- No database migration, API contract, permission or persistence change is required.
+
+
+## v0.17.16 - Compact monochrome season summary (2026-07-27)
+
+- Replaced theme-driven export colors with a stable monochrome palette.
+- Rendered separate champion and MVP panels side by side instead of vertically.
+- Reduced hero, podium and highlight-card heights and tightened typographic hierarchy.
+- Rendered highlights as a 2x2 grid in the exported image and two columns in the page preview when space allows.
+- Switched the export canvas to a substantially shorter dynamic height.
+- No database migration, API contract, permission or persistence change is required.
+
+
+## v0.17.17 - Taller season summary readability pass (2026-07-27)
+
+- Replaced the 2x2 highlight grid with a single-column list so long highlight text remains readable.
+- Restored full-width champion/MVP hero cards to avoid displaced names and unused horizontal space.
+- Increased the export canvas height slightly to improve breathing room and visual rhythm.
+- Synced the in-page preview card with the same stacked hero/highlight presentation.
+- No database migration, API contract, permission or persistence change is required.

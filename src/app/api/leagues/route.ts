@@ -15,6 +15,7 @@ type CreateLeagueBody = {
   leagueSlug?: unknown
   inviteCode?: unknown
   locations?: unknown
+  leagueRecommendations?: unknown
 }
 
 type SupabaseErrorLike = {
@@ -60,6 +61,8 @@ function mapLeague(league: Record<string, unknown>): League {
       typeof league.created_by_user_id === "string"
         ? league.created_by_user_id
         : null,
+    recommendations:
+      typeof league.recommendations === "string" ? league.recommendations : "",
   }
 }
 
@@ -71,6 +74,7 @@ async function insertLeagueWithAvailableSlug({
   inviteCode,
   creatorUserId,
   locations,
+  recommendations,
 }: {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>
   leagueSlug: string
@@ -79,6 +83,7 @@ async function insertLeagueWithAvailableSlug({
   inviteCode: string
   creatorUserId: string
   locations: unknown
+  recommendations: string
 }) {
   let lastError: unknown = null
 
@@ -95,12 +100,13 @@ async function insertLeagueWithAvailableSlug({
         join_mode: "closed",
         created_by_user_id: creatorUserId,
         locations: normalizeLeagueLocations(locations),
+        recommendations,
         status_colors_enabled: true,
         show_ranking_avatars: true,
         show_historical_profile_stats: false,
       })
       .select(
-        "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+        "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
       )
       .single()
 
@@ -137,6 +143,7 @@ export async function POST(request: Request) {
   const leagueDescription = cleanString(body?.leagueDescription)
   const leagueSlug = cleanString(body?.leagueSlug)
   const inviteCode = normalizeInviteCode(body?.inviteCode)
+  const leagueRecommendations = cleanString(body?.leagueRecommendations)
 
   if (!leagueName || !leagueSlug || !inviteCode) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -157,6 +164,7 @@ export async function POST(request: Request) {
       inviteCode,
       creatorUserId: id,
       locations: body?.locations,
+      recommendations: leagueRecommendations,
     })
     const creatorIsSuperuser = isSuperuser
 
