@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.34",
+    date: "28 de julio de 2026",
+    title: "Cajas de estadísticas del resumen final corregidas",
+    summary:
+      "Los valores de puntos, victorias y diferencia de juegos vuelven a quedar completamente dentro de sus cajas en la imagen exportada.",
+    category: "fix",
+    changes: [
+      "Las cajas de estadísticas de campeón y MVP ganan algo más de altura en la imagen exportada.",
+      "Los números se recolocan verticalmente para que no queden pegados ni sobresalgan por la parte inferior.",
+      "La fila de estadísticas también se sube ligeramente dentro del panel para mantener un equilibrio visual correcto.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.33",
     date: "28 de julio de 2026",
     title: "Podio unificado como panel único",

@@ -504,7 +504,7 @@ function drawHeroStats({
   if (stats.length === 0) return
 
   const gap = 10
-  const height = 60
+  const height = 68
   const visibleStats = stats.slice(0, 3)
   const statWidth = (width - gap * (visibleStats.length - 1)) / visibleStats.length
 
@@ -527,7 +527,7 @@ function drawHeroStats({
       context,
       text: stat.value,
       x: statX + statWidth / 2,
-      y: y + 50,
+      y: y + 47,
     })
   })
 }
@@ -556,7 +556,7 @@ function drawHeroCard({
   const roleSize = 94
   const roleX = x + sidePadding + accentWidth
   const roleY = y + 24
-  const statsY = y + height - 74
+  const statsY = y + height - 82
   const mainY = y + 18
   const mainHeight = statsY - mainY - 10
 
