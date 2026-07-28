@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.23",
+    date: "28 de julio de 2026",
+    title: "Paneles coloridos más limpios y Ranking sin barras laterales",
+    summary:
+      "Los títulos de los paneles coloridos pierden el subrayado decorativo y la clasificación elimina las barras de color laterales para mantener una lectura más uniforme.",
+    category: "fix",
+    changes: [
+      "Se elimina la línea degradada situada bajo títulos de sección como Clasificación y Próximo partido en los temas coloridos.",
+      "Las filas del Ranking dejan de mostrar barras verticales de color a la izquierda de los jugadores.",
+      "Los distintivos de posición del podio se mantienen para conservar la jerarquía visual de los tres primeros puestos.",
+      "La clasificación conserva su estructura compacta de panel único, sus separadores y sus esquinas exteriores.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.22",
     date: "28 de julio de 2026",
     title: "Ranking compacto y Clásico oscuro con más profundidad",
