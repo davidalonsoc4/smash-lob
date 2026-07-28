@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.24",
+    date: "28 de julio de 2026",
+    title: "Acentos uniformes desde la quinta posición",
+    summary:
+      "La clasificación recupera las barras laterales únicamente desde el quinto puesto, usando el mismo color para todas esas filas.",
+    category: "fix",
+    changes: [
+      "Las posiciones 1.ª a 4.ª permanecen sin barra lateral de color.",
+      "Desde la 5.ª posición en adelante se recupera una barra uniforme con el color principal del tema.",
+      "Se mantienen intactos los distintivos de oro, plata y bronce de las tres primeras posiciones.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.23",
     date: "28 de julio de 2026",
     title: "Paneles coloridos más limpios y Ranking sin barras laterales",

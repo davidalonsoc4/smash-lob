@@ -1445,6 +1445,22 @@ html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(
 html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(var(--colorful-accent-rgb) / 0.1); }
 html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(var(--colorful-warm-rgb) / 0.12); }
 
+/* From fifth place onward, ranking rows keep the same neutral theme accent.
+   The first four positions intentionally have no side bar. */
+html.colorful .app-ranking-row:nth-child(n + 5) {
+  position: relative;
+  overflow: hidden;
+}
+
+html.colorful .app-ranking-row:nth-child(n + 5)::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.22rem;
+  background: var(--colorful-primary);
+  opacity: 0.5;
+}
+
 html.colorful .app-ranking-row:nth-child(1) .app-ranking-position {
   background: linear-gradient(145deg, #ffd768, #f2a93b) !important;
   color: #5b3b00 !important;
