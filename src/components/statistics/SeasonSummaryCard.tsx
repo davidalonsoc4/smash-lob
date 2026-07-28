@@ -376,7 +376,7 @@ export function SeasonSummaryCard({
           </p>
           <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 pt-4 pb-1.5">
+              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 pt-2 pb-1.5">
                 <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
                   {highlight.label}
                 </p>

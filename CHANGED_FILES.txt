@@ -3,6 +3,7 @@ docs/preproduction/V0.17.28_HIGHLIGHT_DETAIL_SPACING_TWEAK.md
 docs/preproduction/V0.17.29_LEAGUE_LOGO_HEADER_ALIGNMENT.md
 docs/preproduction/V0.17.30_HIGHLIGHTS_VERTICAL_BALANCE.md
 docs/preproduction/V0.17.31_HIGHLIGHTS_CONTENT_LOWER.md
+docs/preproduction/V0.17.32_EXPORT_HIGHLIGHTS_LOWER_ONLY.md
 package.json
 package-lock.json
 src/lib/appVersion.ts
