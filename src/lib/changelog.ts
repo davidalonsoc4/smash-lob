@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.40",
+    date: "29 de julio de 2026",
+    title: "Alineación final de los paneles del resumen en la app",
+    summary:
+      "La vista previa de la app reajusta la posición de los destacados y centra el contenido completo del panel Campeón/MVP dentro de su espacio útil.",
+    category: "fix",
+    changes: [
+      "Los textos de 'Lo más destacado' se desplazan ligeramente hacia la izquierda manteniendo una separación segura respecto a la barra lateral.",
+      "El panel Campeón/MVP adopta una estructura estable de barra y contenido en dos columnas, eliminando desplazamientos asimétricos.",
+      "El conjunto formado por icono, etiqueta, nombre, foto opcional y estadísticas queda centrado dentro del espacio disponible entre la barra izquierda y el borde derecho.",
+      "La imagen exportada no cambia en esta versión para cerrar primero el diseño de la vista previa dentro de la aplicación.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.39",
     date: "29 de julio de 2026",
     title: "Destacados correctamente alineados en la app",
