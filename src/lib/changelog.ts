@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.50",
+    date: "29 de julio de 2026",
+    title: "Ajuste fino del logo de cabecera y firma final",
+    summary:
+      "El logo de la liga recupera un pequeño margen vertical en la cabecera y la firma final 'Creado con Smash & Lob' deja de mostrarse dentro de un panel para integrarse como una firma centrada al pie, tanto en la preview como en la imagen exportada.",
+    category: "improvement",
+    changes: [
+      "La preview de la app añade un pequeño margen superior e inferior al logo de la liga en la cabecera, manteniendo un tamaño grande pero algo más equilibrado.",
+      "La imagen exportada hace lo mismo, reduciendo ligeramente el crecimiento vertical del logo con un margen extra arriba y abajo para que respire mejor dentro del panel.",
+      "La firma final de la preview deja de ir dentro de un panel y pasa a mostrarse centrada y suelta, conservando el icono de la app y el texto 'Creado con Smash & Lob'.",
+      "La imagen exportada reconvierte también el bloque inferior en una firma centrada sin tarjeta, manteniendo la identidad visual pero evitando el panel adicional al final de la composición.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.49",
     date: "29 de julio de 2026",
     title: "Separación extra del panel principal exportado",

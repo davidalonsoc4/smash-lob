@@ -308,12 +308,12 @@ export function SeasonSummaryCard({
             </div>
 
             {hasLeagueLogo && includeLeagueLogo ? (
-              <div className="flex shrink-0 items-center justify-center self-stretch overflow-hidden">
+              <div className="flex shrink-0 items-center justify-center self-stretch overflow-hidden py-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={data.leagueLogoUrl ?? ""}
                   alt=""
-                  className="h-full max-h-full w-auto max-w-[7.5rem] object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.28)]"
+                  className="h-full max-h-full w-auto max-w-[7.25rem] object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.28)]"
                 />
               </div>
             ) : null}
@@ -464,7 +464,7 @@ export function SeasonSummaryCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2.5">
+        <div className="flex items-center justify-center gap-2 py-1 text-center">
           <div className="h-9 w-9 shrink-0 overflow-hidden rounded-xl bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon-192.png" alt="" className="h-full w-full object-cover" />
@@ -473,9 +473,6 @@ export function SeasonSummaryCard({
             <p className="text-[9px] font-semibold text-neutral-400">Creado con</p>
             <p className="text-xs font-black text-neutral-950">Smash & Lob</p>
           </div>
-          <p className="ml-auto text-right text-[8px] font-black uppercase tracking-wide text-neutral-400">
-            Ligas privadas de pádel
-          </p>
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
