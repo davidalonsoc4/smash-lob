@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.43",
+    date: "29 de julio de 2026",
+    title: "Centrado real del panel principal en la imagen exportada",
+    summary:
+      "El panel de campeón/MVP de la imagen generada centra ahora su contenido tomando como referencia el espacio útil entre la barra lateral izquierda y el borde derecho del panel.",
+    category: "fix",
+    changes: [
+      "El panel principal de la imagen exportada recalcula el bloque superior para centrar de verdad el conjunto de icono, etiqueta, nombre y foto dentro del área útil del panel.",
+      "La referencia de centrado pasa a ser el espacio comprendido entre la barra negra lateral y el borde derecho del panel, evitando la sensación de contenido desplazado.",
+      "La fila de estadísticas mantiene el ancho completo del área útil del panel para conservar el equilibrio visual conseguido en versiones anteriores.",
+      "La vista previa de la app y el resto del diseño del resumen final se mantienen sin cambios funcionales en esta iteración salvo el incremento de versión y registro asociado.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.42",
     date: "29 de julio de 2026",
     title: "Logo de liga ampliado y transparente en la cabecera",
