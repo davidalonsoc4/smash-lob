@@ -330,52 +330,54 @@ export function SeasonSummaryCard({
                 aria-hidden="true"
                 className="my-0.5 w-1.5 self-stretch rounded-full bg-neutral-950"
               />
-              <div className="grid min-w-0 gap-3">
-                <div className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-4">
-                  <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] border border-neutral-200 bg-neutral-100 text-neutral-950">
-                    <div className="flex h-10 w-10 items-center justify-center">
-                      <HeroRoleIcon kind={hero.kind} />
+              <div className="grid min-w-0 justify-items-center gap-3">
+                <div className="grid w-full max-w-[20rem] gap-3">
+                  <div className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-4">
+                    <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] border border-neutral-200 bg-neutral-100 text-neutral-950">
+                      <div className="flex h-10 w-10 items-center justify-center">
+                        <HeroRoleIcon kind={hero.kind} />
+                      </div>
                     </div>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
-                      {hero.label}
-                    </p>
-                    <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
-                      {includeHeroImages && hero.imageUrl ? (
-                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={hero.imageUrl}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      ) : null}
-                      <p className="min-w-0 break-words text-center text-xl font-black leading-6 text-neutral-950">
-                        {hero.value}
+                    <div className="min-w-0">
+                      <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                        {hero.label}
                       </p>
-                    </div>
-                  </div>
-                </div>
-
-                {hero.stats.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {hero.stats.slice(0, 3).map((stat) => (
-                      <div
-                        key={stat.label}
-                        className="flex min-h-[4.25rem] min-w-0 flex-col justify-center rounded-[1.1rem] bg-neutral-100 px-2 py-2.5 text-center"
-                      >
-                        <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
-                          {stat.label}
-                        </p>
-                        <p className="mt-1 text-base font-black leading-none text-neutral-950">
-                          {stat.value}
+                      <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
+                        {includeHeroImages && hero.imageUrl ? (
+                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={hero.imageUrl}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : null}
+                        <p className="min-w-0 break-words text-center text-xl font-black leading-6 text-neutral-950">
+                          {hero.value}
                         </p>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                ) : null}
+
+                  {hero.stats.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {hero.stats.slice(0, 3).map((stat) => (
+                        <div
+                          key={stat.label}
+                          className="flex min-h-[4.25rem] min-w-0 flex-col justify-center rounded-[1.1rem] bg-neutral-100 px-2 py-2.5 text-center"
+                        >
+                          <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
+                            {stat.label}
+                          </p>
+                          <p className="mt-1 text-base font-black leading-none text-neutral-950">
+                            {stat.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           ))}

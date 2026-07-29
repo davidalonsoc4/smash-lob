@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.45",
+    date: "29 de julio de 2026",
+    title: "Reequilibrado del panel campeón/MVP",
+    summary:
+      "Los paneles de campeón, MVP y campeón+MVP se rehacen para que el bloque útil quede realmente centrado entre la barra lateral y el borde derecho, manteniendo el icono alineado a la izquierda.",
+    category: "fix",
+    changes: [
+      "La preview de la app centra el bloque completo del panel principal dentro del espacio útil del panel y mantiene el icono alineado a la izquierda del conjunto.",
+      "La imagen exportada aplica el mismo criterio, usando un bloque de contenido centrado con un ancho coherente entre márgenes para icono, nombre, foto y estadísticas.",
+      "Las métricas del panel principal pasan a compartir el mismo ancho visual que el bloque superior, reforzando la consistencia entre márgenes y alineaciones.",
+      "Se conserva el resto del rediseño del resumen final, incluida la cabecera centrada en la liga y la firma inferior de Smash & Lob.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.44",
     date: "29 de julio de 2026",
     title: "Cabecera del resumen centrada en la liga",
