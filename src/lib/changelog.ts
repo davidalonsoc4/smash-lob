@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.44",
+    date: "29 de julio de 2026",
+    title: "Cabecera del resumen centrada en la liga",
+    summary:
+      "La cabecera del resumen final deja de duplicar protagonismo con la marca de la app y pasa a centrarse en la liga, la temporada y el logo de la propia liga tanto en la preview como en la imagen exportada.",
+    category: "improvement",
+    changes: [
+      "La preview de la app elimina el logo de Smash & Lob de la cabecera y reorganiza el panel para destacar la etiqueta de resumen, el nombre de la liga, la temporada y el logo de la liga.",
+      "La imagen exportada aplica el mismo criterio visual, retirando el bloque superior con logo y nombre de la app para dar más protagonismo al contenido específico de la liga.",
+      "El logo de la liga sigue respetando la transparencia del PNG y mantiene un tamaño amplio dentro de la cabecera sin romper los márgenes del panel.",
+      "La firma inferior 'Creado con Smash & Lob' se conserva, evitando redundancia en la parte superior del resumen final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.43",
     date: "29 de julio de 2026",
     title: "Centrado real del panel principal en la imagen exportada",
