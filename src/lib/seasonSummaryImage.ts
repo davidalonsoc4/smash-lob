@@ -681,8 +681,8 @@ function drawHeroCard({
   const infoX = roleX + roleSize + roleGap
   const infoWidth = contentAreaWidth - roleSize - roleGap
   const statsY = y + height - 86
-  const nameAreaY = topRowY + 24
-  const nameAreaHeight = 68
+  const nameAreaY = topRowY + 12
+  const nameAreaHeight = 92
   const imageSize = heroImage ? 76 : 0
   const imageGap = heroImage ? 18 : 0
 
@@ -709,13 +709,6 @@ function drawHeroCard({
     minFontSize: 28,
     fontWeight: 900,
   })
-  const measuredNameWidth = Math.min(
-    maxTextWidth,
-    Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
-  )
-  const nameGroupWidth = imageSize + imageGap + measuredNameWidth
-  const nameGroupX = infoX + Math.max(0, (infoWidth - nameGroupWidth) / 2)
-
   drawHeroRoleIcon({
     context,
     palette,
@@ -725,14 +718,7 @@ function drawHeroCard({
     size: roleSize,
   })
 
-  context.fillStyle = palette.muted
-  context.font = labelFont
-  drawCenteredText({
-    context,
-    text: hero.label.toUpperCase(),
-    x: infoX + infoWidth / 2,
-    y: topRowY + 12,
-  })
+  const nameGroupX = infoX
 
   if (heroImage) {
     const imageY = nameAreaY + (nameAreaHeight - imageSize) / 2
@@ -764,10 +750,10 @@ function drawHeroCard({
     lines: nameLayout.lines,
     x: nameGroupX + imageSize + imageGap,
     y: nameAreaY,
-    width: measuredNameWidth,
+    width: Math.max(0, infoWidth - imageSize - imageGap),
     height: nameAreaHeight,
     lineHeight: nameLayout.lineHeight,
-    align: "center",
+    align: "left",
   })
 
   drawHeroStats({
