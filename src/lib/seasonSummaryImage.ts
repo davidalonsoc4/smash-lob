@@ -1087,25 +1087,28 @@ function drawHeader({
   context.stroke()
   context.restore()
 
-  const leagueLogoSize = leagueLogo ? 140 : 0
   const logoRightMargin = 22
-  const logoTop = y + 24
-  const leagueLogoX = x + width - leagueLogoSize - logoRightMargin
+  const logoTop = y + 20
+  const logoBottomMargin = 20
+  const logoMaxHeight = leagueLogo ? height - (logoTop - y) - logoBottomMargin : 0
+  const logoAspect = leagueLogo ? leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight) : 1
+  const leagueLogoWidth = leagueLogo ? Math.min(logoMaxHeight * logoAspect, width * 0.36) : 0
+  const leagueLogoX = x + width - leagueLogoWidth - logoRightMargin
   if (leagueLogo) {
     drawTransparentImageContain({
       context,
       image: leagueLogo,
       x: leagueLogoX,
       y: logoTop,
-      width: leagueLogoSize,
-      height: leagueLogoSize,
+      width: leagueLogoWidth,
+      height: logoMaxHeight,
       withShadow: true,
     })
   }
 
   const textLeft = x + 30
   const textRight = leagueLogo ? leagueLogoX - 18 : x + width - 30
-  const titleWidth = Math.max(260, textRight - textLeft)
+  const titleWidth = Math.max(240, textRight - textLeft)
 
   context.fillStyle = palette.inverseMuted
   context.font = "900 15px Arial, sans-serif"

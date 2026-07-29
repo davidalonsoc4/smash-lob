@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.46",
+    date: "29 de julio de 2026",
+    title: "Logo de liga a toda altura en la cabecera",
+    summary:
+      "El logo de la liga en la cabecera del resumen final crece para ocupar prácticamente toda la altura útil del panel, tanto en la preview de la app como en la imagen exportada.",
+    category: "improvement",
+    changes: [
+      "La preview de la app hace que el logo de la liga se estire en altura dentro de la cabecera, manteniendo su proporción y respetando la transparencia del archivo.",
+      "La imagen exportada calcula el tamaño del logo según la altura útil del panel y su proporción real, para que llene mejor el espacio vertical disponible.",
+      "El ancho del logo se adapta al propio recurso gráfico, evitando deformaciones y manteniendo márgenes limpios en la cabecera.",
+      "El resto de la composición del panel superior y del resumen final se mantiene sin cambios funcionales en esta iteración.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.45",
     date: "29 de julio de 2026",
     title: "Reequilibrado del panel campeón/MVP",
