@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.52",
+    date: "29 de julio de 2026",
+    title: "Resumen sin MVP cuando está desactivado",
+    summary:
+      "Las temporadas configuradas sin sistema MVP dejan de mostrar cualquier panel de MVP en la vista previa y en la imagen exportada, y se elimina el warning restante del pie generado.",
+    category: "fix",
+    changes: [
+      "La pantalla de compartir resumen consulta explícitamente la configuración MVP de la temporada seleccionada antes de construir los paneles principales.",
+      "Cuando el sistema MVP está configurado como 'none', el resumen genera únicamente el panel de campeón o campeones, sin mostrar un panel vacío ni el texto 'Sin MVP calculado'.",
+      "La misma colección de paneles alimenta la preview y la exportación, por lo que la ausencia de MVP queda garantizada en ambos formatos.",
+      "Se elimina la constante `height` que había quedado sin uso en la firma inferior de `seasonSummaryImage.ts`, corrigiendo el warning de ESLint.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.51",
     date: "29 de julio de 2026",
     title: "Acceso más claro al resumen compartible",
