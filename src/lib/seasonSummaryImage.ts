@@ -1198,7 +1198,6 @@ function drawFooter({
   y: number
   width: number
 }) {
-  const height = 62
   const iconSize = 52
   const textBlockWidth = 132
   const groupWidth = iconSize + 16 + textBlockWidth

@@ -49,24 +49,27 @@ export default function StatisticsSeasonPage() {
     isLeagueWide,
   } = useStatisticsWorkspace()
 
+  const selectedSeasonMvpSystem = getSeasonRoundSettings(selectedSeason.id).mvpSystem
   const seasonMvp = useMemo(
     () =>
-      !isLeagueWide && selectedSeason.status === "finished"
+      !isLeagueWide &&
+      selectedSeason.status === "finished" &&
+      selectedSeasonMvpSystem !== "none"
         ? getSeasonMvpSelection({
             votes,
             leagueId: activeLeague.id,
             seasonId: selectedSeason.id,
             matches: countedMatches,
-            mvpSystem: getSeasonRoundSettings(selectedSeason.id).mvpSystem,
+            mvpSystem: selectedSeasonMvpSystem,
           })
         : null,
     [
       activeLeague.id,
       countedMatches,
-      getSeasonRoundSettings,
       isLeagueWide,
       selectedSeason.id,
       selectedSeason.status,
+      selectedSeasonMvpSystem,
       votes,
     ],
   )
@@ -101,6 +104,18 @@ export default function StatisticsSeasonPage() {
       ]
     }
 
+    const championPanel: SeasonSummaryHeroPanel = {
+      kind: "champion",
+      label: championPlayers.length > 1 ? "Campeones" : "Campeón",
+      value: championNames,
+      stats: buildStats(championPlayers[0]),
+      imageUrl: championPlayers[0]?.avatarUrl ?? null,
+    }
+
+    if (selectedSeasonMvpSystem === "none") {
+      return [championPanel]
+    }
+
     if (haveSamePlayerIds(championPlayerIds, mvpPlayerIds)) {
       return [
         {
@@ -114,13 +129,7 @@ export default function StatisticsSeasonPage() {
     }
 
     return [
-      {
-        kind: "champion",
-        label: championPlayers.length > 1 ? "Campeones" : "Campeón",
-        value: championNames,
-        stats: buildStats(championPlayers[0]),
-        imageUrl: championPlayers[0]?.avatarUrl ?? null,
-      },
+      championPanel,
       {
         kind: "mvp",
         label: "MVP",
@@ -129,7 +138,13 @@ export default function StatisticsSeasonPage() {
         imageUrl: mvpPlayers[0]?.avatarUrl ?? null,
       },
     ]
-  }, [seasonMvp, seasonMvpNames, statistics.leaders, statistics.ranking])
+  }, [
+    seasonMvp,
+    seasonMvpNames,
+    selectedSeasonMvpSystem,
+    statistics.leaders,
+    statistics.ranking,
+  ])
   const seasonHistory = useMemo(
     () =>
       leagueSeasons
