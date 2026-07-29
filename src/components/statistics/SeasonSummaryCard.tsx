@@ -294,8 +294,8 @@ export function SeasonSummaryCard({
     <AppCard className="overflow-hidden p-0">
       <div className="bg-neutral-100 p-3">
         <div className="overflow-hidden rounded-[1.75rem] bg-neutral-950 p-4 text-white shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
+          <div className="flex items-stretch justify-between gap-4">
+            <div className="min-w-0 flex-1 py-1">
               <p className="text-[9px] font-black uppercase tracking-[0.18em] text-neutral-400">
                 Resumen final de temporada
               </p>
@@ -308,12 +308,12 @@ export function SeasonSummaryCard({
             </div>
 
             {hasLeagueLogo && includeLeagueLogo ? (
-              <div className="flex h-[5.25rem] w-[5.25rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+              <div className="flex shrink-0 items-center justify-center self-stretch overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={data.leagueLogoUrl ?? ""}
                   alt=""
-                  className="h-full w-full object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.28)]"
+                  className="h-full max-h-full w-auto max-w-[7.5rem] object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.28)]"
                 />
               </div>
             ) : null}
