@@ -671,8 +671,8 @@ function drawHeroCard({
   heroImage: HTMLImageElement | null
 }) {
   const cardRadius = 32
-  const contentAreaX = x + 34
-  const contentAreaWidth = width - 68
+  const contentAreaX = x + 56
+  const contentAreaWidth = width - 90
   const topRowY = y + 30
   const roleSize = 88
   const roleGap = 30
@@ -1051,7 +1051,6 @@ function drawBrandMark({
 function drawHeader({
   context,
   palette,
-  appIcon,
   leagueLogo,
   data,
   x,
@@ -1061,7 +1060,6 @@ function drawHeader({
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
-  appIcon: HTMLImageElement | null
   leagueLogo: HTMLImageElement | null
   data: SeasonSummaryImageData
   x: number
@@ -1085,12 +1083,12 @@ function drawHeader({
   context.stroke()
   context.restore()
 
-  const logoRightMargin = 22
-  const logoTop = y + 20
-  const logoBottomMargin = 20
+  const logoRightMargin = 18
+  const logoTop = y + 12
+  const logoBottomMargin = 12
   const logoMaxHeight = leagueLogo ? height - (logoTop - y) - logoBottomMargin : 0
   const logoAspect = leagueLogo ? leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight) : 1
-  const leagueLogoWidth = leagueLogo ? Math.min(logoMaxHeight * logoAspect, width * 0.36) : 0
+  const leagueLogoWidth = leagueLogo ? logoMaxHeight * logoAspect : 0
   const leagueLogoX = x + width - leagueLogoWidth - logoRightMargin
   if (leagueLogo) {
     drawTransparentImageContain({
@@ -1311,7 +1309,6 @@ export async function createSeasonSummaryImage(
   drawHeader({
     context,
     palette,
-    appIcon: appIconImage,
     leagueLogo: leagueLogoImage,
     data,
     x: HORIZONTAL_PADDING,
