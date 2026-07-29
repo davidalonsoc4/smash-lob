@@ -15,6 +15,265 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.52",
+    date: "29 de julio de 2026",
+    title: "Resumen sin MVP cuando está desactivado",
+    summary:
+      "Las temporadas configuradas sin sistema MVP dejan de mostrar cualquier panel de MVP en la vista previa y en la imagen exportada, y se elimina el warning restante del pie generado.",
+    category: "fix",
+    changes: [
+      "La pantalla de compartir resumen consulta explícitamente la configuración MVP de la temporada seleccionada antes de construir los paneles principales.",
+      "Cuando el sistema MVP está configurado como 'none', el resumen genera únicamente el panel de campeón o campeones, sin mostrar un panel vacío ni el texto 'Sin MVP calculado'.",
+      "La misma colección de paneles alimenta la preview y la exportación, por lo que la ausencia de MVP queda garantizada en ambos formatos.",
+      "Se elimina la constante `height` que había quedado sin uso en la firma inferior de `seasonSummaryImage.ts`, corrigiendo el warning de ESLint.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.51",
+    date: "29 de julio de 2026",
+    title: "Acceso más claro al resumen compartible",
+    summary:
+      "La navegación de Estadísticas y la pantalla del resumen final explican ahora de forma más directa que esta función sirve para generar, descargar y compartir el resumen de una temporada.",
+    category: "improvement",
+    changes: [
+      "El acceso desde Estadísticas pasa a llamarse 'Compartir resumen de temporada' en lugar de 'Resumen de temporada'.",
+      "La descripción del acceso aclara que permite generar, descargar o compartir el resumen final y consultar el historial de campeones.",
+      "La pantalla de una temporada adopta también el título 'Compartir resumen de temporada' y una descripción centrada en la acción real disponible.",
+      "La sección que contiene la imagen dentro de la pantalla pasa a llamarse 'Vista previa del resumen' para distinguirla del título general de la página.",
+      "La vista histórica de todas las temporadas mantiene el nombre 'Resumen de la liga', ya que no genera una única imagen compartible.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.50",
+    date: "29 de julio de 2026",
+    title: "Ajuste fino del logo de cabecera y firma final",
+    summary:
+      "El logo de la liga recupera un pequeño margen vertical en la cabecera y la firma final 'Creado con Smash & Lob' deja de mostrarse dentro de un panel para integrarse como una firma centrada al pie, tanto en la preview como en la imagen exportada.",
+    category: "improvement",
+    changes: [
+      "La preview de la app añade un pequeño margen superior e inferior al logo de la liga en la cabecera, manteniendo un tamaño grande pero algo más equilibrado.",
+      "La imagen exportada hace lo mismo, reduciendo ligeramente el crecimiento vertical del logo con un margen extra arriba y abajo para que respire mejor dentro del panel.",
+      "La firma final de la preview deja de ir dentro de un panel y pasa a mostrarse centrada y suelta, conservando el icono de la app y el texto 'Creado con Smash & Lob'.",
+      "La imagen exportada reconvierte también el bloque inferior en una firma centrada sin tarjeta, manteniendo la identidad visual pero evitando el panel adicional al final de la composición.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.49",
+    date: "29 de julio de 2026",
+    title: "Separación extra del panel principal exportado",
+    summary:
+      "La imagen exportada desplaza manualmente hacia la derecha el contenido de los paneles de campeón/MVP para separarlo claramente de la barra lateral, y además queda resuelto el warning por parámetro no usado en la cabecera.",
+    category: "fix",
+    changes: [
+      "Los paneles de campeón, MVP y campeón+MVP de la imagen exportada aumentan manualmente su margen izquierdo útil para evitar que el contenido se acerque o monte sobre la barra negra lateral.",
+      "El icono principal sigue alineado a la izquierda, pero ahora arranca desde una referencia más separada de la barra negra, con mejor respiración visual.",
+      "Las estadísticas del panel principal mantienen el ancho útil completo del panel, desplazadas con el mismo nuevo margen izquierdo para conservar coherencia visual.",
+      "Se elimina el parámetro no usado `appIcon` de la cabecera exportada, dejando corregido el warning de ESLint en `src/lib/seasonSummaryImage.ts`.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.48",
+    date: "29 de julio de 2026",
+    title: "Logo de liga a altura completa en exportación",
+    summary:
+      "La imagen exportada lleva el logo de la liga a prácticamente toda la altura útil de la cabecera, igualando mejor el comportamiento de la preview de la app, y además elimina el warning por variable no usada en la generación del resumen.",
+    category: "fix",
+    changes: [
+      "El logo de la liga en la imagen exportada pasa a calcular su tamaño a partir de toda la altura útil disponible del panel superior, manteniendo la proporción real del recurso.",
+      "La cabecera exportada reserva al logo un bloque más alto y elimina la limitación anterior que impedía que creciera tanto como en la preview de la app.",
+      "Se elimina el parámetro no utilizado `appIcon` del renderizado de cabecera en `seasonSummaryImage.ts`, corrigiendo el warning de ESLint por variable definida y no usada.",
+      "La preview de la app no cambia en esta iteración porque ya mostraba el comportamiento esperado para el logo de la liga.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.47",
+    date: "29 de julio de 2026",
+    title: "Corrección del ancho útil en el panel principal exportado",
+    summary:
+      "El panel de ganador/MVP en la imagen exportada vuelve a ocupar todo el ancho útil entre la barra lateral y el borde derecho, manteniendo el icono alineado a la izquierda como en la preview de la app.",
+    category: "fix",
+    changes: [
+      "La imagen exportada elimina la restricción que estaba encogiendo el bloque principal del panel de ganador/MVP y lo devuelve al ancho completo del área útil del panel.",
+      "El icono de corona, estrella o combinado permanece alineado a la izquierda junto a la barra negra, mientras el contenido textual se centra dentro del espacio restante hasta el borde derecho.",
+      "Las métricas del panel principal vuelven a usar todo el ancho disponible entre la barra lateral y el borde derecho del panel, siguiendo el mismo criterio visual que la preview de la app.",
+      "La preview de la app no cambia en esta iteración porque ya tenía el comportamiento esperado.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.46",
+    date: "29 de julio de 2026",
+    title: "Logo de liga a toda altura en la cabecera",
+    summary:
+      "El logo de la liga en la cabecera del resumen final crece para ocupar prácticamente toda la altura útil del panel, tanto en la preview de la app como en la imagen exportada.",
+    category: "improvement",
+    changes: [
+      "La preview de la app hace que el logo de la liga se estire en altura dentro de la cabecera, manteniendo su proporción y respetando la transparencia del archivo.",
+      "La imagen exportada calcula el tamaño del logo según la altura útil del panel y su proporción real, para que llene mejor el espacio vertical disponible.",
+      "El ancho del logo se adapta al propio recurso gráfico, evitando deformaciones y manteniendo márgenes limpios en la cabecera.",
+      "El resto de la composición del panel superior y del resumen final se mantiene sin cambios funcionales en esta iteración.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.45",
+    date: "29 de julio de 2026",
+    title: "Reequilibrado del panel campeón/MVP",
+    summary:
+      "Los paneles de campeón, MVP y campeón+MVP se rehacen para que el bloque útil quede realmente centrado entre la barra lateral y el borde derecho, manteniendo el icono alineado a la izquierda.",
+    category: "fix",
+    changes: [
+      "La preview de la app centra el bloque completo del panel principal dentro del espacio útil del panel y mantiene el icono alineado a la izquierda del conjunto.",
+      "La imagen exportada aplica el mismo criterio, usando un bloque de contenido centrado con un ancho coherente entre márgenes para icono, nombre, foto y estadísticas.",
+      "Las métricas del panel principal pasan a compartir el mismo ancho visual que el bloque superior, reforzando la consistencia entre márgenes y alineaciones.",
+      "Se conserva el resto del rediseño del resumen final, incluida la cabecera centrada en la liga y la firma inferior de Smash & Lob.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.44",
+    date: "29 de julio de 2026",
+    title: "Cabecera del resumen centrada en la liga",
+    summary:
+      "La cabecera del resumen final deja de duplicar protagonismo con la marca de la app y pasa a centrarse en la liga, la temporada y el logo de la propia liga tanto en la preview como en la imagen exportada.",
+    category: "improvement",
+    changes: [
+      "La preview de la app elimina el logo de Smash & Lob de la cabecera y reorganiza el panel para destacar la etiqueta de resumen, el nombre de la liga, la temporada y el logo de la liga.",
+      "La imagen exportada aplica el mismo criterio visual, retirando el bloque superior con logo y nombre de la app para dar más protagonismo al contenido específico de la liga.",
+      "El logo de la liga sigue respetando la transparencia del PNG y mantiene un tamaño amplio dentro de la cabecera sin romper los márgenes del panel.",
+      "La firma inferior 'Creado con Smash & Lob' se conserva, evitando redundancia en la parte superior del resumen final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.43",
+    date: "29 de julio de 2026",
+    title: "Centrado real del panel principal en la imagen exportada",
+    summary:
+      "El panel de campeón/MVP de la imagen generada centra ahora su contenido tomando como referencia el espacio útil entre la barra lateral izquierda y el borde derecho del panel.",
+    category: "fix",
+    changes: [
+      "El panel principal de la imagen exportada recalcula el bloque superior para centrar de verdad el conjunto de icono, etiqueta, nombre y foto dentro del área útil del panel.",
+      "La referencia de centrado pasa a ser el espacio comprendido entre la barra negra lateral y el borde derecho del panel, evitando la sensación de contenido desplazado.",
+      "La fila de estadísticas mantiene el ancho completo del área útil del panel para conservar el equilibrio visual conseguido en versiones anteriores.",
+      "La vista previa de la app y el resto del diseño del resumen final se mantienen sin cambios funcionales en esta iteración salvo el incremento de versión y registro asociado.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.42",
+    date: "29 de julio de 2026",
+    title: "Logo de liga ampliado y transparente en la cabecera",
+    summary:
+      "La cabecera del resumen final muestra el logo de liga respetando la transparencia real también en la vista previa, y lo amplía tanto en la app como en la imagen exportada.",
+    category: "fix",
+    changes: [
+      "La vista previa de la app deja de forzar un recuadro blanco bajo el logo de la liga y respeta correctamente los PNG con fondo transparente.",
+      "El logo de la liga en la vista previa gana tamaño y aprovecha mejor el espacio disponible de la cabecera sin romper los márgenes.",
+      "La imagen exportada mantiene el logo transparente en la cabecera y lo amplía aún más para ocupar mejor el panel respetando el espaciado del diseño.",
+      "El resto del comportamiento del resumen final se mantiene intacto, incluidas las opciones para mostrar u ocultar logo y fotos de perfil.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.41",
+    date: "29 de julio de 2026",
+    title: "Alineación del panel principal en app y exportación",
+    summary:
+      "El panel de campeón/MVP alinea el icono a la izquierda y centra mejor el contenido útil tanto en la vista previa de la app como en la imagen exportada.",
+    category: "fix",
+    changes: [
+      "En la app, el icono de corona/estrella del panel ganador o MVP queda alineado a la izquierda respetando la barra lateral del diseño.",
+      "En la app, la etiqueta, el nombre y la fila de estadísticas se recentran visualmente dentro del espacio útil del panel, entre la barra izquierda y el borde derecho.",
+      "En la imagen exportada se replica el mismo criterio visual: icono principal a la izquierda y bloque de contenido centrado en el área útil del panel.",
+      "Se mantiene el resto del rediseño del resumen final, incluidas las opciones para mostrar u ocultar logo de liga y fotos de perfil.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.40",
+    date: "29 de julio de 2026",
+    title: "Alineación final de los paneles del resumen en la app",
+    summary:
+      "La vista previa de la app reajusta la posición de los destacados y centra el contenido completo del panel Campeón/MVP dentro de su espacio útil.",
+    category: "fix",
+    changes: [
+      "Los textos de 'Lo más destacado' se desplazan ligeramente hacia la izquierda manteniendo una separación segura respecto a la barra lateral.",
+      "El panel Campeón/MVP adopta una estructura estable de barra y contenido en dos columnas, eliminando desplazamientos asimétricos.",
+      "El conjunto formado por icono, etiqueta, nombre, foto opcional y estadísticas queda centrado dentro del espacio disponible entre la barra izquierda y el borde derecho.",
+      "La imagen exportada no cambia en esta versión para cerrar primero el diseño de la vista previa dentro de la aplicación.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.39",
+    date: "29 de julio de 2026",
+    title: "Destacados correctamente alineados en la app",
+    summary:
+      "La vista previa del resumen final separa claramente la barra lateral del contenido de cada destacado para eliminar el desplazamiento y los recortes visuales.",
+    category: "fix",
+    changes: [
+      "Los paneles de 'Lo más destacado' dejan de usar una barra posicionada de forma absoluta y pasan a una estructura de dos columnas estable.",
+      "La etiqueta, el titular y el detalle se desplazan de forma visible hacia la derecha y mantienen siempre una separación fija respecto a la barra lateral.",
+      "Los textos largos conservan el ancho disponible, el salto de línea y el centrado vertical sin invadir la zona de la barra.",
+      "La imagen exportada no cambia en esta versión para poder cerrar primero el diseño de la app.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.38",
+    date: "29 de julio de 2026",
+    title: "Ajustes finales del resumen exportable y su vista previa",
+    summary:
+      "La imagen exportada integra mejor el logo de la liga y equilibra el panel principal, mientras la vista previa corrige los descuadres restantes en campeón/MVP y en 'Lo más destacado'.",
+    category: "fix",
+    changes: [
+      "El logo de la liga en la imagen exportada se integra directamente sobre la cabecera sin el recuadro blanco cuando el archivo tiene fondo transparente.",
+      "Los paneles de puntos, victorias y diferencia de juegos del bloque campeón/MVP pasan a ocupar todo el ancho útil del panel exportado para eliminar el hueco visual que quedaba bajo el icono.",
+      "La vista previa dentro de la app reorganiza el bloque campeón/MVP para alinear mejor el icono, el nombre y las métricas dentro del mismo panel.",
+      "Las tarjetas de 'Lo más destacado' aumentan su separación respecto a la barra lateral y centran mejor el contenido para evitar cortes visuales y descuadres.",
+      "Se mantiene intacta la opción de incluir o excluir el logo de la liga y las fotos del campeón o MVP al generar la imagen final.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.37",
+    date: "29 de julio de 2026",
+    title: "Ajustes de alineación en la vista previa del resumen final",
+    summary:
+      "La vista previa dentro de la app corrige el descuadre del panel principal y de 'Lo más destacado' para reproducir mejor el diseño del resumen final.",
+    category: "fix",
+    changes: [
+      "El icono de corona/MVP del panel principal se recentra visualmente y se integra mejor dentro de su contenedor en la vista previa.",
+      "Las estadísticas de campeón/MVP dejan de quedar desplazadas a la derecha en la vista previa y pasan a ocupar todo el ancho del panel, sin huecos innecesarios bajo el icono.",
+      "El contenido de las tarjetas de 'Lo más destacado' se reorganiza dentro de un bloque centrado verticalmente para evitar sensación de descuadre.",
+      "Las cajas de métricas de la vista previa también igualan mejor su altura y su reparto interno para mantener una jerarquía visual más consistente.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.36",
+    date: "29 de julio de 2026",
+    title: "Resumen final con identidad Smash & Lob",
+    summary:
+      "La imagen compartible de fin de temporada adopta un diseño propio de Smash & Lob, más equilibrado, legible y preparado para nombres y textos variables.",
+    category: "improvement",
+    changes: [
+      "La cabecera integra la identidad visual de Smash & Lob, el nombre de la liga, la temporada y el logo opcional dentro de una composición clara y vertical.",
+      "Los paneles de campeón y MVP centran correctamente nombre, foto y contenido, eliminan espacios sobrantes y sustituyen la barra lateral recortada por un acento interior redondeado.",
+      "El podio final alinea verticalmente nombres y métricas, admite nombres en dos líneas y mantiene el Top 3 dentro de un único panel agrupado.",
+      "Los destacados calculan su altura según el contenido para evitar solapamientos, cortes y desalineaciones con textos de una, dos o tres líneas.",
+      "El fondo, los separadores, los radios, las sombras y la firma final se unifican con el lenguaje visual de la aplicación y permanecen legibles aunque la app use un tema oscuro.",
+      "Se conservan las opciones existentes para incluir o excluir el logo de la liga y las imágenes de campeón o MVP.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.35",
     date: "29 de julio de 2026",
     title: "Actualización de seguridad de dependencias",

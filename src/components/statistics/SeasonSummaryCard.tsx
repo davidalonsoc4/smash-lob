@@ -68,22 +68,24 @@ function ImageOptionIcon({ type }: { type: "logo" | "profiles" }) {
 function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
   if (kind === "champion") {
     return (
-      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
-        <path
-          d="m8 16 8 9 8-14 8 14 8-9-4 20H12L8 16Zm7 25h18"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
+        <g transform="translate(0 -1)">
+          <path
+            d="m8 16 8 9 8-14 8 14 8-9-4 20H12L8 16Zm7 25h18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
       </svg>
     )
   }
 
   if (kind === "mvp") {
     return (
-      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
+      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
         <path
           d="m24 7 5.1 10.4 11.5 1.7-8.3 8.1 2 11.4L24 33.2l-10.3 5.4 2-11.4-8.3-8.1 11.5-1.7L24 7Z"
           fill="none"
@@ -97,20 +99,22 @@ function HeroRoleIcon({ kind }: { kind: SeasonSummaryHeroKind }) {
   }
 
   return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-10 w-10">
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8">
+      <g transform="translate(1 -1)">
+        <path
+          d="m5 13 6.5 7.5L18 9l6.5 11.5L31 13l-3.5 17h-19L5 13Zm6 22h14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
       <path
-        d="m5 13 6.5 7.5L18 9l6.5 11.5L31 13l-3.5 17h-19L5 13Zm6 22h14"
+        d="m33.5 24 2 4.2 4.7.7-3.4 3.3.8 4.6-4.1-2.1-4.1 2.1.8-4.6-3.4-3.3 4.7-.7 2-4.2Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m35 24 2.2 4.5 5 .7-3.6 3.5.9 4.9-4.5-2.3-4.5 2.3.9-4.9-3.6-3.5 5-.7L35 24Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2.15"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -288,55 +292,93 @@ export function SeasonSummaryCard({
 
   return (
     <AppCard className="overflow-hidden p-0">
-      <div className="space-y-3 bg-neutral-50 p-3">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-            Resumen final
-          </p>
-          <p className="mt-1 text-lg font-black text-neutral-950">{data.seasonName}</p>
+      <div className="bg-neutral-100 p-3">
+        <div className="overflow-hidden rounded-[1.75rem] bg-neutral-950 p-4 text-white shadow-sm">
+          <div className="flex items-stretch justify-between gap-4">
+            <div className="min-w-0 flex-1 py-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-neutral-400">
+                Resumen final de temporada
+              </p>
+              <p className="mt-3 break-words text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                {data.leagueName}
+              </p>
+              <p className="mt-1.5 break-words text-3xl font-black leading-8 text-white">
+                {data.seasonName}
+              </p>
+            </div>
+
+            {hasLeagueLogo && includeLeagueLogo ? (
+              <div className="flex shrink-0 items-center justify-center self-stretch overflow-hidden py-1.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={data.leagueLogoUrl ?? ""}
+                  alt=""
+                  className="h-full max-h-full w-auto max-w-[7.25rem] object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.28)]"
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid gap-3">
+        <div className="mt-3 grid gap-3">
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 pl-5"
+              className="grid grid-cols-[0.375rem_minmax(0,1fr)] gap-x-4 overflow-hidden rounded-[1.35rem] border border-neutral-200 bg-white p-4 shadow-sm"
             >
-              <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1.5 bg-neutral-950" />
-              <div className="flex items-center gap-3">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-neutral-950">
-                  <HeroRoleIcon kind={hero.kind} />
-                </div>
-                <div className="flex min-w-0 flex-1 justify-center">
-                  <div className="inline-flex min-w-0 max-w-full items-center justify-center gap-3">
-                    {includeHeroImages && hero.imageUrl ? (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={hero.imageUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+              <span
+                aria-hidden="true"
+                className="my-0.5 w-1.5 self-stretch rounded-full bg-neutral-950"
+              />
+              <div className="grid min-w-0 justify-items-center gap-3">
+                <div className="grid w-full max-w-[20rem] gap-3">
+                  <div className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-4">
+                    <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] border border-neutral-200 bg-neutral-100 text-neutral-950">
+                      <div className="flex h-10 w-10 items-center justify-center">
+                        <HeroRoleIcon kind={hero.kind} />
                       </div>
-                    ) : null}
-                    <p className="min-w-0 text-center text-[1.35rem] font-black leading-6 text-neutral-950">
-                      {hero.value}
-                    </p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                        {hero.label}
+                      </p>
+                      <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
+                        {includeHeroImages && hero.imageUrl ? (
+                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={hero.imageUrl}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : null}
+                        <p className="min-w-0 break-words text-center text-xl font-black leading-6 text-neutral-950">
+                          {hero.value}
+                        </p>
+                      </div>
+                    </div>
                   </div>
+
+                  {hero.stats.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {hero.stats.slice(0, 3).map((stat) => (
+                        <div
+                          key={stat.label}
+                          className="flex min-h-[4.25rem] min-w-0 flex-col justify-center rounded-[1.1rem] bg-neutral-100 px-2 py-2.5 text-center"
+                        >
+                          <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
+                            {stat.label}
+                          </p>
+                          <p className="mt-1 text-base font-black leading-none text-neutral-950">
+                            {stat.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </div>
-              {hero.stats.length > 0 ? (
-                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3">
-                  {hero.stats.slice(0, 3).map((stat) => (
-                    <div key={stat.label} className="min-w-0 text-center">
-                      <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                        {stat.label}
-                      </p>
-                      <p className="mt-0.5 text-sm font-black text-neutral-950">{stat.value}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
             </div>
           ))}
         </div>
@@ -344,28 +386,44 @@ export function SeasonSummaryCard({
 
       <div className="space-y-4 p-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-            Podio final
-          </p>
-          <div className="mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true" className="h-2.5 w-2.5 rounded bg-neutral-950" />
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-700">
+              Podio final
+            </p>
+            <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
+          </div>
+          <div className="mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             {data.podium.map((row, index) => (
               <div
                 key={`${row.position}-${row.name}`}
-                className={`flex items-center gap-3 px-3 py-2.5 ${
+                className={`flex min-h-14 items-center gap-3 px-3 py-2.5 ${
                   index !== data.podium.length - 1 ? "border-b border-neutral-100" : ""
                 }`}
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-xs font-black text-white">
+                <div
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black ${
+                    row.position === 1
+                      ? "bg-neutral-950 text-white"
+                      : "border border-neutral-200 bg-neutral-100 text-neutral-950"
+                  }`}
+                >
                   {row.position}º
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-neutral-950">{row.name}</p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-xs font-black text-neutral-950">{row.points} pts</p>
-                  <p className="text-[11px] font-semibold text-neutral-500">
-                    DG {formatGamesDiff(row.gamesDiff)}
-                  </p>
+                <p className="min-w-0 flex-1 break-words text-sm font-black leading-4 text-neutral-950">
+                  {row.name}
+                </p>
+                <div className="grid w-24 shrink-0 grid-cols-2 border-l border-neutral-100 pl-2 text-center">
+                  <div>
+                    <p className="text-[8px] font-black uppercase text-neutral-400">Puntos</p>
+                    <p className="text-xs font-black text-neutral-950">{row.points}</p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase text-neutral-400">DG</p>
+                    <p className="text-xs font-black text-neutral-950">
+                      {formatGamesDiff(row.gamesDiff)}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -373,23 +431,47 @@ export function SeasonSummaryCard({
         </div>
 
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
-            Lo más destacado
-          </p>
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true" className="h-2.5 w-2.5 rounded bg-neutral-950" />
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-700">
+              Lo más destacado
+            </p>
+            <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
+          </div>
           <div className="mt-2 grid gap-2">
             {data.highlights.map((highlight) => (
-              <div key={highlight.label} className="rounded-xl bg-neutral-50 px-3 pt-2 pb-1.5">
-                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                  {highlight.label}
-                </p>
-                <p className="mt-1 text-sm font-black leading-[1.15rem] text-neutral-950">
-                  {highlight.headline}
-                </p>
-                <p className="mt-0 text-[11px] font-semibold leading-[0.85rem] text-neutral-500">
-                  {highlight.detail}
-                </p>
+              <div
+                key={highlight.label}
+                className="grid grid-cols-[0.375rem_minmax(0,1fr)] gap-x-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-4"
+              >
+                <span
+                  aria-hidden="true"
+                  className="my-0.5 min-h-[5.25rem] w-1.5 rounded-full bg-neutral-300"
+                />
+                <div className="flex min-h-[5.25rem] min-w-0 flex-col justify-center pr-1">
+                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
+                    {highlight.label}
+                  </p>
+                  <p className="mt-1.5 break-words text-sm font-black leading-[1.2rem] text-neutral-950">
+                    {highlight.headline}
+                  </p>
+                  <p className="mt-1.5 break-words text-[11px] font-semibold leading-4 text-neutral-500">
+                    {highlight.detail}
+                  </p>
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 py-1 text-center">
+          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-xl bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon-192.png" alt="" className="h-full w-full object-cover" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] font-semibold text-neutral-400">Creado con</p>
+            <p className="text-xs font-black text-neutral-950">Smash & Lob</p>
           </div>
         </div>
 
