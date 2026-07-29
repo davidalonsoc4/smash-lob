@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.39",
+    date: "29 de julio de 2026",
+    title: "Destacados correctamente alineados en la app",
+    summary:
+      "La vista previa del resumen final separa claramente la barra lateral del contenido de cada destacado para eliminar el desplazamiento y los recortes visuales.",
+    category: "fix",
+    changes: [
+      "Los paneles de 'Lo más destacado' dejan de usar una barra posicionada de forma absoluta y pasan a una estructura de dos columnas estable.",
+      "La etiqueta, el titular y el detalle se desplazan de forma visible hacia la derecha y mantienen siempre una separación fija respecto a la barra lateral.",
+      "Los textos largos conservan el ancho disponible, el salto de línea y el centrado vertical sin invadir la zona de la barra.",
+      "La imagen exportada no cambia en esta versión para poder cerrar primero el diseño de la app.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.38",
     date: "29 de julio de 2026",
     title: "Ajustes finales del resumen exportable y su vista previa",
