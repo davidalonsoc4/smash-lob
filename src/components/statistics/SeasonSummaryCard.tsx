@@ -450,13 +450,13 @@ export function SeasonSummaryCard({
             {data.highlights.map((highlight) => (
               <div
                 key={highlight.label}
-                className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-4 pl-10"
+                className="grid grid-cols-[0.375rem_minmax(0,1fr)] gap-x-7 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-4"
               >
                 <span
                   aria-hidden="true"
-                  className="absolute inset-y-4 left-4 w-1.5 rounded-full bg-neutral-300"
+                  className="my-0.5 min-h-[5.25rem] w-1.5 rounded-full bg-neutral-300"
                 />
-                <div className="flex min-h-[5.25rem] flex-col justify-center pr-1">
+                <div className="flex min-h-[5.25rem] min-w-0 flex-col justify-center pr-1">
                   <p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
                     {highlight.label}
                   </p>
