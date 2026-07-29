@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.54",
+    date: "29 de julio de 2026",
+    title: "Ajuste final de altura en el panel principal exportado",
+    summary:
+      "La imagen exportada reajusta ligeramente hacia arriba el nombre del campeón, MVP o campeón+MVP para centrarlo mejor en altura dentro del panel principal.",
+    category: "improvement",
+    changes: [
+      "En la imagen exportada se desplaza un poco hacia arriba el bloque del nombre dentro del panel principal de campeón/MVP.",
+      "El nombre queda mejor centrado verticalmente en el espacio útil disponible entre el icono principal y la fila de estadísticas.",
+      "No se modifica la preview de la app en esta iteración, ya que el ajuste pedido es solo para la imagen generada/exportada.",
+      "El resto del diseño del resumen final permanece igual respecto a la versión anterior.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.53",
     date: "29 de julio de 2026",
     title: "Panel principal exportado con nombre alineado al icono",

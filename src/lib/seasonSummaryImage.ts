@@ -681,7 +681,7 @@ function drawHeroCard({
   const infoX = roleX + roleSize + roleGap
   const infoWidth = contentAreaWidth - roleSize - roleGap
   const statsY = y + height - 86
-  const nameAreaY = topRowY + 12
+  const nameAreaY = topRowY + 4
   const nameAreaHeight = 92
   const imageSize = heroImage ? 76 : 0
   const imageGap = heroImage ? 18 : 0
