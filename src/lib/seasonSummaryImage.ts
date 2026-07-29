@@ -1088,44 +1088,40 @@ function drawHeader({
   context.stroke()
   context.restore()
 
-  drawBrandMark({ context, palette, appIcon, x: x + 30, y: y + 28, size: 70 })
-
-  context.fillStyle = palette.inverseText
-  context.font = "900 20px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText("SMASH & LOB", x + 118, y + 49)
-  context.restore()
-
-  context.fillStyle = palette.inverseMuted
-  context.font = "800 15px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText("RESUMEN FINAL DE TEMPORADA", x + 118, y + 78)
-  context.restore()
-
-  const leagueLogoSize = leagueLogo ? 132 : 0
-  const leagueLogoX = x + width - leagueLogoSize - 24
+  const leagueLogoSize = leagueLogo ? 140 : 0
+  const logoRightMargin = 22
+  const logoTop = y + 24
+  const leagueLogoX = x + width - leagueLogoSize - logoRightMargin
   if (leagueLogo) {
     drawTransparentImageContain({
       context,
       image: leagueLogo,
       x: leagueLogoX,
-      y: y + 22,
+      y: logoTop,
       width: leagueLogoSize,
       height: leagueLogoSize,
       withShadow: true,
     })
   }
 
-  const titleWidth = width - 60 - (leagueLogo ? leagueLogoSize + 18 : 0)
+  const textLeft = x + 30
+  const textRight = leagueLogo ? leagueLogoX - 18 : x + width - 30
+  const titleWidth = Math.max(260, textRight - textLeft)
+
+  context.fillStyle = palette.inverseMuted
+  context.font = "900 15px Arial, sans-serif"
+  context.save()
+  context.textBaseline = "middle"
+  context.fillText("RESUMEN FINAL DE TEMPORADA", textLeft, y + 38)
+  context.restore()
+
   const leagueLayout = fitTextLayout({
     context,
     text: data.leagueName.toUpperCase(),
     maxWidth: titleWidth,
     maxLines: 2,
-    maxFontSize: 22,
-    minFontSize: 17,
+    maxFontSize: 24,
+    minFontSize: 18,
     fontWeight: 900,
   })
   context.fillStyle = palette.inverseMuted
@@ -1133,20 +1129,20 @@ function drawHeader({
   drawTextLines({
     context,
     lines: leagueLayout.lines,
-    x: x + 30,
-    y: y + 108,
+    x: textLeft,
+    y: y + 84,
     width: titleWidth,
-    height: 42,
+    height: 48,
     lineHeight: leagueLayout.lineHeight,
   })
 
   const seasonLayout = fitTextLayout({
     context,
     text: data.seasonName,
-    maxWidth: width - 60,
+    maxWidth: titleWidth,
     maxLines: 2,
-    maxFontSize: 52,
-    minFontSize: 34,
+    maxFontSize: 56,
+    minFontSize: 36,
     fontWeight: 900,
   })
   context.fillStyle = palette.inverseText
@@ -1154,10 +1150,10 @@ function drawHeader({
   drawTextLines({
     context,
     lines: seasonLayout.lines,
-    x: x + 30,
-    y: y + 154,
-    width: width - 60,
-    height: 78,
+    x: textLeft,
+    y: y + 136,
+    width: titleWidth,
+    height: 84,
     lineHeight: seasonLayout.lineHeight,
   })
 }

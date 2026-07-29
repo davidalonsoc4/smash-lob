@@ -294,39 +294,29 @@ export function SeasonSummaryCard({
     <AppCard className="overflow-hidden p-0">
       <div className="bg-neutral-100 p-3">
         <div className="overflow-hidden rounded-[1.75rem] bg-neutral-950 p-4 text-white shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icon-192.png" alt="" className="h-full w-full object-cover" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-black tracking-tight">Smash & Lob</p>
-                <p className="mt-0.5 text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
-                  Resumen final de temporada
-                </p>
-              </div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-neutral-400">
+                Resumen final de temporada
+              </p>
+              <p className="mt-3 break-words text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                {data.leagueName}
+              </p>
+              <p className="mt-1.5 break-words text-3xl font-black leading-8 text-white">
+                {data.seasonName}
+              </p>
             </div>
 
             {hasLeagueLogo && includeLeagueLogo ? (
-              <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+              <div className="flex h-[5.25rem] w-[5.25rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={data.leagueLogoUrl ?? ""}
                   alt=""
-                  className="h-full w-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
+                  className="h-full w-full object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.28)]"
                 />
               </div>
             ) : null}
-          </div>
-
-          <div className="mt-5 min-w-0">
-            <p className="break-words text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
-              {data.leagueName}
-            </p>
-            <p className="mt-1 break-words text-2xl font-black leading-7 text-white">
-              {data.seasonName}
-            </p>
           </div>
         </div>
 
