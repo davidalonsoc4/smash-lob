@@ -673,9 +673,15 @@ function drawHeroCard({
   const cardRadius = 32
   const contentAreaX = x + 34
   const contentAreaWidth = width - 68
+  const contentBlockWidth = Math.min(contentAreaWidth, 388)
+  const contentBlockX = contentAreaX + Math.max(0, (contentAreaWidth - contentBlockWidth) / 2)
   const topRowY = y + 30
   const roleSize = 88
   const roleGap = 30
+  const roleX = contentBlockX
+  const roleY = topRowY + 2
+  const infoX = roleX + roleSize + roleGap
+  const infoWidth = contentBlockWidth - roleSize - roleGap
   const statsY = y + height - 86
   const nameAreaY = topRowY + 24
   const nameAreaHeight = 68
@@ -695,28 +701,21 @@ function drawHeroCard({
 
   const labelFont = "900 15px Arial, sans-serif"
   context.font = labelFont
-  const maxInfoWidth = Math.max(260, contentAreaWidth - roleSize - roleGap)
+  const maxTextWidth = Math.max(220, infoWidth - imageSize - imageGap)
   const nameLayout = fitTextLayout({
     context,
     text: hero.value,
-    maxWidth: Math.max(220, maxInfoWidth - imageSize - imageGap),
+    maxWidth: maxTextWidth,
     maxLines: 2,
     maxFontSize: 44,
     minFontSize: 28,
     fontWeight: 900,
   })
   const measuredNameWidth = Math.min(
-    Math.max(220, maxInfoWidth - imageSize - imageGap),
+    maxTextWidth,
     Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
   )
   const nameGroupWidth = imageSize + imageGap + measuredNameWidth
-  const infoBlockWidth = Math.max(nameGroupWidth, 250)
-  const topGroupWidth = Math.min(contentAreaWidth, roleSize + roleGap + infoBlockWidth)
-  const topGroupX = contentAreaX + Math.max(0, (contentAreaWidth - topGroupWidth) / 2)
-  const roleX = topGroupX
-  const roleY = topRowY + 2
-  const infoX = roleX + roleSize + roleGap
-  const infoWidth = topGroupWidth - roleSize - roleGap
   const nameGroupX = infoX + Math.max(0, (infoWidth - nameGroupWidth) / 2)
 
   drawHeroRoleIcon({
@@ -776,9 +775,9 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: contentAreaX,
+    x: contentBlockX,
     y: statsY,
-    width: contentAreaWidth,
+    width: contentBlockWidth,
     stats: hero.stats,
   })
 }
