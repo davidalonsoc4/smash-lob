@@ -1084,8 +1084,8 @@ function drawHeader({
   context.restore()
 
   const logoRightMargin = 18
-  const logoTop = y + 12
-  const logoBottomMargin = 12
+  const logoTop = y + 18
+  const logoBottomMargin = 18
   const logoMaxHeight = leagueLogo ? height - (logoTop - y) - logoBottomMargin : 0
   const logoAspect = leagueLogo ? leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight) : 1
   const leagueLogoWidth = leagueLogo ? logoMaxHeight * logoAspect : 0
@@ -1198,31 +1198,25 @@ function drawFooter({
   y: number
   width: number
 }) {
-  const height = 78
-  fillRoundedRect(context, x, y, width, height, 26, palette.surface)
-  strokeRoundedRect(context, x, y, width, height, 26, palette.line)
-  drawBrandMark({ context, palette, appIcon, x: x + 14, y: y + 13, size: 52 })
+  const height = 62
+  const iconSize = 52
+  const textBlockWidth = 132
+  const groupWidth = iconSize + 16 + textBlockWidth
+  const groupX = x + (width - groupWidth) / 2
+  drawBrandMark({ context, palette, appIcon, x: groupX, y: y + 5, size: iconSize })
 
   context.fillStyle = palette.muted
   context.font = "700 15px Arial, sans-serif"
   context.save()
   context.textBaseline = "middle"
-  context.fillText("Creado con", x + 82, y + 28)
+  context.fillText("Creado con", groupX + iconSize + 16, y + 22)
   context.restore()
 
   context.fillStyle = palette.text
   context.font = "900 21px Arial, sans-serif"
   context.save()
   context.textBaseline = "middle"
-  context.fillText("Smash & Lob", x + 82, y + 51)
-  context.restore()
-
-  context.fillStyle = palette.muted
-  context.font = "800 15px Arial, sans-serif"
-  context.save()
-  context.textAlign = "right"
-  context.textBaseline = "middle"
-  context.fillText("LIGAS PRIVADAS DE PÁDEL", x + width - 22, y + height / 2)
+  context.fillText("Smash & Lob", groupX + iconSize + 16, y + 44)
   context.restore()
 }
 
@@ -1275,7 +1269,7 @@ export async function createSeasonSummaryImage(
   const labelToPanelGap = 14
   const betweenSectionsGap = 40
   const footerGap = 32
-  const footerHeight = 78
+  const footerHeight = 62
   const bottomPadding = 34
 
   const heroesHeight = heroCount * heroHeight + Math.max(0, heroCount - 1) * heroGap
