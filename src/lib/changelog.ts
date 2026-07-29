@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.41",
+    date: "29 de julio de 2026",
+    title: "Alineación del panel principal en app y exportación",
+    summary:
+      "El panel de campeón/MVP alinea el icono a la izquierda y centra mejor el contenido útil tanto en la vista previa de la app como en la imagen exportada.",
+    category: "fix",
+    changes: [
+      "En la app, el icono de corona/estrella del panel ganador o MVP queda alineado a la izquierda respetando la barra lateral del diseño.",
+      "En la app, la etiqueta, el nombre y la fila de estadísticas se recentran visualmente dentro del espacio útil del panel, entre la barra izquierda y el borde derecho.",
+      "En la imagen exportada se replica el mismo criterio visual: icono principal a la izquierda y bloque de contenido centrado en el área útil del panel.",
+      "Se mantiene el resto del rediseño del resumen final, incluidas las opciones para mostrar u ocultar logo de liga y fotos de perfil.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.40",
     date: "29 de julio de 2026",
     title: "Alineación final de los paneles del resumen en la app",

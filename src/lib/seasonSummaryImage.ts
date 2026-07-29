@@ -671,20 +671,20 @@ function drawHeroCard({
   heroImage: HTMLImageElement | null
 }) {
   const cardRadius = 32
-  const innerX = x + 34
-  const innerWidth = width - 68
+  const contentX = x + 34
+  const contentWidth = width - 68
   const topRowY = y + 30
   const roleSize = 88
-  const roleX = innerX
+  const roleX = contentX
   const roleY = topRowY + 2
-  const topContentX = roleX + roleSize + 26
-  const topContentWidth = innerWidth - roleSize - 26
+  const textAreaX = roleX + roleSize + 30
+  const textAreaWidth = x + width - 34 - textAreaX
   const statsY = y + height - 86
   const nameAreaY = topRowY + 24
   const nameAreaHeight = 68
   const imageSize = heroImage ? 76 : 0
   const imageGap = heroImage ? 18 : 0
-  const maximumTextWidth = Math.max(220, topContentWidth - imageSize - imageGap)
+  const maximumTextWidth = Math.max(220, textAreaWidth - imageSize - imageGap)
 
   drawSurfaceCard({ context, palette, x, y, width, height, radius: cardRadius })
   fillRoundedRect(
@@ -711,7 +711,7 @@ function drawHeroCard({
   drawCenteredText({
     context,
     text: hero.label.toUpperCase(),
-    x: topContentX + topContentWidth / 2,
+    x: textAreaX + textAreaWidth / 2,
     y: topRowY + 12,
   })
 
@@ -729,7 +729,7 @@ function drawHeroCard({
     Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
   )
   const groupWidth = imageSize + imageGap + measuredNameWidth
-  const groupX = topContentX + Math.max(0, (topContentWidth - groupWidth) / 2)
+  const groupX = textAreaX + Math.max(0, (textAreaWidth - groupWidth) / 2)
 
   if (heroImage) {
     const imageY = nameAreaY + (nameAreaHeight - imageSize) / 2
@@ -770,9 +770,9 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: innerX,
+    x: contentX,
     y: statsY,
-    width: innerWidth,
+    width: contentWidth,
     stats: hero.stats,
   })
 }

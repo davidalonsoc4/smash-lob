@@ -341,14 +341,14 @@ export function SeasonSummaryCard({
                 className="my-0.5 w-1.5 self-stretch rounded-full bg-neutral-950"
               />
               <div className="grid min-w-0 gap-3">
-                <div className="flex min-w-0 items-center justify-center gap-3">
+                <div className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-4">
                   <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] border border-neutral-200 bg-neutral-100 text-neutral-950">
                     <div className="flex h-10 w-10 items-center justify-center">
                       <HeroRoleIcon kind={hero.kind} />
                     </div>
                   </div>
-                  <div className="min-w-0 max-w-[70%] text-center">
-                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                  <div className="min-w-0">
+                    <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
                       {hero.label}
                     </p>
                     <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
