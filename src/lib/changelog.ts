@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.55",
+    date: "29 de julio de 2026",
+    title: "Icono y nombre más altos en el panel principal exportado",
+    summary:
+      "La imagen exportada aprovecha mejor el espacio liberado por la eliminación del subtítulo: agranda el icono principal y recoloca algo más arriba el nombre del campeón, MVP o campeón+MVP.",
+    category: "improvement",
+    changes: [
+      "En la imagen exportada, el icono principal del panel de campeón/MVP aumenta de tamaño para aprovechar mejor la zona superior disponible.",
+      "El icono se expande visualmente hacia arriba dentro del panel, respetando el margen izquierdo manual ya ajustado en iteraciones anteriores.",
+      "El nombre del campeón, MVP o campeón+MVP se desplaza un poco más arriba para quedar mejor centrado en altura en el espacio útil restante.",
+      "La preview de la app no cambia en esta iteración, ya que el ajuste solicitado afecta solo a la imagen generada/exportada.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.54",
     date: "29 de julio de 2026",
     title: "Ajuste final de altura en el panel principal exportado",
