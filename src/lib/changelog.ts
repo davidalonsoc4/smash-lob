@@ -15,6 +15,36 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.49",
+    date: "29 de julio de 2026",
+    title: "Separación extra del panel principal exportado",
+    summary:
+      "La imagen exportada desplaza manualmente hacia la derecha el contenido de los paneles de campeón/MVP para separarlo claramente de la barra lateral, y además queda resuelto el warning por parámetro no usado en la cabecera.",
+    category: "fix",
+    changes: [
+      "Los paneles de campeón, MVP y campeón+MVP de la imagen exportada aumentan manualmente su margen izquierdo útil para evitar que el contenido se acerque o monte sobre la barra negra lateral.",
+      "El icono principal sigue alineado a la izquierda, pero ahora arranca desde una referencia más separada de la barra negra, con mejor respiración visual.",
+      "Las estadísticas del panel principal mantienen el ancho útil completo del panel, desplazadas con el mismo nuevo margen izquierdo para conservar coherencia visual.",
+      "Se elimina el parámetro no usado `appIcon` de la cabecera exportada, dejando corregido el warning de ESLint en `src/lib/seasonSummaryImage.ts`.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.48",
+    date: "29 de julio de 2026",
+    title: "Logo de liga a altura completa en exportación",
+    summary:
+      "La imagen exportada lleva el logo de la liga a prácticamente toda la altura útil de la cabecera, igualando mejor el comportamiento de la preview de la app, y además elimina el warning por variable no usada en la generación del resumen.",
+    category: "fix",
+    changes: [
+      "El logo de la liga en la imagen exportada pasa a calcular su tamaño a partir de toda la altura útil disponible del panel superior, manteniendo la proporción real del recurso.",
+      "La cabecera exportada reserva al logo un bloque más alto y elimina la limitación anterior que impedía que creciera tanto como en la preview de la app.",
+      "Se elimina el parámetro no utilizado `appIcon` del renderizado de cabecera en `seasonSummaryImage.ts`, corrigiendo el warning de ESLint por variable definida y no usada.",
+      "La preview de la app no cambia en esta iteración porque ya mostraba el comportamiento esperado para el logo de la liga.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.47",
     date: "29 de julio de 2026",
     title: "Corrección del ancho útil en el panel principal exportado",
