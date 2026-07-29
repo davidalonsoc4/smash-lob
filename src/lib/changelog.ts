@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.47",
+    date: "29 de julio de 2026",
+    title: "Corrección del ancho útil en el panel principal exportado",
+    summary:
+      "El panel de ganador/MVP en la imagen exportada vuelve a ocupar todo el ancho útil entre la barra lateral y el borde derecho, manteniendo el icono alineado a la izquierda como en la preview de la app.",
+    category: "fix",
+    changes: [
+      "La imagen exportada elimina la restricción que estaba encogiendo el bloque principal del panel de ganador/MVP y lo devuelve al ancho completo del área útil del panel.",
+      "El icono de corona, estrella o combinado permanece alineado a la izquierda junto a la barra negra, mientras el contenido textual se centra dentro del espacio restante hasta el borde derecho.",
+      "Las métricas del panel principal vuelven a usar todo el ancho disponible entre la barra lateral y el borde derecho del panel, siguiendo el mismo criterio visual que la preview de la app.",
+      "La preview de la app no cambia en esta iteración porque ya tenía el comportamiento esperado.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.46",
     date: "29 de julio de 2026",
     title: "Logo de liga a toda altura en la cabecera",

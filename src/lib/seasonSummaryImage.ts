@@ -673,15 +673,13 @@ function drawHeroCard({
   const cardRadius = 32
   const contentAreaX = x + 34
   const contentAreaWidth = width - 68
-  const contentBlockWidth = Math.min(contentAreaWidth, 388)
-  const contentBlockX = contentAreaX + Math.max(0, (contentAreaWidth - contentBlockWidth) / 2)
   const topRowY = y + 30
   const roleSize = 88
   const roleGap = 30
-  const roleX = contentBlockX
+  const roleX = contentAreaX
   const roleY = topRowY + 2
   const infoX = roleX + roleSize + roleGap
-  const infoWidth = contentBlockWidth - roleSize - roleGap
+  const infoWidth = contentAreaWidth - roleSize - roleGap
   const statsY = y + height - 86
   const nameAreaY = topRowY + 24
   const nameAreaHeight = 68
@@ -775,9 +773,9 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: contentBlockX,
+    x: contentAreaX,
     y: statsY,
-    width: contentBlockWidth,
+    width: contentAreaWidth,
     stats: hero.stats,
   })
 }
