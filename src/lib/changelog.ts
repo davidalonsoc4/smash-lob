@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.42",
+    date: "29 de julio de 2026",
+    title: "Logo de liga ampliado y transparente en la cabecera",
+    summary:
+      "La cabecera del resumen final muestra el logo de liga respetando la transparencia real también en la vista previa, y lo amplía tanto en la app como en la imagen exportada.",
+    category: "fix",
+    changes: [
+      "La vista previa de la app deja de forzar un recuadro blanco bajo el logo de la liga y respeta correctamente los PNG con fondo transparente.",
+      "El logo de la liga en la vista previa gana tamaño y aprovecha mejor el espacio disponible de la cabecera sin romper los márgenes.",
+      "La imagen exportada mantiene el logo transparente en la cabecera y lo amplía aún más para ocupar mejor el panel respetando el espaciado del diseño.",
+      "El resto del comportamiento del resumen final se mantiene intacto, incluidas las opciones para mostrar u ocultar logo y fotos de perfil.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.41",
     date: "29 de julio de 2026",
     title: "Alineación del panel principal en app y exportación",

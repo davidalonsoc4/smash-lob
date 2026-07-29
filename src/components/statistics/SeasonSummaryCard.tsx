@@ -309,12 +309,12 @@ export function SeasonSummaryCard({
             </div>
 
             {hasLeagueLogo && includeLeagueLogo ? (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-1.5">
+              <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={data.leagueLogoUrl ?? ""}
                   alt=""
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
                 />
               </div>
             ) : null}

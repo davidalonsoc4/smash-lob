@@ -1098,21 +1098,21 @@ function drawHeader({
   context.fillText("RESUMEN FINAL DE TEMPORADA", x + 118, y + 78)
   context.restore()
 
-  const leagueLogoSize = leagueLogo ? 108 : 0
-  const leagueLogoX = x + width - leagueLogoSize - 30
+  const leagueLogoSize = leagueLogo ? 132 : 0
+  const leagueLogoX = x + width - leagueLogoSize - 24
   if (leagueLogo) {
     drawTransparentImageContain({
       context,
       image: leagueLogo,
       x: leagueLogoX,
-      y: y + 28,
+      y: y + 22,
       width: leagueLogoSize,
       height: leagueLogoSize,
       withShadow: true,
     })
   }
 
-  const titleWidth = width - 60 - (leagueLogo ? leagueLogoSize + 28 : 0)
+  const titleWidth = width - 60 - (leagueLogo ? leagueLogoSize + 18 : 0)
   const leagueLayout = fitTextLayout({
     context,
     text: data.leagueName.toUpperCase(),
