@@ -15,6 +15,51 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.55",
+    date: "29 de julio de 2026",
+    title: "Icono y nombre más altos en el panel principal exportado",
+    summary:
+      "La imagen exportada aprovecha mejor el espacio liberado por la eliminación del subtítulo: agranda el icono principal y recoloca algo más arriba el nombre del campeón, MVP o campeón+MVP.",
+    category: "improvement",
+    changes: [
+      "En la imagen exportada, el icono principal del panel de campeón/MVP aumenta de tamaño para aprovechar mejor la zona superior disponible.",
+      "El icono se expande visualmente hacia arriba dentro del panel, respetando el margen izquierdo manual ya ajustado en iteraciones anteriores.",
+      "El nombre del campeón, MVP o campeón+MVP se desplaza un poco más arriba para quedar mejor centrado en altura en el espacio útil restante.",
+      "La preview de la app no cambia en esta iteración, ya que el ajuste solicitado afecta solo a la imagen generada/exportada.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.54",
+    date: "29 de julio de 2026",
+    title: "Ajuste final de altura en el panel principal exportado",
+    summary:
+      "La imagen exportada reajusta ligeramente hacia arriba el nombre del campeón, MVP o campeón+MVP para centrarlo mejor en altura dentro del panel principal.",
+    category: "improvement",
+    changes: [
+      "En la imagen exportada se desplaza un poco hacia arriba el bloque del nombre dentro del panel principal de campeón/MVP.",
+      "El nombre queda mejor centrado verticalmente en el espacio útil disponible entre el icono principal y la fila de estadísticas.",
+      "No se modifica la preview de la app en esta iteración, ya que el ajuste pedido es solo para la imagen generada/exportada.",
+      "El resto del diseño del resumen final permanece igual respecto a la versión anterior.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.17.53",
+    date: "29 de julio de 2026",
+    title: "Panel principal exportado con nombre alineado al icono",
+    summary:
+      "La imagen exportada simplifica el panel de ganador/MVP: elimina el subtítulo del panel y alinea el nombre a la izquierda, pegado visualmente al icono principal.",
+    category: "improvement",
+    changes: [
+      "En la imagen exportada, el nombre del ganador, MVP o ganador+MVP se alinea a la izquierda dentro del panel principal, junto al icono correspondiente.",
+      "Se elimina del panel principal exportado el subtítulo CAMPEÓN / MVP / CAMPEÓN Y MVP, dejando que el icono identifique el tipo de reconocimiento por sí solo.",
+      "La composición del nombre se reajusta verticalmente para aprovechar mejor el espacio liberado por la eliminación del subtítulo.",
+      "La preview de la app no cambia en esta iteración, porque el ajuste solicitado afecta solo a la imagen generada / exportada.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.52",
     date: "29 de julio de 2026",
     title: "Resumen sin MVP cuando está desactivado",
