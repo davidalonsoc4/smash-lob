@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.53",
+    date: "29 de julio de 2026",
+    title: "Panel principal exportado con nombre alineado al icono",
+    summary:
+      "La imagen exportada simplifica el panel de ganador/MVP: elimina el subtítulo del panel y alinea el nombre a la izquierda, pegado visualmente al icono principal.",
+    category: "improvement",
+    changes: [
+      "En la imagen exportada, el nombre del ganador, MVP o ganador+MVP se alinea a la izquierda dentro del panel principal, junto al icono correspondiente.",
+      "Se elimina del panel principal exportado el subtítulo CAMPEÓN / MVP / CAMPEÓN Y MVP, dejando que el icono identifique el tipo de reconocimiento por sí solo.",
+      "La composición del nombre se reajusta verticalmente para aprovechar mejor el espacio liberado por la eliminación del subtítulo.",
+      "La preview de la app no cambia en esta iteración, porque el ajuste solicitado afecta solo a la imagen generada / exportada.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.52",
     date: "29 de julio de 2026",
     title: "Resumen sin MVP cuando está desactivado",
