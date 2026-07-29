@@ -334,21 +334,21 @@ export function SeasonSummaryCard({
           {data.heroes.map((hero) => (
             <div
               key={`${hero.label}-${hero.value}`}
-              className="relative overflow-hidden rounded-[1.35rem] border border-neutral-200 bg-white p-4 pl-6 shadow-sm"
+              className="grid grid-cols-[0.375rem_minmax(0,1fr)] gap-x-4 overflow-hidden rounded-[1.35rem] border border-neutral-200 bg-white p-4 shadow-sm"
             >
               <span
                 aria-hidden="true"
-                className="absolute inset-y-4 left-3 w-1.5 rounded-full bg-neutral-950"
+                className="my-0.5 w-1.5 self-stretch rounded-full bg-neutral-950"
               />
-              <div className="grid gap-3">
-                <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3">
+              <div className="grid min-w-0 gap-3">
+                <div className="flex min-w-0 items-center justify-center gap-3">
                   <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[1.35rem] border border-neutral-200 bg-neutral-100 text-neutral-950">
                     <div className="flex h-10 w-10 items-center justify-center">
                       <HeroRoleIcon kind={hero.kind} />
                     </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                  <div className="min-w-0 max-w-[70%] text-center">
+                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
                       {hero.label}
                     </p>
                     <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
@@ -450,7 +450,7 @@ export function SeasonSummaryCard({
             {data.highlights.map((highlight) => (
               <div
                 key={highlight.label}
-                className="grid grid-cols-[0.375rem_minmax(0,1fr)] gap-x-7 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-4"
+                className="grid grid-cols-[0.375rem_minmax(0,1fr)] gap-x-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-4 py-4"
               >
                 <span
                   aria-hidden="true"
