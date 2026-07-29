@@ -674,15 +674,15 @@ function drawHeroCard({
   const contentAreaX = x + 56
   const contentAreaWidth = width - 90
   const topRowY = y + 30
-  const roleSize = 88
-  const roleGap = 30
+  const roleSize = 98
+  const roleGap = 26
   const roleX = contentAreaX
-  const roleY = topRowY + 2
+  const roleY = topRowY - 8
   const infoX = roleX + roleSize + roleGap
   const infoWidth = contentAreaWidth - roleSize - roleGap
   const statsY = y + height - 86
-  const nameAreaY = topRowY + 4
-  const nameAreaHeight = 92
+  const nameAreaY = topRowY - 6
+  const nameAreaHeight = 98
   const imageSize = heroImage ? 76 : 0
   const imageGap = heroImage ? 18 : 0
 
@@ -697,8 +697,6 @@ function drawHeroCard({
     palette.accent,
   )
 
-  const labelFont = "900 15px Arial, sans-serif"
-  context.font = labelFont
   const maxTextWidth = Math.max(220, infoWidth - imageSize - imageGap)
   const nameLayout = fitTextLayout({
     context,
