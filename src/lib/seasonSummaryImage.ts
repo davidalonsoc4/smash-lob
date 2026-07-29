@@ -671,20 +671,16 @@ function drawHeroCard({
   heroImage: HTMLImageElement | null
 }) {
   const cardRadius = 32
-  const contentX = x + 34
-  const contentWidth = width - 68
+  const contentAreaX = x + 34
+  const contentAreaWidth = width - 68
   const topRowY = y + 30
   const roleSize = 88
-  const roleX = contentX
-  const roleY = topRowY + 2
-  const textAreaX = roleX + roleSize + 30
-  const textAreaWidth = x + width - 34 - textAreaX
+  const roleGap = 30
   const statsY = y + height - 86
   const nameAreaY = topRowY + 24
   const nameAreaHeight = 68
   const imageSize = heroImage ? 76 : 0
   const imageGap = heroImage ? 18 : 0
-  const maximumTextWidth = Math.max(220, textAreaWidth - imageSize - imageGap)
 
   drawSurfaceCard({ context, palette, x, y, width, height, radius: cardRadius })
   fillRoundedRect(
@@ -697,6 +693,32 @@ function drawHeroCard({
     palette.accent,
   )
 
+  const labelFont = "900 15px Arial, sans-serif"
+  context.font = labelFont
+  const maxInfoWidth = Math.max(260, contentAreaWidth - roleSize - roleGap)
+  const nameLayout = fitTextLayout({
+    context,
+    text: hero.value,
+    maxWidth: Math.max(220, maxInfoWidth - imageSize - imageGap),
+    maxLines: 2,
+    maxFontSize: 44,
+    minFontSize: 28,
+    fontWeight: 900,
+  })
+  const measuredNameWidth = Math.min(
+    Math.max(220, maxInfoWidth - imageSize - imageGap),
+    Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
+  )
+  const nameGroupWidth = imageSize + imageGap + measuredNameWidth
+  const infoBlockWidth = Math.max(nameGroupWidth, 250)
+  const topGroupWidth = Math.min(contentAreaWidth, roleSize + roleGap + infoBlockWidth)
+  const topGroupX = contentAreaX + Math.max(0, (contentAreaWidth - topGroupWidth) / 2)
+  const roleX = topGroupX
+  const roleY = topRowY + 2
+  const infoX = roleX + roleSize + roleGap
+  const infoWidth = topGroupWidth - roleSize - roleGap
+  const nameGroupX = infoX + Math.max(0, (infoWidth - nameGroupWidth) / 2)
+
   drawHeroRoleIcon({
     context,
     palette,
@@ -707,36 +729,20 @@ function drawHeroCard({
   })
 
   context.fillStyle = palette.muted
-  context.font = "900 15px Arial, sans-serif"
+  context.font = labelFont
   drawCenteredText({
     context,
     text: hero.label.toUpperCase(),
-    x: textAreaX + textAreaWidth / 2,
+    x: infoX + infoWidth / 2,
     y: topRowY + 12,
   })
-
-  const nameLayout = fitTextLayout({
-    context,
-    text: hero.value,
-    maxWidth: maximumTextWidth,
-    maxLines: 2,
-    maxFontSize: 44,
-    minFontSize: 28,
-    fontWeight: 900,
-  })
-  const measuredNameWidth = Math.min(
-    maximumTextWidth,
-    Math.max(170, ...nameLayout.lines.map((line) => context.measureText(line).width + 8)),
-  )
-  const groupWidth = imageSize + imageGap + measuredNameWidth
-  const groupX = textAreaX + Math.max(0, (textAreaWidth - groupWidth) / 2)
 
   if (heroImage) {
     const imageY = nameAreaY + (nameAreaHeight - imageSize) / 2
     drawImageCover({
       context,
       image: heroImage,
-      x: groupX,
+      x: nameGroupX,
       y: imageY,
       width: imageSize,
       height: imageSize,
@@ -745,7 +751,7 @@ function drawHeroCard({
     })
     strokeRoundedRect(
       context,
-      groupX,
+      nameGroupX,
       imageY,
       imageSize,
       imageSize,
@@ -759,7 +765,7 @@ function drawHeroCard({
   drawTextLines({
     context,
     lines: nameLayout.lines,
-    x: groupX + imageSize + imageGap,
+    x: nameGroupX + imageSize + imageGap,
     y: nameAreaY,
     width: measuredNameWidth,
     height: nameAreaHeight,
@@ -770,9 +776,9 @@ function drawHeroCard({
   drawHeroStats({
     context,
     palette,
-    x: contentX,
+    x: contentAreaX,
     y: statsY,
-    width: contentWidth,
+    width: contentAreaWidth,
     stats: hero.stats,
   })
 }
