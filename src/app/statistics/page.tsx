@@ -175,8 +175,8 @@ export default function StatisticsPage() {
           />
           <StatisticsSectionLink
             href={buildStatisticsHref("/statistics/season")}
-            title="Resumen de temporada"
-            description="Resumen final compartible e historial de campeones."
+            title="Compartir resumen de temporada"
+            description="Genera, descarga o comparte el resumen final y consulta el historial de campeones."
             leading={<StatisticsSectionIcon name="season" />}
           />
         </AppCard>

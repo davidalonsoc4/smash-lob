@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.17.51",
+    date: "29 de julio de 2026",
+    title: "Acceso más claro al resumen compartible",
+    summary:
+      "La navegación de Estadísticas y la pantalla del resumen final explican ahora de forma más directa que esta función sirve para generar, descargar y compartir el resumen de una temporada.",
+    category: "improvement",
+    changes: [
+      "El acceso desde Estadísticas pasa a llamarse 'Compartir resumen de temporada' en lugar de 'Resumen de temporada'.",
+      "La descripción del acceso aclara que permite generar, descargar o compartir el resumen final y consultar el historial de campeones.",
+      "La pantalla de una temporada adopta también el título 'Compartir resumen de temporada' y una descripción centrada en la acción real disponible.",
+      "La sección que contiene la imagen dentro de la pantalla pasa a llamarse 'Vista previa del resumen' para distinguirla del título general de la página.",
+      "La vista histórica de todas las temporadas mantiene el nombre 'Resumen de la liga', ya que no genera una única imagen compartible.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.50",
     date: "29 de julio de 2026",
     title: "Ajuste fino del logo de cabecera y firma final",
