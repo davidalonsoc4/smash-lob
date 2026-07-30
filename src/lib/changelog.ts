@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.18.3",
+    date: "30 de julio de 2026",
+    title: "Diagnóstico de acceso limitado a los logs internos",
+    summary:
+      "La API vuelve a responder con un error genérico cuando no puede cargar las ligas, mientras conserva en los logs privados del servidor la etapa y el detalle técnico necesarios para futuras investigaciones.",
+    category: "fix",
+    changes: [
+      "La respuesta pública de `/api/access` vuelve a limitarse a `league_snapshot_failed`, sin exponer la etapa ni el código técnico de Supabase.",
+      "Los logs privados de Vercel mantienen la etapa de la consulta y el código, mensaje, detalle y sugerencia originales de Supabase.",
+      "Se conserva la capacidad de diagnóstico introducida en la versión anterior sin añadir información técnica a la respuesta que recibe el navegador.",
+      "No se modifica la lógica de sesiones, permisos, ligas ni datos persistidos.",
+      "No se requieren nuevas migraciones de Supabase.",
+    ],
+  },
+  {
     version: "v0.18.2",
     date: "30 de julio de 2026",
     title: "Diagnóstico seguro del fallo de carga de ligas",
