@@ -300,7 +300,9 @@ export function SeasonShareExportsCard({
                 ? "Clasificación de Smash & Lob"
                 : kind === "calendar-fixtures"
                   ? "Calendario de enfrentamientos de Smash & Lob"
-                  : "Calendario actual de Smash & Lob",
+                  : kind === "summary"
+                    ? "Resumen final de temporada de Smash & Lob"
+                    : "Calendario actual de Smash & Lob",
             files: [file],
           })
         } else {
@@ -412,8 +414,8 @@ export function SeasonShareExportsCard({
               summaryExport.canExport ? undefined : summaryExport.blockedReason
             }
             busyAction={busyAction}
-            downloadOnly
             downloadLabel="Descargar Resumen de Temporada"
+            onShare={() => void runAction("summary", "share")}
             onDownload={() => void runAction("summary", "download")}
           />
         ) : null}

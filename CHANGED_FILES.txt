@@ -1,7 +1,5 @@
 CHANGED_FILES.txt
 package.json
-src/app/api/matches/[matchId]/schedule/route.ts
-src/app/match/[id]/page.tsx
-src/components/match/MatchScheduleForm.tsx
+src/components/statistics/SeasonShareExportsCard.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts

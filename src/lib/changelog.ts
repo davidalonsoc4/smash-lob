@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.10",
+    date: "31 de julio de 2026",
+    title: "Compartir el resumen final y publicación completa",
+    summary:
+      "El resumen final de temporada incorpora la misma acción de compartir que el resto de imágenes y la serie 0.19 queda preparada para publicarse completa en producción.",
+    category: "improvement",
+    changes: [
+      "La tarjeta Resumen de temporada muestra ahora un botón Compartir junto al botón de descarga cuando la temporada está terminada.",
+      "La acción utiliza el sistema nativo de compartir archivos cuando está disponible y descarga la imagen como alternativa en dispositivos no compatibles.",
+      "El texto compartido identifica correctamente la imagen como resumen final de temporada.",
+      "No se requieren nuevas migraciones de Supabase para esta versión.",
+    ],
+  },
+  {
     version: "v0.19.9",
     date: "30 de julio de 2026",
     title: "Programación retroactiva para administración",
