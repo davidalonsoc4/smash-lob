@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.9",
+    date: "30 de julio de 2026",
+    title: "Programación retroactiva para administración",
+    summary:
+      "Las personas con rol creator o admin pueden añadir o corregir la fecha y el lugar de un partido aunque ya tenga resultado o pertenezca a una temporada cerrada.",
+    category: "improvement",
+    changes: [
+      "La ficha de un partido finalizado vuelve a mostrar el panel de programación a creator y admin incluso cuando todavía no tiene fecha registrada.",
+      "Los participantes normales mantienen el comportamiento anterior y no pueden modificar la programación después de finalizar el partido.",
+      "Al guardar una programación retroactiva se conservan el estado Finalizado, el marcador, los sets y el resto de datos del resultado.",
+      "En partidos finalizados no se precarga una fecha futura ni se muestran sugerencias de disponibilidad, de modo que la administración introduce manualmente la fecha real jugada.",
+      "La API aplica la misma autorización en servidor para evitar que un jugador pueda saltarse la restricción desde el cliente.",
+      "No se requieren migraciones de Supabase ni cambios de estructura de datos.",
+    ],
+  },
+  {
     version: "v0.19.8",
     date: "30 de julio de 2026",
     title: "Nueva pantalla de exportación de datos",

@@ -86,7 +86,8 @@ export function MatchScheduleForm({
   const isPostponed = status === "postponed";
   const hasSchedule =
     !isPostponed && Boolean(scheduledAt || dateLabel || location);
-  const isUnscheduled = status === "scheduling" && !hasSchedule;
+  const isUnscheduled =
+    (status === "scheduling" || (isFinished && canManage)) && !hasSchedule;
 
   const scheduledLeagueLocation = findLeagueLocationByScheduleLocation({
     locations: normalizedAvailableLocations,
@@ -124,7 +125,12 @@ export function MatchScheduleForm({
 
   const applyAutomaticScheduledAtValue = useCallback(
     (nextValue: string) => {
-      if (hasSchedule || !isEditing || hasUserChangedScheduledAtRef.current) {
+      if (
+        isFinished ||
+        hasSchedule ||
+        !isEditing ||
+        hasUserChangedScheduledAtRef.current
+      ) {
         return;
       }
 
@@ -142,17 +148,22 @@ export function MatchScheduleForm({
         return nextValue;
       });
     },
-    [hasSchedule, isEditing],
+    [hasSchedule, isEditing, isFinished],
   );
 
   useEffect(() => {
-    if (hasInitializedDefaultSchedule.current || hasSchedule || !isEditing) {
+    if (
+      hasInitializedDefaultSchedule.current ||
+      isFinished ||
+      hasSchedule ||
+      !isEditing
+    ) {
       return;
     }
 
     applyAutomaticScheduledAtValue(formatNextFullHourForDateTimeInput());
     hasInitializedDefaultSchedule.current = true;
-  }, [applyAutomaticScheduledAtValue, hasSchedule, isEditing]);
+  }, [applyAutomaticScheduledAtValue, hasSchedule, isEditing, isFinished]);
 
   const selectedLeagueLocation = normalizedAvailableLocations.find(
     (availableLocation) => availableLocation.id === selectedLocation,
@@ -189,7 +200,7 @@ export function MatchScheduleForm({
   const canClearCurrentSchedule =
     canClearSchedule && !isSaving && hasSchedule && !isFinished;
   const canExpandScheduleActions =
-    canManage && hasSchedule && !isFinished && !isPostponed;
+    canManage && hasSchedule && !isPostponed;
 
   const isOutsideRoundWindow =
     scheduledAtValue.trim().length > 0 &&
@@ -438,7 +449,7 @@ export function MatchScheduleForm({
         <div
           className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "pt-2.5"}`}
         >
-          {canManage && !isEditing && !isFinished ? (
+          {canManage && !isEditing ? (
             <div className="flex flex-wrap justify-end gap-1.5">
               {isPostponed ? (
                 <button
@@ -459,16 +470,18 @@ export function MatchScheduleForm({
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
-                  <button
-                    type="button"
-                    onClick={handlePostpone}
-                    disabled={!canPostpone}
-                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 text-[9px] font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300"
-                  >
-                    {isSaving
-                      ? t.matchDetail.saving
-                      : t.matchDetail.postponeButton}
-                  </button>
+                  {!isFinished ? (
+                    <button
+                      type="button"
+                      onClick={handlePostpone}
+                      disabled={!canPostpone}
+                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 text-[9px] font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300"
+                    >
+                      {isSaving
+                        ? t.matchDetail.saving
+                        : t.matchDetail.postponeButton}
+                    </button>
+                  ) : null}
                   {canClearCurrentSchedule ? (
                     <button
                       type="button"
@@ -518,29 +531,31 @@ export function MatchScheduleForm({
 
           {canManage && isEditing ? (
             <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
-              <MatchAvailabilitySuggestions
-                matchId={matchId}
-                leagueId={leagueId}
-                seasonId={seasonId}
-                playerIds={playerIds}
-                players={players}
-                roundStartsAt={roundStartsAt}
-                roundEndsAt={roundEndsAt}
-                onUseSuggestion={(dateTimeLocalValue) => {
-                  hasUserChangedScheduledAtRef.current = true;
-                  autoScheduledAtValueRef.current = null;
-                  setScheduledAtValue(dateTimeLocalValue);
-                  setActionError(null);
+              {!isFinished ? (
+                <MatchAvailabilitySuggestions
+                  matchId={matchId}
+                  leagueId={leagueId}
+                  seasonId={seasonId}
+                  playerIds={playerIds}
+                  players={players}
+                  roundStartsAt={roundStartsAt}
+                  roundEndsAt={roundEndsAt}
+                  onUseSuggestion={(dateTimeLocalValue) => {
+                    hasUserChangedScheduledAtRef.current = true;
+                    autoScheduledAtValueRef.current = null;
+                    setScheduledAtValue(dateTimeLocalValue);
+                    setActionError(null);
 
-                  window.requestAnimationFrame(() => {
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
+                    window.requestAnimationFrame(() => {
+                      window.scrollTo({
+                        top: 0,
+                        behavior: "smooth",
+                      });
                     });
-                  });
-                }}
-                onDefaultSuggestionReady={applyAutomaticScheduledAtValue}
-              />
+                  }}
+                  onDefaultSuggestionReady={applyAutomaticScheduledAtValue}
+                />
+              ) : null}
 
               <div className="grid gap-2.5 sm:grid-cols-2">
                 <label className="block">

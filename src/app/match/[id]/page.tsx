@@ -193,6 +193,10 @@ export default function MatchDetailPage() {
   const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
   const canViewCourtBooking = isMatchParticipant || isAdmin
   const hasOpenIncident = match.incidentStatus === "open"
+  const canManageSchedule =
+    !isSeasonUpcoming &&
+    !hasOpenIncident &&
+    (isAdmin || (isMatchParticipant && match.status !== "finished"))
   const isExceptionalResolution = Boolean(
     match.resolutionType &&
       !["continue", "substitute", "reset_result", "played"].includes(
@@ -237,7 +241,7 @@ export default function MatchDetailPage() {
     match.scheduledAt || match.dateLabel || match.location
   )
   const shouldShowSchedulePanel =
-    match.status !== "finished" || hasSchedule
+    match.status !== "finished" || hasSchedule || isAdmin
   const canReportIncident =
     !isSeasonUpcoming &&
     isMatchParticipant &&
@@ -410,7 +414,7 @@ export default function MatchDetailPage() {
           players={players}
           roundStartsAt={round?.startsAt ?? null}
           roundEndsAt={round?.endsAt ?? null}
-          canManage={canManageMatch && !hasOpenIncident}
+          canManage={canManageSchedule}
           canClearSchedule={isAdmin && !hasOpenIncident}
           calendarAction={
             match.status === "scheduled" && match.scheduledAt ? (
