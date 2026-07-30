@@ -1,6 +1,8 @@
+.github/dependabot.yml
 CHANGED_FILES.txt
+docs/SECURITY_BASELINE.md
 package.json
 package-lock.json
+scripts/check-security-baseline.mjs
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/lib/seasonSummaryImage.ts
