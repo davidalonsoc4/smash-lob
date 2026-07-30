@@ -2,7 +2,6 @@
 
 import { useMemo } from "react"
 import { SeasonShareExportsCard } from "@/components/statistics/SeasonShareExportsCard"
-import { SeasonSummaryCard } from "@/components/statistics/SeasonSummaryCard"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -246,7 +245,7 @@ export default function StatisticsSeasonPage() {
         description={
           isLeagueWide
             ? "Vista histórica de todas las temporadas y campeones de la liga."
-            : "Comparte el calendario y la clasificación durante toda la temporada. El resumen final aparecerá cuando termine."
+            : "Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine."
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
@@ -265,6 +264,24 @@ export default function StatisticsSeasonPage() {
           matches={selectedSeasonMatches}
           players={leaguePlayers}
           ranking={statistics.ranking}
+          summaryExport={{
+            visible: selectedSeason.status === "finished",
+            canExport: summaryIsComplete,
+            blockedReason: summaryIsComplete ? undefined : exportBlockedReason,
+            data: {
+              leagueName: activeLeague.name,
+              seasonName: selectedSeason.name,
+              leagueLogoUrl: activeLeague.logoUrl ?? null,
+              heroes: summaryHeroes,
+              podium: statistics.ranking.slice(0, 3).map((player) => ({
+                position: getRankingPosition(statistics.ranking, player.id) ?? 1,
+                name: player.displayName,
+                points: player.points,
+                gamesDiff: player.gamesDiff,
+              })),
+              highlights: summaryHighlights,
+            },
+          }}
         />
       ) : null}
 
@@ -285,45 +302,7 @@ export default function StatisticsSeasonPage() {
             Las imágenes compartibles se generan por temporada para no mezclar campeones, MVP y podios de competiciones diferentes.
           </p>
         </AppCard>
-      ) : selectedSeason.status === "finished" &&
-      statistics.leader &&
-      statistics.dataQuality.hasCountedResults ? (
-        <div>
-          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-            Vista previa del resumen
-          </p>
-          <SeasonSummaryCard
-            canExport={summaryIsComplete}
-            exportBlockedReason={exportBlockedReason}
-            data={{
-              leagueName: activeLeague.name,
-              seasonName: selectedSeason.name,
-              leagueLogoUrl: activeLeague.logoUrl ?? null,
-              heroes: summaryHeroes,
-              podium: statistics.ranking.slice(0, 3).map((player) => ({
-                position: getRankingPosition(statistics.ranking, player.id) ?? 1,
-                name: player.displayName,
-                points: player.points,
-                gamesDiff: player.gamesDiff,
-              })),
-              highlights: summaryHighlights,
-            }}
-          />
-        </div>
-      ) : selectedSeason.status === "finished" ? (
-        <EmptyState
-          compact
-          title="Sin resumen final disponible"
-          description="La temporada está cerrada, pero todavía no tiene resultados válidos suficientes para generar el resumen."
-        />
-      ) : (
-        <AppCard>
-          <p className="font-black">Temporada en curso</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            El resumen final y la imagen compartible aparecerán automáticamente cuando la temporada termine con resultados válidos.
-          </p>
-        </AppCard>
-      )}
+      ) : null}
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">

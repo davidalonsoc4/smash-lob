@@ -12,10 +12,26 @@ import {
   downloadSeasonExportImage,
   type SeasonCalendarImageMode,
 } from "@/lib/seasonExportImages"
+import {
+  createSeasonSummaryImage,
+  downloadSeasonSummaryImage,
+  type SeasonSummaryImageData,
+} from "@/lib/seasonSummaryImage"
 
-type ExportKind = "calendar-current" | "calendar-fixtures" | "ranking"
+type ExportKind =
+  | "calendar-current"
+  | "calendar-fixtures"
+  | "ranking"
+  | "summary"
 type ExportAction = "share" | "download"
 type BusyAction = `${ExportKind}-${ExportAction}` | null
+
+type SummaryExport = {
+  visible: boolean
+  canExport: boolean
+  blockedReason?: string
+  data: SeasonSummaryImageData
+}
 
 function sanitizeFilename(value: string) {
   return value
@@ -32,6 +48,14 @@ function ImageTypeIcon({ kind }: { kind: ExportKind }) {
       <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
         <path d="M5 20V10M12 20V4M19 20v-7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
         <path d="M3 20.5h18" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      </svg>
+    )
+  }
+
+  if (kind === "summary") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
+        <path d="M12 3.75 14.45 8.7l5.47.8-3.96 3.86.94 5.44L12 16.23 7.1 18.8l.94-5.44L4.08 9.5l5.47-.8L12 3.75Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
       </svg>
     )
   }
@@ -111,7 +135,10 @@ function ExportCard({
   title,
   description,
   disabled,
+  disabledReason,
   busyAction,
+  downloadOnly = false,
+  downloadLabel = "Guardar imagen",
   onShare,
   onDownload,
 }: {
@@ -119,8 +146,11 @@ function ExportCard({
   title: string
   description: string
   disabled: boolean
+  disabledReason?: string
   busyAction: BusyAction
-  onShare: () => void
+  downloadOnly?: boolean
+  downloadLabel?: string
+  onShare?: () => void
   onDownload: () => void
 }) {
   const sharing = busyAction === `${kind}-share`
@@ -138,24 +168,35 @@ function ExportCard({
           <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
             {description}
           </p>
+          {disabledReason ? (
+            <p className="mt-1.5 text-[11px] font-bold leading-4 text-amber-700">
+              {disabledReason}
+            </p>
+          ) : null}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 p-3">
-        <button
-          type="button"
-          onClick={onShare}
-          disabled={disabled || busy}
-          className="rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          {sharing ? "Preparando…" : "Compartir"}
-        </button>
+      <div className={`grid gap-2 p-3 ${downloadOnly ? "grid-cols-1" : "grid-cols-2"}`}>
+        {!downloadOnly ? (
+          <button
+            type="button"
+            onClick={onShare}
+            disabled={disabled || busy}
+            className="rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            {sharing ? "Preparando…" : "Compartir"}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onDownload}
           disabled={disabled || busy}
-          className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-900 disabled:cursor-not-allowed disabled:opacity-45"
+          className={`rounded-xl px-3 py-2.5 text-xs font-black disabled:cursor-not-allowed disabled:opacity-45 ${
+            downloadOnly
+              ? "bg-neutral-950 text-white"
+              : "border border-neutral-200 bg-white text-neutral-900"
+          }`}
         >
-          {downloading ? "Generando…" : "Guardar imagen"}
+          {downloading ? "Generando…" : downloadLabel}
         </button>
       </div>
     </div>
@@ -169,6 +210,7 @@ export function SeasonShareExportsCard({
   matches,
   players,
   ranking,
+  summaryExport,
 }: {
   leagueName: string
   seasonName: string
@@ -176,6 +218,7 @@ export function SeasonShareExportsCard({
   matches: MatchData[]
   players: PlayerProfile[]
   ranking: RankingPlayer[]
+  summaryExport: SummaryExport
 }) {
   const [includeLeagueLogo, setIncludeLeagueLogo] = useState(true)
   const [includePlayerImages, setIncludePlayerImages] = useState(true)
@@ -189,7 +232,9 @@ export function SeasonShareExportsCard({
         ? "calendario-actual"
         : kind === "calendar-fixtures"
           ? "calendario-enfrentamientos"
-          : "clasificacion"
+          : kind === "summary"
+            ? "resumen-temporada"
+            : "clasificacion"
 
     return `${sanitizeFilename(leagueName)}-${sanitizeFilename(seasonName)}-${suffix}.png`
   }
@@ -201,6 +246,13 @@ export function SeasonShareExportsCard({
       leagueLogoUrl,
       includeLeagueLogo: hasLeagueLogo && includeLeagueLogo,
       includePlayerImages,
+    }
+
+    if (kind === "summary") {
+      return createSeasonSummaryImage(summaryExport.data, {
+        includeLeagueLogo: branding.includeLeagueLogo,
+        includeHeroImages: includePlayerImages,
+      })
     }
 
     if (kind === "ranking") {
@@ -220,6 +272,16 @@ export function SeasonShareExportsCard({
 
   async function runAction(kind: ExportKind, action: ExportAction) {
     if (busyAction) return
+
+    if (kind === "summary" && !summaryExport.canExport) {
+      showActionFeedback({
+        tone: "info",
+        message:
+          summaryExport.blockedReason ??
+          "Revisa los datos pendientes antes de descargar el resumen.",
+      })
+      return
+    }
 
     setBusyAction(`${kind}-${action}`)
 
@@ -248,6 +310,9 @@ export function SeasonShareExportsCard({
             message: "Tu dispositivo no permite compartir esta imagen; se ha descargado.",
           })
         }
+      } else if (kind === "summary") {
+        downloadSeasonSummaryImage(blob, filename)
+        showActionFeedback({ tone: "success", message: "Resumen de temporada descargado." })
       } else {
         downloadSeasonExportImage(blob, filename)
         showActionFeedback({ tone: "success", message: "Imagen guardada correctamente." })
@@ -275,7 +340,7 @@ export function SeasonShareExportsCard({
         </p>
         <p className="mt-1 text-lg font-black text-neutral-950">Compartir temporada</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Estas tres imágenes están disponibles durante toda la temporada. El resumen final aparecerá aparte cuando la competición haya terminado.
+          El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final.
         </p>
       </div>
 
@@ -337,6 +402,21 @@ export function SeasonShareExportsCard({
           onShare={() => void runAction("ranking", "share")}
           onDownload={() => void runAction("ranking", "download")}
         />
+        {summaryExport.visible ? (
+          <ExportCard
+            kind="summary"
+            title="Resumen de temporada"
+            description="Genera la imagen final con campeón, MVP, podio y momentos destacados, sin mostrar una vista previa en la app."
+            disabled={!summaryExport.canExport}
+            disabledReason={
+              summaryExport.canExport ? undefined : summaryExport.blockedReason
+            }
+            busyAction={busyAction}
+            downloadOnly
+            downloadLabel="Descargar Resumen de Temporada"
+            onDownload={() => void runAction("summary", "download")}
+          />
+        ) : null}
       </div>
     </AppCard>
   )
