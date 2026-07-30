@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.7",
+    date: "30 de julio de 2026",
+    title: "Nombres históricos correctos en las imágenes de clasificación",
+    summary:
+      "La clasificación exportada vuelve a resolver los nombres y avatares reales de jugadores de temporadas anteriores aunque después se haya creado una temporada nueva con una plantilla diferente.",
+    category: "fix",
+    changes: [
+      "Antes de generar las imágenes se reconcilian las filas de la clasificación con los perfiles completos de jugadores de la liga mediante su identificador estable.",
+      "Los nombres genéricos como Jugador se sustituyen por el nombre histórico real cuando el perfil correspondiente sigue disponible.",
+      "La misma resolución se aplica al podio y al resumen final para evitar inconsistencias entre las distintas imágenes compartibles.",
+      "Se conservan correctamente avatar, iniciales, slug y vinculación de usuario del perfil real.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.19.6",
     date: "30 de julio de 2026",
     title: "Resumen final sin vista previa",

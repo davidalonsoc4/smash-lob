@@ -33,6 +33,10 @@ function haveSamePlayerIds(first: string[], second: string[]) {
   return [...first].sort().join("|") === [...second].sort().join("|")
 }
 
+function isGenericPlayerName(value: string) {
+  return /^jugador(?:\s+\d+)?$/i.test(value.trim())
+}
+
 export default function StatisticsSeasonPage() {
   const {
     activeLeague,
@@ -55,6 +59,39 @@ export default function StatisticsSeasonPage() {
         .filter((match) => match.seasonId === selectedSeason.id)
         .sort((left, right) => left.round - right.round),
     [countedMatches, selectedSeason.id],
+  )
+  const exportRanking = useMemo(() => {
+    const profilesById = new Map(
+      leaguePlayers.map((player) => [player.id, player]),
+    )
+
+    return statistics.ranking.map((player) => {
+      const profile =
+        profilesById.get(player.playerId) ?? profilesById.get(player.id)
+
+      if (!profile) {
+        return player
+      }
+
+      const profileHasRealName = !isGenericPlayerName(profile.displayName)
+      const shouldUseProfileName =
+        isGenericPlayerName(player.displayName) && profileHasRealName
+
+      return {
+        ...player,
+        displayName: shouldUseProfileName
+          ? profile.displayName
+          : player.displayName,
+        slug: player.slug || profile.slug,
+        avatarInitials: player.avatarInitials || profile.avatarInitials,
+        avatarUrl: player.avatarUrl ?? profile.avatarUrl,
+        userId: player.userId ?? profile.userId,
+      }
+    })
+  }, [leaguePlayers, statistics.ranking])
+  const exportRankingById = useMemo(
+    () => new Map(exportRanking.map((player) => [player.id, player])),
+    [exportRanking],
   )
   const selectedSeasonMvpSystem = getSeasonRoundSettings(selectedSeason.id).mvpSystem
   const seasonMvp = useMemo(
@@ -86,12 +123,14 @@ export default function StatisticsSeasonPage() {
         .join(" / ")
     : "Sin MVP calculado"
   const summaryHeroes = useMemo((): SeasonSummaryHeroPanel[] => {
-    const championPlayers = statistics.leaders
+    const championPlayers = statistics.leaders.map(
+      (player) => exportRankingById.get(player.id) ?? player,
+    )
     const championPlayerIds = championPlayers.map((player) => player.id)
     const championNames = championPlayers.map((player) => player.displayName).join(" / ")
     const mvpPlayerIds = seasonMvp?.playerIds ?? []
     const mvpPlayers = mvpPlayerIds
-      .map((playerId) => statistics.ranking.find((player) => player.id === playerId))
+      .map((playerId) => exportRankingById.get(playerId))
       .filter((player): player is NonNullable<typeof player> => Boolean(player))
     const mvpNames = seasonMvpNames
 
@@ -149,8 +188,8 @@ export default function StatisticsSeasonPage() {
     seasonMvp,
     seasonMvpNames,
     selectedSeasonMvpSystem,
+    exportRankingById,
     statistics.leaders,
-    statistics.ranking,
   ])
   const seasonHistory = useMemo(
     () =>
@@ -263,7 +302,7 @@ export default function StatisticsSeasonPage() {
           leagueLogoUrl={activeLeague.logoUrl ?? null}
           matches={selectedSeasonMatches}
           players={leaguePlayers}
-          ranking={statistics.ranking}
+          ranking={exportRanking}
           summaryExport={{
             visible: selectedSeason.status === "finished",
             canExport: summaryIsComplete,
@@ -273,8 +312,8 @@ export default function StatisticsSeasonPage() {
               seasonName: selectedSeason.name,
               leagueLogoUrl: activeLeague.logoUrl ?? null,
               heroes: summaryHeroes,
-              podium: statistics.ranking.slice(0, 3).map((player) => ({
-                position: getRankingPosition(statistics.ranking, player.id) ?? 1,
+              podium: exportRanking.slice(0, 3).map((player) => ({
+                position: getRankingPosition(exportRanking, player.id) ?? 1,
                 name: player.displayName,
                 points: player.points,
                 gamesDiff: player.gamesDiff,

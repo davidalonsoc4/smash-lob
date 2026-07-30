@@ -1,6 +1,5 @@
 CHANGED_FILES.txt
 package.json
 src/app/statistics/season/page.tsx
-src/components/statistics/SeasonShareExportsCard.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
