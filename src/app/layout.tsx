@@ -1,17 +1,6 @@
 import type { Metadata, Viewport } from "next"
-import { AuthGate } from "@/components/auth/AuthGate"
-import { LeagueEntryGate } from "@/components/auth/LeagueEntryGate"
-import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
 import { AuthSessionProvider } from "@/context/AuthSessionProvider"
-import { AccountProfileProvider } from "@/context/AccountProfileProvider"
-import { ProfileCompletionGate } from "@/components/auth/ProfileCompletionGate"
-import { CurrentUserProvider } from "@/context/CurrentUserProvider"
-import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
-import { MatchDataProvider } from "@/context/MatchDataProvider"
-import { MvpProvider } from "@/context/MvpProvider"
-import { SeasonSettingsProvider } from "@/context/SeasonSettingsProvider"
-import { AppShell } from "@/components/layout/AppShell"
-import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistration"
+import { AppRouteBoundary } from "@/components/layout/AppRouteBoundary"
 import { I18nProvider } from "@/i18n/I18nProvider"
 import { ThemeProvider } from "@/context/ThemeProvider"
 import "./globals.css"
@@ -20,6 +9,7 @@ import { getAppBranding } from "@/lib/appVariant"
 const branding = getAppBranding()
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://smashandlob.com"),
   applicationName: branding.applicationName,
   title: {
     default: branding.browserTitle,
@@ -75,28 +65,7 @@ export default function RootLayout({
         <ThemeProvider>
         <I18nProvider>
           <AuthSessionProvider>
-            <AuthGate>
-              <AccountProfileProvider>
-                <ProfileCompletionGate>
-              <SeasonSettingsProvider>
-                <MatchDataProvider>
-                  <LeagueAccessProvider>
-                    <MvpProvider>
-                      <ActiveLeagueProvider>
-                      <CurrentUserProvider>
-                        <LeagueEntryGate>
-                          <AutoPushRegistration />
-                          <AppShell>{children}</AppShell>
-                        </LeagueEntryGate>
-                      </CurrentUserProvider>
-                      </ActiveLeagueProvider>
-                    </MvpProvider>
-                  </LeagueAccessProvider>
-                </MatchDataProvider>
-              </SeasonSettingsProvider>
-                </ProfileCompletionGate>
-              </AccountProfileProvider>
-            </AuthGate>
+            <AppRouteBoundary>{children}</AppRouteBoundary>
           </AuthSessionProvider>
         </I18nProvider>
         </ThemeProvider>

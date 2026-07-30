@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { signIn, useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
@@ -44,6 +45,10 @@ export function AuthGate({ children }: AuthGateProps) {
           <p className="mt-2 text-sm text-neutral-500">
             {t.auth.description}
           </p>
+          <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-3 text-xs font-semibold leading-5 text-neutral-600">
+            Organiza ligas privadas de pádel con calendario, disponibilidad, resultados,
+            clasificación, estadísticas y avisos en un único lugar.
+          </p>
 
           <button
             type="button"
@@ -54,6 +59,18 @@ export function AuthGate({ children }: AuthGateProps) {
           >
             {t.auth.signInWithGoogle}
           </button>
+
+          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] font-bold text-neutral-500">
+            <Link href="/about" className="underline underline-offset-2">
+              Sobre la app
+            </Link>
+            <Link href="/privacy" className="underline underline-offset-2">
+              Privacidad
+            </Link>
+            <Link href="/terms" className="underline underline-offset-2">
+              Condiciones
+            </Link>
+          </div>
         </AppCard>
       </main>
     )
