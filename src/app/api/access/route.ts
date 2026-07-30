@@ -40,11 +40,7 @@ function buildLeagueSnapshotFailure(
   })
 
   return NextResponse.json(
-    {
-      error: "league_snapshot_failed",
-      stage,
-      ...(error.code ? { code: error.code } : {}),
-    },
+    { error: "league_snapshot_failed" },
     { status: 500 }
   )
 }
