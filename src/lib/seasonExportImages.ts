@@ -2,11 +2,14 @@ import type { MatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile } from "@/data/fakeData"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import type { RankingPlayer } from "@/lib/ranking"
+import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 
 type ExportBranding = {
   leagueName: string
   seasonName: string
   leagueLogoUrl?: string | null
+  includeLeagueLogo?: boolean
+  includePlayerImages?: boolean
 }
 
 type CanvasPalette = {
@@ -18,28 +21,52 @@ type CanvasPalette = {
   line: string
   accent: string
   accentSoft: string
+  inverseText: string
+  inverseMuted: string
   gold: string
   silver: string
   bronze: string
+  success: string
+}
+
+type DrawPlayerAvatarOptions = {
+  context: CanvasRenderingContext2D
+  playerName: string
+  avatarUrl?: string | null
+  avatarInitials?: string | null
+  image: HTMLImageElement | null
+  x: number
+  y: number
+  size: number
+  radius?: number
+  includeImage: boolean
 }
 
 const WIDTH = 1080
 const PADDING = 54
 const CONTENT_WIDTH = WIDTH - PADDING * 2
 const APP_ICON_PATH = "/icon-192.png"
+const HEADER_HEIGHT = 244
+const HEADER_TOP = 34
+const CONTENT_TOP = HEADER_TOP + HEADER_HEIGHT + 28
+const FOOTER_HEIGHT = 80
+const FOOTER_BOTTOM = 30
 
 const palette: CanvasPalette = {
   background: "#f4f5f2",
   surface: "#ffffff",
-  surfaceAlt: "#eef0eb",
-  text: "#151715",
-  muted: "#697069",
-  line: "#dfe3dc",
-  accent: "#111311",
-  accentSoft: "#dce2db",
+  surfaceAlt: "#edf1ec",
+  text: "#162018",
+  muted: "#6e766f",
+  line: "#dde3dc",
+  accent: "#19211b",
+  accentSoft: "#314034",
+  inverseText: "#ffffff",
+  inverseMuted: "#cfd7cf",
   gold: "#c79a2b",
-  silver: "#8c9691",
-  bronze: "#a96f45",
+  silver: "#8f9892",
+  bronze: "#ab7249",
+  success: "#2f6f4e",
 }
 
 function roundedRect(
@@ -90,15 +117,50 @@ function drawCard(
   y: number,
   width: number,
   height: number,
-  radius = 26,
+  radius = 28,
 ) {
   context.save()
-  context.shadowColor = "rgba(21, 23, 21, 0.08)"
+  context.shadowColor = "rgba(12, 20, 14, 0.08)"
   context.shadowBlur = 24
   context.shadowOffsetY = 10
   fillRoundedRect(context, x, y, width, height, radius, palette.surface)
   context.restore()
   strokeRoundedRect(context, x, y, width, height, radius, palette.line)
+}
+
+function createCanvas(height: number) {
+  const canvas = document.createElement("canvas")
+  canvas.width = WIDTH
+  canvas.height = height
+  const context = canvas.getContext("2d")
+
+  if (!context) {
+    throw new Error("canvas_not_available")
+  }
+
+  context.fillStyle = palette.background
+  context.fillRect(0, 0, WIDTH, height)
+
+  context.save()
+  context.strokeStyle = "rgba(107, 118, 111, 0.08)"
+  context.lineWidth = 2
+  roundedRect(context, 28, 28, WIDTH - 56, height - 56, 44)
+  context.stroke()
+  context.restore()
+
+  return { canvas, context }
+}
+
+function safeFilenamePart(value: string) {
+  return (
+    value
+      .trim()
+      .toLocaleLowerCase("es-ES")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "smash-lob"
+  )
 }
 
 function truncateText(
@@ -132,193 +194,227 @@ function drawText(
     color?: string
     align?: CanvasTextAlign
     maxWidth?: number
+    baseline?: CanvasTextBaseline
   },
 ) {
   context.font = `${options.weight ?? 700} ${options.size}px Arial, sans-serif`
   context.fillStyle = options.color ?? palette.text
   context.textAlign = options.align ?? "left"
-  context.textBaseline = "alphabetic"
+  context.textBaseline = options.baseline ?? "alphabetic"
   const text = options.maxWidth
     ? truncateText(context, value, options.maxWidth)
     : value
   context.fillText(text, x, y)
 }
 
-function getInitials(value: string) {
+function getInitials(value: string, fallback = "SL") {
   const words = value.trim().split(/\s+/).filter(Boolean)
 
   if (words.length === 0) {
-    return "SL"
+    return fallback
   }
 
-  return `${words[0]?.[0] ?? ""}${words.at(-1)?.[0] ?? ""}`.toUpperCase()
+  return `${words[0]?.[0] ?? ""}${words.at(-1)?.[0] ?? ""}`.toUpperCase() || fallback
 }
 
-function safeFilenamePart(value: string) {
-  return (
-    value
-      .trim()
-      .toLocaleLowerCase("es-ES")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "smash-lob"
-  )
-}
-
-function createCanvas(height: number) {
-  const canvas = document.createElement("canvas")
-  canvas.width = WIDTH
-  canvas.height = height
-  const context = canvas.getContext("2d")
-
-  if (!context) {
-    throw new Error("canvas_not_available")
-  }
-
-  context.fillStyle = palette.background
-  context.fillRect(0, 0, WIDTH, height)
-
-  return { canvas, context }
-}
-
-async function loadImage(url: string | null | undefined) {
-  if (!url) {
-    return null
-  }
+async function loadOptionalImage(src?: string | null) {
+  const normalized = normalizeImageUrl(src ?? null)
+  if (!normalized) return null
 
   return new Promise<HTMLImageElement | null>((resolve) => {
     const image = new Image()
     image.crossOrigin = "anonymous"
     image.onload = () => resolve(image)
     image.onerror = () => resolve(null)
-    image.src = url
+    image.src = normalized
   })
 }
 
-function drawCoverImage(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  x: number,
-  y: number,
-  size: number,
-  radius: number,
-) {
-  const scale = Math.max(size / image.naturalWidth, size / image.naturalHeight)
-  const width = image.naturalWidth * scale
-  const height = image.naturalHeight * scale
-  const offsetX = x + (size - width) / 2
-  const offsetY = y + (size - height) / 2
+function getContainedImagePlacement({
+  image,
+  x,
+  y,
+  width,
+  height,
+}: {
+  image: HTMLImageElement
+  x: number
+  y: number
+  width: number
+  height: number
+}) {
+  const sourceRatio = image.width / image.height
+  const targetRatio = width / height
+  let drawWidth = width
+  let drawHeight = height
+
+  if (sourceRatio > targetRatio) {
+    drawHeight = width / sourceRatio
+  } else {
+    drawWidth = height * sourceRatio
+  }
+
+  return {
+    x: x + (width - drawWidth) / 2,
+    y: y + (height - drawHeight) / 2,
+    width: drawWidth,
+    height: drawHeight,
+  }
+}
+
+function drawTransparentImageContain({
+  context,
+  image,
+  x,
+  y,
+  width,
+  height,
+  withShadow = false,
+}: {
+  context: CanvasRenderingContext2D
+  image: HTMLImageElement
+  x: number
+  y: number
+  width: number
+  height: number
+  withShadow?: boolean
+}) {
+  const placement = getContainedImagePlacement({ image, x, y, width, height })
 
   context.save()
-  roundedRect(context, x, y, size, size, radius)
-  context.clip()
-  context.drawImage(image, offsetX, offsetY, width, height)
+  if (withShadow) {
+    context.shadowColor = "rgba(15, 23, 42, 0.14)"
+    context.shadowBlur = 8
+    context.shadowOffsetY = 2
+  }
+  context.drawImage(
+    image,
+    placement.x,
+    placement.y,
+    placement.width,
+    placement.height,
+  )
   context.restore()
 }
 
-async function drawHeader({
+function drawImageCover({
   context,
-  branding,
-  label,
+  image,
+  x,
+  y,
+  width,
+  height,
+  radius,
+  background,
 }: {
   context: CanvasRenderingContext2D
-  branding: ExportBranding
-  label: string
+  image: HTMLImageElement
+  x: number
+  y: number
+  width: number
+  height: number
+  radius: number
+  background: string
 }) {
-  fillRoundedRect(context, PADDING, 42, CONTENT_WIDTH, 190, 34, palette.accent)
+  fillRoundedRect(context, x, y, width, height, radius, background)
+  context.save()
+  roundedRect(context, x, y, width, height, radius)
+  context.clip()
 
-  const [leagueLogo, appIcon] = await Promise.all([
-    loadImage(branding.leagueLogoUrl),
-    loadImage(APP_ICON_PATH),
-  ])
-  const logoX = PADDING + 34
-  const logoY = 77
-  const logoSize = 120
+  const sourceRatio = image.width / image.height
+  const targetRatio = width / height
+  let drawWidth = width
+  let drawHeight = height
+  let drawX = x
+  let drawY = y
 
-  if (leagueLogo) {
-    fillRoundedRect(
-      context,
-      logoX,
-      logoY,
-      logoSize,
-      logoSize,
-      26,
-      "#ffffff",
-    )
-    drawCoverImage(context, leagueLogo, logoX + 8, logoY + 8, logoSize - 16, 20)
+  if (sourceRatio > targetRatio) {
+    drawWidth = height * sourceRatio
+    drawX = x - (drawWidth - width) / 2
   } else {
-    fillRoundedRect(
+    drawHeight = width / sourceRatio
+    drawY = y - (drawHeight - height) / 2
+  }
+
+  context.drawImage(image, drawX, drawY, drawWidth, drawHeight)
+  context.restore()
+}
+
+function drawGenericUserGlyph({
+  context,
+  x,
+  y,
+  size,
+  color,
+}: {
+  context: CanvasRenderingContext2D
+  x: number
+  y: number
+  size: number
+  color: string
+}) {
+  const centerX = x + size / 2
+  const centerY = y + size / 2
+
+  context.save()
+  context.fillStyle = color
+  context.beginPath()
+  context.arc(centerX, y + size * 0.35, size * 0.17, 0, Math.PI * 2)
+  context.fill()
+
+  context.beginPath()
+  context.moveTo(x + size * 0.18, y + size * 0.82)
+  context.quadraticCurveTo(x + size * 0.24, y + size * 0.58, centerX, y + size * 0.58)
+  context.quadraticCurveTo(x + size * 0.76, y + size * 0.58, x + size * 0.82, y + size * 0.82)
+  context.lineTo(x + size * 0.18, y + size * 0.82)
+  context.fill()
+  context.restore()
+}
+
+function drawPlayerAvatar({
+  context,
+  playerName,
+  avatarUrl,
+  avatarInitials,
+  image,
+  x,
+  y,
+  size,
+  radius = Math.round(size * 0.36),
+  includeImage,
+}: DrawPlayerAvatarOptions) {
+  if (includeImage && image && isSafeImageUrl(avatarUrl)) {
+    drawImageCover({
       context,
-      logoX,
-      logoY,
-      logoSize,
-      logoSize,
-      26,
-      "#ffffff",
-    )
-    drawText(context, getInitials(branding.leagueName), logoX + logoSize / 2, logoY + 76, {
-      size: 42,
-      weight: 900,
-      color: palette.accent,
-      align: "center",
+      image,
+      x,
+      y,
+      width: size,
+      height: size,
+      radius,
+      background: palette.surfaceAlt,
     })
+    return
   }
 
-  drawText(context, label.toUpperCase(), PADDING + 184, 91, {
-    size: 20,
-    weight: 900,
-    color: "#bfc6bf",
-    maxWidth: 610,
-  })
-  drawText(context, branding.leagueName, PADDING + 184, 139, {
-    size: 40,
-    weight: 900,
-    color: "#ffffff",
-    maxWidth: 690,
-  })
-  drawText(context, branding.seasonName, PADDING + 184, 181, {
-    size: 25,
-    weight: 800,
-    color: "#d8ddd8",
-    maxWidth: 690,
-  })
+  fillRoundedRect(context, x, y, size, size, radius, palette.surfaceAlt)
 
-  if (appIcon) {
-    drawCoverImage(context, appIcon, WIDTH - PADDING - 56, 74, 42, 12)
+  if (includeImage) {
+    drawGenericUserGlyph({
+      context,
+      x,
+      y,
+      size,
+      color: "#6d756f",
+    })
+    return
   }
-}
 
-function drawFooter(
-  context: CanvasRenderingContext2D,
-  canvasHeight: number,
-) {
-  drawText(context, "Creado con Smash & Lob", WIDTH / 2, canvasHeight - 45, {
-    size: 19,
-    weight: 800,
-    color: palette.muted,
+  drawText(context, avatarInitials || getInitials(playerName), x + size / 2, y + size / 2 + 6, {
+    size: Math.max(12, Math.round(size * 0.34)),
+    weight: 900,
+    color: palette.text,
     align: "center",
-  })
-}
-
-function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
-  return new Promise<void>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("image_export_failed"))
-        return
-      }
-
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement("a")
-      anchor.href = url
-      anchor.download = filename
-      document.body.appendChild(anchor)
-      anchor.click()
-      anchor.remove()
-      URL.revokeObjectURL(url)
-      resolve()
-    }, "image/png")
   })
 }
 
@@ -354,7 +450,23 @@ function getMatchStatusLabel(match: MatchData) {
     return "Programado"
   }
 
-  return "Pendiente de programar"
+  return "Pendiente"
+}
+
+function getMatchStatusColor(match: MatchData) {
+  if (match.status === "finished") {
+    return { background: "#e9f5ee", text: palette.success }
+  }
+
+  if (match.status === "postponed") {
+    return { background: "#fff1d9", text: "#9a6400" }
+  }
+
+  if (match.status === "scheduled") {
+    return { background: "#edf1ff", text: "#4059ab" }
+  }
+
+  return { background: palette.surfaceAlt, text: palette.muted }
 }
 
 function getMatchScore(match: MatchData) {
@@ -371,24 +483,203 @@ function getPlayerName(playerId: string, players: Map<string, PlayerProfile>) {
   return players.get(playerId)?.displayName ?? "Jugador"
 }
 
-function drawMatchCard({
+function formatSetScores(match: MatchData) {
+  if (match.sets.length === 0) {
+    return null
+  }
+
+  return match.sets.map((set) => `${set.a}-${set.b}`).join("   ·   ")
+}
+
+async function drawHeader({
+  context,
+  leagueName,
+  seasonName,
+  leagueLogo,
+  label,
+}: {
+  context: CanvasRenderingContext2D
+  leagueName: string
+  seasonName: string
+  leagueLogo: HTMLImageElement | null
+  label: string
+}) {
+  fillRoundedRect(context, PADDING, HEADER_TOP, CONTENT_WIDTH, HEADER_HEIGHT, 38, palette.accent)
+
+  context.save()
+  roundedRect(context, PADDING, HEADER_TOP, CONTENT_WIDTH, HEADER_HEIGHT, 38)
+  context.clip()
+  context.strokeStyle = "rgba(255, 255, 255, 0.08)"
+  context.lineWidth = 3
+  context.beginPath()
+  context.arc(PADDING + CONTENT_WIDTH - 40, HEADER_TOP + HEADER_HEIGHT + 8, 240, Math.PI, Math.PI * 1.65)
+  context.stroke()
+  context.beginPath()
+  context.moveTo(PADDING + CONTENT_WIDTH * 0.56, HEADER_TOP - 24)
+  context.lineTo(PADDING + CONTENT_WIDTH + 46, HEADER_TOP + HEADER_HEIGHT * 0.66)
+  context.stroke()
+  context.restore()
+
+  const textLeft = PADDING + 30
+  let textRight = PADDING + CONTENT_WIDTH - 30
+
+  if (leagueLogo) {
+    const logoTop = HEADER_TOP + 16
+    const logoRightMargin = 18
+    const logoBottomMargin = 16
+    const logoMaxHeight = HEADER_HEIGHT - (logoTop - HEADER_TOP) - logoBottomMargin
+    const logoAspect = leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight)
+    const logoWidth = logoMaxHeight * logoAspect
+    const logoX = PADDING + CONTENT_WIDTH - logoWidth - logoRightMargin
+    drawTransparentImageContain({
+      context,
+      image: leagueLogo,
+      x: logoX,
+      y: logoTop,
+      width: logoWidth,
+      height: logoMaxHeight,
+      withShadow: true,
+    })
+    textRight = logoX - 18
+  }
+
+  const availableWidth = Math.max(280, textRight - textLeft)
+
+  drawText(context, label.toUpperCase(), textLeft, HEADER_TOP + 40, {
+    size: 15,
+    weight: 900,
+    color: palette.inverseMuted,
+    baseline: "middle",
+    maxWidth: availableWidth,
+  })
+
+  drawText(context, leagueName.toUpperCase(), textLeft, HEADER_TOP + 105, {
+    size: 24,
+    weight: 900,
+    color: palette.inverseMuted,
+    maxWidth: availableWidth,
+  })
+
+  drawText(context, seasonName, textLeft, HEADER_TOP + 180, {
+    size: 54,
+    weight: 900,
+    color: palette.inverseText,
+    maxWidth: availableWidth,
+  })
+}
+
+function drawBrandMark({
+  context,
+  appIcon,
+  x,
+  y,
+  size,
+}: {
+  context: CanvasRenderingContext2D
+  appIcon: HTMLImageElement | null
+  x: number
+  y: number
+  size: number
+}) {
+  if (appIcon) {
+    drawImageCover({
+      context,
+      image: appIcon,
+      x,
+      y,
+      width: size,
+      height: size,
+      radius: Math.round(size * 0.24),
+      background: palette.surface,
+    })
+    return
+  }
+
+  fillRoundedRect(context, x, y, size, size, Math.round(size * 0.24), palette.surface)
+  drawText(context, "S&L", x + size / 2, y + size / 2 + 7, {
+    size: Math.round(size * 0.28),
+    weight: 900,
+    color: palette.accent,
+    align: "center",
+  })
+}
+
+function drawFooter({
+  context,
+  canvasHeight,
+  appIcon,
+}: {
+  context: CanvasRenderingContext2D
+  canvasHeight: number
+  appIcon: HTMLImageElement | null
+}) {
+  const iconSize = 50
+  const textBlockWidth = 152
+  const groupWidth = iconSize + 16 + textBlockWidth
+  const groupX = (WIDTH - groupWidth) / 2
+  const groupY = canvasHeight - FOOTER_BOTTOM - FOOTER_HEIGHT + 10
+
+  drawBrandMark({ context, appIcon, x: groupX, y: groupY, size: iconSize })
+
+  drawText(context, "Creado con", groupX + iconSize + 16, groupY + 18, {
+    size: 15,
+    weight: 700,
+    color: palette.muted,
+    baseline: "middle",
+  })
+  drawText(context, "Smash & Lob", groupX + iconSize + 16, groupY + 40, {
+    size: 21,
+    weight: 900,
+    color: palette.text,
+    baseline: "middle",
+  })
+}
+
+function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
+  return new Promise<void>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("image_export_failed"))
+        return
+      }
+
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = url
+      anchor.download = filename
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+      resolve()
+    }, "image/png")
+  })
+}
+
+async function drawMatchCard({
   context,
   match,
   players,
+  avatarImages,
   x,
   y,
   width,
+  includePlayerImages,
 }: {
   context: CanvasRenderingContext2D
   match: MatchData
   players: Map<string, PlayerProfile>
+  avatarImages: Map<string, HTMLImageElement | null>
   x: number
   y: number
   width: number
+  includePlayerImages: boolean
 }) {
-  const height = 178
-  drawCard(context, x, y, width, height, 24)
+  const height = 210
+  drawCard(context, x, y, width, height, 26)
 
+  const statusPalette = getMatchStatusColor(match)
+  const statusLabel = getMatchStatusLabel(match)
   const meta = [
     formatScheduledAt(match.scheduledAt) ?? match.dateLabel,
     getScheduleLocationDisplayText(match.location),
@@ -396,48 +687,97 @@ function drawMatchCard({
     .filter(Boolean)
     .join(" · ")
 
-  drawText(context, getMatchStatusLabel(match), x + 24, y + 31, {
-    size: 16,
+  fillRoundedRect(context, x + 24, y + 22, 174, 30, 15, statusPalette.background)
+  drawText(context, statusLabel, x + 111, y + 43, {
+    size: 14,
     weight: 900,
-    color: match.status === "finished" ? "#2f6f4e" : palette.muted,
-    maxWidth: width - 48,
+    color: statusPalette.text,
+    align: "center",
+    baseline: "middle",
+    maxWidth: 150,
   })
-  drawText(context, meta || "Fecha y lugar pendientes", x + 24, y + 57, {
-    size: 15,
+  drawText(context, meta || "Fecha y lugar pendientes", x + width - 24, y + 42, {
+    size: 14,
     weight: 700,
     color: palette.muted,
-    maxWidth: width - 48,
+    align: "right",
+    baseline: "middle",
+    maxWidth: width - 240,
   })
 
-  const teamWidth = width * 0.35
-  drawText(
-    context,
-    match.teamA.map((id) => getPlayerName(id, players)).join(" / "),
-    x + 24,
-    y + 108,
-    { size: 22, weight: 900, maxWidth: teamWidth },
-  )
-  drawText(context, getMatchScore(match), x + width / 2, y + 109, {
-    size: 27,
+  context.fillStyle = palette.line
+  context.fillRect(x + 24, y + 68, width - 48, 1)
+
+  const teamAreaWidth = width * 0.35
+  const centerWidth = width * 0.18
+  const leftX = x + 24
+  const centerX = x + teamAreaWidth + 24
+  const rightX = x + width - 24 - teamAreaWidth
+
+  const teams = [
+    { ids: match.teamA, x: leftX, align: "left" as const },
+    { ids: match.teamB, x: rightX, align: "right" as const },
+  ]
+
+  teams.forEach((team) => {
+    team.ids.slice(0, 2).forEach((playerId, index) => {
+      const profile = players.get(playerId)
+      const rowY = y + 95 + index * 36
+      const avatarSize = 26
+      const avatarX = team.align === "left" ? team.x : team.x + teamAreaWidth - avatarSize
+      const textX = team.align === "left" ? avatarX + avatarSize + 10 : avatarX - 10
+      const maxTextWidth = teamAreaWidth - avatarSize - 14
+
+      drawPlayerAvatar({
+        context,
+        playerName: profile?.displayName ?? "Jugador",
+        avatarUrl: profile?.avatarUrl,
+        avatarInitials: profile?.avatarInitials,
+        image: avatarImages.get(playerId) ?? null,
+        x: avatarX,
+        y: rowY - 18,
+        size: avatarSize,
+        radius: 9,
+        includeImage: includePlayerImages,
+      })
+
+      drawText(context, profile?.displayName ?? "Jugador", textX, rowY, {
+        size: 17,
+        weight: 900,
+        color: palette.text,
+        align: team.align,
+        baseline: "middle",
+        maxWidth: maxTextWidth,
+      })
+    })
+  })
+
+  drawText(context, getMatchScore(match), centerX + centerWidth / 2, y + 117, {
+    size: match.status === "finished" ? 29 : 24,
     weight: 900,
+    color: palette.text,
     align: "center",
+    baseline: "middle",
   })
-  drawText(
-    context,
-    match.teamB.map((id) => getPlayerName(id, players)).join(" / "),
-    x + width - 24,
-    y + 108,
-    { size: 22, weight: 900, align: "right", maxWidth: teamWidth },
-  )
 
-  if (match.sets.length > 0) {
-    drawText(
-      context,
-      match.sets.map((set) => `${set.a}-${set.b}`).join("   "),
-      x + width / 2,
-      y + 145,
-      { size: 16, weight: 800, color: palette.muted, align: "center" },
-    )
+  if (match.status === "finished" && match.sets.length > 0) {
+    drawText(context, formatSetScores(match) ?? "", centerX + centerWidth / 2, y + 156, {
+      size: 15,
+      weight: 800,
+      color: palette.muted,
+      align: "center",
+      baseline: "middle",
+      maxWidth: width - 60,
+    })
+  } else {
+    drawText(context, match.status === "postponed" ? "Pendiente de nueva fecha" : "Sin resultado todavía", centerX + centerWidth / 2, y + 156, {
+      size: 14,
+      weight: 700,
+      color: palette.muted,
+      align: "center",
+      baseline: "middle",
+      maxWidth: width - 60,
+    })
   }
 }
 
@@ -445,6 +785,8 @@ export async function exportSeasonCalendarImage({
   leagueName,
   seasonName,
   leagueLogoUrl,
+  includeLeagueLogo = true,
+  includePlayerImages = true,
   matches,
   players,
 }: ExportBranding & {
@@ -462,54 +804,73 @@ export async function exportSeasonCalendarImage({
     })
 
   const rounds = Array.from(matchesByRound.entries())
-  const roundHeights = rounds.map(([, roundMatches]) =>
-    62 + Math.ceil(roundMatches.length / 2) * 198,
-  )
+  const cardHeight = 228
+  const roundHeights = rounds.map(([, roundMatches]) => 68 + Math.ceil(roundMatches.length / 2) * cardHeight)
   const canvasHeight = Math.max(
-    720,
-    280 + roundHeights.reduce((total, height) => total + height, 0) + 92,
+    760,
+    CONTENT_TOP + roundHeights.reduce((total, height) => total + height, 0) + FOOTER_HEIGHT + FOOTER_BOTTOM + 26,
   )
   const { canvas, context } = createCanvas(canvasHeight)
 
+  const playerImageIds = includePlayerImages
+    ? Array.from(new Set(players.filter((player) => isSafeImageUrl(player.avatarUrl)).map((player) => player.id)))
+    : []
+  const [leagueLogo, appIcon, playerImages] = await Promise.all([
+    includeLeagueLogo ? loadOptionalImage(leagueLogoUrl ?? null) : Promise.resolve(null),
+    loadOptionalImage(APP_ICON_PATH),
+    Promise.all(
+      playerImageIds.map(async (playerId) => {
+        const player = players.find((item) => item.id === playerId)
+        return [playerId, await loadOptionalImage(player?.avatarUrl ?? null)] as const
+      }),
+    ),
+  ])
+  const avatarImages = new Map(playerImages)
+
   await drawHeader({
     context,
-    branding: { leagueName, seasonName, leagueLogoUrl },
+    leagueName,
+    seasonName,
+    leagueLogo,
     label: "Calendario de temporada",
   })
 
   const playersById = new Map(players.map((player) => [player.id, player]))
-  let y = 270
+  let y = CONTENT_TOP
 
-  rounds.forEach(([round, roundMatches]) => {
-    drawText(context, `JORNADA ${round}`, PADDING, y + 28, {
+  for (const [round, roundMatches] of rounds) {
+    drawText(context, `JORNADA ${round}`, PADDING, y + 20, {
       size: 20,
       weight: 900,
       color: palette.muted,
+      baseline: "middle",
     })
     context.fillStyle = palette.line
-    context.fillRect(PADDING + 154, y + 20, CONTENT_WIDTH - 154, 2)
-    y += 52
+    context.fillRect(PADDING + 154, y + 18, CONTENT_WIDTH - 154, 2)
+    y += 44
 
     const cardGap = 18
     const cardWidth = (CONTENT_WIDTH - cardGap) / 2
 
-    roundMatches.forEach((match, index) => {
+    for (const [index, match] of roundMatches.entries()) {
       const column = index % 2
       const row = Math.floor(index / 2)
-      drawMatchCard({
+      await drawMatchCard({
         context,
         match,
         players: playersById,
+        avatarImages,
         x: PADDING + column * (cardWidth + cardGap),
-        y: y + row * 198,
+        y: y + row * cardHeight,
         width: cardWidth,
+        includePlayerImages,
       })
-    })
+    }
 
-    y += Math.ceil(roundMatches.length / 2) * 198 + 10
-  })
+    y += Math.ceil(roundMatches.length / 2) * cardHeight + 18
+  }
 
-  drawFooter(context, canvasHeight)
+  drawFooter({ context, canvasHeight, appIcon })
 
   await downloadCanvas(
     canvas,
@@ -520,49 +881,73 @@ export async function exportSeasonCalendarImage({
 function drawPodiumCard({
   context,
   player,
+  playerImage,
   position,
   x,
   y,
   width,
+  includePlayerImages,
 }: {
   context: CanvasRenderingContext2D
   player: RankingPlayer
+  playerImage: HTMLImageElement | null
   position: number
   x: number
   y: number
   width: number
+  includePlayerImages: boolean
 }) {
   const accent = position === 1 ? palette.gold : position === 2 ? palette.silver : palette.bronze
-  drawCard(context, x, y, width, 164, 26)
+  drawCard(context, x, y, width, 174, 28)
   context.fillStyle = accent
-  context.fillRect(x, y + 26, 8, 112)
-  fillRoundedRect(context, x + 26, y + 28, 58, 58, 18, palette.surfaceAlt)
-  drawText(context, String(position), x + 55, y + 68, {
-    size: 28,
+  context.fillRect(x, y + 28, 8, 118)
+
+  drawPlayerAvatar({
+    context,
+    playerName: player.displayName,
+    avatarUrl: player.avatarUrl,
+    avatarInitials: player.avatarInitials,
+    image: playerImage,
+    x: x + 26,
+    y: y + 28,
+    size: 60,
+    radius: 18,
+    includeImage: includePlayerImages,
+  })
+
+  fillRoundedRect(context, x + width - 64, y + 28, 38, 38, 14, `${accent}22`)
+  drawText(context, String(position), x + width - 45, y + 55, {
+    size: 18,
     weight: 900,
     color: accent,
     align: "center",
+    baseline: "middle",
   })
-  drawText(context, player.displayName, x + 98, y + 55, {
+
+  drawText(context, player.displayName, x + 100, y + 56, {
     size: 23,
     weight: 900,
-    maxWidth: width - 120,
+    maxWidth: width - 170,
+    baseline: "middle",
   })
-  drawText(context, `${player.points} PTS`, x + 98, y + 82, {
-    size: 17,
+  drawText(context, `${player.points} PTS`, x + 100, y + 84, {
+    size: 16,
     weight: 900,
     color: palette.muted,
+    baseline: "middle",
   })
-  drawText(context, `${player.wins} victorias`, x + 26, y + 126, {
+  drawText(context, `${player.wins} victorias`, x + 26, y + 132, {
     size: 17,
     weight: 800,
     color: palette.muted,
+    baseline: "middle",
   })
-  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 26, y + 126, {
+  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 26, y + 132, {
     size: 17,
     weight: 800,
     color: palette.muted,
     align: "right",
+    baseline: "middle",
   })
 }
 
@@ -570,49 +955,74 @@ export async function exportSeasonRankingImage({
   leagueName,
   seasonName,
   leagueLogoUrl,
+  includeLeagueLogo = true,
+  includePlayerImages = true,
   ranking,
 }: ExportBranding & {
   ranking: RankingPlayer[]
 }) {
   const tableRows = Math.max(ranking.length, 1)
-  const canvasHeight = 650 + tableRows * 82
+  const tableHeight = 72 + tableRows * 82
+  const podiumHeight = ranking.length > 0 ? 190 : 0
+  const canvasHeight = CONTENT_TOP + podiumHeight + 28 + tableHeight + FOOTER_HEIGHT + FOOTER_BOTTOM + 34
   const { canvas, context } = createCanvas(canvasHeight)
+
+  const playerImageIds = includePlayerImages
+    ? Array.from(new Set(ranking.filter((player) => isSafeImageUrl(player.avatarUrl)).map((player) => player.id)))
+    : []
+  const [leagueLogo, appIcon, playerImages] = await Promise.all([
+    includeLeagueLogo ? loadOptionalImage(leagueLogoUrl ?? null) : Promise.resolve(null),
+    loadOptionalImage(APP_ICON_PATH),
+    Promise.all(
+      playerImageIds.map(async (playerId) => {
+        const player = ranking.find((item) => item.id === playerId)
+        return [playerId, await loadOptionalImage(player?.avatarUrl ?? null)] as const
+      }),
+    ),
+  ])
+  const avatarImages = new Map(playerImages)
 
   await drawHeader({
     context,
-    branding: { leagueName, seasonName, leagueLogoUrl },
+    leagueName,
+    seasonName,
+    leagueLogo,
     label: "Clasificación de temporada",
   })
 
   const podium = ranking.slice(0, 3)
-  const podiumGap = 16
-  const podiumWidth = (CONTENT_WIDTH - podiumGap * 2) / 3
-
-  podium.forEach((player, index) => {
-    drawPodiumCard({
-      context,
-      player,
-      position: index + 1,
-      x: PADDING + index * (podiumWidth + podiumGap),
-      y: 270,
-      width: podiumWidth,
+  if (podium.length > 0) {
+    const podiumGap = 16
+    const podiumWidth = (CONTENT_WIDTH - podiumGap * 2) / 3
+    podium.forEach((player, index) => {
+      drawPodiumCard({
+        context,
+        player,
+        playerImage: avatarImages.get(player.id) ?? null,
+        position: index + 1,
+        x: PADDING + index * (podiumWidth + podiumGap),
+        y: CONTENT_TOP,
+        width: podiumWidth,
+        includePlayerImages,
+      })
     })
-  })
+  }
 
-  const tableY = 474
-  drawCard(context, PADDING, tableY, CONTENT_WIDTH, 72 + tableRows * 82, 30)
+  const tableY = CONTENT_TOP + podiumHeight + 10
+  drawCard(context, PADDING, tableY, CONTENT_WIDTH, tableHeight, 30)
   fillRoundedRect(context, PADDING, tableY, CONTENT_WIDTH, 72, 30, palette.accent)
+  context.fillStyle = palette.accent
   context.fillRect(PADDING, tableY + 42, CONTENT_WIDTH, 30)
 
-  drawText(context, "POS", PADDING + 30, tableY + 46, {
+  drawText(context, "POS", PADDING + 32, tableY + 46, {
     size: 16,
     weight: 900,
-    color: "#ffffff",
+    color: palette.inverseText,
   })
-  drawText(context, "JUGADOR", PADDING + 116, tableY + 46, {
+  drawText(context, "JUGADOR", PADDING + 126, tableY + 46, {
     size: 16,
     weight: 900,
-    color: "#ffffff",
+    color: palette.inverseText,
   })
   const columns = [
     ["PTS", WIDTH - PADDING - 300],
@@ -620,11 +1030,11 @@ export async function exportSeasonRankingImage({
     ["PG", WIDTH - PADDING - 125],
     ["DG", WIDTH - PADDING - 34],
   ] as const
-  columns.forEach(([label, x]) => {
-    drawText(context, label, x, tableY + 46, {
+  columns.forEach(([label, columnX]) => {
+    drawText(context, label, columnX, tableY + 46, {
       size: 16,
       weight: 900,
-      color: "#ffffff",
+      color: palette.inverseText,
       align: "right",
     })
   })
@@ -649,21 +1059,31 @@ export async function exportSeasonRankingImage({
       context.fillRect(PADDING + 24, rowY, CONTENT_WIDTH - 48, 1)
     }
 
-    drawText(context, String(index + 1), PADDING + 43, rowY + 51, {
+    drawText(context, String(index + 1), PADDING + 46, rowY + 50, {
       size: 23,
       weight: 900,
       align: "center",
+      baseline: "middle",
     })
-    fillRoundedRect(context, PADDING + 86, rowY + 17, 48, 48, 16, palette.surfaceAlt)
-    drawText(context, getInitials(player.displayName), PADDING + 110, rowY + 50, {
-      size: 16,
-      weight: 900,
-      align: "center",
+
+    drawPlayerAvatar({
+      context,
+      playerName: player.displayName,
+      avatarUrl: player.avatarUrl,
+      avatarInitials: player.avatarInitials,
+      image: avatarImages.get(player.id) ?? null,
+      x: PADDING + 84,
+      y: rowY + 17,
+      size: 48,
+      radius: 16,
+      includeImage: includePlayerImages,
     })
-    drawText(context, player.displayName, PADDING + 150, rowY + 48, {
+
+    drawText(context, player.displayName, PADDING + 148, rowY + 47, {
       size: 22,
       weight: 900,
-      maxWidth: CONTENT_WIDTH - 465,
+      maxWidth: CONTENT_WIDTH - 460,
+      baseline: "middle",
     })
 
     const values = [
@@ -672,17 +1092,19 @@ export async function exportSeasonRankingImage({
       [String(player.wins), WIDTH - PADDING - 125],
       [`${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, WIDTH - PADDING - 34],
     ] as const
-    values.forEach(([value, x], valueIndex) => {
-      drawText(context, value, x, rowY + 50, {
+
+    values.forEach(([value, columnX], valueIndex) => {
+      drawText(context, value, columnX, rowY + 49, {
         size: valueIndex === 0 ? 24 : 20,
         weight: 900,
         color: valueIndex === 0 ? palette.text : palette.muted,
         align: "right",
+        baseline: "middle",
       })
     })
   })
 
-  drawFooter(context, canvasHeight)
+  drawFooter({ context, canvasHeight, appIcon })
 
   await downloadCanvas(
     canvas,
