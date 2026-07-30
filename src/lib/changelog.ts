@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.18.2",
+    date: "30 de julio de 2026",
+    title: "Diagnóstico seguro del fallo de carga de ligas",
+    summary:
+      "La API de acceso identifica qué consulta del resumen de liga está fallando y registra en el servidor el detalle técnico necesario para resolver el error sin exponer información sensible al usuario.",
+    category: "fix",
+    changes: [
+      "La respuesta `league_snapshot_failed` incorpora una etapa segura (`stage`) que permite distinguir si falla la consulta de ligas, temporadas, jugadores, ajustes, partidos, sustituciones o membresías.",
+      "Cuando Supabase devuelve un código de error, la API lo incluye de forma limitada en la respuesta para acelerar el diagnóstico sin publicar mensajes internos ni credenciales.",
+      "Vercel registra el código, mensaje, detalle y sugerencia originales de Supabase únicamente en los logs del servidor.",
+      "No se modifica la lógica de permisos, sesiones, ligas ni datos persistidos; esta versión sirve para localizar con precisión el fallo actual antes de aplicar una corrección funcional.",
+      "No se requieren migraciones de Supabase.",
+    ],
+  },
+  {
     version: "v0.18.1",
     date: "30 de julio de 2026",
     title: "Información pública, privacidad y condiciones de uso",
