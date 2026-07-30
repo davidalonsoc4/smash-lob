@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.1",
+    date: "30 de julio de 2026",
+    title: "Rediseño de exportaciones y cabeceras unificadas",
+    summary:
+      "Las exportaciones de calendario y clasificación adoptan una presentación más cuidada tanto en la app como en las imágenes PNG, con una identidad visual homogénea y mejor tratamiento de logotipos y avatares.",
+    category: "improvement",
+    changes: [
+      "La pantalla de Compartir temporada abandona las cabeceras negras y adopta tarjetas más limpias, con mejor jerarquía visual y opciones de apariencia comunes.",
+      "Las exportaciones de calendario y clasificación comparten ahora una cabecera y un pie de imagen alineados con el estilo del resumen final de temporada.",
+      "La cabecera muestra el logo de la liga a la derecha, en grande y respetando la transparencia del PNG cuando existe.",
+      "Se añade en la app la opción de incluir o no el logo de la liga y las imágenes de perfil en las imágenes exportadas.",
+      "Cada partido del calendario exportado presenta las dos parejas a izquierda y derecha, con el VS o el resultado en el centro y los sets debajo cuando están disponibles.",
+      "La clasificación exportada utiliza correctamente los avatares de los jugadores y, cuando faltan, muestra un icono genérico de perfil en lugar de dejar huecos inconsistentes.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.19.0",
     date: "30 de julio de 2026",
     title: "Identidad histórica, exportaciones visuales e instalación anticipada",
