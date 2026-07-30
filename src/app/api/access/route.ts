@@ -21,6 +21,34 @@ import type {
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+type SupabaseQueryError = {
+  code?: string
+  message?: string
+  details?: string
+  hint?: string
+}
+
+function buildLeagueSnapshotFailure(
+  stage: string,
+  error: SupabaseQueryError
+) {
+  console.error(`[api/access] league snapshot failed at ${stage}`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+  })
+
+  return NextResponse.json(
+    {
+      error: "league_snapshot_failed",
+      stage,
+      ...(error.code ? { code: error.code } : {}),
+    },
+    { status: 500 }
+  )
+}
+
 function toRole(role: unknown): LeagueMemberRole {
   return role === "creator" || role === "admin" || role === "player"
     ? role
@@ -140,7 +168,7 @@ export async function GET() {
   const { data: leagueRows, error: leaguesError } = await leaguesQuery
 
   if (leaguesError) {
-    return NextResponse.json({ error: "league_snapshot_failed" }, { status: 500 })
+    return buildLeagueSnapshotFailure("leagues", leaguesError)
   }
 
   const leagues = (leagueRows ?? []).map((league) => mapLeague(league))
@@ -206,16 +234,22 @@ export async function GET() {
       .in("league_id", leagueIds),
   ])
 
-  if (
-    seasonsResult.error ||
-    playersResult.error ||
-    seasonPlayersResult.error ||
-    settingsResult.error ||
-    matchesResult.error ||
-    matchSubstitutionsResult.error ||
-    leagueMembershipsResult.error
-  ) {
-    return NextResponse.json({ error: "league_snapshot_failed" }, { status: 500 })
+  const snapshotFailures: Array<[string, SupabaseQueryError | null]> = [
+    ["seasons", seasonsResult.error],
+    ["players", playersResult.error],
+    ["season_players", seasonPlayersResult.error],
+    ["season_settings", settingsResult.error],
+    ["matches", matchesResult.error],
+    ["match_substitutions", matchSubstitutionsResult.error],
+    ["league_memberships", leagueMembershipsResult.error],
+  ]
+  const firstSnapshotFailure = snapshotFailures.find(([, error]) => Boolean(error))
+
+  if (firstSnapshotFailure?.[1]) {
+    return buildLeagueSnapshotFailure(
+      firstSnapshotFailure[0],
+      firstSnapshotFailure[1]
+    )
   }
 
   const linkedUserIds = Array.from(
