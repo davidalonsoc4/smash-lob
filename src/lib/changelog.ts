@@ -15,17 +15,16 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: "v0.19.3",
+    version: "v0.19.4",
     date: "30 de julio de 2026",
-    title: "Compactación del calendario y podio más apaisado",
+    title: "Recorte extra del calendario y barra completa del podio",
     summary:
-      "Se compacta la imagen del calendario para reducir hueco sobrante por jornada y se reajusta el podio de la clasificación para mostrar mejor los nombres completos.",
+      "Se reduce todavía más el espacio vacío en el calendario exportado y se corrige la barra lateral del podio para que recorra todo el panel respetando las esquinas redondeadas.",
     category: "improvement",
     changes: [
-      "Las tarjetas del calendario de temporada reducen su altura y el espaciado inferior de cada jornada para aprovechar mejor el lienzo y disminuir la altura final de la imagen.",
-      "El podio de la clasificación adopta un formato más alargado horizontalmente y menos cuadrado, con menor altura visual.",
-      "Se reduce ligeramente la tipografía del nombre en el podio y se gana espacio útil para mostrar mejor nombre y apellido.",
-      "Se reajustan avatar, marcador de puesto y estadísticas del podio para acompañar el nuevo formato más apaisado.",
+      "Las tarjetas del calendario se compactan aún más para recortar espacio vacío sobrante debajo del contenido de cada partido y reducir de nuevo la altura total de la imagen.",
+      "El bloque de cada jornada también disminuye el margen inferior entre filas para que el calendario resulte más denso y limpio.",
+      "La barra lateral de color del podio en la clasificación pasa a recorrer todo el alto del panel y queda recortada siguiendo las esquinas redondeadas superior e inferior.",
       "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
     ],
   },

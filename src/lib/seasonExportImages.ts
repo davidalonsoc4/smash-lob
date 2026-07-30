@@ -701,7 +701,7 @@ async function drawMatchCard({
   width: number
   includePlayerImages: boolean
 }) {
-  const height = 192
+  const height = 172
   drawCard(context, x, y, width, height, 26)
 
   const statusPalette = getMatchStatusColor(match)
@@ -828,8 +828,8 @@ export async function exportSeasonCalendarImage({
     })
 
   const rounds = Array.from(matchesByRound.entries())
-  const cardHeight = 206
-  const roundHeights = rounds.map(([, roundMatches]) => 56 + Math.ceil(roundMatches.length / 2) * cardHeight)
+  const cardHeight = 184
+  const roundHeights = rounds.map(([, roundMatches]) => 50 + Math.ceil(roundMatches.length / 2) * cardHeight)
   const canvasHeight = Math.max(
     760,
     CONTENT_TOP + roundHeights.reduce((total, height) => total + height, 0) + FOOTER_HEIGHT + FOOTER_BOTTOM + 26,
@@ -891,7 +891,7 @@ export async function exportSeasonCalendarImage({
       })
     }
 
-    y += Math.ceil(roundMatches.length / 2) * cardHeight + 8
+    y += Math.ceil(roundMatches.length / 2) * cardHeight + 2
   }
 
   drawFooter({ context, canvasHeight, appIcon })
@@ -922,9 +922,15 @@ function drawPodiumCard({
   includePlayerImages: boolean
 }) {
   const accent = position === 1 ? palette.gold : position === 2 ? palette.silver : palette.bronze
-  drawCard(context, x, y, width, 156, 28)
+  const cardHeight = 156
+  const radius = 28
+  drawCard(context, x, y, width, cardHeight, radius)
+  context.save()
+  roundedRect(context, x, y, width, cardHeight, radius)
+  context.clip()
   context.fillStyle = accent
-  context.fillRect(x, y + 24, 8, 108)
+  context.fillRect(x, y, 10, cardHeight)
+  context.restore()
 
   drawPlayerAvatar({
     context,
