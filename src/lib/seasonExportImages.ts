@@ -12,6 +12,8 @@ type ExportBranding = {
   includePlayerImages?: boolean
 }
 
+export type SeasonCalendarImageMode = "current" | "fixtures"
+
 type CanvasPalette = {
   background: string
   surface: string
@@ -378,7 +380,6 @@ function drawGenericUserGlyph({
   color: string
 }) {
   const centerX = x + size / 2
-  const centerY = y + size / 2
 
   context.save()
   context.fillStyle = color
@@ -502,10 +503,6 @@ function getMatchScore(match: MatchData) {
   const pointsA = match.pointsA ?? match.sets.filter((set) => set.a > set.b).length
   const pointsB = match.pointsB ?? match.sets.filter((set) => set.b > set.a).length
   return `${pointsA} – ${pointsB}`
-}
-
-function getPlayerName(playerId: string, players: Map<string, PlayerProfile>) {
-  return players.get(playerId)?.displayName ?? "Jugador"
 }
 
 function formatSetScores(match: MatchData) {
@@ -661,25 +658,28 @@ function drawFooter({
   })
 }
 
-function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
-  return new Promise<void>((resolve, reject) => {
+function canvasToBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) {
         reject(new Error("image_export_failed"))
         return
       }
 
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement("a")
-      anchor.href = url
-      anchor.download = filename
-      document.body.appendChild(anchor)
-      anchor.click()
-      anchor.remove()
-      URL.revokeObjectURL(url)
-      resolve()
+      resolve(blob)
     }, "image/png")
   })
+}
+
+export function downloadSeasonExportImage(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
+  anchor.href = url
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
 }
 
 async function drawMatchCard({
@@ -691,6 +691,7 @@ async function drawMatchCard({
   y,
   width,
   includePlayerImages,
+  mode,
 }: {
   context: CanvasRenderingContext2D
   match: MatchData
@@ -700,43 +701,49 @@ async function drawMatchCard({
   y: number
   width: number
   includePlayerImages: boolean
+  mode: SeasonCalendarImageMode
 }) {
-  const height = 172
+  const fixturesOnly = mode === "fixtures"
+  const height = fixturesOnly ? 112 : 172
   drawCard(context, x, y, width, height, 26)
 
-  const statusPalette = getMatchStatusColor(match)
-  const statusLabel = getMatchStatusLabel(match)
-  const meta = [
-    formatScheduledAt(match.scheduledAt) ?? match.dateLabel,
-    getScheduleLocationDisplayText(match.location),
-  ]
-    .filter(Boolean)
-    .join(" · ")
+  if (!fixturesOnly) {
+    const statusPalette = getMatchStatusColor(match)
+    const statusLabel = getMatchStatusLabel(match)
+    const meta = [
+      formatScheduledAt(match.scheduledAt) ?? match.dateLabel,
+      getScheduleLocationDisplayText(match.location),
+    ]
+      .filter(Boolean)
+      .join(" · ")
 
-  fillRoundedRect(context, x + 24, y + 22, 174, 30, 15, statusPalette.background)
-  drawTextCenteredInBox(context, statusLabel, x + 24, y + 22, 174, 30, {
-    size: 14,
-    weight: 900,
-    color: statusPalette.text,
-    maxWidth: 150,
-  })
-  drawText(context, meta || "Fecha y lugar pendientes", x + width - 24, y + 37, {
-    size: 14,
-    weight: 700,
-    color: palette.muted,
-    align: "right",
-    baseline: "middle",
-    maxWidth: width - 240,
-  })
+    fillRoundedRect(context, x + 24, y + 22, 174, 30, 15, statusPalette.background)
+    drawTextCenteredInBox(context, statusLabel, x + 24, y + 22, 174, 30, {
+      size: 14,
+      weight: 900,
+      color: statusPalette.text,
+      maxWidth: 150,
+    })
+    drawText(context, meta || "Fecha y lugar pendientes", x + width - 24, y + 37, {
+      size: 14,
+      weight: 700,
+      color: palette.muted,
+      align: "right",
+      baseline: "middle",
+      maxWidth: width - 240,
+    })
 
-  context.fillStyle = palette.line
-  context.fillRect(x + 24, y + 68, width - 48, 1)
+    context.fillStyle = palette.line
+    context.fillRect(x + 24, y + 68, width - 48, 1)
+  }
 
   const teamAreaWidth = width * 0.35
   const centerWidth = width * 0.18
   const leftX = x + 24
   const centerX = x + teamAreaWidth + 24
   const rightX = x + width - 24 - teamAreaWidth
+  const firstRowCenterY = fixturesOnly ? y + 34 : y + 90
+  const rowGap = fixturesOnly ? 38 : 36
 
   const teams = [
     { ids: match.teamA, x: leftX, align: "left" as const },
@@ -746,7 +753,7 @@ async function drawMatchCard({
   teams.forEach((team) => {
     team.ids.slice(0, 2).forEach((playerId, index) => {
       const profile = players.get(playerId)
-      const rowCenterY = y + 90 + index * 36
+      const rowCenterY = firstRowCenterY + index * rowGap
       const avatarSize = 26
       const avatarX = team.align === "left" ? team.x : team.x + teamAreaWidth - avatarSize
       const textX = team.align === "left" ? avatarX + avatarSize + 10 : avatarX - 10
@@ -776,44 +783,62 @@ async function drawMatchCard({
     })
   })
 
-  drawText(context, getMatchScore(match), centerX + centerWidth / 2, y + 112, {
-    size: match.status === "finished" ? 29 : 24,
-    weight: 900,
-    color: palette.text,
-    align: "center",
-    baseline: "middle",
-  })
+  drawText(
+    context,
+    fixturesOnly ? "VS" : getMatchScore(match),
+    centerX + centerWidth / 2,
+    fixturesOnly ? y + 53 : y + 112,
+    {
+      size: fixturesOnly ? 23 : match.status === "finished" ? 29 : 24,
+      weight: 900,
+      color: palette.text,
+      align: "center",
+      baseline: "middle",
+    },
+  )
 
-  if (match.status === "finished" && match.sets.length > 0) {
-    drawText(context, formatSetScores(match) ?? "", centerX + centerWidth / 2, y + 149, {
-      size: 15,
-      weight: 800,
-      color: palette.muted,
-      align: "center",
-      baseline: "middle",
-      maxWidth: width - 60,
-    })
-  } else {
-    drawText(context, match.status === "postponed" ? "Pendiente de nueva fecha" : "Sin resultado todavía", centerX + centerWidth / 2, y + 149, {
-      size: 14,
-      weight: 700,
-      color: palette.muted,
-      align: "center",
-      baseline: "middle",
-      maxWidth: width - 60,
-    })
+  if (!fixturesOnly) {
+    if (match.status === "finished" && match.sets.length > 0) {
+      drawText(context, formatSetScores(match) ?? "", centerX + centerWidth / 2, y + 149, {
+        size: 15,
+        weight: 800,
+        color: palette.muted,
+        align: "center",
+        baseline: "middle",
+        maxWidth: width - 60,
+      })
+    } else {
+      drawText(
+        context,
+        match.status === "postponed"
+          ? "Pendiente de nueva fecha"
+          : "Sin resultado todavía",
+        centerX + centerWidth / 2,
+        y + 149,
+        {
+          size: 14,
+          weight: 700,
+          color: palette.muted,
+          align: "center",
+          baseline: "middle",
+          maxWidth: width - 60,
+        },
+      )
+    }
   }
 }
 
-export async function exportSeasonCalendarImage({
+export async function createSeasonCalendarImage({
   leagueName,
   seasonName,
   leagueLogoUrl,
   includeLeagueLogo = true,
   includePlayerImages = true,
+  mode = "current",
   matches,
   players,
 }: ExportBranding & {
+  mode?: SeasonCalendarImageMode
   matches: MatchData[]
   players: PlayerProfile[]
 }) {
@@ -828,19 +853,33 @@ export async function exportSeasonCalendarImage({
     })
 
   const rounds = Array.from(matchesByRound.entries())
-  const cardHeight = 184
-  const roundHeights = rounds.map(([, roundMatches]) => 50 + Math.ceil(roundMatches.length / 2) * cardHeight)
+  const cardHeight = mode === "fixtures" ? 124 : 184
+  const roundHeights = rounds.map(
+    ([, roundMatches]) => 50 + Math.ceil(roundMatches.length / 2) * cardHeight,
+  )
   const canvasHeight = Math.max(
     760,
-    CONTENT_TOP + roundHeights.reduce((total, height) => total + height, 0) + FOOTER_HEIGHT + FOOTER_BOTTOM + 26,
+    CONTENT_TOP +
+      roundHeights.reduce((total, height) => total + height, 0) +
+      FOOTER_HEIGHT +
+      FOOTER_BOTTOM +
+      26,
   )
   const { canvas, context } = createCanvas(canvasHeight)
 
   const playerImageIds = includePlayerImages
-    ? Array.from(new Set(players.filter((player) => isSafeImageUrl(player.avatarUrl)).map((player) => player.id)))
+    ? Array.from(
+        new Set(
+          players
+            .filter((player) => isSafeImageUrl(player.avatarUrl))
+            .map((player) => player.id),
+        ),
+      )
     : []
   const [leagueLogo, appIcon, playerImages] = await Promise.all([
-    includeLeagueLogo ? loadOptionalImage(leagueLogoUrl ?? null) : Promise.resolve(null),
+    includeLeagueLogo
+      ? loadOptionalImage(leagueLogoUrl ?? null)
+      : Promise.resolve(null),
     loadOptionalImage(APP_ICON_PATH),
     Promise.all(
       playerImageIds.map(async (playerId) => {
@@ -856,7 +895,10 @@ export async function exportSeasonCalendarImage({
     leagueName,
     seasonName,
     leagueLogo,
-    label: "Calendario de temporada",
+    label:
+      mode === "fixtures"
+        ? "Calendario de enfrentamientos"
+        : "Calendario actual",
   })
 
   const playersById = new Map(players.map((player) => [player.id, player]))
@@ -888,6 +930,7 @@ export async function exportSeasonCalendarImage({
         y: y + row * cardHeight,
         width: cardWidth,
         includePlayerImages,
+        mode,
       })
     }
 
@@ -896,9 +939,17 @@ export async function exportSeasonCalendarImage({
 
   drawFooter({ context, canvasHeight, appIcon })
 
-  await downloadCanvas(
-    canvas,
-    `${safeFilenamePart(leagueName)}-${safeFilenamePart(seasonName)}-calendario.png`,
+  return canvasToBlob(canvas)
+}
+
+export async function exportSeasonCalendarImage(
+  input: Parameters<typeof createSeasonCalendarImage>[0],
+) {
+  const blob = await createSeasonCalendarImage(input)
+  const suffix = input.mode === "fixtures" ? "calendario-enfrentamientos" : "calendario-actual"
+  downloadSeasonExportImage(
+    blob,
+    `${safeFilenamePart(input.leagueName)}-${safeFilenamePart(input.seasonName)}-${suffix}.png`,
   )
 }
 
@@ -979,7 +1030,7 @@ function drawPodiumCard({
   })
 }
 
-export async function exportSeasonRankingImage({
+export async function createSeasonRankingImage({
   leagueName,
   seasonName,
   leagueLogoUrl,
@@ -1139,8 +1190,15 @@ export async function exportSeasonRankingImage({
 
   drawFooter({ context, canvasHeight, appIcon })
 
-  await downloadCanvas(
-    canvas,
-    `${safeFilenamePart(leagueName)}-${safeFilenamePart(seasonName)}-clasificacion.png`,
+  return canvasToBlob(canvas)
+}
+
+export async function exportSeasonRankingImage(
+  input: Parameters<typeof createSeasonRankingImage>[0],
+) {
+  const blob = await createSeasonRankingImage(input)
+  downloadSeasonExportImage(
+    blob,
+    `${safeFilenamePart(input.leagueName)}-${safeFilenamePart(input.seasonName)}-clasificacion.png`,
   )
 }

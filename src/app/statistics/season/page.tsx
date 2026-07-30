@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { SeasonShareExportsCard } from "@/components/statistics/SeasonShareExportsCard"
 import { SeasonSummaryCard } from "@/components/statistics/SeasonSummaryCard"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
@@ -49,6 +50,13 @@ export default function StatisticsSeasonPage() {
     isLeagueWide,
   } = useStatisticsWorkspace()
 
+  const selectedSeasonMatches = useMemo(
+    () =>
+      countedMatches
+        .filter((match) => match.seasonId === selectedSeason.id)
+        .sort((left, right) => left.round - right.round),
+    [countedMatches, selectedSeason.id],
+  )
   const selectedSeasonMvpSystem = getSeasonRoundSettings(selectedSeason.id).mvpSystem
   const seasonMvp = useMemo(
     () =>
@@ -238,7 +246,7 @@ export default function StatisticsSeasonPage() {
         description={
           isLeagueWide
             ? "Vista histórica de todas las temporadas y campeones de la liga."
-            : "Genera, descarga o comparte el resumen final de la temporada."
+            : "Comparte el calendario y la clasificación durante toda la temporada. El resumen final aparecerá cuando termine."
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
@@ -248,6 +256,17 @@ export default function StatisticsSeasonPage() {
             : undefined
         }
       />
+
+      {!isLeagueWide ? (
+        <SeasonShareExportsCard
+          leagueName={activeLeague.name}
+          seasonName={selectedSeason.name}
+          leagueLogoUrl={activeLeague.logoUrl ?? null}
+          matches={selectedSeasonMatches}
+          players={leaguePlayers}
+          ranking={statistics.ranking}
+        />
+      ) : null}
 
       {isLeagueWide ? (
         <AppCard>
