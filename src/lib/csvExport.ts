@@ -1,10 +1,13 @@
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile } from "@/data/fakeData"
-import { matchIncidentTypeLabels } from "@/lib/matchIncidents"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
+import { matchIncidentTypeLabels } from "@/lib/matchIncidents"
 import type { RankingPlayer } from "@/lib/ranking"
 
-function escapeCsvCell(value: unknown) {
+export type ExportCell = string | number | boolean | null | undefined
+export type ExportRows = ExportCell[][]
+
+function escapeCsvCell(value: ExportCell) {
   const text = value === null || value === undefined ? "" : String(value)
 
   if (/[;"\n\r]/.test(text)) {
@@ -14,11 +17,11 @@ function escapeCsvCell(value: unknown) {
   return text
 }
 
-function buildCsv(rows: unknown[][]) {
+function buildCsv(rows: ExportRows) {
   return rows.map((row) => row.map(escapeCsvCell).join(";")).join("\r\n")
 }
 
-function safeFilenamePart(value: string) {
+export function getExportSafeFilenamePart(value: string) {
   return (
     value
       .trim()
@@ -30,7 +33,7 @@ function safeFilenamePart(value: string) {
   )
 }
 
-function downloadCsv(filename: string, rows: unknown[][]) {
+function downloadCsv(filename: string, rows: ExportRows) {
   const csv = `\uFEFF${buildCsv(rows)}`
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
   const url = URL.createObjectURL(blob)
@@ -43,16 +46,8 @@ function downloadCsv(filename: string, rows: unknown[][]) {
   URL.revokeObjectURL(url)
 }
 
-export function exportRankingCsv({
-  leagueName,
-  seasonName,
-  ranking,
-}: {
-  leagueName: string
-  seasonName: string
-  ranking: RankingPlayer[]
-}) {
-  const rows: unknown[][] = [
+export function buildRankingExportRows(ranking: RankingPlayer[]): ExportRows {
+  return [
     [
       "Posición",
       "Jugador",
@@ -78,10 +73,20 @@ export function exportRankingCsv({
       player.seasonPlayerStatus === "withdrawn" ? "Baja" : "Activo",
     ]),
   ]
+}
 
+export function exportRankingCsv({
+  leagueName,
+  seasonName,
+  ranking,
+}: {
+  leagueName: string
+  seasonName: string
+  ranking: RankingPlayer[]
+}) {
   downloadCsv(
-    `${safeFilenamePart(leagueName)}-${safeFilenamePart(seasonName)}-clasificacion.csv`,
-    rows,
+    `${getExportSafeFilenamePart(leagueName)}-${getExportSafeFilenamePart(seasonName)}-clasificacion.csv`,
+    buildRankingExportRows(ranking),
   )
 }
 
@@ -114,19 +119,16 @@ function getResolutionLabel(match: MatchData) {
   }
 }
 
-export function exportResultsCsv({
-  leagueName,
-  seasonName,
+export function buildResultsExportRows({
   matches,
   players,
 }: {
-  leagueName: string
-  seasonName: string
   matches: MatchData[]
   players: PlayerProfile[]
-}) {
+}): ExportRows {
   const playersById = new Map(players.map((player) => [player.id, player]))
-  const rows: unknown[][] = [
+
+  return [
     [
       "Jornada",
       "Estado",
@@ -142,7 +144,7 @@ export function exportResultsCsv({
       "Motivo",
     ],
     ...[...matches]
-      .sort((a, b) => a.round - b.round)
+      .sort((left, right) => left.round - right.round)
       .map((match) => [
         match.round,
         getResolutionLabel(match),
@@ -162,9 +164,21 @@ export function exportResultsCsv({
         match.incidentReason ?? "",
       ]),
   ]
+}
 
+export function exportResultsCsv({
+  leagueName,
+  seasonName,
+  matches,
+  players,
+}: {
+  leagueName: string
+  seasonName: string
+  matches: MatchData[]
+  players: PlayerProfile[]
+}) {
   downloadCsv(
-    `${safeFilenamePart(leagueName)}-${safeFilenamePart(seasonName)}-resultados.csv`,
-    rows,
+    `${getExportSafeFilenamePart(leagueName)}-${getExportSafeFilenamePart(seasonName)}-resultados.csv`,
+    buildResultsExportRows({ matches, players }),
   )
 }
