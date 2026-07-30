@@ -12,6 +12,7 @@ type ClaimPlayerResult =
         | "profile-incomplete"
         | "roster-full"
         | "registration-closed"
+        | "historical-player-unavailable"
     }
 
 export type SupabaseInviteSnapshot = {
@@ -67,10 +68,12 @@ export async function claimSupabasePlayer({
   code,
   leagueId,
   playerId,
+  historicalPlayerId,
 }: {
   code: string
   leagueId: string
   playerId?: string
+  historicalPlayerId?: string | null
 }): Promise<ClaimPlayerResult> {
   const normalizedCode = normalizeInviteCode(code)
   const response = await fetch(
@@ -78,7 +81,11 @@ export async function claimSupabasePlayer({
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leagueId, playerId: playerId || null }),
+      body: JSON.stringify({
+        leagueId,
+        playerId: playerId || null,
+        historicalPlayerId: historicalPlayerId || null,
+      }),
       cache: "no-store",
     }
   )

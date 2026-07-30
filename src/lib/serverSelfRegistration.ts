@@ -32,10 +32,12 @@ export async function joinSelfRegistrationSeason({
   actor,
   leagueId,
   seasonId,
+  historicalPlayerId,
 }: {
   actor: SelfRegistrationActor
   leagueId: string
   seasonId: string
+  historicalPlayerId?: string | null
 }): Promise<SelfRegistrationJoinResult> {
   if (
     !actor.user.profileCompletedAt ||
@@ -45,11 +47,12 @@ export async function joinSelfRegistrationSeason({
   }
 
   const { data, error } = await actor.supabase.rpc(
-    "server_join_self_registration_season",
+    "server_join_self_registration_season_v2",
     {
       p_user_id: actor.user.id,
       p_league_id: leagueId,
       p_season_id: seasonId,
+      p_historical_player_id: historicalPlayerId ?? null,
     },
   )
 

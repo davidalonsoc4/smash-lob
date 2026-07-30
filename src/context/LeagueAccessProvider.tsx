@@ -65,7 +65,8 @@ type ClaimResult =
         | "player-already-claimed"
         | "profile-incomplete"
         | "roster-full"
-        | "registration-closed";
+        | "registration-closed"
+        | "historical-player-unavailable";
     };
 
 type LeagueAccessContextValue = {
@@ -145,6 +146,7 @@ type LeagueAccessContextValue = {
     leagueId: string,
     playerId: string,
     inviteCode?: string,
+    historicalPlayerId?: string | null,
   ) => Promise<ClaimResult>;
   linkCurrentUserToLeaguePlayer: (leagueId: string, playerId: string) => void;
   canAccessLeague: (leagueId: string) => boolean;
@@ -1562,6 +1564,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       leagueId: string,
       playerId: string,
       inviteCode?: string,
+      historicalPlayerId?: string | null,
     ): Promise<ClaimResult> => {
       if (!userId) {
         return { ok: false, error: "already-in-league" };
@@ -1597,6 +1600,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
             code: inviteCode ?? getLeagueInviteCode(leagueId),
             leagueId,
             playerId: isSelfRegistrationClaim ? undefined : playerId,
+            historicalPlayerId: isSelfRegistrationClaim
+              ? historicalPlayerId
+              : null,
           });
 
           if (result.ok) {

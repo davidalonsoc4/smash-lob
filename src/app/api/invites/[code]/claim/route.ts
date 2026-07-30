@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic"
 type ClaimBody = {
   leagueId?: unknown
   playerId?: unknown
+  historicalPlayerId?: unknown
 }
 
 function normalizeInviteCode(value: unknown) {
@@ -43,6 +44,7 @@ export async function POST(
   const body = await parseJsonBody<ClaimBody>(request)
   const leagueId = validateUuid(body?.leagueId)
   const playerId = validateUuid(body?.playerId)
+  const historicalPlayerId = validateUuid(body?.historicalPlayerId)
 
   if (!normalizedCode || !leagueId) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -155,6 +157,7 @@ export async function POST(
           actor: authResult.actor,
           leagueId,
           seasonId: selfRegistrationSeasonId,
+          historicalPlayerId,
         })
         const { data: adminMemberships } = await supabase
           .from("league_memberships")
@@ -181,6 +184,7 @@ export async function POST(
             registeredCount: result.registeredCount,
             playerCapacity: result.playerCapacity,
             rosterComplete: result.rosterComplete,
+            historicalPlayerId,
             targetPlayerIds,
           },
         }).catch(() => null)
@@ -204,6 +208,12 @@ export async function POST(
         }
         if (message.includes("registration_closed")) {
           return NextResponse.json({ error: "registration-closed" }, { status: 409 })
+        }
+        if (message.includes("historical_player_not_available")) {
+          return NextResponse.json(
+            { ok: false, error: "historical-player-unavailable" },
+            { status: 409 },
+          )
         }
 
         return NextResponse.json({ error: "self-registration-failed" }, { status: 500 })
