@@ -207,6 +207,30 @@ function drawText(
   context.fillText(text, x, y)
 }
 
+function drawTextCenteredInBox(
+  context: CanvasRenderingContext2D,
+  value: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  options: {
+    size: number
+    weight?: number
+    color?: string
+    maxWidth?: number
+  },
+) {
+  drawText(context, value, x + width / 2, y + height / 2, {
+    size: options.size,
+    weight: options.weight,
+    color: options.color,
+    maxWidth: options.maxWidth ?? Math.max(0, width - 8),
+    align: "center",
+    baseline: "middle",
+  })
+}
+
 function getInitials(value: string, fallback = "SL") {
   const words = value.trim().split(/\s+/).filter(Boolean)
 
@@ -410,11 +434,12 @@ function drawPlayerAvatar({
     return
   }
 
-  drawText(context, avatarInitials || getInitials(playerName), x + size / 2, y + size / 2 + 6, {
+  drawText(context, avatarInitials || getInitials(playerName), x + size / 2, y + size / 2 + 1, {
     size: Math.max(12, Math.round(size * 0.34)),
     weight: 900,
     color: palette.text,
     align: "center",
+    baseline: "middle",
   })
 }
 
@@ -596,11 +621,12 @@ function drawBrandMark({
   }
 
   fillRoundedRect(context, x, y, size, size, Math.round(size * 0.24), palette.surface)
-  drawText(context, "S&L", x + size / 2, y + size / 2 + 7, {
+  drawText(context, "S&L", x + size / 2, y + size / 2 + 1, {
     size: Math.round(size * 0.28),
     weight: 900,
     color: palette.accent,
     align: "center",
+    baseline: "middle",
   })
 }
 
@@ -688,15 +714,13 @@ async function drawMatchCard({
     .join(" · ")
 
   fillRoundedRect(context, x + 24, y + 22, 174, 30, 15, statusPalette.background)
-  drawText(context, statusLabel, x + 111, y + 43, {
+  drawTextCenteredInBox(context, statusLabel, x + 24, y + 22, 174, 30, {
     size: 14,
     weight: 900,
     color: statusPalette.text,
-    align: "center",
-    baseline: "middle",
     maxWidth: 150,
   })
-  drawText(context, meta || "Fecha y lugar pendientes", x + width - 24, y + 42, {
+  drawText(context, meta || "Fecha y lugar pendientes", x + width - 24, y + 37, {
     size: 14,
     weight: 700,
     color: palette.muted,
@@ -722,7 +746,7 @@ async function drawMatchCard({
   teams.forEach((team) => {
     team.ids.slice(0, 2).forEach((playerId, index) => {
       const profile = players.get(playerId)
-      const rowY = y + 95 + index * 36
+      const rowCenterY = y + 90 + index * 36
       const avatarSize = 26
       const avatarX = team.align === "left" ? team.x : team.x + teamAreaWidth - avatarSize
       const textX = team.align === "left" ? avatarX + avatarSize + 10 : avatarX - 10
@@ -735,13 +759,13 @@ async function drawMatchCard({
         avatarInitials: profile?.avatarInitials,
         image: avatarImages.get(playerId) ?? null,
         x: avatarX,
-        y: rowY - 18,
+        y: rowCenterY - avatarSize / 2,
         size: avatarSize,
         radius: 9,
         includeImage: includePlayerImages,
       })
 
-      drawText(context, profile?.displayName ?? "Jugador", textX, rowY, {
+      drawText(context, profile?.displayName ?? "Jugador", textX, rowCenterY, {
         size: 17,
         weight: 900,
         color: palette.text,
@@ -752,7 +776,7 @@ async function drawMatchCard({
     })
   })
 
-  drawText(context, getMatchScore(match), centerX + centerWidth / 2, y + 117, {
+  drawText(context, getMatchScore(match), centerX + centerWidth / 2, y + 112, {
     size: match.status === "finished" ? 29 : 24,
     weight: 900,
     color: palette.text,
@@ -761,7 +785,7 @@ async function drawMatchCard({
   })
 
   if (match.status === "finished" && match.sets.length > 0) {
-    drawText(context, formatSetScores(match) ?? "", centerX + centerWidth / 2, y + 156, {
+    drawText(context, formatSetScores(match) ?? "", centerX + centerWidth / 2, y + 149, {
       size: 15,
       weight: 800,
       color: palette.muted,
@@ -770,7 +794,7 @@ async function drawMatchCard({
       maxWidth: width - 60,
     })
   } else {
-    drawText(context, match.status === "postponed" ? "Pendiente de nueva fecha" : "Sin resultado todavía", centerX + centerWidth / 2, y + 156, {
+    drawText(context, match.status === "postponed" ? "Pendiente de nueva fecha" : "Sin resultado todavía", centerX + centerWidth / 2, y + 149, {
       size: 14,
       weight: 700,
       color: palette.muted,
@@ -916,33 +940,31 @@ function drawPodiumCard({
   })
 
   fillRoundedRect(context, x + width - 64, y + 28, 38, 38, 14, `${accent}22`)
-  drawText(context, String(position), x + width - 45, y + 55, {
+  drawTextCenteredInBox(context, String(position), x + width - 64, y + 28, 38, 38, {
     size: 18,
     weight: 900,
     color: accent,
-    align: "center",
-    baseline: "middle",
   })
 
-  drawText(context, player.displayName, x + 100, y + 56, {
+  drawText(context, player.displayName, x + 100, y + 52, {
     size: 23,
     weight: 900,
     maxWidth: width - 170,
     baseline: "middle",
   })
-  drawText(context, `${player.points} PTS`, x + 100, y + 84, {
+  drawText(context, `${player.points} PTS`, x + 100, y + 78, {
     size: 16,
     weight: 900,
     color: palette.muted,
     baseline: "middle",
   })
-  drawText(context, `${player.wins} victorias`, x + 26, y + 132, {
+  drawText(context, `${player.wins} victorias`, x + 26, y + 126, {
     size: 17,
     weight: 800,
     color: palette.muted,
     baseline: "middle",
   })
-  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 26, y + 132, {
+  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 26, y + 126, {
     size: 17,
     weight: 800,
     color: palette.muted,
@@ -1014,15 +1036,17 @@ export async function exportSeasonRankingImage({
   context.fillStyle = palette.accent
   context.fillRect(PADDING, tableY + 42, CONTENT_WIDTH, 30)
 
-  drawText(context, "POS", PADDING + 32, tableY + 46, {
+  drawText(context, "POS", PADDING + 32, tableY + 36, {
     size: 16,
     weight: 900,
     color: palette.inverseText,
+    baseline: "middle",
   })
-  drawText(context, "JUGADOR", PADDING + 126, tableY + 46, {
+  drawText(context, "JUGADOR", PADDING + 126, tableY + 36, {
     size: 16,
     weight: 900,
     color: palette.inverseText,
+    baseline: "middle",
   })
   const columns = [
     ["PTS", WIDTH - PADDING - 300],
@@ -1031,25 +1055,28 @@ export async function exportSeasonRankingImage({
     ["DG", WIDTH - PADDING - 34],
   ] as const
   columns.forEach(([label, columnX]) => {
-    drawText(context, label, columnX, tableY + 46, {
+    drawText(context, label, columnX, tableY + 36, {
       size: 16,
       weight: 900,
       color: palette.inverseText,
       align: "right",
+      baseline: "middle",
     })
   })
 
   if (ranking.length === 0) {
-    drawText(context, "Todavía no hay jugadores en la clasificación", WIDTH / 2, tableY + 124, {
+    drawText(context, "Todavía no hay jugadores en la clasificación", WIDTH / 2, tableY + 118, {
       size: 21,
       weight: 800,
       color: palette.muted,
       align: "center",
+      baseline: "middle",
     })
   }
 
   ranking.forEach((player, index) => {
     const rowY = tableY + 72 + index * 82
+    const rowCenterY = rowY + 41
     if (index % 2 === 1) {
       context.fillStyle = "#f7f8f6"
       context.fillRect(PADDING + 1, rowY, CONTENT_WIDTH - 2, 82)
@@ -1059,7 +1086,7 @@ export async function exportSeasonRankingImage({
       context.fillRect(PADDING + 24, rowY, CONTENT_WIDTH - 48, 1)
     }
 
-    drawText(context, String(index + 1), PADDING + 46, rowY + 50, {
+    drawText(context, String(index + 1), PADDING + 46, rowCenterY, {
       size: 23,
       weight: 900,
       align: "center",
@@ -1073,13 +1100,13 @@ export async function exportSeasonRankingImage({
       avatarInitials: player.avatarInitials,
       image: avatarImages.get(player.id) ?? null,
       x: PADDING + 84,
-      y: rowY + 17,
+      y: rowCenterY - 24,
       size: 48,
       radius: 16,
       includeImage: includePlayerImages,
     })
 
-    drawText(context, player.displayName, PADDING + 148, rowY + 47, {
+    drawText(context, player.displayName, PADDING + 148, rowCenterY, {
       size: 22,
       weight: 900,
       maxWidth: CONTENT_WIDTH - 460,
@@ -1094,7 +1121,7 @@ export async function exportSeasonRankingImage({
     ] as const
 
     values.forEach(([value, columnX], valueIndex) => {
-      drawText(context, value, columnX, rowY + 49, {
+      drawText(context, value, columnX, rowCenterY, {
         size: valueIndex === 0 ? 24 : 20,
         weight: 900,
         color: valueIndex === 0 ? palette.text : palette.muted,
