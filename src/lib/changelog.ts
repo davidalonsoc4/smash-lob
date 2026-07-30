@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.8",
+    date: "30 de julio de 2026",
+    title: "Nueva pantalla de exportación de datos",
+    summary:
+      "La zona administrativa de exportaciones se rehace por completo para guardar y trabajar con los datos de cada temporada mediante un libro Excel completo o archivos CSV separados.",
+    category: "improvement",
+    changes: [
+      "La pantalla Exportar datos incorpora una cabecera renovada, selector de temporada y un resumen inmediato de jugadores, partidos y encuentros finalizados.",
+      "Se añade la descarga de un libro Excel .xlsx real con dos hojas: Clasificación y Resultados.",
+      "El archivo Excel incluye cabeceras destacadas, columnas dimensionadas, filtros y la primera fila inmovilizada para trabajar más cómodamente con los datos.",
+      "Las descargas CSV de Clasificación y Resultados se mantienen como alternativas independientes para importar cada tabla en otras herramientas.",
+      "La generación del archivo .xlsx se realiza en el navegador sin añadir dependencias nuevas ni enviar datos fuera del dispositivo.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.19.7",
     date: "30 de julio de 2026",
     title: "Nombres históricos correctos en las imágenes de clasificación",
