@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.18.4",
+    date: "30 de julio de 2026",
+    title: "Actualización controlada de dependencias de producción",
+    summary:
+      "Smash & Lob incorpora las actualizaciones propuestas por Dependabot para Supabase y React después de validarlas dentro del flujo habitual de desarrollo, PRE y producción.",
+    category: "foundation",
+    changes: [
+      "Se actualiza `@supabase/supabase-js` de 2.108.2 a 2.111.0.",
+      "Se actualizan `react` y `react-dom` de 19.2.4 a 19.2.8.",
+      "Las dependencias se incorporan desde la propuesta automática de Dependabot, pero se publican mediante la rama de desarrollo y las validaciones completas del proyecto.",
+      "No se modifican las dependencias de desarrollo incluidas en la otra propuesta de Dependabot.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.18.3",
     date: "30 de julio de 2026",
     title: "Diagnóstico de acceso limitado a los logs internos",

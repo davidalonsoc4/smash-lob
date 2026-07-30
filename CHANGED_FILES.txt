@@ -1,6 +1,4 @@
-CHANGED_FILES.txt
 package.json
 package-lock.json
-src/app/api/access/route.ts
 src/lib/appVersion.ts
 src/lib/changelog.ts
