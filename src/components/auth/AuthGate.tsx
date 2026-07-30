@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { signIn, useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
-import { useEffect } from "react"
 import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -19,14 +18,6 @@ export function AuthGate({ children }: AuthGateProps) {
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
   const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
-
-  useEffect(() => {
-    if (status !== "unauthenticated" || !isAccessInviteRoute) {
-      return
-    }
-
-    signIn("google", { callbackUrl: pathname })
-  }, [isAccessInviteRoute, pathname, status])
 
   if (status === "loading") {
     return <AppBootSkeleton />

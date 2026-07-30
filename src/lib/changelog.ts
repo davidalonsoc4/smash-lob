@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.0",
+    date: "30 de julio de 2026",
+    title: "Identidad histórica, exportaciones visuales e instalación anticipada",
+    summary:
+      "La nueva etapa de Smash & Lob permite que quienes se incorporan mediante autoinscripción recuperen su jugador de temporadas importadas, renueva las imágenes de calendario y clasificación y ofrece instalar la PWA antes de completar el acceso.",
+    category: "new",
+    changes: [
+      "En las ligas con autoinscripción, una persona puede indicar qué jugador fue en una temporada anterior ya finalizada antes de ocupar su plaza en la nueva temporada.",
+      "La vinculación reutiliza el mismo jugador en el histórico y en las temporadas futuras, de modo que partidos, clasificación y estadísticas anteriores pasan a mostrar el nombre y avatar actuales de la cuenta.",
+      "Los jugadores históricos ya vinculados, reclamados por otra cuenta o presentes en la temporada actual dejan de estar disponibles para evitar identidades duplicadas.",
+      "La exportación de calendario genera una imagen PNG vertical con cabecera de liga, jornadas, parejas, estado, fecha, ubicación, marcador y sets.",
+      "La exportación de clasificación genera una imagen PNG con podio y tabla completa, manteniendo además los CSV de resultados y clasificación.",
+      "El aviso de instalación de la PWA se monta desde el acceso inicial y también acompaña los enlaces de invitación antes del inicio de sesión y de la incorporación a la liga.",
+      "Se añade una migración de Supabase para realizar la vinculación histórica y la autoinscripción en una única operación transaccional del servidor.",
+    ],
+  },
+  {
     version: "v0.18.4",
     date: "30 de julio de 2026",
     title: "Actualización controlada de dependencias de producción",

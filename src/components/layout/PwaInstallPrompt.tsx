@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import { getAppBranding } from "@/lib/appVariant"
 
 type BeforeInstallPromptEvent = Event & {
@@ -52,11 +54,19 @@ function wasRecentlyDismissed(dismissedStorageKey: string) {
 }
 
 export function PwaInstallPrompt() {
+  const { status } = useSession()
+  const pathname = usePathname()
   const branding = useMemo(() => getAppBranding(), [])
   const dismissedStorageKey = `smash-lob-pwa-install-dismissed-at:${branding.variantKey}`
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null)
   const [shouldShowIosHelp, setShouldShowIosHelp] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+  const isAccessRoute =
+    pathname === "/invite" ||
+    pathname.startsWith("/invite/") ||
+    pathname.startsWith("/spectate/") ||
+    pathname === "/open"
+  const isEntryExperience = status !== "authenticated" || isAccessRoute
 
   useEffect(() => {
     if (isStandaloneDisplay() || wasRecentlyDismissed(dismissedStorageKey)) {
@@ -118,7 +128,9 @@ export function PwaInstallPrompt() {
       style={{
         left: "max(0px, calc((100vw - 448px) / 2))",
         right: "max(0px, calc((100vw - 448px) / 2))",
-        bottom: "76px",
+        bottom: isEntryExperience
+          ? "max(18px, env(safe-area-inset-bottom, 0px))"
+          : "76px",
       }}
     >
       <div className="mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-3 shadow-lg">
@@ -134,7 +146,9 @@ export function PwaInstallPrompt() {
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
               {shouldShowIosHelp
                 ? "En iPhone: toca Compartir y después Añadir a pantalla de inicio."
-                : "Accede como una app del móvil, sin buscarla en el navegador."}
+                : isEntryExperience
+                  ? "Instálala ahora y continúa el acceso o la invitación desde la app."
+                  : "Accede como una app del móvil, sin buscarla en el navegador."}
             </p>
 
             <div className="mt-3 flex gap-2">
