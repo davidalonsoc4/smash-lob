@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.5",
+    date: "30 de julio de 2026",
+    title: "Imágenes compartibles reunidas en el resumen de temporada",
+    summary:
+      "El calendario actual, el calendario limpio de enfrentamientos y la clasificación pasan a estar disponibles en la pantalla de compartir temporada durante toda la competición, mientras la zona administrativa vuelve a centrarse en los datos CSV.",
+    category: "improvement",
+    changes: [
+      "La pantalla Compartir resumen de temporada muestra siempre las imágenes de Calendario actual, Calendario de enfrentamientos y Clasificación, aunque la temporada todavía esté en curso.",
+      "El Calendario actual conserva estados, fechas, ubicaciones, marcadores y sets; el Calendario de enfrentamientos muestra exclusivamente las parejas y el VS de cada jornada.",
+      "Las tres imágenes pueden compartirse directamente o guardarse en el dispositivo y comparten las opciones de logo de liga e imágenes de perfil.",
+      "El resumen final de campeón, MVP, podio y destacados continúa apareciendo únicamente cuando la temporada está terminada y sus datos son válidos.",
+      "La pantalla administrativa Exportar datos vuelve a ofrecer únicamente clasificación y resultados en CSV compatible con Excel, Google Sheets y LibreOffice.",
+      "Se eliminan los avisos de ESLint por variables y funciones sin uso en el generador de imágenes de temporada.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.19.4",
     date: "30 de julio de 2026",
     title: "Recorte extra del calendario y barra completa del podio",
