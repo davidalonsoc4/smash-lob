@@ -1,7 +1,5 @@
 CHANGED_FILES.txt
 package.json
-package-lock.json
-src/app/admin/exports/page.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
 src/lib/seasonExportImages.ts
