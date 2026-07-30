@@ -701,7 +701,7 @@ async function drawMatchCard({
   width: number
   includePlayerImages: boolean
 }) {
-  const height = 210
+  const height = 192
   drawCard(context, x, y, width, height, 26)
 
   const statusPalette = getMatchStatusColor(match)
@@ -828,8 +828,8 @@ export async function exportSeasonCalendarImage({
     })
 
   const rounds = Array.from(matchesByRound.entries())
-  const cardHeight = 228
-  const roundHeights = rounds.map(([, roundMatches]) => 68 + Math.ceil(roundMatches.length / 2) * cardHeight)
+  const cardHeight = 206
+  const roundHeights = rounds.map(([, roundMatches]) => 56 + Math.ceil(roundMatches.length / 2) * cardHeight)
   const canvasHeight = Math.max(
     760,
     CONTENT_TOP + roundHeights.reduce((total, height) => total + height, 0) + FOOTER_HEIGHT + FOOTER_BOTTOM + 26,
@@ -891,7 +891,7 @@ export async function exportSeasonCalendarImage({
       })
     }
 
-    y += Math.ceil(roundMatches.length / 2) * cardHeight + 18
+    y += Math.ceil(roundMatches.length / 2) * cardHeight + 8
   }
 
   drawFooter({ context, canvasHeight, appIcon })
@@ -922,9 +922,9 @@ function drawPodiumCard({
   includePlayerImages: boolean
 }) {
   const accent = position === 1 ? palette.gold : position === 2 ? palette.silver : palette.bronze
-  drawCard(context, x, y, width, 174, 28)
+  drawCard(context, x, y, width, 156, 28)
   context.fillStyle = accent
-  context.fillRect(x, y + 28, 8, 118)
+  context.fillRect(x, y + 24, 8, 108)
 
   drawPlayerAvatar({
     context,
@@ -932,40 +932,40 @@ function drawPodiumCard({
     avatarUrl: player.avatarUrl,
     avatarInitials: player.avatarInitials,
     image: playerImage,
-    x: x + 26,
-    y: y + 28,
-    size: 60,
-    radius: 18,
+    x: x + 22,
+    y: y + 22,
+    size: 52,
+    radius: 16,
     includeImage: includePlayerImages,
   })
 
-  fillRoundedRect(context, x + width - 64, y + 28, 38, 38, 14, `${accent}22`)
-  drawTextCenteredInBox(context, String(position), x + width - 64, y + 28, 38, 38, {
-    size: 18,
+  fillRoundedRect(context, x + width - 58, y + 22, 34, 34, 12, `${accent}22`)
+  drawTextCenteredInBox(context, String(position), x + width - 58, y + 22, 34, 34, {
+    size: 17,
     weight: 900,
     color: accent,
   })
 
-  drawText(context, player.displayName, x + 100, y + 52, {
-    size: 23,
+  drawText(context, player.displayName, x + 86, y + 46, {
+    size: 20,
     weight: 900,
-    maxWidth: width - 170,
+    maxWidth: width - 132,
     baseline: "middle",
   })
-  drawText(context, `${player.points} PTS`, x + 100, y + 78, {
-    size: 16,
+  drawText(context, `${player.points} PTS`, x + 86, y + 70, {
+    size: 15,
     weight: 900,
     color: palette.muted,
     baseline: "middle",
   })
-  drawText(context, `${player.wins} victorias`, x + 26, y + 126, {
-    size: 17,
+  drawText(context, `${player.wins} victorias`, x + 22, y + 112, {
+    size: 15,
     weight: 800,
     color: palette.muted,
     baseline: "middle",
   })
-  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 26, y + 126, {
-    size: 17,
+  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 22, y + 112, {
+    size: 15,
     weight: 800,
     color: palette.muted,
     align: "right",
@@ -985,7 +985,7 @@ export async function exportSeasonRankingImage({
 }) {
   const tableRows = Math.max(ranking.length, 1)
   const tableHeight = 72 + tableRows * 82
-  const podiumHeight = ranking.length > 0 ? 190 : 0
+  const podiumHeight = ranking.length > 0 ? 168 : 0
   const canvasHeight = CONTENT_TOP + podiumHeight + 28 + tableHeight + FOOTER_HEIGHT + FOOTER_BOTTOM + 34
   const { canvas, context } = createCanvas(canvasHeight)
 

@@ -15,17 +15,17 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: "v0.19.2",
+    version: "v0.19.3",
     date: "30 de julio de 2026",
-    title: "Ajuste fino de alineación en exports de temporada",
+    title: "Compactación del calendario y podio más apaisado",
     summary:
-      "Se corrige la alineación vertical de los textos dentro de las imágenes exportadas de calendario y clasificación para que etiquetas, avatares, podio y filas queden correctamente centrados.",
+      "Se compacta la imagen del calendario para reducir hueco sobrante por jornada y se reajusta el podio de la clasificación para mostrar mejor los nombres completos.",
     category: "improvement",
     changes: [
-      "Se recolocan hacia arriba y se centran correctamente los textos internos de las tarjetas de partido, incluidas las etiquetas de estado como Finalizado o Programado.",
-      "El podio de la clasificación ajusta mejor el número de puesto, el nombre del jugador y los bloques de estadísticas para evitar que queden desplazados hacia abajo.",
-      "Las filas de la tabla de clasificación alinean mejor posición, avatar, nombre y cifras para que queden a la misma altura visual.",
-      "Los avatares con iniciales y la marca genérica de Smash & Lob se centran mejor dentro de sus contenedores.",
+      "Las tarjetas del calendario de temporada reducen su altura y el espaciado inferior de cada jornada para aprovechar mejor el lienzo y disminuir la altura final de la imagen.",
+      "El podio de la clasificación adopta un formato más alargado horizontalmente y menos cuadrado, con menor altura visual.",
+      "Se reduce ligeramente la tipografía del nombre en el podio y se gana espacio útil para mostrar mejor nombre y apellido.",
+      "Se reajustan avatar, marcador de puesto y estadísticas del podio para acompañar el nuevo formato más apaisado.",
       "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
     ],
   },
