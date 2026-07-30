@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.6",
+    date: "30 de julio de 2026",
+    title: "Resumen final sin vista previa",
+    summary:
+      "La pantalla de compartir temporada elimina la previsualización completa del resumen final y lo integra como una descarga adicional cuando la temporada ha terminado.",
+    category: "improvement",
+    changes: [
+      "Se elimina de la pantalla la vista previa del resumen de temporada con campeón, MVP, podio y momentos destacados.",
+      "Cuando la temporada está terminada aparece una cuarta opción, Descargar Resumen de Temporada, junto al calendario actual, calendario de enfrentamientos y clasificación.",
+      "La descarga genera directamente la misma imagen final del resumen sin renderizar previamente su contenido dentro de la app.",
+      "Las opciones comunes de logo de liga e imágenes de perfil también se aplican al resumen final descargado.",
+      "Si la temporada está terminada pero tiene datos incompletos, la opción permanece visible y explica por qué todavía no puede generar la imagen.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.19.5",
     date: "30 de julio de 2026",
     title: "Imágenes compartibles reunidas en el resumen de temporada",
