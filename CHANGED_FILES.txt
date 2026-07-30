@@ -1,4 +1,5 @@
+CHANGED_FILES.txt
 package.json
-package-lock.json
+src/components/statistics/SeasonShareExportsCard.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts

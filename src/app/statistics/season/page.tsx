@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { SeasonSummaryCard } from "@/components/statistics/SeasonSummaryCard"
+import { SeasonShareExportsCard } from "@/components/statistics/SeasonShareExportsCard"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -33,6 +33,10 @@ function haveSamePlayerIds(first: string[], second: string[]) {
   return [...first].sort().join("|") === [...second].sort().join("|")
 }
 
+function isGenericPlayerName(value: string) {
+  return /^jugador(?:\s+\d+)?$/i.test(value.trim())
+}
+
 export default function StatisticsSeasonPage() {
   const {
     activeLeague,
@@ -49,6 +53,46 @@ export default function StatisticsSeasonPage() {
     isLeagueWide,
   } = useStatisticsWorkspace()
 
+  const selectedSeasonMatches = useMemo(
+    () =>
+      countedMatches
+        .filter((match) => match.seasonId === selectedSeason.id)
+        .sort((left, right) => left.round - right.round),
+    [countedMatches, selectedSeason.id],
+  )
+  const exportRanking = useMemo(() => {
+    const profilesById = new Map(
+      leaguePlayers.map((player) => [player.id, player]),
+    )
+
+    return statistics.ranking.map((player) => {
+      const profile =
+        profilesById.get(player.playerId) ?? profilesById.get(player.id)
+
+      if (!profile) {
+        return player
+      }
+
+      const profileHasRealName = !isGenericPlayerName(profile.displayName)
+      const shouldUseProfileName =
+        isGenericPlayerName(player.displayName) && profileHasRealName
+
+      return {
+        ...player,
+        displayName: shouldUseProfileName
+          ? profile.displayName
+          : player.displayName,
+        slug: player.slug || profile.slug,
+        avatarInitials: player.avatarInitials || profile.avatarInitials,
+        avatarUrl: player.avatarUrl ?? profile.avatarUrl,
+        userId: player.userId ?? profile.userId,
+      }
+    })
+  }, [leaguePlayers, statistics.ranking])
+  const exportRankingById = useMemo(
+    () => new Map(exportRanking.map((player) => [player.id, player])),
+    [exportRanking],
+  )
   const selectedSeasonMvpSystem = getSeasonRoundSettings(selectedSeason.id).mvpSystem
   const seasonMvp = useMemo(
     () =>
@@ -79,12 +123,14 @@ export default function StatisticsSeasonPage() {
         .join(" / ")
     : "Sin MVP calculado"
   const summaryHeroes = useMemo((): SeasonSummaryHeroPanel[] => {
-    const championPlayers = statistics.leaders
+    const championPlayers = statistics.leaders.map(
+      (player) => exportRankingById.get(player.id) ?? player,
+    )
     const championPlayerIds = championPlayers.map((player) => player.id)
     const championNames = championPlayers.map((player) => player.displayName).join(" / ")
     const mvpPlayerIds = seasonMvp?.playerIds ?? []
     const mvpPlayers = mvpPlayerIds
-      .map((playerId) => statistics.ranking.find((player) => player.id === playerId))
+      .map((playerId) => exportRankingById.get(playerId))
       .filter((player): player is NonNullable<typeof player> => Boolean(player))
     const mvpNames = seasonMvpNames
 
@@ -142,8 +188,8 @@ export default function StatisticsSeasonPage() {
     seasonMvp,
     seasonMvpNames,
     selectedSeasonMvpSystem,
+    exportRankingById,
     statistics.leaders,
-    statistics.ranking,
   ])
   const seasonHistory = useMemo(
     () =>
@@ -238,7 +284,7 @@ export default function StatisticsSeasonPage() {
         description={
           isLeagueWide
             ? "Vista histórica de todas las temporadas y campeones de la liga."
-            : "Genera, descarga o comparte el resumen final de la temporada."
+            : "Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine."
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
@@ -248,6 +294,35 @@ export default function StatisticsSeasonPage() {
             : undefined
         }
       />
+
+      {!isLeagueWide ? (
+        <SeasonShareExportsCard
+          leagueName={activeLeague.name}
+          seasonName={selectedSeason.name}
+          leagueLogoUrl={activeLeague.logoUrl ?? null}
+          matches={selectedSeasonMatches}
+          players={leaguePlayers}
+          ranking={exportRanking}
+          summaryExport={{
+            visible: selectedSeason.status === "finished",
+            canExport: summaryIsComplete,
+            blockedReason: summaryIsComplete ? undefined : exportBlockedReason,
+            data: {
+              leagueName: activeLeague.name,
+              seasonName: selectedSeason.name,
+              leagueLogoUrl: activeLeague.logoUrl ?? null,
+              heroes: summaryHeroes,
+              podium: exportRanking.slice(0, 3).map((player) => ({
+                position: getRankingPosition(exportRanking, player.id) ?? 1,
+                name: player.displayName,
+                points: player.points,
+                gamesDiff: player.gamesDiff,
+              })),
+              highlights: summaryHighlights,
+            },
+          }}
+        />
+      ) : null}
 
       {isLeagueWide ? (
         <AppCard>
@@ -266,45 +341,7 @@ export default function StatisticsSeasonPage() {
             Las imágenes compartibles se generan por temporada para no mezclar campeones, MVP y podios de competiciones diferentes.
           </p>
         </AppCard>
-      ) : selectedSeason.status === "finished" &&
-      statistics.leader &&
-      statistics.dataQuality.hasCountedResults ? (
-        <div>
-          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-            Vista previa del resumen
-          </p>
-          <SeasonSummaryCard
-            canExport={summaryIsComplete}
-            exportBlockedReason={exportBlockedReason}
-            data={{
-              leagueName: activeLeague.name,
-              seasonName: selectedSeason.name,
-              leagueLogoUrl: activeLeague.logoUrl ?? null,
-              heroes: summaryHeroes,
-              podium: statistics.ranking.slice(0, 3).map((player) => ({
-                position: getRankingPosition(statistics.ranking, player.id) ?? 1,
-                name: player.displayName,
-                points: player.points,
-                gamesDiff: player.gamesDiff,
-              })),
-              highlights: summaryHighlights,
-            }}
-          />
-        </div>
-      ) : selectedSeason.status === "finished" ? (
-        <EmptyState
-          compact
-          title="Sin resumen final disponible"
-          description="La temporada está cerrada, pero todavía no tiene resultados válidos suficientes para generar el resumen."
-        />
-      ) : (
-        <AppCard>
-          <p className="font-black">Temporada en curso</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            El resumen final y la imagen compartible aparecerán automáticamente cuando la temporada termine con resultados válidos.
-          </p>
-        </AppCard>
-      )}
+      ) : null}
 
       <div>
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">

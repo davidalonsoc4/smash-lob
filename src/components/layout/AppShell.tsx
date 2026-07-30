@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation"
 import { type CSSProperties, type ReactNode } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
-import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
@@ -260,8 +259,6 @@ export function AppShell({ children }: AppShellProps) {
       }`}
     >
       <div className="app-shell-frame mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
-        <PwaInstallPrompt />
-
         {branding.preproduction ? (
           <div
             aria-label={branding.internalBadgeAriaLabel ?? undefined}

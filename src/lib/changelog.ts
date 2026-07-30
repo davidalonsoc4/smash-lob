@@ -15,6 +15,131 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.19.10",
+    date: "31 de julio de 2026",
+    title: "Compartir el resumen final y publicación completa",
+    summary:
+      "El resumen final de temporada incorpora la misma acción de compartir que el resto de imágenes y la serie 0.19 queda preparada para publicarse completa en producción.",
+    category: "improvement",
+    changes: [
+      "La tarjeta Resumen de temporada muestra ahora un botón Compartir junto al botón de descarga cuando la temporada está terminada.",
+      "La acción utiliza el sistema nativo de compartir archivos cuando está disponible y descarga la imagen como alternativa en dispositivos no compatibles.",
+      "El texto compartido identifica correctamente la imagen como resumen final de temporada.",
+      "No se requieren nuevas migraciones de Supabase para esta versión.",
+    ],
+  },
+  {
+    version: "v0.19.9",
+    date: "30 de julio de 2026",
+    title: "Programación retroactiva para administración",
+    summary:
+      "Las personas con rol creator o admin pueden añadir o corregir la fecha y el lugar de un partido aunque ya tenga resultado o pertenezca a una temporada cerrada.",
+    category: "improvement",
+    changes: [
+      "La ficha de un partido finalizado vuelve a mostrar el panel de programación a creator y admin incluso cuando todavía no tiene fecha registrada.",
+      "Los participantes normales mantienen el comportamiento anterior y no pueden modificar la programación después de finalizar el partido.",
+      "Al guardar una programación retroactiva se conservan el estado Finalizado, el marcador, los sets y el resto de datos del resultado.",
+      "En partidos finalizados no se precarga una fecha futura ni se muestran sugerencias de disponibilidad, de modo que la administración introduce manualmente la fecha real jugada.",
+      "La API aplica la misma autorización en servidor para evitar que un jugador pueda saltarse la restricción desde el cliente.",
+      "No se requieren migraciones de Supabase ni cambios de estructura de datos.",
+    ],
+  },
+  {
+    version: "v0.19.8",
+    date: "30 de julio de 2026",
+    title: "Nueva pantalla de exportación de datos",
+    summary:
+      "La zona administrativa de exportaciones se rehace por completo para guardar y trabajar con los datos de cada temporada mediante un libro Excel completo o archivos CSV separados.",
+    category: "improvement",
+    changes: [
+      "La pantalla Exportar datos incorpora una cabecera renovada, selector de temporada y un resumen inmediato de jugadores, partidos y encuentros finalizados.",
+      "Se añade la descarga de un libro Excel .xlsx real con dos hojas: Clasificación y Resultados.",
+      "El archivo Excel incluye cabeceras destacadas, columnas dimensionadas, filtros y la primera fila inmovilizada para trabajar más cómodamente con los datos.",
+      "Las descargas CSV de Clasificación y Resultados se mantienen como alternativas independientes para importar cada tabla en otras herramientas.",
+      "La generación del archivo .xlsx se realiza en el navegador sin añadir dependencias nuevas ni enviar datos fuera del dispositivo.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.7",
+    date: "30 de julio de 2026",
+    title: "Nombres históricos correctos en las imágenes de clasificación",
+    summary:
+      "La clasificación exportada vuelve a resolver los nombres y avatares reales de jugadores de temporadas anteriores aunque después se haya creado una temporada nueva con una plantilla diferente.",
+    category: "fix",
+    changes: [
+      "Antes de generar las imágenes se reconcilian las filas de la clasificación con los perfiles completos de jugadores de la liga mediante su identificador estable.",
+      "Los nombres genéricos como Jugador se sustituyen por el nombre histórico real cuando el perfil correspondiente sigue disponible.",
+      "La misma resolución se aplica al podio y al resumen final para evitar inconsistencias entre las distintas imágenes compartibles.",
+      "Se conservan correctamente avatar, iniciales, slug y vinculación de usuario del perfil real.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.6",
+    date: "30 de julio de 2026",
+    title: "Resumen final sin vista previa",
+    summary:
+      "La pantalla de compartir temporada elimina la previsualización completa del resumen final y lo integra como una descarga adicional cuando la temporada ha terminado.",
+    category: "improvement",
+    changes: [
+      "Se elimina de la pantalla la vista previa del resumen de temporada con campeón, MVP, podio y momentos destacados.",
+      "Cuando la temporada está terminada aparece una cuarta opción, Descargar Resumen de Temporada, junto al calendario actual, calendario de enfrentamientos y clasificación.",
+      "La descarga genera directamente la misma imagen final del resumen sin renderizar previamente su contenido dentro de la app.",
+      "Las opciones comunes de logo de liga e imágenes de perfil también se aplican al resumen final descargado.",
+      "Si la temporada está terminada pero tiene datos incompletos, la opción permanece visible y explica por qué todavía no puede generar la imagen.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.5",
+    date: "30 de julio de 2026",
+    title: "Imágenes compartibles reunidas en el resumen de temporada",
+    summary:
+      "El calendario actual, el calendario limpio de enfrentamientos y la clasificación pasan a estar disponibles en la pantalla de compartir temporada durante toda la competición, mientras la zona administrativa vuelve a centrarse en los datos CSV.",
+    category: "improvement",
+    changes: [
+      "La pantalla Compartir resumen de temporada muestra siempre las imágenes de Calendario actual, Calendario de enfrentamientos y Clasificación, aunque la temporada todavía esté en curso.",
+      "El Calendario actual conserva estados, fechas, ubicaciones, marcadores y sets; el Calendario de enfrentamientos muestra exclusivamente las parejas y el VS de cada jornada.",
+      "Las tres imágenes pueden compartirse directamente o guardarse en el dispositivo y comparten las opciones de logo de liga e imágenes de perfil.",
+      "El resumen final de campeón, MVP, podio y destacados continúa apareciendo únicamente cuando la temporada está terminada y sus datos son válidos.",
+      "La pantalla administrativa Exportar datos vuelve a ofrecer únicamente clasificación y resultados en CSV compatible con Excel, Google Sheets y LibreOffice.",
+      "Se eliminan los avisos de ESLint por variables y funciones sin uso en el generador de imágenes de temporada.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.4",
+    date: "30 de julio de 2026",
+    title: "Recorte extra del calendario y barra completa del podio",
+    summary:
+      "Se reduce todavía más el espacio vacío en el calendario exportado y se corrige la barra lateral del podio para que recorra todo el panel respetando las esquinas redondeadas.",
+    category: "improvement",
+    changes: [
+      "Las tarjetas del calendario se compactan aún más para recortar espacio vacío sobrante debajo del contenido de cada partido y reducir de nuevo la altura total de la imagen.",
+      "El bloque de cada jornada también disminuye el margen inferior entre filas para que el calendario resulte más denso y limpio.",
+      "La barra lateral de color del podio en la clasificación pasa a recorrer todo el alto del panel y queda recortada siguiendo las esquinas redondeadas superior e inferior.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.0",
+    date: "30 de julio de 2026",
+    title: "Identidad histórica, exportaciones visuales e instalación anticipada",
+    summary:
+      "La nueva etapa de Smash & Lob permite que quienes se incorporan mediante autoinscripción recuperen su jugador de temporadas importadas, renueva las imágenes de calendario y clasificación y ofrece instalar la PWA antes de completar el acceso.",
+    category: "new",
+    changes: [
+      "En las ligas con autoinscripción, una persona puede indicar qué jugador fue en una temporada anterior ya finalizada antes de ocupar su plaza en la nueva temporada.",
+      "La vinculación reutiliza el mismo jugador en el histórico y en las temporadas futuras, de modo que partidos, clasificación y estadísticas anteriores pasan a mostrar el nombre y avatar actuales de la cuenta.",
+      "Los jugadores históricos ya vinculados, reclamados por otra cuenta o presentes en la temporada actual dejan de estar disponibles para evitar identidades duplicadas.",
+      "La exportación de calendario genera una imagen PNG vertical con cabecera de liga, jornadas, parejas, estado, fecha, ubicación, marcador y sets.",
+      "La exportación de clasificación genera una imagen PNG con podio y tabla completa, manteniendo además los CSV de resultados y clasificación.",
+      "El aviso de instalación de la PWA se monta desde el acceso inicial y también acompaña los enlaces de invitación antes del inicio de sesión y de la incorporación a la liga.",
+      "Se añade una migración de Supabase para realizar la vinculación histórica y la autoinscripción en una única operación transaccional del servidor.",
+    ],
+  },
+  {
     version: "v0.18.4",
     date: "30 de julio de 2026",
     title: "Actualización controlada de dependencias de producción",

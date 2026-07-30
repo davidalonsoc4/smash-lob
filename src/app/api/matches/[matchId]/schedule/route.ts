@@ -66,7 +66,12 @@ export async function PUT(
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
-  if (!canManageMatchSchedule(access.actor)) {
+  const isFinishedMatch = access.actor.match.status === "finished"
+
+  if (
+    !canManageMatchSchedule(access.actor) ||
+    (isFinishedMatch && !access.actor.isAdmin)
+  ) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
@@ -74,13 +79,6 @@ export async function PUT(
     return NextResponse.json(
       { error: "match_incident_resolution_required" },
       { status: 409 },
-    )
-  }
-
-  if (access.actor.match.status === "finished") {
-    return NextResponse.json(
-      { error: "match_schedule_not_allowed" },
-      { status: 409 }
     )
   }
 
@@ -96,7 +94,7 @@ export async function PUT(
   const { data, error } = await access.actor.supabase
     .from("matches")
     .update({
-      status: "scheduled",
+      status: isFinishedMatch ? "finished" : "scheduled",
       scheduled_at: schedule.scheduledAt,
       date_label: formatScheduleDateLabel(schedule.scheduledAt),
       location: schedule.location,
@@ -141,7 +139,9 @@ export async function PUT(
     ? getLeagueLocationCompactText(resolvedLocation)
     : getScheduleLocationFallbackText(updatedMatch.location) ?? "Ubicación pendiente"
   const wasAlreadyScheduled = Boolean(
-    access.actor.match.scheduledAt || access.actor.match.status === "scheduled"
+    isFinishedMatch ||
+      access.actor.match.scheduledAt ||
+      access.actor.match.status === "scheduled"
   )
 
   await recordServerActorActivity({

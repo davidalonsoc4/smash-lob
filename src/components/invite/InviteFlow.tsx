@@ -162,12 +162,18 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const router = useRouter()
   const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const { activateGrantedLeague } = useActiveLeague()
-  const { seasons, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
+  const {
+    seasons,
+    playerProfiles,
+    seasonPlayers,
+    getSeasonRoundSettings,
+  } = useSeasonSettings()
   const {
     getLeagueByInviteCode,
     resolveLeagueInvite,
     getMembershipForLeague,
     getUnclaimedPlayersForLeague,
+    isPlayerClaimed,
     claimPlayer,
     refreshLeagueAccess,
   } = useLeagueAccess()
@@ -177,6 +183,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     getLeagueByInviteCode(normalizedCode)
   )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
+  const [selectedHistoricalPlayerId, setSelectedHistoricalPlayerId] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isClaiming, setIsClaiming] = useState(false)
@@ -218,6 +225,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       setIsLoading(true)
       setError(null)
       setSelectedPlayerId("")
+      setSelectedHistoricalPlayerId("")
       setHasAcceptedRules(false)
       setLeague(localLeagueRef.current(normalizedCode))
 
@@ -356,6 +364,48 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const selectedPlayer = unclaimedPlayers.find(
     (player) => player.id === selectedPlayerId
   )
+  const finishedSeasonIds = new Set(
+    seasons
+      .filter(
+        (season) =>
+          season.leagueId === league.id &&
+          season.status === "finished" &&
+          season.id !== activeSeason?.id,
+      )
+      .map((season) => season.id),
+  )
+  const currentSeasonPlayerIds = new Set(
+    activeSeason
+      ? seasonPlayers
+          .filter((seasonPlayer) => seasonPlayer.seasonId === activeSeason.id)
+          .map((seasonPlayer) => seasonPlayer.playerId)
+      : [],
+  )
+  const historicalPlayerIds = new Set(
+    seasonPlayers
+      .filter((seasonPlayer) => finishedSeasonIds.has(seasonPlayer.seasonId))
+      .map((seasonPlayer) => seasonPlayer.playerId),
+  )
+  const historicalPlayers = playerProfiles
+    .filter(
+      (player) =>
+        player.leagueId === league.id &&
+        historicalPlayerIds.has(player.id) &&
+        !currentSeasonPlayerIds.has(player.id) &&
+        !isPlayerClaimed(league.id, player.id),
+    )
+    .sort((left, right) =>
+      left.displayName.localeCompare(right.displayName, "es", {
+        sensitivity: "base",
+      }),
+    )
+  const selectedHistoricalPlayer = historicalPlayers.find(
+    (player) => player.id === selectedHistoricalPlayerId,
+  )
+  const historicalIdentityResolved =
+    !isSelfRegistration ||
+    historicalPlayers.length === 0 ||
+    selectedHistoricalPlayerId.length > 0
   const currentStep = existingMembership ? 3 : hasAcceptedRules ? 3 : 2
 
   async function handleEnterExistingLeague() {
@@ -384,13 +434,25 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       return
     }
 
+    if (isSelfRegistration && !historicalIdentityResolved) {
+      setError(t.invites.historicalIdentityRequired)
+      return
+    }
+
     setIsClaiming(true)
     setError(null)
 
     const claimPlayerId = isSelfRegistration
       ? "__self_registration__"
       : selectedPlayerId
-    const result = await claimPlayer(league.id, claimPlayerId, normalizedCode)
+    const result = await claimPlayer(
+      league.id,
+      claimPlayerId,
+      normalizedCode,
+      selectedHistoricalPlayerId === "__new__"
+        ? null
+        : selectedHistoricalPlayerId || null,
+    )
 
     if (!result.ok) {
       setIsClaiming(false)
@@ -403,7 +465,9 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
               ? t.invites.rosterFull
               : result.error === "registration-closed"
                 ? t.invites.registrationClosed
-                : t.invites.playerAlreadyClaimed
+                : result.error === "historical-player-unavailable"
+                  ? t.invites.historicalIdentityUnavailable
+                  : t.invites.playerAlreadyClaimed
       setError(claimError)
       return
     }
@@ -622,6 +686,54 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             </p>
           ) : null}
 
+          {isSelfRegistration && hasAcceptedRules && historicalPlayers.length > 0 ? (
+            <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-sm font-black text-neutral-950">
+                {t.invites.historicalIdentityTitle}
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                {t.invites.historicalIdentityDescription}
+              </p>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {historicalPlayers.map((player) => (
+                  <PlayerClaimButton
+                    key={player.id}
+                    player={player}
+                    isSelected={selectedHistoricalPlayerId === player.id}
+                    disabled={isClaiming}
+                    onSelect={() => {
+                      setSelectedHistoricalPlayerId(player.id)
+                      setError(null)
+                    }}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedHistoricalPlayerId("__new__")
+                  setError(null)
+                }}
+                disabled={isClaiming}
+                className={`mt-2 w-full rounded-xl px-3 py-2.5 text-sm font-black disabled:opacity-50 ${
+                  selectedHistoricalPlayerId === "__new__"
+                    ? "bg-neutral-950 text-white"
+                    : "bg-white text-neutral-800 ring-1 ring-neutral-200"
+                }`}
+              >
+                {t.invites.historicalIdentityNewPlayer}
+              </button>
+
+              {selectedHistoricalPlayer ? (
+                <div className="mt-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-bold leading-5 text-emerald-900">
+                  {t.invites.historicalIdentitySelected}: {selectedHistoricalPlayer.displayName}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {isSelfRegistration && hasAcceptedRules ? (
             <div className="mt-3 rounded-2xl bg-emerald-50 px-3 py-3 text-sm font-semibold leading-5 text-emerald-900">
               {t.invites.selfRegistrationProfileNotice}
@@ -638,6 +750,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             disabled={
               !hasAcceptedRules ||
               (!isSelfRegistration && !selectedPlayerId) ||
+              !historicalIdentityResolved ||
               isClaiming
             }
             className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"

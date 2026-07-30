@@ -6,6 +6,7 @@ import { AuthGate } from "@/components/auth/AuthGate"
 import { LeagueEntryGate } from "@/components/auth/LeagueEntryGate"
 import { ProfileCompletionGate } from "@/components/auth/ProfileCompletionGate"
 import { AppShell } from "@/components/layout/AppShell"
+import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistration"
 import { AccountProfileProvider } from "@/context/AccountProfileProvider"
 import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
@@ -21,31 +22,39 @@ export function AppRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   if (publicRoutes.has(pathname)) {
-    return children
+    return (
+      <>
+        <PwaInstallPrompt />
+        {children}
+      </>
+    )
   }
 
   return (
-    <AuthGate>
-      <AccountProfileProvider>
-        <ProfileCompletionGate>
-          <SeasonSettingsProvider>
-            <MatchDataProvider>
-              <LeagueAccessProvider>
-                <MvpProvider>
-                  <ActiveLeagueProvider>
-                    <CurrentUserProvider>
-                      <LeagueEntryGate>
-                        <AutoPushRegistration />
-                        <AppShell>{children}</AppShell>
-                      </LeagueEntryGate>
-                    </CurrentUserProvider>
-                  </ActiveLeagueProvider>
-                </MvpProvider>
-              </LeagueAccessProvider>
-            </MatchDataProvider>
-          </SeasonSettingsProvider>
-        </ProfileCompletionGate>
-      </AccountProfileProvider>
-    </AuthGate>
+    <>
+      <PwaInstallPrompt />
+      <AuthGate>
+        <AccountProfileProvider>
+          <ProfileCompletionGate>
+            <SeasonSettingsProvider>
+              <MatchDataProvider>
+                <LeagueAccessProvider>
+                  <MvpProvider>
+                    <ActiveLeagueProvider>
+                      <CurrentUserProvider>
+                        <LeagueEntryGate>
+                          <AutoPushRegistration />
+                          <AppShell>{children}</AppShell>
+                        </LeagueEntryGate>
+                      </CurrentUserProvider>
+                    </ActiveLeagueProvider>
+                  </MvpProvider>
+                </LeagueAccessProvider>
+              </MatchDataProvider>
+            </SeasonSettingsProvider>
+          </ProfileCompletionGate>
+        </AccountProfileProvider>
+      </AuthGate>
+    </>
   )
 }
