@@ -15,6 +15,43 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v0.18.1",
+    date: "30 de julio de 2026",
+    title: "Información pública, privacidad y condiciones de uso",
+    summary:
+      "Smash & Lob incorpora páginas públicas para describir la aplicación y documentar el uso de datos y las condiciones del servicio antes de completar la configuración del dominio y Google OAuth.",
+    category: "foundation",
+    changes: [
+      "Se añaden las rutas públicas `/about`, `/privacy` y `/terms`, accesibles sin iniciar sesión ni pertenecer a una liga.",
+      "La página pública describe las funciones principales de Smash & Lob y enlaza directamente la política de privacidad y las condiciones de uso.",
+      "La política de privacidad documenta los datos básicos recibidos de Google, los datos gestionados en las ligas, las finalidades, proveedores, conservación y derechos.",
+      "Las condiciones aclaran el carácter privado y no comercial del servicio, las responsabilidades de administradores y participantes y el alcance de los registros de resultados y pagos.",
+      "La pantalla de acceso y Ajustes incorporan enlaces a la información pública y los nuevos documentos legales.",
+      "Las nuevas opciones se integran en la búsqueda global de Ajustes en español, inglés y euskera.",
+      "El layout separa las rutas públicas del árbol autenticado para evitar llamadas privadas y bloqueos de acceso en las páginas requeridas por Google OAuth.",
+      "Se configura `https://smashandlob.com` como base de metadatos y se añaden URLs canónicas para las páginas públicas.",
+      "Las páginas legales pueden publicar responsable y correo de contacto mediante `NEXT_PUBLIC_LEGAL_RESPONSIBLE_NAME` y `NEXT_PUBLIC_LEGAL_CONTACT_EMAIL` sin fijar datos personales en el repositorio.",
+      "Se documenta la configuración final de dominios, Google OAuth y variables de Vercel para producción y PRE.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.18.0",
+    date: "30 de julio de 2026",
+    title: "Primera línea base automática de seguridad",
+    summary:
+      "La serie v0.18 comienza con controles reproducibles sobre las dependencias sensibles, validación unificada del proyecto y revisión automática semanal de actualizaciones.",
+    category: "foundation",
+    changes: [
+      "Se añade `npm run security:check` para comprobar en el lockfile las versiones resueltas de next-auth, @auth/core y brace-expansion.",
+      "La comprobación impide regresar a versiones de autenticación anteriores a next-auth 5.0.0-beta.32 o @auth/core 0.41.3.",
+      "La copia principal de brace-expansion debe mantenerse en 5.0.8 o superior, mientras las copias heredadas 1.1.16 solo se permiten bajo las herramientas actuales de lint.",
+      "Se añade `npm run validate` para encadenar seguridad, lint, TypeScript y build con una única orden.",
+      "Dependabot revisará semanalmente las dependencias npm y separará las propuestas de producción y desarrollo.",
+      "No se requieren migraciones ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.17.55",
     date: "29 de julio de 2026",
     title: "Icono y nombre más altos en el panel principal exportado",

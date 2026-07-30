@@ -1,6 +1,15 @@
 CHANGED_FILES.txt
+docs/DOMAIN_AND_GOOGLE_OAUTH.md
 package.json
 package-lock.json
+src/app/about/page.tsx
+src/app/layout.tsx
+src/app/privacy/page.tsx
+src/app/settings/page.tsx
+src/app/terms/page.tsx
+src/components/auth/AuthGate.tsx
+src/components/layout/AppRouteBoundary.tsx
+src/components/legal/PublicSiteLayout.tsx
 src/lib/appVersion.ts
 src/lib/changelog.ts
-src/lib/seasonSummaryImage.ts
+src/lib/settingsSearch.ts

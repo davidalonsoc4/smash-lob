@@ -359,6 +359,24 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
           title="Registro de cambios"
           description="Consulta las novedades publicadas en cada versión."
         />
+        <SettingsLinkRow
+          href="/about"
+          id="about-app"
+          title="Sobre Smash & Lob"
+          description="Consulta la descripción pública y las funciones principales de la aplicación."
+        />
+        <SettingsLinkRow
+          href="/privacy"
+          id="privacy"
+          title="Política de privacidad"
+          description="Consulta qué datos se utilizan y cómo ejercer tus derechos."
+        />
+        <SettingsLinkRow
+          href="/terms"
+          id="terms"
+          title="Condiciones de uso"
+          description="Consulta las normas y responsabilidades de uso de la aplicación."
+        />
       </SettingsSection>
 
       <SessionSection />
@@ -663,6 +681,24 @@ function PlayerSettingsPage() {
           id="changelog"
           title="Registro de cambios"
           description="Consulta las novedades publicadas en cada versión."
+        />
+        <SettingsLinkRow
+          href="/about"
+          id="about-app"
+          title="Sobre Smash & Lob"
+          description="Consulta la descripción pública y las funciones principales de la aplicación."
+        />
+        <SettingsLinkRow
+          href="/privacy"
+          id="privacy"
+          title="Política de privacidad"
+          description="Consulta qué datos se utilizan y cómo ejercer tus derechos."
+        />
+        <SettingsLinkRow
+          href="/terms"
+          id="terms"
+          title="Condiciones de uso"
+          description="Consulta las normas y responsabilidades de uso de la aplicación."
         />
       </SettingsSection>
 
