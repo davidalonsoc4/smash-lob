@@ -33,7 +33,7 @@
 
 - [x] credencial service role dedicada disponible localmente/PRE
 - [x] OAuth Google real con cuenta nueva y existente
-- [ ] invitación inválida y caducada contra datos PRE
+- [x] invitación inválida y caducada contra datos PRE
 - [ ] usuario suspendido y usuario sin acceso contra PRE
 - [x] flujos persistentes de liga/temporada/partido/resultado
 - [ ] aislamiento cruzado completo con dos ligas de fixtures PRE

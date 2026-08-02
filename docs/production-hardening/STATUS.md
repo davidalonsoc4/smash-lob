@@ -734,17 +734,26 @@ This is human acceptance evidence reported by the project owner. It was not repl
   Supabase PRE y aparece alineada en el historial local/remoto. La verificación
   posterior confirmó 9 invitaciones revocadas, 3 activas y correspondencia exacta
   entre cada invitación activa y el código actual de su liga.
-- La primera sonda posterior reveló que Vercel seguía sirviendo snapshots antiguos
-  de invitación desde CDN (`x-vercel-cache: HIT`, con más de 100.000 segundos de
-  edad), por lo que un enlace ya revocado todavía devolvía 200 sin alcanzar la
-  función actual.
+- Una primera sonda externa con `fetch` pareció devolver snapshots antiguos con
+  `x-vercel-cache: HIT`, pero la inspección de la URL final demostró que la
+  petición había seguido la redirección de Deployment Protection y estaba
+  midiendo la página de acceso de Vercel, no la API de PRE. Se corrige aquí esa
+  clasificación para no atribuir a la aplicación una respuesta que no emitió.
 - Se añadieron cabeceras reutilizables `private, no-store` para las respuestas GET
   de invitaciones de jugador y espectador, más `revalidate = 0` y una prueba
   específica de las tres capas de caché. La corrección pasó `npm run validate`
   (17 archivos/61 pruebas y build), Playwright 8/8 y `git diff --check`.
 - El commit `1224684` se subió a `origin/staging` y Vercel lo desplegó como
   `dpl_BqxEmdc1cajdKCg1HPmP6WWVcZQF`, `Ready` y asociado a
-  `pre.smashandlob.com`. Las entradas antiguas continúan interceptadas por la
-  caché previa; Vercel solo ofrece purga CDN a nivel de proyecto, por lo que esa
-  operación requiere autorización explícita al vaciar también la caché de
-  Production, aunque no cambia su código ni sus datos.
+  `pre.smashandlob.com`. Las cabeceras `no-store` se mantienen como defensa en
+  profundidad aunque no existía el snapshot obsoleto inicialmente diagnosticado.
+- Con autorización explícita se ejecutó la purga CDN a nivel de proyecto. La
+  operación vació también la caché CDN de Production, sin cambiar su código ni
+  sus datos.
+- La repetición autenticada contra PRE confirmó que la invitación revocada y una
+  invitación inexistente devuelven `snapshot: null`, mientras que la invitación
+  vigente resuelve el snapshot de su liga. Las sondas exactas con autenticación
+  de Vercel contra el deployment devolvieron `404`, `Age: 0`,
+  `X-Vercel-Cache: MISS` y las tres cabeceras `no-store` tanto para la ruta de
+  jugador como para la de espectador. Queda cerrado el gate de invitaciones
+  inválidas y caducadas en PRE.
