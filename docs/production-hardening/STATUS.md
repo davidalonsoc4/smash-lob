@@ -802,3 +802,36 @@ This is human acceptance evidence reported by the project owner. It was not repl
   service workers reales que cubre pérdida de conexión sobre una página cargada,
   relanzamiento/navegación offline y recuperación mediante «Reintentar». La nueva
   prueba reproduce el fallo antes del cambio y pasa después de la corrección.
+
+## v1.1 stability hardening — cobertura autenticada automatizada (2026-08-03)
+
+- Playwright usa una sesión y datos demo exclusivamente locales para recorrer ocho
+  pantallas autenticadas representativas en Chromium móvil y escritorio: inicio,
+  partidos, clasificación, estadísticas, ajustes, invitación, administración de
+  temporada y resumen de temporada. No intervienen cuentas personales, PRE ni
+  Production.
+- Axe descubrió contrastes insuficientes en las cinco áreas principales y en
+  administración, además de campos de edición de jugadores sin nombre accesible.
+  Se corrigieron todos los impactos críticos o graves detectados.
+- La revisión también descubrió enlaces anidados en tarjetas de partidos. Los
+  nombres conservan sus enlaces en contextos normales y se renderizan como texto
+  cuando toda la tarjeta ya es un enlace.
+- El recorrido Axe pasó en móvil y escritorio. Se generaron 16 referencias
+  visuales, se inspeccionaron y la repetición sin actualización pasó en ambos
+  proyectos.
+- La baja automática de endpoints push caducados se extrajo a una operación
+  comprobable. Diez pruebas confirman que HTTP 404/410 elimina exactamente la
+  suscripción afectada y que un fallo reintentable HTTP 500 no elimina nada.
+- La evidencia visual real ya obtenida en PRE, combinada con Axe y regresión
+  visual local sobre las mismas ocho rutas, cierra ese gate sin exigir una nueva
+  intervención humana. Sigue pendiente únicamente reproducir en un dispositivo
+  real la caducidad 404/410 de un endpoint push y repetir el arranque offline
+  físico tras la corrección ya desplegada.
+- `npm run validate` pasó entorno, secretos, seguridad, URLs, lint, TypeScript,
+  17 archivos/64 pruebas y el build de producción. La primera ejecución conjunta
+  de Playwright saturó el compilador de desarrollo al lanzar 12 workers y cuatro
+  pruebas públicas agotaron su espera sobre la pantalla de compilación; no fue
+  un fallo funcional. Se limitó la concurrencia a cuatro workers locales y dos
+  en CI, y la repetición completa pasó 13/13, incluida la PWA con service worker.
+  `npm audit --audit-level=high` confirmó 0 vulnerabilidades y
+  `git diff --check` pasó.

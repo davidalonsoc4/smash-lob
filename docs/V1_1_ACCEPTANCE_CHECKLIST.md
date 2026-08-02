@@ -39,7 +39,7 @@
 - [x] aislamiento cruzado completo con dos ligas de fixtures PRE
 - [x] compartir resumen y descargar Excel/CSV en navegador real autenticado
 - [ ] alta, baja y endpoint push expirado en dispositivo real
-- [ ] Axe y visuales de las ocho pantallas autenticadas representativas
+- [x] Axe y visuales de las ocho pantallas autenticadas representativas
 - [x] push/merge de rama, despliegue y smoke tests de PRE
 - [x] confirmación visible de `v1.1.0-rc.1` en `pre.smashandlob.com`
 
