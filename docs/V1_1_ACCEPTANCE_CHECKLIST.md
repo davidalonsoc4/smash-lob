@@ -41,7 +41,7 @@
 - [ ] alta, baja y endpoint push expirado en dispositivo real
 - [ ] Axe y visuales de las ocho pantallas autenticadas representativas
 - [x] push/merge de rama, despliegue y smoke tests de PRE
-- [ ] confirmación visible de `v1.1.0-rc.1` en `pre.smashandlob.com`
+- [x] confirmación visible de `v1.1.0-rc.1` en `pre.smashandlob.com`
 
 No se promoverá a PRE ni se declarará cerrado el OAuth real mientras haya casillas
 externas críticas sin evidencia.

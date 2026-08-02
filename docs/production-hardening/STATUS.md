@@ -652,3 +652,16 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Quedan como gates manuales el recorrido OAuth real, la versión visible dentro de
   la aplicación autenticada, los fixtures persistentes, aislamiento entre ligas,
   exportaciones, PWA y push en dispositivo real. No se ha tocado Production.
+
+## v1.1 stability hardening — primer acceso OAuth real en PRE (2026-08-02)
+
+- Una cuenta Google dedicada de pruebas completó el retorno OAuth real a
+  `https://pre.smashandlob.com/` y cargó correctamente su liga existente
+  `PREP LIGA`.
+- La interfaz autenticada mostró `PRE · v1.1.0-rc.1` en la cabecera y
+  `Smash & Lob · v1.1.0-rc.1` en Ajustes, cerrando la comprobación visible de
+  versión.
+- La cuenta no expone controles de administración en Ajustes, por lo que este
+  recorrido valida el caso de miembro existente. Siguen pendientes una cuenta
+  nueva/organizadora, los retornos exactos desde invitaciones y el resto de
+  flujos persistentes manuales.
