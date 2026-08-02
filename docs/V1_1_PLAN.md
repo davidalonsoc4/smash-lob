@@ -1,7 +1,7 @@
 # Plan técnico v1.1
 
-Versión candidata: `1.1.0-rc.1`  
-Rama: `feature/v1.1-stability-hardening`  
+Versión candidata: `1.1.0-rc.1`
+Rama: `feature/v1.1-stability-hardening`
 Base verificada: `staging` (`3495324`, mismo árbol de archivos que `main` v1.0.0)
 
 ## Hallazgos
