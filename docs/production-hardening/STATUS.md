@@ -757,3 +757,17 @@ This is human acceptance evidence reported by the project owner. It was not repl
   `X-Vercel-Cache: MISS` y las tres cabeceras `no-store` tanto para la ruta de
   jugador como para la de espectador. Queda cerrado el gate de invitaciones
   inválidas y caducadas en PRE.
+- Una cuenta dedicada de miembro, perteneciente únicamente a `PREP LIGA`, mostró
+  solo esa liga en el selector. El acceso directo al partido fixture de la liga
+  del organizador devolvió «Partido no encontrado» sin exponer sus datos.
+- La respuesta autenticada de `/api/access` para esa misma cuenta contenía
+  exclusivamente `PREP LIGA` y no incluía ni la segunda liga ni su partido. Junto
+  con el cambio de ligas previamente validado desde la cuenta `creator`, queda
+  cerrado el gate de aislamiento cruzado con las dos ligas fixture de PRE.
+- La cuenta dedicada de miembro se suspendió temporalmente solo en Supabase PRE.
+  La aplicación mostró el bloqueo «Cuenta suspendida» y ocultó los datos de liga.
+  La cuenta se reactivó inmediatamente, se limpiaron el motivo y la fecha de
+  suspensión y se confirmó que recuperaba el acceso normal a `PREP LIGA`.
+- El onboarding ya verificado con la segunda cuenta Google dedicada cubre el caso
+  de usuario autenticado sin acceso a ninguna liga. Con ambas evidencias queda
+  cerrado el gate de usuario suspendido y usuario sin acceso contra PRE.

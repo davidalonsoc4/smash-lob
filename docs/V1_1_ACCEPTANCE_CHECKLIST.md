@@ -34,9 +34,9 @@
 - [x] credencial service role dedicada disponible localmente/PRE
 - [x] OAuth Google real con cuenta nueva y existente
 - [x] invitación inválida y caducada contra datos PRE
-- [ ] usuario suspendido y usuario sin acceso contra PRE
+- [x] usuario suspendido y usuario sin acceso contra PRE
 - [x] flujos persistentes de liga/temporada/partido/resultado
-- [ ] aislamiento cruzado completo con dos ligas de fixtures PRE
+- [x] aislamiento cruzado completo con dos ligas de fixtures PRE
 - [x] compartir resumen y descargar Excel/CSV en navegador real autenticado
 - [ ] alta, baja y endpoint push expirado en dispositivo real
 - [ ] Axe y visuales de las ocho pantallas autenticadas representativas
