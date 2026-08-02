@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.1.0-rc.1",
+    date: "2 de agosto de 2026",
+    title: "Versión candidata más estable y segura",
+    summary:
+      "Smash & Lob prepara en PRE una versión centrada en la estabilidad del acceso, la protección de datos, la accesibilidad y una actualización más fiable de la aplicación instalada.",
+    category: "improvement",
+    changes: [
+      "El acceso con Google conserva el enlace exacto de invitación y ofrece errores más claros con un código de incidencia.",
+      "Las invitaciones, avisos y otras operaciones sensibles incorporan límites contra intentos repetidos.",
+      "Las exportaciones Excel y CSV neutralizan contenido que una hoja de cálculo podría interpretar como fórmula.",
+      "La aplicación instalada puede detectar una versión nueva, actualizarla de forma controlada y mostrar una página útil sin conexión.",
+      "Se corrigen problemas de accesibilidad en estados de carga y textos públicos sin rediseñar la experiencia.",
+      "La carga del generador Excel se pospone hasta el momento de descargar el archivo para aligerar la pantalla.",
+      "Esta versión candidata añade pruebas automáticas y no requiere migraciones ni cambios en los datos guardados.",
+    ],
+  },
+  {
     version: "v1.0.0",
     date: "2 de agosto de 2026",
     title: "Primera versión estable de Smash & Lob",

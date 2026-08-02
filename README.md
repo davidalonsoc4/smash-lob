@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Smash & Lob
 
-## Getting Started
+Aplicación Next.js para gestionar ligas privadas de pádel: temporadas, calendario,
+resultados, clasificación, estadísticas, invitaciones, espectadores, avisos y
+exportaciones.
 
-First, run the development server:
+## Entornos
 
-```bash
+- PROD: `https://smashandlob.com` desde `main`.
+- PRE: `https://pre.smashandlob.com` desde `staging`.
+- Desarrollo: `http://localhost:3000`.
+
+La versión candidata actual es `v1.1.0-rc.1`. No se debe desplegar una rama de
+funcionalidad directamente en Producción.
+
+## Configuración
+
+Copia `.env.example` a `.env.local` y completa las variables localmente. Las
+obligatorias se comprueban con `npm run env:check` sin mostrar sus valores:
+
+- Auth.js: `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`.
+- URL pública: `NEXT_PUBLIC_APP_URL`.
+- Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`.
+
+`AUTH_URL`/`NEXTAUTH_URL` no forman parte de la configuración requerida actual.
+Los secretos de Producción no deben usarse en PRE, CI ni desarrollo.
+
+## Desarrollo y pruebas
+
+```powershell
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Controles locales:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+npm run secrets:check
+npm run security:check
+npm run public-urls:check
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Vitest cubre reglas de dominio, validadores, URLs, rate limiting, exportaciones y
+límites de API. Playwright ejecuta acceso anónimo, errores de autenticación, Axe y
+comparaciones visuales en móvil y escritorio. Las pruebas reales de Google OAuth
+y datos persistentes de PRE necesitan fixtures/cuentas dedicadas.
 
-## Learn More
+## Arquitectura y seguridad
 
-To learn more about Next.js, take a look at the following resources:
+La sesión se resuelve con Auth.js. Las rutas API usan Supabase server-side y los
+límites compartidos de autorización de usuario/liga; la service role nunca concede
+permisos por sí sola. RLS y grants se gestionan mediante migraciones incrementales
+en `supabase/migrations`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+No se editan migraciones aplicadas. Una migración nueva se prueba primero en local
+y PRE, con reversión mediante una migración de avance. Para backup/restauración,
+exporta la base del entorno correcto antes de aplicar cambios y verifica el
+artefacto y su checksum.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+El procedimiento de esta candidata está en `docs/V1_1_PLAN.md`; acciones externas
+y rollback en `docs/V1_1_MANUAL_ACTIONS.md`; aceptación en
+`docs/V1_1_ACCEPTANCE_CHECKLIST.md`.
