@@ -8,12 +8,13 @@ const testEnvironment = {
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "playwright-anon-key",
   SUPABASE_SERVICE_ROLE_KEY: "playwright-service-role-key",
-  NEXT_PUBLIC_ENABLE_DEMO_DATA: "false",
+  NEXT_PUBLIC_ENABLE_DEMO_DATA: "true",
 }
 
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  workers: process.env.CI ? 2 : 4,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",

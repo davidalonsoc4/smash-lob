@@ -99,7 +99,7 @@ function SeasonSectionIntro({
 }) {
   return (
     <div className="px-1 pt-1">
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
         {title}
       </p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -244,7 +244,7 @@ function SeasonNavigation({
       <div className="mt-3 space-y-3">
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-600">
               {group.title}
             </p>
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -877,7 +877,7 @@ function SeasonConfigurationSummary({
       <div className="mt-3 grid grid-cols-2 gap-2">
         {items.slice(1).map(([title, value]) => (
           <div key={title} className="min-w-0 rounded-xl bg-neutral-100 px-2.5 py-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-400">
+            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-600">
               {title}
             </p>
             <p className="mt-0.5 text-[11px] font-black leading-4 text-neutral-800">
@@ -1074,7 +1074,7 @@ function RoundWindowSettingsPanel({
                   ? t.adminSeason.noWindowTitle
                   : t.adminSeason.fixedDaysTitle}
               </span>
-              <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+              <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-600">
                 {mode === "none"
                   ? t.adminSeason.noWindowDescription
                   : t.adminSeason.fixedDaysDescription}
@@ -1653,7 +1653,7 @@ function BalancedCalendarAuditPanel({
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditMode}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1661,7 +1661,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditPlayers}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1669,7 +1669,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditRounds}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1677,7 +1677,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditMatches}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -2109,7 +2109,7 @@ function RoundManagementPanel({
                   <p className="text-sm font-black text-neutral-950">
                     Posición {index + 1}
                   </p>
-                  <p className="text-xs font-semibold text-neutral-500">
+                  <p className="text-xs font-semibold text-neutral-600">
                     Jornada {round}
                   </p>
                 </div>
@@ -2276,6 +2276,7 @@ function SeasonPlayerNamesPanel({
                     </span>
                   </div>
                   <input
+                    aria-label={`Nombre de ${player.displayName}`}
                     value={draftName}
                     onChange={(event) => {
                       setDraftNames((currentNames) => ({
@@ -2736,7 +2737,7 @@ function SeasonDangerZone({
 
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
         <label className="block">
-          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+          <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
             Jornada a eliminar
           </span>
           <select

@@ -43,7 +43,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-400">
+      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-600">
         <span>Jugador</span>
         <span className="text-right">J</span>
         <span className="text-right">Dif</span>
@@ -105,7 +105,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
         ))}
       </div>
 
-      <p className="px-1 text-[11px] font-semibold text-neutral-400">
+      <p className="px-1 text-[11px] font-semibold text-neutral-600">
         J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados
       </p>
     </div>

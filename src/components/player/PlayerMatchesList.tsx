@@ -142,6 +142,7 @@ export function PlayerMatchesList({
                           playerIds={match.teamA}
                           players={players}
                           highlightedPlayerIds={highlightedPlayerIds}
+                          linkPlayers={false}
                           className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                         />
 
@@ -157,6 +158,7 @@ export function PlayerMatchesList({
                           playerIds={match.teamB}
                           players={players}
                           highlightedPlayerIds={highlightedPlayerIds}
+                          linkPlayers={false}
                           className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                         />
 
