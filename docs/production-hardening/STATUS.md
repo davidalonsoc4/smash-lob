@@ -582,3 +582,27 @@ This is human acceptance evidence reported by the project owner. It was not repl
   local. No se ejecutó ningún `npm audit fix`.
 - El inventario y las prioridades están registrados en `docs/V1_1_PLAN.md`.
 - No se ha modificado `main`, ningún remoto, ninguna base de datos ni ningún despliegue.
+
+## v1.1 stability hardening — merge local en staging (2026-08-02)
+
+- La credencial de servicio dedicada de PRE está presente en `.env.local` y en la
+  variable sensible `SUPABASE_SERVICE_ROLE_KEY` de Vercel Preview para `staging`;
+  no se registró ningún valor y Production permaneció intacta.
+- `npm run env:check` pasó con las siete variables obligatorias presentes y sus
+  valores ocultos.
+- La reinstalación reproducible con `npm ci` terminó con código 0. Aunque su resumen
+  inicial mostró un aviso de auditoría no reproducible, `npm audit --json` y
+  `npm audit --audit-level=high` se repitieron después y confirmaron 0
+  vulnerabilidades; no se ejecutó ningún comando de corrección automática.
+- `npm run validate` pasó completo: entorno, secretos, seguridad, URLs públicas,
+  lint, TypeScript, 15 archivos/57 pruebas Vitest y build de producción.
+- `npm run test:e2e` pasó 8/8 pruebas en Chromium móvil y escritorio, incluidas Axe
+  y referencias visuales; `git diff --check` también pasó.
+- `feature/v1.1-stability-hardening` se subió y se verificó directamente en GitHub
+  en `0b960bd41e959c97768dfc7bd599fbb999c0c753`.
+- `staging` se sincronizó por avance rápido en `3495324` y recibió localmente el
+  merge `515c542`; el merge aún no se ha subido ni desplegado.
+- `main`, Production, la etiqueta `v1.0.0`, las bases de datos y las migraciones
+  permanecen intactas.
+- Siguen pendientes el despliegue y smoke tests de PRE, OAuth Google real, fixtures
+  persistentes, pruebas autenticadas, aislamiento entre dos ligas y push real.
