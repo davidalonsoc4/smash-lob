@@ -606,3 +606,22 @@ This is human acceptance evidence reported by the project owner. It was not repl
   permanecen intactas.
 - Siguen pendientes el despliegue y smoke tests de PRE, OAuth Google real, fixtures
   persistentes, pruebas autenticadas, aislamiento entre dos ligas y push real.
+
+## v1.1 stability hardening — actualización de seguridad previa a PRE (2026-08-02)
+
+- La repetición final de `npm ci` sobre el merge local descubrió 5 avisos altos
+  nuevos de `npm audit`, todos originados por `brace-expansion` 1.1.16 en la cadena
+  de herramientas de ESLint. La promoción se detuvo antes de validar, subir
+  `staging` o desplegar PRE.
+- El aviso `GHSA-mh99-v99m-4gvg` establece 1.1.17 como primera revisión corregida
+  de la rama 1.x. Se actualizó únicamente el override 1.x de 1.1.16 a 1.1.17,
+  sin salto mayor de ESLint ni corrección automática de npm.
+- La línea base interna exige ahora 1.1.17 o superior para las cuatro copias
+  limitadas a herramientas de lint; la copia principal de runtime permanece en
+  la revisión corregida 5.0.8.
+- `npm install --package-lock-only --ignore-scripts`, `npm run security:check`,
+  `npm audit --audit-level=high` y `git diff --check` pasaron; la auditoría
+  confirmó 0 vulnerabilidades.
+- `staging` sigue solo local y `main`, Production, PRE, las bases de datos y las
+  migraciones permanecen intactas. Todos los gates completos deben repetirse
+  sobre este nuevo árbol antes de cualquier push.
