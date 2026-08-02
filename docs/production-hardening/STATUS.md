@@ -625,3 +625,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - `staging` sigue solo local y `main`, Production, PRE, las bases de datos y las
   migraciones permanecen intactas. Todos los gates completos deben repetirse
   sobre este nuevo árbol antes de cualquier push.
+- Tras crear `b5ae653`, la repetición desde cero terminó correctamente: `npm ci`
+  informó 0 vulnerabilidades, `npm audit --audit-level=high` confirmó 0,
+  `npm run validate` pasó entorno, secretos, seguridad, URLs, lint, TypeScript,
+  15 archivos/57 pruebas y build, y `npm run test:e2e` pasó 8/8 pruebas.
+- La candidata corregida queda lista localmente para subir `staging`; el despliegue
+  y los smoke tests de PRE siguen pendientes y no se ha tocado `main` ni Production.
