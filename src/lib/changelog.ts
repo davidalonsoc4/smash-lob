@@ -15,6 +15,40 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.0.0",
+    date: "2 de agosto de 2026",
+    title: "Primera versión estable de Smash & Lob",
+    summary:
+      "Smash & Lob cierra su etapa de preparación y publica una primera versión estable para gestionar ligas privadas de pádel con temporadas, partidos, clasificación, estadísticas, invitaciones y exportaciones.",
+    category: "foundation",
+    changes: [
+      "La aplicación adopta oficialmente la versión v1.0.0 como primera edición estable para uso real en ligas privadas.",
+      "La pantalla Ajustes elimina los accesos duplicados a Política de privacidad y Condiciones de uso, que continúan disponibles dentro de Sobre Smash & Lob.",
+      "La etiqueta Beta cerrada desaparece de Ajustes y se sustituye por Smash & Lob junto a la versión instalada.",
+      "La publicación conserva la resolución canónica de enlaces con smashandlob.com en producción y pre.smashandlob.com en PRE.",
+      "El lanzamiento integra todos los cambios validados de la serie v0.19, incluida la identidad histórica, las imágenes compartibles, los exports Excel y CSV y la programación retroactiva para administración.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos para esta versión.",
+    ],
+  },
+  {
+    version: "v0.19.11",
+    date: "2 de agosto de 2026",
+    title: "Cierre técnico previo a v1.0",
+    summary:
+      "Smash & Lob unifica sus enlaces públicos con los dominios definitivos, refuerza las comprobaciones previas a publicación y reorganiza el registro de cambios por series para preparar las pruebas finales de la versión 1.0.",
+    category: "foundation",
+    changes: [
+      "Los enlaces de invitación de jugadores utilizan siempre https://smashandlob.com en producción y https://pre.smashandlob.com en PRE, aunque una variable antigua todavía contenga una URL de Vercel.",
+      "Los enlaces de espectador usan la misma resolución canónica y toman el entorno real de la petición para evitar cruces entre producción y preproducción.",
+      "La URL pública se centraliza en un único módulo compartido por invitaciones, espectadores, identificación del entorno y metadatos de la aplicación.",
+      "La base de metadatos se adapta al entorno para que las páginas de PRE no publiquen referencias canónicas de producción y viceversa.",
+      "Se añade una comprobación automática que impide validar el proyecto si reaparece un dominio .vercel.app en los archivos de ejecución.",
+      "El Registro de cambios pasa a mostrar un panel por serie, como v0.19 o v0.18, y conserva dentro el detalle de todas sus versiones de parche.",
+      "Se incorpora una lista de pruebas de aceptación para cerrar la serie 0.19 antes de etiquetar y publicar la v1.0.0.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
     version: "v0.19.10",
     date: "31 de julio de 2026",
     title: "Compartir el resumen final y publicación completa",
@@ -119,6 +153,53 @@ export const CHANGELOG_RELEASES: ChangelogRelease[] = [
       "Las tarjetas del calendario se compactan aún más para recortar espacio vacío sobrante debajo del contenido de cada partido y reducir de nuevo la altura total de la imagen.",
       "El bloque de cada jornada también disminuye el margen inferior entre filas para que el calendario resulte más denso y limpio.",
       "La barra lateral de color del podio en la clasificación pasa a recorrer todo el alto del panel y queda recortada siguiendo las esquinas redondeadas superior e inferior.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.3",
+    date: "30 de julio de 2026",
+    title: "Compactación del calendario y podio más apaisado",
+    summary:
+      "Se compacta la imagen del calendario para reducir hueco sobrante por jornada y se reajusta el podio de la clasificación para mostrar mejor los nombres completos.",
+    category: "improvement",
+    changes: [
+      "Las tarjetas del calendario de temporada reducen su altura y el espaciado inferior de cada jornada para aprovechar mejor el lienzo y disminuir la altura final de la imagen.",
+      "El podio de la clasificación adopta un formato más alargado horizontalmente y menos cuadrado, con menor altura visual.",
+      "Se reduce ligeramente la tipografía del nombre en el podio y se gana espacio útil para mostrar mejor nombre y apellido.",
+      "Se reajustan avatar, marcador de puesto y estadísticas del podio para acompañar el nuevo formato más apaisado.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.2",
+    date: "30 de julio de 2026",
+    title: "Ajuste fino de alineación en exports de temporada",
+    summary:
+      "Se corrige la alineación vertical de los textos dentro de las imágenes exportadas de calendario y clasificación para que etiquetas, avatares, podio y filas queden correctamente centrados.",
+    category: "improvement",
+    changes: [
+      "Se recolocan hacia arriba y se centran correctamente los textos internos de las tarjetas de partido, incluidas las etiquetas de estado como Finalizado o Programado.",
+      "El podio de la clasificación ajusta mejor el número de puesto, el nombre del jugador y los bloques de estadísticas para evitar que queden desplazados hacia abajo.",
+      "Las filas de la tabla de clasificación alinean mejor posición, avatar, nombre y cifras para que queden a la misma altura visual.",
+      "Los avatares con iniciales y la marca genérica de Smash & Lob se centran mejor dentro de sus contenedores.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
+    ],
+  },
+  {
+    version: "v0.19.1",
+    date: "30 de julio de 2026",
+    title: "Rediseño de exportaciones y cabeceras unificadas",
+    summary:
+      "Las exportaciones de calendario y clasificación adoptan una presentación más cuidada tanto en la app como en las imágenes PNG, con una identidad visual homogénea y mejor tratamiento de logotipos y avatares.",
+    category: "improvement",
+    changes: [
+      "La pantalla de Compartir temporada abandona las cabeceras negras y adopta tarjetas más limpias, con mejor jerarquía visual y opciones de apariencia comunes.",
+      "Las exportaciones de calendario y clasificación comparten ahora una cabecera y un pie de imagen alineados con el estilo del resumen final de temporada.",
+      "La cabecera muestra el logo de la liga a la derecha, en grande y respetando la transparencia del PNG cuando existe.",
+      "Se añade en la app la opción de incluir o no el logo de la liga y las imágenes de perfil en las imágenes exportadas.",
+      "Cada partido del calendario exportado presenta las dos parejas a izquierda y derecha, con el VS o el resultado en el centro y los sets debajo cuando están disponibles.",
+      "La clasificación exportada utiliza correctamente los avatares de los jugadores y, cuando faltan, muestra un icono genérico de perfil en lugar de dejar huecos inconsistentes.",
       "No se requieren migraciones de Supabase ni cambios de datos persistidos.",
     ],
   },
