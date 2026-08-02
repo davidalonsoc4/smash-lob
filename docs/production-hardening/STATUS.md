@@ -835,3 +835,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
   en CI, y la repetición completa pasó 13/13, incluida la PWA con service worker.
   `npm audit --audit-level=high` confirmó 0 vulnerabilidades y
   `git diff --check` pasó.
+- Las ejecuciones remotas `v1.1 quality #11` a `#14` aislaron una diferencia
+  visual de 126 píxeles exclusivamente en el campo de fecha de administración de
+  temporada. La instrumentación temporal situó el cambio dentro del texto de
+  `input[type="date"]`: Windows lo dibuja según la configuración regional del
+  sistema, independientemente del locale configurado en Playwright.
+- La referencia visual conserva el campo y su icono, pero oculta únicamente el
+  texto nativo de fecha durante la captura. Se retiró la instrumentación temporal
+  una vez localizada la causa. La validación posterior pasó TypeScript, 4/4
+  pruebas visuales sin regenerar referencias y 13/13 pruebas E2E en modo CI.
+  Queda pendiente confirmar esta corrección en el workflow remoto.
