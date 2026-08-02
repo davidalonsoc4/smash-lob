@@ -631,3 +631,24 @@ This is human acceptance evidence reported by the project owner. It was not repl
   15 archivos/57 pruebas y build, y `npm run test:e2e` pasó 8/8 pruebas.
 - La candidata corregida queda lista localmente para subir `staging`; el despliegue
   y los smoke tests de PRE siguen pendientes y no se ha tocado `main` ni Production.
+
+## v1.1 stability hardening — deployment y smoke de PRE (2026-08-02)
+
+- `origin/staging` se verificó en
+  `e1e9b3efeb17a57b90b243d8ca9371c73a963d7e`; `main` y el commit de la etiqueta
+  `v1.0.0` permanecen en `a4abbf06904cc48c9eb614d4b6c4f16214f52aac`.
+- Vercel creó `dpl_DPYZ5cj88FfrqDKUuiu1q7JhG2QW` para ese SHA. El deployment quedó
+  `Ready` y asignado a `pre.smashandlob.com` y al alias estable de `staging`.
+- Las sondas autenticadas mediante la protección de Vercel devolvieron `200` para
+  raíz, manifiesto, icono, sesión y proveedores; `401` para cron sin secreto y dos
+  rutas de liga protegidas sin sesión; y `404` controlado para códigos sintácticamente
+  válidos pero inexistentes de jugador y espectador.
+- Los metadatos Google de Auth.js usan
+  `https://pre.smashandlob.com/api/auth/signin/google` y
+  `https://pre.smashandlob.com/api/auth/callback/google`.
+- El manifiesto publicado identifica `Smash & Lob PRE` y el service worker contiene
+  el marcador `smash-lob-v1.1.0-rc.1`. La consulta posterior de logs del deployment
+  devolvió cero entradas de nivel error.
+- Quedan como gates manuales el recorrido OAuth real, la versión visible dentro de
+  la aplicación autenticada, los fixtures persistentes, aislamiento entre ligas,
+  exportaciones, PWA y push en dispositivo real. No se ha tocado Production.

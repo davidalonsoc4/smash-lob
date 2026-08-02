@@ -31,7 +31,7 @@
 
 ## Pendiente manual/externo
 
-- [ ] credencial service role dedicada disponible localmente/PRE
+- [x] credencial service role dedicada disponible localmente/PRE
 - [ ] OAuth Google real con cuenta nueva y existente
 - [ ] invitación inválida y caducada contra datos PRE
 - [ ] usuario suspendido y usuario sin acceso contra PRE
@@ -40,7 +40,7 @@
 - [ ] compartir resumen y descargar Excel/CSV en navegador real autenticado
 - [ ] alta, baja y endpoint push expirado en dispositivo real
 - [ ] Axe y visuales de las ocho pantallas autenticadas representativas
-- [ ] push/merge de rama, despliegue y smoke tests de PRE
+- [x] push/merge de rama, despliegue y smoke tests de PRE
 - [ ] confirmación visible de `v1.1.0-rc.1` en `pre.smashandlob.com`
 
 No se promoverá a PRE ni se declarará cerrado el OAuth real mientras haya casillas
