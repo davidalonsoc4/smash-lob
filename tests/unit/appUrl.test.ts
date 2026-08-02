@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   PREPRODUCTION_APP_URL,
   PRODUCTION_APP_URL,
@@ -6,6 +6,10 @@ import {
 } from "@/lib/appUrl"
 
 describe("public app URLs", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it("keeps the official production origin", () => {
     const request = new Request("https://smashandlob.com/invite/ABC")
     expect(getPublicAppBaseUrl(request)).toBe(PRODUCTION_APP_URL)
@@ -24,6 +28,9 @@ describe("public app URLs", () => {
   })
 
   it("does not trust an arbitrary forwarded host", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_VARIANT", "production")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", PRODUCTION_APP_URL)
+
     const request = new Request("https://attacker.example/invite/ABC", {
       headers: {
         "x-forwarded-host": "attacker.example",

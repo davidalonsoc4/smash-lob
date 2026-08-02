@@ -771,3 +771,15 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El onboarding ya verificado con la segunda cuenta Google dedicada cubre el caso
   de usuario autenticado sin acceso a ninguna liga. Con ambas evidencias queda
   cerrado el gate de usuario suspendido y usuario sin acceso contra PRE.
+- La inspección del workflow público de GitHub detectó que las siete ejecuciones
+  de `v1.1 quality` habían fallado en el mismo test de URL, aunque el job
+  `browser` de la ejecución más reciente había pasado sus 8/8 pruebas. El runner
+  configura intencionadamente `NEXT_PUBLIC_APP_URL=http://localhost:3000`, pero
+  `tests/unit/appUrl.test.ts` esperaba siempre el origen de Production al probar
+  el rechazo de un host reenviado arbitrario.
+- El test se aisló del entorno del runner fijando explícitamente la variante y la
+  URL de Production solo durante ese caso y restaurando después las variables.
+  La reproducción exacta pasó 4/4; `npm run validate` pasó los 17 archivos/61
+  pruebas y el build con las variables del job, y `npm run test:e2e` pasó 8/8.
+  Los avisos de deprecación de Node 20 emitidos por acciones de GitHub no fueron
+  la causa del fallo. La corrección remota del gate continúa pendiente.
