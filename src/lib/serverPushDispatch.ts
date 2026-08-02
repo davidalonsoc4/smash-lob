@@ -989,6 +989,10 @@ function getRelevantPlayerIds(
   return Array.from(playerIds);
 }
 
+export function isExpiredPushSubscriptionStatus(statusCode: number | null) {
+  return statusCode === 404 || statusCode === 410;
+}
+
 export async function dispatchPushForActivityEvent(
   eventId: string,
 ): Promise<PushDispatchResult> {
@@ -1120,10 +1124,10 @@ export async function dispatchPushForActivityEvent(
             ? Number((error as { statusCode?: unknown }).statusCode)
             : null;
 
-        if (statusCode === 404 || statusCode === 410) {
+        if (isExpiredPushSubscriptionStatus(statusCode)) {
           await supabase
             .from("push_subscriptions")
-            .update({ enabled: false, updated_at: new Date().toISOString() })
+            .delete()
             .eq("id", subscription.id);
         }
       }

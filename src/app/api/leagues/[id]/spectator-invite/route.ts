@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getPublicSpectatorUrl } from "@/lib/inviteUrls"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { validateUuid } from "@/lib/serverRequest"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,6 +22,14 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "spectator_invite_create",
+    limit: 6,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const { id: leagueId } = await params
 
   if (!validateUuid(leagueId)) {

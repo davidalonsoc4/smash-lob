@@ -3,8 +3,11 @@ import { BackButton } from "@/components/ui/BackButton"
 import {
   CHANGELOG_RELEASES,
   type ChangelogCategory,
-  type ChangelogRelease,
 } from "@/lib/changelog"
+import {
+  groupReleasesByVersionBlock,
+  type ChangelogBlock,
+} from "@/lib/changelogGrouping"
 
 export const metadata: Metadata = {
   title: "Registro de cambios",
@@ -31,41 +34,6 @@ const categoryCopy: Record<
     label: "Base",
     className: "bg-neutral-100 text-neutral-500",
   },
-}
-
-type ChangelogBlock = {
-  version: string
-  releases: ChangelogRelease[]
-  firstDate?: string
-  latestDate?: string
-  changeCount: number
-}
-
-function getVersionBlock(version: string) {
-  const match = version.match(/^v?(\d+)\.(\d+)/)
-  return match ? `v${match[1]}.${match[2]}` : version
-}
-
-function groupReleasesByVersionBlock(releases: ChangelogRelease[]) {
-  const grouped = new Map<string, ChangelogRelease[]>()
-
-  releases.forEach((release) => {
-    const version = getVersionBlock(release.version)
-    const currentReleases = grouped.get(version) ?? []
-    currentReleases.push(release)
-    grouped.set(version, currentReleases)
-  })
-
-  return Array.from(grouped.entries()).map<ChangelogBlock>(([version, blockReleases]) => ({
-    version,
-    releases: blockReleases,
-    firstDate: blockReleases.at(-1)?.date,
-    latestDate: blockReleases[0]?.date,
-    changeCount: blockReleases.reduce(
-      (total, release) => total + release.changes.length,
-      0,
-    ),
-  }))
 }
 
 function getDateRange(block: ChangelogBlock) {

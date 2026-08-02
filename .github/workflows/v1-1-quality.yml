@@ -1,0 +1,54 @@
+name: v1.1 quality
+
+on:
+  pull_request:
+    branches: [staging]
+  push:
+    branches:
+      - staging
+      - feature/v1.1-stability-hardening
+
+permissions:
+  contents: read
+
+env:
+  AUTH_SECRET: ci-only-auth-secret-ci-only-auth-secret
+  AUTH_GOOGLE_ID: ci-google-client
+  AUTH_GOOGLE_SECRET: ci-google-secret
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+  SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+  NEXT_PUBLIC_ENABLE_DEMO_DATA: "false"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run secrets:check
+      - run: npm run security:check
+      - run: npm run public-urls:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
+
+  browser:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run test:e2e

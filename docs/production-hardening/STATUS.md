@@ -528,3 +528,57 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Increased the export canvas height slightly to improve breathing room and visual rhythm.
 - Synced the in-page preview card with the same stacked hero/highlight presentation.
 - No database migration, API contract, permission or persistence change is required.
+## v1.1 stability hardening — checkpoint inicial (2026-08-02)
+
+- Validación final local del árbol exacto: `npm ci` pasó; comprobación de secretos,
+  seguridad y URLs pasó; `npm audit --json` informó 0 vulnerabilidades; lint,
+  TypeScript y build pasaron; Vitest pasó 15 archivos/57 pruebas; Playwright pasó
+  8/8 pruebas móvil/escritorio, incluidas Axe y referencias visuales; `git diff
+  --check` pasó.
+- `npm run env:check` detectó correctamente que la credencial
+  `SUPABASE_SERVICE_ROLE_KEY` no está disponible en el entorno local real. El script
+  pasó con un marcador de validación no secreto, demostrando el contrato sin fingir
+  una credencial ni habilitar pruebas remotas.
+- La revisión completa contra `staging` no encontró migraciones, secretos, dominios
+  Vercel funcionales ni cambios de producto ajenos al objetivo.
+- La rama permanece local, sin despliegue ni commits remotos. PRE no se ha modificado
+  porque faltan credencial dedicada, pruebas OAuth/fixtures y autorización adicional
+  para push, merge y despliegue. `main` y PROD permanecen intactos.
+- Segundo bloque implementado: rate limiting reutilizable con respuesta 429,
+  `Retry-After` y log seguro en invitaciones, espectadores, sugerencias y dispatch;
+  baja push y endpoints 404/410 ahora se eliminan en lugar de quedar deshabilitados.
+- El service worker usa caché `smash-lob-v1.1.0-rc.1`, elimina cachés anteriores,
+  conserva un shell mínimo/offline y solo activa una revisión cuando el usuario lo
+  solicita desde el nuevo aviso de actualización.
+- Playwright descubrió y permitió corregir CSP de desarrollo, semántica ARIA de los
+  skeletons y contraste del pie público. La ejecución móvil/escritorio terminó con
+  8/8 pruebas E2E, Axe y visuales superadas.
+- La candidata ya declara `1.1.0-rc.1`, incorpora CI, comprobación local de secretos,
+  documentación de operación/aceptación y carga diferida del generador Excel.
+- Se añadieron pruebas de autorización para anónimo, outsider entre ligas, jugador,
+  espectador, admin, creator y superusuario, sin conceder una membresía de creator
+  implícita al superusuario.
+- No hay migraciones nuevas ni cambios remotos. OAuth real, flujos persistentes con
+  fixtures y las ocho pantallas autenticadas siguen como validaciones manuales de PRE.
+- Primer bloque implementado: entorno Auth.js explícito, logging estructurado seguro,
+  página de error de autenticación con incidencia, retorno exacto de invitaciones,
+  límites de host para URLs, páginas de error/offline y cabeceras de seguridad.
+- Se corrigió `localhost:300` a `localhost:3000` y se retiró `AUTH_URL` del ejemplo
+  porque la versión/configuración actual no demuestra que sea necesario.
+- CSV y Excel neutralizan valores de texto que empiezan por `=`, `+`, `-` o `@`.
+- Se añadió infraestructura Vitest, Testing Library, Playwright y Axe, con las primeras
+  pruebas de Auth, URLs, clasificación/desempates, exportaciones, acceso anónimo,
+  errores, accesibilidad y regresión visual.
+- Primer control: lint pasó. TypeScript señaló fixtures incompletos que se corrigieron.
+  Vitest quedó sin ejecutar por `spawn EPERM` dentro del sandbox y debe repetirse con
+  permiso. La comprobación de entorno detectó `SUPABASE_SERVICE_ROLE_KEY` ausente sin
+  imprimir valores; las pruebas reales de PRE siguen bloqueadas por esa credencial.
+- Se verificó un árbol de trabajo limpio y se ejecutó `git fetch origin --prune`.
+- `staging` coincide con `origin/staging` en `3495324` y declara v1.0.0.
+- El árbol de archivos de `staging` es idéntico al de `main`; `main` solo añade el
+  commit de merge de la versión estable.
+- Se creó `feature/v1.1-stability-hardening` desde `staging`; no se reutilizó v0.19.
+- `npm ci` reproducible pasó tras repetirlo fuera del sandbox por un `spawn EPERM`
+  local. No se ejecutó ningún `npm audit fix`.
+- El inventario y las prioridades están registrados en `docs/V1_1_PLAN.md`.
+- No se ha modificado `main`, ningún remoto, ninguna base de datos ni ningún despliegue.

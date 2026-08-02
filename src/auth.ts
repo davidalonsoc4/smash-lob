@@ -1,6 +1,78 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import { readAuthEnvironment } from "@/lib/authEnvironment"
+import { createIncidenceCode, logServerEvent } from "@/lib/serverLog"
+
+const authEnvironment = readAuthEnvironment()
+
+function getAuthErrorCode(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return "auth_unknown_error"
+  }
+
+  const authError = error as {
+    type?: unknown
+    name?: unknown
+    cause?: { err?: { name?: unknown } }
+  }
+  const type =
+    typeof authError.type === "string"
+      ? authError.type
+      : typeof authError.name === "string"
+        ? authError.name
+        : "auth_error"
+  const causeName =
+    typeof authError.cause?.err?.name === "string"
+      ? authError.cause.err.name
+      : null
+
+  return causeName ? `${type}:${causeName}` : type
+}
+
+if (authEnvironment.missing.length > 0) {
+  logServerEvent("error", "auth_configuration_missing", {
+    operation: "auth_initialization",
+    outcome: "configuration_error",
+    errorCode: `missing:${authEnvironment.missing.join(",")}`,
+    incidenceCode: createIncidenceCode(),
+  })
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  secret: authEnvironment.values.AUTH_SECRET,
+  providers: [
+    Google({
+      clientId: authEnvironment.values.AUTH_GOOGLE_ID,
+      clientSecret: authEnvironment.values.AUTH_GOOGLE_SECRET,
+    }),
+  ],
+  pages: {
+    error: "/auth/error",
+  },
+  logger: {
+    error(error) {
+      logServerEvent("error", "auth_error", {
+        operation: "auth",
+        outcome: "error",
+        errorCode: getAuthErrorCode(error),
+        incidenceCode: createIncidenceCode(),
+      })
+    },
+    warn(code) {
+      logServerEvent("warn", "auth_warning", {
+        operation: "auth",
+        outcome: "warning",
+        errorCode: String(code),
+      })
+    },
+    debug(code) {
+      if (process.env.NODE_ENV !== "production") {
+        logServerEvent("info", "auth_debug", {
+          operation: "auth",
+          outcome: "debug",
+          errorCode: String(code),
+        })
+      }
+    },
+  },
 })

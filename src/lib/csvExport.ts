@@ -7,8 +7,18 @@ import type { RankingPlayer } from "@/lib/ranking"
 export type ExportCell = string | number | boolean | null | undefined
 export type ExportRows = ExportCell[][]
 
+export function protectSpreadsheetCell(value: ExportCell): ExportCell {
+  if (typeof value !== "string") {
+    return value
+  }
+
+  return /^[=+\-@]/.test(value) ? `'${value}` : value
+}
+
 function escapeCsvCell(value: ExportCell) {
-  const text = value === null || value === undefined ? "" : String(value)
+  const safeValue = protectSpreadsheetCell(value)
+  const text =
+    safeValue === null || safeValue === undefined ? "" : String(safeValue)
 
   if (/[;"\n\r]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`

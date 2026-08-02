@@ -73,7 +73,7 @@ export function PublicSiteLayout({
           {children}
         </article>
 
-        <footer className="px-3 py-5 text-center text-xs font-semibold leading-5 text-neutral-500">
+        <footer className="px-3 py-5 text-center text-xs font-semibold leading-5 text-neutral-600">
           <p>Smash & Lob · Proyecto privado y no comercial para ligas de pádel.</p>
           <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
             {navigationItems.map((item) => (
