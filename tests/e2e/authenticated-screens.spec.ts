@@ -86,6 +86,9 @@ test("@visual authenticated screens remain stable", async ({ page }) => {
   for (const screen of screens) {
     await page.goto(screen.path)
     await expect(page.locator("main")).toBeVisible()
+    await page.addStyleTag({
+      content: "nextjs-portal { display: none !important; }",
+    })
     await expect(page).toHaveScreenshot(`authenticated-${screen.name}.png`, {
       fullPage: true,
       animations: "disabled",

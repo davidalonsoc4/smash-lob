@@ -39,6 +39,9 @@ test("@a11y public and authentication screens have no serious Axe violations", a
 test("@visual public screens remain stable", async ({ page }) => {
   await page.goto("/")
   await expect(page.getByRole("button", { name: /google/i })).toBeVisible()
+  await page.addStyleTag({
+    content: "nextjs-portal { display: none !important; }",
+  })
   await expect(page).toHaveScreenshot("anonymous-home.png", {
     fullPage: true,
     animations: "disabled",
@@ -46,6 +49,9 @@ test("@visual public screens remain stable", async ({ page }) => {
 
   await page.goto("/auth/error?error=Configuration")
   const incidenceCode = page.getByText(/^Código de incidencia:/)
+  await page.addStyleTag({
+    content: "nextjs-portal { display: none !important; }",
+  })
   await expect(page).toHaveScreenshot("auth-error.png", {
     fullPage: true,
     animations: "disabled",
