@@ -993,6 +993,27 @@ export function isExpiredPushSubscriptionStatus(statusCode: number | null) {
   return statusCode === 404 || statusCode === 410;
 }
 
+export async function removeExpiredPushSubscription({
+  supabase,
+  statusCode,
+  subscriptionId,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  statusCode: number | null;
+  subscriptionId: string;
+}) {
+  if (!isExpiredPushSubscriptionStatus(statusCode)) {
+    return false;
+  }
+
+  await supabase
+    .from("push_subscriptions")
+    .delete()
+    .eq("id", subscriptionId);
+
+  return true;
+}
+
 export async function dispatchPushForActivityEvent(
   eventId: string,
 ): Promise<PushDispatchResult> {
@@ -1124,12 +1145,11 @@ export async function dispatchPushForActivityEvent(
             ? Number((error as { statusCode?: unknown }).statusCode)
             : null;
 
-        if (isExpiredPushSubscriptionStatus(statusCode)) {
-          await supabase
-            .from("push_subscriptions")
-            .delete()
-            .eq("id", subscription.id);
-        }
+        await removeExpiredPushSubscription({
+          supabase,
+          statusCode,
+          subscriptionId: subscription.id,
+        });
       }
     }),
   );
