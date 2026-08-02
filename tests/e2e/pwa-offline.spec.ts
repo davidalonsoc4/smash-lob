@@ -11,6 +11,9 @@ test("shows the offline fallback instead of a cached login screen", async ({
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller))
 
   await context.setOffline(true)
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event("offline"))
+  })
 
   await expect(
     page.getByRole("heading", { name: "Sin conexión" }),
