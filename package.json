@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "0.19.10",
+  "version": "0.19.11",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,8 @@
     "lint": "eslint",
     "security:check": "node scripts/check-security-baseline.mjs",
     "typecheck": "tsc --noEmit",
-    "validate": "npm run security:check && npm run lint && npm run typecheck && npm run build"
+    "validate": "npm run security:check && npm run public-urls:check && npm run lint && npm run typecheck && npm run build",
+    "public-urls:check": "node scripts/check-public-app-urls.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",

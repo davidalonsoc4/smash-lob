@@ -1,5 +1,15 @@
 CHANGED_FILES.txt
+DEPLOYMENT.md
+docs/DOMAIN_AND_GOOGLE_OAUTH.md
+docs/V1_RELEASE_CHECKLIST.md
 package.json
-src/components/statistics/SeasonShareExportsCard.tsx
+package-lock.json
+scripts/check-public-app-urls.mjs
+src/app/api/leagues/[id]/spectator-invite/route.ts
+src/app/changelog/page.tsx
+src/app/layout.tsx
+src/lib/appUrl.ts
+src/lib/appVariant.ts
 src/lib/appVersion.ts
 src/lib/changelog.ts
+src/lib/inviteUrls.ts
