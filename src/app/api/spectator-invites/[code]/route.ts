@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import { validateInviteCode } from "@/lib/serverRequest"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-function normalizeCode(value: string) {
-  return value.trim().toUpperCase()
-}
 
 async function resolveInvite(code: string) {
   const supabase = createSupabaseServiceClient()
@@ -72,7 +70,7 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code: rawCode } = await params
-  const code = normalizeCode(decodeURIComponent(rawCode ?? ""))
+  const code = validateInviteCode(decodeURIComponent(rawCode ?? ""))
 
   if (!code) {
     return NextResponse.json({ error: "invalid_code" }, { status: 400 })
@@ -101,11 +99,24 @@ export async function GET(
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "spectator_invite_claim",
+    limit: 10,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const { code: rawCode } = await params
-  const code = normalizeCode(decodeURIComponent(rawCode ?? ""))
+  const code = validateInviteCode(decodeURIComponent(rawCode ?? ""))
+
+  if (!code) {
+    return NextResponse.json({ error: "invalid_code" }, { status: 400 })
+  }
+
   const result = await resolveInvite(code)
 
   if (!result.ok) {

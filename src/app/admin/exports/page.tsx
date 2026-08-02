@@ -8,7 +8,6 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { exportRankingCsv, exportResultsCsv } from "@/lib/csvExport"
-import { exportSeasonExcelWorkbook } from "@/lib/excelExport"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { calculateSeasonStatistics } from "@/lib/seasonStatistics"
 
@@ -256,7 +255,10 @@ export default function AdminExportsPage() {
 
             <button
               type="button"
-              onClick={() =>
+              onClick={async () => {
+                const { exportSeasonExcelWorkbook } = await import(
+                  "@/lib/excelExport"
+                )
                 exportSeasonExcelWorkbook({
                   leagueName: activeLeague.name,
                   seasonName: selectedSeason.name,
@@ -264,7 +266,7 @@ export default function AdminExportsPage() {
                   matches: selectedMatches,
                   players: leaguePlayers,
                 })
-              }
+              }}
               disabled={!hasAnyData}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral-950 px-4 py-3.5 text-sm font-black text-white transition active:scale-[0.99] disabled:bg-neutral-300"
             >

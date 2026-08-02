@@ -2,7 +2,13 @@ import { NextResponse } from "next/server"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import { parseJsonBody } from "@/lib/serverRequest"
+import {
+  normalizeBoundedText,
+  parseJsonBody,
+  validateInviteCode,
+  validateUuid,
+} from "@/lib/serverRequest"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import type { League, UserLeagueMembership } from "@/data/fakeData"
 import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
 
@@ -21,17 +27,6 @@ type CreateLeagueBody = {
 type SupabaseErrorLike = {
   code?: string
   message?: string
-}
-
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-function cleanString(value: unknown) {
-  return typeof value === "string" ? value.trim() : ""
-}
-
-function normalizeInviteCode(value: unknown) {
-  return cleanString(value).toUpperCase()
 }
 
 function isUniqueViolation(error: unknown) {
@@ -125,6 +120,14 @@ async function insertLeagueWithAvailableSlug({
 }
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "league_create",
+    limit: 4,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const authResult = await requireAuthenticatedAppUser()
 
   if (!authResult.ok) {
@@ -139,13 +142,20 @@ export async function POST(request: Request) {
     user: { id, email, isSuperuser, canCreateLeagues },
   } = authResult.actor
   const body = await parseJsonBody<CreateLeagueBody>(request)
-  const leagueName = cleanString(body?.leagueName)
-  const leagueDescription = cleanString(body?.leagueDescription)
-  const leagueSlug = cleanString(body?.leagueSlug)
-  const inviteCode = normalizeInviteCode(body?.inviteCode)
-  const leagueRecommendations = cleanString(body?.leagueRecommendations)
+  const leagueName = normalizeBoundedText(body?.leagueName, 120)
+  const leagueDescription = normalizeBoundedText(body?.leagueDescription, 1000)
+  const leagueSlug = normalizeBoundedText(body?.leagueSlug, 80).toLowerCase()
+  const inviteCode = validateInviteCode(body?.inviteCode)
+  const leagueRecommendations = normalizeBoundedText(
+    body?.leagueRecommendations,
+    2000,
+  )
 
-  if (!leagueName || !leagueSlug || !inviteCode) {
+  if (
+    !leagueName ||
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(leagueSlug) ||
+    !inviteCode
+  ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
@@ -212,7 +222,7 @@ export async function POST(request: Request) {
       },
     }
 
-    if (!uuidPattern.test(league.id)) {
+    if (!validateUuid(league.id)) {
       throw new Error("invalid_created_league_id")
     }
 

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
-import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { parseJsonBody, validateInviteCode, validateUuid } from "@/lib/serverRequest"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -10,17 +11,21 @@ type InviteRequestBody = {
   code?: unknown
 }
 
-function normalizeInviteCode(value: unknown) {
-  return typeof value === "string" ? value.trim().toUpperCase() : ""
-}
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "invite_create",
+    limit: 6,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const { id: leagueId } = await params
   const body = await parseJsonBody<InviteRequestBody>(request)
-  const code = normalizeInviteCode(body?.code)
+  const code = validateInviteCode(body?.code)
 
   if (!validateUuid(leagueId) || !code) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })

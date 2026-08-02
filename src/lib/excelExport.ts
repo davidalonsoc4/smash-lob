@@ -4,6 +4,7 @@ import {
   buildRankingExportRows,
   buildResultsExportRows,
   getExportSafeFilenamePart,
+  protectSpreadsheetCell,
   type ExportCell,
   type ExportRows,
 } from "@/lib/csvExport"
@@ -57,7 +58,10 @@ function getCellValue(value: ExportCell) {
 
   return {
     type: "string" as const,
-    value: value === null || value === undefined ? "" : String(value),
+    value:
+      value === null || value === undefined
+        ? ""
+        : String(protectSpreadsheetCell(value)),
   }
 }
 

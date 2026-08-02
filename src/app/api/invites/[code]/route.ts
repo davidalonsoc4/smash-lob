@@ -4,7 +4,7 @@ import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResol
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
-import { validateUuid } from "@/lib/serverRequest"
+import { validateInviteCode, validateUuid } from "@/lib/serverRequest"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { League, LeagueMemberRole, PlayerProfile, Season, SeasonPlayer, UserLeagueMembership } from "@/data/fakeData"
@@ -42,10 +42,6 @@ const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
 const seasonSettingsSelect =
   "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions"
-function normalizeInviteCode(code: string) {
-  return code.trim().toUpperCase()
-}
-
 function toRole(role: unknown): LeagueMemberRole {
   return role === "creator" || role === "admin" || role === "player"
     ? role
@@ -126,7 +122,7 @@ async function fetchLeagueByInviteCode(
   code: string,
   leagueIdHint?: string | null
 ) {
-  const normalizedCode = normalizeInviteCode(code)
+  const normalizedCode = validateInviteCode(code)
   const cleanLeagueIdHint = leagueIdHint?.trim() || null
   const hintedLeague = cleanLeagueIdHint
     ? await fetchLeagueById(supabase, cleanLeagueIdHint)
@@ -134,7 +130,7 @@ async function fetchLeagueByInviteCode(
 
   if (
     hintedLeague &&
-    normalizeInviteCode(hintedLeague.invite_code) === normalizedCode
+    validateInviteCode(hintedLeague.invite_code) === normalizedCode
   ) {
     return hintedLeague
   }
@@ -475,7 +471,7 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params
-  const normalizedCode = normalizeInviteCode(decodeURIComponent(code ?? ""))
+  const normalizedCode = validateInviteCode(decodeURIComponent(code ?? ""))
   const leagueIdHint = new URL(request.url).searchParams.get("leagueId")
 
   if (!normalizedCode) {

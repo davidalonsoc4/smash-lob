@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
+import { buildPostAuthDestination } from "@/lib/authRedirect"
 
 type AuthGateProps = {
   children: React.ReactNode
@@ -43,9 +44,17 @@ export function AuthGate({ children }: AuthGateProps) {
 
           <button
             type="button"
-            onClick={() =>
-              signIn("google", { callbackUrl: isAccessInviteRoute ? pathname : "/" })
-            }
+            onClick={() => {
+              const searchParams =
+                typeof window === "undefined"
+                  ? null
+                  : new URLSearchParams(window.location.search)
+              const callbackUrl = isAccessInviteRoute
+                ? buildPostAuthDestination(pathname, searchParams)
+                : "/"
+
+              void signIn("google", { callbackUrl })
+            }}
             className="mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
           >
             {t.auth.signInWithGoogle}
