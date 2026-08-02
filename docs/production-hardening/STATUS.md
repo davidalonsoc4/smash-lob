@@ -729,3 +729,22 @@ This is human acceptance evidence reported by the project owner. It was not repl
   remota explícita. El cálculo previo confirma que revocará 9 invitaciones
   históricas todavía activas y conservará las 3 invitaciones actuales, una por
   cada liga PRE.
+- Tras la autorización explícita, la migración
+  `20260802233000_revoke_previous_league_invites.sql` se aplicó únicamente en
+  Supabase PRE y aparece alineada en el historial local/remoto. La verificación
+  posterior confirmó 9 invitaciones revocadas, 3 activas y correspondencia exacta
+  entre cada invitación activa y el código actual de su liga.
+- La primera sonda posterior reveló que Vercel seguía sirviendo snapshots antiguos
+  de invitación desde CDN (`x-vercel-cache: HIT`, con más de 100.000 segundos de
+  edad), por lo que un enlace ya revocado todavía devolvía 200 sin alcanzar la
+  función actual.
+- Se añadieron cabeceras reutilizables `private, no-store` para las respuestas GET
+  de invitaciones de jugador y espectador, más `revalidate = 0` y una prueba
+  específica de las tres capas de caché. La corrección pasó `npm run validate`
+  (17 archivos/61 pruebas y build), Playwright 8/8 y `git diff --check`.
+- El commit `1224684` se subió a `origin/staging` y Vercel lo desplegó como
+  `dpl_BqxEmdc1cajdKCg1HPmP6WWVcZQF`, `Ready` y asociado a
+  `pre.smashandlob.com`. Las entradas antiguas continúan interceptadas por la
+  caché previa; Vercel solo ofrece purga CDN a nivel de proyecto, por lo que esa
+  operación requiere autorización explícita al vaciar también la caché de
+  Production, aunque no cambia su código ni sus datos.
