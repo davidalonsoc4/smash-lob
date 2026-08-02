@@ -782,4 +782,8 @@ This is human acceptance evidence reported by the project owner. It was not repl
   La reproducción exacta pasó 4/4; `npm run validate` pasó los 17 archivos/61
   pruebas y el build con las variables del job, y `npm run test:e2e` pasó 8/8.
   Los avisos de deprecación de Node 20 emitidos por acciones de GitHub no fueron
-  la causa del fallo. La corrección remota del gate continúa pendiente.
+  la causa del fallo.
+- El commit correctivo `5bebfb2` se verificó en `origin/staging`. La ejecución
+  remota `v1.1 quality #8` terminó en `Success`: el job `quality` pasó en 1m21s
+  y el job `browser` pasó en 1m40s con 8/8 pruebas Playwright. El gate remoto
+  queda restablecido.
