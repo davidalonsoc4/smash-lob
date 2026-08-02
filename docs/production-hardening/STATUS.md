@@ -844,4 +844,8 @@ This is human acceptance evidence reported by the project owner. It was not repl
   texto nativo de fecha durante la captura. Se retiró la instrumentación temporal
   una vez localizada la causa. La validación posterior pasó TypeScript, 4/4
   pruebas visuales sin regenerar referencias y 13/13 pruebas E2E en modo CI.
-  Queda pendiente confirmar esta corrección en el workflow remoto.
+  El commit correctivo `7c78928` quedó verificado exactamente en
+  `origin/staging`.
+- La ejecución remota `v1.1 quality #15` (`30772604704`) terminó en `Success`:
+  tanto el job `quality` como el job `browser` pasaron. Queda resuelto el último
+  fallo visual específico del runner de Windows.
