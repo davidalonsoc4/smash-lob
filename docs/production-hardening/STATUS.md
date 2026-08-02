@@ -718,3 +718,14 @@ This is human acceptance evidence reported by the project owner. It was not repl
   `npm run validate` completo (16 archivos/60 pruebas y build), Playwright 8/8,
   `npm audit --audit-level=high` con 0 vulnerabilidades y `git diff --check`.
   La migración todavía no se ha aplicado y la corrección aún no está desplegada.
+- Los commits `df41351` (código, prueba y migración) y `cfc1a68`
+  (documentación/evidencia) se subieron a `origin/staging`, verificado exactamente
+  en `cfc1a689adb57d194d7f0a3d56cc5ed01a9ce415`. `main` y `v1.0.0` continúan en
+  `a4abbf06904cc48c9eb614d4b6c4f16214f52aac`.
+- Vercel desplegó ese commit como `dpl_EFz6DA7qLrHg6YgSC2u26LKqEByA`; alcanzó
+  `Ready`, quedó asociado a `pre.smashandlob.com` y el log de build confirmó
+  rama `staging`, commit `cfc1a68`, 0 vulnerabilidades, TypeScript y build correctos.
+- La aplicación de la migración a Supabase PRE queda pendiente de autorización
+  remota explícita. El cálculo previo confirma que revocará 9 invitaciones
+  históricas todavía activas y conservará las 3 invitaciones actuales, una por
+  cada liga PRE.
