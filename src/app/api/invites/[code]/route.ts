@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
+import { isActiveStoredLeagueInvite } from "@/lib/inviteValidity"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
@@ -31,6 +32,7 @@ type SupabaseLeagueRow = {
 
 type SupabaseInviteRow = {
   league_id: string
+  revoked_at: string | null
 }
 
 type SerializedError = {
@@ -138,16 +140,21 @@ async function fetchLeagueByInviteCode(
   if (hintedLeague) {
     const { data: hintedInvites, error: hintedInviteError } = await supabase
       .from("invites")
-      .select("league_id")
+      .select("league_id,revoked_at")
       .eq("league_id", hintedLeague.id)
       .eq("code", normalizedCode)
+      .is("revoked_at", null)
       .limit(1)
 
     if (hintedInviteError) {
       throwSupabaseError("fetch_hinted_invite", hintedInviteError)
     }
 
-    if ((hintedInvites ?? []).some((invite) => invite.league_id)) {
+    if (
+      (hintedInvites ?? []).some((invite) =>
+        isActiveStoredLeagueInvite(invite as SupabaseInviteRow),
+      )
+    ) {
       return hintedLeague
     }
   }
@@ -168,8 +175,9 @@ async function fetchLeagueByInviteCode(
 
   const { data: invites, error: inviteError } = await supabase
     .from("invites")
-    .select("league_id")
+    .select("league_id,revoked_at")
     .eq("code", normalizedCode)
+    .is("revoked_at", null)
     .limit(1)
 
   if (inviteError) {
@@ -178,7 +186,7 @@ async function fetchLeagueByInviteCode(
 
   const invite = (invites ?? [])[0] as SupabaseInviteRow | undefined
 
-  if (invite?.league_id) {
+  if (isActiveStoredLeagueInvite(invite)) {
     return fetchLeagueById(supabase, invite.league_id)
   }
 

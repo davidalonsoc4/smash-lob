@@ -4,6 +4,7 @@ import { parseJsonBody, validateInviteCode, validateUuid } from "@/lib/serverReq
 import { joinSelfRegistrationSeason } from "@/lib/serverSelfRegistration"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import { isActiveStoredLeagueInvite } from "@/lib/inviteValidity"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -108,7 +109,7 @@ export async function POST(
   if (!activeCodeMatches) {
     const { data: invite, error: inviteError } = await supabase
       .from("invites")
-      .select("league_id")
+      .select("league_id,revoked_at")
       .eq("league_id", leagueId)
       .eq("code", normalizedCode)
       .is("revoked_at", null)
@@ -121,7 +122,7 @@ export async function POST(
       )
     }
 
-    if (!invite) {
+    if (!isActiveStoredLeagueInvite(invite)) {
       return NextResponse.json({ error: "invite_not_found" }, { status: 404 })
     }
   }
