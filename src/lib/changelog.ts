@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.0.0",
+    date: "2 de agosto de 2026",
+    title: "Primera versión estable de Smash & Lob",
+    summary:
+      "Smash & Lob cierra su etapa de preparación y publica una primera versión estable para gestionar ligas privadas de pádel con temporadas, partidos, clasificación, estadísticas, invitaciones y exportaciones.",
+    category: "foundation",
+    changes: [
+      "La aplicación adopta oficialmente la versión v1.0.0 como primera edición estable para uso real en ligas privadas.",
+      "La pantalla Ajustes elimina los accesos duplicados a Política de privacidad y Condiciones de uso, que continúan disponibles dentro de Sobre Smash & Lob.",
+      "La etiqueta Beta cerrada desaparece de Ajustes y se sustituye por Smash & Lob junto a la versión instalada.",
+      "La publicación conserva la resolución canónica de enlaces con smashandlob.com en producción y pre.smashandlob.com en PRE.",
+      "El lanzamiento integra todos los cambios validados de la serie v0.19, incluida la identidad histórica, las imágenes compartibles, los exports Excel y CSV y la programación retroactiva para administración.",
+      "No se requieren migraciones de Supabase ni cambios de datos persistidos para esta versión.",
+    ],
+  },
+  {
     version: "v0.19.11",
     date: "2 de agosto de 2026",
     title: "Cierre técnico previo a v1.0",

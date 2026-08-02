@@ -19,7 +19,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { formatMoney } from "@/lib/courtBooking"
 
-const settingsVersionLabel = `Beta cerrada · ${APP_VERSION_LABEL}`
+const settingsVersionLabel = `Smash & Lob · ${APP_VERSION_LABEL}`
 
 type SettingsSectionProps = {
   title: string
@@ -365,18 +365,6 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
           title="Sobre Smash & Lob"
           description="Consulta la descripción pública y las funciones principales de la aplicación."
         />
-        <SettingsLinkRow
-          href="/privacy"
-          id="privacy"
-          title="Política de privacidad"
-          description="Consulta qué datos se utilizan y cómo ejercer tus derechos."
-        />
-        <SettingsLinkRow
-          href="/terms"
-          id="terms"
-          title="Condiciones de uso"
-          description="Consulta las normas y responsabilidades de uso de la aplicación."
-        />
       </SettingsSection>
 
       <SessionSection />
@@ -687,18 +675,6 @@ function PlayerSettingsPage() {
           id="about-app"
           title="Sobre Smash & Lob"
           description="Consulta la descripción pública y las funciones principales de la aplicación."
-        />
-        <SettingsLinkRow
-          href="/privacy"
-          id="privacy"
-          title="Política de privacidad"
-          description="Consulta qué datos se utilizan y cómo ejercer tus derechos."
-        />
-        <SettingsLinkRow
-          href="/terms"
-          id="terms"
-          title="Condiciones de uso"
-          description="Consulta las normas y responsabilidades de uso de la aplicación."
         />
       </SettingsSection>
 
