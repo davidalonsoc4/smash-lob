@@ -26,11 +26,21 @@ export default defineConfig({
   projects: [
     {
       name: "mobile-chromium",
+      testIgnore: "**/pwa-offline.spec.ts",
       use: { ...devices["Pixel 7"] },
     },
     {
       name: "desktop-chromium",
+      testIgnore: "**/pwa-offline.spec.ts",
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "pwa-chromium",
+      testMatch: "**/pwa-offline.spec.ts",
+      use: {
+        ...devices["Pixel 7"],
+        serviceWorkers: "allow",
+      },
     },
   ],
   webServer: {

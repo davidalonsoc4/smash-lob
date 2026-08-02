@@ -787,3 +787,18 @@ This is human acceptance evidence reported by the project owner. It was not repl
   remota `v1.1 quality #8` terminó en `Success`: el job `quality` pasó en 1m21s
   y el job `browser` pasó en 1m40s con 8/8 pruebas Playwright. El gate remoto
   queda restablecido.
+- La prueba física en una PWA Android ya instalada confirmó la actualización
+  visible a `v1.1.0-rc.1` y el alta/baja real de push. La baja eliminó exactamente
+  un endpoint de Supabase PRE y el alta posterior creó exactamente uno nuevo
+  habilitado, sin volver a solicitar un permiso Android que ya estaba concedido.
+- El arranque posterior en modo avión reveló un fallo bloqueante: Android restauró
+  la pantalla de acceso y Auth.js intentó consultar la sesión sin red, en lugar
+  de mostrar la experiencia offline. La prueba anterior solo cubría una nueva
+  navegación interceptada por el service worker y no la restauración de una PWA
+  ya cargada.
+- Se añadió `OfflineGate` antes de `AuthGate` y una vista offline compartida, de
+  modo que la pérdida de red oculta el login y los datos privados antes de que
+  Auth.js intente cargar. Playwright incorpora ahora un proyecto aislado con
+  service workers reales que cubre pérdida de conexión sobre una página cargada,
+  relanzamiento/navegación offline y recuperación mediante «Reintentar». La nueva
+  prueba reproduce el fallo antes del cambio y pasa después de la corrección.
