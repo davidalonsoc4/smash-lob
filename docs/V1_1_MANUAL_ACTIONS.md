@@ -5,8 +5,9 @@
 - Completar `SUPABASE_SERVICE_ROLE_KEY` en el entorno local/PRE sin copiar la de PROD.
 - Confirmar en Vercel PRE, sin imprimir valores, las variables indicadas en README.
 - Disponer de dos cuentas Google dedicadas a pruebas: organizador y miembro/espectador.
-- Si se crea una migración posterior, realizar backup de Supabase PRE, verificarlo y
-  ejecutar primero dry-run/listado de migraciones. Esta candidata no añade migraciones.
+- La candidata añade `20260802233000_revoke_previous_league_invites.sql`.
+  Antes de aplicarla, conservar una copia de las filas afectadas de `invites` sin
+  incluir códigos y ejecutar `supabase db push --linked --dry-run` contra PRE.
 
 ## Verificación manual
 
@@ -43,7 +44,11 @@ Vercel PRE debe inspeccionarse después y el dominio debe mostrar `v1.1.0-rc.1`.
 - Código PRE: revertir el commit de merge en `staging` con un commit nuevo y volver a
   desplegar; no reescribir historial ni forzar push.
 - Vercel PRE: restaurar el último deployment verificado de `staging`.
-- Base de datos: no aplica en esta candidata. Si aparece una migración posterior,
-  usar una migración de avance o restaurar el backup de PRE según el incidente.
+- Base de datos PRE: si fuera necesario revertir la función de regeneración, crear
+  una migración de avance que restaure la definición versionada en
+  `20260715003000_fix_server_regenerate_league_invite.sql`. No reactivar
+  automáticamente invitaciones ya revocadas: generar un código nuevo por liga es
+  el rollback seguro. La copia previa de `id`, `league_id` y `revoked_at` permite
+  auditar exactamente las filas modificadas sin almacenar códigos.
 - La rama `main`, la etiqueta `v1.0.0`, Supabase PROD y Vercel PROD deben permanecer
   intactos durante todo el proceso.

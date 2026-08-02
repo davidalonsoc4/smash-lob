@@ -35,9 +35,9 @@
 - [x] OAuth Google real con cuenta nueva y existente
 - [ ] invitación inválida y caducada contra datos PRE
 - [ ] usuario suspendido y usuario sin acceso contra PRE
-- [ ] flujos persistentes de liga/temporada/partido/resultado
+- [x] flujos persistentes de liga/temporada/partido/resultado
 - [ ] aislamiento cruzado completo con dos ligas de fixtures PRE
-- [ ] compartir resumen y descargar Excel/CSV en navegador real autenticado
+- [x] compartir resumen y descargar Excel/CSV en navegador real autenticado
 - [ ] alta, baja y endpoint push expirado en dispositivo real
 - [ ] Axe y visuales de las ocho pantallas autenticadas representativas
 - [x] push/merge de rama, despliegue y smoke tests de PRE

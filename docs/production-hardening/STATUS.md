@@ -671,3 +671,50 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La segunda cuenta no tiene habilitado el permiso de creación de ligas, por lo
   que aún no puede utilizarse como organizadora hasta preparar explícitamente
   ese fixture solo en Supabase PRE.
+
+## v1.1 stability hardening — fixtures persistentes y exportaciones de PRE (2026-08-02)
+
+- Una cuenta dedicada de pruebas con rol `creator` abrió tres ligas existentes de
+  PRE, inició `Temporada 2` en `Liga prep pruebas última` y generó sus 14 partidos.
+- El primer partido se programó para el 2 de agosto de 2026 a las 23:00 en
+  Polideportivo de Lasesarre. Se registró el resultado 6-4, 3-6, 6-2, se editó
+  después el tercer set a 6-3 y se verificó que la corrección persistía tras
+  recargar y navegar.
+- El cambio entre esa liga, con 1 de 14 partidos jugados, y `PREP LIGA`, finalizada
+  con 14 de 14, mantuvo separadas sus temporadas, calendarios, resultados y
+  clasificaciones. La comprobación de autorización directa con una cuenta ajena a
+  la primera liga sigue pendiente.
+- Desde una sesión autenticada real se ejecutó la acción Compartir del resumen
+  final de `PREP LIGA` sin error de aplicación y se descargaron los archivos Excel
+  y CSV de `Temporada 3`.
+- El Excel descargado contiene las hojas `Clasificación` (8 jugadores) y
+  `Resultados` (14 partidos). El CSV contiene 14 filas y las mismas 12 columnas de
+  resultados. La importación estructural, la comparación celda a celda entre ambos
+  formatos y la revisión visual de todas las hojas no detectaron diferencias ni
+  errores de fórmula.
+- Antes de consultar una invitación de fixture con la credencial de servicio, una
+  guarda local verificó el destino configurado y detuvo la operación: el
+  `NEXT_PUBLIC_SUPABASE_URL` de `.env.local` apunta al proyecto Production
+  `szycbwdzestcmimziyey`, no al proyecto PRE `miadjotkucgluwbrgeih`. No se llegó a
+  ejecutar ninguna consulta de base de datos. Las comprobaciones con service role
+  quedan pausadas hasta alinear en `.env.local` la URL, la clave anónima y la clave
+  de servicio del mismo proyecto PRE.
+- Las tres variables locales se corrigieron después con sus valores de Preview
+  `staging`. La URL apunta a `miadjotkucgluwbrgeih`, la clave pública fue aceptada
+  por Auth de Supabase y una lectura controlada con service role devolvió las tres
+  ligas de PRE.
+- La prueba real de caducidad reveló un fallo bloqueante: después de regenerar la
+  invitación de `PREP LIGA`, el enlace anterior seguía resolviendo la liga. La
+  función SQL conservaba todas las filas históricas con `revoked_at` nulo y el GET
+  público, al usar service role, no aplicaba explícitamente el filtro RLS.
+- Se añadió una comprobación compartida de vigencia a la resolución y al canje,
+  filtros explícitos de `revoked_at` y la migración
+  `20260802233000_revoke_previous_league_invites.sql`, que revoca los códigos
+  anteriores de cada liga y hace atómica esa revocación en futuras regeneraciones.
+- La migración pasó `supabase db push --linked --dry-run` y el enlace se verificó
+  contra PRE. Se creó antes una copia local mínima de las 12 filas de `invites`
+  con solo `id`, `league_id` y `revoked_at`; no contiene códigos de invitación.
+- La corrección local pasó la prueba focalizada (3/3), lint, TypeScript,
+  `npm run validate` completo (16 archivos/60 pruebas y build), Playwright 8/8,
+  `npm audit --audit-level=high` con 0 vulnerabilidades y `git diff --check`.
+  La migración todavía no se ha aplicado y la corrección aún no está desplegada.
