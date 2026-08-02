@@ -3,9 +3,11 @@ import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { validateInviteCode } from "@/lib/serverRequest"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { applyPrivateNoStore } from "@/lib/serverResponse"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 async function resolveInvite(code: string) {
   const supabase = createSupabaseServiceClient()
@@ -73,29 +75,35 @@ export async function GET(
   const code = validateInviteCode(decodeURIComponent(rawCode ?? ""))
 
   if (!code) {
-    return NextResponse.json({ error: "invalid_code" }, { status: 400 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "invalid_code" }, { status: 400 }),
+    )
   }
 
   const result = await resolveInvite(code)
 
   if (!result.ok) {
-    return NextResponse.json(
-      { error: result.error },
-      { status: result.status },
+    return applyPrivateNoStore(
+      NextResponse.json(
+        { error: result.error },
+        { status: result.status },
+      ),
     )
   }
 
-  return NextResponse.json({
-    invite: {
-      code: result.invite.code,
-      leagueId: result.league.id,
-      leagueName: result.league.name,
-      leagueDescription: result.league.description ?? "",
-      leagueLogoUrl: result.league.logo_url ?? null,
-      seasonName: result.visibleSeason?.name ?? null,
-      seasonStatus: result.visibleSeason?.status ?? null,
-    },
-  })
+  return applyPrivateNoStore(
+    NextResponse.json({
+      invite: {
+        code: result.invite.code,
+        leagueId: result.league.id,
+        leagueName: result.league.name,
+        leagueDescription: result.league.description ?? "",
+        leagueLogoUrl: result.league.logo_url ?? null,
+        seasonName: result.visibleSeason?.name ?? null,
+        seasonStatus: result.visibleSeason?.status ?? null,
+      },
+    }),
+  )
 }
 
 export async function POST(

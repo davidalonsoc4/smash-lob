@@ -6,12 +6,14 @@ import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { validateInviteCode, validateUuid } from "@/lib/serverRequest"
+import { applyPrivateNoStore } from "@/lib/serverResponse"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { League, LeagueMemberRole, PlayerProfile, Season, SeasonPlayer, UserLeagueMembership } from "@/data/fakeData"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 type SupabaseLeagueRow = {
   id: string
@@ -483,30 +485,40 @@ export async function GET(
   const leagueIdHint = new URL(request.url).searchParams.get("leagueId")
 
   if (!normalizedCode) {
-    return NextResponse.json({ error: "invalid_code" }, { status: 400 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "invalid_code" }, { status: 400 }),
+    )
   }
 
   if (leagueIdHint && !validateUuid(leagueIdHint)) {
-    return NextResponse.json({ error: "invalid_league_id" }, { status: 400 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "invalid_league_id" }, { status: 400 }),
+    )
   }
 
   const supabase = createSupabaseServiceClient()
 
   if (!supabase) {
-    return NextResponse.json({ error: "missing_service_role" }, { status: 501 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "missing_service_role" }, { status: 501 }),
+    )
   }
 
   try {
-    return await buildInviteResponse(supabase, normalizedCode, leagueIdHint)
+    return applyPrivateNoStore(
+      await buildInviteResponse(supabase, normalizedCode, leagueIdHint),
+    )
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: "invite_lookup_failed",
-        code: normalizedCode,
-        leagueId: leagueIdHint,
-        failures: [serializeError(error)],
-      },
-      { status: 500 }
+    return applyPrivateNoStore(
+      NextResponse.json(
+        {
+          error: "invite_lookup_failed",
+          code: normalizedCode,
+          leagueId: leagueIdHint,
+          failures: [serializeError(error)],
+        },
+        { status: 500 },
+      ),
     )
   }
 }
