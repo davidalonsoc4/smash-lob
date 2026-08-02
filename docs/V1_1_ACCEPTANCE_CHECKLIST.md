@@ -32,7 +32,7 @@
 ## Pendiente manual/externo
 
 - [x] credencial service role dedicada disponible localmente/PRE
-- [ ] OAuth Google real con cuenta nueva y existente
+- [x] OAuth Google real con cuenta nueva y existente
 - [ ] invitación inválida y caducada contra datos PRE
 - [ ] usuario suspendido y usuario sin acceso contra PRE
 - [ ] flujos persistentes de liga/temporada/partido/resultado

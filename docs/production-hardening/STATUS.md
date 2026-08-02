@@ -665,3 +665,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
   recorrido valida el caso de miembro existente. Siguen pendientes una cuenta
   nueva/organizadora, los retornos exactos desde invitaciones y el resto de
   flujos persistentes manuales.
+- Una segunda cuenta Google dedicada completó después su primer acceso a PRE y
+  mostró el onboarding inicial para crear o unirse a una liga. Con ello quedan
+  verificados los recorridos OAuth real de cuenta existente y cuenta nueva.
+- La segunda cuenta no tiene habilitado el permiso de creación de ligas, por lo
+  que aún no puede utilizarse como organizadora hasta preparar explícitamente
+  ese fixture solo en Supabase PRE.
