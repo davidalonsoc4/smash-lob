@@ -1,126 +1,101 @@
-# Smash & Lob - despliegue preview
+# Smash & Lob - despliegue y validación
+
+## Entornos oficiales
+
+- Producción: `https://smashandlob.com` sobre la rama `main`.
+- Preproducción: `https://pre.smashandlob.com` sobre la rama `staging`.
+- `https://www.smashandlob.com` debe redirigir al dominio principal.
+
+Los enlaces compartidos por la aplicación no deben utilizar dominios de despliegue de Vercel. El comando `npm run public-urls:check` comprueba automáticamente que no reaparezcan en los archivos de ejecución.
 
 ## Estado de datos
 
-La app ya usa Supabase para los datos principales:
+La app usa Supabase para los datos principales:
 
-- ligas
-- temporadas
-- jugadores
-- partidos
-- resultados
-- ajustes de temporada
-- lugares de liga
-- códigos de invitación
-- membresías por invitación
+- ligas y membresías;
+- temporadas y jugadores;
+- partidos, resultados y confirmaciones;
+- ajustes, ubicaciones e invitaciones;
+- espectadores, estadísticas y configuración administrativa.
 
-El `localStorage` queda como caché local y preferencias de navegador. En Ajustes existe una tarjeta de mantenimiento para limpiar caché local sin borrar datos de Supabase.
+El almacenamiento local queda limitado a caché y preferencias del navegador. Limpiar la caché local no debe eliminar información persistida en Supabase.
 
 ## Variables necesarias
 
-Configura estas variables tanto en local como en Vercel:
+Configurar las credenciales correspondientes en local, Production y Preview:
 
 ```env
 AUTH_SECRET=
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
-AUTH_URL=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_ENABLE_DEMO_DATA=false
+NEXT_PUBLIC_QA_MODE=false
+QA_MODE=false
 ```
 
-En local, `AUTH_URL` puede omitirse o apuntar a `http://localhost:3000`.
-En Vercel, usa la URL real, por ejemplo `https://smash-lob.vercel.app`.
+La aplicación no necesita construir enlaces públicos a partir de las URL automáticas de Vercel. Puede utilizarse `NEXT_PUBLIC_APP_VARIANT=production` en producción y `NEXT_PUBLIC_APP_VARIANT=pre` en la rama `staging`; `NEXT_PUBLIC_APP_URL` queda como compatibilidad, pero cualquier dominio antiguo de Vercel se normaliza al dominio oficial correspondiente.
 
 ## Google OAuth
 
-En Google Cloud añade estos redirect URIs:
+Orígenes autorizados:
+
+```txt
+http://localhost:3000
+https://smashandlob.com
+https://pre.smashandlob.com
+```
+
+URI de redirección:
 
 ```txt
 http://localhost:3000/api/auth/callback/google
-https://TU-DOMINIO.vercel.app/api/auth/callback/google
+https://smashandlob.com/api/auth/callback/google
+https://pre.smashandlob.com/api/auth/callback/google
 ```
 
-Si usas una URL de preview distinta, añádela también.
+No añadir nuevos alias temporales de Vercel a los enlaces de producto. Las credenciales y callbacks deben mantenerse alineados con los dos dominios oficiales.
 
-## Comprobaciones antes de publicar
+## Validaciones antes de publicar
 
 ```bash
-npm run lint
-npx tsc --noEmit
-npm run build
+npm ci
+npm run validate
 ```
 
-## Pruebas mínimas en preview
+`npm run validate` ejecuta:
 
-1. Entrar con Google desde móvil.
-2. Crear una liga nueva.
-3. Añadir lugares de liga.
-4. Programar partido.
-5. Guardar resultado.
-6. Regenerar invitación.
-7. Entrar con otro usuario mediante invitación.
-8. Reclamar jugador.
-9. Crear nueva temporada.
-10. Limpiar caché local desde Ajustes y comprobar que los datos vuelven desde Supabase.
+1. línea base de seguridad;
+2. comprobación de URLs públicas;
+3. ESLint;
+4. TypeScript;
+5. build de producción.
 
-## Superusuario global
+## Pruebas previas a v1.0
 
-El email `smashlobadmin@gmail.com` está configurado como superusuario global de la aplicación.
-
-Además, en Supabase conviene dejar marcada la cuenta como superusuario con:
-
-```sql
-insert into public.app_users (email, display_name, is_superuser)
-values ('smashlobadmin@gmail.com', 'Smash Lob Admin', true)
-on conflict (email) do update
-set is_superuser = true,
-    display_name = coalesce(public.app_users.display_name, excluded.display_name);
-```
-
-El código también evita degradar a `false` un usuario que ya tenga `is_superuser = true` en Supabase.
+Ejecutar íntegramente `docs/V1_RELEASE_CHECKLIST.md` en PRE antes de preparar la etiqueta `v1.0.0` y repetir en producción las comprobaciones críticas de acceso, invitaciones, espectadores y datos.
 
 ## Notificaciones push
 
-Para activar las notificaciones push añadidas en la `v0.7.45`:
-
-1. Ejecuta en Supabase el script:
-
-```txt
-supabase/v0.7.45_push_notifications.sql
-```
-
-2. Instala dependencias después de copiar los archivos:
-
-```bash
-npm install
-```
-
-3. Genera claves VAPID:
-
-```bash
-npx web-push generate-vapid-keys
-```
-
-4. Añade en local y Vercel:
+Variables requeridas cuando las notificaciones están activas:
 
 ```env
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=mailto:tu-email@example.com
-SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-En iPhone/iPad, las notificaciones web necesitan usar la app como PWA instalada en la pantalla de inicio. En Android funciona desde navegador/PWA compatible con Push API.
+En iPhone y iPad, las notificaciones web requieren instalar la PWA en la pantalla de inicio. En Android funcionan desde navegadores y PWAs compatibles con Push API.
 
-## Modo QA (solo entorno de pruebas)
+## Modo QA
 
-Para mostrar las herramientas de simulación en `Administración > Herramientas de prueba`, configura y vuelve a desplegar:
+Las herramientas de simulación solo deben habilitarse en PRE:
 
 ```env
 NEXT_PUBLIC_QA_MODE=true
 QA_MODE=true
 ```
 
-Las rutas QA siguen comprobando en el servidor que la cuenta sea creadora o administradora de la liga. No actives estas variables en producción: las acciones escriben datos reales en Supabase y pueden generar notificaciones push reales.
+No activar estas variables en producción. Las acciones QA escriben datos reales y pueden generar notificaciones reales.

@@ -1,20 +1,23 @@
-const defaultPublicAppUrl = "https://smash-lob.vercel.app"
+import { getPublicAppBaseUrl } from "@/lib/appUrl"
 
-export function getPublicAppBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/+$/, "") ||
-    defaultPublicAppUrl
-  )
-}
+export { getPublicAppBaseUrl }
 
-export function getPublicInviteUrl(inviteCode: string) {
+export function getPublicInviteUrl(inviteCode: string, request?: Request) {
   const inviteUrl = new URL(
-    `${getPublicAppBaseUrl()}/invite/${encodeURIComponent(
-      normalizeInviteCode(inviteCode)
-    )}`
+    `/invite/${encodeURIComponent(normalizeInviteCode(inviteCode))}`,
+    getPublicAppBaseUrl(request),
   )
 
   return inviteUrl.toString()
+}
+
+export function getPublicSpectatorUrl(spectatorCode: string, request?: Request) {
+  const spectatorUrl = new URL(
+    `/spectate/${encodeURIComponent(spectatorCode.trim())}`,
+    getPublicAppBaseUrl(request),
+  )
+
+  return spectatorUrl.toString()
 }
 
 export function normalizeInviteCode(value: string) {

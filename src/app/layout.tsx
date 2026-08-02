@@ -5,11 +5,12 @@ import { I18nProvider } from "@/i18n/I18nProvider"
 import { ThemeProvider } from "@/context/ThemeProvider"
 import "./globals.css"
 import { getAppBranding } from "@/lib/appVariant"
+import { getPublicAppBaseUrl } from "@/lib/appUrl"
 
 const branding = getAppBranding()
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://smashandlob.com"),
+  metadataBase: new URL(getPublicAppBaseUrl()),
   applicationName: branding.applicationName,
   title: {
     default: branding.browserTitle,

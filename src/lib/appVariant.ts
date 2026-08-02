@@ -1,11 +1,7 @@
-const productionAppUrl = "https://smash-lob.vercel.app"
-
-function normalizeUrl(value: string | undefined) {
-  return (value ?? "").trim().toLowerCase().replace(/\/+$/, "")
-}
+import { getPublicAppBaseUrl, isPreproductionAppUrl } from "@/lib/appUrl"
 
 export function getAppUrl() {
-  return normalizeUrl(process.env.NEXT_PUBLIC_APP_URL)
+  return getPublicAppBaseUrl()
 }
 
 export function isPreproductionApp() {
@@ -15,17 +11,7 @@ export function isPreproductionApp() {
     return true
   }
 
-  const appUrl = getAppUrl()
-
-  if (!appUrl) {
-    return false
-  }
-
-  if (appUrl === normalizeUrl(productionAppUrl)) {
-    return false
-  }
-
-  return appUrl.includes("staging") || appUrl.includes("preview") || appUrl.includes("pre")
+  return isPreproductionAppUrl(getAppUrl())
 }
 
 export function getAppBranding() {

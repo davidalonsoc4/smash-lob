@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto"
 import { NextResponse } from "next/server"
-import { getPublicAppBaseUrl } from "@/lib/inviteUrls"
+import { getPublicSpectatorUrl } from "@/lib/inviteUrls"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { validateUuid } from "@/lib/serverRequest"
 
@@ -18,7 +18,7 @@ function generateSpectatorCode() {
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: leagueId } = await params
@@ -108,6 +108,6 @@ export async function POST(
 
   return NextResponse.json({
     code,
-    url: `${getPublicAppBaseUrl()}/spectate/${encodeURIComponent(code)}`,
+    url: getPublicSpectatorUrl(code, request),
   })
 }
