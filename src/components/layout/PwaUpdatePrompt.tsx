@@ -1,22 +1,33 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { requestPwaUpdate } from "@/lib/pwaUpdate"
 
 export function PwaUpdatePrompt() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const [isApplying, setIsApplying] = useState(false)
+  const reloadTimeoutRef = useRef<number | null>(null)
+  const isReloadingRef = useRef(false)
+
+  const reloadApp = useCallback(() => {
+    if (isReloadingRef.current) {
+      return
+    }
+
+    isReloadingRef.current = true
+    if (reloadTimeoutRef.current) {
+      window.clearTimeout(reloadTimeoutRef.current)
+    }
+    window.location.reload()
+  }, [])
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
       return
     }
 
-    let reloading = false
-
     function handleControllerChange() {
-      if (!reloading) {
-        reloading = true
-        window.location.reload()
-      }
+      reloadApp()
     }
 
     navigator.serviceWorker.addEventListener(
@@ -47,12 +58,15 @@ export function PwaUpdatePrompt() {
     })
 
     return () => {
+      if (reloadTimeoutRef.current) {
+        window.clearTimeout(reloadTimeoutRef.current)
+      }
       navigator.serviceWorker.removeEventListener(
         "controllerchange",
         handleControllerChange,
       )
     }
-  }, [])
+  }, [reloadApp])
 
   if (!waitingWorker) {
     return null
@@ -74,15 +88,25 @@ export function PwaUpdatePrompt() {
       <div className="mt-3 flex gap-2">
         <button
           type="button"
-          onClick={() => waitingWorker.postMessage({ type: "SKIP_WAITING" })}
-          className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+          disabled={isApplying}
+          onClick={() => {
+            setIsApplying(true)
+            reloadTimeoutRef.current = requestPwaUpdate(
+              waitingWorker,
+              reloadApp,
+              (callback, delayMs) =>
+                window.setTimeout(callback, delayMs),
+            )
+          }}
+          className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-400"
         >
-          Actualizar ahora
+          {isApplying ? "Actualizando…" : "Actualizar ahora"}
         </button>
         <button
           type="button"
+          disabled={isApplying}
           onClick={() => setWaitingWorker(null)}
-          className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
+          className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-400"
         >
           Más tarde
         </button>

@@ -878,3 +878,17 @@ This is human acceptance evidence reported by the project owner. It was not repl
   observable sobre la navegación autenticada; las dos regresiones PWA se
   repitieron cinco veces cada una en modo CI y pasaron 10/10. La corrección
   funcional no cambió.
+- La ejecución remota posterior `v1.1 quality #19` terminó en `Success` con
+  `quality` y `browser` correctos. El deployment final de esa revisión,
+  `dpl_7cxM6CiYA36vvCxJTwZAqAREkYvW`, quedó `Ready`, asociado a PRE y sirviendo
+  el service worker con la redirección offline esperada.
+- Al instalar esa revisión en la PWA Android, el aviso de nueva versión apareció,
+  pero «Actualizar ahora» no produjo una respuesta visible y fue necesario
+  refrescar manualmente. El mensaje `SKIP_WAITING` queda ahora unido mediante
+  `event.waitUntil` al ciclo de vida del service worker; el botón muestra
+  «Actualizando…» y programa una recarga de respaldo a los cuatro segundos si
+  Android no emite `controllerchange`.
+- Tres pruebas unitarias cubren el ciclo de vida solicitado, la recarga de
+  respaldo y el caso de worker ya no disponible. La corrección pasó
+  `npm run validate` completo (17 archivos/66 pruebas y build) y 14/14 pruebas
+  Playwright en modo CI. Quedan pendientes el despliegue y la repetición física.
