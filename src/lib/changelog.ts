@@ -15,6 +15,25 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.1",
+    date: "3 de agosto de 2026",
+    title: "Avatares por liga e identidad recuperable",
+    summary:
+      "Cada jugador puede usar una imagen distinta en cada liga y la desvinculación vuelve a dejar el perfil histórico con una identidad segura y sin conservar la foto de la cuenta.",
+    category: "new",
+    changes: [
+      "Ajustes incorpora un avatar personalizado específico para la liga activa, independiente del resto de ligas.",
+      "Al eliminar el avatar de liga se recupera automáticamente la imagen de la cuenta y, si no existe, el avatar predeterminado.",
+      "La prioridad visual pasa a ser avatar de liga, imagen de cuenta, imagen histórica del jugador y avatar predeterminado.",
+      "Al vincular una cuenta se guarda la identidad que tenía previamente el jugador para poder restaurarla al desvincularlo.",
+      "Al desvincular se elimina cualquier foto heredada de la cuenta; los vínculos creados desde esta versión recuperan también el nombre y las iniciales anteriores.",
+      "Los jugadores que ya estaban vinculados antes de esta versión conservan su nombre actual al desvincularse porque el nombre anterior no estaba almacenado, pero recuperan correctamente el avatar predeterminado.",
+      "La resolución de imágenes deja de inferir fotos por coincidencia de nombre para evitar que un jugador desvinculado siga mostrando la imagen de otra cuenta.",
+      "Se añade una migración de Supabase para guardar el avatar por liga y la instantánea de identidad previa a la vinculación.",
+      "La pantalla de Ajustes reinicia correctamente el editor al cambiar de liga o jugador sin provocar actualizaciones de estado redundantes durante el renderizado.",
+    ],
+  },
+  {
     version: "v1.1.0",
     date: "3 de agosto de 2026",
     title: "Acceso, seguridad y PWA más fiables",

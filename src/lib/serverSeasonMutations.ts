@@ -1023,8 +1023,7 @@ export async function createServerSeason({
               slug: `${slug(playerName)}-${Date.now()}-${index + 1}`,
               display_name: playerName,
               avatar_initials: initials(playerName),
-              avatar_url:
-                selectedNewPlayerIndex === index ? user.avatarUrl ?? null : null,
+              avatar_url: null,
             }))
           )
           .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
@@ -1052,7 +1051,6 @@ export async function createServerSeason({
         .update({
           display_name: profileName,
           avatar_initials: initials(profileName),
-          avatar_url: user.avatarUrl ?? null,
         })
         .eq("id", membership.playerId)
         .eq("league_id", leagueId)
@@ -1072,7 +1070,7 @@ export async function createServerSeason({
           slug: `${slug(profileName)}-${Date.now()}`,
           display_name: profileName,
           avatar_initials: initials(profileName),
-          avatar_url: user.avatarUrl ?? null,
+          avatar_url: null,
         })
         .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
         .single()
@@ -1132,18 +1130,6 @@ export async function createServerSeason({
   }
 
   if (selectedSelfPlayerId) {
-    if (user.avatarUrl) {
-      const { error: avatarError } = await supabase
-        .from("players")
-        .update({ avatar_url: user.avatarUrl })
-        .eq("id", selectedSelfPlayerId)
-        .is("avatar_url", null)
-
-      if (avatarError) {
-        throw new SeasonMutationError(500, "season_player_avatar_update_failed")
-      }
-    }
-
     const { error: membershipError } = await supabase
       .from("league_memberships")
       .upsert(

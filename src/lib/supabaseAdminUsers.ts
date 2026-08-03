@@ -5,6 +5,7 @@ export type LeagueUserManagementPlayer = {
   displayName: string
   avatarInitials: string
   avatarUrl: string | null
+  leagueAvatarUrl: string | null
   linkedUserId: string | null
   linkedUserEmail: string | null
   linkedUserDisplayName: string | null
@@ -147,6 +148,7 @@ export async function updateSupabasePlayerAvatar({
     displayName: string
     avatarInitials: string
     avatarUrl: string | null
+    leagueAvatarUrl: string | null
     userId: string | null
   }
 }

@@ -925,3 +925,17 @@ This is human acceptance evidence reported by the project owner. It was not repl
   de códigos de invitación antiguos.
 - Este checkpoint documenta la aceptación y autorización. La evidencia del commit,
   deployment y smoke tests de Producción se registrará tras ejecutar la publicación.
+
+## v1.2.1 - Avatares por liga e identidad restaurable (2026-08-03)
+
+- Añadido `league_memberships.league_avatar_url` para guardar un avatar independiente en cada liga sin modificar la imagen global de la cuenta.
+- Añadido `players.link_identity_snapshot` y un trigger de servidor que captura la identidad previa al vincular una cuenta y la restaura al desvincularla.
+- Los vínculos existentes reciben como base recuperable el nombre actual y avatar vacío, ya que el nombre previo no se almacenaba antes de esta versión.
+- La prioridad de imagen pasa a ser avatar de liga, imagen de cuenta, imagen histórica del jugador y avatar predeterminado.
+- Eliminada la inferencia de imágenes por coincidencia de nombre para que una cuenta desvinculada no siga aportando su foto.
+- Los flujos de invitación, autorregistro y creación de temporada dejan de copiar la imagen de cuenta en `players.avatar_url`.
+- Añadidas pruebas unitarias para la prioridad de avatares, la desvinculación sin coincidencias por nombre y la presencia de las garantías principales de la migración.
+- Migración nueva: `20260803160000_add_league_avatars_and_restore_unlinked_identity.sql`.
+- Validación en este entorno: los 21 archivos TypeScript/TSX modificados transpilan sin errores de sintaxis; `npm ci` no pudo completarse porque el proxy de paquetes devolvió 404 para `zod-validation-error@4.0.2`. El paquete de entrega ejecuta la validación completa en el repositorio local antes de publicar PRE.
+
+- La candidata local v1.2.0 se detuvo antes del commit por la regla `react-hooks/set-state-in-effect` en Ajustes. v1.2.1 elimina ese efecto y reinicia el formulario mediante una clave estable al cambiar de liga o jugador.

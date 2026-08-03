@@ -93,7 +93,7 @@ export async function GET() {
   const [ownMembershipResult, spectatorResult] = await Promise.all([
     supabase
       .from("league_memberships")
-      .select("user_id,league_id,player_id,role")
+      .select("user_id,league_id,player_id,role,league_avatar_url")
       .eq("user_id", userId),
     supabase
       .from("league_spectators")
@@ -226,7 +226,7 @@ export async function GET() {
       .in("league_id", leagueIds),
     supabase
       .from("league_memberships")
-      .select("user_id,league_id,player_id,role")
+      .select("user_id,league_id,player_id,role,league_avatar_url")
       .in("league_id", leagueIds),
   ])
 
@@ -305,12 +305,19 @@ export async function GET() {
         avatarInitials: player.avatar_initials,
         userId: membership?.user_id ?? null,
         avatarUrl: resolvePlayerAvatarUrl({
+          leagueAvatarUrl:
+            typeof membership?.league_avatar_url === "string"
+              ? membership.league_avatar_url
+              : null,
           linkedUserId: membership?.user_id ?? null,
-          playerDisplayName: player.display_name,
           playerAvatarUrl:
             typeof player.avatar_url === "string" ? player.avatar_url : null,
           users: userAvatarLookup,
         }),
+        leagueAvatarUrl:
+          typeof membership?.league_avatar_url === "string"
+            ? membership.league_avatar_url
+            : null,
       }
     }
   )

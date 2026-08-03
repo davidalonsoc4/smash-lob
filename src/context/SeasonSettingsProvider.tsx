@@ -258,7 +258,10 @@ function isValidPlayerProfile(value: unknown): value is PlayerProfile {
       typeof item.userId === "string") &&
     (typeof item.avatarUrl === "undefined" ||
       item.avatarUrl === null ||
-      typeof item.avatarUrl === "string")
+      typeof item.avatarUrl === "string") &&
+    (typeof item.leagueAvatarUrl === "undefined" ||
+      item.leagueAvatarUrl === null ||
+      typeof item.leagueAvatarUrl === "string")
   );
 }
 
@@ -1026,12 +1029,14 @@ export function SeasonSettingsProvider({
       displayName,
       avatarInitials,
       avatarUrl,
+      leagueAvatarUrl,
       userId,
     }: {
       playerId: string;
       displayName: string;
       avatarInitials: string;
       avatarUrl?: string | null;
+      leagueAvatarUrl?: string | null;
       userId?: string | null;
     }) => {
       setSeasonData((currentSeasonData) => {
@@ -1056,9 +1061,13 @@ export function SeasonSettingsProvider({
               displayName: isDirectTarget ? displayName : player.displayName,
               avatarInitials: isDirectTarget ? avatarInitials : player.avatarInitials,
               avatarUrl:
-                typeof avatarUrl === "undefined"
-                  ? (player.avatarUrl ?? null)
-                  : avatarUrl,
+                isDirectTarget && typeof avatarUrl !== "undefined"
+                  ? avatarUrl
+                  : (player.avatarUrl ?? null),
+              leagueAvatarUrl:
+                isDirectTarget && typeof leagueAvatarUrl !== "undefined"
+                  ? leagueAvatarUrl
+                  : (player.leagueAvatarUrl ?? null),
               userId: linkedUserId ?? player.userId,
             };
           }),
