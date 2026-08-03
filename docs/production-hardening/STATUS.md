@@ -851,5 +851,20 @@ This is human acceptance evidence reported by the project owner. It was not repl
   fallo visual específico del runner de Windows.
 - La repetición física posterior en Android, con la PWA instalada y el modo avión
   activo, mostró correctamente la vista «Sin conexión» y la acción «Reintentar».
-  Queda validada en dispositivo real la corrección de arranque offline desplegada
-  en PRE.
+  Sin embargo, la continuación de la prueba demostró que el gate aún no estaba
+  cerrado: al recuperar red la aplicación entraba en el formulario de perfil con
+  un error de `fetch`, y un relanzamiento en frío sin red volvía a mostrar el
+  login. La primera observación solo validaba la pérdida de conexión sobre una
+  página ya abierta.
+- La causa de la reconexión era que el evento `online` ocultaba el fallback antes
+  de que Auth.js renovase la sesión que había fallado sin red. El fallback queda
+  ahora fijado hasta pulsar «Reintentar», acción que realiza una navegación
+  completa y crea una sesión limpia.
+- El service worker redirige los arranques offline nuevos a `/offline` y sirve esa
+  ruta desde caché, evitando depender de la hidratación de la ruta privada o del
+  valor inicial de `navigator.onLine`. Dos regresiones con service worker real
+  cubren una sesión autenticada durante pérdida/recuperación de red y un
+  relanzamiento desde una página cerrada.
+- La corrección pasó `npm run validate` completo (17 archivos/64 pruebas y build)
+  y 14/14 pruebas Playwright en modo CI. Quedan pendientes el despliegue en PRE y
+  la repetición física en Android antes de cerrar el gate.

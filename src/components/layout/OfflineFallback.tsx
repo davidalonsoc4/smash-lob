@@ -1,4 +1,5 @@
-import Link from "next/link"
+"use client"
+
 import { AppCard } from "@/components/ui/AppCard"
 
 export function OfflineFallback() {
@@ -10,12 +11,13 @@ export function OfflineFallback() {
           Smash &amp; Lob necesita conexión para consultar y modificar los datos
           de tu liga.
         </p>
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={() => window.location.replace("/")}
           className="mt-4 block rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
         >
           Reintentar
-        </Link>
+        </button>
       </AppCard>
     </main>
   )

@@ -7,17 +7,17 @@ export function OfflineGate({ children }: { children: ReactNode }) {
   const [isOffline, setIsOffline] = useState(false)
 
   useEffect(() => {
-    function syncConnectionStatus() {
-      setIsOffline(!window.navigator.onLine)
+    function showOfflineFallback() {
+      setIsOffline(true)
     }
 
-    syncConnectionStatus()
-    window.addEventListener("offline", syncConnectionStatus)
-    window.addEventListener("online", syncConnectionStatus)
+    if (!window.navigator.onLine) {
+      showOfflineFallback()
+    }
+    window.addEventListener("offline", showOfflineFallback)
 
     return () => {
-      window.removeEventListener("offline", syncConnectionStatus)
-      window.removeEventListener("online", syncConnectionStatus)
+      window.removeEventListener("offline", showOfflineFallback)
     }
   }, [])
 

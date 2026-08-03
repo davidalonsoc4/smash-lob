@@ -44,8 +44,15 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
+    if (url.pathname === "/offline") {
+      event.respondWith(
+        caches.match("/offline").then((cached) => cached || fetch(request)),
+      )
+      return
+    }
+
     event.respondWith(
-      fetch(request).catch(() => caches.match("/offline")),
+      fetch(request).catch(() => Response.redirect("/offline", 302)),
     )
     return
   }
