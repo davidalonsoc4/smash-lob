@@ -17,6 +17,7 @@ type AccountProfileContextValue = {
       weeklySlots: WeeklyAvailability
     },
   ) => Promise<AccountProfile | null>
+  saveAvatar: (avatarUrl: string | null) => Promise<AccountProfile | null>
 }
 
 const AccountProfileContext = createContext<AccountProfileContextValue | null>(null)
@@ -92,6 +93,30 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     [],
   )
 
+  const saveAvatar = useCallback(async (avatarUrl: string | null) => {
+    setError(null)
+
+    try {
+      const nextProfile = await readProfileResponse(
+        await fetch("/api/account/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatarUrl }),
+          cache: "no-store",
+        }),
+      )
+      setProfile(nextProfile)
+      return nextProfile
+    } catch (profileError) {
+      setError(
+        profileError instanceof Error
+          ? profileError.message
+          : "profile_avatar_save_failed",
+      )
+      return null
+    }
+  }, [])
+
   useEffect(() => {
     let isActive = true
     const controller = new AbortController()
@@ -123,8 +148,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [])
 
   const value = useMemo(
-    () => ({ profile, isLoading, error, refreshProfile, saveProfile }),
-    [error, isLoading, profile, refreshProfile, saveProfile],
+    () => ({ profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
+    [error, isLoading, profile, refreshProfile, saveAvatar, saveProfile],
   )
 
   return (

@@ -36,26 +36,26 @@ function AccountProfileForm({
 }) {
   const { t } = useI18n()
   const { data: session } = useSession()
-  const { saveProfile } = useAccountProfile()
+  const { saveProfile, saveAvatar: saveAccountAvatar } = useAccountProfile()
   const { currentUser } = useCurrentUser()
-  const { refreshLeagueAccess, updateLeaguePlayerAvatar } = useLeagueAccess()
+  const { refreshLeagueAccess } = useLeagueAccess()
   const [firstName, setFirstName] = useState(initialProfile.firstName)
   const [lastName, setLastName] = useState(initialProfile.lastName)
-  const [avatarUrl, setAvatarUrl] = useState(currentUser.leagueAvatarUrl ?? null)
+  const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatarUrl)
   const [avatarCropSource, setAvatarCropSource] = useState<string | null>(null)
   const [isSavingName, setIsSavingName] = useState(false)
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   const googleAvatarUrl = normalizeAvatarUrl(session?.user?.image)
-  const effectiveAvatarUrl =
-    normalizeAvatarUrl(avatarUrl) ??
-    normalizeAvatarUrl(currentUser.avatarUrl) ??
-    googleAvatarUrl
-  const isUsingCustomAvatar = Boolean(normalizeAvatarUrl(avatarUrl))
-  const canEditAvatar = !currentUser.id.startsWith("__")
+  const storedAvatarUrl = normalizeAvatarUrl(avatarUrl)
+  const effectiveAvatarUrl = storedAvatarUrl ?? googleAvatarUrl
+  const isUsingUploadedImage = Boolean(
+    storedAvatarUrl && storedAvatarUrl !== googleAvatarUrl,
+  )
+  const canEditAvatar = Boolean(session?.user?.email)
   const displayName = `${firstName} ${lastName}`.trim() || currentUser.displayName
-  const avatarStatusLabel = isUsingCustomAvatar
+  const avatarStatusLabel = isUsingUploadedImage
     ? t.settings.avatarCustomActive
     : effectiveAvatarUrl
       ? t.settings.avatarGoogleFallback
@@ -105,42 +105,42 @@ function AccountProfileForm({
     setIsSavingAvatar(true)
     setAvatarError(null)
 
-    const updated = await updateLeaguePlayerAvatar(
-      currentUser.leagueId,
-      currentUser.id,
-      nextAvatarUrl,
-    )
+    const updatedProfile = await saveAccountAvatar(nextAvatarUrl)
 
-    setIsSavingAvatar(false)
-
-    if (!updated) {
+    if (!updatedProfile) {
       const saveError = t.settings.avatarSaveError
       setAvatarError(saveError)
       showActionFeedback({ tone: "error", message: saveError })
+      setIsSavingAvatar(false)
       return false
     }
 
-    setAvatarUrl(nextAvatarUrl)
+    setAvatarUrl(updatedProfile.avatarUrl)
+    await refreshLeagueAccess()
+    setIsSavingAvatar(false)
 
-    try {
-      await recordActivityEvent({
-        leagueId: currentUser.leagueId,
-        ...getActorFromSession(session),
-        type: "player_avatar_updated",
-        title: nextAvatarUrl
-          ? "Avatar de liga actualizado"
-          : "Avatar de liga eliminado",
-        description: nextAvatarUrl
-          ? `${currentUser.displayName} ha actualizado su avatar en esta liga.`
-          : `${currentUser.displayName} ha recuperado la imagen predeterminada en esta liga.`,
-        metadata: {
-          targetPlayerId: currentUser.id,
-          targetPlayerName: currentUser.displayName,
-          hasAvatar: Boolean(nextAvatarUrl),
-        },
-      })
-    } catch {
-      // La imagen ya está guardada; la actividad es auxiliar.
+    if (!currentUser.id.startsWith("__")) {
+      try {
+        await recordActivityEvent({
+          leagueId: currentUser.leagueId,
+          ...getActorFromSession(session),
+          type: "user_updated",
+          title: nextAvatarUrl
+            ? "Imagen de perfil actualizada"
+            : "Imagen de perfil restablecida",
+          description: nextAvatarUrl
+            ? `${displayName} ha actualizado su imagen global de perfil.`
+            : `${displayName} ha recuperado la imagen de Google o el avatar predeterminado.`,
+          metadata: {
+            targetPlayerId: currentUser.id,
+            targetPlayerName: displayName,
+            hasAvatar: Boolean(nextAvatarUrl),
+            scope: "account",
+          },
+        })
+      } catch {
+        // La imagen ya está guardada; la actividad es auxiliar.
+      }
     }
 
     showActionFeedback({ tone: "success", message: t.settings.avatarSaved })
@@ -275,7 +275,7 @@ function AccountProfileForm({
             <button
               type="button"
               onClick={() => saveAvatar(null)}
-              disabled={isSavingAvatar || !isUsingCustomAvatar}
+              disabled={isSavingAvatar || !isUsingUploadedImage}
               className="rounded-xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800 disabled:text-neutral-300"
             >
               {t.settings.removeAvatar}
@@ -330,7 +330,7 @@ export function AccountProfileSettings() {
 
   return (
     <AccountProfileForm
-      key={`${profile.firstName}\u0000${profile.lastName}\u0000${currentUser.leagueId}\u0000${currentUser.id}`}
+      key={`${profile.firstName}\u0000${profile.lastName}\u0000${profile.avatarUrl ?? ""}\u0000${currentUser.id}`}
       initialProfile={profile}
     />
   )

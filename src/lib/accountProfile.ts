@@ -8,6 +8,7 @@ export type AccountProfile = {
   firstName: string
   lastName: string
   displayName: string
+  avatarUrl: string | null
   profileCompletedAt: string | null
   availabilityCompletedAt: string | null
   standardAvailabilityTimezone: string

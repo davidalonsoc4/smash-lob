@@ -15,22 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: "v1.2.1",
+    version: "v1.2.2",
     date: "3 de agosto de 2026",
-    title: "Avatares por liga e identidad recuperable",
+    title: "Imagen global e identidad histórica corregidas",
     summary:
-      "Cada jugador puede usar una imagen distinta en cada liga y la desvinculación vuelve a dejar el perfil histórico con una identidad segura y sin conservar la foto de la cuenta.",
-    category: "new",
+      "La imagen vuelve a pertenecer a la cuenta completa, se retira el avatar específico por liga de PRE y la desvinculación conserva únicamente la identidad histórica correcta.",
+    category: "fix",
     changes: [
-      "Ajustes incorpora un avatar personalizado específico para la liga activa, independiente del resto de ligas.",
-      "Al eliminar el avatar de liga se recupera automáticamente la imagen de la cuenta y, si no existe, el avatar predeterminado.",
-      "La prioridad visual pasa a ser avatar de liga, imagen de cuenta, imagen histórica del jugador y avatar predeterminado.",
-      "Al vincular una cuenta se guarda la identidad que tenía previamente el jugador para poder restaurarla al desvincularlo.",
-      "Al desvincular se elimina cualquier foto heredada de la cuenta; los vínculos creados desde esta versión recuperan también el nombre y las iniciales anteriores.",
-      "Los jugadores que ya estaban vinculados antes de esta versión conservan su nombre actual al desvincularse porque el nombre anterior no estaba almacenado, pero recuperan correctamente el avatar predeterminado.",
-      "La resolución de imágenes deja de inferir fotos por coincidencia de nombre para evitar que un jugador desvinculado siga mostrando la imagen de otra cuenta.",
-      "Se añade una migración de Supabase para guardar el avatar por liga y la instantánea de identidad previa a la vinculación.",
-      "La pantalla de Ajustes reinicia correctamente el editor al cambiar de liga o jugador sin provocar actualizaciones de estado redundantes durante el renderizado.",
+      "La imagen de perfil es global: una imagen subida o la imagen de Google se utiliza en todas las ligas vinculadas a la cuenta.",
+      "Se elimina de Ajustes, las API y la resolución visual la imagen específica por liga introducida en la candidata v1.2.1.",
+      "La prioridad visual queda preparada como imagen global de cuenta y, cuando no existe, avatar predeterminado con iniciales.",
+      "Al vincular una cuenta se guardan el nombre y las iniciales históricas del jugador, sin guardar fotografías dentro de la instantánea.",
+      "Al desvincular una cuenta se restauran el nombre y las iniciales históricas, se elimina cualquier imagen de la cuenta desvinculada y vuelve el avatar predeterminado.",
+      "Una migración de corrección elimina league_avatar_url de PRE y limpia las instantáneas de identidad creadas con el modelo descartado.",
+      "El futuro editor de avatares queda separado de esta versión y será global para cada usuario, no para cada liga.",
     ],
   },
   {
