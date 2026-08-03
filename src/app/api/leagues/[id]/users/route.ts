@@ -38,7 +38,7 @@ export async function GET(
         .order("display_name", { ascending: true }),
       supabase
         .from("league_memberships")
-        .select("user_id,player_id,role")
+        .select("user_id,player_id,role,league_avatar_url")
         .eq("league_id", leagueId),
     ])
 
@@ -94,8 +94,15 @@ export async function GET(
         displayName: player.display_name,
         avatarInitials: player.avatar_initials,
         avatarUrl:
+          (typeof membership?.league_avatar_url === "string"
+            ? membership.league_avatar_url
+            : null) ??
           linkedUser?.avatar_url ??
           (typeof player.avatar_url === "string" ? player.avatar_url : null),
+        leagueAvatarUrl:
+          typeof membership?.league_avatar_url === "string"
+            ? membership.league_avatar_url
+            : null,
         linkedUserId: membership?.user_id ?? null,
         linkedUserEmail: linkedUser?.email ?? null,
         linkedUserDisplayName: linkedUser?.display_name ?? null,

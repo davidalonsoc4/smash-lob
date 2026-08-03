@@ -13,11 +13,7 @@ import { normalizeProfileName } from "@/lib/accountProfile"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import { recordActivityEvent } from "@/lib/activity"
 import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
-import {
-  isSafeDataImageUrl,
-  isSafeImageUrl,
-  normalizeImageUrl,
-} from "@/lib/imageUrl"
+import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 import type { AccountProfile } from "@/lib/accountProfile"
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
@@ -33,10 +29,6 @@ function normalizeAvatarUrl(value: string | null | undefined) {
   return cleanValue && isSafeImageUrl(cleanValue) ? cleanValue : null
 }
 
-function isCustomUploadedAvatar(value: string | null | undefined) {
-  return isSafeDataImageUrl(value)
-}
-
 function AccountProfileForm({
   initialProfile,
 }: {
@@ -49,15 +41,18 @@ function AccountProfileForm({
   const { refreshLeagueAccess, updateLeaguePlayerAvatar } = useLeagueAccess()
   const [firstName, setFirstName] = useState(initialProfile.firstName)
   const [lastName, setLastName] = useState(initialProfile.lastName)
-  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? null)
+  const [avatarUrl, setAvatarUrl] = useState(currentUser.leagueAvatarUrl ?? null)
   const [avatarCropSource, setAvatarCropSource] = useState<string | null>(null)
   const [isSavingName, setIsSavingName] = useState(false)
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   const googleAvatarUrl = normalizeAvatarUrl(session?.user?.image)
-  const effectiveAvatarUrl = normalizeAvatarUrl(avatarUrl) ?? googleAvatarUrl
-  const isUsingCustomAvatar = isCustomUploadedAvatar(avatarUrl)
+  const effectiveAvatarUrl =
+    normalizeAvatarUrl(avatarUrl) ??
+    normalizeAvatarUrl(currentUser.avatarUrl) ??
+    googleAvatarUrl
+  const isUsingCustomAvatar = Boolean(normalizeAvatarUrl(avatarUrl))
   const canEditAvatar = !currentUser.id.startsWith("__")
   const displayName = `${firstName} ${lastName}`.trim() || currentUser.displayName
   const avatarStatusLabel = isUsingCustomAvatar
@@ -133,11 +128,11 @@ function AccountProfileForm({
         ...getActorFromSession(session),
         type: "player_avatar_updated",
         title: nextAvatarUrl
-          ? "Imagen de perfil actualizada"
-          : "Imagen de perfil eliminada",
+          ? "Avatar de liga actualizado"
+          : "Avatar de liga eliminado",
         description: nextAvatarUrl
-          ? `${currentUser.displayName} ha actualizado su imagen de perfil.`
-          : `${currentUser.displayName} ha eliminado su imagen de perfil.`,
+          ? `${currentUser.displayName} ha actualizado su avatar en esta liga.`
+          : `${currentUser.displayName} ha recuperado la imagen predeterminada en esta liga.`,
         metadata: {
           targetPlayerId: currentUser.id,
           targetPlayerName: currentUser.displayName,
@@ -162,7 +157,7 @@ function AccountProfileForm({
     try {
       validateImageFile(file)
       setAvatarError(null)
-        setAvatarCropSource(await readFileAsDataUrl(file))
+      setAvatarCropSource(await readFileAsDataUrl(file))
     } catch (imageError) {
       const processError =
         imageError instanceof Error
@@ -262,7 +257,7 @@ function AccountProfileForm({
             {t.settings.profileImageTitle}
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            {t.settings.profileImageDescription} La imagen se aplica al jugador de la liga activa.
+            {t.settings.profileImageDescription}
           </p>
 
           <div className="mt-2 grid grid-cols-2 gap-2">
@@ -335,7 +330,7 @@ export function AccountProfileSettings() {
 
   return (
     <AccountProfileForm
-      key={`${profile.firstName}\u0000${profile.lastName}\u0000${currentUser.id}`}
+      key={`${profile.firstName}\u0000${profile.lastName}\u0000${currentUser.leagueId}\u0000${currentUser.id}`}
       initialProfile={profile}
     />
   )

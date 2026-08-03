@@ -70,10 +70,9 @@ export async function PATCH(
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
-  const updatePayload: Record<string, unknown> = {}
   const { data: existingPlayer, error: existingPlayerError } = await supabase
     .from("players")
-    .select("display_name,avatar_url")
+    .select("id,display_name,avatar_initials,avatar_url")
     .eq("league_id", leagueId)
     .eq("id", playerId)
     .maybeSingle()
@@ -81,6 +80,19 @@ export async function PATCH(
   if (existingPlayerError || !existingPlayer) {
     return NextResponse.json({ error: "player_lookup_failed" }, { status: 500 })
   }
+
+  const { data: targetMembership, error: targetMembershipError } = await supabase
+    .from("league_memberships")
+    .select("user_id,league_avatar_url")
+    .eq("league_id", leagueId)
+    .eq("player_id", playerId)
+    .maybeSingle()
+
+  if (targetMembershipError) {
+    return NextResponse.json({ error: "player_lookup_failed" }, { status: 500 })
+  }
+
+  const updatePayload: Record<string, unknown> = {}
 
   if (hasDisplayName) {
     if (typeof body?.displayName !== "string") {
@@ -103,18 +115,27 @@ export async function PATCH(
     updatePayload.avatar_initials = getInitials(displayName)
   }
 
-  const { data: targetMembership, error: targetMembershipError } = await supabase
-    .from("league_memberships")
-    .select("user_id")
-    .eq("league_id", leagueId)
-    .eq("player_id", playerId)
-    .maybeSingle()
+  let requestedAvatarUrl: string | null | undefined
+  let linkedAccountAvatarUrl: string | null = null
+  let leagueAvatarUrl =
+    typeof targetMembership?.league_avatar_url === "string"
+      ? targetMembership.league_avatar_url
+      : null
 
-  if (targetMembershipError) {
-    return NextResponse.json({ error: "player_lookup_failed" }, { status: 500 })
+  if (targetMembership?.user_id) {
+    const { data: linkedUser, error: linkedUserError } = await supabase
+      .from("app_users")
+      .select("avatar_url")
+      .eq("id", targetMembership.user_id)
+      .maybeSingle()
+
+    if (linkedUserError) {
+      return NextResponse.json({ error: "avatar_lookup_failed" }, { status: 500 })
+    }
+
+    linkedAccountAvatarUrl =
+      typeof linkedUser?.avatar_url === "string" ? linkedUser.avatar_url : null
   }
-
-  let responseAvatarUrl: string | null | undefined
 
   if (hasAvatarUrl) {
     const rawAvatarUrl =
@@ -130,7 +151,7 @@ export async function PATCH(
       return NextResponse.json({ error: "invalid_avatar_url" }, { status: 400 })
     }
 
-    const avatarUrl = normalizeStoredImageUrl(rawAvatarUrl)
+    requestedAvatarUrl = normalizeStoredImageUrl(rawAvatarUrl)
 
     if (
       !isAdmin &&
@@ -141,31 +162,45 @@ export async function PATCH(
     }
 
     if (targetMembership?.user_id) {
-      const { error: userError } = await supabase
-        .from("app_users")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", targetMembership.user_id)
+      const { error: membershipAvatarError } = await supabase
+        .from("league_memberships")
+        .update({ league_avatar_url: requestedAvatarUrl })
+        .eq("league_id", leagueId)
+        .eq("player_id", playerId)
+        .eq("user_id", targetMembership.user_id)
 
-      if (userError) {
+      if (membershipAvatarError) {
         return NextResponse.json({ error: "avatar_update_failed" }, { status: 500 })
       }
+
+      leagueAvatarUrl = requestedAvatarUrl
+    } else {
+      updatePayload.avatar_url = requestedAvatarUrl
+    }
+  }
+
+  let player = existingPlayer
+
+  if (Object.keys(updatePayload).length > 0) {
+    const { data: updatedPlayer, error: playerUpdateError } = await supabase
+      .from("players")
+      .update(updatePayload)
+      .eq("league_id", leagueId)
+      .eq("id", playerId)
+      .select("id,display_name,avatar_initials,avatar_url")
+      .single()
+
+    if (playerUpdateError) {
+      return NextResponse.json({ error: "player_update_failed" }, { status: 500 })
     }
 
-    updatePayload.avatar_url = targetMembership?.user_id ? null : avatarUrl
-    responseAvatarUrl = avatarUrl
+    player = updatedPlayer
   }
 
-  const { data, error } = await supabase
-    .from("players")
-    .update(updatePayload)
-    .eq("league_id", leagueId)
-    .eq("id", playerId)
-    .select("id,display_name,avatar_initials,avatar_url")
-    .single()
-
-  if (error) {
-    return NextResponse.json({ error: "player_update_failed" }, { status: 500 })
-  }
+  const effectiveAvatarUrl =
+    leagueAvatarUrl ??
+    linkedAccountAvatarUrl ??
+    (typeof player.avatar_url === "string" ? player.avatar_url : null)
 
   if (hasDisplayName) {
     await recordServerActorActivity({
@@ -175,20 +210,15 @@ export async function PATCH(
       leagueId,
       type: "player_name_updated",
       title: "Nombre de jugador actualizado",
-      description: `${existingPlayer.display_name} ahora se llama ${data.display_name}.`,
+      description: `${existingPlayer.display_name} ahora se llama ${player.display_name}.`,
       metadata: {
-        targetPlayerId: data.id,
+        targetPlayerId: player.id,
         previousDisplayName: existingPlayer.display_name,
-        nextDisplayName: data.display_name,
+        nextDisplayName: player.display_name,
       },
     }).catch(() => null)
   } else if (hasAvatarUrl) {
-    const finalAvatarUrl =
-      responseAvatarUrl !== undefined
-        ? responseAvatarUrl
-        : typeof data.avatar_url === "string"
-          ? data.avatar_url
-          : null
+    const isLinkedPlayer = Boolean(targetMembership?.user_id)
 
     await recordServerActorActivity({
       supabase,
@@ -196,31 +226,40 @@ export async function PATCH(
       membership,
       leagueId,
       type: "player_avatar_updated",
-      title: finalAvatarUrl
-        ? "Imagen de perfil actualizada"
-        : "Imagen de perfil eliminada",
-      description: finalAvatarUrl
-        ? `${data.display_name} ha actualizado su imagen de perfil.`
-        : `${data.display_name} ha eliminado su imagen de perfil.`,
+      title: requestedAvatarUrl
+        ? isLinkedPlayer
+          ? "Avatar de liga actualizado"
+          : "Imagen de jugador actualizada"
+        : isLinkedPlayer
+          ? "Avatar de liga eliminado"
+          : "Imagen de jugador eliminada",
+      description: requestedAvatarUrl
+        ? isLinkedPlayer
+          ? `${player.display_name} ha actualizado su avatar en esta liga.`
+          : `${player.display_name} ha actualizado su imagen.`
+        : isLinkedPlayer
+          ? `${player.display_name} ha recuperado la imagen predeterminada de su cuenta en esta liga.`
+          : `${player.display_name} ha recuperado el avatar predeterminado.`,
       metadata: {
-        targetPlayerId: data.id,
-        targetPlayerName: data.display_name,
-        previousHasAvatar: Boolean(existingPlayer.avatar_url),
-        hasAvatar: Boolean(finalAvatarUrl),
+        targetPlayerId: player.id,
+        targetPlayerName: player.display_name,
+        previousHasAvatar: Boolean(
+          targetMembership?.league_avatar_url ??
+            linkedAccountAvatarUrl ??
+            existingPlayer.avatar_url
+        ),
+        hasLeagueAvatar: Boolean(leagueAvatarUrl),
+        hasAvatar: Boolean(effectiveAvatarUrl),
       },
     }).catch(() => null)
   }
 
   return NextResponse.json({
-    playerId: data.id,
-    displayName: data.display_name,
-    avatarInitials: data.avatar_initials,
-    avatarUrl:
-      responseAvatarUrl !== undefined
-        ? responseAvatarUrl
-        : typeof data.avatar_url === "string"
-          ? data.avatar_url
-          : null,
+    playerId: player.id,
+    displayName: player.display_name,
+    avatarInitials: player.avatar_initials,
+    avatarUrl: effectiveAvatarUrl,
+    leagueAvatarUrl,
     userId: targetMembership?.user_id ?? null,
   })
 }

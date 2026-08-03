@@ -191,7 +191,7 @@ function applyLeagueActorProfile(
   return {
     ...event,
     actorDisplayName: profile.displayName ?? event.actorDisplayName,
-    actorAvatarUrl: profile.avatarUrl,
+    actorAvatarUrl: profile.avatarUrl ?? event.actorAvatarUrl,
     actorAvatarInitials: profile.avatarInitials,
   }
 }
@@ -318,7 +318,7 @@ async function fetchLeagueActorProfiles({
 
   const { data: memberships, error: membershipsError } = await supabase
     .from("league_memberships")
-    .select("user_id,player_id")
+    .select("user_id,player_id,league_avatar_url")
     .eq("league_id", leagueId)
     .in("user_id", cleanUserIds)
 
@@ -382,7 +382,13 @@ async function fetchLeagueActorProfiles({
     const player = playerById.get(membership.player_id)
 
     if (player) {
-      profileByUserId.set(membership.user_id, player)
+      profileByUserId.set(membership.user_id, {
+        ...player,
+        avatarUrl:
+          typeof membership.league_avatar_url === "string"
+            ? membership.league_avatar_url
+            : null,
+      })
     }
   })
 
