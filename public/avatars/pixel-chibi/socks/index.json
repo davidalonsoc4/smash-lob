@@ -1,0 +1,9 @@
+{
+  "category": "socks",
+  "world": "pixel_chibi",
+  "implementation": "typed_inline_svg_primitives",
+  "rendererTokens": [
+    "socks.high_01",
+    "socks.short_01"
+  ]
+}

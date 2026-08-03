@@ -1,0 +1,9 @@
+{
+  "category": "cap",
+  "world": "pixel_chibi",
+  "implementation": "typed_inline_svg_primitives",
+  "rendererTokens": [
+    "cap.none",
+    "cap.backwards_01"
+  ]
+}

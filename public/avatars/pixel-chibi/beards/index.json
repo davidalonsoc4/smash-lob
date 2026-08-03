@@ -1,0 +1,10 @@
+{
+  "category": "beard",
+  "world": "pixel_chibi",
+  "implementation": "typed_inline_svg_primitives",
+  "rendererTokens": [
+    "beard.none",
+    "beard.short_full_01",
+    "beard.goatee_01"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "category": "shirt",
+  "world": "pixel_chibi",
+  "implementation": "typed_inline_svg_primitives",
+  "rendererTokens": [
+    "shirt.technical_basic_01"
+  ]
+}
