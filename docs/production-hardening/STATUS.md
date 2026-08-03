@@ -868,3 +868,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La corrección pasó `npm run validate` completo (17 archivos/64 pruebas y build)
   y 14/14 pruebas Playwright en modo CI. Quedan pendientes el despliegue en PRE y
   la repetición física en Android antes de cerrar el gate.
+- Vercel desplegó `bd7d156` únicamente en Preview como
+  `dpl_FbbAA1B6RShWsradNCgZc23YcxTa`, `Ready` y asociado a
+  `pre.smashandlob.com`; el log confirmó rama `staging`, el commit exacto,
+  TypeScript, build y 0 vulnerabilidades.
+- GitHub Actions `v1.1 quality #18` pasó `quality`, pero la regresión de sesión
+  falló en `browser` porque simulaba el evento offline antes de confirmar que la
+  aplicación autenticada había terminado de hidratar. Se añadió una espera
+  observable sobre la navegación autenticada; las dos regresiones PWA se
+  repitieron cinco veces cada una en modo CI y pasaron 10/10. La corrección
+  funcional no cambió.

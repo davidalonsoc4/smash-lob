@@ -4,6 +4,19 @@ test("keeps an authenticated session behind the offline fallback until a full re
   context,
   page,
 }) => {
+  await context.addInitScript(() => {
+    window.localStorage.setItem(
+      "smash-lob-user-league-memberships",
+      JSON.stringify([
+        {
+          userId: "qa-v1-1@example.test",
+          leagueId: "league-smash-lob",
+          playerId: "davo",
+          role: "admin",
+        },
+      ]),
+    )
+  })
   await context.route("**/api/auth/session", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -41,6 +54,9 @@ test("keeps an authenticated session behind the offline fallback until a full re
     await navigator.serviceWorker.ready
   })
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller))
+  await expect(
+    page.getByRole("link", { name: "Inicio", exact: true }),
+  ).toBeVisible()
 
   await context.setOffline(true)
   await page.evaluate(() => {
