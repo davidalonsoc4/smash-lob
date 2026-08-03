@@ -10,8 +10,6 @@ export function randomizeAvatarRecipe(
   base: AvatarRecipe,
   random: () => number = Math.random,
 ): AvatarRecipe {
-  const capEnabled = random() > 0.5
-  const headbandEnabled = !capEnabled && random() > 0.55
   const shirtPrimary = pick(["light_blue", "green"] as const, random)
   const shortsPrimary = pick(["black", "navy"] as const, random)
   const shoesPrimary = pick(["white", "light_blue"] as const, random)
@@ -21,37 +19,30 @@ export function randomizeAvatarRecipe(
     handedness: pick(["right", "left"] as const, random),
     skinTone: pick(["light_warm", "medium_warm"] as const, random),
     hair: {
-      style: capEnabled
-        ? pick(["none", "messy_short_01"] as const, random)
-        : pick(["none", "messy_short_01", "short_up_01"] as const, random),
+      style: "messy_short_01",
       color: pick(["dark_brown", "black"] as const, random),
     },
     beard: {
-      style: pick(["none", "short_full_01", "goatee_01"] as const, random),
+      style: "short_full_01",
       color: pick(["dark_brown", "black"] as const, random),
     },
     eyes: { ...base.eyes, color: pick(["dark_brown", "blue"] as const, random) },
     eyebrows: {
-      style: pick(["thick_straight_01", "angled_01"] as const, random),
-      color: pick(["dark_brown", "black"] as const, random),
+      style: "thick_straight_01",
+      color: "dark_brown",
     },
     cap: {
-      style: capEnabled ? "backwards_01" : "none",
+      style: "backwards_01",
       color: pick(["white", "black"] as const, random),
     },
     headband: {
-      style: headbandEnabled ? "basic_01" : "none",
-      color: pick(["white", "red"] as const, random),
+      style: "none",
+      color: "white",
     },
     shirt: {
       ...base.shirt,
       primaryColor: shirtPrimary,
-      secondaryColor: pick(
-        shirtPrimary === "light_blue"
-          ? (["light_blue_shadow", "white", "black"] as const)
-          : (["green_shadow", "white", "black"] as const),
-        random,
-      ),
+      secondaryColor: shirtPrimary === "light_blue" ? "light_blue_shadow" : "green_shadow",
     },
     shorts: {
       ...base.shorts,
@@ -59,17 +50,17 @@ export function randomizeAvatarRecipe(
       secondaryColor: shortsPrimary === "black" ? "charcoal" : "black",
     },
     compressionSleeve: {
-      enabled: random() > 0.35,
+      enabled: true,
       side: "dominant",
       color: pick(["black", "white"] as const, random),
     },
     wristband: {
-      enabled: random() > 0.35,
-      side: pick(["dominant", "non_dominant"] as const, random),
+      enabled: true,
+      side: "non_dominant",
       color: pick(["white", "black"] as const, random),
     },
     socks: {
-      length: pick(["high", "short"] as const, random),
+      length: "high",
       primaryColor: pick(["white", "black"] as const, random),
     },
     shoes: {
@@ -78,9 +69,9 @@ export function randomizeAvatarRecipe(
       secondaryColor: shoesPrimary === "white" ? "black" : "white",
     },
     racket: {
-      model: pick(["round_b_01", "diamond_stripe_01"] as const, random),
-      primaryColor: pick(["white", "black"] as const, random),
-      secondaryColor: pick(["black", "light_blue"] as const, random),
+      model: "round_b_01",
+      primaryColor: "white",
+      secondaryColor: "black",
     },
   })
 }
