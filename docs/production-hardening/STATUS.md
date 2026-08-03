@@ -849,3 +849,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La ejecución remota `v1.1 quality #15` (`30772604704`) terminó en `Success`:
   tanto el job `quality` como el job `browser` pasaron. Queda resuelto el último
   fallo visual específico del runner de Windows.
+- La repetición física posterior en Android, con la PWA instalada y el modo avión
+  activo, mostró correctamente la vista «Sin conexión» y la acción «Reintentar».
+  Queda validada en dispositivo real la corrección de arranque offline desplegada
+  en PRE.
