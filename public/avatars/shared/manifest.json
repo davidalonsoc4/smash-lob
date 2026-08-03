@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "recipeSchemaVersion": 1,
-  "demoVersion": "Avatar Lab DEMO 0.1",
+  "demoVersion": "Avatar Lab DEMO 0.2",
   "worlds": [
     {
       "id": "pixel_chibi",

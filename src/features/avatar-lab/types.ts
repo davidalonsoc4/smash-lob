@@ -1,5 +1,5 @@
 export const AVATAR_RECIPE_SCHEMA_VERSION = 1 as const
-export const AVATAR_LAB_VERSION = "Avatar Lab DEMO 0.1" as const
+export const AVATAR_LAB_VERSION = "Avatar Lab DEMO 0.2" as const
 
 export type AvatarWorld = "pixel_chibi" | "chibi_illustrated"
 export type AvatarWorldPreference = AvatarWorld
