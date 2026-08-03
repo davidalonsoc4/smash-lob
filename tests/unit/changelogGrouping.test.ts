@@ -21,7 +21,7 @@ const release = (
 describe("changelog grouping", () => {
   it("groups patches without mixing v1.0 and v1.1", () => {
     const blocks = groupReleasesByVersionBlock([
-      release("v1.1.0-rc.1", "2 de agosto", ["a", "b"]),
+      release("v1.1.0", "3 de agosto", ["a", "b"]),
       release("v1.0.1", "1 de agosto", ["c"]),
       release("v1.0.0", "31 de julio", ["d"]),
     ])
