@@ -943,3 +943,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El futuro editor de avatares queda fuera de esta versión y deberá guardar un avatar global del usuario, independiente de sus ligas y de la fotografía subida.
 - Versión incrementada a `v1.2.2`; changelog y caché PWA actualizados.
 - Validación disponible en este entorno: los 24 archivos TypeScript/TSX modificados transpilan sin errores de sintaxis; los contratos estructurales de imagen global, API de cuenta, ausencia de escritura de imágenes por jugador, migración y versión pasan; también pasan la línea base de seguridad, las URLs públicas y el escaneo de secretos. `npm ci` no puede completarse aquí porque el registro interno devuelve 404 para `web-push@3.6.7`, por lo que lint, TypeScript completo, Vitest y build quedan como gate obligatorio del comando de aplicación antes de publicar PRE.
+
+## v1.2.3 - Editor de imagen accesible en móvil (2026-08-03)
+
+- El editor de recorte se monta mediante un portal en `document.body`, fuera de los contextos de apilamiento de la aplicación, y utiliza `z-[1000]` para quedar por encima de la navegación inferior y los controles flotantes.
+- El diálogo se centra también en pantallas pequeñas, respeta las zonas seguras del dispositivo y limita su altura al viewport dinámico.
+- El marco de recorte adapta su tamaño al espacio disponible; los cálculos de arrastre, zoom, rotación y exportación utilizan el tamaño real mostrado.
+- El contenido central puede desplazarse de forma independiente y la barra con `Cancelar` y `Usar imagen` permanece fija y accesible.
+- Añadida una prueba de contrato visual para impedir regresiones del portal, apilamiento, centrado, tamaño responsive y acciones visibles.
+- No se requieren migraciones de Supabase ni cambios de persistencia.
+- Validación disponible en este entorno: pasan el escaneo de secretos, la línea base de seguridad, las URLs públicas, `git diff --check`, la transpilación sintáctica de los cinco archivos TypeScript/TSX afectados y los contratos de portal, apilamiento, centrado, tamaño responsive, acciones visibles, versión y caché PWA. `npm ci` queda bloqueado aquí por un 404 del registro interno para `zod-validation-error@4.0.2`; el comando de aplicación mantiene `npm run validate` completo como gate obligatorio antes de publicar PRE.

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
+import { createPortal } from "react-dom"
 import {
   clampCropOffset,
   cropImageElementToDataUrl,
@@ -34,6 +35,22 @@ type DragState = {
 const CROP_VIEWPORT_SIZE = 288
 const MIN_ZOOM = 1
 const MAX_ZOOM = 3
+const MIN_RESPONSIVE_CROP_SIZE = 200
+
+function getResponsiveCropViewportSize() {
+  if (typeof window === "undefined") {
+    return CROP_VIEWPORT_SIZE
+  }
+
+  return Math.max(
+    MIN_RESPONSIVE_CROP_SIZE,
+    Math.min(
+      CROP_VIEWPORT_SIZE,
+      window.innerWidth - 56,
+      window.innerHeight - 280,
+    ),
+  )
+}
 
 function RotateIcon({ direction }: { direction: "left" | "right" }) {
   return (
@@ -69,6 +86,7 @@ export function ImageCropDialog({
   const imageRef = useRef<HTMLImageElement | null>(null)
   const dragRef = useRef<DragState | null>(null)
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 })
+  const [cropViewportSize, setCropViewportSize] = useState(CROP_VIEWPORT_SIZE)
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState<ImageCropRotation>(0)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -76,11 +94,22 @@ export function ImageCropDialog({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const previousOverflow = document.documentElement.style.overflow
+    const previousHtmlOverflow = document.documentElement.style.overflow
+    const previousBodyOverflow = document.body.style.overflow
+    const updateCropViewportSize = () => {
+      setCropViewportSize(getResponsiveCropViewportSize())
+    }
+    const animationFrame = window.requestAnimationFrame(updateCropViewportSize)
+
     document.documentElement.style.overflow = "hidden"
+    document.body.style.overflow = "hidden"
+    window.addEventListener("resize", updateCropViewportSize)
 
     return () => {
-      document.documentElement.style.overflow = previousOverflow
+      window.cancelAnimationFrame(animationFrame)
+      window.removeEventListener("resize", updateCropViewportSize)
+      document.documentElement.style.overflow = previousHtmlOverflow
+      document.body.style.overflow = previousBodyOverflow
     }
   }, [])
 
@@ -89,11 +118,11 @@ export function ImageCropDialog({
       getCropDisplayMetrics({
         imageWidth: naturalSize.width,
         imageHeight: naturalSize.height,
-        cropSize: CROP_VIEWPORT_SIZE,
+        cropSize: cropViewportSize,
         zoom,
         rotation,
       }),
-    [naturalSize.height, naturalSize.width, rotation, zoom],
+    [cropViewportSize, naturalSize.height, naturalSize.width, rotation, zoom],
   )
 
   const visibleOffset = useMemo(
@@ -103,9 +132,9 @@ export function ImageCropDialog({
         offsetY: offset.y,
         displayWidth: metrics.displayWidth,
         displayHeight: metrics.displayHeight,
-        cropSize: CROP_VIEWPORT_SIZE,
+        cropSize: cropViewportSize,
       }),
-    [metrics.displayHeight, metrics.displayWidth, offset.x, offset.y],
+    [cropViewportSize, metrics.displayHeight, metrics.displayWidth, offset.x, offset.y],
   )
 
   function updateZoom(nextZoom: number) {
@@ -113,7 +142,7 @@ export function ImageCropDialog({
     const nextMetrics = getCropDisplayMetrics({
       imageWidth: naturalSize.width,
       imageHeight: naturalSize.height,
-      cropSize: CROP_VIEWPORT_SIZE,
+      cropSize: cropViewportSize,
       zoom: normalizedZoom,
       rotation,
     })
@@ -122,7 +151,7 @@ export function ImageCropDialog({
       offsetY: visibleOffset.y,
       displayWidth: nextMetrics.displayWidth,
       displayHeight: nextMetrics.displayHeight,
-      cropSize: CROP_VIEWPORT_SIZE,
+      cropSize: cropViewportSize,
     })
 
     setZoom(normalizedZoom)
@@ -134,7 +163,7 @@ export function ImageCropDialog({
     const nextMetrics = getCropDisplayMetrics({
       imageWidth: naturalSize.width,
       imageHeight: naturalSize.height,
-      cropSize: CROP_VIEWPORT_SIZE,
+      cropSize: cropViewportSize,
       zoom,
       rotation: nextRotation,
     })
@@ -143,7 +172,7 @@ export function ImageCropDialog({
       offsetY: visibleOffset.y,
       displayWidth: nextMetrics.displayWidth,
       displayHeight: nextMetrics.displayHeight,
-      cropSize: CROP_VIEWPORT_SIZE,
+      cropSize: cropViewportSize,
     })
 
     setRotation(nextRotation)
@@ -177,7 +206,7 @@ export function ImageCropDialog({
       offsetY: drag.offsetY + event.clientY - drag.startY,
       displayWidth: metrics.displayWidth,
       displayHeight: metrics.displayHeight,
-      cropSize: CROP_VIEWPORT_SIZE,
+      cropSize: cropViewportSize,
     })
 
     setOffset(nextOffset)
@@ -203,7 +232,7 @@ export function ImageCropDialog({
     try {
       const dataUrl = cropImageElementToDataUrl({
         image,
-        cropSize: CROP_VIEWPORT_SIZE,
+        cropSize: cropViewportSize,
         outputSize,
         zoom,
         rotation,
@@ -229,20 +258,38 @@ export function ImageCropDialog({
 
   const previewTransform = `translate(-50%, -50%) translate(${visibleOffset.x}px, ${visibleOffset.y}px) rotate(${rotation}deg)`
 
-  return (
+  if (typeof document === "undefined") {
+    return null
+  }
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="image-crop-title"
-      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/55 p-3 backdrop-blur-sm sm:items-center"
+      aria-describedby="image-crop-description"
+      className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 px-3 backdrop-blur-sm"
+      style={{
+        paddingTop: "max(12px, env(safe-area-inset-top))",
+        paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+      }}
     >
-      <div className="w-full max-w-md rounded-[28px] bg-white p-4 shadow-2xl dark:bg-neutral-900">
-        <div className="flex items-start justify-between gap-3">
+      <div
+        className="flex w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl dark:bg-neutral-900"
+        style={{
+          maxHeight:
+            "calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)))",
+        }}
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 px-4 pt-4">
           <div>
             <h2 id="image-crop-title" className="text-lg font-black text-neutral-950 dark:text-white">
               {title}
             </h2>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500 dark:text-neutral-400">
+            <p
+              id="image-crop-description"
+              className="mt-1 text-xs font-semibold leading-5 text-neutral-500 dark:text-neutral-400"
+            >
               {description}
             </p>
           </div>
@@ -257,86 +304,92 @@ export function ImageCropDialog({
           </button>
         </div>
 
-        <div className="mt-4 flex justify-center">
-          <div
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerEnd}
-            onPointerCancel={handlePointerEnd}
-            className={`relative h-72 w-72 touch-none overflow-hidden bg-neutral-200 shadow-inner dark:bg-neutral-800 ${
-              shape === "circle" ? "rounded-full" : "rounded-3xl"
-            }`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              ref={imageRef}
-              src={src}
-              alt="Vista previa del recorte"
-              draggable={false}
-              onLoad={(event) => {
-                setNaturalSize({
-                  width: event.currentTarget.naturalWidth,
-                  height: event.currentTarget.naturalHeight,
-                })
-              }}
-              className="pointer-events-none absolute left-1/2 top-1/2 max-w-none select-none"
+        <div className="min-h-0 overflow-y-auto px-4 pb-4">
+          <div className="mt-4 flex justify-center">
+            <div
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerEnd}
+              onPointerCancel={handlePointerEnd}
+              className={`relative shrink-0 touch-none overflow-hidden bg-neutral-200 shadow-inner dark:bg-neutral-800 ${
+                shape === "circle" ? "rounded-full" : "rounded-3xl"
+              }`}
               style={{
-                width: `${naturalSize.width * metrics.scale}px`,
-                height: `${naturalSize.height * metrics.scale}px`,
-                transform: previewTransform,
+                width: `${cropViewportSize}px`,
+                height: `${cropViewportSize}px`,
               }}
-            />
-            <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/70" />
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-white/35" />
-            <div className="pointer-events-none absolute inset-y-0 left-1/2 border-l border-white/35" />
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                ref={imageRef}
+                src={src}
+                alt="Vista previa del recorte"
+                draggable={false}
+                onLoad={(event) => {
+                  setNaturalSize({
+                    width: event.currentTarget.naturalWidth,
+                    height: event.currentTarget.naturalHeight,
+                  })
+                }}
+                className="pointer-events-none absolute left-1/2 top-1/2 max-w-none select-none"
+                style={{
+                  width: `${naturalSize.width * metrics.scale}px`,
+                  height: `${naturalSize.height * metrics.scale}px`,
+                  transform: previewTransform,
+                }}
+              />
+              <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/70" />
+              <div className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-white/35" />
+              <div className="pointer-events-none absolute inset-y-0 left-1/2 border-l border-white/35" />
+            </div>
           </div>
-        </div>
 
-        <p className="mt-2 text-center text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
-          Arrastra la imagen para colocarla dentro del marco.
-        </p>
-
-        <div className="mt-4 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => rotate(-90)}
-            disabled={isSaving}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
-            aria-label="Girar a la izquierda"
-          >
-            <RotateIcon direction="left" />
-          </button>
-          <label className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="text-xs font-black text-neutral-500">Zoom</span>
-            <input
-              type="range"
-              min={MIN_ZOOM}
-              max={MAX_ZOOM}
-              step={0.01}
-              value={zoom}
-              disabled={isSaving}
-              onChange={(event) => updateZoom(Number(event.target.value))}
-              className="w-full accent-neutral-950"
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => rotate(90)}
-            disabled={isSaving}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
-            aria-label="Girar a la derecha"
-          >
-            <RotateIcon direction="right" />
-          </button>
-        </div>
-
-        {error ? (
-          <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
-            {error}
+          <p className="mt-2 text-center text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
+            Arrastra la imagen para colocarla dentro del marco.
           </p>
-        ) : null}
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => rotate(-90)}
+              disabled={isSaving}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
+              aria-label="Girar a la izquierda"
+            >
+              <RotateIcon direction="left" />
+            </button>
+            <label className="flex min-w-0 flex-1 items-center gap-3">
+              <span className="text-xs font-black text-neutral-500">Zoom</span>
+              <input
+                type="range"
+                min={MIN_ZOOM}
+                max={MAX_ZOOM}
+                step={0.01}
+                value={zoom}
+                disabled={isSaving}
+                onChange={(event) => updateZoom(Number(event.target.value))}
+                className="w-full accent-neutral-950"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => rotate(90)}
+              disabled={isSaving}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
+              aria-label="Girar a la derecha"
+            >
+              <RotateIcon direction="right" />
+            </button>
+          </div>
+
+          {error ? (
+            <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+              {error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
           <button
             type="button"
             onClick={onCancel}
@@ -355,6 +408,7 @@ export function ImageCropDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
