@@ -317,7 +317,7 @@ async function buildInviteResponse(
 
   const { data: membershipRows, error: membershipsError } = await supabase
     .from("league_memberships")
-    .select("user_id,league_id,player_id,role,league_avatar_url")
+    .select("user_id,league_id,player_id,role")
     .eq("league_id", league.id)
 
   if (membershipsError) {
@@ -350,19 +350,9 @@ async function buildInviteResponse(
         avatarInitials: player.avatar_initials,
         userId: membership?.user_id ?? null,
         avatarUrl: resolvePlayerAvatarUrl({
-          leagueAvatarUrl:
-            typeof membership?.league_avatar_url === "string"
-              ? membership.league_avatar_url
-              : null,
           linkedUserId: membership?.user_id ?? null,
-          playerAvatarUrl:
-            typeof player.avatar_url === "string" ? player.avatar_url : null,
           users: userAvatarLookup,
         }),
-        leagueAvatarUrl:
-          typeof membership?.league_avatar_url === "string"
-            ? membership.league_avatar_url
-            : null,
       }
     }
   )

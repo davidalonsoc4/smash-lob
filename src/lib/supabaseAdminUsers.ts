@@ -5,7 +5,6 @@ export type LeagueUserManagementPlayer = {
   displayName: string
   avatarInitials: string
   avatarUrl: string | null
-  leagueAvatarUrl: string | null
   linkedUserId: string | null
   linkedUserEmail: string | null
   linkedUserDisplayName: string | null
@@ -116,39 +115,5 @@ export async function updateSupabasePlayerDisplayName({
     playerId: string
     displayName: string
     avatarInitials: string
-    avatarUrl: string | null
-  }
-}
-
-export async function updateSupabasePlayerAvatar({
-  leagueId,
-  playerId,
-  avatarUrl,
-}: {
-  leagueId: string
-  playerId: string
-  avatarUrl: string | null
-}) {
-  const response = await fetch(
-    `/api/leagues/${encodeURIComponent(leagueId)}/players/${encodeURIComponent(playerId)}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatarUrl }),
-      cache: "no-store",
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error(`player-avatar-api-${response.status}`)
-  }
-
-  return (await response.json()) as {
-    playerId: string
-    displayName: string
-    avatarInitials: string
-    avatarUrl: string | null
-    leagueAvatarUrl: string | null
-    userId: string | null
   }
 }

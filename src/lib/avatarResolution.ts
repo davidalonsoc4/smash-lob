@@ -22,28 +22,13 @@ export function buildUserAvatarLookup(users: AvatarSourceUser[]): UserAvatarLook
 }
 
 export function resolvePlayerAvatarUrl({
-  leagueAvatarUrl,
   linkedUserId,
-  playerAvatarUrl,
   users,
 }: {
-  leagueAvatarUrl?: string | null
   linkedUserId?: string | null
-  playerAvatarUrl?: string | null
   users: UserAvatarLookup
 }) {
-  const customLeagueAvatar = normalizeSafeAvatarUrl(leagueAvatarUrl)
-
-  if (customLeagueAvatar) {
-    return customLeagueAvatar
-  }
-
   const linkedUser = linkedUserId ? users.byId.get(linkedUserId) : null
-  const linkedAccountAvatar = normalizeSafeAvatarUrl(linkedUser?.avatarUrl)
 
-  if (linkedAccountAvatar) {
-    return linkedAccountAvatar
-  }
-
-  return normalizeSafeAvatarUrl(playerAvatarUrl)
+  return normalizeSafeAvatarUrl(linkedUser?.avatarUrl)
 }

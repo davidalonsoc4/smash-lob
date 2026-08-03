@@ -2,27 +2,36 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 const migrationPath =
-  "supabase/migrations/20260803160000_add_league_avatars_and_restore_unlinked_identity.sql"
+  "supabase/migrations/20260803203000_remove_league_avatars_and_keep_account_identity.sql"
 
-describe("league avatar and unlink identity migration", () => {
-  it("stores league-specific avatars and captures a reversible identity snapshot", async () => {
+describe("account avatar and historical identity correction migration", () => {
+  it("removes the rejected per-league avatar column", async () => {
     const source = await readFile(migrationPath, "utf8")
 
-    expect(source).toContain("ADD COLUMN IF NOT EXISTS league_avatar_url text")
-    expect(source).toContain("ADD COLUMN IF NOT EXISTS link_identity_snapshot jsonb")
-    expect(source).toContain("jsonb_build_object(")
-    expect(source).toContain("'displayName', player.display_name")
-    expect(source).toContain("'avatarInitials', player.avatar_initials")
-    expect(source).toContain("'avatarUrl', player.avatar_url")
-    expect(source).toContain("avatar_url = NULL")
+    expect(source).toContain("DROP COLUMN IF EXISTS league_avatar_url")
+    expect(source).toContain("app_users.avatar_url")
+    expect(source).toContain("UPDATE public.players")
+    expect(source).toContain("WHERE avatar_url IS NOT NULL")
   })
 
-  it("restores identity on membership deletion and clears legacy account photos", async () => {
+  it("keeps only historical name and initials in the link snapshot", async () => {
+    const source = await readFile(migrationPath, "utf8")
+    const snapshotDefinition = source.slice(
+      source.indexOf("link_identity_snapshot = COALESCE"),
+      source.indexOf("display_name = COALESCE"),
+    )
+
+    expect(snapshotDefinition).toContain("'displayName'")
+    expect(snapshotDefinition).toContain("'avatarInitials'")
+    expect(snapshotDefinition).not.toContain("'avatarUrl'")
+  })
+
+  it("clears account images when a player is released", async () => {
     const source = await readFile(migrationPath, "utf8")
 
     expect(source).toContain("TG_OP = 'DELETE'")
+    expect(source).toContain("avatar_url = NULL")
     expect(source).toContain("link_identity_snapshot = NULL")
-    expect(source).toContain("ELSE NULL")
     expect(source).toContain("league_memberships_sync_linked_player_identity")
   })
 })

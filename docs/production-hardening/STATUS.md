@@ -161,7 +161,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 ## v0.13.4 - Profile and navigation consistency (2026-07-24)
 
-- Added a compact `/settings/profile` screen that unifies account-name and active-league avatar editing.
+- Added a compact `/settings/profile` screen that unifies account-name and global profile-image editing.
 - Kept create-league and join-league actions directly in Settings.
 - Replaced remaining text navigation arrows with the shared `ClickableChevron` component.
 - Made the current closed-beta version explicit on the public changelog card.
@@ -926,16 +926,20 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Este checkpoint documenta la aceptación y autorización. La evidencia del commit,
   deployment y smoke tests de Producción se registrará tras ejecutar la publicación.
 
-## v1.2.1 - Avatares por liga e identidad restaurable (2026-08-03)
+## v1.2.1 - Candidata descartada por error de concepto (2026-08-03)
 
-- Añadido `league_memberships.league_avatar_url` para guardar un avatar independiente en cada liga sin modificar la imagen global de la cuenta.
-- Añadido `players.link_identity_snapshot` y un trigger de servidor que captura la identidad previa al vincular una cuenta y la restaura al desvincularla.
-- Los vínculos existentes reciben como base recuperable el nombre actual y avatar vacío, ya que el nombre previo no se almacenaba antes de esta versión.
-- La prioridad de imagen pasa a ser avatar de liga, imagen de cuenta, imagen histórica del jugador y avatar predeterminado.
-- Eliminada la inferencia de imágenes por coincidencia de nombre para que una cuenta desvinculada no siga aportando su foto.
-- Los flujos de invitación, autorregistro y creación de temporada dejan de copiar la imagen de cuenta en `players.avatar_url`.
-- Añadidas pruebas unitarias para la prioridad de avatares, la desvinculación sin coincidencias por nombre y la presencia de las garantías principales de la migración.
-- Migración nueva: `20260803160000_add_league_avatars_and_restore_unlinked_identity.sql`.
-- Validación en este entorno: los 21 archivos TypeScript/TSX modificados transpilan sin errores de sintaxis; `npm ci` no pudo completarse porque el proxy de paquetes devolvió 404 para `zod-validation-error@4.0.2`. El paquete de entrega ejecuta la validación completa en el repositorio local antes de publicar PRE.
+- La candidata de PRE introdujo `league_memberships.league_avatar_url` y una imagen distinta por liga. El modelo fue rechazado antes de promoverlo a Producción.
+- Se conserva como antecedente técnico la migración aplicada `20260803160000_add_league_avatars_and_restore_unlinked_identity.sql`; no se modifica porque las migraciones aplicadas son inmutables.
+- La parte válida de la candidata es `players.link_identity_snapshot` y la restauración de nombre e iniciales al desvincular una cuenta.
+- La fotografía no forma parte de la identidad histórica recuperable y debe desaparecer al eliminar el vínculo.
 
-- La candidata local v1.2.0 se detuvo antes del commit por la regla `react-hooks/set-state-in-effect` en Ajustes. v1.2.1 elimina ese efecto y reinicia el formulario mediante una clave estable al cambiar de liga o jugador.
+## v1.2.2 - Imagen global e identidad histórica corregidas (2026-08-03)
+
+- Retirada de la interfaz, contratos, tipos, carga de acceso, invitaciones, actividad y duplicación de temporadas toda dependencia del avatar específico por liga.
+- La edición de imagen de Ajustes actualiza ahora `app_users.avatar_url`, por lo que la imagen es global para la cuenta y se refleja en todas sus ligas.
+- La prioridad actual queda como imagen global de la cuenta vinculada y, si no existe, avatar predeterminado con iniciales. Los jugadores sin cuenta vinculada quedan siempre sin fotografía.
+- La instantánea `link_identity_snapshot` conserva únicamente `displayName` y `avatarInitials`; al desvincular se restauran esos datos, se limpia `avatar_url` y vuelve el avatar predeterminado.
+- Añadida la migración de avance `20260803203000_remove_league_avatars_and_keep_account_identity.sql`, que elimina `league_avatar_url` de PRE, limpia cualquier fotografía almacenada en `players` y redefine el trigger sin fotografías históricas.
+- El futuro editor de avatares queda fuera de esta versión y deberá guardar un avatar global del usuario, independiente de sus ligas y de la fotografía subida.
+- Versión incrementada a `v1.2.2`; changelog y caché PWA actualizados.
+- Validación disponible en este entorno: los 24 archivos TypeScript/TSX modificados transpilan sin errores de sintaxis; los contratos estructurales de imagen global, API de cuenta, ausencia de escritura de imágenes por jugador, migración y versión pasan; también pasan la línea base de seguridad, las URLs públicas y el escaneo de secretos. `npm ci` no puede completarse aquí porque el registro interno devuelve 404 para `web-push@3.6.7`, por lo que lint, TypeScript completo, Vitest y build quedan como gate obligatorio del comando de aplicación antes de publicar PRE.

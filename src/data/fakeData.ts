@@ -41,7 +41,6 @@ export type PlayerProfile = {
   displayName: string
   avatarInitials: string
   avatarUrl?: string | null
-  leagueAvatarUrl?: string | null
   userId?: string | null
 }
 

@@ -318,7 +318,7 @@ async function fetchLeagueActorProfiles({
 
   const { data: memberships, error: membershipsError } = await supabase
     .from("league_memberships")
-    .select("user_id,player_id,league_avatar_url")
+    .select("user_id,player_id")
     .eq("league_id", leagueId)
     .in("user_id", cleanUserIds)
 
@@ -341,7 +341,7 @@ async function fetchLeagueActorProfiles({
 
   const { data: players, error: playersError } = await supabase
     .from("players")
-    .select("id,display_name,avatar_initials,avatar_url")
+    .select("id,display_name,avatar_initials")
     .in("id", playerIds)
 
   if (playersError) {
@@ -363,8 +363,7 @@ async function fetchLeagueActorProfiles({
             typeof player.avatar_initials === "string"
               ? player.avatar_initials
               : null,
-          avatarUrl:
-            typeof player.avatar_url === "string" ? player.avatar_url : null,
+          avatarUrl: null,
         },
       ])
   )
@@ -382,13 +381,7 @@ async function fetchLeagueActorProfiles({
     const player = playerById.get(membership.player_id)
 
     if (player) {
-      profileByUserId.set(membership.user_id, {
-        ...player,
-        avatarUrl:
-          typeof membership.league_avatar_url === "string"
-            ? membership.league_avatar_url
-            : null,
-      })
+      profileByUserId.set(membership.user_id, player)
     }
   })
 

@@ -13,46 +13,46 @@ const users = buildUserAvatarLookup([
 ])
 
 describe("resolvePlayerAvatarUrl", () => {
-  it("prioritizes the custom avatar for the active league", () => {
+  it("uses the global image of the linked account in every league", () => {
     expect(
       resolvePlayerAvatarUrl({
-        leagueAvatarUrl: "https://example.com/league.png",
         linkedUserId: "user-1",
-        playerAvatarUrl: "https://example.com/player.png",
-        users,
-      }),
-    ).toBe("https://example.com/league.png")
-  })
-
-  it("falls back to the linked account avatar when the league avatar is removed", () => {
-    expect(
-      resolvePlayerAvatarUrl({
-        leagueAvatarUrl: null,
-        linkedUserId: "user-1",
-        playerAvatarUrl: "https://example.com/player.png",
         users,
       }),
     ).toBe("https://example.com/account.png")
   })
 
-  it("uses the player avatar only when there is no linked account avatar", () => {
+  it("returns the default avatar when the player is not linked", () => {
     expect(
       resolvePlayerAvatarUrl({
-        leagueAvatarUrl: null,
         linkedUserId: null,
-        playerAvatarUrl: "https://example.com/player.png",
         users,
       }),
-    ).toBe("https://example.com/player.png")
+    ).toBeNull()
   })
 
-  it("does not infer an account image from a matching display name after unlinking", () => {
+  it("returns the default avatar when the linked account has no image", () => {
+    const usersWithoutImage = buildUserAvatarLookup([
+      { id: "user-2", avatarUrl: null },
+    ])
+
     expect(
       resolvePlayerAvatarUrl({
-        leagueAvatarUrl: null,
-        linkedUserId: null,
-        playerAvatarUrl: null,
-        users,
+        linkedUserId: "user-2",
+        users: usersWithoutImage,
+      }),
+    ).toBeNull()
+  })
+
+  it("rejects unsafe account image values", () => {
+    const unsafeUsers = buildUserAvatarLookup([
+      { id: "user-3", avatarUrl: "javascript:alert(1)" },
+    ])
+
+    expect(
+      resolvePlayerAvatarUrl({
+        linkedUserId: "user-3",
+        users: unsafeUsers,
       }),
     ).toBeNull()
   })
