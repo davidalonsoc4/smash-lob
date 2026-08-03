@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.3",
+    date: "3 de agosto de 2026",
+    title: "Editor de imagen accesible en móvil",
+    summary:
+      "El recorte de la imagen global se muestra centrado, por encima de la navegación y con la confirmación siempre disponible.",
+    category: "fix",
+    changes: [
+      "El editor de recorte se renderiza directamente sobre la página para evitar que la navegación inferior quede por encima.",
+      "El panel queda centrado en el viewport y respeta las zonas seguras superior e inferior del dispositivo.",
+      "El marco de recorte adapta su tamaño al ancho y alto disponibles sin alterar el resultado final de 512 × 512.",
+      "Los controles de Cancelar y Usar imagen permanecen visibles aunque el contenido del editor necesite desplazamiento.",
+      "No se requieren migraciones de Supabase ni cambios en los datos guardados.",
+    ],
+  },
+  {
     version: "v1.2.2",
     date: "3 de agosto de 2026",
     title: "Imagen global e identidad histórica corregidas",
