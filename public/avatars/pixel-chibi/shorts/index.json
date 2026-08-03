@@ -1,0 +1,8 @@
+{
+  "category": "shorts",
+  "world": "pixel_chibi",
+  "implementation": "typed_inline_svg_primitives",
+  "rendererTokens": [
+    "shorts.basic_01"
+  ]
+}

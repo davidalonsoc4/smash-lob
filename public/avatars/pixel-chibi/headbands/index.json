@@ -1,0 +1,9 @@
+{
+  "category": "headband",
+  "world": "pixel_chibi",
+  "implementation": "typed_inline_svg_primitives",
+  "rendererTokens": [
+    "headband.none",
+    "headband.basic_01"
+  ]
+}

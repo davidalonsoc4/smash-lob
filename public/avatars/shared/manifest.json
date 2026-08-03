@@ -1,0 +1,382 @@
+{
+  "manifestVersion": 1,
+  "recipeSchemaVersion": 1,
+  "demoVersion": "Avatar Lab DEMO 0.1",
+  "worlds": [
+    {
+      "id": "pixel_chibi",
+      "available": true,
+      "rendererId": "pixel-chibi-v1"
+    },
+    {
+      "id": "chibi_illustrated",
+      "available": false,
+      "rendererId": null
+    }
+  ],
+  "masterTemplate": {
+    "world": "pixel_chibi",
+    "viewBox": [
+      0,
+      0,
+      192,
+      240
+    ],
+    "gridUnit": 2,
+    "recommendedPixelStep": 4,
+    "centerAxisX": 96,
+    "groundLineY": 232,
+    "characterTopY": 14,
+    "characterBottomY": 232,
+    "headBounds": [
+      48,
+      14,
+      100,
+      100
+    ],
+    "torsoBounds": [
+      64,
+      104,
+      68,
+      66
+    ],
+    "dominantRacketBoundsRightHanded": [
+      10,
+      46,
+      56,
+      138
+    ],
+    "safeMargin": 8,
+    "lightingDirection": "top_left"
+  },
+  "assets": [
+    {
+      "id": "male_compact_01",
+      "category": "body",
+      "supportsColor": false,
+      "rendererPrimitive": "body.male_compact_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "body.male_compact_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "round_01",
+      "category": "head",
+      "supportsColor": false,
+      "rendererPrimitive": "head.round_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "head.round_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "none",
+      "category": "hair",
+      "supportsColor": true,
+      "rendererPrimitive": "hair.none",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "hair.none"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "messy_short_01",
+      "category": "hair",
+      "supportsColor": true,
+      "rendererPrimitive": "hair.messy_short_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "hair.messy_short_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "short_up_01",
+      "category": "hair",
+      "supportsColor": true,
+      "rendererPrimitive": "hair.short_up_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "hair.short_up_01"
+        },
+        "chibi_illustrated": null
+      },
+      "compatibility": {
+        "excludes": [
+          "cap.backwards_01"
+        ]
+      }
+    },
+    {
+      "id": "none",
+      "category": "beard",
+      "supportsColor": true,
+      "rendererPrimitive": "beard.none",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "beard.none"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "short_full_01",
+      "category": "beard",
+      "supportsColor": true,
+      "rendererPrimitive": "beard.short_full_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "beard.short_full_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "goatee_01",
+      "category": "beard",
+      "supportsColor": true,
+      "rendererPrimitive": "beard.goatee_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "beard.goatee_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "vertical_01",
+      "category": "eyes",
+      "supportsColor": true,
+      "rendererPrimitive": "eyes.vertical_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "eyes.vertical_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "thick_straight_01",
+      "category": "eyebrows",
+      "supportsColor": true,
+      "rendererPrimitive": "eyebrows.thick_straight_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "eyebrows.thick_straight_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "angled_01",
+      "category": "eyebrows",
+      "supportsColor": true,
+      "rendererPrimitive": "eyebrows.angled_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "eyebrows.angled_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "none",
+      "category": "cap",
+      "supportsColor": true,
+      "rendererPrimitive": "cap.none",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "cap.none"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "backwards_01",
+      "category": "cap",
+      "supportsColor": true,
+      "rendererPrimitive": "cap.backwards_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "cap.backwards_01"
+        },
+        "chibi_illustrated": null
+      },
+      "compatibility": {
+        "excludes": [
+          "headband.basic_01",
+          "hair.short_up_01"
+        ]
+      }
+    },
+    {
+      "id": "none",
+      "category": "headband",
+      "supportsColor": true,
+      "rendererPrimitive": "headband.none",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "headband.none"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "basic_01",
+      "category": "headband",
+      "supportsColor": true,
+      "rendererPrimitive": "headband.basic_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "headband.basic_01"
+        },
+        "chibi_illustrated": null
+      },
+      "compatibility": {
+        "excludes": [
+          "cap.backwards_01"
+        ]
+      }
+    },
+    {
+      "id": "technical_basic_01",
+      "category": "shirt",
+      "supportsColor": true,
+      "rendererPrimitive": "shirt.technical_basic_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "shirt.technical_basic_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "basic_01",
+      "category": "shorts",
+      "supportsColor": true,
+      "rendererPrimitive": "shorts.basic_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "shorts.basic_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "none",
+      "category": "sleeve",
+      "supportsColor": true,
+      "rendererPrimitive": "sleeve.none",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "sleeve.none"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "dominant_long_01",
+      "category": "sleeve",
+      "supportsColor": true,
+      "rendererPrimitive": "sleeve.dominant_long_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "sleeve.dominant_long_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "none",
+      "category": "wristband",
+      "supportsColor": true,
+      "rendererPrimitive": "wristband.none",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "wristband.none"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "basic_01",
+      "category": "wristband",
+      "supportsColor": true,
+      "rendererPrimitive": "wristband.basic_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "wristband.basic_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "high_01",
+      "category": "socks",
+      "supportsColor": true,
+      "rendererPrimitive": "socks.high_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "socks.high_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "short_01",
+      "category": "socks",
+      "supportsColor": true,
+      "rendererPrimitive": "socks.short_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "socks.short_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "court_01",
+      "category": "shoes",
+      "supportsColor": true,
+      "rendererPrimitive": "shoes.court_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "shoes.court_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "round_b_01",
+      "category": "racket",
+      "supportsColor": true,
+      "rendererPrimitive": "racket.round_b_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "racket.round_b_01"
+        },
+        "chibi_illustrated": null
+      }
+    },
+    {
+      "id": "diamond_stripe_01",
+      "category": "racket",
+      "supportsColor": true,
+      "rendererPrimitive": "racket.diamond_stripe_01",
+      "worldVariants": {
+        "pixel_chibi": {
+          "rendererPrimitive": "racket.diamond_stripe_01"
+        },
+        "chibi_illustrated": null
+      }
+    }
+  ]
+}
