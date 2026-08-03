@@ -1224,14 +1224,14 @@ export default function Home() {
             }
             action={
               shouldShowNextMatchScopeSwitch ? (
-                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-500">
+                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-600">
                   <button
                     type="button"
                     onClick={() => setNextMatchScope("league")}
                     className={`rounded-full px-2.5 py-1 transition ${
                       effectiveNextMatchScope === "league"
                         ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-500"
+                        : "text-neutral-600"
                     }`}
                   >
                     Liga
@@ -1242,7 +1242,7 @@ export default function Home() {
                     className={`rounded-full px-2.5 py-1 transition ${
                       effectiveNextMatchScope === "mine"
                         ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-500"
+                        : "text-neutral-600"
                     }`}
                   >
                     Mío
@@ -1274,6 +1274,7 @@ export default function Home() {
                       players={players}
                       highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
                       highlightedPlayerLabel={matchPanelMvpLabel}
+                      linkPlayers={false}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                     <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
@@ -1284,6 +1285,7 @@ export default function Home() {
                       players={players}
                       highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
                       highlightedPlayerLabel={matchPanelMvpLabel}
+                      linkPlayers={false}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                   </div>
@@ -1332,14 +1334,14 @@ export default function Home() {
             }
             action={
               shouldShowLastMatchScopeSwitch ? (
-                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-500">
+                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-600">
                   <button
                     type="button"
                     onClick={() => setLastMatchScope("league")}
                     className={`rounded-full px-2.5 py-1 transition ${
                       effectiveLastMatchScope === "league"
                         ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-500"
+                        : "text-neutral-600"
                     }`}
                   >
                     Liga
@@ -1350,7 +1352,7 @@ export default function Home() {
                     className={`rounded-full px-2.5 py-1 transition ${
                       effectiveLastMatchScope === "mine"
                         ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-500"
+                        : "text-neutral-600"
                     }`}
                   >
                     Mío
@@ -1384,6 +1386,7 @@ export default function Home() {
                           players={players}
                           highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
                           highlightedPlayerLabel={matchPanelMvpLabel}
+                          linkPlayers={false}
                           className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                         />
                         <p className="min-w-6 text-right text-lg font-black">
@@ -1397,6 +1400,7 @@ export default function Home() {
                           players={players}
                           highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
                           highlightedPlayerLabel={matchPanelMvpLabel}
+                          linkPlayers={false}
                           className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                         />
                         <p className="min-w-6 text-right text-lg font-black">
@@ -1429,6 +1433,7 @@ export default function Home() {
                       players={players}
                       highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
                       highlightedPlayerLabel={matchPanelMvpLabel}
+                      linkPlayers={false}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                     <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
@@ -1439,6 +1444,7 @@ export default function Home() {
                       players={players}
                       highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
                       highlightedPlayerLabel={matchPanelMvpLabel}
+                      linkPlayers={false}
                       className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                     />
                   </div>

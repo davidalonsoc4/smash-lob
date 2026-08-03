@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   const { error } = await access.actor.supabase
     .from("push_subscriptions")
-    .update({ enabled: false, updated_at: new Date().toISOString() })
+    .delete()
     .eq("league_id", leagueId)
     .eq("endpoint", endpoint)
     .eq("user_email", access.actor.user.email)

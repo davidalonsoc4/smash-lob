@@ -95,7 +95,7 @@ export default function MatchesPage() {
             </p>
           </div>
 
-          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
             {visibleMatches.length}/{allMatchesCount}
           </span>
         </div>
@@ -112,7 +112,7 @@ export default function MatchesPage() {
             <span className="block text-xs font-black">
               Liga completa
             </span>
-            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "all" ? "text-white/70" : "text-neutral-500"}`}>
+            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "all" ? "text-white/70" : "text-neutral-600"}`}>
               {allMatchesCount} partidos
             </span>
           </Link>
@@ -127,7 +127,7 @@ export default function MatchesPage() {
             <span className="block text-xs font-black">
               Mis partidos
             </span>
-            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "mine" ? "text-white/70" : "text-neutral-500"}`}>
+            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "mine" ? "text-white/70" : "text-neutral-600"}`}>
               {myMatchesCount} partidos
             </span>
           </Link>

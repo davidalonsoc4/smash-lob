@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
+import { isActiveStoredLeagueInvite } from "@/lib/inviteValidity"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
-import { validateUuid } from "@/lib/serverRequest"
+import { validateInviteCode, validateUuid } from "@/lib/serverRequest"
+import { applyPrivateNoStore } from "@/lib/serverResponse"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { League, LeagueMemberRole, PlayerProfile, Season, SeasonPlayer, UserLeagueMembership } from "@/data/fakeData"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 type SupabaseLeagueRow = {
   id: string
@@ -31,6 +34,7 @@ type SupabaseLeagueRow = {
 
 type SupabaseInviteRow = {
   league_id: string
+  revoked_at: string | null
 }
 
 type SerializedError = {
@@ -42,10 +46,6 @@ const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
 const seasonSettingsSelect =
   "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions"
-function normalizeInviteCode(code: string) {
-  return code.trim().toUpperCase()
-}
-
 function toRole(role: unknown): LeagueMemberRole {
   return role === "creator" || role === "admin" || role === "player"
     ? role
@@ -126,7 +126,7 @@ async function fetchLeagueByInviteCode(
   code: string,
   leagueIdHint?: string | null
 ) {
-  const normalizedCode = normalizeInviteCode(code)
+  const normalizedCode = validateInviteCode(code)
   const cleanLeagueIdHint = leagueIdHint?.trim() || null
   const hintedLeague = cleanLeagueIdHint
     ? await fetchLeagueById(supabase, cleanLeagueIdHint)
@@ -134,7 +134,7 @@ async function fetchLeagueByInviteCode(
 
   if (
     hintedLeague &&
-    normalizeInviteCode(hintedLeague.invite_code) === normalizedCode
+    validateInviteCode(hintedLeague.invite_code) === normalizedCode
   ) {
     return hintedLeague
   }
@@ -142,16 +142,21 @@ async function fetchLeagueByInviteCode(
   if (hintedLeague) {
     const { data: hintedInvites, error: hintedInviteError } = await supabase
       .from("invites")
-      .select("league_id")
+      .select("league_id,revoked_at")
       .eq("league_id", hintedLeague.id)
       .eq("code", normalizedCode)
+      .is("revoked_at", null)
       .limit(1)
 
     if (hintedInviteError) {
       throwSupabaseError("fetch_hinted_invite", hintedInviteError)
     }
 
-    if ((hintedInvites ?? []).some((invite) => invite.league_id)) {
+    if (
+      (hintedInvites ?? []).some((invite) =>
+        isActiveStoredLeagueInvite(invite as SupabaseInviteRow),
+      )
+    ) {
       return hintedLeague
     }
   }
@@ -172,8 +177,9 @@ async function fetchLeagueByInviteCode(
 
   const { data: invites, error: inviteError } = await supabase
     .from("invites")
-    .select("league_id")
+    .select("league_id,revoked_at")
     .eq("code", normalizedCode)
+    .is("revoked_at", null)
     .limit(1)
 
   if (inviteError) {
@@ -182,7 +188,7 @@ async function fetchLeagueByInviteCode(
 
   const invite = (invites ?? [])[0] as SupabaseInviteRow | undefined
 
-  if (invite?.league_id) {
+  if (isActiveStoredLeagueInvite(invite)) {
     return fetchLeagueById(supabase, invite.league_id)
   }
 
@@ -475,34 +481,44 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params
-  const normalizedCode = normalizeInviteCode(decodeURIComponent(code ?? ""))
+  const normalizedCode = validateInviteCode(decodeURIComponent(code ?? ""))
   const leagueIdHint = new URL(request.url).searchParams.get("leagueId")
 
   if (!normalizedCode) {
-    return NextResponse.json({ error: "invalid_code" }, { status: 400 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "invalid_code" }, { status: 400 }),
+    )
   }
 
   if (leagueIdHint && !validateUuid(leagueIdHint)) {
-    return NextResponse.json({ error: "invalid_league_id" }, { status: 400 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "invalid_league_id" }, { status: 400 }),
+    )
   }
 
   const supabase = createSupabaseServiceClient()
 
   if (!supabase) {
-    return NextResponse.json({ error: "missing_service_role" }, { status: 501 })
+    return applyPrivateNoStore(
+      NextResponse.json({ error: "missing_service_role" }, { status: 501 }),
+    )
   }
 
   try {
-    return await buildInviteResponse(supabase, normalizedCode, leagueIdHint)
+    return applyPrivateNoStore(
+      await buildInviteResponse(supabase, normalizedCode, leagueIdHint),
+    )
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: "invite_lookup_failed",
-        code: normalizedCode,
-        leagueId: leagueIdHint,
-        failures: [serializeError(error)],
-      },
-      { status: 500 }
+    return applyPrivateNoStore(
+      NextResponse.json(
+        {
+          error: "invite_lookup_failed",
+          code: normalizedCode,
+          leagueId: leagueIdHint,
+          failures: [serializeError(error)],
+        },
+        { status: 500 },
+      ),
     )
   }
 }

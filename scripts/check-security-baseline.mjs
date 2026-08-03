@@ -98,7 +98,7 @@ for (const [packagePath, metadata] of braceEntries) {
     continue
   }
 
-  if (major === 1 && isAtLeast(version, "1.1.16")) {
+  if (major === 1 && isAtLeast(version, "1.1.17")) {
     const allowed = legacyBraceExpansionAllowlist.some((pattern) => pattern.test(packagePath))
     if (allowed) {
       allowedLegacyCopies += 1
@@ -113,7 +113,7 @@ for (const [packagePath, metadata] of braceEntries) {
 
 if (runtimeBraceVersion) notes.push(`brace-expansion runtime ${runtimeBraceVersion}`)
 if (allowedLegacyCopies > 0) {
-  notes.push(`${allowedLegacyCopies} copias 1.1.16 limitadas a herramientas de lint`)
+  notes.push(`${allowedLegacyCopies} copias 1.1.17+ limitadas a herramientas de lint`)
 }
 
 if (failures.length > 0) {

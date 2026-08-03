@@ -31,7 +31,7 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
   return (
     <section className="space-y-2">
       <div className="px-1">
-        <p className="settings-section-label text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="settings-section-label text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
           {title}
         </p>
         {description ? (
@@ -369,7 +369,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
 
       <SessionSection />
 
-      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400">
+      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600">
         {settingsVersionLabel}
       </p>
     </div>
@@ -680,7 +680,7 @@ function PlayerSettingsPage() {
 
       <SessionSection />
 
-      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-400">
+      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600">
         {settingsVersionLabel}
       </p>
     </div>

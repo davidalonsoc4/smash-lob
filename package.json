@@ -1,15 +1,24 @@
 {
   "name": "smash-lob",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
+    "predev": "npm run env:check",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "env:check": "node scripts/check-required-env.mjs",
+    "secrets:check": "node scripts/check-repository-secrets.mjs",
     "security:check": "node scripts/check-security-baseline.mjs",
     "typecheck": "tsc --noEmit",
-    "validate": "npm run security:check && npm run public-urls:check && npm run lint && npm run typecheck && npm run build",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test --grep @a11y",
+    "test:visual": "playwright test --grep @visual",
+    "validate": "npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run lint && npm run typecheck && npm run test && npm run build",
     "public-urls:check": "node scripts/check-public-app-urls.mjs"
   },
   "dependencies": {
@@ -22,22 +31,29 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.12",
+    "jsdom": "^26.1.0",
     "postcss": "8.5.24",
     "tailwindcss": "4.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   },
   "overrides": {
     "postcss": "8.5.24",
     "sharp": "0.35.3",
     "@auth/core": "0.41.3",
-    "brace-expansion@^1.1.0": "1.1.16",
+    "brace-expansion@^1.1.0": "1.1.17",
     "brace-expansion@^5.0.0": "5.0.8"
   }
 }

@@ -131,7 +131,7 @@ export default function StatisticsPage() {
       )}
 
       <div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
           Explorar estadísticas
         </p>
         <AppCard className="overflow-hidden p-0">

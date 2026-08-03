@@ -528,3 +528,400 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Increased the export canvas height slightly to improve breathing room and visual rhythm.
 - Synced the in-page preview card with the same stacked hero/highlight presentation.
 - No database migration, API contract, permission or persistence change is required.
+## v1.1 stability hardening — checkpoint inicial (2026-08-02)
+
+- Validación final local del árbol exacto: `npm ci` pasó; comprobación de secretos,
+  seguridad y URLs pasó; `npm audit --json` informó 0 vulnerabilidades; lint,
+  TypeScript y build pasaron; Vitest pasó 15 archivos/57 pruebas; Playwright pasó
+  8/8 pruebas móvil/escritorio, incluidas Axe y referencias visuales; `git diff
+  --check` pasó.
+- `npm run env:check` detectó correctamente que la credencial
+  `SUPABASE_SERVICE_ROLE_KEY` no está disponible en el entorno local real. El script
+  pasó con un marcador de validación no secreto, demostrando el contrato sin fingir
+  una credencial ni habilitar pruebas remotas.
+- La revisión completa contra `staging` no encontró migraciones, secretos, dominios
+  Vercel funcionales ni cambios de producto ajenos al objetivo.
+- La rama permanece local, sin despliegue ni commits remotos. PRE no se ha modificado
+  porque faltan credencial dedicada, pruebas OAuth/fixtures y autorización adicional
+  para push, merge y despliegue. `main` y PROD permanecen intactos.
+- Segundo bloque implementado: rate limiting reutilizable con respuesta 429,
+  `Retry-After` y log seguro en invitaciones, espectadores, sugerencias y dispatch;
+  baja push y endpoints 404/410 ahora se eliminan en lugar de quedar deshabilitados.
+- El service worker usa caché `smash-lob-v1.1.0-rc.1`, elimina cachés anteriores,
+  conserva un shell mínimo/offline y solo activa una revisión cuando el usuario lo
+  solicita desde el nuevo aviso de actualización.
+- Playwright descubrió y permitió corregir CSP de desarrollo, semántica ARIA de los
+  skeletons y contraste del pie público. La ejecución móvil/escritorio terminó con
+  8/8 pruebas E2E, Axe y visuales superadas.
+- La candidata ya declara `1.1.0-rc.1`, incorpora CI, comprobación local de secretos,
+  documentación de operación/aceptación y carga diferida del generador Excel.
+- Se añadieron pruebas de autorización para anónimo, outsider entre ligas, jugador,
+  espectador, admin, creator y superusuario, sin conceder una membresía de creator
+  implícita al superusuario.
+- No hay migraciones nuevas ni cambios remotos. OAuth real, flujos persistentes con
+  fixtures y las ocho pantallas autenticadas siguen como validaciones manuales de PRE.
+- Primer bloque implementado: entorno Auth.js explícito, logging estructurado seguro,
+  página de error de autenticación con incidencia, retorno exacto de invitaciones,
+  límites de host para URLs, páginas de error/offline y cabeceras de seguridad.
+- Se corrigió `localhost:300` a `localhost:3000` y se retiró `AUTH_URL` del ejemplo
+  porque la versión/configuración actual no demuestra que sea necesario.
+- CSV y Excel neutralizan valores de texto que empiezan por `=`, `+`, `-` o `@`.
+- Se añadió infraestructura Vitest, Testing Library, Playwright y Axe, con las primeras
+  pruebas de Auth, URLs, clasificación/desempates, exportaciones, acceso anónimo,
+  errores, accesibilidad y regresión visual.
+- Primer control: lint pasó. TypeScript señaló fixtures incompletos que se corrigieron.
+  Vitest quedó sin ejecutar por `spawn EPERM` dentro del sandbox y debe repetirse con
+  permiso. La comprobación de entorno detectó `SUPABASE_SERVICE_ROLE_KEY` ausente sin
+  imprimir valores; las pruebas reales de PRE siguen bloqueadas por esa credencial.
+- Se verificó un árbol de trabajo limpio y se ejecutó `git fetch origin --prune`.
+- `staging` coincide con `origin/staging` en `3495324` y declara v1.0.0.
+- El árbol de archivos de `staging` es idéntico al de `main`; `main` solo añade el
+  commit de merge de la versión estable.
+- Se creó `feature/v1.1-stability-hardening` desde `staging`; no se reutilizó v0.19.
+- `npm ci` reproducible pasó tras repetirlo fuera del sandbox por un `spawn EPERM`
+  local. No se ejecutó ningún `npm audit fix`.
+- El inventario y las prioridades están registrados en `docs/V1_1_PLAN.md`.
+- No se ha modificado `main`, ningún remoto, ninguna base de datos ni ningún despliegue.
+
+## v1.1 stability hardening — merge local en staging (2026-08-02)
+
+- La credencial de servicio dedicada de PRE está presente en `.env.local` y en la
+  variable sensible `SUPABASE_SERVICE_ROLE_KEY` de Vercel Preview para `staging`;
+  no se registró ningún valor y Production permaneció intacta.
+- `npm run env:check` pasó con las siete variables obligatorias presentes y sus
+  valores ocultos.
+- La reinstalación reproducible con `npm ci` terminó con código 0. Aunque su resumen
+  inicial mostró un aviso de auditoría no reproducible, `npm audit --json` y
+  `npm audit --audit-level=high` se repitieron después y confirmaron 0
+  vulnerabilidades; no se ejecutó ningún comando de corrección automática.
+- `npm run validate` pasó completo: entorno, secretos, seguridad, URLs públicas,
+  lint, TypeScript, 15 archivos/57 pruebas Vitest y build de producción.
+- `npm run test:e2e` pasó 8/8 pruebas en Chromium móvil y escritorio, incluidas Axe
+  y referencias visuales; `git diff --check` también pasó.
+- `feature/v1.1-stability-hardening` se subió y se verificó directamente en GitHub
+  en `0b960bd41e959c97768dfc7bd599fbb999c0c753`.
+- `staging` se sincronizó por avance rápido en `3495324` y recibió localmente el
+  merge `515c542`; el merge aún no se ha subido ni desplegado.
+- `main`, Production, la etiqueta `v1.0.0`, las bases de datos y las migraciones
+  permanecen intactas.
+- Siguen pendientes el despliegue y smoke tests de PRE, OAuth Google real, fixtures
+  persistentes, pruebas autenticadas, aislamiento entre dos ligas y push real.
+
+## v1.1 stability hardening — actualización de seguridad previa a PRE (2026-08-02)
+
+- La repetición final de `npm ci` sobre el merge local descubrió 5 avisos altos
+  nuevos de `npm audit`, todos originados por `brace-expansion` 1.1.16 en la cadena
+  de herramientas de ESLint. La promoción se detuvo antes de validar, subir
+  `staging` o desplegar PRE.
+- El aviso `GHSA-mh99-v99m-4gvg` establece 1.1.17 como primera revisión corregida
+  de la rama 1.x. Se actualizó únicamente el override 1.x de 1.1.16 a 1.1.17,
+  sin salto mayor de ESLint ni corrección automática de npm.
+- La línea base interna exige ahora 1.1.17 o superior para las cuatro copias
+  limitadas a herramientas de lint; la copia principal de runtime permanece en
+  la revisión corregida 5.0.8.
+- `npm install --package-lock-only --ignore-scripts`, `npm run security:check`,
+  `npm audit --audit-level=high` y `git diff --check` pasaron; la auditoría
+  confirmó 0 vulnerabilidades.
+- `staging` sigue solo local y `main`, Production, PRE, las bases de datos y las
+  migraciones permanecen intactas. Todos los gates completos deben repetirse
+  sobre este nuevo árbol antes de cualquier push.
+- Tras crear `b5ae653`, la repetición desde cero terminó correctamente: `npm ci`
+  informó 0 vulnerabilidades, `npm audit --audit-level=high` confirmó 0,
+  `npm run validate` pasó entorno, secretos, seguridad, URLs, lint, TypeScript,
+  15 archivos/57 pruebas y build, y `npm run test:e2e` pasó 8/8 pruebas.
+- La candidata corregida queda lista localmente para subir `staging`; el despliegue
+  y los smoke tests de PRE siguen pendientes y no se ha tocado `main` ni Production.
+
+## v1.1 stability hardening — deployment y smoke de PRE (2026-08-02)
+
+- `origin/staging` se verificó en
+  `e1e9b3efeb17a57b90b243d8ca9371c73a963d7e`; `main` y el commit de la etiqueta
+  `v1.0.0` permanecen en `a4abbf06904cc48c9eb614d4b6c4f16214f52aac`.
+- Vercel creó `dpl_DPYZ5cj88FfrqDKUuiu1q7JhG2QW` para ese SHA. El deployment quedó
+  `Ready` y asignado a `pre.smashandlob.com` y al alias estable de `staging`.
+- Las sondas autenticadas mediante la protección de Vercel devolvieron `200` para
+  raíz, manifiesto, icono, sesión y proveedores; `401` para cron sin secreto y dos
+  rutas de liga protegidas sin sesión; y `404` controlado para códigos sintácticamente
+  válidos pero inexistentes de jugador y espectador.
+- Los metadatos Google de Auth.js usan
+  `https://pre.smashandlob.com/api/auth/signin/google` y
+  `https://pre.smashandlob.com/api/auth/callback/google`.
+- El manifiesto publicado identifica `Smash & Lob PRE` y el service worker contiene
+  el marcador `smash-lob-v1.1.0-rc.1`. La consulta posterior de logs del deployment
+  devolvió cero entradas de nivel error.
+- Quedan como gates manuales el recorrido OAuth real, la versión visible dentro de
+  la aplicación autenticada, los fixtures persistentes, aislamiento entre ligas,
+  exportaciones, PWA y push en dispositivo real. No se ha tocado Production.
+
+## v1.1 stability hardening — primer acceso OAuth real en PRE (2026-08-02)
+
+- Una cuenta Google dedicada de pruebas completó el retorno OAuth real a
+  `https://pre.smashandlob.com/` y cargó correctamente su liga existente
+  `PREP LIGA`.
+- La interfaz autenticada mostró `PRE · v1.1.0-rc.1` en la cabecera y
+  `Smash & Lob · v1.1.0-rc.1` en Ajustes, cerrando la comprobación visible de
+  versión.
+- La cuenta no expone controles de administración en Ajustes, por lo que este
+  recorrido valida el caso de miembro existente. Siguen pendientes una cuenta
+  nueva/organizadora, los retornos exactos desde invitaciones y el resto de
+  flujos persistentes manuales.
+- Una segunda cuenta Google dedicada completó después su primer acceso a PRE y
+  mostró el onboarding inicial para crear o unirse a una liga. Con ello quedan
+  verificados los recorridos OAuth real de cuenta existente y cuenta nueva.
+- La segunda cuenta no tiene habilitado el permiso de creación de ligas, por lo
+  que aún no puede utilizarse como organizadora hasta preparar explícitamente
+  ese fixture solo en Supabase PRE.
+
+## v1.1 stability hardening — fixtures persistentes y exportaciones de PRE (2026-08-02)
+
+- Una cuenta dedicada de pruebas con rol `creator` abrió tres ligas existentes de
+  PRE, inició `Temporada 2` en `Liga prep pruebas última` y generó sus 14 partidos.
+- El primer partido se programó para el 2 de agosto de 2026 a las 23:00 en
+  Polideportivo de Lasesarre. Se registró el resultado 6-4, 3-6, 6-2, se editó
+  después el tercer set a 6-3 y se verificó que la corrección persistía tras
+  recargar y navegar.
+- El cambio entre esa liga, con 1 de 14 partidos jugados, y `PREP LIGA`, finalizada
+  con 14 de 14, mantuvo separadas sus temporadas, calendarios, resultados y
+  clasificaciones. La comprobación de autorización directa con una cuenta ajena a
+  la primera liga sigue pendiente.
+- Desde una sesión autenticada real se ejecutó la acción Compartir del resumen
+  final de `PREP LIGA` sin error de aplicación y se descargaron los archivos Excel
+  y CSV de `Temporada 3`.
+- El Excel descargado contiene las hojas `Clasificación` (8 jugadores) y
+  `Resultados` (14 partidos). El CSV contiene 14 filas y las mismas 12 columnas de
+  resultados. La importación estructural, la comparación celda a celda entre ambos
+  formatos y la revisión visual de todas las hojas no detectaron diferencias ni
+  errores de fórmula.
+- Antes de consultar una invitación de fixture con la credencial de servicio, una
+  guarda local verificó el destino configurado y detuvo la operación: el
+  `NEXT_PUBLIC_SUPABASE_URL` de `.env.local` apunta al proyecto Production
+  `szycbwdzestcmimziyey`, no al proyecto PRE `miadjotkucgluwbrgeih`. No se llegó a
+  ejecutar ninguna consulta de base de datos. Las comprobaciones con service role
+  quedan pausadas hasta alinear en `.env.local` la URL, la clave anónima y la clave
+  de servicio del mismo proyecto PRE.
+- Las tres variables locales se corrigieron después con sus valores de Preview
+  `staging`. La URL apunta a `miadjotkucgluwbrgeih`, la clave pública fue aceptada
+  por Auth de Supabase y una lectura controlada con service role devolvió las tres
+  ligas de PRE.
+- La prueba real de caducidad reveló un fallo bloqueante: después de regenerar la
+  invitación de `PREP LIGA`, el enlace anterior seguía resolviendo la liga. La
+  función SQL conservaba todas las filas históricas con `revoked_at` nulo y el GET
+  público, al usar service role, no aplicaba explícitamente el filtro RLS.
+- Se añadió una comprobación compartida de vigencia a la resolución y al canje,
+  filtros explícitos de `revoked_at` y la migración
+  `20260802233000_revoke_previous_league_invites.sql`, que revoca los códigos
+  anteriores de cada liga y hace atómica esa revocación en futuras regeneraciones.
+- La migración pasó `supabase db push --linked --dry-run` y el enlace se verificó
+  contra PRE. Se creó antes una copia local mínima de las 12 filas de `invites`
+  con solo `id`, `league_id` y `revoked_at`; no contiene códigos de invitación.
+- La corrección local pasó la prueba focalizada (3/3), lint, TypeScript,
+  `npm run validate` completo (16 archivos/60 pruebas y build), Playwright 8/8,
+  `npm audit --audit-level=high` con 0 vulnerabilidades y `git diff --check`.
+  La migración todavía no se ha aplicado y la corrección aún no está desplegada.
+- Los commits `df41351` (código, prueba y migración) y `cfc1a68`
+  (documentación/evidencia) se subieron a `origin/staging`, verificado exactamente
+  en `cfc1a689adb57d194d7f0a3d56cc5ed01a9ce415`. `main` y `v1.0.0` continúan en
+  `a4abbf06904cc48c9eb614d4b6c4f16214f52aac`.
+- Vercel desplegó ese commit como `dpl_EFz6DA7qLrHg6YgSC2u26LKqEByA`; alcanzó
+  `Ready`, quedó asociado a `pre.smashandlob.com` y el log de build confirmó
+  rama `staging`, commit `cfc1a68`, 0 vulnerabilidades, TypeScript y build correctos.
+- La aplicación de la migración a Supabase PRE queda pendiente de autorización
+  remota explícita. El cálculo previo confirma que revocará 9 invitaciones
+  históricas todavía activas y conservará las 3 invitaciones actuales, una por
+  cada liga PRE.
+- Tras la autorización explícita, la migración
+  `20260802233000_revoke_previous_league_invites.sql` se aplicó únicamente en
+  Supabase PRE y aparece alineada en el historial local/remoto. La verificación
+  posterior confirmó 9 invitaciones revocadas, 3 activas y correspondencia exacta
+  entre cada invitación activa y el código actual de su liga.
+- Una primera sonda externa con `fetch` pareció devolver snapshots antiguos con
+  `x-vercel-cache: HIT`, pero la inspección de la URL final demostró que la
+  petición había seguido la redirección de Deployment Protection y estaba
+  midiendo la página de acceso de Vercel, no la API de PRE. Se corrige aquí esa
+  clasificación para no atribuir a la aplicación una respuesta que no emitió.
+- Se añadieron cabeceras reutilizables `private, no-store` para las respuestas GET
+  de invitaciones de jugador y espectador, más `revalidate = 0` y una prueba
+  específica de las tres capas de caché. La corrección pasó `npm run validate`
+  (17 archivos/61 pruebas y build), Playwright 8/8 y `git diff --check`.
+- El commit `1224684` se subió a `origin/staging` y Vercel lo desplegó como
+  `dpl_BqxEmdc1cajdKCg1HPmP6WWVcZQF`, `Ready` y asociado a
+  `pre.smashandlob.com`. Las cabeceras `no-store` se mantienen como defensa en
+  profundidad aunque no existía el snapshot obsoleto inicialmente diagnosticado.
+- Con autorización explícita se ejecutó la purga CDN a nivel de proyecto. La
+  operación vació también la caché CDN de Production, sin cambiar su código ni
+  sus datos.
+- La repetición autenticada contra PRE confirmó que la invitación revocada y una
+  invitación inexistente devuelven `snapshot: null`, mientras que la invitación
+  vigente resuelve el snapshot de su liga. Las sondas exactas con autenticación
+  de Vercel contra el deployment devolvieron `404`, `Age: 0`,
+  `X-Vercel-Cache: MISS` y las tres cabeceras `no-store` tanto para la ruta de
+  jugador como para la de espectador. Queda cerrado el gate de invitaciones
+  inválidas y caducadas en PRE.
+- Una cuenta dedicada de miembro, perteneciente únicamente a `PREP LIGA`, mostró
+  solo esa liga en el selector. El acceso directo al partido fixture de la liga
+  del organizador devolvió «Partido no encontrado» sin exponer sus datos.
+- La respuesta autenticada de `/api/access` para esa misma cuenta contenía
+  exclusivamente `PREP LIGA` y no incluía ni la segunda liga ni su partido. Junto
+  con el cambio de ligas previamente validado desde la cuenta `creator`, queda
+  cerrado el gate de aislamiento cruzado con las dos ligas fixture de PRE.
+- La cuenta dedicada de miembro se suspendió temporalmente solo en Supabase PRE.
+  La aplicación mostró el bloqueo «Cuenta suspendida» y ocultó los datos de liga.
+  La cuenta se reactivó inmediatamente, se limpiaron el motivo y la fecha de
+  suspensión y se confirmó que recuperaba el acceso normal a `PREP LIGA`.
+- El onboarding ya verificado con la segunda cuenta Google dedicada cubre el caso
+  de usuario autenticado sin acceso a ninguna liga. Con ambas evidencias queda
+  cerrado el gate de usuario suspendido y usuario sin acceso contra PRE.
+- La inspección del workflow público de GitHub detectó que las siete ejecuciones
+  de `v1.1 quality` habían fallado en el mismo test de URL, aunque el job
+  `browser` de la ejecución más reciente había pasado sus 8/8 pruebas. El runner
+  configura intencionadamente `NEXT_PUBLIC_APP_URL=http://localhost:3000`, pero
+  `tests/unit/appUrl.test.ts` esperaba siempre el origen de Production al probar
+  el rechazo de un host reenviado arbitrario.
+- El test se aisló del entorno del runner fijando explícitamente la variante y la
+  URL de Production solo durante ese caso y restaurando después las variables.
+  La reproducción exacta pasó 4/4; `npm run validate` pasó los 17 archivos/61
+  pruebas y el build con las variables del job, y `npm run test:e2e` pasó 8/8.
+  Los avisos de deprecación de Node 20 emitidos por acciones de GitHub no fueron
+  la causa del fallo.
+- El commit correctivo `5bebfb2` se verificó en `origin/staging`. La ejecución
+  remota `v1.1 quality #8` terminó en `Success`: el job `quality` pasó en 1m21s
+  y el job `browser` pasó en 1m40s con 8/8 pruebas Playwright. El gate remoto
+  queda restablecido.
+- La prueba física en una PWA Android ya instalada confirmó la actualización
+  visible a `v1.1.0-rc.1` y el alta/baja real de push. La baja eliminó exactamente
+  un endpoint de Supabase PRE y el alta posterior creó exactamente uno nuevo
+  habilitado, sin volver a solicitar un permiso Android que ya estaba concedido.
+- El arranque posterior en modo avión reveló un fallo bloqueante: Android restauró
+  la pantalla de acceso y Auth.js intentó consultar la sesión sin red, en lugar
+  de mostrar la experiencia offline. La prueba anterior solo cubría una nueva
+  navegación interceptada por el service worker y no la restauración de una PWA
+  ya cargada.
+- Se añadió `OfflineGate` antes de `AuthGate` y una vista offline compartida, de
+  modo que la pérdida de red oculta el login y los datos privados antes de que
+  Auth.js intente cargar. Playwright incorpora ahora un proyecto aislado con
+  service workers reales que cubre pérdida de conexión sobre una página cargada,
+  relanzamiento/navegación offline y recuperación mediante «Reintentar». La nueva
+  prueba reproduce el fallo antes del cambio y pasa después de la corrección.
+
+## v1.1 stability hardening — cobertura autenticada automatizada (2026-08-03)
+
+- Playwright usa una sesión y datos demo exclusivamente locales para recorrer ocho
+  pantallas autenticadas representativas en Chromium móvil y escritorio: inicio,
+  partidos, clasificación, estadísticas, ajustes, invitación, administración de
+  temporada y resumen de temporada. No intervienen cuentas personales, PRE ni
+  Production.
+- Axe descubrió contrastes insuficientes en las cinco áreas principales y en
+  administración, además de campos de edición de jugadores sin nombre accesible.
+  Se corrigieron todos los impactos críticos o graves detectados.
+- La revisión también descubrió enlaces anidados en tarjetas de partidos. Los
+  nombres conservan sus enlaces en contextos normales y se renderizan como texto
+  cuando toda la tarjeta ya es un enlace.
+- El recorrido Axe pasó en móvil y escritorio. Se generaron 16 referencias
+  visuales, se inspeccionaron y la repetición sin actualización pasó en ambos
+  proyectos.
+- La baja automática de endpoints push caducados se extrajo a una operación
+  comprobable. Diez pruebas confirman que HTTP 404/410 elimina exactamente la
+  suscripción afectada y que un fallo reintentable HTTP 500 no elimina nada.
+- La evidencia visual real ya obtenida en PRE, combinada con Axe y regresión
+  visual local sobre las mismas ocho rutas, cierra ese gate sin exigir una nueva
+  intervención humana. Sigue pendiente únicamente reproducir en un dispositivo
+  real la caducidad 404/410 de un endpoint push y repetir el arranque offline
+  físico tras la corrección ya desplegada.
+- `npm run validate` pasó entorno, secretos, seguridad, URLs, lint, TypeScript,
+  17 archivos/64 pruebas y el build de producción. La primera ejecución conjunta
+  de Playwright saturó el compilador de desarrollo al lanzar 12 workers y cuatro
+  pruebas públicas agotaron su espera sobre la pantalla de compilación; no fue
+  un fallo funcional. Se limitó la concurrencia a cuatro workers locales y dos
+  en CI, y la repetición completa pasó 13/13, incluida la PWA con service worker.
+  `npm audit --audit-level=high` confirmó 0 vulnerabilidades y
+  `git diff --check` pasó.
+- Las ejecuciones remotas `v1.1 quality #11` a `#14` aislaron una diferencia
+  visual de 126 píxeles exclusivamente en el campo de fecha de administración de
+  temporada. La instrumentación temporal situó el cambio dentro del texto de
+  `input[type="date"]`: Windows lo dibuja según la configuración regional del
+  sistema, independientemente del locale configurado en Playwright.
+- La referencia visual conserva el campo y su icono, pero oculta únicamente el
+  texto nativo de fecha durante la captura. Se retiró la instrumentación temporal
+  una vez localizada la causa. La validación posterior pasó TypeScript, 4/4
+  pruebas visuales sin regenerar referencias y 13/13 pruebas E2E en modo CI.
+  El commit correctivo `7c78928` quedó verificado exactamente en
+  `origin/staging`.
+- La ejecución remota `v1.1 quality #15` (`30772604704`) terminó en `Success`:
+  tanto el job `quality` como el job `browser` pasaron. Queda resuelto el último
+  fallo visual específico del runner de Windows.
+- La repetición física posterior en Android, con la PWA instalada y el modo avión
+  activo, mostró correctamente la vista «Sin conexión» y la acción «Reintentar».
+  Sin embargo, la continuación de la prueba demostró que el gate aún no estaba
+  cerrado: al recuperar red la aplicación entraba en el formulario de perfil con
+  un error de `fetch`, y un relanzamiento en frío sin red volvía a mostrar el
+  login. La primera observación solo validaba la pérdida de conexión sobre una
+  página ya abierta.
+- La causa de la reconexión era que el evento `online` ocultaba el fallback antes
+  de que Auth.js renovase la sesión que había fallado sin red. El fallback queda
+  ahora fijado hasta pulsar «Reintentar», acción que realiza una navegación
+  completa y crea una sesión limpia.
+- El service worker redirige los arranques offline nuevos a `/offline` y sirve esa
+  ruta desde caché, evitando depender de la hidratación de la ruta privada o del
+  valor inicial de `navigator.onLine`. Dos regresiones con service worker real
+  cubren una sesión autenticada durante pérdida/recuperación de red y un
+  relanzamiento desde una página cerrada.
+- La corrección pasó `npm run validate` completo (17 archivos/64 pruebas y build)
+  y 14/14 pruebas Playwright en modo CI. Quedan pendientes el despliegue en PRE y
+  la repetición física en Android antes de cerrar el gate.
+- Vercel desplegó `bd7d156` únicamente en Preview como
+  `dpl_FbbAA1B6RShWsradNCgZc23YcxTa`, `Ready` y asociado a
+  `pre.smashandlob.com`; el log confirmó rama `staging`, el commit exacto,
+  TypeScript, build y 0 vulnerabilidades.
+- GitHub Actions `v1.1 quality #18` pasó `quality`, pero la regresión de sesión
+  falló en `browser` porque simulaba el evento offline antes de confirmar que la
+  aplicación autenticada había terminado de hidratar. Se añadió una espera
+  observable sobre la navegación autenticada; las dos regresiones PWA se
+  repitieron cinco veces cada una en modo CI y pasaron 10/10. La corrección
+  funcional no cambió.
+- La ejecución remota posterior `v1.1 quality #19` terminó en `Success` con
+  `quality` y `browser` correctos. El deployment final de esa revisión,
+  `dpl_7cxM6CiYA36vvCxJTwZAqAREkYvW`, quedó `Ready`, asociado a PRE y sirviendo
+  el service worker con la redirección offline esperada.
+- Al instalar esa revisión en la PWA Android, el aviso de nueva versión apareció,
+  pero «Actualizar ahora» no produjo una respuesta visible y fue necesario
+  refrescar manualmente. El mensaje `SKIP_WAITING` queda ahora unido mediante
+  `event.waitUntil` al ciclo de vida del service worker; el botón muestra
+  «Actualizando…» y programa una recarga de respaldo a los cuatro segundos si
+  Android no emite `controllerchange`.
+- Tres pruebas unitarias cubren el ciclo de vida solicitado, la recarga de
+  respaldo y el caso de worker ya no disponible. La corrección pasó
+  `npm run validate` completo (17 archivos/66 pruebas y build) y 14/14 pruebas
+  Playwright en modo CI. Quedan pendientes el despliegue y la repetición física.
+- El commit `c9ad883` quedó verificado en `origin/staging`; GitHub Actions
+  `v1.1 quality #20` terminó en `Success` con `quality` y `browser` correctos.
+  Vercel lo desplegó en Preview como `dpl_7qD9985sfzA7PTxcmgoyFpEqmGYi`,
+  `Ready` y asociado a `pre.smashandlob.com`; la sonda autenticada confirmó
+  `event.waitUntil(self.skipWaiting())` en el service worker servido.
+- La repetición física en Android mostró el aviso, «Actualizar ahora» cambió a
+  «Actualizando…» y la PWA se recargó automáticamente. Queda validado en
+  dispositivo real el flujo de actualización controlada; sigue pendiente repetir
+  el arranque offline en frío y la recuperación de sesión con este worker.
+
+## v1.1.0 — aceptación final y autorización de publicación (2026-08-03)
+
+- La prueba física pendiente de arranque offline en frío se completó correctamente
+  en Android con el worker final: al abrir sin conexión apareció `/offline`, no se
+  mostró Google Login ni onboarding y, al recuperar Internet y pulsar **Reintentar**,
+  se restauró la sesión mediante una navegación completa.
+- El alta y la baja push normales ya estaban verificadas físicamente en Android y
+  Supabase PRE. La reproducción física de un endpoint caducado `404/410` se omite
+  por decisión explícita de aceptación porque el comportamiento está cubierto por
+  diez pruebas automatizadas. Se acepta como riesgo residual bajo la posible
+  permanencia temporal de una suscripción obsoleta; no afecta a datos de ligas ni a
+  suscripciones válidas.
+- Con esta decisión quedan cerrados los criterios de aceptación de PRE para la rama
+  `feature/v1.1-stability-hardening`. Se autoriza promover `v1.1.0-rc.1` a
+  `v1.1.0`, aplicar en PROD únicamente la migración
+  `20260802233000_revoke_previous_league_invites.sql`, fusionar `staging` en `main`
+  y crear la etiqueta anotada `v1.1.0`.
+- La publicación debe detenerse si el dry-run de Supabase detecta una migración
+  pendiente distinta de la esperada o si falla cualquier gate local. No se autoriza
+  `db reset`, `migration repair`, `npm audit fix`, `push --force` ni la reactivación
+  de códigos de invitación antiguos.
+- Este checkpoint documenta la aceptación y autorización. La evidencia del commit,
+  deployment y smoke tests de Producción se registrará tras ejecutar la publicación.

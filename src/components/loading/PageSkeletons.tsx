@@ -47,7 +47,7 @@ function CardSkeleton({ rows = 3 }: { rows?: number }) {
 export function AppBootSkeleton() {
   return (
     <PageFrame>
-      <div aria-label="Cargando Smash & Lob" aria-busy="true" className="space-y-4">
+      <div role="status" aria-label="Cargando Smash & Lob" aria-busy="true" className="space-y-4">
         <div className="flex items-center justify-between pt-3">
           <div>
             <Skeleton className="h-3 w-24" />
@@ -72,7 +72,7 @@ export function AppBootSkeleton() {
 
 export function DashboardSkeleton() {
   return (
-    <div aria-label="Cargando inicio" aria-busy="true" className="space-y-4">
+    <div role="status" aria-label="Cargando inicio" aria-busy="true" className="space-y-4">
       <HeaderSkeleton />
       <div className="grid grid-cols-3 gap-2">
         {Array.from({ length: 3 }, (_, index) => (
@@ -90,7 +90,7 @@ export function DashboardSkeleton() {
 
 export function ListPageSkeleton({ label = "Cargando contenido" }: { label?: string }) {
   return (
-    <div aria-label={label} aria-busy="true" className="space-y-4">
+    <div role="status" aria-label={label} aria-busy="true" className="space-y-4">
       <HeaderSkeleton />
       <div className="rounded-3xl bg-white p-3 shadow-sm dark:bg-neutral-900">
         <div className="grid grid-cols-2 gap-2">
@@ -107,7 +107,7 @@ export function ListPageSkeleton({ label = "Cargando contenido" }: { label?: str
 
 export function RankingSkeleton() {
   return (
-    <div aria-label="Cargando clasificación" aria-busy="true" className="space-y-4">
+    <div role="status" aria-label="Cargando clasificación" aria-busy="true" className="space-y-4">
       <HeaderSkeleton />
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm dark:bg-neutral-900">
         {Array.from({ length: 8 }, (_, index) => (
@@ -125,7 +125,7 @@ export function RankingSkeleton() {
 
 export function DetailPageSkeleton() {
   return (
-    <div aria-label="Cargando detalle" aria-busy="true" className="space-y-4">
+    <div role="status" aria-label="Cargando detalle" aria-busy="true" className="space-y-4">
       <HeaderSkeleton compact />
       <CardSkeleton rows={5} />
       <CardSkeleton rows={3} />
@@ -139,7 +139,7 @@ export function DetailPageSkeleton() {
 
 export function SettingsSkeleton() {
   return (
-    <div aria-label="Cargando ajustes" aria-busy="true" className="space-y-4">
+    <div role="status" aria-label="Cargando ajustes" aria-busy="true" className="space-y-4">
       <HeaderSkeleton compact />
       {Array.from({ length: 4 }, (_, sectionIndex) => (
         <section key={sectionIndex}>
@@ -165,7 +165,7 @@ export function SettingsSkeleton() {
 export function LeagueTransitionSkeleton({ leagueName }: { leagueName: string }) {
   return (
     <PageFrame>
-      <div aria-label={`Cargando ${leagueName}`} aria-busy="true" className="space-y-5 pt-8">
+      <div role="status" aria-label={`Cargando ${leagueName}`} aria-busy="true" className="space-y-5 pt-8">
         <div className="text-center">
           <Skeleton rounded="full" className="mx-auto h-16 w-16" />
           <Skeleton className="mx-auto mt-4 h-6 w-48" />
@@ -184,7 +184,7 @@ export function LeagueTransitionSkeleton({ leagueName }: { leagueName: string })
 
 export function ProfileCardSkeleton() {
   return (
-    <div aria-label="Cargando perfil" aria-busy="true" className="space-y-3">
+    <div role="status" aria-label="Cargando perfil" aria-busy="true" className="space-y-3">
       <div className="flex items-center gap-3">
         <Skeleton rounded="full" className="h-14 w-14" />
         <div className="flex-1">

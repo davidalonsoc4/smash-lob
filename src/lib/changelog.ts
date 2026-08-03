@@ -15,6 +15,24 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.1.0",
+    date: "3 de agosto de 2026",
+    title: "Acceso, seguridad y PWA más fiables",
+    summary:
+      "Smash & Lob refuerza la estabilidad del acceso, la protección entre ligas, las notificaciones y la aplicación instalada, manteniendo el diseño y los flujos habituales.",
+    category: "improvement",
+    changes: [
+      "El acceso con Google conserva el enlace exacto de invitación y ofrece errores más claros con un código de incidencia.",
+      "Se refuerzan los permisos y el aislamiento entre ligas, junto con validadores y límites para operaciones sensibles.",
+      "Las exportaciones Excel y CSV neutralizan contenido que una hoja de cálculo podría interpretar como fórmula.",
+      "La aplicación instalada detecta versiones nuevas, permite actualizarlas de forma controlada y ofrece una pantalla segura sin conexión.",
+      "La baja de notificaciones elimina correctamente la suscripción guardada y limpia endpoints caducados sin afectar a los errores temporales.",
+      "Se corrigen problemas de accesibilidad y se pospone la carga del generador Excel hasta que realmente se necesita.",
+      "La versión incorpora una cobertura automática ampliada para autenticación, permisos, PWA, notificaciones, accesibilidad y regresiones visuales.",
+      "Una migración revoca códigos de invitación antiguos que seguían activos y conserva únicamente el código vigente de cada liga.",
+    ],
+  },
+  {
     version: "v1.0.0",
     date: "2 de agosto de 2026",
     title: "Primera versión estable de Smash & Lob",

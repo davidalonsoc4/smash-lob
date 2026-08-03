@@ -1,5 +1,6 @@
 import { PlayerNameLink } from "./PlayerNameLink"
 import type { PlayerProfile } from "@/data/fakeData"
+import { getPlayerDisplayName } from "@/lib/players"
 
 type TeamPlayersProps = {
   playerIds: string[]
@@ -10,6 +11,7 @@ type TeamPlayersProps = {
   className?: string
   keepNamesOnOneLine?: boolean
   stackPlayers?: boolean
+  linkPlayers?: boolean
 }
 
 export function TeamPlayers({
@@ -21,6 +23,7 @@ export function TeamPlayers({
   className = "flex flex-wrap gap-x-1 gap-y-1 text-lg font-black",
   keepNamesOnOneLine = false,
   stackPlayers = false,
+  linkPlayers = true,
 }: TeamPlayersProps) {
   return (
     <div className={className}>
@@ -34,11 +37,17 @@ export function TeamPlayers({
               stackPlayers ? "w-full" : ""
             } ${keepNamesOnOneLine ? "flex-wrap" : ""}`}
           >
-            <PlayerNameLink
-              playerId={playerId}
-              players={players}
-              className={keepNamesOnOneLine ? "whitespace-nowrap" : ""}
-            />
+            {linkPlayers ? (
+              <PlayerNameLink
+                playerId={playerId}
+                players={players}
+                className={keepNamesOnOneLine ? "whitespace-nowrap" : ""}
+              />
+            ) : (
+              <span className={keepNamesOnOneLine ? "whitespace-nowrap" : ""}>
+                {getPlayerDisplayName(playerId, players)}
+              </span>
+            )}
             {isHighlighted ? (
               <span
                 aria-label={highlightedPlayerLabel}

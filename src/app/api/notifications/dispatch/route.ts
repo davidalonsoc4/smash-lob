@@ -3,10 +3,19 @@ import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { dispatchPushForActivityEvent } from "@/lib/serverPushDispatch"
 import { validateUuid } from "@/lib/serverRequest"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "notification_dispatch",
+    limit: 10,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const authResult = await requireAuthenticatedAppUser()
   const body = (await request.json().catch(() => null)) as {
     eventId?: string

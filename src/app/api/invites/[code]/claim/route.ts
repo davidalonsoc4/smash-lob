@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { parseJsonBody, validateInviteCode, validateUuid } from "@/lib/serverRequest"
 import { joinSelfRegistrationSeason } from "@/lib/serverSelfRegistration"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import { isActiveStoredLeagueInvite } from "@/lib/inviteValidity"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -11,10 +13,6 @@ type ClaimBody = {
   leagueId?: unknown
   playerId?: unknown
   historicalPlayerId?: unknown
-}
-
-function normalizeInviteCode(value: unknown) {
-  return typeof value === "string" ? value.trim().toUpperCase() : ""
 }
 
 function isUniqueViolation(error: unknown) {
@@ -39,8 +37,16 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "invite_claim",
+    limit: 10,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const { code } = await params
-  const normalizedCode = normalizeInviteCode(decodeURIComponent(code ?? ""))
+  const normalizedCode = validateInviteCode(decodeURIComponent(code ?? ""))
   const body = await parseJsonBody<ClaimBody>(request)
   const leagueId = validateUuid(body?.leagueId)
   const playerId = validateUuid(body?.playerId)
@@ -97,12 +103,13 @@ export async function POST(
     return NextResponse.json({ error: "invite_not_found" }, { status: 404 })
   }
 
-  const activeCodeMatches = normalizeInviteCode(league.invite_code) === normalizedCode
+  const activeCodeMatches =
+    validateInviteCode(league.invite_code) === normalizedCode
 
   if (!activeCodeMatches) {
     const { data: invite, error: inviteError } = await supabase
       .from("invites")
-      .select("league_id")
+      .select("league_id,revoked_at")
       .eq("league_id", leagueId)
       .eq("code", normalizedCode)
       .is("revoked_at", null)
@@ -115,7 +122,7 @@ export async function POST(
       )
     }
 
-    if (!invite) {
+    if (!isActiveStoredLeagueInvite(invite)) {
       return NextResponse.json({ error: "invite_not_found" }, { status: 404 })
     }
   }

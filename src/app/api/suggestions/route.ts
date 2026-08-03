@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { parseJsonBody } from "@/lib/serverRequest"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -50,6 +51,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "suggestion_create",
+    limit: 5,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const authResult = await requireAuthenticatedAppUser()
 
   if (!authResult.ok) {
@@ -99,7 +108,16 @@ export async function POST(request: Request) {
   if (latestSuggestion?.created_at) {
     const elapsed = Date.now() - new Date(latestSuggestion.created_at).getTime()
     if (Number.isFinite(elapsed) && elapsed < 20_000) {
-      return NextResponse.json({ error: "suggestion_rate_limited" }, { status: 429 })
+      return NextResponse.json(
+        {
+          error: "suggestion_rate_limited",
+          message: "Espera unos segundos antes de enviar otra sugerencia.",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil((20_000 - elapsed) / 1000)) },
+        },
+      )
     }
   }
 

@@ -140,6 +140,7 @@ export function MatchCard({
                   highlightedPlayerIds={highlightedPlayerIds}
                   highlightedPlayerLabel={highlightedPlayerLabel}
                   substituteLabels={substituteLabels}
+                  linkPlayers={false}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
 
@@ -157,6 +158,7 @@ export function MatchCard({
                   highlightedPlayerIds={highlightedPlayerIds}
                   highlightedPlayerLabel={highlightedPlayerLabel}
                   substituteLabels={substituteLabels}
+                  linkPlayers={false}
                   className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
                 />
 
