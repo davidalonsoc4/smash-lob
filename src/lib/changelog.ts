@@ -15,20 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: "v1.1.0-rc.1",
-    date: "2 de agosto de 2026",
-    title: "Versión candidata más estable y segura",
+    version: "v1.1.0",
+    date: "3 de agosto de 2026",
+    title: "Acceso, seguridad y PWA más fiables",
     summary:
-      "Smash & Lob prepara en PRE una versión centrada en la estabilidad del acceso, la protección de datos, la accesibilidad y una actualización más fiable de la aplicación instalada.",
+      "Smash & Lob refuerza la estabilidad del acceso, la protección entre ligas, las notificaciones y la aplicación instalada, manteniendo el diseño y los flujos habituales.",
     category: "improvement",
     changes: [
       "El acceso con Google conserva el enlace exacto de invitación y ofrece errores más claros con un código de incidencia.",
-      "Las invitaciones, avisos y otras operaciones sensibles incorporan límites contra intentos repetidos.",
+      "Se refuerzan los permisos y el aislamiento entre ligas, junto con validadores y límites para operaciones sensibles.",
       "Las exportaciones Excel y CSV neutralizan contenido que una hoja de cálculo podría interpretar como fórmula.",
-      "La aplicación instalada puede detectar una versión nueva, actualizarla de forma controlada y mostrar una página útil sin conexión.",
-      "Se corrigen problemas de accesibilidad en estados de carga y textos públicos sin rediseñar la experiencia.",
-      "La carga del generador Excel se pospone hasta el momento de descargar el archivo para aligerar la pantalla.",
-      "Esta versión candidata añade pruebas automáticas y no requiere migraciones ni cambios en los datos guardados.",
+      "La aplicación instalada detecta versiones nuevas, permite actualizarlas de forma controlada y ofrece una pantalla segura sin conexión.",
+      "La baja de notificaciones elimina correctamente la suscripción guardada y limpia endpoints caducados sin afectar a los errores temporales.",
+      "Se corrigen problemas de accesibilidad y se pospone la carga del generador Excel hasta que realmente se necesita.",
+      "La versión incorpora una cobertura automática ampliada para autenticación, permisos, PWA, notificaciones, accesibilidad y regresiones visuales.",
+      "Una migración revoca códigos de invitación antiguos que seguían activos y conserva únicamente el código vigente de cada liga.",
     ],
   },
   {

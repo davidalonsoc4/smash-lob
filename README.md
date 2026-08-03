@@ -10,8 +10,8 @@ exportaciones.
 - PRE: `https://pre.smashandlob.com` desde `staging`.
 - Desarrollo: `http://localhost:3000`.
 
-La versión candidata actual es `v1.1.0-rc.1`. No se debe desplegar una rama de
-funcionalidad directamente en Producción.
+La versión estable actual es `v1.1.0`. Las ramas de funcionalidad se validan
+primero en PRE antes de promoverse a Producción.
 
 ## Configuración
 
@@ -64,6 +64,6 @@ y PRE, con reversión mediante una migración de avance. Para backup/restauraci�
 exporta la base del entorno correcto antes de aplicar cambios y verifica el
 artefacto y su checksum.
 
-El procedimiento de esta candidata está en `docs/V1_1_PLAN.md`; acciones externas
-y rollback en `docs/V1_1_MANUAL_ACTIONS.md`; aceptación en
+El plan de estabilización está en `docs/V1_1_PLAN.md`; publicación, acciones
+externas y rollback en `docs/V1_1_MANUAL_ACTIONS.md`; aceptación en
 `docs/V1_1_ACCEPTANCE_CHECKLIST.md`.

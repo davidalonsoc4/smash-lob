@@ -901,3 +901,27 @@ This is human acceptance evidence reported by the project owner. It was not repl
   «Actualizando…» y la PWA se recargó automáticamente. Queda validado en
   dispositivo real el flujo de actualización controlada; sigue pendiente repetir
   el arranque offline en frío y la recuperación de sesión con este worker.
+
+## v1.1.0 — aceptación final y autorización de publicación (2026-08-03)
+
+- La prueba física pendiente de arranque offline en frío se completó correctamente
+  en Android con el worker final: al abrir sin conexión apareció `/offline`, no se
+  mostró Google Login ni onboarding y, al recuperar Internet y pulsar **Reintentar**,
+  se restauró la sesión mediante una navegación completa.
+- El alta y la baja push normales ya estaban verificadas físicamente en Android y
+  Supabase PRE. La reproducción física de un endpoint caducado `404/410` se omite
+  por decisión explícita de aceptación porque el comportamiento está cubierto por
+  diez pruebas automatizadas. Se acepta como riesgo residual bajo la posible
+  permanencia temporal de una suscripción obsoleta; no afecta a datos de ligas ni a
+  suscripciones válidas.
+- Con esta decisión quedan cerrados los criterios de aceptación de PRE para la rama
+  `feature/v1.1-stability-hardening`. Se autoriza promover `v1.1.0-rc.1` a
+  `v1.1.0`, aplicar en PROD únicamente la migración
+  `20260802233000_revoke_previous_league_invites.sql`, fusionar `staging` en `main`
+  y crear la etiqueta anotada `v1.1.0`.
+- La publicación debe detenerse si el dry-run de Supabase detecta una migración
+  pendiente distinta de la esperada o si falla cualquier gate local. No se autoriza
+  `db reset`, `migration repair`, `npm audit fix`, `push --force` ni la reactivación
+  de códigos de invitación antiguos.
+- Este checkpoint documenta la aceptación y autorización. La evidencia del commit,
+  deployment y smoke tests de Producción se registrará tras ejecutar la publicación.

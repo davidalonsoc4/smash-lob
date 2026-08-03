@@ -1,6 +1,14 @@
 CHANGED_FILES.txt
+README.md
+docs/V1_1_ACCEPTANCE_CHECKLIST.md
+docs/V1_1_MANUAL_ACTIONS.md
+docs/production-hardening/STATUS.md
 package.json
 package-lock.json
-src/app/settings/page.tsx
+public/sw.js
 src/lib/appVersion.ts
 src/lib/changelog.ts
+tests/unit/changelogGrouping.test.ts
+tests/unit/pwa.test.ts
+tests/e2e/authenticated-screens.spec.ts-snapshots/authenticated-settings-mobile-chromium-win32.png
+tests/e2e/authenticated-screens.spec.ts-snapshots/authenticated-settings-desktop-chromium-win32.png
