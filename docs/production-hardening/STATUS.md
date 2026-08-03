@@ -892,3 +892,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
   respaldo y el caso de worker ya no disponible. La corrección pasó
   `npm run validate` completo (17 archivos/66 pruebas y build) y 14/14 pruebas
   Playwright en modo CI. Quedan pendientes el despliegue y la repetición física.
+- El commit `c9ad883` quedó verificado en `origin/staging`; GitHub Actions
+  `v1.1 quality #20` terminó en `Success` con `quality` y `browser` correctos.
+  Vercel lo desplegó en Preview como `dpl_7qD9985sfzA7PTxcmgoyFpEqmGYi`,
+  `Ready` y asociado a `pre.smashandlob.com`; la sonda autenticada confirmó
+  `event.waitUntil(self.skipWaiting())` en el service worker servido.
+- La repetición física en Android mostró el aviso, «Actualizar ahora» cambió a
+  «Actualizando…» y la PWA se recargó automáticamente. Queda validado en
+  dispositivo real el flujo de actualización controlada; sigue pendiente repetir
+  el arranque offline en frío y la recuperación de sesión con este worker.
