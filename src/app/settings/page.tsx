@@ -338,6 +338,23 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
       </SettingsSection>
 
       <SettingsSection
+        title="Laboratorio"
+        description="Funciones experimentales disponibles solo en PRE."
+      >
+        <SettingsLinkRow
+          href="/experimental/avatar-lab"
+          id="avatar-lab"
+          title="Laboratorio de avatares"
+          description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
+          badge={
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+              PRE
+            </span>
+          }
+        />
+      </SettingsSection>
+
+      <SettingsSection
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
       >
@@ -647,6 +664,23 @@ function PlayerSettingsPage() {
           ) : null}
         </SettingsSection>
       ) : null}
+
+      <SettingsSection
+        title="Laboratorio"
+        description="Funciones experimentales disponibles solo en PRE."
+      >
+        <SettingsLinkRow
+          href="/experimental/avatar-lab"
+          id="avatar-lab"
+          title="Laboratorio de avatares"
+          description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
+          badge={
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+              PRE
+            </span>
+          }
+        />
+      </SettingsSection>
 
       <SettingsSection
         title="Ayuda e información"

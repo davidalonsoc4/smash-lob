@@ -1,9 +1,0 @@
-{
-  "category": "wristband",
-  "world": "pixel_chibi",
-  "implementation": "typed_inline_svg_primitives",
-  "rendererTokens": [
-    "wristband.none",
-    "wristband.basic_01"
-  ]
-}

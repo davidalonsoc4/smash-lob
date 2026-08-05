@@ -1,8 +1,0 @@
-{
-  "category": "head",
-  "world": "pixel_chibi",
-  "implementation": "typed_inline_svg_primitives",
-  "rendererTokens": [
-    "head.round_01"
-  ]
-}

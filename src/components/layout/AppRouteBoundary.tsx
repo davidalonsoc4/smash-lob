@@ -23,30 +23,12 @@ const publicRoutes = new Set(["/about", "/privacy", "/terms", "/auth/error", "/o
 export function AppRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
-  const isAvatarLabRoute = pathname === "/experimental/avatar-lab"
-
   if (publicRoutes.has(pathname)) {
     return (
       <>
         <PwaInstallPrompt />
         <PwaUpdatePrompt />
         {children}
-      </>
-    )
-  }
-
-  if (isAvatarLabRoute) {
-    return (
-      <>
-        <PwaInstallPrompt />
-        <PwaUpdatePrompt />
-        <OfflineGate>
-          <AuthGate>
-            <AccountProfileProvider>
-              <ProfileCompletionGate>{children}</ProfileCompletionGate>
-            </AccountProfileProvider>
-          </AuthGate>
-        </OfflineGate>
       </>
     )
   }

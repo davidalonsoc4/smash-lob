@@ -1,9 +1,0 @@
-{
-  "category": "eyebrows",
-  "world": "pixel_chibi",
-  "implementation": "typed_inline_svg_primitives",
-  "rendererTokens": [
-    "eyebrows.thick_straight_01",
-    "eyebrows.angled_01"
-  ]
-}

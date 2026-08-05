@@ -965,3 +965,40 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se añadieron manifest, paletas, esquemas portables, catálogos por categoría, guía de estilo, plantilla maestra, reglas de compatibilidad, arquitectura, alcance y roadmap bajo `public/avatars` y `docs/avatars`.
 - Validación ejecutada en este entorno: `npm run avatars:check` pasa con 26 primitivas modulares; 28 archivos TS/TSX transpilan sin errores sintácticos; el typecheck estricto aislado de Avatar Lab pasa; las comprobaciones de ejecución de receta, normalización, aleatorización, persistencia y render diestro/zurdo pasan; todos los JSON cargan correctamente; la vista canónica se rasterizó desde el renderer real y se inspeccionó; `git diff --check` pasa.
 - `npm ci` y, por tanto, `npm run validate` completo no pueden ejecutarse en este entorno porque el registro interno devuelve 404 para `zod-validation-error@4.0.2`. El script de entrega mantiene `npm ci`, `npm run avatars:check` y `npm run validate` como gates obligatorios antes del commit, push y publicación exclusiva en PRE.
+
+## v1.2.4 - Laboratorio móvil de avatares limitado a PRE (2026-08-05)
+
+- La rama experimental `feature/avatar-worlds-demo` se reduce a dos opciones viables: DiceBear Big Smile y Notion Avatar.
+- Se eliminan Ready Player Me, Pacovqzz/Avatune, el prototipo Pixel Chibi y todos sus endpoints, recursos, modelos, documentación y pruebas huérfanas.
+- Ajustes incorpora un acceso para usuarios autenticados; toda la ruta `/experimental/avatar-lab` permanece protegida por el layout PRE-only, `noindex` y el `AppShell` normal.
+- Ambos editores adoptan componentes, anchura, tarjetas, navegación, tamaños táctiles y zonas seguras coherentes con la PWA móvil.
+- Las recetas se conservan solo en `localStorage`; no existe integración con perfil, jugadores, Supabase ni migraciones.
+- Notion Avatar se compone mediante un endpoint local cacheado a partir de los SVG abiertos del proyecto oficial, evitando la dependencia `react-notion-avatar` y su árbol de paquetes obsoleto.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.4`.
+- La entrega debe superar el validador específico, Vitest focalizado, lint, TypeScript, suite completa y build antes de cualquier commit o publicación en PRE.
+
+## v1.2.5 - Corrección de la línea base para publicar Avatar Lab en PRE (2026-08-05)
+
+- Se mantiene el alcance funcional de v1.2.4: únicamente DiceBear Big Smile y Notion Avatar, sin escritura de perfil ni Supabase.
+- La poda de dependencias reubicó tres copias heredadas de `brace-expansion@1.1.17` bajo plugins concretos de ESLint.
+- El validador permite solo esas rutas exactas y exige que el lockfile las marque como dependencias de desarrollo; no se amplía la autorización al runtime.
+- La copia principal de `brace-expansion` sigue obligada a `5.0.8` o superior.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.5`.
+- Todos los gates se ejecutan antes del commit y de nuevo sobre el merge candidato a `staging`.
+
+## v1.2.6 - Compatibilidad React del laboratorio de avatares (2026-08-05)
+
+- Se eliminan las actualizaciones síncronas de estado ejecutadas directamente desde efectos en Big Smile y Notion Avatar.
+- La restauración desde `localStorage` se realiza mediante tareas cancelables y las vistas previas derivan su estado de la URL o receta activa.
+- El paginado de Notion se reinicia desde la acción de cambio de categoría.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.6`.
+- No hay migraciones de Supabase ni cambios en datos persistidos.
+
+
+## v1.2.7 - Limpieza de tipos generados y compatibilidad ES2017 (2026-08-05)
+
+- La validación elimina `.next` y `tsconfig.tsbuildinfo` antes del typecheck para evitar referencias generadas a rutas experimentales ya retiradas.
+- El renderer de Notion sustituye el flag `s` de expresión regular por un patrón multilínea compatible con el objetivo ES2017 del proyecto.
+- Se mantiene el alcance de Avatar Lab: únicamente DiceBear Big Smile y Notion Avatar, limitado a PRE y sin persistencia en perfiles o Supabase.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.7`.
+- No hay migraciones de Supabase ni cambios en datos persistidos.

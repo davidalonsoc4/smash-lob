@@ -1,8 +1,0 @@
-{
-  "category": "body",
-  "world": "pixel_chibi",
-  "implementation": "typed_inline_svg_primitives",
-  "rendererTokens": [
-    "body.male_compact_01"
-  ]
-}

@@ -15,6 +15,66 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.7",
+    date: "5 de agosto de 2026",
+    title: "Validación limpia del laboratorio de avatares",
+    summary:
+      "Se eliminan referencias generadas a rutas descartadas y se adapta el renderer Notion al objetivo TypeScript del proyecto.",
+    category: "fix",
+    changes: [
+      "La validación elimina la caché .next y el estado incremental de TypeScript antes de comprobar tipos, evitando referencias obsoletas a Pacovqzz y Ready Player Me.",
+      "El endpoint de Notion deja de utilizar el flag dotAll y mantiene el mismo tratamiento multilínea con una expresión compatible con ES2017.",
+      "Se conservan únicamente DiceBear Big Smile y Notion Avatar, sin integración con perfiles ni escrituras en Supabase.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.6",
+    date: "5 de agosto de 2026",
+    title: "Compatibilidad del laboratorio con las reglas de React",
+    summary:
+      "Se corrige la gestión del estado local y de las vistas previas para completar la validación del laboratorio de avatares en PRE.",
+    category: "fix",
+    changes: [
+      "Big Smile y Notion Avatar cargan las recetas locales mediante tareas cancelables sin actualizaciones síncronas dentro de efectos.",
+      "El estado de carga de cada vista previa se deriva de la URL o receta que está realmente renderizándose, evitando renders encadenados.",
+      "El paginado de Notion se reinicia desde la acción de cambio de categoría en lugar de usar un efecto adicional.",
+      "Se mantiene el alcance experimental: los avatares siguen sin aplicarse al perfil ni escribirse en Supabase.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.5",
+    date: "5 de agosto de 2026",
+    title: "Publicación segura del laboratorio de avatares",
+    summary:
+      "Se corrige la validación de dependencias de desarrollo para publicar en PRE el laboratorio móvil de Big Smile y Notion Avatar.",
+    category: "fix",
+    changes: [
+      "La línea base reconoce únicamente las copias heredadas de brace-expansion alojadas en rutas concretas de plugins de ESLint.",
+      "Las excepciones siguen limitadas a dependencias de desarrollo y la copia principal mantiene la versión segura exigida.",
+      "El laboratorio conserva solo DiceBear Big Smile y Notion Avatar, sin integración todavía con el perfil del usuario.",
+      "La versión se incrementa antes de reanudar la validación completa y la publicación exclusiva en PRE.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.4",
+    date: "5 de agosto de 2026",
+    title: "Laboratorio de avatares en PRE",
+    summary:
+      "Ajustes incorpora un laboratorio móvil para comparar DiceBear Big Smile y Notion Avatar sin modificar todavía el perfil del usuario.",
+    category: "new",
+    changes: [
+      "Se añade un acceso experimental desde Ajustes a una portada con los dos editores de avatar que siguen siendo viables.",
+      "DiceBear Big Smile y Notion Avatar comparten una interfaz móvil coherente con el diseño de Smash & Lob.",
+      "Ready Player Me y Pacovqzz se retiran junto con sus rutas, dependencias, recursos y pruebas experimentales.",
+      "Las recetas de prueba se guardan únicamente en el navegador y no escriben en Supabase ni cambian la imagen de perfil.",
+      "La ruta completa permanece limitada a PRE, requiere la sesión normal de la aplicación y no se indexa.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
     version: "v1.2.3",
     date: "3 de agosto de 2026",
     title: "Editor de imagen accesible en móvil",
