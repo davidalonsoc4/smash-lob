@@ -12,12 +12,9 @@ export const NOTION_AVATAR_PARTS = {
 } as const
 
 export type NotionAvatarPart = keyof typeof NOTION_AVATAR_PARTS
-export type NotionAvatarShape = "circle" | "rounded" | "square"
 export type NotionAvatarRecipe = Record<NotionAvatarPart, number>
 export type NotionAvatarSavedState = {
   recipe: NotionAvatarRecipe
-  backgroundColor: string
-  shape: NotionAvatarShape
 }
 
 export const NOTION_AVATAR_PART_ORDER = Object.keys(
@@ -36,72 +33,6 @@ export const DEFAULT_NOTION_AVATAR_RECIPE: NotionAvatarRecipe = {
   details: 0,
   beard: 4,
 }
-
-export const NOTION_AVATAR_PRESETS: readonly {
-  id: string
-  label: string
-  recipe: NotionAvatarRecipe
-  backgroundColor: string
-  shape: NotionAvatarShape
-}[] = [
-  {
-    id: "davo",
-    label: "Davo",
-    recipe: DEFAULT_NOTION_AVATAR_RECIPE,
-    backgroundColor: "#f5f0e8",
-    shape: "rounded",
-  },
-  {
-    id: "minimal",
-    label: "Minimal",
-    recipe: {
-      ...DEFAULT_NOTION_AVATAR_RECIPE,
-      face: 0,
-      nose: 1,
-      mouth: 2,
-      eyes: 0,
-      eyebrows: 2,
-      hair: 12,
-      beard: 0,
-    },
-    backgroundColor: "#ffffff",
-    shape: "circle",
-  },
-  {
-    id: "glasses",
-    label: "Con gafas",
-    recipe: {
-      ...DEFAULT_NOTION_AVATAR_RECIPE,
-      face: 6,
-      nose: 3,
-      mouth: 10,
-      eyes: 4,
-      eyebrows: 5,
-      glasses: 6,
-      hair: 3,
-      beard: 2,
-    },
-    backgroundColor: "#dbeafe",
-    shape: "rounded",
-  },
-  {
-    id: "barba",
-    label: "Barba",
-    recipe: {
-      ...DEFAULT_NOTION_AVATAR_RECIPE,
-      face: 9,
-      nose: 9,
-      mouth: 4,
-      eyes: 7,
-      eyebrows: 9,
-      hair: 25,
-      beard: 8,
-      details: 2,
-    },
-    backgroundColor: "#dcfce7",
-    shape: "square",
-  },
-] as const
 
 export function notionPartValues(part: NotionAvatarPart) {
   return Array.from(

@@ -1,3 +1,11 @@
+# Avatar Lab v1.2.8 — Notion compacto (2026-08-05)
+
+- Editor Notion reorganizado en una única vista móvil con preview y controles visibles simultáneamente.
+- Eliminados presets, selección de forma y selección de fondo.
+- Lienzo Notion fijo, rectangular y blanco.
+- Categorías accesibles con anterior/siguiente y selector nativo; estilos centrados en navegación anterior/siguiente.
+- Sin cambios en perfil, Supabase o datos de liga.
+
 ## v0.16.12 — Classic style naming and award header polish
 
 - Renamed the visible neutral appearance style to Clásico/Classic/Klasikoa while preserving the internal `plain` storage key.

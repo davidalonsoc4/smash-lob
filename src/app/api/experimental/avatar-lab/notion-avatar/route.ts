@@ -77,7 +77,7 @@ export async function GET(request: Request) {
     )
 
     return svgResponse(
-      `<svg viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">${SVG_FILTER}<g filter="url(#notion-avatar-outline)">${layers.join("")}</g></svg>`,
+      `<svg viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="1080" height="1080" fill="#ffffff"/>${SVG_FILTER}<g filter="url(#notion-avatar-outline)">${layers.join("")}</g></svg>`,
     )
   } catch (error) {
     const message =
