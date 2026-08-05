@@ -55,6 +55,14 @@ describe("Avatar Lab PRE isolation", () => {
       expect(source.toLowerCase()).not.toContain("supabase")
       expect(source).not.toContain("fetch(")
     }
+
+    const notion = await readFile(
+      "src/features/avatar-lab/components/NotionAvatarEditorClient.tsx",
+      "utf8",
+    )
+    expect(notion).toContain("h-[calc(100dvh-8rem)]")
+    expect(notion).toContain("min-h-[510px]")
+    expect(notion).toContain("max-h-[760px]")
   })
 
   it("removes discarded worlds and their assets", async () => {

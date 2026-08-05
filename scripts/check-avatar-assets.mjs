@@ -38,7 +38,7 @@ const [
 const pkg = JSON.parse(packageJson)
 const dependencies = pkg.dependencies ?? {}
 
-assert(pkg.version === "1.2.7", "La entrega debe usar la version 1.2.7")
+assert(pkg.version === "1.2.8", "La entrega debe usar la version 1.2.8")
 assert(!dependencies["@avatune/react"], "@avatune/react debe eliminarse")
 assert(!dependencies["@avatune/pacovqzz-theme"], "El tema Pacovqzz debe eliminarse")
 assert(!dependencies["react-notion-avatar"], "react-notion-avatar no debe arrastrar su arbol obsoleto")
@@ -69,10 +69,20 @@ assert(!notionEditor.includes('setPreviewState("loading")'), "Notion no debe rei
 assert(!notionEditor.includes("setPage(0)\n  }, [selectedPart]"), "Notion debe reiniciar el paginado desde la accion del usuario")
 assert(bigSmileEditor.includes("previewResult?.url === avatarUrl"), "Big Smile debe derivar la carga desde la URL activa")
 assert(notionEditor.includes("previewResult?.key === previewKey"), "Notion debe derivar la carga desde la receta activa")
+
+assert(notionEditor.includes("h-[calc(100dvh-8rem)]"), "Notion debe concentrar preview y controles en la altura movil")
+assert(notionEditor.includes("grid-rows-[minmax(180px,1fr)_auto]"), "Notion debe reservar una preview flexible siempre visible")
+for (const label of ["Categoría anterior", "Categoría siguiente", "Estilo anterior", "Estilo siguiente", "Seleccionar categoría"]) {
+  assert(notionEditor.includes(`aria-label="${label}"`), `Falta el control movil ${label}`)
+}
+for (const removed of ["NOTION_AVATAR_PRESETS", "Forma", "Fondo", "backgroundColor", "setShape"]) {
+  assert(!notionEditor.includes(removed), `${removed} debe eliminarse del editor Notion`)
+}
 assert(notionRoute.includes("raw.githubusercontent.com/Mayandev/notion-avatar"), "Notion debe usar los recursos SVG oficiales")
 assert(notionRoute.includes("sanitizeSvg"), "Los SVG remotos deben sanearse")
 assert(!notionRoute.includes("/is,"), "Notion no debe usar el flag dotAll incompatible con ES2017")
 assert(notionRoute.includes("[\\s\\S]*?<svg"), "Notion debe conservar el tratamiento SVG multilínea compatible")
+assert(notionRoute.includes('fill="#ffffff"'), "Notion debe renderizar siempre un fondo blanco")
 assert(notionRoute.includes("next: { revalidate:"), "El renderer Notion debe cachear los recursos")
 
 await Promise.all([
@@ -85,10 +95,10 @@ await Promise.all([
   mustNotExist("src/app/api/experimental/avatar-lab/ready-player-me-status", "El endpoint Ready Player Me debe eliminarse"),
 ])
 
-console.log("Avatar Lab v1.2.7 correcto:")
+console.log("Avatar Lab v1.2.8 correcto:")
 console.log("- acceso autenticado desde Ajustes para jugador y espectador")
 console.log("- ruta completa limitada a PRE y no indexable")
 console.log("- solo DiceBear Big Smile y Notion Avatar")
-console.log("- interfaz movil coherente con Smash & Lob")
+console.log("- editor Notion compacto con preview y controles simultaneos")
 console.log("- recetas locales sin Supabase ni cambios de perfil")
 console.log("- dependencias y recursos descartados eliminados")

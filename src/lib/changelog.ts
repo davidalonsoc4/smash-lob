@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.8",
+    date: "5 de agosto de 2026",
+    title: "Editor Notion compacto y siempre visible",
+    summary:
+      "La edición de Notion Avatar se concentra en una sola vista móvil para cambiar categorías y estilos sin perder la previsualización.",
+    category: "improvement",
+    changes: [
+      "La previsualización ocupa el espacio flexible de la pantalla y permanece visible junto a los controles principales en la vista móvil.",
+      "Se eliminan los presets, la forma y el fondo: Notion Avatar utiliza siempre un lienzo rectangular blanco.",
+      "La categoría se cambia mediante flechas o tocando su nombre para abrir el selector nativo del dispositivo.",
+      "Los estilos se recorren con botones anterior y siguiente de mayor tamaño, mostrando claramente la posición dentro de cada categoría.",
+      "La receta continúa guardándose solo en el navegador y no se aplica al perfil ni escribe en Supabase.",
+    ],
+  },
+  {
     version: "v1.2.7",
     date: "5 de agosto de 2026",
     title: "Validación limpia del laboratorio de avatares",

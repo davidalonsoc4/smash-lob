@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
