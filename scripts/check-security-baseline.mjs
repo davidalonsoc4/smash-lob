@@ -75,6 +75,9 @@ const legacyBraceExpansionAllowlist = [
   /^node_modules\/@eslint\/[^/]+\/node_modules\/brace-expansion$/,
   /^node_modules\/eslint\/node_modules\/brace-expansion$/,
   /^node_modules\/eslint-config-next\/node_modules\/brace-expansion$/,
+  /^node_modules\/eslint-plugin-import\/node_modules\/brace-expansion$/,
+  /^node_modules\/eslint-plugin-jsx-a11y\/node_modules\/brace-expansion$/,
+  /^node_modules\/eslint-plugin-react\/node_modules\/brace-expansion$/,
 ]
 
 const braceEntries = packageEntries("brace-expansion")
@@ -100,7 +103,7 @@ for (const [packagePath, metadata] of braceEntries) {
 
   if (major === 1 && isAtLeast(version, "1.1.17")) {
     const allowed = legacyBraceExpansionAllowlist.some((pattern) => pattern.test(packagePath))
-    if (allowed) {
+    if (allowed && metadata.dev === true) {
       allowedLegacyCopies += 1
       continue
     }

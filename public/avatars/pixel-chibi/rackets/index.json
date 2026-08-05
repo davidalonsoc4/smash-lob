@@ -1,9 +1,0 @@
-{
-  "category": "racket",
-  "world": "pixel_chibi",
-  "implementation": "typed_inline_svg_primitives",
-  "rendererTokens": [
-    "racket.round_b_01",
-    "racket.diamond_stripe_01"
-  ]
-}

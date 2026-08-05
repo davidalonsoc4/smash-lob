@@ -1,43 +1,67 @@
-import { readFile } from "node:fs/promises"
+import { access, readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
-describe("Avatar Lab isolation", () => {
-  it("gates the route to PRE and prevents indexing", async () => {
-    const page = await readFile("src/app/experimental/avatar-lab/page.tsx", "utf8")
-    expect(page).toContain("isPreproductionApp()")
-    expect(page).toContain("notFound()")
-    expect(page).toContain("index: false")
-    expect(page).toContain("follow: false")
+async function exists(path: string) {
+  try {
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
+describe("Avatar Lab PRE isolation", () => {
+  it("keeps the complete route in PRE and out of search engines", async () => {
+    const layout = await readFile("src/app/experimental/avatar-lab/layout.tsx", "utf8")
+    expect(layout).toContain("isPreproductionApp()")
+    expect(layout).toContain("notFound()")
+    expect(layout).toContain("index: false")
+    expect(layout).toContain("follow: false")
   })
 
-  it("uses an isolated provider branch without league or match providers", async () => {
+  it("uses the normal authenticated app shell", async () => {
     const boundary = await readFile("src/components/layout/AppRouteBoundary.tsx", "utf8")
-    const start = boundary.indexOf("if (isAvatarLabRoute)")
-    const end = boundary.indexOf("\n\n  return (", start)
-    const block = boundary.slice(start, end)
-    expect(boundary).toContain('pathname === "/experimental/avatar-lab"')
-    expect(block).not.toContain("LeagueAccessProvider")
-    expect(block).not.toContain("MatchDataProvider")
-    expect(block).not.toContain("AppShell")
+    expect(boundary).toContain("<AuthGate>")
+    expect(boundary).toContain("<AppShell>{children}</AppShell>")
+    expect(boundary).not.toContain('pathname.startsWith("/experimental/avatar-lab")')
   })
 
-  it("uses versioned localStorage and no API or Supabase writes", async () => {
-    const storage = await readFile("src/features/avatar-lab/storage.ts", "utf8")
-    const client = await readFile("src/features/avatar-lab/components/AvatarLabClient.tsx", "utf8")
-    expect(storage).toContain("smash-lob-avatar-lab-recipe-v1")
-    expect(storage).toContain("smash-lob-avatar-lab-world-v1")
-    expect(client).not.toContain("supabase")
-    expect(client).not.toContain("/api/")
-    expect(client).not.toContain("fetch(")
+  it("exposes exactly the two viable editors", async () => {
+    const hub = await readFile("src/features/avatar-lab/components/AvatarLabClient.tsx", "utf8")
+    expect(hub).toContain('/experimental/avatar-lab/big-smile')
+    expect(hub).toContain('/experimental/avatar-lab/notion-avatar')
+    expect(hub).not.toContain("ready-player-me")
+    expect(hub).not.toContain("Pacovqzz")
   })
 
-  it("keeps the mobile editor within the app phone width and safe areas", async () => {
-    const client = await readFile("src/features/avatar-lab/components/AvatarLabClient.tsx", "utf8")
-    const preview = await readFile("src/features/avatar-lab/components/AvatarPreview.tsx", "utf8")
-    expect(client).toContain("max-w-md")
-    expect(client).toContain("env(safe-area-inset-bottom)")
-    expect(client).toContain("grid grid-cols-2")
-    expect(preview).toContain("aspect-[4/5]")
-    expect(preview).toContain("max-w-[360px]")
+  it("adds the laboratory to Settings for players and spectators", async () => {
+    const settings = await readFile("src/app/settings/page.tsx", "utf8")
+    const search = await readFile("src/lib/settingsSearch.ts", "utf8")
+    expect(settings.match(/href="\/experimental\/avatar-lab"/g)).toHaveLength(2)
+    expect(search).toContain('avatarLab: "/experimental/avatar-lab"')
+    expect(search.match(/"avatarLab"/g)?.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it("keeps the editors mobile-first and browser-only", async () => {
+    const files = [
+      "src/features/avatar-lab/components/AvatarLabClient.tsx",
+      "src/features/avatar-lab/components/BigSmileEditorClient.tsx",
+      "src/features/avatar-lab/components/NotionAvatarEditorClient.tsx",
+    ]
+    for (const file of files) {
+      const source = await readFile(file, "utf8")
+      expect(source).toContain("compact-page")
+      expect(source).toContain("env(safe-area-inset-bottom)")
+      expect(source.toLowerCase()).not.toContain("supabase")
+      expect(source).not.toContain("fetch(")
+    }
+  })
+
+  it("removes discarded worlds and their assets", async () => {
+    await expect(exists("docs/avatars")).resolves.toBe(false)
+    await expect(exists("public/avatars")).resolves.toBe(false)
+    await expect(exists("public/experimental")).resolves.toBe(false)
+    await expect(exists("src/app/experimental/avatar-lab/pacovqzz")).resolves.toBe(false)
+    await expect(exists("src/app/experimental/avatar-lab/ready-player-me")).resolves.toBe(false)
   })
 })

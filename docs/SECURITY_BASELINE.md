@@ -13,7 +13,7 @@ La rama `feature/v0.18-security-hardening` inicia la serie v0.18 con una comprob
 - `next-auth`: `5.0.0-beta.32` o una versión corregida posterior.
 - `@auth/core`: `0.41.3` o superior.
 - `brace-expansion` usado por el árbol principal: `5.0.8` o superior.
-- Las copias heredadas `1.1.16` solo se aceptan bajo las herramientas de lint actuales. Si aparecen en otra rama del árbol, la comprobación falla.
+- Las copias heredadas `1.1.17` solo se aceptan en rutas concretas de herramientas de lint y cuando el lockfile las marca como dependencias de desarrollo. Si aparecen en otra rama del árbol o pasan a producción, la comprobación falla.
 
 ## Actualizaciones automáticas
 

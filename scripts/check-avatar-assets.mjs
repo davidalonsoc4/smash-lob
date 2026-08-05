@@ -1,123 +1,94 @@
-import { access, readFile, readdir } from "node:fs/promises"
-import path from "node:path"
+import { access, readFile } from "node:fs/promises"
 
-const root = process.cwd()
-const manifestPath = path.join(root, "public/avatars/shared/manifest.json")
-const palettesPath = path.join(root, "public/avatars/shared/palettes.json")
-const rendererPath = path.join(root, "src/features/avatar-lab/renderers/PixelChibiAvatarRenderer.tsx")
-const renderedRoot = path.join(root, "public/avatars/pixel-chibi/rendered")
-const referencePath = path.join(root, "docs/avatars/reference/pixel-chibi-canonical.png")
-
-const manifest = JSON.parse(await readFile(manifestPath, "utf8"))
-const palettes = JSON.parse(await readFile(palettesPath, "utf8"))
-
-function assert(condition, message) {
+const read = (path) => readFile(path, "utf8")
+const assert = (condition, message) => {
   if (!condition) throw new Error(message)
 }
-
-function readPngMetadata(buffer, label) {
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
-  assert(buffer.length >= 33, `${label} no contiene una cabecera PNG valida`)
-  assert(buffer.subarray(0, 8).equals(signature), `${label} no es un PNG valido`)
-  assert(buffer.toString("ascii", 12, 16) === "IHDR", `${label} no contiene IHDR`)
-  return {
-    width: buffer.readUInt32BE(16),
-    height: buffer.readUInt32BE(20),
-    bitDepth: buffer[24],
-    colorType: buffer[25],
+const mustNotExist = async (path, message) => {
+  try {
+    await access(path)
+  } catch {
+    return
   }
+  throw new Error(message)
 }
 
-assert(manifest.manifestVersion === 1, "manifestVersion debe ser 1")
-assert(manifest.recipeSchemaVersion === 1, "recipeSchemaVersion debe ser 1")
-assert(manifest.demoVersion === "Avatar Lab DEMO 0.2", "Version experimental inesperada")
-assert(manifest.masterTemplate?.viewBox?.join(" ") === "0 0 192 240", "ViewBox maestro invalido")
-assert(manifest.masterTemplate?.centerAxisX === 96, "Eje central maestro invalido")
-assert(manifest.masterTemplate?.groundLineY === 232, "Linea de suelo maestra invalida")
+const [
+  packageJson,
+  layout,
+  hub,
+  settings,
+  settingsSearch,
+  boundary,
+  bigSmileEditor,
+  notionEditor,
+  notionRoute,
+] = await Promise.all([
+  read("package.json"),
+  read("src/app/experimental/avatar-lab/layout.tsx"),
+  read("src/features/avatar-lab/components/AvatarLabClient.tsx"),
+  read("src/app/settings/page.tsx"),
+  read("src/lib/settingsSearch.ts"),
+  read("src/components/layout/AppRouteBoundary.tsx"),
+  read("src/features/avatar-lab/components/BigSmileEditorClient.tsx"),
+  read("src/features/avatar-lab/components/NotionAvatarEditorClient.tsx"),
+  read("src/app/api/experimental/avatar-lab/notion-avatar/route.ts"),
+])
 
-const worldMap = new Map(manifest.worlds.map((world) => [world.id, world]))
-assert(worldMap.get("pixel_chibi")?.available === true, "Pixel Chibi debe estar disponible")
-assert(worldMap.get("chibi_illustrated")?.available === false, "Chibi ilustrado debe seguir desactivado")
-assert(worldMap.get("chibi_illustrated")?.rendererId === null, "No debe existir renderer ilustrado provisional")
+const pkg = JSON.parse(packageJson)
+const dependencies = pkg.dependencies ?? {}
 
-const requiredCategories = [
-  "body", "head", "hair", "beard", "eyes", "eyebrows", "cap", "headband",
-  "shirt", "shorts", "sleeve", "wristband", "socks", "shoes", "racket",
-]
-const categories = new Set(manifest.assets.map((asset) => asset.category))
-for (const category of requiredCategories) {
-  assert(categories.has(category), `Falta la categoria modular ${category}`)
+assert(pkg.version === "1.2.7", "La entrega debe usar la version 1.2.7")
+assert(!dependencies["@avatune/react"], "@avatune/react debe eliminarse")
+assert(!dependencies["@avatune/pacovqzz-theme"], "El tema Pacovqzz debe eliminarse")
+assert(!dependencies["react-notion-avatar"], "react-notion-avatar no debe arrastrar su arbol obsoleto")
+
+assert(layout.includes("isPreproductionApp()"), "Avatar Lab debe limitarse a PRE")
+assert(layout.includes("notFound()"), "Avatar Lab debe devolver 404 fuera de PRE")
+assert(layout.includes("index: false") && layout.includes("follow: false"), "Avatar Lab no debe indexarse")
+assert(!boundary.includes('pathname.startsWith("/experimental/avatar-lab")'), "Avatar Lab debe usar el acceso autenticado normal")
+assert(boundary.includes("<AppShell>{children}</AppShell>"), "Avatar Lab debe renderizarse dentro del AppShell")
+
+for (const route of ["/experimental/avatar-lab/big-smile", "/experimental/avatar-lab/notion-avatar"]) {
+  assert(hub.includes(route), `Falta el acceso ${route}`)
 }
-
-const ids = manifest.assets.map((asset) => `${asset.category}.${asset.id}`)
-assert(new Set(ids).size === ids.length, "Existen IDs de asset duplicados")
-for (const asset of manifest.assets) {
-  assert(asset.worldVariants?.pixel_chibi, `Falta variante Pixel Chibi para ${asset.category}.${asset.id}`)
-  assert(asset.worldVariants?.chibi_illustrated === null, `Chibi ilustrado no puede reutilizar Pixel Chibi: ${asset.category}.${asset.id}`)
+for (const removed of ["ready-player-me", "Pacovqzz", "pacovqzz"]) {
+  assert(!hub.includes(removed), `${removed} no debe aparecer en el hub`)
 }
+assert((settings.match(/href="\/experimental\/avatar-lab"/g) ?? []).length === 2, "Ajustes debe mostrar el laboratorio a jugadores y espectadores")
+assert(settingsSearch.includes('avatarLab: "/experimental/avatar-lab"'), "El laboratorio debe estar indexado en la busqueda de Ajustes")
 
-const requiredPaletteTokens = [
-  "skin_light_warm", "skin_medium_warm", "dark_brown", "black", "charcoal", "navy",
-  "white", "light_blue", "light_blue_shadow", "green", "green_shadow", "red", "blue", "grey",
-]
-for (const token of requiredPaletteTokens) {
-  const values = palettes.tokens?.[token]
-  assert(Array.isArray(values) && values.length === 3, `La paleta ${token} debe tener principal, sombra y luz`)
+for (const client of [bigSmileEditor, notionEditor]) {
+  assert(client.includes("compact-page"), "Los editores deben usar la maqueta movil de la app")
+  assert(client.includes("env(safe-area-inset-bottom)"), "Los editores deben respetar la zona segura inferior")
+  assert(!client.toLowerCase().includes("supabase"), "Los editores no deben escribir en Supabase")
+  assert(!client.includes("fetch("), "Los editores no deben enviar datos desde el navegador")
 }
-assert(palettes.lightingDirection === "top_left", "La iluminacion debe ser top_left")
+assert(!bigSmileEditor.includes('setPreviewState("loading")'), "Big Smile no debe reiniciar la vista previa desde un efecto")
+assert(!notionEditor.includes('setPreviewState("loading")'), "Notion no debe reiniciar la vista previa desde un efecto")
+assert(!notionEditor.includes("setPage(0)\n  }, [selectedPart]"), "Notion debe reiniciar el paginado desde la accion del usuario")
+assert(bigSmileEditor.includes("previewResult?.url === avatarUrl"), "Big Smile debe derivar la carga desde la URL activa")
+assert(notionEditor.includes("previewResult?.key === previewKey"), "Notion debe derivar la carga desde la receta activa")
+assert(notionRoute.includes("raw.githubusercontent.com/Mayandev/notion-avatar"), "Notion debe usar los recursos SVG oficiales")
+assert(notionRoute.includes("sanitizeSvg"), "Los SVG remotos deben sanearse")
+assert(!notionRoute.includes("/is,"), "Notion no debe usar el flag dotAll incompatible con ES2017")
+assert(notionRoute.includes("[\\s\\S]*?<svg"), "Notion debe conservar el tratamiento SVG multilínea compatible")
+assert(notionRoute.includes("next: { revalidate:"), "El renderer Notion debe cachear los recursos")
 
-const requiredRasterAssets = [
-  "canonical-base.png",
-  "canonical-base-left.png",
-  "overlay-skin-light.png",
-  "overlay-hair-black.png",
-  "overlay-beard-black.png",
-  "overlay-eyes-blue.png",
-  "overlay-cap-black.png",
-  "overlay-shirt-green.png",
-  "overlay-shorts-navy.png",
-  "overlay-sleeve-white.png",
-  "overlay-wristband-black.png",
-  "overlay-socks-black.png",
-  "overlay-shoes-light-blue.png",
-]
+await Promise.all([
+  mustNotExist("docs/avatars", "La documentacion Pixel Chibi debe eliminarse"),
+  mustNotExist("public/avatars", "Los assets Pixel Chibi deben eliminarse"),
+  mustNotExist("public/experimental", "Los recursos experimentales descartados deben eliminarse"),
+  mustNotExist("src/app/experimental/avatar-lab/pacovqzz", "La ruta Pacovqzz debe eliminarse"),
+  mustNotExist("src/app/experimental/avatar-lab/ready-player-me", "La ruta Ready Player Me debe eliminarse"),
+  mustNotExist("src/app/api/experimental/avatar-lab/avatune", "El endpoint Avatune debe eliminarse"),
+  mustNotExist("src/app/api/experimental/avatar-lab/ready-player-me-status", "El endpoint Ready Player Me debe eliminarse"),
+])
 
-const renderedEntries = await readdir(renderedRoot)
-const unexpectedRenderedEntries = renderedEntries.filter((name) => !requiredRasterAssets.includes(name))
-assert(unexpectedRenderedEntries.length === 0, `Assets raster inesperados: ${unexpectedRenderedEntries.join(", ")}`)
-
-for (const assetName of requiredRasterAssets) {
-  const assetPath = path.join(renderedRoot, assetName)
-  const buffer = await readFile(assetPath)
-  const metadata = readPngMetadata(buffer, assetName)
-  assert(metadata.width === 192 && metadata.height === 240, `${assetName} debe medir 192x240`)
-  assert(metadata.bitDepth === 8, `${assetName} debe usar profundidad de 8 bits`)
-  assert(metadata.colorType === 6, `${assetName} debe ser PNG RGBA con transparencia`)
-  assert(buffer.length > 250, `${assetName} parece vacio o corrupto`)
-}
-
-const renderer = await readFile(rendererPath, "utf8")
-assert(renderer.includes('shapeRendering="crispEdges"'), "El SVG contenedor debe usar crispEdges")
-assert(renderer.includes('imageRendering: "pixelated"'), "El SVG debe declarar image-rendering pixelated")
-assert(renderer.includes("<image"), "El renderer DEMO 0.2 debe componer capas raster")
-assert(renderer.includes('data-avatar-layer="canonical-base"'), "El renderer debe declarar la capa canónica")
-assert(renderer.includes('data-logo-orientation="unmirrored"'), "El renderer debe declarar la orientación correcta de letras y logos")
-assert(!renderer.includes("docs/avatars/reference"), "La imagen de referencia documental no puede renderizarse directamente")
-assert(!/https?:\/\//.test(renderer), "El renderer no puede cargar assets remotos")
-assert(!/data:image\//.test(renderer), "El renderer no puede incrustar assets data URI")
-
-for (const assetName of requiredRasterAssets) {
-  const publicPath = `/avatars/pixel-chibi/rendered/${assetName}`
-  assert(renderer.includes(publicPath), `El renderer no declara la capa ${publicPath}`)
-}
-
-await access(referencePath)
-const illustratedEntries = await readdir(path.join(root, "public/avatars/chibi-illustrated"))
-assert(illustratedEntries.every((name) => name.toLowerCase() === "readme.md"), "Chibi ilustrado no debe contener assets visuales en la DEMO")
-
-console.log("Avatar assets correctos:")
-console.log(`- ${manifest.assets.length} entradas modulares declaradas`)
-console.log(`- ${requiredRasterAssets.length} capas raster PNG RGBA validadas a 192x240`)
-console.log("- renderer local con crispEdges e image-rendering pixelated")
-console.log("- referencia documental separada del renderer")
-console.log("- Chibi ilustrado reservado sin recursos provisionales")
+console.log("Avatar Lab v1.2.7 correcto:")
+console.log("- acceso autenticado desde Ajustes para jugador y espectador")
+console.log("- ruta completa limitada a PRE y no indexable")
+console.log("- solo DiceBear Big Smile y Notion Avatar")
+console.log("- interfaz movil coherente con Smash & Lob")
+console.log("- recetas locales sin Supabase ni cambios de perfil")
+console.log("- dependencias y recursos descartados eliminados")

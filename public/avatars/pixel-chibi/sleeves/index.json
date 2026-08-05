@@ -1,9 +1,0 @@
-{
-  "category": "sleeve",
-  "world": "pixel_chibi",
-  "implementation": "typed_inline_svg_primitives",
-  "rendererTokens": [
-    "sleeve.none",
-    "sleeve.dominant_long_01"
-  ]
-}
