@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.3",
+    date: "7 de agosto de 2026",
+    title: "Posición estable al filtrar el calendario",
+    summary:
+      "El Calendario sigue llevando a la jornada activa al abrir la pantalla, pero respeta la posición del usuario cuando cambia entre todos los partidos y sus propios partidos.",
+    category: "fix",
+    changes: [
+      "La jornada activa continúa enfocándose automáticamente al entrar en Calendario durante una temporada activa.",
+      "Cambiar entre Liga completa y Mis partidos ya no desplaza de nuevo la pantalla ni interrumpe la consulta en curso.",
+      "Las temporadas próximas o terminadas mantienen el comportamiento existente, sin posicionamiento automático.",
+    ],
+  },
+  {
     version: "v1.3.2",
     date: "6 de agosto de 2026",
     title: "Calendario más compacto y centrado en la jornada actual",
