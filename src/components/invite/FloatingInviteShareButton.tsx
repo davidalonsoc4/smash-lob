@@ -130,6 +130,7 @@ export function FloatingInviteShareButton({
     >
       <button
         type="button"
+        data-tour="floating-invite-players"
         onClick={handleShare}
         disabled={isGenerating}
         aria-label="Invitar jugadores a la liga"

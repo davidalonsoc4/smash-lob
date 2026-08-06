@@ -17,6 +17,31 @@ export function shouldShowHistoricalProfileStats({
   return league.showHistoricalProfileStats === true || !hasOpenSeason
 }
 
+export function getLatestPlayerProfileSeason({
+  leagueId,
+  seasons,
+  fallbackSeason,
+}: {
+  leagueId: string
+  seasons: Season[]
+  fallbackSeason: Season
+}) {
+  return (
+    seasons.filter((season) => season.leagueId === leagueId).at(-1) ??
+    fallbackSeason
+  )
+}
+
+export function shouldShowPlayerProfileSeasonSelector({
+  latestSeason,
+  scopes,
+}: {
+  latestSeason: Season
+  scopes: PlayerSeasonScope[]
+}) {
+  return latestSeason.status === "finished" && scopes.length > 1
+}
+
 export function getVisiblePlayerSeasonScopes({
   scopes,
   activeSeason,

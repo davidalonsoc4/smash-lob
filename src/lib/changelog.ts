@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.1",
+    date: "6 de agosto de 2026",
+    title: "Tutoriales más directos y perfiles compactos",
+    summary:
+      "Las guías contextuales se centran en las acciones útiles de cada pantalla y los perfiles priorizan siempre la temporada más reciente sin ocupar espacio innecesario.",
+    category: "improvement",
+    changes: [
+      "Inicio explica todos los controles flotantes disponibles para cada rol: notificaciones, invitaciones, acceso de espectadores, ayuda y ajustes.",
+      "Partidos, Clasificación, Estadísticas y Administración de temporada eliminan la explicación repetida de la cabecera y comienzan directamente por sus funciones principales.",
+      "Ajustes incorpora un tutorial específico que señala el buscador flotante de la esquina inferior derecha.",
+      "Mi perfil y los perfiles de jugadores muestran siempre la información de la última temporada de la liga.",
+      "Mientras la última temporada está activa o próxima, el selector histórico permanece oculto; cuando termina, aparece de forma compacta junto al nombre del jugador.",
+    ],
+  },
+  {
     version: "v1.3.0",
     date: "6 de agosto de 2026",
     title: "Guías visuales y ayuda contextual",

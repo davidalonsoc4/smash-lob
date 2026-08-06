@@ -421,6 +421,7 @@ export function GlobalSettingsSearch({
 
         <button
           type="button"
+          data-tour="settings-search"
           aria-expanded={isOpen}
           aria-label={copy.title}
           title={copy.title}

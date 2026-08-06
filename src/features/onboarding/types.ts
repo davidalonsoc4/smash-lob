@@ -7,6 +7,7 @@ export type OnboardingTourKey =
   | "ranking"
   | "statistics"
   | "season-admin"
+  | "settings"
 
 export type OnboardingProgressStatus = "completed" | "skipped"
 
