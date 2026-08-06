@@ -1,3 +1,16 @@
+# v1.2.10 — Endurecimiento previo a producción (2026-08-06)
+
+- Rama prevista: `chore/v1.2-prepublication-hardening`, creada desde `staging` en `bf605dd07bee3659a315c3ee1b0bec06daa4bfbf`.
+- Avatar Lab queda habilitado únicamente en `pre.smashandlob.com` y desarrollo local; Ajustes, búsqueda, páginas y API quedan bloqueados en PROD.
+- Los renderizadores experimentales requieren sesión, aplican rate limiting y no generan cachés públicas compartidas.
+- Las nuevas imágenes globales se generan a 256 × 256 y se limitan a 160 KB; la lectura mantiene compatibilidad con imágenes antiguas de hasta 512 KB.
+- `/api/access` publica `X-Smash-Lob-Snapshot-Bytes` y registra una advertencia estructurada cuando el snapshot supera 1 MB.
+- Se añaden `/api/health`, smoke tests PRE/PROD, validación de versión, auditoría de migraciones e identidad, y checklist de promoción.
+- La publicación a PROD queda bloqueada hasta superar `npm run release:check`, el smoke de PRE, la auditoría SQL y las comprobaciones manuales autenticadas del checklist.
+- No se modifica ninguna migración ya aplicada; cualquier reparación de datos debe añadirse en una migración posterior y reversible.
+- La regresión visual detectada en Ajustes correspondía al test: ocultaba únicamente la fila experimental y dejaba la sección vacía; v1.2.10 oculta la sección completa sin renovar snapshots.
+- `npm audit --omit=dev --audit-level=high` informa cero vulnerabilidades de producción; los avisos altos de `npm ci` quedan limitados a herramientas de desarrollo.
+
 # Avatar Lab v1.2.8 — Notion compacto (2026-08-05)
 
 - Editor Notion reorganizado en una única vista móvil con preview y controles visibles simultáneamente.

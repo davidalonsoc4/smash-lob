@@ -23,6 +23,11 @@ const [
   bigSmileEditor,
   notionEditor,
   notionRoute,
+  bigSmileRoute,
+  appUrl,
+  serverAvatarLabAccess,
+  serverImageValidation,
+  accountProfile,
 ] = await Promise.all([
   read("package.json"),
   read("src/app/experimental/avatar-lab/layout.tsx"),
@@ -33,17 +38,22 @@ const [
   read("src/features/avatar-lab/components/BigSmileEditorClient.tsx"),
   read("src/features/avatar-lab/components/NotionAvatarEditorClient.tsx"),
   read("src/app/api/experimental/avatar-lab/notion-avatar/route.ts"),
+  read("src/app/api/experimental/avatar-lab/dicebear-big-smile/route.ts"),
+  read("src/lib/appUrl.ts"),
+  read("src/lib/serverAvatarLabAccess.ts"),
+  read("src/lib/serverImageValidation.ts"),
+  read("src/components/settings/AccountProfileSettings.tsx"),
 ])
 
 const pkg = JSON.parse(packageJson)
 const dependencies = pkg.dependencies ?? {}
 
-assert(pkg.version === "1.2.8", "La entrega debe usar la version 1.2.8")
+assert(pkg.version === "1.2.10", "La entrega debe usar la version 1.2.10")
 assert(!dependencies["@avatune/react"], "@avatune/react debe eliminarse")
 assert(!dependencies["@avatune/pacovqzz-theme"], "El tema Pacovqzz debe eliminarse")
 assert(!dependencies["react-notion-avatar"], "react-notion-avatar no debe arrastrar su arbol obsoleto")
 
-assert(layout.includes("isPreproductionApp()"), "Avatar Lab debe limitarse a PRE")
+assert(layout.includes("isAvatarLabRequestContext()"), "Avatar Lab debe validar el host real de PRE")
 assert(layout.includes("notFound()"), "Avatar Lab debe devolver 404 fuera de PRE")
 assert(layout.includes("index: false") && layout.includes("follow: false"), "Avatar Lab no debe indexarse")
 assert(!boundary.includes('pathname.startsWith("/experimental/avatar-lab")'), "Avatar Lab debe usar el acceso autenticado normal")
@@ -55,8 +65,21 @@ for (const route of ["/experimental/avatar-lab/big-smile", "/experimental/avatar
 for (const removed of ["ready-player-me", "Pacovqzz", "pacovqzz"]) {
   assert(!hub.includes(removed), `${removed} no debe aparecer en el hub`)
 }
-assert((settings.match(/href="\/experimental\/avatar-lab"/g) ?? []).length === 2, "Ajustes debe mostrar el laboratorio a jugadores y espectadores")
-assert(settingsSearch.includes('avatarLab: "/experimental/avatar-lab"'), "El laboratorio debe estar indexado en la busqueda de Ajustes")
+assert((settings.match(/href="\/experimental\/avatar-lab"/g) ?? []).length === 2, "Ajustes debe conservar los dos accesos por tipo de usuario")
+assert((settings.match(/isAvatarLabEnabled\(\) \? \(/g) ?? []).length >= 2, "Ajustes debe ocultar el laboratorio fuera de PRE")
+assert(settingsSearch.includes("avatarLabEnabled"), "La busqueda de Ajustes debe filtrar Avatar Lab por entorno")
+assert(settingsSearch.includes('avatarLab: "/experimental/avatar-lab"'), "El laboratorio debe conservar su ruta de busqueda en PRE")
+for (const route of [bigSmileRoute, notionRoute]) {
+  assert(route.includes("isAvatarLabRequest(request)"), "Las API de Avatar Lab deben devolver 404 fuera de PRE")
+  assert(route.includes("requireAuthenticatedAppUser()"), "Las API de Avatar Lab deben exigir sesion")
+  assert(route.includes("enforceRequestRateLimit"), "Las API de Avatar Lab deben limitar abuso")
+  assert(route.includes("private, max-age"), "Las respuestas autenticadas no deben usar cache publica")
+}
+assert(appUrl.includes("official configured domain wins"), "El dominio oficial debe prevalecer ante una variante contradictoria")
+assert(serverAvatarLabAccess.includes("isProductionHost(host) || isProductionHost(forwardedHost)"), "El layout debe denegar PROD aunque el proxy presente otro host")
+assert(serverImageValidation.includes("ACCOUNT_AVATAR_MAX_BYTES = 160 * 1024"), "La imagen global debe tener un presupuesto de 160 KB")
+assert(accountProfile.includes("outputSize={256}"), "La imagen global debe generarse a 256 x 256")
+assert(accountProfile.includes("maxOutputBytes={160 * 1024}"), "El recorte debe respetar el presupuesto de 160 KB")
 
 for (const client of [bigSmileEditor, notionEditor]) {
   assert(client.includes("compact-page"), "Los editores deben usar la maqueta movil de la app")
@@ -95,9 +118,9 @@ await Promise.all([
   mustNotExist("src/app/api/experimental/avatar-lab/ready-player-me-status", "El endpoint Ready Player Me debe eliminarse"),
 ])
 
-console.log("Avatar Lab v1.2.8 correcto:")
-console.log("- acceso autenticado desde Ajustes para jugador y espectador")
-console.log("- ruta completa limitada a PRE y no indexable")
+console.log("Avatar Lab v1.2.10 correcto:")
+console.log("- acceso autenticado y con rate limit para jugador y espectador")
+console.log("- interfaz, busqueda y API limitadas al host real de PRE")
 console.log("- solo DiceBear Big Smile y Notion Avatar")
 console.log("- editor Notion compacto con preview y controles simultaneos")
 console.log("- recetas locales sin Supabase ni cambios de perfil")

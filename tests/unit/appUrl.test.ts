@@ -39,4 +39,18 @@ describe("public app URLs", () => {
     })
     expect(getPublicAppBaseUrl(request)).toBe(PRODUCTION_APP_URL)
   })
+
+  it("does not enable PRE when the production URL contradicts the variant", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", PRODUCTION_APP_URL)
+    vi.stubEnv("NEXT_PUBLIC_APP_VARIANT", "pre")
+
+    expect(getPublicAppBaseUrl()).toBe(PRODUCTION_APP_URL)
+  })
+
+  it("keeps PRE when its official URL contradicts the variant", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", PREPRODUCTION_APP_URL)
+    vi.stubEnv("NEXT_PUBLIC_APP_VARIANT", "production")
+
+    expect(getPublicAppBaseUrl()).toBe(PREPRODUCTION_APP_URL)
+  })
 })

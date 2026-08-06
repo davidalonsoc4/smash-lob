@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { parseJsonBody } from "@/lib/serverRequest"
 import {
-  isValidStoredImageUrl,
+  isValidAccountAvatarUrl,
   normalizeStoredImageUrl,
 } from "@/lib/serverImageValidation"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import {
   normalizeAccountStandardAvailability,
   normalizeProfileName,
@@ -167,6 +168,14 @@ export async function PUT(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "account_avatar_update",
+    limit: 10,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
   const authResult = await requireAuthenticatedAppUser()
 
   if (!authResult.ok) {
@@ -183,7 +192,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "invalid_avatar_url" }, { status: 400 })
   }
 
-  if (!isValidStoredImageUrl(rawAvatarUrl)) {
+  if (!isValidAccountAvatarUrl(rawAvatarUrl)) {
     return NextResponse.json({ error: "invalid_avatar_url" }, { status: 400 })
   }
 

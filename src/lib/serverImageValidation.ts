@@ -6,7 +6,8 @@ import {
   normalizeImageUrl,
 } from "@/lib/imageUrl"
 
-const maxDataImageBytes = 512 * 1024
+export const LEGACY_STORED_IMAGE_MAX_BYTES = 512 * 1024
+export const ACCOUNT_AVATAR_MAX_BYTES = 160 * 1024
 
 function getDataImageByteLength(value: string) {
   const separatorIndex = value.indexOf(",")
@@ -36,7 +37,7 @@ export function normalizeStoredImageUrl(value: string | null | undefined) {
   if (isSafeDataImageUrl(cleanValue)) {
     const byteLength = getDataImageByteLength(cleanValue)
 
-    if (!byteLength || byteLength > maxDataImageBytes) {
+    if (!byteLength || byteLength > LEGACY_STORED_IMAGE_MAX_BYTES) {
       return null
     }
   }
@@ -50,4 +51,23 @@ export function isValidStoredImageUrl(value: string | null | undefined) {
   }
 
   return Boolean(normalizeStoredImageUrl(value))
+}
+
+export function isValidAccountAvatarUrl(value: string | null | undefined) {
+  if (value === null) {
+    return true
+  }
+
+  const cleanValue = normalizeImageUrl(value)
+
+  if (!cleanValue || !isSafeImageUrl(cleanValue)) {
+    return false
+  }
+
+  if (!isSafeDataImageUrl(cleanValue)) {
+    return true
+  }
+
+  const byteLength = getDataImageByteLength(cleanValue)
+  return Boolean(byteLength && byteLength <= ACCOUNT_AVATAR_MAX_BYTES)
 }

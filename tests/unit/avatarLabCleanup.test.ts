@@ -5,7 +5,7 @@ describe("Avatar Lab dependency cleanup", () => {
   it("keeps only the dependencies required by the two viable editors", async () => {
     const packageJson = JSON.parse(await readFile("package.json", "utf8"))
     const lock = await readFile("package-lock.json", "utf8")
-    expect(packageJson.version).toBe("1.2.8")
+    expect(packageJson.version).toBe("1.2.10")
     expect(packageJson.dependencies).not.toHaveProperty("@avatune/react")
     expect(packageJson.dependencies).not.toHaveProperty("@avatune/pacovqzz-theme")
     expect(packageJson.dependencies).not.toHaveProperty("react-notion-avatar")
@@ -20,6 +20,9 @@ describe("Avatar Lab dependency cleanup", () => {
       expect(route).toContain("sanitizeSvg")
       expect(route).toContain("Cache-Control")
       expect(route).toContain("X-Content-Type-Options")
+      expect(route).toContain("isAvatarLabRequest(request)")
+      expect(route).toContain("requireAuthenticatedAppUser()")
+      expect(route).toContain("enforceRequestRateLimit")
     }
     expect(notion).toContain("raw.githubusercontent.com/Mayandev/notion-avatar")
     expect(notion).not.toContain("/is,")

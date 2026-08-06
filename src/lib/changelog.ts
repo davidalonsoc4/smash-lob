@@ -15,6 +15,37 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.10",
+    date: "6 de agosto de 2026",
+    title: "Validación visual de la candidata de producción",
+    summary:
+      "La comprobación visual excluye correctamente la sección experimental completa y confirma que las dependencias de producción no presentan vulnerabilidades conocidas.",
+    category: "fix",
+    changes: [
+      "El test visual de Ajustes oculta la sección completa de Avatar Lab en lugar de dejar una tarjeta experimental vacía.",
+      "Las capturas de referencia existentes se conservan: no se aprueba ni se oculta ninguna regresión visual real.",
+      "La auditoría npm de dependencias de producción finaliza con cero vulnerabilidades altas o críticas.",
+      "Se mantiene el aislamiento funcional y de API de Avatar Lab exclusivamente en PRE y desarrollo local.",
+    ],
+  },
+  {
+    version: "v1.2.9",
+    date: "6 de agosto de 2026",
+    title: "Endurecimiento previo a producción",
+    summary:
+      "La candidata de publicación aísla completamente Avatar Lab en PRE, reduce el peso de las imágenes globales y añade controles de lanzamiento.",
+    category: "fix",
+    changes: [
+      "Avatar Lab queda oculto en Ajustes y en su buscador fuera de PRE; sus páginas y API devuelven 404 en producción.",
+      "Los renderizadores experimentales exigen sesión, aplican límites de solicitudes y evitan cachés públicas.",
+      "El dominio oficial prevalece ante una variable de entorno contradictoria para impedir activar funciones PRE en producción.",
+      "Las nuevas imágenes de perfil se generan a 256 × 256, se limitan a 160 KB y conservan compatibilidad de lectura con imágenes anteriores.",
+      "El snapshot inicial informa su tamaño y registra una alerta estructurada cuando supera 1 MB.",
+      "La validación incorpora comprobaciones específicas de avatares, migraciones de identidad, E2E y auditoría de dependencias para la publicación.",
+      "Se añade una auditoría SQL de solo lectura y un checklist específico para promover la versión desde PRE a PROD.",
+    ],
+  },
+  {
     version: "v1.2.8",
     date: "5 de agosto de 2026",
     title: "Editor Notion compacto y siempre visible",

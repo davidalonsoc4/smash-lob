@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
 import { buildDiceBearBigSmileUrl } from "@/features/avatar-lab/bigSmileUrl"
+import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { isAvatarLabRequest } from "@/lib/avatarLabAccess"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 
 export const runtime = "nodejs"
 
@@ -13,7 +16,10 @@ function svgResponse(svg: string, status = 200) {
     status,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control": status === 200 ? "public, max-age=3600, stale-while-revalidate=86400" : "no-store",
+      "Cache-Control":
+        status === 200
+          ? "private, max-age=3600, stale-while-revalidate=86400"
+          : "no-store",
       "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
       "X-Content-Type-Options": "nosniff",
       "X-Avatar-Renderer": "dicebear-big-smile-10.x",
@@ -29,6 +35,30 @@ function sanitizeSvg(svg: string) {
 }
 
 export async function GET(request: Request) {
+  if (!isAvatarLabRequest(request)) {
+    return new NextResponse(null, {
+      status: 404,
+      headers: { "Cache-Control": "no-store" },
+    })
+  }
+
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "avatar_lab_big_smile",
+    limit: 120,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
+  const authResult = await requireAuthenticatedAppUser()
+
+  if (!authResult.ok) {
+    return svgResponse(
+      fallbackSvg("Inicia sesión para usar el laboratorio"),
+      authResult.status,
+    )
+  }
+
   const url = new URL(request.url)
   const upstream = buildDiceBearBigSmileUrl(url.searchParams)
   const controller = new AbortController()
