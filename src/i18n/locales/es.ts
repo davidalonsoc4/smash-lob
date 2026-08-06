@@ -277,6 +277,8 @@ export const es = {
       "Estás viendo el histórico de {seasonName}. La liga queda pendiente de crear una nueva temporada activa.",
     closedSeasonDescription:
       "La liga no tiene una temporada activa ahora mismo. Puedes consultar el histórico hasta que se cree una nueva.",
+    historyAndStatistics: "Historial y estadísticas",
+    shareSeasonSummary: "Compartir resumen de temporada",
     createSeason: "Crear nueva temporada",
   },
 

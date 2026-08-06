@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.13",
+    date: "6 de agosto de 2026",
+    title: "Accesos de temporada cerrada y preparación operativa",
+    summary:
+      "La pantalla principal facilita la consulta y el uso del resumen final, mientras el registro de cambios separa la información pública del detalle técnico de superadministración.",
+    category: "improvement",
+    changes: [
+      "Las temporadas terminadas muestran en Inicio accesos directos a Historial y estadísticas y a Compartir resumen de temporada.",
+      "El acceso de compartir abre directamente la sección correspondiente dentro del resumen de la temporada seleccionada.",
+      "Registro de cambios continúa visible para todos con textos deliberadamente generales; el superadministrador conserva la vista técnica completa.",
+      "Se añade observabilidad opcional para errores de servidor y cliente mediante un webhook seguro, con deduplicación y diagnóstico en la ruta de salud.",
+      "Quedan preparados un ruleset de GitHub contra borrados y force-push, E2E autenticado de PRE, diagnóstico de Redis y backups cifrados programables de Supabase.",
+      "Las integraciones externas permanecen desactivadas hasta configurar sus variables y secretos de forma explícita.",
+    ],
+  },
+  {
     version: "v1.2.12",
     date: "6 de agosto de 2026",
     title: "Automatización de calidad y seguridad",

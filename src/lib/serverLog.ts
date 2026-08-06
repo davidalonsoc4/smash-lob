@@ -2,6 +2,10 @@ import "server-only"
 
 import { randomBytes, randomUUID } from "node:crypto"
 import { APP_VERSION } from "@/lib/appVersion"
+import {
+  sendObservabilityEvent,
+  type ObservabilityEvent,
+} from "@/lib/serverObservability"
 
 type LogLevel = "info" | "warn" | "error"
 type SafeLogValue = string | number | boolean | null | undefined
@@ -58,7 +62,7 @@ export function logServerEvent(
     }
   }
 
-  const entry = JSON.stringify({
+  const event: ObservabilityEvent & Record<string, SafeLogValue> = {
     timestamp: new Date().toISOString(),
     level,
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
@@ -68,7 +72,8 @@ export function logServerEvent(
     region: process.env.VERCEL_REGION ?? null,
     message,
     ...safeContext,
-  })
+  }
+  const entry = JSON.stringify(event)
 
   if (level === "error") {
     console.error(entry)
@@ -76,5 +81,9 @@ export function logServerEvent(
     console.warn(entry)
   } else {
     console.info(entry)
+  }
+
+  if (level !== "info") {
+    void sendObservabilityEvent(event)
   }
 }

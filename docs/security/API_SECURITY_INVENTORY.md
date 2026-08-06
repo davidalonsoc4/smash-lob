@@ -82,6 +82,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/notifications/scheduled-check` | GET | Protegido | CRON_SECRET |
 | `/api/notifications/subscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/notifications/unsubscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/observability/client-error` | POST | Público explícito | Allowlist revisada |
 | `/api/qa` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/qa` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/result-confirmations` | POST | Protegido | requireAuthenticatedAppUser |
