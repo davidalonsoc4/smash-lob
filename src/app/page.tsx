@@ -888,7 +888,7 @@ export default function Home() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-1">
+      <header data-tour="home-header" className="pt-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
             {activeSeason.name}
@@ -919,7 +919,7 @@ export default function Home() {
         </div>
       ) : null}
 
-      <LeagueAnnouncementsCard leagueId={activeLeague.id} />
+      <div data-tour="home-announcements"><LeagueAnnouncementsCard leagueId={activeLeague.id} /></div>
 
 
       {activeLeague.recommendations?.trim() ? (
@@ -1021,7 +1021,7 @@ export default function Home() {
               />
             ) : null}
 
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div data-tour="home-season-actions" className="grid gap-2 sm:grid-cols-2">
               <Link
                 href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
                 className="block rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-950 transition active:scale-[0.99]"
@@ -1050,7 +1050,7 @@ export default function Home() {
             <p className="font-bold text-neutral-950">
               {t.dashboard.closedSeasonTitle}
             </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div data-tour="home-season-actions" className="mt-3 grid gap-2 sm:grid-cols-2">
               <Link
                 href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
                 className="block rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-950"
@@ -1244,7 +1244,7 @@ export default function Home() {
       ) : null}
 
       {!isSeasonClosed && !isSeasonUpcoming && (leagueNextMatch || nextMatch) ? (
-        <section>
+        <section data-tour="home-next-match">
           <SectionHeader
             title={
               effectiveNextMatchScope === "mine"

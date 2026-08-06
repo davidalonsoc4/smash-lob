@@ -1,6 +1,6 @@
 begin;
 
-select plan(14);
+select plan(16);
 
 select ok(
   not exists (
@@ -138,6 +138,19 @@ select ok(
     where schemaname = 'public'
   ),
   'the browser roles cannot regain access through permissive policies'
+);
+
+
+select has_table(
+  'public',
+  'user_onboarding_progress',
+  'guided onboarding progress is persisted per account'
+);
+
+select has_pk(
+  'public',
+  'user_onboarding_progress',
+  'guided onboarding progress has one row per user and tour'
 );
 
 select * from finish();
