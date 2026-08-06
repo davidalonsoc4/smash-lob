@@ -304,6 +304,7 @@ export default function StatisticsSeasonPage() {
             matches={selectedSeasonMatches}
             players={leaguePlayers}
             ranking={exportRanking}
+            seasonFinished={selectedSeason.status === "finished"}
             summaryExport={{
               visible: selectedSeason.status === "finished",
               canExport: summaryIsComplete,

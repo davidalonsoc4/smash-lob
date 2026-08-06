@@ -211,6 +211,7 @@ export function SeasonShareExportsCard({
   players,
   ranking,
   summaryExport,
+  seasonFinished,
 }: {
   leagueName: string
   seasonName: string
@@ -219,6 +220,7 @@ export function SeasonShareExportsCard({
   players: PlayerProfile[]
   ranking: RankingPlayer[]
   summaryExport: SummaryExport
+  seasonFinished: boolean
 }) {
   const [includeLeagueLogo, setIncludeLeagueLogo] = useState(true)
   const [includePlayerImages, setIncludePlayerImages] = useState(true)
@@ -229,7 +231,9 @@ export function SeasonShareExportsCard({
   function getFilename(kind: ExportKind) {
     const suffix =
       kind === "calendar-current"
-        ? "calendario-actual"
+        ? seasonFinished
+          ? "calendario"
+          : "calendario-actual"
         : kind === "calendar-fixtures"
           ? "calendario-enfrentamientos"
           : kind === "summary"
@@ -265,6 +269,7 @@ export function SeasonShareExportsCard({
     return createSeasonCalendarImage({
       ...branding,
       mode,
+      label: seasonFinished && mode === "current" ? "Calendario" : undefined,
       matches,
       players,
     })
@@ -302,7 +307,9 @@ export function SeasonShareExportsCard({
                   ? "Calendario de enfrentamientos de Smash & Lob"
                   : kind === "summary"
                     ? "Resumen final de temporada de Smash & Lob"
-                    : "Calendario actual de Smash & Lob",
+                    : seasonFinished
+                      ? "Calendario de Smash & Lob"
+                      : "Calendario actual de Smash & Lob",
             files: [file],
           })
         } else {
@@ -342,7 +349,9 @@ export function SeasonShareExportsCard({
         </p>
         <p className="mt-1 text-lg font-black text-neutral-950">Compartir temporada</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final.
+          {seasonFinished
+            ? "El calendario, la clasificación y el resumen final están disponibles para compartir o guardar."
+            : "El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final."}
         </p>
       </div>
 
@@ -379,22 +388,28 @@ export function SeasonShareExportsCard({
       <div className="grid gap-3">
         <ExportCard
           kind="calendar-current"
-          title="Calendario actual"
-          description="Muestra los enfrentamientos, la situación actual de cada partido y los resultados y sets registrados."
+          title={seasonFinished ? "Calendario" : "Calendario actual"}
+          description={
+            seasonFinished
+              ? "Muestra los enfrentamientos, fechas, ubicaciones, resultados y sets de la temporada."
+              : "Muestra los enfrentamientos, la situación actual de cada partido y los resultados y sets registrados."
+          }
           disabled={matches.length === 0}
           busyAction={busyAction}
           onShare={() => void runAction("calendar-current", "share")}
           onDownload={() => void runAction("calendar-current", "download")}
         />
-        <ExportCard
-          kind="calendar-fixtures"
-          title="Calendario de enfrentamientos"
-          description="Muestra únicamente las parejas de cada jornada y el VS, sin estados, fechas, ubicaciones ni resultados."
-          disabled={matches.length === 0}
-          busyAction={busyAction}
-          onShare={() => void runAction("calendar-fixtures", "share")}
-          onDownload={() => void runAction("calendar-fixtures", "download")}
-        />
+        {!seasonFinished ? (
+          <ExportCard
+            kind="calendar-fixtures"
+            title="Calendario de enfrentamientos"
+            description="Muestra únicamente las parejas de cada jornada y el VS, sin estados, fechas, ubicaciones ni resultados."
+            disabled={matches.length === 0}
+            busyAction={busyAction}
+            onShare={() => void runAction("calendar-fixtures", "share")}
+            onDownload={() => void runAction("calendar-fixtures", "download")}
+          />
+        ) : null}
         <ExportCard
           kind="ranking"
           title="Clasificación"

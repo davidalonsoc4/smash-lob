@@ -835,10 +835,12 @@ export async function createSeasonCalendarImage({
   includeLeagueLogo = true,
   includePlayerImages = true,
   mode = "current",
+  label,
   matches,
   players,
 }: ExportBranding & {
   mode?: SeasonCalendarImageMode
+  label?: string
   matches: MatchData[]
   players: PlayerProfile[]
 }) {
@@ -896,9 +898,10 @@ export async function createSeasonCalendarImage({
     seasonName,
     leagueLogo,
     label:
-      mode === "fixtures"
+      label ??
+      (mode === "fixtures"
         ? "Calendario de enfrentamientos"
-        : "Calendario actual",
+        : "Calendario actual"),
   })
 
   const playersById = new Map(players.map((player) => [player.id, player]))
