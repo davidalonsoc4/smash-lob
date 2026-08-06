@@ -8,6 +8,7 @@ export type SettingsSearchCapabilities = {
   canSelfUnlink: boolean
   qaEnabled: boolean
   isSuperuser: boolean
+  avatarLabEnabled: boolean
 }
 
 export type SettingsSearchEntry = {
@@ -650,8 +651,18 @@ export function buildSettingsSearchEntries(
   capabilities: SettingsSearchCapabilities,
 ): SettingsSearchEntry[] {
   const source = entryCopyByLocale[locale]
+  const avatarLabIds = capabilities.avatarLabEnabled ? ["avatarLab"] : []
   const ids = capabilities.isSpectator
-    ? ["language", "appearance", "leagues", "account", "avatarLab", "help", "suggestions", "changelog"]
+    ? [
+        "language",
+        "appearance",
+        "leagues",
+        "account",
+        ...avatarLabIds,
+        "help",
+        "suggestions",
+        "changelog",
+      ]
     : [
         "language",
         "appearance",
@@ -663,7 +674,7 @@ export function buildSettingsSearchEntries(
         "notificationPayments",
         "payments",
         "availability",
-        "avatarLab",
+        ...avatarLabIds,
         "help",
         "suggestions",
         "changelog",

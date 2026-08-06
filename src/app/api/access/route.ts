@@ -3,6 +3,7 @@ import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResol
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { logServerEvent } from "@/lib/serverLog"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type {
@@ -429,7 +430,7 @@ export async function GET() {
     }))
     .filter((membership) => !(isSuperuser && membership.userId === email))
 
-  return NextResponse.json({
+  const payload = {
     isSuperuser,
     canCreateLeagues,
     leagues,
@@ -444,6 +445,25 @@ export async function GET() {
       activeSeasonIds: Object.fromEntries(
         leagues.map((league) => [league.id, league.activeSeasonId])
       ),
+    },
+  }
+  const body = JSON.stringify(payload)
+  const responseBytes = Buffer.byteLength(body)
+
+  if (responseBytes > 1024 * 1024) {
+    logServerEvent("warn", "access_snapshot_over_budget", {
+      operation: "access_snapshot",
+      outcome: "over_budget",
+      userId,
+      responseBytes,
+    })
+  }
+
+  return new NextResponse(body, {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Smash-Lob-Snapshot-Bytes": String(responseBytes),
     },
   })
 }

@@ -296,7 +296,9 @@ function AccountProfileForm({
           title="Recortar imagen de perfil"
           description="Ajusta el encuadre, el zoom y la orientación antes de guardar la imagen."
           shape="circle"
-          outputSize={512}
+          outputSize={256}
+          outputType="image/webp"
+          maxOutputBytes={160 * 1024}
           onCancel={() => setAvatarCropSource(null)}
           onConfirm={async (dataUrl) => {
             const saved = await saveAvatar(dataUrl)

@@ -13,7 +13,7 @@ async function exists(path: string) {
 describe("Avatar Lab PRE isolation", () => {
   it("keeps the complete route in PRE and out of search engines", async () => {
     const layout = await readFile("src/app/experimental/avatar-lab/layout.tsx", "utf8")
-    expect(layout).toContain("isPreproductionApp()")
+    expect(layout).toContain("isAvatarLabRequestContext()")
     expect(layout).toContain("notFound()")
     expect(layout).toContain("index: false")
     expect(layout).toContain("follow: false")
@@ -34,12 +34,33 @@ describe("Avatar Lab PRE isolation", () => {
     expect(hub).not.toContain("Pacovqzz")
   })
 
-  it("adds the laboratory to Settings for players and spectators", async () => {
+  it("shows the laboratory in Settings only when PRE is enabled", async () => {
     const settings = await readFile("src/app/settings/page.tsx", "utf8")
     const search = await readFile("src/lib/settingsSearch.ts", "utf8")
+    const shell = await readFile("src/components/layout/AppShell.tsx", "utf8")
+
     expect(settings.match(/href="\/experimental\/avatar-lab"/g)).toHaveLength(2)
+    expect(settings.match(/isAvatarLabEnabled\(\) \? \(/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(search).toContain("avatarLabEnabled: boolean")
+    expect(search).toContain("capabilities.avatarLabEnabled")
     expect(search).toContain('avatarLab: "/experimental/avatar-lab"')
-    expect(search.match(/"avatarLab"/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(shell).toContain("avatarLabEnabled: isAvatarLabEnabled()")
+  })
+
+  it("protects both renderer APIs by host, session and rate limit", async () => {
+    const routes = await Promise.all([
+      readFile("src/app/api/experimental/avatar-lab/dicebear-big-smile/route.ts", "utf8"),
+      readFile("src/app/api/experimental/avatar-lab/notion-avatar/route.ts", "utf8"),
+    ])
+
+    for (const route of routes) {
+      expect(route).toContain("isAvatarLabRequest(request)")
+      expect(route).toContain("status: 404")
+      expect(route).toContain("requireAuthenticatedAppUser()")
+      expect(route).toContain("enforceRequestRateLimit")
+      expect(route).toContain("private, max-age")
+      expect(route).not.toContain('"public, max-age')
+    }
   })
 
   it("keeps the editors mobile-first and browser-only", async () => {

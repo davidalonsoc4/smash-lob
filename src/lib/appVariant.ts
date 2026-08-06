@@ -5,12 +5,6 @@ export function getAppUrl() {
 }
 
 export function isPreproductionApp() {
-  const explicitVariant = (process.env.NEXT_PUBLIC_APP_VARIANT ?? "").trim().toLowerCase()
-
-  if (explicitVariant === "pre" || explicitVariant === "staging") {
-    return true
-  }
-
   return isPreproductionAppUrl(getAppUrl())
 }
 

@@ -1,12 +1,13 @@
-name: v1.1 quality
+name: release quality
 
 on:
   pull_request:
-    branches: [staging]
+    branches: [main, staging]
   push:
     branches:
+      - main
       - staging
-      - feature/v1.1-stability-hardening
+      - chore/v1.2-prepublication-hardening
 
 permissions:
   contents: read
@@ -32,13 +33,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run secrets:check
-      - run: npm run security:check
-      - run: npm run public-urls:check
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test
-      - run: npm run build
+      - run: npm run validate
+      - run: npm audit --omit=dev --audit-level=high
 
   browser:
     runs-on: windows-latest
