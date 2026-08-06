@@ -13,7 +13,7 @@ describe("service worker lifecycle", () => {
   it("versions the shell, cleans old caches and updates only on request", async () => {
     const source = await readFile("public/sw.js", "utf8")
 
-    expect(source).toContain('CACHE_VERSION = "smash-lob-v1.2.13"')
+    expect(source).toContain('CACHE_VERSION = "smash-lob-v1.2.14"')
     expect(source).toContain('caches.match("/offline")')
     expect(source).toContain('event.data?.type === "SKIP_WAITING"')
     expect(source).toContain("event.waitUntil(self.skipWaiting())")

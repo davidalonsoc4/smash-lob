@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.14",
+    date: "6 de agosto de 2026",
+    title: "Calendario final simplificado",
+    summary:
+      "Las temporadas terminadas muestran una única exportación de calendario, con un nombre más claro y sin duplicar opciones equivalentes.",
+    category: "improvement",
+    changes: [
+      "En Compartir resumen de temporada, una temporada terminada muestra un único panel llamado Calendario.",
+      "El panel Calendario de enfrentamientos continúa disponible mientras la temporada está en curso, pero desaparece al finalizarla.",
+      "La imagen, el texto al compartir y el nombre del archivo usan también la denominación Calendario cuando la temporada ha terminado.",
+      "Clasificación y Resumen de temporada mantienen su funcionamiento actual.",
+    ],
+  },
+  {
     version: "v1.2.13",
     date: "6 de agosto de 2026",
     title: "Accesos de temporada cerrada y preparación operativa",
