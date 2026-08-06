@@ -1,3 +1,11 @@
+# v1.2.13 — Accesos de cierre y preparación operativa (2026-08-06)
+
+- Inicio añade accesos a Historial y estadísticas y a Compartir resumen cuando la temporada está terminada.
+- Registro de cambios ofrece contenido público genérico y detalle técnico exclusivo para superadministración.
+- Quedan preparados observabilidad opcional, rulesets de GitHub, QA autenticada de PRE y backups cifrados de Supabase.
+- Las integraciones externas permanecen desactivadas hasta configurar sus credenciales y variables.
+- No se añaden migraciones ni se modifican datos persistidos.
+
 # v1.2.12 — Automatización de calidad (2026-08-06)
 
 - Supabase local reconstruye y prueba migraciones, actualización histórica y restauración de backup en CI.

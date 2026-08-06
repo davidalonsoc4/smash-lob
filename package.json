@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.2.12",
+  "version": "1.2.13",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -24,15 +24,19 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.2.12 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.2.12 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.2.13 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.2.13 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",
     "quality:build": "node scripts/check-build-budgets.mjs",
     "database:quality": "node scripts/run-database-quality.mjs",
     "performance:lighthouse": "npx --yes @lhci/cli@0.15.1 autorun",
-    "quality:full": "npm run release:check && npm run database:quality && npm run performance:lighthouse"
+    "quality:full": "npm run release:check && npm run database:quality && npm run performance:lighthouse",
+    "external:readiness": "node scripts/check-external-readiness.mjs",
+    "github:rulesets:review": "node scripts/configure-github-rulesets.mjs",
+    "github:rulesets:apply": "node scripts/configure-github-rulesets.mjs --apply",
+    "qa:pre": "node scripts/write-qa-storage-state.mjs && playwright test --config playwright.qa.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",
