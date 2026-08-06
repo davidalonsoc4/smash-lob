@@ -57,7 +57,7 @@ export default function MatchesPage() {
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [activeRoundId, activeScope])
+  }, [activeRoundId])
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
     if (!round.startsAt || !round.endsAt) {
