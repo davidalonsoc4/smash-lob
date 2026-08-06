@@ -120,7 +120,7 @@ async function insertLeagueWithAvailableSlug({
 }
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "league_create",
     limit: 4,

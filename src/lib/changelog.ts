@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.12",
+    date: "6 de agosto de 2026",
+    title: "Automatización de calidad y seguridad",
+    summary:
+      "La red de seguridad del repositorio incorpora pruebas reproducibles de base de datos, permisos, API y rendimiento antes de cada publicación.",
+    category: "foundation",
+    changes: [
+      "Supabase local reconstruye todas las migraciones, ejecuta pgTAP, valida la actualización desde el esquema anterior y restaura un backup lógico en CI.",
+      "Una política central y su matriz prueban acceso anónimo, suspendido, espectador, jugador, participante, administrador, creador y superusuario.",
+      "Todas las rutas y métodos de API quedan inventariados; cualquier endpoint nuevo sin guarda reconocido hace fallar la validación.",
+      "Se fijan presupuestos de complejidad, componentes cliente, JavaScript, assets y métricas Lighthouse para impedir regresiones silenciosas.",
+      "GitHub Actions separa calidad, navegador, base de datos y rendimiento, conservando artefactos de diagnóstico cuando un gate falla.",
+      "El rate limiting puede usar Redis REST compartido entre instancias y conserva un fallback en memoria; los logs añaden metadatos seguros de commit, despliegue y región.",
+    ],
+  },
+  {
     version: "v1.2.11",
     date: "6 de agosto de 2026",
     title: "Valores iniciales consistentes en Notion Avatar",

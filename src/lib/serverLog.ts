@@ -63,6 +63,9 @@ export function logServerEvent(
     level,
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
     version: APP_VERSION,
+    commitSha: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? null,
+    deploymentId: process.env.VERCEL_DEPLOYMENT_ID ?? null,
+    region: process.env.VERCEL_REGION ?? null,
     message,
     ...safeContext,
   })

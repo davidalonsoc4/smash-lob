@@ -1,0 +1,2 @@
+-- Seed intentionally empty. Quality fixtures live under supabase/tests and are
+-- applied transactionally so local resets remain deterministic.

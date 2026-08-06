@@ -8,7 +8,7 @@ import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "notification_dispatch",
     limit: 10,

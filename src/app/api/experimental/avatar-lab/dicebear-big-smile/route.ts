@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     })
   }
 
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "avatar_lab_big_smile",
     limit: 120,
