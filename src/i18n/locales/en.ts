@@ -273,6 +273,8 @@ export const en = {
       "You are viewing the history for {seasonName}. The league is pending a new active season.",
     closedSeasonDescription:
       "The league has no active season right now. You can view the history until a new one is created.",
+    historyAndStatistics: "History and statistics",
+    shareSeasonSummary: "Share season summary",
     createSeason: "Create new season",
   },
 

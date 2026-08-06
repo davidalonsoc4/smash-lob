@@ -296,32 +296,35 @@ export default function StatisticsSeasonPage() {
       />
 
       {!isLeagueWide ? (
-        <SeasonShareExportsCard
-          leagueName={activeLeague.name}
-          seasonName={selectedSeason.name}
-          leagueLogoUrl={activeLeague.logoUrl ?? null}
-          matches={selectedSeasonMatches}
-          players={leaguePlayers}
-          ranking={exportRanking}
-          summaryExport={{
-            visible: selectedSeason.status === "finished",
-            canExport: summaryIsComplete,
-            blockedReason: summaryIsComplete ? undefined : exportBlockedReason,
-            data: {
-              leagueName: activeLeague.name,
-              seasonName: selectedSeason.name,
-              leagueLogoUrl: activeLeague.logoUrl ?? null,
-              heroes: summaryHeroes,
-              podium: exportRanking.slice(0, 3).map((player) => ({
-                position: getRankingPosition(exportRanking, player.id) ?? 1,
-                name: player.displayName,
-                points: player.points,
-                gamesDiff: player.gamesDiff,
-              })),
-              highlights: summaryHighlights,
-            },
-          }}
-        />
+        <section id="compartir-resumen-temporada" className="scroll-mt-24">
+          <SeasonShareExportsCard
+            leagueName={activeLeague.name}
+            seasonName={selectedSeason.name}
+            leagueLogoUrl={activeLeague.logoUrl ?? null}
+            matches={selectedSeasonMatches}
+            players={leaguePlayers}
+            ranking={exportRanking}
+            seasonFinished={selectedSeason.status === "finished"}
+            summaryExport={{
+              visible: selectedSeason.status === "finished",
+              canExport: summaryIsComplete,
+              blockedReason: summaryIsComplete ? undefined : exportBlockedReason,
+              data: {
+                leagueName: activeLeague.name,
+                seasonName: selectedSeason.name,
+                leagueLogoUrl: activeLeague.logoUrl ?? null,
+                heroes: summaryHeroes,
+                podium: exportRanking.slice(0, 3).map((player) => ({
+                  position: getRankingPosition(exportRanking, player.id) ?? 1,
+                  name: player.displayName,
+                  points: player.points,
+                  gamesDiff: player.gamesDiff,
+                })),
+                highlights: summaryHighlights,
+              },
+            }}
+          />
+        </section>
       ) : null}
 
       {isLeagueWide ? (

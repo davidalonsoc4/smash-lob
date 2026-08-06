@@ -1021,10 +1021,25 @@ export default function Home() {
               />
             ) : null}
 
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Link
+                href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
+                className="block rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-950 transition active:scale-[0.99]"
+              >
+                {t.dashboard.historyAndStatistics}
+              </Link>
+              <Link
+                href={`/statistics/season?season=${encodeURIComponent(activeSeason.id)}#compartir-resumen-temporada`}
+                className="block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white transition active:scale-[0.99]"
+              >
+                {t.dashboard.shareSeasonSummary}
+              </Link>
+            </div>
+
             {canManageSeason ? (
               <Link
                 href="/admin/season"
-                className="block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+                className="block rounded-xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
               >
                 {t.dashboard.createSeason}
               </Link>
@@ -1035,6 +1050,20 @@ export default function Home() {
             <p className="font-bold text-neutral-950">
               {t.dashboard.closedSeasonTitle}
             </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <Link
+                href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
+                className="block rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-950"
+              >
+                {t.dashboard.historyAndStatistics}
+              </Link>
+              <Link
+                href={`/statistics/season?season=${encodeURIComponent(activeSeason.id)}#compartir-resumen-temporada`}
+                className="block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+              >
+                {t.dashboard.shareSeasonSummary}
+              </Link>
+            </div>
             {canManageSeason ? (
               <Link
                 href="/admin/season"

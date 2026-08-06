@@ -1,0 +1,64 @@
+name: encrypted Supabase backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40 3 * * *"
+
+concurrency:
+  group: encrypted-supabase-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    if: ${{ vars.SUPABASE_BACKUP_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - name: Validate backup secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF BACKUP_ENCRYPTION_PASSPHRASE; do
+            test -n "${!name:-}" || { echo "Missing required secret: $name" >&2; exit 1; }
+          done
+      - name: Create separate logical dumps
+        shell: bash
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          directory=".quality-artifacts/backups/$stamp"
+          mkdir -p "$directory"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db dump --linked --role-only --file "$directory/roles.sql"
+          supabase db dump --linked --schema public --file "$directory/schema.sql"
+          supabase db dump --linked --data-only --schema public --use-copy --file "$directory/data.sql"
+          sha256sum "$directory"/*.sql > "$directory/SHA256SUMS"
+          tar -czf "$directory.tar.gz" -C "$(dirname "$directory")" "$(basename "$directory")"
+          passphrase_file="$(mktemp)"
+          trap 'rm -f "$passphrase_file"' EXIT
+          printf '%s' "$BACKUP_ENCRYPTION_PASSPHRASE" > "$passphrase_file"
+          chmod 600 "$passphrase_file"
+          gpg --batch --yes --symmetric --cipher-algo AES256 \
+            --passphrase-file "$passphrase_file" \
+            --output "$directory.tar.gz.gpg" "$directory.tar.gz"
+          rm -rf "$directory" "$directory.tar.gz"
+      - name: Upload encrypted backup only
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-encrypted-backup-${{ github.run_id }}
+          path: .quality-artifacts/backups/*.gpg
+          if-no-files-found: error
+          retention-days: 14
