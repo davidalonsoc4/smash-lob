@@ -4,10 +4,12 @@ on:
   pull_request:
     branches: [main, staging]
   push:
-    branches:
-      - main
-      - staging
-      - chore/v1.2-prepublication-hardening
+    branches: [main, staging]
+  workflow_dispatch:
+
+concurrency:
+  group: release-quality-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -24,8 +26,9 @@ env:
 
 jobs:
   quality:
+    name: code and production build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,10 +38,17 @@ jobs:
       - run: npm ci
       - run: npm run validate
       - run: npm audit --omit=dev --audit-level=high
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports
+          path: .quality-artifacts
+          if-no-files-found: ignore
 
   browser:
+    name: browser, accessibility and PWA
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,3 +58,52 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium
       - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-failures
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+
+  database:
+    name: migrations, pgTAP and restore
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/run-database-quality.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: database-quality
+          path: .quality-artifacts/database
+          if-no-files-found: ignore
+      - name: Stop local Supabase
+        if: always()
+        run: npx --yes supabase@2.111.0 stop --no-backup || true
+
+  performance:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run quality:build
+      - run: npm run performance:lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .quality-artifacts/lighthouse
+          if-no-files-found: ignore
