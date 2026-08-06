@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.2",
+    date: "6 de agosto de 2026",
+    title: "Calendario más compacto y centrado en la jornada actual",
+    summary:
+      "La pantalla de Calendario ocupa menos espacio en su selector de vista y lleva directamente a la jornada activa mientras la temporada está en curso.",
+    category: "improvement",
+    changes: [
+      "El selector Liga completa / Mis partidos se muestra en una única línea con un diseño más compacto y los recuentos integrados en cada opción.",
+      "Cuando la temporada está activa, la pantalla se desplaza automáticamente hasta la jornada marcada como activa.",
+      "Las temporadas próximas o terminadas conservan la posición habitual y no realizan ningún desplazamiento automático.",
+      "El cambio de vista mantiene el foco sobre la jornada activa siempre que esa jornada tenga partidos visibles en el filtro elegido.",
+    ],
+  },
+  {
     version: "v1.3.1",
     date: "6 de agosto de 2026",
     title: "Tutoriales más directos y perfiles compactos",
