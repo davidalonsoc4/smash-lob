@@ -1,6 +1,7 @@
 "use client"
 
 import { OnboardingTipsReset } from "@/components/onboarding/ContextualTip"
+import { GuidedTourLibrary } from "@/components/onboarding/GuidedTourLibrary"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -421,6 +422,8 @@ export default function HelpPage() {
         </HelpBlock>
       ) : null}
 
+
+      <GuidedTourLibrary />
       <HelpBlock title={t.onboardingTips.helpTitle}>
         <OnboardingTipsReset
           title={t.onboardingTips.helpTitle}

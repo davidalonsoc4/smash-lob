@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
 import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
@@ -12,11 +13,10 @@ import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
+import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
-import {
-  getRoundStatusBadgeClassName,
-} from "@/lib/statusStyles"
+import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
 
 export default function MatchesPage() {
   const { t } = useI18n()
@@ -41,6 +41,23 @@ export default function MatchesPage() {
       ? match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
       : true
   )
+  const activeRoundId = getActiveCalendarRoundId(activeSeason.status, rounds)
+  const activeRoundRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!activeRoundId) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      activeRoundRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "start",
+      })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [activeRoundId])
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
     if (!round.startsAt || !round.endsAt) {
@@ -65,7 +82,7 @@ export default function MatchesPage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header data-tour="matches-header" className="pt-2">
         <LeagueSeasonEyebrow
           leagueName={activeLeague.name}
           seasonName={activeSeason.name}
@@ -81,56 +98,59 @@ export default function MatchesPage() {
         </p>
       </header>
 
+      <AppCard data-tour="matches-scope" className="p-2">
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <p className="shrink-0 text-[11px] font-black text-neutral-700">
+            Vista del calendario
+          </p>
 
-      <AppCard className="p-2.5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-black text-neutral-950">
-              Vista del calendario
-            </p>
-            <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-              {activeScope === "mine"
-                ? "Solo tus partidos en esta temporada."
-                : "Todos los partidos de la liga."}
-            </p>
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            <Link
+              href="/matches"
+              aria-current={activeScope === "all" ? "page" : undefined}
+              className={`inline-flex items-center gap-1 rounded-xl px-2 py-1.5 transition ${
+                activeScope === "all"
+                  ? "bg-neutral-950 text-white shadow-sm"
+                  : "bg-neutral-100 text-neutral-700"
+              }`}
+            >
+              <span className="whitespace-nowrap text-[11px] font-black">
+                Liga completa
+              </span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
+                  activeScope === "all"
+                    ? "bg-white/15 text-white"
+                    : "bg-white text-neutral-600"
+                }`}
+              >
+                {allMatchesCount}
+              </span>
+            </Link>
+
+            <Link
+              href="/matches?scope=mine"
+              aria-current={activeScope === "mine" ? "page" : undefined}
+              className={`inline-flex items-center gap-1 rounded-xl px-2 py-1.5 transition ${
+                activeScope === "mine"
+                  ? "bg-neutral-950 text-white shadow-sm"
+                  : "bg-neutral-100 text-neutral-700"
+              }`}
+            >
+              <span className="whitespace-nowrap text-[11px] font-black">
+                Mis partidos
+              </span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
+                  activeScope === "mine"
+                    ? "bg-white/15 text-white"
+                    : "bg-white text-neutral-600"
+                }`}
+              >
+                {myMatchesCount}
+              </span>
+            </Link>
           </div>
-
-          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
-            {visibleMatches.length}/{allMatchesCount}
-          </span>
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Link
-            href="/matches"
-            className={`rounded-2xl px-3 py-2.5 text-center transition ${
-              activeScope === "all"
-                ? "bg-neutral-950 text-white shadow-sm"
-                : "bg-neutral-100 text-neutral-700"
-            }`}
-          >
-            <span className="block text-xs font-black">
-              Liga completa
-            </span>
-            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "all" ? "text-white/70" : "text-neutral-600"}`}>
-              {allMatchesCount} partidos
-            </span>
-          </Link>
-          <Link
-            href="/matches?scope=mine"
-            className={`rounded-2xl px-3 py-2.5 text-center transition ${
-              activeScope === "mine"
-                ? "bg-neutral-950 text-white shadow-sm"
-                : "bg-neutral-100 text-neutral-700"
-            }`}
-          >
-            <span className="block text-xs font-black">
-              Mis partidos
-            </span>
-            <span className={`mt-0.5 block text-[11px] font-semibold ${activeScope === "mine" ? "text-white/70" : "text-neutral-600"}`}>
-              {myMatchesCount} partidos
-            </span>
-          </Link>
         </div>
       </AppCard>
 
@@ -153,8 +173,7 @@ export default function MatchesPage() {
         </AppCard>
       ) : null}
 
-
-      <div className="space-y-7">
+      <div data-tour="matches-round-list" className="space-y-7">
         {rounds.map((round) => {
           const roundMatches = visibleMatches.filter(
             (match) => match.round === round.round
@@ -167,7 +186,12 @@ export default function MatchesPage() {
           }
 
           return (
-            <section key={round.id} className="space-y-4">
+            <section
+              key={round.id}
+              ref={round.id === activeRoundId ? activeRoundRef : undefined}
+              data-active-round={round.id === activeRoundId ? "true" : undefined}
+              className="scroll-mt-24 space-y-4"
+            >
               <div>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-black">{round.name}</h2>

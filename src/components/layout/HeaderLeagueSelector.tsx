@@ -37,14 +37,14 @@ export function HeaderLeagueSelector() {
 
   if (selectableLeagues.length <= 1) {
     return (
-      <h1 className="truncate text-2xl font-black tracking-tight text-neutral-950">
+      <h1 data-tour="league-header" className="truncate text-2xl font-black tracking-tight text-neutral-950">
         {activeLeague.name}
       </h1>
     )
   }
 
   return (
-    <label className="relative block min-w-0 flex-1">
+    <label data-tour="league-header" className="relative block min-w-0 flex-1">
       <span className="sr-only">{t.appHeader.leagueSelectorLabel}</span>
 
       <select

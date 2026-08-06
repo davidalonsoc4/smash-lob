@@ -83,6 +83,9 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/notifications/subscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/notifications/unsubscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/observability/client-error` | POST | Público explícito | Allowlist revisada |
+| `/api/onboarding/progress` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/onboarding/progress` | PATCH | Protegido | requireAuthenticatedAppUser |
+| `/api/onboarding/progress` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/qa` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/qa` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/result-confirmations` | POST | Protegido | requireAuthenticatedAppUser |

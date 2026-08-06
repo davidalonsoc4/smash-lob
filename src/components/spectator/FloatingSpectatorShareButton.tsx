@@ -92,6 +92,7 @@ export function FloatingSpectatorShareButton({
     >
       <button
         type="button"
+        data-tour="floating-share-spectators"
         onClick={handleShare}
         disabled={isWorking}
         aria-label="Compartir enlace de espectador"

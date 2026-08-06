@@ -13,9 +13,28 @@ const screens = [
 ] as const
 
 test.beforeEach(async ({ page }) => {
+  await page.route("**/api/onboarding/progress", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [] }) })
+      return
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) })
+  })
   await page.addInitScript(() => {
     window.localStorage.setItem("smash-lob-theme-mode", "light")
     window.localStorage.setItem("smash-lob-visual-style", "plain")
+    window.localStorage.setItem(
+      "smash-lob-guided-onboarding-v1",
+      JSON.stringify({
+        "app-introduction": { tourKey: "app-introduction", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        home: { tourKey: "home", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        matches: { tourKey: "matches", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        ranking: { tourKey: "ranking", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        statistics: { tourKey: "statistics", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        "season-admin": { tourKey: "season-admin", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        settings: { tourKey: "settings", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+      }),
+    )
     window.localStorage.setItem(
       "smash-lob-user-league-memberships",
       JSON.stringify([
@@ -96,6 +115,10 @@ test("@visual authenticated screens remain stable", async ({ page }) => {
            the stable production UI baseline. Hide its complete section so the
            test does not leave an empty experimental card behind. */
         section:has(#avatar-lab) { display: none !important; }
+        [data-tour="floating-help"] { display: none !important; }
+        .app-main {
+          --app-floating-top-reserved-width: var(--app-floating-top-reserved-width-without-help) !important;
+        }
       `,
     })
 
@@ -112,4 +135,18 @@ test("@visual authenticated screens remain stable", async ({ page }) => {
       animations: "disabled",
     })
   }
+})
+
+
+test("guided help can repeat the current screen tour", async ({ page }) => {
+  await page.goto("/matches")
+  await page.getByRole("button", { name: "Ayuda de esta pantalla" }).click()
+  await expect(page.getByRole("dialog", { name: "Ayuda de esta pantalla" })).toBeVisible()
+  await page.getByRole("button", { name: "Repetir guía" }).click()
+  await expect(page.getByRole("dialog", { name: "Partidos y jornadas" })).toBeVisible()
+  await expect(page.getByText("Todos o solo los tuyos", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Siguiente" }).click()
+  await expect(page.getByText("Jornadas y estados", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Omitir" }).click()
+  await expect(page.getByRole("dialog", { name: "Partidos y jornadas" })).toHaveCount(0)
 })

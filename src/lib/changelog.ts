@@ -15,6 +15,64 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.3",
+    date: "7 de agosto de 2026",
+    title: "Posición estable al filtrar el calendario",
+    summary:
+      "El Calendario sigue llevando a la jornada activa al abrir la pantalla, pero respeta la posición del usuario cuando cambia entre todos los partidos y sus propios partidos.",
+    category: "fix",
+    changes: [
+      "La jornada activa continúa enfocándose automáticamente al entrar en Calendario durante una temporada activa.",
+      "Cambiar entre Liga completa y Mis partidos ya no desplaza de nuevo la pantalla ni interrumpe la consulta en curso.",
+      "Las temporadas próximas o terminadas mantienen el comportamiento existente, sin posicionamiento automático.",
+    ],
+  },
+  {
+    version: "v1.3.2",
+    date: "6 de agosto de 2026",
+    title: "Calendario más compacto y centrado en la jornada actual",
+    summary:
+      "La pantalla de Calendario ocupa menos espacio en su selector de vista y lleva directamente a la jornada activa mientras la temporada está en curso.",
+    category: "improvement",
+    changes: [
+      "El selector Liga completa / Mis partidos se muestra en una única línea con un diseño más compacto y los recuentos integrados en cada opción.",
+      "Cuando la temporada está activa, la pantalla se desplaza automáticamente hasta la jornada marcada como activa.",
+      "Las temporadas próximas o terminadas conservan la posición habitual y no realizan ningún desplazamiento automático.",
+      "El cambio de vista mantiene el foco sobre la jornada activa siempre que esa jornada tenga partidos visibles en el filtro elegido.",
+    ],
+  },
+  {
+    version: "v1.3.1",
+    date: "6 de agosto de 2026",
+    title: "Tutoriales más directos y perfiles compactos",
+    summary:
+      "Las guías contextuales se centran en las acciones útiles de cada pantalla y los perfiles priorizan siempre la temporada más reciente sin ocupar espacio innecesario.",
+    category: "improvement",
+    changes: [
+      "Inicio explica todos los controles flotantes disponibles para cada rol: notificaciones, invitaciones, acceso de espectadores, ayuda y ajustes.",
+      "Partidos, Clasificación, Estadísticas y Administración de temporada eliminan la explicación repetida de la cabecera y comienzan directamente por sus funciones principales.",
+      "Ajustes incorpora un tutorial específico que señala el buscador flotante de la esquina inferior derecha.",
+      "Mi perfil y los perfiles de jugadores muestran siempre la información de la última temporada de la liga.",
+      "Mientras la última temporada está activa o próxima, el selector histórico permanece oculto; cuando termina, aparece de forma compacta junto al nombre del jugador.",
+    ],
+  },
+  {
+    version: "v1.3.0",
+    date: "6 de agosto de 2026",
+    title: "Guías visuales y ayuda contextual",
+    summary:
+      "Cada usuario recibe tutoriales breves adaptados a su pantalla y rol, con progreso sincronizado entre dispositivos y acceso permanente desde la botonera flotante.",
+    category: "new",
+    changes: [
+      "La botonera flotante superior incorpora un acceso de ayuda con un icono de interrogación para iniciar o repetir la guía de la pantalla actual.",
+      "La primera versión incluye recorridos para introducción, Inicio, Partidos, Clasificación, Estadísticas y Administración de temporada.",
+      "Las explicaciones resaltan visualmente cada elemento, permiten avanzar, retroceder, omitir o terminar y solo aparecen automáticamente la primera vez.",
+      "Los recorridos se adaptan al rol: jugadores, espectadores y administradores solo ven funciones a las que realmente tienen acceso.",
+      "El progreso se guarda por cuenta en Supabase y conserva un respaldo local para seguir funcionando ante una incidencia de red.",
+      "La pantalla de Ayuda incorpora una biblioteca de tutoriales y una acción para volver a mostrar todas las guías.",
+    ],
+  },
+  {
     version: "v1.2.14",
     date: "6 de agosto de 2026",
     title: "Calendario final simplificado",

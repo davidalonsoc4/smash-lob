@@ -9,6 +9,7 @@ import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpe
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
 import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
+import { FloatingHelpButton } from "@/components/onboarding/FloatingHelpButton"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -217,6 +218,7 @@ export function AppShell({ children }: AppShellProps) {
       })
     : []
   const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
+  const shouldShowHelpButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
   const shouldShowNotificationsButton =
     !isInitialSeasonSetupRoute && !isPublicAccessRoute && !spectatorMode
   const shouldShowBottomNav =
@@ -231,10 +233,11 @@ export function AppShell({ children }: AppShellProps) {
     canShareSpectatorInvite(activeLeagueId)
   const hasFloatingTopControls =
     shouldShowSettingsButton ||
+    shouldShowHelpButton ||
     shouldShowNotificationsButton ||
     hasPlayerInviteControl ||
     hasSpectatorShareControl
-  const floatingTopReservedWidth = hasPlayerInviteControl
+  const floatingTopReservedWidthWithoutHelp = hasPlayerInviteControl
     ? 184
     : hasSpectatorShareControl
       ? 142
@@ -243,6 +246,17 @@ export function AppShell({ children }: AppShellProps) {
         : shouldShowSettingsButton
           ? 58
           : 0
+  const floatingTopReservedWidth = hasPlayerInviteControl
+    ? 226
+    : hasSpectatorShareControl
+      ? 184
+      : shouldShowNotificationsButton
+        ? 142
+        : shouldShowHelpButton
+          ? 100
+          : shouldShowSettingsButton
+            ? 58
+            : 0
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
   const transitioningLeague = transitioningLeagueId
     ? leagues.find((league) => league.id === transitioningLeagueId)
@@ -282,6 +296,7 @@ export function AppShell({ children }: AppShellProps) {
         {shouldShowNotificationsButton ? (
           <Link
             href="/notifications"
+            data-tour="floating-notifications"
             aria-label="Notificaciones"
             title="Notificaciones"
             className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
@@ -297,9 +312,26 @@ export function AppShell({ children }: AppShellProps) {
           </Link>
         ) : null}
 
+        {shouldShowHelpButton ? (
+          <FloatingHelpButton
+            right={getFloatingRight(
+              hasPlayerInviteControl
+                ? 184
+                : hasSpectatorShareControl
+                  ? 142
+                  : shouldShowNotificationsButton
+                    ? 100
+                    : shouldShowSettingsButton
+                      ? 58
+                      : 16,
+            )}
+          />
+        ) : null}
+
         {shouldShowSettingsButton ? (
           <Link
             href="/settings"
+            data-tour="floating-settings"
             aria-label={t.appHeader.settingsLabel}
             title={t.appHeader.settingsLabel}
             className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
@@ -323,6 +355,7 @@ export function AppShell({ children }: AppShellProps) {
           style={
             {
               "--app-floating-top-reserved-width": `${floatingTopReservedWidth}px`,
+              "--app-floating-top-reserved-width-without-help": `${floatingTopReservedWidthWithoutHelp}px`,
               paddingTop: isLeagueNavigationRoute
                 ? "env(safe-area-inset-top, 0px)"
                 : hasFloatingTopControls
