@@ -8,6 +8,7 @@ type PlayerSeasonScopeSelectorProps = {
   value: string
   scopes: PlayerSeasonScope[]
   onChange: (scopeId: string) => void
+  inline?: boolean
 }
 
 export function PlayerSeasonScopeSelector({
@@ -15,20 +16,21 @@ export function PlayerSeasonScopeSelector({
   value,
   scopes,
   onChange,
+  inline = false,
 }: PlayerSeasonScopeSelectorProps) {
   if (scopes.length <= 1) {
     return null
   }
 
   return (
-    <div className="-mt-1 flex justify-end">
+    <div className={inline ? "ml-auto min-w-0 shrink-0" : "-mt-1 flex justify-end"}>
       <label className="inline-flex max-w-full items-center gap-0.5 text-neutral-500">
         <span className="sr-only">{title}</span>
         <select
           aria-label={title}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="max-w-[160px] cursor-pointer appearance-none truncate border-0 bg-transparent py-0.5 pl-1 pr-3 text-right text-[10px] font-bold text-neutral-500 outline-none"
+          className={`${inline ? "max-w-[112px]" : "max-w-[160px]"} cursor-pointer appearance-none truncate border-0 bg-transparent py-0.5 pl-1 pr-3 text-right text-[10px] font-bold text-neutral-500 outline-none`}
         >
           {scopes.map((scope) => (
             <option key={scope.id} value={scope.id}>

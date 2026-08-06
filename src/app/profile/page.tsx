@@ -20,8 +20,9 @@ import {
   getPlayersForSeasonScope,
 } from "@/lib/playerHistory"
 import {
+  getLatestPlayerProfileSeason,
   getVisiblePlayerSeasonScopes,
-  shouldShowHistoricalProfileStats,
+  shouldShowPlayerProfileSeasonSelector,
 } from "@/lib/playerProfileVisibility"
 
 export default function ProfilePage() {
@@ -31,7 +32,16 @@ export default function ProfilePage() {
   const { votes } = useMvp()
   const { seasons, seasonPlayers, playerProfiles, seasonSettings } = useSeasonSettings()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const [selectedScopeId, setSelectedScopeId] = useState(activeSeason.id)
+  const latestSeason = useMemo(
+    () =>
+      getLatestPlayerProfileSeason({
+        leagueId: activeLeague.id,
+        seasons,
+        fallbackSeason: activeSeason,
+      }),
+    [activeLeague.id, activeSeason, seasons],
+  )
+  const [selectedScopeId, setSelectedScopeId] = useState(latestSeason.id)
 
   const player = playerProfiles.find(
     (item) => item.id === currentUserId && item.leagueId === activeLeague.id
@@ -50,28 +60,28 @@ export default function ProfilePage() {
     return getPlayerSeasonScopes({
       leagueId: activeLeague.id,
       playerId: player.id,
-      activeSeasonId: activeSeason.id,
+      activeSeasonId: latestSeason.id,
       seasons,
       seasonPlayers,
       matches: leagueMatches,
     })
-  }, [activeLeague.id, activeSeason.id, leagueMatches, player, seasonPlayers, seasons])
+  }, [activeLeague.id, latestSeason.id, leagueMatches, player, seasonPlayers, seasons])
 
 
-  const showHistoricalStats = shouldShowHistoricalProfileStats({
-    league: activeLeague,
-    seasons,
-  })
   const visibleSeasonScopes = getVisiblePlayerSeasonScopes({
     scopes: seasonScopes,
-    activeSeason,
-    showHistory: showHistoricalStats,
+    activeSeason: latestSeason,
+    showHistory: latestSeason.status === "finished",
+  })
+  const showSeasonSelector = shouldShowPlayerProfileSeasonSelector({
+    latestSeason,
+    scopes: visibleSeasonScopes,
   })
   const selectedScope =
     visibleSeasonScopes.find((scope) => scope.id === selectedScopeId) ??
-    visibleSeasonScopes.find((scope) => scope.id === activeSeason.id) ??
+    visibleSeasonScopes.find((scope) => scope.id === latestSeason.id) ??
     visibleSeasonScopes[0]
-  const selectedSeasonIds = selectedScope?.seasonIds ?? [activeSeason.id]
+  const selectedSeasonIds = selectedScope?.seasonIds ?? [latestSeason.id]
   const mvpSystemBySeasonId = Object.fromEntries(
     seasonSettings.map((settings) => [settings.seasonId, settings.mvpSystem]),
   )
@@ -105,8 +115,8 @@ export default function ProfilePage() {
         <header className="pt-2">
           <LeagueSeasonEyebrow
             leagueName={activeLeague.name}
-            seasonName={activeSeason.name}
-            seasonStatus={activeSeason.status}
+            seasonName={latestSeason.name}
+            seasonStatus={latestSeason.status}
           />
 
           <h1 className="mt-1.5 text-2xl font-black tracking-tight">
@@ -133,32 +143,35 @@ export default function ProfilePage() {
       <header className="pt-2">
         <LeagueSeasonEyebrow
           leagueName={activeLeague.name}
-          seasonName={activeSeason.name}
-          seasonStatus={activeSeason.status}
+          seasonName={latestSeason.name}
+          seasonStatus={latestSeason.status}
         />
 
         <div className="mt-2 flex items-center gap-2.5">
           <PlayerAvatar player={player} size="md" previewable />
 
-          <h1 className="min-w-0 text-2xl font-black tracking-tight">
-            {player.displayName}
-          </h1>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <h1 className="min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
+              {player.displayName}
+            </h1>
+
+            {showSeasonSelector && visibleSeasonScopes.length > 1 ? (
+              <PlayerSeasonScopeSelector
+                inline
+                title={t.playerProfile.scopeSelectorTitle}
+                description={t.playerProfile.scopeSelectorDescription}
+                value={selectedScope.id}
+                scopes={visibleSeasonScopes}
+                onChange={setSelectedScopeId}
+              />
+            ) : null}
+          </div>
         </div>
 
         <p className="mt-1.5 text-xs font-semibold leading-5 text-neutral-500">
           {t.profile.description}
         </p>
       </header>
-
-      {showHistoricalStats && visibleSeasonScopes.length > 1 ? (
-        <PlayerSeasonScopeSelector
-          title={t.playerProfile.scopeSelectorTitle}
-          description={t.playerProfile.scopeSelectorDescription}
-          value={selectedScope.id}
-          scopes={visibleSeasonScopes}
-          onChange={setSelectedScopeId}
-        />
-      ) : null}
 
       <div className="grid grid-cols-2 gap-2">
         <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
@@ -183,7 +196,7 @@ export default function ProfilePage() {
       <PlayerStatsPanel
         playerId={player.id}
         leagueId={activeLeague.id}
-        seasonId={selectedSeasonIds[0] ?? activeSeason.id}
+        seasonId={selectedSeasonIds[0] ?? latestSeason.id}
         seasonIds={selectedSeasonIds}
         scopeLabel={selectedScope.label}
         players={selectedPlayers}
