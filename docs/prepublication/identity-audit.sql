@@ -1,5 +1,5 @@
 -- Auditoría de solo lectura. Ejecutar primero en PRE y después en PROD antes
--- de promover v1.2.10. No modifica datos.
+-- de promover v1.2.11. No modifica datos.
 
 WITH linked_players AS (
   SELECT

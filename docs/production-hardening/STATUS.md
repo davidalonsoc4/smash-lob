@@ -1,3 +1,11 @@
+# v1.2.11 — Valores iniciales de Notion Avatar (2026-08-06)
+
+- Todas las categorías de Notion Avatar comienzan en el índice cero, mostrado como Estilo 1.
+- Restablecer devuelve la receta completa a Estilo 1.
+- La clave local experimental avanza a `smash-lob-avatar-lab-notion-v3` para no recuperar selecciones antiguas de PRE.
+- No hay cambios de permisos, autenticación, API, Supabase, migraciones ni datos persistidos.
+- La promoción conserva como requisitos manuales el backup de PROD y la auditoría SQL de identidades.
+
 # v1.2.10 — Endurecimiento previo a producción (2026-08-06)
 
 - Rama prevista: `chore/v1.2-prepublication-hardening`, creada desde `staging` en `bf605dd07bee3659a315c3ee1b0bec06daa4bfbf`.

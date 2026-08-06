@@ -86,7 +86,7 @@ npm run release:check
 `release:check` añade Playwright y `npm audit --omit=dev --audit-level=high`.
 Después de desplegar se ejecutan `npm run smoke:pre` o `npm run smoke:prod`; ambos consultan `/api/health`, verifican la versión y comprueban el aislamiento de Avatar Lab.
 
-La promoción de v1.2.10 debe seguir `docs/prepublication/V1_2_10_RELEASE_CHECKLIST.md`. Antes de aplicar las migraciones en PROD hay que ejecutar en PRE y después en PROD, en modo de solo lectura, `docs/prepublication/identity-audit.sql`.
+La promoción de v1.2.11 debe seguir `docs/prepublication/V1_2_11_RELEASE_CHECKLIST.md`. Antes de aplicar las migraciones en PROD hay que ejecutar en PRE y después en PROD, en modo de solo lectura, `docs/prepublication/identity-audit.sql`.
 
 ## Pruebas previas a v1.0
 
