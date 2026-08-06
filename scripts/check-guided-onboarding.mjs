@@ -7,7 +7,11 @@ const requiredSnippets = new Map([
   ],
   [
     "src/components/layout/AppShell.tsx",
-    ["<FloatingHelpButton", 'data-tour="floating-settings"'],
+    [
+      "<FloatingHelpButton",
+      'data-tour="floating-settings"',
+      'data-tour="floating-notifications"',
+    ],
   ],
   [
     "src/features/onboarding/OnboardingProvider.tsx",
@@ -27,6 +31,9 @@ const requiredSnippets = new Map([
       'key: "ranking"',
       'key: "statistics"',
       'key: "season-admin"',
+      'key: "settings"',
+      "[data-tour='floating-invite-players']",
+      "[data-tour='floating-share-spectators']",
       "es:",
       "en:",
       "eu:",
@@ -46,10 +53,13 @@ const requiredSnippets = new Map([
     ],
   ],
   ["src/app/page.tsx", ['data-tour="home-header"', 'data-tour="home-next-match"']],
-  ["src/app/matches/page.tsx", ['data-tour="matches-header"', 'data-tour="matches-round-list"']],
-  ["src/app/ranking/page.tsx", ['data-tour="ranking-header"', 'data-tour="ranking-table"']],
-  ["src/app/statistics/page.tsx", ['data-tour="statistics-header"', 'data-tour="statistics-navigation"']],
-  ["src/app/admin/season/page.tsx", ['data-tour="season-admin-header"', 'data-tour="season-admin-navigation"']],
+  ["src/app/matches/page.tsx", ['data-tour="matches-round-list"']],
+  ["src/app/ranking/page.tsx", ['data-tour="ranking-table"']],
+  ["src/app/statistics/page.tsx", ['data-tour="statistics-navigation"']],
+  ["src/app/admin/season/page.tsx", ['data-tour="season-admin-navigation"']],
+  ["src/components/settings/GlobalSettingsSearch.tsx", ['data-tour="settings-search"']],
+  ["src/components/invite/FloatingInviteShareButton.tsx", ['data-tour="floating-invite-players"']],
+  ["src/components/spectator/FloatingSpectatorShareButton.tsx", ['data-tour="floating-share-spectators"']],
 ])
 
 const failures = []
@@ -67,7 +77,7 @@ if (failures.length > 0) {
 }
 
 console.log("Tutoriales guiados correctos:")
-console.log("- seis recorridos contextuales y adaptados al rol")
+console.log("- siete recorridos contextuales y adaptados al rol")
 console.log("- textos completos en castellano, inglés y euskera")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")
 console.log("- progreso por cuenta con respaldo local")

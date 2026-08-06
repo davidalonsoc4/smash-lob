@@ -60,16 +60,32 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Temporadas terminadas",
           description: "Cuando la temporada finaliza, desde aquí puedes consultar su histórico o compartir el resumen final.",
         },
+        {
+          title: "Notificaciones",
+          description: "Consulta avisos sobre partidos, resultados, disponibilidad y actividad importante de la liga.",
+        },
+        {
+          title: "Invitar jugadores",
+          description: "Los administradores pueden compartir desde aquí el enlace para vincular a los jugadores pendientes.",
+        },
+        {
+          title: "Compartir con espectadores",
+          description: "Cuando está disponible, este botón genera un acceso de solo lectura para seguir la competición.",
+        },
+        {
+          title: "Ayuda visual",
+          description: "Abre la guía de la pantalla actual o consulta la biblioteca completa de tutoriales.",
+        },
+        {
+          title: "Ajustes",
+          description: "Gestiona tu perfil, preferencias, ligas y las opciones administrativas disponibles para tu rol.",
+        },
       ],
     },
     matches: {
       title: "Partidos y jornadas",
       description: "Consulta el calendario completo o céntrate únicamente en tus encuentros.",
       steps: [
-        {
-          title: "Calendario de la temporada",
-          description: "La cabecera confirma la liga y temporada que estás consultando.",
-        },
         {
           title: "Todos o solo los tuyos",
           description: "Cambia entre el calendario completo y una vista filtrada con los partidos en los que participas.",
@@ -85,10 +101,6 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Interpreta posiciones, puntos y criterios de desempate.",
       steps: [
         {
-          title: "Clasificación de la temporada",
-          description: "Comprueba la liga y temporada antes de comparar posiciones.",
-        },
-        {
           title: "Puntos y desempates",
           description: "La tabla ordena por puntos y aplica después los criterios configurados de sets y juegos.",
         },
@@ -103,10 +115,6 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Explora la temporada actual, temporadas anteriores o todo el histórico de la liga.",
       steps: [
         {
-          title: "Selecciona el periodo",
-          description: "Cambia de temporada o elige toda la liga para analizar el histórico acumulado.",
-        },
-        {
           title: "Resumen rápido",
           description: "Estas tarjetas muestran líderes, victorias, diferencia de juegos y mejores rachas.",
         },
@@ -116,14 +124,20 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    settings: {
+      title: "Ajustes",
+      description: "Encuentra rápidamente cualquier opción sin recorrer todos los apartados.",
+      steps: [
+        {
+          title: "Buscador de ajustes",
+          description: "Pulsa este botón flotante para buscar una función o ajuste y abrir directamente su apartado.",
+        },
+      ],
+    },
     "season-admin": {
       title: "Administrar temporada",
       description: "Configura calendario, reglas, participantes y estado sin recorrer la pantalla a ciegas.",
       steps: [
-        {
-          title: "Temporada seleccionada",
-          description: "Antes de editar, confirma la liga, temporada y estado que aparecen en la cabecera.",
-        },
         {
           title: "Accesos rápidos",
           description: "Estos botones llevan directamente a calendario, reglas, personas y acciones de estado.",
@@ -182,16 +196,32 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Finished seasons",
           description: "When a season ends, use these actions to open its history or share the final summary.",
         },
+        {
+          title: "Notifications",
+          description: "Review updates about matches, results, availability and important league activity.",
+        },
+        {
+          title: "Invite players",
+          description: "Administrators can share the link used to connect players who are still pending.",
+        },
+        {
+          title: "Share with spectators",
+          description: "When available, this button creates read-only access to follow the competition.",
+        },
+        {
+          title: "Visual help",
+          description: "Open the guide for the current screen or browse the complete tutorial library.",
+        },
+        {
+          title: "Settings",
+          description: "Manage your profile, preferences, leagues and the administrative options available to your role.",
+        },
       ],
     },
     matches: {
       title: "Matches and rounds",
       description: "Browse the full calendar or focus only on your own matches.",
       steps: [
-        {
-          title: "Season calendar",
-          description: "The header confirms the league and season you are currently viewing.",
-        },
         {
           title: "All matches or only yours",
           description: "Switch between the full calendar and a filtered view of the matches you play in.",
@@ -207,10 +237,6 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Understand positions, points and tie-break rules.",
       steps: [
         {
-          title: "Season standings",
-          description: "Check the league and season before comparing positions.",
-        },
-        {
           title: "Points and tie-breaks",
           description: "The table sorts by points and then applies the configured set and game criteria.",
         },
@@ -225,10 +251,6 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Explore the current season, previous seasons or the full league history.",
       steps: [
         {
-          title: "Choose the period",
-          description: "Change season or select the whole league to analyse the combined history.",
-        },
-        {
           title: "Quick overview",
           description: "These cards show leaders, wins, game difference and the best streaks.",
         },
@@ -238,14 +260,20 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    settings: {
+      title: "Settings",
+      description: "Find any option quickly without browsing every section.",
+      steps: [
+        {
+          title: "Settings search",
+          description: "Use this floating button to search for a feature or setting and open its section directly.",
+        },
+      ],
+    },
     "season-admin": {
       title: "Season administration",
       description: "Configure the calendar, rules, participants and status without searching through the page.",
       steps: [
-        {
-          title: "Selected season",
-          description: "Before editing, confirm the league, season and status shown in the header.",
-        },
         {
           title: "Quick links",
           description: "These buttons take you directly to calendar, rules, people and status actions.",
@@ -304,16 +332,32 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Amaitutako denboraldiak",
           description: "Denboraldia amaitzean, hemendik historia ireki edo azken laburpena parteka dezakezu.",
         },
+        {
+          title: "Jakinarazpenak",
+          description: "Ikusi partiden, emaitzen, erabilgarritasunaren eta ligako jarduera garrantzitsuaren abisuak.",
+        },
+        {
+          title: "Jokalariak gonbidatu",
+          description: "Administratzaileek lotu gabe dauden jokalarientzako esteka parteka dezakete hemendik.",
+        },
+        {
+          title: "Ikusleekin partekatu",
+          description: "Erabilgarri dagoenean, botoi honek lehiaketa jarraitzeko irakurketa-soileko sarbidea sortzen du.",
+        },
+        {
+          title: "Laguntza bisuala",
+          description: "Ireki uneko pantailaren gida edo ikusi tutorialen liburutegi osoa.",
+        },
+        {
+          title: "Ezarpenak",
+          description: "Kudeatu profila, hobespenak, ligak eta zure rolarentzat erabilgarri dauden administrazio-aukerak.",
+        },
       ],
     },
     matches: {
       title: "Partidak eta jardunaldiak",
       description: "Ikusi egutegi osoa edo zure partidetan bakarrik jarri arreta.",
       steps: [
-        {
-          title: "Denboraldiaren egutegia",
-          description: "Goiburuak kontsultatzen ari zaren liga eta denboraldia berresten ditu.",
-        },
         {
           title: "Guztiak edo zureak bakarrik",
           description: "Aldatu egutegi osoaren eta parte hartzen duzun partiden ikuspegi iragaziaren artean.",
@@ -329,10 +373,6 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Ulertu postuak, puntuak eta berdinketa-irizpideak.",
       steps: [
         {
-          title: "Denboraldiko sailkapena",
-          description: "Egiaztatu liga eta denboraldia postuak alderatu aurretik.",
-        },
-        {
           title: "Puntuak eta berdinketak",
           description: "Taulak puntuen arabera ordenatzen du eta ondoren konfiguratutako set eta joko irizpideak aplikatzen ditu.",
         },
@@ -347,10 +387,6 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Aztertu uneko denboraldia, aurrekoak edo ligaren historia osoa.",
       steps: [
         {
-          title: "Aukeratu aldia",
-          description: "Aldatu denboraldia edo hautatu liga osoa historia metatua aztertzeko.",
-        },
-        {
           title: "Laburpen azkarra",
           description: "Txartel hauek liderrak, garaipenak, jokoen aldea eta boladarik onenak erakusten dituzte.",
         },
@@ -360,14 +396,20 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    settings: {
+      title: "Ezarpenak",
+      description: "Aurkitu edozein aukera azkar atal guztiak banan-banan aztertu gabe.",
+      steps: [
+        {
+          title: "Ezarpenen bilatzailea",
+          description: "Sakatu botoi flotagarri hau funtzio edo ezarpen bat bilatzeko eta haren atalera zuzenean joateko.",
+        },
+      ],
+    },
     "season-admin": {
       title: "Denboraldia administratu",
       description: "Konfiguratu egutegia, arauak, parte-hartzaileak eta egoera pantailan galdu gabe.",
       steps: [
-        {
-          title: "Hautatutako denboraldia",
-          description: "Editatu aurretik, egiaztatu goiburuan agertzen diren liga, denboraldia eta egoera.",
-        },
         {
           title: "Sarbide azkarrak",
           description: "Botoi hauek egutegira, arauetara, pertsonetara eta egoera-ekintzetara eramaten zaituzte.",
@@ -387,12 +429,14 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
 
 const tourStructure: Array<{
   key: OnboardingTourKey
+  version: number
   route: string
   audience: (audience: OnboardingAudience) => boolean
   steps: Array<Pick<OnboardingTourStep, "selector" | "side">>
 }> = [
   {
     key: "app-introduction",
+    version: 1,
     route: "/",
     audience: everyone,
     steps: [
@@ -404,6 +448,7 @@ const tourStructure: Array<{
   },
   {
     key: "home",
+    version: 2,
     route: "/",
     audience: everyone,
     steps: [
@@ -411,44 +456,58 @@ const tourStructure: Array<{
       { selector: "[data-tour='home-announcements']", side: "bottom" },
       { selector: "[data-tour='home-next-match']", side: "top" },
       { selector: "[data-tour='home-season-actions']", side: "top" },
+      { selector: "[data-tour='floating-notifications']", side: "bottom" },
+      { selector: "[data-tour='floating-invite-players']", side: "bottom" },
+      { selector: "[data-tour='floating-share-spectators']", side: "bottom" },
+      { selector: "[data-tour='floating-help']", side: "bottom" },
+      { selector: "[data-tour='floating-settings']", side: "bottom" },
     ],
   },
   {
     key: "matches",
+    version: 2,
     route: "/matches",
     audience: everyone,
     steps: [
-      { selector: "[data-tour='matches-header']", side: "bottom" },
       { selector: "[data-tour='matches-scope']", side: "bottom" },
       { selector: "[data-tour='matches-round-list']", side: "top" },
     ],
   },
   {
     key: "ranking",
+    version: 2,
     route: "/ranking",
     audience: everyone,
     steps: [
-      { selector: "[data-tour='ranking-header']", side: "bottom" },
       { selector: "[data-tour='ranking-table']", side: "top" },
       { selector: "[data-tour='ranking-statistics-link']", side: "top" },
     ],
   },
   {
     key: "statistics",
+    version: 2,
     route: "/statistics",
     audience: everyone,
     steps: [
-      { selector: "[data-tour='statistics-header']", side: "bottom" },
       { selector: "[data-tour='statistics-highlights']", side: "bottom" },
       { selector: "[data-tour='statistics-navigation']", side: "top" },
     ],
   },
   {
+    key: "settings",
+    version: 1,
+    route: "/settings",
+    audience: everyone,
+    steps: [
+      { selector: "[data-tour='settings-search']", side: "left" },
+    ],
+  },
+  {
     key: "season-admin",
+    version: 2,
     route: "/admin/season",
     audience: managers,
     steps: [
-      { selector: "[data-tour='season-admin-header']", side: "bottom" },
       { selector: "[data-tour='season-admin-navigation']", side: "bottom" },
       { selector: "[data-tour='season-admin-calendar']", side: "top" },
       { selector: "[data-tour='season-admin-people']", side: "top" },
@@ -461,7 +520,7 @@ export function getOnboardingTours(locale: Locale): OnboardingTourDefinition[] {
     const text = tourTexts[locale][definition.key]
     return {
       key: definition.key,
-      version: 1,
+      version: definition.version,
       route: definition.route,
       title: text.title,
       description: text.description,

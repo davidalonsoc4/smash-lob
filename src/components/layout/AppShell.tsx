@@ -296,6 +296,7 @@ export function AppShell({ children }: AppShellProps) {
         {shouldShowNotificationsButton ? (
           <Link
             href="/notifications"
+            data-tour="floating-notifications"
             aria-label="Notificaciones"
             title="Notificaciones"
             className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"

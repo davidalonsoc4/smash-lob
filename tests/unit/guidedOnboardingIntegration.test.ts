@@ -9,6 +9,7 @@ describe("guided onboarding integration", () => {
     expect(boundary).toContain("<GuidedTourOverlay />")
     expect(shell).toContain("<FloatingHelpButton")
     expect(shell).toContain('data-tour="floating-settings"')
+    expect(shell).toContain('data-tour="floating-notifications"')
   })
 
   it("marks every first-release screen with stable tour selectors", async () => {
@@ -18,6 +19,9 @@ describe("guided onboarding integration", () => {
       readFile("src/app/ranking/page.tsx", "utf8"),
       readFile("src/app/statistics/page.tsx", "utf8"),
       readFile("src/app/admin/season/page.tsx", "utf8"),
+      readFile("src/components/settings/GlobalSettingsSearch.tsx", "utf8"),
+      readFile("src/components/invite/FloatingInviteShareButton.tsx", "utf8"),
+      readFile("src/components/spectator/FloatingSpectatorShareButton.tsx", "utf8"),
     ])
     const source = files.join("\n")
     for (const marker of [
@@ -28,6 +32,9 @@ describe("guided onboarding integration", () => {
       "ranking-table",
       "statistics-navigation",
       "season-admin-navigation",
+      "settings-search",
+      "floating-invite-players",
+      "floating-share-spectators",
     ]) {
       expect(source).toContain(`data-tour="${marker}"`)
     }

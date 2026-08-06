@@ -27,11 +27,12 @@ test.beforeEach(async ({ page }) => {
       "smash-lob-guided-onboarding-v1",
       JSON.stringify({
         "app-introduction": { tourKey: "app-introduction", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        home: { tourKey: "home", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        matches: { tourKey: "matches", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        ranking: { tourKey: "ranking", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        statistics: { tourKey: "statistics", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        "season-admin": { tourKey: "season-admin", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        home: { tourKey: "home", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        matches: { tourKey: "matches", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        ranking: { tourKey: "ranking", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        statistics: { tourKey: "statistics", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        "season-admin": { tourKey: "season-admin", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        settings: { tourKey: "settings", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
       }),
     )
     window.localStorage.setItem(
@@ -143,9 +144,9 @@ test("guided help can repeat the current screen tour", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Ayuda de esta pantalla" })).toBeVisible()
   await page.getByRole("button", { name: "Repetir guía" }).click()
   await expect(page.getByRole("dialog", { name: "Partidos y jornadas" })).toBeVisible()
-  await expect(page.getByText("Calendario de la temporada", { exact: true })).toBeVisible()
-  await page.getByRole("button", { name: "Siguiente" }).click()
   await expect(page.getByText("Todos o solo los tuyos", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Siguiente" }).click()
+  await expect(page.getByText("Jornadas y estados", { exact: true })).toBeVisible()
   await page.getByRole("button", { name: "Omitir" }).click()
   await expect(page.getByRole("dialog", { name: "Partidos y jornadas" })).toHaveCount(0)
 })
