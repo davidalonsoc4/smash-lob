@@ -276,6 +276,8 @@ export const eu = {
       "{seasonName} denboraldiaren historikoa ikusten ari zara. Liga denboraldi aktibo berri baten zain geratzen da.",
     closedSeasonDescription:
       "Ligak ez du denboraldi aktiborik une honetan. Historiala ikus dezakezu berria sortu arte.",
+    historyAndStatistics: "Historiala eta estatistikak",
+    shareSeasonSummary: "Denboraldiaren laburpena partekatu",
     createSeason: "Denboraldi berria sortu",
   },
 
