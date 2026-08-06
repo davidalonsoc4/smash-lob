@@ -3,6 +3,7 @@ import "server-only"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import type { LeagueMemberRole } from "@/data/fakeData"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import { isAuthorized } from "@/lib/authorizationPolicy"
 
 type MatchAccessOptions = {
   requireLeagueAccess?: boolean
@@ -135,10 +136,6 @@ export async function getServerMatchActor(
       }
     : null
   const isSpectator = Boolean(spectatorResult.data)
-  const isAdmin =
-    user.isSuperuser ||
-    membership?.role === "creator" ||
-    membership?.role === "admin"
   const participantIds = Array.from(
     new Set([...toPlayerIds(matchRow.team_a), ...toPlayerIds(matchRow.team_b)])
   )
@@ -146,9 +143,19 @@ export async function getServerMatchActor(
     membership?.playerId && participantIds.includes(membership.playerId)
       ? membership.playerId
       : null
-  const hasLeagueAccess = user.isSuperuser || Boolean(membership) || isSpectator
+  const authorizationContext = {
+    authenticated: true,
+    isSuperuser: user.isSuperuser,
+    membershipRole: membership?.role ?? null,
+    isSpectator,
+    isParticipant: Boolean(participantPlayerId),
+  }
+  const isAdmin = isAuthorized(authorizationContext, "league:admin")
 
-  if (options.requireLeagueAccess && !hasLeagueAccess) {
+  if (
+    options.requireLeagueAccess &&
+    !isAuthorized(authorizationContext, "league:access")
+  ) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 
@@ -156,7 +163,10 @@ export async function getServerMatchActor(
     return { ok: false, status: 403, error: "forbidden" }
   }
 
-  if (options.requireParticipant && !participantPlayerId) {
+  if (
+    options.requireParticipant &&
+    !isAuthorized(authorizationContext, "match:participant")
+  ) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 

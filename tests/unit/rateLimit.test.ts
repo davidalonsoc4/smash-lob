@@ -1,9 +1,29 @@
 import { randomUUID } from "node:crypto"
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   consumeRateLimit,
   enforceRequestRateLimit,
 } from "@/lib/serverRateLimit"
+
+const originalRedisEnvironment = {
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+}
+
+function restoreEnvironment(name: string, value: string | undefined) {
+  if (value === undefined) {
+    delete process.env[name]
+  } else {
+    process.env[name] = value
+  }
+}
+
+afterEach(() => {
+  restoreEnvironment("UPSTASH_REDIS_REST_URL", originalRedisEnvironment.url)
+  restoreEnvironment("UPSTASH_REDIS_REST_TOKEN", originalRedisEnvironment.token)
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 describe("rate limiting", () => {
   it("returns Retry-After after the configured limit", () => {
@@ -35,15 +55,15 @@ describe("rate limiting", () => {
     })
     const scope = `test-blocked-${randomUUID()}`
 
-    expect(
+    await expect(
       enforceRequestRateLimit({
         request,
         scope,
         limit: 1,
         windowMs: 30_000,
       }),
-    ).toBeNull()
-    const response = enforceRequestRateLimit({
+    ).resolves.toBeNull()
+    const response = await enforceRequestRateLimit({
       request,
       scope,
       limit: 1,
@@ -52,8 +72,48 @@ describe("rate limiting", () => {
 
     expect(response?.status).toBe(429)
     expect(response?.headers.get("Retry-After")).toMatch(/^\d+$/)
+    expect(response?.headers.get("X-Smash-Lob-RateLimit-Backend")).toBe(
+      "memory",
+    )
     await expect(response?.json()).resolves.toMatchObject({
       error: "rate_limited",
     })
+  })
+
+  it("uses the distributed backend when both Upstash variables exist", async () => {
+    process.env.UPSTASH_REDIS_REST_URL = "https://redis.example.test"
+    process.env.UPSTASH_REDIS_REST_TOKEN = "test-token"
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ result: [1, 30_000] }), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ result: [2, 28_000] }), { status: 200 }),
+      )
+    vi.stubGlobal("fetch", fetchMock)
+
+    const request = new Request("https://pre.smashandlob.com/api/suggestions", {
+      method: "POST",
+      headers: { "x-forwarded-for": "203.0.113.78" },
+    })
+    const scope = `test-distributed-${randomUUID()}`
+
+    await expect(
+      enforceRequestRateLimit({ request, scope, limit: 1, windowMs: 30_000 }),
+    ).resolves.toBeNull()
+    const response = await enforceRequestRateLimit({
+      request,
+      scope,
+      limit: 1,
+      windowMs: 30_000,
+    })
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(response?.status).toBe(429)
+    expect(response?.headers.get("Retry-After")).toBe("28")
+    expect(response?.headers.get("X-Smash-Lob-RateLimit-Backend")).toBe(
+      "redis",
+    )
   })
 })

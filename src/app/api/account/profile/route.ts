@@ -168,7 +168,7 @@ export async function PUT(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "account_avatar_update",
     limit: 10,

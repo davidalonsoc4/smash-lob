@@ -15,7 +15,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "invite_create",
     limit: 6,
