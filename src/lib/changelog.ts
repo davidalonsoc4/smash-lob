@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.11",
+    date: "6 de agosto de 2026",
+    title: "Valores iniciales consistentes en Notion Avatar",
+    summary:
+      "Todas las categorías del editor experimental Notion comienzan en su primer estilo para ofrecer una base neutra y predecible.",
+    category: "fix",
+    changes: [
+      "Cara, nariz, boca, ojos, cejas, gafas, pelo, accesorios, detalles y barba se preseleccionan en Estilo 1.",
+      "La acción Restablecer recupera también el Estilo 1 en todas las categorías.",
+      "Se renueva la clave de almacenamiento local experimental para que la nueva selección inicial no quede oculta por recetas antiguas de PRE.",
+      "No se modifican perfiles, permisos, APIs, Supabase ni datos de liga.",
+    ],
+  },
+  {
     version: "v1.2.10",
     date: "6 de agosto de 2026",
     title: "Validación visual de la candidata de producción",

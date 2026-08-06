@@ -27,6 +27,12 @@ describe("Notion Avatar model", () => {
     })
   })
 
+  it("starts every category on visible style 1", () => {
+    for (const part of NOTION_AVATAR_PART_ORDER) {
+      expect(DEFAULT_NOTION_AVATAR_RECIPE[part]).toBe(0)
+    }
+  })
+
   it("normalizes invalid and out-of-range recipes", () => {
     const normalized = normalizeNotionAvatarRecipe({
       face: -3,

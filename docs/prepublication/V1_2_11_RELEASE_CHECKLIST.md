@@ -1,4 +1,4 @@
-# Smash & Lob v1.2.10 — comprobación de publicación
+# Smash & Lob v1.2.11 — comprobación de publicación
 
 ## Validación local
 
@@ -7,7 +7,7 @@
 - `npm run release:check`
 - Confirmar que el repositorio queda limpio después de las pruebas.
 - Confirmar que el workflow `release quality` queda en verde en la rama y en `staging`.
-- Confirmar versión `1.2.10` en `package.json`, `package-lock.json`, `src/lib/appVersion.ts`, `public/sw.js` y changelog.
+- Confirmar versión `1.2.11` en `package.json`, `package-lock.json`, `src/lib/appVersion.ts`, `public/sw.js` y changelog.
 
 ## Base de datos
 
@@ -24,6 +24,7 @@
 
 - `https://pre.smashandlob.com/settings` muestra Laboratorio de avatares.
 - Los dos editores requieren sesión y funcionan.
+- Notion comienza con Estilo 1 en todas las categorías y Restablecer recupera esos valores.
 - `https://pre.smashandlob.com/api/experimental/avatar-lab/dicebear-big-smile` sin sesión devuelve error de autenticación y no contenido público.
 - Subir una imagen de perfil, recortarla y comprobarla en dos ligas.
 - Confirmar que la cabecera `X-Smash-Lob-Snapshot-Bytes` de `/api/access` queda por debajo de 1 MB. Documentar cualquier excepción.
@@ -41,6 +42,6 @@
 - `/experimental/avatar-lab` devuelve 404.
 - Los dos endpoints `/api/experimental/avatar-lab/*` devuelven 404.
 - Login Google, invitación y apertura de una liga funcionan.
-- La versión visible es `v1.2.10`.
+- La versión visible es `v1.2.11`.
 - No hay errores nuevos en logs de Vercel ni Supabase.
 - Mantener disponible el commit anterior de `main` para rollback.

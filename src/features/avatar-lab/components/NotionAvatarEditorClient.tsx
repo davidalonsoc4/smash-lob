@@ -17,7 +17,7 @@ import {
 } from "../notionAvatarModel"
 import { NotionAvatarRenderer } from "./NotionAvatarRenderer"
 
-const STORAGE_KEY = "smash-lob-avatar-lab-notion-v2"
+const STORAGE_KEY = "smash-lob-avatar-lab-notion-v3"
 
 type PreviewResult = {
   key: string

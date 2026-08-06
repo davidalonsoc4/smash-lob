@@ -22,16 +22,16 @@ export const NOTION_AVATAR_PART_ORDER = Object.keys(
 ) as NotionAvatarPart[]
 
 export const DEFAULT_NOTION_AVATAR_RECIPE: NotionAvatarRecipe = {
-  face: 4,
-  nose: 3,
-  mouth: 4,
-  eyes: 3,
-  eyebrows: 7,
+  face: 0,
+  nose: 0,
+  mouth: 0,
+  eyes: 0,
+  eyebrows: 0,
   glasses: 0,
-  hair: 7,
+  hair: 0,
   accessories: 0,
   details: 0,
-  beard: 4,
+  beard: 0,
 }
 
 export function notionPartValues(part: NotionAvatarPart) {
