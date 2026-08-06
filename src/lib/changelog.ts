@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.0",
+    date: "6 de agosto de 2026",
+    title: "Guías visuales y ayuda contextual",
+    summary:
+      "Cada usuario recibe tutoriales breves adaptados a su pantalla y rol, con progreso sincronizado entre dispositivos y acceso permanente desde la botonera flotante.",
+    category: "new",
+    changes: [
+      "La botonera flotante superior incorpora un acceso de ayuda con un icono de interrogación para iniciar o repetir la guía de la pantalla actual.",
+      "La primera versión incluye recorridos para introducción, Inicio, Partidos, Clasificación, Estadísticas y Administración de temporada.",
+      "Las explicaciones resaltan visualmente cada elemento, permiten avanzar, retroceder, omitir o terminar y solo aparecen automáticamente la primera vez.",
+      "Los recorridos se adaptan al rol: jugadores, espectadores y administradores solo ven funciones a las que realmente tienen acceso.",
+      "El progreso se guarda por cuenta en Supabase y conserva un respaldo local para seguir funcionando ante una incidencia de red.",
+      "La pantalla de Ayuda incorpora una biblioteca de tutoriales y una acción para volver a mostrar todas las guías.",
+    ],
+  },
+  {
     version: "v1.2.14",
     date: "6 de agosto de 2026",
     title: "Calendario final simplificado",
