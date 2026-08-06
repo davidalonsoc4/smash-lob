@@ -351,9 +351,6 @@ async function buildInviteResponse(
         userId: membership?.user_id ?? null,
         avatarUrl: resolvePlayerAvatarUrl({
           linkedUserId: membership?.user_id ?? null,
-          playerDisplayName: player.display_name,
-          playerAvatarUrl:
-            typeof player.avatar_url === "string" ? player.avatar_url : null,
           users: userAvatarLookup,
         }),
       }

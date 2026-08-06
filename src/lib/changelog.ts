@@ -15,6 +15,158 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.2.11",
+    date: "6 de agosto de 2026",
+    title: "Valores iniciales consistentes en Notion Avatar",
+    summary:
+      "Todas las categorías del editor experimental Notion comienzan en su primer estilo para ofrecer una base neutra y predecible.",
+    category: "fix",
+    changes: [
+      "Cara, nariz, boca, ojos, cejas, gafas, pelo, accesorios, detalles y barba se preseleccionan en Estilo 1.",
+      "La acción Restablecer recupera también el Estilo 1 en todas las categorías.",
+      "Se renueva la clave de almacenamiento local experimental para que la nueva selección inicial no quede oculta por recetas antiguas de PRE.",
+      "No se modifican perfiles, permisos, APIs, Supabase ni datos de liga.",
+    ],
+  },
+  {
+    version: "v1.2.10",
+    date: "6 de agosto de 2026",
+    title: "Validación visual de la candidata de producción",
+    summary:
+      "La comprobación visual excluye correctamente la sección experimental completa y confirma que las dependencias de producción no presentan vulnerabilidades conocidas.",
+    category: "fix",
+    changes: [
+      "El test visual de Ajustes oculta la sección completa de Avatar Lab en lugar de dejar una tarjeta experimental vacía.",
+      "Las capturas de referencia existentes se conservan: no se aprueba ni se oculta ninguna regresión visual real.",
+      "La auditoría npm de dependencias de producción finaliza con cero vulnerabilidades altas o críticas.",
+      "Se mantiene el aislamiento funcional y de API de Avatar Lab exclusivamente en PRE y desarrollo local.",
+    ],
+  },
+  {
+    version: "v1.2.9",
+    date: "6 de agosto de 2026",
+    title: "Endurecimiento previo a producción",
+    summary:
+      "La candidata de publicación aísla completamente Avatar Lab en PRE, reduce el peso de las imágenes globales y añade controles de lanzamiento.",
+    category: "fix",
+    changes: [
+      "Avatar Lab queda oculto en Ajustes y en su buscador fuera de PRE; sus páginas y API devuelven 404 en producción.",
+      "Los renderizadores experimentales exigen sesión, aplican límites de solicitudes y evitan cachés públicas.",
+      "El dominio oficial prevalece ante una variable de entorno contradictoria para impedir activar funciones PRE en producción.",
+      "Las nuevas imágenes de perfil se generan a 256 × 256, se limitan a 160 KB y conservan compatibilidad de lectura con imágenes anteriores.",
+      "El snapshot inicial informa su tamaño y registra una alerta estructurada cuando supera 1 MB.",
+      "La validación incorpora comprobaciones específicas de avatares, migraciones de identidad, E2E y auditoría de dependencias para la publicación.",
+      "Se añade una auditoría SQL de solo lectura y un checklist específico para promover la versión desde PRE a PROD.",
+    ],
+  },
+  {
+    version: "v1.2.8",
+    date: "5 de agosto de 2026",
+    title: "Editor Notion compacto y siempre visible",
+    summary:
+      "La edición de Notion Avatar se concentra en una sola vista móvil para cambiar categorías y estilos sin perder la previsualización.",
+    category: "improvement",
+    changes: [
+      "La previsualización ocupa el espacio flexible de la pantalla y permanece visible junto a los controles principales en la vista móvil.",
+      "Se eliminan los presets, la forma y el fondo: Notion Avatar utiliza siempre un lienzo rectangular blanco.",
+      "La categoría se cambia mediante flechas o tocando su nombre para abrir el selector nativo del dispositivo.",
+      "Los estilos se recorren con botones anterior y siguiente de mayor tamaño, mostrando claramente la posición dentro de cada categoría.",
+      "La receta continúa guardándose solo en el navegador y no se aplica al perfil ni escribe en Supabase.",
+    ],
+  },
+  {
+    version: "v1.2.7",
+    date: "5 de agosto de 2026",
+    title: "Validación limpia del laboratorio de avatares",
+    summary:
+      "Se eliminan referencias generadas a rutas descartadas y se adapta el renderer Notion al objetivo TypeScript del proyecto.",
+    category: "fix",
+    changes: [
+      "La validación elimina la caché .next y el estado incremental de TypeScript antes de comprobar tipos, evitando referencias obsoletas a Pacovqzz y Ready Player Me.",
+      "El endpoint de Notion deja de utilizar el flag dotAll y mantiene el mismo tratamiento multilínea con una expresión compatible con ES2017.",
+      "Se conservan únicamente DiceBear Big Smile y Notion Avatar, sin integración con perfiles ni escrituras en Supabase.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.6",
+    date: "5 de agosto de 2026",
+    title: "Compatibilidad del laboratorio con las reglas de React",
+    summary:
+      "Se corrige la gestión del estado local y de las vistas previas para completar la validación del laboratorio de avatares en PRE.",
+    category: "fix",
+    changes: [
+      "Big Smile y Notion Avatar cargan las recetas locales mediante tareas cancelables sin actualizaciones síncronas dentro de efectos.",
+      "El estado de carga de cada vista previa se deriva de la URL o receta que está realmente renderizándose, evitando renders encadenados.",
+      "El paginado de Notion se reinicia desde la acción de cambio de categoría en lugar de usar un efecto adicional.",
+      "Se mantiene el alcance experimental: los avatares siguen sin aplicarse al perfil ni escribirse en Supabase.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.5",
+    date: "5 de agosto de 2026",
+    title: "Publicación segura del laboratorio de avatares",
+    summary:
+      "Se corrige la validación de dependencias de desarrollo para publicar en PRE el laboratorio móvil de Big Smile y Notion Avatar.",
+    category: "fix",
+    changes: [
+      "La línea base reconoce únicamente las copias heredadas de brace-expansion alojadas en rutas concretas de plugins de ESLint.",
+      "Las excepciones siguen limitadas a dependencias de desarrollo y la copia principal mantiene la versión segura exigida.",
+      "El laboratorio conserva solo DiceBear Big Smile y Notion Avatar, sin integración todavía con el perfil del usuario.",
+      "La versión se incrementa antes de reanudar la validación completa y la publicación exclusiva en PRE.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.4",
+    date: "5 de agosto de 2026",
+    title: "Laboratorio de avatares en PRE",
+    summary:
+      "Ajustes incorpora un laboratorio móvil para comparar DiceBear Big Smile y Notion Avatar sin modificar todavía el perfil del usuario.",
+    category: "new",
+    changes: [
+      "Se añade un acceso experimental desde Ajustes a una portada con los dos editores de avatar que siguen siendo viables.",
+      "DiceBear Big Smile y Notion Avatar comparten una interfaz móvil coherente con el diseño de Smash & Lob.",
+      "Ready Player Me y Pacovqzz se retiran junto con sus rutas, dependencias, recursos y pruebas experimentales.",
+      "Las recetas de prueba se guardan únicamente en el navegador y no escriben en Supabase ni cambian la imagen de perfil.",
+      "La ruta completa permanece limitada a PRE, requiere la sesión normal de la aplicación y no se indexa.",
+      "No se requieren migraciones de Supabase ni cambios en datos persistidos.",
+    ],
+  },
+  {
+    version: "v1.2.3",
+    date: "3 de agosto de 2026",
+    title: "Editor de imagen accesible en móvil",
+    summary:
+      "El recorte de la imagen global se muestra centrado, por encima de la navegación y con la confirmación siempre disponible.",
+    category: "fix",
+    changes: [
+      "El editor de recorte se renderiza directamente sobre la página para evitar que la navegación inferior quede por encima.",
+      "El panel queda centrado en el viewport y respeta las zonas seguras superior e inferior del dispositivo.",
+      "El marco de recorte adapta su tamaño al ancho y alto disponibles sin alterar el resultado final de 512 × 512.",
+      "Los controles de Cancelar y Usar imagen permanecen visibles aunque el contenido del editor necesite desplazamiento.",
+      "No se requieren migraciones de Supabase ni cambios en los datos guardados.",
+    ],
+  },
+  {
+    version: "v1.2.2",
+    date: "3 de agosto de 2026",
+    title: "Imagen global e identidad histórica corregidas",
+    summary:
+      "La imagen vuelve a pertenecer a la cuenta completa, se retira el avatar específico por liga de PRE y la desvinculación conserva únicamente la identidad histórica correcta.",
+    category: "fix",
+    changes: [
+      "La imagen de perfil es global: una imagen subida o la imagen de Google se utiliza en todas las ligas vinculadas a la cuenta.",
+      "Se elimina de Ajustes, las API y la resolución visual la imagen específica por liga introducida en la candidata v1.2.1.",
+      "La prioridad visual queda preparada como imagen global de cuenta y, cuando no existe, avatar predeterminado con iniciales.",
+      "Al vincular una cuenta se guardan el nombre y las iniciales históricas del jugador, sin guardar fotografías dentro de la instantánea.",
+      "Al desvincular una cuenta se restauran el nombre y las iniciales históricas, se elimina cualquier imagen de la cuenta desvinculada y vuelve el avatar predeterminado.",
+      "Una migración de corrección elimina league_avatar_url de PRE y limpia las instantáneas de identidad creadas con el modelo descartado.",
+      "El futuro editor de avatares queda separado de esta versión y será global para cada usuario, no para cada liga.",
+    ],
+  },
+  {
     version: "v1.1.0",
     date: "3 de agosto de 2026",
     title: "Acceso, seguridad y PWA más fiables",

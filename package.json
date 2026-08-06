@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.1.0",
+  "version": "1.2.11",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -18,8 +18,14 @@
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep @a11y",
     "test:visual": "playwright test --grep @visual",
-    "validate": "npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run lint && npm run typecheck && npm run test && npm run build",
-    "public-urls:check": "node scripts/check-public-app-urls.mjs"
+    "avatars:check": "node scripts/check-avatar-assets.mjs",
+    "version:check": "node scripts/check-release-version.mjs",
+    "validate": "npm run version:check && npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run avatars:check && npm run migrations:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "public-urls:check": "node scripts/check-public-app-urls.mjs",
+    "migrations:check": "node scripts/check-identity-migrations.mjs",
+    "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.2.11 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.2.11 prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",

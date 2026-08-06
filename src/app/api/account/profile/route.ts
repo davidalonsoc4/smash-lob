@@ -2,6 +2,11 @@ import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { parseJsonBody } from "@/lib/serverRequest"
 import {
+  isValidAccountAvatarUrl,
+  normalizeStoredImageUrl,
+} from "@/lib/serverImageValidation"
+import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import {
   normalizeAccountStandardAvailability,
   normalizeProfileName,
 } from "@/lib/accountProfile"
@@ -18,6 +23,7 @@ type ProfileBody = {
   lastName?: unknown
   timezone?: unknown
   weeklySlots?: unknown
+  avatarUrl?: unknown
 }
 
 function normalizeTimezone(value: unknown) {
@@ -38,6 +44,7 @@ function mapProfile(user: {
   availabilityCompletedAt: string | null
   standardAvailabilityTimezone: string
   standardAvailabilityWeeklySlots: unknown
+  avatarUrl: string | null
   isSuperuser: boolean
 }) {
   const firstName = user.firstName ?? ""
@@ -50,6 +57,7 @@ function mapProfile(user: {
     lastName,
     displayName:
       user.displayName ?? [firstName, lastName].filter(Boolean).join(" "),
+    avatarUrl: normalizeStoredImageUrl(user.avatarUrl) ?? null,
     profileCompletedAt: user.profileCompletedAt,
     availabilityCompletedAt: user.availabilityCompletedAt,
     standardAvailabilityTimezone:
@@ -153,7 +161,60 @@ export async function PUT(request: Request) {
         row.standard_availability_weekly_slots,
       ),
       isComplete: true,
+      avatarUrl: authResult.actor.user.avatarUrl,
       isSuperuser: authResult.actor.user.isSuperuser,
     },
+  })
+}
+
+export async function PATCH(request: Request) {
+  const rateLimited = enforceRequestRateLimit({
+    request,
+    scope: "account_avatar_update",
+    limit: 10,
+    windowMs: 60_000,
+  })
+  if (rateLimited) return rateLimited
+
+  const authResult = await requireAuthenticatedAppUser()
+
+  if (!authResult.ok) {
+    return NextResponse.json(
+      { error: authResult.error },
+      { status: authResult.status },
+    )
+  }
+
+  const body = await parseJsonBody<ProfileBody>(request)
+  const rawAvatarUrl = body?.avatarUrl
+
+  if (rawAvatarUrl !== null && typeof rawAvatarUrl !== "string") {
+    return NextResponse.json({ error: "invalid_avatar_url" }, { status: 400 })
+  }
+
+  if (!isValidAccountAvatarUrl(rawAvatarUrl)) {
+    return NextResponse.json({ error: "invalid_avatar_url" }, { status: 400 })
+  }
+
+  const avatarUrl = normalizeStoredImageUrl(rawAvatarUrl)
+  const { data: updatedUser, error } = await authResult.actor.supabase
+    .from("app_users")
+    .update({ avatar_url: avatarUrl })
+    .eq("id", authResult.actor.user.id)
+    .select("avatar_url")
+    .single()
+
+  if (error || !updatedUser) {
+    return NextResponse.json(
+      { error: "profile_avatar_update_failed" },
+      { status: 500 },
+    )
+  }
+
+  return NextResponse.json({
+    profile: mapProfile({
+      ...authResult.actor.user,
+      avatarUrl: normalizeStoredImageUrl(updatedUser.avatar_url) ?? null,
+    }),
   })
 }

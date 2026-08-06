@@ -36,7 +36,7 @@ NEXT_PUBLIC_QA_MODE=false
 QA_MODE=false
 ```
 
-La aplicación no necesita construir enlaces públicos a partir de las URL automáticas de Vercel. Puede utilizarse `NEXT_PUBLIC_APP_VARIANT=production` en producción y `NEXT_PUBLIC_APP_VARIANT=pre` en la rama `staging`; `NEXT_PUBLIC_APP_URL` queda como compatibilidad, pero cualquier dominio antiguo de Vercel se normaliza al dominio oficial correspondiente.
+`NEXT_PUBLIC_APP_URL` debe contener siempre el dominio oficial del entorno: `https://smashandlob.com` en PROD y `https://pre.smashandlob.com` en PRE. Puede utilizarse `NEXT_PUBLIC_APP_VARIANT=production` en producción y `NEXT_PUBLIC_APP_VARIANT=pre` en `staging`, pero el dominio oficial es la fuente de verdad y prevalece ante una variante contradictoria. Los dominios automáticos de Vercel se normalizan al entorno oficial correspondiente.
 
 ## Google OAuth
 
@@ -60,18 +60,33 @@ No añadir nuevos alias temporales de Vercel a los enlaces de producto. Las cred
 
 ## Validaciones antes de publicar
 
+Para validar código y build:
+
 ```bash
 npm ci
 npm run validate
 ```
 
-`npm run validate` ejecuta:
+`npm run validate` comprueba:
 
-1. línea base de seguridad;
-2. comprobación de URLs públicas;
-3. ESLint;
-4. TypeScript;
-5. build de producción.
+1. coherencia de versión entre `package.json`, lockfile, UI, changelog y service worker;
+2. variables obligatorias y coherencia PRE/PROD;
+3. secretos, línea base de seguridad y URLs públicas;
+4. aislamiento y assets de Avatar Lab;
+5. estructura de las migraciones de identidad;
+6. ESLint, TypeScript, Vitest y build de producción.
+
+Para una candidata de publicación completa:
+
+```bash
+npx playwright install chromium
+npm run release:check
+```
+
+`release:check` añade Playwright y `npm audit --omit=dev --audit-level=high`.
+Después de desplegar se ejecutan `npm run smoke:pre` o `npm run smoke:prod`; ambos consultan `/api/health`, verifican la versión y comprueban el aislamiento de Avatar Lab.
+
+La promoción de v1.2.11 debe seguir `docs/prepublication/V1_2_11_RELEASE_CHECKLIST.md`. Antes de aplicar las migraciones en PROD hay que ejecutar en PRE y después en PROD, en modo de solo lectura, `docs/prepublication/identity-audit.sql`.
 
 ## Pruebas previas a v1.0
 

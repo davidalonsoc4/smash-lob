@@ -1,3 +1,32 @@
+# v1.2.11 — Valores iniciales de Notion Avatar (2026-08-06)
+
+- Todas las categorías de Notion Avatar comienzan en el índice cero, mostrado como Estilo 1.
+- Restablecer devuelve la receta completa a Estilo 1.
+- La clave local experimental avanza a `smash-lob-avatar-lab-notion-v3` para no recuperar selecciones antiguas de PRE.
+- No hay cambios de permisos, autenticación, API, Supabase, migraciones ni datos persistidos.
+- La promoción conserva como requisitos manuales el backup de PROD y la auditoría SQL de identidades.
+
+# v1.2.10 — Endurecimiento previo a producción (2026-08-06)
+
+- Rama prevista: `chore/v1.2-prepublication-hardening`, creada desde `staging` en `bf605dd07bee3659a315c3ee1b0bec06daa4bfbf`.
+- Avatar Lab queda habilitado únicamente en `pre.smashandlob.com` y desarrollo local; Ajustes, búsqueda, páginas y API quedan bloqueados en PROD.
+- Los renderizadores experimentales requieren sesión, aplican rate limiting y no generan cachés públicas compartidas.
+- Las nuevas imágenes globales se generan a 256 × 256 y se limitan a 160 KB; la lectura mantiene compatibilidad con imágenes antiguas de hasta 512 KB.
+- `/api/access` publica `X-Smash-Lob-Snapshot-Bytes` y registra una advertencia estructurada cuando el snapshot supera 1 MB.
+- Se añaden `/api/health`, smoke tests PRE/PROD, validación de versión, auditoría de migraciones e identidad, y checklist de promoción.
+- La publicación a PROD queda bloqueada hasta superar `npm run release:check`, el smoke de PRE, la auditoría SQL y las comprobaciones manuales autenticadas del checklist.
+- No se modifica ninguna migración ya aplicada; cualquier reparación de datos debe añadirse en una migración posterior y reversible.
+- La regresión visual detectada en Ajustes correspondía al test: ocultaba únicamente la fila experimental y dejaba la sección vacía; v1.2.10 oculta la sección completa sin renovar snapshots.
+- `npm audit --omit=dev --audit-level=high` informa cero vulnerabilidades de producción; los avisos altos de `npm ci` quedan limitados a herramientas de desarrollo.
+
+# Avatar Lab v1.2.8 — Notion compacto (2026-08-05)
+
+- Editor Notion reorganizado en una única vista móvil con preview y controles visibles simultáneamente.
+- Eliminados presets, selección de forma y selección de fondo.
+- Lienzo Notion fijo, rectangular y blanco.
+- Categorías accesibles con anterior/siguiente y selector nativo; estilos centrados en navegación anterior/siguiente.
+- Sin cambios en perfil, Supabase o datos de liga.
+
 ## v0.16.12 — Classic style naming and award header polish
 
 - Renamed the visible neutral appearance style to Clásico/Classic/Klasikoa while preserving the internal `plain` storage key.
@@ -161,7 +190,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 ## v0.13.4 - Profile and navigation consistency (2026-07-24)
 
-- Added a compact `/settings/profile` screen that unifies account-name and active-league avatar editing.
+- Added a compact `/settings/profile` screen that unifies account-name and global profile-image editing.
 - Kept create-league and join-league actions directly in Settings.
 - Replaced remaining text navigation arrows with the shared `ClickableChevron` component.
 - Made the current closed-beta version explicit on the public changelog card.
@@ -925,3 +954,80 @@ This is human acceptance evidence reported by the project owner. It was not repl
   de códigos de invitación antiguos.
 - Este checkpoint documenta la aceptación y autorización. La evidencia del commit,
   deployment y smoke tests de Producción se registrará tras ejecutar la publicación.
+
+## v1.2.1 - Candidata descartada por error de concepto (2026-08-03)
+
+- La candidata de PRE introdujo `league_memberships.league_avatar_url` y una imagen distinta por liga. El modelo fue rechazado antes de promoverlo a Producción.
+- Se conserva como antecedente técnico la migración aplicada `20260803160000_add_league_avatars_and_restore_unlinked_identity.sql`; no se modifica porque las migraciones aplicadas son inmutables.
+- La parte válida de la candidata es `players.link_identity_snapshot` y la restauración de nombre e iniciales al desvincular una cuenta.
+- La fotografía no forma parte de la identidad histórica recuperable y debe desaparecer al eliminar el vínculo.
+
+## v1.2.2 - Imagen global e identidad histórica corregidas (2026-08-03)
+
+- Retirada de la interfaz, contratos, tipos, carga de acceso, invitaciones, actividad y duplicación de temporadas toda dependencia del avatar específico por liga.
+- La edición de imagen de Ajustes actualiza ahora `app_users.avatar_url`, por lo que la imagen es global para la cuenta y se refleja en todas sus ligas.
+- La prioridad actual queda como imagen global de la cuenta vinculada y, si no existe, avatar predeterminado con iniciales. Los jugadores sin cuenta vinculada quedan siempre sin fotografía.
+- La instantánea `link_identity_snapshot` conserva únicamente `displayName` y `avatarInitials`; al desvincular se restauran esos datos, se limpia `avatar_url` y vuelve el avatar predeterminado.
+- Añadida la migración de avance `20260803203000_remove_league_avatars_and_keep_account_identity.sql`, que elimina `league_avatar_url` de PRE, limpia cualquier fotografía almacenada en `players` y redefine el trigger sin fotografías históricas.
+- El futuro editor de avatares queda fuera de esta versión y deberá guardar un avatar global del usuario, independiente de sus ligas y de la fotografía subida.
+- Versión incrementada a `v1.2.2`; changelog y caché PWA actualizados.
+- Validación disponible en este entorno: los 24 archivos TypeScript/TSX modificados transpilan sin errores de sintaxis; los contratos estructurales de imagen global, API de cuenta, ausencia de escritura de imágenes por jugador, migración y versión pasan; también pasan la línea base de seguridad, las URLs públicas y el escaneo de secretos. `npm ci` no puede completarse aquí porque el registro interno devuelve 404 para `web-push@3.6.7`, por lo que lint, TypeScript completo, Vitest y build quedan como gate obligatorio del comando de aplicación antes de publicar PRE.
+
+## v1.2.3 - Editor de imagen accesible en móvil (2026-08-03)
+
+- El editor de recorte se monta mediante un portal en `document.body`, fuera de los contextos de apilamiento de la aplicación, y utiliza `z-[1000]` para quedar por encima de la navegación inferior y los controles flotantes.
+- El diálogo se centra también en pantallas pequeñas, respeta las zonas seguras del dispositivo y limita su altura al viewport dinámico.
+- El marco de recorte adapta su tamaño al espacio disponible; los cálculos de arrastre, zoom, rotación y exportación utilizan el tamaño real mostrado.
+- El contenido central puede desplazarse de forma independiente y la barra con `Cancelar` y `Usar imagen` permanece fija y accesible.
+- Añadida una prueba de contrato visual para impedir regresiones del portal, apilamiento, centrado, tamaño responsive y acciones visibles.
+- No se requieren migraciones de Supabase ni cambios de persistencia.
+- Validación disponible en este entorno: pasan el escaneo de secretos, la línea base de seguridad, las URLs públicas, `git diff --check`, la transpilación sintáctica de los cinco archivos TypeScript/TSX afectados y los contratos de portal, apilamiento, centrado, tamaño responsive, acciones visibles, versión y caché PWA. `npm ci` queda bloqueado aquí por un 404 del registro interno para `zod-validation-error@4.0.2`; el comando de aplicación mantiene `npm run validate` completo como gate obligatorio antes de publicar PRE.
+
+## Avatar Lab DEMO 0.1 - experimento aislado de mundos de avatar (2026-08-03)
+
+- Rama experimental independiente: `feature/avatar-worlds-demo`, creada desde el estado `staging` aprobado en `v1.2.3`. No modifica `main`, no añade migraciones y mantiene la versión global de la aplicación en `1.2.3`.
+- Añadida la ruta PRE-only `/experimental/avatar-lab`, ausente de la navegación normal, con `noindex` y una rama propia en `AppRouteBoundary` que conserva autenticación y perfil completo, pero evita cargar proveedores de liga, partidos, temporada, MVP y `AppShell`.
+- Implementada una única `AvatarRecipe` neutral y versionada, separada de `AvatarWorldPreference`. El espectador puede usar `pixel_chibi`; `chibi_illustrated` queda declarado, visible como «Próximamente» y sin renderer ni assets provisionales.
+- El renderer Pixel Chibi utiliza SVG modular de coordenadas enteras sobre una plantilla lógica `192 × 240`, `shape-rendering="crispEdges"`, `image-rendering: pixelated`, paleta limitada y capas independientes para fondo, cuerpo, cabeza y pala. La referencia canónica queda guardada solo en documentación y no se usa como imagen plana.
+- La orientación zurda refleja la geometría alrededor de x=96, pero la letra B de la pala se vuelve a dibujar fuera del grupo reflejado. Manga y muñequera se resuelven mediante lados relativos `dominant`/`non_dominant`.
+- La DEMO incluye dos tonos de piel; tres estados de pelo; tres estados de barba; ojos y cejas configurables; gorra/cinta excluyentes; colores primario y secundario de camiseta; dos pantalones; manga, muñequera, calcetines, zapatillas y dos palas; además de aleatorización, restablecimiento, depuración y persistencia local versionada.
+- Se añadieron manifest, paletas, esquemas portables, catálogos por categoría, guía de estilo, plantilla maestra, reglas de compatibilidad, arquitectura, alcance y roadmap bajo `public/avatars` y `docs/avatars`.
+- Validación ejecutada en este entorno: `npm run avatars:check` pasa con 26 primitivas modulares; 28 archivos TS/TSX transpilan sin errores sintácticos; el typecheck estricto aislado de Avatar Lab pasa; las comprobaciones de ejecución de receta, normalización, aleatorización, persistencia y render diestro/zurdo pasan; todos los JSON cargan correctamente; la vista canónica se rasterizó desde el renderer real y se inspeccionó; `git diff --check` pasa.
+- `npm ci` y, por tanto, `npm run validate` completo no pueden ejecutarse en este entorno porque el registro interno devuelve 404 para `zod-validation-error@4.0.2`. El script de entrega mantiene `npm ci`, `npm run avatars:check` y `npm run validate` como gates obligatorios antes del commit, push y publicación exclusiva en PRE.
+
+## v1.2.4 - Laboratorio móvil de avatares limitado a PRE (2026-08-05)
+
+- La rama experimental `feature/avatar-worlds-demo` se reduce a dos opciones viables: DiceBear Big Smile y Notion Avatar.
+- Se eliminan Ready Player Me, Pacovqzz/Avatune, el prototipo Pixel Chibi y todos sus endpoints, recursos, modelos, documentación y pruebas huérfanas.
+- Ajustes incorpora un acceso para usuarios autenticados; toda la ruta `/experimental/avatar-lab` permanece protegida por el layout PRE-only, `noindex` y el `AppShell` normal.
+- Ambos editores adoptan componentes, anchura, tarjetas, navegación, tamaños táctiles y zonas seguras coherentes con la PWA móvil.
+- Las recetas se conservan solo en `localStorage`; no existe integración con perfil, jugadores, Supabase ni migraciones.
+- Notion Avatar se compone mediante un endpoint local cacheado a partir de los SVG abiertos del proyecto oficial, evitando la dependencia `react-notion-avatar` y su árbol de paquetes obsoleto.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.4`.
+- La entrega debe superar el validador específico, Vitest focalizado, lint, TypeScript, suite completa y build antes de cualquier commit o publicación en PRE.
+
+## v1.2.5 - Corrección de la línea base para publicar Avatar Lab en PRE (2026-08-05)
+
+- Se mantiene el alcance funcional de v1.2.4: únicamente DiceBear Big Smile y Notion Avatar, sin escritura de perfil ni Supabase.
+- La poda de dependencias reubicó tres copias heredadas de `brace-expansion@1.1.17` bajo plugins concretos de ESLint.
+- El validador permite solo esas rutas exactas y exige que el lockfile las marque como dependencias de desarrollo; no se amplía la autorización al runtime.
+- La copia principal de `brace-expansion` sigue obligada a `5.0.8` o superior.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.5`.
+- Todos los gates se ejecutan antes del commit y de nuevo sobre el merge candidato a `staging`.
+
+## v1.2.6 - Compatibilidad React del laboratorio de avatares (2026-08-05)
+
+- Se eliminan las actualizaciones síncronas de estado ejecutadas directamente desde efectos en Big Smile y Notion Avatar.
+- La restauración desde `localStorage` se realiza mediante tareas cancelables y las vistas previas derivan su estado de la URL o receta activa.
+- El paginado de Notion se reinicia desde la acción de cambio de categoría.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.6`.
+- No hay migraciones de Supabase ni cambios en datos persistidos.
+
+
+## v1.2.7 - Limpieza de tipos generados y compatibilidad ES2017 (2026-08-05)
+
+- La validación elimina `.next` y `tsconfig.tsbuildinfo` antes del typecheck para evitar referencias generadas a rutas experimentales ya retiradas.
+- El renderer de Notion sustituye el flag `s` de expresión regular por un patrón multilínea compatible con el objetivo ES2017 del proyecto.
+- Se mantiene el alcance de Avatar Lab: únicamente DiceBear Big Smile y Notion Avatar, limitado a PRE y sin persistencia en perfiles o Supabase.
+- La versión visible, el changelog y la caché PWA avanzan a `v1.2.7`.
+- No hay migraciones de Supabase ni cambios en datos persistidos.

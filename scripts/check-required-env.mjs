@@ -37,5 +37,37 @@ if (
   process.exit(1)
 }
 
+const variant = (process.env.NEXT_PUBLIC_APP_VARIANT ?? "").trim().toLowerCase()
+const allowedVariants = new Set(["", "pre", "staging", "prod", "production"])
+
+if (!allowedVariants.has(variant)) {
+  console.error("NEXT_PUBLIC_APP_VARIANT contiene un valor no permitido.")
+  process.exit(1)
+}
+
+const preVariants = new Set(["pre", "staging"])
+const productionVariants = new Set(["prod", "production"])
+const isPreHost = appUrl.hostname === "pre.smashandlob.com"
+const isProductionHost =
+  appUrl.hostname === "smashandlob.com" || appUrl.hostname === "www.smashandlob.com"
+
+if (
+  (isPreHost && productionVariants.has(variant)) ||
+  (isProductionHost && preVariants.has(variant))
+) {
+  console.error(
+    "NEXT_PUBLIC_APP_URL y NEXT_PUBLIC_APP_VARIANT describen entornos distintos.",
+  )
+  process.exit(1)
+}
+
+if (
+  process.env.VERCEL_ENV === "production" &&
+  appUrl.hostname !== "smashandlob.com"
+) {
+  console.error("Un despliegue Production de Vercel debe usar https://smashandlob.com.")
+  process.exit(1)
+}
+
 console.log("Variables obligatorias presentes (valores ocultos):")
 required.forEach((name) => console.log(`- ${name}: presente`))

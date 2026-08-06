@@ -92,8 +92,21 @@ test("@visual authenticated screens remain stable", async ({ page }) => {
         input[type="date"]::-webkit-datetime-edit {
           visibility: hidden !important;
         }
+        /* Avatar Lab is intentionally enabled on localhost but excluded from
+           the stable production UI baseline. Hide its complete section so the
+           test does not leave an empty experimental card behind. */
+        section:has(#avatar-lab) { display: none !important; }
       `,
     })
+
+    // The installed version changes every delivery and is not a visual
+    // regression. Keep the existing baseline deterministic.
+    await page.locator("[data-visual-stable-version]").evaluateAll((elements) => {
+      for (const element of elements) {
+        element.textContent = "Smash & Lob · v1.2.1"
+      }
+    })
+
     await expect(page).toHaveScreenshot(`authenticated-${screen.name}.png`, {
       fullPage: true,
       animations: "disabled",

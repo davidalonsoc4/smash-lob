@@ -27,7 +27,6 @@ import {
   unlinkSupabaseLeagueMembership,
   updateSupabaseLeagueMembershipRole,
   updateSupabasePlayerDisplayName,
-  updateSupabasePlayerAvatar,
   type LeagueUserManagementPlayer,
 } from "@/lib/supabaseAdminUsers";
 import {
@@ -130,11 +129,6 @@ type LeagueAccessContextValue = {
     leagueId: string,
     playerId: string,
     displayName: string,
-  ) => Promise<boolean>;
-  updateLeaguePlayerAvatar: (
-    leagueId: string,
-    playerId: string,
-    avatarUrl: string | null,
   ) => Promise<boolean>;
   getLeagueByInviteCode: (code: string) => League | null;
   resolveLeagueInvite: (
@@ -1440,26 +1434,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [updatePlayerProfile],
   );
 
-  const updateLeaguePlayerAvatar = useCallback(
-    async (leagueId: string, playerId: string, avatarUrl: string | null) => {
-      try {
-        const result = await updateSupabasePlayerAvatar({
-          leagueId,
-          playerId,
-          avatarUrl,
-        });
-
-        updatePlayerProfile(result);
-
-        return true;
-      } catch (error) {
-        recordSupabaseError("update-league-player-avatar", error);
-        return false;
-      }
-    },
-    [updatePlayerProfile],
-  );
-
   const getLeagueByInviteCode = useCallback(
     (code: string) => {
       const normalizedCode = normalizeInviteCode(code);
@@ -1769,7 +1743,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueUserRole,
       unlinkLeaguePlayerAccount,
       updateLeaguePlayerName,
-      updateLeaguePlayerAvatar,
       getLeagueByInviteCode,
       resolveLeagueInvite,
       getUnclaimedPlayersForLeague,
@@ -1792,7 +1765,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       updateLeagueUserRole,
       unlinkLeaguePlayerAccount,
       updateLeaguePlayerName,
-      updateLeaguePlayerAvatar,
       getLeagueByInviteCode,
       getLeagueInviteCode,
       getMembershipForLeague,

@@ -93,9 +93,7 @@ export async function GET(
         playerId: player.id,
         displayName: player.display_name,
         avatarInitials: player.avatar_initials,
-        avatarUrl:
-          linkedUser?.avatar_url ??
-          (typeof player.avatar_url === "string" ? player.avatar_url : null),
+        avatarUrl: linkedUser?.avatar_url ?? null,
         linkedUserId: membership?.user_id ?? null,
         linkedUserEmail: linkedUser?.email ?? null,
         linkedUserDisplayName: linkedUser?.display_name ?? null,

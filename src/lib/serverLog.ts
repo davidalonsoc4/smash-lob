@@ -17,6 +17,7 @@ export type ServerLogContext = {
   userId?: string
   leagueId?: string
   incidenceCode?: string
+  responseBytes?: number
 }
 
 const SAFE_CONTEXT_KEYS = new Set<keyof ServerLogContext>([
@@ -30,6 +31,7 @@ const SAFE_CONTEXT_KEYS = new Set<keyof ServerLogContext>([
   "userId",
   "leagueId",
   "incidenceCode",
+  "responseBytes",
 ])
 
 export function createRequestId(request?: Request) {

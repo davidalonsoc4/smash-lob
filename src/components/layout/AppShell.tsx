@@ -15,6 +15,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
+import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { BottomNav } from "./BottomNav"
@@ -212,6 +213,7 @@ export function AppShell({ children }: AppShellProps) {
         canSelfUnlink,
         qaEnabled: qaModeEnabled,
         isSuperuser,
+        avatarLabEnabled: isAvatarLabEnabled(),
       })
     : []
   const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute

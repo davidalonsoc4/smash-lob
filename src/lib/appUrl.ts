@@ -83,10 +83,31 @@ function canonicalizeKnownOrigin(value: string | null) {
   return null
 }
 
+function isLocalOrigin(value: string | null) {
+  if (!value) {
+    return false
+  }
+
+  try {
+    return LOCAL_HOST_PATTERN.test(new URL(value).host)
+  } catch {
+    return false
+  }
+}
+
 function getConfiguredAppUrl() {
   const explicitVariant = (process.env.NEXT_PUBLIC_APP_VARIANT ?? "")
     .trim()
     .toLowerCase()
+  const configuredUrl = normalizeOrigin(process.env.NEXT_PUBLIC_APP_URL)
+  const canonicalConfiguredUrl = canonicalizeKnownOrigin(configuredUrl)
+
+  // The official configured domain wins over a contradictory variant. This
+  // prevents PRE-only functionality from being enabled on production because
+  // of a stale or mistyped NEXT_PUBLIC_APP_VARIANT value.
+  if (canonicalConfiguredUrl && !isLocalOrigin(canonicalConfiguredUrl)) {
+    return canonicalConfiguredUrl
+  }
 
   if (explicitVariant === "pre" || explicitVariant === "staging") {
     return PREPRODUCTION_APP_URL
@@ -95,9 +116,6 @@ function getConfiguredAppUrl() {
   if (explicitVariant === "prod" || explicitVariant === "production") {
     return PRODUCTION_APP_URL
   }
-
-  const configuredUrl = normalizeOrigin(process.env.NEXT_PUBLIC_APP_URL)
-  const canonicalConfiguredUrl = canonicalizeKnownOrigin(configuredUrl)
 
   if (canonicalConfiguredUrl) {
     return canonicalConfiguredUrl

@@ -123,19 +123,22 @@ function encodeCanvasWithinLimit({
 
   if (
     !maxOutputBytes ||
-    getDataUrlByteLength(preferredDataUrl) <= maxOutputBytes ||
-    preferredType !== "image/png"
+    getDataUrlByteLength(preferredDataUrl) <= maxOutputBytes
   ) {
     return preferredDataUrl
   }
 
-  // WebP conserva el canal alfa y permite reducir logos PNG complejos sin
-  // superar el límite de almacenamiento de imágenes embebidas del servidor.
-  const fallbackQualities = [quality, 0.82, 0.74, 0.66]
+  // Recompress every lossy format when a byte budget is provided. PNG falls
+  // back to WebP so transparent logos can also fit within the server limit.
+  const fallbackType =
+    preferredType === "image/png" ? "image/webp" : preferredType
+  const fallbackQualities = Array.from(
+    new Set([quality, 0.82, 0.74, 0.66, 0.58, 0.5]),
+  )
   let smallestDataUrl = preferredDataUrl
 
   for (const fallbackQuality of fallbackQualities) {
-    const dataUrl = canvas.toDataURL("image/webp", fallbackQuality)
+    const dataUrl = canvas.toDataURL(fallbackType, fallbackQuality)
 
     if (dataUrl.length < smallestDataUrl.length) {
       smallestDataUrl = dataUrl

@@ -74,7 +74,6 @@ export async function POST(
       lastName,
       profileCompletedAt,
       availabilityCompletedAt,
-      avatarUrl,
     },
   } = authResult.actor
 
@@ -399,7 +398,6 @@ export async function POST(
     .update({
       display_name: profileDisplayName,
       avatar_initials: getProfileInitials(firstName, lastName),
-      avatar_url: avatarUrl,
     })
     .eq("id", playerId)
     .eq("league_id", leagueId)

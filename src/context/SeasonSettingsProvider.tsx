@@ -1056,9 +1056,9 @@ export function SeasonSettingsProvider({
               displayName: isDirectTarget ? displayName : player.displayName,
               avatarInitials: isDirectTarget ? avatarInitials : player.avatarInitials,
               avatarUrl:
-                typeof avatarUrl === "undefined"
-                  ? (player.avatarUrl ?? null)
-                  : avatarUrl,
+                isDirectTarget && typeof avatarUrl !== "undefined"
+                  ? avatarUrl
+                  : (player.avatarUrl ?? null),
               userId: linkedUserId ?? player.userId,
             };
           }),

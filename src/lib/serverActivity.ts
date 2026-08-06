@@ -191,7 +191,7 @@ function applyLeagueActorProfile(
   return {
     ...event,
     actorDisplayName: profile.displayName ?? event.actorDisplayName,
-    actorAvatarUrl: profile.avatarUrl,
+    actorAvatarUrl: profile.avatarUrl ?? event.actorAvatarUrl,
     actorAvatarInitials: profile.avatarInitials,
   }
 }
@@ -341,7 +341,7 @@ async function fetchLeagueActorProfiles({
 
   const { data: players, error: playersError } = await supabase
     .from("players")
-    .select("id,display_name,avatar_initials,avatar_url")
+    .select("id,display_name,avatar_initials")
     .in("id", playerIds)
 
   if (playersError) {
@@ -363,8 +363,7 @@ async function fetchLeagueActorProfiles({
             typeof player.avatar_initials === "string"
               ? player.avatar_initials
               : null,
-          avatarUrl:
-            typeof player.avatar_url === "string" ? player.avatar_url : null,
+          avatarUrl: null,
         },
       ])
   )

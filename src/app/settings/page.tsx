@@ -17,6 +17,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
+import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { formatMoney } from "@/lib/courtBooking"
 
 const settingsVersionLabel = `Smash & Lob · ${APP_VERSION_LABEL}`
@@ -337,6 +338,25 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         />
       </SettingsSection>
 
+      {isAvatarLabEnabled() ? (
+        <SettingsSection
+          title="Laboratorio"
+          description="Funciones experimentales disponibles solo en PRE."
+        >
+          <SettingsLinkRow
+            href="/experimental/avatar-lab"
+            id="avatar-lab"
+            title="Laboratorio de avatares"
+            description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
+            badge={
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+                PRE
+              </span>
+            }
+          />
+        </SettingsSection>
+      ) : null}
+
       <SettingsSection
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
@@ -369,7 +389,10 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
 
       <SessionSection />
 
-      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600">
+      <p
+        data-visual-stable-version
+        className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600"
+      >
         {settingsVersionLabel}
       </p>
     </div>
@@ -648,6 +671,25 @@ function PlayerSettingsPage() {
         </SettingsSection>
       ) : null}
 
+      {isAvatarLabEnabled() ? (
+        <SettingsSection
+          title="Laboratorio"
+          description="Funciones experimentales disponibles solo en PRE."
+        >
+          <SettingsLinkRow
+            href="/experimental/avatar-lab"
+            id="avatar-lab"
+            title="Laboratorio de avatares"
+            description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
+            badge={
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+                PRE
+              </span>
+            }
+          />
+        </SettingsSection>
+      ) : null}
+
       <SettingsSection
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
@@ -680,7 +722,10 @@ function PlayerSettingsPage() {
 
       <SessionSection />
 
-      <p className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600">
+      <p
+        data-visual-stable-version
+        className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600"
+      >
         {settingsVersionLabel}
       </p>
     </div>
