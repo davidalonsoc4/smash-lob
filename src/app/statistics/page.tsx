@@ -48,22 +48,24 @@ export default function StatisticsPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <StatisticsPageHeader
-        leagueName={activeLeague.name}
-        title="Estadísticas"
-        description={
-          isLeagueWide
-            ? "El histórico completo de la liga y accesos directos a cada análisis."
-            : "Lo más destacado de la temporada y accesos directos a cada análisis."
-        }
-        seasons={seasonOptions}
-        selectedSeason={selectedSeason}
-        onSeasonChange={selectSeason}
-        fallbackHref="/ranking"
-      />
+      <div data-tour="statistics-header" className="space-y-3">
+        <StatisticsPageHeader
+          leagueName={activeLeague.name}
+          title="Estadísticas"
+          description={
+            isLeagueWide
+              ? "El histórico completo de la liga y accesos directos a cada análisis."
+              : "Lo más destacado de la temporada y accesos directos a cada análisis."
+          }
+          seasons={seasonOptions}
+          selectedSeason={selectedSeason}
+          onSeasonChange={selectSeason}
+          fallbackHref="/ranking"
+        />
+      </div>
 
       {statistics.ranking.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div data-tour="statistics-highlights" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <AppCard>
             <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
               {isLeagueWide
@@ -130,7 +132,7 @@ export default function StatisticsPage() {
         />
       )}
 
-      <div>
+      <div data-tour="statistics-navigation">
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
           Explorar estadísticas
         </p>

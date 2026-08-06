@@ -4222,7 +4222,7 @@ export default function AdminSeasonPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-2">
+      <header data-tour="season-admin-header" className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
         <p className="mt-1 text-xs font-bold text-neutral-500">
@@ -4250,14 +4250,16 @@ export default function AdminSeasonPage() {
         </p>
       </header>
 
-      <SeasonNavigation
+      <div data-tour="season-admin-navigation">
+        <SeasonNavigation
         isActiveSeason={isActiveSeason}
         isUpcomingSeason={isUpcomingSeason}
         hasCreatedLeagueSeason={hasCreatedLeagueSeason}
         canAuditCalendar={canAuditCalendar}
         canReopenFinishedSeason={canReopenFinishedSeason}
         registrationEnabled={roundSettings.registrationFee.enabled}
-      />
+        />
+      </div>
 
       <ContextualTip
         tipId="season-admin"
@@ -4284,7 +4286,7 @@ export default function AdminSeasonPage() {
             title="Calendario y jornadas"
             description="Ordena la competición, ajusta los plazos y comprueba el equilibrio del calendario."
           />
-          <div id="jornadas" className="settings-search-target">
+          <div id="jornadas" data-tour="season-admin-calendar" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
@@ -4349,7 +4351,7 @@ export default function AdminSeasonPage() {
             description="Gestiona la cuota de inscripción y los nombres de la plantilla activa."
           />
           {roundSettings.registrationFee.enabled ? (
-            <div id="inscripcion" className="settings-search-target">
+            <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
               <RegistrationFeeSettingsPanel
                 key={activeSeason.id}
                 activeLeagueId={activeLeague.id}
@@ -4358,7 +4360,7 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="jugadores" className="settings-search-target">
+          <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
@@ -4428,7 +4430,7 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="jornadas" className="settings-search-target">
+          <div id="jornadas" data-tour="season-admin-calendar" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
@@ -4482,7 +4484,7 @@ export default function AdminSeasonPage() {
             description="Revisa la cuota, las plazas y los nombres antes de iniciar la competición."
           />
           {roundSettings.registrationFee.enabled ? (
-            <div id="inscripcion" className="settings-search-target">
+            <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
               <RegistrationFeeSettingsPanel
                 key={activeSeason.id}
                 activeLeagueId={activeLeague.id}
@@ -4491,7 +4493,7 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="jugadores" className="settings-search-target">
+          <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
@@ -4523,7 +4525,7 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="jugadores" className="settings-search-target">
+          <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}

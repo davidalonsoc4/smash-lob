@@ -13,6 +13,8 @@ import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistr
 import { AccountProfileProvider } from "@/context/AccountProfileProvider"
 import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
 import { CurrentUserProvider } from "@/context/CurrentUserProvider"
+import { OnboardingProvider } from "@/features/onboarding/OnboardingProvider"
+import { GuidedTourOverlay } from "@/components/onboarding/GuidedTourOverlay"
 import { LeagueAccessProvider } from "@/context/LeagueAccessProvider"
 import { MatchDataProvider } from "@/context/MatchDataProvider"
 import { MvpProvider } from "@/context/MvpProvider"
@@ -48,8 +50,11 @@ export function AppRouteBoundary({ children }: { children: ReactNode }) {
                       <ActiveLeagueProvider>
                         <CurrentUserProvider>
                           <LeagueEntryGate>
-                            <AutoPushRegistration />
-                            <AppShell>{children}</AppShell>
+                            <OnboardingProvider>
+                              <AutoPushRegistration />
+                              <AppShell>{children}</AppShell>
+                              <GuidedTourOverlay />
+                            </OnboardingProvider>
                           </LeagueEntryGate>
                         </CurrentUserProvider>
                       </ActiveLeagueProvider>

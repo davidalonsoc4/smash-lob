@@ -14,7 +14,7 @@ export default function RankingPage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header data-tour="ranking-header" className="pt-2">
         <LeagueSeasonEyebrow
           leagueName={activeLeague.name}
           seasonName={activeSeason.name}
@@ -31,12 +31,14 @@ export default function RankingPage() {
       </header>
 
 
-      <RankingTable
+      <div data-tour="ranking-table">
+        <RankingTable
         players={rankingPlayers}
         showAvatars={activeLeague.showRankingAvatars !== false}
-      />
+        />
+      </div>
 
-      <Link href="/statistics" className="block">
+      <Link data-tour="ranking-statistics-link" href="/statistics" className="block">
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>

@@ -65,7 +65,7 @@ export default function MatchesPage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header data-tour="matches-header" className="pt-2">
         <LeagueSeasonEyebrow
           leagueName={activeLeague.name}
           seasonName={activeSeason.name}
@@ -82,7 +82,7 @@ export default function MatchesPage() {
       </header>
 
 
-      <AppCard className="p-2.5">
+      <AppCard data-tour="matches-scope" className="p-2.5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-black text-neutral-950">
@@ -154,7 +154,7 @@ export default function MatchesPage() {
       ) : null}
 
 
-      <div className="space-y-7">
+      <div data-tour="matches-round-list" className="space-y-7">
         {rounds.map((round) => {
           const roundMatches = visibleMatches.filter(
             (match) => match.round === round.round
