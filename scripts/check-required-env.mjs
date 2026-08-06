@@ -28,6 +28,37 @@ for (const [left, right] of optionalPairs) {
   }
 }
 
+const observabilityUrl = process.env.OBSERVABILITY_WEBHOOK_URL?.trim() ?? ""
+const observabilityToken = process.env.OBSERVABILITY_WEBHOOK_TOKEN?.trim() ?? ""
+const observabilityLevel = (
+  process.env.OBSERVABILITY_MIN_LEVEL?.trim().toLowerCase() || "error"
+)
+
+if (observabilityToken && !observabilityUrl) {
+  console.error("OBSERVABILITY_WEBHOOK_TOKEN requiere OBSERVABILITY_WEBHOOK_URL.")
+  process.exit(1)
+}
+
+if (observabilityUrl) {
+  let webhookUrl
+  try {
+    webhookUrl = new URL(observabilityUrl)
+  } catch {
+    console.error("OBSERVABILITY_WEBHOOK_URL no es una URL válida.")
+    process.exit(1)
+  }
+  const localWebhook = new Set(["localhost", "127.0.0.1"]).has(webhookUrl.hostname)
+  if (webhookUrl.protocol !== "https:" && !localWebhook) {
+    console.error("OBSERVABILITY_WEBHOOK_URL debe usar HTTPS salvo en localhost.")
+    process.exit(1)
+  }
+}
+
+if (!["info", "warn", "error"].includes(observabilityLevel)) {
+  console.error("OBSERVABILITY_MIN_LEVEL debe ser info, warn o error.")
+  process.exit(1)
+}
+
 if (missing.length > 0) {
   console.error("Configuración obligatoria incompleta:")
   missing.forEach((name) => console.error(`- ${name}: ausente`))

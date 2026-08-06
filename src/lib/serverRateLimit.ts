@@ -26,6 +26,13 @@ const store =
   globalRateLimit.__smashLobRateLimits ??
   (globalRateLimit.__smashLobRateLimits = new Map())
 
+export function isDistributedRateLimitConfigured() {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL?.trim() &&
+      process.env.UPSTASH_REDIS_REST_TOKEN?.trim(),
+  )
+}
+
 const DISTRIBUTED_RATE_LIMIT_SCRIPT = `
 local current = redis.call('INCR', KEYS[1])
 if current == 1 then

@@ -9,6 +9,7 @@ const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 const publicMethods = new Map([
   ["/api/auth/[...nextauth]", new Set(["GET", "POST"])],
   ["/api/health", new Set(["GET"])],
+  ["/api/observability/client-error", new Set(["POST"])],
   ["/api/invites/[code]", new Set(["GET"])],
   ["/api/spectator-invites/[code]", new Set(["GET"])],
 ])
