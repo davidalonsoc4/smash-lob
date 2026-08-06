@@ -15,6 +15,19 @@ const required = [
 
 const missing = required.filter((name) => !process.env[name]?.trim())
 
+const optionalPairs = [
+  ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
+]
+
+for (const [left, right] of optionalPairs) {
+  const hasLeft = Boolean(process.env[left]?.trim())
+  const hasRight = Boolean(process.env[right]?.trim())
+  if (hasLeft !== hasRight) {
+    console.error(`${left} y ${right} deben configurarse juntos.`)
+    process.exit(1)
+  }
+}
+
 if (missing.length > 0) {
   console.error("Configuración obligatoria incompleta:")
   missing.forEach((name) => console.error(`- ${name}: ausente`))

@@ -1,3 +1,13 @@
+# v1.2.12 — Automatización de calidad (2026-08-06)
+
+- Supabase local reconstruye y prueba migraciones, actualización histórica y restauración de backup en CI.
+- La autorización de liga y partido se centraliza y queda cubierta por una matriz completa de actores.
+- Todas las rutas API se inventarían automáticamente y la allowlist pública queda cerrada.
+- Se añaden presupuestos de código, bundle y Lighthouse con artefactos de diagnóstico.
+- GitHub Actions separa los gates de código, navegador, base de datos y rendimiento.
+- El rate limiting admite Redis REST compartido cuando se configuran credenciales y conserva fallback local; los logs incluyen metadatos de despliegue.
+- No hay migraciones nuevas ni cambios de producto o datos persistidos.
+
 # v1.2.11 — Valores iniciales de Notion Avatar (2026-08-06)
 
 - Todas las categorías de Notion Avatar comienzan en el índice cero, mostrado como Estilo 1.

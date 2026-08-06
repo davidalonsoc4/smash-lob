@@ -2,6 +2,7 @@ import "server-only"
 
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
+import { isAuthorized } from "@/lib/authorizationPolicy"
 
 export type ServerLeagueActor = {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>
@@ -115,20 +116,29 @@ export async function getServerLeagueViewer(
       ? spectatorResult.data.joined_at
       : null
   const isSpectator = Boolean(spectatorResult.data)
-  const isAdmin =
-    isSuperuser ||
-    membership?.role === "creator" ||
-    membership?.role === "admin"
+  const authorizationContext = {
+    authenticated: true,
+    isSuperuser,
+    membershipRole: membership?.role ?? null,
+    isSpectator,
+  }
+  const isAdmin = isAuthorized(authorizationContext, "league:admin")
 
   if (options.requireAdmin && !isAdmin) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 
-  if (options.requireMember && !membership && !isSuperuser) {
+  if (
+    options.requireMember &&
+    !isAuthorized(authorizationContext, "league:member")
+  ) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 
-  if (options.requireAccess && !isSuperuser && !membership && !isSpectator) {
+  if (
+    options.requireAccess &&
+    !isAuthorized(authorizationContext, "league:access")
+  ) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 

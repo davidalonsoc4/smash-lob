@@ -1,0 +1,7 @@
+{
+  "maxTotalJavaScriptRawBytes": 8000000,
+  "maxTotalJavaScriptGzipBytes": 2500000,
+  "maxChunkRawBytes": 1500000,
+  "maxChunkGzipBytes": 450000,
+  "maxStaticAssetBytes": 2500000
+}

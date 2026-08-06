@@ -62,7 +62,7 @@ export async function GET(request: Request) {
     })
   }
 
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "avatar_lab_notion",
     limit: 60,

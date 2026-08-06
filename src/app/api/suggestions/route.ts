@@ -51,7 +51,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRequestRateLimit({
+  const rateLimited = await enforceRequestRateLimit({
     request,
     scope: "suggestion_create",
     limit: 5,

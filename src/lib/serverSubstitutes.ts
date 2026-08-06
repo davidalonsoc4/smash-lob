@@ -1,6 +1,7 @@
 import "server-only"
 
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { isAuthorized } from "@/lib/authorizationPolicy"
 
 const substituteErrorCodes = [
   "season_not_found",
@@ -49,7 +50,21 @@ export async function requireSeasonAdmin(seasonId: string) {
       .eq("user_id", user.id)
       .maybeSingle()
 
-    if (membershipError || !membership || !["creator", "admin"].includes(membership.role)) {
+    if (
+      membershipError ||
+      !isAuthorized(
+        {
+          authenticated: true,
+          membershipRole:
+            membership?.role === "creator" ||
+            membership?.role === "admin" ||
+            membership?.role === "player"
+              ? membership.role
+              : null,
+        },
+        "league:admin",
+      )
+    ) {
       return { ok: false as const, status: 403, error: "forbidden" }
     }
   }
