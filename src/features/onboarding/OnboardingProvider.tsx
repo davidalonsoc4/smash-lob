@@ -21,7 +21,7 @@ import {
   writeLocalOnboardingProgress,
   type OnboardingProgressMap,
 } from "./progress"
-import { getOnboardingTours, getTourForPathname } from "./tours"
+import { getOnboardingTours, getTourForPathname, getTourStepsForLaunch } from "./tours"
 import type {
   OnboardingProgressStatus,
   OnboardingTourDefinition,
@@ -35,7 +35,7 @@ type OnboardingContextValue = {
   progress: OnboardingProgressMap
   isLoading: boolean
   availableTours: OnboardingTourDefinition[]
-  startTour: (tour: OnboardingTourDefinition) => void
+  startTour: (tour: OnboardingTourDefinition, options?: { includeFirstRunOnly?: boolean }) => void
   startCurrentTour: () => void
   nextStep: () => void
   previousStep: () => void
@@ -125,14 +125,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     () => getOnboardingTours(locale).filter((tour) => tour.audience(audience)),
     [audience, locale],
   )
-  const introductionTour = availableTours.find(
-    (tour) => tour.key === "app-introduction",
-  )
   const currentTour = getTourForPathname({
     pathname,
     locale,
     audience,
-    preferIntroduction: false,
   })
 
   useEffect(() => {
@@ -160,8 +156,15 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const startTour = useCallback((tour: OnboardingTourDefinition) => {
-    const steps = getAvailableSteps(tour)
+  const startTour = useCallback((
+    tour: OnboardingTourDefinition,
+    options: { includeFirstRunOnly?: boolean } = {},
+  ) => {
+    const launchTour = {
+      ...tour,
+      steps: getTourStepsForLaunch(tour, options),
+    }
+    const steps = getAvailableSteps(launchTour)
     if (steps.length === 0) return
 
     setActiveSteps(steps)
@@ -203,16 +206,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           (tour) => tour.key === requestedTourKey && tour.route === pathname,
         ) ?? null
       : null
-    const candidate =
-      requestedTour ??
-      (pathname === "/" &&
-      introductionTour &&
-      !hasCompletedCurrentTour(progress, introductionTour)
-        ? introductionTour
-        : currentTour)
+    const candidate = requestedTour ?? currentTour
     const shouldStart = candidate
       ? Boolean(requestedTour) || !hasCompletedCurrentTour(progress, candidate)
       : false
+    const hasSeenWelcome = Boolean(progress.home || progress["app-introduction"])
+    const includeFirstRunOnly =
+      !requestedTour &&
+      pathname === "/" &&
+      candidate?.key === "home" &&
+      !hasSeenWelcome
 
     if (!candidate || !shouldStart) {
       autoStartedPathRef.current = autoStartKey
@@ -221,7 +224,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const timeout = window.setTimeout(() => {
       autoStartedPathRef.current = autoStartKey
-      startTour(candidate)
+      startTour(candidate, { includeFirstRunOnly })
     }, 850)
 
     return () => window.clearTimeout(timeout)
@@ -229,7 +232,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     activeTour,
     availableTours,
     currentTour,
-    introductionTour,
     isLoading,
     pathname,
     progress,
@@ -279,9 +281,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const startCurrentTour = useCallback(() => {
-    const candidate = currentTour ?? (pathname === "/" ? introductionTour ?? null : null)
-    if (candidate) startTour(candidate)
-  }, [currentTour, introductionTour, pathname, startTour])
+    if (currentTour) startTour(currentTour)
+  }, [currentTour, startTour])
 
   const resetAllTours = useCallback(async () => {
     setProgress({})
@@ -293,7 +294,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const value = useMemo<OnboardingContextValue>(
     () => ({
       activeTour,
-      currentTour: currentTour ?? (pathname === "/" ? introductionTour ?? null : null),
+      currentTour,
       currentStepIndex,
       progress,
       isLoading,
@@ -314,10 +315,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       currentStepIndex,
       currentTour,
       finishTour,
-      introductionTour,
       isLoading,
       nextStep,
-      pathname,
       previousStep,
       progress,
       resetAllTours,

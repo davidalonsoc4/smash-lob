@@ -20,12 +20,13 @@ const requiredSnippets = new Map([
       "readLocalOnboardingProgress",
       "hasCompletedCurrentTour",
       "readRequestedTourKey",
+      "getTourStepsForLaunch",
+      "hasSeenWelcome",
     ],
   ],
   [
     "src/features/onboarding/tours.ts",
     [
-      'key: "app-introduction"',
       'key: "home"',
       'key: "matches"',
       'key: "ranking"',
@@ -34,6 +35,8 @@ const requiredSnippets = new Map([
       'key: "settings"',
       "[data-tour='floating-invite-players']",
       "[data-tour='floating-share-spectators']",
+      "firstRunOnly: true",
+      "wide: true",
       "es:",
       "en:",
       "eu:",
@@ -70,6 +73,27 @@ for (const [file, snippets] of requiredSnippets) {
   }
 }
 
+const toursSource = await readFile("src/features/onboarding/tours.ts", "utf8")
+const structureSource = toursSource.slice(toursSource.indexOf("const tourStructure"))
+if (structureSource.includes('key: "app-introduction"')) {
+  failures.push("Bienvenida no debe existir como recorrido independiente")
+}
+const floatingOrder = [
+  "[data-tour='floating-settings']",
+  "[data-tour='floating-notifications']",
+  "[data-tour='floating-share-spectators']",
+  "[data-tour='floating-invite-players']",
+  "[data-tour='floating-help']",
+]
+let previousIndex = -1
+for (const selector of floatingOrder) {
+  const currentIndex = structureSource.indexOf(selector)
+  if (currentIndex <= previousIndex) {
+    failures.push(`Orden incorrecto de controles flotantes en Inicio: ${selector}`)
+  }
+  previousIndex = currentIndex
+}
+
 if (failures.length > 0) {
   console.error("La infraestructura de tutoriales guiados está incompleta:")
   failures.forEach((failure) => console.error(`- ${failure}`))
@@ -77,7 +101,7 @@ if (failures.length > 0) {
 }
 
 console.log("Tutoriales guiados correctos:")
-console.log("- siete recorridos contextuales y adaptados al rol")
+console.log("- seis recorridos contextuales; Bienvenida forma parte de Inicio")
 console.log("- textos completos en castellano, inglés y euskera")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")
 console.log("- progreso por cuenta con respaldo local")

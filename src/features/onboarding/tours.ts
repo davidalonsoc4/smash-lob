@@ -45,6 +45,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Entiende de un vistazo el estado de la temporada y tus siguientes acciones.",
       steps: [
         {
+          title: "Bienvenido a Smash & Lob",
+          description: "La aplicación reúne partidos, clasificación, estadísticas y gestión de tu liga en un único lugar.",
+        },
+        {
           title: "Resumen de la liga",
           description: "La cabecera identifica la liga, la temporada seleccionada y si ya ha finalizado.",
         },
@@ -180,6 +184,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       title: "Home screen",
       description: "Understand the season status and your next actions at a glance.",
       steps: [
+        {
+          title: "Welcome to Smash & Lob",
+          description: "The app brings matches, standings, statistics and league management together in one place.",
+        },
         {
           title: "League overview",
           description: "The header identifies the league, selected season and whether it has already finished.",
@@ -317,6 +325,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Ikusi begirada batean denboraldiaren egoera eta hurrengo ekintzak.",
       steps: [
         {
+          title: "Ongi etorri Smash & Lob-era",
+          description: "Aplikazioak partidak, sailkapena, estatistikak eta ligaren kudeaketa leku bakarrean biltzen ditu.",
+        },
+        {
           title: "Ligaren laburpena",
           description: "Goiburuak liga, hautatutako denboraldia eta amaituta dagoen adierazten ditu.",
         },
@@ -432,35 +444,24 @@ const tourStructure: Array<{
   version: number
   route: string
   audience: (audience: OnboardingAudience) => boolean
-  steps: Array<Pick<OnboardingTourStep, "selector" | "side">>
+  steps: Array<Pick<OnboardingTourStep, "selector" | "side" | "firstRunOnly" | "wide">>
 }> = [
   {
-    key: "app-introduction",
-    version: 1,
-    route: "/",
-    audience: everyone,
-    steps: [
-      { side: "center" },
-      { selector: "[data-tour='home-header']", side: "bottom" },
-      { selector: "[data-tour='bottom-navigation']", side: "top" },
-      { selector: "[data-tour='floating-help']", side: "bottom" },
-    ],
-  },
-  {
     key: "home",
-    version: 2,
+    version: 3,
     route: "/",
     audience: everyone,
     steps: [
+      { side: "center", firstRunOnly: true, wide: true },
       { selector: "[data-tour='home-header']", side: "bottom" },
       { selector: "[data-tour='home-announcements']", side: "bottom" },
       { selector: "[data-tour='home-next-match']", side: "top" },
       { selector: "[data-tour='home-season-actions']", side: "top" },
-      { selector: "[data-tour='floating-notifications']", side: "bottom" },
-      { selector: "[data-tour='floating-invite-players']", side: "bottom" },
-      { selector: "[data-tour='floating-share-spectators']", side: "bottom" },
-      { selector: "[data-tour='floating-help']", side: "bottom" },
       { selector: "[data-tour='floating-settings']", side: "bottom" },
+      { selector: "[data-tour='floating-notifications']", side: "bottom" },
+      { selector: "[data-tour='floating-share-spectators']", side: "bottom" },
+      { selector: "[data-tour='floating-invite-players']", side: "bottom" },
+      { selector: "[data-tour='floating-help']", side: "bottom" },
     ],
   },
   {
@@ -533,22 +534,24 @@ export function getOnboardingTours(locale: Locale): OnboardingTourDefinition[] {
   })
 }
 
+export function getTourStepsForLaunch(
+  tour: OnboardingTourDefinition,
+  { includeFirstRunOnly = false }: { includeFirstRunOnly?: boolean } = {},
+) {
+  return includeFirstRunOnly
+    ? tour.steps
+    : tour.steps.filter((step) => !step.firstRunOnly)
+}
+
 export function getTourForPathname({
   pathname,
   locale,
   audience,
-  preferIntroduction = false,
 }: {
   pathname: string
   locale: Locale
   audience: OnboardingAudience
-  preferIntroduction?: boolean
 }) {
   const tours = getOnboardingTours(locale).filter((tour) => tour.audience(audience))
-
-  if (pathname === "/" && preferIntroduction) {
-    return tours.find((tour) => tour.key === "app-introduction") ?? null
-  }
-
-  return tours.find((tour) => tour.route === pathname && tour.key !== "app-introduction") ?? null
+  return tours.find((tour) => tour.route === pathname) ?? null
 }
