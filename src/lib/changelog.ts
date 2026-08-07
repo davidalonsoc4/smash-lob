@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.6",
+    date: "7 de agosto de 2026",
+    title: "Guía completa y breve de Ajustes",
+    summary:
+      "Ajustes incorpora un recorrido corto por las secciones principales para que cada usuario sepa qué puede configurar y cómo encontrar cualquier opción rápidamente.",
+    category: "improvement",
+    changes: [
+      "La guía de Ajustes recorre Perfil, Apariencia, Notificaciones, Buzón de sugerencias y termina en el buscador flotante.",
+      "Los pasos se filtran automáticamente cuando una opción no está disponible para el rol actual, evitando explicaciones de controles que el usuario no puede ver.",
+      "El recorrido permanece limitado a las áreas principales y no explica interruptores u opciones individuales para mantenerlo breve.",
+      "El tutorial de Ajustes sube de versión para mostrarse una vez con la nueva estructura y seguir siendo repetible desde la ayuda visual.",
+    ],
+  },
+  {
     version: "v1.3.5",
     date: "7 de agosto de 2026",
     title: "Ayudas flotantes correctamente sincronizadas",

@@ -130,11 +130,27 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
     },
     settings: {
       title: "Ajustes",
-      description: "Encuentra rápidamente cualquier opción sin recorrer todos los apartados.",
+      description: "Conoce las secciones principales y encuentra rápidamente cualquier opción de la aplicación.",
       steps: [
         {
+          title: "Tu perfil",
+          description: "Desde aquí puedes revisar y editar los datos de tu cuenta y la imagen que te identifica en Smash & Lob.",
+        },
+        {
+          title: "Apariencia",
+          description: "Personaliza el tema, el estilo visual y la paleta de colores de la aplicación.",
+        },
+        {
+          title: "Notificaciones",
+          description: "Configura los avisos push y decide qué notificaciones quieres recibir en este dispositivo.",
+        },
+        {
+          title: "Buzón de sugerencias",
+          description: "Envía ideas, mejoras o nuevas funciones directamente desde la aplicación.",
+        },
+        {
           title: "Buscador de ajustes",
-          description: "Pulsa este botón flotante para buscar una función o ajuste y abrir directamente su apartado.",
+          description: "Pulsa este botón flotante para buscar cualquier función o ajuste y saltar directamente a su apartado.",
         },
       ],
     },
@@ -270,11 +286,27 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
     },
     settings: {
       title: "Settings",
-      description: "Find any option quickly without browsing every section.",
+      description: "Learn the main sections and quickly find any option in the app.",
       steps: [
         {
+          title: "Your profile",
+          description: "Review and edit your account details and the image that identifies you in Smash & Lob.",
+        },
+        {
+          title: "Appearance",
+          description: "Customize the app theme, visual style and color palette.",
+        },
+        {
+          title: "Notifications",
+          description: "Configure push alerts and choose which notifications you want to receive on this device.",
+        },
+        {
+          title: "Suggestions",
+          description: "Send ideas, improvements or new feature requests directly from the app.",
+        },
+        {
           title: "Settings search",
-          description: "Use this floating button to search for a feature or setting and open its section directly.",
+          description: "Use this floating button to search for any feature or setting and jump directly to its section.",
         },
       ],
     },
@@ -410,11 +442,27 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
     },
     settings: {
       title: "Ezarpenak",
-      description: "Aurkitu edozein aukera azkar atal guztiak banan-banan aztertu gabe.",
+      description: "Ezagutu atal nagusiak eta aurkitu azkar aplikazioko edozein aukera.",
       steps: [
         {
+          title: "Zure profila",
+          description: "Berrikusi eta editatu zure kontuko datuak eta Smash & Lob-en identifikatzen zaituen irudia.",
+        },
+        {
+          title: "Itxura",
+          description: "Pertsonalizatu aplikazioaren gaia, estilo bisuala eta kolore-paleta.",
+        },
+        {
+          title: "Jakinarazpenak",
+          description: "Konfiguratu push abisuak eta aukeratu gailu honetan zein jakinarazpen jaso nahi dituzun.",
+        },
+        {
+          title: "Iradokizunak",
+          description: "Bidali ideiak, hobekuntzak edo funtzio berrien proposamenak aplikaziotik zuzenean.",
+        },
+        {
           title: "Ezarpenen bilatzailea",
-          description: "Sakatu botoi flotagarri hau funtzio edo ezarpen bat bilatzeko eta haren atalera zuzenean joateko.",
+          description: "Sakatu botoi flotagarri hau edozein funtzio edo ezarpen bilatzeko eta haren atalera zuzenean joateko.",
         },
       ],
     },
@@ -496,10 +544,14 @@ const tourStructure: Array<{
   },
   {
     key: "settings",
-    version: 1,
+    version: 2,
     route: "/settings",
     audience: everyone,
     steps: [
+      { selector: "[data-tour='settings-profile']", side: "bottom" },
+      { selector: "[data-tour='settings-appearance']", side: "bottom" },
+      { selector: "[data-tour='settings-notifications']", side: "bottom" },
+      { selector: "[data-tour='settings-suggestions']", side: "top" },
       { selector: "[data-tour='settings-search']", side: "left" },
     ],
   },
