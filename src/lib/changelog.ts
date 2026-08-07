@@ -15,6 +15,49 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.6",
+    date: "7 de agosto de 2026",
+    title: "Guía completa y breve de Ajustes",
+    summary:
+      "Ajustes incorpora un recorrido corto por las secciones principales para que cada usuario sepa qué puede configurar y cómo encontrar cualquier opción rápidamente.",
+    category: "improvement",
+    changes: [
+      "La guía de Ajustes recorre Perfil, Apariencia, Notificaciones, Buzón de sugerencias y termina en el buscador flotante.",
+      "Los pasos se filtran automáticamente cuando una opción no está disponible para el rol actual, evitando explicaciones de controles que el usuario no puede ver.",
+      "El recorrido permanece limitado a las áreas principales y no explica interruptores u opciones individuales para mantenerlo breve.",
+      "El tutorial de Ajustes sube de versión para mostrarse una vez con la nueva estructura y seguir siendo repetible desde la ayuda visual.",
+    ],
+  },
+  {
+    version: "v1.3.5",
+    date: "7 de agosto de 2026",
+    title: "Ayudas flotantes correctamente sincronizadas",
+    summary:
+      "La guía de Inicio mantiene el recorrido de derecha a izquierda y cada botón flotante muestra ahora exactamente su título y explicación correspondientes.",
+    category: "fix",
+    changes: [
+      "Ajustes se resalta junto a la explicación de Ajustes, sin reutilizar el texto de Notificaciones.",
+      "Notificaciones, acceso de espectadores, invitación de jugadores y Ayuda mantienen cada uno su explicación asociada al botón correcto.",
+      "El orden del recorrido sigue siendo de derecha a izquierda y continúa filtrando automáticamente los controles que el usuario no puede ver.",
+      "Las comprobaciones automáticas validan selector, título y contenido explicativo en castellano, inglés y euskera para evitar desajustes futuros.",
+    ],
+  },
+  {
+    version: "v1.3.4",
+    date: "7 de agosto de 2026",
+    title: "Bienvenida integrada en la guía de Inicio",
+    summary:
+      "El primer recorrido reúne la bienvenida y la explicación completa de Inicio, mientras que las repeticiones comienzan directamente por las funciones de la pantalla.",
+    category: "improvement",
+    changes: [
+      "Bienvenida deja de aparecer como tutorial independiente y pasa a ser el primer paso, de una sola vez, de la guía de Inicio.",
+      "El recuadro de bienvenida utiliza prácticamente todo el ancho disponible de la aplicación para mejorar la lectura.",
+      "La guía de Inicio explica los controles flotantes de derecha a izquierda: Ajustes, Notificaciones, acceso de espectadores, invitación de jugadores y Ayuda.",
+      "Los pasos correspondientes a controles que el usuario no puede ver se omiten automáticamente según su rol y permisos.",
+      "Al repetir manualmente la guía de Inicio se omite la bienvenida y se comienza directamente por el resumen de la liga.",
+    ],
+  },
+  {
     version: "v1.3.3",
     date: "7 de agosto de 2026",
     title: "Posición estable al filtrar el calendario",

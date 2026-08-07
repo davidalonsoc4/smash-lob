@@ -30,6 +30,8 @@ export type OnboardingTourStep = {
   title: string
   description: string
   side?: "top" | "right" | "bottom" | "left" | "center"
+  firstRunOnly?: boolean
+  wide?: boolean
 }
 
 export type OnboardingTourDefinition = {

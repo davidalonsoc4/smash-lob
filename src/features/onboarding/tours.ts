@@ -45,6 +45,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Entiende de un vistazo el estado de la temporada y tus siguientes acciones.",
       steps: [
         {
+          title: "Bienvenido a Smash & Lob",
+          description: "La aplicación reúne partidos, clasificación, estadísticas y gestión de tu liga en un único lugar.",
+        },
+        {
           title: "Resumen de la liga",
           description: "La cabecera identifica la liga, la temporada seleccionada y si ya ha finalizado.",
         },
@@ -61,24 +65,24 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "Cuando la temporada finaliza, desde aquí puedes consultar su histórico o compartir el resumen final.",
         },
         {
-          title: "Notificaciones",
-          description: "Consulta avisos sobre partidos, resultados, disponibilidad y actividad importante de la liga.",
+          title: "Ajustes",
+          description: "Gestiona tu perfil, preferencias, ligas y las opciones administrativas disponibles para tu rol.",
         },
         {
-          title: "Invitar jugadores",
-          description: "Los administradores pueden compartir desde aquí el enlace para vincular a los jugadores pendientes.",
+          title: "Notificaciones",
+          description: "Consulta avisos sobre partidos, resultados, disponibilidad y actividad importante de la liga.",
         },
         {
           title: "Compartir con espectadores",
           description: "Cuando está disponible, este botón genera un acceso de solo lectura para seguir la competición.",
         },
         {
-          title: "Ayuda visual",
-          description: "Abre la guía de la pantalla actual o consulta la biblioteca completa de tutoriales.",
+          title: "Invitar jugadores",
+          description: "Los administradores pueden compartir desde aquí el enlace para vincular a los jugadores pendientes.",
         },
         {
-          title: "Ajustes",
-          description: "Gestiona tu perfil, preferencias, ligas y las opciones administrativas disponibles para tu rol.",
+          title: "Ayuda visual",
+          description: "Abre la guía de la pantalla actual o consulta la biblioteca completa de tutoriales.",
         },
       ],
     },
@@ -126,11 +130,27 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
     },
     settings: {
       title: "Ajustes",
-      description: "Encuentra rápidamente cualquier opción sin recorrer todos los apartados.",
+      description: "Conoce las secciones principales y encuentra rápidamente cualquier opción de la aplicación.",
       steps: [
         {
+          title: "Tu perfil",
+          description: "Desde aquí puedes revisar y editar los datos de tu cuenta y la imagen que te identifica en Smash & Lob.",
+        },
+        {
+          title: "Apariencia",
+          description: "Personaliza el tema, el estilo visual y la paleta de colores de la aplicación.",
+        },
+        {
+          title: "Notificaciones",
+          description: "Configura los avisos push y decide qué notificaciones quieres recibir en este dispositivo.",
+        },
+        {
+          title: "Buzón de sugerencias",
+          description: "Envía ideas, mejoras o nuevas funciones directamente desde la aplicación.",
+        },
+        {
           title: "Buscador de ajustes",
-          description: "Pulsa este botón flotante para buscar una función o ajuste y abrir directamente su apartado.",
+          description: "Pulsa este botón flotante para buscar cualquier función o ajuste y saltar directamente a su apartado.",
         },
       ],
     },
@@ -181,6 +201,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Understand the season status and your next actions at a glance.",
       steps: [
         {
+          title: "Welcome to Smash & Lob",
+          description: "The app brings matches, standings, statistics and league management together in one place.",
+        },
+        {
           title: "League overview",
           description: "The header identifies the league, selected season and whether it has already finished.",
         },
@@ -197,24 +221,24 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "When a season ends, use these actions to open its history or share the final summary.",
         },
         {
-          title: "Notifications",
-          description: "Review updates about matches, results, availability and important league activity.",
+          title: "Settings",
+          description: "Manage your profile, preferences, leagues and the administrative options available to your role.",
         },
         {
-          title: "Invite players",
-          description: "Administrators can share the link used to connect players who are still pending.",
+          title: "Notifications",
+          description: "Review updates about matches, results, availability and important league activity.",
         },
         {
           title: "Share with spectators",
           description: "When available, this button creates read-only access to follow the competition.",
         },
         {
-          title: "Visual help",
-          description: "Open the guide for the current screen or browse the complete tutorial library.",
+          title: "Invite players",
+          description: "Administrators can share the link used to connect players who are still pending.",
         },
         {
-          title: "Settings",
-          description: "Manage your profile, preferences, leagues and the administrative options available to your role.",
+          title: "Visual help",
+          description: "Open the guide for the current screen or browse the complete tutorial library.",
         },
       ],
     },
@@ -262,11 +286,27 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
     },
     settings: {
       title: "Settings",
-      description: "Find any option quickly without browsing every section.",
+      description: "Learn the main sections and quickly find any option in the app.",
       steps: [
         {
+          title: "Your profile",
+          description: "Review and edit your account details and the image that identifies you in Smash & Lob.",
+        },
+        {
+          title: "Appearance",
+          description: "Customize the app theme, visual style and color palette.",
+        },
+        {
+          title: "Notifications",
+          description: "Configure push alerts and choose which notifications you want to receive on this device.",
+        },
+        {
+          title: "Suggestions",
+          description: "Send ideas, improvements or new feature requests directly from the app.",
+        },
+        {
           title: "Settings search",
-          description: "Use this floating button to search for a feature or setting and open its section directly.",
+          description: "Use this floating button to search for any feature or setting and jump directly to its section.",
         },
       ],
     },
@@ -317,6 +357,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       description: "Ikusi begirada batean denboraldiaren egoera eta hurrengo ekintzak.",
       steps: [
         {
+          title: "Ongi etorri Smash & Lob-era",
+          description: "Aplikazioak partidak, sailkapena, estatistikak eta ligaren kudeaketa leku bakarrean biltzen ditu.",
+        },
+        {
           title: "Ligaren laburpena",
           description: "Goiburuak liga, hautatutako denboraldia eta amaituta dagoen adierazten ditu.",
         },
@@ -333,24 +377,24 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "Denboraldia amaitzean, hemendik historia ireki edo azken laburpena parteka dezakezu.",
         },
         {
-          title: "Jakinarazpenak",
-          description: "Ikusi partiden, emaitzen, erabilgarritasunaren eta ligako jarduera garrantzitsuaren abisuak.",
+          title: "Ezarpenak",
+          description: "Kudeatu profila, hobespenak, ligak eta zure rolarentzat erabilgarri dauden administrazio-aukerak.",
         },
         {
-          title: "Jokalariak gonbidatu",
-          description: "Administratzaileek lotu gabe dauden jokalarientzako esteka parteka dezakete hemendik.",
+          title: "Jakinarazpenak",
+          description: "Ikusi partiden, emaitzen, erabilgarritasunaren eta ligako jarduera garrantzitsuaren abisuak.",
         },
         {
           title: "Ikusleekin partekatu",
           description: "Erabilgarri dagoenean, botoi honek lehiaketa jarraitzeko irakurketa-soileko sarbidea sortzen du.",
         },
         {
-          title: "Laguntza bisuala",
-          description: "Ireki uneko pantailaren gida edo ikusi tutorialen liburutegi osoa.",
+          title: "Jokalariak gonbidatu",
+          description: "Administratzaileek lotu gabe dauden jokalarientzako esteka parteka dezakete hemendik.",
         },
         {
-          title: "Ezarpenak",
-          description: "Kudeatu profila, hobespenak, ligak eta zure rolarentzat erabilgarri dauden administrazio-aukerak.",
+          title: "Laguntza bisuala",
+          description: "Ireki uneko pantailaren gida edo ikusi tutorialen liburutegi osoa.",
         },
       ],
     },
@@ -398,11 +442,27 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
     },
     settings: {
       title: "Ezarpenak",
-      description: "Aurkitu edozein aukera azkar atal guztiak banan-banan aztertu gabe.",
+      description: "Ezagutu atal nagusiak eta aurkitu azkar aplikazioko edozein aukera.",
       steps: [
         {
+          title: "Zure profila",
+          description: "Berrikusi eta editatu zure kontuko datuak eta Smash & Lob-en identifikatzen zaituen irudia.",
+        },
+        {
+          title: "Itxura",
+          description: "Pertsonalizatu aplikazioaren gaia, estilo bisuala eta kolore-paleta.",
+        },
+        {
+          title: "Jakinarazpenak",
+          description: "Konfiguratu push abisuak eta aukeratu gailu honetan zein jakinarazpen jaso nahi dituzun.",
+        },
+        {
+          title: "Iradokizunak",
+          description: "Bidali ideiak, hobekuntzak edo funtzio berrien proposamenak aplikaziotik zuzenean.",
+        },
+        {
           title: "Ezarpenen bilatzailea",
-          description: "Sakatu botoi flotagarri hau funtzio edo ezarpen bat bilatzeko eta haren atalera zuzenean joateko.",
+          description: "Sakatu botoi flotagarri hau edozein funtzio edo ezarpen bilatzeko eta haren atalera zuzenean joateko.",
         },
       ],
     },
@@ -432,35 +492,24 @@ const tourStructure: Array<{
   version: number
   route: string
   audience: (audience: OnboardingAudience) => boolean
-  steps: Array<Pick<OnboardingTourStep, "selector" | "side">>
+  steps: Array<Pick<OnboardingTourStep, "selector" | "side" | "firstRunOnly" | "wide">>
 }> = [
   {
-    key: "app-introduction",
-    version: 1,
-    route: "/",
-    audience: everyone,
-    steps: [
-      { side: "center" },
-      { selector: "[data-tour='home-header']", side: "bottom" },
-      { selector: "[data-tour='bottom-navigation']", side: "top" },
-      { selector: "[data-tour='floating-help']", side: "bottom" },
-    ],
-  },
-  {
     key: "home",
-    version: 2,
+    version: 4,
     route: "/",
     audience: everyone,
     steps: [
+      { side: "center", firstRunOnly: true, wide: true },
       { selector: "[data-tour='home-header']", side: "bottom" },
       { selector: "[data-tour='home-announcements']", side: "bottom" },
       { selector: "[data-tour='home-next-match']", side: "top" },
       { selector: "[data-tour='home-season-actions']", side: "top" },
-      { selector: "[data-tour='floating-notifications']", side: "bottom" },
-      { selector: "[data-tour='floating-invite-players']", side: "bottom" },
-      { selector: "[data-tour='floating-share-spectators']", side: "bottom" },
-      { selector: "[data-tour='floating-help']", side: "bottom" },
       { selector: "[data-tour='floating-settings']", side: "bottom" },
+      { selector: "[data-tour='floating-notifications']", side: "bottom" },
+      { selector: "[data-tour='floating-share-spectators']", side: "bottom" },
+      { selector: "[data-tour='floating-invite-players']", side: "bottom" },
+      { selector: "[data-tour='floating-help']", side: "bottom" },
     ],
   },
   {
@@ -495,10 +544,14 @@ const tourStructure: Array<{
   },
   {
     key: "settings",
-    version: 1,
+    version: 2,
     route: "/settings",
     audience: everyone,
     steps: [
+      { selector: "[data-tour='settings-profile']", side: "bottom" },
+      { selector: "[data-tour='settings-appearance']", side: "bottom" },
+      { selector: "[data-tour='settings-notifications']", side: "bottom" },
+      { selector: "[data-tour='settings-suggestions']", side: "top" },
       { selector: "[data-tour='settings-search']", side: "left" },
     ],
   },
@@ -533,22 +586,24 @@ export function getOnboardingTours(locale: Locale): OnboardingTourDefinition[] {
   })
 }
 
+export function getTourStepsForLaunch(
+  tour: OnboardingTourDefinition,
+  { includeFirstRunOnly = false }: { includeFirstRunOnly?: boolean } = {},
+) {
+  return includeFirstRunOnly
+    ? tour.steps
+    : tour.steps.filter((step) => !step.firstRunOnly)
+}
+
 export function getTourForPathname({
   pathname,
   locale,
   audience,
-  preferIntroduction = false,
 }: {
   pathname: string
   locale: Locale
   audience: OnboardingAudience
-  preferIntroduction?: boolean
 }) {
   const tours = getOnboardingTours(locale).filter((tour) => tour.audience(audience))
-
-  if (pathname === "/" && preferIntroduction) {
-    return tours.find((tour) => tour.key === "app-introduction") ?? null
-  }
-
-  return tours.find((tour) => tour.route === pathname && tour.key !== "app-introduction") ?? null
+  return tours.find((tour) => tour.route === pathname) ?? null
 }

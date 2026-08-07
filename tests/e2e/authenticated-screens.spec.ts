@@ -27,7 +27,7 @@ test.beforeEach(async ({ page }) => {
       "smash-lob-guided-onboarding-v1",
       JSON.stringify({
         "app-introduction": { tourKey: "app-introduction", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        home: { tourKey: "home", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        home: { tourKey: "home", tourVersion: 4, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
         matches: { tourKey: "matches", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
         ranking: { tourKey: "ranking", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
         statistics: { tourKey: "statistics", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
@@ -149,4 +149,14 @@ test("guided help can repeat the current screen tour", async ({ page }) => {
   await expect(page.getByText("Jornadas y estados", { exact: true })).toBeVisible()
   await page.getByRole("button", { name: "Omitir" }).click()
   await expect(page.getByRole("dialog", { name: "Partidos y jornadas" })).toHaveCount(0)
+})
+
+test("repeating the home guide skips the one-time welcome", async ({ page }) => {
+  await page.goto("/")
+  await page.getByRole("button", { name: "Ayuda de esta pantalla" }).click()
+  await page.getByRole("button", { name: "Repetir guía" }).click()
+  await expect(page.getByRole("dialog", { name: "Pantalla de inicio" })).toBeVisible()
+  await expect(page.getByText("Bienvenido a Smash & Lob", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("Resumen de la liga", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Omitir" }).click()
 })

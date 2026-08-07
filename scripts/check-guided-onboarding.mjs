@@ -20,12 +20,13 @@ const requiredSnippets = new Map([
       "readLocalOnboardingProgress",
       "hasCompletedCurrentTour",
       "readRequestedTourKey",
+      "getTourStepsForLaunch",
+      "hasSeenWelcome",
     ],
   ],
   [
     "src/features/onboarding/tours.ts",
     [
-      'key: "app-introduction"',
       'key: "home"',
       'key: "matches"',
       'key: "ranking"',
@@ -34,6 +35,8 @@ const requiredSnippets = new Map([
       'key: "settings"',
       "[data-tour='floating-invite-players']",
       "[data-tour='floating-share-spectators']",
+      "firstRunOnly: true",
+      "wide: true",
       "es:",
       "en:",
       "eu:",
@@ -57,6 +60,15 @@ const requiredSnippets = new Map([
   ["src/app/ranking/page.tsx", ['data-tour="ranking-table"']],
   ["src/app/statistics/page.tsx", ['data-tour="statistics-navigation"']],
   ["src/app/admin/season/page.tsx", ['data-tour="season-admin-navigation"']],
+  [
+    "src/app/settings/page.tsx",
+    [
+      'tour="settings-profile"',
+      'tour="settings-appearance"',
+      'tour="settings-notifications"',
+      'tour="settings-suggestions"',
+    ],
+  ],
   ["src/components/settings/GlobalSettingsSearch.tsx", ['data-tour="settings-search"']],
   ["src/components/invite/FloatingInviteShareButton.tsx", ['data-tour="floating-invite-players"']],
   ["src/components/spectator/FloatingSpectatorShareButton.tsx", ['data-tour="floating-share-spectators"']],
@@ -70,6 +82,89 @@ for (const [file, snippets] of requiredSnippets) {
   }
 }
 
+const toursSource = await readFile("src/features/onboarding/tours.ts", "utf8")
+const structureSource = toursSource.slice(toursSource.indexOf("const tourStructure"))
+if (structureSource.includes('key: "app-introduction"')) {
+  failures.push("Bienvenida no debe existir como recorrido independiente")
+}
+const floatingOrder = [
+  "[data-tour='floating-settings']",
+  "[data-tour='floating-notifications']",
+  "[data-tour='floating-share-spectators']",
+  "[data-tour='floating-invite-players']",
+  "[data-tour='floating-help']",
+]
+let previousIndex = -1
+for (const selector of floatingOrder) {
+  const currentIndex = structureSource.indexOf(selector)
+  if (currentIndex <= previousIndex) {
+    failures.push(`Orden incorrecto de controles flotantes en Inicio: ${selector}`)
+  }
+  previousIndex = currentIndex
+}
+
+const floatingTitlesByLocale = {
+  es: ["Ajustes", "Notificaciones", "Compartir con espectadores", "Invitar jugadores", "Ayuda visual"],
+  en: ["Settings", "Notifications", "Share with spectators", "Invite players", "Visual help"],
+  eu: ["Ezarpenak", "Jakinarazpenak", "Ikusleekin partekatu", "Jokalariak gonbidatu", "Laguntza bisuala"],
+}
+for (const [locale, expectedTitles] of Object.entries(floatingTitlesByLocale)) {
+  const localeStart = toursSource.indexOf(`${locale}: {`)
+  const nextLocaleStart = locale === "es"
+    ? toursSource.indexOf("  en: {", localeStart)
+    : locale === "en"
+      ? toursSource.indexOf("  eu: {", localeStart)
+      : toursSource.indexOf("const tourStructure", localeStart)
+  const localeSource = toursSource.slice(localeStart, nextLocaleStart)
+  const homeStart = localeSource.indexOf("home: {")
+  const matchesStart = localeSource.indexOf("matches: {", homeStart)
+  const homeSource = localeSource.slice(homeStart, matchesStart)
+  const titles = [...homeSource.matchAll(/title:\s*"([^"]+)"/g)].map((match) => match[1])
+  const actualFloatingTitles = titles.slice(-5)
+  if (JSON.stringify(actualFloatingTitles) !== JSON.stringify(expectedTitles)) {
+    failures.push(`Textos incorrectos de controles flotantes en Inicio (${locale}): ${actualFloatingTitles.join(" | ")}`)
+  }
+}
+
+
+const settingsOrder = [
+  "[data-tour='settings-profile']",
+  "[data-tour='settings-appearance']",
+  "[data-tour='settings-notifications']",
+  "[data-tour='settings-suggestions']",
+  "[data-tour='settings-search']",
+]
+previousIndex = -1
+for (const selector of settingsOrder) {
+  const currentIndex = structureSource.indexOf(selector)
+  if (currentIndex <= previousIndex) {
+    failures.push(`Orden incorrecto de la guía de Ajustes: ${selector}`)
+  }
+  previousIndex = currentIndex
+}
+
+const settingsTitlesByLocale = {
+  es: ["Tu perfil", "Apariencia", "Notificaciones", "Buzón de sugerencias", "Buscador de ajustes"],
+  en: ["Your profile", "Appearance", "Notifications", "Suggestions", "Settings search"],
+  eu: ["Zure profila", "Itxura", "Jakinarazpenak", "Iradokizunak", "Ezarpenen bilatzailea"],
+}
+for (const [locale, expectedTitles] of Object.entries(settingsTitlesByLocale)) {
+  const localeStart = toursSource.indexOf(`${locale}: {`)
+  const nextLocaleStart = locale === "es"
+    ? toursSource.indexOf("  en: {", localeStart)
+    : locale === "en"
+      ? toursSource.indexOf("  eu: {", localeStart)
+      : toursSource.indexOf("const tourStructure", localeStart)
+  const localeSource = toursSource.slice(localeStart, nextLocaleStart)
+  const settingsStart = localeSource.indexOf("settings: {")
+  const adminStart = localeSource.indexOf('"season-admin": {', settingsStart)
+  const settingsSource = localeSource.slice(settingsStart, adminStart)
+  const titles = [...settingsSource.matchAll(/title:\s*"([^"]+)"/g)].map((match) => match[1]).slice(1)
+  if (JSON.stringify(titles) !== JSON.stringify(expectedTitles)) {
+    failures.push(`Textos incorrectos de la guía de Ajustes (${locale}): ${titles.join(" | ")}`)
+  }
+}
+
 if (failures.length > 0) {
   console.error("La infraestructura de tutoriales guiados está incompleta:")
   failures.forEach((failure) => console.error(`- ${failure}`))
@@ -77,8 +172,9 @@ if (failures.length > 0) {
 }
 
 console.log("Tutoriales guiados correctos:")
-console.log("- siete recorridos contextuales y adaptados al rol")
-console.log("- textos completos en castellano, inglés y euskera")
+console.log("- seis recorridos contextuales; Bienvenida forma parte de Inicio")
+console.log("- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera")
+console.log("- guía de Ajustes con perfil, apariencia, notificaciones, sugerencias y buscador")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")
 console.log("- progreso por cuenta con respaldo local")
 console.log("- API autenticada, rate limit y tabla sin acceso desde navegador")
