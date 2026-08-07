@@ -84,16 +84,31 @@ describe("guided onboarding", () => {
     }
   })
 
-  it("offers settings search help on the settings screen", () => {
-    const tour = getTourForPathname({
-      pathname: "/settings",
-      locale: "es",
-      audience: playerAudience,
-    })
-    expect(tour?.key).toBe("settings")
-    expect(tour?.steps.map((step) => step.selector)).toEqual([
+  it("offers a concise settings guide with stable copy", () => {
+    const expectedSelectors = [
+      "[data-tour='settings-profile']",
+      "[data-tour='settings-appearance']",
+      "[data-tour='settings-notifications']",
+      "[data-tour='settings-suggestions']",
       "[data-tour='settings-search']",
-    ])
+    ]
+    const expectedTitles = {
+      es: ["Tu perfil", "Apariencia", "Notificaciones", "Buzón de sugerencias", "Buscador de ajustes"],
+      en: ["Your profile", "Appearance", "Notifications", "Suggestions", "Settings search"],
+      eu: ["Zure profila", "Itxura", "Jakinarazpenak", "Iradokizunak", "Ezarpenen bilatzailea"],
+    } as const
+
+    for (const locale of ["es", "en", "eu"] as const) {
+      const tour = getTourForPathname({
+        pathname: "/settings",
+        locale,
+        audience: playerAudience,
+      })
+      expect(tour?.key).toBe("settings")
+      expect(tour?.version).toBe(2)
+      expect(tour?.steps.map((step) => step.selector)).toEqual(expectedSelectors)
+      expect(tour?.steps.map((step) => step.title)).toEqual(expectedTitles[locale])
+    }
   })
 
   it("only exposes season administration to managers", () => {

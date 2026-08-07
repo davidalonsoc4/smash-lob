@@ -56,6 +56,7 @@ type SettingsLinkRowProps = {
   leading?: ReactNode
   badge?: ReactNode
   tone?: "default" | "warning" | "danger"
+  tour?: string
 }
 
 function SettingsLinkRow({
@@ -66,6 +67,7 @@ function SettingsLinkRow({
   leading,
   badge,
   tone = "default",
+  tour,
 }: SettingsLinkRowProps) {
   const toneClass =
     tone === "danger"
@@ -84,6 +86,7 @@ function SettingsLinkRow({
     <Link
       href={href}
       id={id}
+      data-tour={tour}
       className={`settings-row settings-row-${tone} settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
     >
       {leading ? <div className="shrink-0">{leading}</div> : null}
@@ -234,6 +237,7 @@ function AppearanceSettingsLink() {
     <SettingsLinkRow
       href="/settings/appearance"
       id="appearance"
+      tour="settings-appearance"
       title={t.settings.appearanceTitle}
       description={description}
       leading={
@@ -299,6 +303,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         <SettingsLinkRow
           href="/settings/profile"
           id="spectator-account"
+          tour="settings-profile"
           title={t.settings.myProfileTitle}
           description={t.settings.myProfileDescription}
           leading={
@@ -364,6 +369,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         <SettingsLinkRow
           href="/settings/suggestions"
           id="suggestions"
+          tour="settings-suggestions"
           title="Buzón de sugerencias"
           description="Propón mejoras y nuevas funciones para Smash & Lob."
         />
@@ -522,6 +528,7 @@ function PlayerSettingsPage() {
         <SettingsLinkRow
           href="/settings/profile"
           id="account"
+          tour="settings-profile"
           title={t.settings.myProfileTitle}
           description={t.settings.myProfileDescription}
           leading={<PlayerAvatar player={currentUser} size="md" />}
@@ -537,6 +544,7 @@ function PlayerSettingsPage() {
         <SettingsLinkRow
           href="/settings/notifications"
           id="notifications"
+          tour="settings-notifications"
           title="Notificaciones"
           description="Activa push y elige qué avisos quieres recibir en este dispositivo."
         />
@@ -697,6 +705,7 @@ function PlayerSettingsPage() {
         <SettingsLinkRow
           href="/settings/suggestions"
           id="suggestions"
+          tour="settings-suggestions"
           title="Buzón de sugerencias"
           description="Propón mejoras y nuevas funciones para Smash & Lob."
         />

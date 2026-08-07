@@ -25,6 +25,7 @@ describe("guided onboarding integration", () => {
       readFile("src/app/statistics/page.tsx", "utf8"),
       readFile("src/app/admin/season/page.tsx", "utf8"),
       readFile("src/components/settings/GlobalSettingsSearch.tsx", "utf8"),
+      readFile("src/app/settings/page.tsx", "utf8"),
       readFile("src/components/invite/FloatingInviteShareButton.tsx", "utf8"),
       readFile("src/components/spectator/FloatingSpectatorShareButton.tsx", "utf8"),
     ])
@@ -42,6 +43,16 @@ describe("guided onboarding integration", () => {
       "floating-share-spectators",
     ]) {
       expect(source).toContain(`data-tour="${marker}"`)
+    }
+
+    const settingsSource = files[6]
+    for (const marker of [
+      "settings-profile",
+      "settings-appearance",
+      "settings-notifications",
+      "settings-suggestions",
+    ]) {
+      expect(settingsSource).toContain(`tour="${marker}"`)
     }
   })
 
