@@ -94,6 +94,29 @@ for (const selector of floatingOrder) {
   previousIndex = currentIndex
 }
 
+const floatingTitlesByLocale = {
+  es: ["Ajustes", "Notificaciones", "Compartir con espectadores", "Invitar jugadores", "Ayuda visual"],
+  en: ["Settings", "Notifications", "Share with spectators", "Invite players", "Visual help"],
+  eu: ["Ezarpenak", "Jakinarazpenak", "Ikusleekin partekatu", "Jokalariak gonbidatu", "Laguntza bisuala"],
+}
+for (const [locale, expectedTitles] of Object.entries(floatingTitlesByLocale)) {
+  const localeStart = toursSource.indexOf(`${locale}: {`)
+  const nextLocaleStart = locale === "es"
+    ? toursSource.indexOf("  en: {", localeStart)
+    : locale === "en"
+      ? toursSource.indexOf("  eu: {", localeStart)
+      : toursSource.indexOf("const tourStructure", localeStart)
+  const localeSource = toursSource.slice(localeStart, nextLocaleStart)
+  const homeStart = localeSource.indexOf("home: {")
+  const matchesStart = localeSource.indexOf("matches: {", homeStart)
+  const homeSource = localeSource.slice(homeStart, matchesStart)
+  const titles = [...homeSource.matchAll(/title:\s*"([^"]+)"/g)].map((match) => match[1])
+  const actualFloatingTitles = titles.slice(-5)
+  if (JSON.stringify(actualFloatingTitles) !== JSON.stringify(expectedTitles)) {
+    failures.push(`Textos incorrectos de controles flotantes en Inicio (${locale}): ${actualFloatingTitles.join(" | ")}`)
+  }
+}
+
 if (failures.length > 0) {
   console.error("La infraestructura de tutoriales guiados está incompleta:")
   failures.forEach((failure) => console.error(`- ${failure}`))
@@ -102,7 +125,7 @@ if (failures.length > 0) {
 
 console.log("Tutoriales guiados correctos:")
 console.log("- seis recorridos contextuales; Bienvenida forma parte de Inicio")
-console.log("- textos completos en castellano, inglés y euskera")
+console.log("- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")
 console.log("- progreso por cuenta con respaldo local")
 console.log("- API autenticada, rate limit y tabla sin acceso desde navegador")

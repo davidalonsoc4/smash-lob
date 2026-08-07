@@ -39,6 +39,39 @@ describe("guided onboarding", () => {
       "[data-tour='floating-help']",
     ])
 
+    const expectedFloatingCopy = {
+      es: [
+        ["[data-tour='floating-settings']", "Ajustes", "Gestiona tu perfil"],
+        ["[data-tour='floating-notifications']", "Notificaciones", "Consulta avisos sobre partidos"],
+        ["[data-tour='floating-share-spectators']", "Compartir con espectadores", "acceso de solo lectura"],
+        ["[data-tour='floating-invite-players']", "Invitar jugadores", "vincular a los jugadores pendientes"],
+        ["[data-tour='floating-help']", "Ayuda visual", "guía de la pantalla actual"],
+      ],
+      en: [
+        ["[data-tour='floating-settings']", "Settings", "Manage your profile"],
+        ["[data-tour='floating-notifications']", "Notifications", "Review updates about matches"],
+        ["[data-tour='floating-share-spectators']", "Share with spectators", "read-only access"],
+        ["[data-tour='floating-invite-players']", "Invite players", "connect players who are still pending"],
+        ["[data-tour='floating-help']", "Visual help", "guide for the current screen"],
+      ],
+      eu: [
+        ["[data-tour='floating-settings']", "Ezarpenak", "Kudeatu profila"],
+        ["[data-tour='floating-notifications']", "Jakinarazpenak", "Ikusi partiden"],
+        ["[data-tour='floating-share-spectators']", "Ikusleekin partekatu", "irakurketa-soileko sarbidea"],
+        ["[data-tour='floating-invite-players']", "Jokalariak gonbidatu", "lotu gabe dauden jokalarientzako"],
+        ["[data-tour='floating-help']", "Laguntza bisuala", "uneko pantailaren gida"],
+      ],
+    } as const
+
+    for (const locale of ["es", "en", "eu"] as const) {
+      const localizedHome = getOnboardingTours(locale).find((tour) => tour.key === "home")!
+      const floatingSteps = localizedHome.steps.slice(-5)
+      for (const [index, [selector, title, descriptionFragment]] of expectedFloatingCopy[locale].entries()) {
+        expect(floatingSteps[index]).toMatchObject({ selector, title })
+        expect(floatingSteps[index]?.description).toContain(descriptionFragment)
+      }
+    }
+
     const firstRunSteps = getTourStepsForLaunch(home, { includeFirstRunOnly: true })
     const repeatedSteps = getTourStepsForLaunch(home)
     expect(firstRunSteps[0]?.title).toBe("Bienvenido a Smash & Lob")

@@ -65,24 +65,24 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "Cuando la temporada finaliza, desde aquí puedes consultar su histórico o compartir el resumen final.",
         },
         {
-          title: "Notificaciones",
-          description: "Consulta avisos sobre partidos, resultados, disponibilidad y actividad importante de la liga.",
+          title: "Ajustes",
+          description: "Gestiona tu perfil, preferencias, ligas y las opciones administrativas disponibles para tu rol.",
         },
         {
-          title: "Invitar jugadores",
-          description: "Los administradores pueden compartir desde aquí el enlace para vincular a los jugadores pendientes.",
+          title: "Notificaciones",
+          description: "Consulta avisos sobre partidos, resultados, disponibilidad y actividad importante de la liga.",
         },
         {
           title: "Compartir con espectadores",
           description: "Cuando está disponible, este botón genera un acceso de solo lectura para seguir la competición.",
         },
         {
-          title: "Ayuda visual",
-          description: "Abre la guía de la pantalla actual o consulta la biblioteca completa de tutoriales.",
+          title: "Invitar jugadores",
+          description: "Los administradores pueden compartir desde aquí el enlace para vincular a los jugadores pendientes.",
         },
         {
-          title: "Ajustes",
-          description: "Gestiona tu perfil, preferencias, ligas y las opciones administrativas disponibles para tu rol.",
+          title: "Ayuda visual",
+          description: "Abre la guía de la pantalla actual o consulta la biblioteca completa de tutoriales.",
         },
       ],
     },
@@ -205,24 +205,24 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "When a season ends, use these actions to open its history or share the final summary.",
         },
         {
-          title: "Notifications",
-          description: "Review updates about matches, results, availability and important league activity.",
+          title: "Settings",
+          description: "Manage your profile, preferences, leagues and the administrative options available to your role.",
         },
         {
-          title: "Invite players",
-          description: "Administrators can share the link used to connect players who are still pending.",
+          title: "Notifications",
+          description: "Review updates about matches, results, availability and important league activity.",
         },
         {
           title: "Share with spectators",
           description: "When available, this button creates read-only access to follow the competition.",
         },
         {
-          title: "Visual help",
-          description: "Open the guide for the current screen or browse the complete tutorial library.",
+          title: "Invite players",
+          description: "Administrators can share the link used to connect players who are still pending.",
         },
         {
-          title: "Settings",
-          description: "Manage your profile, preferences, leagues and the administrative options available to your role.",
+          title: "Visual help",
+          description: "Open the guide for the current screen or browse the complete tutorial library.",
         },
       ],
     },
@@ -345,24 +345,24 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "Denboraldia amaitzean, hemendik historia ireki edo azken laburpena parteka dezakezu.",
         },
         {
-          title: "Jakinarazpenak",
-          description: "Ikusi partiden, emaitzen, erabilgarritasunaren eta ligako jarduera garrantzitsuaren abisuak.",
+          title: "Ezarpenak",
+          description: "Kudeatu profila, hobespenak, ligak eta zure rolarentzat erabilgarri dauden administrazio-aukerak.",
         },
         {
-          title: "Jokalariak gonbidatu",
-          description: "Administratzaileek lotu gabe dauden jokalarientzako esteka parteka dezakete hemendik.",
+          title: "Jakinarazpenak",
+          description: "Ikusi partiden, emaitzen, erabilgarritasunaren eta ligako jarduera garrantzitsuaren abisuak.",
         },
         {
           title: "Ikusleekin partekatu",
           description: "Erabilgarri dagoenean, botoi honek lehiaketa jarraitzeko irakurketa-soileko sarbidea sortzen du.",
         },
         {
-          title: "Laguntza bisuala",
-          description: "Ireki uneko pantailaren gida edo ikusi tutorialen liburutegi osoa.",
+          title: "Jokalariak gonbidatu",
+          description: "Administratzaileek lotu gabe dauden jokalarientzako esteka parteka dezakete hemendik.",
         },
         {
-          title: "Ezarpenak",
-          description: "Kudeatu profila, hobespenak, ligak eta zure rolarentzat erabilgarri dauden administrazio-aukerak.",
+          title: "Laguntza bisuala",
+          description: "Ireki uneko pantailaren gida edo ikusi tutorialen liburutegi osoa.",
         },
       ],
     },
@@ -448,7 +448,7 @@ const tourStructure: Array<{
 }> = [
   {
     key: "home",
-    version: 3,
+    version: 4,
     route: "/",
     audience: everyone,
     steps: [

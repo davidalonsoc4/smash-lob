@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.5",
+    date: "7 de agosto de 2026",
+    title: "Ayudas flotantes correctamente sincronizadas",
+    summary:
+      "La guía de Inicio mantiene el recorrido de derecha a izquierda y cada botón flotante muestra ahora exactamente su título y explicación correspondientes.",
+    category: "fix",
+    changes: [
+      "Ajustes se resalta junto a la explicación de Ajustes, sin reutilizar el texto de Notificaciones.",
+      "Notificaciones, acceso de espectadores, invitación de jugadores y Ayuda mantienen cada uno su explicación asociada al botón correcto.",
+      "El orden del recorrido sigue siendo de derecha a izquierda y continúa filtrando automáticamente los controles que el usuario no puede ver.",
+      "Las comprobaciones automáticas validan selector, título y contenido explicativo en castellano, inglés y euskera para evitar desajustes futuros.",
+    ],
+  },
+  {
     version: "v1.3.4",
     date: "7 de agosto de 2026",
     title: "Bienvenida integrada en la guía de Inicio",
