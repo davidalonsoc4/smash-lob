@@ -83,6 +83,9 @@ export function GuidedTourOverlay() {
         left: "50%",
         top: "50%",
         transform: "translate(-50%, -50%)",
+        ...(step?.wide
+          ? { width: "min(432px, calc(100vw - 16px))" }
+          : {}),
       }
     }
 
@@ -99,7 +102,7 @@ export function GuidedTourOverlay() {
       : Math.min(window.innerHeight - 210, targetRect.top + targetRect.height + 12)
 
     return { left: `${left}px`, top: `${top}px`, width: `${width}px` }
-  }, [step?.side, targetRect])
+  }, [step?.side, step?.wide, targetRect])
 
   if (typeof document === "undefined" || !activeTour || !step) return null
 

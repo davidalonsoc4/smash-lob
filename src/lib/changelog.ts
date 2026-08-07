@@ -15,6 +15,21 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.3.4",
+    date: "7 de agosto de 2026",
+    title: "Bienvenida integrada en la guía de Inicio",
+    summary:
+      "El primer recorrido reúne la bienvenida y la explicación completa de Inicio, mientras que las repeticiones comienzan directamente por las funciones de la pantalla.",
+    category: "improvement",
+    changes: [
+      "Bienvenida deja de aparecer como tutorial independiente y pasa a ser el primer paso, de una sola vez, de la guía de Inicio.",
+      "El recuadro de bienvenida utiliza prácticamente todo el ancho disponible de la aplicación para mejorar la lectura.",
+      "La guía de Inicio explica los controles flotantes de derecha a izquierda: Ajustes, Notificaciones, acceso de espectadores, invitación de jugadores y Ayuda.",
+      "Los pasos correspondientes a controles que el usuario no puede ver se omiten automáticamente según su rol y permisos.",
+      "Al repetir manualmente la guía de Inicio se omite la bienvenida y se comienza directamente por el resumen de la liga.",
+    ],
+  },
+  {
     version: "v1.3.3",
     date: "7 de agosto de 2026",
     title: "Posición estable al filtrar el calendario",
