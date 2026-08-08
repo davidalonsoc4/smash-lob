@@ -48,7 +48,7 @@ const [
 const pkg = JSON.parse(packageJson)
 const dependencies = pkg.dependencies ?? {}
 
-assert(pkg.version === "1.4.3", "La entrega debe usar la version 1.4.3")
+assert(pkg.version === "1.4.4", "La entrega debe usar la version 1.4.4")
 assert(!dependencies["@avatune/react"], "@avatune/react debe eliminarse")
 assert(!dependencies["@avatune/pacovqzz-theme"], "El tema Pacovqzz debe eliminarse")
 assert(!dependencies["react-notion-avatar"], "react-notion-avatar no debe arrastrar su arbol obsoleto")
@@ -119,7 +119,7 @@ await Promise.all([
   mustNotExist("src/app/api/experimental/avatar-lab/ready-player-me-status", "El endpoint Ready Player Me debe eliminarse"),
 ])
 
-console.log("Avatar Lab v1.4.3 correcto:")
+console.log("Avatar Lab v1.4.4 correcto:")
 console.log("- acceso autenticado y con rate limit para jugador y espectador")
 console.log("- interfaz, busqueda y API limitadas al host real de PRE")
 console.log("- solo DiceBear Big Smile y Notion Avatar")
