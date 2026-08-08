@@ -137,11 +137,17 @@ export function MatchCard({
             <div
               className={
                 stackTeamPlayers
-                  ? "min-w-0 flex-1"
+                  ? "min-w-0 flex-1 space-y-2"
                   : "min-w-0 flex-1 space-y-1.5"
               }
             >
-              <div className="flex items-center justify-between gap-3">
+              <div
+                className={
+                  stackTeamPlayers
+                    ? "flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
+                    : "flex items-center justify-between gap-3"
+                }
+              >
                 <TeamPlayers
                   playerIds={match.teamA}
                   players={players}
@@ -158,17 +164,25 @@ export function MatchCard({
                 />
 
                 {isFinished ? (
-                  <p className="min-w-6 self-center text-right text-lg font-black">
-                    {match.pointsA}
-                  </p>
+                  stackTeamPlayers ? (
+                    <span className="flex min-w-8 items-center justify-center self-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
+                      {match.pointsA}
+                    </span>
+                  ) : (
+                    <p className="min-w-6 self-center text-right text-lg font-black">
+                      {match.pointsA}
+                    </p>
+                  )
                 ) : null}
               </div>
 
-              {stackTeamPlayers ? (
-                <div aria-hidden="true" className="my-1.5 h-px bg-neutral-100" />
-              ) : null}
-
-              <div className="flex items-center justify-between gap-3">
+              <div
+                className={
+                  stackTeamPlayers
+                    ? "flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
+                    : "flex items-center justify-between gap-3"
+                }
+              >
                 <TeamPlayers
                   playerIds={match.teamB}
                   players={players}
@@ -185,9 +199,15 @@ export function MatchCard({
                 />
 
                 {isFinished ? (
-                  <p className="min-w-6 self-center text-right text-lg font-black">
-                    {match.pointsB}
-                  </p>
+                  stackTeamPlayers ? (
+                    <span className="flex min-w-8 items-center justify-center self-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
+                      {match.pointsB}
+                    </span>
+                  ) : (
+                    <p className="min-w-6 self-center text-right text-lg font-black">
+                      {match.pointsB}
+                    </p>
+                  )
                 ) : null}
               </div>
             </div>
