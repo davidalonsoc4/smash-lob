@@ -15,6 +15,32 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.10",
+    date: "8 de agosto de 2026",
+    title: "Colores por liga y navegación propia en Mis partidos",
+    summary:
+      "Mis partidos diferencia visualmente cada liga con un color estable que evita rojo y verde, y estrena una navegación inferior compacta para moverse entre historial, alta de amistosos y ligas.",
+    category: "improvement",
+    changes: [
+      "Cada liga recibe de forma determinista uno de varios colores reservados para el origen del partido; la paleta excluye rojo y verde para no competir con Victoria y Derrota.",
+      "Amistoso mantiene un color propio neutro y estable, distinto de los colores asignados a las ligas.",
+      "Mis partidos incorpora una barra inferior compacta con Mis partidos, + Partido y Ligas; las pantallas de crear y detalle conservan además el botón Volver.",
+      "La pantalla raíz de Mis partidos deja de duplicar la salida hacia Ligas en la cabecera porque esa acción queda disponible de forma permanente en la nueva barra inferior.",
+    ],
+  },
+  {
+    version: "v1.4.9",
+    date: "8 de agosto de 2026",
+    title: "Pruebas locales y metadatos de partido más claros",
+    summary: "El desarrollo local puede entrar sin Google con una sesión protegida de desarrollo y las tarjetas reorganizan liga, fecha, hora y ubicación de forma consistente.",
+    category: "improvement",
+    changes: [
+      "Localhost puede iniciar automáticamente una sesión Auth.js de desarrollo con el email real de una cuenta de PRE, sin habilitar este acceso en builds de PRE o PROD.",
+      "Mis partidos oculta por completo Próximo partido cuando no existe ningún encuentro futuro.",
+      "Mis partidos coloca Liga/Amistoso arriba a la izquierda; Calendario deja ese hueco libre y ambas pantallas muestran día, fecha, hora y ubicación debajo de las parejas.",
+    ],
+  },
+  {
     version: "v1.4.8",
     date: "8 de agosto de 2026",
     title: "Marcadores ganadores más sobrios",
