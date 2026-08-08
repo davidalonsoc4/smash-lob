@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.5",
+    date: "8 de agosto de 2026",
+    title: "Ganador de cada set destacado en el Calendario",
+    summary:
+      "El marcador por juegos del Calendario resalta en negrita el resultado de la pareja que gana cada set para identificar la secuencia del partido más rápido.",
+    category: "improvement",
+    changes: [
+      "En cada set finalizado, el número de juegos de la pareja ganadora se muestra en negrita y el de la pareja perdedora mantiene peso normal.",
+      "Se conserva sin cambios la fecha en la cabecera izquierda, la ubicación en la zona inferior y el resto de la composición de las tarjetas.",
+      "El ajuste sigue limitado al Calendario de liga mientras se termina de validar este diseño antes de reutilizarlo en Mis partidos.",
+    ],
+  },
+  {
     version: "v1.4.4",
     date: "8 de agosto de 2026",
     title: "Resultado personal y marcador compacto en Calendario",

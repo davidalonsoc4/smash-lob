@@ -19,6 +19,8 @@ describe("league calendar match card layout", () => {
     expect(matchCard).toContain('rounded-xl bg-neutral-50 px-3 py-2')
     expect(matchCard).toContain('aria-label="Juegos por set de la pareja A"')
     expect(matchCard).toContain('aria-label="Juegos por set de la pareja B"')
+    expect(matchCard).toContain('set.a > set.b ? "font-bold" : "font-normal"')
+    expect(matchCard).toContain('set.b > set.a ? "font-bold" : "font-normal"')
     expect(matchCard).toContain("getCurrentUserMatchOutcome(match, currentUserId)")
     expect(matchCard).toContain('currentUserOutcome === "victory" ? "green" : "red"')
     expect(matchCard).toContain("t.matches.victory")
