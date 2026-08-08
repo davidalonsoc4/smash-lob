@@ -322,6 +322,8 @@ export const es = {
       "Jornadas fijas creadas por el admin. Los jugadores programan fecha, hora y lugar.",
     round: "Jornada",
     finished: "Finalizado",
+    victory: "Victoria",
+    defeat: "Derrota",
     scheduled: "Programado",
     unscheduled: "Sin programar",
     postponed: "Aplazado",

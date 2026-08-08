@@ -15,6 +15,11 @@ import {
 import type { PlayerProfile } from "@/data/fakeData";
 import type { MatchSubstitution } from "@/lib/substitutes";
 import { getMatchSubstituteLabels } from "@/lib/substitutes";
+import { getBadgeClassName } from "@/lib/statusStyles";
+import {
+  getCurrentUserMatchOutcome,
+  getMatchTeamScores,
+} from "@/lib/matchPresentation";
 
 type MatchCardProps = {
   match: {
@@ -41,6 +46,7 @@ type MatchCardProps = {
   leagueLocations?: LeagueLocation[];
   showMissingScheduleHint?: boolean;
   stackTeamPlayers?: boolean;
+  currentUserId?: string | null;
 };
 
 export function MatchCard({
@@ -54,6 +60,7 @@ export function MatchCard({
   leagueLocations = [],
   showMissingScheduleHint = true,
   stackTeamPlayers = false,
+  currentUserId = null,
 }: MatchCardProps) {
   const { t } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
@@ -63,6 +70,8 @@ export function MatchCard({
   const isFinished = match.status === "finished";
   const isPostponed = match.status === "postponed";
   const hasRoundWindow = Boolean(roundStartsAt && roundEndsAt);
+  const teamScores = getMatchTeamScores(match);
+  const currentUserOutcome = getCurrentUserMatchOutcome(match, currentUserId);
 
   const leagueLocation = findLeagueLocationByScheduleLocation({
     locations: leagueLocations,
@@ -125,11 +134,24 @@ export function MatchCard({
             {headerText}
           </p>
 
-          <MatchStatusBadge
-            status={match.status}
-            scheduledAt={match.scheduledAt ?? null}
-            resultRecordedAt={match.resultRecordedAt ?? null}
-          />
+          {currentUserOutcome ? (
+            <p
+              className={`${getBadgeClassName(
+                currentUserOutcome === "victory" ? "green" : "red",
+                "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wide leading-none",
+              )} ml-auto text-right`}
+            >
+              {currentUserOutcome === "victory"
+                ? t.matches.victory
+                : t.matches.defeat}
+            </p>
+          ) : (
+            <MatchStatusBadge
+              status={match.status}
+              scheduledAt={match.scheduledAt ?? null}
+              resultRecordedAt={match.resultRecordedAt ?? null}
+            />
+          )}
         </div>
 
         <div>
@@ -165,9 +187,21 @@ export function MatchCard({
 
                 {isFinished ? (
                   stackTeamPlayers ? (
-                    <span className="flex min-w-8 items-center justify-center self-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
-                      {match.pointsA}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1 self-center">
+                      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja A">
+                        {match.sets.map((set, index) => (
+                          <span
+                            key={index}
+                            className="flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs font-bold text-neutral-600"
+                          >
+                            {set.a}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
+                        {teamScores.teamA}
+                      </span>
+                    </div>
                   ) : (
                     <p className="min-w-6 self-center text-right text-lg font-black">
                       {match.pointsA}
@@ -200,9 +234,21 @@ export function MatchCard({
 
                 {isFinished ? (
                   stackTeamPlayers ? (
-                    <span className="flex min-w-8 items-center justify-center self-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
-                      {match.pointsB}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1 self-center">
+                      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja B">
+                        {match.sets.map((set, index) => (
+                          <span
+                            key={index}
+                            className="flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs font-bold text-neutral-600"
+                          >
+                            {set.b}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
+                        {teamScores.teamB}
+                      </span>
+                    </div>
                   ) : (
                     <p className="min-w-6 self-center text-right text-lg font-black">
                       {match.pointsB}
@@ -215,7 +261,7 @@ export function MatchCard({
             <ClickableChevron className="shrink-0" />
           </div>
 
-          {isFinished ? (
+          {isFinished && !stackTeamPlayers ? (
             <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
               {match.sets.map((set, index) => (
                 <span

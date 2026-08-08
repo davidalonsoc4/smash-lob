@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.4",
+    date: "8 de agosto de 2026",
+    title: "Resultado personal y marcador compacto en Calendario",
+    summary:
+      "El Calendario identifica tus partidos terminados como victoria o derrota y acerca los juegos de cada set al marcador de su pareja para leer el resultado de un vistazo.",
+    category: "improvement",
+    changes: [
+      "Cuando el usuario participa en un partido finalizado, la etiqueta Finalizado pasa a mostrar Victoria en verde o Derrota en rojo según su resultado; los partidos ajenos conservan su estado habitual.",
+      "Cada pareja muestra a la derecha sus juegos en cada set, seguidos del número de sets ganados, dentro del mismo bloque visual.",
+      "En las tarjetas apiladas del Calendario desaparece la fila inferior de resultados por set porque esa información queda integrada junto a cada pareja.",
+      "El cambio sigue limitado al Calendario de liga para poder pulirlo antes de reutilizarlo en Mis partidos.",
+    ],
+  },
+  {
     version: "v1.4.3",
     date: "8 de agosto de 2026",
     title: "Paneles de parejas más claros en el Calendario",
