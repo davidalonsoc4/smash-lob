@@ -8,9 +8,10 @@ import type {
   PersonalMatchParticipantDraft,
   PersonalMatchPerson,
   PersonalMatchSet,
+  PersonalMatchStatus,
 } from "@/lib/personalMatches"
 
-function localDateTimeValue(date = new Date()) {
+function localDateTimeValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60_000
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
@@ -107,10 +108,15 @@ export default function NewPersonalMatchPage() {
   const router = useRouter()
   const [people, setPeople] = useState<PersonalMatchPerson[]>([])
   const [participants, setParticipants] = useState<EditableParticipant[]>(initialParticipants)
-  const [playedAt, setPlayedAt] = useState(localDateTimeValue())
-  const [maxPlayedAt] = useState(() =>
-    localDateTimeValue(new Date(new Date(playedAt).getTime() + 24 * 60 * 60 * 1000)),
-  )
+  const [status, setStatus] = useState<PersonalMatchStatus>("scheduled")
+  const [scheduledAt, setScheduledAt] = useState(() => {
+    const now = new Date()
+    return localDateTimeValue(new Date(now.getTime() + 60 * 60 * 1000))
+  })
+  const [latestFinishedAt] = useState(() => {
+    const now = new Date()
+    return localDateTimeValue(new Date(now.getTime() + 24 * 60 * 60 * 1000))
+  })
   const [locationName, setLocationName] = useState("")
   const [sets, setSets] = useState<PersonalMatchSet[]>([
     { a: 6, b: 0 },
@@ -119,6 +125,7 @@ export default function NewPersonalMatchPage() {
   const [loadingPeople, setLoadingPeople] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
 
   useEffect(() => {
     let cancelled = false
@@ -167,9 +174,9 @@ export default function NewPersonalMatchPage() {
   const canSubmit =
     !loadingPeople &&
     !submitting &&
+    scheduledAt.trim().length > 0 &&
     participantsComplete &&
-    hasWinner &&
-    sets.length >= 1
+    (status === "scheduled" || (sets.length >= 1 && hasWinner))
 
   function updateParticipant(index: number, next: EditableParticipant) {
     setParticipants((current) =>
@@ -199,9 +206,10 @@ export default function NewPersonalMatchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          playedAt: new Date(playedAt).toISOString(),
+          status,
+          scheduledAt: new Date(scheduledAt).toISOString(),
           locationName,
-          sets,
+          sets: status === "finished" ? sets : [],
           participants: participants.map((participant) => ({
             team: participant.team,
             slot: participant.slot,
@@ -223,7 +231,11 @@ export default function NewPersonalMatchPage() {
           ? "El resultado debe tener un equipo ganador."
           : code === "duplicate_personal_match_person"
             ? "No puedes seleccionar al mismo jugador dos veces."
-            : "No se ha podido guardar el partido. Revisa los datos e inténtalo de nuevo.",
+            : code === "invalid_personal_match_date"
+              ? status === "scheduled"
+                ? "El partido programado debe tener una fecha actual o futura."
+                : "Revisa la fecha del partido disputado."
+              : "No se ha podido guardar el partido. Revisa los datos e inténtalo de nuevo.",
       )
     } finally {
       setSubmitting(false)
@@ -235,11 +247,30 @@ export default function NewPersonalMatchPage() {
       <header className="pt-1">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
         <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
-        <h1 className="mt-0.5 text-2xl font-black tracking-tight">Registrar partido</h1>
+        <h1 className="mt-0.5 text-2xl font-black tracking-tight">
+          {status === "scheduled" ? "Programar partido" : "Registrar partido"}
+        </h1>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Si eliges a alguien de tus ligas que tenga cuenta vinculada, este mismo encuentro aparecerá también en su historial personal.
+          El mismo amistoso aparecerá en Mis partidos de todos los participantes que tengan una cuenta vinculada.
         </p>
       </header>
+
+      <div className="grid grid-cols-2 rounded-xl bg-neutral-100 p-1">
+        <button
+          type="button"
+          onClick={() => setStatus("scheduled")}
+          className={`rounded-lg px-3 py-2 text-xs font-black ${status === "scheduled" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}
+        >
+          Programar
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatus("finished")}
+          className={`rounded-lg px-3 py-2 text-xs font-black ${status === "finished" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}
+        >
+          Ya jugado
+        </button>
+      </div>
 
       <AppCard className="p-3">
         <div className="grid gap-2 sm:grid-cols-2">
@@ -247,9 +278,9 @@ export default function NewPersonalMatchPage() {
             <span className="text-xs font-black text-neutral-800">Fecha y hora</span>
             <input
               type="datetime-local"
-              value={playedAt}
-              max={maxPlayedAt}
-              onChange={(event) => setPlayedAt(event.target.value)}
+              value={scheduledAt}
+              max={status === "finished" ? latestFinishedAt || undefined : undefined}
+              onChange={(event) => setScheduledAt(event.target.value)}
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
             />
           </label>
@@ -287,65 +318,74 @@ export default function NewPersonalMatchPage() {
         ) : null}
       </AppCard>
 
-      <AppCard className="p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-black text-neutral-950">Resultado</p>
-            <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">Equipo A · Equipo B</p>
-          </div>
-          {sets.length < 5 ? (
-            <button
-              type="button"
-              onClick={() => setSets((current) => [...current, { a: 0, b: 0 }])}
-              className="rounded-lg bg-neutral-100 px-2.5 py-2 text-[10px] font-black text-neutral-700"
-            >
-              + Set
-            </button>
-          ) : null}
-        </div>
-
-        <div className="mt-3 space-y-2">
-          {sets.map((set, index) => (
-            <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-2 rounded-xl bg-neutral-100 p-2">
-              <span className="text-[10px] font-black uppercase text-neutral-500">Set {index + 1}</span>
-              <input
-                inputMode="numeric"
-                type="number"
-                min={0}
-                max={99}
-                value={set.a}
-                onChange={(event) => updateSet(index, "a", event.target.value)}
-                className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
-              />
-              <span className="text-xs font-black text-neutral-400">-</span>
-              <input
-                inputMode="numeric"
-                type="number"
-                min={0}
-                max={99}
-                value={set.b}
-                onChange={(event) => updateSet(index, "b", event.target.value)}
-                className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
-              />
-              {sets.length > 1 ? (
-                <button
-                  type="button"
-                  aria-label={`Eliminar set ${index + 1}`}
-                  onClick={() => setSets((current) => current.filter((_, setIndex) => setIndex !== index))}
-                  className="h-8 w-8 rounded-lg text-sm font-black text-neutral-400"
-                >
-                  ×
-                </button>
-              ) : (
-                <span className="h-8 w-8" />
-              )}
+      {status === "finished" ? (
+        <AppCard className="p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-black text-neutral-950">Resultado</p>
+              <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">Equipo A · Equipo B</p>
             </div>
-          ))}
-        </div>
-        {!hasWinner ? (
-          <p className="mt-2 text-[10px] font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
-        ) : null}
-      </AppCard>
+            {sets.length < 5 ? (
+              <button
+                type="button"
+                onClick={() => setSets((current) => [...current, { a: 0, b: 0 }])}
+                className="rounded-lg bg-neutral-100 px-2.5 py-2 text-[10px] font-black text-neutral-700"
+              >
+                + Set
+              </button>
+            ) : null}
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {sets.map((set, index) => (
+              <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-2 rounded-xl bg-neutral-100 p-2">
+                <span className="text-[10px] font-black uppercase text-neutral-500">Set {index + 1}</span>
+                <input
+                  inputMode="numeric"
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={set.a}
+                  onChange={(event) => updateSet(index, "a", event.target.value)}
+                  className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
+                />
+                <span className="text-xs font-black text-neutral-400">-</span>
+                <input
+                  inputMode="numeric"
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={set.b}
+                  onChange={(event) => updateSet(index, "b", event.target.value)}
+                  className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
+                />
+                {sets.length > 1 ? (
+                  <button
+                    type="button"
+                    aria-label={`Eliminar set ${index + 1}`}
+                    onClick={() => setSets((current) => current.filter((_, setIndex) => setIndex !== index))}
+                    className="h-8 w-8 rounded-lg text-sm font-black text-neutral-400"
+                  >
+                    ×
+                  </button>
+                ) : (
+                  <span className="h-8 w-8" />
+                )}
+              </div>
+            ))}
+          </div>
+          {!hasWinner ? (
+            <p className="mt-2 text-[10px] font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
+          ) : null}
+        </AppCard>
+      ) : (
+        <AppCard className="border-blue-100 bg-blue-50 p-3">
+          <p className="text-xs font-black text-blue-950">Resultado pendiente</p>
+          <p className="mt-1 text-[10px] font-semibold leading-4 text-blue-700">
+            El resultado se añadirá desde el detalle del partido cuando se haya disputado.
+          </p>
+        </AppCard>
+      )}
 
       {error ? (
         <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-700">{error}</p>
@@ -357,7 +397,11 @@ export default function NewPersonalMatchPage() {
         disabled={!canSubmit}
         className="w-full rounded-xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300"
       >
-        {submitting ? "Guardando..." : "Guardar partido"}
+        {submitting
+          ? "Guardando..."
+          : status === "scheduled"
+            ? "Programar partido"
+            : "Guardar resultado"}
       </button>
     </div>
   )
