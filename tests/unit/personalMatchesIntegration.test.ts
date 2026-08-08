@@ -2,29 +2,81 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("personal matches integration", () => {
-  it("keeps personal matches separate from league competition", async () => {
-    const [leagues, shell, gate] = await Promise.all([
-      readFile("src/app/leagues/page.tsx", "utf8"),
-      readFile("src/components/layout/AppShell.tsx", "utf8"),
-      readFile("src/components/auth/LeagueEntryGate.tsx", "utf8"),
+  it("aggregates league matches and friendlies without duplicating league data", async () => {
+    const [page, serverHelper, migration] = await Promise.all([
+      readFile("src/app/personal-matches/page.tsx", "utf8"),
+      readFile("src/lib/serverPersonalMatches.ts", "utf8"),
+      readFile("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql", "utf8"),
     ])
 
-    expect(leagues).toContain('href="/personal-matches"')
-    expect(leagues).toContain("Actividad personal")
-    expect(shell).toContain("isPersonalMatchesRoute")
-    expect(shell).toContain("!isPersonalMatchesRoute")
-    expect(gate).toContain("isPersonalMatchesRoute")
+    expect(page).toContain("Tu agenda e historial completo: ligas y amistosos")
+    expect(serverHelper).toContain('source === "friendly"')
+    expect(serverHelper).toContain('source === "league"')
+    expect(serverHelper).toContain('origin: "league"')
+    expect(serverHelper).toContain('origin: "friendly"')
+    expect(migration).toContain("server_list_user_match_history")
+    expect(migration).toContain("from public.matches m")
+    expect(migration).toContain("from public.personal_matches pm")
+    expect(migration).not.toContain("insert into public.personal_matches\n    select")
   })
 
-  it("protects the API and supports shared linked accounts plus external names", async () => {
-    const [listRoute, detailRoute, peopleRoute, serverHelper] = await Promise.all([
+  it("paginates history ten at a time and exposes separate upcoming league/friendly matches", async () => {
+    const [page, listRoute, serverHelper, migration] = await Promise.all([
+      readFile("src/app/personal-matches/page.tsx", "utf8"),
       readFile("src/app/api/personal-matches/route.ts", "utf8"),
-      readFile("src/app/api/personal-matches/[id]/route.ts", "utf8"),
-      readFile("src/app/api/personal-matches/people/route.ts", "utf8"),
       readFile("src/lib/serverPersonalMatches.ts", "utf8"),
+      readFile("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql", "utf8"),
     ])
 
-    for (const route of [listRoute, detailRoute, peopleRoute]) {
+    expect(page).toContain("const pageSize = 10")
+    expect(page).toContain("Cargar 10 más")
+    expect(page).toContain("Liga")
+    expect(page).toContain("Amistoso")
+    expect(page).toContain("hasBothUpcoming")
+    expect(listRoute).toContain('searchParams.get("offset")')
+    expect(listRoute).toContain('searchParams.get("limit")')
+    expect(listRoute).toContain('searchParams.get("includeUpcoming")')
+    expect(serverHelper).toContain("safeLimit + 1")
+    expect(serverHelper).toContain("server_list_user_match_history")
+    expect(serverHelper).toContain("server_next_user_matches")
+    expect(migration).toContain("limit least(greatest(coalesce(p_limit, 10), 1), 100)")
+    expect(migration).toContain("offset greatest(coalesce(p_offset, 0), 0)")
+  })
+
+  it("supports scheduled friendlies and a league-like detail experience", async () => {
+    const [createRoute, detailRoute, detailPage, card, shell] = await Promise.all([
+      readFile("src/app/api/personal-matches/route.ts", "utf8"),
+      readFile("src/app/api/personal-matches/[id]/route.ts", "utf8"),
+      readFile("src/app/personal-matches/[id]/page.tsx", "utf8"),
+      readFile("src/components/personal/PersonalMatchCard.tsx", "utf8"),
+      readFile("src/components/layout/AppShell.tsx", "utf8"),
+    ])
+
+    expect(createRoute).toContain('value === "scheduled" || value === "finished"')
+    expect(createRoute).toContain("p_status: status")
+    expect(detailRoute).toContain("export async function PATCH")
+    expect(detailRoute).toContain('action !== "schedule" && action !== "result"')
+    expect(detailPage).toContain("<MatchScoreboard")
+    expect(detailPage).toContain("<PersonalMatchSchedulePanel")
+    expect(detailPage).toContain("<PersonalMatchResultForm")
+    expect(card).toContain("getPersonalMatchOverallScore")
+    expect(card).toContain("<ClickableChevron")
+    expect(card).toContain("match.locationName")
+    expect(shell).toContain("const shouldShowSettingsButton")
+    expect(shell).toContain("!isPersonalMatchesRoute")
+    expect(shell).toContain('data-tour="floating-settings"')
+  })
+
+  it("keeps shared linked accounts, external names and service-role-only storage", async () => {
+    const [listRoute, peopleRoute, serverHelper, baseMigration, extensionMigration] = await Promise.all([
+      readFile("src/app/api/personal-matches/route.ts", "utf8"),
+      readFile("src/app/api/personal-matches/people/route.ts", "utf8"),
+      readFile("src/lib/serverPersonalMatches.ts", "utf8"),
+      readFile("supabase/migrations/20260808110500_add_personal_matches.sql", "utf8"),
+      readFile("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql", "utf8"),
+    ])
+
+    for (const route of [listRoute, peopleRoute]) {
       expect(route).toContain("requireAuthenticatedAppUser")
     }
     expect(listRoute).toContain("personal_match_requires_current_user")
@@ -32,20 +84,10 @@ describe("personal matches integration", () => {
     expect(listRoute).toContain("display_name: draft.displayName")
     expect(serverHelper).toContain('key: `user:${user.id}`')
     expect(serverHelper).toContain('`player:${player.id}`')
-  })
-
-  it("stores personal data behind service-role-only database access", async () => {
-    const migration = await readFile(
-      "supabase/migrations/20260808110500_add_personal_matches.sql",
-      "utf8",
-    )
-
-    expect(migration).toContain("personal_matches")
-    expect(migration).toContain("personal_match_participants")
-    expect(migration).toContain("server_create_personal_match")
-    expect(migration).toContain("enable row level security")
-    expect(migration).toContain("from public, anon, authenticated")
-    expect(migration).toContain("to service_role")
-    expect(migration.toLowerCase()).not.toContain("pretemporada")
+    expect(baseMigration).toContain("enable row level security")
+    expect(extensionMigration).toContain("from public, anon, authenticated")
+    expect(extensionMigration).toContain("to service_role")
+    expect(extensionMigration).toContain("five-argument RPC as a compatibility wrapper")
+    expect(extensionMigration.toLowerCase()).not.toContain("pretemporada")
   })
 })
