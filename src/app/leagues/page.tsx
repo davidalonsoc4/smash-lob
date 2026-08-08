@@ -67,7 +67,7 @@ export default function LeaguesPage() {
 
         <h1 className="mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Entra en una liga o consulta tus amistosos registrados.
+          Cambia de competición o consulta todo tu historial de partidos.
         </p>
       </header>
 
@@ -93,7 +93,7 @@ export default function LeaguesPage() {
             <div className="min-w-0 flex-1">
               <p className="text-lg font-black">Mis partidos</p>
               <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-300">
-                Registra y consulta los amistosos que juegas fuera de tus ligas.
+                Consulta tus partidos de liga y registra los amistosos que juegas fuera de competición.
               </p>
             </div>
             <span className="shrink-0 text-lg font-black text-neutral-400">›</span>
