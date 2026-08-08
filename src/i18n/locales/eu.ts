@@ -321,6 +321,8 @@ export const eu = {
       "Adminak sortutako jardunaldi finkoak. Jokalariek data, ordua eta lekua programatzen dituzte.",
     round: "Jardunaldia",
     finished: "Amaituta",
+    victory: "Garaipena",
+    defeat: "Porrota",
     scheduled: "Programatuta",
     unscheduled: "Programatu gabe",
     postponed: "Atzeratuta",
