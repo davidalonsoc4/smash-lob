@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { createLeagueLocation } from "@/lib/leagueLocations"
+import { saveGlobalLocation } from "@/lib/serverGlobalLocations"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import {
   normalizeBoundedText,
@@ -98,6 +100,25 @@ export async function PATCH(
         return NextResponse.json({ error: "invalid_personal_match_date" }, { status: 400 })
       }
       const locationName = normalizeBoundedText(body?.locationName, 120) || null
+
+      if (locationName) {
+        const globalLocation = createLeagueLocation({
+          name: locationName,
+          town: null,
+          address: null,
+          courtCount: null,
+          selectedCourt: null,
+          googlePlaceId: null,
+          googlePlaceName: null,
+          googleMapsUrl: null,
+          latitude: null,
+          longitude: null,
+        })
+        if (globalLocation) {
+          await saveGlobalLocation(authResult.actor.supabase, globalLocation)
+        }
+      }
+
       const { error } = await authResult.actor.supabase
         .from("personal_matches")
         .update({

@@ -5,10 +5,9 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
 import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
-import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
+import { MatchCard } from "@/components/matches/MatchCard";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
-import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
@@ -30,11 +29,6 @@ import {
 } from "@/lib/mvp";
 import { recordActivityEvent } from "@/lib/activity";
 import { formatMoney } from "@/lib/courtBooking";
-import {
-  findLeagueLocationByScheduleLocation,
-  getLeagueLocationCompactText,
-  getScheduleLocationFallbackText,
-} from "@/lib/leagueLocations";
 import { getNextMatch } from "@/lib/leagues";
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
@@ -132,13 +126,6 @@ function CalendarIcon() {
 
 
 
-function capitalizeFirstLetter(value: string | null | undefined) {
-  if (!value) {
-    return value
-  }
-
-  return value.charAt(0).toLocaleUpperCase("es-ES") + value.slice(1)
-}
 
 function areStringArraysEqual(left: string[], right: string[]) {
   return (
@@ -203,15 +190,6 @@ function getLastPlayedOrPendingMatch(matches: MatchData[], now = new Date()) {
     })[0];
 }
 
-function buildMatchMetaText({
-  match,
-  locationText,
-}: {
-  match: MatchData;
-  locationText?: string | null;
-}) {
-  return [match.dateLabel, locationText].filter(Boolean).join(" · ");
-}
 
 function isNextMatchCandidate(match: MatchData, now: Date) {
   const displayStatus = getMatchDisplayStatus({
@@ -571,18 +549,6 @@ export default function Home() {
       });
   const selectedNextMatch =
     effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
-  const selectedNextMatchCanSchedule = Boolean(
-    selectedNextMatch &&
-      (canManageSeason ||
-        selectedNextMatch.teamA.includes(currentUserId) ||
-        selectedNextMatch.teamB.includes(currentUserId)),
-  );
-  const selectedNextMatchHasSchedule = Boolean(
-    selectedNextMatch &&
-      (selectedNextMatch.scheduledAt ||
-        selectedNextMatch.dateLabel ||
-        selectedNextMatch.location),
-  );
   const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
     leagueMatch: leagueLastMatch,
     personalMatch: personalLastMatch,
@@ -597,18 +563,6 @@ export default function Home() {
       });
   const selectedLastMatch =
     effectiveLastMatchScope === "mine" ? personalLastMatch : leagueLastMatch;
-  const selectedLastMatchLocation = selectedLastMatch
-    ? findLeagueLocationByScheduleLocation({
-        locations: activeLeague.locations,
-        scheduleLocation: selectedLastMatch.location,
-      })
-    : null;
-  const selectedNextMatchLocation = selectedNextMatch
-    ? findLeagueLocationByScheduleLocation({
-        locations: activeLeague.locations,
-        scheduleLocation: selectedNextMatch.location,
-      })
-    : null;
   function getMatchPanelHighlightedPlayerIds(match: MatchData | null) {
     if (!match) {
       return [];
@@ -636,20 +590,12 @@ export default function Home() {
     getMatchPanelHighlightedPlayerIds(selectedLastMatch);
   const selectedNextMatchHighlightedPlayerIds =
     getMatchPanelHighlightedPlayerIds(selectedNextMatch);
-  const selectedLastMatchFallbackLocation = selectedLastMatch
-    ? getScheduleLocationFallbackText(selectedLastMatch.location)
+  const selectedNextMatchRound = selectedNextMatch
+    ? rounds.find((round) => round.round === selectedNextMatch.round)
     : null;
-  const selectedLastMatchMetaText = selectedLastMatch
-    ? buildMatchMetaText({
-        match: selectedLastMatch,
-        locationText: selectedLastMatchLocation
-          ? getLeagueLocationCompactText(selectedLastMatchLocation)
-          : selectedLastMatchFallbackLocation,
-      })
-    : "";
-  const selectedLastMatchHasResult =
-    selectedLastMatch?.status === "finished" ||
-    Boolean(selectedLastMatch?.sets.length);
+  const selectedLastMatchRound = selectedLastMatch
+    ? rounds.find((round) => round.round === selectedLastMatch.round)
+    : null;
   const pendingPaymentGroups = getPendingPaymentGroups({
     matches,
     currentUserId,
@@ -1282,70 +1228,19 @@ export default function Home() {
           />
 
           {selectedNextMatch ? (
-            <Link href={`/match/${selectedNextMatch.id}`} className="block">
-              <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
-                    {t.matches.round} {selectedNextMatch.round}
-                  </p>
-
-                  <MatchStatusBadge
-                    status={selectedNextMatch.status}
-                    scheduledAt={selectedNextMatch.scheduledAt}
-                    resultRecordedAt={selectedNextMatch.resultRecordedAt}
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <TeamPlayers
-                      playerIds={selectedNextMatch.teamA}
-                      players={players}
-                      highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
-                      highlightedPlayerLabel={matchPanelMvpLabel}
-                      linkPlayers={false}
-                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                    />
-                    <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                      {t.common.versus}
-                    </p>
-                    <TeamPlayers
-                      playerIds={selectedNextMatch.teamB}
-                      players={players}
-                      highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
-                      highlightedPlayerLabel={matchPanelMvpLabel}
-                      linkPlayers={false}
-                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                    />
-                  </div>
-
-                  <ClickableChevron className="shrink-0" />
-                </div>
-
-                {selectedNextMatchHasSchedule ||
-                selectedNextMatchCanSchedule ? (
-                  <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
-                    <p className="text-xs font-black text-neutral-800">
-                      {capitalizeFirstLetter(selectedNextMatch.dateLabel) ??
-                        (selectedNextMatch.status === "postponed"
-                          ? t.matches.pendingReschedule
-                          : t.dashboard.addSchedule)}
-                    </p>
-
-                    <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
-                      {selectedNextMatchLocation
-                        ? getLeagueLocationCompactText(selectedNextMatchLocation)
-                        : (getScheduleLocationFallbackText(
-                            selectedNextMatch.location,
-                          ) ??
-                          (selectedNextMatch.status === "postponed"
-                            ? t.matches.needsReschedule
-                            : t.dashboard.playersCanSchedule))}
-                    </p>
-                  </div>
-                ) : null}
-              </AppCard>
-            </Link>
+            <MatchCard
+              match={selectedNextMatch}
+              players={players}
+              roundStartsAt={selectedNextMatchRound?.startsAt ?? null}
+              roundEndsAt={selectedNextMatchRound?.endsAt ?? null}
+              headerMode="match-date"
+              stackTeamPlayers
+              currentUserId={currentUserId}
+              highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
+              highlightedPlayerLabel={matchPanelMvpLabel}
+              leagueLocations={activeLeague.locations}
+              showMissingScheduleHint
+            />
           ) : (
             <AppCard className="border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500">
               No tienes próximo partido pendiente.
@@ -1391,104 +1286,18 @@ export default function Home() {
             }
           />
 
-          <Link href={`/match/${selectedLastMatch.id}`} className="block">
-            <AppCard className="relative border-neutral-300 bg-white p-2.5 transition active:scale-[0.99]">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <p className="min-w-0 text-xs font-black uppercase tracking-wide text-neutral-500">
-                  {t.matches.round} {selectedLastMatch.round}
-                </p>
-
-                <MatchStatusBadge
-                  status={selectedLastMatch.status}
-                  scheduledAt={selectedLastMatch.scheduledAt}
-                  resultRecordedAt={selectedLastMatch.resultRecordedAt}
-                />
-              </div>
-
-              {selectedLastMatchHasResult ? (
-                <>
-                  <div className="flex items-center gap-3">
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <TeamPlayers
-                          playerIds={selectedLastMatch.teamA}
-                          players={players}
-                          highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                          highlightedPlayerLabel={matchPanelMvpLabel}
-                          linkPlayers={false}
-                          className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                        />
-                        <p className="min-w-6 text-right text-lg font-black">
-                          {selectedLastMatch.pointsA}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3">
-                        <TeamPlayers
-                          playerIds={selectedLastMatch.teamB}
-                          players={players}
-                          highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                          highlightedPlayerLabel={matchPanelMvpLabel}
-                          linkPlayers={false}
-                          className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                        />
-                        <p className="min-w-6 text-right text-lg font-black">
-                          {selectedLastMatch.pointsB}
-                        </p>
-                      </div>
-                    </div>
-
-                    <ClickableChevron className="shrink-0" />
-                  </div>
-
-                  {selectedLastMatch.sets.length > 0 ? (
-                    <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
-                      {selectedLastMatch.sets.map((set, index) => (
-                        <span
-                          key={index}
-                          className="rounded-md bg-neutral-100 px-1.5 py-0.5"
-                        >
-                          {set.a}-{set.b}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <TeamPlayers
-                      playerIds={selectedLastMatch.teamA}
-                      players={players}
-                      highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                      highlightedPlayerLabel={matchPanelMvpLabel}
-                      linkPlayers={false}
-                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                    />
-                    <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
-                      {t.common.versus}
-                    </p>
-                    <TeamPlayers
-                      playerIds={selectedLastMatch.teamB}
-                      players={players}
-                      highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
-                      highlightedPlayerLabel={matchPanelMvpLabel}
-                      linkPlayers={false}
-                      className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                    />
-                  </div>
-
-                  <ClickableChevron className="shrink-0" />
-                </div>
-              )}
-
-              {selectedLastMatchMetaText ? (
-                <p className="mt-1.5 truncate text-[11px] font-semibold text-neutral-500">
-                  {selectedLastMatchMetaText}
-                </p>
-              ) : null}
-            </AppCard>
-          </Link>
+          <MatchCard
+            match={selectedLastMatch}
+            players={players}
+            roundStartsAt={selectedLastMatchRound?.startsAt ?? null}
+            roundEndsAt={selectedLastMatchRound?.endsAt ?? null}
+            headerMode="match-date"
+            stackTeamPlayers
+            currentUserId={currentUserId}
+            highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
+            highlightedPlayerLabel={matchPanelMvpLabel}
+            leagueLocations={activeLeague.locations}
+          />
         </section>
       ) : null}
 

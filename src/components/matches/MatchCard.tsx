@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
+import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel";
 import { SetGameScore } from "@/components/matches/SetGameScore";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { AppCard } from "@/components/ui/AppCard";
@@ -138,6 +139,32 @@ export function MatchCard({
         ? getPlayedDateLabel()
         : t.matches.pendingPlay;
 
+  const teamATrailing = isFinished ? (
+    <div className="flex shrink-0 items-center gap-1 self-center">
+      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja A">
+        {match.sets.map((set, index) => (
+          <SetGameScore key={index} value={set.a} won={set.a > set.b} />
+        ))}
+      </div>
+      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
+        {teamScores.teamA}
+      </span>
+    </div>
+  ) : null;
+
+  const teamBTrailing = isFinished ? (
+    <div className="flex shrink-0 items-center gap-1 self-center">
+      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja B">
+        {match.sets.map((set, index) => (
+          <SetGameScore key={index} value={set.b} won={set.b > set.a} />
+        ))}
+      </div>
+      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
+        {teamScores.teamB}
+      </span>
+    </div>
+  ) : null;
+
   return (
     <Link href={`/match/${match.id}`} className="block">
       <AppCard className="relative transition active:scale-[0.99]">
@@ -174,133 +201,87 @@ export function MatchCard({
 
         <div>
           <div className="flex items-center gap-3">
-            <div
-              className={
-                stackTeamPlayers
-                  ? "min-w-0 flex-1 space-y-2"
-                  : "min-w-0 flex-1 space-y-1.5"
-              }
-            >
-              <div
-                className={
-                  stackTeamPlayers
-                    ? "flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
-                    : "flex items-center justify-between gap-3"
-                }
-              >
-                <TeamPlayers
-                  playerIds={match.teamA}
-                  players={players}
-                  highlightedPlayerIds={highlightedPlayerIds}
-                  highlightedPlayerLabel={highlightedPlayerLabel}
-                  substituteLabels={substituteLabels}
-                  linkPlayers={false}
-                  stackPlayers={stackTeamPlayers}
-                  className={
-                    stackTeamPlayers
-                      ? "flex min-w-0 flex-1 flex-col gap-y-0.5 text-sm font-black"
-                      : "flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                  }
-                />
-
-                {isFinished ? (
-                  stackTeamPlayers ? (
-                    <div className="flex shrink-0 items-center gap-1 self-center">
-                      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja A">
-                        {match.sets.map((set, index) => (
-                          <SetGameScore
-                            key={index}
-                            value={set.a}
-                            won={set.a > set.b}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
-                        {teamScores.teamA}
-                      </span>
-                    </div>
-                  ) : (
+            {stackTeamPlayers ? (
+              <MatchTeamsPanel
+                teamA={match.teamA}
+                teamB={match.teamB}
+                players={players}
+                substitutions={match.substitutions}
+                highlightedPlayerIds={highlightedPlayerIds}
+                highlightedPlayerLabel={highlightedPlayerLabel}
+                mode={isFinished ? "rows" : "versus"}
+                teamATrailing={teamATrailing}
+                teamBTrailing={teamBTrailing}
+                linkPlayers={false}
+              />
+            ) : (
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="flex items-center justify-between gap-3">
+                  <TeamPlayers
+                    playerIds={match.teamA}
+                    players={players}
+                    highlightedPlayerIds={highlightedPlayerIds}
+                    highlightedPlayerLabel={highlightedPlayerLabel}
+                    substituteLabels={substituteLabels}
+                    linkPlayers={false}
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                  />
+                  {isFinished ? (
                     <p className="min-w-6 self-center text-right text-lg font-black">
                       {match.pointsA}
                     </p>
-                  )
-                ) : null}
-              </div>
+                  ) : null}
+                </div>
 
-              <div
-                className={
-                  stackTeamPlayers
-                    ? "flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
-                    : "flex items-center justify-between gap-3"
-                }
-              >
-                <TeamPlayers
-                  playerIds={match.teamB}
-                  players={players}
-                  highlightedPlayerIds={highlightedPlayerIds}
-                  highlightedPlayerLabel={highlightedPlayerLabel}
-                  substituteLabels={substituteLabels}
-                  linkPlayers={false}
-                  stackPlayers={stackTeamPlayers}
-                  className={
-                    stackTeamPlayers
-                      ? "flex min-w-0 flex-1 flex-col gap-y-0.5 text-sm font-black"
-                      : "flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
-                  }
-                />
-
-                {isFinished ? (
-                  stackTeamPlayers ? (
-                    <div className="flex shrink-0 items-center gap-1 self-center">
-                      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja B">
-                        {match.sets.map((set, index) => (
-                          <SetGameScore
-                            key={index}
-                            value={set.b}
-                            won={set.b > set.a}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
-                        {teamScores.teamB}
-                      </span>
-                    </div>
-                  ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <TeamPlayers
+                    playerIds={match.teamB}
+                    players={players}
+                    highlightedPlayerIds={highlightedPlayerIds}
+                    highlightedPlayerLabel={highlightedPlayerLabel}
+                    substituteLabels={substituteLabels}
+                    linkPlayers={false}
+                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                  />
+                  {isFinished ? (
                     <p className="min-w-6 self-center text-right text-lg font-black">
                       {match.pointsB}
                     </p>
-                  )
-                ) : null}
+                  ) : null}
+                </div>
               </div>
-            </div>
+            )}
 
             <ClickableChevron className="shrink-0" />
           </div>
 
           {stackTeamPlayers ? (
-            <MatchEventMeta
-              eventAt={match.scheduledAt ?? null}
-              dateFallback={metadataDateFallback}
-              locationText={metadataLocation}
-              locationFallback={metadataLocationFallback}
-            />
+            !isFinished && !hasScheduleDetails && showMissingScheduleHint ? (
+              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+                <p className="text-xs font-black text-neutral-800">{t.dashboard.addSchedule}</p>
+                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  {t.dashboard.playersCanSchedule}
+                </p>
+              </div>
+            ) : (
+              <MatchEventMeta
+                eventAt={match.scheduledAt ?? null}
+                dateFallback={metadataDateFallback}
+                locationText={metadataLocation}
+                locationFallback={metadataLocationFallback}
+              />
+            )
           ) : isFinished ? (
             <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
               {match.sets.map((set, index) => (
-                <span
-                  key={index}
-                  className="rounded-md bg-neutral-100 px-1.5 py-0.5"
-                >
+                <span key={index} className="rounded-md bg-neutral-100 px-1.5 py-0.5">
                   {set.a}-{set.b}
                 </span>
               ))}
             </div>
           ) : shouldShowScheduleDetails ? (
             <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
-              <p className="text-xs font-black text-neutral-800">
-                {scheduleTitle}
-              </p>
-
+              <p className="text-xs font-black text-neutral-800">{scheduleTitle}</p>
               <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
                 {scheduleDescription}
               </p>

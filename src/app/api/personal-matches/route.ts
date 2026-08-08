@@ -7,6 +7,8 @@ import {
   validateMatchSets,
 } from "@/lib/serverRequest"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import { saveGlobalLocation } from "@/lib/serverGlobalLocations"
+import { createLeagueLocation } from "@/lib/leagueLocations"
 import type {
   PersonalMatchParticipantDraft,
   PersonalMatchStatus,
@@ -190,6 +192,25 @@ export async function POST(request: Request) {
 
     if (error || typeof data !== "string") {
       return NextResponse.json({ error: "personal_match_create_failed" }, { status: 500 })
+    }
+
+    if (locationName) {
+      const globalLocation = createLeagueLocation({
+        name: locationName,
+        town: null,
+        address: null,
+        courtCount: null,
+        selectedCourt: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: null,
+        latitude: null,
+        longitude: null,
+      })
+
+      if (globalLocation) {
+        await saveGlobalLocation(authResult.actor.supabase, globalLocation).catch(() => null)
+      }
     }
 
     return NextResponse.json({ id: data }, { status: 201 })

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 import { formatMatchEventDateTime } from "@/components/matches/MatchEventMeta"
 
@@ -13,5 +14,13 @@ describe("match event metadata", () => {
 
   it("uses an explicit fallback when the date is missing", () => {
     expect(formatMatchEventDateTime(null, "Fecha pendiente")).toBe("Fecha pendiente")
+  })
+
+  it("supports independently hiding missing date and location rows", async () => {
+    const source = await readFile("src/components/matches/MatchEventMeta.tsx", "utf8")
+    expect(source).toContain("hideMissingRows?: boolean")
+    expect(source).toContain("if (!dateText && !location) return null")
+    expect(source).toContain("{dateText ? (")
+    expect(source).toContain("{location ? (")
   })
 })

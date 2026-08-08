@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
+import { saveGlobalLocations } from "@/lib/serverGlobalLocations"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import {
@@ -166,6 +167,8 @@ export async function POST(request: Request) {
   }
 
   try {
+    await saveGlobalLocations(supabase, body?.locations)
+
     const leagueRow = await insertLeagueWithAvailableSlug({
       supabase,
       leagueSlug,

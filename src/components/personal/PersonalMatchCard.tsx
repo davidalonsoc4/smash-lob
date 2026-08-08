@@ -9,6 +9,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import {
   getPersonalMatchOriginBadgeClass,
+  getPersonalMatchOriginBadgeStyle,
   getPersonalMatchOriginLabel,
   getPersonalMatchOutcome,
   getPersonalMatchSetWins,
@@ -17,7 +18,6 @@ import {
 } from "@/lib/personalMatches"
 
 function MatchCardContent({ match }: { match: PersonalMatchItem }) {
-  const eventAt = match.scheduledAt ?? match.resultRecordedAt
   const teamA = getPersonalMatchTeamPlayers(match.participants, 1)
   const teamB = getPersonalMatchTeamPlayers(match.participants, 2)
   const setWins = getPersonalMatchSetWins(match.sets)
@@ -29,6 +29,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
       <div className="mb-2 flex items-center justify-between gap-3">
         <span
           className={`max-w-[58%] shrink truncate rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
+          style={getPersonalMatchOriginBadgeStyle(match)}
         >
           {getPersonalMatchOriginLabel(match)}
         </span>
@@ -135,9 +136,10 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
       </div>
 
       <MatchEventMeta
-        eventAt={eventAt}
+        eventAt={match.scheduledAt}
         locationText={match.locationName}
-        locationFallback="Ubicación no indicada"
+        locationFallback={null}
+        hideMissingRows
       />
     </AppCard>
   )
