@@ -219,6 +219,7 @@ export default function MatchesPage() {
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"
+                    stackTeamPlayers
                     highlightedPlayerIds={
                       roundSettings.mvpSystem === "voting"
                         ? (getMatchMvpSelection({ votes, match })?.playerIds ?? [])
