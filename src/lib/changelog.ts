@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.8",
+    date: "8 de agosto de 2026",
+    title: "Marcadores ganadores más sobrios",
+    summary:
+      "Los juegos ganados vuelven al mismo estilo visual que el resto del marcador y se distinguen únicamente mediante negrita, tanto en Calendario como en Mis partidos.",
+    category: "improvement",
+    changes: [
+      "Ganador y perdedor comparten exactamente tamaño, color, fondo, borde y espaciado; la única diferencia visual es el peso tipográfico.",
+      "El juego ganador usa negrita de peso 700 y el perdedor mantiene peso 400.",
+      "El ajuste se aplica a la vez al Calendario de la liga y a Mis partidos mediante el componente compartido SetGameScore.",
+    ],
+  },
+  {
     version: "v1.4.7",
     date: "8 de agosto de 2026",
     title: "Marcadores más claros también en Mis partidos",
