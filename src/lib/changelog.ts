@@ -15,6 +15,20 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.7",
+    date: "8 de agosto de 2026",
+    title: "Marcadores más claros también en Mis partidos",
+    summary:
+      "Los juegos ganados se distinguen con más contraste y Mis partidos adopta los mismos paneles de parejas y marcador por set del Calendario.",
+    category: "improvement",
+    changes: [
+      "El juego ganador combina peso 900, texto negro, un tamaño ligeramente mayor y chip blanco con borde; el perdedor queda en gris, peso normal y fondo neutro para que la diferencia sea inmediata.",
+      "Calendario y Mis partidos comparten ahora el mismo componente de juego por set, evitando diferencias visuales entre ambas pantallas.",
+      "Mis partidos muestra cada pareja en su propio panel, los juegos de cada set junto a los sets ganados y Victoria/Derrota en los partidos finalizados.",
+      "La fecha permanece en la cabecera, la ubicación en el pie y la etiqueta Liga/Amistoso se conserva como referencia de origen.",
+    ],
+  },
+  {
     version: "v1.4.6",
     date: "8 de agosto de 2026",
     title: "Negrita visible en los juegos ganados",
