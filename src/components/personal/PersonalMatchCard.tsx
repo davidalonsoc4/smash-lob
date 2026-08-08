@@ -2,13 +2,12 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import {
-  formatPersonalMatchDate,
-  formatPersonalMatchTime,
   getPersonalMatchOriginBadgeClass,
   getPersonalMatchOriginLabel,
   getPersonalMatchOutcome,
@@ -24,15 +23,15 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
   const setWins = getPersonalMatchSetWins(match.sets)
   const outcome = getPersonalMatchOutcome(match)
   const isFinished = match.status === "finished"
-  const timeLabel = eventAt ? formatPersonalMatchTime(eventAt) : null
 
   return (
     <AppCard className="relative !p-3 transition active:scale-[0.99]">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm font-semibold text-neutral-500">
-          {formatPersonalMatchDate(eventAt)}
-          {timeLabel ? ` · ${timeLabel}` : ""}
-        </p>
+        <span
+          className={`max-w-[58%] shrink truncate rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
+        >
+          {getPersonalMatchOriginLabel(match)}
+        </span>
 
         {isFinished ? (
           <span
@@ -135,16 +134,11 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
         <ClickableChevron className="shrink-0" />
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-2 border-t border-neutral-100 pt-2">
-        <p className="min-w-0 truncate text-[11px] font-semibold text-neutral-500">
-          {match.locationName || "Ubicación no indicada"}
-        </p>
-        <span
-          className={`max-w-[45%] shrink-0 truncate rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
-        >
-          {getPersonalMatchOriginLabel(match)}
-        </span>
-      </div>
+      <MatchEventMeta
+        eventAt={eventAt}
+        locationText={match.locationName}
+        locationFallback="Ubicación no indicada"
+      />
     </AppCard>
   )
 }

@@ -1,10 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { AppCard } from "@/components/ui/AppCard"
-import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import type {
   PersonalMatchItem,
@@ -101,70 +99,50 @@ export default function PersonalMatchesPage() {
   return (
     <div className="compact-page space-y-4">
       <header className="pt-1">
-        <BackButton fallbackHref="/leagues" label="Mis ligas" />
-        <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal
         </p>
-        <div className="mt-1 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-black tracking-tight">Mis partidos</h1>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              Tu agenda e historial completo: ligas y amistosos, sin mezclar sus estadísticas.
-            </p>
-          </div>
-          <Link
-            href="/personal-matches/new"
-            className="shrink-0 rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white"
-          >
-            + Partido
-          </Link>
+        <div className="mt-1">
+          <h1 className="text-2xl font-black tracking-tight">Mis partidos</h1>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            Tu agenda e historial completo: ligas y amistosos, sin mezclar sus estadísticas.
+          </p>
         </div>
       </header>
 
-      <section className="space-y-2">
-        <div className="flex items-center justify-between gap-3 px-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
-            Próximo partido
-          </p>
-
-          {hasBothUpcoming ? (
-            <div
-              className="flex rounded-lg bg-neutral-100 p-0.5"
-              aria-label="Tipo de próximo partido"
-            >
-              {(["league", "friendly"] as const).map((scope) => (
-                <button
-                  key={scope}
-                  type="button"
-                  onClick={() => setNextScope(scope)}
-                  className={`rounded-md px-2.5 py-1 text-[9px] font-black transition ${
-                    nextScope === scope
-                      ? "bg-white text-neutral-950 shadow-sm"
-                      : "text-neutral-500"
-                  }`}
-                >
-                  {scope === "league" ? "Liga" : "Amistoso"}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        {loading ? (
-          <AppCard className="p-4">
-            <p className="text-xs font-semibold text-neutral-500">Buscando tu próximo partido...</p>
-          </AppCard>
-        ) : selectedUpcoming ? (
-          <PersonalMatchCard match={selectedUpcoming} />
-        ) : (
-          <AppCard className="border-dashed p-3">
-            <p className="text-sm font-black text-neutral-800">Sin partidos programados</p>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              Cuando tengas un partido de liga o programes un amistoso aparecerá aquí.
+      {!loading && selectedUpcoming ? (
+        <section className="space-y-2">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+              Próximo partido
             </p>
-          </AppCard>
-        )}
-      </section>
+
+            {hasBothUpcoming ? (
+              <div
+                className="flex rounded-lg bg-neutral-100 p-0.5"
+                aria-label="Tipo de próximo partido"
+              >
+                {(["league", "friendly"] as const).map((scope) => (
+                  <button
+                    key={scope}
+                    type="button"
+                    onClick={() => setNextScope(scope)}
+                    className={`rounded-md px-2.5 py-1 text-[9px] font-black transition ${
+                      nextScope === scope
+                        ? "bg-white text-neutral-950 shadow-sm"
+                        : "text-neutral-500"
+                    }`}
+                  >
+                    {scope === "league" ? "Liga" : "Amistoso"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <PersonalMatchCard match={selectedUpcoming} />
+        </section>
+      ) : null}
 
       <section className="space-y-2">
         <div className="flex items-center justify-between px-1">

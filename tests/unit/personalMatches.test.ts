@@ -65,7 +65,7 @@ describe("personal matches", () => {
 
   it("labels friendlies and leagues distinctly with stable badge styling", () => {
     expect(getPersonalMatchOriginLabel(match)).toBe("Amistoso")
-    expect(getPersonalMatchOriginBadgeClass(match)).toContain("neutral")
+    expect(getPersonalMatchOriginBadgeClass(match)).toContain("slate")
 
     const leagueMatch: PersonalMatchItem = {
       ...match,
