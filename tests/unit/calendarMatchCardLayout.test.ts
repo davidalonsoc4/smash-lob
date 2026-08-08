@@ -4,10 +4,11 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFile(path, "utf8")
 
 describe("league calendar match card layout", () => {
-  it("stacks each calendar team while keeping other MatchCard contexts unchanged", async () => {
-    const [matchesPage, matchCard, roundPage] = await Promise.all([
+  it("stacks each calendar team and uses the shared high-contrast set marker", async () => {
+    const [matchesPage, matchCard, setGameScore, roundPage] = await Promise.all([
       read("src/app/matches/page.tsx"),
       read("src/components/matches/MatchCard.tsx"),
+      read("src/components/matches/SetGameScore.tsx"),
       read("src/app/round/[id]/page.tsx"),
     ])
 
@@ -19,9 +20,14 @@ describe("league calendar match card layout", () => {
     expect(matchCard).toContain('rounded-xl bg-neutral-50 px-3 py-2')
     expect(matchCard).toContain('aria-label="Juegos por set de la pareja A"')
     expect(matchCard).toContain('aria-label="Juegos por set de la pareja B"')
-    expect(matchCard).toContain("fontWeight: set.a > set.b ? 900 : 400")
-    expect(matchCard).toContain("fontWeight: set.b > set.a ? 900 : 400")
-    expect(matchCard).not.toContain('"font-bold" : "font-normal"')
+    expect(matchCard).toContain("<SetGameScore")
+    expect(matchCard).toContain("won={set.a > set.b}")
+    expect(matchCard).toContain("won={set.b > set.a}")
+    expect(setGameScore).toContain("style={{ fontWeight: won ? 900 : 400 }}")
+    expect(setGameScore).toContain("border-neutral-300 bg-white")
+    expect(setGameScore).toContain("text-sm text-neutral-950")
+    expect(setGameScore).toContain("border-transparent bg-neutral-100")
+    expect(setGameScore).toContain("text-xs text-neutral-400")
     expect(matchCard).toContain("getCurrentUserMatchOutcome(match, currentUserId)")
     expect(matchCard).toContain('currentUserOutcome === "victory" ? "green" : "red"')
     expect(matchCard).toContain("t.matches.victory")
