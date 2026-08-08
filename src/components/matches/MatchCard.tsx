@@ -192,7 +192,7 @@ export function MatchCard({
                         {match.sets.map((set, index) => (
                           <span
                             key={index}
-                            className="flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs font-bold text-neutral-600"
+                            className={`flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600 ${set.a > set.b ? "font-bold" : "font-normal"}`}
                           >
                             {set.a}
                           </span>
@@ -239,7 +239,7 @@ export function MatchCard({
                         {match.sets.map((set, index) => (
                           <span
                             key={index}
-                            className="flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs font-bold text-neutral-600"
+                            className={`flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600 ${set.b > set.a ? "font-bold" : "font-normal"}`}
                           >
                             {set.b}
                           </span>
