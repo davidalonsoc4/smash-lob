@@ -15,16 +15,17 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: "v1.4.2",
+    version: "v1.4.3",
     date: "8 de agosto de 2026",
-    title: "Parejas más legibles en el calendario",
+    title: "Paneles de parejas más claros en el Calendario",
     summary:
-      "Las tarjetas del Calendario de liga separan visualmente a los dos jugadores de cada pareja sin cambiar el resto de la información del partido.",
+      "Las tarjetas del Calendario de liga muestran cada pareja en dos líneas dentro de su propio bloque visual y encajan el marcador en chips discretos para leer mejor cada partido.",
     category: "improvement",
     changes: [
-      "Cada pareja muestra ahora a sus dos integrantes en líneas independientes, eliminando la barra que los unía en una sola fila.",
-      "El marcador de cada pareja permanece centrado verticalmente respecto a sus dos jugadores y una línea muy sutil separa ambos equipos.",
-      "El cambio se limita al Calendario de liga para poder valorar el diseño antes de reutilizarlo en Mis partidos.",
+      "Cada pareja del partido se muestra en su propio bloque gris suave con bordes redondeados, manteniendo a cada jugador en una línea independiente.",
+      "El resultado de cada equipo deja de quedar suelto y pasa a mostrarse dentro de un pequeño chip visual alineado verticalmente con la pareja correspondiente.",
+      "Se elimina la línea separadora entre equipos porque la separación visual queda resuelta por los dos bloques de pareja.",
+      "El cambio sigue limitado al Calendario de liga para decidir después si se reutiliza el mismo lenguaje visual en Mis partidos.",
     ],
   },
   {
