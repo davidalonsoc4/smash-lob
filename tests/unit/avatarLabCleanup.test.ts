@@ -5,7 +5,7 @@ describe("Avatar Lab dependency cleanup", () => {
   it("keeps only the dependencies required by the two viable editors", async () => {
     const packageJson = JSON.parse(await readFile("package.json", "utf8"))
     const lock = await readFile("package-lock.json", "utf8")
-    expect(packageJson.version).toBe("1.4.4")
+    expect(packageJson.version).toBe("1.4.5")
     expect(packageJson.dependencies).not.toHaveProperty("@avatune/react")
     expect(packageJson.dependencies).not.toHaveProperty("@avatune/pacovqzz-theme")
     expect(packageJson.dependencies).not.toHaveProperty("react-notion-avatar")
