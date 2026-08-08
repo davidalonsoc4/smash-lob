@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
+import { SetGameScore } from "@/components/matches/SetGameScore";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -190,13 +191,11 @@ export function MatchCard({
                     <div className="flex shrink-0 items-center gap-1 self-center">
                       <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja A">
                         {match.sets.map((set, index) => (
-                          <span
+                          <SetGameScore
                             key={index}
-                            className="flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600"
-                            style={{ fontWeight: set.a > set.b ? 900 : 400 }}
-                          >
-                            {set.a}
-                          </span>
+                            value={set.a}
+                            won={set.a > set.b}
+                          />
                         ))}
                       </div>
                       <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
@@ -238,13 +237,11 @@ export function MatchCard({
                     <div className="flex shrink-0 items-center gap-1 self-center">
                       <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja B">
                         {match.sets.map((set, index) => (
-                          <span
+                          <SetGameScore
                             key={index}
-                            className="flex min-w-6 items-center justify-center rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600"
-                            style={{ fontWeight: set.b > set.a ? 900 : 400 }}
-                          >
-                            {set.b}
-                          </span>
+                            value={set.b}
+                            won={set.b > set.a}
+                          />
                         ))}
                       </div>
                       <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
