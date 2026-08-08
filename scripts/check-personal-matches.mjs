@@ -105,7 +105,7 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.4.2 correcto:")
+console.log("Mis partidos v1.4.3 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
 console.log("- historial paginado de 10 en 10 y próximo partido Liga/Amistoso")
 console.log("- amistosos programables con detalle alineado con Partido de liga")
