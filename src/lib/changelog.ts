@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.6",
+    date: "8 de agosto de 2026",
+    title: "Negrita visible en los juegos ganados",
+    summary:
+      "El Calendario refuerza de forma inequívoca el número de juegos de la pareja ganadora de cada set para que el resultado se lea de un vistazo.",
+    category: "fix",
+    changes: [
+      "El número ganador de cada set usa peso tipográfico 900 y el perdedor peso 400, aplicado directamente al marcador para que la diferencia sea visible y no dependa de clases condicionales de Tailwind.",
+      "La lógica sigue siendo set a set: en un 6-4 / 5-7 / 3-6 se destacan el 6 de la primera pareja y el 7 y 6 de la segunda.",
+      "No se modifican tamaño, color, fondo, fecha, ubicación, etiquetas Victoria/Derrota ni el resto de la composición del Calendario.",
+    ],
+  },
+  {
     version: "v1.4.5",
     date: "8 de agosto de 2026",
     title: "Ganador de cada set destacado en el Calendario",
