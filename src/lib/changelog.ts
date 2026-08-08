@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.11",
+    date: "8 de agosto de 2026",
+    title: "Ubicaciones globales y tarjetas de partido unificadas",
+    summary:
+      "Las ubicaciones de pádel pasan a formar un catálogo común de la aplicación y las vistas de Calendario, Partido y Home comparten una presentación consistente de parejas, programación y resultados.",
+    category: "improvement",
+    changes: [
+      "Las ubicaciones existentes de ligas y amistosos alimentan un catálogo global; crear o editar una liga permite reutilizar clubes existentes y cualquier ubicación nueva queda disponible para futuras ligas y amistosos.",
+      "Mis partidos refuerza los colores estables por liga y elimina por separado las filas de fecha y ubicación cuando esos datos no existen.",
+      "Los partidos sin resultado muestran Pareja A y Pareja B enfrentadas con VS; al finalizar vuelven a las filas de resultado con juegos por set y sets ganados.",
+      "Calendario muestra Añadir fecha, hora y lugar en todos los partidos todavía sin programar, y la pantalla Partido reutiliza el mismo bloque visual de parejas.",
+      "Próximo partido y Último partido de Inicio reutilizan la misma tarjeta que Calendario para evitar diferencias de estructura entre pantallas.",
+      "Mis ligas conserva la navegación principal de la aplicación; la minibarra personal queda reservada al contexto Mis partidos.",
+    ],
+  },
+  {
     version: "v1.4.10",
     date: "8 de agosto de 2026",
     title: "Colores por liga y navegación propia en Mis partidos",
