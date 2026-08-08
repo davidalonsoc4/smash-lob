@@ -66,6 +66,7 @@ const requiredSnippets = new Map([
       'tour="settings-profile"',
       'tour="settings-appearance"',
       'tour="settings-notifications"',
+      'tour="settings-context-switcher"',
       'tour="settings-suggestions"',
     ],
   ],
@@ -131,6 +132,7 @@ const settingsOrder = [
   "[data-tour='settings-profile']",
   "[data-tour='settings-appearance']",
   "[data-tour='settings-notifications']",
+  "[data-tour='settings-context-switcher']",
   "[data-tour='settings-suggestions']",
   "[data-tour='settings-search']",
 ]
@@ -144,9 +146,9 @@ for (const selector of settingsOrder) {
 }
 
 const settingsTitlesByLocale = {
-  es: ["Tu perfil", "Apariencia", "Notificaciones", "Buzón de sugerencias", "Buscador de ajustes"],
-  en: ["Your profile", "Appearance", "Notifications", "Suggestions", "Settings search"],
-  eu: ["Zure profila", "Itxura", "Jakinarazpenak", "Iradokizunak", "Ezarpenen bilatzailea"],
+  es: ["Tu perfil", "Apariencia", "Notificaciones", "Tus ligas y Mis partidos", "Buzón de sugerencias", "Buscador de ajustes"],
+  en: ["Your profile", "Appearance", "Notifications", "Your leagues and My matches", "Suggestions", "Settings search"],
+  eu: ["Zure profila", "Itxura", "Jakinarazpenak", "Zure ligak eta Nire partidak", "Iradokizunak", "Ezarpenen bilatzailea"],
 }
 for (const [locale, expectedTitles] of Object.entries(settingsTitlesByLocale)) {
   const localeStart = toursSource.indexOf(`${locale}: {`)
@@ -174,7 +176,7 @@ if (failures.length > 0) {
 console.log("Tutoriales guiados correctos:")
 console.log("- seis recorridos contextuales; Bienvenida forma parte de Inicio")
 console.log("- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera")
-console.log("- guía de Ajustes con perfil, apariencia, notificaciones, sugerencias y buscador")
+console.log("- guía de Ajustes con perfil, apariencia, notificaciones, cambio Ligas/Mis partidos, sugerencias y buscador")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")
 console.log("- progreso por cuenta con respaldo local")
 console.log("- API autenticada, rate limit y tabla sin acceso desde navegador")
