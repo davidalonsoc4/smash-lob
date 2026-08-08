@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { buildPostAuthDestination } from "@/lib/authRedirect"
+import { isLocalDevAutoLoginEnabled, isLoopbackHostname } from "@/lib/localDevAuth"
 
 type AuthGateProps = {
   children: React.ReactNode
@@ -19,8 +21,38 @@ export function AuthGate({ children }: AuthGateProps) {
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
   const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
+  const localDevAttemptedRef = useRef(false)
+  const [localDevSigningIn, setLocalDevSigningIn] = useState(false)
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (
+      status !== "unauthenticated" ||
+      localDevAttemptedRef.current ||
+      !isLocalDevAutoLoginEnabled() ||
+      typeof window === "undefined" ||
+      !isLoopbackHostname(window.location.hostname)
+    ) {
+      return
+    }
+
+    localDevAttemptedRef.current = true
+    setLocalDevSigningIn(true)
+
+    void signIn("local-dev", { local: "1", redirect: false })
+      .then((result) => {
+        if (result?.ok) {
+          window.location.reload()
+          return
+        }
+
+        setLocalDevSigningIn(false)
+      })
+      .catch(() => {
+        setLocalDevSigningIn(false)
+      })
+  }, [status])
+
+  if (status === "loading" || localDevSigningIn) {
     return <AppBootSkeleton />
   }
 

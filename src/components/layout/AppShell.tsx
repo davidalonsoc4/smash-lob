@@ -7,6 +7,7 @@ import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteSha
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
+import { PersonalMatchesNav } from "@/components/personal/PersonalMatchesNav"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
 import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
 import { FloatingHelpButton } from "@/components/onboarding/FloatingHelpButton"
@@ -233,6 +234,8 @@ export function AppShell({ children }: AppShellProps) {
     !isNewLeagueRoute &&
     !isInitialSeasonSetupRoute &&
     !isPersonalMatchesRoute
+  const shouldShowPersonalMatchesNav =
+    isPersonalMatchesRoute && !isPublicAccessRoute
   const shouldShowPlayerInviteButton =
     !isPublicAccessRoute &&
     !isNewLeagueRoute &&
@@ -377,7 +380,7 @@ export function AppShell({ children }: AppShellProps) {
                   : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
               paddingBottom: isLeagueNavigationRoute
                 ? "env(safe-area-inset-bottom, 0px)"
-                : shouldShowBottomNav ? "96px" : "32px",
+                : shouldShowBottomNav || shouldShowPersonalMatchesNav ? "96px" : "32px",
             } as CSSProperties
           }
         >
@@ -390,9 +393,10 @@ export function AppShell({ children }: AppShellProps) {
 
         {shouldShowLeagueSearch ? <GlobalLeagueSearch /> : null}
 
-        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav} />
+        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav || shouldShowPersonalMatchesNav} />
 
         {shouldShowBottomNav ? <BottomNav /> : null}
+        {shouldShowPersonalMatchesNav ? <PersonalMatchesNav /> : null}
       </div>
     </div>
   )

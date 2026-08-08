@@ -4,9 +4,10 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFile(path, "utf8")
 
 describe("personal match card layout", () => {
-  it("reuses the calendar pair panels and shared set marker", async () => {
-    const [card, setGameScore] = await Promise.all([
+  it("keeps origin in the header and shared match metadata below both pair panels", async () => {
+    const [card, eventMeta, setGameScore] = await Promise.all([
       read("src/components/personal/PersonalMatchCard.tsx"),
+      read("src/components/matches/MatchEventMeta.tsx"),
       read("src/components/matches/SetGameScore.tsx"),
     ])
 
@@ -20,8 +21,16 @@ describe("personal match card layout", () => {
     expect(card).toContain('outcome === "loss"')
     expect(card).toContain('"Victoria"')
     expect(card).toContain('"Derrota"')
+    expect(card).toContain("getPersonalMatchOriginBadgeClass(match)")
     expect(card).toContain("getPersonalMatchOriginLabel(match)")
-    expect(card).toContain('match.locationName || "Ubicación no indicada"')
+    expect(card).toContain("<MatchEventMeta")
+    expect(card).toContain("locationText={match.locationName}")
+    expect(card.indexOf("getPersonalMatchOriginLabel(match)")).toBeLessThan(
+      card.indexOf("<div className=\"flex items-center gap-3\">"),
+    )
+    expect(eventMeta).toContain("formatMatchEventDateTime")
+    expect(eventMeta).toContain("weekday: \"long\"")
+    expect(eventMeta).toContain("locationText?.trim() || locationFallback")
     expect(card).toContain("<SetGameScore")
     expect(setGameScore).toContain("style={{ fontWeight: won ? 700 : 400 }}")
     expect(setGameScore).toContain("border-transparent bg-neutral-100")

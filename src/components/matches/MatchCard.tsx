@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MatchEventMeta } from "@/components/matches/MatchEventMeta";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
 import { SetGameScore } from "@/components/matches/SetGameScore";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
@@ -101,6 +102,16 @@ export function MatchCard({
           ? t.dashboard.playersCanSchedule
           : t.matches.missingSchedule));
 
+  const metadataLocation = leagueLocation
+    ? getLeagueLocationCompactText(leagueLocation)
+    : getScheduleLocationFallbackText(match.location);
+  const metadataDateFallback = isPostponed
+    ? t.matches.pendingReschedule
+    : match.dateLabel ?? t.matches.pendingDate;
+  const metadataLocationFallback = isPostponed
+    ? t.matches.needsReschedule
+    : t.matches.missingSchedule;
+
   function getPlayedDateLabel() {
     if (!match.scheduledAt) {
       return match.dateLabel ?? t.matches.played;
@@ -130,10 +141,16 @@ export function MatchCard({
   return (
     <Link href={`/match/${match.id}`} className="block">
       <AppCard className="relative transition active:scale-[0.99]">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="min-w-0 text-sm font-semibold text-neutral-500">
-            {headerText}
-          </p>
+        <div
+          className={`mb-2 flex items-center gap-3 ${
+            stackTeamPlayers ? "justify-end" : "justify-between"
+          }`}
+        >
+          {!stackTeamPlayers ? (
+            <p className="min-w-0 text-sm font-semibold text-neutral-500">
+              {headerText}
+            </p>
+          ) : null}
 
           {currentUserOutcome ? (
             <p
@@ -260,7 +277,14 @@ export function MatchCard({
             <ClickableChevron className="shrink-0" />
           </div>
 
-          {isFinished && !stackTeamPlayers ? (
+          {stackTeamPlayers ? (
+            <MatchEventMeta
+              eventAt={match.scheduledAt ?? null}
+              dateFallback={metadataDateFallback}
+              locationText={metadataLocation}
+              locationFallback={metadataLocationFallback}
+            />
+          ) : isFinished ? (
             <div className="mt-2 flex gap-1.5 text-xs font-bold text-neutral-600">
               {match.sets.map((set, index) => (
                 <span

@@ -22,6 +22,9 @@ const [
   leagueGate,
   settingsPage,
   tours,
+  matchEventMeta,
+  personalNav,
+  personalMatchesLib,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -39,6 +42,9 @@ const [
   read("src/components/auth/LeagueEntryGate.tsx"),
   read("src/app/settings/page.tsx"),
   read("src/features/onboarding/tours.ts"),
+  read("src/components/matches/MatchEventMeta.tsx"),
+  read("src/components/personal/PersonalMatchesNav.tsx"),
+  read("src/lib/personalMatches.ts"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -75,7 +81,9 @@ assert(leaguesPage.includes('href="/personal-matches"'), "Mis ligas debe enlazar
 assert(leaguesPage.includes("partidos de liga") && leaguesPage.includes("amistosos"), "Mis ligas debe explicar el historial agregado")
 assert(personalPage.includes("const pageSize = 10"), "El historial debe paginar diez partidos cada vez")
 assert(personalPage.includes("Cargar 10 más"), "Debe existir carga incremental de diez partidos")
-assert(personalPage.includes("Próximo partido"), "Falta el bloque de próximo partido")
+assert(personalPage.includes("!loading && selectedUpcoming ? ("), "Próximo partido debe ocultarse por completo cuando no existe")
+assert(personalPage.includes("Próximo partido"), "Falta el bloque condicional de próximo partido")
+assert(!personalPage.includes("Sin partidos programados"), "No debe mostrarse un estado vacío para Próximo partido")
 assert(personalPage.includes("hasBothUpcoming"), "El selector Liga/Amistoso debe mostrarse solo cuando existen ambos próximos")
 assert(personalPage.includes('scope === "league" ? "Liga" : "Amistoso"'), "Falta selector Liga/Amistoso")
 assert(serverHelper.includes("server_list_user_match_history"), "La paginación debe resolverse en base de datos")
@@ -89,7 +97,10 @@ assert(card.includes('aria-label="Juegos por set de la pareja A"') && card.inclu
 assert(card.includes('rounded-xl bg-neutral-50 px-3 py-2'), "Cada pareja debe conservar el panel visual del Calendario")
 assert(card.includes("getPersonalMatchTeamPlayers"), "Los nombres deben renderizarse por participante")
 assert(card.includes("ClickableChevron"), "Las tarjetas deben incluir chevron")
-assert(card.includes("match.locationName"), "Hora y ubicación deben aparecer en la tarjeta")
+assert(card.includes("getPersonalMatchOriginLabel(match)"), "Liga/Amistoso debe permanecer en la cabecera")
+assert(card.includes("MatchEventMeta"), "Fecha, hora y ubicación deben usar el bloque compartido")
+assert(card.includes("locationText={match.locationName}"), "La ubicación debe mostrarse debajo de las parejas")
+assert(matchEventMeta.includes('weekday: "long"') && matchEventMeta.includes('hour: "2-digit"'), "El bloque compartido debe mostrar día, fecha y hora")
 
 assert(newPage.includes("Otro jugador..."), "Debe ser posible registrar jugadores externos")
 assert(newPage.includes("sourceLeagueNames"), "Debe reutilizar jugadores conocidos de ligas compartidas")
@@ -102,18 +113,31 @@ assert(schedulePanel.includes("PersonalAddToCalendarButton"), "El detalle debe p
 
 assert(appShell.includes("isPersonalMatchesRoute"), "El shell debe detectar el modo personal")
 assert(appShell.includes("const shouldShowSettingsButton"), "El modo personal debe conservar Ajustes")
-assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocultar navegación y controles de liga")
+assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocultar la navegación completa y los controles de liga")
+assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
+assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
+assert(personalNav.includes('aria-label="Navegación de Mis partidos"'), "La navegación personal debe ser accesible")
+for (const label of ["Mis partidos", "+ Partido", "Ligas"]) {
+  assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
+}
+assert(!personalPage.includes("<BackButton"), "La raíz de Mis partidos no debe duplicar Volver/Ligas")
+assert(newPage.includes("<BackButton") && detailPage.includes("<BackButton"), "Crear y detalle deben conservar el botón Volver")
+for (const forbiddenColor of ["red-", "rose-", "green-", "emerald-", "lime-", "teal-"]) {
+  assert(!personalMatchesLib.includes(forbiddenColor), `El origen de partido no debe usar ${forbiddenColor}`)
+}
+assert(personalMatchesLib.includes("friendlyBadgeStyle"), "Amistoso debe tener un color propio estable")
+assert(personalMatchesLib.includes("stableStringHash"), "El color de cada liga debe ser estable entre cargas")
 assert(leagueGate.includes("isPersonalMatchesRoute"), "La puerta de liga debe permitir el historial personal")
 assert(settingsPage.includes('tour="settings-context-switcher"'), "Ajustes debe señalar el acceso Mis ligas/Mis partidos")
 assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe explicar ambos contextos")
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.4.8 correcto:")
+console.log("Mis partidos v1.4.10 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
-console.log("- historial paginado de 10 en 10 y próximo partido Liga/Amistoso")
+console.log("- historial paginado de 10 en 10 y Próximo partido oculto cuando no existe")
 console.log("- amistosos programables con detalle alineado con Partido de liga")
-console.log("- paneles de parejas alineados con Calendario, juegos por set y Victoria/Derrota")
+console.log("- paneles alineados con Calendario, origen en cabecera y fecha/hora/ubicación al pie")
 console.log("- un único amistoso compartido por cuentas vinculadas y externos permitidos")
-console.log("- modo personal con Ajustes, sin navegación inferior ni controles de liga")
+console.log("- modo personal con Ajustes y navegación compacta Mis partidos / + Partido / Ligas")
 console.log("- API autenticada, rate limit y persistencia service-role only")

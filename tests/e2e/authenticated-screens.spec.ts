@@ -286,7 +286,40 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
   await expect(page.getByText("Liga QA", { exact: true }).first()).toBeVisible()
   await expect(page.getByRole("button", { name: "Cargar 10 más" })).toBeVisible()
   await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
+  await expect(page.getByRole("navigation", { name: "Navegación de Mis partidos" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Mis partidos" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "+ Partido" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Ligas" })).toBeVisible()
   await expect(page.locator('[data-tour="floating-settings"]')).toHaveCount(1)
   await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(0)
   await expect(page.locator('[data-tour="floating-notifications"]')).toHaveCount(0)
+})
+
+test("personal matches hide the whole upcoming section when there is no future match", async ({ page }) => {
+  await page.route("**/api/personal-matches**", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback()
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        items: [],
+        hasMore: false,
+        nextOffset: null,
+        upcoming: {
+          league: null,
+          friendly: null,
+        },
+      }),
+    })
+  })
+
+  await page.goto("/personal-matches")
+  await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
+  await expect(page.getByText("Próximo partido", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("Sin partidos programados", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("Historial", { exact: true })).toBeVisible()
 })
