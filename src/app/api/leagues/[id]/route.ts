@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
+import { saveGlobalLocations } from "@/lib/serverGlobalLocations"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import {
   isValidStoredImageUrl,
@@ -176,6 +177,10 @@ export async function PATCH(
   }
 
   try {
+    if (hasLocations) {
+      await saveGlobalLocations(supabase, locations)
+    }
+
     const { data, error } = await supabase
       .from("leagues")
       .update(updatePayload)
@@ -188,6 +193,7 @@ export async function PATCH(
     if (error) {
       throw error
     }
+
 
     if (hasName || hasDescription || hasRecommendations) {
       await recordServerActorActivity({

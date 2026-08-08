@@ -12,7 +12,6 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getNextMatch } from "@/lib/leagues"
 import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
@@ -35,7 +34,6 @@ export default function MatchesPage() {
   )
   const allMatchesCount = matches.length
   const myMatchesCount = currentUserMatches.length
-  const currentUserNextMatch = getNextMatch(currentUserMatches)
   const visibleMatches = matches.filter((match) =>
     activeScope === "mine"
       ? match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
@@ -239,7 +237,7 @@ export default function MatchesPage() {
                         : "MVP de jornada"
                     }
                     leagueLocations={activeLeague.locations}
-                    showMissingScheduleHint={currentUserNextMatch?.id === match.id}
+                    showMissingScheduleHint
                   />
                 ))}
               </div>

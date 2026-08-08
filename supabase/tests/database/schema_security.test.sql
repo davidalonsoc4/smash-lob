@@ -1,6 +1,6 @@
 begin;
 
-select plan(26);
+select plan(30);
 
 select ok(
   not exists (
@@ -233,6 +233,34 @@ select ok(
     where version = '20260808124000'
   ),
   'the unified personal history migration is recorded'
+);
+
+select has_table(
+  'public',
+  'padel_locations',
+  'global padel locations are stored in a dedicated catalog'
+);
+
+select has_pk(
+  'public',
+  'padel_locations',
+  'global padel locations have a primary key'
+);
+
+select has_column(
+  'public',
+  'padel_locations',
+  'canonical_key',
+  'global padel locations have a canonical deduplication key'
+);
+
+select ok(
+  exists (
+    select 1
+    from supabase_migrations.schema_migrations
+    where version = '20260808183000'
+  ),
+  'the global padel locations migration is recorded'
 );
 
 select * from finish();

@@ -26,6 +26,34 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+
+function normalizeLocationIdentityPart(value: string | null | undefined) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+export function getLeagueLocationIdentityKey(location: LeagueLocation) {
+  const googlePlaceId = normalizeLocationIdentityPart(location.googlePlaceId);
+
+  if (googlePlaceId) {
+    return `google:${googlePlaceId}`;
+  }
+
+  const name = normalizeLocationIdentityPart(location.name);
+  const address = normalizeLocationIdentityPart(location.address);
+
+  return [
+    normalizeLocationIdentityPart(location.town),
+    name,
+    address === name ? "" : address,
+    normalizeLocationIdentityPart(location.googleMapsUrl),
+  ].join("|");
+}
+
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -214,10 +242,7 @@ export function normalizeLeagueLocations(value: unknown): LeagueLocation[] {
       return;
     }
 
-    const key = (
-      location.googlePlaceId ??
-      `${location.town ?? ""}|${location.name}|${location.address ?? ""}|${location.googleMapsUrl ?? ""}`
-    ).toLowerCase();
+    const key = getLeagueLocationIdentityKey(location);
 
     if (seen.has(key)) {
       return;

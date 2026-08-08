@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import {
+  createLeagueLocation,
+  getLeagueLocationCompactText,
+  getLeagueLocationOptionLabel,
+  sortLeagueLocationsByOptionLabel,
+  type LeagueLocation,
+} from "@/lib/leagueLocations"
 import type {
   PersonalMatchParticipantDraft,
   PersonalMatchPerson,
@@ -109,15 +116,12 @@ export default function NewPersonalMatchPage() {
   const [people, setPeople] = useState<PersonalMatchPerson[]>([])
   const [participants, setParticipants] = useState<EditableParticipant[]>(initialParticipants)
   const [status, setStatus] = useState<PersonalMatchStatus>("scheduled")
-  const [scheduledAt, setScheduledAt] = useState(() => {
-    const now = new Date()
-    return localDateTimeValue(new Date(now.getTime() + 60 * 60 * 1000))
-  })
-  const [latestFinishedAt] = useState(() => {
-    const now = new Date()
-    return localDateTimeValue(new Date(now.getTime() + 24 * 60 * 60 * 1000))
-  })
-  const [locationName, setLocationName] = useState("")
+  const [scheduledAt, setScheduledAt] = useState("")
+  const [latestFinishedAt, setLatestFinishedAt] = useState("")
+  const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([])
+  const [selectedLocationId, setSelectedLocationId] = useState("")
+  const [manualLocationName, setManualLocationName] = useState("")
+  const [loadingLocations, setLoadingLocations] = useState(true)
   const [sets, setSets] = useState<PersonalMatchSet[]>([
     { a: 6, b: 0 },
     { a: 6, b: 0 },
@@ -126,6 +130,15 @@ export default function NewPersonalMatchPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const now = new Date()
+      setScheduledAt(localDateTimeValue(new Date(now.getTime() + 60 * 60 * 1000)))
+      setLatestFinishedAt(localDateTimeValue(new Date(now.getTime() + 24 * 60 * 60 * 1000)))
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -161,6 +174,30 @@ export default function NewPersonalMatchPage() {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+
+    fetch("/api/locations", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json()) as { locations?: LeagueLocation[] }
+        if (!response.ok) throw new Error("global_locations_lookup_failed")
+        return sortLeagueLocationsByOptionLabel(payload.locations ?? [])
+      })
+      .then((locations) => {
+        if (!cancelled) setGlobalLocations(locations)
+      })
+      .catch(() => {
+        if (!cancelled) setGlobalLocations([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLocations(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const usedKeys = useMemo(
     () => new Set(participants.flatMap((participant) => participant.personKey ? [participant.personKey] : [])),
     [participants],
@@ -171,6 +208,12 @@ export default function NewPersonalMatchPage() {
   const participantsComplete = participants.every(
     (participant) => participant.personKey || participant.displayName.trim().length >= 2,
   )
+  const selectedGlobalLocation = globalLocations.find(
+    (location) => location.id === selectedLocationId,
+  ) ?? null
+  const resolvedLocationName = selectedGlobalLocation
+    ? getLeagueLocationCompactText(selectedGlobalLocation)
+    : manualLocationName.trim()
   const canSubmit =
     !loadingPeople &&
     !submitting &&
@@ -202,6 +245,40 @@ export default function NewPersonalMatchPage() {
     setError(null)
 
     try {
+      let locationName = resolvedLocationName
+
+      if (!selectedGlobalLocation && manualLocationName.trim()) {
+        const draftLocation = createLeagueLocation({
+          name: manualLocationName.trim(),
+          town: null,
+          address: null,
+          courtCount: null,
+          selectedCourt: null,
+          googlePlaceId: null,
+          googlePlaceName: null,
+          googleMapsUrl: null,
+          latitude: null,
+          longitude: null,
+        })
+
+        if (draftLocation) {
+          const locationResponse = await fetch("/api/locations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ location: draftLocation }),
+          })
+
+          if (locationResponse.ok) {
+            const locationPayload = (await locationResponse.json()) as {
+              location?: LeagueLocation
+            }
+            locationName = locationPayload.location
+              ? getLeagueLocationCompactText(locationPayload.location)
+              : locationName
+          }
+        }
+      }
+
       const response = await fetch("/api/personal-matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -285,13 +362,32 @@ export default function NewPersonalMatchPage() {
             />
           </label>
           <label className="block">
-            <span className="text-xs font-black text-neutral-800">Pista o club · opcional</span>
-            <input
-              value={locationName}
-              onChange={(event) => setLocationName(event.target.value.slice(0, 120))}
-              placeholder="Ej. Padel Indoor"
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
-            />
+            <span className="text-xs font-black text-neutral-800">Ubicación · opcional</span>
+            <select
+              value={selectedLocationId}
+              onChange={(event) => {
+                setSelectedLocationId(event.target.value)
+                if (event.target.value) setManualLocationName("")
+              }}
+              disabled={loadingLocations}
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            >
+              <option value="">{loadingLocations ? "Cargando ubicaciones..." : "Sin ubicación / introducir nueva"}</option>
+              {globalLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {getLeagueLocationOptionLabel(location)}
+                </option>
+              ))}
+            </select>
+
+            {!selectedLocationId ? (
+              <input
+                value={manualLocationName}
+                onChange={(event) => setManualLocationName(event.target.value.slice(0, 120))}
+                placeholder="Nueva ubicación (se guardará en la app)"
+                className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
+              />
+            ) : null}
           </label>
         </div>
       </AppCard>

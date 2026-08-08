@@ -10,6 +10,7 @@ import {
   getScheduleLocationFallbackText,
   normalizeLeagueLocations,
 } from "@/lib/leagueLocations"
+import { saveGlobalLocation } from "@/lib/serverGlobalLocations"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -88,6 +89,22 @@ export async function PUT(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
+  const { data: leagueLocationRow } = await access.actor.supabase
+    .from("leagues")
+    .select("locations")
+    .eq("id", access.actor.match.leagueId)
+    .maybeSingle()
+  const leagueLocations = normalizeLeagueLocations(leagueLocationRow?.locations)
+  const scheduledGlobalLocation = findLeagueLocationByScheduleLocation({
+    locations: leagueLocations,
+    scheduleLocation: schedule.location,
+  })
+
+  await saveGlobalLocation(
+    access.actor.supabase,
+    scheduledGlobalLocation ?? schedule.location,
+  )
+
   const resumingPostponedIncident =
     access.actor.match.incidentStatus === "resolved" &&
     access.actor.match.resolutionType === "postponed"
@@ -125,12 +142,6 @@ export async function PUT(
   }
 
   const updatedMatch = mapSupabaseMatch(data as Record<string, unknown>)
-  const { data: leagueLocationRow } = await access.actor.supabase
-    .from("leagues")
-    .select("locations")
-    .eq("id", updatedMatch.leagueId)
-    .maybeSingle()
-  const leagueLocations = normalizeLeagueLocations(leagueLocationRow?.locations)
   const resolvedLocation = findLeagueLocationByScheduleLocation({
     locations: leagueLocations,
     scheduleLocation: updatedMatch.location,

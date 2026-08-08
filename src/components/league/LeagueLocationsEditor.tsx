@@ -3,6 +3,7 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   createLeagueLocation,
+  getLeagueLocationIdentityKey,
   getLeagueLocationMapsUrl,
   getLeagueLocationOptionLabel,
   getLeagueLocationSubtitle,
@@ -205,8 +206,35 @@ export function LeagueLocationsEditor({
   const [hasTriedLoadingAutocomplete, setHasTriedLoadingAutocomplete] =
     useState(false);
   const [duplicated, setDuplicated] = useState(false);
+  const [catalogLocations, setCatalogLocations] = useState<LeagueLocation[]>([]);
+  const [catalogSelectionId, setCatalogSelectionId] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(true);
 
   const isFormOpen = isAdding || Boolean(editingLocationId);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/locations", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json()) as { locations?: LeagueLocation[] };
+        if (!response.ok) throw new Error("global_locations_lookup_failed");
+        return sortLeagueLocationsByOptionLabel(payload.locations ?? []);
+      })
+      .then((nextLocations) => {
+        if (!cancelled) setCatalogLocations(nextLocations);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogLocations([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!googleMapsApiKey || !googleInputRef.current || !isFormOpen) {
@@ -282,6 +310,22 @@ export function LeagueLocationsEditor({
     () => sortLeagueLocationsByOptionLabel(locations),
     [locations],
   );
+  const selectedLocationKeys = useMemo(
+    () => new Set(locations.map(getLeagueLocationIdentityKey)),
+    [locations],
+  );
+  const availableCatalogLocations = useMemo(
+    () =>
+      catalogLocations.filter(
+        (location) => !selectedLocationKeys.has(getLeagueLocationIdentityKey(location)),
+      ),
+    [catalogLocations, selectedLocationKeys],
+  );
+  const effectiveCatalogSelectionId = availableCatalogLocations.some(
+    (location) => location.id === catalogSelectionId,
+  )
+    ? catalogSelectionId
+    : "";
   const cleanName = name.trim();
   const cleanTown = townInput.trim();
   const cleanCourtCount = courtCountInput.trim();
@@ -414,8 +458,67 @@ export function LeagueLocationsEditor({
     setDuplicated(false);
   }
 
+  function handleAddCatalogLocation() {
+    const selectedLocation = catalogLocations.find(
+      (location) => location.id === effectiveCatalogSelectionId,
+    );
+
+    if (!selectedLocation || selectedLocationKeys.has(getLeagueLocationIdentityKey(selectedLocation))) {
+      return;
+    }
+
+    onChange([...locations, { ...selectedLocation, selectedCourt: null }]);
+    setCatalogSelectionId("");
+  }
+
   return (
     <div className="space-y-3">
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-black text-neutral-950">Ubicaciones de la app</p>
+            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+              Añade a la liga cualquier club ya guardado por otros jugadores.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-neutral-500 shadow-sm">
+            {catalogLocations.length}
+          </span>
+        </div>
+
+        {catalogLoading ? (
+          <p className="mt-3 text-xs font-semibold text-neutral-400">Cargando ubicaciones...</p>
+        ) : availableCatalogLocations.length > 0 ? (
+          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+            <select
+              value={effectiveCatalogSelectionId}
+              onChange={(event) => setCatalogSelectionId(event.target.value)}
+              disabled={disabled}
+              className="min-w-0 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            >
+              <option value="">Selecciona una ubicación...</option>
+              {availableCatalogLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {getLeagueLocationOptionLabel(location)}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleAddCatalogLocation}
+              disabled={disabled || !effectiveCatalogSelectionId}
+              className="rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-300"
+            >
+              Añadir
+            </button>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs font-semibold text-neutral-400">
+            No quedan ubicaciones del catálogo por añadir a esta liga.
+          </p>
+        )}
+      </div>
+
       {sortedLocations.length > 0 ? (
         <div className="space-y-2">
           {sortedLocations.map((location) => (

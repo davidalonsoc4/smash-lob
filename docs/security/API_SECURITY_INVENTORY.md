@@ -57,6 +57,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/spectators` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/spectators` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/users` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/locations` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/locations` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/matches/[matchId]/court-booking` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | DELETE | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking/payment-reminder` | POST | Protegido | getServerMatchActor |

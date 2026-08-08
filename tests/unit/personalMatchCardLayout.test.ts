@@ -25,12 +25,15 @@ describe("personal match card layout", () => {
     expect(card).toContain("getPersonalMatchOriginLabel(match)")
     expect(card).toContain("<MatchEventMeta")
     expect(card).toContain("locationText={match.locationName}")
+    expect(card).toContain("locationFallback={null}")
+    expect(card).toContain("hideMissingRows")
+    expect(card).toContain("eventAt={match.scheduledAt}")
     expect(card.indexOf("getPersonalMatchOriginLabel(match)")).toBeLessThan(
       card.indexOf("<div className=\"flex items-center gap-3\">"),
     )
     expect(eventMeta).toContain("formatMatchEventDateTime")
     expect(eventMeta).toContain("weekday: \"long\"")
-    expect(eventMeta).toContain("locationText?.trim() || locationFallback")
+    expect(eventMeta).toContain("hideMissingRows?: boolean")
     expect(card).toContain("<SetGameScore")
     expect(setGameScore).toContain("style={{ fontWeight: won ? 700 : 400 }}")
     expect(setGameScore).toContain("border-transparent bg-neutral-100")

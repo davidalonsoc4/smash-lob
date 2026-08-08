@@ -58,19 +58,14 @@ export type PersonalMatchParticipantDraft = {
   displayName: string
 }
 
-const leagueBadgeStyles = [
-  "border-blue-200 bg-blue-50 text-blue-800",
-  "border-violet-200 bg-violet-50 text-violet-800",
-  "border-amber-200 bg-amber-50 text-amber-800",
-  "border-cyan-200 bg-cyan-50 text-cyan-800",
-  "border-indigo-200 bg-indigo-50 text-indigo-800",
-  "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-800",
-  "border-orange-200 bg-orange-50 text-orange-800",
-  "border-sky-200 bg-sky-50 text-sky-800",
-  "border-purple-200 bg-purple-50 text-purple-800",
-] as const
-
 const friendlyBadgeStyle = "border-slate-200 bg-slate-100 text-slate-700"
+
+const safeLeagueHues = [
+  30, 38, 46, 54,
+  188, 196, 204, 212, 220, 228,
+  236, 244, 252, 260, 268, 276,
+  286, 296, 306, 316, 326,
+] as const
 
 export function sortPersonalMatchParticipants<T extends { team: number; slot: number }>(
   participants: T[],
@@ -202,10 +197,28 @@ function stableStringHash(value: string) {
 export function getPersonalMatchOriginBadgeClass(
   match: Pick<PersonalMatchItem, "origin" | "leagueId" | "leagueName">,
 ) {
+  return match.origin === "friendly" ? friendlyBadgeStyle : "border"
+}
+
+export function getPersonalMatchOriginBadgeStyle(
+  match: Pick<PersonalMatchItem, "origin" | "leagueId" | "leagueName">,
+) {
   if (match.origin === "friendly") {
-    return friendlyBadgeStyle
+    return undefined
   }
 
   const key = match.leagueId ?? match.leagueName ?? "league"
-  return leagueBadgeStyles[stableStringHash(key) % leagueBadgeStyles.length]
+  const primaryHash = stableStringHash(key)
+  const secondaryHash = stableStringHash(`${key}|smash-lob-origin`)
+  const hue = safeLeagueHues[primaryHash % safeLeagueHues.length]
+  const saturation = 64 + (secondaryHash % 20)
+  const backgroundLightness = 91 + ((secondaryHash >>> 6) % 5)
+  const borderLightness = 64 + ((secondaryHash >>> 11) % 12)
+  const textLightness = 24 + ((secondaryHash >>> 16) % 10)
+
+  return {
+    borderColor: `hsl(${hue}, ${saturation}%, ${borderLightness}%)`,
+    backgroundColor: `hsl(${hue}, ${saturation}%, ${backgroundLightness}%)`,
+    color: `hsl(${hue}, ${Math.max(50, saturation - 8)}%, ${textLightness}%)`,
+  }
 }
