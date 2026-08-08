@@ -15,6 +15,19 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.2",
+    date: "8 de agosto de 2026",
+    title: "Parejas más legibles en el calendario",
+    summary:
+      "Las tarjetas del Calendario de liga separan visualmente a los dos jugadores de cada pareja sin cambiar el resto de la información del partido.",
+    category: "improvement",
+    changes: [
+      "Cada pareja muestra ahora a sus dos integrantes en líneas independientes, eliminando la barra que los unía en una sola fila.",
+      "El marcador de cada pareja permanece centrado verticalmente respecto a sus dos jugadores y una línea muy sutil separa ambos equipos.",
+      "El cambio se limita al Calendario de liga para poder valorar el diseño antes de reutilizarlo en Mis partidos.",
+    ],
+  },
+  {
     version: "v1.4.1",
     date: "8 de agosto de 2026",
     title: "Mis partidos reúne toda tu actividad",

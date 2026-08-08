@@ -40,6 +40,7 @@ type MatchCardProps = {
   highlightedPlayerLabel?: string;
   leagueLocations?: LeagueLocation[];
   showMissingScheduleHint?: boolean;
+  stackTeamPlayers?: boolean;
 };
 
 export function MatchCard({
@@ -52,6 +53,7 @@ export function MatchCard({
   highlightedPlayerLabel = "MVP de jornada",
   leagueLocations = [],
   showMissingScheduleHint = true,
+  stackTeamPlayers = false,
 }: MatchCardProps) {
   const { t } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
@@ -132,7 +134,13 @@ export function MatchCard({
 
         <div>
           <div className="flex items-center gap-3">
-            <div className="min-w-0 flex-1 space-y-1.5">
+            <div
+              className={
+                stackTeamPlayers
+                  ? "min-w-0 flex-1"
+                  : "min-w-0 flex-1 space-y-1.5"
+              }
+            >
               <div className="flex items-center justify-between gap-3">
                 <TeamPlayers
                   playerIds={match.teamA}
@@ -141,15 +149,24 @@ export function MatchCard({
                   highlightedPlayerLabel={highlightedPlayerLabel}
                   substituteLabels={substituteLabels}
                   linkPlayers={false}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                  stackPlayers={stackTeamPlayers}
+                  className={
+                    stackTeamPlayers
+                      ? "flex min-w-0 flex-1 flex-col gap-y-0.5 text-sm font-black"
+                      : "flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                  }
                 />
 
                 {isFinished ? (
-                  <p className="min-w-6 text-right text-lg font-black">
+                  <p className="min-w-6 self-center text-right text-lg font-black">
                     {match.pointsA}
                   </p>
                 ) : null}
               </div>
+
+              {stackTeamPlayers ? (
+                <div aria-hidden="true" className="my-1.5 h-px bg-neutral-100" />
+              ) : null}
 
               <div className="flex items-center justify-between gap-3">
                 <TeamPlayers
@@ -159,11 +176,16 @@ export function MatchCard({
                   highlightedPlayerLabel={highlightedPlayerLabel}
                   substituteLabels={substituteLabels}
                   linkPlayers={false}
-                  className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                  stackPlayers={stackTeamPlayers}
+                  className={
+                    stackTeamPlayers
+                      ? "flex min-w-0 flex-1 flex-col gap-y-0.5 text-sm font-black"
+                      : "flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                  }
                 />
 
                 {isFinished ? (
-                  <p className="min-w-6 text-right text-lg font-black">
+                  <p className="min-w-6 self-center text-right text-lg font-black">
                     {match.pointsB}
                   </p>
                 ) : null}
