@@ -37,6 +37,8 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
   const isNewLeagueRoute = pathname === "/league/new"
   const isLeaguesRoute = pathname === "/leagues"
+  const isPersonalMatchesRoute =
+    pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
   const isSeasonSetupRoute = pathname === "/admin/season"
   const activeLeague =
     userLeagues.find((league) => league.id === activeLeagueId) ?? userLeagues[0]
@@ -51,7 +53,8 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     !activeLeagueHasSeason &&
     !isAccessInviteRoute &&
     !isNewLeagueRoute &&
-    !isLeaguesRoute
+    !isLeaguesRoute &&
+    !isPersonalMatchesRoute
 
   useEffect(() => {
     if (
@@ -86,6 +89,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname === "/settings/profile" ||
     pathname === "/settings/suggestions" ||
     pathname === "/leagues" ||
+    isPersonalMatchesRoute ||
     pathname === "/help" ||
     pathname === "/changelog" ||
     (isSuperuser && pathname.startsWith("/application-admin")) ||
@@ -110,6 +114,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     isAccessInviteRoute ||
     isLeagueNavigationRoute ||
     isLeaguesRoute ||
+    isPersonalMatchesRoute ||
     (isNewLeagueRoute && canCreateLeagues)
   ) {
     return children

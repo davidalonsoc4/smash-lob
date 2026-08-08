@@ -67,11 +67,44 @@ export default function LeaguesPage() {
 
         <h1 className="mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Selecciona la liga en la que quieres entrar.
+          Entra en una liga o consulta tus amistosos registrados.
         </p>
       </header>
 
-      <div className="space-y-3">
+      <section className="space-y-2">
+        <p className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Actividad personal
+        </p>
+        <Link
+          href="/personal-matches"
+          className="block rounded-2xl border border-neutral-950 bg-neutral-950 p-3 text-white shadow-[0_2px_12px_rgba(15,23,42,0.12)] transition active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/10">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-6 w-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 3v4" />
+                <path d="M17 3v4" />
+                <path d="M4 8h16" />
+                <rect x="4" y="5" width="16" height="16" rx="3" />
+                <path d="M8 12h3" />
+                <path d="M8 16h6" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-black">Mis partidos</p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-300">
+                Registra y consulta los amistosos que juegas fuera de tus ligas.
+              </p>
+            </div>
+            <span className="shrink-0 text-lg font-black text-neutral-400">›</span>
+          </div>
+        </Link>
+      </section>
+
+      <section className="space-y-3">
+        <p className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          Tus ligas
+        </p>
         {userLeagues.map((league) => {
           const season = getActiveSeasonByLeagueId(league.id);
           const seasonMatches = countedMatches.filter(
@@ -186,7 +219,12 @@ export default function LeaguesPage() {
             </article>
           );
         })}
-      </div>
+        {userLeagues.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-neutral-200 bg-white px-3 py-4 text-center text-xs font-semibold text-neutral-500">
+            Todavía no perteneces a ninguna liga. Puedes seguir usando Mis partidos.
+          </p>
+        ) : null}
+      </section>
 
       <AppCard>
         <div className="grid gap-2">
