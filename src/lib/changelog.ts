@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.0",
+    date: "8 de agosto de 2026",
+    title: "Mis partidos fuera de liga",
+    summary:
+      "Smash & Lob incorpora un espacio personal separado de las ligas para registrar y conservar amistosos sin alterar ninguna competición oficial.",
+    category: "new",
+    changes: [
+      "Mis ligas incorpora una entrada diferenciada a Mis partidos, manteniendo las ligas como núcleo competitivo de la aplicación.",
+      "El modo personal permite consultar el historial, registrar un amistoso con fecha, ubicación, cuatro jugadores y resultado por sets, y abrir el detalle de cada encuentro.",
+      "Un único partido aparece en el historial de todos los participantes que tengan una cuenta vinculada; los jugadores sin cuenta pueden añadirse manualmente por nombre.",
+      "Los jugadores conocidos se ofrecen a partir de las ligas compartidas, sin exponer el directorio global de usuarios de la aplicación.",
+      "Los amistosos se almacenan en tablas independientes y nunca afectan a clasificación, estadísticas oficiales, récords, temporadas ni MVP de las ligas.",
+      "El modo Mis partidos usa una navegación simplificada sin controles flotantes ni barra inferior de liga.",
+    ],
+  },
+  {
     version: "v1.3.6",
     date: "7 de agosto de 2026",
     title: "Guía completa y breve de Ajustes",

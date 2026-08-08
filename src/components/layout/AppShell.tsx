@@ -188,6 +188,8 @@ export function AppShell({ children }: AppShellProps) {
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
+  const isPersonalMatchesRoute =
+    pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
   const isPublicAccessRoute =
     isInviteRoute || isSpectateRoute || isLeagueNavigationRoute
   const isNewLeagueRoute = pathname === "/league/new"
@@ -203,7 +205,7 @@ export function AppShell({ children }: AppShellProps) {
     activeMembership && activeMembership.role !== "creator",
   )
   const shouldShowSettingsSearch =
-    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute
+    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowLeagueSearch = pathname === "/leagues" && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
     ? buildSettingsSearchEntries(locale, {
@@ -217,14 +219,26 @@ export function AppShell({ children }: AppShellProps) {
         avatarLabEnabled: isAvatarLabEnabled(),
       })
     : []
-  const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
-  const shouldShowHelpButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
+  const shouldShowSettingsButton =
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !isPersonalMatchesRoute
+  const shouldShowHelpButton =
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowNotificationsButton =
-    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !spectatorMode
+    !isInitialSeasonSetupRoute &&
+    !isPublicAccessRoute &&
+    !isPersonalMatchesRoute &&
+    !spectatorMode
   const shouldShowBottomNav =
-    !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
+    !isPublicAccessRoute &&
+    !isNewLeagueRoute &&
+    !isInitialSeasonSetupRoute &&
+    !isPersonalMatchesRoute
   const shouldShowPlayerInviteButton =
-    !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute && !spectatorMode
+    !isPublicAccessRoute &&
+    !isNewLeagueRoute &&
+    !isInitialSeasonSetupRoute &&
+    !isPersonalMatchesRoute &&
+    !spectatorMode
   const shouldShowSpectatorShareButton = shouldShowPlayerInviteButton
   const hasPlayerInviteControl =
     shouldShowPlayerInviteButton && isLeagueAdmin(activeLeagueId)
@@ -363,7 +377,7 @@ export function AppShell({ children }: AppShellProps) {
                   : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
               paddingBottom: isLeagueNavigationRoute
                 ? "env(safe-area-inset-bottom, 0px)"
-                : "96px",
+                : shouldShowBottomNav ? "96px" : "32px",
             } as CSSProperties
           }
         >

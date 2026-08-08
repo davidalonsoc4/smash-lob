@@ -160,3 +160,46 @@ test("repeating the home guide skips the one-time welcome", async ({ page }) => 
   await expect(page.getByText("Resumen de la liga", { exact: true })).toBeVisible()
   await page.getByRole("button", { name: "Omitir" }).click()
 })
+
+test("personal matches use a separate simplified mode", async ({ page }) => {
+  await page.route("**/api/personal-matches", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback()
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        items: [
+          {
+            id: "11111111-1111-4111-8111-111111111111",
+            playedAt: "2026-08-08T08:00:00.000Z",
+            locationName: "Padel Indoor",
+            sets: [
+              { a: 6, b: 4 },
+              { a: 3, b: 6 },
+              { a: 6, b: 2 },
+            ],
+            participants: [
+              { team: 1, slot: 1, displayName: "QA v1.1", isCurrentUser: true },
+              { team: 1, slot: 2, displayName: "Álvaro", isCurrentUser: false },
+              { team: 2, slot: 1, displayName: "Unai", isCurrentUser: false },
+              { team: 2, slot: 2, displayName: "Joseba", isCurrentUser: false },
+            ],
+            canDelete: true,
+          },
+        ],
+      }),
+    })
+  })
+
+  await page.goto("/personal-matches")
+  await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
+  await expect(page.getByText("QA v1.1 / Álvaro", { exact: true })).toBeVisible()
+  await expect(page.getByText("Unai / Joseba", { exact: true })).toBeVisible()
+  await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
+  await expect(page.locator('[data-tour="floating-settings"]')).toHaveCount(0)
+  await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(0)
+})

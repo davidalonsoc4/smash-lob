@@ -1,6 +1,6 @@
 begin;
 
-select plan(16);
+select plan(20);
 
 select ok(
   not exists (
@@ -151,6 +151,30 @@ select has_pk(
   'public',
   'user_onboarding_progress',
   'guided onboarding progress has one row per user and tour'
+);
+
+select has_table(
+  'public',
+  'personal_matches',
+  'personal matches are stored separately from league competition'
+);
+
+select has_pk(
+  'public',
+  'personal_matches',
+  'personal matches have a primary key'
+);
+
+select has_table(
+  'public',
+  'personal_match_participants',
+  'personal match participants support shared account history'
+);
+
+select has_pk(
+  'public',
+  'personal_match_participants',
+  'personal match participants have a primary key'
 );
 
 select * from finish();
