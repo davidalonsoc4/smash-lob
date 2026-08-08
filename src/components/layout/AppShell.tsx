@@ -220,7 +220,7 @@ export function AppShell({ children }: AppShellProps) {
       })
     : []
   const shouldShowSettingsButton =
-    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !isPersonalMatchesRoute
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute
   const shouldShowHelpButton =
     !isInitialSeasonSetupRoute && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowNotificationsButton =

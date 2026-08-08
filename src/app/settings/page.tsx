@@ -338,6 +338,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         <SettingsLinkRow
           href="/leagues"
           id="leagues"
+          tour="settings-context-switcher"
           title="Mis ligas"
           description="Cambia entre ligas donde eres jugador o espectador."
         />
@@ -564,6 +565,7 @@ function PlayerSettingsPage() {
           <SettingsLinkRow
             href="/leagues"
             id="leagues"
+            tour="settings-context-switcher"
             title="Mis ligas"
             description={`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`}
           />

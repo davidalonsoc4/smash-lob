@@ -89,13 +89,14 @@ describe("guided onboarding", () => {
       "[data-tour='settings-profile']",
       "[data-tour='settings-appearance']",
       "[data-tour='settings-notifications']",
+      "[data-tour='settings-context-switcher']",
       "[data-tour='settings-suggestions']",
       "[data-tour='settings-search']",
     ]
     const expectedTitles = {
-      es: ["Tu perfil", "Apariencia", "Notificaciones", "Buzón de sugerencias", "Buscador de ajustes"],
-      en: ["Your profile", "Appearance", "Notifications", "Suggestions", "Settings search"],
-      eu: ["Zure profila", "Itxura", "Jakinarazpenak", "Iradokizunak", "Ezarpenen bilatzailea"],
+      es: ["Tu perfil", "Apariencia", "Notificaciones", "Tus ligas y Mis partidos", "Buzón de sugerencias", "Buscador de ajustes"],
+      en: ["Your profile", "Appearance", "Notifications", "Your leagues and My matches", "Suggestions", "Settings search"],
+      eu: ["Zure profila", "Itxura", "Jakinarazpenak", "Zure ligak eta Nire partidak", "Iradokizunak", "Ezarpenen bilatzailea"],
     } as const
 
     for (const locale of ["es", "en", "eu"] as const) {
@@ -105,7 +106,7 @@ describe("guided onboarding", () => {
         audience: playerAudience,
       })
       expect(tour?.key).toBe("settings")
-      expect(tour?.version).toBe(2)
+      expect(tour?.version).toBe(3)
       expect(tour?.steps.map((step) => step.selector)).toEqual(expectedSelectors)
       expect(tour?.steps.map((step) => step.title)).toEqual(expectedTitles[locale])
     }

@@ -89,6 +89,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/personal-matches` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]` | PATCH | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/people` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/qa` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |

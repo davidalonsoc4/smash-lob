@@ -15,6 +15,23 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.1",
+    date: "8 de agosto de 2026",
+    title: "Mis partidos reúne toda tu actividad",
+    summary:
+      "Mis partidos evoluciona a una agenda e historial personal transversal que reúne competición y amistosos sin duplicar ni alterar los datos oficiales de las ligas.",
+    category: "improvement",
+    changes: [
+      "El historial combina tus partidos terminados de todas las ligas con los amistosos y los carga realmente de 10 en 10 mediante paginación de base de datos.",
+      "Próximo partido muestra el siguiente encuentro programado y permite alternar Liga / Amistoso cuando existen próximos partidos de ambos tipos.",
+      "Las tarjetas identifican el origen mediante una etiqueta y color estable, muestran cada jugador en su propia línea, el marcador general por sets, hora, ubicación y acceso al detalle.",
+      "Los amistosos pueden programarse para el futuro o registrarse una vez jugados; después se puede añadir o corregir el resultado desde su detalle.",
+      "El detalle de un amistoso reutiliza el marcador de Partido y ofrece fecha, ubicación, Cómo llegar y Añadir al calendario, omitiendo las funciones exclusivamente competitivas.",
+      "El modo Mis partidos conserva únicamente el botón flotante de Ajustes y sigue ocultando la navegación inferior y los controles propios de una liga.",
+      "La guía de Ajustes explica el acceso Mis ligas / Mis partidos y sube de versión para volver a mostrarse una vez con esta nueva organización.",
+    ],
+  },
+  {
     version: "v1.4.0",
     date: "8 de agosto de 2026",
     title: "Mis partidos fuera de liga",

@@ -50,6 +50,7 @@ describe("guided onboarding integration", () => {
       "settings-profile",
       "settings-appearance",
       "settings-notifications",
+      "settings-context-switcher",
       "settings-suggestions",
     ]) {
       expect(settingsSource).toContain(`tour="${marker}"`)

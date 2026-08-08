@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import { parseJsonBody, normalizeBoundedText, validateIsoDateTime, validateMatchSets } from "@/lib/serverRequest"
+import {
+  normalizeBoundedText,
+  parseJsonBody,
+  validateIsoDateTime,
+  validateMatchSets,
+} from "@/lib/serverRequest"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
-import type { PersonalMatchParticipantDraft } from "@/lib/personalMatches"
+import type {
+  PersonalMatchParticipantDraft,
+  PersonalMatchStatus,
+} from "@/lib/personalMatches"
 import {
   loadAccessiblePersonalMatchPeople,
-  loadPersonalMatches,
+  loadPersonalMatchesDashboard,
   resolvePersonalMatchPerson,
 } from "@/lib/serverPersonalMatches"
 
@@ -13,9 +21,10 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type CreatePersonalMatchBody = {
-  playedAt?: unknown
+  scheduledAt?: unknown
   locationName?: unknown
   sets?: unknown
+  status?: unknown
   participants?: unknown
 }
 
@@ -52,15 +61,34 @@ function normalizeParticipantDrafts(value: unknown): PersonalMatchParticipantDra
   return slots.size === 4 ? participants : null
 }
 
-export async function GET() {
+function normalizeStatus(value: unknown): PersonalMatchStatus | null {
+  return value === "scheduled" || value === "finished" ? value : null
+}
+
+function parseListNumber(value: string | null, fallback: number, max: number) {
+  const parsed = Number.parseInt(value ?? "", 10)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(max, Math.max(0, parsed))
+}
+
+export async function GET(request: Request) {
   const authResult = await requireAuthenticatedAppUser()
   if (!authResult.ok) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status })
   }
 
+  const url = new URL(request.url)
+  const offset = parseListNumber(url.searchParams.get("offset"), 0, 100_000)
+  const limit = Math.max(1, parseListNumber(url.searchParams.get("limit"), 10, 50))
+  const includeUpcoming = url.searchParams.get("includeUpcoming") !== "0"
+
   try {
-    const items = await loadPersonalMatches(authResult.actor)
-    return NextResponse.json({ items })
+    const payload = await loadPersonalMatchesDashboard(authResult.actor, {
+      offset,
+      limit,
+      includeUpcoming,
+    })
+    return NextResponse.json(payload)
   } catch {
     return NextResponse.json({ error: "personal_matches_lookup_failed" }, { status: 500 })
   }
@@ -81,26 +109,34 @@ export async function POST(request: Request) {
   }
 
   const body = await parseJsonBody<CreatePersonalMatchBody>(request)
-  const playedAt = validateIsoDateTime(body?.playedAt)
+  const scheduledAt = validateIsoDateTime(body?.scheduledAt)
   const locationName = normalizeBoundedText(body?.locationName, 120) || null
-  const sets = validateMatchSets(body?.sets)
+  const status = normalizeStatus(body?.status)
   const drafts = normalizeParticipantDrafts(body?.participants)
+  const sets = status === "scheduled" ? [] : validateMatchSets(body?.sets)
 
-  if (!playedAt || !sets || !drafts) {
+  if (!scheduledAt || !status || !drafts || !sets) {
     return NextResponse.json({ error: "invalid_personal_match" }, { status: 400 })
   }
 
-  const timestamp = Date.parse(playedAt)
+  const timestamp = Date.parse(scheduledAt)
   const earliest = Date.UTC(2000, 0, 1)
-  const latest = Date.now() + 24 * 60 * 60 * 1000
-  if (timestamp < earliest || timestamp > latest) {
+  const latestFinished = Date.now() + 24 * 60 * 60 * 1000
+  const earliestScheduled = Date.now() - 15 * 60 * 1000
+  if (
+    timestamp < earliest ||
+    (status === "finished" && timestamp > latestFinished) ||
+    (status === "scheduled" && timestamp < earliestScheduled)
+  ) {
     return NextResponse.json({ error: "invalid_personal_match_date" }, { status: 400 })
   }
 
-  const teamAWins = sets.filter((set) => set.a > set.b).length
-  const teamBWins = sets.filter((set) => set.b > set.a).length
-  if (teamAWins === teamBWins) {
-    return NextResponse.json({ error: "personal_match_requires_winner" }, { status: 400 })
+  if (status === "finished") {
+    const teamAWins = sets.filter((set) => set.a > set.b).length
+    const teamBWins = sets.filter((set) => set.b > set.a).length
+    if (teamAWins === teamBWins) {
+      return NextResponse.json({ error: "personal_match_requires_winner" }, { status: 400 })
+    }
   }
 
   try {
@@ -144,10 +180,11 @@ export async function POST(request: Request) {
       "server_create_personal_match",
       {
         p_created_by_user_id: authResult.actor.user.id,
-        p_played_at: playedAt,
+        p_played_at: scheduledAt,
         p_location_name: locationName,
         p_sets: sets,
         p_participants: participants,
+        p_status: status,
       },
     )
 
