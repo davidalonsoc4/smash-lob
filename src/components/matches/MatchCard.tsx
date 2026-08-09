@@ -53,7 +53,7 @@ type MatchCardProps = {
   headerLeftLabel?: string | null;
   headerRightLabel?: string | null;
   showChevron?: boolean;
-  statusPosition?: "auto" | "left";
+  statusPosition?: "auto" | "left" | "right";
   hideMissingScheduleMeta?: boolean;
 };
 
@@ -221,6 +221,8 @@ export function MatchCard({
 
           {statusPosition === "left" ? (
             outcomeNode ? <div className="ml-auto text-right">{outcomeNode}</div> : <span />
+          ) : statusPosition === "right" ? (
+            <div className="ml-auto text-right">{statusNode}</div>
           ) : headerRightLabel ? (
             <p className="shrink-0 text-[11px] font-black uppercase tracking-[0.12em] text-neutral-500">
               {headerRightLabel}

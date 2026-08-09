@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-type PersonalNavIconName = "matches" | "profile" | "add" | "leagues"
+type PersonalNavIconName = "matches" | "profile" | "leagues"
 
 function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
   const commonProps = {
@@ -27,14 +27,6 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
     )
   }
 
-  if (icon === "add") {
-    return (
-      <svg {...commonProps}>
-        <path d="M12 5v14" />
-        <path d="M5 12h14" />
-      </svg>
-    )
-  }
 
   if (icon === "leagues") {
     return (
@@ -60,13 +52,18 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
 
 export function PersonalMatchesNav() {
   const pathname = usePathname()
-  const isNewMatch = pathname === "/personal-matches/new"
   const isProfile = pathname === "/personal-matches/profile"
   const isMatchesActive =
     pathname === "/personal-matches" ||
-    (pathname.startsWith("/personal-matches/") && !isNewMatch && !isProfile)
+    (pathname.startsWith("/personal-matches/") && !isProfile)
 
   const items = [
+    {
+      href: "/leagues",
+      label: "Mis ligas",
+      icon: "leagues" as const,
+      active: false,
+    },
     {
       href: "/personal-matches",
       label: "Mis partidos",
@@ -79,18 +76,6 @@ export function PersonalMatchesNav() {
       icon: "profile" as const,
       active: isProfile,
     },
-    {
-      href: "/personal-matches/new",
-      label: "+ Partido",
-      icon: "add" as const,
-      active: isNewMatch,
-    },
-    {
-      href: "/leagues",
-      label: "Ligas",
-      icon: "leagues" as const,
-      active: false,
-    },
   ]
 
   return (
@@ -102,7 +87,7 @@ export function PersonalMatchesNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="grid min-h-[62px] grid-cols-4 gap-1 px-3 py-1.5">
+      <div className="grid min-h-[62px] grid-cols-3 gap-1 px-3 py-1.5">
         {items.map((item) => (
           <Link
             key={item.href}

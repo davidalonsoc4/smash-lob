@@ -14,6 +14,8 @@ export type PersonalMatchParticipant = {
   slot: PersonalMatchSlot
   displayName: string
   isCurrentUser: boolean
+  personKey?: string | null
+  avatarUrl?: string | null
 }
 
 export type PersonalMatchItem = {

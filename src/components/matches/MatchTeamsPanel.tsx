@@ -37,9 +37,6 @@ export function MatchTeamsPanel({
     return (
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)] items-stretch gap-2">
         <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5">
-          <p className="mb-1 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-600">
-            Pareja A
-          </p>
           <TeamPlayers
             playerIds={teamA}
             players={players}
@@ -60,9 +57,6 @@ export function MatchTeamsPanel({
         </div>
 
         <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5 text-right">
-          <p className="mb-1 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-600">
-            Pareja B
-          </p>
           <TeamPlayers
             playerIds={teamB}
             players={players}

@@ -1234,7 +1234,8 @@ export default function Home() {
               roundStartsAt={selectedNextMatchRound?.startsAt ?? null}
               roundEndsAt={selectedNextMatchRound?.endsAt ?? null}
               headerMode="match-date"
-              headerRightLabel={`Jornada ${selectedNextMatch.round}`}
+              headerLeftLabel={`Jornada ${selectedNextMatch.round}`}
+              statusPosition="right"
               stackTeamPlayers
               currentUserId={currentUserId}
               highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
@@ -1293,7 +1294,8 @@ export default function Home() {
             roundStartsAt={selectedLastMatchRound?.startsAt ?? null}
             roundEndsAt={selectedLastMatchRound?.endsAt ?? null}
             headerMode="match-date"
-            headerRightLabel={`Jornada ${selectedLastMatch.round}`}
+            headerLeftLabel={`Jornada ${selectedLastMatch.round}`}
+            statusPosition="right"
             stackTeamPlayers
             currentUserId={currentUserId}
             highlightedPlayerIds={selectedLastMatchHighlightedPlayerIds}
