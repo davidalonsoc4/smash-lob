@@ -149,46 +149,46 @@ export default function StatisticsPlayerPage() {
             <>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <AppCard>
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     Victorias
                   </p>
                   <p className="mt-1 text-xl font-black">
                     {formatPercent(playerDetail.winRate)}
                   </p>
-                  <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                     {playerDetail.player.wins}V · {playerDetail.player.losses}D
                   </p>
                 </AppCard>
                 <AppCard>
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     Mejor racha
                   </p>
                   <p className="mt-1 text-xl font-black">
                     {playerDetail.bestWinStreak}
                   </p>
-                  <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                     victorias seguidas
                   </p>
                 </AppCard>
                 <AppCard>
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     MVP jornada
                   </p>
                   <p className="mt-1 text-xl font-black">
                     {playerMvpSummary?.roundMvpCount ?? 0}
                   </p>
-                  <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                     {playerMvpSummary?.votesReceived ?? 0} votos recibidos
                   </p>
                 </AppCard>
                 <AppCard>
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     Dif. juegos
                   </p>
                   <p className="mt-1 text-xl font-black">
                     {formatSigned(playerDetail.player.gamesDiff)}
                   </p>
-                  <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                     {playerDetail.player.points} puntos
                   </p>
                 </AppCard>
@@ -196,7 +196,7 @@ export default function StatisticsPlayerPage() {
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <AppCard>
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     Compañero más fuerte
                   </p>
                   <p className="mt-1 truncate font-black">
@@ -209,7 +209,7 @@ export default function StatisticsPlayerPage() {
                   </p>
                 </AppCard>
                 <AppCard>
-                  <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     {isBalancedCalendar ? "Rival más difícil" : "Rival más habitual"}
                   </p>
                   <p className="mt-1 truncate font-black">
@@ -231,7 +231,7 @@ export default function StatisticsPlayerPage() {
               </div>
 
               <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+                <p className="mb-2 type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
                   Récords del jugador
                 </p>
                 <PlayerSeasonRecordsPanel
@@ -258,10 +258,10 @@ export default function StatisticsPlayerPage() {
                         className="flex items-center justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2"
                       >
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-black">
+                          <p className="type-player-name truncate">
                             {opponent.displayName}
                           </p>
-                          <p className="text-[11px] font-semibold text-neutral-500">
+                          <p className="type-caption font-semibold text-neutral-500">
                             {opponent.matchesPlayed} duelos · {opponent.wins}V · {opponent.losses}D
                           </p>
                         </div>

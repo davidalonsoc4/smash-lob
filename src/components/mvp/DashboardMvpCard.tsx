@@ -96,7 +96,7 @@ export function DashboardMvpCard({
 
             {latestRoundMvp ? (
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
                   MVP última jornada
                 </p>
                 <div className="mt-1 flex min-w-0 items-center gap-2">
@@ -122,7 +122,7 @@ export function DashboardMvpCard({
               </div>
             ) : seasonMvp ? (
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
                   MVP final
                 </p>
                 <p className="mt-1 truncate text-sm font-black text-neutral-950">
@@ -148,7 +148,7 @@ export function DashboardMvpCard({
         {isSeasonClosed && seasonMvp && latestRoundMvp ? (
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+              <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
                 MVP final
               </p>
               <p className="mt-1 truncate text-sm font-black text-neutral-950">

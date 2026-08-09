@@ -141,15 +141,15 @@ export function StatisticsPageHeader({
         <BackButton fallbackHref={fallbackHref} label="Volver" />
         <p className="mt-1 text-xs font-bold text-neutral-500">{leagueName}</p>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-black tracking-tight">{title}</h1>
+          <h1 className="type-page-title text-xl font-black tracking-tight">{title}</h1>
           {!canChooseSeason ? (
-            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-700">
+            <span className="rounded-full bg-neutral-100 px-2.5 py-1 type-caption font-black text-neutral-700">
               {selectedSeason.name}
             </span>
           ) : null}
           {statusBadge ? (
             <span
-              className={`rounded-full px-2.5 py-1 text-[10px] font-black ${getStatusBadgeClassName(statusBadge.tone)}`}
+              className={`rounded-full px-2.5 py-1 type-caption font-black ${getStatusBadgeClassName(statusBadge.tone)}`}
             >
               {statusBadge.label}
             </span>
@@ -163,7 +163,7 @@ export function StatisticsPageHeader({
       {canChooseSeason && seasons && onSeasonChange ? (
         <AppCard className="p-2">
           <label className="flex items-center gap-2">
-            <span className="shrink-0 text-[11px] font-black text-neutral-700">
+            <span className="shrink-0 type-caption font-black text-neutral-700">
               {includesLeagueWideScope ? "Ámbito" : "Temporada"}
             </span>
             <select

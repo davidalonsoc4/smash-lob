@@ -202,7 +202,7 @@ function SummaryMetric({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl bg-neutral-100 px-2.5 py-2">
       <p className="text-lg font-black leading-none text-neutral-950">{value}</p>
-      <p className="mt-1 text-[9px] font-black uppercase leading-3 text-neutral-500">
+      <p className="mt-1 type-caption font-black uppercase leading-3 text-neutral-500">
         {label}
       </p>
     </div>
@@ -470,7 +470,7 @@ export default function ApplicationAdminPage() {
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label="Volver" />
-          <h1 className="mt-2 text-xl font-black">Acceso restringido</h1>
+          <h1 className="type-page-title mt-2 text-xl font-black">Acceso restringido</h1>
         </header>
         <AppCard>
           <p className="text-sm font-semibold text-neutral-600">
@@ -490,10 +490,7 @@ export default function ApplicationAdminPage() {
         <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-red-600">
           Superusuario
         </p>
-        <h1 className="mt-0.5 text-xl font-black">Administración de la aplicación</h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Gestiona cuentas globales, accesos, dispositivos y propiedad de ligas.
-        </p>
+        <h1 className="type-page-title mt-0.5 text-xl font-black">Administración de la aplicación</h1>
       </header>
 
       <Link
@@ -580,21 +577,21 @@ export default function ApplicationAdminPage() {
                   <div className="flex flex-wrap items-center gap-1.5">
                     <p className="truncate font-black">{user.displayName || user.email}</p>
                     {user.isSuperuser ? (
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-black text-red-700">
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 type-caption font-black text-red-700">
                         SUPERUSER
                       </span>
                     ) : null}
                     {user.suspendedAt ? (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black text-amber-800">
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black text-amber-800">
                         SUSPENDIDA
                       </span>
                     ) : (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black text-emerald-700">
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black text-emerald-700">
                         ACTIVA
                       </span>
                     )}
                     {isCurrentUser ? (
-                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black text-neutral-600">
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black text-neutral-600">
                         TÚ
                       </span>
                     ) : null}
@@ -603,13 +600,13 @@ export default function ApplicationAdminPage() {
                     {user.email}
                   </p>
                 </div>
-                <span className="shrink-0 text-[10px] font-black text-neutral-400">
+                <span className="shrink-0 type-caption font-black text-neutral-400">
                   Alta {formatDate(user.createdAt)}
                 </span>
               </div>
 
               {user.suspendedAt ? (
-                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[10px] font-bold leading-4 text-amber-800">
+                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 type-caption font-bold leading-4 text-amber-800">
                   Suspendida desde {formatDate(user.suspendedAt)}
                   {user.suspensionReason ? ` · ${user.suspensionReason}` : ""}
                 </p>
@@ -617,13 +614,13 @@ export default function ApplicationAdminPage() {
 
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <div className="rounded-xl bg-neutral-100 px-2.5 py-2">
-                  <p className="text-[9px] font-black uppercase text-neutral-400">Perfil</p>
+                  <p className="type-caption font-black uppercase text-neutral-400">Perfil</p>
                   <p className="mt-0.5 text-xs font-black">
                     {user.profileCompleted ? "Completo" : "Pendiente"}
                   </p>
                 </div>
                 <div className="rounded-xl bg-neutral-100 px-2.5 py-2">
-                  <p className="text-[9px] font-black uppercase text-neutral-400">
+                  <p className="type-caption font-black uppercase text-neutral-400">
                     Disponibilidad
                   </p>
                   <p className="mt-0.5 text-xs font-black">
@@ -631,13 +628,13 @@ export default function ApplicationAdminPage() {
                   </p>
                 </div>
                 <div className="rounded-xl bg-neutral-100 px-2.5 py-2">
-                  <p className="text-[9px] font-black uppercase text-neutral-400">Accesos</p>
+                  <p className="type-caption font-black uppercase text-neutral-400">Accesos</p>
                   <p className="mt-0.5 text-xs font-black">
                     {user.leagueCount} miembro · {user.spectatorLeagueCount} espectador
                   </p>
                 </div>
                 <div className="rounded-xl bg-neutral-100 px-2.5 py-2">
-                  <p className="text-[9px] font-black uppercase text-neutral-400">Push</p>
+                  <p className="type-caption font-black uppercase text-neutral-400">Push</p>
                   <p className="mt-0.5 text-xs font-black">
                     {user.enabledPushSubscriptionCount}/{user.pushSubscriptionCount} activos
                   </p>
@@ -646,7 +643,7 @@ export default function ApplicationAdminPage() {
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <label>
-                  <span className="text-[9px] font-black uppercase text-neutral-400">Nombre</span>
+                  <span className="type-caption font-black uppercase text-neutral-400">Nombre</span>
                   <input
                     value={user.firstName}
                     onChange={(event) =>
@@ -656,7 +653,7 @@ export default function ApplicationAdminPage() {
                   />
                 </label>
                 <label>
-                  <span className="text-[9px] font-black uppercase text-neutral-400">Apellido</span>
+                  <span className="type-caption font-black uppercase text-neutral-400">Apellido</span>
                   <input
                     value={user.lastName}
                     onChange={(event) =>
@@ -672,7 +669,7 @@ export default function ApplicationAdminPage() {
                   <span className="block text-xs font-black text-neutral-700">
                     Puede crear ligas
                   </span>
-                  <span className="block text-[10px] font-semibold text-neutral-500">
+                  <span className="block type-caption font-semibold text-neutral-500">
                     {user.ownedLeagueCount} en propiedad · {user.adminLeagueCount} administradas
                   </span>
                 </span>
@@ -734,7 +731,7 @@ export default function ApplicationAdminPage() {
                   Accesos, recuperación y dispositivos
                 </summary>
                 <div className="border-t border-neutral-200 px-3 pb-3 pt-3">
-                  <p className="text-[10px] font-black uppercase text-neutral-400">
+                  <p className="type-caption font-black uppercase text-neutral-400">
                     Accesos a ligas
                   </p>
                   {user.leagueAccesses.length > 0 ? (
@@ -746,13 +743,13 @@ export default function ApplicationAdminPage() {
                         >
                           <div className="min-w-0">
                             <p className="truncate text-xs font-black">{access.leagueName}</p>
-                            <p className="text-[10px] font-semibold text-neutral-500">
+                            <p className="type-caption font-semibold text-neutral-500">
                               {roleLabel(access.role)}
                               {access.isOwner ? " · Propietario" : ""}
                             </p>
                           </div>
                           {access.playerId ? (
-                            <span className="text-[9px] font-black text-neutral-400">
+                            <span className="type-caption font-black text-neutral-400">
                               JUGADOR VINCULADO
                             </span>
                           ) : null}
@@ -767,7 +764,7 @@ export default function ApplicationAdminPage() {
 
                   {ownedAccesses.length > 0 ? (
                     <div className="mt-4">
-                      <p className="text-[10px] font-black uppercase text-neutral-400">
+                      <p className="type-caption font-black uppercase text-neutral-400">
                         Transferir propiedad
                       </p>
                       <div className="mt-2 space-y-2">
@@ -810,7 +807,7 @@ export default function ApplicationAdminPage() {
                                   </button>
                                 </div>
                               ) : (
-                                <p className="mt-1 text-[10px] font-semibold text-neutral-500">
+                                <p className="mt-1 type-caption font-semibold text-neutral-500">
                                   No hay otro miembro activo al que transferirla.
                                 </p>
                               )}
@@ -925,7 +922,7 @@ export default function ApplicationAdminPage() {
                   <span className="font-black">{item.actorEmail}</span>{" "}
                   {auditDescription(item)}
                 </p>
-                <p className="mt-0.5 text-[9px] font-black uppercase text-neutral-400">
+                <p className="mt-0.5 type-caption font-black uppercase text-neutral-400">
                   {formatDateTime(item.createdAt)}
                 </p>
               </div>

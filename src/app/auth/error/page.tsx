@@ -38,7 +38,7 @@ export default async function AuthErrorPage({
     <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
       <AppCard className="w-full max-w-sm">
         <p className="text-sm font-medium text-neutral-500">Smash &amp; Lob</p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight text-neutral-950">
+        <h1 className="type-page-title mt-1 text-2xl font-black tracking-tight text-neutral-950">
           No se ha podido iniciar sesión
         </h1>
         <p className="mt-3 text-sm font-semibold leading-6 text-neutral-600">

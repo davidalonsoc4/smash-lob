@@ -60,7 +60,7 @@ export function TeamPlayers({
             {substituteLabels[playerId] ? (
               <span
                 title={`Suplente por ${substituteLabels[playerId]}`}
-                className="rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-700"
+                className="rounded-full bg-red-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-red-700"
               >
                 Suplente · por {substituteLabels[playerId]}
               </span>

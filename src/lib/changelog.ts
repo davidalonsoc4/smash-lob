@@ -14,6 +14,225 @@ export type ChangelogRelease = {
 }
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
+{ version: "v1.5.4", date: "9 de agosto de 2026", title: "Ranking coherente y paneles tipográficos unificados", summary: "El detalle de partido replica exactamente el orden de Clasificación, la NAVBAR queda fuera del escalado de texto y los títulos de panel comparten un único rol visual.", category: "improvement", changes: ["La posición mostrada junto a cada jugador en Partido usa el mismo orden secuencial 1, 2, 3… de la pantalla Clasificación, también cuando existen empates y tanto antes como después de registrar el resultado.", "El selector A− / A / A+ sigue escalando el contenido de la aplicación, pero los botones, iconos y etiquetas de la NAVBAR conservan siempre su tamaño.", "Añadir programación, Registrar resultado y el resto de paneles principales de Partido usan type-panel-title; la validación impide combinar ese rol con tamaños text-* que vuelvan a desalinearlos."] },
+{ version: "v1.5.3", date: "9 de agosto de 2026", title: "Posición más clara en partidos pendientes", summary: "El emparejamiento previo al resultado coloca la posición del primer jugador de cada pareja encima de su nombre para equilibrar mejor la lectura del bloque.", category: "improvement", changes: ["En partidos todavía sin resultado, el primer jugador de Pareja A y Pareja B muestra su posición en liga encima del nombre.", "El segundo jugador de cada pareja conserva la posición debajo del nombre, permitiendo probar una composición simétrica con el separador central.", "La disposición de los partidos con resultado no cambia."] },
+{
+  version: "v1.5.2",
+  date: "9 de agosto de 2026",
+  title: "Jornada protagonista y tamaño de texto ajustable",
+  summary:
+    "El detalle de liga identifica directamente la jornada y Temas permite adaptar de forma compacta el tamaño global de la interfaz.",
+  category: "improvement",
+  changes: [
+    "En los partidos de liga, Jornada X pasa a ser el título principal del detalle y deja de repetirse como subtítulo; los amistosos mantienen Partido como título.",
+    "Ajustes > Temas incorpora un selector compacto A− / A / A+ con tamaños Pequeño, Normal y Grande, aplicado sobre la escala tipográfica global.",
+    "La preferencia de tamaño se guarda únicamente en el dispositivo y AppShell la reaplica al abrir la aplicación para mantenerla entre pantallas y recargas.",
+  ],
+},
+  {
+    version: "v1.5.1",
+    date: "9 de agosto de 2026",
+    title: "Cabeceras de pantalla más limpias",
+    summary:
+      "Las pantallas eliminan explicaciones redundantes bajo el título y reservan la cabecera para identidad, contexto y estado.",
+    category: "improvement",
+    changes: [
+      "Se eliminan las descripciones genéricas bajo los títulos de Calendario, Ranking, Actividad, Ajustes, administración, Mis partidos y otras pantallas donde el contenido ya explica su función.",
+      "Liga, temporada, jugador y estados relevantes se conservan como contexto; las instrucciones necesarias dejan la cabecera y pasan al bloque funcional correspondiente.",
+      "La validación tipográfica comprueba que las cabeceras principales no recuperen párrafos descriptivos salvo los contextos explícitamente permitidos.",
+    ],
+  },
+  {
+    version: "v1.5.0",
+    date: "9 de agosto de 2026",
+    title: "Detalle de partido unificado y tipografía normalizada",
+    summary:
+      "Partidos de liga y amistosos comparten una única pantalla de detalle, mientras la aplicación adopta una escala tipográfica más consistente y legible.",
+    category: "improvement",
+    changes: [
+      "La pantalla PARTIDO de liga se convierte en la referencia común: /match/[id] y /personal-matches/[id] reutilizan MatchDetailView, conservando cada ruta su carga, permisos y persistencia específicos.",
+      "Los amistosos programados permiten editar la pareja y los dos contrincantes desde el propio detalle, reutilizando el mismo selector de jugadores del alta y guardando los cambios mediante la API autenticada.",
+      "La tipografía deja de depender solo de tamaños sueltos y pasa a roles semánticos comunes: títulos de pantalla, sección y panel, nombres de jugador de listado, nombres protagonistas y texto auxiliar.",
+      "Ranking Individual, Calendario de la liga y los paneles de Perfil usan el mismo tamaño para nombres de jugador equivalentes; los nombres protagonistas de Partido y la cabecera de Perfil conservan una jerarquía propia y explícita.",
+      "Todos los tamaños tipográficos pasan a unidades escalables y la raíz deja preparada --app-font-size-adjust en 0px para un futuro selector global de tamaño sin cambiar todavía la apariencia por defecto.",
+    ],
+  },
+  { version: "v1.4.18", date: "9 de agosto de 2026", title: "Emparejamiento con VS flotante", summary: "El detalle de partido refina el bloque de parejas y el desarrollo local permite revisar la app desde el móvil sin repetir el inicio de sesión.", category: "improvement", changes: ["Pareja B alinea a la derecha título, nombres, posición y textos auxiliares; cada pareja agrupa sus jugadores en un panel compartido con separador continuo ajustado.", "El VS se hace más pequeño y flota centrado entre las columnas de nombres, sin ocupar una tercera columna ni tomar como referencia la fila de avatares.", "El auto-login de desarrollo admite también 192.168.3.2, ya permitido por Next como origen local, manteniendo el provider bloqueado fuera de NODE_ENV=development."] },
+  { version: "v1.4.17", date: "9 de agosto de 2026", title: "Más espacio en el emparejamiento", summary: "El detalle de partido simplifica el bloque de parejas para dar más ancho a los nombres y corrige la cabecera de los amistosos.", category: "improvement", changes: ["Emparejamiento elimina VS y los contenedores exteriores, reduce los títulos Pareja A/B y los alinea con sus jugadores para dar más ancho útil a los nombres.", "En Partido amistoso desaparece la etiqueta Amistoso del detalle y el estado queda solo, alineado a la derecha sin solapamientos."] },
+  { version: "v1.4.16", date: "9 de agosto de 2026", title: "Estadísticas globales completas en Mi perfil", summary: "Mi perfil convierte todo el histórico de ligas y amistosos en un panel estadístico global con rendimiento, parejas, rivales y cara a cara.", category: "new", changes: ["Resumen avanzado con victorias, sets, juegos, medias, forma reciente, rachas, resultados por origen, partidos a tres sets, remontadas y márgenes.", "Parejas y rivales añade compañero/rival más frecuente, mejor y peor pareja, rival más vencido, némesis, mejores balances y rankings completos.", "Cara a cara permite elegir cualquier jugador del histórico y separa los enfrentamientos directos del rendimiento cuando habéis jugado juntos; las identidades vinculadas se unifican entre ligas y amistosos."] },
+  {
+    version: "v1.4.15", date: "9 de agosto de 2026", title: "Emparejamiento protagonista en el detalle de partido", summary: "La pantalla Partido estrena un panel propio y más visual para identificar parejas y jugadores antes de programar o registrar el resultado.", category: "improvement",
+    changes: ["El detalle de partido deja de reutilizar la tarjeta compacta y muestra un único encabezado Emparejamiento con Pareja A, Pareja B y VS.", "Cada pareja separa sus avatares en una fila superior solo cuando alguno de los cuatro jugadores tiene imagen real; debajo muestra un panel por jugador con nombre y, en liga, posición actual, alineando Pareja B a la derecha.", "Los amistosos recuperan los avatares de participantes vinculados y fijan la etiqueta Amistoso al extremo derecho de la cabecera; el resumen de sets se conserva cuando existe resultado."],
+  },
+
+  {
+    version: "v1.4.14", date: "9 de agosto de 2026", title: "Jornada y estado intercambian posición en las tarjetas", summary: "Calendario e Inicio colocan la jornada a la izquierda y el estado del partido a la derecha, manteniendo Victoria/Derrota como resultado prioritario.", category: "improvement",
+    changes: ["Calendario de la liga muestra Jornada X arriba a la izquierda y el estado real del encuentro arriba a la derecha.", "Inicio aplica la misma disposición en Próximo partido y Último partido.", "Cuando el encuentro pertenece al usuario y está finalizado, Victoria/Derrota sustituye al estado normal en la esquina superior derecha; Mis partidos conserva su presentación actual."],
+  },
+  {
+    version: "v1.4.13", date: "9 de agosto de 2026", title: "Navegación personal más limpia y partidos pendientes enfrentados", summary: "Mis partidos simplifica su navegación y unifica la presentación de los encuentros todavía sin resultado para que las dos parejas se lean siempre enfrentadas.", category: "fix",
+    changes: ["La navegación inferior de Mis partidos queda en Mis ligas, Mis partidos y Mi perfil, en ese orden; Registrar partido sigue accesible desde los accesos específicos de la aplicación.", "Los encuentros sin resultado de Mis partidos muestran una pareja a la izquierda, VS en el centro y la otra pareja a la derecha, igual que Calendario, Inicio y el detalle del partido.", "El modo VS compartido elimina los rótulos visibles Pareja A y Pareja B en todas las pantallas que presentan un partido todavía sin resultado."],
+  },
+  {
+    version: "v1.4.12", date: "8 de agosto de 2026", title: "Perfil global y flujo de partidos más completo", summary: "Mis partidos estrena un perfil estadístico global y las ligas refinan ubicaciones, tarjetas, creación y navegación.", category: "improvement",
+    changes: ["Mi perfil agrega estadísticas y filtros por origen, liga y temporada.", "Calendario, Inicio y programación de partidos refinan estados, jornada, ubicaciones, metadatos y el aviso del siguiente encuentro pendiente.", "La primera temporada permite gestionar ubicaciones y cancelar la creación; eliminar una liga vuelve a Mis ligas, se añade acceso a amistosos y se normalizan ubicaciones para evitar JSON crudo."],
+  },
+  {
+    version: "v1.4.11",
+    date: "8 de agosto de 2026",
+    title: "Ubicaciones globales y tarjetas de partido unificadas",
+    summary:
+      "Las ubicaciones de pádel pasan a formar un catálogo común de la aplicación y las vistas de Calendario, Partido y Home comparten una presentación consistente de parejas, programación y resultados.",
+    category: "improvement",
+    changes: [
+      "Las ubicaciones existentes de ligas y amistosos alimentan un catálogo global; crear o editar una liga permite reutilizar clubes existentes y cualquier ubicación nueva queda disponible para futuras ligas y amistosos.",
+      "Mis partidos refuerza los colores estables por liga y elimina por separado las filas de fecha y ubicación cuando esos datos no existen.",
+      "Los partidos sin resultado muestran Pareja A y Pareja B enfrentadas con VS; al finalizar vuelven a las filas de resultado con juegos por set y sets ganados.",
+      "Calendario muestra Añadir fecha, hora y lugar en todos los partidos todavía sin programar, y la pantalla Partido reutiliza el mismo bloque visual de parejas.",
+      "Próximo partido y Último partido de Inicio reutilizan la misma tarjeta que Calendario para evitar diferencias de estructura entre pantallas.",
+      "Mis ligas conserva la navegación principal de la aplicación; la minibarra personal queda reservada al contexto Mis partidos.",
+    ],
+  },
+  {
+    version: "v1.4.10",
+    date: "8 de agosto de 2026",
+    title: "Colores por liga y navegación propia en Mis partidos",
+    summary:
+      "Mis partidos diferencia visualmente cada liga con un color estable que evita rojo y verde, y estrena una navegación inferior compacta para moverse entre historial, alta de amistosos y ligas.",
+    category: "improvement",
+    changes: [
+      "Cada liga recibe de forma determinista uno de varios colores reservados para el origen del partido; la paleta excluye rojo y verde para no competir con Victoria y Derrota.",
+      "Amistoso mantiene un color propio neutro y estable, distinto de los colores asignados a las ligas.",
+      "Mis partidos incorpora una barra inferior compacta con Mis partidos, + Partido y Ligas; las pantallas de crear y detalle conservan además el botón Volver.",
+      "La pantalla raíz de Mis partidos deja de duplicar la salida hacia Ligas en la cabecera porque esa acción queda disponible de forma permanente en la nueva barra inferior.",
+    ],
+  },
+  {
+    version: "v1.4.9",
+    date: "8 de agosto de 2026",
+    title: "Pruebas locales y metadatos de partido más claros",
+    summary: "El desarrollo local puede entrar sin Google con una sesión protegida de desarrollo y las tarjetas reorganizan liga, fecha, hora y ubicación de forma consistente.",
+    category: "improvement",
+    changes: [
+      "Localhost puede iniciar automáticamente una sesión Auth.js de desarrollo con el email real de una cuenta de PRE, sin habilitar este acceso en builds de PRE o PROD.",
+      "Mis partidos oculta por completo Próximo partido cuando no existe ningún encuentro futuro.",
+      "Mis partidos coloca Liga/Amistoso arriba a la izquierda; Calendario deja ese hueco libre y ambas pantallas muestran día, fecha, hora y ubicación debajo de las parejas.",
+    ],
+  },
+  {
+    version: "v1.4.8",
+    date: "8 de agosto de 2026",
+    title: "Marcadores ganadores más sobrios",
+    summary:
+      "Los juegos ganados vuelven al mismo estilo visual que el resto del marcador y se distinguen únicamente mediante negrita, tanto en Calendario como en Mis partidos.",
+    category: "improvement",
+    changes: [
+      "Ganador y perdedor comparten exactamente tamaño, color, fondo, borde y espaciado; la única diferencia visual es el peso tipográfico.",
+      "El juego ganador usa negrita de peso 700 y el perdedor mantiene peso 400.",
+      "El ajuste se aplica a la vez al Calendario de la liga y a Mis partidos mediante el componente compartido SetGameScore.",
+    ],
+  },
+  {
+    version: "v1.4.7",
+    date: "8 de agosto de 2026",
+    title: "Marcadores más claros también en Mis partidos",
+    summary:
+      "Los juegos ganados se distinguen con más contraste y Mis partidos adopta los mismos paneles de parejas y marcador por set del Calendario.",
+    category: "improvement",
+    changes: [
+      "El juego ganador combina peso 900, texto negro, un tamaño ligeramente mayor y chip blanco con borde; el perdedor queda en gris, peso normal y fondo neutro para que la diferencia sea inmediata.",
+      "Calendario y Mis partidos comparten ahora el mismo componente de juego por set, evitando diferencias visuales entre ambas pantallas.",
+      "Mis partidos muestra cada pareja en su propio panel, los juegos de cada set junto a los sets ganados y Victoria/Derrota en los partidos finalizados.",
+      "La fecha permanece en la cabecera, la ubicación en el pie y la etiqueta Liga/Amistoso se conserva como referencia de origen.",
+    ],
+  },
+  {
+    version: "v1.4.6",
+    date: "8 de agosto de 2026",
+    title: "Negrita visible en los juegos ganados",
+    summary:
+      "El Calendario refuerza de forma inequívoca el número de juegos de la pareja ganadora de cada set para que el resultado se lea de un vistazo.",
+    category: "fix",
+    changes: [
+      "El número ganador de cada set usa peso tipográfico 900 y el perdedor peso 400, aplicado directamente al marcador para que la diferencia sea visible y no dependa de clases condicionales de Tailwind.",
+      "La lógica sigue siendo set a set: en un 6-4 / 5-7 / 3-6 se destacan el 6 de la primera pareja y el 7 y 6 de la segunda.",
+      "No se modifican tamaño, color, fondo, fecha, ubicación, etiquetas Victoria/Derrota ni el resto de la composición del Calendario.",
+    ],
+  },
+  {
+    version: "v1.4.5",
+    date: "8 de agosto de 2026",
+    title: "Ganador de cada set destacado en el Calendario",
+    summary:
+      "El marcador por juegos del Calendario resalta en negrita el resultado de la pareja que gana cada set para identificar la secuencia del partido más rápido.",
+    category: "improvement",
+    changes: [
+      "En cada set finalizado, el número de juegos de la pareja ganadora se muestra en negrita y el de la pareja perdedora mantiene peso normal.",
+      "Se conserva sin cambios la fecha en la cabecera izquierda, la ubicación en la zona inferior y el resto de la composición de las tarjetas.",
+      "El ajuste sigue limitado al Calendario de liga mientras se termina de validar este diseño antes de reutilizarlo en Mis partidos.",
+    ],
+  },
+  {
+    version: "v1.4.4",
+    date: "8 de agosto de 2026",
+    title: "Resultado personal y marcador compacto en Calendario",
+    summary:
+      "El Calendario identifica tus partidos terminados como victoria o derrota y acerca los juegos de cada set al marcador de su pareja para leer el resultado de un vistazo.",
+    category: "improvement",
+    changes: [
+      "Cuando el usuario participa en un partido finalizado, la etiqueta Finalizado pasa a mostrar Victoria en verde o Derrota en rojo según su resultado; los partidos ajenos conservan su estado habitual.",
+      "Cada pareja muestra a la derecha sus juegos en cada set, seguidos del número de sets ganados, dentro del mismo bloque visual.",
+      "En las tarjetas apiladas del Calendario desaparece la fila inferior de resultados por set porque esa información queda integrada junto a cada pareja.",
+      "El cambio sigue limitado al Calendario de liga para poder pulirlo antes de reutilizarlo en Mis partidos.",
+    ],
+  },
+  {
+    version: "v1.4.3",
+    date: "8 de agosto de 2026",
+    title: "Paneles de parejas más claros en el Calendario",
+    summary:
+      "Las tarjetas del Calendario de liga muestran cada pareja en dos líneas dentro de su propio bloque visual y encajan el marcador en chips discretos para leer mejor cada partido.",
+    category: "improvement",
+    changes: [
+      "Cada pareja del partido se muestra en su propio bloque gris suave con bordes redondeados, manteniendo a cada jugador en una línea independiente.",
+      "El resultado de cada equipo deja de quedar suelto y pasa a mostrarse dentro de un pequeño chip visual alineado verticalmente con la pareja correspondiente.",
+      "Se elimina la línea separadora entre equipos porque la separación visual queda resuelta por los dos bloques de pareja.",
+      "El cambio sigue limitado al Calendario de liga para decidir después si se reutiliza el mismo lenguaje visual en Mis partidos.",
+    ],
+  },
+  {
+    version: "v1.4.1",
+    date: "8 de agosto de 2026",
+    title: "Mis partidos reúne toda tu actividad",
+    summary:
+      "Mis partidos evoluciona a una agenda e historial personal transversal que reúne competición y amistosos sin duplicar ni alterar los datos oficiales de las ligas.",
+    category: "improvement",
+    changes: [
+      "El historial combina tus partidos terminados de todas las ligas con los amistosos y los carga realmente de 10 en 10 mediante paginación de base de datos.",
+      "Próximo partido muestra el siguiente encuentro programado y permite alternar Liga / Amistoso cuando existen próximos partidos de ambos tipos.",
+      "Las tarjetas identifican el origen mediante una etiqueta y color estable, muestran cada jugador en su propia línea, el marcador general por sets, hora, ubicación y acceso al detalle.",
+      "Los amistosos pueden programarse para el futuro o registrarse una vez jugados; después se puede añadir o corregir el resultado desde su detalle.",
+      "El detalle de un amistoso reutiliza el marcador de Partido y ofrece fecha, ubicación, Cómo llegar y Añadir al calendario, omitiendo las funciones exclusivamente competitivas.",
+      "El modo Mis partidos conserva únicamente el botón flotante de Ajustes y sigue ocultando la navegación inferior y los controles propios de una liga.",
+      "La guía de Ajustes explica el acceso Mis ligas / Mis partidos y sube de versión para volver a mostrarse una vez con esta nueva organización.",
+    ],
+  },
+  {
+    version: "v1.4.0",
+    date: "8 de agosto de 2026",
+    title: "Mis partidos fuera de liga",
+    summary:
+      "Smash & Lob incorpora un espacio personal separado de las ligas para registrar y conservar amistosos sin alterar ninguna competición oficial.",
+    category: "new",
+    changes: [
+      "Mis ligas incorpora una entrada diferenciada a Mis partidos, manteniendo las ligas como núcleo competitivo de la aplicación.",
+      "El modo personal permite consultar el historial, registrar un amistoso con fecha, ubicación, cuatro jugadores y resultado por sets, y abrir el detalle de cada encuentro.",
+      "Un único partido aparece en el historial de todos los participantes que tengan una cuenta vinculada; los jugadores sin cuenta pueden añadirse manualmente por nombre.",
+      "Los jugadores conocidos se ofrecen a partir de las ligas compartidas, sin exponer el directorio global de usuarios de la aplicación.",
+      "Los amistosos se almacenan en tablas independientes y nunca afectan a clasificación, estadísticas oficiales, récords, temporadas ni MVP de las ligas.",
+      "El modo Mis partidos usa una navegación simplificada sin controles flotantes ni barra inferior de liga.",
+    ],
+  },
   {
     version: "v1.3.6",
     date: "7 de agosto de 2026",

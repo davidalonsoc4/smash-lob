@@ -3,6 +3,7 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   createLeagueLocation,
+  getLeagueLocationIdentityKey,
   getLeagueLocationMapsUrl,
   getLeagueLocationOptionLabel,
   getLeagueLocationSubtitle,
@@ -205,8 +206,35 @@ export function LeagueLocationsEditor({
   const [hasTriedLoadingAutocomplete, setHasTriedLoadingAutocomplete] =
     useState(false);
   const [duplicated, setDuplicated] = useState(false);
+  const [catalogLocations, setCatalogLocations] = useState<LeagueLocation[]>([]);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(true);
 
   const isFormOpen = isAdding || Boolean(editingLocationId);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/locations", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json()) as { locations?: LeagueLocation[] };
+        if (!response.ok) throw new Error("global_locations_lookup_failed");
+        return sortLeagueLocationsByOptionLabel(payload.locations ?? []);
+      })
+      .then((nextLocations) => {
+        if (!cancelled) setCatalogLocations(nextLocations);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogLocations([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!googleMapsApiKey || !googleInputRef.current || !isFormOpen) {
@@ -282,6 +310,34 @@ export function LeagueLocationsEditor({
     () => sortLeagueLocationsByOptionLabel(locations),
     [locations],
   );
+  const selectedLocationKeys = useMemo(
+    () => new Set(locations.map(getLeagueLocationIdentityKey)),
+    [locations],
+  );
+  const availableCatalogLocations = useMemo(
+    () =>
+      catalogLocations.filter(
+        (location) => !selectedLocationKeys.has(getLeagueLocationIdentityKey(location)),
+      ),
+    [catalogLocations, selectedLocationKeys],
+  );
+  const filteredCatalogLocations = useMemo(() => {
+    const query = catalogSearch.trim().toLocaleLowerCase("es-ES");
+
+    if (!query) return availableCatalogLocations;
+
+    return availableCatalogLocations.filter((location) =>
+      [
+        getLeagueLocationOptionLabel(location),
+        getLeagueLocationSubtitle(location),
+        location.address,
+        location.town,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase("es-ES").includes(query)),
+    );
+  }, [availableCatalogLocations, catalogSearch]);
+  const visibleCatalogLocations = filteredCatalogLocations.slice(0, 8);
   const cleanName = name.trim();
   const cleanTown = townInput.trim();
   const cleanCourtCount = courtCountInput.trim();
@@ -414,8 +470,82 @@ export function LeagueLocationsEditor({
     setDuplicated(false);
   }
 
+  function handleAddCatalogLocation(selectedLocation: LeagueLocation) {
+    if (selectedLocationKeys.has(getLeagueLocationIdentityKey(selectedLocation))) {
+      return;
+    }
+
+    onChange([...locations, { ...selectedLocation, selectedCourt: null }]);
+    setCatalogSearch("");
+  }
+
   return (
     <div className="space-y-3">
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-black text-neutral-950">Ubicaciones de la app</p>
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
+              Añade a la liga cualquier club ya guardado por otros jugadores.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2 py-1 type-caption font-black text-neutral-500 shadow-sm">
+            {catalogLocations.length}
+          </span>
+        </div>
+
+        {catalogLoading ? (
+          <p className="mt-3 text-xs font-semibold text-neutral-400">Cargando ubicaciones...</p>
+        ) : availableCatalogLocations.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            <label className="block">
+              <span className="sr-only">Buscar ubicación guardada</span>
+              <input
+                value={catalogSearch}
+                onChange={(event) => setCatalogSearch(event.target.value)}
+                disabled={disabled}
+                placeholder="Buscar por nombre, localidad o dirección..."
+                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
+
+            {visibleCatalogLocations.length > 0 ? (
+              <div className="max-h-64 space-y-1.5 overflow-y-auto">
+                {visibleCatalogLocations.map((location) => (
+                  <button
+                    key={location.id}
+                    type="button"
+                    onClick={() => handleAddCatalogLocation(location)}
+                    disabled={disabled}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-black text-neutral-900">
+                        {getLeagueLocationOptionLabel(location)}
+                      </span>
+                      <span className="mt-0.5 block truncate type-caption font-semibold text-neutral-500">
+                        {getLeagueLocationSubtitle(location)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-700">
+                      Añadir
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-400">
+                No hay ubicaciones que coincidan con la búsqueda.
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="mt-3 text-xs font-semibold text-neutral-400">
+            No quedan ubicaciones del catálogo por añadir a esta liga.
+          </p>
+        )}
+      </div>
+
       {sortedLocations.length > 0 ? (
         <div className="space-y-2">
           {sortedLocations.map((location) => (
@@ -438,7 +568,7 @@ export function LeagueLocationsEditor({
                     type="button"
                     onClick={() => startEditing(location)}
                     disabled={disabled}
-                    className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                    className="rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
                   >
                     {copy.editLocation}
                   </button>
@@ -446,7 +576,7 @@ export function LeagueLocationsEditor({
                     type="button"
                     onClick={() => handleRemoveLocation(location.id)}
                     disabled={disabled}
-                    className="rounded-full px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-400"
+                    className="rounded-full px-2.5 py-1.5 type-caption font-black text-neutral-700 disabled:text-neutral-400"
                   >
                     {copy.removeLocation}
                   </button>
@@ -457,7 +587,7 @@ export function LeagueLocationsEditor({
                 href={getLeagueLocationMapsUrl(location)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 block rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
+                className="mt-2 block rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center type-caption font-black text-neutral-800"
               >
                 {copy.openMaps}
               </a>
@@ -494,7 +624,7 @@ export function LeagueLocationsEditor({
               type="button"
               onClick={closeForm}
               disabled={disabled}
-              className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 shadow-sm disabled:text-neutral-400"
+              className="rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 shadow-sm disabled:text-neutral-400"
             >
               {copy.cancelLocationEdit}
             </button>
@@ -565,11 +695,11 @@ export function LeagueLocationsEditor({
           </div>
 
           {!googleMapsApiKey && !autocompleteReady ? (
-            <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-2 type-caption font-semibold leading-4 text-neutral-500">
               {copy.googleApiMissing}
             </p>
           ) : hasTriedLoadingAutocomplete && !autocompleteReady ? (
-            <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-2 type-caption font-semibold leading-4 text-neutral-500">
               {copy.googleApiMissing}
             </p>
           ) : null}

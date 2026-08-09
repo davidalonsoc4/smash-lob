@@ -165,16 +165,16 @@ export default function SuggestionsPage() {
       <header className="pt-1">
         <BackButton fallbackHref="/settings" label="Volver" />
         <p className="text-sm font-medium text-neutral-500">Smash & Lob</p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Buzón de sugerencias
         </h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Propón mejoras para la aplicación. Las ideas se revisan de forma privada y no se publican junto a tu cuenta.
-        </p>
       </header>
 
       <AppCard className="p-3">
         <p className="text-sm font-black text-neutral-950">Tipo de propuesta</p>
+        <p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">
+          Las ideas se revisan de forma privada y no se publican junto a tu cuenta.
+        </p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {categoryOptions.map((option) => {
             const selected = category === option.value
@@ -191,7 +191,7 @@ export default function SuggestionsPage() {
               >
                 <span className="block text-xs font-black">{option.label}</span>
                 <span
-                  className={`mt-0.5 block text-[10px] font-semibold leading-4 ${
+                  className={`mt-0.5 block type-caption font-semibold leading-4 ${
                     selected ? "text-neutral-300" : "text-neutral-500"
                   }`}
                 >
@@ -210,7 +210,7 @@ export default function SuggestionsPage() {
             placeholder="Ejemplo: Filtrar el ranking por temporada"
             className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
           />
-          <span className="mt-1 block text-right text-[10px] font-bold text-neutral-400">
+          <span className="mt-1 block text-right type-caption font-bold text-neutral-400">
             {title.length}/120
           </span>
         </label>
@@ -224,7 +224,7 @@ export default function SuggestionsPage() {
             placeholder="Qué cambiarías, dónde lo usarías y qué problema solucionaría."
             className="mt-1 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold leading-5 outline-none focus:border-neutral-400"
           />
-          <span className="mt-1 block text-right text-[10px] font-bold text-neutral-400">
+          <span className="mt-1 block text-right type-caption font-bold text-neutral-400">
             {details.length}/2000
           </span>
         </label>
@@ -247,7 +247,7 @@ export default function SuggestionsPage() {
 
       <section className="space-y-2">
         <div className="px-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
             Tus últimas sugerencias
           </p>
         </div>
@@ -270,12 +270,12 @@ export default function SuggestionsPage() {
                       </p>
                     </div>
                     <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] ${status.className}`}
+                      className={`shrink-0 rounded-full px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] ${status.className}`}
                     >
                       {status.label}
                     </span>
                   </div>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+                  <p className="mt-2 type-caption font-bold uppercase tracking-[0.12em] text-neutral-400">
                     {formatDate(item.createdAt)}
                   </p>
                 </AppCard>

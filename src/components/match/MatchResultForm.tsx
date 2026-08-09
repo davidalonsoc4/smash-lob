@@ -14,6 +14,8 @@ type MatchResultFormProps = {
   reportedByPlayerId: string | null
   onCancel?: () => void
   onSaved?: () => void
+  persistResult?: (sets: { a: number; b: number }[]) => Promise<boolean>
+  saveErrorMessage?: string
 }
 
 type SetInput = {
@@ -98,6 +100,8 @@ export function MatchResultForm({
   reportedByPlayerId,
   onCancel,
   onSaved,
+  persistResult,
+  saveErrorMessage,
 }: MatchResultFormProps) {
   const { t } = useI18n()
   const { finishMatch } = useMatchData()
@@ -207,22 +211,24 @@ export function MatchResultForm({
     setIsSaving(true)
     setActionError(null)
 
-    const saved = await finishMatch(
-      matchId,
-      {
-        sets: completedSets.map((set) => ({
-          a: Number(set.a),
-          b: Number(set.b),
-        })),
-      },
-      reportedByPlayerId,
-    )
+    const normalizedSets = completedSets.map((set) => ({
+      a: Number(set.a),
+      b: Number(set.b),
+    }))
+    const saved = persistResult
+      ? await persistResult(normalizedSets)
+      : await finishMatch(
+          matchId,
+          { sets: normalizedSets },
+          reportedByPlayerId,
+        )
 
     setIsSaving(false)
 
     if (!saved) {
       setActionError(
-        "No se ha podido guardar el resultado en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
+        saveErrorMessage ??
+          "No se ha podido guardar el resultado en la base de datos. Revisa Supabase o el valor smash-lob-last-supabase-error."
       )
       return
     }
@@ -241,7 +247,7 @@ export function MatchResultForm({
     <AppCard>
       <form onSubmit={handleSubmit}>
         <div>
-          <p className="text-base font-black">
+          <p className="type-panel-title">
             {mode === "edit" ? t.matchResult.editTitle : t.matchResult.title}
           </p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
@@ -260,13 +266,13 @@ export function MatchResultForm({
             {sets.map((_, index) => (
               <p
                 key={index}
-                className="text-center text-[10px] font-black uppercase text-neutral-500"
+                className="text-center type-caption font-black uppercase text-neutral-500"
               >
                 {t.matchResult.set} {index + 1}
               </p>
             ))}
 
-            <p className="text-center text-[10px] font-black uppercase text-neutral-500">
+            <p className="text-center type-caption font-black uppercase text-neutral-500">
               {t.common.pointsShort}
             </p>
 

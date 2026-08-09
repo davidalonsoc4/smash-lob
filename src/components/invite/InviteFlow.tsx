@@ -104,7 +104,7 @@ function InviteStep({
         {isDone ? "✓" : number}
       </span>
       <span
-        className={`truncate text-[11px] font-black ${
+        className={`truncate type-caption font-black ${
           isActive || isDone ? "text-neutral-900" : "text-neutral-400"
         }`}
       >
@@ -555,7 +555,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
           <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-400">
             {t.invites.rulesEyebrow}
           </p>
-          <h2 className="mt-1 text-lg font-black tracking-tight">
+          <h2 className="type-section-title mt-1 text-lg font-black tracking-tight">
             {t.invites.rulesTitle}
           </h2>
           <p className="mt-2 text-sm font-semibold leading-5 text-neutral-500">

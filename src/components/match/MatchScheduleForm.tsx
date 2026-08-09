@@ -7,15 +7,19 @@ import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabili
 import { AppCard } from "@/components/ui/AppCard";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
+  createLeagueLocation,
   createScheduledLeagueLocationValue,
   findLeagueLocationByScheduleLocation,
+  getLeagueLocationIdentityKey,
   getLeagueLocationCourts,
   getLeagueLocationMapsUrl,
   getLeagueLocationOptionLabel,
   getLeagueLocationScheduleText,
+  getLeagueLocationSubtitle,
   getScheduleLocationFallbackText,
   getScheduleLocationMapsUrl,
   normalizeLeagueLocations,
+  normalizeMapsUrl,
   sortLeagueLocationsByOptionLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
@@ -75,12 +79,39 @@ export function MatchScheduleForm({
 }: MatchScheduleFormProps) {
   const { t } = useI18n();
   const { updateMatchSchedule, postponeMatch, clearMatchSchedule } = useMatchData();
+  const [addedLeagueLocations, setAddedLeagueLocations] = useState<LeagueLocation[]>([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [isAddingLeagueLocation, setIsAddingLeagueLocation] = useState(false);
+  const [newLocationName, setNewLocationName] = useState("");
+  const [newLocationTown, setNewLocationTown] = useState("");
+  const [newLocationAddress, setNewLocationAddress] = useState("");
+  const [newLocationCourtCount, setNewLocationCourtCount] = useState("");
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
 
   const normalizedAvailableLocations = useMemo(
-    () => sortLeagueLocationsByOptionLabel(normalizeLeagueLocations(availableLocations)),
-    [availableLocations],
+    () =>
+      sortLeagueLocationsByOptionLabel(
+        normalizeLeagueLocations([...availableLocations, ...addedLeagueLocations]),
+      ),
+    [addedLeagueLocations, availableLocations],
   );
   const hasAvailableLocations = normalizedAvailableLocations.length > 0;
+  const filteredAvailableLocations = useMemo(() => {
+    const query = locationSearch.trim().toLocaleLowerCase("es-ES");
+
+    if (!query) return normalizedAvailableLocations;
+
+    return normalizedAvailableLocations.filter((availableLocation) =>
+      [
+        getLeagueLocationOptionLabel(availableLocation),
+        getLeagueLocationSubtitle(availableLocation),
+        availableLocation.address,
+        availableLocation.town,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase("es-ES").includes(query)),
+    );
+  }, [locationSearch, normalizedAvailableLocations]);
 
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -98,9 +129,7 @@ export function MatchScheduleForm({
     ? scheduledLeagueLocation.id
     : hasSchedule && location
       ? otherLocationValue
-      : hasAvailableLocations
-        ? ""
-        : otherLocationValue;
+      : "";
 
   const [isPanelOpen, setIsPanelOpen] = useState(
     isUnscheduled || (isPostponed && canManage),
@@ -118,7 +147,9 @@ export function MatchScheduleForm({
     scheduledLeagueLocation?.selectedCourt ?? "",
   );
   const [customLocation, setCustomLocation] = useState(
-    hasSchedule && location && !scheduledLeagueLocation ? location : "",
+    hasSchedule && location && !scheduledLeagueLocation
+      ? (getScheduleLocationFallbackText(location) ?? "")
+      : "",
   );
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -189,6 +220,33 @@ export function MatchScheduleForm({
     return createScheduledLeagueLocationValue(leagueLocation, selectedCourt);
   }, [customLocation, normalizedAvailableLocations, selectedCourt, selectedLocation]);
 
+  const cleanNewLocationAddress = newLocationAddress.trim();
+  const newLocationMapsUrl = normalizeMapsUrl(cleanNewLocationAddress);
+  const newLocationDraft = useMemo(
+    () =>
+      createLeagueLocation({
+        name: newLocationName,
+        town: newLocationTown,
+        address: newLocationMapsUrl ? null : cleanNewLocationAddress,
+        courtCount: newLocationCourtCount
+          ? Number.parseInt(newLocationCourtCount, 10)
+          : null,
+        selectedCourt: null,
+        googlePlaceId: null,
+        googlePlaceName: null,
+        googleMapsUrl: newLocationMapsUrl,
+        latitude: null,
+        longitude: null,
+      }),
+    [
+      cleanNewLocationAddress,
+      newLocationCourtCount,
+      newLocationMapsUrl,
+      newLocationName,
+      newLocationTown,
+    ],
+  );
+
   const canSave =
     canManage &&
     !isSaving &&
@@ -233,6 +291,63 @@ export function MatchScheduleForm({
     setSelectedCourt(nextCourts.length === 1 ? nextCourts[0] : "");
   }
 
+  async function handleCreateLeagueLocation() {
+    if (!newLocationDraft || isSavingLocation || isSaving) {
+      return;
+    }
+
+    const duplicated = normalizedAvailableLocations.some(
+      (availableLocation) =>
+        getLeagueLocationIdentityKey(availableLocation) ===
+        getLeagueLocationIdentityKey(newLocationDraft),
+    );
+
+    if (duplicated) {
+      setActionError("Esa ubicación ya existe en la liga. Búscala y selecciónala.");
+      return;
+    }
+
+    setIsSavingLocation(true);
+    setActionError(null);
+
+    try {
+      const response = await fetch("/api/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location: newLocationDraft }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        location?: LeagueLocation;
+        error?: string;
+      } | null;
+
+      if (!response.ok || !payload?.location) {
+        throw new Error(payload?.error ?? "global_location_save_failed");
+      }
+
+      const savedLocation = { ...payload.location, selectedCourt: null };
+
+      setAddedLeagueLocations((current) =>
+        normalizeLeagueLocations([...current, savedLocation]),
+      );
+      setSelectedLocation(savedLocation.id);
+      const courts = getLeagueLocationCourts(savedLocation);
+      setSelectedCourt(courts.length === 1 ? courts[0] : "");
+      setLocationSearch("");
+      setNewLocationName("");
+      setNewLocationTown("");
+      setNewLocationAddress("");
+      setNewLocationCourtCount("");
+      setIsAddingLeagueLocation(false);
+    } catch {
+      setActionError(
+        "No se ha podido guardar la nueva ubicación. Revisa los datos e inténtalo de nuevo.",
+      );
+    } finally {
+      setIsSavingLocation(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -272,7 +387,9 @@ export function MatchScheduleForm({
     setSelectedLocation(initialLocationValue);
     setSelectedCourt(scheduledLeagueLocation?.selectedCourt ?? "");
     setCustomLocation(
-      hasSchedule && location && !scheduledLeagueLocation ? location : "",
+      hasSchedule && location && !scheduledLeagueLocation
+        ? (getScheduleLocationFallbackText(location) ?? "")
+        : "",
     );
     setActionError(null);
     autoScheduledAtValueRef.current = null;
@@ -304,7 +421,7 @@ export function MatchScheduleForm({
     }
 
     setScheduledAtValue("");
-    setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
+    setSelectedLocation("");
     setSelectedCourt("");
     setCustomLocation("");
     autoScheduledAtValueRef.current = null;
@@ -336,7 +453,7 @@ export function MatchScheduleForm({
     }
 
     setScheduledAtValue("");
-    setSelectedLocation(hasAvailableLocations ? "" : otherLocationValue);
+    setSelectedLocation("");
     setSelectedCourt("");
     setCustomLocation("");
     autoScheduledAtValueRef.current = null;
@@ -386,7 +503,7 @@ export function MatchScheduleForm({
           aria-expanded={isPanelOpen}
           className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
         >
-          <p className="truncate text-sm font-black text-neutral-950">
+          <p className="truncate type-panel-title text-neutral-950">
             {getTitle()}
           </p>
 
@@ -409,7 +526,7 @@ export function MatchScheduleForm({
         </button>
       ) : (
         <div className="flex w-full items-center px-3 py-2.5">
-          <p className="truncate text-sm font-black text-neutral-950">
+          <p className="truncate type-panel-title text-neutral-950">
             {getTitle()}
           </p>
         </div>
@@ -456,7 +573,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={() => setIsEditing(true)}
                   disabled={isSaving}
-                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 text-[9px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
                 >
                   {t.matchDetail.rescheduleButton}
                 </button>
@@ -466,7 +583,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-neutral-200 bg-white px-2.5 text-[9px] font-black text-neutral-800 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
+                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-neutral-200 bg-white px-2.5 type-caption font-black text-neutral-800 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -475,7 +592,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handlePostpone}
                       disabled={!canPostpone}
-                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 text-[9px] font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300"
+                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 type-caption font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300"
                     >
                       {isSaving
                         ? t.matchDetail.saving
@@ -487,7 +604,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handleClearSchedule}
                       disabled={!canClearCurrentSchedule}
-                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-red-100 bg-red-50 px-2.5 text-[9px] font-black text-red-700 transition active:bg-red-100 disabled:text-red-300"
+                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-red-100 bg-red-50 px-2.5 type-caption font-black text-red-700 transition active:bg-red-100 disabled:text-red-300"
                     >
                       {isSaving
                         ? t.matchDetail.clearingSchedule
@@ -500,7 +617,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={() => setIsEditing(true)}
                   disabled={isSaving}
-                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 text-[9px] font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
                 >
                   {t.matchDetail.addScheduleButton}
                 </button>
@@ -576,40 +693,125 @@ export function MatchScheduleForm({
                   />
                 </label>
 
-                {hasAvailableLocations ? (
-                  <label className="block">
-                    <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-                      {t.matchDetail.scheduleLocation}
-                    </span>
+                <div className="block">
+                  <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
+                    {t.matchDetail.scheduleLocation}
+                  </span>
 
-                    <select
-                      value={selectedLocation}
-                      onChange={(event) =>
-                        handleLocationChange(event.target.value)
-                      }
-                      disabled={isSaving}
-                      className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-                    >
-                      <option value="">
-                        {t.matchDetail.scheduleLocationPlaceholder}
-                      </option>
+                  {hasAvailableLocations ? (
+                    <>
+                      <input
+                        value={locationSearch}
+                        onChange={(event) => setLocationSearch(event.target.value)}
+                        disabled={isSaving || isSavingLocation}
+                        placeholder="Buscar ubicación de la liga..."
+                        className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                      />
 
-                      {normalizedAvailableLocations.map((availableLocation) => (
-                        <option
-                          key={availableLocation.id}
-                          value={availableLocation.id}
-                        >
-                          {getLeagueLocationOptionLabel(availableLocation)}
-                        </option>
-                      ))}
+                      <div className="mt-1.5 max-h-40 space-y-1 overflow-y-auto">
+                        {filteredAvailableLocations.slice(0, 6).map((availableLocation) => {
+                          const selected = selectedLocation === availableLocation.id;
 
-                      <option value={otherLocationValue}>
-                        {t.matchDetail.otherLocation}
-                      </option>
-                    </select>
-                  </label>
-                ) : null}
+                          return (
+                            <button
+                              key={availableLocation.id}
+                              type="button"
+                              onClick={() => handleLocationChange(availableLocation.id)}
+                              disabled={isSaving || isSavingLocation}
+                              className={`w-full rounded-lg border px-2.5 py-2 text-left transition ${
+                                selected
+                                  ? "border-neutral-950 bg-neutral-950 text-white"
+                                  : "border-neutral-200 bg-white text-neutral-900 active:bg-neutral-50"
+                              }`}
+                            >
+                              <span className="block truncate text-xs font-black">
+                                {getLeagueLocationOptionLabel(availableLocation)}
+                              </span>
+                              <span
+                                className={`mt-0.5 block truncate type-caption font-semibold ${
+                                  selected ? "text-neutral-300" : "text-neutral-500"
+                                }`}
+                              >
+                                {getLeagueLocationSubtitle(availableLocation)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-1 rounded-lg border border-dashed border-neutral-200 px-2.5 py-2 text-xs font-semibold text-neutral-500">
+                      Esta liga todavía no tiene ubicaciones.
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingLeagueLocation((current) => !current)}
+                    disabled={isSaving || isSavingLocation}
+                    className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 disabled:text-neutral-400"
+                  >
+                    {isAddingLeagueLocation
+                      ? "Cancelar nueva ubicación"
+                      : "+ Añadir nueva ubicación"}
+                  </button>
+                </div>
               </div>
+
+              {isAddingLeagueLocation ? (
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
+                  <p className="text-xs font-black text-neutral-900">
+                    Nueva ubicación
+                  </p>
+                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
+                    Se guardará en el catálogo y, al guardar el partido, quedará disponible en esta liga.
+                  </p>
+
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <input
+                      value={newLocationName}
+                      onChange={(event) => setNewLocationName(event.target.value)}
+                      placeholder="Nombre del club"
+                      disabled={isSavingLocation}
+                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400"
+                    />
+                    <input
+                      value={newLocationTown}
+                      onChange={(event) => setNewLocationTown(event.target.value)}
+                      placeholder="Localidad"
+                      disabled={isSavingLocation}
+                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400"
+                    />
+                    <input
+                      value={newLocationAddress}
+                      onChange={(event) => setNewLocationAddress(event.target.value)}
+                      placeholder="Dirección o enlace de Google Maps"
+                      disabled={isSavingLocation}
+                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400 sm:col-span-2"
+                    />
+                    <input
+                      value={newLocationCourtCount}
+                      onChange={(event) =>
+                        setNewLocationCourtCount(
+                          event.target.value.replace(/[^0-9]/g, "").slice(0, 2),
+                        )
+                      }
+                      inputMode="numeric"
+                      placeholder="Número de pistas (opcional)"
+                      disabled={isSavingLocation}
+                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateLeagueLocation}
+                      disabled={!newLocationDraft || isSavingLocation}
+                      className="rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300"
+                    >
+                      {isSavingLocation ? "Guardando..." : "Guardar y seleccionar"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               {shouldSelectCourt ? (
                 <label className="block">

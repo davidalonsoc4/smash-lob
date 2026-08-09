@@ -14,7 +14,7 @@ type LeagueLogoProps = {
 }
 
 const sizeClasses = {
-  sm: "h-8 w-8 text-[11px]",
+  sm: "h-8 w-8 type-caption",
   md: "h-11 w-11 text-sm",
   lg: "h-14 w-14 text-base",
   xl: "h-20 w-20 text-lg",

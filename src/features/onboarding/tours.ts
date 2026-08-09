@@ -96,7 +96,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jornadas y estados",
-          description: "Cada bloque agrupa los partidos de una jornada e indica si está próxima, activa, fuera de plazo o completada.",
+          description: "Cada bloque agrupa los partidos de una jornada e indica su estado. Los paneles de partido son pulsables: tócalos para abrir el detalle completo del encuentro.",
         },
       ],
     },
@@ -143,6 +143,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         {
           title: "Notificaciones",
           description: "Configura los avisos push y decide qué notificaciones quieres recibir en este dispositivo.",
+        },
+        {
+          title: "Tus ligas y Mis partidos",
+          description: "Desde Mis ligas cambias de competición y entras en Mis partidos, donde se reúnen tus partidos de liga y amistosos.",
         },
         {
           title: "Buzón de sugerencias",
@@ -252,7 +256,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Rounds and statuses",
-          description: "Each block groups one round and shows whether it is upcoming, active, overdue or completed.",
+          description: "Each block groups one round and shows its status. Match panels are clickable: open one to see the full match detail.",
         },
       ],
     },
@@ -299,6 +303,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         {
           title: "Notifications",
           description: "Configure push alerts and choose which notifications you want to receive on this device.",
+        },
+        {
+          title: "Your leagues and My matches",
+          description: "Use My leagues to switch competitions or open My matches, where league matches and friendlies come together in one personal history.",
         },
         {
           title: "Suggestions",
@@ -408,7 +416,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jardunaldiak eta egoerak",
-          description: "Bloke bakoitzak jardunaldi bat biltzen du eta hurrengoa, aktiboa, epez kanpo edo osatua den erakusten du.",
+          description: "Bloke bakoitzak jardunaldi bat eta haren egoera erakusten ditu. Partida-panelak sakagarriak dira: ireki bat partidaren xehetasun osoa ikusteko.",
         },
       ],
     },
@@ -455,6 +463,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         {
           title: "Jakinarazpenak",
           description: "Konfiguratu push abisuak eta aukeratu gailu honetan zein jakinarazpen jaso nahi dituzun.",
+        },
+        {
+          title: "Zure ligak eta Nire partidak",
+          description: "Nire ligak ataletik txapelketaz alda dezakezu edo Nire partidak ireki, ligako partidak eta lagunartekoak historia pertsonal berean ikusteko.",
         },
         {
           title: "Iradokizunak",
@@ -544,13 +556,14 @@ const tourStructure: Array<{
   },
   {
     key: "settings",
-    version: 2,
+    version: 3,
     route: "/settings",
     audience: everyone,
     steps: [
       { selector: "[data-tour='settings-profile']", side: "bottom" },
       { selector: "[data-tour='settings-appearance']", side: "bottom" },
       { selector: "[data-tour='settings-notifications']", side: "bottom" },
+      { selector: "[data-tour='settings-context-switcher']", side: "top" },
       { selector: "[data-tour='settings-suggestions']", side: "top" },
       { selector: "[data-tour='settings-search']", side: "left" },
     ],

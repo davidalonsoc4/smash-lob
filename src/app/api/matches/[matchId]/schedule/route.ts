@@ -7,9 +7,11 @@ import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
+  getLeagueLocationIdentityKey,
   getScheduleLocationFallbackText,
   normalizeLeagueLocations,
 } from "@/lib/leagueLocations"
+import { saveGlobalLocation } from "@/lib/serverGlobalLocations"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -88,6 +90,45 @@ export async function PUT(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
+  const { data: leagueLocationRow } = await access.actor.supabase
+    .from("leagues")
+    .select("locations")
+    .eq("id", access.actor.match.leagueId)
+    .maybeSingle()
+  const leagueLocations = normalizeLeagueLocations(leagueLocationRow?.locations)
+  const scheduledGlobalLocation = findLeagueLocationByScheduleLocation({
+    locations: leagueLocations,
+    scheduleLocation: schedule.location,
+  })
+
+  const savedGlobalLocation = await saveGlobalLocation(
+    access.actor.supabase,
+    scheduledGlobalLocation ?? schedule.location,
+  )
+  const savedLocationKey = getLeagueLocationIdentityKey(savedGlobalLocation)
+  const isNewLeagueLocation = !leagueLocations.some(
+    (leagueLocation) =>
+      getLeagueLocationIdentityKey(leagueLocation) === savedLocationKey,
+  )
+
+  if (isNewLeagueLocation) {
+    const nextLeagueLocations = normalizeLeagueLocations([
+      ...leagueLocations,
+      savedGlobalLocation,
+    ])
+    const { error: leagueLocationUpdateError } = await access.actor.supabase
+      .from("leagues")
+      .update({ locations: nextLeagueLocations })
+      .eq("id", access.actor.match.leagueId)
+
+    if (leagueLocationUpdateError) {
+      return NextResponse.json(
+        { error: "league_location_update_failed" },
+        { status: 500 },
+      )
+    }
+  }
+
   const resumingPostponedIncident =
     access.actor.match.incidentStatus === "resolved" &&
     access.actor.match.resolutionType === "postponed"
@@ -125,12 +166,6 @@ export async function PUT(
   }
 
   const updatedMatch = mapSupabaseMatch(data as Record<string, unknown>)
-  const { data: leagueLocationRow } = await access.actor.supabase
-    .from("leagues")
-    .select("locations")
-    .eq("id", updatedMatch.leagueId)
-    .maybeSingle()
-  const leagueLocations = normalizeLeagueLocations(leagueLocationRow?.locations)
   const resolvedLocation = findLeagueLocationByScheduleLocation({
     locations: leagueLocations,
     scheduleLocation: updatedMatch.location,

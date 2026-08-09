@@ -35,7 +35,7 @@ function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5">
         <span className="min-w-0">
           {eyebrow ? (
-            <span className="block text-[9px] font-black uppercase tracking-[0.18em] text-neutral-400">
+            <span className="block type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
               {eyebrow}
             </span>
           ) : null}
@@ -60,7 +60,7 @@ function MiniCard({ title, description }: MiniCardProps) {
   return (
     <div className="rounded-xl bg-neutral-100 px-3 py-2">
       <p className="text-xs font-black text-neutral-950">{title}</p>
-      <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+      <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
         {description}
       </p>
     </div>
@@ -71,7 +71,7 @@ function SummaryItem({ title, description }: SummaryItemProps) {
   return (
     <div className="rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-neutral-100">
       <p className="text-xs font-black text-neutral-950">{title}</p>
-      <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+      <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
         {description}
       </p>
     </div>
@@ -130,21 +130,18 @@ export default function HelpPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.help.title}
         </h1>
 
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          {t.help.fullDescription}
-        </p>
       </header>
 
       <AppCard className="space-y-3 !p-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-[0.22em] text-neutral-400">
             {t.help.quickSummaryEyebrow}
           </p>
-          <h2 className="mt-1 text-base font-black tracking-tight text-neutral-950">
+          <h2 className="mt-1 type-panel-title text-neutral-950">
             {t.help.quickSummaryTitle}
           </h2>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">

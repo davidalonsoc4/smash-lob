@@ -65,13 +65,50 @@ export default function LeaguesPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label="Volver" />
 
-        <h1 className="mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Selecciona la liga en la que quieres entrar.
-        </p>
+        <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
       </header>
 
-      <div className="space-y-3">
+      <section className="space-y-2">
+        <p className="px-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
+          Actividad personal
+        </p>
+        <Link
+          href="/personal-matches"
+          className="block rounded-2xl border border-neutral-950 bg-neutral-950 p-3 text-white shadow-[0_2px_12px_rgba(15,23,42,0.12)] transition active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/10">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-6 w-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 3v4" />
+                <path d="M17 3v4" />
+                <path d="M4 8h16" />
+                <rect x="4" y="5" width="16" height="16" rx="3" />
+                <path d="M8 12h3" />
+                <path d="M8 16h6" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-black">Mis partidos</p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-300">
+                Consulta tus partidos de liga y registra los amistosos que juegas fuera de competición.
+              </p>
+            </div>
+            <span className="shrink-0 text-lg font-black text-neutral-400">›</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/personal-matches/new"
+          className="block rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 shadow-[0_1px_8px_rgba(15,23,42,0.05)] transition active:scale-[0.99]"
+        >
+          + Registrar encuentro amistoso
+        </Link>
+      </section>
+
+      <section className="space-y-3">
+        <p className="px-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
+          Tus ligas
+        </p>
         {userLeagues.map((league) => {
           const season = getActiveSeasonByLeagueId(league.id);
           const seasonMatches = countedMatches.filter(
@@ -124,7 +161,7 @@ export default function LeaguesPage() {
                       {league.name}
                     </p>
                     {isActive ? (
-                      <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+                      <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 type-caption font-black uppercase tracking-wide text-white">
                         Actual
                       </span>
                     ) : null}
@@ -142,15 +179,15 @@ export default function LeaguesPage() {
                       {getSeasonStatusLabel(season)}
                     </span>
                     {isAdmin ? (
-                      <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+                      <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
                         Admin
                       </span>
                     ) : isSpectator ? (
-                      <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+                      <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-600">
                         Espectador
                       </span>
                     ) : null}
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                    <span className="type-caption font-bold uppercase tracking-wide text-neutral-400">
                       Toca para entrar
                     </span>
                   </div>
@@ -159,7 +196,7 @@ export default function LeaguesPage() {
 
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                     Jugadores
                   </p>
                   <p className="mt-0.5 text-base font-black text-neutral-950">
@@ -167,7 +204,7 @@ export default function LeaguesPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                     Partidos
                   </p>
                   <p className="mt-0.5 text-base font-black text-neutral-950">
@@ -175,7 +212,7 @@ export default function LeaguesPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                     Líder
                   </p>
                   <p className="mt-0.5 truncate text-xs font-black text-neutral-950">
@@ -186,7 +223,12 @@ export default function LeaguesPage() {
             </article>
           );
         })}
-      </div>
+        {userLeagues.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-neutral-200 bg-white px-3 py-4 text-center text-xs font-semibold text-neutral-500">
+            Todavía no perteneces a ninguna liga. Puedes seguir usando Mis partidos.
+          </p>
+        ) : null}
+      </section>
 
       <AppCard>
         <div className="grid gap-2">

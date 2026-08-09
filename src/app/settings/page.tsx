@@ -32,7 +32,7 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
   return (
     <section className="space-y-2">
       <div className="px-1">
-        <p className="settings-section-label text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
+        <p className="settings-section-label type-caption font-black uppercase tracking-[0.2em] text-neutral-600">
           {title}
         </p>
         {description ? (
@@ -275,7 +275,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
       <header className="pt-1">
         <BackButton fallbackHref="/profile" label={t.common.back} />
         <p className="mt-1 text-xs font-bold text-neutral-500">{leagueName}</p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">Ajustes</h1>
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Ajustes</h1>
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
           Cuenta de espectador · acceso de solo lectura.
         </p>
@@ -338,6 +338,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
         <SettingsLinkRow
           href="/leagues"
           id="leagues"
+          tour="settings-context-switcher"
           title="Mis ligas"
           description="Cambia entre ligas donde eres jugador o espectador."
         />
@@ -354,7 +355,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
             title="Laboratorio de avatares"
             description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
             badge={
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
                 PRE
               </span>
             }
@@ -397,7 +398,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
 
       <p
         data-visual-stable-version
-        className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600"
+        className="pb-1 text-center type-caption font-black uppercase tracking-[0.24em] text-neutral-600"
       >
         {settingsVersionLabel}
       </p>
@@ -505,12 +506,9 @@ function PlayerSettingsPage() {
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.settings.title}
         </h1>
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Todo lo relacionado con tu cuenta, tus ligas y la aplicación.
-        </p>
       </header>
 
       <ContextualTip
@@ -564,6 +562,7 @@ function PlayerSettingsPage() {
           <SettingsLinkRow
             href="/leagues"
             id="leagues"
+            tour="settings-context-switcher"
             title="Mis ligas"
             description={`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`}
           />
@@ -627,7 +626,7 @@ function PlayerSettingsPage() {
           tone={hasPendingPayments ? "warning" : "default"}
           badge={
             hasPendingPayments ? (
-              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-white">
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-white">
                 {pendingPaymentCount} pendiente{pendingPaymentCount === 1 ? "" : "s"}
               </span>
             ) : null
@@ -690,7 +689,7 @@ function PlayerSettingsPage() {
             title="Laboratorio de avatares"
             description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
             badge={
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
                 PRE
               </span>
             }
@@ -733,7 +732,7 @@ function PlayerSettingsPage() {
 
       <p
         data-visual-stable-version
-        className="pb-1 text-center text-[10px] font-black uppercase tracking-[0.24em] text-neutral-600"
+        className="pb-1 text-center type-caption font-black uppercase tracking-[0.24em] text-neutral-600"
       >
         {settingsVersionLabel}
       </p>

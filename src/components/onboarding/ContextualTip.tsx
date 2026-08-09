@@ -120,14 +120,14 @@ export function OnboardingTipsReset({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-black text-neutral-950">{title}</p>
-          <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
             {description}
           </p>
         </div>
         <button
           type="button"
           onClick={handleReset}
-          className="shrink-0 rounded-xl bg-white px-3 py-2 text-[11px] font-black text-neutral-700 shadow-sm"
+          className="shrink-0 rounded-xl bg-white px-3 py-2 type-caption font-black text-neutral-700 shadow-sm"
         >
           {feedback ? doneLabel : actionLabel}
         </button>

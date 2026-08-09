@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { type CSSProperties, type ReactNode } from "react"
+import { type CSSProperties, type ReactNode, useEffect } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
+import { PersonalMatchesNav } from "@/components/personal/PersonalMatchesNav"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
 import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
 import { FloatingHelpButton } from "@/components/onboarding/FloatingHelpButton"
@@ -19,6 +20,7 @@ import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
+import { applyAppFontSize, readStoredAppFontSize } from "@/lib/fontSizePreference"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
@@ -166,6 +168,10 @@ function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProp
 
 export function AppShell({ children }: AppShellProps) {
   const { t, locale } = useI18n()
+
+  useEffect(() => {
+    applyAppFontSize(readStoredAppFontSize())
+  }, [])
   const branding = getAppBranding()
   const pathname = usePathname()
   const {
@@ -188,6 +194,8 @@ export function AppShell({ children }: AppShellProps) {
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
+  const isPersonalMatchesRoute =
+    pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
   const isPublicAccessRoute =
     isInviteRoute || isSpectateRoute || isLeagueNavigationRoute
   const isNewLeagueRoute = pathname === "/league/new"
@@ -203,7 +211,7 @@ export function AppShell({ children }: AppShellProps) {
     activeMembership && activeMembership.role !== "creator",
   )
   const shouldShowSettingsSearch =
-    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute
+    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowLeagueSearch = pathname === "/leagues" && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
     ? buildSettingsSearchEntries(locale, {
@@ -217,14 +225,28 @@ export function AppShell({ children }: AppShellProps) {
         avatarLabEnabled: isAvatarLabEnabled(),
       })
     : []
-  const shouldShowSettingsButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
-  const shouldShowHelpButton = !isInitialSeasonSetupRoute && !isPublicAccessRoute
+  const shouldShowSettingsButton =
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute
+  const shouldShowHelpButton =
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowNotificationsButton =
-    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !spectatorMode
+    !isInitialSeasonSetupRoute &&
+    !isPublicAccessRoute &&
+    !isPersonalMatchesRoute &&
+    !spectatorMode
   const shouldShowBottomNav =
-    !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute
+    !isPublicAccessRoute &&
+    !isNewLeagueRoute &&
+    !isInitialSeasonSetupRoute &&
+    !isPersonalMatchesRoute
+  const shouldShowPersonalMatchesNav =
+    isPersonalMatchesRoute && !isPublicAccessRoute
   const shouldShowPlayerInviteButton =
-    !isPublicAccessRoute && !isNewLeagueRoute && !isInitialSeasonSetupRoute && !spectatorMode
+    !isPublicAccessRoute &&
+    !isNewLeagueRoute &&
+    !isInitialSeasonSetupRoute &&
+    !isPersonalMatchesRoute &&
+    !spectatorMode
   const shouldShowSpectatorShareButton = shouldShowPlayerInviteButton
   const hasPlayerInviteControl =
     shouldShowPlayerInviteButton && isLeagueAdmin(activeLeagueId)
@@ -278,7 +300,7 @@ export function AppShell({ children }: AppShellProps) {
         {branding.preproduction ? (
           <div
             aria-label={branding.internalBadgeAriaLabel ?? undefined}
-            className="pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-white shadow-lg"
+            className="pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 type-caption font-black uppercase tracking-[0.24em] text-white shadow-lg"
             style={{ top: getFloatingTop() }}
           >
             {branding.internalBadgeText} · {APP_VERSION_LABEL}
@@ -363,7 +385,7 @@ export function AppShell({ children }: AppShellProps) {
                   : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
               paddingBottom: isLeagueNavigationRoute
                 ? "env(safe-area-inset-bottom, 0px)"
-                : "96px",
+                : shouldShowBottomNav || shouldShowPersonalMatchesNav ? "96px" : "32px",
             } as CSSProperties
           }
         >
@@ -376,9 +398,10 @@ export function AppShell({ children }: AppShellProps) {
 
         {shouldShowLeagueSearch ? <GlobalLeagueSearch /> : null}
 
-        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav} />
+        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav || shouldShowPersonalMatchesNav} />
 
         {shouldShowBottomNav ? <BottomNav /> : null}
+        {shouldShowPersonalMatchesNav ? <PersonalMatchesNav /> : null}
       </div>
     </div>
   )

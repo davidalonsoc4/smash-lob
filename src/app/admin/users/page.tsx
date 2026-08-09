@@ -19,7 +19,7 @@ function SectionIntro({
 }) {
   return (
     <div className="px-1 pt-1">
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+      <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
         {title}
       </p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -91,12 +91,9 @@ export default function AdminUsersPage() {
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Personas y accesos
         </h1>
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          La plantilla, las cuentas, los permisos y los espectadores se muestran en bloques separados.
-        </p>
       </header>
 
       {showsUpcomingRoster ? (

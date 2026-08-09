@@ -30,7 +30,7 @@ export function PlayerSeasonScopeSelector({
           aria-label={title}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={`${inline ? "max-w-[112px]" : "max-w-[160px]"} cursor-pointer appearance-none truncate border-0 bg-transparent py-0.5 pl-1 pr-3 text-right text-[10px] font-bold text-neutral-500 outline-none`}
+          className={`${inline ? "max-w-[112px]" : "max-w-[160px]"} cursor-pointer appearance-none truncate border-0 bg-transparent py-0.5 pl-1 pr-3 text-right type-caption font-bold text-neutral-500 outline-none`}
         >
           {scopes.map((scope) => (
             <option key={scope.id} value={scope.id}>
@@ -38,7 +38,7 @@ export function PlayerSeasonScopeSelector({
             </option>
           ))}
         </select>
-        <span aria-hidden="true" className="-ml-2 text-[9px] text-neutral-400">
+        <span aria-hidden="true" className="-ml-2 type-caption text-neutral-400">
           ▾
         </span>
       </label>

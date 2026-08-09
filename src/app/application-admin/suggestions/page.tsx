@@ -132,7 +132,7 @@ export default function ApplicationSuggestionsPage() {
       <div className="compact-page space-y-3">
         <header className="pt-1">
           <BackButton fallbackHref="/application-admin" label="Volver" />
-          <h1 className="mt-2 text-xl font-black">Acceso restringido</h1>
+          <h1 className="type-page-title mt-2 text-xl font-black">Acceso restringido</h1>
         </header>
         <AppCard>
           <p className="text-sm font-semibold text-neutral-600">
@@ -150,12 +150,9 @@ export default function ApplicationSuggestionsPage() {
         <p className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-red-600">
           Superusuario
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Sugerencias recibidas
         </h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Revisa las propuestas enviadas desde Ajustes y registra su estado interno.
-        </p>
       </header>
 
       <div className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1">
@@ -164,7 +161,7 @@ export default function ApplicationSuggestionsPage() {
             key={option.value}
             type="button"
             onClick={() => setFilter(option.value)}
-            className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${
+            className={`shrink-0 rounded-lg px-2.5 py-1.5 type-caption font-black transition ${
               filter === option.value
                 ? "bg-white text-neutral-950 shadow-sm"
                 : "text-neutral-500"
@@ -188,10 +185,10 @@ export default function ApplicationSuggestionsPage() {
           {visibleItems.map((item) => (
             <AppCard key={item.id} className="p-3">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-600">
+                <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
                   {categoryLabels[item.category]}
                 </span>
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                   {item.appVersion}
                 </span>
               </div>
@@ -199,7 +196,7 @@ export default function ApplicationSuggestionsPage() {
               <p className="mt-1 whitespace-pre-wrap text-xs font-semibold leading-5 text-neutral-600">
                 {item.details}
               </p>
-              <p className="mt-2 text-[10px] font-bold text-neutral-400">
+              <p className="mt-2 type-caption font-bold text-neutral-400">
                 {item.submittedByName || item.submittedByEmail} · {formatDate(item.createdAt)}
                 {item.sourcePath ? ` · ${item.sourcePath}` : ""}
               </p>

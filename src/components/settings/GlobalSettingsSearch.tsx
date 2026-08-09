@@ -251,11 +251,11 @@ export function GlobalSettingsSearch({
             <p className="truncate text-sm font-black text-neutral-950">
               {entry.title}
             </p>
-            <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-neutral-500">
+            <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-neutral-500">
               {entry.section}
             </span>
           </div>
-          <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold leading-4 text-neutral-500">
+          <p className="mt-0.5 line-clamp-1 type-caption font-semibold leading-4 text-neutral-500">
             {entry.description}
           </p>
         </div>
@@ -302,7 +302,7 @@ export function GlobalSettingsSearch({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-black text-neutral-950">{copy.title}</p>
-                  <p className="text-[10px] font-semibold text-neutral-400">
+                  <p className="type-caption font-semibold text-neutral-400">
                     {entries.length} opciones disponibles
                   </p>
                 </div>
@@ -368,7 +368,7 @@ export function GlobalSettingsSearch({
                 matchingEntries.length > 0 ? (
                   <div className="overflow-hidden rounded-xl border border-neutral-200">
                     <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                      <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                         {copy.results} · {matchingEntries.length}
                       </p>
                     </div>
@@ -381,7 +381,7 @@ export function GlobalSettingsSearch({
                     <p className="text-xs font-black text-neutral-800">
                       {copy.noResultsTitle}
                     </p>
-                    <p className="mt-1 text-[11px] font-semibold text-neutral-500">
+                    <p className="mt-1 type-caption font-semibold text-neutral-500">
                       {copy.noResultsDescription}
                     </p>
                   </div>
@@ -391,7 +391,7 @@ export function GlobalSettingsSearch({
                   {recentEntries.length > 0 ? (
                     <div className="overflow-hidden rounded-xl border border-neutral-200">
                       <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                        <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                           {copy.recent}
                         </p>
                       </div>
@@ -404,7 +404,7 @@ export function GlobalSettingsSearch({
                   {suggestedEntries.length > 0 ? (
                     <div className="overflow-hidden rounded-xl border border-neutral-200">
                       <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                        <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                           {copy.suggested}
                         </p>
                       </div>

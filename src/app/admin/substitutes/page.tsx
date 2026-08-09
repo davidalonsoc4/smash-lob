@@ -218,15 +218,14 @@ export default function AdminSubstitutesPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label="Volver" />
         <p className="mt-2 text-xs font-bold text-neutral-500">{activeLeague.name} · {activeSeason.name}</p>
-        <h1 className="mt-1 text-2xl font-black">Suplentes y reemplazos</h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">Los suplentes son jugadores ajenos a los titulares. Nunca se puede utilizar a un titular de esta temporada como suplente.</p>
+        <h1 className="type-page-title mt-1 text-2xl font-black">Suplentes y reemplazos</h1>
       </header>
 
       {error ? <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{error}</p> : null}
 
       <AppCard>
         <p className="font-black">Bolsa de suplentes</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">Puedes dejar jugadores preparados o añadir uno nuevo desde el propio partido.</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">Los suplentes son jugadores ajenos a los titulares. Nunca se puede utilizar a un titular de esta temporada como suplente. Puedes dejarlos preparados o añadir uno nuevo desde el propio partido.</p>
         <form onSubmit={addSubstitute} className="mt-3 flex gap-2">
           <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Nombre del suplente" maxLength={80} className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" />
           <button disabled={isSaving || displayName.trim().length < 2} className="rounded-2xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">Añadir</button>
@@ -242,7 +241,7 @@ export default function AdminSubstitutesPage() {
           ) : null}
           {activePool.map((item) => {
             const profile = getPoolProfile(item)
-            return <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"><div><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="text-[11px] font-semibold text-neutral-500">Disponible para sustituciones puntuales</p></div><button type="button" onClick={() => removeSubstitute(item.id)} disabled={isSaving} className="text-xs font-black text-red-600">Retirar</button></div>
+            return <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"><div><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="type-caption font-semibold text-neutral-500">Disponible para sustituciones puntuales</p></div><button type="button" onClick={() => removeSubstitute(item.id)} disabled={isSaving} className="text-xs font-black text-red-600">Retirar</button></div>
           })}
         </div>
       </AppCard>
@@ -268,7 +267,7 @@ export default function AdminSubstitutesPage() {
                 return (
                   <div key={replacement.id} className="rounded-2xl bg-red-50 px-3 py-2.5">
                     <p className="text-sm font-black text-neutral-950">{outgoing?.displayName ?? "Titular"} → {incoming?.displayName ?? "Nuevo titular"}</p>
-                    <p className="mt-0.5 text-[11px] font-semibold text-red-700">Baja y reemplazo desde la jornada {replacement.from_round}</p>
+                    <p className="mt-0.5 type-caption font-semibold text-red-700">Baja y reemplazo desde la jornada {replacement.from_round}</p>
                   </div>
                 )
               })}
@@ -304,11 +303,11 @@ export default function AdminSubstitutesPage() {
                       <p className="truncate text-sm font-black">
                         J{item.match?.round ?? "-"} · {original?.displayName ?? "Titular"} → {substitute?.displayName ?? poolProfile?.display_name ?? "Suplente"}
                       </p>
-                      <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                      <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                         Sustitución para un único partido
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-neutral-600">
+                    <span className="shrink-0 rounded-full bg-white px-2 py-1 type-caption font-black text-neutral-600">
                       {getMatchStatusText(item.match?.status ?? "")}
                     </span>
                   </div>
@@ -330,7 +329,7 @@ export default function AdminSubstitutesPage() {
             />
           ) : stats.filter((item) => item.matchesPlayed > 0).map((item) => {
             const profile = getPoolProfile(payload.substitutes.find((poolItem) => poolItem.player_id === item.playerId) as PoolPlayer)
-            return <div key={item.playerId} className="rounded-2xl bg-neutral-50 px-3 py-2.5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="text-sm font-black">{item.points} pts</p></div><p className="mt-1 text-[11px] font-semibold text-neutral-500">{item.matchesPlayed} partidos · {item.wins} victorias · diferencia {item.gamesDiff > 0 ? "+" : ""}{item.gamesDiff}</p></div>
+            return <div key={item.playerId} className="rounded-2xl bg-neutral-50 px-3 py-2.5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="text-sm font-black">{item.points} pts</p></div><p className="mt-1 type-caption font-semibold text-neutral-500">{item.matchesPlayed} partidos · {item.wins} victorias · diferencia {item.gamesDiff > 0 ? "+" : ""}{item.gamesDiff}</p></div>
           })}
         </div>
       </AppCard>

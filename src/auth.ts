@@ -1,9 +1,12 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import Credentials from "next-auth/providers/credentials"
 import { readAuthEnvironment } from "@/lib/authEnvironment"
 import { createIncidenceCode, logServerEvent } from "@/lib/serverLog"
+import { getLocalDevAuthUser } from "@/lib/serverLocalDevAuth"
 
 const authEnvironment = readAuthEnvironment()
+const localDevUser = getLocalDevAuthUser()
 
 function getAuthErrorCode(error: unknown) {
   if (!error || typeof error !== "object") {
@@ -45,6 +48,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: authEnvironment.values.AUTH_GOOGLE_ID,
       clientSecret: authEnvironment.values.AUTH_GOOGLE_SECRET,
     }),
+    ...(localDevUser
+      ? [
+          Credentials({
+            id: "local-dev",
+            name: "Local development",
+            credentials: {
+              local: { type: "hidden" },
+            },
+            authorize(credentials) {
+              return credentials.local === "1" ? localDevUser : null
+            },
+          }),
+        ]
+      : []),
   ],
   pages: {
     error: "/auth/error",

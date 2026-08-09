@@ -49,7 +49,7 @@ export function FloatingHelpButton({ right }: { right: string }) {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-lg font-black tracking-tight">{currentTour?.title ?? copy.noTourTitle}</h2>
+                <h2 className="type-section-title text-lg font-black tracking-tight">{currentTour?.title ?? copy.noTourTitle}</h2>
                 <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
                   {currentTour?.description ?? copy.noTourDescription}
                 </p>

@@ -1,7 +1,6 @@
 "use client"
 
 import { ChangeEvent, FormEvent, useState } from "react"
-import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { ImageCropDialog } from "@/components/images/ImageCropDialog"
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
@@ -368,7 +367,7 @@ function ProfileStatisticsVisibilityCard({
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {t.adminLeague.profileStatsVisibilityDescription}
           </p>
-          <p className="mt-1.5 text-[11px] font-black text-neutral-700">
+          <p className="mt-1.5 type-caption font-black text-neutral-700">
             {enabled
               ? t.adminLeague.profileStatsVisibilityAll
               : t.adminLeague.profileStatsVisibilityCurrent}
@@ -405,7 +404,6 @@ function DeleteLeagueCard({
   leagueName,
   onDeleteLeague,
 }: DeleteLeagueCardProps) {
-  const router = useRouter()
   const [confirmation, setConfirmation] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -430,10 +428,7 @@ function DeleteLeagueCard({
       return
     }
 
-    router.replace("/settings")
-    window.setTimeout(() => {
-      window.location.reload()
-    }, 80)
+    window.location.replace("/leagues")
   }
 
   return (
@@ -599,7 +594,7 @@ export default function AdminLeaguePage() {
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -623,13 +618,10 @@ export default function AdminLeaguePage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.adminLeague.title}
         </h1>
 
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {t.adminLeague.description}
-        </p>
       </header>
 
       <AppCard className="p-2.5">
@@ -655,7 +647,7 @@ export default function AdminLeaguePage() {
       </AppCard>
 
       <div className="px-1 pt-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Identidad
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -675,7 +667,7 @@ export default function AdminLeaguePage() {
       </div>
 
       <div className="px-1 pt-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Lugares habituales
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -692,7 +684,7 @@ export default function AdminLeaguePage() {
       </div>
 
       <div className="px-1 pt-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Historial y perfiles
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -709,7 +701,7 @@ export default function AdminLeaguePage() {
       {canDeleteLeague ? (
         <>
           <div className="px-1 pt-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400">
+            <p className="type-caption font-black uppercase tracking-[0.2em] text-red-400">
               Zona sensible
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-red-600">

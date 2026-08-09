@@ -344,7 +344,7 @@ export function ImageCropDialog({
             </div>
           </div>
 
-          <p className="mt-2 text-center text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 text-center type-caption font-semibold text-neutral-500 dark:text-neutral-400">
             Arrastra la imagen para colocarla dentro del marco.
           </p>
 

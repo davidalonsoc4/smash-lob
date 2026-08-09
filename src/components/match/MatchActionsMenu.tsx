@@ -114,7 +114,7 @@ export function MatchActionsTrigger({
             <button
               type="button"
               onClick={() => selectPanel("incident")}
-              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left text-[11px] font-black hover:bg-neutral-100"
+              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left type-caption font-black hover:bg-neutral-100"
             >
               <span aria-hidden="true">⚠</span>
               {match.incidentStatus
@@ -127,7 +127,7 @@ export function MatchActionsTrigger({
             <button
               type="button"
               onClick={() => selectPanel("substitution")}
-              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left text-[11px] font-black hover:bg-neutral-100"
+              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left type-caption font-black hover:bg-neutral-100"
             >
               <span aria-hidden="true">↔</span>
               Gestionar suplente

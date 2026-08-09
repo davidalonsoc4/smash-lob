@@ -35,7 +35,7 @@ export function PlayerMvpPanel({
     <AppCard className="p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
             MVP
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -47,7 +47,7 @@ export function PlayerMvpPanel({
           <p className="text-lg font-black leading-none">
             {summary.roundMvpCount}
           </p>
-          <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-300">
+          <p className="mt-1 type-caption font-black uppercase tracking-wide text-neutral-300">
             total
           </p>
         </div>
@@ -64,7 +64,7 @@ export function PlayerMvpPanel({
       )}
 
       {showFinalMvp ? (
-        <p className="mt-2 inline-flex rounded-full bg-neutral-950 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-white">
+        <p className="mt-2 inline-flex rounded-full bg-neutral-950 px-3 py-1 type-caption font-black uppercase tracking-wide text-white">
           MVP final de temporada
         </p>
       ) : null}

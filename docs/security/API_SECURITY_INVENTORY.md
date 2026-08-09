@@ -57,6 +57,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/spectators` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/spectators` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/users` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/locations` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/locations` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/matches/[matchId]/court-booking` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | DELETE | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking/payment-reminder` | POST | Protegido | getServerMatchActor |
@@ -86,6 +88,12 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/onboarding/progress` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/onboarding/progress` | PATCH | Protegido | requireAuthenticatedAppUser |
 | `/api/onboarding/progress` | DELETE | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]` | PATCH | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]` | DELETE | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/people` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/qa` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/qa` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/result-confirmations` | POST | Protegido | requireAuthenticatedAppUser |

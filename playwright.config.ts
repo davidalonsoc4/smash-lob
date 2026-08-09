@@ -9,6 +9,8 @@ const testEnvironment = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "playwright-anon-key",
   SUPABASE_SERVICE_ROLE_KEY: "playwright-service-role-key",
   NEXT_PUBLIC_ENABLE_DEMO_DATA: "true",
+  NEXT_PUBLIC_LOCAL_DEV_AUTO_LOGIN: "0",
+  LOCAL_DEV_USER_EMAIL: "",
 }
 
 export default defineConfig({

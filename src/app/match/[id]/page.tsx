@@ -13,9 +13,8 @@ import {
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
-import { MatchScoreboard } from "@/components/match/MatchScoreboard"
+import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
-import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -25,6 +24,7 @@ import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
+import { getRankingDisplayPosition } from "@/lib/rankingOrder"
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCalendarText,
@@ -44,8 +44,15 @@ export default function MatchDetailPage() {
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
-  const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
-    useCurrentLeagueData()
+  const {
+    activeLeague,
+    activeSeason,
+    roundSettings,
+    rounds,
+    players,
+    rankingPlayers,
+    matches,
+  } = useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)
@@ -178,6 +185,12 @@ export default function MatchDetailPage() {
     votes,
     mvpSystem: roundSettings.mvpSystem,
   })
+  const rankingPositions = Object.fromEntries(
+    [...match.teamA, ...match.teamB].map((playerId) => [
+      playerId,
+      getRankingDisplayPosition(rankingPlayers, playerId),
+    ]),
+  )
   const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
     currentUserId
   )
@@ -261,80 +274,64 @@ export default function MatchDetailPage() {
     Boolean(match.incidentStatus)
 
   return (
-    <div className="space-y-3">
-      <header className="pt-1">
-        <BackButton fallbackHref="/matches" label={t.common.back} />
-
-        <div className="mt-3 min-w-0 w-full" style={{ maxWidth: "none" }}>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-            {activeLeague.name}
-          </p>
-
-          <div className="mt-1 flex min-w-0 items-start justify-between gap-2.5">
-            <h1 className="min-w-0 text-2xl font-black tracking-tight">
-              {t.matchDetail.title}
-            </h1>
-
-            <div className="flex shrink-0 flex-col items-end gap-0.5">
-              <MatchStatusBadge
-                status={match.status}
-                scheduledAt={match.scheduledAt}
-                resultRecordedAt={match.resultRecordedAt}
-              />
-
-              <MatchActionsTrigger
-                match={match}
-                players={players}
-                isAdmin={isAdmin}
-                canReportIncident={canReportIncident}
-                canManageSubstitutions={canManageSubstitutions}
-                menuOpen={matchActionsMenuOpen}
-                onMenuOpenChange={setMatchActionsMenuOpen}
-                onSelectPanel={(panel) => {
-                  setOpenMatchActionPanel((current) =>
-                    current === panel ? null : panel
-                  )
-                }}
-              />
-            </div>
-          </div>
-
-          <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
-            {t.matches.round} {match.round}
-          </p>
-        </div>
-      </header>
-
-      {hasContextualMatchActions ? (
-        <ContextualTip
-          tipId="match-actions"
-          title={t.onboardingTips.matchActionsTitle}
-          description={t.onboardingTips.matchActionsDescription}
-          dismissLabel={t.onboardingTips.dismiss}
-          compact
+    <MatchDetailView
+      backHref="/matches"
+      backLabel={t.common.back}
+      eyebrow={activeLeague.name}
+      title={`${t.matches.round} ${match.round}`}
+      status={match.status}
+      scheduledAt={match.scheduledAt}
+      resultRecordedAt={match.resultRecordedAt}
+      headerActions={
+        <MatchActionsTrigger
+          match={match}
+          players={players}
+          isAdmin={isAdmin}
+          canReportIncident={canReportIncident}
+          canManageSubstitutions={canManageSubstitutions}
+          menuOpen={matchActionsMenuOpen}
+          onMenuOpenChange={setMatchActionsMenuOpen}
+          onSelectPanel={(panel) => {
+            setOpenMatchActionPanel((current) =>
+              current === panel ? null : panel
+            )
+          }}
         />
-      ) : null}
+      }
+      beforePairing={
+        <>
+          {hasContextualMatchActions ? (
+            <ContextualTip
+              tipId="match-actions"
+              title={t.onboardingTips.matchActionsTitle}
+              description={t.onboardingTips.matchActionsDescription}
+              dismissLabel={t.onboardingTips.dismiss}
+              compact
+            />
+          ) : null}
 
-      {isSeasonUpcoming ? (
-        <AppCard>
-          <p className="font-black">Temporada próximamente</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Esta temporada ya está creada, pero todavía no ha comenzado. No se pueden programar partidos ni registrar resultados hasta que un admin pulse Comenzar temporada.
-          </p>
-        </AppCard>
-      ) : null}
-
-      <MatchScoreboard
-        teamA={match.teamA}
-        teamB={match.teamB}
-        players={players}
-        pointsA={match.pointsA}
-        pointsB={match.pointsB}
-        sets={match.sets}
-        substitutions={match.substitutions}
-        highlightedPlayerIds={roundMvpPlayerIds}
-      />
-
+          {isSeasonUpcoming ? (
+            <AppCard>
+              <p className="type-panel-title">Temporada próximamente</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                Esta temporada ya está creada, pero todavía no ha comenzado. No se pueden programar partidos ni registrar resultados hasta que un admin pulse Comenzar temporada.
+              </p>
+            </AppCard>
+          ) : null}
+        </>
+      }
+      pairing={{
+        teamA: match.teamA,
+        teamB: match.teamB,
+        players,
+        pointsA: match.pointsA,
+        pointsB: match.pointsB,
+        sets: match.sets,
+        substitutions: match.substitutions,
+        highlightedPlayerIds: roundMvpPlayerIds,
+        rankingPositions,
+      }}
+    >
       <MatchActionsContent
         match={match}
         players={players}
@@ -373,7 +370,7 @@ export default function MatchDetailPage() {
         <AppCard>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-black">{t.rounds.officialWindow}</p>
+              <p className="type-panel-title">{t.rounds.officialWindow}</p>
 
               {roundWindowText ? (
                 <p className="mt-0.5 text-xs font-semibold text-neutral-600">
@@ -383,7 +380,7 @@ export default function MatchDetailPage() {
             </div>
 
             {roundStatusText ? (
-              <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-black text-neutral-700">
+              <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 type-caption font-black text-neutral-700">
                 {roundStatusText}
               </span>
             ) : null}
@@ -463,7 +460,7 @@ export default function MatchDetailPage() {
       !isEditingResult ? (
         <AppCard>
           <div>
-            <p className="font-black">{t.matchResult.registeredTitle}</p>
+            <p className="type-panel-title">{t.matchResult.registeredTitle}</p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
               {resultIsLocked
                 ? "El resultado está fijado como definitivo por la administración."
@@ -546,12 +543,12 @@ export default function MatchDetailPage() {
 
       {match.status === "postponed" && !canEnterResult ? (
         <AppCard>
-          <p className="font-black">{t.matchResult.postponedTitle}</p>
+          <p className="type-panel-title">{t.matchResult.postponedTitle}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {t.matchResult.postponedDescription}
           </p>
         </AppCard>
       ) : null}
-    </div>
+    </MatchDetailView>
   )
 }

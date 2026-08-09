@@ -318,6 +318,8 @@ export const en = {
       "Fixed rounds created by the admin. Players schedule date, time and place.",
     round: "Round",
     finished: "Finished",
+    victory: "Victory",
+    defeat: "Defeat",
     scheduled: "Scheduled",
     unscheduled: "Unscheduled",
     postponed: "Postponed",

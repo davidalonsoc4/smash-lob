@@ -57,7 +57,7 @@ export function StatisticsDataQualityPanel({
     <AppCard className="statistics-quality-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-black">Estado de los datos</p>
+          <p className="type-panel-title">Estado de los datos</p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
             {complete
               ? "Temporada cerrada y estadísticas listas para su resumen final."
@@ -67,7 +67,7 @@ export function StatisticsDataQualityPanel({
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${badgeClassName(
+          className={`shrink-0 rounded-full px-2.5 py-1 type-caption font-black uppercase tracking-wide ${badgeClassName(
             complete ? "ok" : seasonStatus === "finished" ? "warning" : "neutral",
           )}`}
         >
@@ -80,13 +80,13 @@ export function StatisticsDataQualityPanel({
           issues.map((issue) => (
             <span
               key={issue.label}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-black ${badgeClassName(issue.tone)}`}
+              className={`rounded-full px-2.5 py-1 type-caption font-black ${badgeClassName(issue.tone)}`}
             >
               {issue.label}
             </span>
           ))
         ) : (
-          <span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${badgeClassName("ok")}`}>
+          <span className={`rounded-full px-2.5 py-1 type-caption font-black ${badgeClassName("ok")}`}>
             Sin incidencias estadísticas
           </span>
         )}

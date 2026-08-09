@@ -1,8 +1,8 @@
 export const badgeBaseClassName =
-  "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide leading-none"
+  "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-black uppercase tracking-wide leading-none"
 
 export const compactBadgeBaseClassName =
-  "shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] leading-none"
+  "shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] leading-none"
 
 type MatchDisplayStatus =
   | "finished"
@@ -52,7 +52,7 @@ export function getMatchStatusBadgeClassName(status: string) {
 
   return getBadgeClassName(
     toneByStatus[status as MatchDisplayStatus] ?? "neutral",
-    "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black leading-none"
+    "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-medium uppercase tracking-wide leading-none"
   )
 }
 

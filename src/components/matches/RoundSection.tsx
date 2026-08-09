@@ -26,7 +26,7 @@ export function RoundSection({ round, matches }: RoundSectionProps) {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-black">
+      <h2 className="type-section-title text-lg font-black">
         {t.matches.round} {round}
       </h2>
 

@@ -1,6 +1,6 @@
 begin;
 
-select plan(16);
+select plan(30);
 
 select ok(
   not exists (
@@ -151,6 +151,116 @@ select has_pk(
   'public',
   'user_onboarding_progress',
   'guided onboarding progress has one row per user and tour'
+);
+
+select has_table(
+  'public',
+  'personal_matches',
+  'personal matches are stored separately from league competition'
+);
+
+select has_pk(
+  'public',
+  'personal_matches',
+  'personal matches have a primary key'
+);
+
+select has_table(
+  'public',
+  'personal_match_participants',
+  'personal match participants support shared account history'
+);
+
+select has_pk(
+  'public',
+  'personal_match_participants',
+  'personal match participants have a primary key'
+);
+
+select has_column(
+  'public',
+  'personal_matches',
+  'status',
+  'personal matches distinguish scheduled and finished friendlies'
+);
+
+select has_column(
+  'public',
+  'personal_matches',
+  'result_recorded_at',
+  'personal matches preserve when a result was recorded'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_proc as procedure
+    join pg_namespace as namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'public'
+      and procedure.proname = 'server_list_user_match_history'
+  ),
+  'server history RPC aggregates league and personal matches'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_proc as procedure
+    join pg_namespace as namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'public'
+      and procedure.proname = 'server_next_user_matches'
+  ),
+  'server next-match RPC exposes league and friendly candidates'
+);
+
+select is(
+  (
+    select count(*)::integer
+    from pg_proc as procedure
+    join pg_namespace as namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'public'
+      and procedure.proname = 'server_create_personal_match'
+      and procedure.pronargs in (5, 6)
+  ),
+  2,
+  'both v1.4.0 and v1.4.1 personal-match creation signatures remain available during rollout'
+);
+
+select ok(
+  exists (
+    select 1
+    from supabase_migrations.schema_migrations
+    where version = '20260808124000'
+  ),
+  'the unified personal history migration is recorded'
+);
+
+select has_table(
+  'public',
+  'padel_locations',
+  'global padel locations are stored in a dedicated catalog'
+);
+
+select has_pk(
+  'public',
+  'padel_locations',
+  'global padel locations have a primary key'
+);
+
+select has_column(
+  'public',
+  'padel_locations',
+  'canonical_key',
+  'global padel locations have a canonical deduplication key'
+);
+
+select ok(
+  exists (
+    select 1
+    from supabase_migrations.schema_migrations
+    where version = '20260808183000'
+  ),
+  'the global padel locations migration is recorded'
 );
 
 select * from finish();

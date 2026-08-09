@@ -26,7 +26,7 @@ function RecordCard({
 }) {
   return (
     <AppCard className="min-w-0">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+      <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
         {eyebrow}
       </p>
       <p className="mt-1 text-base font-black leading-5">{headline}</p>
@@ -34,7 +34,7 @@ function RecordCard({
         {description}
       </p>
       {matchLine ? (
-        <p className="mt-2 rounded-lg bg-neutral-50 px-2.5 py-2 text-[10px] font-bold leading-4 text-neutral-500">
+        <p className="mt-2 rounded-lg bg-neutral-50 px-2.5 py-2 type-caption font-bold leading-4 text-neutral-500">
           {matchLine}
         </p>
       ) : null}
@@ -64,7 +64,7 @@ export function SeasonRecordsPanel({
   return (
     <div className="space-y-3">
       <div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Récord individual
         </p>
         <RecordCard
@@ -79,7 +79,7 @@ export function SeasonRecordsPanel({
       </div>
 
       <div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           {isLeagueWide
             ? "Partidos que marcaron la liga"
             : "Partidos que marcaron la temporada"}

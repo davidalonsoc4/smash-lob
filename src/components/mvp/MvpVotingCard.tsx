@@ -70,8 +70,8 @@ export function MvpVotingCard({
     return (
       <AppCard className="p-2.5">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-black">MVP de la jornada</p>
-          <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-600">
+          <p className="type-panel-title">MVP de la jornada</p>
+          <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
             Automático
           </span>
         </div>
@@ -122,13 +122,13 @@ export function MvpVotingCard({
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-black">MVP del partido</p>
+        <p className="type-panel-title">MVP del partido</p>
         {hasPendingVote ? (
-          <span className="rounded-full bg-amber-200 px-2 py-1 text-[10px] font-black text-amber-900">
+          <span className="rounded-full bg-amber-200 px-2 py-1 type-caption font-black text-amber-900">
             Voto pendiente
           </span>
         ) : currentVote || matchProgress.complete ? (
-          <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700">
+          <span className="rounded-full bg-emerald-100 px-2 py-1 type-caption font-black text-emerald-700">
             {matchProgress.complete ? "Cerrado" : "Votado"}
           </span>
         ) : null}
@@ -156,7 +156,7 @@ export function MvpVotingCard({
                   size="sm"
                   className={selected ? "bg-white text-neutral-950" : undefined}
                 />
-                <span className="w-full truncate text-center text-[11px] font-black">
+                <span className="w-full truncate text-center type-caption font-black">
                   {player.displayName}
                 </span>
               </button>
@@ -172,7 +172,7 @@ export function MvpVotingCard({
       ) : null}
 
       {error ? (
-        <p className="mt-1.5 text-[11px] font-semibold text-red-600">{error}</p>
+        <p className="mt-1.5 type-caption font-semibold text-red-600">{error}</p>
       ) : null}
 
       {matchProgress.complete && matchMvpPlayers.length > 0 ? (
@@ -211,14 +211,14 @@ function MvpResultPanel({
         ))}
       </div>
       <div className="min-w-0">
-        <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/60">
+        <p className="type-caption font-black uppercase tracking-[0.14em] text-white/60">
           ⭐ MVP {title}
         </p>
         <p className="truncate text-sm font-black">
           {players.map((player) => player.displayName).join(" / ")}
         </p>
         {detail ? (
-          <p className="text-[10px] font-semibold text-white/65">{detail}</p>
+          <p className="type-caption font-semibold text-white/65">{detail}</p>
         ) : null}
       </div>
     </div>

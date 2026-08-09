@@ -162,7 +162,7 @@ function buildUrl(recipe: Recipe, revision: number) {
 
 function OptionButton({ selected, label, onClick }: { selected: boolean; label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`min-h-12 rounded-2xl border px-3 py-2 text-[11px] font-black ${selected ? "border-rose-700 bg-rose-50 text-rose-950 ring-2 ring-rose-700/15" : "border-neutral-200 bg-white text-neutral-700"}`}>
+    <button type="button" onClick={onClick} className={`min-h-12 rounded-2xl border px-3 py-2 type-caption font-black ${selected ? "border-rose-700 bg-rose-50 text-rose-950 ring-2 ring-rose-700/15" : "border-neutral-200 bg-white text-neutral-700"}`}>
       {label}
     </button>
   )
@@ -172,17 +172,17 @@ function ColorButton({ hex, selected, label, onClick }: { hex: string; selected:
   return (
     <button type="button" onClick={onClick} aria-label={label} className={`rounded-2xl border bg-white p-2 ${selected ? "border-rose-700 ring-2 ring-rose-700/20" : "border-neutral-200"}`}>
       <span className="block aspect-square w-full rounded-xl border border-black/10" style={{ backgroundColor: `#${hex}` }} />
-      <span className="mt-1 block text-center text-[9px] font-black text-neutral-600">{label}</span>
+      <span className="mt-1 block text-center type-caption font-black text-neutral-600">{label}</span>
     </button>
   )
 }
 
 function CustomColor({ label, hex, onChange }: { label: string; hex: string; onChange: (hex: string) => void }) {
   return (
-    <label className="flex items-center justify-between gap-3 rounded-2xl bg-stone-50 p-3 text-[11px] font-black text-neutral-700">
+    <label className="flex items-center justify-between gap-3 rounded-2xl bg-stone-50 p-3 type-caption font-black text-neutral-700">
       <span>{label}</span>
       <span className="flex items-center gap-2">
-        <span className="font-mono text-[10px] text-neutral-500">#{hex}</span>
+        <span className="font-mono type-caption text-neutral-500">#{hex}</span>
         <input
           type="color"
           value={`#${hex}`}
@@ -200,7 +200,7 @@ function CustomColor({ label, hex, onChange }: { label: string; hex: string; onC
 function Slider({ label, value, min, max, step, suffix, onChange }: { label: string; value: number; min: number; max: number; step: number; suffix?: string; onChange: (value: number) => void }) {
   return (
     <label className="block rounded-2xl bg-stone-50 p-3">
-      <span className="flex items-center justify-between gap-3 text-[11px] font-black text-neutral-700">
+      <span className="flex items-center justify-between gap-3 type-caption font-black text-neutral-700">
         <span>{label}</span>
         <span>{value}{suffix ?? ""}</span>
       </span>
@@ -329,7 +329,7 @@ export function BigSmileEditorClient() {
 
       <AppCard className="border-amber-200 bg-amber-50">
         <p className="text-xs font-black text-amber-950">Solo pruebas en PRE</p>
-        <p className="mt-1 text-[11px] font-semibold leading-5 text-amber-800">
+        <p className="mt-1 type-caption font-semibold leading-5 text-amber-800">
           La configuración se guarda únicamente en este navegador para que puedas seguir trasteando desde el móvil.
         </p>
       </AppCard>
@@ -337,27 +337,27 @@ export function BigSmileEditorClient() {
       <AppCard className="overflow-hidden !p-0">
           <div className="relative flex h-[250px] items-center justify-center bg-stone-50 p-3 sm:h-[310px]">
             <img key={avatarUrl} src={avatarUrl} alt="Avatar DiceBear Big Smile" className="h-full w-full object-contain" onLoad={() => setPreviewResult({ url: avatarUrl, state: "ready" })} onError={() => setPreviewResult({ url: avatarUrl, state: "error" })} />
-            {previewState === "loading" ? <span className="absolute bottom-3 rounded-full bg-white/90 px-3 py-1 text-[10px] font-black text-neutral-600 shadow">Actualizando…</span> : null}
+            {previewState === "loading" ? <span className="absolute bottom-3 rounded-full bg-white/90 px-3 py-1 type-caption font-black text-neutral-600 shadow">Actualizando…</span> : null}
             {previewState === "error" ? (
-              <button type="button" onClick={() => setRevision((value) => value + 1)} className="absolute bottom-3 rounded-full bg-red-50 px-3 py-1 text-[10px] font-black text-red-700 shadow">Reintentar vista</button>
+              <button type="button" onClick={() => setRevision((value) => value + 1)} className="absolute bottom-3 rounded-full bg-red-50 px-3 py-1 type-caption font-black text-red-700 shadow">Reintentar vista</button>
             ) : null}
           </div>
           <div className="border-t border-neutral-100 p-3">
-            <label className="block text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+            <label className="block type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
               Semilla
               <input value={recipe.seed} onChange={(event: ChangeEvent<HTMLInputElement>) => update("seed", event.target.value)} className="mt-2 h-10 w-full rounded-2xl border border-neutral-200 bg-stone-50 px-3 text-sm font-bold outline-none focus:border-rose-500" />
             </label>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-              {PRESETS.map((preset) => <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="shrink-0 rounded-full bg-stone-100 px-3 py-2 text-[10px] font-black text-neutral-700">{preset.label}</button>)}
+              {PRESETS.map((preset) => <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="shrink-0 rounded-full bg-stone-100 px-3 py-2 type-caption font-black text-neutral-700">{preset.label}</button>)}
             </div>
-            {status ? <div className="mt-1 text-center text-[11px] font-black text-rose-700">{status}</div> : null}
+            {status ? <div className="mt-1 text-center type-caption font-black text-rose-700">{status}</div> : null}
           </div>
         </AppCard>
 
       <AppCard>
           <div className="flex gap-2 overflow-x-auto pb-2">
             {CATEGORIES.map((item) => (
-              <button key={item.id} type="button" onClick={() => setCategory(item.id)} className={`shrink-0 rounded-full px-3 py-2 text-[10px] font-black ${category === item.id ? "bg-rose-700 text-white" : "bg-stone-100 text-neutral-700"}`}>
+              <button key={item.id} type="button" onClick={() => setCategory(item.id)} className={`shrink-0 rounded-full px-3 py-2 type-caption font-black ${category === item.id ? "bg-rose-700 text-white" : "bg-stone-100 text-neutral-700"}`}>
                 {item.label}
               </button>
             ))}
@@ -483,7 +483,7 @@ export function BigSmileEditorClient() {
 
           {category === "advanced" ? (
             <div className="space-y-3">
-              <p className="rounded-2xl bg-amber-50 p-3 text-[11px] font-semibold leading-5 text-amber-950">DiceBear permite controlar la probabilidad de aparición de cada componente. Al 100% siempre se muestra; al 0% se oculta.</p>
+              <p className="rounded-2xl bg-amber-50 p-3 type-caption font-semibold leading-5 text-amber-950">DiceBear permite controlar la probabilidad de aparición de cada componente. Al 100% siempre se muestra; al 0% se oculta.</p>
               <Slider label="Probabilidad de pelo" value={recipe.hairProbability} min={0} max={100} step={5} suffix="%" onChange={(value) => update("hairProbability", value)} />
               <Slider label="Probabilidad de ojos" value={recipe.eyesProbability} min={0} max={100} step={5} suffix="%" onChange={(value) => update("eyesProbability", value)} />
               <Slider label="Probabilidad de boca" value={recipe.mouthProbability} min={0} max={100} step={5} suffix="%" onChange={(value) => update("mouthProbability", value)} />
@@ -501,7 +501,7 @@ export function BigSmileEditorClient() {
         </div>
       </AppCard>
 
-      <p className="px-1 text-center text-[10px] font-semibold leading-4 text-neutral-500">
+      <p className="px-1 text-center type-caption font-semibold leading-4 text-neutral-500">
         Big Smile utiliza la API pública de DiceBear. Esta pantalla es experimental y no escribe datos en tu cuenta ni en la liga.
       </p>
     </div>

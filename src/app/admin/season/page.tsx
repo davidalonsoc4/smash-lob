@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ContextualTip } from "@/components/onboarding/ContextualTip";
+import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import type { MvpSystem } from "@/lib/mvp";
+import type { LeagueLocation } from "@/lib/leagueLocations";
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations";
 import type { RosterMode } from "@/data/fakeData";
 import { recordActivityEvent } from "@/lib/activity";
@@ -99,7 +101,7 @@ function SeasonSectionIntro({
 }) {
   return (
     <div className="px-1 pt-1">
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
+      <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-600">
         {title}
       </p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -244,7 +246,7 @@ function SeasonNavigation({
       <div className="mt-3 space-y-3">
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-600">
+            <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-600">
               {group.title}
             </p>
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -869,7 +871,7 @@ function SeasonConfigurationSummary({
             {activeSeason.name}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-600">
+        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
           {statusValue}
         </span>
       </div>
@@ -877,10 +879,10 @@ function SeasonConfigurationSummary({
       <div className="mt-3 grid grid-cols-2 gap-2">
         {items.slice(1).map(([title, value]) => (
           <div key={title} className="min-w-0 rounded-xl bg-neutral-100 px-2.5 py-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-600">
+            <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
               {title}
             </p>
-            <p className="mt-0.5 text-[11px] font-black leading-4 text-neutral-800">
+            <p className="mt-0.5 type-caption font-black leading-4 text-neutral-800">
               {value}
             </p>
           </div>
@@ -1639,7 +1641,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
+          className={`shrink-0 rounded-full px-2.5 py-1 type-caption font-black ${
             calendarAudit.isPerfectlyBalanced
               ? "bg-emerald-100 text-emerald-800"
               : "bg-amber-100 text-amber-800"
@@ -1653,7 +1655,7 @@ function BalancedCalendarAuditPanel({
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditMode}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1661,7 +1663,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditPlayers}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1669,7 +1671,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditRounds}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1677,7 +1679,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditMatches}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1696,12 +1698,12 @@ function BalancedCalendarAuditPanel({
               <p className="text-xs font-black text-neutral-900">
                 {check.label}
               </p>
-              <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+              <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
                 {check.detail}
               </p>
             </div>
             <span
-              className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${
+              className={`shrink-0 rounded-full px-2 py-1 type-caption font-black ${
                 check.ok
                   ? "bg-emerald-100 text-emerald-800"
                   : "bg-amber-100 text-amber-800"
@@ -1960,7 +1962,7 @@ function RoundManagementPanel({
               }`}
             >
               <span className="block">J{round.round}</span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wide opacity-70">
+              <span className="mt-1 block type-caption uppercase tracking-wide opacity-70">
                 {isInitialRound
                   ? "Inicial"
                   : round.status === "active"
@@ -2093,7 +2095,7 @@ function RoundManagementPanel({
               </p>
             </div>
             {hasRoundOrderChanges ? (
-              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
                 Cambios
               </span>
             ) : null}
@@ -2264,7 +2266,7 @@ function SeasonPlayerNamesPanel({
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 type-caption font-black ${
                         isClaimed
                           ? "bg-emerald-100 text-emerald-800"
                           : "bg-amber-100 text-amber-800"
@@ -2789,11 +2791,13 @@ function NewSeasonForm({
   activeLeagueName,
   activeSeasonId,
   currentPlayers,
+  initialLocations,
 }: {
   activeLeagueId: string;
   activeLeagueName: string;
   activeSeasonId: string;
   currentPlayers: SeasonPlayerSummary[];
+  initialLocations: LeagueLocation[];
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -2802,10 +2806,12 @@ function NewSeasonForm({
     useSeasonSettings();
   const { createSeasonMatches, hydrateMatches } = useMatchData();
   const {
+    deleteLeague,
     getLeagueInviteCode,
     isSuperuser,
     leagues: accessibleLeagues,
     linkCurrentUserToLeaguePlayer,
+    updateLeagueLocations,
     userId,
   } = useLeagueAccess();
   const leaguePlayers = playerProfiles.filter(
@@ -2825,6 +2831,8 @@ function NewSeasonForm({
   const [newSeasonName, setNewSeasonName] = useState(
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount }),
   );
+  const [leagueLocations, setLeagueLocations] =
+    useState<LeagueLocation[]>(initialLocations);
   const [playerCount, setPlayerCount] = useState(defaultPlayerCount);
   const [rosterMode, setRosterMode] = useState<RosterMode>("fixed");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
@@ -3051,6 +3059,33 @@ function NewSeasonForm({
     setCreationFeedback(null);
   }
 
+  async function handleCancelLeagueCreation() {
+    if (!isFirstLeagueSeason || isSaving) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `¿Cancelar la creación de ${activeLeagueName}? Se eliminará la liga completa porque todavía no tiene ninguna temporada.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    const deleted = await deleteLeague(activeLeagueId);
+
+    if (!deleted) {
+      setError("No se ha podido cancelar la creación de la liga.");
+      setIsSaving(false);
+      return;
+    }
+
+    window.location.replace("/leagues");
+  }
+
   async function handleStartSeason(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -3091,6 +3126,19 @@ function NewSeasonForm({
     setIsSaving(true);
     setCreationFeedback(null);
     setError(null);
+
+    if (isFirstLeagueSeason) {
+      const locationsUpdated = await updateLeagueLocations(
+        activeLeagueId,
+        leagueLocations,
+      );
+
+      if (!locationsUpdated) {
+        setError("No se han podido guardar las ubicaciones de la liga.");
+        setIsSaving(false);
+        return;
+      }
+    }
 
     if (isSupabaseBackedId(activeLeagueId)) {
       try {
@@ -3248,6 +3296,58 @@ function NewSeasonForm({
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
             />
           </label>
+
+          {isFirstLeagueSeason ? (
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-sm font-black text-neutral-900">
+                Ubicaciones de la liga
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                Busca clubes ya guardados o añade uno nuevo. Estas ubicaciones estarán disponibles al programar los partidos.
+              </p>
+
+              <div className="mt-3">
+                <LeagueLocationsEditor
+                  locations={leagueLocations}
+                  onChange={(nextLocations) => {
+                    setLeagueLocations(nextLocations);
+                    setError(null);
+                  }}
+                  disabled={isSaving}
+                  copy={{
+                    emptyLocations: t.adminLeague.emptyLocations,
+                    addLocationTitle: t.adminLeague.addLocationTitle,
+                    locationName: t.adminLeague.locationName,
+                    locationPlaceholder: t.adminLeague.locationPlaceholder,
+                    town: t.adminLeague.town,
+                    townPlaceholder: t.adminLeague.townPlaceholder,
+                    googleLocation: t.adminLeague.googleLocation,
+                    googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
+                    courts: t.adminLeague.courts,
+                    courtsPlaceholder: t.adminLeague.courtsPlaceholder,
+                    duplicatedLocation: t.adminLeague.duplicatedLocation,
+                    addLocation: t.adminLeague.addLocation,
+                    editLocation: t.adminLeague.editLocation,
+                    saveLocation: t.adminLeague.saveLocation,
+                    cancelLocationEdit: t.adminLeague.cancelLocationEdit,
+                    removeLocation: t.adminLeague.removeLocation,
+                    openMaps: t.adminLeague.openMaps,
+                    searchMaps: t.adminLeague.searchMaps,
+                    googleApiMissing: t.adminLeague.googleApiMissing,
+                  }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCancelLeagueCreation}
+                disabled={isSaving}
+                className="mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300"
+              >
+                Cancelar creación de la liga
+              </button>
+            </div>
+          ) : null}
 
           <div>
             <p className="text-sm font-semibold text-neutral-700">
@@ -3407,7 +3507,7 @@ function NewSeasonForm({
                   </span>
                 </span>
                 {canLinkSelfPlayer && selectedSelfPlayerValue === player.id ? (
-                  <span className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-[10px] font-black text-neutral-950">
+                  <span className="shrink-0 rounded-full bg-amber-300 px-3 py-1 type-caption font-black text-neutral-950">
                     Tú
                   </span>
                 ) : null}
@@ -3440,7 +3540,7 @@ function NewSeasonForm({
                   </span>
                   {canLinkSelfPlayer &&
                   selectedSelfPlayerValue === getNewPlayerToken(index) ? (
-                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 text-[10px] font-black text-neutral-950">
+                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 type-caption font-black text-neutral-950">
                       Tú
                     </span>
                   ) : null}
@@ -3538,7 +3638,7 @@ function NewSeasonForm({
                             : t.adminSeason.extendedCalendar}
                       </span>
                       {isSelected ? (
-                        <span className="rounded-full bg-neutral-950 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                        <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
                           {t.common.active}
                         </span>
                       ) : null}
@@ -3683,7 +3783,7 @@ function NewSeasonForm({
                             Partido {matchIndex + 1}
                           </p>
                           {hasDuplicatePlayers ? (
-                            <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800">
+                            <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black text-amber-800">
                               Revisa duplicados
                             </span>
                           ) : null}
@@ -3696,7 +3796,7 @@ function NewSeasonForm({
                                 key={teamKey}
                                 className="rounded-2xl bg-white p-3"
                               >
-                                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                                <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                                   {teamKey === "teamA"
                                     ? "Pareja A"
                                     : "Pareja B"}
@@ -4148,7 +4248,7 @@ export default function AdminSeasonPage() {
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -4229,7 +4329,7 @@ export default function AdminSeasonPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {isActiveSeason
             ? t.adminSeason.title
             : isUpcomingSeason
@@ -4238,16 +4338,6 @@ export default function AdminSeasonPage() {
                 ? "Temporada finalizada"
                 : t.adminSeason.newSeasonTitle}
         </h1>
-
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {isActiveSeason
-            ? t.adminSeason.description
-            : isUpcomingSeason
-              ? "La temporada está creada. Comiénzala cuando esté preparada para jugarse."
-              : hasCreatedLeagueSeason
-                ? "Consulta su configuración final, invita a los jugadores pendientes o prepara la siguiente temporada."
-                : t.adminSeason.finishedDescription}
-        </p>
       </header>
 
       <div data-tour="season-admin-navigation">
@@ -4585,6 +4675,7 @@ export default function AdminSeasonPage() {
                 activeLeagueName={activeLeague.name}
                 activeSeasonId={activeSeason.id}
                 currentPlayers={players}
+                initialLocations={activeLeague.locations}
               />
             ) : null}
           </div>
@@ -4602,6 +4693,7 @@ export default function AdminSeasonPage() {
             activeLeagueName={activeLeague.name}
             activeSeasonId={activeSeason.id}
               currentPlayers={players}
+              initialLocations={activeLeague.locations}
             />
           </div>
         </>

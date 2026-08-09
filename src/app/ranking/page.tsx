@@ -21,13 +21,10 @@ export default function RankingPage() {
           seasonStatus={activeSeason.status}
         />
 
-        <h1 className="mt-1.5 text-2xl font-black tracking-tight">
+        <h1 className="type-page-title mt-1.5 text-2xl font-black tracking-tight">
           {t.common.individualRanking}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
-          {t.ranking.description}
-        </p>
       </header>
 
 

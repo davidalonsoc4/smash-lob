@@ -609,7 +609,7 @@ function NotificationCard({
           <p className="min-w-0 text-sm font-black text-neutral-950">
             {getNotificationTitle(event, currentUserId)}
           </p>
-          <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
+          <p className="shrink-0 type-caption font-semibold text-neutral-400">
             {formatNotificationDate(event.createdAt)}
           </p>
         </div>
@@ -709,7 +709,7 @@ export default function NotificationsPage() {
         </p>
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
-          <h1 className="text-xl font-black tracking-tight">Notificaciones</h1>
+          <h1 className="type-page-title text-xl font-black tracking-tight">Notificaciones</h1>
           <button
             type="button"
             onClick={() => setRefreshKey((current) => current + 1)}
@@ -719,9 +719,6 @@ export default function NotificationsPage() {
           </button>
         </div>
 
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          Avisos recibidos o dirigidos a ti en esta liga.
-        </p>
       </header>
 
       <Link href="/settings/notifications" className="block">

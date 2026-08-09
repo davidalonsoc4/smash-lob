@@ -41,7 +41,7 @@ function MvpPlayerLine({
         )}
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-500">
+        <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
           {label}
         </p>
         <p className="truncate text-base font-black text-neutral-950">
@@ -84,7 +84,7 @@ export default function AdminMvpPage() {
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/admin" label={t.common.back} />
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -104,7 +104,7 @@ export default function AdminMvpPage() {
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/admin" label={t.common.back} />
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             Administrar MVP
           </h1>
         </header>
@@ -128,14 +128,9 @@ export default function AdminMvpPage() {
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Administrar MVP
         </h1>
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {isVoting
-            ? "Consulta los MVP elegidos por votación y las jornadas todavía pendientes de votos."
-            : "Consulta los MVP automáticos de cada jornada."}
-        </p>
       </header>
 
       {isSeasonClosed ? (

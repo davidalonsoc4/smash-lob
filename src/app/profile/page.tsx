@@ -119,7 +119,7 @@ export default function ProfilePage() {
             seasonStatus={latestSeason.status}
           />
 
-          <h1 className="mt-1.5 text-2xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1.5 text-2xl font-black tracking-tight">
             {t.profile.title}
           </h1>
         </header>
@@ -151,7 +151,7 @@ export default function ProfilePage() {
           <PlayerAvatar player={player} size="md" previewable />
 
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <h1 className="min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
+            <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
               {player.displayName}
             </h1>
 
@@ -168,9 +168,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <p className="mt-1.5 text-xs font-semibold leading-5 text-neutral-500">
-          {t.profile.description}
-        </p>
       </header>
 
       <div className="grid grid-cols-2 gap-2">
