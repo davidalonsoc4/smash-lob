@@ -1,3 +1,5 @@
+const LOCAL_DEV_LAN_HOSTS = new Set(["192.168.3.2"])
+
 export function isLoopbackHostname(hostname: string) {
   const normalized = hostname.trim().toLowerCase()
 
@@ -5,7 +7,8 @@ export function isLoopbackHostname(hostname: string) {
     normalized === "localhost" ||
     normalized === "127.0.0.1" ||
     normalized === "::1" ||
-    normalized === "[::1]"
+    normalized === "[::1]" ||
+    LOCAL_DEV_LAN_HOSTS.has(normalized)
   )
 }
 

@@ -51,16 +51,14 @@ function DetailPlayer({
   )
 
   return (
-    <div
-      className={`min-w-0 rounded-lg bg-neutral-50 px-2 py-2 ${
-        alignment === "right" ? "text-right" : "text-left"
-      }`}
-    >
+    <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
       <div className="line-clamp-2 min-w-0">
         {linkPlayers && player ? (
           <Link
             href={`/player/${player.slug}`}
-            className="block min-w-0 underline-offset-4 active:underline"
+            className={`block min-w-0 underline-offset-4 active:underline ${
+              alignment === "right" ? "text-right" : "text-left"
+            }`}
           >
             {content}
           </Link>
@@ -70,13 +68,21 @@ function DetailPlayer({
       </div>
 
       {position ? (
-        <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+        <p
+          className={`mt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 ${
+            alignment === "right" ? "text-right" : "text-left"
+          }`}
+        >
           #{position} en liga
         </p>
       ) : null}
 
       {substituteLabel ? (
-        <p className="mt-1 text-[9px] font-bold leading-3 text-red-700">
+        <p
+          className={`mt-1 text-[9px] font-bold leading-3 text-red-700 ${
+            alignment === "right" ? "text-right" : "text-left"
+          }`}
+        >
           Suplente · por {substituteLabel}
         </p>
       ) : null}
@@ -84,36 +90,17 @@ function DetailPlayer({
   )
 }
 
-function PairColumn({
+function PairHeader({
   label,
-  playerIds,
-  players,
   points,
-  positions,
-  highlightedPlayerIds,
-  substituteLabels,
-  linkPlayers,
   alignment,
-  showAvatars,
 }: {
   label: string
-  playerIds: string[]
-  players?: PlayerProfile[]
   points?: number | null
-  positions: Record<string, number | null | undefined>
-  highlightedPlayerIds: string[]
-  substituteLabels: Record<string, string>
-  linkPlayers: boolean
   alignment: "left" | "right"
-  showAvatars: boolean
 }) {
-  const pairPlayers = playerIds.map((playerId) => ({
-    id: playerId,
-    player: getPlayerById(playerId, players),
-  }))
-
   return (
-    <section className="min-w-0">
+    <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
       <div className="flex min-w-0 items-center gap-1.5">
         {points !== null && points !== undefined && alignment === "right" ? (
           <span className="mr-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
@@ -121,8 +108,8 @@ function PairColumn({
           </span>
         ) : null}
         <p
-          className={`min-w-0 truncate text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500 ${
-            alignment === "right" ? "text-right" : "text-left"
+          className={`min-w-0 text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500 ${
+            alignment === "right" ? "ml-auto text-right" : "text-left"
           }`}
         >
           {label}
@@ -133,24 +120,76 @@ function PairColumn({
           </span>
         ) : null}
       </div>
+    </div>
+  )
+}
 
-      {showAvatars ? (
-        <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2">
-          {pairPlayers.map(({ id, player }) => (
-            <PlayerAvatar
-              key={id}
-              player={player}
-              size="md"
-              previewable={Boolean(player?.avatarUrl)}
+function PairAvatars({
+  playerIds,
+  players,
+  alignment,
+}: {
+  playerIds: string[]
+  players?: PlayerProfile[]
+  alignment: "left" | "right"
+}) {
+  const pairPlayers = playerIds.map((playerId) => ({
+    id: playerId,
+    player: getPlayerById(playerId, players),
+  }))
+
+  return (
+    <div
+      className={`flex min-w-0 items-center gap-2 ${
+        alignment === "right" ? "justify-end" : "justify-start"
+      }`}
+    >
+      {pairPlayers.map(({ id, player }) => (
+        <PlayerAvatar
+          key={id}
+          player={player}
+          size="md"
+          previewable={Boolean(player?.avatarUrl)}
+        />
+      ))}
+    </div>
+  )
+}
+
+function PairDetails({
+  playerIds,
+  players,
+  positions,
+  highlightedPlayerIds,
+  substituteLabels,
+  linkPlayers,
+  alignment,
+}: {
+  playerIds: string[]
+  players?: PlayerProfile[]
+  positions: Record<string, number | null | undefined>
+  highlightedPlayerIds: string[]
+  substituteLabels: Record<string, string>
+  linkPlayers: boolean
+  alignment: "left" | "right"
+}) {
+  return (
+    <div
+      className={`rounded-lg bg-neutral-50 px-2 py-1.5 ${
+        alignment === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {playerIds.map((playerId, index) => (
+        <div key={playerId} className={index === 0 ? "pb-1.5" : "pt-1"}>
+          {index > 0 ? (
+            <div
+              className={`mb-1.5 border-t border-neutral-300 ${
+                alignment === "right" ? "ml-4" : "mr-4"
+              }`}
             />
-          ))}
-        </div>
-      ) : null}
+          ) : null}
 
-      <div className="mt-1.5 space-y-1.5">
-        {playerIds.map((playerId) => (
           <DetailPlayer
-            key={playerId}
             playerId={playerId}
             players={players}
             position={positions[playerId]}
@@ -159,9 +198,143 @@ function PairColumn({
             linkPlayers={linkPlayers}
             alignment={alignment}
           />
-        ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function FinishedPlayerName({
+  playerId,
+  players,
+  position,
+  highlighted,
+  substituteLabel,
+  linkPlayers,
+  positionPlacement,
+}: {
+  playerId: string
+  players?: PlayerProfile[]
+  position?: number | null
+  highlighted: boolean
+  substituteLabel?: string
+  linkPlayers: boolean
+  positionPlacement: "above" | "below"
+}) {
+  const player = getPlayerById(playerId, players)
+  const displayName = getPlayerDisplayName(playerId, players)
+  const name = (
+    <span className="block max-w-full text-[16px] font-black leading-[1.08rem] text-neutral-950 [overflow-wrap:anywhere]">
+      {displayName}
+      {highlighted ? (
+        <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
+          ★
+        </span>
+      ) : null}
+    </span>
+  )
+  const positionLabel = position ? (
+    <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+      #{position} en liga
+    </p>
+  ) : null
+
+  return (
+    <div className="min-w-0 text-left">
+      {positionPlacement === "above" ? <div className="mb-1">{positionLabel}</div> : null}
+
+      <div className="line-clamp-2 min-w-0">
+        {linkPlayers && player ? (
+          <Link
+            href={`/player/${player.slug}`}
+            className="block min-w-0 text-left underline-offset-4 active:underline"
+          >
+            {name}
+          </Link>
+        ) : (
+          name
+        )}
       </div>
-    </section>
+
+      {positionPlacement === "below" ? <div className="mt-1">{positionLabel}</div> : null}
+
+      {substituteLabel ? (
+        <p className="mt-1 text-[9px] font-bold leading-3 text-red-700">
+          Suplente · por {substituteLabel}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function FinishedPairRow({
+  side,
+  playerIds,
+  players,
+  points,
+  sets,
+  positions,
+  highlightedPlayerIds,
+  substituteLabels,
+  linkPlayers,
+}: {
+  side: "a" | "b"
+  playerIds: string[]
+  players?: PlayerProfile[]
+  points?: number | null
+  sets: { a: number; b: number }[]
+  positions: Record<string, number | null | undefined>
+  highlightedPlayerIds: string[]
+  substituteLabels: Record<string, string>
+  linkPlayers: boolean
+}) {
+  return (
+    <div className="rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 sm:py-3.5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0 text-left">
+          {playerIds.map((playerId, index) => (
+            <div key={playerId} className={index === 0 ? "pb-2" : "pt-0"}>
+              {index > 0 ? <div className="mb-1.5 mr-1 border-t border-neutral-300" /> : null}
+
+              <FinishedPlayerName
+                playerId={playerId}
+                players={players}
+                position={positions[playerId]}
+                highlighted={highlightedPlayerIds.includes(playerId)}
+                substituteLabel={substituteLabels[playerId]}
+                linkPlayers={linkPlayers}
+                positionPlacement={index === 0 ? "above" : "below"}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5 self-center">
+          {sets.map((set, index) => {
+            const ownScore = side === "a" ? set.a : set.b
+            const rivalScore = side === "a" ? set.b : set.a
+            const wonSet = ownScore > rivalScore
+            return (
+              <span
+                key={index}
+                className={`flex h-7 min-w-7 items-center justify-center rounded-lg px-1.5 text-[13px] leading-none ring-1 ring-inset ${
+                  wonSet
+                    ? "bg-neutral-100 font-black text-neutral-800 ring-neutral-200"
+                    : "bg-neutral-50 font-bold text-neutral-500 ring-neutral-200"
+                }`}
+              >
+                {ownScore}
+              </span>
+            )
+          })}
+          {points !== null && points !== undefined ? (
+            <div className="relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3 text-[18px] font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
+              {points}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -181,60 +354,81 @@ export function MatchDetailPairingPanel({
   const showAvatars = [...teamA, ...teamB].some((playerId) =>
     isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl),
   )
+  const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
 
   return (
     <AppCard className="overflow-hidden !p-0">
-      <div className="border-b border-neutral-100 px-4 py-3.5">
-        <h2 className="text-lg font-black tracking-tight text-neutral-950">
-          Emparejamiento
-        </h2>
-      </div>
+      <div className="p-3 sm:p-4">
+        {hasResult ? (
+          <div className="space-y-2.5">
+            <FinishedPairRow
+              side="a"
+              playerIds={teamA}
+              players={players}
+              points={pointsA}
+              sets={sets}
+              positions={rankingPositions}
+              highlightedPlayerIds={highlightedPlayerIds}
+              substituteLabels={substituteLabels}
+              linkPlayers={linkPlayers}
+            />
 
-      <div className="grid grid-cols-2 items-start gap-2 p-3 sm:gap-4 sm:p-4">
-        <PairColumn
-          label="Pareja A"
-          playerIds={teamA}
-          players={players}
-          points={pointsA}
-          positions={rankingPositions}
-          highlightedPlayerIds={highlightedPlayerIds}
-          substituteLabels={substituteLabels}
-          linkPlayers={linkPlayers}
-          alignment="left"
-          showAvatars={showAvatars}
-        />
-
-
-        <PairColumn
-          label="Pareja B"
-          playerIds={teamB}
-          players={players}
-          points={pointsB}
-          positions={rankingPositions}
-          highlightedPlayerIds={highlightedPlayerIds}
-          substituteLabels={substituteLabels}
-          linkPlayers={linkPlayers}
-          alignment="right"
-          showAvatars={showAvatars}
-        />
-      </div>
-
-      {sets.length > 0 ? (
-        <div className="border-t border-neutral-100 px-3 pb-3 pt-2.5 sm:px-4 sm:pb-4">
-          <div className="grid grid-cols-3 gap-2">
-            {sets.map((set, index) => (
-              <div key={index} className="rounded-xl bg-neutral-100 px-2 py-2 text-center">
-                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
-                  Set {index + 1}
-                </p>
-                <p className="mt-0.5 text-base font-black text-neutral-950">
-                  {set.a}-{set.b}
-                </p>
-              </div>
-            ))}
+            <FinishedPairRow
+              side="b"
+              playerIds={teamB}
+              players={players}
+              points={pointsB}
+              sets={sets}
+              positions={rankingPositions}
+              highlightedPlayerIds={highlightedPlayerIds}
+              substituteLabels={substituteLabels}
+              linkPlayers={linkPlayers}
+            />
           </div>
-        </div>
-      ) : null}
+        ) : (
+          <>
+            <div className="grid grid-cols-2 items-start gap-2 sm:gap-4">
+              <PairHeader label="Pareja A" points={pointsA} alignment="left" />
+              <PairHeader label="Pareja B" points={pointsB} alignment="right" />
+            </div>
+
+            {showAvatars ? (
+              <div className="mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
+                <PairAvatars playerIds={teamA} players={players} alignment="left" />
+                <PairAvatars playerIds={teamB} players={players} alignment="right" />
+              </div>
+            ) : null}
+
+            <div className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
+              <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
+                  VS
+                </span>
+              </div>
+
+              <PairDetails
+                playerIds={teamA}
+                players={players}
+                positions={rankingPositions}
+                highlightedPlayerIds={highlightedPlayerIds}
+                substituteLabels={substituteLabels}
+                linkPlayers={linkPlayers}
+                alignment="left"
+              />
+
+              <PairDetails
+                playerIds={teamB}
+                players={players}
+                positions={rankingPositions}
+                highlightedPlayerIds={highlightedPlayerIds}
+                substituteLabels={substituteLabels}
+                linkPlayers={linkPlayers}
+                alignment="right"
+              />
+            </div>
+          </>
+        )}
+      </div>
     </AppCard>
   )
 }
