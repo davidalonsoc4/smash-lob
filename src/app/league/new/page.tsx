@@ -2,13 +2,11 @@
 
 import { type FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import type { LeagueLocation } from "@/lib/leagueLocations"
 
 export default function NewLeaguePage() {
   const { t } = useI18n()
@@ -17,7 +15,6 @@ export default function NewLeaguePage() {
   const { canCreateLeagues, createLeague } = useLeagueAccess()
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
-  const [locations, setLocations] = useState<LeagueLocation[]>([])
   const [leagueRecommendations, setLeagueRecommendations] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -38,7 +35,7 @@ export default function NewLeaguePage() {
       name: leagueName.trim(),
       description: leagueDescription.trim() || t.newLeague.defaultDescription,
       recommendations: leagueRecommendations.trim(),
-      locations,
+      locations: [],
     })
 
     if (!league) {
@@ -145,45 +142,6 @@ export default function NewLeaguePage() {
                 Campo opcional para dejar indicaciones útiles a todos los jugadores.
               </p>
             </label>
-          </div>
-        </AppCard>
-
-        <AppCard>
-          <p className="font-bold">{t.newLeague.locationsTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">
-            {t.newLeague.locationsDescription}
-          </p>
-
-          <div className="mt-4">
-            <LeagueLocationsEditor
-              locations={locations}
-              onChange={(nextLocations) => {
-                setLocations(nextLocations)
-                setError(null)
-              }}
-              disabled={isCreating}
-              copy={{
-                emptyLocations: t.adminLeague.emptyLocations,
-                addLocationTitle: t.adminLeague.addLocationTitle,
-                locationName: t.adminLeague.locationName,
-                locationPlaceholder: t.adminLeague.locationPlaceholder,
-                town: t.adminLeague.town,
-                townPlaceholder: t.adminLeague.townPlaceholder,
-                googleLocation: t.adminLeague.googleLocation,
-                googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
-                courts: t.adminLeague.courts,
-                courtsPlaceholder: t.adminLeague.courtsPlaceholder,
-                duplicatedLocation: t.adminLeague.duplicatedLocation,
-                addLocation: t.adminLeague.addLocation,
-                editLocation: t.adminLeague.editLocation,
-                saveLocation: t.adminLeague.saveLocation,
-                cancelLocationEdit: t.adminLeague.cancelLocationEdit,
-                removeLocation: t.adminLeague.removeLocation,
-                openMaps: t.adminLeague.openMaps,
-                searchMaps: t.adminLeague.searchMaps,
-                googleApiMissing: t.adminLeague.googleApiMissing,
-              }}
-            />
           </div>
         </AppCard>
 

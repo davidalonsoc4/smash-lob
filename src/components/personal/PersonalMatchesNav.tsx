@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-type PersonalNavIconName = "matches" | "add" | "leagues"
+type PersonalNavIconName = "matches" | "profile" | "add" | "leagues"
 
 function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
   const commonProps = {
@@ -15,6 +15,16 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     className: "h-4 w-4",
+  }
+
+
+  if (icon === "profile") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="12" cy="8" r="3.25" />
+        <path d="M5.5 20c.8-4 3.1-6 6.5-6s5.7 2 6.5 6" />
+      </svg>
+    )
   }
 
   if (icon === "add") {
@@ -51,9 +61,10 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
 export function PersonalMatchesNav() {
   const pathname = usePathname()
   const isNewMatch = pathname === "/personal-matches/new"
+  const isProfile = pathname === "/personal-matches/profile"
   const isMatchesActive =
     pathname === "/personal-matches" ||
-    (pathname.startsWith("/personal-matches/") && !isNewMatch)
+    (pathname.startsWith("/personal-matches/") && !isNewMatch && !isProfile)
 
   const items = [
     {
@@ -61,6 +72,12 @@ export function PersonalMatchesNav() {
       label: "Mis partidos",
       icon: "matches" as const,
       active: isMatchesActive,
+    },
+    {
+      href: "/personal-matches/profile",
+      label: "Mi perfil",
+      icon: "profile" as const,
+      active: isProfile,
     },
     {
       href: "/personal-matches/new",
@@ -85,7 +102,7 @@ export function PersonalMatchesNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="grid min-h-[62px] grid-cols-3 gap-1.5 px-3 py-1.5">
+      <div className="grid min-h-[62px] grid-cols-4 gap-1 px-3 py-1.5">
         {items.map((item) => (
           <Link
             key={item.href}
@@ -93,8 +110,8 @@ export function PersonalMatchesNav() {
             aria-current={item.active ? "page" : undefined}
             className={
               item.active
-                ? "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-2 text-[9px] font-black text-white shadow-sm"
-                : "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 text-[9px] font-black text-neutral-500 transition active:bg-neutral-100"
+                ? "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-[9px] font-black text-white shadow-sm"
+                : "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[9px] font-black text-neutral-500 transition active:bg-neutral-100"
             }
           >
             <PersonalNavIcon icon={item.icon} />

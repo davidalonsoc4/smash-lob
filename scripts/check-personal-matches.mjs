@@ -25,6 +25,8 @@ const [
   matchEventMeta,
   personalNav,
   personalMatchesLib,
+  personalProfilePage,
+  personalProfileStats,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -45,6 +47,8 @@ const [
   read("src/components/matches/MatchEventMeta.tsx"),
   read("src/components/personal/PersonalMatchesNav.tsx"),
   read("src/lib/personalMatches.ts"),
+  read("src/app/personal-matches/profile/page.tsx"),
+  read("src/lib/personalProfileStats.ts"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -96,7 +100,7 @@ assert(card.includes("getPersonalMatchOutcome"), "Las tarjetas deben mostrar Vic
 assert(card.includes('aria-label="Juegos por set de la pareja A"') && card.includes('aria-label="Juegos por set de la pareja B"'), "Cada pareja debe mostrar sus juegos por set")
 assert(card.includes('rounded-xl bg-neutral-50 px-3 py-2'), "Cada pareja debe conservar el panel visual del Calendario")
 assert(card.includes("getPersonalMatchTeamPlayers"), "Los nombres deben renderizarse por participante")
-assert(card.includes("ClickableChevron"), "Las tarjetas deben incluir chevron")
+assert(card.includes("ClickableChevron") && card.includes("showPersonalMatchChevron = false"), "El chevron de partido debe conservarse en código pero quedar oculto")
 assert(card.includes("getPersonalMatchOriginLabel(match)"), "Liga/Amistoso debe permanecer en la cabecera")
 assert(card.includes("MatchEventMeta"), "Fecha, hora y ubicación deben usar el bloque compartido")
 assert(card.includes("locationText={match.locationName}"), "La ubicación debe mostrarse debajo de las parejas")
@@ -119,9 +123,16 @@ assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocul
 assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
 assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
 assert(personalNav.includes('aria-label="Navegación de Mis partidos"'), "La navegación personal debe ser accesible")
-for (const label of ["Mis partidos", "+ Partido", "Ligas"]) {
+for (const label of ["Mis partidos", "Mi perfil", "+ Partido", "Ligas"]) {
   assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
 }
+assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
+assert(personalNav.includes("grid-cols-4"), "La navegación personal debe repartir cuatro destinos")
+assert(personalProfilePage.includes("Perfil global"), "Debe existir un perfil global dentro de Mis partidos")
+assert(personalProfilePage.includes("Todos los partidos") && personalProfilePage.includes("Partidos de liga"), "El perfil global debe filtrar por origen")
+assert(personalProfilePage.includes("Todas las ligas") && personalProfilePage.includes("Todas las temporadas"), "El perfil global debe filtrar por liga y temporada")
+assert(personalProfileStats.includes("filterPersonalProfileMatches") && personalProfileStats.includes("getPersonalProfileStats"), "Las estadísticas globales deben calcularse desde el historial personal")
+assert(serverHelper.includes("seasonName"), "El historial de liga debe incluir el nombre de temporada para el filtro global")
 assert(!personalPage.includes("<BackButton"), "La raíz de Mis partidos no debe duplicar Volver/Ligas")
 assert(newPage.includes("<BackButton") && detailPage.includes("<BackButton"), "Crear y detalle deben conservar el botón Volver")
 for (const forbiddenColor of ["red-", "rose-", "green-", "emerald-", "lime-", "teal-"]) {
@@ -135,11 +146,11 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.4.11 correcto:")
+console.log("Mis partidos v1.4.12 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
 console.log("- historial paginado de 10 en 10 y Próximo partido oculto cuando no existe")
 console.log("- amistosos programables con detalle alineado con Partido de liga")
 console.log("- origen por liga con color estable y metadatos ausentes ocultos de forma independiente")
 console.log("- un único amistoso compartido por cuentas vinculadas y externos permitidos")
-console.log("- modo personal con Ajustes y navegación compacta Mis partidos / + Partido / Ligas")
+console.log("- modo personal con perfil global filtrable y navegación Mis partidos / Mi perfil / + Partido / Ligas")
 console.log("- API autenticada, rate limit y persistencia service-role only")

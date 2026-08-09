@@ -1,3 +1,5 @@
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
+
 type MatchEventMetaProps = {
   eventAt: string | null
   dateFallback?: string | null
@@ -45,7 +47,9 @@ export function MatchEventMeta({
   locationFallback = "Ubicación no indicada",
   hideMissingRows = false,
 }: MatchEventMetaProps) {
-  const normalizedLocation = locationText?.trim() || locationFallback?.trim() || null
+  const normalizedLocation =
+    getScheduleLocationDisplayText(locationText) ??
+    getScheduleLocationDisplayText(locationFallback)
   const hasDate = Boolean(eventAt || dateFallback)
   const dateText = hasDate
     ? formatMatchEventDateTime(eventAt, dateFallback)

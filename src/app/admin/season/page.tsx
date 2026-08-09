@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ContextualTip } from "@/components/onboarding/ContextualTip";
+import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import type { MvpSystem } from "@/lib/mvp";
+import type { LeagueLocation } from "@/lib/leagueLocations";
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations";
 import type { RosterMode } from "@/data/fakeData";
 import { recordActivityEvent } from "@/lib/activity";
@@ -2789,11 +2791,13 @@ function NewSeasonForm({
   activeLeagueName,
   activeSeasonId,
   currentPlayers,
+  initialLocations,
 }: {
   activeLeagueId: string;
   activeLeagueName: string;
   activeSeasonId: string;
   currentPlayers: SeasonPlayerSummary[];
+  initialLocations: LeagueLocation[];
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -2802,10 +2806,12 @@ function NewSeasonForm({
     useSeasonSettings();
   const { createSeasonMatches, hydrateMatches } = useMatchData();
   const {
+    deleteLeague,
     getLeagueInviteCode,
     isSuperuser,
     leagues: accessibleLeagues,
     linkCurrentUserToLeaguePlayer,
+    updateLeagueLocations,
     userId,
   } = useLeagueAccess();
   const leaguePlayers = playerProfiles.filter(
@@ -2825,6 +2831,8 @@ function NewSeasonForm({
   const [newSeasonName, setNewSeasonName] = useState(
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount }),
   );
+  const [leagueLocations, setLeagueLocations] =
+    useState<LeagueLocation[]>(initialLocations);
   const [playerCount, setPlayerCount] = useState(defaultPlayerCount);
   const [rosterMode, setRosterMode] = useState<RosterMode>("fixed");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
@@ -3051,6 +3059,33 @@ function NewSeasonForm({
     setCreationFeedback(null);
   }
 
+  async function handleCancelLeagueCreation() {
+    if (!isFirstLeagueSeason || isSaving) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `¿Cancelar la creación de ${activeLeagueName}? Se eliminará la liga completa porque todavía no tiene ninguna temporada.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    const deleted = await deleteLeague(activeLeagueId);
+
+    if (!deleted) {
+      setError("No se ha podido cancelar la creación de la liga.");
+      setIsSaving(false);
+      return;
+    }
+
+    window.location.replace("/leagues");
+  }
+
   async function handleStartSeason(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -3091,6 +3126,19 @@ function NewSeasonForm({
     setIsSaving(true);
     setCreationFeedback(null);
     setError(null);
+
+    if (isFirstLeagueSeason) {
+      const locationsUpdated = await updateLeagueLocations(
+        activeLeagueId,
+        leagueLocations,
+      );
+
+      if (!locationsUpdated) {
+        setError("No se han podido guardar las ubicaciones de la liga.");
+        setIsSaving(false);
+        return;
+      }
+    }
 
     if (isSupabaseBackedId(activeLeagueId)) {
       try {
@@ -3248,6 +3296,58 @@ function NewSeasonForm({
               className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
             />
           </label>
+
+          {isFirstLeagueSeason ? (
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-sm font-black text-neutral-900">
+                Ubicaciones de la liga
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                Busca clubes ya guardados o añade uno nuevo. Estas ubicaciones estarán disponibles al programar los partidos.
+              </p>
+
+              <div className="mt-3">
+                <LeagueLocationsEditor
+                  locations={leagueLocations}
+                  onChange={(nextLocations) => {
+                    setLeagueLocations(nextLocations);
+                    setError(null);
+                  }}
+                  disabled={isSaving}
+                  copy={{
+                    emptyLocations: t.adminLeague.emptyLocations,
+                    addLocationTitle: t.adminLeague.addLocationTitle,
+                    locationName: t.adminLeague.locationName,
+                    locationPlaceholder: t.adminLeague.locationPlaceholder,
+                    town: t.adminLeague.town,
+                    townPlaceholder: t.adminLeague.townPlaceholder,
+                    googleLocation: t.adminLeague.googleLocation,
+                    googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
+                    courts: t.adminLeague.courts,
+                    courtsPlaceholder: t.adminLeague.courtsPlaceholder,
+                    duplicatedLocation: t.adminLeague.duplicatedLocation,
+                    addLocation: t.adminLeague.addLocation,
+                    editLocation: t.adminLeague.editLocation,
+                    saveLocation: t.adminLeague.saveLocation,
+                    cancelLocationEdit: t.adminLeague.cancelLocationEdit,
+                    removeLocation: t.adminLeague.removeLocation,
+                    openMaps: t.adminLeague.openMaps,
+                    searchMaps: t.adminLeague.searchMaps,
+                    googleApiMissing: t.adminLeague.googleApiMissing,
+                  }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCancelLeagueCreation}
+                disabled={isSaving}
+                className="mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300"
+              >
+                Cancelar creación de la liga
+              </button>
+            </div>
+          ) : null}
 
           <div>
             <p className="text-sm font-semibold text-neutral-700">
@@ -4585,6 +4685,7 @@ export default function AdminSeasonPage() {
                 activeLeagueName={activeLeague.name}
                 activeSeasonId={activeSeason.id}
                 currentPlayers={players}
+                initialLocations={activeLeague.locations}
               />
             ) : null}
           </div>
@@ -4602,6 +4703,7 @@ export default function AdminSeasonPage() {
             activeLeagueName={activeLeague.name}
             activeSeasonId={activeSeason.id}
               currentPlayers={players}
+              initialLocations={activeLeague.locations}
             />
           </div>
         </>

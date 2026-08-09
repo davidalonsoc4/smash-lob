@@ -1,7 +1,6 @@
 "use client"
 
 import { ChangeEvent, FormEvent, useState } from "react"
-import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { ImageCropDialog } from "@/components/images/ImageCropDialog"
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
@@ -405,7 +404,6 @@ function DeleteLeagueCard({
   leagueName,
   onDeleteLeague,
 }: DeleteLeagueCardProps) {
-  const router = useRouter()
   const [confirmation, setConfirmation] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -430,10 +428,7 @@ function DeleteLeagueCard({
       return
     }
 
-    router.replace("/settings")
-    window.setTimeout(() => {
-      window.location.reload()
-    }, 80)
+    window.location.replace("/leagues")
   }
 
   return (

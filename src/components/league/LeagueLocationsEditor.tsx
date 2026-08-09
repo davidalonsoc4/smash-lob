@@ -207,7 +207,7 @@ export function LeagueLocationsEditor({
     useState(false);
   const [duplicated, setDuplicated] = useState(false);
   const [catalogLocations, setCatalogLocations] = useState<LeagueLocation[]>([]);
-  const [catalogSelectionId, setCatalogSelectionId] = useState("");
+  const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(true);
 
   const isFormOpen = isAdding || Boolean(editingLocationId);
@@ -321,11 +321,23 @@ export function LeagueLocationsEditor({
       ),
     [catalogLocations, selectedLocationKeys],
   );
-  const effectiveCatalogSelectionId = availableCatalogLocations.some(
-    (location) => location.id === catalogSelectionId,
-  )
-    ? catalogSelectionId
-    : "";
+  const filteredCatalogLocations = useMemo(() => {
+    const query = catalogSearch.trim().toLocaleLowerCase("es-ES");
+
+    if (!query) return availableCatalogLocations;
+
+    return availableCatalogLocations.filter((location) =>
+      [
+        getLeagueLocationOptionLabel(location),
+        getLeagueLocationSubtitle(location),
+        location.address,
+        location.town,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase("es-ES").includes(query)),
+    );
+  }, [availableCatalogLocations, catalogSearch]);
+  const visibleCatalogLocations = filteredCatalogLocations.slice(0, 8);
   const cleanName = name.trim();
   const cleanTown = townInput.trim();
   const cleanCourtCount = courtCountInput.trim();
@@ -458,17 +470,13 @@ export function LeagueLocationsEditor({
     setDuplicated(false);
   }
 
-  function handleAddCatalogLocation() {
-    const selectedLocation = catalogLocations.find(
-      (location) => location.id === effectiveCatalogSelectionId,
-    );
-
-    if (!selectedLocation || selectedLocationKeys.has(getLeagueLocationIdentityKey(selectedLocation))) {
+  function handleAddCatalogLocation(selectedLocation: LeagueLocation) {
+    if (selectedLocationKeys.has(getLeagueLocationIdentityKey(selectedLocation))) {
       return;
     }
 
     onChange([...locations, { ...selectedLocation, selectedCourt: null }]);
-    setCatalogSelectionId("");
+    setCatalogSearch("");
   }
 
   return (
@@ -489,28 +497,47 @@ export function LeagueLocationsEditor({
         {catalogLoading ? (
           <p className="mt-3 text-xs font-semibold text-neutral-400">Cargando ubicaciones...</p>
         ) : availableCatalogLocations.length > 0 ? (
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-            <select
-              value={effectiveCatalogSelectionId}
-              onChange={(event) => setCatalogSelectionId(event.target.value)}
-              disabled={disabled}
-              className="min-w-0 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            >
-              <option value="">Selecciona una ubicación...</option>
-              {availableCatalogLocations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {getLeagueLocationOptionLabel(location)}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={handleAddCatalogLocation}
-              disabled={disabled || !effectiveCatalogSelectionId}
-              className="rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-300"
-            >
-              Añadir
-            </button>
+          <div className="mt-3 space-y-2">
+            <label className="block">
+              <span className="sr-only">Buscar ubicación guardada</span>
+              <input
+                value={catalogSearch}
+                onChange={(event) => setCatalogSearch(event.target.value)}
+                disabled={disabled}
+                placeholder="Buscar por nombre, localidad o dirección..."
+                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              />
+            </label>
+
+            {visibleCatalogLocations.length > 0 ? (
+              <div className="max-h-64 space-y-1.5 overflow-y-auto">
+                {visibleCatalogLocations.map((location) => (
+                  <button
+                    key={location.id}
+                    type="button"
+                    onClick={() => handleAddCatalogLocation(location)}
+                    disabled={disabled}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-black text-neutral-900">
+                        {getLeagueLocationOptionLabel(location)}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[10px] font-semibold text-neutral-500">
+                        {getLeagueLocationSubtitle(location)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-700">
+                      Añadir
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-400">
+                No hay ubicaciones que coincidan con la búsqueda.
+              </p>
+            )}
           </div>
         ) : (
           <p className="mt-3 text-xs font-semibold text-neutral-400">

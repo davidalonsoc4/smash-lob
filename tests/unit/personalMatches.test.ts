@@ -34,6 +34,7 @@ const match: PersonalMatchItem = {
   leagueId: null,
   leagueName: null,
   seasonId: null,
+  seasonName: null,
   round: null,
 }
 

@@ -12,6 +12,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getNextMatch } from "@/lib/leagues"
 import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
@@ -32,6 +33,7 @@ export default function MatchesPage() {
     (match) =>
       match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId),
   )
+  const nextPendingUserMatch = getNextMatch(currentUserMatches) ?? null
   const allMatchesCount = matches.length
   const myMatchesCount = currentUserMatches.length
   const visibleMatches = matches.filter((match) =>
@@ -217,6 +219,7 @@ export default function MatchesPage() {
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"
+                    statusPosition="left"
                     stackTeamPlayers
                     currentUserId={currentUserId}
                     highlightedPlayerIds={
@@ -237,7 +240,8 @@ export default function MatchesPage() {
                         : "MVP de jornada"
                     }
                     leagueLocations={activeLeague.locations}
-                    showMissingScheduleHint
+                    showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
+                    hideMissingScheduleMeta
                   />
                 ))}
               </div>

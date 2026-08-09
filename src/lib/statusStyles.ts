@@ -52,7 +52,7 @@ export function getMatchStatusBadgeClassName(status: string) {
 
   return getBadgeClassName(
     toneByStatus[status as MatchDisplayStatus] ?? "neutral",
-    "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black leading-none"
+    "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide leading-none"
   )
 }
 

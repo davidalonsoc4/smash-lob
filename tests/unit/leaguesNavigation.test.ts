@@ -3,9 +3,10 @@ import { describe, expect, it } from "vitest"
 
 describe("leagues navigation", () => {
   it("keeps Mis ligas in the normal app navigation context", async () => {
-    const [shell, bottomNav] = await Promise.all([
+    const [shell, bottomNav, leaguesPage] = await Promise.all([
       readFile("src/components/layout/AppShell.tsx", "utf8"),
       readFile("src/components/layout/BottomNav.tsx", "utf8"),
+      readFile("src/app/leagues/page.tsx", "utf8"),
     ])
 
     expect(shell).toContain("const shouldShowBottomNav")
@@ -15,5 +16,7 @@ describe("leagues navigation", () => {
     expect(bottomNav).toContain('href: "/ranking"')
     expect(bottomNav).toContain('href: "/matches"')
     expect(bottomNav).toContain('href: "/profile"')
+    expect(leaguesPage).toContain('href="/personal-matches/new"')
+    expect(leaguesPage).toContain("Registrar encuentro amistoso")
   })
 })

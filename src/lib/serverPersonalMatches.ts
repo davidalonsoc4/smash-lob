@@ -5,6 +5,7 @@ import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
+  getScheduleLocationDisplayText,
   getScheduleLocationFallbackText,
   normalizeLeagueLocations,
 } from "@/lib/leagueLocations"
@@ -68,6 +69,11 @@ type LeagueRow = {
   id: string
   name: string
   locations: unknown
+}
+
+type SeasonRow = {
+  id: string
+  name: string
 }
 
 type PlayerRow = {
@@ -290,7 +296,7 @@ function mapPersonalMatch(
     status,
     scheduledAt: row.played_at,
     resultRecordedAt: row.result_recorded_at,
-    locationName: row.location_name,
+    locationName: getScheduleLocationDisplayText(row.location_name),
     sets,
     participants,
     canManage: row.created_by_user_id === currentUserId,
@@ -298,6 +304,7 @@ function mapPersonalMatch(
     leagueId: null,
     leagueName: null,
     seasonId: null,
+    seasonName: null,
     round: null,
   }
 }
@@ -372,10 +379,14 @@ async function loadLeagueRows(
     mappedMatches.flatMap((match) => [...match.teamA, ...match.teamB]),
   )
 
-  const [leaguesResult, playersResult] = await Promise.all([
+  const seasonIds = uniqueStrings(mappedMatches.map((match) => match.seasonId))
+  const [leaguesResult, seasonsResult, playersResult] = await Promise.all([
     leagueIds.length > 0
       ? actor.supabase.from("leagues").select("id,name,locations").in("id", leagueIds)
       : Promise.resolve({ data: [] as LeagueRow[], error: null }),
+    seasonIds.length > 0
+      ? actor.supabase.from("seasons").select("id,name").in("id", seasonIds)
+      : Promise.resolve({ data: [] as SeasonRow[], error: null }),
     participantIds.length > 0
       ? actor.supabase
           .from("players")
@@ -384,13 +395,16 @@ async function loadLeagueRows(
       : Promise.resolve({ data: [] as PlayerRow[], error: null }),
   ])
 
-  if (leaguesResult.error || playersResult.error) {
+  if (leaguesResult.error || seasonsResult.error || playersResult.error) {
     throw new Error("personal_matches_league_people_lookup_failed")
   }
 
   const leagueRows = (leaguesResult.data ?? []) as LeagueRow[]
   const leagueNameById = new Map(
     leagueRows.map((league) => [league.id, league.name]),
+  )
+  const seasonNameById = new Map(
+    ((seasonsResult.data ?? []) as SeasonRow[]).map((season) => [season.id, season.name]),
   )
   const leagueLocationsById = new Map(
     leagueRows.map((league) => [league.id, normalizeLeagueLocations(league.locations)]),
@@ -444,6 +458,7 @@ async function loadLeagueRows(
       leagueId: match.leagueId,
       leagueName: leagueNameById.get(match.leagueId) ?? "Liga",
       seasonId: match.seasonId,
+      seasonName: seasonNameById.get(match.seasonId) ?? "Temporada",
       round: match.round,
     })
   }
