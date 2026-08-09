@@ -60,20 +60,20 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
-              {teamA.map((participant) => (
-                <p
-                  key={`a-${participant.slot}`}
-                  className="truncate text-sm font-black leading-5 text-neutral-950"
-                >
-                  {participant.displayName}
-                </p>
-              ))}
-            </div>
+        {isFinished ? (
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
+                {teamA.map((participant) => (
+                  <p
+                    key={`a-${participant.slot}`}
+                    className="truncate text-sm font-black leading-5 text-neutral-950"
+                  >
+                    {participant.displayName}
+                  </p>
+                ))}
+              </div>
 
-            {isFinished ? (
               <div className="flex shrink-0 items-center gap-1 self-center">
                 <div
                   className="flex items-center gap-1"
@@ -94,22 +94,20 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
                   {setWins.a}
                 </span>
               </div>
-            ) : null}
-          </div>
-
-          <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
-              {teamB.map((participant) => (
-                <p
-                  key={`b-${participant.slot}`}
-                  className="truncate text-sm font-black leading-5 text-neutral-950"
-                >
-                  {participant.displayName}
-                </p>
-              ))}
             </div>
 
-            {isFinished ? (
+            <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
+                {teamB.map((participant) => (
+                  <p
+                    key={`b-${participant.slot}`}
+                    className="truncate text-sm font-black leading-5 text-neutral-950"
+                  >
+                    {participant.displayName}
+                  </p>
+                ))}
+              </div>
+
               <div className="flex shrink-0 items-center gap-1 self-center">
                 <div
                   className="flex items-center gap-1"
@@ -130,9 +128,43 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
                   {setWins.b}
                 </span>
               </div>
-            ) : null}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)] items-stretch gap-2">
+            <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5">
+              <div className="flex min-w-0 flex-col gap-y-1">
+                {teamA.map((participant) => (
+                  <p
+                    key={`a-${participant.slot}`}
+                    className="truncate text-sm font-black leading-tight text-neutral-950"
+                  >
+                    {participant.displayName}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-[9px] font-black uppercase text-neutral-600">
+                VS
+              </span>
+            </div>
+
+            <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5 text-right">
+              <div className="flex min-w-0 flex-col items-end gap-y-1">
+                {teamB.map((participant) => (
+                  <p
+                    key={`b-${participant.slot}`}
+                    className="max-w-full truncate text-sm font-black leading-tight text-neutral-950"
+                  >
+                    {participant.displayName}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>

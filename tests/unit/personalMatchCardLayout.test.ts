@@ -12,6 +12,8 @@ describe("personal match card layout", () => {
     ])
 
     expect(card).toContain('rounded-xl bg-neutral-50 px-3 py-2')
+    expect(card).toContain("grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)]")
+    expect(card).toContain(">\n                VS\n              </span>")
     expect(card).toContain('aria-label="Juegos por set de la pareja A"')
     expect(card).toContain('aria-label="Juegos por set de la pareja B"')
     expect(card).toContain('aria-label="Sets ganados por la pareja A"')

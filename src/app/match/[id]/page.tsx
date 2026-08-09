@@ -13,7 +13,7 @@ import {
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
-import { MatchScoreboard } from "@/components/match/MatchScoreboard"
+import { MatchDetailPairingPanel } from "@/components/match/MatchDetailPairingPanel"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { AppCard } from "@/components/ui/AppCard"
@@ -25,6 +25,7 @@ import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
+import { getRankingPosition } from "@/lib/seasonStatistics"
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCalendarText,
@@ -44,8 +45,15 @@ export default function MatchDetailPage() {
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
-  const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
-    useCurrentLeagueData()
+  const {
+    activeLeague,
+    activeSeason,
+    roundSettings,
+    rounds,
+    players,
+    rankingPlayers,
+    matches,
+  } = useCurrentLeagueData()
   const [isEditingResult, setIsEditingResult] = useState(false)
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)
@@ -178,6 +186,12 @@ export default function MatchDetailPage() {
     votes,
     mvpSystem: roundSettings.mvpSystem,
   })
+  const rankingPositions = Object.fromEntries(
+    [...match.teamA, ...match.teamB].map((playerId) => [
+      playerId,
+      getRankingPosition(rankingPlayers, playerId),
+    ]),
+  )
   const isMatchParticipant = [...match.teamA, ...match.teamB].includes(
     currentUserId
   )
@@ -324,7 +338,7 @@ export default function MatchDetailPage() {
         </AppCard>
       ) : null}
 
-      <MatchScoreboard
+      <MatchDetailPairingPanel
         teamA={match.teamA}
         teamB={match.teamB}
         players={players}
@@ -333,6 +347,7 @@ export default function MatchDetailPage() {
         sets={match.sets}
         substitutions={match.substitutions}
         highlightedPlayerIds={roundMvpPlayerIds}
+        rankingPositions={rankingPositions}
       />
 
       <MatchActionsContent

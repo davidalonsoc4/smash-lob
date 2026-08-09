@@ -83,12 +83,14 @@ export async function GET(request: Request) {
   const offset = parseListNumber(url.searchParams.get("offset"), 0, 100_000)
   const limit = Math.max(1, parseListNumber(url.searchParams.get("limit"), 10, 50))
   const includeUpcoming = url.searchParams.get("includeUpcoming") !== "0"
+  const includeAvatars = url.searchParams.get("includeAvatars") === "1"
 
   try {
     const payload = await loadPersonalMatchesDashboard(authResult.actor, {
       offset,
       limit,
       includeUpcoming,
+      includeAvatars,
     })
     return NextResponse.json(payload)
   } catch {

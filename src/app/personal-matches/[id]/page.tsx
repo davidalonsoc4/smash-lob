@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { MatchScoreboard } from "@/components/match/MatchScoreboard"
+import { MatchDetailPairingPanel } from "@/components/match/MatchDetailPairingPanel"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { PersonalMatchResultForm } from "@/components/personal/PersonalMatchResultForm"
 import { PersonalMatchSchedulePanel } from "@/components/personal/PersonalMatchSchedulePanel"
@@ -61,7 +61,7 @@ export default function PersonalMatchDetailPage() {
         .map((part) => part[0] ?? "")
         .join("")
         .toUpperCase() || "JG",
-      avatarUrl: null,
+      avatarUrl: participant.avatarUrl ?? null,
       userId: null,
     }))
     const teamA = sorted
@@ -125,12 +125,12 @@ export default function PersonalMatchDetailPage() {
     <div className="compact-page space-y-3">
       <header className="pt-1">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <div className="mt-3 min-w-0 w-full">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-            Amistoso
-          </p>
-          <div className="mt-1 flex min-w-0 items-start justify-between gap-2.5">
-            <h1 className="min-w-0 text-2xl font-black tracking-tight">Partido</h1>
+        <div className="relative mt-3 min-w-0 w-full pr-28">
+          <h1 className="min-w-0 text-2xl font-black tracking-tight">Partido</h1>
+          <div className="absolute right-0 top-0 flex shrink-0 flex-col items-end gap-1 text-right">
+            <span className="self-end rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-700">
+              Amistoso
+            </span>
             <MatchStatusBadge
               status={item.status}
               scheduledAt={item.scheduledAt}
@@ -140,13 +140,14 @@ export default function PersonalMatchDetailPage() {
         </div>
       </header>
 
-      <MatchScoreboard
+      <MatchDetailPairingPanel
         teamA={scoreboard.teamA}
         teamB={scoreboard.teamB}
         players={scoreboard.players}
         pointsA={scoreboard.pointsA}
         pointsB={scoreboard.pointsB}
         sets={item.sets}
+        linkPlayers={false}
       />
 
       <PersonalMatchSchedulePanel match={item} onUpdated={setItem} />

@@ -219,7 +219,8 @@ export default function MatchesPage() {
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"
-                    statusPosition="left"
+                    headerLeftLabel={`Jornada ${match.round}`}
+                    statusPosition="right"
                     stackTeamPlayers
                     currentUserId={currentUserId}
                     highlightedPlayerIds={

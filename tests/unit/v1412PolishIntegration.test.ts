@@ -31,7 +31,9 @@ describe("v1.4.12 personal and league polish", () => {
 
     expect(home).toContain("Jornada ${selectedNextMatch.round}")
     expect(home).toContain("Jornada ${selectedLastMatch.round}")
-    expect(calendar).toContain('statusPosition="left"')
+    expect(home).toContain('statusPosition="right"')
+    expect(calendar).toContain('headerLeftLabel={`Jornada ${match.round}`}')
+    expect(calendar).toContain('statusPosition="right"')
     expect(calendar).not.toContain('"Jugado" : "Pendiente de jugar"')
     expect(calendar).toContain("nextPendingUserMatch")
     expect(calendar).toContain("getNextMatch(currentUserMatches)")
