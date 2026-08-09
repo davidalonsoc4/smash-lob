@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFile(path, "utf8")
 
 describe("match detail pairing panel", () => {
-  it("gives the matchup its own prominent layout with avatars and league positions", async () => {
+  it("keeps the detail matchup prominent while maximizing space for player names", async () => {
     const [panel, leaguePage, personalPage, personalServer, personalModel] = await Promise.all([
       read("src/components/match/MatchDetailPairingPanel.tsx"),
       read("src/app/match/[id]/page.tsx"),
@@ -22,7 +22,7 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('const showAvatars = [...teamA, ...teamB].some')
     expect(panel).toContain('isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl)')
     expect(panel).toContain('{showAvatars ? (')
-    expect(panel).toContain('mt-3 flex min-w-0 items-center justify-center gap-2')
+    expect(panel).toContain('mt-1.5 flex min-w-0 items-center justify-center gap-2')
     expect(panel).toContain('text-[16px] font-black')
     expect(panel).toContain("line-clamp-2")
     expect(panel).not.toContain(">\n          Partido\n        </p>")
@@ -31,9 +31,20 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('alignment="left"')
     expect(panel).toContain('alignment="right"')
     expect(panel).toContain('alignment === "right" ? "text-right" : "text-left"')
-    expect(panel).toContain('truncate text-center text-[12px]')
+    expect(panel).toContain('text-[10px] font-bold uppercase leading-none tracking-wide')
+    expect(panel).toContain('alignment === "right" ? "text-right" : "text-left"')
+    expect(panel).not.toContain('truncate text-center text-[12px]')
+    expect(panel).toContain('alignment === "right"')
+    expect(panel).toContain('mr-auto flex h-7 min-w-7')
+    expect(panel).toContain('ml-auto flex h-7 min-w-7')
     expect(panel).toContain("points !== null && points !== undefined")
     expect(panel).toContain("sets.length > 0")
+    expect(panel).toContain('grid grid-cols-2 items-start gap-2')
+    expect(panel).not.toContain('grid-cols-[minmax(0,1fr)_42px_minmax(0,1fr)]')
+    expect(panel).not.toContain('>\n            VS\n          </span>')
+    expect(panel).toContain('className="min-w-0"')
+    expect(panel).toContain('rounded-lg bg-neutral-50 px-2 py-2')
+    expect(panel).not.toContain('shadow-sm ring-1 ring-neutral-100')
 
     expect(leaguePage).toContain("<MatchDetailPairingPanel")
     expect(leaguePage).toContain("getRankingPosition(rankingPlayers, playerId)")
@@ -43,8 +54,9 @@ describe("match detail pairing panel", () => {
     expect(personalPage).toContain("<MatchDetailPairingPanel")
     expect(personalPage).toContain("linkPlayers={false}")
     expect(personalPage).toContain("avatarUrl: participant.avatarUrl ?? null")
-    expect(personalPage).toContain('className="absolute right-0 top-0 flex shrink-0 flex-col items-end gap-1 text-right"')
-    expect(personalPage).toContain("Amistoso")
+    expect(personalPage).toContain('className="mt-3 flex min-w-0 w-full items-start justify-between gap-3"')
+    expect(personalPage).toContain('<div className="shrink-0">')
+    expect(personalPage).not.toContain('tracking-[0.12em] text-slate-700')
     expect(personalPage).not.toContain("<MatchScoreboard")
 
     expect(personalModel).toContain("avatarUrl?: string | null")
