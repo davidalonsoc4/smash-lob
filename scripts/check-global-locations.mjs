@@ -70,7 +70,7 @@ assert(personalSchedulePanel.includes("Nueva ubicación (se guardará en la app)
 assert(matchScheduleRoute.includes("saveGlobalLocation"), "Una ubicación libre introducida al programar un partido de liga debe guardarse globalmente")
 assert(matchScheduleRoute.includes('update({ locations: nextLeagueLocations })'), "Programar con una ubicación nueva debe añadirla a la liga desde el endpoint autorizado del partido")
 
-console.log("Ubicaciones globales v1.4.12 correctas:")
+console.log("Ubicaciones globales v1.4.16 correctas:")
 console.log("- catálogo único service-role con deduplicación y compatibilidad histórica")
 console.log("- la primera temporada y la administración buscan ubicaciones existentes o añaden nuevas")
 console.log("- partidos de liga y amistosos reutilizan el catálogo y nunca muestran ubicación JSON cruda")

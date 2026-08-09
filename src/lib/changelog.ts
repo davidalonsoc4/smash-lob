@@ -15,20 +15,25 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: "v1.4.12",
-    date: "8 de agosto de 2026",
-    title: "Perfil global y flujo de partidos más completo",
-    summary:
-      "Mis partidos estrena un perfil estadístico global y las ligas refinan ubicaciones, tarjetas, creación y navegación para hacer más directo el día a día de la competición.",
-    category: "improvement",
-    changes: [
-      "Mis partidos añade Mi perfil con estadísticas agregadas de todos los encuentros finalizados y filtros por amistosos, ligas, liga concreta y temporada concreta.",
-      "Calendario muestra el estado real de cada partido arriba a la izquierda, reserva Victoria/Derrota para la derecha, oculta metadatos de programación vacíos y enseña Añadir fecha, hora y lugar únicamente en el siguiente encuentro del usuario; Inicio muestra la jornada de cada tarjeta.",
-      "Las ubicaciones de liga se seleccionan al crear la primera temporada, pueden buscarse en el catálogo global y se pueden crear y guardar directamente al programar un partido.",
-      "La creación de la primera temporada permite cancelar y eliminar la liga todavía vacía; eliminar una liga manualmente devuelve a Mis ligas.",
-      "Los paneles de partido ocultan sus chevrons sin retirar el soporte y el tutorial aclara que se pueden pulsar para abrir el detalle.",
-      "Mis ligas incorpora un acceso directo para registrar un amistoso y la presentación compartida de ubicaciones evita mostrar valores serializados como JSON.",
-    ],
+    version: "v1.4.16", date: "9 de agosto de 2026", title: "Estadísticas globales completas en Mi perfil", summary: "Mi perfil convierte todo el histórico de ligas y amistosos en un panel estadístico global con rendimiento, parejas, rivales y cara a cara.", category: "new",
+    changes: ["Resumen avanzado con victorias, sets, juegos, medias, forma reciente, rachas, resultados por origen, partidos a tres sets, remontadas y márgenes.", "Parejas y rivales añade compañero/rival más frecuente, mejor y peor pareja, rival más vencido, némesis, mejores balances y rankings completos.", "Cara a cara permite elegir cualquier jugador del histórico y separa los enfrentamientos directos del rendimiento cuando habéis jugado juntos; las identidades vinculadas se unifican entre ligas y amistosos."],
+  },
+  {
+    version: "v1.4.15", date: "9 de agosto de 2026", title: "Emparejamiento protagonista en el detalle de partido", summary: "La pantalla Partido estrena un panel propio y más visual para identificar parejas y jugadores antes de programar o registrar el resultado.", category: "improvement",
+    changes: ["El detalle de partido deja de reutilizar la tarjeta compacta y muestra un único encabezado Emparejamiento con Pareja A, Pareja B y VS.", "Cada pareja separa sus avatares en una fila superior solo cuando alguno de los cuatro jugadores tiene imagen real; debajo muestra un panel por jugador con nombre y, en liga, posición actual, alineando Pareja B a la derecha.", "Los amistosos recuperan los avatares de participantes vinculados y fijan la etiqueta Amistoso al extremo derecho de la cabecera; el resumen de sets se conserva cuando existe resultado."],
+  },
+
+  {
+    version: "v1.4.14", date: "9 de agosto de 2026", title: "Jornada y estado intercambian posición en las tarjetas", summary: "Calendario e Inicio colocan la jornada a la izquierda y el estado del partido a la derecha, manteniendo Victoria/Derrota como resultado prioritario.", category: "improvement",
+    changes: ["Calendario de la liga muestra Jornada X arriba a la izquierda y el estado real del encuentro arriba a la derecha.", "Inicio aplica la misma disposición en Próximo partido y Último partido.", "Cuando el encuentro pertenece al usuario y está finalizado, Victoria/Derrota sustituye al estado normal en la esquina superior derecha; Mis partidos conserva su presentación actual."],
+  },
+  {
+    version: "v1.4.13", date: "9 de agosto de 2026", title: "Navegación personal más limpia y partidos pendientes enfrentados", summary: "Mis partidos simplifica su navegación y unifica la presentación de los encuentros todavía sin resultado para que las dos parejas se lean siempre enfrentadas.", category: "fix",
+    changes: ["La navegación inferior de Mis partidos queda en Mis ligas, Mis partidos y Mi perfil, en ese orden; Registrar partido sigue accesible desde los accesos específicos de la aplicación.", "Los encuentros sin resultado de Mis partidos muestran una pareja a la izquierda, VS en el centro y la otra pareja a la derecha, igual que Calendario, Inicio y el detalle del partido.", "El modo VS compartido elimina los rótulos visibles Pareja A y Pareja B en todas las pantallas que presentan un partido todavía sin resultado."],
+  },
+  {
+    version: "v1.4.12", date: "8 de agosto de 2026", title: "Perfil global y flujo de partidos más completo", summary: "Mis partidos estrena un perfil estadístico global y las ligas refinan ubicaciones, tarjetas, creación y navegación.", category: "improvement",
+    changes: ["Mi perfil agrega estadísticas y filtros por origen, liga y temporada.", "Calendario, Inicio y programación de partidos refinan estados, jornada, ubicaciones, metadatos y el aviso del siguiente encuentro pendiente.", "La primera temporada permite gestionar ubicaciones y cancelar la creación; eliminar una liga vuelve a Mis ligas, se añade acceso a amistosos y se normalizan ubicaciones para evitar JSON crudo."],
   },
   {
     version: "v1.4.11",

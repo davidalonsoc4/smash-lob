@@ -27,6 +27,8 @@ const [
   personalMatchesLib,
   personalProfilePage,
   personalProfileStats,
+  detailPairingPanel,
+  personalProfileView,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -49,6 +51,8 @@ const [
   read("src/lib/personalMatches.ts"),
   read("src/app/personal-matches/profile/page.tsx"),
   read("src/lib/personalProfileStats.ts"),
+  read("src/components/match/MatchDetailPairingPanel.tsx"),
+  read("src/components/personal/PersonalProfileStatistics.tsx"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -111,7 +115,16 @@ assert(matchEventMeta.includes('weekday: "long"') && matchEventMeta.includes('ho
 assert(newPage.includes("Otro jugador..."), "Debe ser posible registrar jugadores externos")
 assert(newPage.includes("sourceLeagueNames"), "Debe reutilizar jugadores conocidos de ligas compartidas")
 assert(newPage.includes("Programar") && newPage.includes("Ya jugado"), "El alta debe permitir programar o registrar un partido ya jugado")
-assert(detailPage.includes("<MatchScoreboard"), "El detalle personal debe reutilizar el marcador del partido de liga")
+assert(detailPage.includes("<MatchDetailPairingPanel"), "El detalle personal debe usar el panel de emparejamiento propio")
+assert(!detailPage.includes("<MatchScoreboard"), "El detalle personal no debe reutilizar el marcador compacto")
+assert(detailPage.includes('className="absolute right-0 top-0 flex shrink-0 flex-col items-end gap-1 text-right"'), "Amistoso debe quedar fijado al extremo derecho de la cabecera")
+assert(detailPage.includes("avatarUrl: participant.avatarUrl ?? null"), "El amistoso debe trasladar los avatares al panel de emparejamiento")
+assert(detailPairingPanel.includes("Emparejamiento") && detailPairingPanel.includes("Pareja A") && detailPairingPanel.includes("Pareja B"), "El panel propio debe identificar Pareja A y Pareja B")
+assert(detailPairingPanel.includes("const pairPlayers = playerIds.map") && detailPairingPanel.includes("<PlayerAvatar") && detailPairingPanel.includes("#{position} en liga"), "El panel propio debe separar los avatares de los paneles de nombre y admitir posición en liga")
+assert(detailPairingPanel.includes("const showAvatars = [...teamA, ...teamB].some") && detailPairingPanel.includes("isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl)"), "El panel propio debe ocultar las fotos cuando ninguno de los cuatro jugadores tiene imagen real")
+assert(detailPairingPanel.includes('alignment="left"') && detailPairingPanel.includes('alignment="right"') && detailPairingPanel.includes('alignment === "right" ? "text-right" : "text-left"'), "Pareja B debe alinear a la derecha todo el contenido textual de cada jugador")
+assert(detailPairingPanel.includes("truncate text-center text-[12px]"), "Los títulos Pareja A y Pareja B deben quedar centrados en su panel")
+assert(serverHelper.includes('.select("id,avatar_url")') && serverHelper.includes("avatarUrlByUserId"), "El servidor debe recuperar avatares de participantes vinculados")
 assert(detailPage.includes("<PersonalMatchSchedulePanel"), "El detalle debe incluir fecha, ubicación y acciones")
 assert(detailPage.includes("<PersonalMatchResultForm"), "El detalle debe permitir registrar/corregir resultado")
 assert(schedulePanel.includes("Cómo llegar"), "El detalle debe permitir abrir la ubicación")
@@ -123,15 +136,25 @@ assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocul
 assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
 assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
 assert(personalNav.includes('aria-label="Navegación de Mis partidos"'), "La navegación personal debe ser accesible")
-for (const label of ["Mis partidos", "Mi perfil", "+ Partido", "Ligas"]) {
+for (const label of ["Mis ligas", "Mis partidos", "Mi perfil"]) {
   assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
 }
+assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no debe incluir + Partido")
+assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis ligas")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
-assert(personalNav.includes("grid-cols-4"), "La navegación personal debe repartir cuatro destinos")
+assert(personalNav.includes("grid-cols-3"), "La navegación personal debe repartir tres destinos")
 assert(personalProfilePage.includes("Perfil global"), "Debe existir un perfil global dentro de Mis partidos")
 assert(personalProfilePage.includes("Todos los partidos") && personalProfilePage.includes("Partidos de liga"), "El perfil global debe filtrar por origen")
 assert(personalProfilePage.includes("Todas las ligas") && personalProfilePage.includes("Todas las temporadas"), "El perfil global debe filtrar por liga y temporada")
 assert(personalProfileStats.includes("filterPersonalProfileMatches") && personalProfileStats.includes("getPersonalProfileStats"), "Las estadísticas globales deben calcularse desde el historial personal")
+assert(personalProfileStats.includes("getPersonalProfileHeadToHead") && personalProfileStats.includes("bestTeammate") && personalProfileStats.includes("nemesis"), "El perfil global debe incluir parejas, rivales y cara a cara")
+assert(personalProfileStats.includes("decidingSetMatches") && personalProfileStats.includes("comebackWins") && personalProfileStats.includes("currentForm"), "El perfil global debe incluir rendimiento avanzado y forma reciente")
+assert(personalProfilePage.includes("includeAvatars=1"), "El perfil global debe cargar avatares para relaciones y cara a cara")
+assert(personalProfileView.includes("Parejas / rivales") && personalProfileView.includes("Cara a cara") && personalProfileView.includes("Mejor pareja") && personalProfileView.includes("Némesis"), "La UI del perfil debe exponer las nuevas estadísticas")
+assert(personalProfileView.includes("Enfrentamientos directos") && personalProfileView.includes("Rendimiento de la pareja"), "Cara a cara debe distinguir rivalidad y partidos como pareja")
+assert(personalMatchesLib.includes("personKey?: string | null"), "Los participantes del histórico deben exponer una identidad estable opcional")
+assert(serverHelper.includes("getParticipantPersonKey") && serverHelper.includes('`user:${userId}`') && serverHelper.includes('`player:${playerId}`'), "El histórico global debe unificar identidades vinculadas entre ligas")
+assert(listRoute.includes('searchParams.get("includeAvatars")'), "La API debe permitir cargar avatares solo cuando el perfil global los necesita")
 assert(serverHelper.includes("seasonName"), "El historial de liga debe incluir el nombre de temporada para el filtro global")
 assert(!personalPage.includes("<BackButton"), "La raíz de Mis partidos no debe duplicar Volver/Ligas")
 assert(newPage.includes("<BackButton") && detailPage.includes("<BackButton"), "Crear y detalle deben conservar el botón Volver")
@@ -146,11 +169,11 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.4.12 correcto:")
+console.log("Mis partidos v1.4.16 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
 console.log("- historial paginado de 10 en 10 y Próximo partido oculto cuando no existe")
 console.log("- amistosos programables con detalle alineado con Partido de liga")
 console.log("- origen por liga con color estable y metadatos ausentes ocultos de forma independiente")
 console.log("- un único amistoso compartido por cuentas vinculadas y externos permitidos")
-console.log("- modo personal con perfil global filtrable y navegación Mis partidos / Mi perfil / + Partido / Ligas")
+console.log("- perfil global con rendimiento, parejas, rivales, rankings y cara a cara filtrable")
 console.log("- API autenticada, rate limit y persistencia service-role only")
