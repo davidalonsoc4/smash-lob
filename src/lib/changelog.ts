@@ -15,6 +15,22 @@ export type ChangelogRelease = {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
+    version: "v1.4.12",
+    date: "8 de agosto de 2026",
+    title: "Perfil global y flujo de partidos más completo",
+    summary:
+      "Mis partidos estrena un perfil estadístico global y las ligas refinan ubicaciones, tarjetas, creación y navegación para hacer más directo el día a día de la competición.",
+    category: "improvement",
+    changes: [
+      "Mis partidos añade Mi perfil con estadísticas agregadas de todos los encuentros finalizados y filtros por amistosos, ligas, liga concreta y temporada concreta.",
+      "Calendario muestra el estado real de cada partido arriba a la izquierda, reserva Victoria/Derrota para la derecha, oculta metadatos de programación vacíos y enseña Añadir fecha, hora y lugar únicamente en el siguiente encuentro del usuario; Inicio muestra la jornada de cada tarjeta.",
+      "Las ubicaciones de liga se seleccionan al crear la primera temporada, pueden buscarse en el catálogo global y se pueden crear y guardar directamente al programar un partido.",
+      "La creación de la primera temporada permite cancelar y eliminar la liga todavía vacía; eliminar una liga manualmente devuelve a Mis ligas.",
+      "Los paneles de partido ocultan sus chevrons sin retirar el soporte y el tutorial aclara que se pueden pulsar para abrir el detalle.",
+      "Mis ligas incorpora un acceso directo para registrar un amistoso y la presentación compartida de ubicaciones evita mostrar valores serializados como JSON.",
+    ],
+  },
+  {
     version: "v1.4.11",
     date: "8 de agosto de 2026",
     title: "Ubicaciones globales y tarjetas de partido unificadas",
