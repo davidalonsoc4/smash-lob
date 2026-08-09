@@ -102,7 +102,7 @@ export function StandardAvailabilityEditor({
               type="button"
               aria-pressed={active}
               onClick={() => toggleDay(weekdayId)}
-              className={`h-9 rounded-xl text-[11px] font-black transition active:scale-95 ${
+              className={`h-9 rounded-xl type-caption font-black transition active:scale-95 ${
                 active
                   ? "bg-neutral-950 text-white"
                   : "border border-neutral-200 bg-white text-neutral-500"
@@ -116,7 +116,7 @@ export function StandardAvailabilityEditor({
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
             {startLabel}
           </span>
           <input
@@ -131,7 +131,7 @@ export function StandardAvailabilityEditor({
         </label>
 
         <label className="block">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
             {endLabel}
           </span>
           <input
@@ -146,7 +146,7 @@ export function StandardAvailabilityEditor({
         </label>
       </div>
 
-      <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-400">
+      <p className="mt-2 type-caption font-semibold leading-4 text-neutral-400">
         {laterNotice}
       </p>
     </div>

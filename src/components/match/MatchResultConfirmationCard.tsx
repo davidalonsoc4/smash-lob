@@ -117,16 +117,16 @@ export function MatchResultConfirmationCard({
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="text-xs font-black">Confirmar resultado</p>
+            <p className="type-panel-title">Confirmar resultado</p>
             <span
-              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-black ${status.className}`}
+              className={`shrink-0 rounded-full px-1.5 py-0.5 type-caption font-black ${status.className}`}
             >
               {status.label}
             </span>
           </div>
 
           {detail ? (
-            <p className="mt-0.5 truncate text-[10px] font-semibold text-neutral-500">
+            <p className="mt-0.5 truncate type-caption font-semibold text-neutral-500">
               {detail}
             </p>
           ) : null}
@@ -138,7 +138,7 @@ export function MatchResultConfirmationCard({
               type="button"
               onClick={() => saveStatus("confirmed")}
               disabled={isSaving}
-              className={`rounded-lg px-2 py-1.5 text-[10px] font-black disabled:opacity-50 ${
+              className={`rounded-lg px-2 py-1.5 type-caption font-black disabled:opacity-50 ${
                 currentConfirmation?.status === "confirmed"
                   ? "bg-neutral-950 text-white"
                   : "bg-neutral-100 text-neutral-800"
@@ -151,7 +151,7 @@ export function MatchResultConfirmationCard({
               type="button"
               onClick={() => saveStatus("disputed")}
               disabled={isSaving}
-              className="rounded-lg bg-red-50 px-2 py-1.5 text-[10px] font-black text-red-700 disabled:opacity-50"
+              className="rounded-lg bg-red-50 px-2 py-1.5 type-caption font-black text-red-700 disabled:opacity-50"
             >
               Incorrecto
             </button>
@@ -160,7 +160,7 @@ export function MatchResultConfirmationCard({
       </div>
 
       {error ? (
-        <p className="mt-1 text-[10px] font-semibold text-red-600">{error}</p>
+        <p className="mt-1 type-caption font-semibold text-red-600">{error}</p>
       ) : null}
     </AppCard>
   );

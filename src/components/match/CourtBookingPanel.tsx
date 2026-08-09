@@ -479,7 +479,7 @@ export function CourtBookingPanel({
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-black text-neutral-950">Pagos y reservas</p>
+            <p className="type-panel-title text-neutral-950">Pagos y reservas</p>
             {booking.isReserved ? (
               <span className={getBookingStatusBadgeClassName(true)}>
                 Guardado
@@ -491,7 +491,7 @@ export function CourtBookingPanel({
             )}
           </div>
 
-          <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
             Indica quién pagó pista y bolas. La app calcula las transferencias.
           </p>
         </div>
@@ -523,7 +523,7 @@ export function CourtBookingPanel({
 
       <div className="mt-1.5 grid grid-cols-3 divide-x divide-neutral-200 overflow-hidden rounded-lg bg-neutral-100 text-center">
         <div className="px-2 py-1">
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
             Total
           </p>
           <p className="text-xs font-black text-neutral-950">
@@ -531,7 +531,7 @@ export function CourtBookingPanel({
           </p>
         </div>
         <div className="px-2 py-1">
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
             Pagan
           </p>
           <p className="text-xs font-black text-neutral-950">
@@ -539,7 +539,7 @@ export function CourtBookingPanel({
           </p>
         </div>
         <div className="px-2 py-1">
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
             Pend.
           </p>
           <p className="text-xs font-black text-neutral-950">
@@ -607,7 +607,7 @@ export function CourtBookingPanel({
                               )
                             }
                             disabled={isSaving}
-                            className={`whitespace-nowrap rounded-md border px-2 py-1 text-[10px] font-black transition disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-300 ${
+                            className={`whitespace-nowrap rounded-md border px-2 py-1 type-caption font-black transition disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-300 ${
                               transfer.isPaid
                                 ? "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
                                 : "border-emerald-200 bg-emerald-50 text-emerald-800 active:bg-emerald-100"
@@ -635,7 +635,7 @@ export function CourtBookingPanel({
                           handleUpdatePaymentStatus(transfer.id, true)
                         }
                         disabled={isSaving}
-                        className="mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
+                        className="mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300"
                       >
                         {isSaving ? "Guardando..." : "✓ Marcar como pagado"}
                       </button>
@@ -673,7 +673,7 @@ export function CourtBookingPanel({
                   type="button"
                   onClick={handleSendReminder}
                   disabled={isSendingReminder}
-                  className="w-full rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1.5 text-[11px] font-black text-orange-900 shadow-sm disabled:text-orange-300"
+                  className="w-full rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1.5 type-caption font-black text-orange-900 shadow-sm disabled:text-orange-300"
                 >
                   {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
                 </button>
@@ -683,7 +683,7 @@ export function CourtBookingPanel({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm active:bg-neutral-100"
+                  className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm active:bg-neutral-100"
                 >
                   Editar
                 </button>
@@ -691,7 +691,7 @@ export function CourtBookingPanel({
                   type="button"
                   onClick={handleClearBooking}
                   disabled={isSaving || !canCancelBooking}
-                  className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 text-[11px] font-black text-red-700 disabled:text-red-300"
+                  className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 type-caption font-black text-red-700 disabled:text-red-300"
                 >
                   Cancelar reserva
                 </button>
@@ -713,7 +713,7 @@ export function CourtBookingPanel({
                 className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left shadow-sm"
               >
                 <span className="min-w-0">
-                  <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                  <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
                     Compró las bolas
                   </span>
                   <span className="block truncate text-sm font-black text-neutral-950">
@@ -781,7 +781,7 @@ export function CourtBookingPanel({
                   className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left shadow-sm"
                 >
                   <span className="min-w-0">
-                    <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                    <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
                       Pagó la pista
                     </span>
                     <span className="block truncate text-sm font-black text-neutral-950">
@@ -848,14 +848,14 @@ export function CourtBookingPanel({
                   className="flex w-full items-center justify-between gap-2 text-left"
                 >
                   <span className="min-w-0">
-                    <span className="block text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                    <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
                       Pagaron la pista
                     </span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
                     </span>
                   </span>
-                  <span className="inline-flex h-6 shrink-0 items-center rounded-md bg-neutral-100 px-2 text-[10px] font-black text-neutral-700">
+                  <span className="inline-flex h-6 shrink-0 items-center rounded-md bg-neutral-100 px-2 type-caption font-black text-neutral-700">
                     Cambiar
                   </span>
                 </button>
@@ -930,7 +930,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
-                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
               >
                 Cancelar
               </button>
@@ -939,7 +939,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={() => setIsExpanded(false)}
                 disabled={isSaving}
-                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
               >
                 Cerrar
               </button>
@@ -948,7 +948,7 @@ export function CourtBookingPanel({
             <button
               type="submit"
               disabled={!canSave}
-              className="rounded-md bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
+              className="rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300"
             >
               {isSaving ? "Guardando..." : "Guardar pagos"}
             </button>

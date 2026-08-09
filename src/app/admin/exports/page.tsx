@@ -47,7 +47,7 @@ function DataSummaryItem({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-center shadow-sm">
       <p className="text-xl font-black leading-none text-neutral-950">{value}</p>
-      <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+      <p className="mt-1 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
         {label}
       </p>
     </div>
@@ -76,14 +76,14 @@ function CsvExportCard({
           <CsvIcon />
         </span>
         <div className="min-w-0">
-          <h3 className="font-black text-neutral-950">{title}</h3>
+          <h3 className="type-panel-title font-black text-neutral-950">{title}</h3>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
             {description}
           </p>
         </div>
       </div>
 
-      <p className="mt-4 rounded-xl bg-neutral-50 px-3 py-2 text-[11px] font-bold leading-5 text-neutral-500">
+      <p className="mt-4 rounded-xl bg-neutral-50 px-3 py-2 type-caption font-bold leading-5 text-neutral-500">
         {detail}
       </p>
 
@@ -179,15 +179,12 @@ export default function AdminExportsPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label="Volver" />
         <div className="mt-2 overflow-hidden rounded-[28px] border border-neutral-200 bg-[linear-gradient(135deg,#ffffff_0%,#f1f4ef_100%)] px-4 py-4 shadow-sm">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-500">
             {activeLeague.name}
           </p>
-          <h1 className="mt-1 text-xl font-black tracking-tight text-neutral-950">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight text-neutral-950">
             Exportar datos
           </h1>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
-            Guarda la información de una temporada en un libro de Excel o en archivos CSV para archivarla, revisarla o seguir trabajando con ella.
-          </p>
         </div>
       </header>
 
@@ -224,7 +221,7 @@ export default function AdminExportsPage() {
                 <SpreadsheetIcon />
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/65">
+                <p className="type-caption font-black uppercase tracking-[0.18em] text-white/65">
                   Opción recomendada
                 </p>
                 <h2 id="excel-export-title" className="mt-1 text-lg font-black">

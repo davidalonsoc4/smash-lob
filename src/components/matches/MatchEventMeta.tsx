@@ -63,10 +63,10 @@ export function MatchEventMeta({
   return (
     <div className="mt-2 border-t border-neutral-100 pt-2">
       {dateText ? (
-        <p className="text-[11px] font-semibold text-neutral-500">{dateText}</p>
+        <p className="type-caption font-semibold text-neutral-500">{dateText}</p>
       ) : null}
       {location ? (
-        <p className={`${dateText ? "mt-0.5" : ""} truncate text-[11px] font-semibold text-neutral-600`}>
+        <p className={`${dateText ? "mt-0.5" : ""} truncate type-caption font-semibold text-neutral-600`}>
           {location}
         </p>
       ) : null}

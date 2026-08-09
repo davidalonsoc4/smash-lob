@@ -40,7 +40,7 @@ export function PublicSiteLayout({
             </div>
           </div>
 
-          <p className="mt-7 text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+          <p className="mt-7 type-caption font-black uppercase tracking-[0.22em] text-neutral-400">
             {eyebrow}
           </p>
           <h1 className="mt-2 max-w-2xl text-3xl font-black leading-tight tracking-tight sm:text-4xl">
@@ -97,7 +97,7 @@ export function PublicDocumentSection({
 }) {
   return (
     <section className="border-b border-neutral-100 py-5 first:pt-0 last:border-b-0 last:pb-0">
-      <h2 className="text-lg font-black tracking-tight text-neutral-950">{title}</h2>
+      <h2 className="type-section-title text-lg font-black tracking-tight text-neutral-950">{title}</h2>
       <div className="mt-2 space-y-3 text-sm font-medium leading-6 text-neutral-600">
         {children}
       </div>

@@ -99,21 +99,18 @@ export default function PersonalMatchesPage() {
   return (
     <div className="compact-page space-y-4">
       <header className="pt-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal
         </p>
         <div className="mt-1">
-          <h1 className="text-2xl font-black tracking-tight">Mis partidos</h1>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Tu agenda e historial completo: ligas y amistosos, sin mezclar sus estadísticas.
-          </p>
+          <h1 className="type-page-title text-2xl font-black tracking-tight">Mis partidos</h1>
         </div>
       </header>
 
       {!loading && selectedUpcoming ? (
         <section className="space-y-2">
           <div className="flex items-center justify-between gap-3 px-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
               Próximo partido
             </p>
 
@@ -127,7 +124,7 @@ export default function PersonalMatchesPage() {
                     key={scope}
                     type="button"
                     onClick={() => setNextScope(scope)}
-                    className={`rounded-md px-2.5 py-1 text-[9px] font-black transition ${
+                    className={`rounded-md px-2.5 py-1 type-caption font-black transition ${
                       nextScope === scope
                         ? "bg-white text-neutral-950 shadow-sm"
                         : "text-neutral-500"
@@ -146,11 +143,11 @@ export default function PersonalMatchesPage() {
 
       <section className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
             Historial
           </p>
           {dashboard.items.length > 0 ? (
-            <span className="text-[10px] font-bold text-neutral-400">Más recientes primero</span>
+            <span className="type-caption font-bold text-neutral-400">Más recientes primero</span>
           ) : null}
         </div>
 

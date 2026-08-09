@@ -39,36 +39,36 @@ export default function StatisticsStandingsPage() {
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
             Partidos
           </p>
           <p className="mt-1 text-2xl font-black">
             {statistics.completedMatches}/{statistics.totalMatches}
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
             {formatPercent(statistics.completionRate)} completado
           </p>
         </AppCard>
         <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
             Jugadores
           </p>
           <p className="mt-1 text-2xl font-black">{statistics.ranking.length}</p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
             con clasificación
           </p>
         </AppCard>
         <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
             Juegos
           </p>
           <p className="mt-1 text-2xl font-black">{statistics.totalGames}</p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
             {formatNumber(statistics.averageGamesPerMatch)} por partido
           </p>
         </AppCard>
         <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
             {isLeagueWide ? "Liderato histórico" : "Liderato"}
           </p>
           <p className="mt-1 truncate text-base font-black">
@@ -76,7 +76,7 @@ export default function StatisticsStandingsPage() {
               ? statistics.leaders.map((player) => player.displayName).join(" / ")
               : "—"}
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
             {statistics.leader ? `${statistics.leader.points} puntos` : "Sin datos"}
           </p>
         </AppCard>

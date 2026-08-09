@@ -13,7 +13,9 @@ import {
 import {
   loadManageablePersonalMatch,
   loadPersonalMatch,
+  replacePersonalMatchParticipants,
 } from "@/lib/serverPersonalMatches"
+import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMatchRequest"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -23,6 +25,7 @@ type UpdatePersonalMatchBody = {
   scheduledAt?: unknown
   locationName?: unknown
   sets?: unknown
+  participants?: unknown
 }
 
 export async function GET(
@@ -76,7 +79,7 @@ export async function PATCH(
 
   const body = await parseJsonBody<UpdatePersonalMatchBody>(request)
   const action = body?.action
-  if (action !== "schedule" && action !== "result") {
+  if (action !== "schedule" && action !== "result" && action !== "participants") {
     return NextResponse.json({ error: "invalid_personal_match_update" }, { status: 400 })
   }
 
@@ -131,7 +134,7 @@ export async function PATCH(
       if (error) {
         return NextResponse.json({ error: "personal_match_update_failed" }, { status: 500 })
       }
-    } else {
+    } else if (action === "result") {
       const sets = validateMatchSets(body?.sets)
       if (!sets) {
         return NextResponse.json({ error: "invalid_personal_match_result" }, { status: 400 })
@@ -155,11 +158,44 @@ export async function PATCH(
       if (error) {
         return NextResponse.json({ error: "personal_match_result_failed" }, { status: 500 })
       }
+    } else {
+      if (match.status !== "scheduled") {
+        return NextResponse.json(
+          { error: "personal_match_participants_locked" },
+          { status: 409 },
+        )
+      }
+      const drafts = normalizePersonalMatchParticipantDrafts(body?.participants)
+      if (!drafts) {
+        return NextResponse.json(
+          { error: "invalid_personal_match_participants" },
+          { status: 400 },
+        )
+      }
+      await replacePersonalMatchParticipants(authResult.actor, matchId, drafts)
+      const { error } = await authResult.actor.supabase
+        .from("personal_matches")
+        .update({ updated_at: nowIso })
+        .eq("id", matchId)
+      if (error) {
+        return NextResponse.json(
+          { error: "personal_match_participants_update_failed" },
+          { status: 500 },
+        )
+      }
     }
 
     const item = await loadPersonalMatch(authResult.actor, matchId)
     return NextResponse.json({ item })
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "personal_match_update_failed"
+    if (
+      message === "duplicate_personal_match_person" ||
+      message === "invalid_personal_match_person" ||
+      message === "personal_match_requires_current_user"
+    ) {
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
     return NextResponse.json({ error: "personal_match_update_failed" }, { status: 500 })
   }
 }

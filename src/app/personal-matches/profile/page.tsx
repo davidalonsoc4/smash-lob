@@ -127,12 +127,11 @@ export default function PersonalProfilePage() {
   return (
     <div className="space-y-3">
       <header className="pt-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">Mis partidos · Perfil global</p>
+        <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-500">Mis partidos · Perfil global</p>
         <div className="mt-2 flex items-center gap-2.5">
           <PlayerAvatar player={{ displayName, avatarUrl: profile?.avatarUrl ?? null }} size="md" previewable />
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-black tracking-tight">{displayName}</h1>
-            <p className="mt-0.5 text-xs font-semibold text-neutral-500">Todo tu histórico: rendimiento, parejas, rivales y cara a cara.</p>
+            <h1 className="type-player-name-hero truncate">{displayName}</h1>
           </div>
         </div>
       </header>
@@ -141,7 +140,7 @@ export default function PersonalProfilePage() {
         <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">Filtrar estadísticas</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           <label className="block">
-            <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Tipo</span>
+            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Tipo</span>
             <select
               value={origin}
               onChange={(event) => {
@@ -161,7 +160,7 @@ export default function PersonalProfilePage() {
           </label>
 
           <label className="block">
-            <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Liga</span>
+            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Liga</span>
             <select
               value={effectiveLeagueId}
               disabled={origin === "friendly"}
@@ -177,7 +176,7 @@ export default function PersonalProfilePage() {
           </label>
 
           <label className="block">
-            <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Temporada</span>
+            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Temporada</span>
             <select
               value={effectiveSeasonId}
               disabled={!effectiveLeagueId}

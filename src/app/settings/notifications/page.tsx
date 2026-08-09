@@ -377,13 +377,10 @@ export default function NotificationSettingsPage() {
           <span>{activeLeague.name}</span>
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.notifications.title}
         </h1>
 
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {t.notifications.description}
-        </p>
       </header>
 
       <div id="device" className="settings-search-target">
@@ -399,7 +396,7 @@ export default function NotificationSettingsPage() {
           </div>
 
           <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+            className={`shrink-0 rounded-full px-2 py-0.5 type-caption font-black uppercase tracking-wide ${
               hasSubscription
                 ? "bg-emerald-100 text-emerald-800"
                 : "bg-neutral-100 text-neutral-600"
@@ -445,7 +442,7 @@ export default function NotificationSettingsPage() {
             <p className="mt-1 text-xs font-semibold text-neutral-500">
               {t.notifications.enabledCount.replace("{enabled}", String(enabledCount)).replace("{total}", String(notificationPreferenceDefinitions.length))}
             </p>
-            <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-400">
+            <p className="mt-1 type-caption font-semibold leading-4 text-neutral-400">
               {t.notifications.allTypesConfigurable}
             </p>
           </div>
@@ -455,7 +452,7 @@ export default function NotificationSettingsPage() {
               type="button"
               onClick={disableAll}
               disabled={isLoading || isSaving}
-              className="rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-300"
+              className="rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 disabled:text-neutral-300"
             >
               {t.notifications.disableAll}
             </button>
@@ -463,7 +460,7 @@ export default function NotificationSettingsPage() {
               type="button"
               onClick={enableAll}
               disabled={isLoading || isSaving}
-              className="rounded-xl bg-neutral-950 px-2.5 py-1.5 text-[11px] font-black text-white disabled:bg-neutral-300"
+              className="rounded-xl bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300"
             >
               {t.notifications.enableAll}
             </button>
@@ -502,7 +499,7 @@ export default function NotificationSettingsPage() {
                       <p className="text-sm font-black text-neutral-950">
                         {group.title}
                       </p>
-                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                         {groupEnabledCount}/{definitions.length}
                       </span>
                     </div>

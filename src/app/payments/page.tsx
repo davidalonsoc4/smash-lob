@@ -220,7 +220,7 @@ function PaymentActivityList({
               </p>
             </div>
 
-            <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
+            <p className="shrink-0 type-caption font-semibold text-neutral-400">
               {formatEventDate(event.createdAt)}
             </p>
           </div>
@@ -549,11 +549,8 @@ export default function PaymentsPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">Mis pagos</h1>
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Mis pagos</h1>
 
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Consulta lo pendiente, lo que te deben y el historial registrado.
-        </p>
       </header>
 
       <div
@@ -583,7 +580,7 @@ export default function PaymentsPage() {
           >
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
                   Debes
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
@@ -596,7 +593,7 @@ export default function PaymentsPage() {
               </div>
 
               <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
                   Te deben
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
@@ -670,7 +667,7 @@ export default function PaymentsPage() {
 
             {isEconomyExpanded ? (
               <div className="border-t border-neutral-100 px-3 pb-3 pt-3">
-                <label className="block text-[10px] font-black uppercase tracking-[0.16em] text-neutral-500">
+                <label className="block type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
                   {t.payments.scopeLabel}
                   <select
                     value={effectiveEconomyScope}
@@ -688,25 +685,25 @@ export default function PaymentsPage() {
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div className="rounded-2xl bg-neutral-50 px-3 py-2.5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+                    <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-400">
                       {t.payments.recordedSpend}
                     </p>
                     <p className="mt-1 text-lg font-black text-neutral-950">
                       {formatMoney(economicSummary.recordedCost)}
                     </p>
-                    <p className="text-[11px] font-semibold text-neutral-500">
+                    <p className="type-caption font-semibold text-neutral-500">
                       {economicSummary.matchCount} {t.payments.matchesWithCosts}
                     </p>
                   </div>
 
                   <div className="rounded-2xl bg-neutral-50 px-3 py-2.5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-400">
+                    <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-400">
                       {t.payments.yourEstimatedShare}
                     </p>
                     <p className="mt-1 text-lg font-black text-neutral-950">
                       {formatMoney(economicSummary.userEstimatedShare)}
                     </p>
-                    <p className="text-[11px] font-semibold text-neutral-500">
+                    <p className="type-caption font-semibold text-neutral-500">
                       {t.payments.matchShareAndFees}
                     </p>
                   </div>
@@ -734,7 +731,7 @@ export default function PaymentsPage() {
                       <p className="font-bold text-neutral-600">
                         {t.payments.registrationFees}
                       </p>
-                      <p className="text-[11px] font-semibold text-neutral-400">
+                      <p className="type-caption font-semibold text-neutral-400">
                         {formatMoney(economicSummary.registrationPaid)} {t.payments.collectedOf}{" "}
                         {formatMoney(economicSummary.registrationExpected)}
                       </p>
@@ -745,7 +742,7 @@ export default function PaymentsPage() {
                       </p>
                       {economicSummary.userRegistration > 0 ? (
                         <p
-                          className={`text-[10px] font-black uppercase tracking-[0.12em] ${
+                          className={`type-caption font-black uppercase tracking-[0.12em] ${
                             economicSummary.userRegistrationPaid >=
                             economicSummary.userRegistration
                               ? "text-emerald-600"
@@ -762,7 +759,7 @@ export default function PaymentsPage() {
                   </div>
                 </div>
 
-                <p className="mt-3 text-[11px] font-semibold leading-4 text-neutral-500">
+                <p className="mt-3 type-caption font-semibold leading-4 text-neutral-500">
                   {t.payments.economyNote}
                 </p>
               </div>
@@ -813,7 +810,7 @@ export default function PaymentsPage() {
                             {formatMoney(transfer.amount)}
                           </p>
                           <p
-                            className={`text-[10px] font-black uppercase tracking-[0.14em] ${
+                            className={`type-caption font-black uppercase tracking-[0.14em] ${
                               transfer.isPaid
                                 ? "text-emerald-600"
                                 : "text-amber-600"

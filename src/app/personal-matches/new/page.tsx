@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import {
+  PersonalMatchParticipantSelector,
+  type EditablePersonalMatchParticipant,
+} from "@/components/personal/PersonalMatchParticipantSelector"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import {
@@ -12,7 +16,6 @@ import {
   type LeagueLocation,
 } from "@/lib/leagueLocations"
 import type {
-  PersonalMatchParticipantDraft,
   PersonalMatchPerson,
   PersonalMatchSet,
   PersonalMatchStatus,
@@ -23,9 +26,7 @@ function localDateTimeValue(date: Date) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
-type EditableParticipant = PersonalMatchParticipantDraft & {
-  label: string
-}
+type EditableParticipant = EditablePersonalMatchParticipant
 
 function initialParticipants(): EditableParticipant[] {
   return [
@@ -34,81 +35,6 @@ function initialParticipants(): EditableParticipant[] {
     { team: 2, slot: 1, personKey: null, displayName: "", label: "Rival 1" },
     { team: 2, slot: 2, personKey: null, displayName: "", label: "Rival 2" },
   ]
-}
-
-function ParticipantSelector({
-  participant,
-  people,
-  usedKeys,
-  onChange,
-  locked = false,
-}: {
-  participant: EditableParticipant
-  people: PersonalMatchPerson[]
-  usedKeys: Set<string>
-  onChange: (next: EditableParticipant) => void
-  locked?: boolean
-}) {
-  const externalValue = "__external__"
-  const selectedValue = participant.personKey ?? externalValue
-
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-2.5">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
-        {participant.label}
-      </p>
-      {locked ? (
-        <p className="mt-1.5 text-sm font-black text-neutral-950">{participant.displayName}</p>
-      ) : (
-        <>
-          <select
-            value={selectedValue}
-            onChange={(event) => {
-              const key = event.target.value
-              if (key === externalValue) {
-                onChange({ ...participant, personKey: null, displayName: "" })
-                return
-              }
-              const person = people.find((item) => item.key === key)
-              if (!person) return
-              onChange({ ...participant, personKey: person.key, displayName: person.displayName })
-            }}
-            className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400"
-          >
-            <option value={externalValue}>Otro jugador...</option>
-            {people
-              .filter((person) => !person.isSelf)
-              .map((person) => (
-                <option
-                  key={person.key}
-                  value={person.key}
-                  disabled={usedKeys.has(person.key) && participant.personKey !== person.key}
-                >
-                  {person.displayName}
-                  {person.sourceLeagueNames.length > 0
-                    ? ` · ${person.sourceLeagueNames.join(", ")}`
-                    : ""}
-                </option>
-              ))}
-          </select>
-
-          {!participant.personKey ? (
-            <input
-              value={participant.displayName}
-              onChange={(event) =>
-                onChange({
-                  ...participant,
-                  displayName: event.target.value.slice(0, 60),
-                })
-              }
-              placeholder="Nombre del jugador"
-              className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400"
-            />
-          ) : null}
-        </>
-      )}
-    </div>
-  )
 }
 
 export default function NewPersonalMatchPage() {
@@ -323,13 +249,10 @@ export default function NewPersonalMatchPage() {
     <div className="compact-page space-y-3">
       <header className="pt-1">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
-        <h1 className="mt-0.5 text-2xl font-black tracking-tight">
+        <p className="mt-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
+        <h1 className="type-page-title mt-0.5 text-2xl font-black tracking-tight">
           {status === "scheduled" ? "Programar partido" : "Registrar partido"}
         </h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          El mismo amistoso aparecerá en Mis partidos de todos los participantes que tengan una cuenta vinculada.
-        </p>
       </header>
 
       <div className="grid grid-cols-2 rounded-xl bg-neutral-100 p-1">
@@ -394,12 +317,12 @@ export default function NewPersonalMatchPage() {
 
       <AppCard className="p-3">
         <p className="text-sm font-black text-neutral-950">Jugadores</p>
-        <p className="mt-1 text-[10px] font-semibold leading-4 text-neutral-500">
-          Puedes elegir jugadores conocidos o escribir manualmente cualquier nombre.
+        <p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">
+          Puedes elegir jugadores conocidos o escribir manualmente cualquier nombre. El mismo amistoso aparecerá en Mis partidos de todos los participantes que tengan una cuenta vinculada.
         </p>
         <div className="mt-3 grid gap-2">
           {participants.map((participant, index) => (
-            <ParticipantSelector
+            <PersonalMatchParticipantSelector
               key={`${participant.team}-${participant.slot}`}
               participant={participant}
               people={people}
@@ -410,7 +333,7 @@ export default function NewPersonalMatchPage() {
           ))}
         </div>
         {loadingPeople ? (
-          <p className="mt-2 text-[10px] font-semibold text-neutral-400">Cargando jugadores compartidos...</p>
+          <p className="mt-2 type-caption font-semibold text-neutral-400">Cargando jugadores compartidos...</p>
         ) : null}
       </AppCard>
 
@@ -419,13 +342,13 @@ export default function NewPersonalMatchPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-black text-neutral-950">Resultado</p>
-              <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">Equipo A · Equipo B</p>
+              <p className="mt-0.5 type-caption font-semibold text-neutral-500">Equipo A · Equipo B</p>
             </div>
             {sets.length < 5 ? (
               <button
                 type="button"
                 onClick={() => setSets((current) => [...current, { a: 0, b: 0 }])}
-                className="rounded-lg bg-neutral-100 px-2.5 py-2 text-[10px] font-black text-neutral-700"
+                className="rounded-lg bg-neutral-100 px-2.5 py-2 type-caption font-black text-neutral-700"
               >
                 + Set
               </button>
@@ -435,7 +358,7 @@ export default function NewPersonalMatchPage() {
           <div className="mt-3 space-y-2">
             {sets.map((set, index) => (
               <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-2 rounded-xl bg-neutral-100 p-2">
-                <span className="text-[10px] font-black uppercase text-neutral-500">Set {index + 1}</span>
+                <span className="type-caption font-black uppercase text-neutral-500">Set {index + 1}</span>
                 <input
                   inputMode="numeric"
                   type="number"
@@ -471,13 +394,13 @@ export default function NewPersonalMatchPage() {
             ))}
           </div>
           {!hasWinner ? (
-            <p className="mt-2 text-[10px] font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
+            <p className="mt-2 type-caption font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
           ) : null}
         </AppCard>
       ) : (
         <AppCard className="border-blue-100 bg-blue-50 p-3">
           <p className="text-xs font-black text-blue-950">Resultado pendiente</p>
-          <p className="mt-1 text-[10px] font-semibold leading-4 text-blue-700">
+          <p className="mt-1 type-caption font-semibold leading-4 text-blue-700">
             El resultado se añadirá desde el detalle del partido cuando se haya disputado.
           </p>
         </AppCard>

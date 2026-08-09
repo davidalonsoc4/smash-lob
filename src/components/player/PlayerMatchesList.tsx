@@ -74,7 +74,7 @@ export function PlayerMatchesList({
   return (
     <section>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-black">{title}</h2>
+        <h2 className="type-section-title text-lg font-black">{title}</h2>
         {actionHref && actionLabel ? (
           <Link
             href={actionHref}
@@ -192,7 +192,7 @@ export function PlayerMatchesList({
                         {scheduleTitle}
                       </p>
 
-                      <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                      <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                         {scheduleDescription}
                       </p>
                     </div>

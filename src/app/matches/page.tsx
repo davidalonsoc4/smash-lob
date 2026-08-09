@@ -89,18 +89,15 @@ export default function MatchesPage() {
           seasonStatus={activeSeason.status}
         />
 
-        <h1 className="mt-1.5 text-2xl font-black tracking-tight">
+        <h1 className="type-page-title mt-1.5 text-2xl font-black tracking-tight">
           {t.matches.subtitle}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
-          {t.matches.description}
-        </p>
       </header>
 
       <AppCard data-tour="matches-scope" className="p-2">
         <div className="flex items-center gap-2 overflow-x-auto">
-          <p className="shrink-0 text-[11px] font-black text-neutral-700">
+          <p className="shrink-0 type-caption font-black text-neutral-700">
             Vista del calendario
           </p>
 
@@ -114,11 +111,11 @@ export default function MatchesPage() {
                   : "bg-neutral-100 text-neutral-700"
               }`}
             >
-              <span className="whitespace-nowrap text-[11px] font-black">
+              <span className="whitespace-nowrap type-caption font-black">
                 Liga completa
               </span>
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
+                className={`rounded-full px-1.5 py-0.5 type-caption font-black ${
                   activeScope === "all"
                     ? "bg-white/15 text-white"
                     : "bg-white text-neutral-600"
@@ -137,11 +134,11 @@ export default function MatchesPage() {
                   : "bg-neutral-100 text-neutral-700"
               }`}
             >
-              <span className="whitespace-nowrap text-[11px] font-black">
+              <span className="whitespace-nowrap type-caption font-black">
                 Mis partidos
               </span>
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
+                className={`rounded-full px-1.5 py-0.5 type-caption font-black ${
                   activeScope === "mine"
                     ? "bg-white/15 text-white"
                     : "bg-white text-neutral-600"
@@ -194,7 +191,7 @@ export default function MatchesPage() {
             >
               <div>
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-xl font-black">{round.name}</h2>
+                  <h2 className="type-section-title">{round.name}</h2>
 
                   {roundStatusText ? (
                     <span className={getRoundStatusBadgeClassName(round.status)}>

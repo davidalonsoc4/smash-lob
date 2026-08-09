@@ -307,7 +307,7 @@ export default function AdminQaPage() {
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/admin" label={t.common.back} />
-          <h1 className="mt-1 text-xl font-black tracking-tight">{t.qa.title}</h1>
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">{t.qa.title}</h1>
         </header>
         <AppCard>
           <p className="font-bold">{t.qa.disabledTitle}</p>
@@ -324,15 +324,12 @@ export default function AdminQaPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/admin" label={t.common.back} />
         <p className="mt-1 text-xs font-bold text-neutral-500">{activeLeague.name}</p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">{t.qa.title}</h1>
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {t.qa.description}
-        </p>
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{t.qa.title}</h1>
       </header>
 
       <AppCard className="border-amber-300 bg-amber-50">
         <div className="flex items-start gap-2">
-          <span className="rounded-full bg-amber-200 px-2 py-1 text-[10px] font-black uppercase text-amber-950">
+          <span className="rounded-full bg-amber-200 px-2 py-1 type-caption font-black uppercase text-amber-950">
             QA
           </span>
           <div>
@@ -512,7 +509,7 @@ export default function AdminQaPage() {
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <label className="block">
-                <span className="text-[10px] font-black uppercase text-neutral-500">{t.qa.target}</span>
+                <span className="type-caption font-black uppercase text-neutral-500">{t.qa.target}</span>
                 <select
                   value={selection.selectedPlayerId}
                   onChange={(event) =>
@@ -529,7 +526,7 @@ export default function AdminQaPage() {
               </label>
 
               <label className="block">
-                <span className="text-[10px] font-black uppercase text-neutral-500">{t.qa.secondTarget}</span>
+                <span className="type-caption font-black uppercase text-neutral-500">{t.qa.secondTarget}</span>
                 <select
                   value={selection.secondaryPlayerId}
                   onChange={(event) =>

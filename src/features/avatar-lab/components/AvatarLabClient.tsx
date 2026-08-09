@@ -29,7 +29,7 @@ export function AvatarLabClient() {
         <p className="text-xs font-black text-amber-950">
           Función experimental en PRE
         </p>
-        <p className="mt-1 text-[11px] font-semibold leading-5 text-amber-800">
+        <p className="mt-1 type-caption font-semibold leading-5 text-amber-800">
           Lo que hagas aquí no cambia tu imagen, tu perfil ni ningún jugador de
           la liga. Los editores solo guardan pruebas en este dispositivo.
         </p>
@@ -54,7 +54,7 @@ export function AvatarLabClient() {
                   <h2 className="text-sm font-black text-neutral-950">
                     DiceBear Big Smile
                   </h2>
-                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-blue-800">
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-blue-800">
                     Colorido
                   </span>
                 </div>
@@ -84,7 +84,7 @@ export function AvatarLabClient() {
                   <h2 className="text-sm font-black text-neutral-950">
                     Notion Avatar
                   </h2>
-                  <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-violet-800">
+                  <span className="rounded-full bg-violet-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-violet-800">
                     Minimalista
                   </span>
                 </div>

@@ -213,10 +213,7 @@ export default function AdminAnnouncementsPage() {
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">Comunicados</h1>
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Publica un aviso en la HOME, envía una notificación o realiza ambas acciones.
-        </p>
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Comunicados</h1>
       </header>
 
       <AppCard>
@@ -240,7 +237,7 @@ export default function AdminAnnouncementsPage() {
               placeholder="Escribe el comunicado..."
               className="mt-1 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-500"
             />
-            <span className="mt-1 block text-right text-[10px] font-bold text-neutral-400">
+            <span className="mt-1 block text-right type-caption font-bold text-neutral-400">
               {body.length}/1500
             </span>
           </label>
@@ -257,7 +254,7 @@ export default function AdminAnnouncementsPage() {
                   key={value}
                   type="button"
                   onClick={() => setAudienceMode(value)}
-                  className={`rounded-xl px-2 py-2 text-[11px] font-black ${
+                  className={`rounded-xl px-2 py-2 type-caption font-black ${
                     audienceMode === value
                       ? "bg-neutral-950 text-white"
                       : "bg-neutral-100 text-neutral-600"
@@ -291,7 +288,7 @@ export default function AdminAnnouncementsPage() {
             <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-black">Selecciona jugadores</p>
-                <span className="text-[10px] font-black text-neutral-500">
+                <span className="type-caption font-black text-neutral-500">
                   {targetPlayerIds.length} seleccionados
                 </span>
               </div>
@@ -316,7 +313,7 @@ export default function AdminAnnouncementsPage() {
                   {selectedPlayers.map((player) => (
                     <span
                       key={player.id}
-                      className="rounded-full bg-neutral-200 px-2 py-0.5 text-[9px] font-black text-neutral-700"
+                      className="rounded-full bg-neutral-200 px-2 py-0.5 type-caption font-black text-neutral-700"
                     >
                       {player.displayName}
                     </span>
@@ -383,7 +380,7 @@ export default function AdminAnnouncementsPage() {
       </AppCard>
 
       <div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Publicados y enviados
         </p>
 
@@ -408,11 +405,11 @@ export default function AdminAnnouncementsPage() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       <p className="font-black">{announcement.title}</p>
                       {announcement.pinned ? (
-                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[9px] font-black uppercase text-orange-700">
+                        <span className="rounded-full bg-orange-100 px-2 py-0.5 type-caption font-black uppercase text-orange-700">
                           HOME
                         </span>
                       ) : (
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-black uppercase text-blue-700">
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 type-caption font-black uppercase text-blue-700">
                           Solo aviso
                         </span>
                       )}
@@ -420,10 +417,10 @@ export default function AdminAnnouncementsPage() {
                     <p className="mt-1 line-clamp-3 whitespace-pre-line text-xs font-semibold leading-4 text-neutral-600">
                       {announcement.body}
                     </p>
-                    <p className="mt-1.5 text-[10px] font-bold text-neutral-500">
+                    <p className="mt-1.5 type-caption font-bold text-neutral-500">
                       Para: {getAudienceLabel(announcement)}
                     </p>
-                    <p className="mt-1 text-[10px] font-bold text-neutral-400">
+                    <p className="mt-1 type-caption font-bold text-neutral-400">
                       {formatDate(announcement.publishedAt)}
                     </p>
                   </div>

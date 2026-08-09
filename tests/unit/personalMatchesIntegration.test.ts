@@ -9,7 +9,8 @@ describe("personal matches integration", () => {
       readFile("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql", "utf8"),
     ])
 
-    expect(page).toContain("Tu agenda e historial completo: ligas y amistosos")
+    expect(page).toContain(">Mis partidos</h1>")
+    expect(page).not.toContain("Tu agenda e historial completo: ligas y amistosos")
     expect(serverHelper).toContain('source === "friendly"')
     expect(serverHelper).toContain('source === "league"')
     expect(serverHelper).toContain('origin: "league"')
@@ -56,7 +57,7 @@ describe("personal matches integration", () => {
     expect(createRoute).toContain("p_status: status")
     expect(detailRoute).toContain("export async function PATCH")
     expect(detailRoute).toContain('action !== "schedule" && action !== "result"')
-    expect(detailPage).toContain("<MatchDetailPairingPanel")
+    expect(detailPage).toContain("<MatchDetailView")
     expect(detailPage).not.toContain("<MatchScoreboard")
     expect(detailPage).toContain("<PersonalMatchSchedulePanel")
     expect(detailPage).toContain("<PersonalMatchResultForm")
@@ -84,8 +85,8 @@ describe("personal matches integration", () => {
       expect(route).toContain("requireAuthenticatedAppUser")
     }
     expect(listRoute).toContain("personal_match_requires_current_user")
-    expect(listRoute).toContain("person.userId")
-    expect(listRoute).toContain("display_name: draft.displayName")
+    expect(serverHelper).toContain("person.userId")
+    expect(serverHelper).toContain("display_name: draft.displayName")
     expect(serverHelper).toContain('key: `user:${user.id}`')
     expect(serverHelper).toContain('`player:${player.id}`')
     expect(baseMigration).toContain("enable row level security")

@@ -6,7 +6,7 @@ export default function NotFound() {
     <main className="flex min-h-[70vh] items-center justify-center px-4">
       <AppCard className="w-full max-w-sm">
         <p className="text-sm font-black text-neutral-400">404</p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="type-page-title mt-1 text-2xl font-black tracking-tight">
           Esta página no existe
         </h1>
         <p className="mt-3 text-sm font-semibold leading-6 text-neutral-500">

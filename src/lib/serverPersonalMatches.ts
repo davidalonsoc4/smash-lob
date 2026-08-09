@@ -11,6 +11,7 @@ import {
 } from "@/lib/leagueLocations"
 import {
   type PersonalMatchItem,
+  type PersonalMatchParticipantDraft,
   type PersonalMatchParticipant,
   type PersonalMatchPerson,
   type PersonalMatchSet,
@@ -273,6 +274,116 @@ export function resolvePersonalMatchPerson(
   key: string,
 ) {
   return people.find((person) => person.key === key) ?? null
+}
+
+
+type ResolvedPersonalMatchParticipant = {
+  team: 1 | 2
+  slot: 1 | 2
+  user_id: string | null
+  source_player_id: string | null
+  display_name: string
+}
+
+export async function resolvePersonalMatchParticipantDrafts(
+  actor: AuthenticatedAppUser,
+  drafts: PersonalMatchParticipantDraft[],
+): Promise<ResolvedPersonalMatchParticipant[]> {
+  const people = await loadAccessiblePersonalMatchPeople(actor)
+  const usedPersonKeys = new Set<string>()
+  let includesCurrentUser = false
+
+  const participants = drafts.map((draft): ResolvedPersonalMatchParticipant => {
+    if (!draft.personKey) {
+      return {
+        team: draft.team,
+        slot: draft.slot,
+        user_id: null,
+        source_player_id: null,
+        display_name: draft.displayName.trim(),
+      }
+    }
+
+    if (usedPersonKeys.has(draft.personKey)) {
+      throw new Error("duplicate_personal_match_person")
+    }
+    usedPersonKeys.add(draft.personKey)
+
+    const person = resolvePersonalMatchPerson(people, draft.personKey)
+    if (!person) throw new Error("invalid_personal_match_person")
+    if (person.userId === actor.user.id) includesCurrentUser = true
+
+    return {
+      team: draft.team,
+      slot: draft.slot,
+      user_id: person.userId,
+      source_player_id: person.sourcePlayerId,
+      display_name: person.displayName,
+    }
+  })
+
+  if (!includesCurrentUser) {
+    throw new Error("personal_match_requires_current_user")
+  }
+
+  return participants
+}
+
+export async function replacePersonalMatchParticipants(
+  actor: AuthenticatedAppUser,
+  matchId: string,
+  drafts: PersonalMatchParticipantDraft[],
+) {
+  const participants = await resolvePersonalMatchParticipantDrafts(actor, drafts)
+  const originalResult = await actor.supabase
+    .from("personal_match_participants")
+    .select("team,slot,user_id,source_player_id,display_name")
+    .eq("match_id", matchId)
+
+  if (originalResult.error) {
+    throw new Error("personal_match_participants_lookup_failed")
+  }
+
+  const originalParticipants = originalResult.data ?? []
+  const deleteResult = await actor.supabase
+    .from("personal_match_participants")
+    .delete()
+    .eq("match_id", matchId)
+
+  if (deleteResult.error) {
+    throw new Error("personal_match_participants_update_failed")
+  }
+
+  const insertResult = await actor.supabase
+    .from("personal_match_participants")
+    .insert(
+      participants.map((participant) => ({
+        match_id: matchId,
+        ...participant,
+      })),
+    )
+
+  if (!insertResult.error) return
+
+  await actor.supabase
+    .from("personal_match_participants")
+    .delete()
+    .eq("match_id", matchId)
+
+  if (originalParticipants.length > 0) {
+    await actor.supabase.from("personal_match_participants").insert(
+      originalParticipants.map((participant) => ({
+        match_id: matchId,
+        team: participant.team,
+        slot: participant.slot,
+        user_id: participant.user_id,
+        source_player_id: participant.source_player_id,
+        display_name: participant.display_name,
+      })),
+    )
+  }
+
+  throw new Error("personal_match_participants_update_failed")
 }
 
 function getParticipantPersonKey({

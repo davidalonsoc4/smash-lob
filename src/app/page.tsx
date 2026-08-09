@@ -361,7 +361,7 @@ function PlayerAwardCard({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             {eyebrow ? (
-              <p className="player-award-card-eyebrow text-[11px] font-black uppercase tracking-[0.22em] text-white/60">
+              <p className="player-award-card-eyebrow type-caption font-black uppercase tracking-[0.22em] text-white/60">
                 {eyebrow}
               </p>
             ) : null}
@@ -441,7 +441,7 @@ function PlayerAwardCard({
                 <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
                   {inlineStat.label}
                 </p>
               </Link>
@@ -450,7 +450,7 @@ function PlayerAwardCard({
                 <p className="text-lg font-black text-neutral-950">
                   {inlineStat.value}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
                   {inlineStat.label}
                 </p>
               </div>
@@ -468,7 +468,7 @@ function PlayerAwardCard({
                 <p className="text-lg font-black text-neutral-950">
                   {stat.value}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
                   {stat.label}
                 </p>
               </div>
@@ -849,7 +849,7 @@ export default function Home() {
         <div className="mt-1.5 flex items-center gap-2.5">
           <LeagueLogo league={activeLeague} size="lg" previewable />
 
-          <h1 className="min-w-0 text-2xl font-black tracking-tight">
+          <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">
             {activeLeague.name}
           </h1>
         </div>
@@ -870,7 +870,7 @@ export default function Home() {
 
       {activeLeague.recommendations?.trim() ? (
         <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
             Recomendaciones de la liga
           </p>
           <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6 text-neutral-700">
@@ -1043,7 +1043,7 @@ export default function Home() {
                 -
               </p>
             )}
-            <p className="mt-1 truncate text-[11px] font-medium text-neutral-500">
+            <p className="mt-1 truncate type-caption font-medium text-neutral-500">
               {hasMeaningfulResults && leader
                 ? `${leader.points} ${t.common.pointsShort} · ${
                     leader.gamesDiff > 0 ? "+" : ""
@@ -1199,7 +1199,7 @@ export default function Home() {
             }
             action={
               shouldShowNextMatchScopeSwitch ? (
-                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-600">
+                <div className="flex rounded-full bg-neutral-100 p-0.5 type-caption font-black text-neutral-600">
                   <button
                     type="button"
                     onClick={() => setNextMatchScope("league")}
@@ -1260,7 +1260,7 @@ export default function Home() {
             }
             action={
               shouldShowLastMatchScopeSwitch ? (
-                <div className="flex rounded-full bg-neutral-100 p-0.5 text-[11px] font-black text-neutral-600">
+                <div className="flex rounded-full bg-neutral-100 p-0.5 type-caption font-black text-neutral-600">
                   <button
                     type="button"
                     onClick={() => setLastMatchScope("league")}

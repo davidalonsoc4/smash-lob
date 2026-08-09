@@ -57,21 +57,21 @@ export function ChangelogContent({
                   <span className="text-sm font-black text-neutral-950">
                     {block.version}
                   </span>
-                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-neutral-600">
+                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
                     {block.releases.length} versiones
                   </span>
                   {blockIndex === 0 ? (
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-emerald-700">
                       Actual
                     </span>
                   ) : null}
                 </div>
 
-                <p className="mt-1 text-base font-black tracking-tight text-neutral-950">
+                <p className="mt-1 type-panel-title text-neutral-950">
                   Serie {block.version}
                 </p>
                 {dateRange ? (
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">
+                  <p className="mt-0.5 type-caption font-bold uppercase tracking-[0.14em] text-neutral-400">
                     {dateRange}
                   </p>
                 ) : null}
@@ -103,12 +103,12 @@ export function ChangelogContent({
                         {release.version}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] ${category.className}`}
+                        className={`rounded-full px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] ${category.className}`}
                       >
                         {category.label}
                       </span>
                       {release.date ? (
-                        <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+                        <span className="type-caption font-bold uppercase tracking-[0.12em] text-neutral-400">
                           {release.date}
                         </span>
                       ) : null}

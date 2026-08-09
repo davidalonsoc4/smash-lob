@@ -57,7 +57,7 @@ export default function AboutPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {features.map((feature) => (
             <div key={feature.title} className="rounded-2xl bg-neutral-100 p-4">
-              <h3 className="font-black text-neutral-950">{feature.title}</h3>
+              <h3 className="type-panel-title font-black text-neutral-950">{feature.title}</h3>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
                 {feature.description}
               </p>

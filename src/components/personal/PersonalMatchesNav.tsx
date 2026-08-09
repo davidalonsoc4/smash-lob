@@ -95,8 +95,8 @@ export function PersonalMatchesNav() {
             aria-current={item.active ? "page" : undefined}
             className={
               item.active
-                ? "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-[9px] font-black text-white shadow-sm"
-                : "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[9px] font-black text-neutral-500 transition active:bg-neutral-100"
+                ? "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 type-caption font-black text-white shadow-sm"
+                : "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 type-caption font-black text-neutral-500 transition active:bg-neutral-100"
             }
           >
             <PersonalNavIcon icon={item.icon} />

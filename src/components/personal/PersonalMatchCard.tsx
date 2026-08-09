@@ -30,7 +30,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
     <AppCard className="relative !p-3 transition active:scale-[0.99]">
       <div className="mb-2 flex items-center justify-between gap-3">
         <span
-          className={`max-w-[58%] shrink truncate rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
+          className={`max-w-[58%] shrink truncate rounded-full border px-2 py-1 type-caption font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
           style={getPersonalMatchOriginBadgeStyle(match)}
         >
           {getPersonalMatchOriginLabel(match)}
@@ -38,7 +38,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
 
         {isFinished ? (
           <span
-            className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wide leading-none ${
+            className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-black uppercase tracking-wide leading-none ${
               outcome === "win"
                 ? "bg-green-100 text-green-800"
                 : outcome === "loss"
@@ -53,7 +53,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
                 : "Finalizado"}
           </span>
         ) : (
-          <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-blue-700">
+          <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 type-caption font-black uppercase tracking-wide text-blue-700">
             Programado
           </span>
         )}
@@ -146,7 +146,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
             </div>
 
             <div className="flex items-center justify-center">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-[9px] font-black uppercase text-neutral-600">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 type-caption font-black uppercase text-neutral-600">
                 VS
               </span>
             </div>

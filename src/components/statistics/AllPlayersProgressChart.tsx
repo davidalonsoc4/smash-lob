@@ -260,7 +260,7 @@ export function AllPlayersProgressChart({
   return (
     <AppCard>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex rounded-xl bg-neutral-100 p-1 text-[10px] font-black">
+        <div className="flex rounded-xl bg-neutral-100 p-1 type-caption font-black">
           <button
             type="button"
             onClick={() => setMode("position")}
@@ -295,7 +295,7 @@ export function AllPlayersProgressChart({
             Dif. juegos
           </button>
         </div>
-        <div className="flex rounded-xl bg-neutral-100 p-1 text-[10px] font-black">
+        <div className="flex rounded-xl bg-neutral-100 p-1 type-caption font-black">
           <button
             type="button"
             onClick={() => setHiddenPlayerIds(new Set())}
@@ -330,13 +330,13 @@ export function AllPlayersProgressChart({
       </div>
 
       <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold text-neutral-500">
+        <p className="type-caption font-semibold text-neutral-500">
           Pulsa un jugador para mostrar u ocultar su línea.
           {spansMultipleSeasons
             ? " Las temporadas se separan y reinician sus métricas."
             : ""}
         </p>
-        <span className="shrink-0 text-[10px] font-bold text-neutral-500">
+        <span className="shrink-0 type-caption font-bold text-neutral-500">
           {visibleSeries.length}/{series.length} visibles
         </span>
       </div>
@@ -351,7 +351,7 @@ export function AllPlayersProgressChart({
               type="button"
               onClick={() => togglePlayer(player.playerId)}
               aria-pressed={!hidden}
-              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-black transition ${
+              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 type-caption font-black transition ${
                 hidden
                   ? "border-neutral-200 bg-neutral-50 text-neutral-400"
                   : "border-neutral-200 bg-white text-neutral-800"

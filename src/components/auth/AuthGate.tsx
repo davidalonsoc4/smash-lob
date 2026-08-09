@@ -92,7 +92,7 @@ export function AuthGate({ children }: AuthGateProps) {
             {t.auth.signInWithGoogle}
           </button>
 
-          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] font-bold text-neutral-500">
+          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 type-caption font-bold text-neutral-500">
             <Link href="/about" className="underline underline-offset-2">
               Sobre la app
             </Link>

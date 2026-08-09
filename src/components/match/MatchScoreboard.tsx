@@ -52,7 +52,7 @@ export function MatchScoreboard({
         <div className="mt-1.5 grid grid-cols-3 gap-1.5">
           {sets.map((set, index) => (
             <div key={index} className="rounded-lg bg-neutral-100 px-2 py-1 text-center">
-              <p className="text-[10px] font-black uppercase text-neutral-500">
+              <p className="type-caption font-black uppercase text-neutral-500">
                 {t.matchDetail.set} {index + 1}
               </p>
               <p className="text-sm font-black">{set.a}-{set.b}</p>

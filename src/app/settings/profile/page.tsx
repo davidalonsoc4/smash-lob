@@ -15,12 +15,9 @@ export default function MyProfileSettingsPage() {
         <p className="text-sm font-medium text-neutral-500">
           {t.settings.accountSettingsTitle}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.settings.myProfileTitle}
         </h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          {t.settings.myProfileDescription}
-        </p>
       </header>
 
       <AppCard>

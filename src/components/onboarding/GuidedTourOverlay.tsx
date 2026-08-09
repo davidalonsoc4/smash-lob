@@ -137,10 +137,10 @@ export function GuidedTourOverlay() {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
               {copy.stepProgress(currentStepIndex + 1, activeTour.steps.length)}
             </p>
-            <h2 className="mt-1 text-lg font-black tracking-tight">{step.title}</h2>
+            <h2 className="type-section-title mt-1 text-lg font-black tracking-tight">{step.title}</h2>
           </div>
           <button
             type="button"

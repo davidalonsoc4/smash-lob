@@ -46,12 +46,12 @@ export function MatchTeamsPanel({
             linkPlayers={linkPlayers}
             stackPlayers
             keepNamesOnOneLine
-            className="flex min-w-0 flex-col gap-y-1 text-sm font-black leading-tight"
+            className="type-player-name flex min-w-0 flex-col gap-y-1 leading-tight"
           />
         </div>
 
         <div className="flex items-center justify-center">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-[9px] font-black uppercase text-neutral-600">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 type-caption font-black uppercase text-neutral-600">
             VS
           </span>
         </div>
@@ -66,7 +66,7 @@ export function MatchTeamsPanel({
             linkPlayers={linkPlayers}
             stackPlayers
             keepNamesOnOneLine
-            className="flex min-w-0 flex-col items-end gap-y-1 text-sm font-black leading-tight [&>span]:justify-end"
+            className="type-player-name flex min-w-0 flex-col items-end gap-y-1 leading-tight [&>span]:justify-end"
           />
         </div>
       </div>
@@ -84,7 +84,7 @@ export function MatchTeamsPanel({
           substituteLabels={substituteLabels}
           linkPlayers={linkPlayers}
           stackPlayers
-          className="flex min-w-0 flex-1 flex-col gap-y-0.5 text-sm font-black"
+          className="type-player-name flex min-w-0 flex-1 flex-col gap-y-0.5"
         />
         {teamATrailing}
       </div>
@@ -98,7 +98,7 @@ export function MatchTeamsPanel({
           substituteLabels={substituteLabels}
           linkPlayers={linkPlayers}
           stackPlayers
-          className="flex min-w-0 flex-1 flex-col gap-y-0.5 text-sm font-black"
+          className="type-player-name flex min-w-0 flex-1 flex-col gap-y-0.5"
         />
         {teamBTrailing}
       </div>

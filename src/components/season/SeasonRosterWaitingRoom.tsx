@@ -147,11 +147,11 @@ export function SeasonRosterWaitingRoom({
             <p className="truncate text-sm font-black text-emerald-950">
               {t.roster.title}
             </p>
-            <p className="shrink-0 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-700">
+            <p className="shrink-0 type-caption font-black uppercase tracking-[0.12em] text-emerald-700">
               {registeredPlayers.length}/{playerCapacity}
             </p>
           </div>
-          <p className="mt-0.5 text-[11px] font-semibold text-emerald-800">
+          <p className="mt-0.5 type-caption font-semibold text-emerald-800">
             {remaining > 0
               ? t.roster.remaining.replace("{count}", String(remaining))
               : t.roster.complete}
@@ -165,7 +165,7 @@ export function SeasonRosterWaitingRoom({
             key={player.id}
             className="flex min-h-9 items-center gap-2 rounded-xl border border-emerald-100 bg-white px-2 py-1"
           >
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-[9px] font-black text-emerald-800">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 type-caption font-black text-emerald-800">
               {index + 1}
             </span>
             <PlayerAvatar player={player} size="sm" />
@@ -192,7 +192,7 @@ export function SeasonRosterWaitingRoom({
             key={`empty-${index}`}
             className="flex min-h-8 items-center gap-2 rounded-xl border border-dashed border-emerald-200 bg-white/60 px-2 py-1 text-xs font-semibold text-emerald-700"
           >
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-[9px] font-black">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 type-caption font-black">
               {registeredPlayers.length + index + 1}
             </span>
             {t.roster.availableSlot}

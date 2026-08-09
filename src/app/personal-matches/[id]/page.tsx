@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { MatchDetailPairingPanel } from "@/components/match/MatchDetailPairingPanel"
-import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
+import { MatchDetailView } from "@/components/match/MatchDetailView"
+import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
 import { PersonalMatchResultForm } from "@/components/personal/PersonalMatchResultForm"
 import { PersonalMatchSchedulePanel } from "@/components/personal/PersonalMatchSchedulePanel"
 import { AppCard } from "@/components/ui/AppCard"
@@ -122,30 +122,24 @@ export default function PersonalMatchDetailPage() {
   }
 
   return (
-    <div className="compact-page space-y-3">
-      <header className="pt-1">
-        <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <div className="mt-3 flex min-w-0 w-full items-start justify-between gap-3">
-          <h1 className="min-w-0 text-2xl font-black tracking-tight">Partido</h1>
-          <div className="shrink-0">
-            <MatchStatusBadge
-              status={item.status}
-              scheduledAt={item.scheduledAt}
-              resultRecordedAt={item.resultRecordedAt}
-            />
-          </div>
-        </div>
-      </header>
-
-      <MatchDetailPairingPanel
-        teamA={scoreboard.teamA}
-        teamB={scoreboard.teamB}
-        players={scoreboard.players}
-        pointsA={scoreboard.pointsA}
-        pointsB={scoreboard.pointsB}
-        sets={item.sets}
-        linkPlayers={false}
-      />
+    <MatchDetailView
+      backHref="/personal-matches"
+      backLabel="Mis partidos"
+      title="Partido"
+      status={item.status}
+      scheduledAt={item.scheduledAt}
+      resultRecordedAt={item.resultRecordedAt}
+      pairing={{
+        teamA: scoreboard.teamA,
+        teamB: scoreboard.teamB,
+        players: scoreboard.players,
+        pointsA: scoreboard.pointsA,
+        pointsB: scoreboard.pointsB,
+        sets: item.sets,
+        linkPlayers: false,
+      }}
+    >
+      <PersonalMatchParticipantsPanel match={item} onUpdated={setItem} />
 
       <PersonalMatchSchedulePanel match={item} onUpdated={setItem} />
 
@@ -190,7 +184,7 @@ export default function PersonalMatchDetailPage() {
 
       <AppCard className="border-blue-100 bg-blue-50 p-3">
         <p className="text-xs font-black text-blue-950">Partido personal</p>
-        <p className="mt-1 text-[10px] font-semibold leading-4 text-blue-700">
+        <p className="mt-1 type-caption font-semibold leading-4 text-blue-700">
           Este encuentro no pertenece a ninguna competición y no afecta a clasificación, estadísticas oficiales, récords ni MVP de tus ligas.
         </p>
       </AppCard>
@@ -209,6 +203,6 @@ export default function PersonalMatchDetailPage() {
       {error ? (
         <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{error}</p>
       ) : null}
-    </div>
+    </MatchDetailView>
   )
 }

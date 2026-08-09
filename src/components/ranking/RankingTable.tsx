@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useI18n } from "@/i18n/I18nProvider"
+import { sortRankingRows } from "@/lib/rankingOrder"
 
 type RankingPlayer = {
   id: string
@@ -35,15 +36,11 @@ function getPositionLabel(index: number) {
 export function RankingTable({ players, showAvatars = true }: RankingTableProps) {
   const { t } = useI18n()
 
-  const sortedPlayers = [...players].sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points
-    if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff
-    return b.gamesFor - a.gamesFor
-  })
+  const sortedPlayers = sortRankingRows(players)
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 text-[10px] font-black uppercase tracking-[0.12em] text-neutral-600">
+      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
         <span>Jugador</span>
         <span className="text-right">J</span>
         <span className="text-right">Dif</span>
@@ -69,15 +66,15 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
               {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}
 
               <div className="min-w-0">
-                <p className="min-w-0 text-[13px] font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+                <p className="min-w-0 type-player-name leading-tight text-neutral-950 [overflow-wrap:anywhere]">
                   {player.displayName}
                 </p>
                 {player.seasonPlayerStatus === "withdrawn" ? (
-                  <span className="mt-0.5 inline-flex rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-700">
+                  <span className="mt-0.5 inline-flex rounded-full bg-red-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-red-700">
                     Baja{player.replacedFromRound ? ` desde J${player.replacedFromRound}` : ""}
                   </span>
                 ) : player.joinedFromRound && player.joinedFromRound > 1 ? (
-                  <span className="mt-0.5 inline-flex rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700">
+                  <span className="mt-0.5 inline-flex rounded-full bg-amber-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-amber-700">
                     Desde J{player.joinedFromRound}
                   </span>
                 ) : null}
@@ -105,7 +102,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
         ))}
       </div>
 
-      <p className="px-1 text-[11px] font-semibold text-neutral-600">
+      <p className="px-1 type-caption font-semibold text-neutral-600">
         J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados
       </p>
     </div>

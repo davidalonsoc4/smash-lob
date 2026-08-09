@@ -17,7 +17,7 @@ type RuleSectionProps = {
 function RuleSection({ title, children }: RuleSectionProps) {
   return (
     <section className="rounded-2xl bg-neutral-50 px-3 py-3 ring-1 ring-neutral-100">
-      <h3 className="text-sm font-black text-neutral-950">{title}</h3>
+      <h3 className="type-panel-title text-neutral-950">{title}</h3>
       <div className="mt-2 space-y-2 text-xs font-semibold leading-5 text-neutral-600">
         {children}
       </div>
@@ -53,10 +53,10 @@ export function LeagueRulesSummary({
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="rounded-2xl bg-neutral-950 px-3 py-3 text-white">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-white/50">
           Reglamento oficial
         </p>
-        <h2 className="mt-1 text-lg font-black tracking-tight">
+        <h2 className="type-section-title mt-1 text-lg font-black tracking-tight">
           II Edición Smash & Lob
         </h2>
         <p className="mt-1 text-xs font-semibold leading-5 text-white/70">

@@ -70,7 +70,7 @@ function AccountNameSettingsForm({
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <label className="block">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
             {t.accountProfile.firstName}
           </span>
           <input
@@ -83,7 +83,7 @@ function AccountNameSettingsForm({
           />
         </label>
         <label className="block">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
             {t.accountProfile.lastName}
           </span>
           <input

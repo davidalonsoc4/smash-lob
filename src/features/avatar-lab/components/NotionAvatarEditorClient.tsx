@@ -123,11 +123,11 @@ export function NotionAvatarEditorClient() {
             <h1 className="truncate text-lg font-black tracking-tight">
               Notion Avatar
             </h1>
-            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-amber-800">
+            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
               Solo PRE
             </span>
           </div>
-          <p className="truncate text-[10px] font-semibold text-neutral-500">
+          <p className="truncate type-caption font-semibold text-neutral-500">
             Prueba estilos sin modificar tu perfil
           </p>
         </div>
@@ -147,7 +147,7 @@ export function NotionAvatarEditorClient() {
               }
             />
             {previewState === "loading" ? (
-              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-neutral-200 bg-white/95 px-2.5 py-1 text-[9px] font-black text-neutral-600 shadow-sm">
+              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-neutral-200 bg-white/95 px-2.5 py-1 type-caption font-black text-neutral-600 shadow-sm">
                 Actualizando…
               </span>
             ) : null}
@@ -155,14 +155,14 @@ export function NotionAvatarEditorClient() {
               <button
                 type="button"
                 onClick={() => setRevision((current) => current + 1)}
-                className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[9px] font-black text-red-700 shadow-sm"
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 type-caption font-black text-red-700 shadow-sm"
               >
                 Reintentar vista
               </button>
             ) : null}
           </div>
           {message ? (
-            <p className="absolute left-2 top-2 rounded-full bg-neutral-950 px-2.5 py-1 text-[9px] font-black text-white shadow-sm">
+            <p className="absolute left-2 top-2 rounded-full bg-neutral-950 px-2.5 py-1 type-caption font-black text-white shadow-sm">
               {message}
             </p>
           ) : null}
@@ -180,7 +180,7 @@ export function NotionAvatarEditorClient() {
             </button>
 
             <label className="relative min-w-0 cursor-pointer rounded-xl px-2 py-1 text-center active:bg-white/70">
-              <span className="block text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+              <span className="block type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                 Categoría {selectedPartIndex + 1} de {NOTION_AVATAR_PART_ORDER.length}
               </span>
               <span className="mt-0.5 block truncate text-sm font-black text-neutral-950">
@@ -226,7 +226,7 @@ export function NotionAvatarEditorClient() {
             </button>
 
             <div className="min-w-0 text-center">
-              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+              <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                 Estilo
               </p>
               <p className="mt-0.5 text-base font-black text-neutral-950">
@@ -251,21 +251,21 @@ export function NotionAvatarEditorClient() {
             <button
               type="button"
               onClick={randomize}
-              className="h-10 rounded-xl border border-neutral-200 bg-white text-[10px] font-black text-neutral-700 active:scale-[0.98]"
+              className="h-10 rounded-xl border border-neutral-200 bg-white type-caption font-black text-neutral-700 active:scale-[0.98]"
             >
               Aleatorio
             </button>
             <button
               type="button"
               onClick={reset}
-              className="h-10 rounded-xl border border-neutral-200 bg-white text-[10px] font-black text-neutral-700 active:scale-[0.98]"
+              className="h-10 rounded-xl border border-neutral-200 bg-white type-caption font-black text-neutral-700 active:scale-[0.98]"
             >
               Restablecer
             </button>
             <button
               type="button"
               onClick={save}
-              className="h-10 rounded-xl bg-neutral-950 text-[10px] font-black text-white active:scale-[0.98]"
+              className="h-10 rounded-xl bg-neutral-950 type-caption font-black text-white active:scale-[0.98]"
             >
               Guardar local
             </button>

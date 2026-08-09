@@ -140,7 +140,7 @@ export function SeasonRegistrationPanel({
 
       {canManage ? (
         <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl bg-white/75 px-2.5 py-1.5">
-          <p className="text-[11px] font-semibold text-neutral-600">
+          <p className="type-caption font-semibold text-neutral-600">
             <strong className="font-black text-neutral-950">
               {pendingPlayers.length}
             </strong>{" "}
@@ -156,30 +156,30 @@ export function SeasonRegistrationPanel({
               type="button"
               onClick={handleSendReminder}
               disabled={isSendingReminder}
-              className="shrink-0 rounded-full bg-neutral-950 px-2.5 py-1 text-[10px] font-black text-white transition active:scale-[0.98] disabled:opacity-40"
+              className="shrink-0 rounded-full bg-neutral-950 px-2.5 py-1 type-caption font-black text-white transition active:scale-[0.98] disabled:opacity-40"
             >
               {isSendingReminder ? "Enviando..." : "Recordar"}
             </button>
           ) : null}
         </div>
       ) : currentUserPayment && !currentUserPayment.isPaid ? (
-        <p className="mt-2 rounded-xl bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-900">
+        <p className="mt-2 rounded-xl bg-amber-50 px-2.5 py-1.5 type-caption font-semibold text-amber-900">
           Debes {formatMoney(registrationFee.amount)} a{" "}
           {organizerName?.trim() || "la organización"}.
         </p>
       ) : null}
 
       {isSeasonUpcoming && pendingPlayers.length > 0 ? (
-        <p className="mt-1.5 text-[11px] font-semibold leading-4 text-amber-900">
+        <p className="mt-1.5 type-caption font-semibold leading-4 text-amber-900">
           La temporada no puede comenzar hasta saldar todas las inscripciones.
         </p>
       ) : null}
 
       <details className="mt-1.5 rounded-xl bg-white/65 px-2.5 py-1.5">
-        <summary className="cursor-pointer text-[11px] font-black text-emerald-900">
+        <summary className="cursor-pointer type-caption font-black text-emerald-900">
           Destino de la inscripción
         </summary>
-        <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-600">
+        <p className="mt-1 type-caption font-semibold leading-4 text-neutral-600">
           {purpose}
         </p>
       </details>
@@ -188,7 +188,7 @@ export function SeasonRegistrationPanel({
         <button
           type="button"
           onClick={() => setArePaymentsExpanded((current) => !current)}
-          className="mt-1.5 flex w-full items-center justify-between rounded-xl bg-white/80 px-2.5 py-1.5 text-left text-[11px] font-black text-neutral-800 transition active:scale-[0.99]"
+          className="mt-1.5 flex w-full items-center justify-between rounded-xl bg-white/80 px-2.5 py-1.5 text-left type-caption font-black text-neutral-800 transition active:scale-[0.99]"
           aria-expanded={arePaymentsExpanded}
         >
           <span>{arePaymentsExpanded ? "Ocultar pagos" : "Gestionar pagos"}</span>
@@ -234,7 +234,7 @@ export function SeasonRegistrationPanel({
                           : "Pendiente"}
                     </span>
                     {!isPaid ? (
-                      <span className="text-[10px] font-semibold text-neutral-500">
+                      <span className="type-caption font-semibold text-neutral-500">
                         {formatMoney(registrationFee.amount)}
                       </span>
                     ) : null}
@@ -246,7 +246,7 @@ export function SeasonRegistrationPanel({
                     type="button"
                     onClick={() => handleTogglePayment(player.id, !isPaid)}
                     disabled={Boolean(savingPlayerId)}
-                    className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black disabled:opacity-40 ${
+                    className={`shrink-0 rounded-full px-2 py-1 type-caption font-black disabled:opacity-40 ${
                       isPaid
                         ? "bg-neutral-100 text-neutral-700"
                         : "bg-emerald-600 text-white"

@@ -58,7 +58,7 @@ export default function PlayerMvpMatchesPage() {
         <div className="mt-3 flex items-center gap-3">
           {player ? <PlayerAvatar player={player} size="lg" previewable /> : null}
           <div className="min-w-0">
-            <h1 className="text-2xl font-black tracking-tight">
+            <h1 className="type-page-title text-2xl font-black tracking-tight">
               MVPs de jornada
             </h1>
             <p className="mt-1 text-sm text-neutral-500">
@@ -75,7 +75,7 @@ export default function PlayerMvpMatchesPage() {
           </p>
           <div className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
             <p className="text-xl font-black leading-none">{mvpMatches.length}</p>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-300">
+            <p className="mt-1 type-caption font-black uppercase tracking-wide text-neutral-300">
               MVPs
             </p>
           </div>
