@@ -326,13 +326,13 @@ export function MatchIncidentPanel({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-black">Incidencia</p>
+        <p className="type-panel-title">Incidencia</p>
         {isOpen ? (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800">
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase text-amber-800">
             Pendiente
           </span>
         ) : isResolved ? (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase text-emerald-700">
             Resuelta
           </span>
         ) : null}
@@ -349,12 +349,12 @@ export function MatchIncidentPanel({
             </p>
           ) : null}
           {match.incidentNotes ? (
-            <p className="mt-1.5 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-1.5 type-caption font-semibold leading-4 text-neutral-500">
               Resolución: {match.incidentNotes}
             </p>
           ) : null}
           {getResolutionSummary(match) ? (
-            <p className="mt-1.5 text-[9px] font-black uppercase tracking-wide text-neutral-500">
+            <p className="mt-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">
               {getResolutionSummary(match)}
             </p>
           ) : null}
@@ -398,7 +398,7 @@ export function MatchIncidentPanel({
 
       {isOpen && isAdmin ? (
         <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
             ¿Qué debe ocurrir con el partido?
           </p>
           <div className="space-y-1.5">
@@ -425,7 +425,7 @@ export function MatchIncidentPanel({
                   />
                   <span>
                     <span className="block text-xs font-black">{option.label}</span>
-                    <span className="mt-0.5 block text-[10px] font-semibold leading-4 text-neutral-500">
+                    <span className="mt-0.5 block type-caption font-semibold leading-4 text-neutral-500">
                       {option.description}
                     </span>
                   </span>
@@ -502,7 +502,7 @@ export function MatchIncidentPanel({
       ) : null}
 
       {error ? (
-        <p className="mt-2 text-[11px] font-bold text-red-600">{error}</p>
+        <p className="mt-2 type-caption font-bold text-red-600">{error}</p>
       ) : null}
     </div>
   )

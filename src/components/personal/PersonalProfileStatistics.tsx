@@ -34,9 +34,9 @@ function decimal(value: number) {
 function StatTile({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
-      <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="type-caption font-black uppercase tracking-wide text-neutral-500">{label}</p>
       <p className="mt-0.5 text-xl font-black tracking-tight text-neutral-950">{value}</p>
-      {detail ? <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">{detail}</p> : null}
+      {detail ? <p className="mt-0.5 type-caption font-semibold text-neutral-500">{detail}</p> : null}
     </div>
   )
 }
@@ -49,7 +49,7 @@ function FormDots({ form }: { form: Array<"win" | "loss"> }) {
       {form.map((result, index) => (
         <span
           key={`${result}-${index}`}
-          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ${
+          className={`inline-flex h-6 w-6 items-center justify-center rounded-full type-caption font-black ${
             result === "win"
               ? "bg-emerald-100 text-emerald-800"
               : "bg-rose-100 text-rose-800"
@@ -73,7 +73,7 @@ function RelationHighlight({
 }) {
   return (
     <div className="rounded-xl bg-neutral-50 px-3 py-2.5">
-      <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="type-caption font-black uppercase tracking-wide text-neutral-500">{label}</p>
       {relation ? (
         <>
           <div className="mt-1 flex min-w-0 items-center gap-2">
@@ -81,9 +81,9 @@ function RelationHighlight({
               player={{ displayName: relation.name, avatarUrl: relation.avatarUrl }}
               size="sm"
             />
-            <p className="min-w-0 truncate text-sm font-black text-neutral-950">{relation.name}</p>
+            <p className="min-w-0 truncate type-player-name text-neutral-950">{relation.name}</p>
           </div>
-          <p className="mt-1 text-[11px] font-semibold text-neutral-500">{detail(relation)}</p>
+          <p className="mt-1 type-caption font-semibold text-neutral-500">{detail(relation)}</p>
         </>
       ) : (
         <p className="mt-1 text-sm font-black text-neutral-400">—</p>
@@ -106,9 +106,9 @@ function RelationTable({
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs font-semibold text-neutral-500">{subtitle}</p>
-          <p className="mt-0.5 text-base font-black tracking-tight">{title}</p>
+          <p className="mt-0.5 type-panel-title">{title}</p>
         </div>
-        <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-600">
+        <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
           {rows.length}
         </span>
       </div>
@@ -121,7 +121,7 @@ function RelationTable({
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-neutral-100 px-3 py-2.5"
             >
               <div className="flex min-w-0 items-center gap-2">
-                <span className="w-4 shrink-0 text-center text-[10px] font-black text-neutral-400">
+                <span className="w-4 shrink-0 text-center type-caption font-black text-neutral-400">
                   {index + 1}
                 </span>
                 <PlayerAvatar
@@ -129,15 +129,15 @@ function RelationTable({
                   size="sm"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black">{row.name}</p>
-                  <p className="text-[10px] font-semibold text-neutral-500">
+                  <p className="type-player-name truncate">{row.name}</p>
+                  <p className="type-caption font-semibold text-neutral-500">
                     {row.matches} partidos · {row.wins}V/{row.losses}D
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-sm font-black">{percentage(row.winRate)}</p>
-                <p className="text-[10px] font-semibold text-neutral-500">
+                <p className="type-caption font-semibold text-neutral-500">
                   {signed(row.gamesDiff)} juegos
                 </p>
               </div>
@@ -165,10 +165,10 @@ function SummarySection({ stats }: { stats: PersonalProfileStats }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold text-neutral-500">Estadísticas de juego</p>
-            <p className="mt-0.5 text-base font-black tracking-tight">Rendimiento global</p>
+            <p className="mt-0.5 type-panel-title">Rendimiento global</p>
           </div>
           <div className="rounded-xl bg-neutral-950 px-3 py-2 text-right text-white">
-            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-neutral-300">Forma</p>
+            <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-300">Forma</p>
             <div className="mt-1"><FormDots form={stats.currentForm} /></div>
           </div>
         </div>
@@ -183,24 +183,24 @@ function SummarySection({ stats }: { stats: PersonalProfileStats }) {
 
       <AppCard className="p-3">
         <p className="text-xs font-semibold text-neutral-500">Por origen</p>
-        <p className="mt-0.5 text-base font-black tracking-tight">Liga y amistosos</p>
+        <p className="mt-0.5 type-panel-title">Liga y amistosos</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-neutral-50 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Liga</p>
+            <p className="type-caption font-black uppercase tracking-wide text-neutral-500">Liga</p>
             <p className="mt-1 text-lg font-black">{stats.leagueMatches}</p>
-            <p className="text-[11px] font-semibold text-neutral-500">{stats.leagueWins}V/{stats.leagueLosses}D · {percentage(stats.leagueWinRate)}</p>
+            <p className="type-caption font-semibold text-neutral-500">{stats.leagueWins}V/{stats.leagueLosses}D · {percentage(stats.leagueWinRate)}</p>
           </div>
           <div className="rounded-xl bg-neutral-50 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Amistosos</p>
+            <p className="type-caption font-black uppercase tracking-wide text-neutral-500">Amistosos</p>
             <p className="mt-1 text-lg font-black">{stats.friendlyMatches}</p>
-            <p className="text-[11px] font-semibold text-neutral-500">{stats.friendlyWins}V/{stats.friendlyLosses}D · {percentage(stats.friendlyWinRate)}</p>
+            <p className="type-caption font-semibold text-neutral-500">{stats.friendlyWins}V/{stats.friendlyLosses}D · {percentage(stats.friendlyWinRate)}</p>
           </div>
         </div>
       </AppCard>
 
       <AppCard className="p-3">
         <p className="text-xs font-semibold text-neutral-500">Partidos especiales</p>
-        <p className="mt-0.5 text-base font-black tracking-tight">Cómo llegan tus resultados</p>
+        <p className="mt-0.5 type-panel-title">Cómo llegan tus resultados</p>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <StatTile label="Victorias 2-0" value={stats.straightSetWins} />
           <StatTile label="Derrotas 0-2" value={stats.straightSetLosses} />
@@ -229,7 +229,7 @@ function RelationsSection({ stats }: { stats: PersonalProfileStats }) {
     <div className="space-y-3">
       <AppCard className="p-3">
         <p className="text-xs font-semibold text-neutral-500">Destacados</p>
-        <p className="mt-0.5 text-base font-black tracking-tight">Parejas y rivales</p>
+        <p className="mt-0.5 type-panel-title">Parejas y rivales</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <RelationHighlight label="Con quien más juegas" relation={stats.mostFrequentTeammate} detail={(row) => `${row.matches} partidos · ${percentage(row.winRate)} victorias`} />
           <RelationHighlight label="Mejor pareja" relation={stats.bestTeammate} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
@@ -275,9 +275,9 @@ function HeadToHeadSection({
     <div className="space-y-3">
       <AppCard className="p-3">
         <p className="text-xs font-semibold text-neutral-500">Comparación global</p>
-        <p className="mt-0.5 text-base font-black tracking-tight">Cara a cara</p>
+        <p className="mt-0.5 type-panel-title">Cara a cara</p>
         <label className="mt-3 block">
-          <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Comparar con</span>
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Comparar con</span>
           <select
             value={comparisonKey}
             onChange={(event) => onComparisonChange(event.target.value)}
@@ -294,7 +294,7 @@ function HeadToHeadSection({
             <div className="flex items-center gap-3">
               <PlayerAvatar player={{ displayName: headToHead.person.name, avatarUrl: headToHead.person.avatarUrl }} size="lg" previewable />
               <div className="min-w-0">
-                <p className="truncate text-lg font-black">{headToHead.person.name}</p>
+                <p className="type-player-name-prominent truncate">{headToHead.person.name}</p>
                 <p className="text-xs font-semibold text-neutral-500">{headToHead.sharedMatches} partidos compartidos · {headToHead.rivalMatches} como rivales · {headToHead.teammateMatches} como pareja</p>
               </div>
             </div>
@@ -302,20 +302,20 @@ function HeadToHeadSection({
 
           <AppCard className="p-3">
             <p className="text-xs font-semibold text-neutral-500">Como rivales</p>
-            <p className="mt-0.5 text-base font-black tracking-tight">Enfrentamientos directos</p>
+            <p className="mt-0.5 type-panel-title">Enfrentamientos directos</p>
             {rivalry ? (
               <>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-xl bg-neutral-50 p-2.5">
-                    <p className="text-[10px] font-black uppercase text-neutral-500">Tus victorias</p>
+                    <p className="type-caption font-black uppercase text-neutral-500">Tus victorias</p>
                     <p className="mt-1 text-2xl font-black">{rivalry.wins}</p>
                   </div>
                   <div className="rounded-xl bg-neutral-100 p-2.5">
-                    <p className="text-[10px] font-black uppercase text-neutral-500">Duelos</p>
+                    <p className="type-caption font-black uppercase text-neutral-500">Duelos</p>
                     <p className="mt-1 text-2xl font-black">{rivalry.matches}</p>
                   </div>
                   <div className="rounded-xl bg-neutral-50 p-2.5">
-                    <p className="text-[10px] font-black uppercase text-neutral-500">Sus victorias</p>
+                    <p className="type-caption font-black uppercase text-neutral-500">Sus victorias</p>
                     <p className="mt-1 text-2xl font-black">{rivalry.losses}</p>
                   </div>
                 </div>
@@ -325,7 +325,7 @@ function HeadToHeadSection({
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-neutral-100 px-3 py-2">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">Últimos duelos</p>
+                    <p className="type-caption font-black uppercase tracking-wide text-neutral-500">Últimos duelos</p>
                     <p className="mt-0.5 text-xs font-semibold text-neutral-500">{percentage(rivalry.winRate)} de victorias</p>
                   </div>
                   <FormDots form={headToHead.recentRivalry} />
@@ -338,7 +338,7 @@ function HeadToHeadSection({
 
           <AppCard className="p-3">
             <p className="text-xs font-semibold text-neutral-500">Como compañeros</p>
-            <p className="mt-0.5 text-base font-black tracking-tight">Rendimiento de la pareja</p>
+            <p className="mt-0.5 type-panel-title">Rendimiento de la pareja</p>
             {teammate ? (
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <StatTile label="Partidos" value={teammate.matches} detail={`${teammate.wins}V/${teammate.losses}D`} />
@@ -377,7 +377,7 @@ export function PersonalProfileStatistics({
             key={value}
             type="button"
             onClick={() => onSectionChange(value as PersonalProfileSection)}
-            className={`rounded-xl px-2 py-2 text-[11px] font-black transition ${
+            className={`rounded-xl px-2 py-2 type-caption font-black transition ${
               section === value ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
             }`}
           >

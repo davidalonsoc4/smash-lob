@@ -25,7 +25,7 @@ function AdminGroup({
   return (
     <section className="space-y-2">
       <div className="px-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           {title}
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -140,13 +140,13 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
             Comparte el código o el enlace para que otro jugador entre y reclame su perfil.
           </p>
         </div>
-        <span className="rounded-full bg-neutral-100 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-neutral-500">
+        <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
           Acceso
         </span>
       </div>
 
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-neutral-500">
+        <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-500">
           Código de invitación
         </p>
         <p className="mt-1 break-all text-sm font-black text-neutral-950">
@@ -213,7 +213,7 @@ export default function AdminPage() {
       <div className="compact-page space-y-3">
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -256,12 +256,9 @@ export default function AdminPage() {
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
         </p>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Administración de liga
         </h1>
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          Las herramientas están agrupadas por finalidad para separar configuración, competición y trabajo diario.
-        </p>
       </header>
 
       <AdminGroup
@@ -351,7 +348,7 @@ export default function AdminPage() {
           tone={openIncidentCount > 0 ? "warning" : "default"}
           badge={
             openIncidentCount > 0 ? (
-              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-black text-white">
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black text-white">
                 {openIncidentCount}
               </span>
             ) : null
@@ -391,7 +388,7 @@ export default function AdminPage() {
             description={t.adminPanel.qaDescription}
             tone="qa"
             badge={
-              <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[9px] font-black uppercase text-amber-950">
+              <span className="rounded-full bg-amber-200 px-2 py-0.5 type-caption font-black uppercase text-amber-950">
                 QA
               </span>
             }

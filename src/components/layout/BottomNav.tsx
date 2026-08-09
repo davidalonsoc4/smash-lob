@@ -24,7 +24,7 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
     strokeWidth: 2.2,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
-    className: "h-4 w-4",
+    className: "app-bottom-nav-icon",
   }
 
   if (icon === "home") {
@@ -183,14 +183,14 @@ export function BottomNav() {
   return (
     <nav
       data-tour="bottom-navigation"
-      className="app-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-neutral-200 bg-white/95 shadow-[0_-6px_18px_rgba(0,0,0,0.06)] backdrop-blur"
+      className="app-bottom-nav fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 border-t border-neutral-200 bg-white/95 shadow-[0_-6px_18px_rgba(0,0,0,0.06)] backdrop-blur"
       style={{
         minHeight: "72px",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
       <div
-        className="grid w-full grid-cols-4 gap-1.5 bg-transparent px-2.5"
+        className="app-bottom-nav-grid grid w-full grid-cols-4 bg-transparent"
         style={{
           minHeight: "72px",
           paddingTop: "7px",
@@ -218,8 +218,8 @@ export function BottomNav() {
               }}
               className={
                 isActive
-                  ? "app-bottom-nav-active flex flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 text-center text-[10px] font-black text-white shadow-sm"
-                  : "app-bottom-nav-item flex flex-col items-center justify-center gap-0.5 rounded-xl bg-transparent px-1 text-center text-[10px] font-black text-neutral-500 transition active:bg-neutral-100"
+                  ? "app-bottom-nav-active flex flex-col items-center justify-center bg-neutral-950 text-center font-black text-white shadow-sm"
+                  : "app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-500 transition active:bg-neutral-100"
               }
               style={{
                 minHeight: "52px",

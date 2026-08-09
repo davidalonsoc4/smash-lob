@@ -101,7 +101,7 @@ function SeasonSectionIntro({
 }) {
   return (
     <div className="px-1 pt-1">
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
+      <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-600">
         {title}
       </p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -246,7 +246,7 @@ function SeasonNavigation({
       <div className="mt-3 space-y-3">
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-600">
+            <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-600">
               {group.title}
             </p>
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -871,7 +871,7 @@ function SeasonConfigurationSummary({
             {activeSeason.name}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-600">
+        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
           {statusValue}
         </span>
       </div>
@@ -879,10 +879,10 @@ function SeasonConfigurationSummary({
       <div className="mt-3 grid grid-cols-2 gap-2">
         {items.slice(1).map(([title, value]) => (
           <div key={title} className="min-w-0 rounded-xl bg-neutral-100 px-2.5 py-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-neutral-600">
+            <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
               {title}
             </p>
-            <p className="mt-0.5 text-[11px] font-black leading-4 text-neutral-800">
+            <p className="mt-0.5 type-caption font-black leading-4 text-neutral-800">
               {value}
             </p>
           </div>
@@ -1641,7 +1641,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
+          className={`shrink-0 rounded-full px-2.5 py-1 type-caption font-black ${
             calendarAudit.isPerfectlyBalanced
               ? "bg-emerald-100 text-emerald-800"
               : "bg-amber-100 text-amber-800"
@@ -1655,7 +1655,7 @@ function BalancedCalendarAuditPanel({
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditMode}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1663,7 +1663,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditPlayers}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1671,7 +1671,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditRounds}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1679,7 +1679,7 @@ function BalancedCalendarAuditPanel({
           </p>
         </div>
         <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-          <p className="text-[11px] font-black uppercase tracking-wide text-neutral-600">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
             {t.adminSeason.calendarAuditMatches}
           </p>
           <p className="mt-1 text-sm font-black text-neutral-950">
@@ -1698,12 +1698,12 @@ function BalancedCalendarAuditPanel({
               <p className="text-xs font-black text-neutral-900">
                 {check.label}
               </p>
-              <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+              <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
                 {check.detail}
               </p>
             </div>
             <span
-              className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${
+              className={`shrink-0 rounded-full px-2 py-1 type-caption font-black ${
                 check.ok
                   ? "bg-emerald-100 text-emerald-800"
                   : "bg-amber-100 text-amber-800"
@@ -1962,7 +1962,7 @@ function RoundManagementPanel({
               }`}
             >
               <span className="block">J{round.round}</span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wide opacity-70">
+              <span className="mt-1 block type-caption uppercase tracking-wide opacity-70">
                 {isInitialRound
                   ? "Inicial"
                   : round.status === "active"
@@ -2095,7 +2095,7 @@ function RoundManagementPanel({
               </p>
             </div>
             {hasRoundOrderChanges ? (
-              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
                 Cambios
               </span>
             ) : null}
@@ -2266,7 +2266,7 @@ function SeasonPlayerNamesPanel({
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 type-caption font-black ${
                         isClaimed
                           ? "bg-emerald-100 text-emerald-800"
                           : "bg-amber-100 text-amber-800"
@@ -3507,7 +3507,7 @@ function NewSeasonForm({
                   </span>
                 </span>
                 {canLinkSelfPlayer && selectedSelfPlayerValue === player.id ? (
-                  <span className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-[10px] font-black text-neutral-950">
+                  <span className="shrink-0 rounded-full bg-amber-300 px-3 py-1 type-caption font-black text-neutral-950">
                     Tú
                   </span>
                 ) : null}
@@ -3540,7 +3540,7 @@ function NewSeasonForm({
                   </span>
                   {canLinkSelfPlayer &&
                   selectedSelfPlayerValue === getNewPlayerToken(index) ? (
-                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 text-[10px] font-black text-neutral-950">
+                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 type-caption font-black text-neutral-950">
                       Tú
                     </span>
                   ) : null}
@@ -3638,7 +3638,7 @@ function NewSeasonForm({
                             : t.adminSeason.extendedCalendar}
                       </span>
                       {isSelected ? (
-                        <span className="rounded-full bg-neutral-950 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                        <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
                           {t.common.active}
                         </span>
                       ) : null}
@@ -3783,7 +3783,7 @@ function NewSeasonForm({
                             Partido {matchIndex + 1}
                           </p>
                           {hasDuplicatePlayers ? (
-                            <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800">
+                            <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black text-amber-800">
                               Revisa duplicados
                             </span>
                           ) : null}
@@ -3796,7 +3796,7 @@ function NewSeasonForm({
                                 key={teamKey}
                                 className="rounded-2xl bg-white p-3"
                               >
-                                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+                                <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                                   {teamKey === "teamA"
                                     ? "Pareja A"
                                     : "Pareja B"}
@@ -4248,7 +4248,7 @@ export default function AdminSeasonPage() {
         <header className="pt-2">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
-          <h1 className="mt-1 text-xl font-black tracking-tight">
+          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
           </h1>
         </header>
@@ -4329,7 +4329,7 @@ export default function AdminSeasonPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {isActiveSeason
             ? t.adminSeason.title
             : isUpcomingSeason
@@ -4338,16 +4338,6 @@ export default function AdminSeasonPage() {
                 ? "Temporada finalizada"
                 : t.adminSeason.newSeasonTitle}
         </h1>
-
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          {isActiveSeason
-            ? t.adminSeason.description
-            : isUpcomingSeason
-              ? "La temporada está creada. Comiénzala cuando esté preparada para jugarse."
-              : hasCreatedLeagueSeason
-                ? "Consulta su configuración final, invita a los jugadores pendientes o prepara la siguiente temporada."
-                : t.adminSeason.finishedDescription}
-        </p>
       </header>
 
       <div data-tour="season-admin-navigation">

@@ -104,7 +104,7 @@ function AvailabilitySuggestionCard({
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-[11px] font-black text-neutral-500">
+          <p className="truncate type-caption font-black text-neutral-500">
             {suggestion.dateLabel}
           </p>
           <p className="mt-0.5 text-sm font-black text-neutral-950">
@@ -114,7 +114,7 @@ function AvailabilitySuggestionCard({
 
         <div className="flex shrink-0 items-center gap-1.5">
           <span
-            className={`rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wide ${
+            className={`rounded-full px-2 py-1 type-caption font-black uppercase tracking-wide ${
               isPerfectMatch
                 ? "bg-emerald-50 text-emerald-700"
                 : "bg-amber-50 text-amber-800"
@@ -130,16 +130,16 @@ function AvailabilitySuggestionCard({
 
       <div className="mt-1.5 flex items-center justify-between gap-2">
         {missingLabel ? (
-          <p className="min-w-0 truncate text-[11px] font-semibold text-neutral-500">
+          <p className="min-w-0 truncate type-caption font-semibold text-neutral-500">
             {missingLabel}
           </p>
         ) : (
-          <span className="text-[11px] font-semibold text-emerald-700">
+          <span className="type-caption font-semibold text-emerald-700">
             Todos disponibles
           </span>
         )}
 
-        <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-neutral-500 group-hover:text-neutral-900">
+        <span className="shrink-0 type-caption font-black uppercase tracking-wide text-neutral-500 group-hover:text-neutral-900">
           Seleccionar
         </span>
       </div>
@@ -296,21 +296,21 @@ export function MatchAvailabilitySuggestions({
         aria-expanded={isExpanded}
       >
         <div className="min-w-0">
-          <p className="text-sm font-black text-neutral-950">
+          <p className="type-panel-title text-neutral-950">
             Horarios recomendados
           </p>
-          <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold leading-4 text-neutral-500">
+          <p className="mt-0.5 line-clamp-1 type-caption font-semibold leading-4 text-neutral-500">
             {summaryText}
           </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
           {isLoading ? (
-            <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            <span className="rounded-full bg-white px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-500">
               ...
             </span>
           ) : recommendations.length > 0 ? (
-            <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+            <span className="rounded-full bg-white px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-600">
               {recommendations.length}
             </span>
           ) : null}
@@ -324,13 +324,13 @@ export function MatchAvailabilitySuggestions({
       {isExpanded ? (
         <div className="mt-2 space-y-1.5">
           {hasRemoteError ? (
-            <p className="rounded-lg bg-amber-50 p-2 text-[11px] font-bold text-amber-800">
+            <p className="rounded-lg bg-amber-50 p-2 type-caption font-bold text-amber-800">
               No se ha podido cargar la disponibilidad remota. Se muestran datos de este dispositivo si existen.
             </p>
           ) : null}
 
           {unrestrictedPlayerIds.length > 0 ? (
-            <p className="rounded-lg bg-white p-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="rounded-lg bg-white p-2 type-caption font-semibold leading-4 text-neutral-500">
               Sin disponibilidad informada: {unrestrictedPlayersLabel}. Se consideran disponibles por defecto.
             </p>
           ) : null}

@@ -339,7 +339,7 @@ export function PlayerStatsPanel({
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.title}
           </p>
-          <p className="mt-0.5 whitespace-nowrap text-base font-black tracking-tight">
+          <p className="mt-0.5 whitespace-nowrap type-panel-title">
             {t.playerStats.subtitle}
           </p>
           {scopeLabel ? (
@@ -350,13 +350,13 @@ export function PlayerStatsPanel({
         </div>
 
         <div className="shrink-0 rounded-xl bg-neutral-950 px-3 py-2 text-right text-white">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-300">
+          <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-300">
             {t.playerStats.winRate}
           </p>
           <p className="text-lg font-black leading-none">
             {formatPercentage(winRate)}
           </p>
-          <p className="mt-1 text-[11px] font-semibold text-neutral-300">
+          <p className="mt-1 type-caption font-semibold text-neutral-300">
             {wins}-{losses} {t.playerStats.record}
           </p>
         </div>
@@ -370,7 +370,7 @@ export function PlayerStatsPanel({
           <p className="mt-0.5 text-base font-black">
             {setsFor}-{setsAgainst}
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold leading-snug text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold leading-snug text-neutral-500">
             {formatPercentage(setsWinRate)} {t.playerStats.wonPercentage}
           </p>
         </div>
@@ -382,7 +382,7 @@ export function PlayerStatsPanel({
           <p className="mt-0.5 text-base font-black">
             {gamesFor}-{gamesAgainst}
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold leading-snug text-neutral-500">
+          <p className="mt-0.5 type-caption font-semibold leading-snug text-neutral-500">
             {formatPercentage(gamesForRate)} {t.playerStats.forPercentage}
           </p>
         </div>
@@ -409,7 +409,7 @@ export function PlayerStatsPanel({
             {strongestTeammate ? (
               <Link
                 href={getPlayerHref(strongestTeammate.playerId, players)}
-                className="mt-1 block font-black underline-offset-2 active:underline"
+                className="type-player-name mt-1 block underline-offset-2 active:underline"
               >
                 {getDisplayName(strongestTeammate.playerId, players)}
               </Link>
@@ -432,7 +432,7 @@ export function PlayerStatsPanel({
             {toughestRival ? (
               <Link
                 href={getPlayerHref(toughestRival.playerId, players)}
-                className="mt-1 block font-black underline-offset-2 active:underline"
+                className="type-player-name mt-1 block underline-offset-2 active:underline"
               >
                 {getDisplayName(toughestRival.playerId, players)}
               </Link>
@@ -449,7 +449,7 @@ export function PlayerStatsPanel({
       </div>
 
       <div className="mt-2">
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+        <p className="mb-2 type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
           Récords del periodo
         </p>
         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -461,7 +461,7 @@ export function PlayerStatsPanel({
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
             <p className="text-xs font-semibold text-neutral-500">Rival más vencido</p>
-            <p className="mt-1 truncate font-black">
+            <p className="type-player-name mt-1 truncate">
               {mostBeatenRival
                 ? getDisplayName(mostBeatenRival.playerId, players)
                 : emptyValue}
@@ -472,7 +472,7 @@ export function PlayerStatsPanel({
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
             <p className="text-xs font-semibold text-neutral-500">Rival con más derrotas</p>
-            <p className="mt-1 truncate font-black">
+            <p className="type-player-name mt-1 truncate">
               {mostLostRival
                 ? getDisplayName(mostLostRival.playerId, players)
                 : emptyValue}

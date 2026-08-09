@@ -160,7 +160,7 @@ function ImageOptionToggle({
 
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-black text-neutral-900">{title}</span>
-        <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-neutral-500">
+        <span className="mt-0.5 block type-caption font-semibold leading-4 text-neutral-500">
           {description}
         </span>
       </span>
@@ -296,10 +296,10 @@ export function SeasonSummaryCard({
         <div className="overflow-hidden rounded-[1.75rem] bg-neutral-950 p-4 text-white shadow-sm">
           <div className="flex items-stretch justify-between gap-4">
             <div className="min-w-0 flex-1 py-1">
-              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-neutral-400">
+              <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
                 Resumen final de temporada
               </p>
-              <p className="mt-3 break-words text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+              <p className="mt-3 break-words type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
                 {data.leagueName}
               </p>
               <p className="mt-1.5 break-words text-3xl font-black leading-8 text-white">
@@ -339,7 +339,7 @@ export function SeasonSummaryCard({
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-center text-[9px] font-black uppercase tracking-[0.16em] text-neutral-400">
+                      <p className="text-center type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
                         {hero.label}
                       </p>
                       <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2.5">
@@ -367,7 +367,7 @@ export function SeasonSummaryCard({
                           key={stat.label}
                           className="flex min-h-[4.25rem] min-w-0 flex-col justify-center rounded-[1.1rem] bg-neutral-100 px-2 py-2.5 text-center"
                         >
-                          <p className="text-[8px] font-black uppercase tracking-wide text-neutral-400">
+                          <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                             {stat.label}
                           </p>
                           <p className="mt-1 text-base font-black leading-none text-neutral-950">
@@ -388,7 +388,7 @@ export function SeasonSummaryCard({
         <div>
           <div className="flex items-center gap-2">
             <span aria-hidden="true" className="h-2.5 w-2.5 rounded bg-neutral-950" />
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-700">
+            <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-700">
               Podio final
             </p>
             <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
@@ -410,16 +410,16 @@ export function SeasonSummaryCard({
                 >
                   {row.position}º
                 </div>
-                <p className="min-w-0 flex-1 break-words text-sm font-black leading-4 text-neutral-950">
+                <p className="type-player-name min-w-0 flex-1 break-words text-neutral-950">
                   {row.name}
                 </p>
                 <div className="grid w-24 shrink-0 grid-cols-2 border-l border-neutral-100 pl-2 text-center">
                   <div>
-                    <p className="text-[8px] font-black uppercase text-neutral-400">Puntos</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">Puntos</p>
                     <p className="text-xs font-black text-neutral-950">{row.points}</p>
                   </div>
                   <div>
-                    <p className="text-[8px] font-black uppercase text-neutral-400">DG</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">DG</p>
                     <p className="text-xs font-black text-neutral-950">
                       {formatGamesDiff(row.gamesDiff)}
                     </p>
@@ -433,7 +433,7 @@ export function SeasonSummaryCard({
         <div>
           <div className="flex items-center gap-2">
             <span aria-hidden="true" className="h-2.5 w-2.5 rounded bg-neutral-950" />
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-700">
+            <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-700">
               Lo más destacado
             </p>
             <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
@@ -449,13 +449,13 @@ export function SeasonSummaryCard({
                   className="my-0.5 min-h-[5.25rem] w-1.5 rounded-full bg-neutral-300"
                 />
                 <div className="flex min-h-[5.25rem] min-w-0 flex-col justify-center pr-1">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-400">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
                     {highlight.label}
                   </p>
                   <p className="mt-1.5 break-words text-sm font-black leading-[1.2rem] text-neutral-950">
                     {highlight.headline}
                   </p>
-                  <p className="mt-1.5 break-words text-[11px] font-semibold leading-4 text-neutral-500">
+                  <p className="mt-1.5 break-words type-caption font-semibold leading-4 text-neutral-500">
                     {highlight.detail}
                   </p>
                 </div>
@@ -470,7 +470,7 @@ export function SeasonSummaryCard({
             <img src="/icon-192.png" alt="" className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] font-semibold text-neutral-400">Creado con</p>
+            <p className="type-caption font-semibold text-neutral-400">Creado con</p>
             <p className="text-xs font-black text-neutral-950">Smash & Lob</p>
           </div>
         </div>
@@ -478,7 +478,7 @@ export function SeasonSummaryCard({
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
           <div>
             <p className="text-xs font-black text-neutral-900">Personaliza la imagen</p>
-            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
               Elige qué elementos visuales se incluyen al compartir o guardar.
             </p>
           </div>
@@ -515,7 +515,7 @@ export function SeasonSummaryCard({
             <p className="text-xs font-black text-amber-900">
               Imagen bloqueada hasta completar los datos
             </p>
-            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-amber-800">
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-amber-800">
               {exportBlockedReason ?? "Revisa los partidos pendientes o no válidos de la temporada."}
             </p>
           </div>

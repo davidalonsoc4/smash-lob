@@ -143,7 +143,7 @@ export default function PlayerPage() {
           <PlayerAvatar player={player} size="md" previewable />
 
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <h1 className="min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
+            <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
               {player.displayName}
             </h1>
 
@@ -160,9 +160,6 @@ export default function PlayerPage() {
           </div>
         </div>
 
-        <p className="mt-1.5 text-xs font-semibold leading-5 text-neutral-500">
-          {t.playerProfile.description}
-        </p>
       </header>
 
       <div className="grid grid-cols-2 gap-2">

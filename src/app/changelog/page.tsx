@@ -26,23 +26,18 @@ export default async function ChangelogPage() {
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <p className="text-sm font-medium text-neutral-500">Smash & Lob</p>
           {detailed ? (
-            <span className="rounded-full bg-neutral-950 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-white">
+            <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-white">
               Detalle superadmin
             </span>
           ) : (
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-neutral-600">
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
               Información pública
             </span>
           )}
         </div>
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Registro de cambios
         </h1>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          {detailed
-            ? "Vista técnica completa con el detalle de cada cambio publicado."
-            : "Resumen general de novedades, mejoras y correcciones de cada versión."}
-        </p>
       </header>
 
       <ChangelogContent releases={releases} detailed={detailed} />

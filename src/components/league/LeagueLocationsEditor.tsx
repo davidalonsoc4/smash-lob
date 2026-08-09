@@ -485,11 +485,11 @@ export function LeagueLocationsEditor({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-black text-neutral-950">Ubicaciones de la app</p>
-            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
               Añade a la liga cualquier club ya guardado por otros jugadores.
             </p>
           </div>
-          <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-neutral-500 shadow-sm">
+          <span className="shrink-0 rounded-full bg-white px-2 py-1 type-caption font-black text-neutral-500 shadow-sm">
             {catalogLocations.length}
           </span>
         </div>
@@ -523,11 +523,11 @@ export function LeagueLocationsEditor({
                       <span className="block truncate text-xs font-black text-neutral-900">
                         {getLeagueLocationOptionLabel(location)}
                       </span>
-                      <span className="mt-0.5 block truncate text-[10px] font-semibold text-neutral-500">
+                      <span className="mt-0.5 block truncate type-caption font-semibold text-neutral-500">
                         {getLeagueLocationSubtitle(location)}
                       </span>
                     </span>
-                    <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-700">
+                    <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-700">
                       Añadir
                     </span>
                   </button>
@@ -568,7 +568,7 @@ export function LeagueLocationsEditor({
                     type="button"
                     onClick={() => startEditing(location)}
                     disabled={disabled}
-                    className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                    className="rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
                   >
                     {copy.editLocation}
                   </button>
@@ -576,7 +576,7 @@ export function LeagueLocationsEditor({
                     type="button"
                     onClick={() => handleRemoveLocation(location.id)}
                     disabled={disabled}
-                    className="rounded-full px-2.5 py-1.5 text-[11px] font-black text-neutral-700 disabled:text-neutral-400"
+                    className="rounded-full px-2.5 py-1.5 type-caption font-black text-neutral-700 disabled:text-neutral-400"
                   >
                     {copy.removeLocation}
                   </button>
@@ -587,7 +587,7 @@ export function LeagueLocationsEditor({
                 href={getLeagueLocationMapsUrl(location)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 block rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center text-[11px] font-black text-neutral-800"
+                className="mt-2 block rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center type-caption font-black text-neutral-800"
               >
                 {copy.openMaps}
               </a>
@@ -624,7 +624,7 @@ export function LeagueLocationsEditor({
               type="button"
               onClick={closeForm}
               disabled={disabled}
-              className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-black text-neutral-700 shadow-sm disabled:text-neutral-400"
+              className="rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 shadow-sm disabled:text-neutral-400"
             >
               {copy.cancelLocationEdit}
             </button>
@@ -695,11 +695,11 @@ export function LeagueLocationsEditor({
           </div>
 
           {!googleMapsApiKey && !autocompleteReady ? (
-            <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-2 type-caption font-semibold leading-4 text-neutral-500">
               {copy.googleApiMissing}
             </p>
           ) : hasTriedLoadingAutocomplete && !autocompleteReady ? (
-            <p className="mt-2 text-[11px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-2 type-caption font-semibold leading-4 text-neutral-500">
               {copy.googleApiMissing}
             </p>
           ) : null}

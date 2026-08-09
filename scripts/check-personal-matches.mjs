@@ -29,6 +29,10 @@ const [
   personalProfileStats,
   detailPairingPanel,
   personalProfileView,
+  matchDetailView,
+  participantsPanel,
+  participantSelector,
+  requestHelper,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -53,6 +57,10 @@ const [
   read("src/lib/personalProfileStats.ts"),
   read("src/components/match/MatchDetailPairingPanel.tsx"),
   read("src/components/personal/PersonalProfileStatistics.tsx"),
+  read("src/components/match/MatchDetailView.tsx"),
+  read("src/components/personal/PersonalMatchParticipantsPanel.tsx"),
+  read("src/components/personal/PersonalMatchParticipantSelector.tsx"),
+  read("src/lib/serverPersonalMatchRequest.ts"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -112,26 +120,33 @@ assert(card.includes("locationFallback={null}") && card.includes("hideMissingRow
 assert(card.includes("getPersonalMatchOriginBadgeStyle(match)"), "Cada liga debe aplicar su color estable propio")
 assert(matchEventMeta.includes('weekday: "long"') && matchEventMeta.includes('hour: "2-digit"'), "El bloque compartido debe mostrar día, fecha y hora")
 
-assert(newPage.includes("Otro jugador..."), "Debe ser posible registrar jugadores externos")
-assert(newPage.includes("sourceLeagueNames"), "Debe reutilizar jugadores conocidos de ligas compartidas")
+assert(newPage.includes("<PersonalMatchParticipantSelector"), "El alta debe reutilizar el selector compartido de participantes")
+assert(participantSelector.includes("Otro jugador..."), "Debe ser posible registrar jugadores externos")
+assert(participantSelector.includes("sourceLeagueNames"), "Debe reutilizar jugadores conocidos de ligas compartidas")
 assert(newPage.includes("Programar") && newPage.includes("Ya jugado"), "El alta debe permitir programar o registrar un partido ya jugado")
-assert(detailPage.includes("<MatchDetailPairingPanel"), "El detalle personal debe usar el panel de emparejamiento propio")
+assert(detailPage.includes("<MatchDetailView"), "El detalle personal debe usar la pantalla compartida de partido")
+assert(matchDetailView.includes("<MatchDetailPairingPanel"), "La pantalla compartida debe ser dueña del emparejamiento")
 assert(!detailPage.includes("<MatchScoreboard"), "El detalle personal no debe reutilizar el marcador compacto")
-assert(detailPage.includes('className="mt-3 flex min-w-0 w-full items-start justify-between gap-3"'), "El detalle amistoso debe reservar la esquina derecha exclusivamente para el estado")
+assert(matchDetailView.includes("items-start justify-between"), "El detalle compartido debe reservar la esquina derecha para estado y acciones")
 assert(!detailPage.includes('tracking-[0.12em] text-slate-700'), "El detalle amistoso no debe mostrar una etiqueta Amistoso separada")
 assert(detailPage.includes("avatarUrl: participant.avatarUrl ?? null"), "El amistoso debe trasladar los avatares al panel de emparejamiento")
+assert(detailPage.includes("<PersonalMatchParticipantsPanel"), "El detalle amistoso debe permitir editar pareja y contrincantes")
+assert(participantsPanel.includes('action: "participants"') && participantsPanel.includes("<PersonalMatchParticipantSelector"), "El editor de amistoso debe reutilizar el selector y persistir por PATCH")
+assert(detailRoute.includes('action !== "participants"') && detailRoute.includes("replacePersonalMatchParticipants"), "PATCH debe soportar cambios de participantes")
+assert(serverHelper.includes("replacePersonalMatchParticipants") && serverHelper.includes("personal_match_requires_current_user"), "El servidor debe reemplazar participantes manteniendo al usuario actual")
+assert(requestHelper.includes("normalizePersonalMatchParticipantDrafts"), "Alta y edición deben compartir validación de participantes")
 assert(!detailPairingPanel.includes(">\n          Emparejamiento\n        </h2>") && detailPairingPanel.includes("Pareja A") && detailPairingPanel.includes("Pareja B"), "El panel propio debe omitir el titulo Emparejamiento y mantener Pareja A y Pareja B")
 assert(detailPairingPanel.includes("const pairPlayers = playerIds.map") && detailPairingPanel.includes("<PlayerAvatar") && detailPairingPanel.includes("#{position} en liga"), "El panel propio debe separar los avatares de los paneles de nombre y admitir posición en liga")
 assert(detailPairingPanel.includes("const showAvatars = [...teamA, ...teamB].some") && detailPairingPanel.includes("isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl)"), "El panel propio debe ocultar las fotos cuando ninguno de los cuatro jugadores tiene imagen real")
 assert(detailPairingPanel.includes('alignment="left"') && detailPairingPanel.includes('alignment="right"') && detailPairingPanel.includes('alignment === "right" ? "text-right" : "text-left"'), "Pareja B debe alinear a la derecha todo el contenido textual de cada jugador")
-assert(detailPairingPanel.includes("text-[10px] font-bold uppercase leading-none tracking-wide") && detailPairingPanel.includes('alignment === "right" ? "text-right" : "text-left"') && !detailPairingPanel.includes("truncate text-center text-[12px]"), "Los títulos Pareja A y Pareja B deben ser pequeños y alinearse con los nombres de sus jugadores")
+assert(detailPairingPanel.includes("type-caption font-bold uppercase leading-none tracking-wide") && detailPairingPanel.includes('alignment === "right" ? "text-right" : "text-left"') && !detailPairingPanel.includes("truncate text-center text-[12px]"), "Los títulos Pareja A y Pareja B deben ser pequeños y alinearse con los nombres de sus jugadores")
 assert(detailPairingPanel.includes('const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)') && detailPairingPanel.includes('<FinishedPairRow') && detailPairingPanel.includes('className="space-y-2.5"'), "El detalle debe cambiar a un marcador vertical protagonista cuando ya hay resultado")
 assert(detailPairingPanel.includes('function FinishedPlayerName({') && detailPairingPanel.includes('positionPlacement: "above" | "below"') && detailPairingPanel.includes('positionPlacement={index === 0 ? "above" : "below"}'), "En resultado, J1 debe mostrar posicion arriba y J2 posicion abajo")
-assert(detailPairingPanel.includes('side: "a" | "b"') && detailPairingPanel.includes('side="a"') && detailPairingPanel.includes('side="b"') && !detailPairingPanel.includes('mb-1.5 text-left text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500') && !detailPairingPanel.includes('mt-1.5 text-left text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500'), "El resultado debe omitir los textos Pareja A/Pareja B y distinguir los lados solo de forma interna")
-assert(!detailPairingPanel.includes('text-[9px] font-bold uppercase tracking-wide text-neutral-400'), "El resultado no debe mostrar numeracion 1/2/3 sobre los juegos")
+assert(detailPairingPanel.includes('side: "a" | "b"') && detailPairingPanel.includes('side="a"') && detailPairingPanel.includes('side="b"') && !detailPairingPanel.includes('mb-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500') && !detailPairingPanel.includes('mt-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500'), "El resultado debe omitir los textos Pareja A/Pareja B y distinguir los lados solo de forma interna")
+assert(!detailPairingPanel.includes('type-caption font-bold uppercase tracking-wide text-neutral-400'), "El resultado no debe mostrar numeracion 1/2/3 sobre los juegos")
 assert(!detailPairingPanel.includes('showAvatars={showAvatars}') && !detailPairingPanel.includes('alignment: "left" | "right"\n  showAvatars: boolean'), "El resultado vertical no debe mostrar avatares; las imagenes quedan solo para el modo pendiente")
-assert(detailPairingPanel.includes('relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4') && detailPairingPanel.includes('pointer-events-none absolute left-1/2 top-1/2 z-20') && detailPairingPanel.includes('>\n                  VS\n                </span>') && detailPairingPanel.includes('flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 text-[10px] font-black uppercase tracking-wide text-white shadow-sm'), "Sin resultado, el panel de detalle debe mantener el VS pequeño y flotante")
-assert(detailPairingPanel.includes('rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 sm:py-3.5') && detailPairingPanel.includes('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3') && detailPairingPanel.includes('h-7 min-w-7 items-center justify-center rounded-lg px-1.5 text-[13px]') && detailPairingPanel.includes('bg-neutral-100 font-black text-neutral-800 ring-neutral-200') && detailPairingPanel.includes('bg-neutral-50 font-bold text-neutral-500 ring-neutral-200') && detailPairingPanel.includes('h-11 min-w-11 items-center justify-center self-center rounded-lg') && detailPairingPanel.includes('relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3 text-[18px] font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm') && detailPairingPanel.includes('mb-1.5 mr-1 border-t border-neutral-300') && detailPairingPanel.includes('className={index === 0 ? "pb-2" : "pt-0"}'), "El resultado debe usar chips suaves como calendario, total de sets mayor y separador extendido a la derecha con mr-1, pb-2 bajo J1 y pt-0 en J2")
+assert(detailPairingPanel.includes('relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4') && detailPairingPanel.includes('pointer-events-none absolute left-1/2 top-1/2 z-20') && detailPairingPanel.includes('>\n                  VS\n                </span>') && detailPairingPanel.includes('flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm'), "Sin resultado, el panel de detalle debe mantener el VS pequeño y flotante")
+assert(detailPairingPanel.includes('rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 sm:py-3.5') && detailPairingPanel.includes('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3') && detailPairingPanel.includes('h-7 min-w-7 items-center justify-center rounded-lg px-1.5 type-small') && detailPairingPanel.includes('bg-neutral-100 font-black text-neutral-800 ring-neutral-200') && detailPairingPanel.includes('bg-neutral-50 font-bold text-neutral-500 ring-neutral-200') && detailPairingPanel.includes('h-11 min-w-11 items-center justify-center self-center rounded-lg') && detailPairingPanel.includes('relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3 text-lg font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm') && detailPairingPanel.includes('mb-1.5 mr-1 border-t border-neutral-300') && detailPairingPanel.includes('className={index === 0 ? "pb-2" : "pt-0"}'), "El resultado debe usar chips suaves como calendario, total de sets mayor y separador extendido a la derecha con mr-1, pb-2 bajo J1 y pt-0 en J2")
 assert(detailPairingPanel.includes('className="grid grid-cols-2 items-start gap-2 sm:gap-4"') && detailPairingPanel.includes('{showAvatars ? (') && detailPairingPanel.includes('<PairAvatars playerIds={teamA} players={players} alignment="left" />') && detailPairingPanel.includes('<PairAvatars playerIds={teamB} players={players} alignment="right" />') && detailPairingPanel.includes('className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4"') && detailPairingPanel.includes('pointer-events-none absolute left-1/2 top-1/2 z-20'), "La vista sin resultado debe conservar exactamente su estructura de dos parejas, avatares y VS flotante")
 assert(serverHelper.includes('.select("id,avatar_url")') && serverHelper.includes("avatarUrlByUserId"), "El servidor debe recuperar avatares de participantes vinculados")
 assert(detailPage.includes("<PersonalMatchSchedulePanel"), "El detalle debe incluir fecha, ubicación y acciones")
@@ -166,7 +181,7 @@ assert(serverHelper.includes("getParticipantPersonKey") && serverHelper.includes
 assert(listRoute.includes('searchParams.get("includeAvatars")'), "La API debe permitir cargar avatares solo cuando el perfil global los necesita")
 assert(serverHelper.includes("seasonName"), "El historial de liga debe incluir el nombre de temporada para el filtro global")
 assert(!personalPage.includes("<BackButton"), "La raíz de Mis partidos no debe duplicar Volver/Ligas")
-assert(newPage.includes("<BackButton") && detailPage.includes("<BackButton"), "Crear y detalle deben conservar el botón Volver")
+assert(newPage.includes("<BackButton") && detailPage.includes("<MatchDetailView") && matchDetailView.includes("<BackButton"), "Crear y detalle deben conservar el botón Volver")
 for (const forbiddenColor of ["red-", "rose-", "green-", "emerald-", "lime-", "teal-"]) {
   assert(!personalMatchesLib.includes(forbiddenColor), `El origen de partido no debe usar ${forbiddenColor}`)
 }
@@ -178,10 +193,11 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.4.18 correcto:")
+console.log("Mis partidos v1.5.4 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
 console.log("- historial paginado de 10 en 10 y Próximo partido oculto cuando no existe")
-console.log("- amistosos programables con detalle alineado con Partido de liga")
+console.log("- liga y amistoso comparten una única MatchDetailView")
+console.log("- amistosos programados permiten editar pareja y contrincantes")
 console.log("- origen por liga con color estable y metadatos ausentes ocultos de forma independiente")
 console.log("- un único amistoso compartido por cuentas vinculadas y externos permitidos")
 console.log("- perfil global con rendimiento, parejas, rivales, rankings y cara a cara filtrable")

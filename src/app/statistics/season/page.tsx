@@ -329,7 +329,7 @@ export default function StatisticsSeasonPage() {
 
       {isLeagueWide ? (
         <AppCard>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-400">
+          <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
             Histórico completo
           </p>
           <p className="mt-1 text-xl font-black">
@@ -340,14 +340,14 @@ export default function StatisticsSeasonPage() {
               ? `${statistics.leader.displayName} lidera el histórico con ${statistics.leader.points} puntos y ${statistics.leader.wins} victorias.`
               : "Todavía no hay resultados suficientes para calcular el histórico."}
           </p>
-          <p className="mt-2 text-[11px] font-semibold leading-5 text-neutral-500">
+          <p className="mt-2 type-caption font-semibold leading-5 text-neutral-500">
             Las imágenes compartibles se generan por temporada para no mezclar campeones, MVP y podios de competiciones diferentes.
           </p>
         </AppCard>
       ) : null}
 
       <div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
+        <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-600">
           Historial de campeones
         </p>
         {seasonHistory.length === 0 ? (

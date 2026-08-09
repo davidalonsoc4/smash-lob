@@ -28,6 +28,7 @@ function DetailPlayer({
   substituteLabel,
   linkPlayers,
   alignment,
+  positionPlacement,
 }: {
   playerId: string
   players?: PlayerProfile[]
@@ -36,11 +37,12 @@ function DetailPlayer({
   substituteLabel?: string
   linkPlayers: boolean
   alignment: "left" | "right"
+  positionPlacement: "above" | "below"
 }) {
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const content = (
-    <span className="block max-w-full text-[16px] font-black leading-[1.08rem] text-neutral-950 [overflow-wrap:anywhere]">
+    <span className="block max-w-full type-player-name-prominent text-neutral-950 [overflow-wrap:anywhere]">
       {displayName}
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
@@ -50,8 +52,20 @@ function DetailPlayer({
     </span>
   )
 
+  const positionLabel = position ? (
+    <p
+      className={`type-caption font-bold uppercase tracking-wide text-neutral-500 ${
+        alignment === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      #{position} en liga
+    </p>
+  ) : null
+
   return (
     <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
+      {positionLabel && positionPlacement === "above" ? <div className="mb-1">{positionLabel}</div> : null}
+
       <div className="line-clamp-2 min-w-0">
         {linkPlayers && player ? (
           <Link
@@ -67,19 +81,11 @@ function DetailPlayer({
         )}
       </div>
 
-      {position ? (
-        <p
-          className={`mt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-500 ${
-            alignment === "right" ? "text-right" : "text-left"
-          }`}
-        >
-          #{position} en liga
-        </p>
-      ) : null}
+      {positionLabel && positionPlacement === "below" ? <div className="mt-1">{positionLabel}</div> : null}
 
       {substituteLabel ? (
         <p
-          className={`mt-1 text-[9px] font-bold leading-3 text-red-700 ${
+          className={`mt-1 type-caption font-bold leading-3 text-red-700 ${
             alignment === "right" ? "text-right" : "text-left"
           }`}
         >
@@ -108,7 +114,7 @@ function PairHeader({
           </span>
         ) : null}
         <p
-          className={`min-w-0 text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500 ${
+          className={`min-w-0 type-caption font-bold uppercase leading-none tracking-wide text-neutral-500 ${
             alignment === "right" ? "ml-auto text-right" : "text-left"
           }`}
         >
@@ -197,6 +203,7 @@ function PairDetails({
             substituteLabel={substituteLabels[playerId]}
             linkPlayers={linkPlayers}
             alignment={alignment}
+            positionPlacement={index === 0 ? "above" : "below"}
           />
         </div>
       ))}
@@ -224,7 +231,7 @@ function FinishedPlayerName({
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const name = (
-    <span className="block max-w-full text-[16px] font-black leading-[1.08rem] text-neutral-950 [overflow-wrap:anywhere]">
+    <span className="block max-w-full type-player-name-prominent text-neutral-950 [overflow-wrap:anywhere]">
       {displayName}
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
@@ -234,7 +241,7 @@ function FinishedPlayerName({
     </span>
   )
   const positionLabel = position ? (
-    <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+    <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
       #{position} en liga
     </p>
   ) : null
@@ -259,7 +266,7 @@ function FinishedPlayerName({
       {positionPlacement === "below" ? <div className="mt-1">{positionLabel}</div> : null}
 
       {substituteLabel ? (
-        <p className="mt-1 text-[9px] font-bold leading-3 text-red-700">
+        <p className="mt-1 type-caption font-bold leading-3 text-red-700">
           Suplente · por {substituteLabel}
         </p>
       ) : null}
@@ -317,7 +324,7 @@ function FinishedPairRow({
             return (
               <span
                 key={index}
-                className={`flex h-7 min-w-7 items-center justify-center rounded-lg px-1.5 text-[13px] leading-none ring-1 ring-inset ${
+                className={`flex h-7 min-w-7 items-center justify-center rounded-lg px-1.5 type-small leading-none ring-1 ring-inset ${
                   wonSet
                     ? "bg-neutral-100 font-black text-neutral-800 ring-neutral-200"
                     : "bg-neutral-50 font-bold text-neutral-500 ring-neutral-200"
@@ -328,7 +335,7 @@ function FinishedPairRow({
             )
           })}
           {points !== null && points !== undefined ? (
-            <div className="relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3 text-[18px] font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
+            <div className="relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3 text-lg font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
               {points}
             </div>
           ) : null}
@@ -401,7 +408,7 @@ export function MatchDetailPairingPanel({
 
             <div className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
               <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm">
                   VS
                 </span>
               </div>

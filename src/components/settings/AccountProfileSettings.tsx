@@ -190,7 +190,7 @@ function AccountProfileForm({
           <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
             {session?.user?.email ?? t.settings.connectedEmail}
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-neutral-400">
+          <p className="mt-0.5 type-caption font-semibold text-neutral-400">
             {canEditAvatar
               ? avatarStatusLabel
               : t.settings.profileGoogleImageNotice}
@@ -202,7 +202,7 @@ function AccountProfileForm({
         onSubmit={handleNameSubmit}
         className="border-t border-neutral-100 pt-3"
       >
-        <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+        <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
           Datos de cuenta
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -210,7 +210,7 @@ function AccountProfileForm({
         </p>
         <div className="grid grid-cols-2 gap-2">
           <label className="block">
-            <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
               {t.accountProfile.firstName}
             </span>
             <input
@@ -224,7 +224,7 @@ function AccountProfileForm({
           </label>
 
           <label className="block">
-            <span className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
               {t.accountProfile.lastName}
             </span>
             <input
@@ -253,7 +253,7 @@ function AccountProfileForm({
 
       {canEditAvatar ? (
         <div className="border-t border-neutral-100 pt-3">
-          <p className="text-[10px] font-black uppercase tracking-wide text-neutral-500">
+          <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
             {t.settings.profileImageTitle}
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">

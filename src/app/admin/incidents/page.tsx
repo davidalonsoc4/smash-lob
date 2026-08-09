@@ -27,7 +27,7 @@ function formatDate(value: string | null) {
 }
 
 export default function AdminIncidentsPage() {
-  const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
+  const { activeLeague, matches, players } = useCurrentLeagueData()
   const { hasLeagueAdminRole } = useLeagueAccess()
   const canManage = hasLeagueAdminRole(activeLeague.id)
   const openIncidents = matches
@@ -58,16 +58,13 @@ export default function AdminIncidentsPage() {
         <BackButton fallbackHref="/admin" label="Volver" />
         <p className="mt-1 text-xs font-bold text-neutral-500">{activeLeague.name}</p>
         <div className="mt-0.5 flex items-center gap-2">
-          <h1 className="text-xl font-black tracking-tight">Buzón de incidencias</h1>
+          <h1 className="type-page-title text-xl font-black tracking-tight">Buzón de incidencias</h1>
           {openIncidents.length > 0 ? (
-            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black text-white">
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black text-white">
               {openIncidents.length}
             </span>
           ) : null}
         </div>
-        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Incidencias pendientes de la temporada {activeSeason.name}.
-        </p>
       </header>
 
       {openIncidents.length === 0 ? (
@@ -88,7 +85,7 @@ export default function AdminIncidentsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[9px] font-black uppercase text-amber-950">
+                        <span className="rounded-full bg-amber-200 px-2 py-0.5 type-caption font-black uppercase text-amber-950">
                           Jornada {match.round}
                         </span>
                         <p className="text-xs font-black text-amber-950">
@@ -104,7 +101,7 @@ export default function AdminIncidentsPage() {
                         </p>
                       ) : null}
                       {formatDate(match.incidentCreatedAt) ? (
-                        <p className="mt-1.5 text-[10px] font-bold text-neutral-400">
+                        <p className="mt-1.5 type-caption font-bold text-neutral-400">
                           {formatDate(match.incidentCreatedAt)}
                         </p>
                       ) : null}

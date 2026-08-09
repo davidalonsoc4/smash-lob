@@ -178,7 +178,7 @@ export function PlayerProgressChart({
     <AppCard>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-black">Evolución</p>
+          <p className="type-panel-title">Evolución</p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
             Consulta cómo ha cambiado {displayName} después de cada jornada contabilizada.
             {spansMultipleSeasons
@@ -186,7 +186,7 @@ export function PlayerProgressChart({
               : ""}
           </p>
         </div>
-        <div className="flex rounded-xl bg-neutral-100 p-1 text-[10px] font-black">
+        <div className="flex rounded-xl bg-neutral-100 p-1 type-caption font-black">
           <button
             type="button"
             onClick={() => setMode("position")}
@@ -223,7 +223,7 @@ export function PlayerProgressChart({
         </div>
       </div>
 
-      <p className="mt-2 text-[10px] font-semibold text-neutral-500">
+      <p className="mt-2 type-caption font-semibold text-neutral-500">
         Pulsa o mantén el cursor sobre un punto para ver partido, resultado y cambio.
       </p>
 

@@ -168,7 +168,7 @@ export function ActionFeedbackCenter({ hasBottomNav = true }: { hasBottomNav?: b
             <p className="text-xs font-black text-amber-950 dark:text-amber-100">
               {t.actionFeedback.offlineTitle}
             </p>
-            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-amber-800 dark:text-amber-200">
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-amber-800 dark:text-amber-200">
               {t.actionFeedback.offlineDescription}
             </p>
           </div>

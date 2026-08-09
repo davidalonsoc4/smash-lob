@@ -18,7 +18,7 @@ export function StatCard({ label, value, helper, icon }: StatCardProps) {
         {value}
       </p>
       {helper ? (
-        <p className="mt-1 truncate text-[11px] font-medium text-neutral-500">
+        <p className="mt-1 truncate type-caption font-medium text-neutral-500">
           {helper}
         </p>
       ) : null}

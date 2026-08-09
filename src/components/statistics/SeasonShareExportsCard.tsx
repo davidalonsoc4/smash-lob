@@ -119,7 +119,7 @@ function ImageOptionToggle({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-black text-neutral-900">{title}</span>
-        <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-neutral-500">
+        <span className="mt-0.5 block type-caption font-semibold leading-4 text-neutral-500">
           {description}
         </span>
       </span>
@@ -165,11 +165,11 @@ function ExportCard({
         </span>
         <div className="min-w-0">
           <p className="text-sm font-black text-neutral-950">{title}</p>
-          <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">
+          <p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">
             {description}
           </p>
           {disabledReason ? (
-            <p className="mt-1.5 text-[11px] font-bold leading-4 text-amber-700">
+            <p className="mt-1.5 type-caption font-bold leading-4 text-amber-700">
               {disabledReason}
             </p>
           ) : null}
@@ -344,10 +344,10 @@ export function SeasonShareExportsCard({
   return (
     <AppCard className="space-y-4 border-neutral-200 bg-white shadow-sm">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Imágenes de la temporada
         </p>
-        <p className="mt-1 text-lg font-black text-neutral-950">Compartir temporada</p>
+        <p className="mt-1 type-panel-title text-neutral-950">Compartir temporada</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {seasonFinished
             ? "El calendario, la clasificación y el resumen final están disponibles para compartir o guardar."

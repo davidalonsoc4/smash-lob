@@ -5,12 +5,13 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("match detail pairing panel", () => {
   it("keeps the pending versus view but promotes a vertical result layout when scores exist", async () => {
-    const [panel, leaguePage, personalPage, personalServer, personalModel] = await Promise.all([
+    const [panel, leaguePage, personalPage, personalServer, personalModel, sharedView] = await Promise.all([
       read("src/components/match/MatchDetailPairingPanel.tsx"),
       read("src/app/match/[id]/page.tsx"),
       read("src/app/personal-matches/[id]/page.tsx"),
       read("src/lib/serverPersonalMatches.ts"),
       read("src/lib/personalMatches.ts"),
+      read("src/components/match/MatchDetailView.tsx"),
     ])
 
     expect(panel).not.toContain(">\n          Emparejamiento\n        </h2>")
@@ -24,21 +25,26 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3')
     expect(panel).not.toContain('rounded-xl bg-white px-2.5 py-2 ring-1 ring-neutral-200')
     expect(panel).not.toContain('shrink-0 rounded-xl bg-white px-2 py-2 ring-1 ring-neutral-200')
-    expect(panel).toContain('h-7 min-w-7 items-center justify-center rounded-lg px-1.5 text-[13px] leading-none ring-1 ring-inset')
-    expect(panel).not.toContain('text-[9px] font-bold uppercase tracking-wide text-neutral-400')
+    expect(panel).toContain('h-7 min-w-7 items-center justify-center rounded-lg px-1.5 type-small leading-none ring-1 ring-inset')
+    expect(panel).not.toContain('type-caption font-bold uppercase tracking-wide text-neutral-400')
     expect(panel).toContain('function FinishedPlayerName({')
     expect(panel).toContain('positionPlacement: "above" | "below"')
     expect(panel).toContain('positionPlacement={index === 0 ? "above" : "below"}')
+    expect(
+      panel.match(/positionPlacement=\{index === 0 \? "above" : "below"\}/g) ?? [],
+    ).toHaveLength(2)
+    expect(panel).toContain('positionLabel && positionPlacement === "above"')
+    expect(panel).toContain('positionLabel && positionPlacement === "below"')
     expect(panel).not.toContain('labelPlacement: "top" | "bottom"')
     expect(panel).toContain('side="a"')
     expect(panel).toContain('side="b"')
-    expect(panel).not.toContain('mb-1.5 text-left text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500')
-    expect(panel).not.toContain('mt-1.5 text-left text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500')
-    expect(panel).toContain('h-7 min-w-7 items-center justify-center rounded-lg px-1.5 text-[13px]')
+    expect(panel).not.toContain('mb-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500')
+    expect(panel).not.toContain('mt-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500')
+    expect(panel).toContain('h-7 min-w-7 items-center justify-center rounded-lg px-1.5 type-small')
     expect(panel).toContain('bg-neutral-100 font-black text-neutral-800 ring-neutral-200')
     expect(panel).toContain('bg-neutral-50 font-bold text-neutral-500 ring-neutral-200')
     expect(panel).toContain('h-11 min-w-11 items-center justify-center self-center rounded-lg')
-    expect(panel).toContain('text-[18px] font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm')
+    expect(panel).toContain('text-lg font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm')
     expect(panel).toContain('relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3')
     expect(panel).toContain('label="Pareja A"')
     expect(panel).toContain('label="Pareja B"')
@@ -48,7 +54,7 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('const showAvatars = [...teamA, ...teamB].some')
     expect(panel).toContain('isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl)')
     expect(panel).toContain('alignment === "right" ? "justify-end" : "justify-start"')
-    expect(panel).toContain('text-[16px] font-black')
+    expect(panel).toContain('type-player-name-prominent')
     expect(panel).toContain('line-clamp-2')
     expect(panel).toContain('[overflow-wrap:anywhere]')
     expect(panel).toContain('#{position} en liga')
@@ -56,7 +62,7 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('alignment="right"')
     expect(panel).toContain('className="min-w-0 text-left"')
     expect(panel).toContain('alignment === "right" ? "text-right" : "text-left"')
-    expect(panel).toContain('text-[10px] font-bold uppercase leading-none tracking-wide')
+    expect(panel).toContain('type-caption font-bold uppercase leading-none tracking-wide')
     expect(panel).toContain('mr-auto flex h-7 min-w-7')
     expect(panel).toContain('ml-auto flex h-7 min-w-7')
     expect(panel).toContain('points !== null && points !== undefined')
@@ -64,7 +70,7 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4')
     expect(panel).toContain('pointer-events-none absolute left-1/2 top-1/2 z-20')
     expect(panel).toContain('>\n                  VS\n                </span>')
-    expect(panel).toContain('flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 text-[10px] font-black uppercase tracking-wide text-white shadow-sm')
+    expect(panel).toContain('flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm')
     expect(panel).toContain('flex shrink-0 items-center gap-1.5 self-center')
     expect(panel).toContain('rounded-lg bg-neutral-50 px-2 py-1.5')
     expect(panel).toContain('border-t border-neutral-300')
@@ -78,16 +84,18 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4"')
     expect(panel).toContain('pointer-events-none absolute left-1/2 top-1/2 z-20')
 
-    expect(leaguePage).toContain("<MatchDetailPairingPanel")
-    expect(leaguePage).toContain("getRankingPosition(rankingPlayers, playerId)")
-    expect(leaguePage).toContain("rankingPositions={rankingPositions}")
+    expect(leaguePage).toContain("<MatchDetailView")
+    expect(sharedView).toContain("<MatchDetailPairingPanel")
+    expect(leaguePage).toContain("getRankingDisplayPosition(rankingPlayers, playerId)")
+    expect(leaguePage).not.toContain("getRankingPosition(rankingPlayers, playerId)")
+    expect(leaguePage).toContain("rankingPositions,")
     expect(leaguePage).not.toContain("<MatchScoreboard")
 
-    expect(personalPage).toContain("<MatchDetailPairingPanel")
-    expect(personalPage).toContain("linkPlayers={false}")
+    expect(personalPage).toContain("<MatchDetailView")
+    expect(personalPage).toContain("linkPlayers: false")
     expect(personalPage).toContain("avatarUrl: participant.avatarUrl ?? null")
-    expect(personalPage).toContain('className="mt-3 flex min-w-0 w-full items-start justify-between gap-3"')
-    expect(personalPage).toContain('<div className="shrink-0">')
+    expect(sharedView).toContain("items-start justify-between")
+    expect(sharedView).toContain("<MatchStatusBadge")
     expect(personalPage).not.toContain("<MatchScoreboard")
 
     expect(personalModel).toContain("avatarUrl?: string | null")

@@ -263,13 +263,11 @@ export default function PlayerMatchesPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-1 text-2xl font-black tracking-tight">
+        <h1 className="type-page-title mt-1 text-2xl font-black tracking-tight">
           {t.profile.matchHistoryTitle}
         </h1>
 
-        <p className="mt-1 text-sm text-neutral-500">
-          {player.displayName} · {t.playerProfile.matchHistoryPageDescription}
-        </p>
+        <p className="mt-1 text-sm font-medium text-neutral-500">{player.displayName}</p>
       </header>
 
       {showHistoricalStats && visibleSeasonScopes.length > 1 ? (
@@ -291,7 +289,7 @@ export default function PlayerMatchesPage() {
               handleFilterChange(event.target.value as MatchFilter)
             }
             aria-label="Estado de los partidos"
-            className="max-w-28 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black text-neutral-700 shadow-sm outline-none"
+            className="max-w-28 rounded-full border border-neutral-200 bg-white px-2 py-1 type-caption font-black text-neutral-700 shadow-sm outline-none"
           >
             {filterOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -309,7 +307,7 @@ export default function PlayerMatchesPage() {
               handleSortChange(event.target.value as MatchSort)
             }
             aria-label="Orden de los partidos"
-            className="max-w-40 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black text-neutral-700 shadow-sm outline-none"
+            className="max-w-40 rounded-full border border-neutral-200 bg-white px-2 py-1 type-caption font-black text-neutral-700 shadow-sm outline-none"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>

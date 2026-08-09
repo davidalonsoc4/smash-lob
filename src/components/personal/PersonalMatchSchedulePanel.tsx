@@ -151,14 +151,14 @@ export function PersonalMatchSchedulePanel({
   return (
     <AppCard accentStrip className="overflow-hidden !p-0">
       <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-        <p className="text-sm font-black text-neutral-950">
+        <p className="type-panel-title text-neutral-950">
           {match.status === "scheduled" ? "Horario del partido" : "Fecha y ubicación"}
         </p>
         {match.canManage && !editing ? (
           <button
             type="button"
             onClick={openEditor}
-            className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black text-neutral-700"
+            className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 type-caption font-black text-neutral-700"
           >
             Editar
           </button>
@@ -168,7 +168,7 @@ export function PersonalMatchSchedulePanel({
       <div className="px-3 pb-3">
         {!editing ? (
           <div className="rounded-lg bg-neutral-100 px-2.5 py-2">
-            <p className="text-sm font-black text-neutral-950">
+            <p className="type-panel-title text-neutral-950">
               {formatPersonalMatchDateTime(match.scheduledAt)}
             </p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-600">

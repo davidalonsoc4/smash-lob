@@ -31,7 +31,7 @@ describe("league calendar match card layout", () => {
     expect(matchCard).toContain('{statusNode}</div>')
     expect(matchCard).toContain("hideMissingRows={hideMissingScheduleMeta}")
     expect(matchCard).toContain("outcomeNode ?")
-    expect(statusStyles).toContain("text-[11px] font-medium uppercase tracking-wide")
+    expect(statusStyles).toContain("type-caption font-medium uppercase tracking-wide")
     expect(matchCard).toContain('mode={isFinished ? "rows" : "versus"}')
     expect(teamsPanel).not.toContain("Pareja A")
     expect(teamsPanel).toContain("grid min-w-0 flex-1")

@@ -14,6 +14,49 @@ export type ChangelogRelease = {
 }
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
+{ version: "v1.5.4", date: "9 de agosto de 2026", title: "Ranking coherente y paneles tipográficos unificados", summary: "El detalle de partido replica exactamente el orden de Clasificación, la NAVBAR queda fuera del escalado de texto y los títulos de panel comparten un único rol visual.", category: "improvement", changes: ["La posición mostrada junto a cada jugador en Partido usa el mismo orden secuencial 1, 2, 3… de la pantalla Clasificación, también cuando existen empates y tanto antes como después de registrar el resultado.", "El selector A− / A / A+ sigue escalando el contenido de la aplicación, pero los botones, iconos y etiquetas de la NAVBAR conservan siempre su tamaño.", "Añadir programación, Registrar resultado y el resto de paneles principales de Partido usan type-panel-title; la validación impide combinar ese rol con tamaños text-* que vuelvan a desalinearlos."] },
+{ version: "v1.5.3", date: "9 de agosto de 2026", title: "Posición más clara en partidos pendientes", summary: "El emparejamiento previo al resultado coloca la posición del primer jugador de cada pareja encima de su nombre para equilibrar mejor la lectura del bloque.", category: "improvement", changes: ["En partidos todavía sin resultado, el primer jugador de Pareja A y Pareja B muestra su posición en liga encima del nombre.", "El segundo jugador de cada pareja conserva la posición debajo del nombre, permitiendo probar una composición simétrica con el separador central.", "La disposición de los partidos con resultado no cambia."] },
+{
+  version: "v1.5.2",
+  date: "9 de agosto de 2026",
+  title: "Jornada protagonista y tamaño de texto ajustable",
+  summary:
+    "El detalle de liga identifica directamente la jornada y Temas permite adaptar de forma compacta el tamaño global de la interfaz.",
+  category: "improvement",
+  changes: [
+    "En los partidos de liga, Jornada X pasa a ser el título principal del detalle y deja de repetirse como subtítulo; los amistosos mantienen Partido como título.",
+    "Ajustes > Temas incorpora un selector compacto A− / A / A+ con tamaños Pequeño, Normal y Grande, aplicado sobre la escala tipográfica global.",
+    "La preferencia de tamaño se guarda únicamente en el dispositivo y AppShell la reaplica al abrir la aplicación para mantenerla entre pantallas y recargas.",
+  ],
+},
+  {
+    version: "v1.5.1",
+    date: "9 de agosto de 2026",
+    title: "Cabeceras de pantalla más limpias",
+    summary:
+      "Las pantallas eliminan explicaciones redundantes bajo el título y reservan la cabecera para identidad, contexto y estado.",
+    category: "improvement",
+    changes: [
+      "Se eliminan las descripciones genéricas bajo los títulos de Calendario, Ranking, Actividad, Ajustes, administración, Mis partidos y otras pantallas donde el contenido ya explica su función.",
+      "Liga, temporada, jugador y estados relevantes se conservan como contexto; las instrucciones necesarias dejan la cabecera y pasan al bloque funcional correspondiente.",
+      "La validación tipográfica comprueba que las cabeceras principales no recuperen párrafos descriptivos salvo los contextos explícitamente permitidos.",
+    ],
+  },
+  {
+    version: "v1.5.0",
+    date: "9 de agosto de 2026",
+    title: "Detalle de partido unificado y tipografía normalizada",
+    summary:
+      "Partidos de liga y amistosos comparten una única pantalla de detalle, mientras la aplicación adopta una escala tipográfica más consistente y legible.",
+    category: "improvement",
+    changes: [
+      "La pantalla PARTIDO de liga se convierte en la referencia común: /match/[id] y /personal-matches/[id] reutilizan MatchDetailView, conservando cada ruta su carga, permisos y persistencia específicos.",
+      "Los amistosos programados permiten editar la pareja y los dos contrincantes desde el propio detalle, reutilizando el mismo selector de jugadores del alta y guardando los cambios mediante la API autenticada.",
+      "La tipografía deja de depender solo de tamaños sueltos y pasa a roles semánticos comunes: títulos de pantalla, sección y panel, nombres de jugador de listado, nombres protagonistas y texto auxiliar.",
+      "Ranking Individual, Calendario de la liga y los paneles de Perfil usan el mismo tamaño para nombres de jugador equivalentes; los nombres protagonistas de Partido y la cabecera de Perfil conservan una jerarquía propia y explícita.",
+      "Todos los tamaños tipográficos pasan a unidades escalables y la raíz deja preparada --app-font-size-adjust en 0px para un futuro selector global de tamaño sin cambiar todavía la apariencia por defecto.",
+    ],
+  },
   { version: "v1.4.18", date: "9 de agosto de 2026", title: "Emparejamiento con VS flotante", summary: "El detalle de partido refina el bloque de parejas y el desarrollo local permite revisar la app desde el móvil sin repetir el inicio de sesión.", category: "improvement", changes: ["Pareja B alinea a la derecha título, nombres, posición y textos auxiliares; cada pareja agrupa sus jugadores en un panel compartido con separador continuo ajustado.", "El VS se hace más pequeño y flota centrado entre las columnas de nombres, sin ocupar una tercera columna ni tomar como referencia la fila de avatares.", "El auto-login de desarrollo admite también 192.168.3.2, ya permitido por Next como origen local, manteniendo el provider bloqueado fuera de NODE_ENV=development."] },
   { version: "v1.4.17", date: "9 de agosto de 2026", title: "Más espacio en el emparejamiento", summary: "El detalle de partido simplifica el bloque de parejas para dar más ancho a los nombres y corrige la cabecera de los amistosos.", category: "improvement", changes: ["Emparejamiento elimina VS y los contenedores exteriores, reduce los títulos Pareja A/B y los alinea con sus jugadores para dar más ancho útil a los nombres.", "En Partido amistoso desaparece la etiqueta Amistoso del detalle y el estado queda solo, alineado a la derecha sin solapamientos."] },
   { version: "v1.4.16", date: "9 de agosto de 2026", title: "Estadísticas globales completas en Mi perfil", summary: "Mi perfil convierte todo el histórico de ligas y amistosos en un panel estadístico global con rendimiento, parejas, rivales y cara a cara.", category: "new", changes: ["Resumen avanzado con victorias, sets, juegos, medias, forma reciente, rachas, resultados por origen, partidos a tres sets, remontadas y márgenes.", "Parejas y rivales añade compañero/rival más frecuente, mejor y peor pareja, rival más vencido, némesis, mejores balances y rankings completos.", "Cara a cara permite elegir cualquier jugador del histórico y separa los enfrentamientos directos del rendimiento cuando habéis jugado juntos; las identidades vinculadas se unifican entre ligas y amistosos."] },

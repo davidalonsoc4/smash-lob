@@ -9,15 +9,12 @@ import {
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { saveGlobalLocation } from "@/lib/serverGlobalLocations"
 import { createLeagueLocation } from "@/lib/leagueLocations"
-import type {
-  PersonalMatchParticipantDraft,
-  PersonalMatchStatus,
-} from "@/lib/personalMatches"
+import type { PersonalMatchStatus } from "@/lib/personalMatches"
 import {
-  loadAccessiblePersonalMatchPeople,
   loadPersonalMatchesDashboard,
-  resolvePersonalMatchPerson,
+  resolvePersonalMatchParticipantDrafts,
 } from "@/lib/serverPersonalMatches"
+import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMatchRequest"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -28,39 +25,6 @@ type CreatePersonalMatchBody = {
   sets?: unknown
   status?: unknown
   participants?: unknown
-}
-
-function normalizeParticipantDrafts(value: unknown): PersonalMatchParticipantDraft[] | null {
-  if (!Array.isArray(value) || value.length !== 4) return null
-
-  const participants = value.map((item) => {
-    if (!item || typeof item !== "object") return null
-    const candidate = item as Record<string, unknown>
-    const team = Number(candidate.team)
-    const slot = Number(candidate.slot)
-    const personKey =
-      typeof candidate.personKey === "string" && candidate.personKey.trim()
-        ? candidate.personKey.trim().slice(0, 80)
-        : null
-    const displayName = normalizeBoundedText(candidate.displayName, 60)
-
-    if ((team !== 1 && team !== 2) || (slot !== 1 && slot !== 2)) return null
-    if (!personKey && displayName.length < 2) return null
-
-    return {
-      team: team as 1 | 2,
-      slot: slot as 1 | 2,
-      personKey,
-      displayName,
-    }
-  })
-
-  if (!participants.every((participant): participant is PersonalMatchParticipantDraft => Boolean(participant))) {
-    return null
-  }
-
-  const slots = new Set(participants.map((participant) => `${participant.team}:${participant.slot}`))
-  return slots.size === 4 ? participants : null
 }
 
 function normalizeStatus(value: unknown): PersonalMatchStatus | null {
@@ -116,7 +80,7 @@ export async function POST(request: Request) {
   const scheduledAt = validateIsoDateTime(body?.scheduledAt)
   const locationName = normalizeBoundedText(body?.locationName, 120) || null
   const status = normalizeStatus(body?.status)
-  const drafts = normalizeParticipantDrafts(body?.participants)
+  const drafts = normalizePersonalMatchParticipantDrafts(body?.participants)
   const sets = status === "scheduled" ? [] : validateMatchSets(body?.sets)
 
   if (!scheduledAt || !status || !drafts || !sets) {
@@ -144,41 +108,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const people = await loadAccessiblePersonalMatchPeople(authResult.actor)
-    const usedPersonKeys = new Set<string>()
-    let includesCurrentUser = false
-    const participants = drafts.map((draft) => {
-      if (!draft.personKey) {
-        return {
-          team: draft.team,
-          slot: draft.slot,
-          user_id: null,
-          source_player_id: null,
-          display_name: draft.displayName,
-        }
-      }
-
-      if (usedPersonKeys.has(draft.personKey)) {
-        throw new Error("duplicate_personal_match_person")
-      }
-      usedPersonKeys.add(draft.personKey)
-
-      const person = resolvePersonalMatchPerson(people, draft.personKey)
-      if (!person) throw new Error("invalid_personal_match_person")
-      if (person.userId === authResult.actor.user.id) includesCurrentUser = true
-
-      return {
-        team: draft.team,
-        slot: draft.slot,
-        user_id: person.userId,
-        source_player_id: person.sourcePlayerId,
-        display_name: person.displayName,
-      }
-    })
-
-    if (!includesCurrentUser) {
-      return NextResponse.json({ error: "personal_match_requires_current_user" }, { status: 400 })
-    }
+    const participants = await resolvePersonalMatchParticipantDrafts(
+      authResult.actor,
+      drafts,
+    )
 
     const { data, error } = await authResult.actor.supabase.rpc(
       "server_create_personal_match",
@@ -218,7 +151,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ id: data }, { status: 201 })
   } catch (error) {
     const message = error instanceof Error ? error.message : "personal_match_create_failed"
-    if (message === "duplicate_personal_match_person" || message === "invalid_personal_match_person") {
+    if (
+      message === "duplicate_personal_match_person" ||
+      message === "invalid_personal_match_person" ||
+      message === "personal_match_requires_current_user"
+    ) {
       return NextResponse.json({ error: message }, { status: 400 })
     }
     return NextResponse.json({ error: "personal_match_create_failed" }, { status: 500 })

@@ -3,6 +3,7 @@
 :root {
   --background: #f5f5f4;
   --foreground: #171717;
+  --app-font-size-adjust: 0px;
 }
 
 @theme inline {
@@ -18,6 +19,7 @@
 
 html {
   background: var(--background);
+  font-size: calc(16px + var(--app-font-size-adjust));
   -webkit-text-size-adjust: 100%;
 }
 
@@ -50,36 +52,89 @@ textarea {
   font: inherit;
 }
 
-.compact-page {
-  font-size: 0.92rem;
+/* Semantic typography ----------------------------------------------------
+   Same visual role = same typography. All sizes use rem so the
+   appearance control can scale the whole app through --app-font-size-adjust. */
+.type-caption {
+  font-size: 0.6875rem;
+  line-height: 1.25;
 }
 
+.type-small {
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+.type-page-title {
+  font-size: 1.5rem;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
+
+.type-section-title {
+  font-size: 1.125rem;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+}
+
+.type-panel-title {
+  font-size: 1rem;
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.type-player-name {
+  font-size: 0.875rem;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.type-player-name-prominent {
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.type-player-name-hero {
+  font-size: 1.5rem;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
+
+/* Bottom navigation keeps a fixed touch target and label/icon size.
+   The accessibility font-size control intentionally does not resize NAVBAR buttons. */
+.app-bottom-nav {
+  max-width: 448px;
+}
+
+.app-bottom-nav-grid {
+  gap: 6px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.app-bottom-nav-item,
+.app-bottom-nav-active {
+  gap: 2px;
+  border-radius: 12px;
+  padding-left: 4px;
+  padding-right: 4px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.app-bottom-nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Compact pages only tighten spacing. Typography keeps the global scale. */
 .compact-page :where(header) {
   padding-top: 0.25rem;
-}
-
-.compact-page :where(h1.text-2xl) {
-  font-size: 1.25rem;
-  line-height: 1.55rem;
-}
-
-.compact-page :where(.text-base) {
-  font-size: 0.9rem;
-  line-height: 1.3rem;
-}
-
-.compact-page :where(.text-sm) {
-  font-size: 0.8rem;
-  line-height: 1.15rem;
-}
-
-.compact-page :where(.text-xs) {
-  font-size: 0.72rem;
-  line-height: 1rem;
-}
-
-.compact-page :where(.text-\[11px\]) {
-  font-size: 0.66rem;
 }
 
 .compact-page :where(.rounded-2xl) {

@@ -167,9 +167,9 @@ export function MatchSubstitutionPanel({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-black">{t.matchDetail.substitutionsTitle}</p>
+        <p className="type-panel-title">{t.matchDetail.substitutionsTitle}</p>
         {matchSubstitutions.length > 0 ? (
-          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black text-red-700">
+          <span className="rounded-full bg-red-100 px-2 py-0.5 type-caption font-black text-red-700">
             {matchSubstitutions.length}
           </span>
         ) : null}
@@ -206,7 +206,7 @@ export function MatchSubstitutionPanel({
                     <p className="truncate text-xs font-black">
                       {substituteName ?? t.matchDetail.substituteFallbackName}
                     </p>
-                    <p className="truncate text-[10px] font-semibold text-red-700">
+                    <p className="truncate type-caption font-semibold text-red-700">
                       {t.matchDetail.substituteForPrefix}{" "}
                       {original?.displayName ??
                         t.matchDetail.starterFallbackName}{" "}
@@ -222,7 +222,7 @@ export function MatchSubstitutionPanel({
                       type="button"
                       disabled={isSaving}
                       onClick={() => remove(item.substitute_player_id)}
-                      className="shrink-0 rounded-lg bg-white/80 px-2 py-1 text-[10px] font-black text-red-700 disabled:opacity-50"
+                      className="shrink-0 rounded-lg bg-white/80 px-2 py-1 type-caption font-black text-red-700 disabled:opacity-50"
                     >
                       {t.matchDetail.substitutionUndo}
                     </button>
@@ -286,7 +286,7 @@ export function MatchSubstitutionPanel({
                   placeholder={t.matchDetail.substitutionNewNamePlaceholder}
                   className="w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold"
                 />
-                <p className="mt-1 text-[10px] font-semibold text-neutral-500">
+                <p className="mt-1 type-caption font-semibold text-neutral-500">
                   {t.matchDetail.substitutionSavedToPool}
                 </p>
               </div>
@@ -304,7 +304,7 @@ export function MatchSubstitutionPanel({
         ) : null}
 
         {error ? (
-          <p className="mt-2 text-[11px] font-bold text-red-700">{error}</p>
+          <p className="mt-2 type-caption font-bold text-red-700">{error}</p>
         ) : null}
     </div>
   )

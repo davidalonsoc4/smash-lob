@@ -355,15 +355,15 @@ function ActivityEventCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-black text-neutral-950">
+              <p className="truncate type-small font-black text-neutral-950">
                 {event.title}
               </p>
-              <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+              <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                 {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
               </p>
             </div>
 
-            <p className="shrink-0 text-[11px] font-semibold text-neutral-400">
+            <p className="shrink-0 type-caption font-semibold text-neutral-400">
               {formatActivityDate(event.createdAt)}
             </p>
           </div>
@@ -601,13 +601,10 @@ function ActivityPageContent() {
           seasonStatus={activeSeason.status}
         />
 
-        <h1 className="mt-1 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
           {t.activity.title}
         </h1>
 
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          {t.activity.description}
-        </p>
       </header>
 
       <div className={`grid gap-1 rounded-xl bg-neutral-100 p-0.5 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
@@ -645,7 +642,7 @@ function ActivityPageContent() {
       {effectiveScope === "admin" && canAccessAdmin ? (
         <section className="space-y-4">
           <div className="px-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
               Comunicaciones y avisos
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
@@ -681,11 +678,11 @@ function ActivityPageContent() {
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-2xl bg-neutral-950 p-3 text-center text-white">
                   <p className="text-lg font-black">{notificationSettingsSummary.enabled}</p>
-                  <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-white/70">{t.activity.notificationEnabledCount}</p>
+                  <p className="mt-1 type-caption font-black uppercase tracking-wide text-white/70">{t.activity.notificationEnabledCount}</p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 p-3 text-center">
                   <p className="text-lg font-black text-neutral-950">{notificationSettingsSummary.disabled}</p>
-                  <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-neutral-500">{t.activity.notificationDisabledCount}</p>
+                  <p className="mt-1 type-caption font-black uppercase tracking-wide text-neutral-500">{t.activity.notificationDisabledCount}</p>
                 </div>
               </div>
 
@@ -741,7 +738,7 @@ function ActivityPageContent() {
                               <div className="min-w-0">
                                 <p className="text-sm font-black text-neutral-950">{t.activity.notificationLabels[eventType]}</p>
                                 <p className="mt-1 text-xs font-semibold text-neutral-500">{t.activity.personalScopeLabels[definition.personalScope]}</p>
-                                <p className="mt-1 text-[11px] font-semibold text-neutral-400">{isNotificationEnabled ? t.activity.notificationEnabled : t.activity.notificationDisabled}</p>
+                                <p className="mt-1 type-caption font-semibold text-neutral-400">{isNotificationEnabled ? t.activity.notificationEnabled : t.activity.notificationDisabled}</p>
                               </div>
                               <button
                                 type="button"
@@ -783,7 +780,7 @@ function ActivityPageContent() {
 
           <section>
             <div className="mb-3 px-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+              <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
                 Historial y auditoría
               </p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">

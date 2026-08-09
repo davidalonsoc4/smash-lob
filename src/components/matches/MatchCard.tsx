@@ -186,7 +186,7 @@ export function MatchCard({
     <p
       className={getBadgeClassName(
         currentUserOutcome === "victory" ? "green" : "red",
-        "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide leading-none",
+        "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-medium uppercase tracking-wide leading-none",
       )}
     >
       {currentUserOutcome === "victory" ? t.matches.victory : t.matches.defeat}
@@ -210,7 +210,7 @@ export function MatchCard({
           {statusPosition === "left" ? (
             <div>{matchStatusNode}</div>
           ) : effectiveHeaderLeft ? (
-            <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-[0.12em] text-neutral-500">
+            <p className="min-w-0 truncate type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
               {effectiveHeaderLeft}
             </p>
           ) : headerRightLabel ? (
@@ -224,7 +224,7 @@ export function MatchCard({
           ) : statusPosition === "right" ? (
             <div className="ml-auto text-right">{statusNode}</div>
           ) : headerRightLabel ? (
-            <p className="shrink-0 text-[11px] font-black uppercase tracking-[0.12em] text-neutral-500">
+            <p className="shrink-0 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
               {headerRightLabel}
             </p>
           ) : headerLeftLabel && !currentUserOutcome ? (
@@ -259,7 +259,7 @@ export function MatchCard({
                     highlightedPlayerLabel={highlightedPlayerLabel}
                     substituteLabels={substituteLabels}
                     linkPlayers={false}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                    className="type-player-name flex min-w-0 flex-wrap gap-x-1 gap-y-0.5"
                   />
                   {isFinished ? (
                     <p className="min-w-6 self-center text-right text-lg font-black">
@@ -276,7 +276,7 @@ export function MatchCard({
                     highlightedPlayerLabel={highlightedPlayerLabel}
                     substituteLabels={substituteLabels}
                     linkPlayers={false}
-                    className="flex min-w-0 flex-wrap gap-x-1 gap-y-0.5 text-sm font-black"
+                    className="type-player-name flex min-w-0 flex-wrap gap-x-1 gap-y-0.5"
                   />
                   {isFinished ? (
                     <p className="min-w-6 self-center text-right text-lg font-black">
@@ -294,7 +294,7 @@ export function MatchCard({
             !isFinished && !hasScheduleDetails && showMissingScheduleHint ? (
               <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
                 <p className="text-xs font-black text-neutral-800">{t.dashboard.addSchedule}</p>
-                <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+                <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                   {t.dashboard.playersCanSchedule}
                 </p>
               </div>
@@ -326,7 +326,7 @@ export function MatchCard({
           ) : shouldShowScheduleDetails ? (
             <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
               <p className="text-xs font-black text-neutral-800">{scheduleTitle}</p>
-              <p className="mt-0.5 text-[11px] font-semibold text-neutral-500">
+              <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                 {scheduleDescription}
               </p>
             </div>

@@ -65,14 +65,11 @@ export default function LeaguesPage() {
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label="Volver" />
 
-        <h1 className="mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Cambia de competición o consulta todo tu historial de partidos.
-        </p>
+        <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
       </header>
 
       <section className="space-y-2">
-        <p className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="px-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal
         </p>
         <Link
@@ -109,7 +106,7 @@ export default function LeaguesPage() {
       </section>
 
       <section className="space-y-3">
-        <p className="px-1 text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="px-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Tus ligas
         </p>
         {userLeagues.map((league) => {
@@ -164,7 +161,7 @@ export default function LeaguesPage() {
                       {league.name}
                     </p>
                     {isActive ? (
-                      <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+                      <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 type-caption font-black uppercase tracking-wide text-white">
                         Actual
                       </span>
                     ) : null}
@@ -182,15 +179,15 @@ export default function LeaguesPage() {
                       {getSeasonStatusLabel(season)}
                     </span>
                     {isAdmin ? (
-                      <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+                      <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
                         Admin
                       </span>
                     ) : isSpectator ? (
-                      <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-neutral-600">
+                      <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-600">
                         Espectador
                       </span>
                     ) : null}
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                    <span className="type-caption font-bold uppercase tracking-wide text-neutral-400">
                       Toca para entrar
                     </span>
                   </div>
@@ -199,7 +196,7 @@ export default function LeaguesPage() {
 
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                     Jugadores
                   </p>
                   <p className="mt-0.5 text-base font-black text-neutral-950">
@@ -207,7 +204,7 @@ export default function LeaguesPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                     Partidos
                   </p>
                   <p className="mt-0.5 text-base font-black text-neutral-950">
@@ -215,7 +212,7 @@ export default function LeaguesPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
-                  <p className="text-[9px] font-black uppercase tracking-wide text-neutral-500">
+                  <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
                     Líder
                   </p>
                   <p className="mt-0.5 truncate text-xs font-black text-neutral-950">

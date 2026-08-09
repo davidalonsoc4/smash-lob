@@ -210,7 +210,7 @@ export function GlobalLeagueSearch() {
                   <p className="text-sm font-black text-neutral-950">
                     {t.settings.leagueSearchTitle}
                   </p>
-                  <p className="text-[10px] font-semibold text-neutral-400">
+                  <p className="type-caption font-semibold text-neutral-400">
                     {userLeagues.length} {t.settings.leagueSearchAvailable}
                   </p>
                 </div>
@@ -275,7 +275,7 @@ export function GlobalLeagueSearch() {
               {filteredLeagues.length > 0 ? (
                 <div className="overflow-hidden rounded-xl border border-neutral-200">
                   <div className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-neutral-500">
+                    <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
                       {query.trim()
                         ? `${t.settings.leagueSearchResults} · ${filteredLeagues.length}`
                         : t.settings.leagueSearchAll}
@@ -308,12 +308,12 @@ export function GlobalLeagueSearch() {
                                 {item.league.name}
                               </p>
                               {isCurrent ? (
-                                <span className="shrink-0 rounded-full bg-neutral-950 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-white">
+                                <span className="shrink-0 rounded-full bg-neutral-950 px-1.5 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-white">
                                   {t.settings.leagueSearchCurrent}
                                 </span>
                               ) : null}
                             </div>
-                            <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-500">
+                            <p className="mt-0.5 truncate type-caption font-semibold text-neutral-500">
                               {item.seasonLabel} · {item.roleLabel}
                             </p>
                           </div>
@@ -328,7 +328,7 @@ export function GlobalLeagueSearch() {
                   <p className="text-xs font-black text-neutral-800">
                     {t.settings.leagueSearchNoResultsTitle}
                   </p>
-                  <p className="mt-1 text-[11px] font-semibold text-neutral-500">
+                  <p className="mt-1 type-caption font-semibold text-neutral-500">
                     {t.settings.leagueSearchNoResultsDescription}
                   </p>
                 </div>

@@ -223,7 +223,7 @@ function DayAvailabilityEditor({
             <p className="text-sm font-black text-neutral-950">
               {weekdayLabels[weekdayId]}
             </p>
-            <p className="mt-0.5 truncate text-[11px] font-semibold text-neutral-500">
+            <p className="mt-0.5 truncate type-caption font-semibold text-neutral-500">
               {formatSlotsSummary(slots)}
             </p>
           </div>
@@ -518,13 +518,10 @@ export default function AvailabilityPage() {
           {activeLeague.name}
         </p>
 
-        <h1 className="mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Mi disponibilidad
         </h1>
 
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          Define tus horarios habituales. En modo rápido una sola franja se aplica al bloque de días elegido.
-        </p>
       </header>
 
       <AppCard className="p-2.5">
@@ -533,12 +530,15 @@ export default function AvailabilityPage() {
             <p className="text-sm font-black text-neutral-950">
               Horario semanal habitual
             </p>
+            <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+              Define tus horarios habituales. En modo rápido una sola franja se aplica al bloque de días elegido.
+            </p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-500">
               {slotCount > 0
                 ? `${slotCount} franja${slotCount === 1 ? "" : "s"} configurada${slotCount === 1 ? "" : "s"}`
                 : "Sin franjas: disponibilidad total"}
             </p>
-            <p className="mt-0.5 text-[11px] font-semibold text-neutral-400">
+            <p className="mt-0.5 type-caption font-semibold text-neutral-400">
               {formatUpdatedAt(availability.updatedAt)}
             </p>
           </div>
@@ -656,7 +656,7 @@ export default function AvailabilityPage() {
       ) : (
         <section className="space-y-2">
           <div className="px-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
               Horario por días
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">

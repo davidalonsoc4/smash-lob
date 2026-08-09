@@ -1,6 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { type ReactNode, useSyncExternalStore } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import {
@@ -10,6 +10,13 @@ import {
   useTheme,
 } from "@/context/ThemeProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import {
+  type AppFontSize,
+  getServerAppFontSize,
+  persistAppFontSize,
+  readStoredAppFontSize,
+  subscribeAppFontSize,
+} from "@/lib/fontSizePreference"
 
 const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b", "#f2a93b"],
@@ -34,7 +41,7 @@ function AppearanceSection({
   return (
     <section id={id} className="settings-search-target space-y-2">
       <div className="px-1">
-        <h2 className="text-sm font-black text-neutral-950">{title}</h2>
+        <h2 className="type-panel-title text-neutral-950">{title}</h2>
         <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">{description}</p>
       </div>
       <AppCard className="!p-2.5">{children}</AppCard>
@@ -92,8 +99,86 @@ function PaletteSwatches({ palette }: { palette: ColorfulPalette }) {
   )
 }
 
+const fontSizeCopy = {
+  es: {
+    title: "Tamaño de texto",
+    description: "Ajusta toda la interfaz en este dispositivo.",
+    small: "Pequeño",
+    normal: "Normal",
+    large: "Grande",
+  },
+  en: {
+    title: "Text size",
+    description: "Adjust the whole interface on this device.",
+    small: "Small",
+    normal: "Normal",
+    large: "Large",
+  },
+  eu: {
+    title: "Testuaren tamaina",
+    description: "Doitu interfaze osoa gailu honetan.",
+    small: "Txikia",
+    normal: "Normala",
+    large: "Handia",
+  },
+} as const
+
+function FontSizeControl({ locale }: { locale: string }) {
+  const fontSize = useSyncExternalStore(
+    subscribeAppFontSize,
+    readStoredAppFontSize,
+    getServerAppFontSize,
+  )
+  const copy = fontSizeCopy[locale as keyof typeof fontSizeCopy] ?? fontSizeCopy.es
+  const options: Array<{ value: AppFontSize; glyph: string; label: string }> = [
+    { value: "small", glyph: "A−", label: copy.small },
+    { value: "normal", glyph: "A", label: copy.normal },
+    { value: "large", glyph: "A+", label: copy.large },
+  ]
+
+  return (
+    <section id="font-size" className="settings-search-target">
+      <AppCard className="!p-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="type-panel-title font-black text-neutral-950">{copy.title}</h2>
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
+              {copy.description}
+            </p>
+          </div>
+
+          <div className="grid shrink-0 grid-cols-3 gap-1 rounded-xl bg-neutral-100 p-1">
+            {options.map((option) => {
+              const selected = option.value === fontSize
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-label={`${copy.title}: ${option.label}`}
+                  aria-pressed={selected}
+                  title={option.label}
+                  onClick={() => {
+                    persistAppFontSize(option.value)
+                  }}
+                  className={`grid h-9 min-w-9 place-items-center rounded-lg px-2 font-black transition active:scale-[0.96] ${
+                    selected
+                      ? "bg-white text-neutral-950 shadow-sm ring-1 ring-neutral-200"
+                      : "text-neutral-500"
+                  }`}
+                >
+                  {option.glyph}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </AppCard>
+    </section>
+  )
+}
+
 export default function AppearancePage() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const {
     themeMode,
     setThemeMode,
@@ -158,10 +243,7 @@ export default function AppearancePage() {
     <div className="compact-page space-y-4">
       <header className="pt-1">
         <BackButton fallbackHref="/settings" label={t.common.back} />
-        <h1 className="mt-1 text-xl font-black tracking-tight">{t.settings.appearancePageTitle}</h1>
-        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-          {t.settings.appearancePageDescription}
-        </p>
+        <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">{t.settings.appearancePageTitle}</h1>
       </header>
 
       <AppCard className="appearance-current-summary overflow-hidden !p-3">
@@ -170,7 +252,7 @@ export default function AppearancePage() {
             Aa
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
               {t.settings.appearanceCurrent}
             </p>
             <p className="mt-0.5 text-sm font-black text-neutral-950">
@@ -179,12 +261,14 @@ export default function AppearancePage() {
             {visualStyle === "colorful" ? (
               <div className="mt-1 flex items-center gap-2">
                 <PaletteSwatches palette={colorfulPalette} />
-                <p className="truncate text-[10px] font-bold text-neutral-500">{selectedPalette?.label}</p>
+                <p className="truncate type-caption font-bold text-neutral-500">{selectedPalette?.label}</p>
               </div>
             ) : null}
           </div>
         </div>
       </AppCard>
+
+      <FontSizeControl locale={locale} />
 
       <AppearanceSection
         id="theme-mode"
@@ -208,9 +292,9 @@ export default function AppearancePage() {
               >
                 <ThemeModePreview mode={option.value} />
                 <span className="mt-1.5 flex items-center justify-between gap-1">
-                  <span className="truncate text-[10px] font-black text-neutral-950">{option.label}</span>
+                  <span className="truncate type-caption font-black text-neutral-950">{option.label}</span>
                   {selected ? (
-                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 text-[8px] font-black text-white">✓</span>
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 type-caption font-black text-white">✓</span>
                   ) : null}
                 </span>
               </button>
@@ -243,10 +327,10 @@ export default function AppearancePage() {
                 <span className="mt-1.5 flex items-center justify-between gap-2">
                   <span className="text-xs font-black text-neutral-950">{option.label}</span>
                   {selected ? (
-                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 text-[8px] font-black text-white">✓</span>
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 type-caption font-black text-white">✓</span>
                   ) : null}
                 </span>
-                <span className="mt-0.5 block text-[9px] font-semibold leading-3.5 text-neutral-500">
+                <span className="mt-0.5 block type-caption font-semibold leading-3.5 text-neutral-500">
                   {option.description}
                 </span>
               </button>
@@ -279,23 +363,23 @@ export default function AppearancePage() {
                   <span className="flex items-start justify-between gap-2">
                     <PaletteSwatches palette={option.value} />
                     {selected ? (
-                      <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 text-[8px] font-black text-white">✓</span>
+                      <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 type-caption font-black text-white">✓</span>
                     ) : null}
                   </span>
-                  <span className="mt-1.5 block text-[10px] font-black leading-4 text-neutral-950">{option.label}</span>
+                  <span className="mt-1.5 block type-caption font-black leading-4 text-neutral-950">{option.label}</span>
                 </button>
               )
             })}
           </div>
           {selectedPalette ? (
-            <p className="mt-2 px-1 text-[10px] font-semibold leading-4 text-neutral-500">
+            <p className="mt-2 px-1 type-caption font-semibold leading-4 text-neutral-500">
               {selectedPalette.description}
             </p>
           ) : null}
         </AppearanceSection>
       ) : null}
 
-      <p className="px-1 pb-1 text-[10px] font-semibold leading-4 text-neutral-400">
+      <p className="px-1 pb-1 type-caption font-semibold leading-4 text-neutral-400">
         {t.settings.appearanceDeviceOnly}
       </p>
     </div>

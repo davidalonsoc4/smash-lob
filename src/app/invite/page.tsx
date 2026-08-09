@@ -30,12 +30,9 @@ export default function ManualInvitePage() {
     <div className="space-y-4">
       <header className="pt-2">
         <BackButton fallbackHref="/settings" label={t.common.back} />
-        <h1 className="mt-3 text-2xl font-black tracking-tight">
+        <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">
           {t.onboarding.joinTitle}
         </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          {t.onboarding.joinDescription}
-        </p>
       </header>
 
       <AppCard>
