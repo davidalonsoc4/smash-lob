@@ -125,12 +125,9 @@ export default function PersonalMatchDetailPage() {
     <div className="compact-page space-y-3">
       <header className="pt-1">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <div className="relative mt-3 min-w-0 w-full pr-28">
+        <div className="mt-3 flex min-w-0 w-full items-start justify-between gap-3">
           <h1 className="min-w-0 text-2xl font-black tracking-tight">Partido</h1>
-          <div className="absolute right-0 top-0 flex shrink-0 flex-col items-end gap-1 text-right">
-            <span className="self-end rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-700">
-              Amistoso
-            </span>
+          <div className="shrink-0">
             <MatchStatusBadge
               status={item.status}
               scheduledAt={item.scheduledAt}

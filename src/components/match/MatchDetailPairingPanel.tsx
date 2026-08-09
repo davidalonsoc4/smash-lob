@@ -52,7 +52,7 @@ function DetailPlayer({
 
   return (
     <div
-      className={`min-w-0 rounded-xl bg-white px-2.5 py-2.5 shadow-sm ring-1 ring-neutral-100 ${
+      className={`min-w-0 rounded-lg bg-neutral-50 px-2 py-2 ${
         alignment === "right" ? "text-right" : "text-left"
       }`}
     >
@@ -113,20 +113,29 @@ function PairColumn({
   }))
 
   return (
-    <section className="min-w-0 rounded-2xl bg-neutral-50 p-2.5 ring-1 ring-neutral-100">
-      <div className="relative flex min-h-8 min-w-0 items-center justify-center px-8">
-        <p className="truncate text-center text-[12px] font-black uppercase tracking-[0.12em] text-neutral-600">
+    <section className="min-w-0">
+      <div className="flex min-w-0 items-center gap-1.5">
+        {points !== null && points !== undefined && alignment === "right" ? (
+          <span className="mr-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
+            {points}
+          </span>
+        ) : null}
+        <p
+          className={`min-w-0 truncate text-[10px] font-bold uppercase leading-none tracking-wide text-neutral-500 ${
+            alignment === "right" ? "text-right" : "text-left"
+          }`}
+        >
           {label}
         </p>
-        {points !== null && points !== undefined ? (
-          <span className="absolute right-0 flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-base font-black text-white">
+        {points !== null && points !== undefined && alignment === "left" ? (
+          <span className="ml-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
             {points}
           </span>
         ) : null}
       </div>
 
       {showAvatars ? (
-        <div className="mt-3 flex min-w-0 items-center justify-center gap-2">
+        <div className="mt-1.5 flex min-w-0 items-center justify-center gap-2">
           {pairPlayers.map(({ id, player }) => (
             <PlayerAvatar
               key={id}
@@ -138,7 +147,7 @@ function PairColumn({
         </div>
       ) : null}
 
-      <div className="mt-3 space-y-2">
+      <div className="mt-1.5 space-y-1.5">
         {playerIds.map((playerId) => (
           <DetailPlayer
             key={playerId}
@@ -181,7 +190,7 @@ export function MatchDetailPairingPanel({
         </h2>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_42px_minmax(0,1fr)] items-stretch gap-2 p-3 sm:gap-3 sm:p-4">
+      <div className="grid grid-cols-2 items-start gap-2 p-3 sm:gap-4 sm:p-4">
         <PairColumn
           label="Pareja A"
           playerIds={teamA}
@@ -195,11 +204,6 @@ export function MatchDetailPairingPanel({
           showAvatars={showAvatars}
         />
 
-        <div className="flex items-center justify-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-950 text-[11px] font-black uppercase tracking-wide text-white shadow-sm">
-            VS
-          </span>
-        </div>
 
         <PairColumn
           label="Pareja B"
