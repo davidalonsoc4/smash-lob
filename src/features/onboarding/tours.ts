@@ -96,7 +96,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jornadas y estados",
-          description: "Cada bloque agrupa los partidos de una jornada e indica si está próxima, activa, fuera de plazo o completada.",
+          description: "Cada bloque agrupa los partidos de una jornada e indica su estado. Los paneles de partido son pulsables: tócalos para abrir el detalle completo del encuentro.",
         },
       ],
     },
@@ -256,7 +256,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Rounds and statuses",
-          description: "Each block groups one round and shows whether it is upcoming, active, overdue or completed.",
+          description: "Each block groups one round and shows its status. Match panels are clickable: open one to see the full match detail.",
         },
       ],
     },
@@ -416,7 +416,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jardunaldiak eta egoerak",
-          description: "Bloke bakoitzak jardunaldi bat biltzen du eta hurrengoa, aktiboa, epez kanpo edo osatua den erakusten du.",
+          description: "Bloke bakoitzak jardunaldi bat eta haren egoera erakusten ditu. Partida-panelak sakagarriak dira: ireki bat partidaren xehetasun osoa ikusteko.",
         },
       ],
     },

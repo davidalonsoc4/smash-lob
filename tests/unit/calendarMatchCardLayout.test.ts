@@ -5,21 +5,33 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("league calendar match card layout", () => {
   it("uses shared versus panels while pending and finished score rows after results", async () => {
-    const [matchesPage, matchCard, teamsPanel, eventMeta, setGameScore, roundPage] = await Promise.all([
+    const [matchesPage, matchCard, teamsPanel, eventMeta, setGameScore, roundPage, statusStyles] = await Promise.all([
       read("src/app/matches/page.tsx"),
       read("src/components/matches/MatchCard.tsx"),
       read("src/components/matches/MatchTeamsPanel.tsx"),
       read("src/components/matches/MatchEventMeta.tsx"),
       read("src/components/matches/SetGameScore.tsx"),
       read("src/app/round/[id]/page.tsx"),
+      read("src/lib/statusStyles.ts"),
     ])
 
     expect(matchesPage).toContain("stackTeamPlayers")
     expect(matchesPage).toContain("showMissingScheduleHint")
-    expect(matchesPage).not.toContain("currentUserNextMatch")
+    expect(matchesPage).toContain("nextPendingUserMatch")
+    expect(matchesPage).toContain("getNextMatch(currentUserMatches)")
+    expect(matchesPage).toContain("match.id === nextPendingUserMatch?.id")
+    expect(matchesPage).toContain('statusPosition="left"')
+    expect(matchesPage).toContain("hideMissingScheduleMeta")
+    expect(matchesPage).not.toContain('"Jugado" : "Pendiente de jugar"')
     expect(matchCard).toContain("<MatchTeamsPanel")
+    expect(matchCard).toContain("showChevron = false")
+    expect(matchCard).toContain('statusPosition === "left"')
+    expect(matchCard).toContain("hideMissingRows={hideMissingScheduleMeta}")
+    expect(matchCard).toContain("outcomeNode ?")
+    expect(statusStyles).toContain("text-[11px] font-medium uppercase tracking-wide")
     expect(matchCard).toContain('mode={isFinished ? "rows" : "versus"}')
     expect(teamsPanel).toContain("Pareja A")
+    expect(teamsPanel).toContain("grid min-w-0 flex-1")
     expect(teamsPanel).toContain("Pareja B")
     expect(teamsPanel).toContain("VS")
     expect(teamsPanel).toContain("items-end")

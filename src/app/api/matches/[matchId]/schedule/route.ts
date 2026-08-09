@@ -7,6 +7,7 @@ import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
+  getLeagueLocationIdentityKey,
   getScheduleLocationFallbackText,
   normalizeLeagueLocations,
 } from "@/lib/leagueLocations"
@@ -100,10 +101,33 @@ export async function PUT(
     scheduleLocation: schedule.location,
   })
 
-  await saveGlobalLocation(
+  const savedGlobalLocation = await saveGlobalLocation(
     access.actor.supabase,
     scheduledGlobalLocation ?? schedule.location,
   )
+  const savedLocationKey = getLeagueLocationIdentityKey(savedGlobalLocation)
+  const isNewLeagueLocation = !leagueLocations.some(
+    (leagueLocation) =>
+      getLeagueLocationIdentityKey(leagueLocation) === savedLocationKey,
+  )
+
+  if (isNewLeagueLocation) {
+    const nextLeagueLocations = normalizeLeagueLocations([
+      ...leagueLocations,
+      savedGlobalLocation,
+    ])
+    const { error: leagueLocationUpdateError } = await access.actor.supabase
+      .from("leagues")
+      .update({ locations: nextLeagueLocations })
+      .eq("id", access.actor.match.leagueId)
+
+    if (leagueLocationUpdateError) {
+      return NextResponse.json(
+        { error: "league_location_update_failed" },
+        { status: 500 },
+      )
+    }
+  }
 
   const resumingPostponedIncident =
     access.actor.match.incidentStatus === "resolved" &&

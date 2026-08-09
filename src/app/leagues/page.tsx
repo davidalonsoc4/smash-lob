@@ -99,6 +99,13 @@ export default function LeaguesPage() {
             <span className="shrink-0 text-lg font-black text-neutral-400">›</span>
           </div>
         </Link>
+
+        <Link
+          href="/personal-matches/new"
+          className="block rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 shadow-[0_1px_8px_rgba(15,23,42,0.05)] transition active:scale-[0.99]"
+        >
+          + Registrar encuentro amistoso
+        </Link>
       </section>
 
       <section className="space-y-3">

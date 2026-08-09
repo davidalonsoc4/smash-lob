@@ -3,12 +3,13 @@ import { describe, expect, it } from "vitest"
 
 describe("global locations integration", () => {
   it("connects the global catalog to league and friendly creation", async () => {
-    const [api, server, leagueEditor, friendlyEditor, friendlySchedule, migration] = await Promise.all([
+    const [api, server, leagueEditor, friendlyEditor, friendlySchedule, matchScheduleRoute, migration] = await Promise.all([
       readFile("src/app/api/locations/route.ts", "utf8"),
       readFile("src/lib/serverGlobalLocations.ts", "utf8"),
       readFile("src/components/league/LeagueLocationsEditor.tsx", "utf8"),
       readFile("src/app/personal-matches/new/page.tsx", "utf8"),
       readFile("src/components/personal/PersonalMatchSchedulePanel.tsx", "utf8"),
+      readFile("src/app/api/matches/[matchId]/schedule/route.ts", "utf8"),
       readFile("supabase/migrations/20260808183000_add_global_padel_locations.sql", "utf8"),
     ])
 
@@ -22,6 +23,8 @@ describe("global locations integration", () => {
     expect(friendlyEditor).toContain("Nueva ubicación (se guardará en la app)")
     expect(friendlySchedule).toContain('fetch("/api/locations"')
     expect(friendlySchedule).toContain("Nueva ubicación (se guardará en la app)")
+    expect(matchScheduleRoute).toContain("saveGlobalLocation")
+    expect(matchScheduleRoute).toContain("update({ locations: nextLeagueLocations })")
     expect(migration).toContain("enable row level security")
     expect(migration).toContain("service_role")
   })

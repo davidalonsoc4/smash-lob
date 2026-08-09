@@ -30,6 +30,7 @@ export type PersonalMatchItem = {
   leagueId: string | null
   leagueName: string | null
   seasonId: string | null
+  seasonName: string | null
   round: number | null
 }
 

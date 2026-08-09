@@ -17,6 +17,8 @@ import {
   type PersonalMatchItem,
 } from "@/lib/personalMatches"
 
+const showPersonalMatchChevron = false
+
 function MatchCardContent({ match }: { match: PersonalMatchItem }) {
   const teamA = getPersonalMatchTeamPlayers(match.participants, 1)
   const teamB = getPersonalMatchTeamPlayers(match.participants, 2)
@@ -132,7 +134,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
           </div>
         </div>
 
-        <ClickableChevron className="shrink-0" />
+        {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>
 
       <MatchEventMeta

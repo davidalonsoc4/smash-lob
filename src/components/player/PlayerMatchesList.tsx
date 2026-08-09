@@ -47,6 +47,8 @@ type PlayerMatchesListProps = {
   mvpSystemBySeasonId?: Record<string, MvpSystem>;
 };
 
+const showHistoryMatchChevron = false;
+
 export function PlayerMatchesList({
   playerId,
   title,
@@ -170,7 +172,7 @@ export function PlayerMatchesList({
                       </div>
                     </div>
 
-                    <ClickableChevron className="shrink-0" />
+                    {showHistoryMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
                   </div>
 
                   {isFinished ? (

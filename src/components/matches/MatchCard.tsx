@@ -50,6 +50,11 @@ type MatchCardProps = {
   showMissingScheduleHint?: boolean;
   stackTeamPlayers?: boolean;
   currentUserId?: string | null;
+  headerLeftLabel?: string | null;
+  headerRightLabel?: string | null;
+  showChevron?: boolean;
+  statusPosition?: "auto" | "left";
+  hideMissingScheduleMeta?: boolean;
 };
 
 export function MatchCard({
@@ -64,6 +69,11 @@ export function MatchCard({
   showMissingScheduleHint = true,
   stackTeamPlayers = false,
   currentUserId = null,
+  headerLeftLabel = null,
+  headerRightLabel = null,
+  showChevron = false,
+  statusPosition = "auto",
+  hideMissingScheduleMeta = false,
 }: MatchCardProps) {
   const { t } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
@@ -165,37 +175,60 @@ export function MatchCard({
     </div>
   ) : null;
 
+  const matchStatusNode = (
+    <MatchStatusBadge
+      status={match.status}
+      scheduledAt={match.scheduledAt ?? null}
+      resultRecordedAt={match.resultRecordedAt ?? null}
+    />
+  );
+  const outcomeNode = currentUserOutcome ? (
+    <p
+      className={getBadgeClassName(
+        currentUserOutcome === "victory" ? "green" : "red",
+        "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide leading-none",
+      )}
+    >
+      {currentUserOutcome === "victory" ? t.matches.victory : t.matches.defeat}
+    </p>
+  ) : null;
+  const statusNode = outcomeNode ?? matchStatusNode;
+
+  const effectiveHeaderLeft =
+    headerLeftLabel ??
+    (headerRightLabel
+      ? null
+      : stackTeamPlayers
+        ? null
+        : headerText);
+
+
   return (
     <Link href={`/match/${match.id}`} className="block">
       <AppCard className="relative transition active:scale-[0.99]">
-        <div
-          className={`mb-2 flex items-center gap-3 ${
-            stackTeamPlayers ? "justify-end" : "justify-between"
-          }`}
-        >
-          {!stackTeamPlayers ? (
-            <p className="min-w-0 text-sm font-semibold text-neutral-500">
-              {headerText}
+        <div className="mb-2 flex items-center justify-between gap-3">
+          {statusPosition === "left" ? (
+            <div>{matchStatusNode}</div>
+          ) : effectiveHeaderLeft ? (
+            <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-[0.12em] text-neutral-500">
+              {effectiveHeaderLeft}
             </p>
-          ) : null}
-
-          {currentUserOutcome ? (
-            <p
-              className={`${getBadgeClassName(
-                currentUserOutcome === "victory" ? "green" : "red",
-                "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wide leading-none",
-              )} ml-auto text-right`}
-            >
-              {currentUserOutcome === "victory"
-                ? t.matches.victory
-                : t.matches.defeat}
-            </p>
+          ) : headerRightLabel ? (
+            <div>{statusNode}</div>
           ) : (
-            <MatchStatusBadge
-              status={match.status}
-              scheduledAt={match.scheduledAt ?? null}
-              resultRecordedAt={match.resultRecordedAt ?? null}
-            />
+            <span />
+          )}
+
+          {statusPosition === "left" ? (
+            outcomeNode ? <div className="ml-auto text-right">{outcomeNode}</div> : <span />
+          ) : headerRightLabel ? (
+            <p className="shrink-0 text-[11px] font-black uppercase tracking-[0.12em] text-neutral-500">
+              {headerRightLabel}
+            </p>
+          ) : headerLeftLabel && !currentUserOutcome ? (
+            <span />
+          ) : (
+            <div className="ml-auto text-right">{statusNode}</div>
           )}
         </div>
 
@@ -252,7 +285,7 @@ export function MatchCard({
               </div>
             )}
 
-            <ClickableChevron className="shrink-0" />
+            {showChevron ? <ClickableChevron className="shrink-0" /> : null}
           </div>
 
           {stackTeamPlayers ? (
@@ -266,9 +299,18 @@ export function MatchCard({
             ) : (
               <MatchEventMeta
                 eventAt={match.scheduledAt ?? null}
-                dateFallback={metadataDateFallback}
+                dateFallback={
+                  hideMissingScheduleMeta && !isPostponed
+                    ? match.dateLabel
+                    : metadataDateFallback
+                }
                 locationText={metadataLocation}
-                locationFallback={metadataLocationFallback}
+                locationFallback={
+                  hideMissingScheduleMeta && !isPostponed
+                    ? null
+                    : metadataLocationFallback
+                }
+                hideMissingRows={hideMissingScheduleMeta}
               />
             )
           ) : isFinished ? (
