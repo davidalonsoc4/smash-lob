@@ -28,7 +28,7 @@ assert(gate.includes("isLoopbackHostname(window.location.hostname)"), "AuthGate 
 assert(envExample.includes("NEXT_PUBLIC_LOCAL_DEV_AUTO_LOGIN=0"), "La plantilla debe dejar el acceso local desactivado")
 assert(envExample.includes("LOCAL_DEV_USER_EMAIL="), "La plantilla debe documentar el usuario local")
 
-console.log("Autenticación local v1.4.16 correcta:")
+console.log("Autenticación local v1.4.17 correcta:")
 console.log("- sesión Auth.js real mediante Credentials solo en NODE_ENV=development")
 console.log("- activación explícita y limitada a localhost/loopback")
 console.log("- usuario configurable por email sin habilitar bypass en PRE/PROD")
