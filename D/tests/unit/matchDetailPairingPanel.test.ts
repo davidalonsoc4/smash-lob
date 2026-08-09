@@ -41,9 +41,11 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain("sets.length > 0")
     expect(panel).toContain('relative grid grid-cols-2 items-start gap-2')
     expect(panel).not.toContain('grid-cols-[minmax(0,1fr)_42px_minmax(0,1fr)]')
-    expect(panel).toContain('pointer-events-none absolute left-1/2 top-1/2')
+    expect(panel).toContain('relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4')
+    expect(panel).toContain('pointer-events-none absolute left-1/2 top-1/2 z-20')
     expect(panel).toContain('>\n            VS\n          </span>')
-    expect(panel).toContain('className="min-w-0"')
+    expect(panel).toContain('flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 text-[10px] font-black uppercase tracking-wide text-white shadow-sm')
+    expect(panel).toContain('className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}')
     expect(panel).toContain('rounded-lg bg-neutral-50 px-2 py-2')
     expect(panel).not.toContain('shadow-sm ring-1 ring-neutral-100')
 
