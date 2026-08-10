@@ -137,7 +137,7 @@ export function StatisticsPageHeader({
 
   return (
     <>
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref={fallbackHref} label="Volver" />
         <p className="mt-1 text-xs font-bold text-neutral-500">{leagueName}</p>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">

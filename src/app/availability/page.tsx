@@ -511,7 +511,7 @@ export default function AvailabilityPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label="Volver" />
 
         <p className="text-sm font-medium text-neutral-500">

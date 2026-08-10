@@ -468,7 +468,7 @@ export default function ApplicationAdminPage() {
   if (!isSuperuser) {
     return (
       <div className="compact-page space-y-3">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/settings" label="Volver" />
           <h1 className="type-page-title mt-2 text-xl font-black">Acceso restringido</h1>
         </header>
@@ -485,7 +485,7 @@ export default function ApplicationAdminPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label="Volver" />
         <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-red-600">
           Superusuario

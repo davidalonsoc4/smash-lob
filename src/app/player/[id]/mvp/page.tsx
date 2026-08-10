@@ -48,7 +48,7 @@ export default function PlayerMvpMatchesPage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref={player ? `/player/${player.slug}` : "/ranking"} label="Volver" />
 
         <p className="mt-3 text-sm font-medium text-neutral-500">

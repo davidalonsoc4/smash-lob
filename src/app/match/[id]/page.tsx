@@ -98,7 +98,7 @@ export default function MatchDetailPage() {
   if (!match) {
     return (
       <div className="space-y-4">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/matches" label={t.common.back} />
         </header>
 

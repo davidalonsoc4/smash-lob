@@ -91,7 +91,7 @@ function getFloatingRight(offsetPx: number) {
 }
 
 function getFloatingTop() {
-  return "max(16px, calc(env(safe-area-inset-top, 0px) + 12px))"
+  return "max(10px, calc(env(safe-area-inset-top, 0px) + 8px))"
 }
 
 function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
@@ -259,26 +259,6 @@ export function AppShell({ children }: AppShellProps) {
     shouldShowNotificationsButton ||
     hasPlayerInviteControl ||
     hasSpectatorShareControl
-  const floatingTopReservedWidthWithoutHelp = hasPlayerInviteControl
-    ? 184
-    : hasSpectatorShareControl
-      ? 142
-      : shouldShowNotificationsButton
-        ? 100
-        : shouldShowSettingsButton
-          ? 58
-          : 0
-  const floatingTopReservedWidth = hasPlayerInviteControl
-    ? 226
-    : hasSpectatorShareControl
-      ? 184
-      : shouldShowNotificationsButton
-        ? 142
-        : shouldShowHelpButton
-          ? 100
-          : shouldShowSettingsButton
-            ? 58
-            : 0
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
   const transitioningLeague = transitioningLeagueId
     ? leagues.find((league) => league.id === transitioningLeagueId)
@@ -296,11 +276,14 @@ export function AppShell({ children }: AppShellProps) {
         statusColorsEnabled ? "" : "status-colors-disabled"
       }`}
     >
-      <div className="app-shell-frame mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]">
+      <div
+        className="app-shell-frame mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]"
+        data-home-route={pathname === "/"}
+      >
         {branding.preproduction ? (
           <div
             aria-label={branding.internalBadgeAriaLabel ?? undefined}
-            className="pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 type-caption font-black uppercase tracking-[0.24em] text-white shadow-lg"
+            className="app-preproduction-badge pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 type-caption font-black uppercase tracking-[0.24em] text-white shadow-lg"
             style={{ top: getFloatingTop() }}
           >
             {branding.internalBadgeText} · {APP_VERSION_LABEL}
@@ -376,12 +359,10 @@ export function AppShell({ children }: AppShellProps) {
           data-has-floating-top-controls={hasFloatingTopControls}
           style={
             {
-              "--app-floating-top-reserved-width": `${floatingTopReservedWidth}px`,
-              "--app-floating-top-reserved-width-without-help": `${floatingTopReservedWidthWithoutHelp}px`,
               paddingTop: isLeagueNavigationRoute
                 ? "env(safe-area-inset-top, 0px)"
                 : hasFloatingTopControls
-                  ? "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))"
+                  ? "max(46px, calc(env(safe-area-inset-top, 0px) + 44px))"
                   : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
               paddingBottom: isLeagueNavigationRoute
                 ? "env(safe-area-inset-bottom, 0px)"

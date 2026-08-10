@@ -21,7 +21,7 @@ export default async function ChangelogPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label="Volver" />
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <p className="text-sm font-medium text-neutral-500">Smash & Lob</p>

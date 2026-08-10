@@ -98,7 +98,7 @@ export default function PersonalMatchesPage() {
 
   return (
     <div className="compact-page space-y-4">
-      <header className="pt-1">
+      <header className="app-page-header">
         <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal
         </p>

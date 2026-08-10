@@ -126,7 +126,7 @@ export default function PersonalProfilePage() {
 
   return (
     <div className="space-y-3">
-      <header className="pt-2">
+      <header className="app-page-header">
         <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-500">Mis partidos · Perfil global</p>
         <div className="mt-2 flex items-center gap-2.5">
           <PlayerAvatar player={{ displayName, avatarUrl: profile?.avatarUrl ?? null }} size="md" previewable />

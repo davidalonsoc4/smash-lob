@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useMemo, useState } from "react"
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
@@ -14,7 +15,6 @@ import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 import {
   getPlayerScopeStats,
   getPlayerSeasonScopes,
@@ -43,7 +43,6 @@ export default function PlayerPage() {
     [activeLeague.id, activeSeason, seasons],
   )
   const [selectedScopeId, setSelectedScopeId] = useState(latestSeason.id)
-  const isSeasonClosed = latestSeason.status === "finished"
 
   const player = playerProfiles.find(
     (item) =>
@@ -114,7 +113,7 @@ export default function PlayerPage() {
   if (!player || !selectedStats || !selectedScope) {
     return (
       <div className="space-y-4">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/ranking" label={t.common.back} />
         </header>
 
@@ -127,39 +126,43 @@ export default function PlayerPage() {
 
   return (
     <div className="space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/ranking" label={t.common.back} />
 
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name}</span>
-          {isSeasonClosed ? (
-            <span className={getSeasonStatusBadgeClassName("finished")}>
-              Terminada
-            </span>
-          ) : null}
-        </p>
-
-        <div className="mt-2 flex items-center gap-2.5">
+        <div className="flex items-start gap-3">
           <PlayerAvatar player={player} size="md" previewable />
 
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
-              {player.displayName}
-            </h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
+                {player.displayName}
+              </h1>
 
-            {showSeasonSelector && visibleSeasonScopes.length > 1 ? (
-              <PlayerSeasonScopeSelector
-                inline
-                title={t.playerProfile.scopeSelectorTitle}
-                description={t.playerProfile.scopeSelectorDescription}
-                value={selectedScope.id}
-                scopes={visibleSeasonScopes}
-                onChange={setSelectedScopeId}
-              />
-            ) : null}
+              {showSeasonSelector && visibleSeasonScopes.length > 1 ? (
+                <PlayerSeasonScopeSelector
+                  inline
+                  title={t.playerProfile.scopeSelectorTitle}
+                  description={t.playerProfile.scopeSelectorDescription}
+                  value={selectedScope.id}
+                  scopes={visibleSeasonScopes}
+                  onChange={setSelectedScopeId}
+                />
+              ) : null}
+            </div>
+
+            <SeasonContextLine
+              seasonName={latestSeason.name}
+              statusLabel={
+                latestSeason.status === "finished"
+                  ? t.common.finishedSeasonBadge
+                  : latestSeason.status === "upcoming"
+                    ? t.rounds.statusUpcoming
+                    : t.rounds.statusActive
+              }
+              className="mt-0.5"
+            />
           </div>
         </div>
-
       </header>
 
       <div className="grid grid-cols-2 gap-2">

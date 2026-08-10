@@ -10,7 +10,7 @@ export default function MyProfileSettingsPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
         <p className="text-sm font-medium text-neutral-500">
           {t.settings.accountSettingsTitle}
