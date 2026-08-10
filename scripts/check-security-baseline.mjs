@@ -143,6 +143,29 @@ if (regexpFlagsEntries.length > 0 && regexpFlagsEntries.every(([, metadata]) => 
   notes.push("regexp.prototype.flags 1.5.4 con tarball válido")
 }
 
+const electronChromiumEntries = packageEntries("electron-to-chromium")
+if (electronChromiumEntries.length === 0) {
+  failures.push("No se ha encontrado electron-to-chromium en package-lock.json.")
+}
+for (const [packagePath, metadata] of electronChromiumEntries) {
+  const version = metadata.version ?? "desconocida"
+  const resolved = metadata.resolved ?? ""
+  if (version !== "1.5.393") {
+    failures.push(`${packagePath} resuelve electron-to-chromium ${version}; se fija 1.5.393 como versión publicada compatible con browserslist.`)
+  }
+  if (!resolved.endsWith("/electron-to-chromium-1.5.393.tgz")) {
+    failures.push(`${packagePath} apunta a un tarball inesperado de electron-to-chromium: ${resolved || "sin URL"}.`)
+  }
+}
+const browserslistEntry = lockfile.packages?.["node_modules/browserslist"]
+const electronRange = browserslistEntry?.dependencies?.["electron-to-chromium"]
+if (electronRange !== "^1.5.393") {
+  failures.push(`browserslist debe depender de electron-to-chromium ^1.5.393; lock actual: ${electronRange ?? "ausente"}.`)
+}
+if (electronChromiumEntries.length > 0 && electronChromiumEntries.every(([, metadata]) => metadata.version === "1.5.393")) {
+  notes.push("electron-to-chromium 1.5.393 con tarball fijado")
+}
+
 if (failures.length > 0) {
   console.error("\nLínea base de seguridad NO válida:\n")
   for (const failure of failures) console.error(`- ${failure}`)
