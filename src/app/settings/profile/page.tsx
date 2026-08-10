@@ -12,12 +12,12 @@ export default function MyProfileSettingsPage() {
     <div className="compact-page space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
-        <p className="text-sm font-medium text-neutral-500">
-          {t.settings.accountSettingsTitle}
-        </p>
-        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
+        <h1 className="type-page-title font-black tracking-tight">
           {t.settings.myProfileTitle}
         </h1>
+        <p className="mt-0.5 text-sm font-medium text-neutral-500">
+          {t.settings.accountSettingsTitle}
+        </p>
       </header>
 
       <AppCard>

@@ -4325,10 +4325,6 @@ export default function AdminSeasonPage() {
       <header data-tour="season-admin-header" className="app-page-header">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
-        <p className="mt-1 text-xs font-bold text-neutral-500">
-          {activeLeague.name}
-        </p>
-
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {isActiveSeason
             ? t.adminSeason.title

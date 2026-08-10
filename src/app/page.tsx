@@ -332,41 +332,47 @@ function SeasonSummaryAwardRow({
 
   const toneClasses =
     tone === "winner"
-      ? "border-amber-200 bg-gradient-to-b from-amber-50 to-white"
-      : "border-violet-200 bg-gradient-to-b from-violet-50 to-white";
+      ? "border-amber-200 bg-gradient-to-r from-amber-100/80 via-amber-50 to-white"
+      : "border-violet-200 bg-gradient-to-r from-violet-100/75 via-violet-50 to-white";
   const badgeClasses =
     tone === "winner"
-      ? "bg-amber-100 text-amber-800 ring-amber-200"
-      : "bg-violet-100 text-violet-800 ring-violet-200";
+      ? "bg-amber-200 text-amber-900 ring-amber-300"
+      : "bg-violet-200 text-violet-900 ring-violet-300";
+  const avatarSize = tone === "winner" ? "lg" : "md";
 
   const content = (
-    <div className={`flex h-full flex-col items-center rounded-2xl border px-2.5 py-3 text-center shadow-[0_1px_6px_rgba(15,23,42,0.04)] ${toneClasses}`}>
-      <div
-        className={`flex h-9 w-9 items-center justify-center rounded-full text-base font-black ring-1 ${badgeClasses}`}
-        aria-hidden="true"
-      >
-        {badge}
+    <div className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left shadow-[0_1px_8px_rgba(15,23,42,0.05)] ${toneClasses}`}>
+      <div className={`absolute inset-y-0 left-0 w-1 ${tone === "winner" ? "bg-amber-400" : "bg-violet-400"}`} aria-hidden="true" />
+      <div className="relative ml-1 shrink-0">
+        <div className="flex -space-x-3">
+          {players.slice(0, 2).map((player) => (
+            <PlayerAvatar
+              key={player.id}
+              player={player}
+              size={avatarSize}
+              className="border-2 border-white shadow-sm"
+            />
+          ))}
+        </div>
+        <div
+          className={`absolute -bottom-1 -right-1 flex h-7 min-w-7 items-center justify-center rounded-xl px-1.5 text-sm font-black ring-1 shadow-sm ${badgeClasses}`}
+          aria-hidden="true"
+        >
+          {badge}
+        </div>
       </div>
-      <p className="mt-1.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
-        {label}
-      </p>
-      <div className="mt-2 flex justify-center -space-x-2">
-        {players.slice(0, 3).map((player) => (
-          <PlayerAvatar
-            key={player.id}
-            player={player}
-            size="lg"
-            className="border-2 border-white shadow-sm"
-          />
-        ))}
+      <div className="min-w-0 flex-1 text-center">
+        <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
+          {label}
+        </p>
+        <p className="mt-0.5 type-player-name-prominent font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+          {players.map((player) => player.displayName).join(" / ")}
+        </p>
+        {meta ? (
+          <p className="mt-0.5 type-caption font-bold text-neutral-600">{meta}</p>
+        ) : null}
       </div>
-      <p className="mt-2 type-player-name-prominent font-black text-neutral-950 [overflow-wrap:anywhere]">
-        {players.map((player) => player.displayName).join(" / ")}
-      </p>
-      {meta ? (
-        <p className="mt-1 type-caption font-bold text-neutral-500">{meta}</p>
-      ) : null}
-      {href ? <ClickableChevron className="mt-2" /> : null}
+      {href ? <ClickableChevron className="shrink-0" /> : null}
     </div>
   );
 
@@ -723,10 +729,10 @@ export default function Home() {
 
   return (
     <div className="space-y-4">
-      <header data-tour="home-header">
+      <header data-tour="home-header" className="app-page-header">
         <div className="app-home-identity">
           <LeagueLogo league={activeLeague} size="xl" className="app-home-top-logo" previewable />
-          <div className="app-home-identity-copy min-w-0 pb-0.5">
+          <div className="app-home-identity-copy min-w-0">
             <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight">
               {activeLeague.name}
             </h1>
@@ -824,7 +830,7 @@ export default function Home() {
             </div>
 
             {leader ? (
-              <div className={`grid gap-2 px-3 pb-3 pt-2 ${seasonMvp ? "grid-cols-2" : "grid-cols-1"}`}>
+              <div className="space-y-2 px-3 pb-3 pt-2">
                 <SeasonSummaryAwardRow
                   label={t.dashboard.winner}
                   players={[leader]}

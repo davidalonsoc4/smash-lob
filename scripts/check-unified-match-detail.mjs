@@ -84,7 +84,7 @@ assert(
   "El detalle de liga no debe usar el puesto estadístico compartido por empates",
 )
 
-console.log("Detalle de partido v1.5.15 unificado:")
+console.log("Detalle de partido v1.5.22 unificado:")
 console.log("- liga y amistoso comparten MatchDetailView")
 console.log("- liga usa Jornada X como título; amistosos mantienen Partido")
 console.log("- la posición de cada jugador replica el orden visual 1, 2, 3… de Clasificación")

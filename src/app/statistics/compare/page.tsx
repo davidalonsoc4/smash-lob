@@ -8,7 +8,6 @@ import { calculatePlayerComparison } from "@/lib/seasonStatistics"
 
 export default function StatisticsComparePage() {
   const {
-    activeLeague,
     selectedSeason,
     buildStatisticsHref,
     statistics,
@@ -53,7 +52,6 @@ export default function StatisticsComparePage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        leagueName={activeLeague.name}
         title="Cara a cara"
         description={
           isLeagueWide

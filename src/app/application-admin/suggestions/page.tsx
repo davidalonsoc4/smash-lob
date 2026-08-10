@@ -147,12 +147,10 @@ export default function ApplicationSuggestionsPage() {
     <div className="compact-page space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/application-admin" label="Volver" />
-        <p className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-red-600">
+        <h1 className="type-page-title font-black tracking-tight">Sugerencias recibidas</h1>
+        <p className="mt-0.5 text-xs font-black uppercase tracking-[0.16em] text-red-600">
           Superusuario
         </p>
-        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
-          Sugerencias recibidas
-        </h1>
       </header>
 
       <div className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1">

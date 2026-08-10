@@ -6,7 +6,6 @@ import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 
 export default function StatisticsRecordsPage() {
   const {
-    activeLeague,
     selectedSeason,
     buildStatisticsHref,
     statistics,
@@ -17,7 +16,6 @@ export default function StatisticsRecordsPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        leagueName={activeLeague.name}
         title={isLeagueWide ? "Récords de la liga" : "Récords de temporada"}
         description={
           isLeagueWide

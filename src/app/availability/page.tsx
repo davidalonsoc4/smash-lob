@@ -514,10 +514,6 @@ export default function AvailabilityPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/settings" label="Volver" />
 
-        <p className="text-sm font-medium text-neutral-500">
-          {activeLeague.name}
-        </p>
-
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           Mi disponibilidad
         </h1>

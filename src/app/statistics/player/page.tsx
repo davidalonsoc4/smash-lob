@@ -107,7 +107,6 @@ export default function StatisticsPlayerPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        leagueName={activeLeague.name}
         title="Análisis individual"
         description={
           isLeagueWide

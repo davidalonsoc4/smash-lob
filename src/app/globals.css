@@ -262,7 +262,14 @@ textarea {
   padding-top: 0.5rem !important;
 }
 
-.app-page-header > .type-page-title {
+.app-page-header .type-page-title {
+  margin-top: 0 !important;
+  font-size: 1.5rem !important;
+  line-height: 1.15 !important;
+}
+
+/* A wrapper for title actions/avatar must not shift the shared title baseline. */
+.app-page-header > :has(.type-page-title) {
   margin-top: 0 !important;
 }
 
@@ -288,8 +295,8 @@ textarea {
   gap: 0.75rem;
 }
 
-/* HOME fills the unused top-left corner: the 80px logo starts at the same
-   screen margin as the floating controls and finishes with the identity block. */
+/* HOME keeps the 80px league logo in the free top-left corner, shifted down
+   together with the global page content to preserve the expanded top margin. */
 .app-main[data-has-floating-top-controls="true"] .app-home-top-logo {
   position: absolute;
   top: -36px;
@@ -301,25 +308,8 @@ textarea {
   align-self: end;
 }
 
-/* In PRE, move the environment badge away from the enlarged HOME logo. */
-.app-shell-frame[data-home-route="true"] .app-preproduction-badge {
-  left: max(96px, calc((100vw - 448px) / 2 + 96px));
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  letter-spacing: 0.14em;
-}
-
-@media (max-width: 390px) {
-  .app-shell-frame[data-home-route="true"] .app-preproduction-badge {
-    transform: scale(0.82);
-    transform-origin: left center;
-  }
-}
-
-/* PRE keeps its version badge in the same functional row without covering Volver. */
-.app-shell-frame:has(.app-top-back-control) .app-preproduction-badge {
-  left: max(72px, calc((100vw - 448px) / 2 + 72px));
-}
+/* PRE version badge is intentionally fixed above the app geometry.
+   It is informational only and may overlap content in PRE. */
 
 /* Dark appearance -------------------------------------------------------- */
 html.dark {
@@ -1564,50 +1554,26 @@ html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(
 html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(var(--colorful-accent-rgb) / 0.1); }
 html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(var(--colorful-warm-rgb) / 0.12); }
 
-/* Every ranking position uses the same theme-coherent side accent.
-   Position is communicated by the number and podium badge, not by bar color. */
-.app-ranking-list {
-  --ranking-row-accent: #64748b;
-}
-
-html.dark[data-style="plain"] .app-ranking-list {
-  --ranking-row-accent: var(--classic-dark-primary);
-}
-
-html.colorful .app-ranking-list {
-  --ranking-row-accent: var(--colorful-primary);
-}
+/* Ranking uses a left rail only for the podium. Gold, silver and bronze
+   stay identical in every theme; rows from fourth place onward have no rail. */
+.app-ranking-list .app-ranking-row:nth-child(1) { --ranking-row-accent: #d4a017; }
+.app-ranking-list .app-ranking-row:nth-child(2) { --ranking-row-accent: #a8adb5; }
+.app-ranking-list .app-ranking-row:nth-child(3) { --ranking-row-accent: #b87333; }
 
 .app-ranking-list .app-ranking-row {
   position: relative;
   overflow: hidden;
 }
 
-.app-ranking-list .app-ranking-row::before {
+.app-ranking-list .app-ranking-row:nth-child(-n + 3)::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
   width: 0.22rem;
   background: var(--ranking-row-accent);
-  opacity: 0.55;
   pointer-events: none;
 }
 
-html.colorful .app-ranking-row:nth-child(1) .app-ranking-position {
-  background: linear-gradient(145deg, #ffd768, #f2a93b) !important;
-  color: #5b3b00 !important;
-  box-shadow: 0 3px 10px rgb(242 169 59 / 0.28);
-}
-
-html.colorful .app-ranking-row:nth-child(2) .app-ranking-position {
-  background: linear-gradient(145deg, #e9eaf6, #cbd0e7) !important;
-  color: #454866 !important;
-}
-
-html.colorful .app-ranking-row:nth-child(3) .app-ranking-position {
-  background: linear-gradient(145deg, #efc69f, #d99661) !important;
-  color: #62361e !important;
-}
 
 html.colorful .app-bottom-nav {
   border-top-color: rgb(var(--colorful-primary-rgb) / 0.2) !important;

@@ -54,8 +54,14 @@ describe("semantic typography system", () => {
     const files = (await walk("src/app")).filter((file) => file.endsWith(".tsx"))
     const allowedContextTokens = [
       "activeLeague.description",
+      "activeSeason.name",
       "player.displayName",
       "Cuenta de espectador · acceso de solo lectura.",
+      "Superusuario",
+      "Actividad personal",
+      "Amistoso",
+      "Smash & Lob",
+      "t.settings.accountSettingsTitle",
     ]
 
     for (const file of files) {
@@ -69,6 +75,31 @@ describe("semantic typography system", () => {
         expect(allowedContextTokens.some((token) => afterTitle.includes(token)), file).toBe(true)
       }
     }
+  })
+
+  it("keeps every app page header title-first and on one baseline", async () => {
+    const files = (await walk("src")).filter((file) => file.endsWith(".tsx"))
+    let titledHeaderCount = 0
+
+    for (const file of files) {
+      const source = await readFile(file, "utf8")
+      for (const match of source.matchAll(/<header\b[^>]*app-page-header[^>]*>[\s\S]*?<\/header>/g)) {
+        const header = match[0]
+        if (!header.includes("type-page-title")) continue
+        titledHeaderCount += 1
+        const titleStart = header.indexOf("<h1")
+        expect(titleStart, file).toBeGreaterThanOrEqual(0)
+        const beforeTitle = header.slice(0, titleStart)
+        expect(beforeTitle, file).not.toMatch(/<p\b/)
+        expect(beforeTitle, file).not.toContain("<LeagueSeasonEyebrow")
+      }
+    }
+
+    expect(titledHeaderCount).toBeGreaterThanOrEqual(50)
+    const globals = await readFile("src/app/globals.css", "utf8")
+    expect(globals).toContain("font-size: 1.5rem !important")
+    expect(globals).toContain("line-height: 1.15 !important")
+    expect(globals).toContain(".app-page-header > :has(.type-page-title)")
   })
 
   it("keeps panel titles on one semantic size and NAVBAR buttons fixed", async () => {

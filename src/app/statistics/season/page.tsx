@@ -279,7 +279,6 @@ export default function StatisticsSeasonPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        leagueName={activeLeague.name}
         title={isLeagueWide ? "Resumen de la liga" : "Compartir resumen de temporada"}
         description={
           isLeagueWide

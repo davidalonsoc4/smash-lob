@@ -9,8 +9,8 @@ describe("top functional header row", () => {
       readFile("src/app/page.tsx", "utf8"),
       readFile("src/app/ranking/page.tsx", "utf8"),
       readFile("src/app/matches/page.tsx", "utf8"),
-      readFile("src/app/profile/page.tsx", "utf8"),
-      readFile("src/app/player/[id]/page.tsx", "utf8"),
+      readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
+      readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
       readFile("src/components/ui/BackButton.tsx", "utf8"),
       readFile("src/components/invite/FloatingInviteShareButton.tsx", "utf8"),
       readFile("src/components/onboarding/FloatingHelpButton.tsx", "utf8"),
@@ -18,13 +18,19 @@ describe("top functional header row", () => {
       readFile("scripts/check-typography-system.mjs", "utf8"),
     ])
 
-    expect(shell).toContain('max(46px, calc(env(safe-area-inset-top, 0px) + 44px))')
+    expect(shell).toContain('max(54px, calc(env(safe-area-inset-top, 0px) + 52px))')
+    expect(shell).toContain('max(20px, calc(env(safe-area-inset-top, 0px) + 20px))')
     expect(shell).not.toContain("--app-floating-top-reserved-width")
     expect(globals).toContain('.app-main[data-has-floating-top-controls="true"] .app-top-back-control')
     expect(globals).not.toContain("max-width: calc(100% - var(--app-floating-top-reserved-width")
     expect(backButton).toContain("app-top-back-control")
-    expect(globals).toContain(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge")
+    expect(shell).toContain('top: "max(4px, calc(env(safe-area-inset-top, 0px) + 4px))"')
+    expect(shell).toContain("left: getPreproductionBadgeLeft()")
+    expect(shell).toContain("zIndex: 80")
+    expect(globals).not.toContain(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge")
+    expect(globals).not.toContain('.app-shell-frame[data-home-route="true"] .app-preproduction-badge')
     expect(home).not.toContain('type-page-title truncate text-2xl')
+    expect(home).toContain('<header data-tour="home-header" className="app-page-header">')
     expect(shell).toContain('data-home-route={pathname === "/"}')
     expect(globals).toContain(".app-home-top-logo")
     expect(globals).toContain("top: -36px")
@@ -42,8 +48,8 @@ describe("top functional header row", () => {
     expect(matches).toContain('<header data-tour="matches-header" className="app-page-header">')
     expect(ownProfile).toContain('<header className="app-page-header">')
     expect(playerProfile).toContain('<header className="app-page-header">')
-    expect(typographyChecker).toContain('file.replace(/\\\\/g, "/")')
-    expect(typographyChecker).toContain('normalizedAppPath(file) === "src/app/page.tsx"')
+    expect(typographyChecker).not.toContain('normalizedAppPath(file) === "src/app/page.tsx"')
+    expect(typographyChecker).toContain('file.endsWith(".tsx")')
     for (const control of [invite, help, spectatorShare]) {
       expect(control).toContain('max(10px, calc(env(safe-area-inset-top, 0px) + 8px))')
       expect(control).not.toContain('max(16px, calc(env(safe-area-inset-top, 0px) + 12px))')

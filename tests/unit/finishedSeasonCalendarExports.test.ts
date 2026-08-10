@@ -13,6 +13,7 @@ describe("finished season calendar exports", () => {
     expect(page).toContain(
       'seasonFinished={selectedSeason.status === "finished"}',
     )
+    expect(page).toContain('leagueName={activeLeague.name}')
     expect(card).toContain('title={seasonFinished ? "Calendario" : "Calendario actual"}')
     expect(card).toContain('{!seasonFinished ? (')
     expect(card).toContain('kind="calendar-fixtures"')
