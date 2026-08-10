@@ -66,13 +66,20 @@ export function MvpVotingCard({
     return null;
   }
 
-  if (mvpSystem === "automatic") {
+  if (mvpSystem === "automatic" || mvpSystem === "automatic_advanced") {
+    const isAdvancedAutomatic = mvpSystem === "automatic_advanced"
+    const adjustedRating = roundMvp?.adjustedRating
+    const advancedDetail =
+      typeof adjustedRating === "number"
+        ? `Índice ajustado ${(adjustedRating * 100).toFixed(1)}${roundMvp?.tied ? " · empate técnico" : ""}`
+        : "Índice ajustado pendiente"
+
     return (
       <AppCard className="p-2.5">
         <div className="flex items-center justify-between gap-2">
           <p className="type-panel-title">MVP de la jornada</p>
           <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
-            Automático
+            {isAdvancedAutomatic ? "Automático avanzado" : "Automático"}
           </span>
         </div>
 
@@ -80,11 +87,17 @@ export function MvpVotingCard({
           <MvpResultPanel
             title={`Jornada ${match.round}`}
             players={roundMvpPlayers}
-            detail={`${roundMvp.gamesDiff ?? 0} dif. de juegos`}
+            detail={
+              isAdvancedAutomatic
+                ? advancedDetail
+                : `${roundMvp.gamesDiff ?? 0} dif. de juegos`
+            }
           />
         ) : (
           <p className="mt-2 text-xs font-semibold text-neutral-500">
-            Se calculará al completar la jornada.
+            {isAdvancedAutomatic
+              ? "Se calculará al completar la jornada usando resultados, compañeros y rivales."
+              : "Se calculará al completar la jornada."}
           </p>
         )}
       </AppCard>

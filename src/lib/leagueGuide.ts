@@ -2,7 +2,7 @@ import type { Locale } from "@/i18n/translations"
 
 export type LeagueGuideSettings = {
   requiresThreeSets: boolean
-  mvpSystem: "none" | "automatic" | "voting"
+  mvpSystem: "none" | "automatic" | "automatic_advanced" | "voting"
   resultConfirmationMode: "required" | "optional" | "none"
   registrationFee: {
     enabled: boolean
@@ -61,6 +61,8 @@ type GuideCopy = {
   confirmationsNoneDescription: string
   mvpAutomaticTitle: string
   mvpAutomaticDescription: string
+  mvpAutomaticAdvancedTitle: string
+  mvpAutomaticAdvancedDescription: string
   mvpVotingTitle: string
   mvpVotingDescription: string
   registrationTitle: string
@@ -162,6 +164,9 @@ const COPY: Record<Locale, GuideCopy> = {
     mvpAutomaticTitle: "MVP automático",
     mvpAutomaticDescription:
       "La aplicación calcula el MVP de jornada utilizando el rendimiento registrado en los partidos.",
+    mvpAutomaticAdvancedTitle: "MVP automático avanzado",
+    mvpAutomaticAdvancedDescription:
+      "Elige la pareja más dominante de la jornada y, entre sus integrantes, usa resultados, sets y juegos de la temporada para ajustar el rendimiento por compañero y rivales. Si la diferencia no es suficiente, comparte el MVP.",
     mvpVotingTitle: "MVP por votación",
     mvpVotingDescription:
       "Después de jugar, cada participante vota a otro jugador de su partido; no puede votarse a sí mismo.",
@@ -291,6 +296,9 @@ const COPY: Record<Locale, GuideCopy> = {
     mvpAutomaticTitle: "Automatic MVP",
     mvpAutomaticDescription:
       "The application calculates the round MVP using the performance recorded in matches.",
+    mvpAutomaticAdvancedTitle: "Advanced automatic MVP",
+    mvpAutomaticAdvancedDescription:
+      "Selects the most dominant winning pair of the round, then uses season results, sets and games to adjust each player for partners and opponents. If the difference is not meaningful, the MVP is shared.",
     mvpVotingTitle: "MVP voting",
     mvpVotingDescription:
       "After playing, each participant votes for another player in the match and cannot vote for themselves.",
@@ -420,6 +428,9 @@ const COPY: Record<Locale, GuideCopy> = {
     mvpAutomaticTitle: "MVP automatikoa",
     mvpAutomaticDescription:
       "Aplikazioak jardunaldiko MVP kalkulatzen du partidetan erregistratutako errendimenduarekin.",
+    mvpAutomaticAdvancedTitle: "MVP automatiko aurreratua",
+    mvpAutomaticAdvancedDescription:
+      "Jardunaldiko bikote garaile nagusiena aukeratzen du, eta gero denboraldiko emaitzak, setak eta jokoak erabiltzen ditu jokalari bakoitza bikotekideen eta aurkarien arabera doitzeko. Aldea nahikoa ez bada, MVP partekatua da.",
     mvpVotingTitle: "MVP bozketa bidez",
     mvpVotingDescription:
       "Partidaren ondoren, parte-hartzaile bakoitzak beste jokalari bat bozkatzen du eta ezin du bere burua bozkatu.",
@@ -559,6 +570,14 @@ function getMvpItem(settings: LeagueGuideSettings, copy: GuideCopy) {
       id: "mvp-system",
       title: copy.mvpAutomaticTitle,
       description: copy.mvpAutomaticDescription,
+    }
+  }
+
+  if (settings.mvpSystem === "automatic_advanced") {
+    return {
+      id: "mvp-system",
+      title: copy.mvpAutomaticAdvancedTitle,
+      description: copy.mvpAutomaticAdvancedDescription,
     }
   }
 

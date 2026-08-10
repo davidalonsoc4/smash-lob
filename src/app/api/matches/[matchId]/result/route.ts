@@ -300,7 +300,7 @@ export async function PUT(
     },
   }).catch(() => null)
 
-  if (settingsRow?.mvp_system === "automatic") {
+  if (settingsRow?.mvp_system === "automatic" || settingsRow?.mvp_system === "automatic_advanced") {
     const seasonMatches = await fetchServerSeasonActivityMatches({
       supabase: access.actor.supabase,
       leagueId: updatedMatch.leagueId,
@@ -324,6 +324,7 @@ export async function PUT(
         leagueId: updatedMatch.leagueId,
         seasonId: updatedMatch.seasonId,
         round: updatedMatch.round,
+        mvpSystem: settingsRow.mvp_system,
       })
 
       if (roundMvp) {
@@ -346,7 +347,9 @@ export async function PUT(
             matchId: updatedMatch.id,
             type: "round_mvp_awarded",
             title: `MVP de Jornada ${updatedMatch.round} decidido`,
-            description: `Pareja MVP automatica · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff ?? 0} dif.`,
+            description: settingsRow.mvp_system === "automatic_advanced"
+              ? `MVP automático avanzado · índice ${((roundMvp.adjustedRating ?? 0) * 100).toFixed(1)}${roundMvp.tied ? " · empate técnico" : ""} · pareja ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos`
+              : `Pareja MVP automatica · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff ?? 0} dif.`,
             metadata: {
               round: updatedMatch.round,
               playerIds: roundMvp.playerIds,
@@ -355,7 +358,10 @@ export async function PUT(
               gamesDiff: roundMvp.gamesDiff,
               setsFor: roundMvp.setsFor,
               setsAgainst: roundMvp.setsAgainst,
-              system: "automatic",
+              system: settingsRow.mvp_system,
+              adjustedRating: roundMvp.adjustedRating,
+              ratingGap: roundMvp.ratingGap,
+              candidateRatings: roundMvp.candidateRatings,
             },
           }).catch(() => null)
         }

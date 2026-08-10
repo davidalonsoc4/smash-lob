@@ -1,6 +1,6 @@
-export type MvpSystem = "none" | "automatic" | "voting"
+export type MvpSystem = "none" | "automatic" | "automatic_advanced" | "voting"
 export type MvpScope = "match" | "round" | "season"
-export type MvpSelectionSource = "automatic" | "manual" | "votes"
+export type MvpSelectionSource = "automatic" | "automatic_advanced" | "manual" | "votes"
 
 export type MvpVote = {
   leagueId: string
@@ -59,6 +59,9 @@ export type MvpResult = {
   setsAgainst?: number
   tied?: boolean
   matchId?: string
+  adjustedRating?: number
+  ratingGap?: number
+  candidateRatings?: { playerId: string; rating: number }[]
 }
 
 export type MvpVoteRow = {
@@ -89,6 +92,14 @@ type RoundMvpCandidate = {
   matchId: string
 }
 
+const ADVANCED_MVP_RIDGE_LAMBDA = 1.5
+const ADVANCED_MVP_SHARED_RATING_EPSILON = 0.03
+
+type AdvancedMvpRatingRow = {
+  playerId: string
+  rating: number
+}
+
 function belongsToLeagueSeason(item: MvpLookup, leagueId: string, seasonId: string) {
   return item.leagueId === leagueId && item.seasonId === seasonId
 }
@@ -107,6 +118,152 @@ function getTeamSetPoints(match: MvpMatch, team: "A" | "B") {
   }
 
   return match.sets.filter((set) => (team === "A" ? set.a > set.b : set.b > set.a)).length
+}
+
+function getTeamSetsWon(match: MvpMatch, team: "A" | "B") {
+  return match.sets.filter((set) => (team === "A" ? set.a > set.b : set.b > set.a)).length
+}
+
+function getAdvancedMatchPerformance(match: MvpMatch) {
+  const setsA = getTeamSetsWon(match, "A")
+  const setsB = getTeamSetsWon(match, "B")
+
+  if (setsA === setsB) {
+    return 0
+  }
+
+  const gamesA = getTeamGames(match, "A")
+  const gamesB = getTeamGames(match, "B")
+  const resultScore = setsA > setsB ? 1 : -1
+  const setMargin = (setsA - setsB) / Math.max(match.sets.length, 1)
+  const gameMargin = (gamesA - gamesB) / Math.max(gamesA + gamesB, 1)
+
+  // Resultado > sets > juegos. El índice queda aproximadamente entre -1 y 1.
+  return resultScore * 0.6 + setMargin * 0.25 + gameMargin * 0.15
+}
+
+function solveLinearSystem(matrix: number[][], vector: number[]) {
+  const size = vector.length
+  const augmented = matrix.map((row, rowIndex) => [...row, vector[rowIndex]])
+
+  for (let pivot = 0; pivot < size; pivot += 1) {
+    let bestRow = pivot
+
+    for (let row = pivot + 1; row < size; row += 1) {
+      if (Math.abs(augmented[row][pivot]) > Math.abs(augmented[bestRow][pivot])) {
+        bestRow = row
+      }
+    }
+
+    if (Math.abs(augmented[bestRow][pivot]) < 1e-10) {
+      continue
+    }
+
+    if (bestRow !== pivot) {
+      ;[augmented[pivot], augmented[bestRow]] = [augmented[bestRow], augmented[pivot]]
+    }
+
+    const pivotValue = augmented[pivot][pivot]
+    for (let column = pivot; column <= size; column += 1) {
+      augmented[pivot][column] /= pivotValue
+    }
+
+    for (let row = 0; row < size; row += 1) {
+      if (row === pivot) {
+        continue
+      }
+
+      const factor = augmented[row][pivot]
+      if (Math.abs(factor) < 1e-12) {
+        continue
+      }
+
+      for (let column = pivot; column <= size; column += 1) {
+        augmented[row][column] -= factor * augmented[pivot][column]
+      }
+    }
+  }
+
+  return augmented.map((row, index) =>
+    Number.isFinite(row[size]) ? row[size] : vector[index] * 0,
+  )
+}
+
+export function getAdvancedAutomaticMvpRatings({
+  leagueId,
+  seasonId,
+  round,
+  matches,
+}: {
+  leagueId: string
+  seasonId: string
+  round: number
+  matches: MvpMatch[]
+}): AdvancedMvpRatingRow[] {
+  const ratingMatches = matches.filter(
+    (match) =>
+      match.leagueId === leagueId &&
+      match.seasonId === seasonId &&
+      match.round <= round &&
+      match.status === "finished" &&
+      match.resultCounts !== false &&
+      match.sets.length > 0 &&
+      getTeamSetsWon(match, "A") !== getTeamSetsWon(match, "B"),
+  )
+  const playerIds = Array.from(
+    new Set(ratingMatches.flatMap((match) => [...match.teamA, ...match.teamB])),
+  ).sort((firstPlayerId, secondPlayerId) => firstPlayerId.localeCompare(secondPlayerId))
+
+  if (playerIds.length === 0) {
+    return []
+  }
+
+  const playerIndex = new Map(playerIds.map((playerId, index) => [playerId, index]))
+  const matrix = Array.from({ length: playerIds.length }, (_, row) =>
+    Array.from({ length: playerIds.length }, (_, column) =>
+      row === column ? ADVANCED_MVP_RIDGE_LAMBDA : 0,
+    ),
+  )
+  const vector = Array.from({ length: playerIds.length }, () => 0)
+
+  ratingMatches.forEach((match) => {
+    const features = Array.from({ length: playerIds.length }, () => 0)
+
+    match.teamA.forEach((playerId) => {
+      const index = playerIndex.get(playerId)
+      if (index !== undefined) features[index] += 1
+    })
+    match.teamB.forEach((playerId) => {
+      const index = playerIndex.get(playerId)
+      if (index !== undefined) features[index] -= 1
+    })
+
+    const target = getAdvancedMatchPerformance(match)
+
+    for (let row = 0; row < features.length; row += 1) {
+      if (features[row] === 0) continue
+      vector[row] += features[row] * target
+
+      for (let column = 0; column < features.length; column += 1) {
+        if (features[column] === 0) continue
+        matrix[row][column] += features[row] * features[column]
+      }
+    }
+  })
+
+  const ratings = solveLinearSystem(matrix, vector)
+
+  return playerIds
+    .map((playerId, index) => ({
+      playerId,
+      rating: Math.round(ratings[index] * 10000) / 10000,
+    }))
+    .sort((firstRow, secondRow) => {
+      if (secondRow.rating !== firstRow.rating) {
+        return secondRow.rating - firstRow.rating
+      }
+      return firstRow.playerId.localeCompare(secondRow.playerId)
+    })
 }
 
 function getRoundMatches(matches: MvpMatch[], leagueId: string, seasonId: string, round: number) {
@@ -501,6 +658,50 @@ export function getRoundMvpSelection({
     return null
   }
 
+  if (mvpSystem === "automatic_advanced") {
+    const ratingByPlayerId = new Map(
+      getAdvancedAutomaticMvpRatings({ leagueId, seasonId, round, matches }).map((row) => [
+        row.playerId,
+        row.rating,
+      ]),
+    )
+    const candidateRatings = topCandidate.playerIds
+      .map((playerId) => ({ playerId, rating: ratingByPlayerId.get(playerId) ?? 0 }))
+      .sort((firstRow, secondRow) => {
+        if (secondRow.rating !== firstRow.rating) {
+          return secondRow.rating - firstRow.rating
+        }
+        return firstRow.playerId.localeCompare(secondRow.playerId)
+      })
+    const topRating = candidateRatings[0]?.rating ?? 0
+    const secondRating = candidateRatings[1]?.rating ?? topRating
+    const ratingGap = Math.abs(topRating - secondRating)
+    const selectedPlayerIds = candidateRatings
+      .filter((row) => topRating - row.rating <= ADVANCED_MVP_SHARED_RATING_EPSILON)
+      .map((row) => row.playerId)
+
+    return {
+      leagueId,
+      seasonId,
+      scope: "round",
+      round,
+      playerId: selectedPlayerIds[0] ?? topCandidate.playerIds[0],
+      playerIds: selectedPlayerIds.length > 0 ? selectedPlayerIds : topCandidate.playerIds,
+      source: "automatic_advanced",
+      votes: 1,
+      gamesFor: topCandidate.gamesFor,
+      gamesAgainst: topCandidate.gamesAgainst,
+      gamesDiff: topCandidate.gamesDiff,
+      setsFor: topCandidate.setsFor,
+      setsAgainst: topCandidate.setsAgainst,
+      tied: selectedPlayerIds.length > 1,
+      matchId: topCandidate.matchId,
+      adjustedRating: topRating,
+      ratingGap,
+      candidateRatings,
+    }
+  }
+
   return {
     leagueId,
     seasonId,
@@ -577,7 +778,12 @@ export function getSeasonMvpSelection({
     round: null,
     playerId: topPlayerIds[0],
     playerIds: topPlayerIds,
-    source: mvpSystem === "voting" ? "votes" : "automatic",
+    source:
+      mvpSystem === "voting"
+        ? "votes"
+        : mvpSystem === "automatic_advanced"
+          ? "automatic_advanced"
+          : "automatic",
     votes: topCount,
     tied: topPlayerIds.length > 1,
   }
