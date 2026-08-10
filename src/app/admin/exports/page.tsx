@@ -176,16 +176,11 @@ export default function AdminExportsPage() {
 
   return (
     <div className="compact-page space-y-4">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/admin" label="Volver" />
-        <div className="mt-2 overflow-hidden rounded-[28px] border border-neutral-200 bg-[linear-gradient(135deg,#ffffff_0%,#f1f4ef_100%)] px-4 py-4 shadow-sm">
-          <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-500">
-            {activeLeague.name}
-          </p>
-          <h1 className="type-page-title mt-1 text-xl font-black tracking-tight text-neutral-950">
-            Exportar datos
-          </h1>
-        </div>
+        <h1 className="type-page-title font-black tracking-tight text-neutral-950">
+          Exportar datos
+        </h1>
       </header>
 
       <AppCard className="space-y-4 border-neutral-200 bg-white shadow-sm">

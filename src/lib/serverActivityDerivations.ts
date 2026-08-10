@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getRoundMvpSelection, type MvpMatch } from "@/lib/mvp"
+import { getRoundMvpSelection, type MvpMatch, type MvpSystem } from "@/lib/mvp"
 import { getMatchResultConfirmationState, normalizeResultConfirmationMode } from "@/lib/resultConfirmations"
 import type { MatchResultConfirmation } from "@/lib/supabaseMatchConfirmations"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
@@ -156,17 +156,19 @@ export function getServerAutomaticRoundMvp({
   leagueId,
   seasonId,
   round,
+  mvpSystem = "automatic",
 }: {
   matches: ServerSeasonActivityMatch[]
   leagueId: string
   seasonId: string
   round: number
+  mvpSystem?: Extract<MvpSystem, "automatic" | "automatic_advanced">
 }) {
   return getRoundMvpSelection({
     leagueId,
     seasonId,
     round,
     matches,
-    mvpSystem: "automatic",
+    mvpSystem,
   })
 }

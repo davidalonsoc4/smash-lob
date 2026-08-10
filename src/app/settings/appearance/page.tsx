@@ -241,7 +241,7 @@ export default function AppearancePage() {
 
   return (
     <div className="compact-page space-y-4">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
         <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">{t.settings.appearancePageTitle}</h1>
       </header>

@@ -219,7 +219,7 @@ export function BottomNav() {
               className={
                 isActive
                   ? "app-bottom-nav-active flex flex-col items-center justify-center bg-neutral-950 text-center font-black text-white shadow-sm"
-                  : "app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-500 transition active:bg-neutral-100"
+                  : "app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-600 transition active:bg-neutral-100"
               }
               style={{
                 minHeight: "52px",

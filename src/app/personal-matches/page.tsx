@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { AppCard } from "@/components/ui/AppCard"
@@ -98,14 +99,25 @@ export default function PersonalMatchesPage() {
 
   return (
     <div className="compact-page space-y-4">
-      <header className="pt-1">
-        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
+      <header className="app-page-header">
+        <h1 className="type-page-title font-black tracking-tight">Mis partidos</h1>
+        <p className="mt-0.5 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal
         </p>
-        <div className="mt-1">
-          <h1 className="type-page-title text-2xl font-black tracking-tight">Mis partidos</h1>
-        </div>
       </header>
+
+      <Link
+        href="/personal-matches/new"
+        aria-label="Crear nuevo encuentro"
+        title="Crear nuevo encuentro"
+        className="fixed z-40 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-950 text-white shadow-xl transition active:scale-95"
+        style={{
+          bottom: "calc(78px + env(safe-area-inset-bottom, 0px))",
+          right: "max(16px, calc((100vw - 28rem) / 2 + 16px))",
+        }}
+      >
+        <span aria-hidden="true" className="text-3xl font-light leading-none">+</span>
+      </Link>
 
       {!loading && selectedUpcoming ? (
         <section className="space-y-2">
@@ -163,7 +175,7 @@ export default function PersonalMatchesPage() {
           <EmptyState
             title="Todavía no hay partidos en tu historial"
             description="Aquí aparecerán tus partidos terminados de liga y los amistosos que registres en Smash & Lob."
-            action={{ label: "Registrar mi primer amistoso", href: "/personal-matches/new" }}
+            action={{ label: "Crear mi primer encuentro", href: "/personal-matches/new" }}
           />
         ) : (
           <div className="space-y-2">

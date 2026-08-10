@@ -403,7 +403,7 @@ export function PlayerStatsPanel({
       <div className="mt-2 space-y-2">
         <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 p-2.5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+            <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
               {t.playerStats.strongestTeammate}
             </p>
             {strongestTeammate ? (

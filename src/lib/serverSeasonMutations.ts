@@ -555,7 +555,9 @@ export async function startServerExistingSeason({
       roundWindowDays: settingsRow.round_window_days,
       requiresThreeSets: Boolean(settingsRow.requires_three_sets),
       mvpSystem:
-        settingsRow.mvp_system === "none" || settingsRow.mvp_system === "voting"
+        settingsRow.mvp_system === "none" ||
+        settingsRow.mvp_system === "automatic_advanced" ||
+        settingsRow.mvp_system === "voting"
           ? settingsRow.mvp_system
           : "automatic",
       resultConfirmationMode:

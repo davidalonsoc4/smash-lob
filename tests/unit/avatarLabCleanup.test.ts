@@ -4,13 +4,15 @@ import { describe, expect, it } from "vitest"
 describe("Avatar Lab dependency cleanup", () => {
   it("keeps only the dependencies required by the two viable editors", async () => {
     const packageJson = JSON.parse(await readFile("package.json", "utf8"))
-    const lock = await readFile("package-lock.json", "utf8")
-    expect(packageJson.version).toBe("1.5.4")
+    const lockText = await readFile("package-lock.json", "utf8")
+    const lock = JSON.parse(lockText)
+    expect(lock.version).toBe(packageJson.version)
+    expect(lock.packages?.[""]?.version).toBe(packageJson.version)
     expect(packageJson.dependencies).not.toHaveProperty("@avatune/react")
     expect(packageJson.dependencies).not.toHaveProperty("@avatune/pacovqzz-theme")
     expect(packageJson.dependencies).not.toHaveProperty("react-notion-avatar")
-    expect(lock).not.toContain('node_modules/@avatune/')
-    expect(lock).not.toContain('node_modules/react-notion-avatar')
+    expect(lockText).not.toContain('node_modules/@avatune/')
+    expect(lockText).not.toContain('node_modules/react-notion-avatar')
   })
 
   it("uses sanitized and cached server renderers", async () => {

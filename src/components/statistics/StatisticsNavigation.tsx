@@ -110,7 +110,6 @@ export function StatisticsSectionIcon({
 }
 
 export function StatisticsPageHeader({
-  leagueName,
   title,
   description,
   seasons,
@@ -119,7 +118,6 @@ export function StatisticsPageHeader({
   fallbackHref = "/statistics",
   statusBadge,
 }: {
-  leagueName: string
   title: string
   description: string
   seasons?: SeasonOption[]
@@ -137,11 +135,10 @@ export function StatisticsPageHeader({
 
   return (
     <>
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref={fallbackHref} label="Volver" />
-        <p className="mt-1 text-xs font-bold text-neutral-500">{leagueName}</p>
+        <h1 className="type-page-title font-black tracking-tight">{title}</h1>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
-          <h1 className="type-page-title text-xl font-black tracking-tight">{title}</h1>
           {!canChooseSeason ? (
             <span className="rounded-full bg-neutral-100 px-2.5 py-1 type-caption font-black text-neutral-700">
               {selectedSeason.name}

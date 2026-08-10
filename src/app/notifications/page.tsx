@@ -699,14 +699,8 @@ export default function NotificationsPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/" label={t.common.back} />
-
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>
-            {activeLeague.name}
-          </span>
-        </p>
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
           <h1 className="type-page-title text-xl font-black tracking-tight">Notificaciones</h1>

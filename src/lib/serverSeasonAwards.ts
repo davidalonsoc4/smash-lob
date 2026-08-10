@@ -157,6 +157,7 @@ export async function getServerSeasonAwards({
     : []
   const mvpSystem =
     settingsResult.data?.mvp_system === "none" ||
+    settingsResult.data?.mvp_system === "automatic_advanced" ||
     settingsResult.data?.mvp_system === "voting"
       ? (settingsResult.data.mvp_system as MvpSystem)
       : "automatic"

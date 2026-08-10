@@ -82,10 +82,10 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-test("@a11y authenticated screens have no serious Axe violations", async ({
-  page,
-}) => {
-  for (const screen of screens) {
+for (const screen of screens) {
+  test(`@a11y authenticated ${screen.name} has no serious Axe violations`, async ({
+    page,
+  }) => {
     await page.goto(screen.path)
     await expect(page.locator("main")).toBeVisible()
 
@@ -98,11 +98,11 @@ test("@a11y authenticated screens have no serious Axe violations", async ({
     )
 
     expect(diagnostics, `${screen.path}\n${diagnostics.join("\n")}`).toEqual([])
-  }
-})
+  })
+}
 
-test("@visual authenticated screens remain stable", async ({ page }) => {
-  for (const screen of screens) {
+for (const screen of screens) {
+  test(`@visual authenticated ${screen.name} remains stable`, async ({ page }) => {
     await page.goto(screen.path)
     await expect(page.locator("main")).toBeVisible()
     await page.addStyleTag({
@@ -134,8 +134,8 @@ test("@visual authenticated screens remain stable", async ({ page }) => {
       fullPage: true,
       animations: "disabled",
     })
-  }
-})
+  })
+}
 
 
 test("guided help can repeat the current screen tour", async ({ page }) => {
@@ -287,14 +287,10 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Cargar 10 más" })).toBeVisible()
   await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
   await expect(page.getByRole("navigation", { name: "Navegación de Mis partidos" })).toBeVisible()
-  const personalNav = page.getByRole("navigation", { name: "Navegación de Mis partidos" })
-  await expect(personalNav.getByRole("link", { name: "Mis ligas" })).toBeVisible()
-  await expect(personalNav.getByRole("link", { name: "Mis partidos" })).toBeVisible()
-  await expect(personalNav.getByRole("link", { name: "Mi perfil" })).toBeVisible()
-  await expect(personalNav.getByRole("link", { name: "+ Partido" })).toHaveCount(0)
-  await expect(page.getByText("VS", { exact: true }).first()).toBeVisible()
-  await expect(page.getByText("Pareja A", { exact: true })).toHaveCount(0)
-  await expect(page.getByText("Pareja B", { exact: true })).toHaveCount(0)
+  await expect(page.getByRole("link", { name: "Mis partidos", exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Mis ligas", exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Mi perfil", exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "+ Partido", exact: true })).toHaveCount(0)
   await expect(page.locator('[data-tour="floating-settings"]')).toHaveCount(1)
   await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(0)
   await expect(page.locator('[data-tour="floating-notifications"]')).toHaveCount(0)

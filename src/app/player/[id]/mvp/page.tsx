@@ -48,14 +48,10 @@ export default function PlayerMvpMatchesPage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref={player ? `/player/${player.slug}` : "/ranking"} label="Volver" />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name}
-        </p>
-
-        <div className="mt-3 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           {player ? <PlayerAvatar player={player} size="lg" previewable /> : null}
           <div className="min-w-0">
             <h1 className="type-page-title text-2xl font-black tracking-tight">

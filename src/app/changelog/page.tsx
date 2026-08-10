@@ -21,9 +21,12 @@ export default async function ChangelogPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label="Volver" />
-        <div className="mt-1 flex flex-wrap items-center gap-2">
+        <h1 className="type-page-title font-black tracking-tight">
+          Registro de cambios
+        </h1>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2">
           <p className="text-sm font-medium text-neutral-500">Smash & Lob</p>
           {detailed ? (
             <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-white">
@@ -35,9 +38,6 @@ export default async function ChangelogPage() {
             </span>
           )}
         </div>
-        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
-          Registro de cambios
-        </h1>
       </header>
 
       <ChangelogContent releases={releases} detailed={detailed} />

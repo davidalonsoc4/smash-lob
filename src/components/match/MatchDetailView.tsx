@@ -8,6 +8,7 @@ type MatchDetailViewProps = {
   backLabel: string
   eyebrow?: ReactNode
   title: ReactNode
+  context?: ReactNode
   subtitle?: ReactNode
   status: string
   scheduledAt?: string | null
@@ -21,8 +22,8 @@ type MatchDetailViewProps = {
 export function MatchDetailView({
   backHref,
   backLabel,
-  eyebrow,
   title,
+  context,
   subtitle,
   status,
   scheduledAt,
@@ -34,20 +35,12 @@ export function MatchDetailView({
 }: MatchDetailViewProps) {
   return (
     <div className="space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref={backHref} label={backLabel} />
 
-        <div className="mt-3 min-w-0 w-full" style={{ maxWidth: "none" }}>
-          {eyebrow ? (
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-              {eyebrow}
-            </p>
-          ) : null}
-
-          <div
-            className={`${eyebrow ? "mt-1" : ""} flex min-w-0 items-start justify-between gap-2.5`}
-          >
-            <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{title}</h1>
+        <div className="min-w-0 w-full" style={{ maxWidth: "none" }}>
+          <div className="flex min-w-0 items-start justify-between gap-2.5">
+            <h1 className="type-page-title min-w-0 font-black tracking-tight">{title}</h1>
 
             <div className="flex shrink-0 flex-col items-end gap-0.5">
               <MatchStatusBadge
@@ -59,11 +52,12 @@ export function MatchDetailView({
             </div>
           </div>
 
-          {subtitle ? (
+
+          {context ?? (subtitle ? (
             <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
               {subtitle}
             </p>
-          ) : null}
+          ) : null)}
         </div>
       </header>
 

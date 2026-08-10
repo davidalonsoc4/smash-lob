@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
-import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -594,17 +594,21 @@ function ActivityPageContent() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
-        <LeagueSeasonEyebrow
-          leagueName={activeLeague.name}
-          seasonName={activeSeason.name}
-          seasonStatus={activeSeason.status}
-        />
-
-        <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
+      <header className="app-page-header">
+        <h1 className="type-page-title font-black tracking-tight">
           {t.activity.title}
         </h1>
-
+        <SeasonContextLine
+          seasonName={activeSeason.name}
+          statusLabel={
+            activeSeason.status === "finished"
+              ? t.common.finishedSeasonBadge
+              : activeSeason.status === "upcoming"
+                ? t.rounds.statusUpcoming
+                : t.rounds.statusActive
+          }
+          className="mt-0.5"
+        />
       </header>
 
       <div className={`grid gap-1 rounded-xl bg-neutral-100 p-0.5 ${canAccessAdmin ? "grid-cols-3" : "grid-cols-2"}`}>

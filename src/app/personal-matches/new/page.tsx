@@ -18,7 +18,6 @@ import {
 import type {
   PersonalMatchPerson,
   PersonalMatchSet,
-  PersonalMatchStatus,
 } from "@/lib/personalMatches"
 
 function localDateTimeValue(date: Date) {
@@ -41,11 +40,12 @@ export default function NewPersonalMatchPage() {
   const router = useRouter()
   const [people, setPeople] = useState<PersonalMatchPerson[]>([])
   const [participants, setParticipants] = useState<EditableParticipant[]>(initialParticipants)
-  const [status, setStatus] = useState<PersonalMatchStatus>("scheduled")
+  const [includeResult, setIncludeResult] = useState(false)
   const [scheduledAt, setScheduledAt] = useState("")
   const [latestFinishedAt, setLatestFinishedAt] = useState("")
   const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState("")
+  const [locationSearch, setLocationSearch] = useState("")
   const [manualLocationName, setManualLocationName] = useState("")
   const [loadingLocations, setLoadingLocations] = useState(true)
   const [sets, setSets] = useState<PersonalMatchSet[]>([
@@ -137,6 +137,15 @@ export default function NewPersonalMatchPage() {
   const selectedGlobalLocation = globalLocations.find(
     (location) => location.id === selectedLocationId,
   ) ?? null
+  const filteredGlobalLocations = useMemo(() => {
+    const query = locationSearch.trim().toLocaleLowerCase("es-ES")
+    if (!query) return globalLocations
+    return globalLocations.filter((location) =>
+      getLeagueLocationOptionLabel(location)
+        .toLocaleLowerCase("es-ES")
+        .includes(query),
+    )
+  }, [globalLocations, locationSearch])
   const resolvedLocationName = selectedGlobalLocation
     ? getLeagueLocationCompactText(selectedGlobalLocation)
     : manualLocationName.trim()
@@ -145,7 +154,7 @@ export default function NewPersonalMatchPage() {
     !submitting &&
     scheduledAt.trim().length > 0 &&
     participantsComplete &&
-    (status === "scheduled" || (sets.length >= 1 && hasWinner))
+    (!includeResult || (sets.length >= 1 && hasWinner))
 
   function updateParticipant(index: number, next: EditableParticipant) {
     setParticipants((current) =>
@@ -209,10 +218,10 @@ export default function NewPersonalMatchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status,
+          status: includeResult ? "finished" : "scheduled",
           scheduledAt: new Date(scheduledAt).toISOString(),
           locationName,
-          sets: status === "finished" ? sets : [],
+          sets: includeResult ? sets : [],
           participants: participants.map((participant) => ({
             team: participant.team,
             slot: participant.slot,
@@ -235,9 +244,9 @@ export default function NewPersonalMatchPage() {
           : code === "duplicate_personal_match_person"
             ? "No puedes seleccionar al mismo jugador dos veces."
             : code === "invalid_personal_match_date"
-              ? status === "scheduled"
-                ? "El partido programado debe tener una fecha actual o futura."
-                : "Revisa la fecha del partido disputado."
+              ? includeResult
+                ? "Revisa la fecha del partido disputado."
+                : "El partido programado debe tener una fecha actual o futura."
               : "No se ha podido guardar el partido. Revisa los datos e inténtalo de nuevo.",
       )
     } finally {
@@ -247,30 +256,13 @@ export default function NewPersonalMatchPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <p className="mt-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
-        <h1 className="type-page-title mt-0.5 text-2xl font-black tracking-tight">
-          {status === "scheduled" ? "Programar partido" : "Registrar partido"}
+        <h1 className="type-page-title font-black tracking-tight">
+          Crear encuentro
         </h1>
+        <p className="mt-0.5 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
       </header>
-
-      <div className="grid grid-cols-2 rounded-xl bg-neutral-100 p-1">
-        <button
-          type="button"
-          onClick={() => setStatus("scheduled")}
-          className={`rounded-lg px-3 py-2 text-xs font-black ${status === "scheduled" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}
-        >
-          Programar
-        </button>
-        <button
-          type="button"
-          onClick={() => setStatus("finished")}
-          className={`rounded-lg px-3 py-2 text-xs font-black ${status === "finished" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}
-        >
-          Ya jugado
-        </button>
-      </div>
 
       <AppCard className="p-3">
         <div className="grid gap-2 sm:grid-cols-2">
@@ -279,30 +271,57 @@ export default function NewPersonalMatchPage() {
             <input
               type="datetime-local"
               value={scheduledAt}
-              max={status === "finished" ? latestFinishedAt || undefined : undefined}
+              max={includeResult ? latestFinishedAt || undefined : undefined}
               onChange={(event) => setScheduledAt(event.target.value)}
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
             />
           </label>
-          <label className="block">
+          <div className="block">
             <span className="text-xs font-black text-neutral-800">Ubicación · opcional</span>
-            <select
-              value={selectedLocationId}
-              onChange={(event) => {
-                setSelectedLocationId(event.target.value)
-                if (event.target.value) setManualLocationName("")
-              }}
+            <input
+              type="search"
+              value={locationSearch}
+              onChange={(event) => setLocationSearch(event.target.value)}
               disabled={loadingLocations}
+              placeholder={loadingLocations ? "Cargando ubicaciones..." : "Buscar ubicación..."}
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+            />
+            {!loadingLocations ? (
+              <>
+                <div className="mt-1.5 flex items-center justify-between gap-2 type-caption font-semibold text-neutral-500">
+                  <span>{filteredGlobalLocations.length} ubicación{filteredGlobalLocations.length === 1 ? "" : "es"}</span>
+                  <span>{locationSearch.trim() ? "Resultados filtrados" : "Desliza para ver más"}</span>
+                </div>
+                <div className="mt-1 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/70 p-1">
+                  {filteredGlobalLocations.map((location) => {
+                    const selected = selectedLocationId === location.id
+                    return (
+                      <button
+                        key={location.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLocationId(location.id)
+                          setManualLocationName("")
+                        }}
+                        className={`w-full rounded-lg border px-2.5 py-2 text-left ${selected ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-900"}`}
+                      >
+                        <span className="block truncate text-xs font-black">{getLeagueLocationOptionLabel(location)}</span>
+                      </button>
+                    )
+                  })}
+                  {filteredGlobalLocations.length === 0 ? (
+                    <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">No hay ubicaciones que coincidan.</p>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => { setSelectedLocationId(""); setLocationSearch("") }}
+              className={`mt-1.5 w-full rounded-xl border px-3 py-2.5 text-xs font-black ${!selectedLocationId ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-800"}`}
             >
-              <option value="">{loadingLocations ? "Cargando ubicaciones..." : "Sin ubicación / introducir nueva"}</option>
-              {globalLocations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {getLeagueLocationOptionLabel(location)}
-                </option>
-              ))}
-            </select>
-
+              Otra ubicación / introducir nueva
+            </button>
             {!selectedLocationId ? (
               <input
                 value={manualLocationName}
@@ -311,7 +330,7 @@ export default function NewPersonalMatchPage() {
                 className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
               />
             ) : null}
-          </label>
+          </div>
         </div>
       </AppCard>
 
@@ -337,74 +356,90 @@ export default function NewPersonalMatchPage() {
         ) : null}
       </AppCard>
 
-      {status === "finished" ? (
-        <AppCard className="p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-black text-neutral-950">Resultado</p>
-              <p className="mt-0.5 type-caption font-semibold text-neutral-500">Equipo A · Equipo B</p>
-            </div>
-            {sets.length < 5 ? (
-              <button
-                type="button"
-                onClick={() => setSets((current) => [...current, { a: 0, b: 0 }])}
-                className="rounded-lg bg-neutral-100 px-2.5 py-2 type-caption font-black text-neutral-700"
-              >
-                + Set
-              </button>
-            ) : null}
+      <AppCard className="p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-black text-neutral-950">Resultado · opcional</p>
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
+              Puedes guardarlo ahora si el partido ya se ha jugado o añadirlo más adelante desde el detalle.
+            </p>
           </div>
+          <button
+            type="button"
+            aria-pressed={includeResult}
+            onClick={() => {
+              setIncludeResult((current) => !current)
+              setError(null)
+            }}
+            className={`shrink-0 rounded-xl px-3 py-2 type-caption font-black ${
+              includeResult
+                ? "bg-neutral-950 text-white"
+                : "border border-neutral-200 bg-white text-neutral-800"
+            }`}
+          >
+            {includeResult ? "Quitar" : "Añadir resultado"}
+          </button>
+        </div>
 
-          <div className="mt-3 space-y-2">
-            {sets.map((set, index) => (
-              <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-2 rounded-xl bg-neutral-100 p-2">
-                <span className="type-caption font-black uppercase text-neutral-500">Set {index + 1}</span>
-                <input
-                  inputMode="numeric"
-                  type="number"
-                  min={0}
-                  max={99}
-                  value={set.a}
-                  onChange={(event) => updateSet(index, "a", event.target.value)}
-                  className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
-                />
-                <span className="text-xs font-black text-neutral-400">-</span>
-                <input
-                  inputMode="numeric"
-                  type="number"
-                  min={0}
-                  max={99}
-                  value={set.b}
-                  onChange={(event) => updateSet(index, "b", event.target.value)}
-                  className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
-                />
-                {sets.length > 1 ? (
-                  <button
-                    type="button"
-                    aria-label={`Eliminar set ${index + 1}`}
-                    onClick={() => setSets((current) => current.filter((_, setIndex) => setIndex !== index))}
-                    className="h-8 w-8 rounded-lg text-sm font-black text-neutral-400"
-                  >
-                    ×
-                  </button>
-                ) : (
-                  <span className="h-8 w-8" />
-                )}
-              </div>
-            ))}
-          </div>
-          {!hasWinner ? (
-            <p className="mt-2 type-caption font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
-          ) : null}
-        </AppCard>
-      ) : (
-        <AppCard className="border-blue-100 bg-blue-50 p-3">
-          <p className="text-xs font-black text-blue-950">Resultado pendiente</p>
-          <p className="mt-1 type-caption font-semibold leading-4 text-blue-700">
-            El resultado se añadirá desde el detalle del partido cuando se haya disputado.
-          </p>
-        </AppCard>
-      )}
+        {includeResult ? (
+          <>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="type-caption font-semibold text-neutral-500">Equipo A · Equipo B</p>
+              {sets.length < 5 ? (
+                <button
+                  type="button"
+                  onClick={() => setSets((current) => [...current, { a: 0, b: 0 }])}
+                  className="rounded-lg bg-neutral-100 px-2.5 py-2 type-caption font-black text-neutral-700"
+                >
+                  + Set
+                </button>
+              ) : null}
+            </div>
+
+            <div className="mt-2 space-y-2">
+              {sets.map((set, index) => (
+                <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-2 rounded-xl bg-neutral-100 p-2">
+                  <span className="type-caption font-black uppercase text-neutral-500">Set {index + 1}</span>
+                  <input
+                    inputMode="numeric"
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={set.a}
+                    onChange={(event) => updateSet(index, "a", event.target.value)}
+                    className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
+                  />
+                  <span className="text-xs font-black text-neutral-400">-</span>
+                  <input
+                    inputMode="numeric"
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={set.b}
+                    onChange={(event) => updateSet(index, "b", event.target.value)}
+                    className="min-w-0 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-center text-sm font-black outline-none"
+                  />
+                  {sets.length > 1 ? (
+                    <button
+                      type="button"
+                      aria-label={`Eliminar set ${index + 1}`}
+                      onClick={() => setSets((current) => current.filter((_, setIndex) => setIndex !== index))}
+                      className="h-8 w-8 rounded-lg text-sm font-black text-neutral-400"
+                    >
+                      ×
+                    </button>
+                  ) : (
+                    <span className="h-8 w-8" />
+                  )}
+                </div>
+              ))}
+            </div>
+            {!hasWinner ? (
+              <p className="mt-2 type-caption font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
+            ) : null}
+          </>
+        ) : null}
+      </AppCard>
 
       {error ? (
         <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-700">{error}</p>
@@ -418,9 +453,9 @@ export default function NewPersonalMatchPage() {
       >
         {submitting
           ? "Guardando..."
-          : status === "scheduled"
-            ? "Programar partido"
-            : "Guardar resultado"}
+          : includeResult
+            ? "Guardar encuentro y resultado"
+            : "Guardar encuentro"}
       </button>
     </div>
   )

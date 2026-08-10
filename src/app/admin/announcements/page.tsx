@@ -208,11 +208,8 @@ export default function AdminAnnouncementsPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/admin" label="Volver" />
-        <p className="mt-1 text-xs font-bold text-neutral-500">
-          {activeLeague.name}
-        </p>
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Comunicados</h1>
       </header>
 

@@ -51,7 +51,7 @@ export default function NewLeaguePage() {
   if (!canCreateLeagues) {
     return (
       <div className="space-y-4">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
           <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">
@@ -71,7 +71,7 @@ export default function NewLeaguePage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
         <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">

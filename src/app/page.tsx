@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine";
 import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
 import { MatchCard } from "@/components/matches/MatchCard";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
@@ -32,7 +33,6 @@ import { formatMoney } from "@/lib/courtBooking";
 import { getNextMatch } from "@/lib/leagues";
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
-import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles";
 import {
   ensureSeasonRegistrationPlayers,
   getSeasonRegistrationPendingPayments,
@@ -65,22 +65,6 @@ type AwardPlayer = {
   avatarInitials?: string | null;
   avatarUrl?: string | null;
 };
-
-type DashboardPlayer = AwardPlayer & {
-  points: number;
-  gamesDiff: number;
-  gamesFor: number;
-  matchesPlayed: number;
-  wins: number;
-};
-
-function formatWinPercentage(player: DashboardPlayer) {
-  if (player.matchesPlayed === 0) {
-    return "0%";
-  }
-
-  return `${Math.round((player.wins / player.matchesPlayed) * 100)}%`;
-}
 
 function CrownIcon() {
   return (
@@ -325,169 +309,80 @@ function getPendingPaymentGroups({
   );
 }
 
-function PlayerAwardCard({
-  eyebrow,
-  title,
+function SeasonSummaryAwardRow({
+  label,
   players,
   badge,
-  stats,
-  inlineStat,
-  inlineStatHref,
-  cardHref,
+  href,
+  meta,
+  tone,
 }: {
-  eyebrow?: string;
-  title: string;
+  label: string;
   players: AwardPlayer[];
   badge: string;
-  stats?: { label: string; value: string | number }[];
-  inlineStat?: { label: string; value: string | number };
-  inlineStatHref?: string;
-  cardHref?: string;
+  href?: string;
+  meta?: string;
+  tone: "winner" | "mvp";
 }) {
   const firstPlayer = players[0];
-  const isWholeCardClickable = Boolean(cardHref);
 
   if (!firstPlayer) {
     return null;
   }
 
-  const cardContent = (
-    <AppCard
-      className={`overflow-hidden p-0 ${
-        isWholeCardClickable ? "transition active:scale-[0.99]" : ""
-      }`}
-    >
-      <div className="player-award-card-header border-b border-neutral-100 bg-gradient-to-br from-neutral-950 to-neutral-800 px-3 py-2.5 text-white">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            {eyebrow ? (
-              <p className="player-award-card-eyebrow type-caption font-black uppercase tracking-[0.22em] text-white/60">
-                {eyebrow}
-              </p>
-            ) : null}
-            <h2
-              className={`${eyebrow ? "mt-1" : ""} text-lg font-black tracking-tight`}
-            >
-              {title}
-            </h2>
-          </div>
+  const toneClasses =
+    tone === "winner"
+      ? "border-amber-200 bg-gradient-to-r from-amber-100/80 via-amber-50 to-white"
+      : "border-violet-200 bg-gradient-to-r from-violet-100/75 via-violet-50 to-white";
+  const badgeClasses =
+    tone === "winner"
+      ? "bg-amber-200 text-amber-900 ring-amber-300"
+      : "bg-violet-200 text-violet-900 ring-violet-300";
+  const avatarSize = tone === "winner" ? "lg" : "md";
 
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-base font-black text-neutral-950">
-              {badge}
-            </div>
-            {isWholeCardClickable ? (
-              <ClickableChevron className="player-award-card-chevron shrink-0 border-white/20 bg-white/10 text-white/70" />
-            ) : null}
-          </div>
+  const content = (
+    <div className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left shadow-[0_1px_8px_rgba(15,23,42,0.05)] ${toneClasses}`}>
+      <div className={`absolute inset-y-0 left-0 w-1 ${tone === "winner" ? "bg-amber-400" : "bg-violet-400"}`} aria-hidden="true" />
+      <div className="relative ml-1 shrink-0">
+        <div className="flex -space-x-3">
+          {players.slice(0, 2).map((player) => (
+            <PlayerAvatar
+              key={player.id}
+              player={player}
+              size={avatarSize}
+              className="border-2 border-white shadow-sm"
+            />
+          ))}
+        </div>
+        <div
+          className={`absolute -bottom-1 -right-1 flex h-7 min-w-7 items-center justify-center rounded-xl px-1.5 text-sm font-black ring-1 shadow-sm ${badgeClasses}`}
+          aria-hidden="true"
+        >
+          {badge}
         </div>
       </div>
-
-      <div className="p-3">
-        <div className="flex items-center gap-3">
-          <div className="flex -space-x-3">
-            {players.slice(0, 3).map((player) => {
-              const avatar = (
-                <PlayerAvatar
-                  player={player}
-                  size="lg"
-                  className="border-2 border-white bg-neutral-950 text-white"
-                />
-              );
-
-              return isWholeCardClickable ? (
-                <div key={player.id} className="rounded-full">
-                  {avatar}
-                </div>
-              ) : (
-                <Link
-                  key={player.id}
-                  href={`/player/${player.slug ?? player.id}`}
-                  aria-label={`Ver perfil de ${player.displayName}`}
-                  className="rounded-full transition active:scale-[0.97]"
-                >
-                  {avatar}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-black tracking-tight text-neutral-950">
-              {players.map((player, index) => (
-                <span key={player.id}>
-                  {isWholeCardClickable ? (
-                    player.displayName
-                  ) : (
-                    <Link
-                      href={`/player/${player.slug ?? player.id}`}
-                      className="underline-offset-2 active:underline"
-                    >
-                      {player.displayName}
-                    </Link>
-                  )}
-                  {index < players.length - 1 ? " / " : ""}
-                </span>
-              ))}
-            </p>
-          </div>
-
-          {inlineStat ? (
-            inlineStatHref && !isWholeCardClickable ? (
-              <Link
-                href={inlineStatHref}
-                className="shrink-0 rounded-xl bg-neutral-100 px-3 py-2.5 text-center transition active:scale-[0.97]"
-              >
-                <p className="text-lg font-black text-neutral-950">
-                  {inlineStat.value}
-                </p>
-                <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
-                  {inlineStat.label}
-                </p>
-              </Link>
-            ) : (
-              <div className="shrink-0 rounded-xl bg-neutral-100 px-3 py-2.5 text-center">
-                <p className="text-lg font-black text-neutral-950">
-                  {inlineStat.value}
-                </p>
-                <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
-                  {inlineStat.label}
-                </p>
-              </div>
-            )
-          ) : null}
-        </div>
-
-        {stats && stats.length > 0 ? (
-          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-xl bg-neutral-100 px-2 py-2.5"
-              >
-                <p className="text-lg font-black text-neutral-950">
-                  {stat.value}
-                </p>
-                <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
+      <div className="min-w-0 flex-1 text-center">
+        <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
+          {label}
+        </p>
+        <p className="mt-0.5 type-player-name-prominent font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+          {players.map((player) => player.displayName).join(" / ")}
+        </p>
+        {meta ? (
+          <p className="mt-0.5 type-caption font-bold text-neutral-600">{meta}</p>
         ) : null}
       </div>
-    </AppCard>
+      {href ? <ClickableChevron className="shrink-0" /> : null}
+    </div>
   );
 
-  if (cardHref) {
-    return (
-      <Link href={cardHref} className="block">
-        {cardContent}
-      </Link>
-    );
-  }
-
-  return cardContent;
+  return href ? (
+    <Link href={href} className="block h-full transition active:scale-[0.99]">
+      {content}
+    </Link>
+  ) : (
+    content
+  );
 }
 
 export default function Home() {
@@ -834,29 +729,28 @@ export default function Home() {
 
   return (
     <div className="space-y-4">
-      <header data-tour="home-header" className="pt-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-            {activeSeason.name}
-          </p>
-          {isSeasonClosed ? (
-            <span className={getSeasonStatusBadgeClassName("finished")}>
-              {t.common.finishedSeasonBadge}
-            </span>
+      <header data-tour="home-header" className="app-page-header">
+        <div className={activeLeague.logoUrl ? "app-home-identity" : "block"}>
+          {activeLeague.logoUrl ? (
+            <LeagueLogo league={activeLeague} size="xl" className="app-home-top-logo" previewable />
           ) : null}
+          <div className={activeLeague.logoUrl ? "app-home-identity-copy min-w-0" : "min-w-0"}>
+            <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight">
+              {activeLeague.name}
+            </h1>
+            <SeasonContextLine
+              seasonName={activeSeason.name}
+              statusLabel={
+                activeSeason.status === "finished"
+                  ? t.common.finishedSeasonBadge
+                  : activeSeason.status === "upcoming"
+                    ? t.rounds.statusUpcoming
+                    : t.rounds.statusActive
+              }
+              className="mt-0.5"
+            />
+          </div>
         </div>
-
-        <div className="mt-1.5 flex items-center gap-2.5">
-          <LeagueLogo league={activeLeague} size="lg" previewable />
-
-          <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">
-            {activeLeague.name}
-          </h1>
-        </div>
-
-        <p className="mt-1 text-xs leading-5 text-neutral-500">
-          {activeLeague.description} · {t.common.individualRanking}
-        </p>
       </header>
 
       {spectatorMode ? (
@@ -880,20 +774,16 @@ export default function Home() {
       ) : null}
 
       {isSeasonUpcoming ? (
-        <AppCard className="border border-neutral-200 bg-neutral-50/80">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-            Temporada próximamente
+        <AppCard className="border border-neutral-200 bg-neutral-50/80 p-3">
+          <p className="type-panel-title font-black text-neutral-950">
+            Próxima temporada
           </p>
-          <p className="mt-2 font-bold text-neutral-950">
-            {activeSeason.name} está creada, pero todavía no ha comenzado.
-          </p>
-          <p className="mt-2 text-sm text-neutral-500">
-            Mientras esté en este estado no se pueden programar partidos ni
-            registrar resultados.
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
+            Inicio pendiente · {seasonRankingPlayers.length} jugadores
           </p>
 
           {isSelfRegistrationSeason ? (
-            <div className="mt-4">
+            <div className="mt-3">
               <SeasonRosterWaitingRoom
                 leagueId={activeLeague.id}
                 seasonId={activeSeason.id}
@@ -913,17 +803,17 @@ export default function Home() {
               </button>
 
               {!isRosterComplete ? (
-                <p className="mt-3 text-center text-xs font-semibold text-amber-700">
+                <p className="mt-2 text-center text-xs font-semibold text-amber-700">
                   {t.roster.startIncompleteHint}
                 </p>
               ) : !isRegistrationSettled ? (
-                <p className="mt-3 text-center text-xs font-semibold text-amber-700">
+                <p className="mt-2 text-center text-xs font-semibold text-amber-700">
                   La temporada no puede comenzar hasta saldar todas las inscripciones.
                 </p>
               ) : null}
 
               {startSeasonError ? (
-                <p className="mt-3 text-center text-sm font-semibold text-red-600">
+                <p className="mt-2 text-center text-sm font-semibold text-red-600">
                   {startSeasonError}
                 </p>
               ) : null}
@@ -933,93 +823,70 @@ export default function Home() {
       ) : null}
 
       {isSeasonClosed ? (
-        leader ? (
-          <div className="space-y-4">
-            <PlayerAwardCard
-              title={t.dashboard.seasonWinner.replace(
-                "{seasonName}",
-                activeSeason.name,
-              )}
-              players={[leader]}
-              badge="1º"
-              cardHref={`/player/${leader.slug ?? leader.id}`}
-              stats={[
-                { label: t.common.pointsShort, value: leader.points },
-                {
-                  label: t.ranking.diff,
-                  value: `${leader.gamesDiff > 0 ? "+" : ""}${leader.gamesDiff}`,
-                },
-                { label: "Victorias", value: formatWinPercentage(leader) },
-              ]}
-            />
+        <div className="space-y-2">
+          <AppCard data-tour="home-season-summary" className="overflow-hidden p-0">
+            <div className="px-3 pt-3">
+              <p className="type-panel-title font-black text-neutral-950">
+                {t.profile.seasonSummary}
+              </p>
+            </div>
 
-            {seasonMvp ? (
-              <PlayerAwardCard
-                title={`MVP de ${activeSeason.name}`}
-                players={seasonMvpPlayers}
-                badge="★"
-                inlineStat={{ label: "MVPs", value: seasonMvp.votes }}
-                cardHref={
-                  seasonMvpPlayers[0]
-                    ? `/player/${seasonMvpPlayers[0].slug ?? seasonMvpPlayers[0].id}/mvp`
-                    : undefined
-                }
-              />
-            ) : null}
+            {leader ? (
+              <div className="space-y-2 px-3 pb-3 pt-2">
+                <SeasonSummaryAwardRow
+                  label={t.dashboard.winner}
+                  players={[leader]}
+                  badge="🏆"
+                  tone="winner"
+                  href={`/player/${leader.slug ?? leader.id}`}
+                  meta={`${leader.points} ${t.common.pointsShort}`}
+                />
+                {seasonMvp ? (
+                  <SeasonSummaryAwardRow
+                    label="MVP"
+                    players={seasonMvpPlayers}
+                    badge="★"
+                    tone="mvp"
+                    href={
+                      seasonMvpPlayers[0]
+                        ? `/player/${seasonMvpPlayers[0].slug ?? seasonMvpPlayers[0].id}/mvp`
+                        : undefined
+                    }
+                    meta={`${seasonMvp.votes} MVPs`}
+                  />
+                ) : null}
+              </div>
+            ) : (
+              <p className="px-3 pb-3 pt-2 text-sm font-semibold text-neutral-500">
+                {t.dashboard.closedSeasonTitle}
+              </p>
+            )}
 
-            <div data-tour="home-season-actions" className="grid gap-2 sm:grid-cols-2">
+            <div data-tour="home-season-actions" className="grid grid-cols-2 gap-2 border-t border-neutral-100 p-3">
               <Link
                 href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
-                className="block rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-950 transition active:scale-[0.99]"
+                className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-950 transition active:scale-[0.99]"
               >
                 {t.dashboard.historyAndStatistics}
               </Link>
               <Link
                 href={`/statistics/season?season=${encodeURIComponent(activeSeason.id)}#compartir-resumen-temporada`}
-                className="block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white transition active:scale-[0.99]"
+                className="rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-xs font-black text-white transition active:scale-[0.99]"
               >
                 {t.dashboard.shareSeasonSummary}
               </Link>
             </div>
-
-            {canManageSeason ? (
-              <Link
-                href="/admin/season"
-                className="block rounded-xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
-              >
-                {t.dashboard.createSeason}
-              </Link>
-            ) : null}
-          </div>
-        ) : (
-          <AppCard>
-            <p className="font-bold text-neutral-950">
-              {t.dashboard.closedSeasonTitle}
-            </p>
-            <div data-tour="home-season-actions" className="mt-3 grid gap-2 sm:grid-cols-2">
-              <Link
-                href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
-                className="block rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-950"
-              >
-                {t.dashboard.historyAndStatistics}
-              </Link>
-              <Link
-                href={`/statistics/season?season=${encodeURIComponent(activeSeason.id)}#compartir-resumen-temporada`}
-                className="block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
-              >
-                {t.dashboard.shareSeasonSummary}
-              </Link>
-            </div>
-            {canManageSeason ? (
-              <Link
-                href="/admin/season"
-                className="mt-3 block rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
-              >
-                {t.dashboard.createSeason}
-              </Link>
-            ) : null}
           </AppCard>
-        )
+
+          {canManageSeason ? (
+            <Link
+              href="/admin/season"
+              className="block w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-center text-sm font-black text-neutral-950 shadow-[0_1px_6px_rgba(15,23,42,0.035)] transition active:scale-[0.99]"
+            >
+              {t.dashboard.createSeason}
+            </Link>
+          ) : null}
+        </div>
       ) : null}
 
       {!isSeasonClosed && !isSeasonUpcoming ? (
@@ -1138,20 +1005,22 @@ export default function Home() {
 
       {!isSeasonUpcoming ? (
         <section>
-          <SectionHeader
-            title={t.dashboard.rankingTitle}
-            action={
-              <Link
-                href="/ranking"
-                className="text-sm font-semibold text-neutral-600"
-              >
-                {t.dashboard.viewAll}
-              </Link>
-            }
-          />
+          <AppCard className="overflow-hidden p-0">
+            <div className="px-3 pt-3">
+              <SectionHeader
+                title={t.dashboard.rankingTitle}
+                action={
+                  <Link
+                    href="/ranking"
+                    className="text-sm font-semibold text-neutral-600"
+                  >
+                    {t.dashboard.viewAll}
+                  </Link>
+                }
+              />
+            </div>
 
-          <AppCard>
-            <div className="space-y-3">
+            <div className="space-y-3 border-t border-neutral-100 px-3 py-2.5">
               {rankingPreviewPlayers.map((player, index) => (
                 <div
                   key={player.id}

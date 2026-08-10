@@ -19,7 +19,6 @@ function formatNames(names: string[]) {
 
 export default function StatisticsPage() {
   const {
-    activeLeague,
     selectedSeason,
     seasonOptions,
     selectSeason,
@@ -50,7 +49,6 @@ export default function StatisticsPage() {
     <div className="compact-page space-y-3">
       <div data-tour="statistics-header" className="space-y-3">
         <StatisticsPageHeader
-          leagueName={activeLeague.name}
           title="Estadísticas"
           description={
             isLeagueWide

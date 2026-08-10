@@ -6,7 +6,6 @@ import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 
 export default function StatisticsEvolutionPage() {
   const {
-    activeLeague,
     selectedSeason,
     buildStatisticsHref,
     statistics,
@@ -22,7 +21,6 @@ export default function StatisticsEvolutionPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        leagueName={activeLeague.name}
         title="Evolución de la liga"
         description={
           isLeagueWide

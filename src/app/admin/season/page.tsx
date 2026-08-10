@@ -643,6 +643,12 @@ const mvpSystemOptions: {
       "El sistema actual elige como MVP a la pareja ganadora con mejor diferencia de juegos de la jornada.",
   },
   {
+    value: "automatic_advanced",
+    title: "MVP automático avanzado",
+    description:
+      "Elige primero la pareja más dominante de la jornada y después compara a sus integrantes con un índice individual ajustado por compañero y rivales usando resultados, sets y juegos. Si quedan prácticamente igualados, comparte el MVP.",
+  },
+  {
     value: "voting",
     title: "MVP por votación",
     description:
@@ -4245,7 +4251,7 @@ export default function AdminSeasonPage() {
   if (!canAccessAdmin) {
     return (
       <div className="compact-page space-y-3">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/settings" label={t.common.back} />
 
           <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
@@ -4322,12 +4328,8 @@ export default function AdminSeasonPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header data-tour="season-admin-header" className="pt-2">
+      <header data-tour="season-admin-header" className="app-page-header">
         <BackButton fallbackHref="/admin" label={t.common.back} />
-
-        <p className="mt-1 text-xs font-bold text-neutral-500">
-          {activeLeague.name}
-        </p>
 
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {isActiveSeason

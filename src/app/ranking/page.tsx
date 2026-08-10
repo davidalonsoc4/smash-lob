@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { RankingTable } from "@/components/ranking/RankingTable"
 import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -14,17 +15,22 @@ export default function RankingPage() {
 
   return (
     <div className="space-y-4">
-      <header data-tour="ranking-header" className="pt-2">
-        <LeagueSeasonEyebrow
-          leagueName={activeLeague.name}
-          seasonName={activeSeason.name}
-          seasonStatus={activeSeason.status}
-        />
-
-        <h1 className="type-page-title mt-1.5 text-2xl font-black tracking-tight">
+      <header data-tour="ranking-header" className="app-page-header">
+        <BackButton fallbackHref="/" label={t.common.back} />
+        <h1 className="type-page-title text-2xl font-black tracking-tight">
           {t.common.individualRanking}
         </h1>
-
+        <SeasonContextLine
+          seasonName={activeSeason.name}
+          statusLabel={
+            activeSeason.status === "finished"
+              ? t.common.finishedSeasonBadge
+              : activeSeason.status === "upcoming"
+                ? t.rounds.statusUpcoming
+                : t.rounds.statusActive
+          }
+          className="mt-0.5"
+        />
       </header>
 
 

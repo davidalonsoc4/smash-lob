@@ -127,6 +127,13 @@ textarea {
   line-height: 1.25;
 }
 
+/* Inactive NAVBAR labels must keep AA contrast even when the translucent
+   navigation surface composites over page content. Theme-specific rules below
+   can still replace this neutral with their own accessible secondary text. */
+.app-bottom-nav-item {
+  color: #525252;
+}
+
 .app-bottom-nav-icon {
   width: 16px;
   height: 16px;
@@ -244,18 +251,65 @@ textarea {
   --tw-ring-color: rgb(212 212 212 / 0.85) !important;
 }
 
-/* Keep header content clear of the floating controls without moving the page down. */
-.app-main[data-has-floating-top-controls="true"]
-  > :first-child
-  > header:first-child
-  > :first-child,
-.app-main[data-has-floating-top-controls="true"]
-  > :first-child
-  > header:first-child
-  > a:first-child
-  + * {
-  max-width: calc(100% - var(--app-floating-top-reserved-width, 0px));
+/* Floating controls own a dedicated top row; page headings keep the full content width. */
+.app-main[data-has-floating-top-controls="true"] {
+  position: relative;
 }
+
+/* Every in-app screen header uses the same breathing room below the functional row.
+   Page-specific context/actions remain free to compose inside this shared geometry. */
+.app-page-header {
+  padding-top: 0.5rem !important;
+}
+
+.app-page-header .type-page-title {
+  margin-top: 0 !important;
+  font-size: 1.5rem !important;
+  line-height: 1.15 !important;
+}
+
+/* A wrapper for title actions/avatar must not shift the shared title baseline. */
+.app-page-header > :has(.type-page-title) {
+  margin-top: 0 !important;
+}
+
+.app-main[data-has-floating-top-controls="true"] .app-top-back-control {
+  position: absolute;
+  top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+  left: 0.75rem;
+  z-index: 51;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  max-width: 8rem;
+}
+
+
+
+/* HOME uses the free left side of the functional row for a larger league mark. */
+.app-home-identity {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  align-items: end;
+  gap: 0.75rem;
+}
+
+/* HOME keeps the 80px league logo in the free top-left corner, shifted down
+   together with the global page content to preserve the expanded top margin. */
+.app-main[data-has-floating-top-controls="true"] .app-home-top-logo {
+  position: absolute;
+  top: -36px;
+  left: 0;
+}
+
+.app-home-identity-copy {
+  grid-column: 2;
+  align-self: end;
+}
+
+/* PRE version badge is intentionally fixed above the app geometry.
+   It is informational only and may overlap content in PRE. */
 
 /* Dark appearance -------------------------------------------------------- */
 html.dark {
@@ -1500,50 +1554,26 @@ html.colorful .grid > .app-stat-card:nth-child(4n + 2)::after { background: rgb(
 html.colorful .grid > .app-stat-card:nth-child(4n + 3)::after { background: rgb(var(--colorful-accent-rgb) / 0.1); }
 html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(var(--colorful-warm-rgb) / 0.12); }
 
-/* Every ranking position uses the same theme-coherent side accent.
-   Position is communicated by the number and podium badge, not by bar color. */
-.app-ranking-list {
-  --ranking-row-accent: #64748b;
-}
-
-html.dark[data-style="plain"] .app-ranking-list {
-  --ranking-row-accent: var(--classic-dark-primary);
-}
-
-html.colorful .app-ranking-list {
-  --ranking-row-accent: var(--colorful-primary);
-}
+/* Ranking uses a left rail only for the podium. Gold, silver and bronze
+   stay identical in every theme; rows from fourth place onward have no rail. */
+.app-ranking-list .app-ranking-row:nth-child(1) { --ranking-row-accent: #d4a017; }
+.app-ranking-list .app-ranking-row:nth-child(2) { --ranking-row-accent: #a8adb5; }
+.app-ranking-list .app-ranking-row:nth-child(3) { --ranking-row-accent: #b87333; }
 
 .app-ranking-list .app-ranking-row {
   position: relative;
   overflow: hidden;
 }
 
-.app-ranking-list .app-ranking-row::before {
+.app-ranking-list .app-ranking-row:nth-child(-n + 3)::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
   width: 0.22rem;
   background: var(--ranking-row-accent);
-  opacity: 0.55;
   pointer-events: none;
 }
 
-html.colorful .app-ranking-row:nth-child(1) .app-ranking-position {
-  background: linear-gradient(145deg, #ffd768, #f2a93b) !important;
-  color: #5b3b00 !important;
-  box-shadow: 0 3px 10px rgb(242 169 59 / 0.28);
-}
-
-html.colorful .app-ranking-row:nth-child(2) .app-ranking-position {
-  background: linear-gradient(145deg, #e9eaf6, #cbd0e7) !important;
-  color: #454866 !important;
-}
-
-html.colorful .app-ranking-row:nth-child(3) .app-ranking-position {
-  background: linear-gradient(145deg, #efc69f, #d99661) !important;
-  color: #62361e !important;
-}
 
 html.colorful .app-bottom-nav {
   border-top-color: rgb(var(--colorful-primary-rgb) / 0.2) !important;
@@ -1567,7 +1597,7 @@ html.colorful .app-bottom-nav-active {
 }
 
 html.colorful .app-bottom-nav-item {
-  color: var(--colorful-text-500) !important;
+  color: var(--colorful-text-600) !important;
 }
 
 html.colorful .app-bottom-nav-item:active {

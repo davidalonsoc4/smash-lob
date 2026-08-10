@@ -39,7 +39,7 @@ type SettingsRow = {
   season_starts_at: string | null
   round_window_days: number | null
   requires_three_sets: boolean
-  mvp_system: "none" | "automatic" | "voting"
+  mvp_system: "none" | "automatic" | "automatic_advanced" | "voting"
   result_confirmation_mode: "required" | "optional" | "none"
   registration_fee: unknown
   schedule_mode: "single" | "double" | "extended"
@@ -361,7 +361,9 @@ export async function duplicateServerSeason({
     roundWindowDays: sourceSettings.round_window_days,
     requiresThreeSets: sourceSettings.requires_three_sets,
     mvpSystem:
-      sourceSettings.mvp_system === "none" || sourceSettings.mvp_system === "voting"
+      sourceSettings.mvp_system === "none" ||
+      sourceSettings.mvp_system === "automatic_advanced" ||
+      sourceSettings.mvp_system === "voting"
         ? sourceSettings.mvp_system
         : "automatic",
     resultConfirmationMode:

@@ -28,12 +28,8 @@ export default function RoundDetailPage() {
 
   return (
     <div className="space-y-4">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/matches" label="Volver" />
-
-        <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name}
-        </p>
         <h1 className="type-page-title mt-1 text-2xl font-black tracking-tight">
           Jornada {Number.isFinite(round) ? round : "—"}
         </h1>
