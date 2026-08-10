@@ -21,22 +21,25 @@ test("shows an actionable authentication error with an incidence code", async ({
   await expect(page.getByText(/^Código de incidencia: SL-[A-F0-9]{8}$/)).toBeVisible()
 })
 
-test("@a11y public and authentication screens have no serious Axe violations", async ({
-  page,
-}) => {
-  for (const path of ["/", "/about", "/auth/error?error=Configuration"]) {
-    await page.goto(path)
-    const results = await new AxeBuilder({ page })
-      .analyze()
+const accessibleScreens = [
+  { name: "public home", path: "/" },
+  { name: "about", path: "/about" },
+  { name: "authentication error", path: "/auth/error?error=Configuration" },
+] as const
+
+for (const screen of accessibleScreens) {
+  test(`@a11y ${screen.name} has no serious Axe violations`, async ({ page }) => {
+    await page.goto(screen.path)
+    const results = await new AxeBuilder({ page }).analyze()
     const serious = results.violations.filter(({ impact }) =>
       ["critical", "serious"].includes(impact ?? ""),
     )
 
-    expect(serious, `${path}: ${serious.map(({ id }) => id).join(", ")}`).toEqual([])
-  }
-})
+    expect(serious, `${screen.path}: ${serious.map(({ id }) => id).join(", ")}`).toEqual([])
+  })
+}
 
-test("@visual public screens remain stable", async ({ page }) => {
+test("@visual anonymous home remains stable", async ({ page }) => {
   await page.goto("/")
   await expect(page.getByRole("button", { name: /google/i })).toBeVisible()
   await page.addStyleTag({
@@ -46,7 +49,9 @@ test("@visual public screens remain stable", async ({ page }) => {
     fullPage: true,
     animations: "disabled",
   })
+})
 
+test("@visual authentication error remains stable", async ({ page }) => {
   await page.goto("/auth/error?error=Configuration")
   const incidenceCode = page.getByText(/^Código de incidencia:/)
   await page.addStyleTag({

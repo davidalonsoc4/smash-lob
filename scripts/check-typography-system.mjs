@@ -264,7 +264,7 @@ assert(compactStart >= 0, "No se encuentra la configuración compact-page")
 const compactSlice = globals.slice(compactStart)
 assert(!/\.compact-page[^}]*font-size\s*:/s.test(compactSlice), "compact-page no debe cambiar el tamaño tipográfico global")
 
-console.log("Tipografía semántica v1.5.13 correcta:")
+console.log("Tipografía semántica v1.5.15 correcta:")
 console.log("- títulos de pantalla, sección y panel con roles comunes")
 console.log("- nombres equivalentes de jugador unificados en Ranking, Calendario y Perfil")
 console.log("- nombres protagonistas separados de los nombres de listado")
