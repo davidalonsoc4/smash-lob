@@ -217,8 +217,8 @@ assert(
   "La fila funcional superior debe respetar el safe area del dispositivo",
 )
 assert(
-  globals.includes(".app-home-top-logo") && globals.includes("position: absolute") && globals.includes("top: -36px") && globals.includes("left: 0"),
-  "Inicio debe anclar el logo ampliado a la esquina funcional superior izquierda",
+  globals.includes(".app-home-top-logo") && globals.includes("position: absolute") && globals.includes("top: -52px") && globals.includes("left: 0") && globals.includes("width: 6.25rem !important") && globals.includes("height: 6.25rem !important"),
+  "Inicio debe ampliar el logo a 100 px y alinear su borde superior con los controles flotantes",
 )
 const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Promise.all([
   readFile("src/app/page.tsx", "utf8"),

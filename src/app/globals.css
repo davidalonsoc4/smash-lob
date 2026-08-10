@@ -290,17 +290,20 @@ textarea {
 .app-home-identity {
   position: relative;
   display: grid;
-  grid-template-columns: 5rem minmax(0, 1fr);
+  grid-template-columns: 6.25rem minmax(0, 1fr);
   align-items: end;
   gap: 0.75rem;
 }
 
-/* HOME keeps the 80px league logo in the free top-left corner, shifted down
-   together with the global page content to preserve the expanded top margin. */
+/* HOME lets the league logo fill the full useful header height. With the current
+   54px floating-row reserve + 8px header padding, -52px places its top edge at
+   exactly 10px (or safe-area + 8px), matching the floating controls. */
 .app-main[data-has-floating-top-controls="true"] .app-home-top-logo {
   position: absolute;
-  top: -36px;
+  top: -52px;
   left: 0;
+  width: 6.25rem !important;
+  height: 6.25rem !important;
 }
 
 .app-home-identity-copy {
