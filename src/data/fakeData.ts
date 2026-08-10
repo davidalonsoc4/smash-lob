@@ -95,7 +95,7 @@ export type SeasonRoundSettings = {
   seasonStartsAt: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
-  mvpSystem: "none" | "automatic" | "voting"
+  mvpSystem: "none" | "automatic" | "automatic_advanced" | "voting"
   resultConfirmationMode: "required" | "optional" | "none"
   manualActiveRound: number | null
   manualCompletedRounds: number[]

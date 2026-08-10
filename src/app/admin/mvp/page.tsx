@@ -120,6 +120,7 @@ export default function AdminMvpPage() {
   }
 
   const isVoting = roundSettings.mvpSystem === "voting"
+  const isAdvancedAutomatic = roundSettings.mvpSystem === "automatic_advanced"
 
   return (
     <div className="compact-page space-y-3">
@@ -154,7 +155,9 @@ export default function AdminMvpPage() {
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {isVoting
             ? "Cada partido se cierra cuando alguien alcanza 3 votos o, si no ocurre, al votar los cuatro jugadores. La jornada se decide cuando todos sus partidos tienen MVP."
-            : "Gana la pareja vencedora con mejor diferencia de juegos cuando todos los partidos tienen resultado."}
+            : isAdvancedAutomatic
+              ? "Primero se elige la pareja vencedora más dominante. Entre sus integrantes, un índice ajustado por compañero y rivales usa resultado, sets y juegos acumulados hasta esa jornada; un empate técnico mantiene el MVP compartido."
+              : "Gana la pareja vencedora con mejor diferencia de juegos cuando todos los partidos tienen resultado."}
         </p>
 
         {completedRounds.length > 0 ? (
@@ -186,7 +189,7 @@ export default function AdminMvpPage() {
                       </p>
                     </div>
                     <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-                      {isVoting ? "Votación" : "Auto"}
+                      {isVoting ? "Votación" : isAdvancedAutomatic ? "Auto avanzado" : "Auto"}
                     </span>
                   </div>
 
@@ -197,7 +200,9 @@ export default function AdminMvpPage() {
                       roundMvp
                         ? isVoting
                           ? `${roundMvp.votes} votos${roundMvp.tied ? " · empate compartido" : ""}`
-                          : `${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`
+                          : isAdvancedAutomatic
+                            ? `Pareja ${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesDiff} dif. juegos · índice ${((roundMvp.adjustedRating ?? 0) * 100).toFixed(1)}${roundMvp.tied ? " · empate técnico" : ""}`
+                            : `${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`
                         : isVoting
                           ? "Pendiente de completar todas las votaciones"
                           : "Pendiente"

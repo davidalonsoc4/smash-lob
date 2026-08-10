@@ -1056,14 +1056,16 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           },
         });
 
-        if (mvpSystem === "automatic" && !previousRoundMvp && nextRoundMvp) {
+        if ((mvpSystem === "automatic" || mvpSystem === "automatic_advanced") && !previousRoundMvp && nextRoundMvp) {
           await recordMatchActivity({
             match: updatedMatch,
             type: "round_mvp_awarded",
             title: `MVP de Jornada ${updatedMatch.round} decidido`,
             description: getActivityMatchDescription(
               updatedMatch,
-              `Pareja MVP automática · ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos · ${nextRoundMvp.gamesDiff ?? 0} dif.`,
+              mvpSystem === "automatic_advanced"
+                ? `MVP automático avanzado · índice ${((nextRoundMvp.adjustedRating ?? 0) * 100).toFixed(1)}${nextRoundMvp.tied ? " · empate técnico" : ""} · pareja ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos`
+                : `Pareja MVP automática · ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos · ${nextRoundMvp.gamesDiff ?? 0} dif.`,
             ),
             metadata: {
               round: updatedMatch.round,
@@ -1073,6 +1075,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
               gamesDiff: nextRoundMvp.gamesDiff,
               setsFor: nextRoundMvp.setsFor,
               setsAgainst: nextRoundMvp.setsAgainst,
+              system: mvpSystem,
+              adjustedRating: nextRoundMvp.adjustedRating,
+              ratingGap: nextRoundMvp.ratingGap,
+              candidateRatings: nextRoundMvp.candidateRatings,
             },
           });
         }
@@ -1386,7 +1392,8 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       });
 
       if (
-        settings.mvpSystem === "automatic" &&
+        (settings.mvpSystem === "automatic" ||
+          settings.mvpSystem === "automatic_advanced") &&
         !previousRoundMvp &&
         nextRoundMvp
       ) {
@@ -1394,7 +1401,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           match,
           type: "round_mvp_awarded",
           title: `MVP de Jornada ${match.round} decidido`,
-          description: `Pareja MVP automática · ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos · ${nextRoundMvp.gamesDiff ?? 0} dif.`,
+          description:
+            settings.mvpSystem === "automatic_advanced"
+              ? `MVP automático avanzado · índice ${((nextRoundMvp.adjustedRating ?? 0) * 100).toFixed(1)}${nextRoundMvp.tied ? " · empate técnico" : ""} · pareja ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos`
+              : `Pareja MVP automática · ${nextRoundMvp.gamesFor}-${nextRoundMvp.gamesAgainst} juegos · ${nextRoundMvp.gamesDiff ?? 0} dif.`,
           metadata: {
             round: match.round,
             playerIds: nextRoundMvp.playerIds,
@@ -1403,6 +1413,10 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             gamesDiff: nextRoundMvp.gamesDiff,
             setsFor: nextRoundMvp.setsFor,
             setsAgainst: nextRoundMvp.setsAgainst,
+            system: settings.mvpSystem,
+            adjustedRating: nextRoundMvp.adjustedRating,
+            ratingGap: nextRoundMvp.ratingGap,
+            candidateRatings: nextRoundMvp.candidateRatings,
           },
         });
       }

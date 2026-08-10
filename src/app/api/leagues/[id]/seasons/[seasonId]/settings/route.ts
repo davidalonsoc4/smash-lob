@@ -36,7 +36,10 @@ function parseRoundWindowMode(value: unknown): SeasonRoundSettings["roundWindowM
 }
 
 function parseMvpSystem(value: unknown): SeasonRoundSettings["mvpSystem"] | null {
-  return value === "none" || value === "automatic" || value === "voting"
+  return value === "none" ||
+    value === "automatic" ||
+    value === "automatic_advanced" ||
+    value === "voting"
     ? value
     : null
 }

@@ -33,6 +33,14 @@ function formatPlayerNames(players: MvpPlayer[]) {
   return players.map((player) => player.displayName).join(" / ")
 }
 
+function formatAdvancedRating(value: number | undefined, tied: boolean | undefined) {
+  if (typeof value !== "number") {
+    return "Índice ajustado"
+  }
+
+  return `Índice ${(value * 100).toFixed(1)}${tied ? " · empate técnico" : ""}`
+}
+
 export function DashboardMvpCard({
   leagueId,
   seasonId,
@@ -117,7 +125,12 @@ export function DashboardMvpCard({
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
                   Jornada {latestRoundWithMvp} · {mvpSystem === "voting"
                     ? `${latestRoundMvp.votes} votos${latestRoundMvp.tied ? " · empate" : ""}`
-                    : formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}
+                    : mvpSystem === "automatic_advanced"
+                      ? formatAdvancedRating(
+                          latestRoundMvp.adjustedRating,
+                          latestRoundMvp.tied,
+                        )
+                      : formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}
                 </p>
               </div>
             ) : seasonMvp ? (

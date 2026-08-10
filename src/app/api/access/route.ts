@@ -346,7 +346,9 @@ export async function GET() {
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
     mvpSystem:
-      settings.mvp_system === "none" || settings.mvp_system === "voting"
+      settings.mvp_system === "none" ||
+      settings.mvp_system === "automatic_advanced" ||
+      settings.mvp_system === "voting"
         ? settings.mvp_system
         : "automatic",
     resultConfirmationMode:

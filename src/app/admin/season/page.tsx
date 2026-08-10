@@ -643,6 +643,12 @@ const mvpSystemOptions: {
       "El sistema actual elige como MVP a la pareja ganadora con mejor diferencia de juegos de la jornada.",
   },
   {
+    value: "automatic_advanced",
+    title: "MVP automático avanzado",
+    description:
+      "Elige primero la pareja más dominante de la jornada y después compara a sus integrantes con un índice individual ajustado por compañero y rivales usando resultados, sets y juegos. Si quedan prácticamente igualados, comparte el MVP.",
+  },
+  {
     value: "voting",
     title: "MVP por votación",
     description:
