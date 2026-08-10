@@ -30,7 +30,7 @@ export function BackButton({ fallbackHref, label }: BackButtonProps) {
     <a
       href={fallbackHref}
       onClick={handleBack}
-      className="text-sm font-semibold text-neutral-500"
+      className="app-top-back-control text-sm font-semibold text-neutral-500"
     >
       {label}
     </a>

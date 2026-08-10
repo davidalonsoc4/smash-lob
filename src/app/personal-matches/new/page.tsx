@@ -247,7 +247,7 @@ export default function NewPersonalMatchPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
         <p className="mt-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
         <h1 className="type-page-title mt-0.5 text-2xl font-black tracking-tight">

@@ -8,7 +8,7 @@ import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 
 type LeagueLogoProps = {
   league?: Pick<League, "name" | "logoUrl"> | null
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: "sm" | "md" | "lg" | "xl" | "xxl"
   className?: string
   previewable?: boolean
 }
@@ -18,6 +18,7 @@ const sizeClasses = {
   md: "h-11 w-11 text-sm",
   lg: "h-14 w-14 text-base",
   xl: "h-20 w-20 text-lg",
+  xxl: "h-24 w-24 text-xl",
 }
 
 function getLeagueInitials(name?: string | null) {

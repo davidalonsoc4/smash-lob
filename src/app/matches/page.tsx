@@ -4,8 +4,9 @@ import Link from "next/link"
 import { useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
-import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -82,17 +83,22 @@ export default function MatchesPage() {
 
   return (
     <div className="space-y-4">
-      <header data-tour="matches-header" className="pt-2">
-        <LeagueSeasonEyebrow
-          leagueName={activeLeague.name}
-          seasonName={activeSeason.name}
-          seasonStatus={activeSeason.status}
-        />
-
-        <h1 className="type-page-title mt-1.5 text-2xl font-black tracking-tight">
+      <header data-tour="matches-header" className="app-page-header">
+        <BackButton fallbackHref="/" label={t.common.back} />
+        <h1 className="type-page-title text-2xl font-black tracking-tight">
           {t.matches.subtitle}
         </h1>
-
+        <SeasonContextLine
+          seasonName={activeSeason.name}
+          statusLabel={
+            activeSeason.status === "finished"
+              ? t.common.finishedSeasonBadge
+              : activeSeason.status === "upcoming"
+                ? t.rounds.statusUpcoming
+                : t.rounds.statusActive
+          }
+          className="mt-0.5"
+        />
       </header>
 
       <AppCard data-tour="matches-scope" className="p-2">

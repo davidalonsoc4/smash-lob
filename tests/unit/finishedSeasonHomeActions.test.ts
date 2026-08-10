@@ -9,8 +9,8 @@ describe("finished season home actions", () => {
       "utf8",
     )
 
-    expect(home.match(/t\.dashboard\.historyAndStatistics/g)).toHaveLength(2)
-    expect(home.match(/t\.dashboard\.shareSeasonSummary/g)).toHaveLength(2)
+    expect(home.match(/t\.dashboard\.historyAndStatistics/g)).toHaveLength(1)
+    expect(home.match(/t\.dashboard\.shareSeasonSummary/g)).toHaveLength(1)
     const spanish = await readFile("src/i18n/locales/es.ts", "utf8")
     expect(spanish).toContain('historyAndStatistics: "Historial y estadísticas"')
     expect(spanish).toContain('shareSeasonSummary: "Compartir resumen de temporada"')

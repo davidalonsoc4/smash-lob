@@ -370,7 +370,7 @@ export default function NotificationSettingsPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">

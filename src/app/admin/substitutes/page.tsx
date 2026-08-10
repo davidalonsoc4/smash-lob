@@ -215,7 +215,7 @@ export default function AdminSubstitutesPage() {
 
   return (
     <div className="space-y-3">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/admin" label="Volver" />
         <p className="mt-2 text-xs font-bold text-neutral-500">{activeLeague.name} · {activeSeason.name}</p>
         <h1 className="type-page-title mt-1 text-2xl font-black">Suplentes y reemplazos</h1>

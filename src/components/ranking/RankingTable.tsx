@@ -39,15 +39,15 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
   const sortedPlayers = sortRankingRows(players)
 
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
+    <div className="app-ranking-list overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 border-b border-neutral-100 px-3 py-2.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
         <span>Jugador</span>
         <span className="text-right">J</span>
         <span className="text-right">Dif</span>
         <span className="text-right">PTS</span>
       </div>
 
-      <div className="app-ranking-list overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      <div>
         {sortedPlayers.map((player, index) => (
           <Link
             key={player.id}
@@ -102,7 +102,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
         ))}
       </div>
 
-      <p className="px-1 type-caption font-semibold text-neutral-600">
+      <p className="border-t border-neutral-100 px-3 py-2.5 type-caption font-semibold text-neutral-600">
         J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados
       </p>
     </div>

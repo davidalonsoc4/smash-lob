@@ -78,6 +78,25 @@ assert(
 )
 
 
+
+const normalizedAppPath = (file) => file.replace(/\\/g, "/")
+const isHomePage = (file) => normalizedAppPath(file) === "src/app/page.tsx"
+
+const inconsistentPageHeaders = []
+for (const file of appFiles.filter((file) => file.endsWith(".tsx") && !isHomePage(file))) {
+  const source = await readFile(file, "utf8")
+  for (const match of source.matchAll(/<header\b[^>]*>[\s\S]*?<\/header>/g)) {
+    const header = match[0]
+    if (!header.includes("type-page-title")) continue
+    if (!header.includes("app-page-header")) inconsistentPageHeaders.push(file)
+  }
+}
+assert(
+  inconsistentPageHeaders.length === 0,
+  `Hay cabeceras de pantalla fuera de la geometría global:\n${[...new Set(inconsistentPageHeaders)].join("\n")}`,
+)
+assert(globals.includes(".app-page-header") && globals.includes("padding-top: 0.5rem !important"), "La cabecera global debe conservar 8 px de aire bajo la fila funcional")
+
 const panelTitleSizeOverrides = []
 for (const file of files.filter((file) => file.endsWith(".tsx"))) {
   const source = await readFile(file, "utf8")
@@ -152,12 +171,100 @@ assert(
   "AppShell debe reaplicar el tamaño guardado al abrir la app",
 )
 
+const backButton = await readFile("src/components/ui/BackButton.tsx", "utf8")
+assert(
+  appShell.includes('max(46px, calc(env(safe-area-inset-top, 0px) + 44px))'),
+  "Las acciones flotantes deben reservar una fila vertical propia antes de la cabecera",
+)
+assert(
+  !appShell.includes("--app-floating-top-reserved-width"),
+  "Las acciones flotantes no deben volver a reducir horizontalmente las cabeceras",
+)
+assert(
+  globals.includes('.app-main[data-has-floating-top-controls="true"] .app-top-back-control'),
+  "Volver debe poder ocupar la izquierda de la fila funcional superior",
+)
+assert(
+  globals.includes('top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px))'),
+  "La fila funcional superior debe respetar el safe area del dispositivo",
+)
+assert(
+  globals.includes(".app-home-top-logo") && globals.includes("position: absolute") && globals.includes("top: -36px") && globals.includes("left: 0"),
+  "Inicio debe anclar el logo ampliado a la esquina funcional superior izquierda",
+)
+const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Promise.all([
+  readFile("src/app/page.tsx", "utf8"),
+  readFile("src/app/ranking/page.tsx", "utf8"),
+  readFile("src/app/matches/page.tsx", "utf8"),
+  readFile("src/app/profile/page.tsx", "utf8"),
+])
+assert(
+  topHomePage.includes('size="xl"') && topHomePage.includes('className="app-home-top-logo"'),
+  "Inicio debe mostrar el logo de liga ampliado en la izquierda de la fila superior",
+)
+for (const [label, source] of [
+  ["Clasificación", topRankingPage],
+  ["Partidos", topMatchesPage],
+  ["Perfil", topProfilePage],
+]) {
+  assert(
+    source.includes('<BackButton fallbackHref="/" label={t.common.back} />'),
+    `${label} debe usar Volver en la izquierda de la fila funcional`,
+  )
+}
+assert(
+  !globals.includes("max-width: calc(100% - var(--app-floating-top-reserved-width"),
+  "Las cabeceras no deben perder ancho por las acciones flotantes",
+)
+assert(backButton.includes("app-top-back-control"), "BackButton debe integrarse en la fila funcional superior")
+assert(
+  globals.includes(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge"),
+  "PRE debe conservar su badge sin tapar Volver en la fila funcional",
+)
+
+const [homePage, rankingPage, matchesPage, profilePage, seasonContextLine] = await Promise.all([
+  readFile("src/app/page.tsx", "utf8"),
+  readFile("src/app/ranking/page.tsx", "utf8"),
+  readFile("src/app/matches/page.tsx", "utf8"),
+  readFile("src/app/profile/page.tsx", "utf8"),
+  readFile("src/components/layout/SeasonContextLine.tsx", "utf8"),
+])
+assert(homePage.includes('<LeagueLogo league={activeLeague} size="xl"'), "Inicio debe usar el logo ampliado en su cabecera de identidad")
+assert(homePage.includes("<SeasonContextLine"), "Inicio debe integrar temporada y estado en una sola línea")
+assert(!homePage.includes("activeLeague.description"), "Inicio no debe repetir la descripción de la liga en la cabecera")
+assert(homePage.includes('data-tour="home-season-summary"'), "La temporada cerrada debe usar un resumen compacto")
+assert(!homePage.includes("<PlayerAwardCard"), "Inicio no debe recuperar las tarjetas grandes de premios al cerrar temporada")
+for (const [name, source] of [["Ranking", rankingPage], ["Calendario", matchesPage], ["Perfil", profilePage]]) {
+  assert(source.includes("<SeasonContextLine"), `${name} debe mostrar la temporada en una línea compacta`)
+  assert(!source.includes("<LeagueSeasonEyebrow"), `${name} no debe repetir liga + temporada antes del título`)
+  assert(source.indexOf("<SeasonContextLine") > source.indexOf("<h1"), `${name} debe mostrar el título antes del contexto de temporada`)
+}
+assert(seasonContextLine.includes('<span aria-hidden="true"> · </span>'), "Temporada y estado deben integrarse con un único separador")
+assert(rankingPage.includes('data-tour="ranking-header" className="app-page-header"'), "Clasificación debe usar la cabecera global")
+assert(matchesPage.includes('data-tour="matches-header" className="app-page-header"'), "Partidos debe usar la cabecera global")
+assert(profilePage.includes('<header className="app-page-header">'), "Perfil debe usar la cabecera global")
+const publicProfilePage = await readFile("src/app/player/[id]/page.tsx", "utf8")
+assert(publicProfilePage.includes('<header className="app-page-header">'), "Perfil de jugador debe usar la cabecera global")
+for (const [name, source] of [["Mi perfil", profilePage], ["Perfil de jugador", publicProfilePage]]) {
+  assert(source.includes('<PlayerAvatar player={player} size="md" previewable />'), `${name} debe usar el avatar de tamaño normal en la cabecera`)
+  const playerNameIndex = source.indexOf("{player.displayName}")
+  const seasonLineIndex = source.indexOf("<SeasonContextLine", playerNameIndex)
+  assert(playerNameIndex >= 0 && seasonLineIndex > playerNameIndex, `${name} debe colocar temporada y estado debajo del nombre`)
+}
+
+assert(homePage.includes('badge="🏆"') && homePage.includes('tone="winner"') && homePage.includes('tone="mvp"'), "El resumen de temporada debe dar protagonismo visual a Ganador y MVP")
+assert(homePage.includes('</AppCard>\n\n          {canManageSeason ? ('), "Crear nueva temporada debe quedar como botón independiente debajo del resumen")
+assert(homePage.includes('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={t.dashboard.rankingTitle}'), "Clasificación de Inicio debe llevar su título dentro del panel")
+assert(ranking.includes('border-b border-neutral-100'), "Ranking Individual debe integrar las cabeceras de columnas dentro del panel con separador")
+assert(ranking.includes('border-t border-neutral-100 px-3 py-2.5'), "Ranking Individual debe integrar la leyenda inferior dentro del panel con separador")
+assert(!ranking.includes('<div className="space-y-2">'), "Ranking Individual no debe volver a separar cabeceras o leyenda fuera del panel")
+
 const compactStart = globals.indexOf(".compact-page")
 assert(compactStart >= 0, "No se encuentra la configuración compact-page")
 const compactSlice = globals.slice(compactStart)
 assert(!/\.compact-page[^}]*font-size\s*:/s.test(compactSlice), "compact-page no debe cambiar el tamaño tipográfico global")
 
-console.log("Tipografía semántica v1.5.4 correcta:")
+console.log("Tipografía semántica v1.5.13 correcta:")
 console.log("- títulos de pantalla, sección y panel con roles comunes")
 console.log("- nombres equivalentes de jugador unificados en Ranking, Calendario y Perfil")
 console.log("- nombres protagonistas separados de los nombres de listado")
@@ -165,3 +272,6 @@ console.log("- cabeceras sin descripciones genéricas bajo el título")
 console.log("- sin tamaños text-[Npx] fijos en la aplicación")
 console.log("- títulos de panel sin tamaños competidores y paneles principales de PARTIDO unificados")
 console.log("- selector A− / A / A+ persistente sin modificar los botones de la NAVBAR")
+console.log("- Inicio y pantallas principales con contexto de temporada compacto y sin identidad repetida")
+console.log("- cabecera global coherente en todas las pantallas internas y perfiles con temporada bajo el nombre")
+console.log("- premios de temporada protagonistas y clasificaciones integradas dentro de sus paneles")

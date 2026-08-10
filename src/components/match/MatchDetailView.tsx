@@ -34,7 +34,7 @@ export function MatchDetailView({
 }: MatchDetailViewProps) {
   return (
     <div className="space-y-3">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref={backHref} label={backLabel} />
 
         <div className="mt-3 min-w-0 w-full" style={{ maxWidth: "none" }}>

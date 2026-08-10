@@ -244,17 +244,74 @@ textarea {
   --tw-ring-color: rgb(212 212 212 / 0.85) !important;
 }
 
-/* Keep header content clear of the floating controls without moving the page down. */
-.app-main[data-has-floating-top-controls="true"]
-  > :first-child
-  > header:first-child
-  > :first-child,
-.app-main[data-has-floating-top-controls="true"]
-  > :first-child
-  > header:first-child
-  > a:first-child
-  + * {
-  max-width: calc(100% - var(--app-floating-top-reserved-width, 0px));
+/* Floating controls own a dedicated top row; page headings keep the full content width. */
+.app-main[data-has-floating-top-controls="true"] {
+  position: relative;
+}
+
+/* Every in-app screen header uses the same breathing room below the functional row.
+   Page-specific context/actions remain free to compose inside this shared geometry. */
+.app-page-header {
+  padding-top: 0.5rem !important;
+}
+
+.app-page-header > .type-page-title {
+  margin-top: 0 !important;
+}
+
+.app-main[data-has-floating-top-controls="true"] .app-top-back-control {
+  position: absolute;
+  top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+  left: 0.75rem;
+  z-index: 51;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  max-width: 8rem;
+}
+
+
+
+/* HOME uses the free left side of the functional row for a larger league mark. */
+.app-home-identity {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  align-items: end;
+  gap: 0.75rem;
+}
+
+/* HOME fills the unused top-left corner: the 80px logo starts at the same
+   screen margin as the floating controls and finishes with the identity block. */
+.app-main[data-has-floating-top-controls="true"] .app-home-top-logo {
+  position: absolute;
+  top: -36px;
+  left: 0;
+}
+
+.app-home-identity-copy {
+  grid-column: 2;
+  align-self: end;
+}
+
+/* In PRE, move the environment badge away from the enlarged HOME logo. */
+.app-shell-frame[data-home-route="true"] .app-preproduction-badge {
+  left: max(96px, calc((100vw - 448px) / 2 + 96px));
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  letter-spacing: 0.14em;
+}
+
+@media (max-width: 390px) {
+  .app-shell-frame[data-home-route="true"] .app-preproduction-badge {
+    transform: scale(0.82);
+    transform-origin: left center;
+  }
+}
+
+/* PRE keeps its version badge in the same functional row without covering Volver. */
+.app-shell-frame:has(.app-top-back-control) .app-preproduction-badge {
+  left: max(72px, calc((100vw - 448px) / 2 + 72px));
 }
 
 /* Dark appearance -------------------------------------------------------- */

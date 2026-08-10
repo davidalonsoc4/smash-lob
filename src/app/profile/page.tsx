@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { LeagueSeasonEyebrow } from "@/components/layout/LeagueSeasonEyebrow"
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
 import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
@@ -112,16 +113,22 @@ export default function ProfilePage() {
   if (!player || !selectedStats || !selectedScope) {
     return (
       <div className="space-y-3">
-        <header className="pt-2">
-          <LeagueSeasonEyebrow
-            leagueName={activeLeague.name}
-            seasonName={latestSeason.name}
-            seasonStatus={latestSeason.status}
-          />
-
-          <h1 className="type-page-title mt-1.5 text-2xl font-black tracking-tight">
+        <header className="app-page-header">
+          <BackButton fallbackHref="/" label={t.common.back} />
+          <h1 className="type-page-title text-2xl font-black tracking-tight">
             {t.profile.title}
           </h1>
+          <SeasonContextLine
+            seasonName={latestSeason.name}
+            statusLabel={
+              latestSeason.status === "finished"
+                ? t.common.finishedSeasonBadge
+                : latestSeason.status === "upcoming"
+                  ? t.rounds.statusUpcoming
+                  : t.rounds.statusActive
+            }
+            className="mt-0.5"
+          />
         </header>
 
         <AppCard>
@@ -140,34 +147,42 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-3">
-      <header className="pt-2">
-        <LeagueSeasonEyebrow
-          leagueName={activeLeague.name}
-          seasonName={latestSeason.name}
-          seasonStatus={latestSeason.status}
-        />
-
-        <div className="mt-2 flex items-center gap-2.5">
+      <header className="app-page-header">
+        <BackButton fallbackHref="/" label={t.common.back} />
+        <div className="flex items-start gap-3">
           <PlayerAvatar player={player} size="md" previewable />
 
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
-              {player.displayName}
-            </h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
+                {player.displayName}
+              </h1>
 
-            {showSeasonSelector && visibleSeasonScopes.length > 1 ? (
-              <PlayerSeasonScopeSelector
-                inline
-                title={t.playerProfile.scopeSelectorTitle}
-                description={t.playerProfile.scopeSelectorDescription}
-                value={selectedScope.id}
-                scopes={visibleSeasonScopes}
-                onChange={setSelectedScopeId}
-              />
-            ) : null}
+              {showSeasonSelector && visibleSeasonScopes.length > 1 ? (
+                <PlayerSeasonScopeSelector
+                  inline
+                  title={t.playerProfile.scopeSelectorTitle}
+                  description={t.playerProfile.scopeSelectorDescription}
+                  value={selectedScope.id}
+                  scopes={visibleSeasonScopes}
+                  onChange={setSelectedScopeId}
+                />
+              ) : null}
+            </div>
+
+            <SeasonContextLine
+              seasonName={latestSeason.name}
+              statusLabel={
+                latestSeason.status === "finished"
+                  ? t.common.finishedSeasonBadge
+                  : latestSeason.status === "upcoming"
+                    ? t.rounds.statusUpcoming
+                    : t.rounds.statusActive
+              }
+              className="mt-0.5"
+            />
           </div>
         </div>
-
       </header>
 
       <div className="grid grid-cols-2 gap-2">

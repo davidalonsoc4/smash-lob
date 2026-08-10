@@ -82,7 +82,7 @@ export default function AdminMvpPage() {
   if (!canAccessAdmin) {
     return (
       <div className="compact-page space-y-3">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/admin" label={t.common.back} />
           <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             {t.adminPanel.accessDeniedTitle}
@@ -102,7 +102,7 @@ export default function AdminMvpPage() {
   if (roundSettings.mvpSystem === "none") {
     return (
       <div className="compact-page space-y-3">
-        <header className="pt-2">
+        <header className="app-page-header">
           <BackButton fallbackHref="/admin" label={t.common.back} />
           <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
             Administrar MVP
@@ -123,7 +123,7 @@ export default function AdminMvpPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header className="pt-2">
+      <header className="app-page-header">
         <BackButton fallbackHref="/admin" label={t.common.back} />
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}

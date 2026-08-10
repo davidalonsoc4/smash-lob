@@ -272,7 +272,7 @@ function SpectatorSettingsPage({ leagueName }: { leagueName: string }) {
   const { data: session } = useSession()
   return (
     <div className="compact-page space-y-4">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/profile" label={t.common.back} />
         <p className="mt-1 text-xs font-bold text-neutral-500">{leagueName}</p>
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Ajustes</h1>
@@ -501,7 +501,7 @@ function PlayerSettingsPage() {
 
   return (
     <div className="compact-page space-y-4">
-      <header className="pt-1">
+      <header className="app-page-header">
         <BackButton fallbackHref="/profile" label={t.common.back} />
         <p className="mt-1 text-xs font-bold text-neutral-500">
           {activeLeague.name}
