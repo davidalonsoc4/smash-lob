@@ -56,8 +56,14 @@ assert(missingPageTitles.length === 0, `Hay títulos de pantalla fuera del rol c
 
 const allowedHeaderContextTokens = [
   "activeLeague.description",
+  "activeSeason.name",
   "player.displayName",
   "Cuenta de espectador · acceso de solo lectura.",
+  "Superusuario",
+  "Actividad personal",
+  "Amistoso",
+  "Smash & Lob",
+  "t.settings.accountSettingsTitle",
 ]
 const pageHeaderDescriptionViolations = []
 for (const file of appFiles.filter((file) => file.endsWith(".tsx"))) {
@@ -79,11 +85,8 @@ assert(
 
 
 
-const normalizedAppPath = (file) => file.replace(/\\/g, "/")
-const isHomePage = (file) => normalizedAppPath(file) === "src/app/page.tsx"
-
 const inconsistentPageHeaders = []
-for (const file of appFiles.filter((file) => file.endsWith(".tsx") && !isHomePage(file))) {
+for (const file of appFiles.filter((file) => file.endsWith(".tsx"))) {
   const source = await readFile(file, "utf8")
   for (const match of source.matchAll(/<header\b[^>]*>[\s\S]*?<\/header>/g)) {
     const header = match[0]
@@ -95,7 +98,28 @@ assert(
   inconsistentPageHeaders.length === 0,
   `Hay cabeceras de pantalla fuera de la geometría global:\n${[...new Set(inconsistentPageHeaders)].join("\n")}`,
 )
+
+const preTitleContextViolations = []
+for (const file of files.filter((file) => file.endsWith(".tsx"))) {
+  const source = await readFile(file, "utf8")
+  for (const match of source.matchAll(/<header\b[^>]*app-page-header[^>]*>[\s\S]*?<\/header>/g)) {
+    const header = match[0]
+    if (!header.includes("type-page-title")) continue
+    const titleStart = header.indexOf("<h1")
+    if (titleStart < 0) continue
+    const beforeTitle = header.slice(0, titleStart)
+    if (/<p\b/.test(beforeTitle) || beforeTitle.includes("<LeagueSeasonEyebrow")) {
+      preTitleContextViolations.push(file)
+    }
+  }
+}
+assert(
+  preTitleContextViolations.length === 0,
+  `Hay contexto textual por encima del título en cabeceras globales:\n${[...new Set(preTitleContextViolations)].join("\n")}`,
+)
 assert(globals.includes(".app-page-header") && globals.includes("padding-top: 0.5rem !important"), "La cabecera global debe conservar 8 px de aire bajo la fila funcional")
+assert(globals.includes("font-size: 1.5rem !important") && globals.includes("line-height: 1.15 !important"), "type-page-title debe imponer el mismo tamaño y altura en todas las cabeceras")
+assert(globals.includes(".app-page-header > :has(.type-page-title)"), "Los wrappers de cabecera no deben desplazar la línea base del título")
 
 const panelTitleSizeOverrides = []
 for (const file of files.filter((file) => file.endsWith(".tsx"))) {
@@ -173,8 +197,12 @@ assert(
 
 const backButton = await readFile("src/components/ui/BackButton.tsx", "utf8")
 assert(
-  appShell.includes('max(46px, calc(env(safe-area-inset-top, 0px) + 44px))'),
-  "Las acciones flotantes deben reservar una fila vertical propia antes de la cabecera",
+  appShell.includes('max(54px, calc(env(safe-area-inset-top, 0px) + 52px))'),
+  "Las pantallas con acciones flotantes deben reservar 54 px de entrada superior antes de la cabecera",
+)
+assert(
+  appShell.includes('max(20px, calc(env(safe-area-inset-top, 0px) + 20px))'),
+  "Las pantallas sin acciones flotantes deben ampliar también su margen superior",
 )
 assert(
   !appShell.includes("--app-floating-top-reserved-width"),
@@ -196,7 +224,7 @@ const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Prom
   readFile("src/app/page.tsx", "utf8"),
   readFile("src/app/ranking/page.tsx", "utf8"),
   readFile("src/app/matches/page.tsx", "utf8"),
-  readFile("src/app/profile/page.tsx", "utf8"),
+  readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
 ])
 assert(
   topHomePage.includes('size="xl"') && topHomePage.includes('className="app-home-top-logo"'),
@@ -205,7 +233,6 @@ assert(
 for (const [label, source] of [
   ["Clasificación", topRankingPage],
   ["Partidos", topMatchesPage],
-  ["Perfil", topProfilePage],
 ]) {
   assert(
     source.includes('<BackButton fallbackHref="/" label={t.common.back} />'),
@@ -213,28 +240,40 @@ for (const [label, source] of [
   )
 }
 assert(
+  topProfilePage.includes('<BackButton fallbackHref={isSelf ? "/" : "/ranking"} label={t.common.back} />'),
+  "El perfil compartido debe mantener Volver contextual en la fila funcional",
+)
+assert(
   !globals.includes("max-width: calc(100% - var(--app-floating-top-reserved-width"),
   "Las cabeceras no deben perder ancho por las acciones flotantes",
 )
 assert(backButton.includes("app-top-back-control"), "BackButton debe integrarse en la fila funcional superior")
 assert(
-  globals.includes(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge"),
-  "PRE debe conservar su badge sin tapar Volver en la fila funcional",
+  appShell.includes('top: "max(4px, calc(env(safe-area-inset-top, 0px) + 4px))"') &&
+    appShell.includes("left: getPreproductionBadgeLeft()") &&
+    appShell.includes("zIndex: 80"),
+  "PRE debe fijar su badge arriba a la izquierda con prioridad visual independiente de la cabecera",
+)
+assert(
+  !globals.includes(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge") &&
+    !globals.includes('.app-shell-frame[data-home-route="true"] .app-preproduction-badge'),
+  "El badge PRE no debe volver a recolocarse según la pantalla o la presencia de Volver",
 )
 
-const [homePage, rankingPage, matchesPage, profilePage, seasonContextLine] = await Promise.all([
+const [homePage, rankingPage, matchesPage, profileScreen, seasonContextLine] = await Promise.all([
   readFile("src/app/page.tsx", "utf8"),
   readFile("src/app/ranking/page.tsx", "utf8"),
   readFile("src/app/matches/page.tsx", "utf8"),
-  readFile("src/app/profile/page.tsx", "utf8"),
+  readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
   readFile("src/components/layout/SeasonContextLine.tsx", "utf8"),
 ])
+assert(homePage.includes('<header data-tour="home-header" className="app-page-header">'), "Inicio debe usar la misma geometría global de cabecera que el resto de pantallas")
 assert(homePage.includes('<LeagueLogo league={activeLeague} size="xl"'), "Inicio debe usar el logo ampliado en su cabecera de identidad")
 assert(homePage.includes("<SeasonContextLine"), "Inicio debe integrar temporada y estado en una sola línea")
 assert(!homePage.includes("activeLeague.description"), "Inicio no debe repetir la descripción de la liga en la cabecera")
 assert(homePage.includes('data-tour="home-season-summary"'), "La temporada cerrada debe usar un resumen compacto")
 assert(!homePage.includes("<PlayerAwardCard"), "Inicio no debe recuperar las tarjetas grandes de premios al cerrar temporada")
-for (const [name, source] of [["Ranking", rankingPage], ["Calendario", matchesPage], ["Perfil", profilePage]]) {
+for (const [name, source] of [["Ranking", rankingPage], ["Calendario", matchesPage], ["Perfil", profileScreen]]) {
   assert(source.includes("<SeasonContextLine"), `${name} debe mostrar la temporada en una línea compacta`)
   assert(!source.includes("<LeagueSeasonEyebrow"), `${name} no debe repetir liga + temporada antes del título`)
   assert(source.indexOf("<SeasonContextLine") > source.indexOf("<h1"), `${name} debe mostrar el título antes del contexto de temporada`)
@@ -242,15 +281,21 @@ for (const [name, source] of [["Ranking", rankingPage], ["Calendario", matchesPa
 assert(seasonContextLine.includes('<span aria-hidden="true"> · </span>'), "Temporada y estado deben integrarse con un único separador")
 assert(rankingPage.includes('data-tour="ranking-header" className="app-page-header"'), "Clasificación debe usar la cabecera global")
 assert(matchesPage.includes('data-tour="matches-header" className="app-page-header"'), "Partidos debe usar la cabecera global")
-assert(profilePage.includes('<header className="app-page-header">'), "Perfil debe usar la cabecera global")
-const publicProfilePage = await readFile("src/app/player/[id]/page.tsx", "utf8")
-assert(publicProfilePage.includes('<header className="app-page-header">'), "Perfil de jugador debe usar la cabecera global")
-for (const [name, source] of [["Mi perfil", profilePage], ["Perfil de jugador", publicProfilePage]]) {
-  assert(source.includes('<PlayerAvatar player={player} size="md" previewable />'), `${name} debe usar el avatar de tamaño normal en la cabecera`)
-  const playerNameIndex = source.indexOf("{player.displayName}")
-  const seasonLineIndex = source.indexOf("<SeasonContextLine", playerNameIndex)
-  assert(playerNameIndex >= 0 && seasonLineIndex > playerNameIndex, `${name} debe colocar temporada y estado debajo del nombre`)
-}
+const [ownProfilePage, publicProfilePage, sharedProfileScreen] = await Promise.all([
+  readFile("src/app/profile/page.tsx", "utf8"),
+  readFile("src/app/player/[id]/page.tsx", "utf8"),
+  readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
+])
+assert(ownProfilePage.includes('<PlayerProfileScreen mode="self" />'), "Mi perfil debe delegar en la pantalla de perfil compartida")
+assert(!ownProfilePage.trimStart().startsWith('"use client"'), "La ruta Mi perfil debe ser un wrapper servidor; el cliente vive en PlayerProfileScreen")
+assert(publicProfilePage.includes('<PlayerProfileScreen playerIdOrSlug={id} mode="public" />'), "Perfil de jugador debe delegar en la pantalla de perfil compartida")
+assert(!publicProfilePage.trimStart().startsWith('"use client"'), "La ruta pública de jugador debe ser un wrapper servidor; el cliente vive en PlayerProfileScreen")
+assert(sharedProfileScreen.includes('const resolvedPlayerIdOrSlug = isSelf ? currentUserId : playerIdOrSlug'), "PlayerProfileScreen debe resolver el usuario propio dentro de la base compartida")
+assert(sharedProfileScreen.includes('<header className="app-page-header">'), "La pantalla compartida de perfil debe usar la cabecera global")
+assert(sharedProfileScreen.includes('<PlayerAvatar player={player} size="md" previewable />'), "La pantalla compartida de perfil debe usar el avatar de tamaño normal")
+const playerNameIndex = sharedProfileScreen.indexOf("{player.displayName}")
+const seasonLineIndex = sharedProfileScreen.indexOf("<SeasonContextLine", playerNameIndex)
+assert(playerNameIndex >= 0 && seasonLineIndex > playerNameIndex, "El perfil compartido debe colocar temporada y estado debajo del nombre")
 
 assert(homePage.includes('badge="🏆"') && homePage.includes('tone="winner"') && homePage.includes('tone="mvp"'), "El resumen de temporada debe dar protagonismo visual a Ganador y MVP")
 assert(homePage.includes('</AppCard>\n\n          {canManageSeason ? ('), "Crear nueva temporada debe quedar como botón independiente debajo del resumen")
@@ -264,7 +309,7 @@ assert(compactStart >= 0, "No se encuentra la configuración compact-page")
 const compactSlice = globals.slice(compactStart)
 assert(!/\.compact-page[^}]*font-size\s*:/s.test(compactSlice), "compact-page no debe cambiar el tamaño tipográfico global")
 
-console.log("Tipografía semántica v1.5.15 correcta:")
+console.log("Tipografía semántica v1.5.22 correcta:")
 console.log("- títulos de pantalla, sección y panel con roles comunes")
 console.log("- nombres equivalentes de jugador unificados en Ranking, Calendario y Perfil")
 console.log("- nombres protagonistas separados de los nombres de listado")
@@ -273,5 +318,7 @@ console.log("- sin tamaños text-[Npx] fijos en la aplicación")
 console.log("- títulos de panel sin tamaños competidores y paneles principales de PARTIDO unificados")
 console.log("- selector A− / A / A+ persistente sin modificar los botones de la NAVBAR")
 console.log("- Inicio y pantallas principales con contexto de temporada compacto y sin identidad repetida")
-console.log("- cabecera global coherente en todas las pantallas internas y perfiles con temporada bajo el nombre")
+console.log("- las 50 cabeceras con título usan título primero, contexto después y una geometría vertical común")
+console.log("- Mi perfil y perfiles públicos comparten una única base visual y funcional")
 console.log("- premios de temporada protagonistas y clasificaciones integradas dentro de sus paneles")
+console.log("- margen superior ampliado globalmente y badge PRE fijo en la esquina superior izquierda")

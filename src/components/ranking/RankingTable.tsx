@@ -41,7 +41,10 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
   return (
     <div className="app-ranking-list overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 border-b border-neutral-100 px-3 py-2.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
-        <span>Jugador</span>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="w-7 shrink-0 text-center">POS</span>
+          <span>Jugador</span>
+        </div>
         <span className="text-right">J</span>
         <span className="text-right">Dif</span>
         <span className="text-right">PTS</span>
@@ -55,13 +58,13 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
             aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
             className="app-ranking-row grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 py-2 transition active:bg-neutral-50"
           >
-            <div className="flex min-w-0 items-center gap-1.5">
-              <div
-                className="app-ranking-position flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-950"
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                className="app-ranking-position w-7 shrink-0 text-center text-sm font-black tabular-nums text-neutral-700"
                 aria-hidden="true"
               >
                 {index + 1}
-              </div>
+              </span>
 
               {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}
 

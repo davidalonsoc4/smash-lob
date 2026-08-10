@@ -56,7 +56,6 @@ export default function AdminIncidentsPage() {
     <div className="compact-page space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/admin" label="Volver" />
-        <p className="mt-1 text-xs font-bold text-neutral-500">{activeLeague.name}</p>
         <div className="mt-0.5 flex items-center gap-2">
           <h1 className="type-page-title text-xl font-black tracking-tight">Buzón de incidencias</h1>
           {openIncidents.length > 0 ? (

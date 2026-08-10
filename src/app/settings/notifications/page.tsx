@@ -373,10 +373,6 @@ export default function NotificationSettingsPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-neutral-500">
-          <span>{activeLeague.name}</span>
-        </p>
-
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.notifications.title}
         </h1>

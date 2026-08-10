@@ -94,6 +94,10 @@ function getFloatingTop() {
   return "max(10px, calc(env(safe-area-inset-top, 0px) + 8px))"
 }
 
+function getPreproductionBadgeLeft() {
+  return "max(4px, calc((100vw - 448px) / 2 + 4px))"
+}
+
 function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
   const {
     getLeagueInviteCode,
@@ -283,8 +287,12 @@ export function AppShell({ children }: AppShellProps) {
         {branding.preproduction ? (
           <div
             aria-label={branding.internalBadgeAriaLabel ?? undefined}
-            className="app-preproduction-badge pointer-events-none fixed left-4 z-50 rounded-full border border-red-200 bg-red-600 px-3 py-1 type-caption font-black uppercase tracking-[0.24em] text-white shadow-lg"
-            style={{ top: getFloatingTop() }}
+            className="app-preproduction-badge pointer-events-none fixed rounded-full border border-red-200 bg-red-600 px-3 py-1 type-caption font-black uppercase tracking-[0.24em] text-white shadow-lg"
+            style={{
+              top: "max(4px, calc(env(safe-area-inset-top, 0px) + 4px))",
+              left: getPreproductionBadgeLeft(),
+              zIndex: 80,
+            }}
           >
             {branding.internalBadgeText} · {APP_VERSION_LABEL}
           </div>
@@ -362,8 +370,8 @@ export function AppShell({ children }: AppShellProps) {
               paddingTop: isLeagueNavigationRoute
                 ? "env(safe-area-inset-top, 0px)"
                 : hasFloatingTopControls
-                  ? "max(46px, calc(env(safe-area-inset-top, 0px) + 44px))"
-                  : "max(12px, calc(env(safe-area-inset-top, 0px) + 12px))",
+                  ? "max(54px, calc(env(safe-area-inset-top, 0px) + 52px))"
+                  : "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))",
               paddingBottom: isLeagueNavigationRoute
                 ? "env(safe-area-inset-bottom, 0px)"
                 : shouldShowBottomNav || shouldShowPersonalMatchesNav ? "96px" : "32px",

@@ -259,10 +259,6 @@ export default function PlayerMatchesPage() {
       <header className="app-page-header">
         <BackButton fallbackHref={playerHref} label={t.common.back} />
 
-        <p className="mt-3 text-sm font-medium text-neutral-500">
-          {activeLeague.name}
-        </p>
-
         <h1 className="type-page-title mt-1 text-2xl font-black tracking-tight">
           {t.profile.matchHistoryTitle}
         </h1>

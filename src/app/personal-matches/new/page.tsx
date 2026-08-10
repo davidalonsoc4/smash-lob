@@ -249,10 +249,10 @@ export default function NewPersonalMatchPage() {
     <div className="compact-page space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <p className="mt-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
-        <h1 className="type-page-title mt-0.5 text-2xl font-black tracking-tight">
+        <h1 className="type-page-title font-black tracking-tight">
           {status === "scheduled" ? "Programar partido" : "Registrar partido"}
         </h1>
+        <p className="mt-0.5 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
       </header>
 
       <div className="grid grid-cols-2 rounded-xl bg-neutral-100 p-1">
