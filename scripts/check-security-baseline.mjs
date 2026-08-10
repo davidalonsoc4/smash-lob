@@ -119,6 +119,30 @@ if (allowedLegacyCopies > 0) {
   notes.push(`${allowedLegacyCopies} copias 1.1.17+ limitadas a herramientas de lint`)
 }
 
+
+const regexpFlagsEntries = packageEntries("regexp.prototype.flags")
+if (regexpFlagsEntries.length === 0) {
+  failures.push("No se ha encontrado regexp.prototype.flags en package-lock.json.")
+}
+for (const [packagePath, metadata] of regexpFlagsEntries) {
+  const version = metadata.version ?? "desconocida"
+  const resolved = metadata.resolved ?? ""
+  if (version !== "1.5.4") {
+    failures.push(`${packagePath} resuelve regexp.prototype.flags ${version}; se fija 1.5.4 porque es la versión publicada disponible.`)
+  }
+  if (!resolved.endsWith("/regexp.prototype.flags-1.5.4.tgz")) {
+    failures.push(`${packagePath} apunta a un tarball inesperado de regexp.prototype.flags: ${resolved || "sin URL"}.`)
+  }
+}
+const esAbstractEntry = lockfile.packages?.["node_modules/es-abstract"]
+const regexpRange = esAbstractEntry?.dependencies?.["regexp.prototype.flags"]
+if (regexpRange !== "^1.5.4") {
+  failures.push(`es-abstract debe depender de regexp.prototype.flags ^1.5.4; lock actual: ${regexpRange ?? "ausente"}.`)
+}
+if (regexpFlagsEntries.length > 0 && regexpFlagsEntries.every(([, metadata]) => metadata.version === "1.5.4")) {
+  notes.push("regexp.prototype.flags 1.5.4 con tarball válido")
+}
+
 if (failures.length > 0) {
   console.error("\nLínea base de seguridad NO válida:\n")
   for (const failure of failures) console.error(`- ${failure}`)
