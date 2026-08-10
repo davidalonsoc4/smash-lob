@@ -127,6 +127,13 @@ textarea {
   line-height: 1.25;
 }
 
+/* Inactive NAVBAR labels must keep AA contrast even when the translucent
+   navigation surface composites over page content. Theme-specific rules below
+   can still replace this neutral with their own accessible secondary text. */
+.app-bottom-nav-item {
+  color: #525252;
+}
+
 .app-bottom-nav-icon {
   width: 16px;
   height: 16px;
@@ -1624,7 +1631,7 @@ html.colorful .app-bottom-nav-active {
 }
 
 html.colorful .app-bottom-nav-item {
-  color: var(--colorful-text-500) !important;
+  color: var(--colorful-text-600) !important;
 }
 
 html.colorful .app-bottom-nav-item:active {
