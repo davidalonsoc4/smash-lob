@@ -197,23 +197,27 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
       </header>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
-          <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
-            {t.profile.points}
-          </p>
-          <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
-            {selectedStats.points}
-          </p>
-        </div>
+        <AppCard accentStrip className="overflow-hidden !p-0">
+          <div className="flex items-center justify-between gap-2 px-3 py-2">
+            <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
+              {t.profile.points}
+            </p>
+            <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
+              {selectedStats.points}
+            </p>
+          </div>
+        </AppCard>
 
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
-          <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
-            {t.ranking.gamesDiff}
-          </p>
-          <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
-            {`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
-          </p>
-        </div>
+        <AppCard accentStrip className="overflow-hidden !p-0">
+          <div className="flex items-center justify-between gap-2 px-3 py-2">
+            <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
+              {t.ranking.gamesDiff}
+            </p>
+            <p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">
+              {`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}
+            </p>
+          </div>
+        </AppCard>
       </div>
 
       <PlayerStatsPanel

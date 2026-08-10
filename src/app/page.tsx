@@ -730,9 +730,11 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
-        <div className="app-home-identity">
-          <LeagueLogo league={activeLeague} size="xl" className="app-home-top-logo" previewable />
-          <div className="app-home-identity-copy min-w-0">
+        <div className={activeLeague.logoUrl ? "app-home-identity" : "block"}>
+          {activeLeague.logoUrl ? (
+            <LeagueLogo league={activeLeague} size="xl" className="app-home-top-logo" previewable />
+          ) : null}
+          <div className={activeLeague.logoUrl ? "app-home-identity-copy min-w-0" : "min-w-0"}>
             <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight">
               {activeLeague.name}
             </h1>

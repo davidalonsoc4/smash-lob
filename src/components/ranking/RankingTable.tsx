@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { sortRankingRows } from "@/lib/rankingOrder"
 
@@ -39,7 +40,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
   const sortedPlayers = sortRankingRows(players)
 
   return (
-    <div className="app-ranking-list overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+    <AppCard accentStrip className="app-ranking-list overflow-hidden !p-0">
       <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 border-b border-neutral-100 px-3 py-2.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
         <div className="flex min-w-0 items-center gap-3">
           <span className="w-7 shrink-0 text-center">POS</span>
@@ -108,6 +109,6 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
       <p className="border-t border-neutral-100 px-3 py-2.5 type-caption font-semibold text-neutral-600">
         J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados
       </p>
-    </div>
+    </AppCard>
   )
 }
