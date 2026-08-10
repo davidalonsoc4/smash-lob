@@ -75,6 +75,8 @@ type GuideCopy = {
   availabilityDescription: string
   schedulingTitle: string
   schedulingDescription: string
+  friendlyMatchesTitle: string
+  friendlyMatchesDescription: string
   resultsTitle: string
   resultsDescription: string
   paymentsTitle: string
@@ -163,13 +165,13 @@ const COPY: Record<Locale, GuideCopy> = {
       "El resultado registrado se aplica sin un paso adicional de confirmación de los jugadores.",
     mvpAutomaticTitle: "MVP automático",
     mvpAutomaticDescription:
-      "La aplicación calcula el MVP de jornada utilizando el rendimiento registrado en los partidos.",
+      "La aplicación elige la pareja ganadora con el resultado más dominante de la jornada y concede el MVP de jornada a sus dos integrantes.",
     mvpAutomaticAdvancedTitle: "MVP automático avanzado",
     mvpAutomaticAdvancedDescription:
       "Elige la pareja más dominante de la jornada y, entre sus integrantes, usa resultados, sets y juegos de la temporada para ajustar el rendimiento por compañero y rivales. Si la diferencia no es suficiente, comparte el MVP.",
     mvpVotingTitle: "MVP por votación",
     mvpVotingDescription:
-      "Después de jugar, cada participante vota a otro jugador de su partido; no puede votarse a sí mismo.",
+      "Después de jugar, cada participante vota a otro jugador de su partido; no puede votarse a sí mismo. Cada partido resuelve su propio MVP y, al cerrarse todas las votaciones, los votos de la jornada se agregan para el MVP de jornada.",
     registrationTitle: "Cuota de temporada",
     registrationDescription: (amount, purpose) =>
       purpose
@@ -184,9 +186,12 @@ const COPY: Record<Locale, GuideCopy> = {
     availabilityTitle: "Disponibilidad habitual",
     availabilityDescription:
       "Configura tus franjas habituales para facilitar que el grupo encuentre fecha para cada partido.",
-    schedulingTitle: "Programación de partidos",
+    schedulingTitle: "Programación y ubicaciones",
     schedulingDescription:
-      "Las fechas, horas y pistas se proponen o editan desde cada partido según los permisos disponibles.",
+      "Las fechas, horas y pistas se proponen o editan desde cada partido. El buscador filtra el catálogo de ubicaciones y también permite crear una nueva cuando no aparece la que necesitas.",
+    friendlyMatchesTitle: "Amistosos y selección de jugadores",
+    friendlyMatchesDescription:
+      "En Mis partidos puedes crear amistosos con jugadores conocidos de tus ligas o con nombres externos. El selector permite buscar por jugador o liga, evita repetir a la misma persona y mantiene el amistoso compartido entre las cuentas vinculadas.",
     resultsTitle: "Resultados y clasificación",
     resultsDescription:
       "Los sets y juegos guardados actualizan la clasificación individual, los desempates y las estadísticas.",
@@ -295,13 +300,13 @@ const COPY: Record<Locale, GuideCopy> = {
       "A submitted result applies without an additional player confirmation step.",
     mvpAutomaticTitle: "Automatic MVP",
     mvpAutomaticDescription:
-      "The application calculates the round MVP using the performance recorded in matches.",
+      "The application selects the winning pair with the most dominant result of the round and awards the round MVP to both players in that pair.",
     mvpAutomaticAdvancedTitle: "Advanced automatic MVP",
     mvpAutomaticAdvancedDescription:
       "Selects the most dominant winning pair of the round, then uses season results, sets and games to adjust each player for partners and opponents. If the difference is not meaningful, the MVP is shared.",
     mvpVotingTitle: "MVP voting",
     mvpVotingDescription:
-      "After playing, each participant votes for another player in the match and cannot vote for themselves.",
+      "After playing, each participant votes for another player in the match and cannot vote for themselves. Each match resolves its own MVP and, once all voting is closed, the round votes are aggregated for the round MVP.",
     registrationTitle: "Season fee",
     registrationDescription: (amount, purpose) =>
       purpose
@@ -316,9 +321,12 @@ const COPY: Record<Locale, GuideCopy> = {
     availabilityTitle: "Regular availability",
     availabilityDescription:
       "Set your usual time slots to help the group find a date for every match.",
-    schedulingTitle: "Match scheduling",
+    schedulingTitle: "Scheduling and locations",
     schedulingDescription:
-      "Dates, times and courts are proposed or edited from each match according to available permissions.",
+      "Dates, times and courts are proposed or edited from each match. The search filters the location catalogue and also lets you create a new location when the place you need is not listed.",
+    friendlyMatchesTitle: "Friendlies and player selection",
+    friendlyMatchesDescription:
+      "In My matches you can create friendlies with known players from your leagues or external names. The selector can search by player or league, prevents duplicate selections and keeps the friendly shared between linked accounts.",
     resultsTitle: "Results and standings",
     resultsDescription:
       "Saved sets and games update the individual standings, tie-breakers and statistics.",
@@ -427,13 +435,13 @@ const COPY: Record<Locale, GuideCopy> = {
       "Erregistratutako emaitza jokalarien aparteko baieztapenik gabe aplikatzen da.",
     mvpAutomaticTitle: "MVP automatikoa",
     mvpAutomaticDescription:
-      "Aplikazioak jardunaldiko MVP kalkulatzen du partidetan erregistratutako errendimenduarekin.",
+      "Aplikazioak jardunaldiko emaitzarik nagusiena duen bikote irabazlea hautatzen du eta bikoteko bi jokalariei ematen die jardunaldiko MVP saria.",
     mvpAutomaticAdvancedTitle: "MVP automatiko aurreratua",
     mvpAutomaticAdvancedDescription:
       "Jardunaldiko bikote garaile nagusiena aukeratzen du, eta gero denboraldiko emaitzak, setak eta jokoak erabiltzen ditu jokalari bakoitza bikotekideen eta aurkarien arabera doitzeko. Aldea nahikoa ez bada, MVP partekatua da.",
     mvpVotingTitle: "MVP bozketa bidez",
     mvpVotingDescription:
-      "Partidaren ondoren, parte-hartzaile bakoitzak beste jokalari bat bozkatzen du eta ezin du bere burua bozkatu.",
+      "Partidaren ondoren, parte-hartzaile bakoitzak beste jokalari bat bozkatzen du eta ezin du bere burua bozkatu. Partida bakoitzak bere MVP propioa ebazten du eta boto guztiak itxitakoan jardunaldiko botoak batu egiten dira jardunaldiko MVPa erabakitzeko.",
     registrationTitle: "Denboraldiko kuota",
     registrationDescription: (amount, purpose) =>
       purpose
@@ -448,9 +456,12 @@ const COPY: Record<Locale, GuideCopy> = {
     availabilityTitle: "Ohiko erabilgarritasuna",
     availabilityDescription:
       "Ezarri zure ohiko ordutegiak taldeak partida bakoitzerako data aurki dezan.",
-    schedulingTitle: "Partiden programazioa",
+    schedulingTitle: "Programazioa eta kokapenak",
     schedulingDescription:
-      "Datak, orduak eta pistak partida bakoitzetik proposatzen edo editatzen dira baimenen arabera.",
+      "Datak, orduak eta pistak partida bakoitzetik proposatzen edo editatzen dira. Bilatzaileak kokapenen katalogoa iragazten du eta behar duzun tokia agertzen ez bada berri bat sortzeko aukera ematen du.",
+    friendlyMatchesTitle: "Lagunartekoak eta jokalarien hautaketa",
+    friendlyMatchesDescription:
+      "Nire partidak atalean zure ligetako jokalari ezagunekin edo kanpoko izenekin lagunartekoak sor ditzakezu. Hautatzaileak jokalariaren edo ligaren arabera bilatzen du, pertsona bera errepikatzea saihesten du eta partida lotutako kontuen artean partekatzen du.",
     resultsTitle: "Emaitzak eta sailkapena",
     resultsDescription:
       "Gordetako setek eta jokoek banakako sailkapena, berdinketak eta estatistikak eguneratzen dituzte.",
@@ -714,6 +725,11 @@ export function buildApplicationToolItems({
       id: "scheduling",
       title: copy.schedulingTitle,
       description: copy.schedulingDescription,
+    },
+    {
+      id: "friendly-matches",
+      title: copy.friendlyMatchesTitle,
+      description: copy.friendlyMatchesDescription,
     },
     {
       id: "results",

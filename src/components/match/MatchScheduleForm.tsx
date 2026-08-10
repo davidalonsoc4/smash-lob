@@ -533,7 +533,7 @@ export function MatchScheduleForm({
       )}
 
       {hasSchedule ? (
-        <div className="px-3 pb-3 pt-2.5">
+        <div className="px-3 pb-3 pt-1">
           <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-black text-neutral-950">
               {capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
@@ -564,7 +564,7 @@ export function MatchScheduleForm({
 
       {isPanelOpen ? (
         <div
-          className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "pt-2.5"}`}
+          className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "pt-1"}`}
         >
           {canManage && !isEditing ? (
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -647,7 +647,7 @@ export function MatchScheduleForm({
           ) : null}
 
           {canManage && isEditing ? (
-            <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
+            <form onSubmit={handleSubmit} className="mt-1.5 space-y-2.5">
               {!isFinished ? (
                 <MatchAvailabilitySuggestions
                   matchId={matchId}
@@ -708,8 +708,13 @@ export function MatchScheduleForm({
                         className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
                       />
 
-                      <div className="mt-1.5 max-h-40 space-y-1 overflow-y-auto">
-                        {filteredAvailableLocations.slice(0, 6).map((availableLocation) => {
+                      <div className="mt-1.5 flex items-center justify-between gap-2 type-caption font-semibold text-neutral-500">
+                        <span>{filteredAvailableLocations.length} ubicación{filteredAvailableLocations.length === 1 ? "" : "es"}</span>
+                        <span>{locationSearch.trim() ? "Resultados filtrados" : "Escribe para filtrar"}</span>
+                      </div>
+
+                      <div className="mt-1.5 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/70 p-1">
+                        {filteredAvailableLocations.map((availableLocation) => {
                           const selected = selectedLocation === availableLocation.id;
 
                           return (
@@ -737,6 +742,11 @@ export function MatchScheduleForm({
                             </button>
                           );
                         })}
+                        {filteredAvailableLocations.length === 0 ? (
+                          <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">
+                            No hay ubicaciones que coincidan con la búsqueda.
+                          </p>
+                        ) : null}
                       </div>
                     </>
                   ) : (

@@ -8,6 +8,7 @@ type MatchDetailViewProps = {
   backLabel: string
   eyebrow?: ReactNode
   title: ReactNode
+  context?: ReactNode
   subtitle?: ReactNode
   status: string
   scheduledAt?: string | null
@@ -21,8 +22,8 @@ type MatchDetailViewProps = {
 export function MatchDetailView({
   backHref,
   backLabel,
-  eyebrow,
   title,
+  context,
   subtitle,
   status,
   scheduledAt,
@@ -51,17 +52,12 @@ export function MatchDetailView({
             </div>
           </div>
 
-          {eyebrow ? (
-            <p className="mt-0.5 text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
-              {eyebrow}
-            </p>
-          ) : null}
 
-          {subtitle ? (
+          {context ?? (subtitle ? (
             <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
               {subtitle}
             </p>
-          ) : null}
+          ) : null)}
         </div>
       </header>
 

@@ -14,6 +14,7 @@ import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
+import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -277,8 +278,20 @@ export default function MatchDetailPage() {
     <MatchDetailView
       backHref="/matches"
       backLabel={t.common.back}
-      eyebrow={activeLeague.name}
       title={`${t.matches.round} ${match.round}`}
+      context={
+        <SeasonContextLine
+          seasonName={activeSeason.name}
+          statusLabel={
+            activeSeason.status === "finished"
+              ? t.common.finishedSeasonBadge
+              : activeSeason.status === "upcoming"
+                ? t.rounds.statusUpcoming
+                : t.rounds.statusActive
+          }
+          className="mt-0.5"
+        />
+      }
       status={match.status}
       scheduledAt={match.scheduledAt}
       resultRecordedAt={match.resultRecordedAt}

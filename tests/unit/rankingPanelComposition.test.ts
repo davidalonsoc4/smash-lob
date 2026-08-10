@@ -15,7 +15,7 @@ describe("ranking panel composition", () => {
       readFile("src/app/globals.css", "utf8"),
     ])
 
-    expect(table).toContain('className="app-ranking-list overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm"')
+    expect(table).toContain('<AppCard accentStrip className="app-ranking-list overflow-hidden !p-0">')
     expect(table).toContain('border-b border-neutral-100')
     expect(table).toContain('<span className="w-7 shrink-0 text-center">POS</span>')
     expect(table).toContain('<span>Jugador</span>')
