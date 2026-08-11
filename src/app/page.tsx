@@ -20,6 +20,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
+import { useActiveLeague } from "@/context/ActiveLeagueProvider";
 import { useMvp } from "@/context/MvpProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useMatchData, type MatchData } from "@/context/MatchDataProvider";
@@ -46,12 +47,9 @@ import {
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
 
-const supabaseUuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const supabaseUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function isSupabaseBackedId(id: string) {
-  return supabaseUuidPattern.test(id);
-}
+function isSupabaseBackedId(id: string) { return supabaseUuidPattern.test(id); }
 async function refreshApp() {
   const reload = () => window.location.reload();
   try {
@@ -64,12 +62,7 @@ async function refreshApp() {
     worker.addEventListener("statechange", () => worker.state === "installed" ? requestPwaUpdate(registration.waiting ?? worker, reload) : worker.state === "redundant" && reload(), { once: true });
   } catch { reload(); }
 }
-function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
-  return {
-    actorEmail: session?.user?.email ?? "system@smash-lob.local",
-    actorDisplayName: session?.user?.name ?? null,
-  };
-}
+function getActorFromSession(session: ReturnType<typeof useSession>["data"]) { return { actorEmail: session?.user?.email ?? "system@smash-lob.local", actorDisplayName: session?.user?.name ?? null }; }
 
 type AwardPlayer = {
   id: string;
@@ -401,16 +394,17 @@ function SeasonSummaryAwardRow({
 export default function Home() {
   const { t } = useI18n();
   const { data: session } = useSession();
-  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings } =
-    useSeasonSettings();
+  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
   const [isSendingRegistrationReminder, setIsSendingRegistrationReminder] = useState(false);
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
+  const [isLeaguePickerOpen, setIsLeaguePickerOpen] = useState(false);
   const { currentUserId, currentUser } = useCurrentUser();
-  const { isLeagueAdmin, isLeagueSpectator } = useLeagueAccess();
+  const { activateLeague } = useActiveLeague();
+  const { canAccessLeague, isLeagueAdmin, isLeagueSpectator, leagues } = useLeagueAccess();
   const { votes } = useMvp();
   const {
     activeLeague,
@@ -424,25 +418,18 @@ export default function Home() {
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
   const spectatorMode = isLeagueSpectator(activeLeague.id);
+  const accessibleHomeLeagues = leagues.filter((league) => canAccessLeague(league.id) || isLeagueSpectator(league.id));
   const canManageRegistration = canManageSeason;
   const isSeasonClosed = activeSeason.status === "finished";
   const isSeasonUpcoming = activeSeason.status === "upcoming";
-  const currentUserMatches = matches.filter(
-    (match) =>
-      match.teamA.includes(currentUserId) ||
-      match.teamB.includes(currentUserId),
-  );
+  const currentUserMatches = matches.filter((match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId));
   const now = new Date();
   const personalLastMatch = getLastPlayedOrPendingMatch(currentUserMatches, now);
   const leagueLastMatch = getLastPlayedOrPendingMatch(matches, now);
   const nextMatch = getNextMatch(currentUserMatches);
   const leagueNextMatch = getNextMatch(matches);
-  const nextMatchCandidateCount = matches.filter((match) =>
-    isNextMatchCandidate(match, now),
-  ).length;
-  const lastMatchCandidateCount = matches.filter((match) =>
-    isPlayedOrPendingResult(match, now),
-  ).length;
+  const nextMatchCandidateCount = matches.filter((match) => isNextMatchCandidate(match, now)).length;
+  const lastMatchCandidateCount = matches.filter((match) => isPlayedOrPendingResult(match, now)).length;
   const shouldShowNextMatchScopeSwitch = shouldShowScopeSwitch({
     leagueMatch: leagueNextMatch,
     personalMatch: nextMatch,
@@ -749,9 +736,15 @@ export default function Home() {
             <div className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale><LeagueLogo league={activeLeague} size="md" previewable /></div>
           ) : null}
           <div className="min-w-0 flex-1">
-            <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight">
-              {activeLeague.name}
-            </h1>
+            <div className="relative">
+              <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight"><button type="button" data-tour="home-league-switcher" aria-haspopup="menu" aria-expanded={isLeaguePickerOpen} aria-controls="home-league-picker" onClick={() => setIsLeaguePickerOpen((open) => !open)} className="m-0 block max-w-full truncate border-0 bg-transparent p-0 text-left font-black leading-tight tracking-tight focus:outline-none focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500">{activeLeague.name}</button></h1>
+              {isLeaguePickerOpen ? <button type="button" aria-label="Cerrar selector de ligas" className="fixed inset-0 z-40 cursor-default" onClick={() => setIsLeaguePickerOpen(false)} /> : null}
+              {isLeaguePickerOpen ? <div id="home-league-picker" role="menu" aria-label="Cambiar liga" className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                {accessibleHomeLeagues.map((league) => <button key={league.id} type="button" role="menuitemradio" aria-checked={league.id === activeLeague.id} onClick={() => { if (league.id === activeLeague.id || activateLeague(league.id)) setIsLeaguePickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${league.id === activeLeague.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}><span className="truncate">{league.name}</span>{league.id === activeLeague.id ? <span aria-hidden="true">✓</span> : null}</button>)}
+                <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
+                <Link href="/personal-matches" role="menuitem" onClick={() => setIsLeaguePickerOpen(false)} className="flex items-center rounded-xl px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800">MIS PARTIDOS</Link>
+              </div> : null}
+            </div>
             <SeasonContextLine
               seasonName={activeSeason.name}
               statusLabel={

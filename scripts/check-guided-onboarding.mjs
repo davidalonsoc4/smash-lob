@@ -55,7 +55,7 @@ const requiredSnippets = new Map([
       "GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.user_onboarding_progress TO service_role",
     ],
   ],
-  ["src/app/page.tsx", ['data-tour="home-header"', 'data-tour="home-next-match"']],
+  ["src/app/page.tsx", ['data-tour="home-header"', 'data-tour="home-league-switcher"', 'data-tour="home-next-match"']],
   ["src/app/matches/page.tsx", ['data-tour="matches-round-list"']],
   ["src/app/ranking/page.tsx", ['data-tour="ranking-table"']],
   ["src/app/statistics/page.tsx", ['data-tour="statistics-navigation"']],
@@ -88,6 +88,7 @@ const structureSource = toursSource.slice(toursSource.indexOf("const tourStructu
 if (structureSource.includes('key: "app-introduction"')) {
   failures.push("Bienvenida no debe existir como recorrido independiente")
 }
+if (!structureSource.includes("[data-tour='home-league-switcher']")) failures.push("La guía de Inicio debe explicar el selector de liga")
 const floatingOrder = [
   "[data-tour='floating-settings']",
   "[data-tour='floating-notifications']",

@@ -52,6 +52,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Resumen de la liga",
           description: "La cabecera identifica la liga, la temporada seleccionada y si ya ha finalizado.",
         },
+        { title: "Cambia de liga rápidamente", description: "Toca el nombre de la liga para cambiar de competición o abrir Mis partidos sin salir de Inicio." },
         {
           title: "Comunicados importantes",
           description: "Los avisos de los administradores aparecen aquí para que no se pierdan entre los partidos.",
@@ -212,6 +213,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "League overview",
           description: "The header identifies the league, selected season and whether it has already finished.",
         },
+        { title: "Switch leagues quickly", description: "Tap the league name to switch competitions or open My matches without leaving Home." },
         {
           title: "Important announcements",
           description: "Administrator notices appear here so they do not get lost among the matches.",
@@ -372,6 +374,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Ligaren laburpena",
           description: "Goiburuak liga, hautatutako denboraldia eta amaituta dagoen adierazten ditu.",
         },
+        { title: "Aldatu liga azkar", description: "Sakatu ligaren izena lehiaketaz aldatzeko edo Nire partidak irekitzeko Hasieratik irten gabe." },
         {
           title: "Ohar garrantzitsuak",
           description: "Administratzaileen oharrak hemen agertzen dira partidetan gal ez daitezen.",
@@ -508,12 +511,13 @@ const tourStructure: Array<{
 }> = [
   {
     key: "home",
-    version: 4,
+    version: 5,
     route: "/",
     audience: everyone,
     steps: [
       { side: "center", firstRunOnly: true, wide: true },
       { selector: "[data-tour='home-header']", side: "bottom" },
+      { selector: "[data-tour='home-league-switcher']", side: "bottom" },
       { selector: "[data-tour='home-announcements']", side: "bottom" },
       { selector: "[data-tour='home-next-match']", side: "top" },
       { selector: "[data-tour='home-season-actions']", side: "top" },
