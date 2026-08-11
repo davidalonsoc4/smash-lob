@@ -1,5 +1,4 @@
 "use client"
-
 import type { ReactNode } from "react"
 import { useState } from "react"
 import Link from "next/link"
@@ -19,15 +18,12 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { formatMoney } from "@/lib/courtBooking"
-
 const settingsVersionLabel = `Smash & Lob · ${APP_VERSION_LABEL}`
-
 type SettingsSectionProps = {
   title: string
   description?: string
   children: ReactNode
 }
-
 function SettingsSection({ title, description, children }: SettingsSectionProps) {
   return (
     <section className="space-y-2">
@@ -47,7 +43,6 @@ function SettingsSection({ title, description, children }: SettingsSectionProps)
     </section>
   )
 }
-
 type SettingsLinkRowProps = {
   href: string
   title: string
@@ -58,7 +53,6 @@ type SettingsLinkRowProps = {
   tone?: "default" | "warning" | "danger"
   tour?: string
 }
-
 function SettingsLinkRow({
   href,
   title,
@@ -81,7 +75,6 @@ function SettingsLinkRow({
       : tone === "warning"
         ? "text-amber-700"
         : "text-neutral-500"
-
   return (
     <Link
       href={href}
@@ -103,7 +96,6 @@ function SettingsLinkRow({
     </Link>
   )
 }
-
 function SettingsStaticRow({
   id,
   title,
@@ -129,7 +121,6 @@ function SettingsStaticRow({
     </div>
   )
 }
-
 function SettingsToggle({
   checked,
   onChange,
@@ -158,7 +149,6 @@ function SettingsToggle({
     </button>
   )
 }
-
 const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b"],
   midnight: ["#365f9d", "#5a78b5", "#87b5df"],
@@ -167,7 +157,6 @@ const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
   terracotta: ["#a95640", "#c0785e", "#ddaa84"],
   graphite: ["#4f6379", "#71879b", "#a7c5d8"],
 }
-
 function AppearanceSummaryPreview({
   themeMode,
   colorful,
@@ -183,7 +172,6 @@ function AppearanceSummaryPreview({
       : themeMode === "dark"
         ? "bg-neutral-900 ring-neutral-700"
         : "bg-gradient-to-r from-white from-50% to-neutral-900 to-50% ring-neutral-300"
-
   return (
     <span
       aria-hidden="true"
@@ -211,7 +199,6 @@ function AppearanceSummaryPreview({
     </span>
   )
 }
-
 function AppearanceSettingsLink() {
   const { t } = useI18n()
   const { themeMode, visualStyle, colorfulPalette } = useTheme()
@@ -232,7 +219,6 @@ function AppearanceSettingsLink() {
   const description = colorful
     ? `${themeLabels[themeMode]} · ${t.settings.visualStyleColorful} · ${paletteLabels[colorfulPalette]}`
     : `${themeLabels[themeMode]} · ${t.settings.visualStylePlain}`
-
   return (
     <SettingsLinkRow
       href="/settings/appearance"
@@ -250,10 +236,8 @@ function AppearanceSettingsLink() {
     />
   )
 }
-
 function SessionSection() {
   const { t } = useI18n()
-
   return (
     <SettingsSection title="Sesión">
       <button
@@ -266,7 +250,6 @@ function SessionSection() {
     </SettingsSection>
   )
 }
-
 function SpectatorSettingsPage() {
   const { t } = useI18n()
   const { data: session } = useSession()
@@ -279,7 +262,6 @@ function SpectatorSettingsPage() {
           Cuenta de espectador · acceso de solo lectura.
         </p>
       </header>
-
       <ContextualTip
         tipId="settings-search"
         title={t.onboardingTips.settingsSearchTitle}
@@ -287,14 +269,12 @@ function SpectatorSettingsPage() {
         dismissLabel={t.onboardingTips.dismiss}
         compact
       />
-
       <AppCard className="border-blue-100 bg-blue-50">
         <p className="text-sm font-black text-blue-950">Modo espectador</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
           Puedes consultar Home, ranking, partidos, resultados y perfiles. Las opciones de juego y administración permanecen ocultas.
         </p>
       </AppCard>
-
       <SettingsSection
         title="Personal"
         description="Tu cuenta, idioma y aspecto de la aplicación."
@@ -329,7 +309,6 @@ function SpectatorSettingsPage() {
         </SettingsStaticRow>
         <AppearanceSettingsLink />
       </SettingsSection>
-
       <SettingsSection
         title="Mis ligas"
         description="Accede a las competiciones que sigues o en las que participas."
@@ -342,7 +321,6 @@ function SpectatorSettingsPage() {
           description="Cambia entre ligas donde eres jugador o espectador."
         />
       </SettingsSection>
-
       {isAvatarLabEnabled() ? (
         <SettingsSection
           title="Laboratorio"
@@ -361,7 +339,6 @@ function SpectatorSettingsPage() {
           />
         </SettingsSection>
       ) : null}
-
       <SettingsSection
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
@@ -392,9 +369,7 @@ function SpectatorSettingsPage() {
           description="Consulta la descripción pública y las funciones principales de la aplicación."
         />
       </SettingsSection>
-
       <SessionSection />
-
       <p
         data-visual-stable-version
         className="pb-1 text-center type-caption font-black uppercase tracking-[0.24em] text-neutral-600"
@@ -404,18 +379,14 @@ function SpectatorSettingsPage() {
     </div>
   )
 }
-
 export default function SettingsPage() {
   const { activeLeague } = useCurrentLeagueData()
   const { isLeagueSpectator, isSuperuser } = useLeagueAccess()
-
   if (!isSuperuser && isLeagueSpectator(activeLeague.id)) {
     return <SpectatorSettingsPage />
   }
-
   return <PlayerSettingsPage />
 }
-
 function PlayerSettingsPage() {
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
@@ -471,33 +442,25 @@ function PlayerSettingsPage() {
     if (!canSelfUnlink || isUnlinkingLeague) {
       return
     }
-
     const confirmed = window.confirm(
       `Vas a desvincularte de ${activeLeague.name}. Tu jugador quedará libre para poder reclamarlo de nuevo con una invitación. ¿Continuar?`,
     )
-
     if (!confirmed) {
       return
     }
-
     setIsUnlinkingLeague(true)
     setUnlinkLeagueError(null)
-
     const ok = await unlinkLeaguePlayerAccount(activeLeague.id, currentUser.id)
-
     setIsUnlinkingLeague(false)
-
     if (!ok) {
       setUnlinkLeagueError(
         "No se ha podido desvincular tu cuenta de esta liga. Revisa smash-lob-last-supabase-error.",
       )
       return
     }
-
     window.localStorage.removeItem("smash-lob-active-league")
     router.replace("/leagues")
   }
-
   return (
     <div className="compact-page space-y-4">
       <header className="app-page-header">
@@ -506,7 +469,6 @@ function PlayerSettingsPage() {
           {t.settings.title}
         </h1>
       </header>
-
       <ContextualTip
         tipId="settings-search"
         title={t.onboardingTips.settingsSearchTitle}
@@ -514,7 +476,6 @@ function PlayerSettingsPage() {
         dismissLabel={t.onboardingTips.dismiss}
         compact
       />
-
       <SettingsSection
         title="Personal"
         description="Tu perfil, preferencias y forma de participar en la liga."
@@ -549,7 +510,6 @@ function PlayerSettingsPage() {
           description="Define cuándo puedes jugar para futuras recomendaciones de horarios."
         />
       </SettingsSection>
-
       <SettingsSection
         title="Mis ligas"
         description="Cambia de competición, entra en otra liga o crea una nueva."
@@ -605,7 +565,6 @@ function PlayerSettingsPage() {
           </div>
         ) : null}
       </SettingsSection>
-
       <SettingsSection
         title="Actividad personal"
         description="Movimientos económicos e historial de la liga."
@@ -635,7 +594,6 @@ function PlayerSettingsPage() {
           description="Consulta el historial de cambios y acciones desde que te vinculaste."
         />
       </SettingsSection>
-
       {hasAdminRole || isSuperuser ? (
         <SettingsSection
           title="Administración"
@@ -666,14 +624,13 @@ function PlayerSettingsPage() {
             <SettingsLinkRow
               href="/application-admin"
               id="application-admin"
-              title="Administración de la aplicación"
-              description="Gestiona cuentas globales, permisos, suspensiones y auditoría."
+              title="Gestión de la app"
+              description="Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob."
               tone="danger"
             />
           ) : null}
         </SettingsSection>
       ) : null}
-
       {isAvatarLabEnabled() ? (
         <SettingsSection
           title="Laboratorio"
@@ -692,7 +649,6 @@ function PlayerSettingsPage() {
           />
         </SettingsSection>
       ) : null}
-
       <SettingsSection
         title="Ayuda e información"
         description="Documentación, novedades y versión instalada."
@@ -723,9 +679,7 @@ function PlayerSettingsPage() {
           description="Consulta la descripción pública y las funciones principales de la aplicación."
         />
       </SettingsSection>
-
       <SessionSection />
-
       <p
         data-visual-stable-version
         className="pb-1 text-center type-caption font-black uppercase tracking-[0.24em] text-neutral-600"
