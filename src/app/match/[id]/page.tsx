@@ -2,7 +2,6 @@
 
 import { useParams, useSearchParams } from "next/navigation"
 import { useState } from "react"
-import { ContextualTip } from "@/components/onboarding/ContextualTip"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import {
@@ -314,13 +313,7 @@ export default function MatchDetailPage() {
       beforePairing={
         <>
           {hasContextualMatchActions ? (
-            <ContextualTip
-              tipId="match-actions"
-              title={t.onboardingTips.matchActionsTitle}
-              description={t.onboardingTips.matchActionsDescription}
-              dismissLabel={t.onboardingTips.dismiss}
-              compact
-            />
+            <></>
           ) : null}
 
           {isSeasonUpcoming ? (

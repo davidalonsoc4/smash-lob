@@ -6,9 +6,9 @@ import { AppCard } from "@/components/ui/AppCard"
 import {
   createLeagueLocation,
   getLeagueLocationCompactText,
-  getLeagueLocationOptionLabel,
+  getLeagueLocationTownNameLabel,
   getScheduleLocationMapsUrl,
-  sortLeagueLocationsByOptionLabel,
+  sortLeagueLocationsByTownNameLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations"
 import { formatScheduleForDateTimeInput } from "@/lib/matchScheduleTime"
@@ -43,7 +43,7 @@ export function PersonalMatchSchedulePanel({
       .then(async (response) => {
         const payload = (await response.json()) as { locations?: LeagueLocation[] }
         if (!response.ok) throw new Error("global_locations_lookup_failed")
-        return sortLeagueLocationsByOptionLabel(payload.locations ?? [])
+        return sortLeagueLocationsByTownNameLabel(payload.locations ?? [])
       })
       .then((locations) => {
         if (!cancelled) setGlobalLocations(locations)
@@ -68,7 +68,7 @@ export function PersonalMatchSchedulePanel({
     const query = locationSearch.trim().toLocaleLowerCase("es-ES")
     if (!query) return globalLocations
     return globalLocations.filter((location) =>
-      getLeagueLocationOptionLabel(location)
+      getLeagueLocationTownNameLabel(location)
         .toLocaleLowerCase("es-ES")
         .includes(query),
     )
@@ -251,7 +251,7 @@ export function PersonalMatchSchedulePanel({
                           disabled={saving}
                           className={`w-full rounded-lg border px-2.5 py-2 text-left ${selected ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-900"}`}
                         >
-                          <span className="block truncate text-xs font-black">{getLeagueLocationOptionLabel(location)}</span>
+                          <span className="block truncate text-xs font-black">{getLeagueLocationTownNameLabel(location)}</span>
                         </button>
                       )
                     })}

@@ -58,7 +58,26 @@ assert(leagueEditor.includes("Ubicaciones de la app"), "El editor de liga debe p
 assert(leagueEditor.includes("Buscar por nombre, localidad o dirección..."), "El catálogo global de liga debe tener buscador")
 assert(!newLeaguePage.includes("<LeagueLocationsEditor"), "La identidad inicial de la liga no debe pedir ubicaciones")
 assert(seasonAdminPage.includes("<LeagueLocationsEditor") && seasonAdminPage.includes("Cancelar creación de la liga"), "La primera temporada debe configurar ubicaciones y permitir cancelar la liga")
-assert(matchScheduleForm.includes("Buscar ubicación de la liga..."), "Programar partido debe buscar dentro de las ubicaciones de la liga")
+assert(
+  matchScheduleForm.includes('fetch("/api/locations", { cache: "no-store" })'),
+  "Programar partido debe cargar el catálogo global de ubicaciones",
+)
+assert(
+  matchScheduleForm.includes("Recomendadas por la liga") &&
+    matchScheduleForm.includes("Todas las ubicaciones") &&
+    matchScheduleForm.includes("recommendedIdentityKeys"),
+  "Programar partido debe priorizar recomendaciones de liga sin limitar el catálogo global",
+)
+assert(
+  matchScheduleForm.includes("recommendedLocations.length === 0") &&
+    matchScheduleForm.includes("filteredAvailableLocations.map(renderLocationOption)"),
+  "Sin recomendaciones de liga, Programar partido debe buscar directamente en todo el catálogo global",
+)
+assert(
+  matchScheduleForm.includes("getLeagueLocationTownNameLabel") &&
+    (await readFile("src/lib/leagueLocations.ts", "utf8")).includes("getLeagueLocationTownNameLabel"),
+  "Los selectores de ubicación deben mostrar Localidad - Nombre corto",
+)
 assert(matchScheduleForm.includes("+ Añadir nueva ubicación"), "Programar partido debe permitir crear una ubicación")
 assert(matchScheduleForm.includes('fetch("/api/locations"'), "Una ubicación nueva de partido debe guardarse en el catálogo global")
 assert(matchEventMeta.includes("getScheduleLocationDisplayText"), "Los metadatos de partido deben normalizar ubicaciones antes de mostrarlas")
@@ -73,4 +92,4 @@ assert(matchScheduleRoute.includes('update({ locations: nextLeagueLocations })')
 console.log("Ubicaciones globales v1.6.0 correctas:")
 console.log("- catálogo único service-role con deduplicación y compatibilidad histórica")
 console.log("- la primera temporada y la administración buscan ubicaciones existentes o añaden nuevas")
-console.log("- partidos de liga y amistosos reutilizan el catálogo y nunca muestran ubicación JSON cruda")
+console.log("- partidos de liga priorizan recomendaciones y permiten buscar todo el catálogo global; amistosos reutilizan el mismo catálogo")
