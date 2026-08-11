@@ -100,7 +100,7 @@ function AccountNameSettingsForm({
       <button
         type="submit"
         disabled={isSaving}
-        className="mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+        className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? t.common.saving : t.accountProfile.saveChanges}
       </button>

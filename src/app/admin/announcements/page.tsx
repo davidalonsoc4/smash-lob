@@ -365,7 +365,7 @@ export default function AdminAnnouncementsPage() {
             type="button"
             onClick={handleCreate}
             disabled={!canSubmit}
-            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+            className="flex w-full rounded-xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
             {isSaving ? "Procesando..." : actionLabel}
           </button>

@@ -157,7 +157,7 @@ function ProfileCompletionForm({
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+              className="flex w-full rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
               {isSaving ? t.common.saving : t.accountProfile.continue}
             </button>
@@ -192,7 +192,7 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
             <button
               type="button"
               onClick={() => void signOut({ callbackUrl: "/" })}
-              className="mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white"
+              className="flex mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white items-center justify-center text-center"
             >
               Cerrar sesión
             </button>

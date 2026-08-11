@@ -367,7 +367,7 @@ export function PersonalProfileStatistics({
 }: PersonalProfileStatisticsProps) {
   return (
     <>
-      <div className="grid grid-cols-3 gap-1 rounded-2xl bg-neutral-100 p-1">
+      <div data-personal-profile-sections className="grid grid-cols-3 gap-1 rounded-xl bg-neutral-100 p-1">
         {[
           ["summary", "Resumen"],
           ["relations", "Parejas / rivales"],
@@ -377,7 +377,7 @@ export function PersonalProfileStatistics({
             key={value}
             type="button"
             onClick={() => onSectionChange(value as PersonalProfileSection)}
-            className={`rounded-xl px-2 py-2 type-caption font-black transition ${
+            className={`rounded-lg px-1.5 py-1.5 type-caption font-black transition ${
               section === value ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
             }`}
           >

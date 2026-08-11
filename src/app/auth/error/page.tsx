@@ -53,13 +53,13 @@ export default async function AuthErrorPage({
         <div className="mt-4 grid gap-2">
           <Link
             href="/"
-            className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+            className="inline-flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
           >
             Volver a intentarlo
           </Link>
           <Link
             href="/about"
-            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
+            className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800 items-center justify-center"
           >
             Ayuda sobre la aplicación
           </Link>

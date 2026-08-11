@@ -76,7 +76,7 @@ export function ContextualTip({
             {actionLabel && actionHref ? (
               <Link
                 href={actionHref}
-                className="rounded-xl bg-blue-700 px-3 py-2 text-xs font-black text-white"
+                className="inline-flex rounded-xl bg-blue-700 px-3 py-2 text-xs font-black text-white items-center justify-center text-center"
               >
                 {actionLabel}
               </Link>
@@ -84,7 +84,7 @@ export function ContextualTip({
             <button
               type="button"
               onClick={() => dismissOnboardingTip(tipId)}
-              className="rounded-xl bg-white/75 px-3 py-2 text-xs font-black text-blue-800"
+              className="inline-flex rounded-xl bg-white/75 px-3 py-2 text-xs font-black text-blue-800 items-center justify-center text-center"
             >
               {dismissLabel}
             </button>
@@ -127,7 +127,7 @@ export function OnboardingTipsReset({
         <button
           type="button"
           onClick={handleReset}
-          className="shrink-0 rounded-xl bg-white px-3 py-2 type-caption font-black text-neutral-700 shadow-sm"
+          className="inline-flex shrink-0 rounded-xl bg-white px-3 py-2 type-caption font-black text-neutral-700 shadow-sm items-center justify-center text-center"
         >
           {feedback ? doneLabel : actionLabel}
         </button>

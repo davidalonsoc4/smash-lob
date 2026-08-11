@@ -228,7 +228,7 @@ export default function AdminSubstitutesPage() {
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">Los suplentes son jugadores ajenos a los titulares. Nunca se puede utilizar a un titular de esta temporada como suplente. Puedes dejarlos preparados o añadir uno nuevo desde el propio partido.</p>
         <form onSubmit={addSubstitute} className="mt-3 flex gap-2">
           <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Nombre del suplente" maxLength={80} className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" />
-          <button disabled={isSaving || displayName.trim().length < 2} className="rounded-2xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">Añadir</button>
+          <button disabled={isSaving || displayName.trim().length < 2} className="inline-flex rounded-2xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center">Añadir</button>
         </form>
         <div className="mt-3 space-y-2">
           {isLoading ? <p className="text-xs font-semibold text-neutral-500">Cargando...</p> : null}
@@ -254,7 +254,7 @@ export default function AdminSubstitutesPage() {
           <label className="block text-xs font-black text-neutral-600">Jugador entrante<select value={incomingPlayerId} onChange={(event) => setIncomingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">Añadir un jugador nuevo</option>{activePool.map((item) => { const profile = getPoolProfile(item); return <option key={item.id} value={item.player_id}>{profile?.display_name ?? "Suplente"}</option> })}</select></label>
           {!incomingPlayerId ? <input value={replacementName} onChange={(event) => setReplacementName(event.target.value)} placeholder="Nombre del nuevo titular" maxLength={80} className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /> : null}
           <label className="block text-xs font-black text-neutral-600">Desde la jornada<input type="number" min={1} max={activeSeason.totalRounds} value={fromRound} onChange={(event) => setFromRound(Number(event.target.value))} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /></label>
-          <button disabled={isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)} className="w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200">Aplicar reemplazo permanente</button>
+          <button disabled={isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)} className="flex w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center">Aplicar reemplazo permanente</button>
         </form>
 
         {payload.replacements.length > 0 ? (

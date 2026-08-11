@@ -549,7 +549,7 @@ export function MatchScheduleForm({
                     href={directionsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99]"
+                    className="inline-flex flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center"
                   >
                     {t.matchDetail.directionsButton}
                   </a>
@@ -573,7 +573,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={() => setIsEditing(true)}
                   disabled={isSaving}
-                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 text-center"
                 >
                   {t.matchDetail.rescheduleButton}
                 </button>
@@ -583,7 +583,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsEditing(true)}
                     disabled={isSaving}
-                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-neutral-200 bg-white px-2.5 type-caption font-black text-neutral-800 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400"
+                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-neutral-200 bg-white px-2.5 type-caption font-black text-neutral-800 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400 text-center"
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -592,7 +592,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handlePostpone}
                       disabled={!canPostpone}
-                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 type-caption font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300"
+                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 type-caption font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300 text-center"
                     >
                       {isSaving
                         ? t.matchDetail.saving
@@ -604,7 +604,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handleClearSchedule}
                       disabled={!canClearCurrentSchedule}
-                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-red-100 bg-red-50 px-2.5 type-caption font-black text-red-700 transition active:bg-red-100 disabled:text-red-300"
+                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-red-100 bg-red-50 px-2.5 type-caption font-black text-red-700 transition active:bg-red-100 disabled:text-red-300 text-center"
                     >
                       {isSaving
                         ? t.matchDetail.clearingSchedule
@@ -617,7 +617,7 @@ export function MatchScheduleForm({
                   type="button"
                   onClick={() => setIsEditing(true)}
                   disabled={isSaving}
-                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300"
+                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 text-center"
                 >
                   {t.matchDetail.addScheduleButton}
                 </button>
@@ -759,7 +759,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={() => setIsAddingLeagueLocation((current) => !current)}
                     disabled={isSaving || isSavingLocation}
-                    className="mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 disabled:text-neutral-400"
+                    className="flex mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
                   >
                     {isAddingLeagueLocation
                       ? "Cancelar nueva ubicación"
@@ -815,7 +815,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handleCreateLeagueLocation}
                       disabled={!newLocationDraft || isSavingLocation}
-                      className="rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300"
+                      className="inline-flex rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                     >
                       {isSavingLocation ? "Guardando..." : "Guardar y seleccionar"}
                     </button>
@@ -899,7 +899,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                    className="inline-flex flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
                   >
                     {t.matchDetail.cancelScheduleEdit}
                   </button>
@@ -908,7 +908,7 @@ export function MatchScheduleForm({
                 <button
                   type="submit"
                   disabled={!canSave}
-                  className="flex-1 rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300"
+                  className="inline-flex flex-1 rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                 >
                   {isSaving
                     ? t.matchDetail.saving

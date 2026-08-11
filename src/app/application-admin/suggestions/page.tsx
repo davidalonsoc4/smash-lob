@@ -219,7 +219,7 @@ export default function ApplicationSuggestionsPage() {
                   type="button"
                   onClick={() => void saveSuggestion(item)}
                   disabled={Boolean(busyId)}
-                  className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                  className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                 >
                   {busyId === item.id ? "Guardando..." : "Guardar"}
                 </button>

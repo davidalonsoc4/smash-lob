@@ -156,7 +156,7 @@ export function PwaInstallPrompt() {
                 <button
                   type="button"
                   onClick={handleInstall}
-                  className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+                  className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white items-center justify-center text-center"
                 >
                   Instalar
                 </button>
@@ -165,7 +165,7 @@ export function PwaInstallPrompt() {
               <button
                 type="button"
                 onClick={dismiss}
-                className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
+                className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
               >
                 Ahora no
               </button>

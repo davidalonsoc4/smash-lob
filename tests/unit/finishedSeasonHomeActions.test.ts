@@ -13,7 +13,7 @@ describe("finished season home actions", () => {
     expect(home.match(/t\.dashboard\.shareSeasonSummary/g)).toHaveLength(1)
     const spanish = await readFile("src/i18n/locales/es.ts", "utf8")
     expect(spanish).toContain('historyAndStatistics: "Historial y estadísticas"')
-    expect(spanish).toContain('shareSeasonSummary: "Compartir resumen de temporada"')
+    expect(spanish).toContain('shareSeasonSummary: "Compartir resumen"')
     expect(home).toContain("/statistics?season=${encodeURIComponent(activeSeason.id)}")
     expect(home).toContain("#compartir-resumen-temporada")
     expect(seasonSummary).toContain('id="compartir-resumen-temporada"')

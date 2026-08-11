@@ -64,7 +64,7 @@ export function FloatingHelpButton({ right }: { right: string }) {
                   setOpen(false)
                   window.setTimeout(startCurrentTour, 80)
                 }}
-                className="mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white"
+                className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white items-center justify-center text-center"
               >
                 {completed ? copy.repeatCurrent : copy.startCurrent}
               </button>
@@ -73,7 +73,7 @@ export function FloatingHelpButton({ right }: { right: string }) {
             <Link
               href="/help#tutoriales-visuales"
               onClick={() => setOpen(false)}
-              className="mt-2 block w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800"
+              className="flex mt-2 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800 items-center justify-center"
             >
               {copy.allTutorials}
             </Link>

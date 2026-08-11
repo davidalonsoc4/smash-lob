@@ -45,7 +45,7 @@ export default function RankingPage() {
         <AppCard className="transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-black">Historial y estadísticas</p>
+              <p className="type-panel-title font-black">Historial y estadísticas</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
                 Consulta rachas, parejas, temporadas anteriores y campeones.
               </p>

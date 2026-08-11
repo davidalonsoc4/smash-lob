@@ -12,8 +12,10 @@ import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { AppCard } from "@/components/ui/AppCard";
+import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { requestPwaUpdate } from "@/lib/pwaUpdate";
 import { StatCard } from "@/components/ui/StatCard";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
@@ -50,7 +52,18 @@ const supabaseUuidPattern =
 function isSupabaseBackedId(id: string) {
   return supabaseUuidPattern.test(id);
 }
-
+async function refreshApp() {
+  const reload = () => window.location.reload();
+  try {
+    const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    if (!registration) return reload();
+    await registration.update();
+    const worker = registration.waiting ?? registration.installing;
+    if (!worker) return reload();
+    if (worker.state === "installed") return void requestPwaUpdate(worker, reload);
+    worker.addEventListener("statechange", () => worker.state === "installed" ? requestPwaUpdate(registration.waiting ?? worker, reload) : worker.state === "redundant" && reload(), { once: true });
+  } catch { reload(); }
+}
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
   return {
     actorEmail: session?.user?.email ?? "system@smash-lob.local",
@@ -341,8 +354,8 @@ function SeasonSummaryAwardRow({
   const avatarSize = tone === "winner" ? "lg" : "md";
 
   const content = (
-    <div className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left shadow-[0_1px_8px_rgba(15,23,42,0.05)] ${toneClasses}`}>
-      <div className={`absolute inset-y-0 left-0 w-1 ${tone === "winner" ? "bg-amber-400" : "bg-violet-400"}`} aria-hidden="true" />
+    <div data-season-summary-award={tone} className={`season-summary-award-row relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left shadow-[0_1px_8px_rgba(15,23,42,0.05)] ${toneClasses}`}>
+      <div className={`season-summary-award-strip absolute inset-y-0 left-0 w-1 ${tone === "winner" ? "bg-amber-400" : "bg-violet-400"}`} aria-hidden="true" />
       <div className="relative ml-1 shrink-0">
         <div className="flex -space-x-3">
           {players.slice(0, 2).map((player) => (
@@ -350,29 +363,29 @@ function SeasonSummaryAwardRow({
               key={player.id}
               player={player}
               size={avatarSize}
-              className="border-2 border-white shadow-sm"
+              className="season-summary-award-avatar border-2 border-white shadow-sm"
             />
           ))}
         </div>
         <div
-          className={`absolute -bottom-1 -right-1 flex h-7 min-w-7 items-center justify-center rounded-xl px-1.5 text-sm font-black ring-1 shadow-sm ${badgeClasses}`}
+          className={`season-summary-award-badge absolute -bottom-1 -right-1 flex h-7 min-w-7 items-center justify-center rounded-xl px-1.5 text-sm font-black ring-1 shadow-sm ${badgeClasses}`}
           aria-hidden="true"
         >
           {badge}
         </div>
       </div>
       <div className="min-w-0 flex-1 text-center">
-        <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
+        <p className="season-summary-award-label type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
           {label}
         </p>
-        <p className="mt-0.5 type-player-name-prominent font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+        <p className="season-summary-award-name mt-0.5 type-player-name-prominent font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
           {players.map((player) => player.displayName).join(" / ")}
         </p>
         {meta ? (
-          <p className="mt-0.5 type-caption font-bold text-neutral-600">{meta}</p>
+          <p className="season-summary-award-meta mt-0.5 type-caption font-bold text-neutral-600">{meta}</p>
         ) : null}
       </div>
-      {href ? <ClickableChevron className="shrink-0" /> : null}
+      {href ? <ClickableChevron className="season-summary-award-chevron shrink-0" /> : null}
     </div>
   );
 
@@ -730,11 +743,12 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
-        <div className={activeLeague.logoUrl ? "app-home-identity" : "block"}>
+        <span data-home-refresh-control onClickCapture={(event) => { event.preventDefault(); event.stopPropagation(); void refreshApp(); }}><BackButton fallbackHref="/" label={t.common.refreshApp} /></span>
+        <div className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}>
           {activeLeague.logoUrl ? (
-            <LeagueLogo league={activeLeague} size="xl" className="app-home-top-logo" previewable />
+            <div className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale><LeagueLogo league={activeLeague} size="md" previewable /></div>
           ) : null}
-          <div className={activeLeague.logoUrl ? "app-home-identity-copy min-w-0" : "min-w-0"}>
+          <div className="min-w-0 flex-1">
             <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight">
               {activeLeague.name}
             </h1>
@@ -797,7 +811,7 @@ export default function Home() {
                 type="button"
                 onClick={handleStartUpcomingSeason}
                 disabled={isStartingSeason || !canStartUpcomingSeason}
-                className="mt-3 block w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300"
+                className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center"
               >
                 {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
               </button>
@@ -824,9 +838,9 @@ export default function Home() {
 
       {isSeasonClosed ? (
         <div className="space-y-2">
-          <AppCard data-tour="home-season-summary" className="overflow-hidden p-0">
+          <AppCard data-tour="home-season-summary" className="season-summary-panel overflow-hidden p-0">
             <div className="px-3 pt-3">
-              <p className="type-panel-title font-black text-neutral-950">
+              <p className="season-summary-title type-panel-title font-black text-neutral-950">
                 {t.profile.seasonSummary}
               </p>
             </div>
@@ -857,21 +871,21 @@ export default function Home() {
                 ) : null}
               </div>
             ) : (
-              <p className="px-3 pb-3 pt-2 text-sm font-semibold text-neutral-500">
+              <p className="season-summary-empty px-3 pb-3 pt-2 text-sm font-semibold text-neutral-500">
                 {t.dashboard.closedSeasonTitle}
               </p>
             )}
 
-            <div data-tour="home-season-actions" className="grid grid-cols-2 gap-2 border-t border-neutral-100 p-3">
+            <div data-tour="home-season-actions" className="season-summary-actions grid grid-cols-2 gap-2 border-t border-neutral-100 p-3">
               <Link
                 href={`/statistics?season=${encodeURIComponent(activeSeason.id)}`}
-                className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-950 transition active:scale-[0.99]"
+                className="season-summary-action-secondary inline-flex rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-950 transition active:scale-[0.99] items-center justify-center"
               >
                 {t.dashboard.historyAndStatistics}
               </Link>
               <Link
                 href={`/statistics/season?season=${encodeURIComponent(activeSeason.id)}#compartir-resumen-temporada`}
-                className="rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-xs font-black text-white transition active:scale-[0.99]"
+                className="season-summary-action-primary inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center"
               >
                 {t.dashboard.shareSeasonSummary}
               </Link>
@@ -881,7 +895,7 @@ export default function Home() {
           {canManageSeason ? (
             <Link
               href="/admin/season"
-              className="block w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-center text-sm font-black text-neutral-950 shadow-[0_1px_6px_rgba(15,23,42,0.035)] transition active:scale-[0.99]"
+              className="flex w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-center text-sm font-black text-neutral-950 shadow-[0_1px_6px_rgba(15,23,42,0.035)] transition active:scale-[0.99] items-center justify-center"
             >
               {t.dashboard.createSeason}
             </Link>

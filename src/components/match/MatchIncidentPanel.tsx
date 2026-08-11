@@ -389,7 +389,7 @@ export function MatchIncidentPanel({
             type="button"
             onClick={handleReport}
             disabled={isWorking || reason.trim().length < 3}
-            className="w-full rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+            className="flex w-full rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
             {isWorking ? "Enviando..." : "Comunicar incidencia"}
           </button>
@@ -474,7 +474,7 @@ export function MatchIncidentPanel({
               type="button"
               onClick={handleResolve}
               disabled={isWorking}
-              className="rounded-xl bg-neutral-950 px-2 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+              className="inline-flex rounded-xl bg-neutral-950 px-2 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
               {isWorking ? "Guardando..." : "Aplicar resolución"}
             </button>
@@ -482,7 +482,7 @@ export function MatchIncidentPanel({
               type="button"
               onClick={handleClear}
               disabled={isWorking}
-              className="rounded-xl bg-red-50 px-2 py-2 text-xs font-black text-red-700 disabled:text-neutral-300"
+              className="inline-flex rounded-xl bg-red-50 px-2 py-2 text-xs font-black text-red-700 disabled:text-neutral-300 items-center justify-center text-center"
             >
               Eliminar incidencia
             </button>
@@ -495,7 +495,7 @@ export function MatchIncidentPanel({
           type="button"
           onClick={handleClear}
           disabled={isWorking}
-          className="mt-2 w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+          className="flex mt-2 w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
         >
           {isWorking ? "Eliminando..." : "Eliminar resolución"}
         </button>

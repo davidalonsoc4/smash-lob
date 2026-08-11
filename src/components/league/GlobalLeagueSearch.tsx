@@ -259,7 +259,7 @@ export function GlobalLeagueSearch() {
                       inputRef.current?.focus()
                     }}
                     aria-label={t.settings.leagueSearchClear}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-600"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-600 text-center"
                   >
                     ×
                   </button>

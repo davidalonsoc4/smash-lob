@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react"
 import { PersonalProfileStatistics, type PersonalProfileSection } from "@/components/personal/PersonalProfileStatistics"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useI18n } from "@/i18n/I18nProvider"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
 import {
   filterPersonalProfileMatches,
@@ -36,6 +38,7 @@ async function loadAllFinishedMatches() {
 }
 
 export default function PersonalProfilePage() {
+  const { t } = useI18n()
   const { profile } = useAccountProfile()
   const [items, setItems] = useState<PersonalMatchItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -127,6 +130,7 @@ export default function PersonalProfilePage() {
   return (
     <div className="space-y-3">
       <header className="app-page-header">
+        <BackButton fallbackHref="/personal-matches" label={t.common.back} />
         <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-500">Mis partidos · Perfil global</p>
         <div className="mt-2 flex items-center gap-2.5">
           <PlayerAvatar player={{ displayName, avatarUrl: profile?.avatarUrl ?? null }} size="md" previewable />
@@ -136,57 +140,15 @@ export default function PersonalProfilePage() {
         </div>
       </header>
 
-      <AppCard className="p-3">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">Filtrar estadísticas</p>
-        <div className="mt-2 grid gap-2 sm:grid-cols-3">
-          <label className="block">
-            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Tipo</span>
-            <select
-              value={origin}
-              onChange={(event) => {
-                const nextOrigin = event.target.value as PersonalProfileOriginFilter
-                setOrigin(nextOrigin)
-                if (nextOrigin === "friendly") {
-                  setLeagueId("")
-                  setSeasonId("")
-                }
-              }}
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400"
-            >
-              <option value="all">Todos los partidos</option>
-              <option value="friendly">Amistosos</option>
-              <option value="league">Partidos de liga</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Liga</span>
-            <select
-              value={effectiveLeagueId}
-              disabled={origin === "friendly"}
-              onChange={(event) => {
-                setLeagueId(event.target.value)
-                setSeasonId("")
-              }}
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"
-            >
-              <option value="">Todas las ligas</option>
-              {leagues.map((league) => <option key={league.id} value={league.id}>{league.name}</option>)}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="type-caption font-black uppercase tracking-wide text-neutral-500">Temporada</span>
-            <select
-              value={effectiveSeasonId}
-              disabled={!effectiveLeagueId}
-              onChange={(event) => setSeasonId(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"
-            >
-              <option value="">Todas las temporadas</option>
-              {seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}
-            </select>
-          </label>
+            <AppCard data-personal-global-filters className="!p-2">
+        <div className="grid grid-cols-3 gap-1">
+          {([["all", "Todos", "Todos los partidos"], ["league", "Liga", "Partidos de liga"], ["friendly", "Amistoso", "Amistosos"]] as const).map(([value, label, ariaLabel]) => (
+            <button key={value} type="button" aria-label={ariaLabel} aria-pressed={origin === value} onClick={() => { setOrigin(value); if (value === "friendly") { setLeagueId(""); setSeasonId("") } }} className={`flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center type-caption font-black transition ${origin === value ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{label}</button>
+          ))}
+        </div>
+        <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+          <label className="min-w-0"><span className="sr-only">Liga</span><select aria-label="Liga" value={effectiveLeagueId} disabled={origin === "friendly"} onChange={(event) => { setLeagueId(event.target.value); setSeasonId("") }} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">Todas las ligas</option>{leagues.map((league) => <option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
+          <label className="min-w-0"><span className="sr-only">Temporada</span><select aria-label="Temporada" value={effectiveSeasonId} disabled={!effectiveLeagueId} onChange={(event) => setSeasonId(event.target.value)} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">Todas las temporadas</option>{seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
         </div>
       </AppCard>
 

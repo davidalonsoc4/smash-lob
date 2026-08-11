@@ -568,7 +568,7 @@ export function LeagueLocationsEditor({
                     type="button"
                     onClick={() => startEditing(location)}
                     disabled={disabled}
-                    className="rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                    className="inline-flex rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
                   >
                     {copy.editLocation}
                   </button>
@@ -587,7 +587,7 @@ export function LeagueLocationsEditor({
                 href={getLeagueLocationMapsUrl(location)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 block rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center type-caption font-black text-neutral-800"
+                className="flex mt-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center type-caption font-black text-neutral-800 items-center justify-center"
               >
                 {copy.openMaps}
               </a>
@@ -624,7 +624,7 @@ export function LeagueLocationsEditor({
               type="button"
               onClick={closeForm}
               disabled={disabled}
-              className="rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 shadow-sm disabled:text-neutral-400"
+              className="inline-flex rounded-full bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
             >
               {copy.cancelLocationEdit}
             </button>
@@ -733,7 +733,7 @@ export function LeagueLocationsEditor({
               type="button"
               onClick={handleSaveLocation}
               disabled={!canSaveDraft}
-              className="rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
+              className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400 items-center justify-center text-center"
             >
               {editingLocationId ? copy.saveLocation : copy.addLocation}
             </button>

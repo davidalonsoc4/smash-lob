@@ -265,7 +265,7 @@ function DayAvailabilityEditor({
               <button
                 type="button"
                 onClick={() => removeSlot(index)}
-                className="rounded-xl bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-600"
+                className="inline-flex rounded-xl bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-600 items-center justify-center text-center"
                 aria-label="Quitar franja"
               >
                 ×
@@ -276,7 +276,7 @@ function DayAvailabilityEditor({
           <button
             type="button"
             onClick={() => onChange([...slots, defaultSlot])}
-            className="w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
+            className="flex w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
           >
             Añadir otra franja
           </button>
@@ -702,7 +702,7 @@ export default function AvailabilityPage() {
         type="button"
         onClick={saveAvailability}
         disabled={isSaving || hasInvalidSlots}
-        className="w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white shadow-sm disabled:bg-neutral-300"
+        className="flex w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white shadow-sm disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Guardar disponibilidad"}
       </button>

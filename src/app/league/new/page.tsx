@@ -146,7 +146,7 @@ export default function NewLeaguePage() {
         <button
           type="submit"
           disabled={!canCreate || isCreating}
-          className="w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
           {isCreating ? "Creando liga..." : t.newLeague.create}
         </button>

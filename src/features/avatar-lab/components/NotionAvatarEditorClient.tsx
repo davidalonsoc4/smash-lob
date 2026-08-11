@@ -155,7 +155,7 @@ export function NotionAvatarEditorClient() {
               <button
                 type="button"
                 onClick={() => setRevision((current) => current + 1)}
-                className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 type-caption font-black text-red-700 shadow-sm"
+                className="inline-flex absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 type-caption font-black text-red-700 shadow-sm items-center justify-center text-center"
               >
                 Reintentar vista
               </button>
@@ -174,7 +174,7 @@ export function NotionAvatarEditorClient() {
               type="button"
               onClick={() => movePart(-1)}
               aria-label="Categoría anterior"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl font-black text-neutral-800 active:scale-[0.97]"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl font-black text-neutral-800 active:scale-[0.97] text-center"
             >
               ‹
             </button>
@@ -209,7 +209,7 @@ export function NotionAvatarEditorClient() {
               type="button"
               onClick={() => movePart(1)}
               aria-label="Categoría siguiente"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl font-black text-neutral-800 active:scale-[0.97]"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl font-black text-neutral-800 active:scale-[0.97] text-center"
             >
               ›
             </button>
@@ -220,7 +220,7 @@ export function NotionAvatarEditorClient() {
               type="button"
               onClick={() => moveStyle(-1)}
               aria-label="Estilo anterior"
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-950 text-2xl font-black text-white active:scale-[0.97]"
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-950 text-2xl font-black text-white active:scale-[0.97] text-center"
             >
               ‹
             </button>
@@ -241,7 +241,7 @@ export function NotionAvatarEditorClient() {
               type="button"
               onClick={() => moveStyle(1)}
               aria-label="Estilo siguiente"
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-950 text-2xl font-black text-white active:scale-[0.97]"
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-950 text-2xl font-black text-white active:scale-[0.97] text-center"
             >
               ›
             </button>
@@ -251,21 +251,21 @@ export function NotionAvatarEditorClient() {
             <button
               type="button"
               onClick={randomize}
-              className="h-10 rounded-xl border border-neutral-200 bg-white type-caption font-black text-neutral-700 active:scale-[0.98]"
+              className="inline-flex h-10 rounded-xl border border-neutral-200 bg-white type-caption font-black text-neutral-700 active:scale-[0.98] items-center justify-center text-center"
             >
               Aleatorio
             </button>
             <button
               type="button"
               onClick={reset}
-              className="h-10 rounded-xl border border-neutral-200 bg-white type-caption font-black text-neutral-700 active:scale-[0.98]"
+              className="inline-flex h-10 rounded-xl border border-neutral-200 bg-white type-caption font-black text-neutral-700 active:scale-[0.98] items-center justify-center text-center"
             >
               Restablecer
             </button>
             <button
               type="button"
               onClick={save}
-              className="h-10 rounded-xl bg-neutral-950 type-caption font-black text-white active:scale-[0.98]"
+              className="inline-flex h-10 rounded-xl bg-neutral-950 type-caption font-black text-white active:scale-[0.98] items-center justify-center text-center"
             >
               Guardar local
             </button>

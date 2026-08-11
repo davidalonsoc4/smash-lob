@@ -181,7 +181,7 @@ function ExportCard({
             type="button"
             onClick={onShare}
             disabled={disabled || busy}
-            className="rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
+            className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-45 items-center justify-center text-center"
           >
             {sharing ? "Preparando…" : "Compartir"}
           </button>
