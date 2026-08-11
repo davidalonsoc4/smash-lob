@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ContextualTip } from "@/components/onboarding/ContextualTip";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -563,13 +562,7 @@ export default function AvailabilityPage() {
       </AppCard>
 
       {shouldShowCustomEditor ? (
-        <ContextualTip
-          tipId="availability-custom"
-          title={t.onboardingTips.availabilityTitle}
-          description={t.onboardingTips.availabilityDescription}
-          dismissLabel={t.onboardingTips.dismiss}
-          compact
-        />
+        <></>
       ) : null}
 
       {!shouldShowCustomEditor ? (

@@ -3,7 +3,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ContextualTip } from "@/components/onboarding/ContextualTip";
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
@@ -4353,13 +4352,6 @@ export default function AdminSeasonPage() {
         />
       </div>
 
-      <ContextualTip
-        tipId="season-admin"
-        title={t.onboardingTips.seasonAdminTitle}
-        description={t.onboardingTips.seasonAdminDescription}
-        dismissLabel={t.onboardingTips.dismiss}
-        compact
-      />
 
       {hasCreatedLeagueSeason ? (
         <div id="resumen-configuracion" className="settings-search-target">

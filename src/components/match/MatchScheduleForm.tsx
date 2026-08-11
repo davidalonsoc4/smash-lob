@@ -13,14 +13,14 @@ import {
   getLeagueLocationIdentityKey,
   getLeagueLocationCourts,
   getLeagueLocationMapsUrl,
-  getLeagueLocationOptionLabel,
   getLeagueLocationScheduleText,
   getLeagueLocationSubtitle,
+  getLeagueLocationTownNameLabel,
   getScheduleLocationFallbackText,
   getScheduleLocationMapsUrl,
   normalizeLeagueLocations,
   normalizeMapsUrl,
-  sortLeagueLocationsByOptionLabel,
+  sortLeagueLocationsByTownNameLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
@@ -80,6 +80,8 @@ export function MatchScheduleForm({
   const { t } = useI18n();
   const { updateMatchSchedule, postponeMatch, clearMatchSchedule } = useMatchData();
   const [addedLeagueLocations, setAddedLeagueLocations] = useState<LeagueLocation[]>([]);
+  const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([]);
+  const [loadingGlobalLocations, setLoadingGlobalLocations] = useState(true);
   const [locationSearch, setLocationSearch] = useState("");
   const [isAddingLeagueLocation, setIsAddingLeagueLocation] = useState(false);
   const [newLocationName, setNewLocationName] = useState("");
@@ -88,22 +90,40 @@ export function MatchScheduleForm({
   const [newLocationCourtCount, setNewLocationCourtCount] = useState("");
   const [isSavingLocation, setIsSavingLocation] = useState(false);
 
+  const recommendedLocations = useMemo(
+    () =>
+      sortLeagueLocationsByTownNameLabel(
+        normalizeLeagueLocations(availableLocations),
+      ),
+    [availableLocations],
+  );
+  const recommendedIdentityKeys = useMemo(
+    () =>
+      new Set(
+        recommendedLocations.map((recommendedLocation) =>
+          getLeagueLocationIdentityKey(recommendedLocation),
+        ),
+      ),
+    [recommendedLocations],
+  );
   const normalizedAvailableLocations = useMemo(
     () =>
-      sortLeagueLocationsByOptionLabel(
-        normalizeLeagueLocations([...availableLocations, ...addedLeagueLocations]),
+      sortLeagueLocationsByTownNameLabel(
+        normalizeLeagueLocations([
+          ...globalLocations,
+          ...availableLocations,
+          ...addedLeagueLocations,
+        ]),
       ),
-    [addedLeagueLocations, availableLocations],
+    [addedLeagueLocations, availableLocations, globalLocations],
   );
   const hasAvailableLocations = normalizedAvailableLocations.length > 0;
   const filteredAvailableLocations = useMemo(() => {
     const query = locationSearch.trim().toLocaleLowerCase("es-ES");
-
     if (!query) return normalizedAvailableLocations;
-
     return normalizedAvailableLocations.filter((availableLocation) =>
       [
-        getLeagueLocationOptionLabel(availableLocation),
+        getLeagueLocationTownNameLabel(availableLocation),
         getLeagueLocationSubtitle(availableLocation),
         availableLocation.address,
         availableLocation.town,
@@ -112,6 +132,21 @@ export function MatchScheduleForm({
         .some((value) => value.toLocaleLowerCase("es-ES").includes(query)),
     );
   }, [locationSearch, normalizedAvailableLocations]);
+  const recommendedFilteredLocations = useMemo(
+    () =>
+      filteredAvailableLocations.filter((availableLocation) =>
+        recommendedIdentityKeys.has(getLeagueLocationIdentityKey(availableLocation)),
+      ),
+    [filteredAvailableLocations, recommendedIdentityKeys],
+  );
+  const otherFilteredLocations = useMemo(
+    () =>
+      filteredAvailableLocations.filter(
+        (availableLocation) =>
+          !recommendedIdentityKeys.has(getLeagueLocationIdentityKey(availableLocation)),
+      ),
+    [filteredAvailableLocations, recommendedIdentityKeys],
+  );
 
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -153,6 +188,43 @@ export function MatchScheduleForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/locations", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json()) as { locations?: LeagueLocation[] };
+        if (!response.ok) throw new Error("global_locations_lookup_failed");
+        return sortLeagueLocationsByTownNameLabel(
+          normalizeLeagueLocations(payload.locations ?? []),
+        );
+      })
+      .then((locations) => {
+        if (cancelled) return;
+        setGlobalLocations(locations);
+        const scheduledGlobalLocation = findLeagueLocationByScheduleLocation({
+          locations,
+          scheduleLocation: location,
+        });
+        if (scheduledGlobalLocation) {
+          setSelectedLocation((current) => current || scheduledGlobalLocation.id);
+          setSelectedCourt(
+            (current) => current || scheduledGlobalLocation.selectedCourt || "",
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setGlobalLocations([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingGlobalLocations(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location]);
 
   const applyAutomaticScheduledAtValue = useCallback(
     (nextValue: string) => {
@@ -303,7 +375,7 @@ export function MatchScheduleForm({
     );
 
     if (duplicated) {
-      setActionError("Esa ubicación ya existe en la liga. Búscala y selecciónala.");
+      setActionError("Esa ubicación ya existe en la app. Búscala y selecciónala.");
       return;
     }
 
@@ -490,6 +562,34 @@ export function MatchScheduleForm({
     return canManage
       ? t.matchDetail.addScheduleTitle
       : t.matchDetail.pendingSchedule;
+  }
+
+  function renderLocationOption(availableLocation: LeagueLocation) {
+    const selected = selectedLocation === availableLocation.id;
+    return (
+      <button
+        key={availableLocation.id}
+        type="button"
+        onClick={() => handleLocationChange(availableLocation.id)}
+        disabled={isSaving || isSavingLocation}
+        className={`w-full rounded-lg border px-2.5 py-2 text-left transition ${
+          selected
+            ? "border-neutral-950 bg-neutral-950 text-white"
+            : "border-neutral-200 bg-white text-neutral-900 active:bg-neutral-50"
+        }`}
+      >
+        <span className="block truncate text-xs font-black">
+          {getLeagueLocationTownNameLabel(availableLocation)}
+        </span>
+        <span
+          className={`mt-0.5 block truncate type-caption font-semibold ${
+            selected ? "text-neutral-300" : "text-neutral-500"
+          }`}
+        >
+          {getLeagueLocationSubtitle(availableLocation)}
+        </span>
+      </button>
+    );
   }
 
 
@@ -698,62 +798,73 @@ export function MatchScheduleForm({
                     {t.matchDetail.scheduleLocation}
                   </span>
 
-                  {hasAvailableLocations ? (
-                    <>
-                      <input
-                        value={locationSearch}
-                        onChange={(event) => setLocationSearch(event.target.value)}
-                        disabled={isSaving || isSavingLocation}
-                        placeholder="Buscar ubicación de la liga..."
-                        className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-                      />
+                  <input
+                    type="search"
+                    value={locationSearch}
+                    onChange={(event) => setLocationSearch(event.target.value)}
+                    disabled={isSaving || isSavingLocation}
+                    placeholder={
+                      loadingGlobalLocations
+                        ? "Cargando ubicaciones..."
+                        : "Buscar por localidad o nombre..."
+                    }
+                    className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                  />
 
-                      <div className="mt-1.5 flex items-center justify-between gap-2 type-caption font-semibold text-neutral-500">
-                        <span>{filteredAvailableLocations.length} ubicación{filteredAvailableLocations.length === 1 ? "" : "es"}</span>
-                        <span>{locationSearch.trim() ? "Resultados filtrados" : "Escribe para filtrar"}</span>
-                      </div>
+                  <div className="mt-1.5 flex items-center justify-between gap-2 type-caption font-semibold text-neutral-500">
+                    <span>
+                      {filteredAvailableLocations.length} ubicación
+                      {filteredAvailableLocations.length === 1 ? "" : "es"}
+                    </span>
+                    <span>
+                      {loadingGlobalLocations
+                        ? "Cargando catálogo global"
+                        : recommendedLocations.length > 0
+                          ? "Puedes elegir cualquier ubicación"
+                          : locationSearch.trim()
+                            ? "Resultados filtrados"
+                            : "Catálogo global"}
+                    </span>
+                  </div>
 
-                      <div className="mt-1.5 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/70 p-1">
-                        {filteredAvailableLocations.map((availableLocation) => {
-                          const selected = selectedLocation === availableLocation.id;
+                  <div className="mt-1.5 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/70 p-1">
+                    {recommendedLocations.length > 0 &&
+                    recommendedFilteredLocations.length > 0 ? (
+                      <>
+                        <p className="px-2 pb-0.5 pt-1 type-caption font-black uppercase tracking-wide text-neutral-500">
+                          Recomendadas por la liga
+                        </p>
+                        {recommendedFilteredLocations.map(renderLocationOption)}
+                      </>
+                    ) : null}
 
-                          return (
-                            <button
-                              key={availableLocation.id}
-                              type="button"
-                              onClick={() => handleLocationChange(availableLocation.id)}
-                              disabled={isSaving || isSavingLocation}
-                              className={`w-full rounded-lg border px-2.5 py-2 text-left transition ${
-                                selected
-                                  ? "border-neutral-950 bg-neutral-950 text-white"
-                                  : "border-neutral-200 bg-white text-neutral-900 active:bg-neutral-50"
-                              }`}
-                            >
-                              <span className="block truncate text-xs font-black">
-                                {getLeagueLocationOptionLabel(availableLocation)}
-                              </span>
-                              <span
-                                className={`mt-0.5 block truncate type-caption font-semibold ${
-                                  selected ? "text-neutral-300" : "text-neutral-500"
-                                }`}
-                              >
-                                {getLeagueLocationSubtitle(availableLocation)}
-                              </span>
-                            </button>
-                          );
-                        })}
-                        {filteredAvailableLocations.length === 0 ? (
-                          <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">
-                            No hay ubicaciones que coincidan con la búsqueda.
-                          </p>
-                        ) : null}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="mt-1 rounded-lg border border-dashed border-neutral-200 px-2.5 py-2 text-xs font-semibold text-neutral-500">
-                      Esta liga todavía no tiene ubicaciones.
-                    </p>
-                  )}
+                    {!loadingGlobalLocations &&
+                    recommendedLocations.length > 0 &&
+                    otherFilteredLocations.length > 0 ? (
+                      <>
+                        <p className="px-2 pb-0.5 pt-2 type-caption font-black uppercase tracking-wide text-neutral-500">
+                          Todas las ubicaciones
+                        </p>
+                        {otherFilteredLocations.map(renderLocationOption)}
+                      </>
+                    ) : null}
+
+                    {!loadingGlobalLocations && recommendedLocations.length === 0
+                      ? filteredAvailableLocations.map(renderLocationOption)
+                      : null}
+
+                    {loadingGlobalLocations ? (
+                      <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">
+                        Cargando el catálogo global...
+                      </p>
+                    ) : null}
+
+                    {!loadingGlobalLocations && filteredAvailableLocations.length === 0 ? (
+                      <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">
+                        No hay ubicaciones que coincidan con la búsqueda.
+                      </p>
+                    ) : null}
+                  </div>
 
                   <button
                     type="button"
@@ -774,7 +885,7 @@ export function MatchScheduleForm({
                     Nueva ubicación
                   </p>
                   <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                    Se guardará en el catálogo y, al guardar el partido, quedará disponible en esta liga.
+                    Se guardará en el catálogo global de Smash & Lob y quedará disponible para futuras selecciones.
                   </p>
 
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">

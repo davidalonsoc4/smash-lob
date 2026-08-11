@@ -606,3 +606,20 @@ export function findLeagueLocationByScheduleLocation({
 
   return parsedLocation ?? null;
 }
+
+
+export function getLeagueLocationTownNameLabel(location: LeagueLocation) {
+  const town = location.town?.trim() ?? ""
+  const name = location.name.trim()
+  return town ? `${town} - ${name}` : name
+}
+
+export function sortLeagueLocationsByTownNameLabel(locations: LeagueLocation[]) {
+  return [...locations].sort((left, right) =>
+    getLeagueLocationTownNameLabel(left).localeCompare(
+      getLeagueLocationTownNameLabel(right),
+      "es",
+      { sensitivity: "base" },
+    ),
+  )
+}

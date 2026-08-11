@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
-import { ContextualTip } from "@/components/onboarding/ContextualTip"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -262,13 +261,6 @@ function SpectatorSettingsPage() {
           Cuenta de espectador · acceso de solo lectura.
         </p>
       </header>
-      <ContextualTip
-        tipId="settings-search"
-        title={t.onboardingTips.settingsSearchTitle}
-        description={t.onboardingTips.settingsSearchDescription}
-        dismissLabel={t.onboardingTips.dismiss}
-        compact
-      />
       <AppCard className="border-blue-100 bg-blue-50">
         <p className="text-sm font-black text-blue-950">Modo espectador</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
@@ -469,13 +461,6 @@ function PlayerSettingsPage() {
           {t.settings.title}
         </h1>
       </header>
-      <ContextualTip
-        tipId="settings-search"
-        title={t.onboardingTips.settingsSearchTitle}
-        description={t.onboardingTips.settingsSearchDescription}
-        dismissLabel={t.onboardingTips.dismiss}
-        compact
-      />
       <SettingsSection
         title="Personal"
         description="Tu perfil, preferencias y forma de participar en la liga."
