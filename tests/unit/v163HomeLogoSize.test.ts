@@ -1,20 +1,20 @@
 import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
-describe("v1.6.3 HOME league logo geometry", () => {
-  it("fills the useful HOME header height while matching floating-control top margin", async () => {
+describe("HOME league logo geometry", () => {
+  it("uses a profile-sized logo and leaves the functional row to Refresh", async () => {
     const [globals, home] = await Promise.all([
       readFile("src/app/globals.css", "utf8"),
       readFile("src/app/page.tsx", "utf8"),
     ])
 
-    expect(globals).toContain("grid-template-columns: 6.25rem minmax(0, 1fr)")
-    expect(globals).toContain("top: -52px")
-    expect(globals).toContain("width: 6.25rem !important")
-    expect(globals).toContain("height: 6.25rem !important")
-    expect(globals).toContain("top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px))")
-    expect(home).toContain('activeLeague.logoUrl ? "app-home-identity" : "block"')
-    expect(home).toContain('activeLeague.logoUrl ? "app-home-identity-copy min-w-0" : "min-w-0"')
-    expect(home).toContain('className="app-home-top-logo"')
+    expect(globals).toContain('top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px))')
+    expect(globals).not.toContain(".app-home-top-logo")
+    expect(globals).not.toContain("grid-template-columns: 6.25rem minmax(0, 1fr)")
+    expect(home).toContain('activeLeague.logoUrl ? "flex items-start gap-3" : "block"')
+    expect(home).toContain('<LeagueLogo league={activeLeague} size="md" previewable />')
+    expect(home).toContain('className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale')
+    expect(home).toContain('<BackButton fallbackHref="/" label={t.common.refreshApp} />')
+    expect(home).toContain('<BackButton fallbackHref="/" label={t.common.refreshApp} />')
   })
 })

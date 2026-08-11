@@ -76,13 +76,13 @@ export default function AboutPage() {
         <div className="flex flex-wrap gap-2 pt-1">
           <Link
             href="/privacy"
-            className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-black text-white"
+            className="inline-flex rounded-full bg-neutral-950 px-4 py-2 text-xs font-black text-white items-center justify-center text-center"
           >
             Política de privacidad
           </Link>
           <Link
             href="/terms"
-            className="rounded-full bg-neutral-200 px-4 py-2 text-xs font-black text-neutral-950"
+            className="inline-flex rounded-full bg-neutral-200 px-4 py-2 text-xs font-black text-neutral-950 items-center justify-center text-center"
           >
             Condiciones de uso
           </Link>

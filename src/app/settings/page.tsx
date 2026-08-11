@@ -592,7 +592,7 @@ function PlayerSettingsPage() {
                 type="button"
                 onClick={handleUnlinkCurrentLeague}
                 disabled={isUnlinkingLeague}
-                className="shrink-0 rounded-xl bg-red-600 px-3 py-2 text-xs font-black text-white disabled:bg-red-200"
+                className="inline-flex shrink-0 rounded-xl bg-red-600 px-3 py-2 text-xs font-black text-white disabled:bg-red-200 items-center justify-center text-center"
               >
                 {isUnlinkingLeague ? "Saliendo..." : "Desvincular"}
               </button>

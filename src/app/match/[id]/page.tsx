@@ -491,7 +491,7 @@ export default function MatchDetailPage() {
                 type="button"
                 onClick={() => setIsEditingResult(true)}
                 disabled={isClearingResult || isUpdatingResultLock}
-                className="rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+                className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
               >
                 {currentResultConfirmation?.status === "disputed"
                   ? "Corregir resultado"
@@ -523,7 +523,7 @@ export default function MatchDetailPage() {
                 type="button"
                 onClick={handleClearResult}
                 disabled={isClearingResult || isUpdatingResultLock}
-                className="rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300 sm:col-span-2"
+                className="inline-flex rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300 sm:col-span-2 items-center justify-center text-center"
               >
                 {isClearingResult ? "Limpiando..." : "Limpiar resultado"}
               </button>

@@ -389,7 +389,7 @@ export default function NewPersonalMatchPage() {
                 <button
                   type="button"
                   onClick={() => setSets((current) => [...current, { a: 0, b: 0 }])}
-                  className="rounded-lg bg-neutral-100 px-2.5 py-2 type-caption font-black text-neutral-700"
+                  className="inline-flex rounded-lg bg-neutral-100 px-2.5 py-2 type-caption font-black text-neutral-700 items-center justify-center text-center"
                 >
                   + Set
                 </button>
@@ -449,7 +449,7 @@ export default function NewPersonalMatchPage() {
         type="button"
         onClick={() => void submit()}
         disabled={!canSubmit}
-        className="w-full rounded-xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+        className="flex w-full rounded-xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {submitting
           ? "Guardando..."

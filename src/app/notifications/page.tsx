@@ -707,7 +707,7 @@ export default function NotificationsPage() {
           <button
             type="button"
             onClick={() => setRefreshKey((current) => current + 1)}
-            className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700"
+            className="inline-flex rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 items-center justify-center text-center"
           >
             Actualizar
           </button>

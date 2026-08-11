@@ -594,7 +594,7 @@ function InviteLinkCard({
           <button
             type="button"
             onClick={() => handleCopy(inviteCode, "Código copiado")}
-            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800"
+            className="inline-flex rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 items-center justify-center text-center"
           >
             Copiar código
           </button>
@@ -602,7 +602,7 @@ function InviteLinkCard({
           <button
             type="button"
             onClick={() => handleCopy(inviteUrl, "URL copiada")}
-            className="rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800"
+            className="inline-flex rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 items-center justify-center text-center"
           >
             Copiar URL
           </button>
@@ -966,7 +966,7 @@ function RequiresThreeSetsSettingsPanel({
         type="button"
         onClick={save}
         disabled={!hasChanges || isSaving}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Guardar regla"}
       </button>
@@ -1142,7 +1142,7 @@ function RoundWindowSettingsPanel({
         type="button"
         onClick={save}
         disabled={isSaving || !isValid || !hasChanges}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
         {isSaving
           ? t.adminSeason.roundWindowSaving
@@ -1223,7 +1223,7 @@ function ResultConfirmationSettingsPanel({
         disabled={
           isSaving || selectedMode === roundSettings.resultConfirmationMode
         }
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Guardar confirmaciones"}
       </button>
@@ -1301,7 +1301,7 @@ function MvpSystemSettingsPanel({
         type="button"
         onClick={save}
         disabled={isSaving || selectedSystem === roundSettings.mvpSystem}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Guardar sistema MVP"}
       </button>
@@ -1416,7 +1416,7 @@ function RegistrationFeeSettingsPanel({
         type="button"
         onClick={save}
         disabled={isSaving || !hasChanges}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Guardar importe"}
       </button>
@@ -1732,7 +1732,7 @@ function BalancedCalendarAuditPanel({
             type="button"
             onClick={repairCalendar}
             disabled={isSaving}
-            className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300"
+            className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
             {isSaving
               ? t.adminSeason.repairingCalendar
@@ -2001,7 +2001,7 @@ function RoundManagementPanel({
                 type="button"
                 onClick={() => activateRound(selectedRound)}
                 disabled={isSaving}
-                className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+                className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
                 Empezar por esta
               </button>
@@ -2014,7 +2014,7 @@ function RoundManagementPanel({
                   })
                 }
                 disabled={isSaving}
-                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+                className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
                 Orden automático
               </button>
@@ -2031,7 +2031,7 @@ function RoundManagementPanel({
                 type="button"
                 onClick={() => activateRound(selectedRound)}
                 disabled={isSaving}
-                className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+                className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
                 Activar
               </button>
@@ -2039,7 +2039,7 @@ function RoundManagementPanel({
                 type="button"
                 onClick={() => finishRound(selectedRound)}
                 disabled={isSaving}
-                className="rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300"
+                className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
                 Finalizar
               </button>
@@ -2047,7 +2047,7 @@ function RoundManagementPanel({
                 type="button"
                 onClick={() => reopenRound(selectedRound)}
                 disabled={isSaving}
-                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+                className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
                 Reabrir
               </button>
@@ -2060,7 +2060,7 @@ function RoundManagementPanel({
                   })
                 }
                 disabled={isSaving}
-                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+                className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
                 Modo automático
               </button>
@@ -2071,7 +2071,7 @@ function RoundManagementPanel({
                 type="button"
                 onClick={() => activateRound(previousRound)}
                 disabled={isSaving || previousRound === activeRound?.round}
-                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+                className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
                 Jornada anterior
               </button>
@@ -2079,7 +2079,7 @@ function RoundManagementPanel({
                 type="button"
                 onClick={() => activateRound(nextRound)}
                 disabled={isSaving || nextRound === activeRound?.round}
-                className="rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+                className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
                 Siguiente jornada
               </button>
@@ -2135,7 +2135,7 @@ function RoundManagementPanel({
                       )
                     }
                     disabled={isSavingRoundOrder || index === 0}
-                    className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30"
+                    className="inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30 items-center justify-center text-center"
                   >
                     ↑
                   </button>
@@ -2153,7 +2153,7 @@ function RoundManagementPanel({
                     disabled={
                       isSavingRoundOrder || index === roundOrder.length - 1
                     }
-                    className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30"
+                    className="inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-black text-neutral-700 disabled:opacity-30 items-center justify-center text-center"
                   >
                     ↓
                   </button>
@@ -2170,7 +2170,7 @@ function RoundManagementPanel({
                 setError(null);
               }}
               disabled={isSavingRoundOrder || !hasRoundOrderChanges}
-              className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+              className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
             >
               Restaurar
             </button>
@@ -2178,7 +2178,7 @@ function RoundManagementPanel({
               type="button"
               onClick={handleSaveRoundOrder}
               disabled={isSavingRoundOrder || !hasRoundOrderChanges}
-              className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+              className="inline-flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
               {isSavingRoundOrder ? "Guardando..." : "Guardar orden"}
             </button>
@@ -2302,7 +2302,7 @@ function SeasonPlayerNamesPanel({
                   disabled={
                     Boolean(savingPlayerId) || !hasChanges || !draftName.trim()
                   }
-                  className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300"
+                  className="inline-flex shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                 >
                   {isSavingPlayer ? "..." : "Guardar"}
                 </button>
@@ -2405,7 +2405,7 @@ function FinishSeasonPanel({
         type="button"
         onClick={handleFinishSeason}
         disabled={isSaving}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : t.adminSeason.finishSeason}
       </button>
@@ -2519,7 +2519,7 @@ function StartSeasonPanel({
         type="button"
         onClick={handleStartSeason}
         disabled={isSaving || !canStartBecauseRegistrationSettled || !canStartBecauseRosterComplete}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Comenzar temporada"}
       </button>
@@ -2626,7 +2626,7 @@ function ReopenSeasonPanel({
         type="button"
         onClick={handleReopenSeason}
         disabled={isSaving}
-        className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300"
+        className="flex mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Reabrir temporada pasada"}
       </button>
@@ -2768,7 +2768,7 @@ function SeasonDangerZone({
           type="button"
           onClick={handleDeleteRound}
           disabled={isSaving}
-          className="mt-3 w-full rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
+          className="flex mt-3 w-full rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
         >
           Eliminar jornada
         </button>
@@ -2778,7 +2778,7 @@ function SeasonDangerZone({
         type="button"
         onClick={handleDeleteSeason}
         disabled={isSaving}
-        className="mt-3 w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200"
+        className="flex mt-3 w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center"
       >
         Eliminar temporada completa
       </button>
@@ -3348,7 +3348,7 @@ function NewSeasonForm({
                 type="button"
                 onClick={handleCancelLeagueCreation}
                 disabled={isSaving}
-                className="mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300"
+                className="flex mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
               >
                 Cancelar creación de la liga
               </button>
@@ -3720,7 +3720,7 @@ function NewSeasonForm({
                   });
                   setCreationFeedback(null);
                 }}
-                className="mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm"
+                className="flex mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm items-center justify-center text-center"
               >
                 Restaurar calendario automático
               </button>
@@ -3746,7 +3746,7 @@ function NewSeasonForm({
                         )
                       }
                       disabled={roundIndex === 0}
-                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30"
+                      className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30 items-center justify-center text-center"
                     >
                       ↑
                     </button>
@@ -3762,7 +3762,7 @@ function NewSeasonForm({
                         )
                       }
                       disabled={roundIndex === manualCalendar.length - 1}
-                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30"
+                      className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700 disabled:opacity-30 items-center justify-center text-center"
                     >
                       ↓
                     </button>
@@ -4082,7 +4082,7 @@ function NewSeasonForm({
       <button
         type="submit"
         disabled={!canStartSeason}
-        className="w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+        className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Crear temporada"}
       </button>
@@ -4202,7 +4202,7 @@ function PlayerMatchActionsSettingsPanel({
         type="button"
         onClick={save}
         disabled={isSaving || !hasChanges}
-        className="mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Guardar permisos"}
       </button>
@@ -4647,7 +4647,7 @@ export default function AdminSeasonPage() {
               <button
                 type="button"
                 onClick={() => setIsNewSeasonFormOpen((current) => !current)}
-                className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
+                className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
               >
                 {isNewSeasonFormOpen
                   ? "Ocultar nueva temporada"
@@ -4657,7 +4657,7 @@ export default function AdminSeasonPage() {
                 type="button"
                 onClick={handleDuplicateLastSeason}
                 disabled={isDuplicatingSeason}
-                className="mt-2 w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300"
+                className="flex mt-2 w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
                 {isDuplicatingSeason
                   ? "Duplicando..."

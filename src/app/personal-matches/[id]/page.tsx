@@ -163,7 +163,7 @@ export default function PersonalMatchDetailPage() {
           <button
             type="button"
             onClick={() => setEditingResult(true)}
-            className="mt-3 w-full rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800"
+            className="flex mt-3 w-full rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 items-center justify-center text-center"
           >
             Editar resultado
           </button>
@@ -194,7 +194,7 @@ export default function PersonalMatchDetailPage() {
           type="button"
           disabled={deleting}
           onClick={() => void deleteMatch()}
-          className="w-full rounded-xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700 disabled:opacity-50"
+          className="flex w-full rounded-xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700 disabled:opacity-50 items-center justify-center text-center"
         >
           {deleting ? "Eliminando..." : "Eliminar partido"}
         </button>

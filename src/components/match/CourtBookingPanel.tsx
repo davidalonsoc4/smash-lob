@@ -635,7 +635,7 @@ export function CourtBookingPanel({
                           handleUpdatePaymentStatus(transfer.id, true)
                         }
                         disabled={isSaving}
-                        className="mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300"
+                        className="flex mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                       >
                         {isSaving ? "Guardando..." : "✓ Marcar como pagado"}
                       </button>
@@ -673,7 +673,7 @@ export function CourtBookingPanel({
                   type="button"
                   onClick={handleSendReminder}
                   disabled={isSendingReminder}
-                  className="w-full rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1.5 type-caption font-black text-orange-900 shadow-sm disabled:text-orange-300"
+                  className="flex w-full rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1.5 type-caption font-black text-orange-900 shadow-sm disabled:text-orange-300 items-center justify-center text-center"
                 >
                   {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
                 </button>
@@ -683,7 +683,7 @@ export function CourtBookingPanel({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm active:bg-neutral-100"
+                  className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm active:bg-neutral-100 items-center justify-center text-center"
                 >
                   Editar
                 </button>
@@ -691,7 +691,7 @@ export function CourtBookingPanel({
                   type="button"
                   onClick={handleClearBooking}
                   disabled={isSaving || !canCancelBooking}
-                  className="rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 type-caption font-black text-red-700 disabled:text-red-300"
+                  className="inline-flex rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 type-caption font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
                 >
                   Cancelar reserva
                 </button>
@@ -930,7 +930,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
-                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
               >
                 Cancelar
               </button>
@@ -939,7 +939,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={() => setIsExpanded(false)}
                 disabled={isSaving}
-                className="rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+                className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
               >
                 Cerrar
               </button>
@@ -948,7 +948,7 @@ export function CourtBookingPanel({
             <button
               type="submit"
               disabled={!canSave}
-              className="rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300"
+              className="inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
               {isSaving ? "Guardando..." : "Guardar pagos"}
             </button>

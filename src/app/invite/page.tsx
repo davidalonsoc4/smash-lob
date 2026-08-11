@@ -58,7 +58,7 @@ export default function ManualInvitePage() {
 
           <button
             type="submit"
-            className="w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
+            className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
           >
             {t.onboarding.joinAction}
           </button>

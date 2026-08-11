@@ -339,7 +339,7 @@ export function BigSmileEditorClient() {
             <img key={avatarUrl} src={avatarUrl} alt="Avatar DiceBear Big Smile" className="h-full w-full object-contain" onLoad={() => setPreviewResult({ url: avatarUrl, state: "ready" })} onError={() => setPreviewResult({ url: avatarUrl, state: "error" })} />
             {previewState === "loading" ? <span className="absolute bottom-3 rounded-full bg-white/90 px-3 py-1 type-caption font-black text-neutral-600 shadow">Actualizando…</span> : null}
             {previewState === "error" ? (
-              <button type="button" onClick={() => setRevision((value) => value + 1)} className="absolute bottom-3 rounded-full bg-red-50 px-3 py-1 type-caption font-black text-red-700 shadow">Reintentar vista</button>
+              <button type="button" onClick={() => setRevision((value) => value + 1)} className="inline-flex absolute bottom-3 rounded-full bg-red-50 px-3 py-1 type-caption font-black text-red-700 shadow items-center justify-center text-center">Reintentar vista</button>
             ) : null}
           </div>
           <div className="border-t border-neutral-100 p-3">
@@ -348,7 +348,7 @@ export function BigSmileEditorClient() {
               <input value={recipe.seed} onChange={(event: ChangeEvent<HTMLInputElement>) => update("seed", event.target.value)} className="mt-2 h-10 w-full rounded-2xl border border-neutral-200 bg-stone-50 px-3 text-sm font-bold outline-none focus:border-rose-500" />
             </label>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-              {PRESETS.map((preset) => <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="shrink-0 rounded-full bg-stone-100 px-3 py-2 type-caption font-black text-neutral-700">{preset.label}</button>)}
+              {PRESETS.map((preset) => <button key={preset.label} type="button" onClick={() => applyPreset(preset)} className="inline-flex shrink-0 rounded-full bg-stone-100 px-3 py-2 type-caption font-black text-neutral-700 items-center justify-center text-center">{preset.label}</button>)}
             </div>
             {status ? <div className="mt-1 text-center type-caption font-black text-rose-700">{status}</div> : null}
           </div>
@@ -494,10 +494,10 @@ export function BigSmileEditorClient() {
 
       <AppCard>
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={randomize} className="h-11 rounded-xl border border-neutral-200 bg-white text-xs font-black">Aleatorio</button>
-          <button type="button" onClick={() => setRecipe(DEFAULT_RECIPE)} className="h-11 rounded-xl border border-neutral-200 bg-white text-xs font-black">Restablecer</button>
-          <button type="button" onClick={copyRecipe} className="h-11 rounded-xl border border-neutral-200 bg-white text-xs font-black">Copiar receta</button>
-          <button type="button" onClick={save} className="h-11 rounded-xl bg-neutral-950 text-xs font-black text-white">Guardar en este móvil</button>
+          <button type="button" onClick={randomize} className="inline-flex h-11 rounded-xl border border-neutral-200 bg-white text-xs font-black items-center justify-center text-center">Aleatorio</button>
+          <button type="button" onClick={() => setRecipe(DEFAULT_RECIPE)} className="inline-flex h-11 rounded-xl border border-neutral-200 bg-white text-xs font-black items-center justify-center text-center">Restablecer</button>
+          <button type="button" onClick={copyRecipe} className="inline-flex h-11 rounded-xl border border-neutral-200 bg-white text-xs font-black items-center justify-center text-center">Copiar receta</button>
+          <button type="button" onClick={save} className="inline-flex h-11 rounded-xl bg-neutral-950 text-xs font-black text-white items-center justify-center text-center">Guardar en este móvil</button>
         </div>
       </AppCard>
 

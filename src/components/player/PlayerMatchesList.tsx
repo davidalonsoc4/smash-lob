@@ -78,7 +78,7 @@ export function PlayerMatchesList({
         {actionHref && actionLabel ? (
           <Link
             href={actionHref}
-            className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700"
+            className="inline-flex shrink-0 rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 items-center justify-center text-center"
           >
             {actionLabel}
           </Link>

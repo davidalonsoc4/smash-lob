@@ -133,7 +133,7 @@ export function SpectatorInviteFlow() {
                 type="button"
                 onClick={handleJoin}
                 disabled={isJoining}
-                className="mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-400"
+                className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-400 items-center justify-center text-center"
               >
                 {isJoining ? "Activando acceso..." : "Entrar como espectador"}
               </button>

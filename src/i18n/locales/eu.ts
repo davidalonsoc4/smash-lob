@@ -6,6 +6,7 @@ export const eu = {
     individualRanking: "Banakako sailkapena",
     pointsShort: "ptu",
     back: "Itzuli",
+    refreshApp: "Freskatu",
     backToMatches: "← Partidetara itzuli",
     versus: "vs",
     save: "Gorde",
@@ -277,7 +278,7 @@ export const eu = {
     closedSeasonDescription:
       "Ligak ez du denboraldi aktiborik une honetan. Historiala ikus dezakezu berria sortu arte.",
     historyAndStatistics: "Historiala eta estatistikak",
-    shareSeasonSummary: "Denboraldiaren laburpena partekatu",
+    shareSeasonSummary: "Laburpena partekatu",
     createSeason: "Denboraldi berria sortu",
   },
 
@@ -475,7 +476,7 @@ export const eu = {
     noRecentResults: "Oraindik ez duzu emaitzarik erregistratuta.",
     matchHistoryTitle: "Partiden historial",
     matchHistoryDescription:
-      "Ikusi denboraldiko zure partida guztiak eta filtratu egoeraren arabera.",
+      "Ikusi ligako eta lagunarteko partida guztiak.",
     matchHistoryPageDescription:
       "Denboraldi aktiboko zure partida guztiak, egoeraren araberako filtro azkarrekin.",
     filteredMatches: "Partidak",

@@ -6,6 +6,7 @@ export const es = {
     individualRanking: "Ranking individual",
     pointsShort: "pts",
     back: "Volver",
+    refreshApp: "Refrescar",
     backToMatches: "← Volver a partidos",
     versus: "vs",
     save: "Guardar",
@@ -278,7 +279,7 @@ export const es = {
     closedSeasonDescription:
       "La liga no tiene una temporada activa ahora mismo. Puedes consultar el histórico hasta que se cree una nueva.",
     historyAndStatistics: "Historial y estadísticas",
-    shareSeasonSummary: "Compartir resumen de temporada",
+    shareSeasonSummary: "Compartir resumen",
     createSeason: "Crear nueva temporada",
   },
 
@@ -477,7 +478,7 @@ export const es = {
     noRecentResults: "Todavía no tienes resultados registrados.",
     matchHistoryTitle: "Historial de partidos",
     matchHistoryDescription:
-      "Consulta todos tus partidos de la temporada y filtra por estado.",
+      "Consulta todos tus partidos de liga y amistosos.",
     matchHistoryPageDescription:
       "Todos tus partidos de la temporada activa, con filtros rápidos por estado.",
     filteredMatches: "Partidos",

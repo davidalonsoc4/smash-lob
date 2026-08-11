@@ -36,14 +36,14 @@ export function AppErrorView({
             <button
               type="button"
               onClick={onRetry}
-              className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
+              className="inline-flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
             >
               Volver a intentarlo
             </button>
           ) : null}
           <Link
             href="/"
-            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
+            className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800 items-center justify-center"
           >
             Ir al inicio
           </Link>

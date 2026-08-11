@@ -159,7 +159,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
   }
 
   const historyHref = isSelf
-    ? "/profile/matches"
+    ? "/personal-matches"
     : `/player/${player.slug ?? player.id}/matches?scope=${selectedScope.id}`
 
   return (
@@ -234,11 +234,11 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
       />
 
       {isSelf ? (
-        <Link href="/availability">
+        <Link href="/availability" className="block">
           <AppCard className="p-2.5 transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-black">Mi disponibilidad</p>
+                <p className="type-panel-title font-black">Mi disponibilidad</p>
                 <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
                   Configura tus horarios habituales para que la app pueda recomendar fechas de partido.
                 </p>
@@ -249,11 +249,11 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         </Link>
       ) : null}
 
-      <Link href={historyHref}>
+      <Link href={historyHref} className="block">
         <AppCard className="p-2.5 transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-black">{t.profile.matchHistoryTitle}</p>
+              <p className="type-panel-title font-black">{isSelf ? t.profile.myMatches : t.playerProfile.playerMatches}</p>
               <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
                 {isSelf ? t.profile.matchHistoryDescription : t.playerProfile.matchHistoryDescription}
               </p>

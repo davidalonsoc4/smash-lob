@@ -241,7 +241,7 @@ function AccountProfileForm({
         <button
           type="submit"
           disabled={isSavingName}
-          className="mt-2.5 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="flex mt-2.5 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
           {isSavingName ? t.common.saving : t.accountProfile.saveChanges}
         </button>
@@ -276,7 +276,7 @@ function AccountProfileForm({
               type="button"
               onClick={() => saveAvatar(null)}
               disabled={isSavingAvatar || !isUsingUploadedImage}
-              className="rounded-xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+              className="inline-flex rounded-xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
             >
               {t.settings.removeAvatar}
             </button>

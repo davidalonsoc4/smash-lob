@@ -607,7 +607,7 @@ export default function PaymentsPage() {
                 type="button"
                 onClick={handleSendReminder}
                 disabled={isSendingReminder}
-                className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+                className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
                 {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
               </button>
@@ -827,7 +827,7 @@ export default function PaymentsPage() {
                             })
                           }
                           disabled={updatingTransferId === transfer.id}
-                          className="mt-2 w-full rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                          className="flex mt-2 w-full rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                         >
                           {updatingTransferId === transfer.id
                             ? "Guardando..."

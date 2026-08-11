@@ -298,7 +298,7 @@ export function ImageCropDialog({
             onClick={onCancel}
             disabled={isSaving}
             aria-label={cancelLabel}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-lg font-black text-neutral-600 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-300"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-lg font-black text-neutral-600 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-300 text-center"
           >
             ×
           </button>
@@ -394,7 +394,7 @@ export function ImageCropDialog({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="rounded-2xl bg-neutral-100 px-3 py-3 text-sm font-black text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
+            className="inline-flex rounded-2xl bg-neutral-100 px-3 py-3 text-sm font-black text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200 items-center justify-center text-center"
           >
             {cancelLabel}
           </button>
@@ -402,7 +402,7 @@ export function ImageCropDialog({
             type="button"
             onClick={() => void handleConfirm()}
             disabled={isSaving || !naturalSize.width}
-            className="rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300 dark:bg-white dark:text-neutral-950 dark:disabled:bg-neutral-700"
+            className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300 dark:bg-white dark:text-neutral-950 dark:disabled:bg-neutral-700 items-center justify-center text-center"
           >
             {isSaving ? "Procesando..." : confirmLabel}
           </button>
