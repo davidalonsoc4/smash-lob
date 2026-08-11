@@ -1,6 +1,5 @@
 "use client"
 
-import { OnboardingTipsReset } from "@/components/onboarding/ContextualTip"
 import { GuidedTourLibrary } from "@/components/onboarding/GuidedTourLibrary"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -417,14 +416,6 @@ export default function HelpPage() {
 
 
       <GuidedTourLibrary />
-      <HelpBlock title={t.onboardingTips.helpTitle}>
-        <OnboardingTipsReset
-          title={t.onboardingTips.helpTitle}
-          description={t.onboardingTips.helpDescription}
-          actionLabel={t.onboardingTips.helpReset}
-          doneLabel={t.onboardingTips.helpResetDone}
-        />
-      </HelpBlock>
     </div>
   )
 }
