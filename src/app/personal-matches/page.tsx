@@ -4,7 +4,9 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { useI18n } from "@/i18n/I18nProvider"
 import type {
   PersonalMatchItem,
   PersonalMatchNextScope,
@@ -23,6 +25,7 @@ function emptyDashboard(): PersonalMatchesDashboardPayload {
 }
 
 export default function PersonalMatchesPage() {
+  const { t } = useI18n()
   const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload>(emptyDashboard)
   const [nextScope, setNextScope] = useState<PersonalMatchNextScope>("league")
   const [loading, setLoading] = useState(true)
@@ -100,6 +103,7 @@ export default function PersonalMatchesPage() {
   return (
     <div className="compact-page space-y-4">
       <header className="app-page-header">
+        <BackButton fallbackHref="/" label={t.common.back} />
         <h1 className="type-page-title font-black tracking-tight">Mis partidos</h1>
         <p className="mt-0.5 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal
@@ -190,7 +194,7 @@ export default function PersonalMatchesPage() {
             type="button"
             onClick={() => void loadMore()}
             disabled={loadingMore}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400"
+            className="flex w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
           >
             {loadingMore ? "Cargando..." : "Cargar 10 más"}
           </button>

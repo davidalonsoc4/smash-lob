@@ -55,14 +55,14 @@ export function PublicSiteLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full border border-white/15 px-3 py-2 text-xs font-black text-white transition hover:bg-white/10"
+                className="inline-flex rounded-full border border-white/15 px-3 py-2 text-xs font-black text-white transition hover:bg-white/10 items-center justify-center text-center"
               >
                 {item.label}
               </Link>
             ))}
             <Link
               href="/"
-              className="rounded-full bg-white px-3 py-2 text-xs font-black text-neutral-950 transition hover:bg-neutral-200"
+              className="inline-flex rounded-full bg-white px-3 py-2 text-xs font-black text-neutral-950 transition hover:bg-neutral-200 items-center justify-center text-center"
             >
               Acceder a la app
             </Link>

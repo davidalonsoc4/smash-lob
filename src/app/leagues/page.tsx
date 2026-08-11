@@ -99,7 +99,7 @@ export default function LeaguesPage() {
 
         <Link
           href="/personal-matches/new"
-          className="block rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 shadow-[0_1px_8px_rgba(15,23,42,0.05)] transition active:scale-[0.99]"
+          className="flex rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 shadow-[0_1px_8px_rgba(15,23,42,0.05)] transition active:scale-[0.99] items-center justify-center"
         >
           + Registrar encuentro amistoso
         </Link>
@@ -234,14 +234,14 @@ export default function LeaguesPage() {
         <div className="grid gap-2">
           <Link
             href="/invite"
-            className="block rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
+            className="flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800 items-center justify-center"
           >
             Unirme con invitación
           </Link>
           {canCreateLeaguesInCurrentView ? (
             <Link
               href="/league/new"
-              className="block rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+              className="flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
             >
               Crear nueva liga
             </Link>

@@ -671,7 +671,7 @@ function ActivityPageContent() {
                   type="button"
                   onClick={() => setAreSettingsExpanded((current) => !current)}
                   aria-expanded={areSettingsExpanded}
-                  className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white"
+                  className="inline-flex shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white items-center justify-center text-center"
                 >
                   {areSettingsExpanded
                     ? t.activity.hideNotificationSettings
@@ -722,8 +722,8 @@ function ActivityPageContent() {
                     <div className="rounded-2xl border border-neutral-200 bg-white p-3">
                       <p className="text-xs font-semibold leading-4 text-neutral-500">{t.activity.notificationToggleDescription}</p>
                       <div className="mt-3 grid grid-cols-2 gap-2">
-                        <button type="button" onClick={() => setAllNotificationTypes(false)} className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700">{t.notifications.disableAll}</button>
-                        <button type="button" onClick={() => setAllNotificationTypes(true)} className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white">{t.notifications.enableAll}</button>
+                        <button type="button" onClick={() => setAllNotificationTypes(false)} className="inline-flex rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center">{t.notifications.disableAll}</button>
+                        <button type="button" onClick={() => setAllNotificationTypes(true)} className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white items-center justify-center text-center">{t.notifications.enableAll}</button>
                       </div>
                     </div>
 
@@ -768,7 +768,7 @@ function ActivityPageContent() {
                   type="button"
                   onClick={saveActivitySettings}
                   disabled={isSettingsLoading || isSettingsSaving}
-                  className="mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+                  className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                 >
                   {isSettingsSaving ? t.common.saving : t.activity.saveNotificationSettings}
                 </button>

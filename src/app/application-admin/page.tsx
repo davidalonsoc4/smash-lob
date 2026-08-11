@@ -518,7 +518,7 @@ export default function ApplicationAdminPage() {
             type="button"
             onClick={() => void loadUsers()}
             disabled={loading}
-            className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+            className="inline-flex rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
           >
             Actualizar
           </button>
@@ -689,7 +689,7 @@ export default function ApplicationAdminPage() {
                   type="button"
                   onClick={() => void saveUser(user)}
                   disabled={Boolean(busyKey)}
-                  className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                  className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                 >
                   {busyKey === `${user.id}:save` ? "Guardando..." : "Guardar"}
                 </button>
@@ -704,7 +704,7 @@ export default function ApplicationAdminPage() {
                       )
                     }
                     disabled={Boolean(busyKey)}
-                    className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 disabled:text-emerald-200"
+                    className="inline-flex rounded-xl bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 disabled:text-emerald-200 items-center justify-center text-center"
                   >
                     Reactivar cuenta
                   </button>
@@ -719,7 +719,7 @@ export default function ApplicationAdminPage() {
                       )
                     }
                     disabled={Boolean(busyKey) || isCurrentUser || user.isSuperuser}
-                    className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 disabled:text-amber-200"
+                    className="inline-flex rounded-xl bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 disabled:text-amber-200 items-center justify-center text-center"
                   >
                     Suspender cuenta
                   </button>
@@ -801,7 +801,7 @@ export default function ApplicationAdminPage() {
                                     disabled={
                                       Boolean(busyKey) || !transferTargets[access.leagueId]
                                     }
-                                    className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                                    className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                                   >
                                     Transferir
                                   </button>
@@ -829,7 +829,7 @@ export default function ApplicationAdminPage() {
                         )
                       }
                       disabled={Boolean(busyKey)}
-                      className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+                      className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
                     >
                       Repetir perfil
                     </button>
@@ -843,7 +843,7 @@ export default function ApplicationAdminPage() {
                         )
                       }
                       disabled={Boolean(busyKey)}
-                      className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+                      className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
                     >
                       Reiniciar disponibilidad
                     </button>
@@ -857,7 +857,7 @@ export default function ApplicationAdminPage() {
                         )
                       }
                       disabled={Boolean(busyKey) || user.pushSubscriptionCount === 0}
-                      className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+                      className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
                     >
                       Revocar dispositivos
                     </button>
@@ -871,7 +871,7 @@ export default function ApplicationAdminPage() {
                         )
                       }
                       disabled={Boolean(busyKey) || user.notificationPreferenceCount === 0}
-                      className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300"
+                      className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
                     >
                       Restablecer notificaciones
                     </button>
@@ -886,7 +886,7 @@ export default function ApplicationAdminPage() {
                       user.isSuperuser ||
                       user.ownedLeagueCount > 0
                     }
-                    className="mt-2 w-full rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:text-red-200"
+                    className="flex mt-2 w-full rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:text-red-200 items-center justify-center text-center"
                   >
                     {isBusy ? "Procesando..." : "Eliminar cuenta"}
                   </button>

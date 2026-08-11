@@ -63,7 +63,7 @@ export function LeagueNotificationRedirect() {
       {hasAccessError ? (
         <Link
           href="/leagues"
-          className="mt-3 block rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+          className="flex mt-3 rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
         >
           Ver mis ligas
         </Link>

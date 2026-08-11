@@ -9,7 +9,7 @@ describe("home and primary navigation context hierarchy", () => {
     ])
 
     expect(home).toContain('<header data-tour="home-header" className="app-page-header">')
-    expect(home).toContain('<LeagueLogo league={activeLeague} size="xl"')
+    expect(home).toContain('<LeagueLogo league={activeLeague} size="md"')
     expect(home).toContain("<SeasonContextLine")
     expect(home).not.toContain("activeLeague.description")
     expect(home).not.toContain("getSeasonStatusBadgeClassName")

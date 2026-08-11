@@ -129,7 +129,7 @@ export function LeagueSpectatorsPanel({ leagueId }: LeagueSpectatorsPanelProps) 
                   type="button"
                   onClick={() => handleRemove(spectator)}
                   disabled={Boolean(removingUserId)}
-                  className="shrink-0 rounded-xl bg-white px-2.5 py-2 text-xs font-black text-red-700 shadow-sm disabled:text-neutral-300"
+                  className="inline-flex shrink-0 rounded-xl bg-white px-2.5 py-2 text-xs font-black text-red-700 shadow-sm disabled:text-neutral-300 items-center justify-center text-center"
                 >
                   {removingUserId === spectator.userId ? "Quitando..." : "Quitar"}
                 </button>

@@ -33,7 +33,7 @@ export function MatchScheduleBox({
             {t.matchDetail.pendingScheduleDescription}
           </p>
 
-          <button className="mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-bold text-white">
+          <button className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-bold text-white items-center justify-center text-center">
             {t.matchDetail.addScheduleButton}
           </button>
         </div>

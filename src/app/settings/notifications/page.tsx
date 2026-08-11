@@ -413,7 +413,7 @@ export default function NotificationSettingsPage() {
             type="button"
             onClick={enablePushOnThisDevice}
             disabled={!canRequestPush || hasSubscription || isSaving}
-            className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+            className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
             {t.notifications.enablePush}
           </button>
@@ -421,7 +421,7 @@ export default function NotificationSettingsPage() {
             type="button"
             onClick={disablePushOnThisDevice}
             disabled={!hasSubscription || isSaving}
-            className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+            className="inline-flex rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
           >
             {t.notifications.disablePush}
           </button>
@@ -448,7 +448,7 @@ export default function NotificationSettingsPage() {
               type="button"
               onClick={disableAll}
               disabled={isLoading || isSaving}
-              className="rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 disabled:text-neutral-300"
+              className="inline-flex rounded-xl border border-neutral-200 bg-white px-2.5 py-1.5 type-caption font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
             >
               {t.notifications.disableAll}
             </button>
@@ -456,7 +456,7 @@ export default function NotificationSettingsPage() {
               type="button"
               onClick={enableAll}
               disabled={isLoading || isSaving}
-              className="rounded-xl bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300"
+              className="inline-flex rounded-xl bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
               {t.notifications.enableAll}
             </button>

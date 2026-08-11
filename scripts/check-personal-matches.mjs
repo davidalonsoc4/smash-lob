@@ -183,7 +183,14 @@ assert(personalMatchesLib.includes("personKey?: string | null"), "Los participan
 assert(serverHelper.includes("getParticipantPersonKey") && serverHelper.includes('`user:${userId}`') && serverHelper.includes('`player:${playerId}`'), "El histórico global debe unificar identidades vinculadas entre ligas")
 assert(listRoute.includes('searchParams.get("includeAvatars")'), "La API debe permitir cargar avatares solo cuando el perfil global los necesita")
 assert(serverHelper.includes("seasonName"), "El historial de liga debe incluir el nombre de temporada para el filtro global")
-assert(!personalPage.includes("<BackButton"), "La raíz de Mis partidos no debe duplicar Volver/Ligas")
+assert(
+  personalPage.includes("<BackButton"),
+  "La raíz de Mis partidos debe mostrar Volver",
+)
+assert(
+  !personalPage.includes('href="/leagues"'),
+  "La raíz de Mis partidos no debe duplicar el acceso Ligas de la NAVBAR",
+)
 assert(newPage.includes("<BackButton") && detailPage.includes("<MatchDetailView") && matchDetailView.includes("<BackButton"), "Crear y detalle deben conservar el botón Volver")
 for (const forbiddenColor of ["red-", "rose-", "green-", "emerald-", "lime-", "teal-"]) {
   assert(!personalMatchesLib.includes(forbiddenColor), `El origen de partido no debe usar ${forbiddenColor}`)

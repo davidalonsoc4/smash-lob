@@ -151,7 +151,7 @@ export function DashboardMvpCard({
           {canManage ? (
             <Link
               href="/admin/mvp"
-              className="shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700"
+              className="inline-flex shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
             >
               Gestionar
             </Link>

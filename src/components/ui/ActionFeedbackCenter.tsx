@@ -141,7 +141,7 @@ export function ActionFeedbackCenter({ hasBottomNav = true }: { hasBottomNav?: b
                   setFeedback(null)
                   action?.()
                 }}
-                className="min-h-11 shrink-0 rounded-xl bg-white/80 px-3 text-xs font-black shadow-sm dark:bg-neutral-900/70"
+                className="inline-flex min-h-11 shrink-0 rounded-xl bg-white/80 px-3 text-xs font-black shadow-sm dark:bg-neutral-900/70 items-center justify-center text-center"
               >
                 {feedback.actionLabel}
               </button>

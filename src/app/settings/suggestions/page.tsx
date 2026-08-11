@@ -233,7 +233,7 @@ export default function SuggestionsPage() {
           type="button"
           onClick={() => void submitSuggestion()}
           disabled={!canSubmit}
-          className="mt-2 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="flex mt-2 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
           {submitting ? "Enviando..." : "Enviar sugerencia"}
         </button>

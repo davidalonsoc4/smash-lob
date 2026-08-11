@@ -157,7 +157,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
             type="button"
             onClick={() => copyValue(inviteCode, "Código copiado")}
             disabled={!inviteCode}
-            className="rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
+            className="inline-flex rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
           >
             Copiar código
           </button>
@@ -165,7 +165,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
             type="button"
             onClick={() => copyValue(inviteUrl, "URL copiada")}
             disabled={!inviteUrl}
-            className="rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400"
+            className="inline-flex rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
           >
             Copiar enlace
           </button>
@@ -176,7 +176,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         type="button"
         onClick={handleRegenerate}
         disabled={isRegenerating}
-        className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300"
+        className="flex mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
       >
         {isRegenerating ? "Regenerando..." : "Regenerar invitación"}
       </button>

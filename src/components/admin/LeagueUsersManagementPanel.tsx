@@ -248,7 +248,7 @@ function PlayerUserCard({
           type="button"
           onClick={handleSaveName}
           disabled={!canSaveName || isSavingName}
-          className="w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400"
+          className="flex w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400 items-center justify-center text-center"
         >
           {isSavingName ? "Guardando..." : "Guardar nombre"}
         </button>
@@ -260,7 +260,7 @@ function PlayerUserCard({
             type="button"
             onClick={handleChangeRole}
             disabled={isUpdatingRole || isUnlinking}
-            className="rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+            className="inline-flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
             {isUpdatingRole
               ? "Guardando..."
@@ -273,7 +273,7 @@ function PlayerUserCard({
             type="button"
             onClick={handleUnlink}
             disabled={isUpdatingRole || isUnlinking}
-            className="rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300"
+            className="inline-flex rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
           >
             {isUnlinking ? "Desvinculando..." : "Desvincular cuenta"}
           </button>

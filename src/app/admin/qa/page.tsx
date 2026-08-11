@@ -439,7 +439,7 @@ export default function AdminQaPage() {
                 type="button"
                 disabled={isRunning || selectedMatch.status === "finished"}
                 onClick={() => runAction("schedule_match")}
-                className="rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
+                className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50 items-center justify-center text-center"
               >
                 {t.qa.scheduleMatch}
               </button>
@@ -447,7 +447,7 @@ export default function AdminQaPage() {
                 type="button"
                 disabled={isRunning}
                 onClick={() => runAction("record_result")}
-                className="rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
+                className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50 items-center justify-center text-center"
               >
                 {t.qa.recordResult}
               </button>
@@ -459,7 +459,7 @@ export default function AdminQaPage() {
                   seasonSettings?.result_confirmation_mode === "none"
                 }
                 onClick={() => runAction("confirm_all")}
-                className="rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40 items-center justify-center text-center"
               >
                 {t.qa.confirmAll}
               </button>
@@ -471,7 +471,7 @@ export default function AdminQaPage() {
                   seasonSettings?.result_confirmation_mode === "none"
                 }
                 onClick={() => runAction("dispute_result")}
-                className="rounded-xl bg-amber-100 px-3 py-2.5 text-xs font-black text-amber-900 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-amber-100 px-3 py-2.5 text-xs font-black text-amber-900 disabled:opacity-40 items-center justify-center text-center"
               >
                 {t.qa.disputeResult}
               </button>
@@ -483,7 +483,7 @@ export default function AdminQaPage() {
                   seasonSettings?.result_confirmation_mode !== "required"
                 }
                 onClick={() => runAction("auto_validate_24h")}
-                className="rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40 items-center justify-center text-center"
               >
                 {t.qa.autoValidate}
               </button>
@@ -493,7 +493,7 @@ export default function AdminQaPage() {
                 onClick={() =>
                   runAction(selectedMatch.result_locked ? "unlock_result" : "lock_result")
                 }
-                className="rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40 items-center justify-center text-center"
               >
                 {selectedMatch.result_locked ? t.qa.unlockResult : t.qa.lockResult}
               </button>
@@ -552,7 +552,7 @@ export default function AdminQaPage() {
                   seasonSettings?.mvp_system !== "voting"
                 }
                 onClick={() => runAction("cast_vote")}
-                className="rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40 items-center justify-center text-center"
               >
                 {t.qa.castOneVote}
               </button>
@@ -564,7 +564,7 @@ export default function AdminQaPage() {
                   seasonSettings?.mvp_system !== "voting"
                 }
                 onClick={() => runAction("award_three_votes")}
-                className="rounded-xl bg-amber-100 px-3 py-2.5 text-xs font-black text-amber-900 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-amber-100 px-3 py-2.5 text-xs font-black text-amber-900 disabled:opacity-40 items-center justify-center text-center"
               >
                 {t.qa.awardThreeVotes}
               </button>
@@ -577,7 +577,7 @@ export default function AdminQaPage() {
                   seasonSettings?.mvp_system !== "voting"
                 }
                 onClick={() => runAction("tie_votes")}
-                className="rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40"
+                className="inline-flex rounded-xl bg-neutral-200 px-3 py-2.5 text-xs font-black text-neutral-950 disabled:opacity-40 items-center justify-center text-center"
               >
                 {t.qa.tieVotes}
               </button>
@@ -585,7 +585,7 @@ export default function AdminQaPage() {
                 type="button"
                 disabled={isRunning || seasonSettings?.mvp_system !== "voting"}
                 onClick={() => runAction("complete_round_scenario")}
-                className="rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
+                className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50 items-center justify-center text-center"
               >
                 {t.qa.completeRoundScenario}
               </button>
@@ -602,7 +602,7 @@ export default function AdminQaPage() {
                 type="button"
                 disabled={isRunning}
                 onClick={() => runAction("reset_match")}
-                className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700 disabled:opacity-50"
+                className="inline-flex rounded-xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700 disabled:opacity-50 items-center justify-center text-center"
               >
                 {t.qa.resetMatch}
               </button>
@@ -610,7 +610,7 @@ export default function AdminQaPage() {
                 type="button"
                 disabled={isRunning}
                 onClick={() => runAction("reset_round")}
-                className="rounded-xl bg-red-600 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50"
+                className="inline-flex rounded-xl bg-red-600 px-3 py-2.5 text-xs font-black text-white disabled:opacity-50 items-center justify-center text-center"
               >
                 {t.qa.resetRound}
               </button>

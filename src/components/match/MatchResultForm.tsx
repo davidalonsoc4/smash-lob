@@ -365,7 +365,7 @@ export function MatchResultForm({
               type="button"
               onClick={onCancel}
               disabled={isSaving}
-              className="flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+              className="inline-flex flex-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
             >
               {t.matchResult.cancelEdit}
             </button>
@@ -374,7 +374,7 @@ export function MatchResultForm({
           <button
             type="submit"
             disabled={!canSave}
-            className="flex-1 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300"
+            className="inline-flex flex-1 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
             {isSaving
               ? "Guardando..."

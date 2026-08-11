@@ -205,7 +205,7 @@ export function SeasonRosterWaitingRoom({
           type="button"
           onClick={handleJoin}
           disabled={isSaving}
-          className="mt-2 w-full rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:bg-emerald-200"
+          className="flex mt-2 w-full rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:bg-emerald-200 items-center justify-center text-center"
         >
           {isSaving ? t.common.saving : t.roster.joinAction}
         </button>

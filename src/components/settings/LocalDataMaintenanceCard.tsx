@@ -37,7 +37,7 @@ export function LocalDataMaintenanceCard() {
         <button
           type="button"
           onClick={handleShowLastError}
-          className="w-full rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800"
+          className="flex w-full rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 items-center justify-center text-center"
         >
           Ver último error de Supabase
         </button>

@@ -87,7 +87,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
               void signIn("google", { callbackUrl })
             }}
-            className="mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
+            className="flex mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
           >
             {t.auth.signInWithGoogle}
           </button>

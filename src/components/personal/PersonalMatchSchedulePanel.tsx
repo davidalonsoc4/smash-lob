@@ -169,7 +169,7 @@ export function PersonalMatchSchedulePanel({
           <button
             type="button"
             onClick={openEditor}
-            className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 type-caption font-black text-neutral-700"
+            className="inline-flex rounded-full border border-neutral-200 bg-white px-2.5 py-1 type-caption font-black text-neutral-700 items-center justify-center text-center"
           >
             Editar
           </button>
@@ -193,7 +193,7 @@ export function PersonalMatchSchedulePanel({
                     href={directionsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="min-w-0 flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white"
+                    className="inline-flex min-w-0 flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white items-center justify-center"
                   >
                     Cómo llegar
                   </a>
@@ -287,7 +287,7 @@ export function PersonalMatchSchedulePanel({
                 type="button"
                 onClick={resetEditor}
                 disabled={saving}
-                className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-xs font-black text-neutral-800"
+                className="inline-flex flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-xs font-black text-neutral-800 items-center justify-center text-center"
               >
                 Cancelar
               </button>
@@ -295,7 +295,7 @@ export function PersonalMatchSchedulePanel({
                 type="button"
                 onClick={() => void saveSchedule()}
                 disabled={saving || !scheduledAt.trim()}
-                className="flex-1 rounded-lg bg-neutral-950 px-2.5 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+                className="inline-flex flex-1 rounded-lg bg-neutral-950 px-2.5 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
                 {saving ? "Guardando..." : "Guardar"}
               </button>

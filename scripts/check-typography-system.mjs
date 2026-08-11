@@ -210,15 +210,15 @@ assert(
 )
 assert(
   globals.includes('.app-main[data-has-floating-top-controls="true"] .app-top-back-control'),
-  "Volver debe poder ocupar la izquierda de la fila funcional superior",
+  "Volver o Refrescar deben poder ocupar la izquierda de la fila funcional superior",
 )
 assert(
   globals.includes('top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px))'),
   "La fila funcional superior debe respetar el safe area del dispositivo",
 )
 assert(
-  globals.includes(".app-home-top-logo") && globals.includes("position: absolute") && globals.includes("top: -52px") && globals.includes("left: 0") && globals.includes("width: 6.25rem !important") && globals.includes("height: 6.25rem !important"),
-  "Inicio debe ampliar el logo a 100 px y alinear su borde superior con los controles flotantes",
+  !globals.includes(".app-home-top-logo") && !globals.includes(".app-home-identity"),
+  "Inicio no debe recuperar el logo gigante ni reservar una rejilla especial para él",
 )
 const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Promise.all([
   readFile("src/app/page.tsx", "utf8"),
@@ -227,8 +227,12 @@ const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Prom
   readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
 ])
 assert(
-  topHomePage.includes('size="xl"') && topHomePage.includes('className="app-home-top-logo"'),
-  "Inicio debe mostrar el logo de liga ampliado en la izquierda de la fila superior",
+  topHomePage.includes('size="md"') && topHomePage.includes('<BackButton fallbackHref="/" label={t.common.refreshApp} />'),
+  "Inicio debe usar un logo normal junto al título y Refrescar en la fila funcional",
+)
+assert(
+  topHomePage.includes('<BackButton fallbackHref="/" label={t.common.refreshApp} />') && topHomePage.includes('onClickCapture={(event) => { event.preventDefault(); event.stopPropagation(); void refreshApp(); }}'),
+  "Refrescar debe reutilizar el BackButton real y capturar su clic para refrescar sin navegar",
 )
 for (const [label, source] of [
   ["Clasificación", topRankingPage],
@@ -268,7 +272,8 @@ const [homePage, rankingPage, matchesPage, profileScreen, seasonContextLine] = a
   readFile("src/components/layout/SeasonContextLine.tsx", "utf8"),
 ])
 assert(homePage.includes('<header data-tour="home-header" className="app-page-header">'), "Inicio debe usar la misma geometría global de cabecera que el resto de pantallas")
-assert(homePage.includes('<LeagueLogo league={activeLeague} size="xl"'), "Inicio debe usar el logo ampliado en su cabecera de identidad")
+assert(homePage.includes('<LeagueLogo league={activeLeague} size="md" previewable />'), "Inicio debe usar el logo de liga de tamaño normal junto a su identidad")
+assert(homePage.includes('className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale'), "Inicio debe ampliar el logo aproximadamente un 30% manteniendo fijo su borde inferior izquierdo")
 assert(homePage.includes("<SeasonContextLine"), "Inicio debe integrar temporada y estado en una sola línea")
 assert(!homePage.includes("activeLeague.description"), "Inicio no debe repetir la descripción de la liga en la cabecera")
 assert(homePage.includes('data-tour="home-season-summary"'), "La temporada cerrada debe usar un resumen compacto")

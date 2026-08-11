@@ -151,7 +151,7 @@ export function MatchResultConfirmationCard({
               type="button"
               onClick={() => saveStatus("disputed")}
               disabled={isSaving}
-              className="rounded-lg bg-red-50 px-2 py-1.5 type-caption font-black text-red-700 disabled:opacity-50"
+              className="inline-flex rounded-lg bg-red-50 px-2 py-1.5 type-caption font-black text-red-700 disabled:opacity-50 items-center justify-center text-center"
             >
               Incorrecto
             </button>

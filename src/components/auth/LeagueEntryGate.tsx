@@ -153,7 +153,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
                 </p>
                 <Link
                   href="/admin/season"
-                  className="mt-3 block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+                  className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
                 >
                   Crear temporada
                 </Link>
@@ -212,7 +212,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
             </p>
             <Link
               href="/league/new"
-              className="mt-3 block w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
+              className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
             >
               {t.onboarding.createAction}
             </Link>
@@ -247,7 +247,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
 
             <button
               type="submit"
-              className="w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white"
+              className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
             >
               {t.onboarding.joinAction}
             </button>
@@ -257,7 +257,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm"
+          className="flex w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm items-center justify-center text-center"
         >
           {t.auth.signOut}
         </button>

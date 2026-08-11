@@ -48,7 +48,7 @@ export function GuidedTourLibrary() {
               </div>
               <Link
                 href={`${tour.route}?tour=${encodeURIComponent(tour.key)}`}
-                className="mt-2 inline-flex rounded-xl bg-white px-3 py-2 type-caption font-black text-neutral-800 shadow-sm"
+                className="mt-2 inline-flex rounded-xl bg-white px-3 py-2 type-caption font-black text-neutral-800 shadow-sm items-center justify-center text-center"
               >
                 {copy.openScreen}
               </Link>
@@ -62,7 +62,7 @@ export function GuidedTourLibrary() {
         onClick={() => {
           void resetAllTours().then(() => setResetDone(true))
         }}
-        className="mt-3 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-700"
+        className="flex mt-3 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-700 items-center justify-center text-center"
       >
         {resetDone ? copy.resetDone : copy.resetAll}
       </button>

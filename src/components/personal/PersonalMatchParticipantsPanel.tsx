@@ -135,7 +135,7 @@ export function PersonalMatchParticipantsPanel({
           <button
             type="button"
             onClick={() => void openEditor()}
-            className="shrink-0 rounded-full border border-neutral-200 bg-white px-2.5 py-1 type-caption font-black text-neutral-700"
+            className="inline-flex shrink-0 rounded-full border border-neutral-200 bg-white px-2.5 py-1 type-caption font-black text-neutral-700 items-center justify-center text-center"
           >
             Editar
           </button>
@@ -181,7 +181,7 @@ export function PersonalMatchParticipantsPanel({
                 setEditing(false)
               }}
               disabled={saving}
-              className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-xs font-black text-neutral-800"
+              className="inline-flex flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-xs font-black text-neutral-800 items-center justify-center text-center"
             >
               Cancelar
             </button>
@@ -189,7 +189,7 @@ export function PersonalMatchParticipantsPanel({
               type="button"
               onClick={() => void saveParticipants()}
               disabled={saving || loadingPeople || !participantsComplete}
-              className="flex-1 rounded-lg bg-neutral-950 px-2.5 py-2 text-xs font-black text-white disabled:bg-neutral-300"
+              className="inline-flex flex-1 rounded-lg bg-neutral-950 px-2.5 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
               {saving ? "Guardando..." : "Guardar jugadores"}
             </button>

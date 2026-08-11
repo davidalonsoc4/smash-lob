@@ -2,6 +2,25 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { requestPwaUpdate } from "@/lib/pwaUpdate"
+import { APP_VERSION } from "@/lib/appVersion"
+
+const UPDATE_PROMPT_SESSION_KEY = `smash-lob-pwa-update-handled:${APP_VERSION}`
+
+function wasUpdatePromptHandledThisSession() {
+  try {
+    return window.sessionStorage.getItem(UPDATE_PROMPT_SESSION_KEY) === "handled"
+  } catch {
+    return false
+  }
+}
+
+function markUpdatePromptHandledForSession() {
+  try {
+    window.sessionStorage.setItem(UPDATE_PROMPT_SESSION_KEY, "handled")
+  } catch {
+    // El estado React sigue ocultando el aviso si sessionStorage no está disponible.
+  }
+}
 
 export function PwaUpdatePrompt() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
@@ -30,6 +49,12 @@ export function PwaUpdatePrompt() {
       reloadApp()
     }
 
+    function showWaitingWorker(worker: ServiceWorker) {
+      if (!wasUpdatePromptHandledThisSession()) {
+        setWaitingWorker(worker)
+      }
+    }
+
     navigator.serviceWorker.addEventListener(
       "controllerchange",
       handleControllerChange,
@@ -37,7 +62,7 @@ export function PwaUpdatePrompt() {
 
     void navigator.serviceWorker.register("/sw.js").then((registration) => {
       if (registration.waiting) {
-        setWaitingWorker(registration.waiting)
+        showWaitingWorker(registration.waiting)
       }
 
       registration.addEventListener("updatefound", () => {
@@ -49,7 +74,7 @@ export function PwaUpdatePrompt() {
             installing.state === "installed" &&
             navigator.serviceWorker.controller
           ) {
-            setWaitingWorker(registration.waiting ?? installing)
+            showWaitingWorker(registration.waiting ?? installing)
           }
         })
       })
@@ -90,6 +115,8 @@ export function PwaUpdatePrompt() {
           type="button"
           disabled={isApplying}
           onClick={() => {
+            markUpdatePromptHandledForSession()
+            setWaitingWorker(null)
             setIsApplying(true)
             reloadTimeoutRef.current = requestPwaUpdate(
               waitingWorker,
@@ -98,15 +125,18 @@ export function PwaUpdatePrompt() {
                 window.setTimeout(callback, delayMs),
             )
           }}
-          className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-400"
+          className="inline-flex rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-400 items-center justify-center text-center"
         >
           {isApplying ? "Actualizando…" : "Actualizar ahora"}
         </button>
         <button
           type="button"
           disabled={isApplying}
-          onClick={() => setWaitingWorker(null)}
-          className="rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-400"
+          onClick={() => {
+            markUpdatePromptHandledForSession()
+            setWaitingWorker(null)
+          }}
+          className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-400 items-center justify-center text-center"
         >
           Más tarde
         </button>

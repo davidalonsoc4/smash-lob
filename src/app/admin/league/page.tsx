@@ -220,7 +220,7 @@ function LeagueIdentityForm({
             type="button"
             onClick={() => saveLogo(null)}
             disabled={!logoUrl || isSavingLogo}
-            className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400"
+            className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
           >
             Quitar logo
           </button>
@@ -291,7 +291,7 @@ function LeagueIdentityForm({
         <button
           type="submit"
           disabled={!canSaveDetails}
-          className="mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
           {isSavingDetails ? "Guardando..." : "Guardar datos de liga"}
         </button>
@@ -460,7 +460,7 @@ function DeleteLeagueCard({
         type="button"
         onClick={handleDelete}
         disabled={!canDelete || isDeleting}
-        className="mt-3 w-full rounded-2xl bg-red-700 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200"
+        className="flex mt-3 w-full rounded-2xl bg-red-700 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center"
       >
         {isDeleting ? "Eliminando..." : "Eliminar liga definitivamente"}
       </button>
@@ -565,7 +565,7 @@ function LeagueLocationsForm({
         <button
           type="submit"
           disabled={isSaving}
-          className="mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300"
+          className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
           {isSaving ? "Guardando..." : t.adminLeague.save}
         </button>
@@ -625,17 +625,17 @@ export default function AdminLeaguePage() {
           Accesos rápidos
         </p>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          <a href="#identidad" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+          <a href="#identidad" className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800 items-center justify-center">
             Identidad
           </a>
-          <a href="#lugares" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+          <a href="#lugares" className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800 items-center justify-center">
             Lugares
           </a>
-          <a href="#estadisticas-perfil" className="rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800">
+          <a href="#estadisticas-perfil" className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800 items-center justify-center">
             Estadísticas
           </a>
           {canDeleteLeague ? (
-            <a href="#zona-sensible" className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700">
+            <a href="#zona-sensible" className="inline-flex rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700 items-center justify-center">
               Zona sensible
             </a>
           ) : null}

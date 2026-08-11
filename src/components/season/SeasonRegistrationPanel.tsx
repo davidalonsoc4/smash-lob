@@ -156,7 +156,7 @@ export function SeasonRegistrationPanel({
               type="button"
               onClick={handleSendReminder}
               disabled={isSendingReminder}
-              className="shrink-0 rounded-full bg-neutral-950 px-2.5 py-1 type-caption font-black text-white transition active:scale-[0.98] disabled:opacity-40"
+              className="inline-flex shrink-0 rounded-full bg-neutral-950 px-2.5 py-1 type-caption font-black text-white transition active:scale-[0.98] disabled:opacity-40 items-center justify-center text-center"
             >
               {isSendingReminder ? "Enviando..." : "Recordar"}
             </button>

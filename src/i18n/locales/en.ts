@@ -6,6 +6,7 @@ export const en = {
     individualRanking: "Individual ranking",
     pointsShort: "pts",
     back: "Back",
+    refreshApp: "Refresh",
     backToMatches: "← Back to matches",
     versus: "vs",
     save: "Save",
@@ -274,7 +275,7 @@ export const en = {
     closedSeasonDescription:
       "The league has no active season right now. You can view the history until a new one is created.",
     historyAndStatistics: "History and statistics",
-    shareSeasonSummary: "Share season summary",
+    shareSeasonSummary: "Share summary",
     createSeason: "Create new season",
   },
 
@@ -469,7 +470,7 @@ export const en = {
     noRecentResults: "You do not have recorded results yet.",
     matchHistoryTitle: "Match history",
     matchHistoryDescription:
-      "Review all your season matches and filter by status.",
+      "View all your league and friendly matches.",
     matchHistoryPageDescription:
       "All your matches in the active season, with quick status filters.",
     filteredMatches: "Matches",
