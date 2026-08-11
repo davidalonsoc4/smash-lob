@@ -42,7 +42,7 @@ describe("v1.6.6 HOME quick league switcher", () => {
     expect(checker).toContain("home-league-switcher")
   })
 
-  it("bumps all visible release surfaces to v1.6.6", async () => {
+  it("keeps all visible release surfaces aligned with the current app version", async () => {
     const [pkg, lock, version, sw, changelog] = await Promise.all([
       readFile("package.json", "utf8"),
       readFile("package-lock.json", "utf8"),
@@ -51,10 +51,10 @@ describe("v1.6.6 HOME quick league switcher", () => {
       readFile("src/lib/changelog.ts", "utf8"),
     ])
 
-    expect(pkg).toContain('"version": "1.6.6"')
-    expect(lock).toContain('"version": "1.6.6"')
-    expect(version).toContain('APP_VERSION = "1.6.6"')
-    expect(sw).toContain('CACHE_VERSION = "smash-lob-v1.6.6"')
-    expect(changelog).toContain('version: "v1.6.6"')
+    const currentVersion = JSON.parse(pkg).version as string
+    expect(lock).toContain(`"version": "${currentVersion}"`)
+    expect(version).toContain(`APP_VERSION = "${currentVersion}"`)
+    expect(sw).toContain(`CACHE_VERSION = "smash-lob-v${currentVersion}"`)
+    expect(changelog).toContain(`version: "v${currentVersion}"`)
   })
 })
