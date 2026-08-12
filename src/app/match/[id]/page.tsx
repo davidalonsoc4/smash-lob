@@ -301,6 +301,7 @@ export default function MatchDetailPage() {
           isAdmin={isAdmin}
           canReportIncident={canReportIncident}
           canManageSubstitutions={canManageSubstitutions}
+          chatHref={isMatchParticipant ? `/match/${match.id}/chat` : null}
           menuOpen={matchActionsMenuOpen}
           onMenuOpenChange={setMatchActionsMenuOpen}
           onSelectPanel={(panel) => {
@@ -555,6 +556,7 @@ export default function MatchDetailPage() {
           </p>
         </AppCard>
       ) : null}
-    </MatchDetailView>
+
+</MatchDetailView>
   )
 }
