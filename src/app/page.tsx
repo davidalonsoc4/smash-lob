@@ -444,6 +444,10 @@ export default function Home() {
       });
   const selectedNextMatch =
     effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
+  const canShowSelectedNextMatchScheduleHint =
+    Boolean(selectedNextMatch) &&
+    (selectedNextMatch.teamA.includes(currentUserId) ||
+      selectedNextMatch.teamB.includes(currentUserId));
   const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
     leagueMatch: leagueLastMatch,
     personalMatch: personalLastMatch,
@@ -897,7 +901,7 @@ export default function Home() {
       ) : null}
 
       {!isSeasonClosed && !isSeasonUpcoming ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="home-leader-round-grid grid grid-cols-2 gap-3">
           <AppCard className="p-3">
             <div className="flex items-center gap-1.5 text-neutral-500">
               <span aria-hidden="true">
@@ -1117,7 +1121,7 @@ export default function Home() {
               highlightedPlayerIds={selectedNextMatchHighlightedPlayerIds}
               highlightedPlayerLabel={matchPanelMvpLabel}
               leagueLocations={activeLeague.locations}
-              showMissingScheduleHint
+              showMissingScheduleHint={canShowSelectedNextMatchScheduleHint}
             />
           ) : (
             <AppCard className="border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500">

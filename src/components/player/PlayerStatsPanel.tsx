@@ -1,5 +1,6 @@
 "use client";
 
+import { formatBestWinStreakRoundRange } from "@/lib/playerStreak"
 import Link from "next/link";
 import { AppCard } from "@/components/ui/AppCard";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -457,6 +458,12 @@ export function PlayerStatsPanel({
             <p className="text-xs font-semibold text-neutral-500">Mejor racha</p>
             <p className="mt-1 font-black">
               {bestWinStreak > 0 ? `${bestWinStreak} victorias` : emptyValue}
+            </p>
+            <p
+              data-best-streak-round-range
+              className="mt-1 text-xs text-neutral-500"
+            >
+              {formatBestWinStreakRoundRange(matches, playerId) ?? emptyValue}
             </p>
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
