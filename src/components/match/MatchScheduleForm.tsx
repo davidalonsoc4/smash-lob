@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { PlayerProfile } from "@/data/fakeData";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
@@ -83,6 +84,8 @@ export function MatchScheduleForm({
   const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([]);
   const [loadingGlobalLocations, setLoadingGlobalLocations] = useState(true);
   const [locationSearch, setLocationSearch] = useState("");
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
+  const locationSearchInputRef = useRef<HTMLInputElement>(null);
   const [isAddingLeagueLocation, setIsAddingLeagueLocation] = useState(false);
   const [newLocationName, setNewLocationName] = useState("");
   const [newLocationTown, setNewLocationTown] = useState("");
@@ -226,6 +229,12 @@ export function MatchScheduleForm({
     };
   }, [location]);
 
+  useEffect(() => {
+    if (!isLocationPickerOpen) return;
+    const frame = window.requestAnimationFrame(() => locationSearchInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [isLocationPickerOpen]);
+
   const applyAutomaticScheduledAtValue = useCallback(
     (nextValue: string) => {
       if (
@@ -271,6 +280,11 @@ export function MatchScheduleForm({
   const selectedLeagueLocation = normalizedAvailableLocations.find(
     (availableLocation) => availableLocation.id === selectedLocation,
   );
+  const selectedLocationLabel = selectedLeagueLocation
+    ? getLeagueLocationTownNameLabel(selectedLeagueLocation)
+    : selectedLocation === otherLocationValue
+      ? customLocation.trim() || "Otra ubicación"
+      : "Seleccionar ubicación";
   const selectedLocationCourts = selectedLeagueLocation
     ? getLeagueLocationCourts(selectedLeagueLocation)
     : [];
@@ -351,9 +365,16 @@ export function MatchScheduleForm({
       ? getScheduleLocationMapsUrl(customLocation)
       : null;
 
+  function closeLocationPicker() {
+    setIsLocationPickerOpen(false);
+    setLocationSearch("");
+    setIsAddingLeagueLocation(false);
+  }
+
   function handleLocationChange(value: string) {
     setSelectedLocation(value);
     setActionError(null);
+    closeLocationPicker();
 
     const nextLocation = normalizedAvailableLocations.find(
       (availableLocation) => availableLocation.id === value,
@@ -411,6 +432,7 @@ export function MatchScheduleForm({
       setNewLocationAddress("");
       setNewLocationCourtCount("");
       setIsAddingLeagueLocation(false);
+      setIsLocationPickerOpen(false);
     } catch {
       setActionError(
         "No se ha podido guardar la nueva ubicación. Revisa los datos e inténtalo de nuevo.",
@@ -793,146 +815,44 @@ export function MatchScheduleForm({
                   />
                 </label>
 
-                <div className="block">
-                  <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-                    {t.matchDetail.scheduleLocation}
-                  </span>
-
-                  <input
-                    type="search"
-                    value={locationSearch}
-                    onChange={(event) => setLocationSearch(event.target.value)}
-                    disabled={isSaving || isSavingLocation}
-                    placeholder={
-                      loadingGlobalLocations
-                        ? "Cargando ubicaciones..."
-                        : "Buscar por localidad o nombre..."
-                    }
-                    className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-                  />
-
-                  <div className="mt-1.5 flex items-center justify-between gap-2 type-caption font-semibold text-neutral-500">
-                    <span>
-                      {filteredAvailableLocations.length} ubicación
-                      {filteredAvailableLocations.length === 1 ? "" : "es"}
-                    </span>
-                    <span>
-                      {loadingGlobalLocations
-                        ? "Cargando catálogo global"
-                        : recommendedLocations.length > 0
-                          ? "Puedes elegir cualquier ubicación"
-                          : locationSearch.trim()
-                            ? "Resultados filtrados"
-                            : "Catálogo global"}
-                    </span>
-                  </div>
-
-                  <div className="mt-1.5 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/70 p-1">
-                    {recommendedLocations.length > 0 &&
-                    recommendedFilteredLocations.length > 0 ? (
-                      <>
-                        <p className="px-2 pb-0.5 pt-1 type-caption font-black uppercase tracking-wide text-neutral-500">
-                          Recomendadas por la liga
-                        </p>
-                        {recommendedFilteredLocations.map(renderLocationOption)}
-                      </>
-                    ) : null}
-
-                    {!loadingGlobalLocations &&
-                    recommendedLocations.length > 0 &&
-                    otherFilteredLocations.length > 0 ? (
-                      <>
-                        <p className="px-2 pb-0.5 pt-2 type-caption font-black uppercase tracking-wide text-neutral-500">
-                          Todas las ubicaciones
-                        </p>
-                        {otherFilteredLocations.map(renderLocationOption)}
-                      </>
-                    ) : null}
-
-                    {!loadingGlobalLocations && recommendedLocations.length === 0
-                      ? filteredAvailableLocations.map(renderLocationOption)
-                      : null}
-
-                    {loadingGlobalLocations ? (
-                      <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">
-                        Cargando el catálogo global...
-                      </p>
-                    ) : null}
-
-                    {!loadingGlobalLocations && filteredAvailableLocations.length === 0 ? (
-                      <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">
-                        No hay ubicaciones que coincidan con la búsqueda.
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingLeagueLocation((current) => !current)}
-                    disabled={isSaving || isSavingLocation}
-                    className="flex mt-1.5 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
-                  >
-                    {isAddingLeagueLocation
-                      ? "Cancelar nueva ubicación"
-                      : "+ Añadir nueva ubicación"}
+                <div className="min-w-0">
+                  <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{t.matchDetail.scheduleLocation}</span>
+                  <button type="button" aria-haspopup="dialog" aria-expanded={isLocationPickerOpen} onClick={() => setIsLocationPickerOpen(true)} disabled={isSaving || isSavingLocation} className="mt-1 flex w-full min-w-0 items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left text-sm font-semibold text-neutral-900 shadow-sm transition active:bg-neutral-50 disabled:bg-neutral-100">
+                    <span className={`min-w-0 flex-1 truncate ${selectedLocation ? "text-neutral-900" : "text-neutral-400"}`}>{selectedLocationLabel}</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                   </button>
+                  {isLocationPickerOpen && typeof document !== "undefined" ? createPortal(<>
+                    <button type="button" aria-label="Cerrar buscador de ubicaciones" onClick={closeLocationPicker} className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]" />
+                    <section role="dialog" aria-modal="true" aria-label="Buscar ubicación" className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl" style={{ top: "max(14px, calc(env(safe-area-inset-top, 0px) + 10px))", maxHeight: "min(440px, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 28px))" }}>
+                      <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
+                        <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-neutral-950">Seleccionar ubicación</p><p className="type-caption font-semibold text-neutral-400">{normalizedAvailableLocations.length} disponibles</p></div><button type="button" onClick={closeLocationPicker} aria-label="Cerrar" className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500">×</button></div>
+                        <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                          <input ref={locationSearchInputRef} type="search" value={locationSearch} onChange={(event) => setLocationSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") closeLocationPicker(); if (event.key === "Enter") event.preventDefault() }} disabled={isSaving || isSavingLocation} placeholder={loadingGlobalLocations ? "Cargando ubicaciones..." : "Buscar por localidad o nombre..."} className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none" />
+                          {locationSearch ? <button type="button" onClick={() => setLocationSearch("")} aria-label="Borrar búsqueda" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-center text-xs font-black text-neutral-600">×</button> : null}
+                        </div>
+                      </div>
+                      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+                        {recommendedLocations.length > 0 && recommendedFilteredLocations.length > 0 ? <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200"><p className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">Recomendadas por la liga</p><div className="space-y-1 p-1">{recommendedFilteredLocations.map(renderLocationOption)}</div></div> : null}
+                        {!loadingGlobalLocations && recommendedLocations.length > 0 && otherFilteredLocations.length > 0 ? <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200"><p className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">Todas las ubicaciones</p><div className="space-y-1 p-1">{otherFilteredLocations.map(renderLocationOption)}</div></div> : null}
+                        {!loadingGlobalLocations && recommendedLocations.length === 0 ? <div className="space-y-1">{filteredAvailableLocations.map(renderLocationOption)}</div> : null}
+                        {loadingGlobalLocations ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">Cargando el catálogo global...</p> : null}
+                        {!loadingGlobalLocations && filteredAvailableLocations.length === 0 ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">No hay ubicaciones que coincidan con la búsqueda.</p> : null}
+                        <button type="button" onClick={() => setIsAddingLeagueLocation((current) => !current)} disabled={isSaving || isSavingLocation} className="mt-2 flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-center text-sm font-black text-neutral-800 disabled:text-neutral-400">{isAddingLeagueLocation ? "Cancelar nueva ubicación" : "+ Añadir nueva ubicación"}</button>
+                        {isAddingLeagueLocation ? <div className="mt-2 rounded-xl border border-neutral-200 bg-neutral-50 p-2.5"><p className="text-sm font-black text-neutral-900">Nueva ubicación</p><p className="mt-0.5 type-caption font-semibold text-neutral-500">Se guardará en el catálogo global de Smash & Lob.</p>
+                          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                            <input value={newLocationName} onChange={(event) => setNewLocationName(event.target.value)} placeholder="Nombre del club" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
+                            <input value={newLocationTown} onChange={(event) => setNewLocationTown(event.target.value)} placeholder="Localidad" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
+                            <input value={newLocationAddress} onChange={(event) => setNewLocationAddress(event.target.value)} placeholder="Dirección o enlace de Google Maps" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400 sm:col-span-2" />
+                            <input value={newLocationCourtCount} onChange={(event) => setNewLocationCourtCount(event.target.value.replace(/[^0-9]/g, "").slice(0, 2))} inputMode="numeric" placeholder="Número de pistas (opcional)" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
+                            <button type="button" onClick={handleCreateLeagueLocation} disabled={!newLocationDraft || isSavingLocation} className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center text-sm font-black text-white disabled:bg-neutral-300">{isSavingLocation ? "Guardando..." : "Guardar y seleccionar"}</button>
+                          </div>
+                        </div> : null}
+                      </div>
+                    </section>
+                  </>, document.body) : null}
                 </div>
               </div>
-
-              {isAddingLeagueLocation ? (
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
-                  <p className="text-xs font-black text-neutral-900">
-                    Nueva ubicación
-                  </p>
-                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                    Se guardará en el catálogo global de Smash & Lob y quedará disponible para futuras selecciones.
-                  </p>
-
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    <input
-                      value={newLocationName}
-                      onChange={(event) => setNewLocationName(event.target.value)}
-                      placeholder="Nombre del club"
-                      disabled={isSavingLocation}
-                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400"
-                    />
-                    <input
-                      value={newLocationTown}
-                      onChange={(event) => setNewLocationTown(event.target.value)}
-                      placeholder="Localidad"
-                      disabled={isSavingLocation}
-                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400"
-                    />
-                    <input
-                      value={newLocationAddress}
-                      onChange={(event) => setNewLocationAddress(event.target.value)}
-                      placeholder="Dirección o enlace de Google Maps"
-                      disabled={isSavingLocation}
-                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400 sm:col-span-2"
-                    />
-                    <input
-                      value={newLocationCourtCount}
-                      onChange={(event) =>
-                        setNewLocationCourtCount(
-                          event.target.value.replace(/[^0-9]/g, "").slice(0, 2),
-                        )
-                      }
-                      inputMode="numeric"
-                      placeholder="Número de pistas (opcional)"
-                      disabled={isSavingLocation}
-                      className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-neutral-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateLeagueLocation}
-                      disabled={!newLocationDraft || isSavingLocation}
-                      className="inline-flex rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
-                    >
-                      {isSavingLocation ? "Guardando..." : "Guardar y seleccionar"}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
 
               {shouldSelectCourt ? (
                 <label className="block">

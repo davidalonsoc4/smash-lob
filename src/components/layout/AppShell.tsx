@@ -200,6 +200,8 @@ export function AppShell({ children }: AppShellProps) {
   const isLeagueNavigationRoute = pathname === "/open"
   const isPersonalMatchesRoute =
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
+  const isMatchChatRoute =
+    pathname.startsWith("/match/") && pathname.endsWith("/chat")
   const isPublicAccessRoute =
     isInviteRoute || isSpectateRoute || isLeagueNavigationRoute
   const isNewLeagueRoute = pathname === "/league/new"
@@ -230,15 +232,20 @@ export function AppShell({ children }: AppShellProps) {
       })
     : []
   const shouldShowSettingsButton =
-    !isInitialSeasonSetupRoute && !isPublicAccessRoute
+    !isMatchChatRoute && !isInitialSeasonSetupRoute && !isPublicAccessRoute
   const shouldShowHelpButton =
-    !isInitialSeasonSetupRoute && !isPublicAccessRoute && !isPersonalMatchesRoute
+    !isMatchChatRoute &&
+    !isInitialSeasonSetupRoute &&
+    !isPublicAccessRoute &&
+    !isPersonalMatchesRoute
   const shouldShowNotificationsButton =
+    !isMatchChatRoute &&
     !isInitialSeasonSetupRoute &&
     !isPublicAccessRoute &&
     !isPersonalMatchesRoute &&
     !spectatorMode
   const shouldShowBottomNav =
+    !isMatchChatRoute &&
     !isPublicAccessRoute &&
     !isNewLeagueRoute &&
     !isInitialSeasonSetupRoute &&
@@ -246,6 +253,7 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowPersonalMatchesNav =
     isPersonalMatchesRoute && !isPublicAccessRoute
   const shouldShowPlayerInviteButton =
+    !isMatchChatRoute &&
     !isPublicAccessRoute &&
     !isNewLeagueRoute &&
     !isInitialSeasonSetupRoute &&
@@ -276,13 +284,16 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div
-      className={`app-shell-outer min-h-screen bg-stone-200 text-neutral-950 ${
-        statusColorsEnabled ? "" : "status-colors-disabled"
-      }`}
+      className={`app-shell-outer bg-stone-200 text-neutral-950 ${
+        isMatchChatRoute ? "h-[100dvh] min-h-0 overflow-hidden" : "min-h-screen"
+      } ${statusColorsEnabled ? "" : "status-colors-disabled"}`}
     >
       <div
-        className="app-shell-frame mx-auto min-h-screen max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)]"
+        className={`app-shell-frame mx-auto max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)] ${
+          isMatchChatRoute ? "h-[100dvh] min-h-0 overflow-hidden" : "min-h-screen"
+        }`}
         data-home-route={pathname === "/"}
+        data-match-chat-route={isMatchChatRoute}
       >
         {branding.preproduction ? (
           <div
@@ -361,20 +372,25 @@ export function AppShell({ children }: AppShellProps) {
         ) : null}
 
         <main
-          className={`app-main px-3 ${
+          className={`app-main ${isMatchChatRoute ? "h-[100dvh] min-h-0 overflow-hidden p-0" : "px-3"} ${
             isLeagueNavigationRoute ? "flex min-h-screen items-center" : ""
           }`}
           data-has-floating-top-controls={hasFloatingTopControls}
+          data-match-chat-route={isMatchChatRoute}
           style={
             {
-              paddingTop: isLeagueNavigationRoute
-                ? "env(safe-area-inset-top, 0px)"
-                : hasFloatingTopControls
-                  ? "max(54px, calc(env(safe-area-inset-top, 0px) + 52px))"
-                  : "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))",
-              paddingBottom: isLeagueNavigationRoute
-                ? "env(safe-area-inset-bottom, 0px)"
-                : shouldShowBottomNav || shouldShowPersonalMatchesNav ? "96px" : "32px",
+              paddingTop: isMatchChatRoute
+                ? "0px"
+                : isLeagueNavigationRoute
+                  ? "env(safe-area-inset-top, 0px)"
+                  : hasFloatingTopControls
+                    ? "max(54px, calc(env(safe-area-inset-top, 0px) + 52px))"
+                    : "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))",
+              paddingBottom: isMatchChatRoute
+                ? "0px"
+                : isLeagueNavigationRoute
+                  ? "env(safe-area-inset-bottom, 0px)"
+                  : shouldShowBottomNav || shouldShowPersonalMatchesNav ? "96px" : "32px",
             } as CSSProperties
           }
         >
