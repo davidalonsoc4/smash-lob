@@ -1991,3 +1991,50 @@ html.colorful .statistics-floating-selector-active .app-card {
   }
 }
 /* v1.6.5 season-summary dark-only contrast */ html.dark .season-summary-panel{border-color:#404040!important} html.dark .season-summary-title{color:#fff!important} html.dark .season-summary-empty{color:#d4d4d8!important} html.dark .season-summary-award-row{box-shadow:0 1px 10px rgb(0 0 0/.28)!important} html.dark .season-summary-award-row[data-season-summary-award="winner"]{border-color:rgb(180 83 9/.72)!important;background:linear-gradient(90deg,rgb(69 26 3/.96),rgb(120 53 15/.78),#171717)!important} html.dark .season-summary-award-row[data-season-summary-award="mvp"]{border-color:rgb(126 34 206/.72)!important;background:linear-gradient(90deg,rgb(46 16 101/.96),rgb(88 28 135/.78),#171717)!important} html.dark .season-summary-award-row[data-season-summary-award="winner"] .season-summary-award-strip{background:#fcd34d!important} html.dark .season-summary-award-row[data-season-summary-award="mvp"] .season-summary-award-strip{background:#c4b5fd!important} html.dark .season-summary-award-avatar{border-color:#262626!important} html.dark .season-summary-award-label{color:#e5e7eb!important} html.dark .season-summary-award-name{color:#fff!important} html.dark .season-summary-award-meta,html.dark .season-summary-award-chevron{color:#d4d4d8!important} html.dark .season-summary-award-row[data-season-summary-award="winner"] .season-summary-award-badge{background:#b45309!important;color:#fffbeb!important;--tw-ring-color:rgb(245 158 11/.7)!important} html.dark .season-summary-award-row[data-season-summary-award="mvp"] .season-summary-award-badge{background:#7e22ce!important;color:#faf5ff!important;--tw-ring-color:rgb(168 85 247/.7)!important} html.dark .season-summary-actions{border-color:#404040!important} html.dark .season-summary-action-secondary{border-color:#525252!important;background:#262626!important;color:#fff!important} html.dark .season-summary-action-primary{background:#f5f5f5!important;color:#171717!important}
+
+
+/* HOME · JORNADAS: barra superior de acento equivalente al resto de paneles. */
+.home-leader-round-grid > :nth-child(2).app-stat-card,
+.home-leader-round-grid > :nth-child(2) > .app-stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-leader-round-grid > :nth-child(2).app-stat-card::before,
+.home-leader-round-grid > :nth-child(2) > .app-stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 0.2rem;
+  background: linear-gradient(
+    90deg,
+    #262626 0%,
+    #737373 42%,
+    #d4d4d4 72%,
+    #525252 100%
+  );
+  pointer-events: none;
+}
+
+html.dark[data-style="plain"] .home-leader-round-grid > :nth-child(2).app-stat-card::before,
+html.dark[data-style="plain"] .home-leader-round-grid > :nth-child(2) > .app-stat-card::before {
+  background: linear-gradient(
+    90deg,
+    #dbe6f3 0%,
+    #9fb1c7 40%,
+    #536a84 72%,
+    #bdcad9 100%
+  );
+}
+
+html.colorful .home-leader-round-grid > :nth-child(2).app-stat-card::before,
+html.colorful .home-leader-round-grid > :nth-child(2) > .app-stat-card::before {
+  background: linear-gradient(
+    90deg,
+    var(--colorful-primary),
+    var(--colorful-secondary),
+    var(--colorful-accent),
+    var(--colorful-warm)
+  );
+}
