@@ -32,15 +32,23 @@ describe("v1.7.0 match detail mobile UI polish", () => {
     expect(menu).toContain("px-3 py-2.5 text-left text-sm font-black")
   })
 
-  it("shows journey and current players while pinning the composer to the navbar", async () => {
+  it("shows journey and current players in an immersive keyboard-aware chat", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    const header = page.match(/<header\b[^>]*app-page-header[^>]*>[\s\S]*?<\/header>/)?.[0] ?? ""
+    const shell = await readFile("src/components/layout/AppShell.tsx", "utf8")
+    const header = page.match(/<header\b[\s\S]*?<\/header>/)?.[0] ?? ""
     expect(header).toContain("Chat · Jornada")
     expect(header).not.toContain("<p")
     expect(page).toContain("useCurrentLeagueData")
-    expect(page).toContain('match.teamA.map(name).join(" / ")')
-    expect(page).toContain('match.teamB.map(name).join(" / ")')
-    expect(page).toContain('bottom: "calc(72px + env(safe-area-inset-bottom, 0px))"')
+    expect(page).toContain('import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel"')
+    expect(page).toContain("teamA={match.teamA}")
+    expect(page).toContain("teamB={match.teamB}")
+    expect(page).toContain("window.visualViewport")
+    expect(page).toContain('className="mt-2 flex shrink-0 items-end gap-2 border-t')
+    expect(shell).toContain("isMatchChatRoute")
+    expect(shell).toContain("!isMatchChatRoute &&")
+    expect(page).not.toContain('match.teamA.map(name).join(" / ")')
+    expect(page).not.toContain('match.teamB.map(name).join(" / ")')
+    expect(page).not.toContain('bottom: "calc(72px')
     expect(page).not.toContain("sticky bottom-16")
   })
 })
