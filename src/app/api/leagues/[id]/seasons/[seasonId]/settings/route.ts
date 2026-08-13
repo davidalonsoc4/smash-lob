@@ -23,6 +23,7 @@ type UpdateSeasonSettingsBody = {
   registrationFee?: unknown
   allowPlayerIncidents?: unknown
   allowPlayerSubstitutions?: unknown
+  availabilityRecommendationsEnabled?: unknown
 }
 
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/
@@ -144,6 +145,10 @@ export async function PUT(
     typeof body?.allowPlayerSubstitutions === "boolean"
       ? body.allowPlayerSubstitutions
       : null
+  const availabilityRecommendationsEnabled =
+    typeof body?.availabilityRecommendationsEnabled === "boolean"
+      ? body.availabilityRecommendationsEnabled
+      : null
 
   if (
     !roundWindowMode ||
@@ -153,7 +158,8 @@ export async function PUT(
     !manualCompletedRounds ||
     !registrationFee ||
     allowPlayerIncidents === null ||
-    allowPlayerSubstitutions === null
+    allowPlayerSubstitutions === null ||
+    availabilityRecommendationsEnabled === null
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
@@ -190,6 +196,7 @@ export async function PUT(
         registrationFee,
         allowPlayerIncidents,
         allowPlayerSubstitutions,
+        availabilityRecommendationsEnabled,
       },
     })
 

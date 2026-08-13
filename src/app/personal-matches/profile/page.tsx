@@ -8,6 +8,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
 import {
   filterPersonalProfileMatches,
@@ -126,6 +127,7 @@ export default function PersonalProfilePage() {
     [effectiveComparisonKey, filteredMatches],
   )
   const displayName = profile?.displayName?.trim() || "Mi perfil"
+  const playerPositionLabel = getPlayerSideAndHandLabel(profile?.preferredSide, profile?.dominantHand)
 
   return (
     <div className="space-y-3">
@@ -140,7 +142,13 @@ export default function PersonalProfilePage() {
         </div>
       </header>
 
-            <AppCard data-personal-global-filters className="!p-2">
+      {playerPositionLabel ? (
+        <p className="type-caption font-bold text-neutral-500">
+          Posición preferida · {playerPositionLabel}
+        </p>
+      ) : null}
+
+      <AppCard data-personal-global-filters className="!p-2">
         <div className="grid grid-cols-3 gap-1">
           {([["all", "Todos", "Todos los partidos"], ["league", "Liga", "Partidos de liga"], ["friendly", "Amistoso", "Amistosos"]] as const).map(([value, label, ariaLabel]) => (
             <button key={value} type="button" aria-label={ariaLabel} aria-pressed={origin === value} onClick={() => { setOrigin(value); if (value === "friendly") { setLeagueId(""); setSeasonId("") } }} className={`flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center type-caption font-black transition ${origin === value ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{label}</button>

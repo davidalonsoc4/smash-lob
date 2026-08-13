@@ -1,4 +1,4 @@
-﻿import { readFile } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("player profile shared layout", () => {
@@ -26,7 +26,7 @@ describe("player profile shared layout", () => {
     expect(contextIndex).toBeGreaterThan(titleIndex)
 
     expect(sharedProfile).toMatch(/const historyHref = isSelf\s*\?\s*"\/personal-matches"/)
-    expect(sharedProfile).toMatch(/\{isSelf\s*\?\s*\(\s*<Link href="\/availability" className="block">/)
+    expect(sharedProfile).toMatch(/\{isSelf\s*&&\s*latestSeasonSettings\?\.availabilityRecommendationsEnabled\s*\?\s*\(\s*<Link href="\/availability" className="block">/)
     expect(sharedProfile).not.toContain("getSeasonStatusBadgeClassName")
   })
 

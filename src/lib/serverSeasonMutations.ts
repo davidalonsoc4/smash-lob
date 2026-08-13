@@ -71,6 +71,7 @@ type CreateServerSeasonInput = {
   rosterMode: RosterMode
   playerCapacity: number
   calendarMode: "balanced" | "manual"
+  availabilityRecommendationsEnabled: boolean
 }
 
 function initials(name: string) {
@@ -257,6 +258,7 @@ type EditableSeasonRoundSettings = Pick<
   | "registrationFee"
   | "allowPlayerIncidents"
   | "allowPlayerSubstitutions"
+  | "availabilityRecommendationsEnabled"
 >
 
 export async function updateServerSeasonRoundSettings({
@@ -292,6 +294,7 @@ export async function updateServerSeasonRoundSettings({
     registration_fee: registrationFee,
     allow_player_incidents: settings.allowPlayerIncidents,
     allow_player_substitutions: settings.allowPlayerSubstitutions,
+    availability_recommendations_enabled: settings.availabilityRecommendationsEnabled,
   }
 
   const { data, error } = await supabase
@@ -451,7 +454,7 @@ export async function startServerExistingSeason({
   const { data: settingsRow, error: settingsLookupError } = await supabase
     .from("season_settings")
     .select(
-      "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions",
+      "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
     )
     .eq("season_id", seasonId)
     .eq("league_id", leagueId)
@@ -586,6 +589,8 @@ export async function startServerExistingSeason({
       calendarMode: "balanced",
       allowPlayerIncidents: settingsRow.allow_player_incidents !== false,
       allowPlayerSubstitutions: settingsRow.allow_player_substitutions !== false,
+      availabilityRecommendationsEnabled:
+        settingsRow.availability_recommendations_enabled === true,
     }
 
     return {
@@ -925,6 +930,7 @@ export async function createServerSeason({
     rosterMode,
     playerCapacity,
     calendarMode,
+    availabilityRecommendationsEnabled,
   } = input
   const { supabase, user, membership } = actor
   const isSelfRegistration = rosterMode === "self_registration"
@@ -1288,6 +1294,7 @@ export async function createServerSeason({
       calendar_mode: calendarMode,
       allow_player_incidents: true,
       allow_player_substitutions: true,
+      availability_recommendations_enabled: availabilityRecommendationsEnabled,
     })
 
   if (settingsError) {
@@ -1342,6 +1349,7 @@ export async function createServerSeason({
       calendarMode,
       allowPlayerIncidents: true,
       allowPlayerSubstitutions: true,
+      availabilityRecommendationsEnabled,
     },
   ]
   const linkedMembership: UserLeagueMembership | null =

@@ -42,6 +42,8 @@ test("keeps an authenticated session behind the offline fallback until a full re
           availabilityCompletedAt: "2026-08-03T00:00:00.000Z",
           standardAvailabilityTimezone: "Europe/Madrid",
           standardAvailabilityWeeklySlots: {},
+          preferredSide: "reves",
+          dominantHand: "right",
           isComplete: true,
           isSuperuser: false,
         },

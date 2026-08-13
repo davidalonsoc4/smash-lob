@@ -14,11 +14,13 @@ describe("guided onboarding", () => {
     expect(tours.map((tour) => tour.key)).toEqual([
       "home",
       "matches",
+      "match",
       "ranking",
       "statistics",
       "settings",
     ])
     expect(getTourForPathname({ pathname: "/matches", locale: "es", audience: playerAudience })?.key).toBe("matches")
+    expect(getTourForPathname({ pathname: "/match/019fc39c-26cf-43e1-9d4b-9439d3366675", locale: "es", audience: playerAudience })?.key).toBe("match")
   })
 
 

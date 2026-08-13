@@ -3,7 +3,7 @@ import "server-only"
 import { auth } from "@/auth"
 import { normalizeStoredImageUrl } from "@/lib/serverImageValidation"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
-import { normalizeAccountStandardAvailability, splitGoogleDisplayName } from "@/lib/accountProfile"
+import { normalizeAccountStandardAvailability, normalizeDominantHand, normalizePreferredPlayerSide, splitGoogleDisplayName } from "@/lib/accountProfile"
 
 export type AuthenticatedAppUser = {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>
@@ -18,6 +18,8 @@ export type AuthenticatedAppUser = {
     standardAvailabilityTimezone: string
     standardAvailabilityWeeklySlots: ReturnType<typeof normalizeAccountStandardAvailability>
     avatarUrl: string | null
+    preferredSide: ReturnType<typeof normalizePreferredPlayerSide>
+    dominantHand: ReturnType<typeof normalizeDominantHand>
     isSuperuser: boolean
     canCreateLeagues: boolean
   }
@@ -46,7 +48,7 @@ export async function requireAuthenticatedAppUser(): Promise<
 
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
-    .select("id,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,is_superuser,can_create_leagues,suspended_at,suspension_reason")
+    .select("id,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,can_create_leagues,suspended_at,suspension_reason")
     .eq("email", email)
     .maybeSingle()
 
@@ -85,6 +87,8 @@ export async function requireAuthenticatedAppUser(): Promise<
           existingUser?.standard_availability_timezone ?? "Europe/Madrid",
         standard_availability_weekly_slots:
           existingUser?.standard_availability_weekly_slots ?? {},
+        preferred_side: normalizePreferredPlayerSide(existingUser?.preferred_side),
+        dominant_hand: normalizeDominantHand(existingUser?.dominant_hand),
         avatar_url:
           normalizeStoredImageUrl(existingUser?.avatar_url) ??
           normalizeStoredImageUrl(session?.user?.image) ??
@@ -94,7 +98,7 @@ export async function requireAuthenticatedAppUser(): Promise<
       },
       { onConflict: "email" }
     )
-    .select("id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,is_superuser,can_create_leagues")
+    .select("id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,can_create_leagues")
     .single()
 
   if (userError) {
@@ -119,6 +123,8 @@ export async function requireAuthenticatedAppUser(): Promise<
           user.standard_availability_weekly_slots,
         ),
         avatarUrl: normalizeStoredImageUrl(user.avatar_url) ?? null,
+        preferredSide: normalizePreferredPlayerSide(user.preferred_side),
+        dominantHand: normalizeDominantHand(user.dominant_hand),
         isSuperuser: Boolean(user.is_superuser),
         canCreateLeagues: Boolean(user.can_create_leagues),
       },

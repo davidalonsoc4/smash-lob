@@ -194,7 +194,7 @@ export function AppShell({ children }: AppShellProps) {
     isSuperuser,
     leagues,
   } = useLeagueAccess()
-  const { seasons } = useSeasonSettings()
+  const { seasons, seasonSettings } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
@@ -208,6 +208,12 @@ export function AppShell({ children }: AppShellProps) {
   const isInitialSeasonSetupRoute =
     pathname === "/admin/season" &&
     !seasons.some((season) => season.leagueId === activeLeagueId)
+  const activeSeason = seasons.find(
+    (season) => season.leagueId === activeLeagueId && season.status !== "finished",
+  )
+  const activeRoundSettings = activeSeason
+    ? seasonSettings.find((settings) => settings.seasonId === activeSeason.id)
+    : null
   const spectatorMode = isLeagueSpectator(activeLeagueId)
   const activeMembership = getMembershipForLeague(activeLeagueId)
   const canAccessAdmin = isLeagueAdmin(activeLeagueId)
@@ -229,6 +235,8 @@ export function AppShell({ children }: AppShellProps) {
         qaEnabled: qaModeEnabled,
         isSuperuser,
         avatarLabEnabled: isAvatarLabEnabled(),
+        availabilityRecommendationsEnabled:
+          activeRoundSettings?.availabilityRecommendationsEnabled === true,
       })
     : []
   const shouldShowSettingsButton =

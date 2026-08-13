@@ -310,7 +310,7 @@ export default function AdminAnnouncementsPage() {
                   {selectedPlayers.map((player) => (
                     <span
                       key={player.id}
-                      className="rounded-full bg-neutral-200 px-2 py-0.5 type-caption font-black text-neutral-700"
+                      className="inline-block max-w-full truncate whitespace-nowrap rounded-full bg-neutral-200 px-2 py-0.5 type-caption font-black text-neutral-700"
                     >
                       {player.displayName}
                     </span>

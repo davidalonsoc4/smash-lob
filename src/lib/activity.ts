@@ -14,6 +14,7 @@ export type ActivityEventType =
   | "match_mvp_vote_reminder"
   | "match_mvp_awarded"
   | "match_upcoming_reminder"
+  | "match_chat_message"
   | "round_in_play"
   | "round_mvp_awarded"
   | "court_booking_updated"

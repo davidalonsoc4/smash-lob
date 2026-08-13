@@ -45,6 +45,7 @@ type SettingsRow = {
   schedule_mode: "single" | "double" | "extended"
   allow_player_incidents?: boolean | null
   allow_player_substitutions?: boolean | null
+  availability_recommendations_enabled?: boolean | null
 }
 
 type PlayerRow = {
@@ -130,7 +131,7 @@ export async function duplicateServerSeason({
     supabase
       .from("season_settings")
       .select(
-        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions",
+        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
       )
       .eq("season_id", sourceSeasonId)
       .eq("league_id", leagueId)
@@ -382,6 +383,8 @@ export async function duplicateServerSeason({
     calendarMode: "balanced",
     allowPlayerIncidents: sourceSettings.allow_player_incidents !== false,
     allowPlayerSubstitutions: sourceSettings.allow_player_substitutions !== false,
+    availabilityRecommendationsEnabled:
+      sourceSettings.availability_recommendations_enabled === true,
   }
 
   const { error: settingsCreateError } = await supabase
@@ -406,6 +409,7 @@ export async function duplicateServerSeason({
       calendar_mode: "balanced",
       allow_player_incidents: settings.allowPlayerIncidents,
       allow_player_substitutions: settings.allowPlayerSubstitutions,
+      availability_recommendations_enabled: settings.availabilityRecommendationsEnabled,
     })
 
   if (settingsCreateError) {

@@ -86,6 +86,7 @@ function formatNotificationDate(value: string) {
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
@@ -95,7 +96,7 @@ function getNotificationUrl(event: ActivityEvent) {
   let targetPath = "/activity?scope=mine";
 
   if (event.matchId) {
-    targetPath = `/match/${event.matchId}`;
+    targetPath = event.type === "match_chat_message" ? `/match/${event.matchId}/chat` : `/match/${event.matchId}`;
   } else if (
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
@@ -130,7 +131,8 @@ function isMatchParticipantNotification(event: ActivityEvent) {
     event.type === "match_result_missing_reminder" ||
     event.type === "match_result_confirmation_reminder" ||
     event.type === "match_mvp_vote_reminder" ||
-    event.type === "match_mvp_awarded"
+    event.type === "match_mvp_awarded" ||
+    event.type === "match_chat_message"
   );
 }
 
@@ -327,6 +329,15 @@ function getNotificationTitle(event: ActivityEvent, currentUserId: string) {
       : "MVP de la jornada";
   }
 
+  if (event.type === "match_chat_message") {
+    const round = Number(event.metadata.round);
+    if (toStringArray(event.metadata.mentionedPlayerIds).includes(currentUserId)) {
+      const actor = event.actorDisplayName || event.actorEmail || "Un jugador";
+      return Number.isFinite(round) && round > 0 ? `${actor} te ha mencionado · Jornada ${round}` : `${actor} te ha mencionado`;
+    }
+    return Number.isFinite(round) && round > 0 ? `Chat · Jornada ${round}` : "Nuevo mensaje en el chat";
+  }
+
   if (event.type === "round_in_play") {
     return "Jornada en juego";
   }
@@ -379,6 +390,13 @@ function getNotificationBody({
         .join(" · ") ||
       "Consulta la fecha, hora y ubicación del partido."
     );
+  }
+
+  if (event.type === "match_chat_message") {
+    const preview = String(metadata.messagePreview ?? "").trim();
+    const actor = event.actorDisplayName || event.actorEmail || "Un jugador";
+    const cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
+    return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat del partido.`;
   }
 
   if (event.type === "match_upcoming_reminder") {

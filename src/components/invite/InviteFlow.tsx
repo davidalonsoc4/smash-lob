@@ -727,8 +727,8 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
               </button>
 
               {selectedHistoricalPlayer ? (
-                <div className="mt-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-bold leading-5 text-emerald-900">
-                  {t.invites.historicalIdentitySelected}: {selectedHistoricalPlayer.displayName}
+                <div className="mt-3 flex min-w-0 items-center gap-1 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-bold leading-5 text-emerald-900">
+                  <span className="shrink-0">{t.invites.historicalIdentitySelected}:</span> <span className="min-w-0 truncate whitespace-nowrap">{selectedHistoricalPlayer.displayName}</span>
                 </div>
               ) : null}
             </div>

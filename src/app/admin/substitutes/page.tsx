@@ -266,7 +266,7 @@ export default function AdminSubstitutesPage() {
                 const incoming = players.find((player) => player.id === replacement.incoming_player_id)
                 return (
                   <div key={replacement.id} className="rounded-2xl bg-red-50 px-3 py-2.5">
-                    <p className="text-sm font-black text-neutral-950">{outgoing?.displayName ?? "Titular"} → {incoming?.displayName ?? "Nuevo titular"}</p>
+                    <p className="truncate whitespace-nowrap text-sm font-black text-neutral-950">{outgoing?.displayName ?? "Titular"} → {incoming?.displayName ?? "Nuevo titular"}</p>
                     <p className="mt-0.5 type-caption font-semibold text-red-700">Baja y reemplazo desde la jornada {replacement.from_round}</p>
                   </div>
                 )

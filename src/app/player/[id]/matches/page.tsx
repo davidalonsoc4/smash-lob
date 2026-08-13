@@ -263,7 +263,7 @@ export default function PlayerMatchesPage() {
           {t.profile.matchHistoryTitle}
         </h1>
 
-        <p className="mt-1 text-sm font-medium text-neutral-500">{player.displayName}</p>
+        <p className="mt-1 truncate whitespace-nowrap text-sm font-medium text-neutral-500">{player.displayName}</p>
       </header>
 
       {showHistoricalStats && visibleSeasonScopes.length > 1 ? (

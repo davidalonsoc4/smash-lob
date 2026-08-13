@@ -28,6 +28,7 @@ describe("guided onboarding integration", () => {
       readFile("src/app/settings/page.tsx", "utf8"),
       readFile("src/components/invite/FloatingInviteShareButton.tsx", "utf8"),
       readFile("src/components/spectator/FloatingSpectatorShareButton.tsx", "utf8"),
+      readFile("src/components/match/MatchActionsMenu.tsx", "utf8"),
     ])
     const source = files.join("\n")
     for (const marker of [
@@ -41,6 +42,7 @@ describe("guided onboarding integration", () => {
       "settings-search",
       "floating-invite-players",
       "floating-share-spectators",
+      "match-chat-access",
     ]) {
       expect(source).toContain(`data-tour="${marker}"`)
     }

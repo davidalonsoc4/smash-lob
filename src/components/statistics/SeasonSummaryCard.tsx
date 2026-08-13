@@ -353,7 +353,7 @@ export function SeasonSummaryCard({
                             />
                           </div>
                         ) : null}
-                        <p className="min-w-0 break-words text-center text-xl font-black leading-6 text-neutral-950">
+                        <p className="min-w-0 truncate whitespace-nowrap text-center text-xl font-black leading-6 text-neutral-950">
                           {hero.value}
                         </p>
                       </div>
@@ -410,7 +410,7 @@ export function SeasonSummaryCard({
                 >
                   {row.position}º
                 </div>
-                <p className="type-player-name min-w-0 flex-1 break-words text-neutral-950">
+                <p className="type-player-name min-w-0 flex-1 truncate whitespace-nowrap text-neutral-950">
                   {row.name}
                 </p>
                 <div className="grid w-24 shrink-0 grid-cols-2 border-l border-neutral-100 pl-2 text-center">

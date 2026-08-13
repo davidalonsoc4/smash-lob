@@ -33,6 +33,7 @@ type CreateSeasonBody = {
   rosterMode?: unknown
   playerCapacity?: unknown
   calendarMode?: unknown
+  availabilityRecommendationsEnabled?: unknown
 }
 
 const allowedPlayerCounts = new Set([8, 12, 16])
@@ -246,6 +247,10 @@ export async function POST(
   const rosterMode = parseRosterMode(body?.rosterMode) ?? "fixed"
   const calendarMode = parseCalendarMode(body?.calendarMode) ?? "balanced"
   const playerCapacity = Number(body?.playerCapacity)
+  const availabilityRecommendationsEnabled =
+    typeof body?.availabilityRecommendationsEnabled === "boolean"
+      ? body.availabilityRecommendationsEnabled
+      : false
   const mvpSystem = parseMvpSystem(body?.mvpSystem)
   const resultConfirmationMode = parseResultConfirmationMode(
     body?.resultConfirmationMode
@@ -361,6 +366,7 @@ export async function POST(
         rosterMode,
         playerCapacity,
         calendarMode,
+        availabilityRecommendationsEnabled,
       },
     })
 
@@ -394,6 +400,7 @@ export async function POST(
         rosterMode,
         playerCapacity,
         calendarMode,
+        availabilityRecommendationsEnabled,
       },
     }).catch(() => null)
 
