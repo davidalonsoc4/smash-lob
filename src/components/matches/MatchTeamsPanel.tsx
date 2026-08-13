@@ -84,6 +84,7 @@ export function MatchTeamsPanel({
           substituteLabels={substituteLabels}
           linkPlayers={linkPlayers}
           stackPlayers
+          keepNamesOnOneLine
           className="type-player-name flex min-w-0 flex-1 flex-col gap-y-0.5"
         />
         {teamATrailing}
@@ -98,6 +99,7 @@ export function MatchTeamsPanel({
           substituteLabels={substituteLabels}
           linkPlayers={linkPlayers}
           stackPlayers
+          keepNamesOnOneLine
           className="type-player-name flex min-w-0 flex-1 flex-col gap-y-0.5"
         />
         {teamBTrailing}

@@ -20,6 +20,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/application-admin/users/[userId]/actions` | POST | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/auth/[...nextauth]` | GET | Público explícito | Allowlist revisada |
 | `/api/auth/[...nextauth]` | POST | Público explícito | Allowlist revisada |
+| `/api/chats` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/experimental/avatar-lab/dicebear-big-smile` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/experimental/avatar-lab/notion-avatar` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/health` | GET | Público explícito | Allowlist revisada |
@@ -63,6 +64,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/locations` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/matches/[matchId]/chat` | GET | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/chat` | POST | Protegido | getServerMatchActor |
+| `/api/matches/[matchId]/chat` | PATCH | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | DELETE | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking/payment-reminder` | POST | Protegido | getServerMatchActor |

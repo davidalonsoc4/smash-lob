@@ -115,6 +115,12 @@ export const activityEventDefinitions: Record<
     personalScope: "match_participants",
     pushReady: true,
   },
+  match_chat_message: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
   round_in_play: {
     category: "match",
     defaultMode: "notify",

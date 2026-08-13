@@ -73,13 +73,11 @@ export async function POST(
       firstName,
       lastName,
       profileCompletedAt,
-      availabilityCompletedAt,
     },
   } = authResult.actor
 
   if (
     !profileCompletedAt ||
-    !availabilityCompletedAt ||
     !firstName?.trim() ||
     !lastName?.trim()
   ) {

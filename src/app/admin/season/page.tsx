@@ -864,6 +864,12 @@ function SeasonConfigurationSummary({
     ["Confirmación", confirmationValue],
     ["MVP", mvpValue],
     ["Margen", roundWindowValue],
+    [
+      "Horarios",
+      roundSettings.availabilityRecommendationsEnabled
+        ? "Disponibilidad y recomendaciones"
+        : "Coordinación por chat",
+    ],
     ["Inscripción", registrationValue],
   ];
 
@@ -2872,6 +2878,7 @@ function NewSeasonForm({
   const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
   const [resultConfirmationMode, setResultConfirmationMode] =
     useState<ResultConfirmationMode>("none");
+  const [availabilityRecommendationsEnabled, setAvailabilityRecommendationsEnabled] = useState(false);
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("10");
   const [registrationFeePurpose, setRegistrationFeePurpose] = useState(
@@ -3111,6 +3118,7 @@ function NewSeasonForm({
       requiresThreeSets,
       mvpSystem,
       resultConfirmationMode,
+      availabilityRecommendationsEnabled,
       manualMatches,
       scheduleMode,
       registrationFeeEnabled: hasRegistrationFee,
@@ -3522,14 +3530,14 @@ function NewSeasonForm({
         </div>
 
         {!isFirstLeagueSeason && continuingPlayers.length > 0 ? (
-          <p className="mt-3 text-xs font-semibold text-neutral-500">
+          <p className="mt-3 truncate whitespace-nowrap text-xs font-semibold text-neutral-500">
             Continúan:{" "}
             {continuingPlayers.map((player) => player.displayName).join(", ")}
           </p>
         ) : null}
 
         {!isFirstLeagueSeason && removedPlayers.length > 0 ? (
-          <p className="mt-2 text-xs font-semibold text-amber-700">
+          <p className="mt-2 truncate whitespace-nowrap text-xs font-semibold text-amber-700">
             No entran en la nueva temporada:{" "}
             {removedPlayers.map((player) => player.displayName).join(", ")}
           </p>
@@ -3893,6 +3901,23 @@ function NewSeasonForm({
       </AppCard>
 
       <AppCard>
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={availabilityRecommendationsEnabled}
+            onChange={(event) => setAvailabilityRecommendationsEnabled(event.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-black">Disponibilidad y recomendaciones</span>
+            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+              Opcional. Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos. Por defecto se coordina desde el chat.
+            </span>
+          </span>
+        </label>
+      </AppCard>
+
+      <AppCard>
         <p className="font-bold">Sistema MVP</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           Decide si habrá MVP de jornada y cómo se seleccionará.
@@ -4099,6 +4124,67 @@ function NewSeasonForm({
         />
       ) : null}
     </form>
+  );
+}
+
+
+function AvailabilityRecommendationsSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+}: {
+  activeLeagueId: string;
+  roundSettings: SeasonRoundSettings;
+}) {
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [enabled, setEnabled] = useState(roundSettings.availabilityRecommendationsEnabled);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(nextEnabled: boolean) {
+    if (isSaving || nextEnabled === roundSettings.availabilityRecommendationsEnabled) return;
+    setEnabled(nextEnabled);
+    setIsSaving(true);
+    setError(null);
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      availabilityRecommendationsEnabled: nextEnabled,
+    };
+    if (isSupabaseBackedId(roundSettings.seasonId)) {
+      try {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      } catch (supabaseError) {
+        recordSupabaseError("update-season-availability-recommendations", supabaseError);
+        setEnabled(roundSettings.availabilityRecommendationsEnabled);
+        setError("No se ha podido guardar esta opción de temporada.");
+        setIsSaving(false);
+        return;
+      }
+    }
+    updateSeasonRoundSettings(nextSettings);
+    showSavedFeedback(nextEnabled ? "Disponibilidad y recomendaciones activadas." : "Disponibilidad y recomendaciones desactivadas.");
+    setIsSaving(false);
+  }
+
+  return (
+    <AppCard>
+      <label className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={isSaving}
+          onChange={(event) => void save(event.target.checked)}
+          className="mt-0.5 h-4 w-4"
+        />
+        <span>
+          <span className="block text-sm font-black">Disponibilidad y recomendaciones</span>
+          <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+            Si está activado, los jugadores pueden guardar sus horarios y la app propone franjas comunes al programar partidos. Si está desactivado, la coordinación se hace desde el chat.
+          </span>
+        </span>
+      </label>
+      {error ? <p className="mt-2 text-xs font-bold text-red-600">{error}</p> : null}
+    </AppCard>
   );
 }
 
@@ -4423,6 +4509,13 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="disponibilidad-recomendaciones" className="settings-search-target">
+            <AvailabilityRecommendationsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
           <div id="acciones-partido" className="settings-search-target">
             <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
@@ -4551,6 +4644,13 @@ export default function AdminSeasonPage() {
 
           <div id="regla-tres-sets" className="settings-search-target">
             <RequiresThreeSetsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="disponibilidad-recomendaciones" className="settings-search-target">
+            <AvailabilityRecommendationsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />

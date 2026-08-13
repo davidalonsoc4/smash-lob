@@ -4,21 +4,17 @@ import { FormEvent, useState } from "react"
 import { signOut, useSession } from "next-auth/react"
 import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
-import {
-  buildStandardWeeklyAvailability,
-  getStandardAvailabilityEditorInitialState,
-  StandardAvailabilityEditor,
-} from "@/components/auth/StandardAvailabilityEditor"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import { normalizeProfileName, splitGoogleDisplayName } from "@/lib/accountProfile"
-import { getBrowserTimezone, type WeeklyAvailability } from "@/lib/playerAvailability"
+import { normalizeProfileName, splitGoogleDisplayName, type DominantHand, type PreferredPlayerSide } from "@/lib/accountProfile"
+import type { WeeklyAvailability } from "@/lib/playerAvailability"
 import type { AccountProfile } from "@/lib/accountProfile"
 
 type ProfileCompletionFormProps = {
   initialFirstName: string
   initialLastName: string
-  initialWeeklySlots: WeeklyAvailability
+  initialPreferredSide: PreferredPlayerSide | null
+  initialDominantHand: DominantHand | null
   accountError: string | null
   saveProfile: (
     firstName: string,
@@ -27,28 +23,24 @@ type ProfileCompletionFormProps = {
       timezone: string
       weeklySlots: WeeklyAvailability
     },
+    preferredSide?: PreferredPlayerSide | null,
+    dominantHand?: DominantHand | null,
   ) => Promise<AccountProfile | null>
 }
 
 function ProfileCompletionForm({
   initialFirstName,
   initialLastName,
-  initialWeeklySlots,
+  initialPreferredSide,
+  initialDominantHand,
   accountError,
   saveProfile,
 }: ProfileCompletionFormProps) {
   const { t } = useI18n()
-  const initialAvailability = getStandardAvailabilityEditorInitialState(
-    initialWeeklySlots,
-  )
   const [firstName, setFirstName] = useState(initialFirstName)
   const [lastName, setLastName] = useState(initialLastName)
-  const [selectedDays, setSelectedDays] = useState(
-    initialAvailability.selectedDays,
-  )
-  const [availabilitySlot, setAvailabilitySlot] = useState(
-    initialAvailability.slot,
-  )
+  const [preferredSide, setPreferredSide] = useState<PreferredPlayerSide | null>(initialPreferredSide)
+  const [dominantHand, setDominantHand] = useState<DominantHand | null>(initialDominantHand)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -62,25 +54,18 @@ function ProfileCompletionForm({
       return
     }
 
-    if (
-      selectedDays.length === 0 ||
-      !availabilitySlot.start ||
-      !availabilitySlot.end ||
-      availabilitySlot.start >= availabilitySlot.end
-    ) {
-      setFormError(t.accountProfile.availabilityValidationError)
+    if (!preferredSide) {
+      setFormError(t.accountProfile.preferredSideRequired)
+      return
+    }
+    if (!dominantHand) {
+      setFormError(t.accountProfile.dominantHandRequired)
       return
     }
 
     setIsSaving(true)
     setFormError(null)
-    const result = await saveProfile(cleanFirstName, cleanLastName, {
-      timezone: getBrowserTimezone(),
-      weeklySlots: buildStandardWeeklyAvailability({
-        selectedDays,
-        slot: availabilitySlot,
-      }),
-    })
+    const result = await saveProfile(cleanFirstName, cleanLastName, undefined, preferredSide, dominantHand)
     setIsSaving(false)
 
     if (!result) {
@@ -98,10 +83,6 @@ function ProfileCompletionForm({
           <h1 className="mt-2 text-2xl font-black tracking-tight">
             {t.accountProfile.title}
           </h1>
-          <p className="mt-2 text-sm font-semibold leading-6 text-neutral-500">
-            {t.accountProfile.description}
-          </p>
-
           <form onSubmit={handleSubmit} className="mt-5 space-y-3">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
@@ -131,22 +112,39 @@ function ProfileCompletionForm({
               />
             </label>
 
-            <p className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">
-              {t.accountProfile.globalNameNotice}
-            </p>
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                {t.accountProfile.dominantHand}
+              </span>
+              <select
+                value={dominantHand ?? ""}
+                onChange={(event) => setDominantHand((event.target.value || null) as DominantHand | null)}
+                required
+                className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-neutral-500"
+              >
+                <option value="" disabled>{t.accountProfile.dominantHandNone}</option>
+                <option value="right">{t.accountProfile.dominantHandRight}</option>
+                <option value="left">{t.accountProfile.dominantHandLeft}</option>
+              </select>
+            </label>
 
-            <StandardAvailabilityEditor
-              selectedDays={selectedDays}
-              slot={availabilitySlot}
-              dayLabels={t.accountProfile.availabilityDays}
-              title={t.accountProfile.availabilityTitle}
-              description={t.accountProfile.availabilityDescription}
-              startLabel={t.accountProfile.availabilityStart}
-              endLabel={t.accountProfile.availabilityEnd}
-              laterNotice={t.accountProfile.availabilityLaterNotice}
-              onSelectedDaysChange={setSelectedDays}
-              onSlotChange={setAvailabilitySlot}
-            />
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                {t.accountProfile.preferredSide}
+              </span>
+              <select
+                value={preferredSide ?? ""}
+                onChange={(event) => setPreferredSide((event.target.value || null) as PreferredPlayerSide | null)}
+                required
+                className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-neutral-500"
+              >
+                <option value="" disabled>{t.accountProfile.preferredSideNone}</option>
+                <option value="drive">{t.accountProfile.preferredSideDrive}</option>
+                <option value="reves">{t.accountProfile.preferredSideBackhand}</option>
+                <option value="versatile">{t.accountProfile.preferredSideVersatile}</option>
+              </select>
+            </label>
+
 
             {formError || accountError ? (
               <p className="text-sm font-bold text-red-600">
@@ -212,24 +210,13 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
 
   const initialFirstName = profile?.firstName || googleDefaults.firstName
   const initialLastName = profile?.lastName || googleDefaults.lastName
-  const initialWeeklySlots =
-    profile?.standardAvailabilityWeeklySlots ??
-    {
-      monday: [],
-      tuesday: [],
-      wednesday: [],
-      thursday: [],
-      friday: [],
-      saturday: [],
-      sunday: [],
-    }
-
   return (
     <ProfileCompletionForm
-      key={`${initialFirstName}\u0000${initialLastName}`}
+      key={`${initialFirstName}\u0000${initialLastName}\u0000${profile?.preferredSide ?? ""}\u0000${profile?.dominantHand ?? ""}`}
       initialFirstName={initialFirstName}
       initialLastName={initialLastName}
-      initialWeeklySlots={initialWeeklySlots}
+      initialPreferredSide={profile?.preferredSide ?? null}
+      initialDominantHand={profile?.dominantHand ?? null}
       accountError={error}
       saveProfile={saveProfile}
     />

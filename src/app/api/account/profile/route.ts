@@ -8,6 +8,8 @@ import {
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import {
   normalizeAccountStandardAvailability,
+  normalizeDominantHand,
+  normalizePreferredPlayerSide,
   normalizeProfileName,
 } from "@/lib/accountProfile"
 import {
@@ -24,6 +26,8 @@ type ProfileBody = {
   timezone?: unknown
   weeklySlots?: unknown
   avatarUrl?: unknown
+  preferredSide?: unknown
+  dominantHand?: unknown
 }
 
 function normalizeTimezone(value: unknown) {
@@ -45,6 +49,8 @@ function mapProfile(user: {
   standardAvailabilityTimezone: string
   standardAvailabilityWeeklySlots: unknown
   avatarUrl: string | null
+  preferredSide: ReturnType<typeof normalizePreferredPlayerSide>
+  dominantHand: ReturnType<typeof normalizeDominantHand>
   isSuperuser: boolean
 }) {
   const firstName = user.firstName ?? ""
@@ -58,6 +64,8 @@ function mapProfile(user: {
     displayName:
       user.displayName ?? [firstName, lastName].filter(Boolean).join(" "),
     avatarUrl: normalizeStoredImageUrl(user.avatarUrl) ?? null,
+    preferredSide: normalizePreferredPlayerSide(user.preferredSide),
+    dominantHand: normalizeDominantHand(user.dominantHand),
     profileCompletedAt: user.profileCompletedAt,
     availabilityCompletedAt: user.availabilityCompletedAt,
     standardAvailabilityTimezone:
@@ -65,9 +73,10 @@ function mapProfile(user: {
     standardAvailabilityWeeklySlots,
     isComplete: Boolean(
       user.profileCompletedAt &&
-        user.availabilityCompletedAt &&
         firstName &&
-        lastName,
+        lastName &&
+        normalizePreferredPlayerSide(user.preferredSide) &&
+        normalizeDominantHand(user.dominantHand),
     ),
     isSuperuser: user.isSuperuser,
   }
@@ -99,6 +108,17 @@ export async function PUT(request: Request) {
   const body = await parseJsonBody<ProfileBody>(request)
   const firstName = normalizeProfileName(body?.firstName, 40)
   const lastName = normalizeProfileName(body?.lastName, 60)
+  const hasPreferredSide = typeof body?.preferredSide !== "undefined"
+  const preferredSide = hasPreferredSide ? normalizePreferredPlayerSide(body?.preferredSide) : authResult.actor.user.preferredSide
+  const hasDominantHand = typeof body?.dominantHand !== "undefined"
+  const dominantHand = hasDominantHand ? normalizeDominantHand(body?.dominantHand) : authResult.actor.user.dominantHand
+
+  if (hasPreferredSide && !preferredSide) {
+    return NextResponse.json({ error: "invalid_preferred_side" }, { status: 400 })
+  }
+  if (hasDominantHand && !dominantHand) {
+    return NextResponse.json({ error: "invalid_dominant_hand" }, { status: 400 })
+  }
 
   if (firstName.length < 2 || lastName.length < 2) {
     return NextResponse.json({ error: "invalid_profile_name" }, { status: 400 })
@@ -112,11 +132,7 @@ export async function PUT(request: Request) {
     ? normalizeTimezone(body?.timezone)
     : authResult.actor.user.standardAvailabilityTimezone
 
-  if (
-    !timezone ||
-    (!authResult.actor.user.availabilityCompletedAt &&
-      countWeeklyAvailabilitySlots(weeklySlots) === 0)
-  ) {
+  if (!timezone || (hasAvailabilityPayload && countWeeklyAvailabilitySlots(weeklySlots) === 0)) {
     return NextResponse.json(
       { error: "invalid_standard_availability" },
       { status: 400 },
@@ -136,6 +152,17 @@ export async function PUT(request: Request) {
 
   if (error || !Array.isArray(data) || !data[0]) {
     return NextResponse.json({ error: "profile_update_failed" }, { status: 500 })
+  }
+
+  if (hasPreferredSide || hasDominantHand) {
+    const profileInfoUpdate: Record<string, string | null> = {}
+    if (hasPreferredSide) profileInfoUpdate.preferred_side = preferredSide
+    if (hasDominantHand) profileInfoUpdate.dominant_hand = dominantHand
+    const { error: profileInfoError } = await authResult.actor.supabase
+      .from("app_users")
+      .update(profileInfoUpdate)
+      .eq("id", authResult.actor.user.id)
+    if (profileInfoError) return NextResponse.json({ error: "profile_player_info_update_failed" }, { status: 500 })
   }
 
   const row = data[0] as {
@@ -160,8 +187,10 @@ export async function PUT(request: Request) {
       standardAvailabilityWeeklySlots: normalizeAccountStandardAvailability(
         row.standard_availability_weekly_slots,
       ),
-      isComplete: true,
+      isComplete: Boolean(preferredSide && dominantHand),
       avatarUrl: authResult.actor.user.avatarUrl,
+      preferredSide,
+      dominantHand,
       isSuperuser: authResult.actor.user.isSuperuser,
     },
   })

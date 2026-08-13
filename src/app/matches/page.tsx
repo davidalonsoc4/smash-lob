@@ -272,7 +272,9 @@ export default function MatchesPage() {
                 ? { label: "Ver calendario completo", href: "/matches" }
                 : canManageSeason
                   ? { label: "Administrar temporada", href: "/admin/season" }
-                  : { label: "Revisar mi disponibilidad", href: "/availability" }
+                  : roundSettings.availabilityRecommendationsEnabled
+                    ? { label: "Revisar mi disponibilidad", href: "/availability" }
+                    : undefined
             }
           />
         ) : null}

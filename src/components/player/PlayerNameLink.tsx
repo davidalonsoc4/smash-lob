@@ -19,7 +19,7 @@ export function PlayerNameLink({
   return (
     <Link
       href={href}
-      className={`font-black underline-offset-4 active:underline ${className}`}
+      className={`inline-block min-w-0 max-w-full truncate whitespace-nowrap font-black underline-offset-4 active:underline ${className}`}
     >
       {getPlayerDisplayName(playerId, players)}
     </Link>

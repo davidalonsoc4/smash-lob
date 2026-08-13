@@ -66,6 +66,7 @@ export type SeasonRoundSettings = {
   calendarMode: "balanced" | "manual";
   allowPlayerIncidents: boolean;
   allowPlayerSubstitutions: boolean;
+  availabilityRecommendationsEnabled: boolean;
 };
 
 type SeasonSettingsContextValue = {
@@ -102,6 +103,7 @@ type SeasonSettingsContextValue = {
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    availabilityRecommendationsEnabled?: boolean;
   }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
     leagueId: string;
@@ -120,6 +122,7 @@ type SeasonSettingsContextValue = {
     registrationFeePurpose?: string;
     selfPlayerValue?: string | null;
     registrationRecipientPlayerId?: string | null;
+    availabilityRecommendationsEnabled?: boolean;
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -201,6 +204,8 @@ function normalizeSettings(
       (settings as Partial<SeasonRoundSettings>).allowPlayerIncidents !== false,
     allowPlayerSubstitutions:
       (settings as Partial<SeasonRoundSettings>).allowPlayerSubstitutions !== false,
+    availabilityRecommendationsEnabled:
+      (settings as Partial<SeasonRoundSettings>).availabilityRecommendationsEnabled === true,
   };
 }
 
@@ -411,6 +416,8 @@ function parseStoredSettings(
         calendarMode: normalizeCalendarMode(storedSetting.calendarMode),
         allowPlayerIncidents: storedSetting.allowPlayerIncidents !== false,
         allowPlayerSubstitutions: storedSetting.allowPlayerSubstitutions !== false,
+        availabilityRecommendationsEnabled:
+          storedSetting.availabilityRecommendationsEnabled === true,
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -440,6 +447,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     calendarMode: "balanced",
     allowPlayerIncidents: true,
     allowPlayerSubstitutions: true,
+    availabilityRecommendationsEnabled: false,
   };
 }
 
@@ -729,6 +737,7 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
+    availabilityRecommendationsEnabled = false,
   }: {
     leagueId: string;
     seasonName: string;
@@ -742,6 +751,7 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
+    availabilityRecommendationsEnabled?: boolean;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const cleanPlayerNames = playerNames
@@ -839,6 +849,7 @@ export function SeasonSettingsProvider({
       calendarMode: "balanced",
       allowPlayerIncidents: true,
       allowPlayerSubstitutions: true,
+      availabilityRecommendationsEnabled,
     });
 
     return { seasonId, playerIds };
@@ -861,6 +872,7 @@ export function SeasonSettingsProvider({
     registrationFeePurpose = "",
     selfPlayerValue = null,
     registrationRecipientPlayerId = null,
+    availabilityRecommendationsEnabled = false,
   }: {
     leagueId: string;
     name: string;
@@ -878,6 +890,7 @@ export function SeasonSettingsProvider({
     registrationFeePurpose?: string;
     selfPlayerValue?: string | null;
     registrationRecipientPlayerId?: string | null;
+    availabilityRecommendationsEnabled?: boolean;
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -997,6 +1010,7 @@ export function SeasonSettingsProvider({
       calendarMode: "balanced",
       allowPlayerIncidents: true,
       allowPlayerSubstitutions: true,
+      availabilityRecommendationsEnabled,
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

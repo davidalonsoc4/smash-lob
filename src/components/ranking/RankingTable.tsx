@@ -70,7 +70,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
               {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}
 
               <div className="min-w-0">
-                <p className="min-w-0 type-player-name leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+                <p className="min-w-0 type-player-name leading-tight text-neutral-950 truncate whitespace-nowrap">
                   {player.displayName}
                 </p>
                 {player.seasonPlayerStatus === "withdrawn" ? (

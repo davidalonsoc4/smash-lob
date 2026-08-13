@@ -371,7 +371,7 @@ function SeasonSummaryAwardRow({
         <p className="season-summary-award-label type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
           {label}
         </p>
-        <p className="season-summary-award-name mt-0.5 type-player-name-prominent font-black leading-tight text-neutral-950 [overflow-wrap:anywhere]">
+        <p className="season-summary-award-name mt-0.5 type-player-name-prominent font-black leading-tight text-neutral-950 truncate whitespace-nowrap">
           {players.map((player) => player.displayName).join(" / ")}
         </p>
         {meta ? (
@@ -1053,7 +1053,7 @@ export default function Home() {
 
                     <Link
                       href={`/player/${player.slug ?? player.id}`}
-                      className="min-w-0 font-semibold leading-tight text-neutral-950 underline-offset-2 [overflow-wrap:anywhere] active:underline"
+                      className="min-w-0 font-semibold leading-tight text-neutral-950 underline-offset-2 truncate whitespace-nowrap active:underline"
                     >
                       {player.displayName}
                     </Link>

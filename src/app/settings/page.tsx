@@ -382,7 +382,7 @@ export default function SettingsPage() {
 function PlayerSettingsPage() {
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { activeLeague, matches } = useCurrentLeagueData()
+  const { activeLeague, matches, roundSettings } = useCurrentLeagueData()
   const {
     canCreateLeagues,
     getMembershipForLeague,
@@ -488,12 +488,14 @@ function PlayerSettingsPage() {
           title="Notificaciones"
           description="Activa push y elige qué avisos quieres recibir en este dispositivo."
         />
-        <SettingsLinkRow
-          href="/availability"
-          id="availability"
-          title="Mi disponibilidad"
-          description="Define cuándo puedes jugar para futuras recomendaciones de horarios."
-        />
+        {roundSettings.availabilityRecommendationsEnabled ? (
+          <SettingsLinkRow
+            href="/availability"
+            id="availability"
+            title="Mi disponibilidad"
+            description="Define cuándo puedes jugar para las recomendaciones de esta temporada."
+          />
+        ) : null}
       </SettingsSection>
       <SettingsSection
         title="Mis ligas"

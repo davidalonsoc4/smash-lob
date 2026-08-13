@@ -4,6 +4,7 @@ export type OnboardingTourKey =
   | "app-introduction"
   | "home"
   | "matches"
+  | "match"
   | "ranking"
   | "statistics"
   | "season-admin"

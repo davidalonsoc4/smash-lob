@@ -15,6 +15,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import {
   getPlayerScopeStats,
   getPlayerSeasonScopes,
@@ -90,6 +91,8 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
     visibleSeasonScopes.find((scope) => scope.id === latestSeason.id) ??
     visibleSeasonScopes[0]
   const selectedSeasonIds = selectedScope?.seasonIds ?? [latestSeason.id]
+  const latestSeasonSettings = seasonSettings.find((settings) => settings.seasonId === latestSeason.id)
+  const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
   const mvpSystemBySeasonId = Object.fromEntries(
     seasonSettings.map((settings) => [settings.seasonId, settings.mvpSystem]),
   )
@@ -192,6 +195,11 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
               statusLabel={seasonStatusLabel}
               className="mt-0.5"
             />
+            {playerPositionLabel ? (
+              <p className="mt-0.5 type-caption font-bold text-neutral-500">
+                Posición preferida · {playerPositionLabel}
+              </p>
+            ) : null}
           </div>
         </div>
       </header>
@@ -233,7 +241,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         mvpSystemBySeasonId={mvpSystemBySeasonId}
       />
 
-      {isSelf ? (
+      {isSelf && latestSeasonSettings?.availabilityRecommendationsEnabled ? (
         <Link href="/availability" className="block">
           <AppCard className="p-2.5 transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">

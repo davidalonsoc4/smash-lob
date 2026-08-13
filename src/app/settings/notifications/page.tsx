@@ -43,8 +43,8 @@ const notificationPreferenceGroups: NotificationPreferenceGroup[] = [
   {
     id: "matches",
     title: "Partidos",
-    description: "Programación, incidencias y recordatorios del próximo partido.",
-    keys: ["match_schedule", "match_incidents", "match_upcoming"],
+    description: "Programación, incidencias, mensajes y recordatorios del próximo partido.",
+    keys: ["match_schedule", "match_incidents", "match_upcoming", "match_chat"],
   },
   {
     id: "competition",

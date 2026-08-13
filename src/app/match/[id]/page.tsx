@@ -420,6 +420,7 @@ export default function MatchDetailPage() {
           roundEndsAt={round?.endsAt ?? null}
           canManage={canManageSchedule}
           canClearSchedule={isAdmin && !hasOpenIncident}
+          availabilityRecommendationsEnabled={roundSettings.availabilityRecommendationsEnabled}
           calendarAction={
             match.status === "scheduled" && match.scheduledAt ? (
               <AddToCalendarButton

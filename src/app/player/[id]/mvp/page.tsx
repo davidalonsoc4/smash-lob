@@ -57,7 +57,7 @@ export default function PlayerMvpMatchesPage() {
             <h1 className="type-page-title text-2xl font-black tracking-tight">
               MVPs de jornada
             </h1>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 max-w-full truncate whitespace-nowrap text-sm text-neutral-500">
               {player ? player.displayName : "Jugador no encontrado"}
             </p>
           </div>

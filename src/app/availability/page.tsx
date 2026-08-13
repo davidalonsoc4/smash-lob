@@ -118,6 +118,7 @@ function formatUpdatedAt(value: string | null | undefined) {
   return `Última actualización: ${date.toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
   })}, ${date.toLocaleTimeString("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
@@ -289,7 +290,7 @@ export default function AvailabilityPage() {
   const { t } = useI18n();
   const { userId } = useLeagueAccess();
   const { currentUser } = useCurrentUser();
-  const { activeLeague, activeSeason } = useCurrentLeagueData();
+  const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData();
   const [availability, setAvailability] = useState<PlayerAvailability>(() =>
     buildInitialAvailability({
       leagueId: activeLeague.id,
@@ -506,6 +507,23 @@ export default function AvailabilityPage() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  if (!roundSettings.availabilityRecommendationsEnabled) {
+    return (
+      <div className="space-y-4">
+        <header className="app-page-header">
+          <BackButton fallbackHref="/settings" label={t.common.back} />
+          <h1 className="type-page-title text-2xl font-black tracking-tight">Mi disponibilidad</h1>
+        </header>
+        <AppCard>
+          <p className="font-black">No se usa en esta temporada</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-neutral-500">
+            La disponibilidad y las recomendaciones horarias están desactivadas. Puedes coordinar y proponer fechas desde el chat de cada partido.
+          </p>
+        </AppCard>
+      </div>
+    );
   }
 
   return (
