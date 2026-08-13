@@ -6,10 +6,11 @@ describe("v1.7.0 compact match chat", () => {
     const api = await readFile("src/app/api/matches/[matchId]/chat/route.ts", "utf8")
     for (const token of ["getServerMatchActor", "requireLeagueAccess: true", "requireParticipant: true", "participantPlayerId", "body.length > 2000", "Date.now() - 10_000", ">= 8", ".limit(60)"]) expect(api).toContain(token)
   })
-  it("keeps the mobile polling and detail entry contracts", async () => {
+  it("keeps the mobile realtime and detail entry contracts", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     const detail = await readFile("src/app/match/[id]/page.tsx", "utf8")
-    for (const token of ['<BackButton fallbackHref={`/match/${id}`} label="Volver" />', "const initialTimer = window.setTimeout", "2500", "maxLength={2000}", 'event.key === "Enter"', "Chat · Jornada", "useCurrentLeagueData"]) expect(page).toContain(token)
+    for (const token of ['<BackButton fallbackHref={`/match/${id}`} label="Volver" />', "const initialTimer = window.setTimeout", "subscribeChatRealtime", "maxLength={2000}", 'event.key === "Enter"', "Chat · Jornada", "useCurrentLeagueData"]) expect(page).toContain(token)
+    expect(page).not.toContain("window.setInterval")
     expect(detail).toContain('chatHref={isMatchParticipant ? `/match/${match.id}/chat` : null}')
     expect(detail).not.toContain("Habla con los otros jugadores y organiza el encuentro.")
   })

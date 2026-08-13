@@ -10,6 +10,7 @@ import {
 } from "@/lib/serverActivityDerivations"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -369,6 +370,8 @@ export async function PUT(
     }
   }
 
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
+
   return NextResponse.json({
     match: updatedMatch,
   })
@@ -493,6 +496,8 @@ export async function DELETE(
       round: updatedMatch.round,
     },
   }).catch(() => null)
+
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
 
   return NextResponse.json({
     match: updatedMatch,
