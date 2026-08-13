@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { validateUuid } from "@/lib/serverRequest"
+import { getChatOverviewRealtimeTopic } from "@/lib/serverChatRealtime"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,12 +22,12 @@ export async function GET(request: Request) {
   const { data: membership, error: membershipError } = await db.from("league_memberships").select("player_id").eq("league_id", leagueId).eq("user_id", user.id).maybeSingle()
   if (membershipError) return fail("chat_membership_lookup_failed", 500)
   const playerId = typeof membership?.player_id === "string" ? membership.player_id : null
-  if (!playerId) return NextResponse.json({ chats: [], totalUnread: 0 })
+  if (!playerId) return NextResponse.json({ chats: [], totalUnread: 0, realtimeTopic: null })
   const { data: matches, error: matchError } = await db.from("matches").select("id,round,status,team_a,team_b,scheduled_at,date_label,result_recorded_at").eq("league_id", leagueId).eq("season_id", seasonId).order("round", { ascending: false })
   if (matchError) return fail("chat_matches_lookup_failed", 500)
   const matchRows = ((matches ?? []) as MatchRow[]).filter((match) => { const teamA = playerIds(match.team_a); const teamB = playerIds(match.team_b); return teamA.includes(playerId) || teamB.includes(playerId) })
   const matchIds = matchRows.map((match) => String(match.id))
-  if (!matchIds.length) return NextResponse.json({ chats: [], totalUnread: 0 })
+  if (!matchIds.length) return NextResponse.json({ chats: [], totalUnread: 0, realtimeTopic: getChatOverviewRealtimeTopic(leagueId, seasonId) })
   const allPlayerIds = Array.from(new Set(matchRows.flatMap((match) => [...playerIds(match.team_a), ...playerIds(match.team_b)])))
   const [messagesResult, readsResult, playersResult] = await Promise.all([
     db.from("match_chat_messages").select("match_id,sender_user_id,sender_display_name,body,created_at").in("match_id", matchIds).order("created_at", { ascending: false }).limit(1200),
@@ -45,5 +46,5 @@ export async function GET(request: Request) {
     const unread = messages.filter((message) => message.sender_user_id !== user.id && (!lastRead || Date.parse(message.created_at) > Date.parse(lastRead))).length
     return { id, round: Number(match.round), status: String(match.status), scheduledAt: typeof match.scheduled_at === "string" ? match.scheduled_at : null, dateLabel: typeof match.date_label === "string" ? match.date_label : null, readOnly: match.status === "finished" || Boolean(match.result_recorded_at), partner: partnerId ? name(partnerId) : "Pareja", rivals: rivalTeam.map(name), unread, lastMessage: last ? { sender: last.sender_display_name, body: last.body, createdAt: last.created_at } : null }
   }).sort((a, b) => ((Date.parse(b.lastMessage?.createdAt ?? "") || 0) - (Date.parse(a.lastMessage?.createdAt ?? "") || 0)) || ((Date.parse(b.scheduledAt ?? "") || 0) - (Date.parse(a.scheduledAt ?? "") || 0)) || (b.round - a.round))
-  return NextResponse.json({ chats, totalUnread: chats.reduce((sum, chat) => sum + chat.unread, 0) })
+  return NextResponse.json({ chats, totalUnread: chats.reduce((sum, chat) => sum + chat.unread, 0), realtimeTopic: getChatOverviewRealtimeTopic(leagueId, seasonId) })
 }

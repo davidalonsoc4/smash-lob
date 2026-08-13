@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -24,8 +24,8 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.8.0 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.8.0 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.8.1 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.8.1 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",
@@ -79,6 +79,6 @@
     "@auth/core": "0.41.3",
     "brace-expansion@^1.1.0": "1.1.17",
     "brace-expansion@^5.0.0": "5.0.8",
-    "nanoid": "3.3.17"
+    "nanoid": "3.3.18"
   }
 }

@@ -3,6 +3,7 @@ import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
 import type {
   MatchIncidentType,
   MatchResolutionType,
@@ -403,6 +404,8 @@ export async function PUT(
     },
   }).catch(() => null)
 
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
+
   return NextResponse.json({ match: updatedMatch })
 }
 
@@ -487,6 +490,8 @@ export async function DELETE(
       round: updatedMatch.round,
     },
   }).catch(() => null)
+
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
 
   return NextResponse.json({ match: updatedMatch })
 }
