@@ -8,6 +8,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements"
 import { useI18n } from "@/i18n/I18nProvider"
+import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 
 type NavItem = {
   href: string
@@ -91,7 +92,7 @@ export function BottomNav() {
   const { isLeagueSpectator, refreshLeagueAccess } = useLeagueAccess()
   const { activeSeason } = useCurrentLeagueData()
   const spectatorMode = isLeagueSpectator(activeLeagueId)
-  const [chatUnread, setChatUnread] = useState(0)
+  const [chatUnreadState, setChatUnreadState] = useState<{ scope: string; count: number }>({ scope: "", count: 0 })
   const isSoftRefreshingRef = useRef(false)
   const lastSoftRefreshAtRef = useRef<number | null>(null)
 
@@ -146,18 +147,38 @@ export function BottomNav() {
     }
   }, [softRefreshHomeData])
 
+  const chatUnreadScope = activeLeagueId && activeSeason.id ? `${activeLeagueId}:${activeSeason.id}` : ""
+  const chatUnread = !spectatorMode && chatUnreadState.scope === chatUnreadScope ? chatUnreadState.count : 0
+
   useEffect(() => {
     if (spectatorMode || !activeLeagueId || !activeSeason.id) return
     let active = true
+    let realtimeTopic: string | null = null
+    let unsubscribeRealtime: () => void = () => undefined
     const refresh = async () => {
       const response = await fetch(`/api/chats?leagueId=${encodeURIComponent(activeLeagueId)}&seasonId=${encodeURIComponent(activeSeason.id)}`, { cache: "no-store" }).catch(() => null)
       if (!active || !response?.ok) return
       const data = await response.json().catch(() => null)
-      if (active) setChatUnread(Number(data?.totalUnread) || 0)
+      if (!active) return
+      setChatUnreadState({ scope: `${activeLeagueId}:${activeSeason.id}`, count: Number(data?.totalUnread) || 0 })
+      const nextTopic = typeof data?.realtimeTopic === "string" ? data.realtimeTopic : null
+      if (nextTopic === realtimeTopic) return
+      unsubscribeRealtime()
+      realtimeTopic = nextTopic
+      unsubscribeRealtime = subscribeChatRealtime(realtimeTopic, () => { if (!document.hidden) void refresh() })
     }
+    const handleVisibility = () => { if (!document.hidden) void refresh() }
+    const handleLocalUnreadRefresh = () => { void refresh() }
     const initialTimer = window.setTimeout(() => { void refresh() }, 0)
-    const timer = window.setInterval(() => { if (!document.hidden) void refresh() }, 15_000)
-    return () => { active = false; window.clearTimeout(initialTimer); window.clearInterval(timer) }
+    document.addEventListener("visibilitychange", handleVisibility)
+    window.addEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, handleLocalUnreadRefresh)
+    return () => {
+      active = false
+      window.clearTimeout(initialTimer)
+      document.removeEventListener("visibilitychange", handleVisibility)
+      window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, handleLocalUnreadRefresh)
+      unsubscribeRealtime()
+    }
   }, [activeLeagueId, activeSeason.id, pathname, spectatorMode])
 
   const playerNavItems: NavItem[] = [

@@ -4,6 +4,7 @@ import { dateTimeLocalToUtcIso, parseMatchScheduleDate } from "@/lib/matchSchedu
 import { mapSupabaseMatch, matchSelect, formatScheduleDateLabel } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
@@ -201,6 +202,8 @@ export async function PUT(
     },
   }).catch(() => null)
 
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
+
   return NextResponse.json({
     match: updatedMatch,
   })
@@ -283,6 +286,8 @@ export async function DELETE(
       scheduleCleared: true,
     },
   }).catch(() => null)
+
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
 
   return NextResponse.json({
     match: updatedMatch,

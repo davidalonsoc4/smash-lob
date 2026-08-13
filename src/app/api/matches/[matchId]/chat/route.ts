@@ -3,6 +3,7 @@ import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { insertServerActivityEvent } from "@/lib/serverActivityWrite"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
+import { broadcastMatchChatRefresh, getMatchChatRealtimeTopic } from "@/lib/serverChatRealtime"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -106,7 +107,7 @@ export async function GET(_: Request, { params }: Ctx) {
       responsesByMessage.set(messageId, list)
     }
     await db.from("match_chat_reads").upsert({ match_id: matchId, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: "match_id,user_id" })
-    return NextResponse.json({ messages: ordered.map((message) => ({ ...message, responses: responsesByMessage.get(String(message.id)) ?? [] })), participants, currentUserId: user.id, round: match.round, readOnly: isFinished(match) })
+    return NextResponse.json({ messages: ordered.map((message) => ({ ...message, responses: responsesByMessage.get(String(message.id)) ?? [] })), participants, currentUserId: user.id, round: match.round, readOnly: isFinished(match), realtimeTopic: getMatchChatRealtimeTopic(matchId) })
   } catch (error) {
     return dbError(error instanceof Error ? error.message : "match_chat_lookup_failed")
   }
@@ -129,6 +130,7 @@ export async function POST(request: Request, { params }: Ctx) {
   const { data, error } = await db.from("match_chat_messages").insert({ match_id: matchId, league_id: match.leagueId, season_id: match.seasonId, sender_user_id: user.id, sender_player_id: playerId, sender_display_name: senderDisplayName, body: parsed.body, kind: parsed.kind, payload: parsed.payload }).select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").single()
   if (error) return dbError(error.message)
   await insertServerActivityEvent({ supabase: db, leagueId: match.leagueId, seasonId: match.seasonId, matchId, actorUserId: user.id, actorEmail: user.email, actorDisplayName: senderDisplayName, type: "match_chat_message", title: "Nuevo mensaje en el chat", metadata: { round: match.round, participantIds: match.participantIds, messagePreview: parsed.body, mentionedUserIds: mentions.map((item) => item.userId), mentionedPlayerIds: mentions.map((item) => item.playerId) } }).catch(() => null)
+  await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId })
   return NextResponse.json({ message: { ...data, responses: [] } }, { status: 201 })
 }
 
@@ -151,5 +153,6 @@ export async function PATCH(request: Request, { params }: Ctx) {
   if (!validKeys.includes(optionKey)) return reply("match_chat_invalid_option", 400)
   const { error } = await db.from("match_chat_proposal_responses").upsert({ message_id: messageId, user_id: user.id, option_key: optionKey, response, updated_at: new Date().toISOString() }, { onConflict: "message_id,user_id,option_key" })
   if (error) return dbError(error.message)
+  await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId, includeOverview: false })
   return NextResponse.json({ ok: true })
 }
