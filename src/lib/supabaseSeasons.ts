@@ -52,6 +52,7 @@ export async function updateSupabaseSeasonRoundSettings(
           registrationFee: settings.registrationFee,
           allowPlayerIncidents: settings.allowPlayerIncidents,
           allowPlayerSubstitutions: settings.allowPlayerSubstitutions,
+          availabilityRecommendationsEnabled: settings.availabilityRecommendationsEnabled,
         }),
         cache: "no-store",
       },
@@ -240,6 +241,7 @@ export async function startSupabaseSeason({
   rosterMode = "fixed",
   playerCapacity,
   calendarMode = "balanced",
+  availabilityRecommendationsEnabled = false,
 }: {
   leagueId: string;
   activeSeasonId: string | null;
@@ -261,6 +263,7 @@ export async function startSupabaseSeason({
   rosterMode?: RosterMode;
   playerCapacity: number;
   calendarMode?: "balanced" | "manual";
+  availabilityRecommendationsEnabled?: boolean;
 }): Promise<{
   matches: MatchData[];
   seasonSnapshot: SeasonSnapshot;
@@ -294,6 +297,7 @@ export async function startSupabaseSeason({
         rosterMode,
         playerCapacity,
         calendarMode,
+        availabilityRecommendationsEnabled,
       }),
       cache: "no-store",
     }),

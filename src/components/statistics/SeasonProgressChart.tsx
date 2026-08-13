@@ -157,14 +157,8 @@ export function SeasonProgressChart({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-bold">
-        <span className="flex items-center gap-1.5">
-          <span className="statistics-chart-dot statistics-chart-series-a" />
-          {playerA.displayName}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="statistics-chart-dot statistics-chart-dot-square statistics-chart-series-b" />
-          {playerB.displayName}
-        </span>
+        <span className="flex min-w-0 items-center gap-1.5"><span className="statistics-chart-dot statistics-chart-series-a" /><span className="min-w-0 truncate whitespace-nowrap">{playerA.displayName}</span></span>
+        <span className="flex min-w-0 items-center gap-1.5"><span className="statistics-chart-dot statistics-chart-dot-square statistics-chart-series-b" /><span className="min-w-0 truncate whitespace-nowrap">{playerB.displayName}</span></span>
       </div>
 
       <div className="mt-2 overflow-x-auto">

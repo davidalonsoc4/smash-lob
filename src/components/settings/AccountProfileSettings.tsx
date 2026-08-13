@@ -9,7 +9,7 @@ import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import { normalizeProfileName } from "@/lib/accountProfile"
+import { normalizeProfileName, type DominantHand, type PreferredPlayerSide } from "@/lib/accountProfile"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import { recordActivityEvent } from "@/lib/activity"
 import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
@@ -41,6 +41,8 @@ function AccountProfileForm({
   const { refreshLeagueAccess } = useLeagueAccess()
   const [firstName, setFirstName] = useState(initialProfile.firstName)
   const [lastName, setLastName] = useState(initialProfile.lastName)
+  const [preferredSide, setPreferredSide] = useState<PreferredPlayerSide | null>(initialProfile.preferredSide)
+  const [dominantHand, setDominantHand] = useState<DominantHand | null>(initialProfile.dominantHand)
   const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatarUrl)
   const [avatarCropSource, setAvatarCropSource] = useState<string | null>(null)
   const [isSavingName, setIsSavingName] = useState(false)
@@ -80,7 +82,9 @@ function AccountProfileForm({
     setIsSavingName(true)
     setNameError(null)
 
-    const result = await saveProfile(cleanFirstName, cleanLastName)
+    if (!preferredSide) { setNameError(t.accountProfile.preferredSideRequired); setIsSavingName(false); return }
+    if (!dominantHand) { setNameError(t.accountProfile.dominantHandRequired); setIsSavingName(false); return }
+    const result = await saveProfile(cleanFirstName, cleanLastName, undefined, preferredSide, dominantHand)
 
     if (!result) {
       const saveError = t.accountProfile.saveError
@@ -93,6 +97,8 @@ function AccountProfileForm({
     await refreshLeagueAccess()
     setFirstName(result.firstName)
     setLastName(result.lastName)
+    setPreferredSide(result.preferredSide)
+    setDominantHand(result.dominantHand)
     showActionFeedback({ tone: "success", message: t.accountProfile.saved })
     setIsSavingName(false)
   }
@@ -238,6 +244,22 @@ function AccountProfileForm({
           </label>
         </div>
 
+        <label className="mt-2 block">
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">{t.accountProfile.preferredSide}</span>
+          <select value={preferredSide ?? ""} onChange={(event) => setPreferredSide((event.target.value || null) as PreferredPlayerSide | null)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-bold outline-none focus:border-neutral-500">
+            <option value="" disabled>{t.accountProfile.preferredSideNone}</option><option value="drive">{t.accountProfile.preferredSideDrive}</option><option value="reves">{t.accountProfile.preferredSideBackhand}</option><option value="versatile">{t.accountProfile.preferredSideVersatile}</option>
+          </select>
+          <p className="mt-1 type-caption font-semibold text-neutral-500">{t.accountProfile.preferredSideDescription}</p>
+        </label>
+
+        <label className="mt-2 block">
+          <span className="type-caption font-black uppercase tracking-wide text-neutral-500">{t.accountProfile.dominantHand}</span>
+          <select value={dominantHand ?? ""} onChange={(event) => setDominantHand((event.target.value || null) as DominantHand | null)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-bold outline-none focus:border-neutral-500">
+            <option value="" disabled>{t.accountProfile.dominantHandNone}</option><option value="right">{t.accountProfile.dominantHandRight}</option><option value="left">{t.accountProfile.dominantHandLeft}</option>
+          </select>
+          <p className="mt-1 type-caption font-semibold text-neutral-500">{t.accountProfile.dominantHandDescription}</p>
+        </label>
+
         <button
           type="submit"
           disabled={isSavingName}
@@ -332,7 +354,7 @@ export function AccountProfileSettings() {
 
   return (
     <AccountProfileForm
-      key={`${profile.firstName}\u0000${profile.lastName}\u0000${profile.avatarUrl ?? ""}\u0000${currentUser.id}`}
+      key={`${profile.firstName}\u0000${profile.lastName}\u0000${profile.preferredSide ?? ""}\u0000${profile.dominantHand ?? ""}\u0000${profile.avatarUrl ?? ""}\u0000${currentUser.id}`}
       initialProfile={profile}
     />
   )

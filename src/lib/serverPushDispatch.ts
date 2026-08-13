@@ -69,6 +69,7 @@ type PlayerRow = {
 
 type NotificationRecipient = {
   email: string;
+  userId: string;
   playerId: string | null;
 };
 
@@ -154,7 +155,8 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_result_confirmation_reminder" ||
     eventType === "match_mvp_vote_reminder" ||
     eventType === "match_mvp_awarded" ||
-    eventType === "match_upcoming_reminder"
+    eventType === "match_upcoming_reminder" ||
+    eventType === "match_chat_message"
   );
 }
 
@@ -294,7 +296,7 @@ function getNotificationUrl(event: ActivityEventRow) {
   let targetPath = "/activity?scope=mine";
 
   if (event.match_id) {
-    targetPath = `/match/${event.match_id}`;
+    targetPath = event.type === "match_chat_message" ? `/match/${event.match_id}/chat` : `/match/${event.match_id}`;
   } else if (
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
@@ -487,6 +489,16 @@ function getNotificationTitle(
     return "Próximo partido";
   }
 
+  if (event.type === "match_chat_message") {
+    const metadata = toRecord(event.metadata);
+    const round = toNumber(metadata.round);
+    if (recipient?.userId && toStringArray(metadata.mentionedUserIds).includes(recipient.userId)) {
+      const actor = event.actor_display_name || event.actor_email || "Un jugador";
+      return round > 0 ? `${actor} te ha mencionado · Jornada ${round}` : `${actor} te ha mencionado`;
+    }
+    return round > 0 ? `Chat · Jornada ${round}` : "Nuevo mensaje en el chat";
+  }
+
   if (event.type === "match_result_saved") {
     return "Resultado registrado";
   }
@@ -519,6 +531,13 @@ function getNotificationBody(
   recipient: NotificationRecipient | null,
   playerNamesById: Map<string, string>,
 ) {
+  if (event.type === "match_chat_message") {
+    const preview = String(toRecord(event.metadata).messagePreview ?? "").trim();
+    const actor = event.actor_display_name || event.actor_email || "Un jugador";
+    const cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
+    return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat del partido.`;
+  }
+
   if (
     event.type === "match_scheduled" ||
     event.type === "match_schedule_updated"
@@ -862,7 +881,7 @@ async function getRecipients({
 
           return [
             email,
-            { email, playerId } satisfies NotificationRecipient,
+            { email, userId: userId as string, playerId } satisfies NotificationRecipient,
           ] as const;
         })
         .filter((item): item is readonly [string, NotificationRecipient] =>
@@ -874,24 +893,24 @@ async function getRecipients({
 
 async function filterByPreferences({
   supabase,
-  leagueId,
-  eventType,
+  event,
   recipients,
+  leagueNotificationsEnabled = true,
 }: {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
-  leagueId: string;
-  eventType: ActivityEventType;
+  event: ActivityEventRow;
   recipients: NotificationRecipient[];
+  leagueNotificationsEnabled?: boolean;
 }) {
   if (recipients.length === 0) {
     return [];
   }
 
-  if (isAlwaysEnabledNotificationEvent(eventType)) {
+  if (isAlwaysEnabledNotificationEvent(event.type)) {
     return recipients;
   }
 
-  const preferenceKey = getNotificationPreferenceKeyForEvent(eventType);
+  const preferenceKey = getNotificationPreferenceKeyForEvent(event.type);
 
   if (!preferenceKey) {
     return [];
@@ -902,7 +921,7 @@ async function filterByPreferences({
   const { data, error } = await supabase
     .from("notification_preferences")
     .select("user_email,settings")
-    .eq("league_id", leagueId)
+    .eq("league_id", event.league_id)
     .in("user_email", recipientEmails);
 
   if (error) {
@@ -916,7 +935,15 @@ async function filterByPreferences({
     ]),
   );
 
+  const mentionedUserIds = new Set(toStringArray(toRecord(event.metadata).mentionedUserIds));
+
   return recipients.filter((recipient) => {
+    if (event.type === "match_chat_message" && mentionedUserIds.has(recipient.userId)) {
+      return true;
+    }
+    if (!leagueNotificationsEnabled) {
+      return false;
+    }
     const preferences =
       settingsByEmail.get(recipient.email) ??
       normalizeNotificationPreferences(null);
@@ -1050,6 +1077,7 @@ export async function dispatchPushForActivityEvent(
     return { ok: true, sent: 0, reason: "disabled_for_event" };
   }
 
+  let leagueNotificationsEnabled = true;
   if (
     !isAlwaysEnabledNotificationEvent(event.type) &&
     eventMetadata.forcePush !== true
@@ -1064,11 +1092,10 @@ export async function dispatchPushForActivityEvent(
       return { ok: false, sent: 0, error: leagueError.message };
     }
 
-    const leagueSettings = normalizeLeagueActivitySettings(
-      leagueData?.activity_settings,
-    );
-
-    if (getActivityDeliveryMode(leagueSettings, event.type) !== "notify") {
+    const leagueSettings = normalizeLeagueActivitySettings(leagueData?.activity_settings);
+    leagueNotificationsEnabled = getActivityDeliveryMode(leagueSettings, event.type) === "notify";
+    const hasMandatoryMention = event.type === "match_chat_message" && toStringArray(eventMetadata.mentionedUserIds).length > 0;
+    if (!leagueNotificationsEnabled && !hasMandatoryMention) {
       return { ok: true, sent: 0, reason: "disabled_by_league" };
     }
   }
@@ -1076,9 +1103,9 @@ export async function dispatchPushForActivityEvent(
   const recipients = await getRecipients({ supabase, event });
   const allowedRecipients = await filterByPreferences({
     supabase,
-    leagueId: event.league_id,
-    eventType: event.type,
+    event,
     recipients,
+    leagueNotificationsEnabled,
   });
 
   if (allowedRecipients.length === 0) {

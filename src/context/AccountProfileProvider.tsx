@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import type { AccountProfile } from "@/lib/accountProfile"
+import type { AccountProfile, DominantHand, PreferredPlayerSide } from "@/lib/accountProfile"
 import type { WeeklyAvailability } from "@/lib/playerAvailability"
 
 type AccountProfileContextValue = {
@@ -16,6 +16,8 @@ type AccountProfileContextValue = {
       timezone: string
       weeklySlots: WeeklyAvailability
     },
+    preferredSide?: PreferredPlayerSide | null,
+    dominantHand?: DominantHand | null,
   ) => Promise<AccountProfile | null>
   saveAvatar: (avatarUrl: string | null) => Promise<AccountProfile | null>
 }
@@ -66,6 +68,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
         timezone: string
         weeklySlots: WeeklyAvailability
       },
+      preferredSide?: PreferredPlayerSide | null,
+      dominantHand?: DominantHand | null,
     ) => {
       setError(null)
 
@@ -79,6 +83,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
               lastName,
               timezone: availability?.timezone,
               weeklySlots: availability?.weeklySlots,
+              preferredSide,
+              dominantHand,
             }),
             cache: "no-store",
           }),

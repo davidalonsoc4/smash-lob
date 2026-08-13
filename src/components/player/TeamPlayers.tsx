@@ -29,22 +29,21 @@ export function TeamPlayers({
     <div className={className}>
       {playerIds.map((playerId, index) => {
         const isHighlighted = highlightedPlayerIds.includes(playerId)
-
         return (
           <span
             key={playerId}
             className={`inline-flex min-w-0 items-center gap-x-1 ${
               stackPlayers ? "w-full" : ""
-            } ${keepNamesOnOneLine ? "flex-wrap" : ""}`}
+            } ${keepNamesOnOneLine ? "flex-nowrap overflow-hidden" : ""}`}
           >
             {linkPlayers ? (
               <PlayerNameLink
                 playerId={playerId}
                 players={players}
-                className={keepNamesOnOneLine ? "whitespace-nowrap" : ""}
+                className={keepNamesOnOneLine ? "min-w-0 truncate whitespace-nowrap" : "min-w-0 truncate"}
               />
             ) : (
-              <span className={keepNamesOnOneLine ? "whitespace-nowrap" : ""}>
+              <span className={keepNamesOnOneLine ? "min-w-0 truncate whitespace-nowrap" : "min-w-0 truncate"}>
                 {getPlayerDisplayName(playerId, players)}
               </span>
             )}

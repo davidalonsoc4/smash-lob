@@ -9,6 +9,7 @@ export type SettingsSearchCapabilities = {
   qaEnabled: boolean
   isSuperuser: boolean
   avatarLabEnabled: boolean
+  availabilityRecommendationsEnabled?: boolean
 }
 
 export type SettingsSearchEntry = {
@@ -673,7 +674,7 @@ export function buildSettingsSearchEntries(
         "notificationLeague",
         "notificationPayments",
         "payments",
-        "availability",
+        ...(capabilities.availabilityRecommendationsEnabled ? ["availability"] : []),
         ...avatarLabIds,
         "help",
         "suggestions",

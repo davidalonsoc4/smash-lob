@@ -42,6 +42,8 @@ export type PlayerProfile = {
   avatarInitials: string
   avatarUrl?: string | null
   userId?: string | null
+  preferredSide?: "drive" | "reves" | "versatile" | null
+  dominantHand?: "right" | "left" | null
 }
 
 export type LeagueMember = {
@@ -108,6 +110,7 @@ export type SeasonRoundSettings = {
   calendarMode?: "balanced" | "manual"
   allowPlayerIncidents?: boolean
   allowPlayerSubstitutions?: boolean
+  availabilityRecommendationsEnabled?: boolean
 }
 
 export const currentUserId = "davo"
@@ -473,6 +476,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
+    availabilityRecommendationsEnabled: false,
   },
   {
     leagueId: "league-work",
@@ -486,6 +490,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     manualActiveRound: null,
     manualCompletedRounds: [],
     registrationFee: emptySeasonRegistrationFee,
+    availabilityRecommendationsEnabled: false,
   },
 ]
 

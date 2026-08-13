@@ -1,17 +1,18 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type NavItem = {
   href: string
   label: string
-  icon: "home" | "ranking" | "matches" | "profile" | "settings"
+  icon: "home" | "ranking" | "matches" | "chats" | "profile" | "settings"
   isActive: (pathname: string) => boolean
 }
 
@@ -58,6 +59,10 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
     )
   }
 
+  if (icon === "chats") {
+    return <svg {...commonProps}><path d="M5 18.5 3.5 21l3.7-1A9 9 0 1 0 5 18.5Z" /><path d="M8 10.5h8M8 14h5" /></svg>
+  }
+
   if (icon === "settings") {
     return (
       <svg {...commonProps}>
@@ -84,9 +89,17 @@ export function BottomNav() {
   const { t } = useI18n()
   const { activeLeagueId } = useActiveLeague()
   const { isLeagueSpectator, refreshLeagueAccess } = useLeagueAccess()
+  const { activeSeason } = useCurrentLeagueData()
   const spectatorMode = isLeagueSpectator(activeLeagueId)
+  const [chatUnread, setChatUnread] = useState(0)
   const isSoftRefreshingRef = useRef(false)
   const lastSoftRefreshAtRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.bottomNavVisible = "true"
+    return () => { delete root.dataset.bottomNavVisible }
+  }, [])
 
   const softRefreshHomeData = useCallback(async () => {
     if (isSoftRefreshingRef.current) {
@@ -133,6 +146,20 @@ export function BottomNav() {
     }
   }, [softRefreshHomeData])
 
+  useEffect(() => {
+    if (spectatorMode || !activeLeagueId || !activeSeason.id) return
+    let active = true
+    const refresh = async () => {
+      const response = await fetch(`/api/chats?leagueId=${encodeURIComponent(activeLeagueId)}&seasonId=${encodeURIComponent(activeSeason.id)}`, { cache: "no-store" }).catch(() => null)
+      if (!active || !response?.ok) return
+      const data = await response.json().catch(() => null)
+      if (active) setChatUnread(Number(data?.totalUnread) || 0)
+    }
+    const initialTimer = window.setTimeout(() => { void refresh() }, 0)
+    const timer = window.setInterval(() => { if (!document.hidden) void refresh() }, 15_000)
+    return () => { active = false; window.clearTimeout(initialTimer); window.clearInterval(timer) }
+  }, [activeLeagueId, activeSeason.id, pathname, spectatorMode])
+
   const playerNavItems: NavItem[] = [
     {
       href: "/",
@@ -156,6 +183,12 @@ export function BottomNav() {
         currentPathname === "/matches" ||
         currentPathname.startsWith("/match") ||
         currentPathname.startsWith("/round"),
+    },
+    {
+      href: "/chats",
+      label: t.nav.chats,
+      icon: "chats",
+      isActive: (currentPathname) => currentPathname.startsWith("/chats"),
     },
     {
       href: "/profile",
@@ -190,7 +223,7 @@ export function BottomNav() {
       }}
     >
       <div
-        className="app-bottom-nav-grid grid w-full grid-cols-4 bg-transparent"
+        className={`app-bottom-nav-grid grid w-full ${spectatorMode ? "grid-cols-4" : "grid-cols-5"} bg-transparent`}
         style={{
           minHeight: "72px",
           paddingTop: "7px",
@@ -225,7 +258,7 @@ export function BottomNav() {
                 minHeight: "52px",
               }}
             >
-              <NavIcon icon={item.icon} />
+              <span className="relative"><NavIcon icon={item.icon} />{item.icon === "chats" && chatUnread > 0 ? <span className="absolute -right-3 -top-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-xs font-black leading-4 text-white">{chatUnread > 99 ? "99+" : chatUnread}</span> : null}</span>
               <span className="leading-none">{item.label}</span>
             </Link>
           )

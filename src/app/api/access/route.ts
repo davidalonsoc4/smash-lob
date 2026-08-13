@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
+import { normalizeDominantHand, normalizePreferredPlayerSide } from "@/lib/accountProfile"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
@@ -215,7 +216,7 @@ export async function GET() {
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions"
+        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled"
       )
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
@@ -260,7 +261,7 @@ export async function GET() {
     linkedUserIds.length > 0
       ? await supabase
           .from("app_users")
-          .select("id,display_name,avatar_url")
+          .select("id,display_name,avatar_url,preferred_side,dominant_hand")
           .in("id", linkedUserIds)
       : { data: [], error: null }
 
@@ -268,6 +269,8 @@ export async function GET() {
     return NextResponse.json({ error: "avatar_lookup_failed" }, { status: 500 })
   }
 
+  const preferredSideByUserId = new Map((avatarUsers ?? []).map((user) => [user.id, normalizePreferredPlayerSide(user.preferred_side)]))
+  const dominantHandByUserId = new Map((avatarUsers ?? []).map((user) => [user.id, normalizeDominantHand(user.dominant_hand)]))
   const userAvatarLookup = buildUserAvatarLookup(
     (avatarUsers ?? []).map((user) => ({
       id: user.id,
@@ -305,6 +308,8 @@ export async function GET() {
         displayName: player.display_name,
         avatarInitials: player.avatar_initials,
         userId: membership?.user_id ?? null,
+        preferredSide: membership?.user_id ? preferredSideByUserId.get(membership.user_id) ?? null : null,
+        dominantHand: membership?.user_id ? dominantHandByUserId.get(membership.user_id) ?? null : null,
         avatarUrl: resolvePlayerAvatarUrl({
           linkedUserId: membership?.user_id ?? null,
           users: userAvatarLookup,
@@ -386,6 +391,8 @@ export async function GET() {
     calendarMode: settings.calendar_mode === "manual" ? "manual" : "balanced",
     allowPlayerIncidents: settings.allow_player_incidents !== false,
     allowPlayerSubstitutions: settings.allow_player_substitutions !== false,
+    availabilityRecommendationsEnabled:
+      settings.availability_recommendations_enabled === true,
   }))
   const substitutionsByMatchId = new Map<
     string,

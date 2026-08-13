@@ -4,6 +4,7 @@ export type NotificationPreferenceKey =
   | "match_schedule"
   | "match_incidents"
   | "match_upcoming"
+  | "match_chat"
   | "match_results"
   | "result_confirmations"
   | "mvp_reminders"
@@ -40,6 +41,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     ],
   },
   { key: "match_upcoming", eventTypes: ["match_upcoming_reminder"] },
+  { key: "match_chat", eventTypes: ["match_chat_message"] },
   {
     key: "match_results",
     eventTypes: [

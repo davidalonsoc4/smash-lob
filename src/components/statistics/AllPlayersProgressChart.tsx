@@ -351,7 +351,7 @@ export function AllPlayersProgressChart({
               type="button"
               onClick={() => togglePlayer(player.playerId)}
               aria-pressed={!hidden}
-              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 type-caption font-black transition ${
+              className={`flex max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 type-caption font-black transition ${
                 hidden
                   ? "border-neutral-200 bg-neutral-50 text-neutral-400"
                   : "border-neutral-200 bg-white text-neutral-800"
@@ -367,7 +367,7 @@ export function AllPlayersProgressChart({
                 }`}
                 style={{ backgroundColor: hidden ? "#a3a3a3" : color }}
               />
-              {player.displayName}
+              <span className="min-w-0 truncate whitespace-nowrap">{player.displayName}</span>
             </button>
           )
         })}

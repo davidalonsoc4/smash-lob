@@ -4,6 +4,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import type { PlayerProfile } from "@/data/fakeData"
 import { isSafeImageUrl } from "@/lib/imageUrl"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
+import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import type { MatchSubstitution } from "@/lib/substitutes"
 import { getMatchSubstituteLabels } from "@/lib/substitutes"
 
@@ -42,7 +43,7 @@ function DetailPlayer({
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const content = (
-    <span className="block max-w-full type-player-name-prominent text-neutral-950 [overflow-wrap:anywhere]">
+    <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
@@ -52,21 +53,21 @@ function DetailPlayer({
     </span>
   )
 
+  const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
   const positionLabel = position ? (
     <p
       className={`type-caption font-bold uppercase tracking-wide text-neutral-500 ${
         alignment === "right" ? "text-right" : "text-left"
       }`}
     >
-      #{position} en liga
+      #{position} en liga{playerPositionLabel ? <> · {playerPositionLabel}</> : null}
     </p>
   ) : null
 
   return (
     <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
       {positionLabel && positionPlacement === "above" ? <div className="mb-1">{positionLabel}</div> : null}
-
-      <div className="line-clamp-2 min-w-0">
+      <div className="min-w-0 overflow-hidden">
         {linkPlayers && player ? (
           <Link
             href={`/player/${player.slug}`}
@@ -231,7 +232,7 @@ function FinishedPlayerName({
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const name = (
-    <span className="block max-w-full type-player-name-prominent text-neutral-950 [overflow-wrap:anywhere]">
+    <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
@@ -240,17 +241,17 @@ function FinishedPlayerName({
       ) : null}
     </span>
   )
+  const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
   const positionLabel = position ? (
     <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
-      #{position} en liga
+      #{position} en liga{playerPositionLabel ? <> · {playerPositionLabel}</> : null}
     </p>
   ) : null
 
   return (
     <div className="min-w-0 text-left">
       {positionPlacement === "above" ? <div className="mb-1">{positionLabel}</div> : null}
-
-      <div className="line-clamp-2 min-w-0">
+      <div className="min-w-0 overflow-hidden">
         {linkPlayers && player ? (
           <Link
             href={`/player/${player.slug}`}

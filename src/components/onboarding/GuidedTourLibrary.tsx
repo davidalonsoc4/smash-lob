@@ -12,7 +12,7 @@ export function GuidedTourLibrary() {
   const copy = getOnboardingCopy(locale)
   const { availableTours, progress, resetAllTours } = useOnboarding()
   const [resetDone, setResetDone] = useState(false)
-  const visibleTours = availableTours
+  const visibleTours = availableTours.filter((tour) => !tour.route.includes(":"))
 
   return (
     <section id="tutoriales-visuales" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">

@@ -7,6 +7,7 @@ import type {
 } from "./types"
 
 const everyone = () => true
+const players = (audience: OnboardingAudience) => !audience.isSpectator
 const managers = (audience: OnboardingAudience) =>
   audience.isSuperuser || audience.isLeagueAdmin
 
@@ -59,7 +60,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Tu siguiente partido",
-          description: "Abre la tarjeta para consultar jugadores, fecha, ubicación, disponibilidad y acciones del encuentro.",
+          description: "Abre la tarjeta para consultar jugadores, fecha, ubicación, chat y acciones del encuentro.",
         },
         {
           title: "Temporadas terminadas",
@@ -71,7 +72,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Notificaciones",
-          description: "Consulta avisos sobre partidos, resultados, disponibilidad y actividad importante de la liga.",
+          description: "Consulta avisos sobre partidos, resultados, mensajes y actividad importante de la liga.",
         },
         {
           title: "Compartir con espectadores",
@@ -101,6 +102,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    match: { title: "Detalle de partido", description: "Consulta el encuentro y sus acciones específicas.", steps: [{ title: "Chat del partido", description: "Esta burbuja abre el chat privado de los cuatro participantes. Todas tus conversaciones están también en Chats, en la NAVBAR." }] },
     ranking: {
       title: "Clasificación",
       description: "Interpreta posiciones, puntos y criterios de desempate.",
@@ -220,7 +222,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Your next match",
-          description: "Open the card to check players, date, location, availability and match actions.",
+          description: "Open the card to check players, date, location, chat and match actions.",
         },
         {
           title: "Finished seasons",
@@ -232,7 +234,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Notifications",
-          description: "Review updates about matches, results, availability and important league activity.",
+          description: "Review updates about matches, results, messages and important league activity.",
         },
         {
           title: "Share with spectators",
@@ -262,6 +264,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    match: { title: "Match detail", description: "Review the match and its specific actions.", steps: [{ title: "Match chat", description: "This bubble opens the private chat for the four participants. All your conversations are also available under Chats in the bottom navigation." }] },
     ranking: {
       title: "Standings",
       description: "Understand positions, points and tie-break rules.",
@@ -381,7 +384,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Zure hurrengo partida",
-          description: "Ireki txartela jokalariak, data, kokapena, erabilgarritasuna eta partidaren ekintzak ikusteko.",
+          description: "Ireki txartela jokalariak, data, kokapena, txata eta partidaren ekintzak ikusteko.",
         },
         {
           title: "Amaitutako denboraldiak",
@@ -393,7 +396,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jakinarazpenak",
-          description: "Ikusi partiden, emaitzen, erabilgarritasunaren eta ligako jarduera garrantzitsuaren abisuak.",
+          description: "Ikusi partiden, emaitzen, mezuen eta ligako jarduera garrantzitsuaren abisuak.",
         },
         {
           title: "Ikusleekin partekatu",
@@ -423,6 +426,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    match: { title: "Partidaren xehetasuna", description: "Ikusi partida eta haren ekintza espezifikoak.", steps: [{ title: "Partidako chat-a", description: "Burbuila honek lau parte-hartzaileen chat pribatua irekitzen du. Elkarrizketa guztiak NAVBAR-eko Chats atalean ere daude." }] },
     ranking: {
       title: "Sailkapena",
       description: "Ulertu postuak, puntuak eta berdinketa-irizpideak.",
@@ -539,6 +543,13 @@ const tourStructure: Array<{
     ],
   },
   {
+    key: "match",
+    version: 1,
+    route: "/match/:id",
+    audience: players,
+    steps: [{ selector: "[data-tour='match-chat-access']", side: "left" }],
+  },
+  {
     key: "ranking",
     version: 2,
     route: "/ranking",
@@ -622,5 +633,5 @@ export function getTourForPathname({
   audience: OnboardingAudience
 }) {
   const tours = getOnboardingTours(locale).filter((tour) => tour.audience(audience))
-  return tours.find((tour) => tour.route === pathname) ?? null
+  return tours.find((tour) => tour.route === pathname || (tour.route === "/match/:id" && /^\/match\/[^/]+$/.test(pathname))) ?? null
 }

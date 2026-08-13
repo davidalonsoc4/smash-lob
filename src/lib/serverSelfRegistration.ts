@@ -12,7 +12,6 @@ type SelfRegistrationActor = {
     | "displayName"
     | "isSuperuser"
     | "profileCompletedAt"
-    | "availabilityCompletedAt"
   >
 }
 
@@ -39,10 +38,7 @@ export async function joinSelfRegistrationSeason({
   seasonId: string
   historicalPlayerId?: string | null
 }): Promise<SelfRegistrationJoinResult> {
-  if (
-    !actor.user.profileCompletedAt ||
-    !actor.user.availabilityCompletedAt
-  ) {
+  if (!actor.user.profileCompletedAt) {
     throw new Error("profile_incomplete")
   }
 

@@ -48,7 +48,7 @@ export function PersonalMatchParticipantSelector({
       </p>
 
       {locked ? (
-        <p className="mt-1.5 text-sm font-black text-neutral-950">
+        <p className="mt-1.5 truncate whitespace-nowrap text-sm font-black text-neutral-950">
           {participant.displayName}
         </p>
       ) : (
