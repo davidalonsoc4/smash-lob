@@ -2079,8 +2079,8 @@ html[data-match-chat-active="true"],
 html[data-match-chat-active="true"] body { background: var(--app-match-chat-safe-surface) !important; }
 
 /* Conversation cards use a side accent and explicit affordance to read as navigation. */
-.chat-list-card { position: relative; }
-.chat-list-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: .22rem; background: linear-gradient(180deg,#262626,#737373 48%,#d4d4d4); pointer-events: none; }
+.chat-list-stack { position: relative; }
+.chat-list-stack::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: .22rem; background: linear-gradient(180deg,#262626,#737373 48%,#d4d4d4); pointer-events: none; }
 .chat-list-card-unread { box-shadow: 0 6px 18px rgb(15 23 42 / .08); }
-html.dark[data-style="plain"] .chat-list-card::before { background: linear-gradient(180deg,#dbe6f3,#536a84 58%,#9fb1c7); }
-html.colorful .chat-list-card::before { background: linear-gradient(180deg,var(--colorful-primary),var(--colorful-secondary),var(--colorful-accent)); }
+html.dark[data-style="plain"] .chat-list-stack::before { background: linear-gradient(180deg,#dbe6f3,#536a84 58%,#9fb1c7); }
+html.colorful .chat-list-stack::before { background: linear-gradient(180deg,var(--colorful-primary),var(--colorful-secondary),var(--colorful-accent)); }

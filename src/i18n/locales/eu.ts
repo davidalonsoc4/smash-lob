@@ -364,7 +364,7 @@ export const eu = {
     set: "Seta",
     schedule: "Programazioa",
     scheduleDescription: "Partidarako adostutako data, ordua eta lekua.",
-    addScheduleTitle: "Programazioa gehitu",
+    addScheduleTitle: "Eskuzko programazioa",
     addScheduleDescription: "Aukeratu partidaren data, ordua eta lekua.",
     postponedTitle: "Partida atzeratuta",
     postponedDescription:

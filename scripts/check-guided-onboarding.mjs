@@ -29,7 +29,9 @@ const requiredSnippets = new Map([
     [
       'key: "home"',
       'key: "matches"',
+      'key: "chats"',
       'key: "match"',
+      'key: "chat"',
       'key: "ranking"',
       'key: "statistics"',
       'key: "season-admin"',
@@ -59,6 +61,8 @@ const requiredSnippets = new Map([
   ],
   ["src/app/page.tsx", ['data-tour="home-header"', 'data-tour="home-league-switcher"', 'data-tour="home-next-match"']],
   ["src/app/matches/page.tsx", ['data-tour="matches-round-list"']],
+  ["src/app/chats/page.tsx", ['data-tour={tour}', 'tour="chats-conversations"', 'data-tour="chats-finished"']],
+  ["src/app/match/[id]/chat/page.tsx", ['data-tour="chat-messages"', 'data-tour="chat-proposals"']],
   ["src/components/match/MatchActionsMenu.tsx", ['data-tour="match-chat-access"']],
   ["src/app/ranking/page.tsx", ['data-tour="ranking-table"']],
   ["src/app/statistics/page.tsx", ['data-tour="statistics-navigation"']],
@@ -178,7 +182,7 @@ if (failures.length > 0) {
 }
 
 console.log("Tutoriales guiados correctos:")
-console.log("- siete recorridos contextuales; Bienvenida forma parte de Inicio y Partido explica el acceso al chat")
+console.log("- nueve recorridos contextuales; Chats y Chat explican estados, lectura, propuestas y no leídos")
 console.log("- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera")
 console.log("- guía de Ajustes con perfil, apariencia, notificaciones, cambio Ligas/Mis partidos, sugerencias y buscador")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")

@@ -65,6 +65,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/matches/[matchId]/chat` | GET | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/chat` | POST | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/chat` | PATCH | Protegido | getServerMatchActor |
+| `/api/matches/[matchId]/coordination` | GET | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | DELETE | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking/payment-reminder` | POST | Protegido | getServerMatchActor |
@@ -75,6 +76,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/matches/[matchId]/mvp-vote` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/mvp-votes` | DELETE | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/postpone` | POST | Protegido | getServerMatchActor |
+| `/api/matches/[matchId]/reservation-confirmation` | POST | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/result` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/result` | DELETE | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/result-lock` | PUT | Protegido | getServerMatchActor |

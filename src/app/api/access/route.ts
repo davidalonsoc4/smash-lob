@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
 import { normalizeDominantHand, normalizePreferredPlayerSide } from "@/lib/accountProfile"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
+import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
@@ -250,6 +251,14 @@ export async function GET() {
     )
   }
 
+  const schedulingRows = (matchesResult.data ?? []).filter((match) => match.status === "scheduling"), schedulingIds = schedulingRows.map((match) => String(match.id))
+  const proposalsResult = schedulingIds.length ? await supabase.from("match_chat_messages").select("id,match_id,kind,payload").in("match_id", schedulingIds).in("kind", ["date_proposal", "location_proposal"]) : { data: [], error: null }
+  if (proposalsResult.error) return buildLeagueSnapshotFailure("match_chat_messages", proposalsResult.error)
+  const proposalIds = (proposalsResult.data ?? []).map((message) => String(message.id)), responsesResult = proposalIds.length ? await supabase.from("match_chat_proposal_responses").select("message_id,user_id,option_key,response").in("message_id", proposalIds) : { data: [], error: null }
+  if (responsesResult.error) return buildLeagueSnapshotFailure("match_chat_proposal_responses", responsesResult.error)
+  const userByLeaguePlayer = new Map((leagueMembershipsResult.data ?? []).filter((item) => item.player_id && item.user_id).map((item) => [`${item.league_id}:${item.player_id}`, String(item.user_id)]))
+  const coordinationStatusByMatchId = new Map(schedulingRows.map((match) => { const participantIds = [...(Array.isArray(match.team_a) ? match.team_a : []), ...(Array.isArray(match.team_b) ? match.team_b : [])].map(String), coordination = buildMatchChatCoordination({ matchStatus: String(match.status), participants: participantIds.map((playerId) => ({ userId: userByLeaguePlayer.get(`${match.league_id}:${playerId}`) ?? null })), messages: (proposalsResult.data ?? []).filter((message) => message.match_id === match.id).map((message) => ({ id: String(message.id), kind: String(message.kind), payload: message.payload, responses: (responsesResult.data ?? []).filter((response) => response.message_id === message.id).map((response) => ({ userId: String(response.user_id), optionKey: String(response.option_key), response: String(response.response) })) })) }); return [String(match.id), coordination.status === "coordinating" || coordination.status === "awaiting_booking" ? coordination.status : null] as const }))
+
   const linkedUserIds = Array.from(
     new Set(
       (leagueMembershipsResult.data ?? [])
@@ -422,6 +431,7 @@ export async function GET() {
 
     return {
       ...mappedMatch,
+      coordinationStatus: coordinationStatusByMatchId.get(mappedMatch.id) ?? null,
       substitutions: substitutionsByMatchId.get(mappedMatch.id) ?? [],
     }
   })

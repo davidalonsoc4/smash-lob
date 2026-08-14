@@ -57,6 +57,7 @@ type MatchScheduleFormProps = {
   canManage: boolean;
   canClearSchedule?: boolean;
   calendarAction?: ReactNode;
+  coordinationAction?: ReactNode;
   availabilityRecommendationsEnabled?: boolean;
 };
 
@@ -78,6 +79,7 @@ export function MatchScheduleForm({
   canManage,
   canClearSchedule = false,
   calendarAction,
+  coordinationAction,
   availabilityRecommendationsEnabled = false,
 }: MatchScheduleFormProps) {
   const { t } = useI18n();
@@ -761,6 +763,7 @@ export function MatchScheduleForm({
                   ? t.matches.needsReschedule
                   : t.matchDetail.noScheduleDescription}
               </p>
+              {coordinationAction ? <div className="mt-2">{coordinationAction}</div> : null}
             </div>
           ) : null}
 

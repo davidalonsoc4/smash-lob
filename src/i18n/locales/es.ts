@@ -365,7 +365,7 @@ export const es = {
     set: "Set",
     schedule: "Programación",
     scheduleDescription: "Fecha, hora y lugar acordados para este partido.",
-    addScheduleTitle: "Añadir programación",
+    addScheduleTitle: "Programación manual",
     addScheduleDescription:
       "Selecciona la fecha, la hora y el lugar del partido.",
     postponedTitle: "Partido aplazado",
