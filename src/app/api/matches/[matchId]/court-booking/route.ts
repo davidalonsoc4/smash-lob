@@ -5,6 +5,7 @@ import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import type { CourtBookingReservation } from "@/context/MatchDataProvider"
+import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -159,7 +160,7 @@ export async function PUT(
   const canManageExistingBooking =
     currentBooking.isReserved &&
     (access.actor.isAdmin ||
-      (participantPlayerId !== null && currentPayerIds.has(participantPlayerId)))
+      (participantPlayerId !== null && (currentPayerIds.size === 0 || currentPayerIds.has(participantPlayerId))))
 
   if (
     (currentBooking.isReserved && !canManageExistingBooking) ||
@@ -259,19 +260,33 @@ export async function DELETE(
   )
   const canManageExistingBooking =
     access.actor.isAdmin ||
-    (participantPlayerId !== null && currentPayerIds.has(participantPlayerId))
+    (participantPlayerId !== null && (currentPayerIds.size === 0 || currentPayerIds.has(participantPlayerId)))
   const canClearBooking =
     canManageExistingBooking &&
     (access.actor.isAdmin ||
-      (participantPlayerId !== null && reservationPayerIds.has(participantPlayerId)))
+      (participantPlayerId !== null && (reservationPayerIds.size === 0 || reservationPayerIds.has(participantPlayerId))))
 
   if (!canClearBooking) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
+  const clearedBooking = toBookingUpdate(getEmptyCourtBooking())
+  const shouldClearSchedule =
+    access.actor.match.status === "scheduled" &&
+    Boolean(access.actor.match.scheduledAt || access.actor.match.location)
   const { data, error } = await access.actor.supabase
     .from("matches")
-    .update(toBookingUpdate(getEmptyCourtBooking()))
+    .update({
+      ...clearedBooking,
+      ...(shouldClearSchedule
+        ? {
+            status: "scheduling",
+            scheduled_at: null,
+            date_label: null,
+            location: null,
+          }
+        : {}),
+    })
     .eq("id", matchId)
     .select(matchSelect)
     .single()
@@ -300,6 +315,12 @@ export async function DELETE(
       round: updatedMatch.round,
     },
   }).catch(() => null)
+
+  await broadcastMatchChatRefresh({
+    matchId: updatedMatch.id,
+    leagueId: updatedMatch.leagueId,
+    seasonId: updatedMatch.seasonId,
+  })
 
   return NextResponse.json({
     match: updatedMatch,

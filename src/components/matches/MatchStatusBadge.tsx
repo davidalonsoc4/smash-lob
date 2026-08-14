@@ -8,19 +8,25 @@ type MatchStatusBadgeProps = {
   status: string
   scheduledAt?: string | null
   resultRecordedAt?: string | null
+  coordinationStatus?: "coordinating" | "awaiting_booking" | null
 }
 
 export function MatchStatusBadge({
   status,
   scheduledAt,
   resultRecordedAt,
+  coordinationStatus = null,
 }: MatchStatusBadgeProps) {
   const { t } = useI18n()
-  const displayStatus = getMatchDisplayStatus({
+  const baseStatus = getMatchDisplayStatus({
     status,
     scheduledAt,
     resultRecordedAt,
   })
+  const displayStatus =
+    baseStatus === "scheduling" && coordinationStatus
+      ? coordinationStatus
+      : baseStatus
 
   const labelByStatus: Record<string, string> = {
     finished: t.matches.finished,
@@ -29,6 +35,8 @@ export function MatchStatusBadge({
     postponed: t.matches.postponed,
     in_progress: t.matches.inProgress,
     result_pending: t.matches.resultPending,
+    coordinating: "Coordinando",
+    awaiting_booking: "Pendiente de reserva",
   }
 
   return (

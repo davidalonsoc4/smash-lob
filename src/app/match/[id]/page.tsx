@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import {
@@ -12,6 +12,7 @@ import {
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
+import { MatchReservationConfirmation } from "@/components/match/MatchReservationConfirmation"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
@@ -30,6 +31,8 @@ import {
   getLeagueLocationCalendarText,
 } from "@/lib/leagueLocations"
 import { formatShortDate } from "@/lib/rounds"
+import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
+import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 
 export default function MatchDetailPage() {
   const { t } = useI18n()
@@ -63,6 +66,37 @@ export default function MatchDetailPage() {
 
   const shouldFocusBooking = searchParams.get("focus") === "booking"
   const match = matches.find((item) => item.id === params.id)
+  const matchId = match?.id ?? null
+  const [coordination, setCoordination] = useState<MatchChatCoordination | null>(null)
+  const [loadedCoordinationMatchId, setLoadedCoordinationMatchId] = useState<string | null>(null)
+  useEffect(() => {
+    if (!matchId) return
+    let active = true
+    let realtimeTopic: string | null = null
+    let unsubscribeRealtime: () => void = () => undefined
+
+    const refreshCoordination = async () => {
+      const response = await fetch(`/api/matches/${encodeURIComponent(matchId)}/coordination`, { cache: "no-store" }).catch(() => null)
+      const data = response ? await response.json().catch(() => null) : null
+      if (!active || !response?.ok) return
+      setCoordination(data?.coordination ?? null)
+      setLoadedCoordinationMatchId(matchId)
+      const nextTopic = typeof data?.realtimeTopic === "string" ? data.realtimeTopic : null
+      if (nextTopic === realtimeTopic) return
+      unsubscribeRealtime()
+      realtimeTopic = nextTopic
+      unsubscribeRealtime = subscribeChatRealtime(realtimeTopic, () => {
+        if (!document.hidden) void refreshCoordination()
+      })
+    }
+
+    const timer = window.setTimeout(() => void refreshCoordination(), 0)
+    return () => {
+      active = false
+      window.clearTimeout(timer)
+      unsubscribeRealtime()
+    }
+  }, [matchId])
   const round = match
     ? rounds.find((item) => item.round === match.round)
     : undefined
@@ -294,6 +328,9 @@ export default function MatchDetailPage() {
       status={match.status}
       scheduledAt={match.scheduledAt}
       resultRecordedAt={match.resultRecordedAt}
+      coordinationStatus={loadedCoordinationMatchId === matchId && coordination
+        ? coordination.status === "coordinating" || coordination.status === "awaiting_booking" ? coordination.status : null
+        : match.coordinationStatus ?? null}
       headerActions={
         <MatchActionsTrigger
           match={match}
@@ -421,6 +458,19 @@ export default function MatchDetailPage() {
           canManage={canManageSchedule}
           canClearSchedule={isAdmin && !hasOpenIncident}
           availabilityRecommendationsEnabled={roundSettings.availabilityRecommendationsEnabled}
+          coordinationAction={
+            coordination?.status === "awaiting_booking" ? (
+              <MatchReservationConfirmation
+                matchId={match.id}
+                coordination={coordination}
+                locations={activeLeague.locations}
+                compact
+                onConfirmed={() => {
+                  window.location.reload()
+                }}
+              />
+            ) : null
+          }
           calendarAction={
             match.status === "scheduled" && match.scheduledAt ? (
               <AddToCalendarButton

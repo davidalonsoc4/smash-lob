@@ -8,7 +8,7 @@ describe("v1.8.1 chats list and compact match-chat UX", () => {
     expect(page).toContain(">Chats finalizados<")
     expect(page).toContain("function firstName")
     expect(page).toContain("return `con ${firstName(chat.partner)")
-    expect(page.indexOf("<ChatCards chats={activeChats} />")).toBeLessThan(page.indexOf("<ChatCards chats={finishedChats} />"))
+    expect(page.indexOf('<ChatCards chats={activeChats} tour="chats-conversations" />')).toBeLessThan(page.indexOf("<ChatCards chats={finishedChats} />"))
   })
 
   it("keeps recommended location names fully visible", async () => {

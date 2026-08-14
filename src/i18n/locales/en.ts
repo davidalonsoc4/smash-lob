@@ -361,7 +361,7 @@ export const en = {
     set: "Set",
     schedule: "Schedule",
     scheduleDescription: "Agreed date, time and place for this match.",
-    addScheduleTitle: "Add schedule",
+    addScheduleTitle: "Manual scheduling",
     addScheduleDescription: "Select the match date, time and place.",
     postponedTitle: "Match postponed",
     postponedDescription: "This match is still pending and needs a new date.",

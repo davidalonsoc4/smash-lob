@@ -2,14 +2,15 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("v1.8.1 match chat composer UX", () => {
-  it("keeps the composer focused across chat actions", async () => {
+  it("lets the composer follow normal focus and only restores it after sending text", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain("function preserveComposerFocus")
-    expect(page).toContain("function handleComposerBlur")
-    expect(page).toContain("autoFocus")
-    expect(page).toContain('data-chat-secondary-input="true"')
-    expect(page.match(/onPointerDown={preserveComposerFocus}/g)?.length ?? 0).toBeGreaterThanOrEqual(8)
-    expect(page).toContain("window.setTimeout(() => focusComposer(), 0)")
+    expect(page).toContain("function focusComposerAfterSend")
+    expect(page).toContain('post("text", {}, text, true)')
+    expect(page).toContain("composerRef.current?.blur()")
+    expect(page).not.toContain("function preserveComposerFocus")
+    expect(page).not.toContain("function handleComposerBlur")
+    expect(page).not.toContain("autoFocus")
+    expect(page).not.toContain('data-chat-secondary-input="true"')
   })
 
   it("uses a paperclip and cleaner proposal choices", async () => {

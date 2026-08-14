@@ -229,14 +229,15 @@ export function CourtBookingPanel({
     (reservation) => reservation.playerId === currentUserId
   )
   const canCreateBooking = canManage && !booking.isReserved
+  const hasRecordedBookingPayer = booking.reservations.length > 0 || booking.ballPurchases.length > 0
   const canManageExistingBooking =
     canManage &&
     booking.isReserved &&
-    (isCurrentUserBookingPayer || canManageAllPayments)
+    (isCurrentUserBookingPayer || canManageAllPayments || !hasRecordedBookingPayer)
   const canManageBooking = canCreateBooking || canManageExistingBooking
   const canCancelBooking =
     canManageExistingBooking &&
-    (isCurrentUserReservationPayer || canManageAllPayments)
+    (isCurrentUserReservationPayer || canManageAllPayments || booking.reservations.length === 0)
   const canSave = canManageBooking && !isSaving && selectedAmountsAreValid
   const currentUserTransfers = booking.transfers.filter(
     (transfer) => transfer.fromPlayerId === currentUserId

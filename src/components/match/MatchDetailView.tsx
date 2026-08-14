@@ -13,6 +13,7 @@ type MatchDetailViewProps = {
   status: string
   scheduledAt?: string | null
   resultRecordedAt?: string | null
+  coordinationStatus?: "coordinating" | "awaiting_booking" | null
   headerActions?: ReactNode
   beforePairing?: ReactNode
   pairing: ComponentProps<typeof MatchDetailPairingPanel>
@@ -28,6 +29,7 @@ export function MatchDetailView({
   status,
   scheduledAt,
   resultRecordedAt,
+  coordinationStatus = null,
   headerActions,
   beforePairing,
   pairing,
@@ -47,6 +49,7 @@ export function MatchDetailView({
                 status={status}
                 scheduledAt={scheduledAt}
                 resultRecordedAt={resultRecordedAt}
+                coordinationStatus={coordinationStatus}
               />
               {headerActions}
             </div>
