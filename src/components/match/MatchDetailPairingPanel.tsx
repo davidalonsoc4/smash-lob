@@ -29,7 +29,8 @@ function DetailPlayer({
   substituteLabel,
   linkPlayers,
   alignment,
-  positionPlacement,
+  metadataPlacement,
+  showMetadata,
 }: {
   playerId: string
   players?: PlayerProfile[]
@@ -38,11 +39,12 @@ function DetailPlayer({
   substituteLabel?: string
   linkPlayers: boolean
   alignment: "left" | "right"
-  positionPlacement: "above" | "below"
+  metadataPlacement: "before-name" | "after-name"
+  showMetadata: boolean
 }) {
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
-  const content = (
+  const name = (
     <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
@@ -52,37 +54,50 @@ function DetailPlayer({
       ) : null}
     </span>
   )
-
   const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
-  const positionLabel = position ? (
-    <p
-      className={`type-caption font-bold uppercase tracking-wide text-neutral-500 ${
-        alignment === "right" ? "text-right" : "text-left"
-      }`}
-    >
-      #{position} en liga{playerPositionLabel ? <> · {playerPositionLabel}</> : null}
-    </p>
-  ) : null
+  const metadataClass = `min-h-4 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500 ${
+    alignment === "right" ? "text-right" : "text-left"
+  }`
+  const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\u00a0"}</p>
+  const playLine = <p className={metadataClass}>{playerPositionLabel ?? "\u00a0"}</p>
+  const nameLine = (
+    <div className="min-w-0 overflow-hidden">
+      {linkPlayers && player ? (
+        <Link
+          href={`/player/${player.slug}`}
+          className={`block min-w-0 underline-offset-4 active:underline ${
+            alignment === "right" ? "text-right" : "text-left"
+          }`}
+        >
+          {name}
+        </Link>
+      ) : (
+        name
+      )}
+    </div>
+  )
 
   return (
     <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
-      {positionLabel && positionPlacement === "above" ? <div className="mb-1">{positionLabel}</div> : null}
-      <div className="min-w-0 overflow-hidden">
-        {linkPlayers && player ? (
-          <Link
-            href={`/player/${player.slug}`}
-            className={`block min-w-0 underline-offset-4 active:underline ${
-              alignment === "right" ? "text-right" : "text-left"
-            }`}
-          >
-            {content}
-          </Link>
-        ) : (
-          content
-        )}
-      </div>
-
-      {positionLabel && positionPlacement === "below" ? <div className="mt-1">{positionLabel}</div> : null}
+      {showMetadata ? (
+        <div className="space-y-0.5">
+          {metadataPlacement === "before-name" ? (
+            <>
+              {positionLine}
+              {playLine}
+              {nameLine}
+            </>
+          ) : (
+            <>
+              {nameLine}
+              {playLine}
+              {positionLine}
+            </>
+          )}
+        </div>
+      ) : (
+        nameLine
+      )}
 
       {substituteLabel ? (
         <p
@@ -171,6 +186,7 @@ function PairDetails({
   substituteLabels,
   linkPlayers,
   alignment,
+  showMetadata,
 }: {
   playerIds: string[]
   players?: PlayerProfile[]
@@ -179,6 +195,7 @@ function PairDetails({
   substituteLabels: Record<string, string>
   linkPlayers: boolean
   alignment: "left" | "right"
+  showMetadata: boolean
 }) {
   return (
     <div
@@ -204,7 +221,8 @@ function PairDetails({
             substituteLabel={substituteLabels[playerId]}
             linkPlayers={linkPlayers}
             alignment={alignment}
-            positionPlacement={index === 0 ? "above" : "below"}
+            metadataPlacement={index === 0 ? "before-name" : "after-name"}
+            showMetadata={showMetadata}
           />
         </div>
       ))}
@@ -215,19 +233,15 @@ function PairDetails({
 function FinishedPlayerName({
   playerId,
   players,
-  position,
   highlighted,
   substituteLabel,
   linkPlayers,
-  positionPlacement,
 }: {
   playerId: string
   players?: PlayerProfile[]
-  position?: number | null
   highlighted: boolean
   substituteLabel?: string
   linkPlayers: boolean
-  positionPlacement: "above" | "below"
 }) {
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
@@ -241,16 +255,9 @@ function FinishedPlayerName({
       ) : null}
     </span>
   )
-  const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
-  const positionLabel = position ? (
-    <p className="type-caption font-bold uppercase tracking-wide text-neutral-500">
-      #{position} en liga{playerPositionLabel ? <> · {playerPositionLabel}</> : null}
-    </p>
-  ) : null
 
   return (
     <div className="min-w-0 text-left">
-      {positionPlacement === "above" ? <div className="mb-1">{positionLabel}</div> : null}
       <div className="min-w-0 overflow-hidden">
         {linkPlayers && player ? (
           <Link
@@ -263,8 +270,6 @@ function FinishedPlayerName({
           name
         )}
       </div>
-
-      {positionPlacement === "below" ? <div className="mt-1">{positionLabel}</div> : null}
 
       {substituteLabel ? (
         <p className="mt-1 type-caption font-bold leading-3 text-red-700">
@@ -281,7 +286,6 @@ function FinishedPairRow({
   players,
   points,
   sets,
-  positions,
   highlightedPlayerIds,
   substituteLabels,
   linkPlayers,
@@ -291,7 +295,6 @@ function FinishedPairRow({
   players?: PlayerProfile[]
   points?: number | null
   sets: { a: number; b: number }[]
-  positions: Record<string, number | null | undefined>
   highlightedPlayerIds: string[]
   substituteLabels: Record<string, string>
   linkPlayers: boolean
@@ -307,11 +310,9 @@ function FinishedPairRow({
               <FinishedPlayerName
                 playerId={playerId}
                 players={players}
-                position={positions[playerId]}
                 highlighted={highlightedPlayerIds.includes(playerId)}
                 substituteLabel={substituteLabels[playerId]}
                 linkPlayers={linkPlayers}
-                positionPlacement={index === 0 ? "above" : "below"}
               />
             </div>
           ))}
@@ -363,6 +364,7 @@ export function MatchDetailPairingPanel({
     isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl),
   )
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
+  const showPendingMetadata = Object.keys(rankingPositions).length > 0
 
   return (
     <AppCard className="overflow-hidden !p-0">
@@ -375,7 +377,6 @@ export function MatchDetailPairingPanel({
               players={players}
               points={pointsA}
               sets={sets}
-              positions={rankingPositions}
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
@@ -387,7 +388,6 @@ export function MatchDetailPairingPanel({
               players={players}
               points={pointsB}
               sets={sets}
-              positions={rankingPositions}
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
@@ -422,6 +422,7 @@ export function MatchDetailPairingPanel({
                 substituteLabels={substituteLabels}
                 linkPlayers={linkPlayers}
                 alignment="left"
+                showMetadata={showPendingMetadata}
               />
 
               <PairDetails
@@ -432,6 +433,7 @@ export function MatchDetailPairingPanel({
                 substituteLabels={substituteLabels}
                 linkPlayers={linkPlayers}
                 alignment="right"
+                showMetadata={showPendingMetadata}
               />
             </div>
           </>
