@@ -107,6 +107,7 @@ export type MatchData = {
   resultLocked: boolean;
   rankingCounts: boolean;
   resultCounts?: boolean;
+  coordinationStatus?: "coordinating" | "awaiting_booking" | null;
   incidentType: MatchIncidentType | null;
   incidentStatus: MatchIncidentStatus | null;
   incidentReason: string | null;
@@ -117,7 +118,6 @@ export type MatchData = {
   substitutions?: MatchSubstitution[];
   courtBooking: CourtBooking;
 };
-
 type MatchScheduleInput = {
   scheduledAt: string;
   location: string;

@@ -54,6 +54,7 @@ export async function getServerMatchActor(
           round: number
           status: "finished" | "scheduled" | "postponed" | "scheduling"
           scheduledAt: string | null
+          dateLabel: string | null
           location: string | null
           teamA: string[]
           teamB: string[]
@@ -186,6 +187,7 @@ export async function getServerMatchActor(
         round: mappedMatch.round,
         status: mappedMatch.status,
         scheduledAt: mappedMatch.scheduledAt,
+        dateLabel: mappedMatch.dateLabel,
         location: mappedMatch.location,
         teamA: mappedMatch.teamA,
         teamB: mappedMatch.teamB,

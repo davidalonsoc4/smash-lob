@@ -11,6 +11,8 @@ type MatchDisplayStatus =
   | "postponed"
   | "in_progress"
   | "result_pending"
+  | "coordinating"
+  | "awaiting_booking"
 
 type RoundDisplayStatus =
   | "upcoming"
@@ -31,6 +33,8 @@ export function getStatusToneClassName(tone: string) {
     orange: "status-tone-orange bg-orange-50 text-orange-800 ring-1 ring-orange-200/80",
     red: "status-tone-red bg-red-50 text-red-700 ring-1 ring-red-200/80",
     gold: "status-tone-gold bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200/80",
+    violet: "status-tone-violet bg-violet-50 text-violet-800 ring-1 ring-violet-200/80",
+    indigo: "status-tone-indigo bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200/80",
   }
 
   return classNameByTone[tone] ?? classNameByTone.neutral
@@ -48,6 +52,8 @@ export function getMatchStatusBadgeClassName(status: string) {
     postponed: "orange",
     in_progress: "green",
     result_pending: "amber",
+    coordinating: "violet",
+    awaiting_booking: "indigo",
   }
 
   return getBadgeClassName(

@@ -102,7 +102,9 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    chats: { title: "Chats", description: "Entiende el orden, los pendientes y el estado de cada conversación.", steps: [{ title: "Actividad, pendientes y estados", description: "Los chats con mensajes suben por actividad reciente; los que aún están vacíos quedan por Jornada 1, 2, 3… La bolita indica mensajes sin leer y la etiqueta de color muestra el estado del partido." }, { title: "Chats finalizados", description: "Los partidos terminados se separan debajo y pasan a Solo lectura para conservar el historial sin mezclarlo con conversaciones activas." }] },
     match: { title: "Detalle de partido", description: "Consulta el encuentro y sus acciones específicas.", steps: [{ title: "Chat del partido", description: "Esta burbuja abre el chat privado de los cuatro participantes. Todas tus conversaciones están también en Chats, en la NAVBAR." }] },
+    chat: { title: "Chat del partido", description: "Coordina el partido con mensajes y propuestas que responden al instante.", steps: [{ title: "Identidad y lectura", description: "Cada jugador conserva su color y avatar; en tus mensajes, ✓ confirma el envío y ✓✓ azul indica que todos los demás participantes vinculados lo han leído." }, { title: "Propuestas rápidas", description: "El clip abre propuestas de fecha o ubicación. Puedes marcar hasta cuatro horarios directamente, quitar cualquiera desde sus chips y votar con ✓ o ✕ sin esperar visualmente a la red. Cuando la reserva queda confirmada, el resumen de fecha, hora y pista queda fijado sobre el historial." }] },
     ranking: {
       title: "Clasificación",
       description: "Interpreta posiciones, puntos y criterios de desempate.",
@@ -264,7 +266,9 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    chats: { title: "Chats", description: "Understand conversation order, unread items and each match status.", steps: [{ title: "Activity, unread items and statuses", description: "Chats with messages rise by recent activity; empty conversations stay in Round 1, 2, 3… order. The dot shows unread messages and the colored badge shows the match status." }, { title: "Finished chats", description: "Finished matches are grouped below and become read-only so history stays available without mixing with active conversations." }] },
     match: { title: "Match detail", description: "Review the match and its specific actions.", steps: [{ title: "Match chat", description: "This bubble opens the private chat for the four participants. All your conversations are also available under Chats in the bottom navigation." }] },
+    chat: { title: "Match chat", description: "Coordinate the match with messages and proposals that react instantly.", steps: [{ title: "Identity and read receipts", description: "Each player keeps a stable color and avatar; on your messages, ✓ confirms sending and blue ✓✓ means every other linked participant has read it." }, { title: "Quick proposals", description: "The paperclip opens date or location proposals. Select up to four times directly, remove any option from its chip and vote with ✓ or ✕ without waiting for the network. Once the booking is confirmed, its date, time and court stay pinned above the message history." }] },
     ranking: {
       title: "Standings",
       description: "Understand positions, points and tie-break rules.",
@@ -426,7 +430,9 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
+    chats: { title: "Chats", description: "Ulertu elkarrizketen ordena, irakurri gabekoak eta partida bakoitzaren egoera.", steps: [{ title: "Jarduera, pendienteak eta egoerak", description: "Mezuak dituzten chat-ak azken jardueraren arabera igotzen dira; hutsik daudenak 1., 2., 3. jardunaldien ordenan geratzen dira. Burbuilak irakurri gabekoak eta kolorezko etiketak partidaren egoera adierazten dute." }, { title: "Amaitutako chat-ak", description: "Amaitutako partidak behean bereizten dira eta irakurketa-soilean geratzen dira, historia chat aktiboekin nahastu gabe mantentzeko." }] },
     match: { title: "Partidaren xehetasuna", description: "Ikusi partida eta haren ekintza espezifikoak.", steps: [{ title: "Partidako chat-a", description: "Burbuila honek lau parte-hartzaileen chat pribatua irekitzen du. Elkarrizketa guztiak NAVBAR-eko Chats atalean ere daude." }] },
+    chat: { title: "Partidako chat-a", description: "Koordinatu partida berehala erantzuten duten mezu eta proposamenekin.", steps: [{ title: "Identitatea eta irakurketa", description: "Jokalari bakoitzak bere kolorea eta avatarra mantentzen ditu; zure mezuetan ✓ bidalketa baieztatzen du eta ✓✓ urdinak lotutako gainerako parte-hartzaile guztiek irakurri dutela adierazten du." }, { title: "Proposamen azkarrak", description: "Klipak data edo kokapen proposamenak irekitzen ditu. Gehienez lau ordutegi zuzenean marka ditzakezu, edozein chip-etik kendu eta ✓ edo ✕ bidez bozkatu sareari bisualki itxaron gabe. Erreserba baieztatzen denean, data, ordua eta pista mezuen historiaren gainean finkatuta geratzen dira." }] },
     ranking: {
       title: "Sailkapena",
       description: "Ulertu postuak, puntuak eta berdinketa-irizpideak.",
@@ -542,6 +548,8 @@ const tourStructure: Array<{
       { selector: "[data-tour='matches-round-list']", side: "top" },
     ],
   },
+  { key: "chats", version: 1, route: "/chats", audience: players, steps: [{ selector: "[data-tour='chats-conversations']", side: "bottom" }, { selector: "[data-tour='chats-finished']", side: "top" }] },
+  { key: "chat", version: 2, route: "/match/:id/chat", audience: players, steps: [{ selector: "[data-tour='chat-messages']", side: "bottom" }, { selector: "[data-tour='chat-proposals']", side: "top" }] },
   {
     key: "match",
     version: 1,
@@ -633,5 +641,5 @@ export function getTourForPathname({
   audience: OnboardingAudience
 }) {
   const tours = getOnboardingTours(locale).filter((tour) => tour.audience(audience))
-  return tours.find((tour) => tour.route === pathname || (tour.route === "/match/:id" && /^\/match\/[^/]+$/.test(pathname))) ?? null
+  return tours.find((tour) => tour.route === pathname || (tour.route === "/match/:id" && /^\/match\/[^/]+$/.test(pathname)) || (tour.route === "/match/:id/chat" && /^\/match\/[^/]+\/chat$/.test(pathname))) ?? null
 }

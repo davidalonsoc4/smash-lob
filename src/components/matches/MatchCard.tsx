@@ -36,6 +36,7 @@ type MatchCardProps = {
     sets: { a: number; b: number }[];
     scheduledAt?: string | null;
     resultRecordedAt?: string | null;
+    coordinationStatus?: "coordinating" | "awaiting_booking" | null;
     dateLabel: string | null;
     location: string | null;
     substitutions?: MatchSubstitution[];
@@ -56,7 +57,6 @@ type MatchCardProps = {
   statusPosition?: "auto" | "left" | "right";
   hideMissingScheduleMeta?: boolean;
 };
-
 export function MatchCard({
   match,
   players = [],
@@ -181,6 +181,7 @@ export function MatchCard({
       status={match.status}
       scheduledAt={match.scheduledAt ?? null}
       resultRecordedAt={match.resultRecordedAt ?? null}
+      coordinationStatus={match.coordinationStatus ?? null}
     />
   );
   const outcomeNode = currentUserOutcome ? (
