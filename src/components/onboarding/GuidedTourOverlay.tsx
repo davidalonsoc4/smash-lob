@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
+import { usePathname } from "next/navigation"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getOnboardingCopy } from "@/features/onboarding/types"
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider"
@@ -14,21 +15,18 @@ type TargetRect = {
 }
 
 const padding = 8
+const getViewport = () => { const viewport = window.visualViewport, styles = getComputedStyle(document.documentElement), rawTop = viewport?.offsetTop ?? 0, fallbackTop = Number.parseFloat(styles.getPropertyValue("--app-safe-top-fallback")) || 0, safeBottom = Number.parseFloat(styles.getPropertyValue("--app-safe-bottom")) || 0, top = Math.max(rawTop, fallbackTop); return { top, left: viewport?.offsetLeft ?? 0, width: viewport?.width ?? window.innerWidth, height: Math.max(0, (viewport?.height ?? window.innerHeight) - (top - rawTop) - safeBottom) } }
 
 function getTargetRect(selector?: string): TargetRect | null {
   if (!selector) return null
   const element = document.querySelector(selector)
   if (!(element instanceof HTMLElement)) return null
-  const rect = element.getBoundingClientRect()
-  return {
-    top: Math.max(8, rect.top - padding),
-    left: Math.max(8, rect.left - padding),
-    width: Math.min(window.innerWidth - 16, rect.width + padding * 2),
-    height: Math.min(window.innerHeight - 16, rect.height + padding * 2),
-  }
+  const rect = element.getBoundingClientRect(), viewport = getViewport(), top = Math.max(viewport.top + 8, rect.top - padding), left = Math.max(viewport.left + 8, rect.left - padding)
+  return { top, left, width: Math.max(0, Math.min(viewport.left + viewport.width - left - 8, rect.width + padding * 2)), height: Math.max(0, Math.min(viewport.top + viewport.height - top - 8, rect.height + padding * 2)) }
 }
 
 export function GuidedTourOverlay() {
+  const pathname = usePathname(), isMatchChatRoute = pathname.startsWith("/match/") && pathname.endsWith("/chat")
   const { locale } = useI18n()
   const copy = getOnboardingCopy(locale)
   const {
@@ -53,14 +51,19 @@ export function GuidedTourOverlay() {
       settledTimeout = window.setTimeout(update, 260)
     }, 40)
 
+    const visualViewport = window.visualViewport
     window.addEventListener("resize", update)
     window.addEventListener("scroll", update, true)
+    visualViewport?.addEventListener("resize", update)
+    visualViewport?.addEventListener("scroll", update)
     return () => {
       window.cancelAnimationFrame(initialFrame)
       window.clearTimeout(scrollTimeout)
       if (settledTimeout !== null) window.clearTimeout(settledTimeout)
       window.removeEventListener("resize", update)
       window.removeEventListener("scroll", update, true)
+      visualViewport?.removeEventListener("resize", update)
+      visualViewport?.removeEventListener("scroll", update)
     }
   }, [step])
 
@@ -78,31 +81,14 @@ export function GuidedTourOverlay() {
   }, [activeTour, closeTour, currentStepIndex, nextStep, previousStep])
 
   const popoverStyle = useMemo(() => {
-    if (!targetRect || step?.side === "center") {
-      return {
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        ...(step?.wide
-          ? { width: "min(432px, calc(100vw - 16px))" }
-          : {}),
-      }
-    }
-
-    if (typeof window === "undefined") {
-      return { left: "50%", top: "50%", transform: "translate(-50%, -50%)" }
-    }
-
-    const width = Math.min(340, window.innerWidth - 24)
-    const left = Math.max(12, Math.min(window.innerWidth - width - 12, targetRect.left + targetRect.width / 2 - width / 2))
-    const spaceBelow = window.innerHeight - (targetRect.top + targetRect.height)
-    const preferTop = step?.side === "top" || (step?.side !== "bottom" && spaceBelow < 230)
-    const top = preferTop
-      ? Math.max(12, targetRect.top - 206)
-      : Math.min(window.innerHeight - 210, targetRect.top + targetRect.height + 12)
-
-    return { left: `${left}px`, top: `${top}px`, width: `${width}px` }
-  }, [step?.side, step?.wide, targetRect])
+    if (typeof window === "undefined") return { left: "50%", top: "50%", transform: "translate(-50%, -50%)" }
+    const viewport = getViewport(), width = Math.min(step?.wide ? 432 : 340, viewport.width - 24), bottom = viewport.top + viewport.height, right = viewport.left + viewport.width
+    if (!targetRect || step?.side === "center") return { left: `${viewport.left + viewport.width / 2}px`, top: `${viewport.top + viewport.height / 2}px`, transform: "translate(-50%, -50%)", width: `${width}px`, maxHeight: `${Math.max(96, viewport.height - 24)}px` }
+    const left = Math.max(viewport.left + 12, Math.min(right - width - 12, targetRect.left + targetRect.width / 2 - width / 2)), targetBottom = targetRect.top + targetRect.height, above = targetRect.top - viewport.top - 12, below = bottom - targetBottom - 12, minimum = 176
+    if ((isMatchChatRoute && Math.max(above, below) < minimum) || (above < minimum && below < minimum)) return { left: `${viewport.left + viewport.width / 2}px`, top: `${viewport.top + viewport.height / 2}px`, transform: "translate(-50%, -50%)", width: `${width}px`, maxHeight: `${Math.max(80, viewport.height - 24)}px` }
+    const useTop = (step?.side === "top" && above >= minimum) || below < minimum && above > below, maxHeight = Math.max(minimum, Math.min(340, useTop ? above : below)), top = useTop ? targetRect.top - maxHeight - 12 : Math.min(bottom - maxHeight - 12, targetBottom + 12)
+    return { left: `${left}px`, top: `${Math.max(viewport.top + 12, top)}px`, width: `${width}px`, maxHeight: `${maxHeight}px` }
+  }, [isMatchChatRoute, step?.side, step?.wide, targetRect])
 
   if (typeof document === "undefined" || !activeTour || !step) return null
 
@@ -132,9 +118,10 @@ export function GuidedTourOverlay() {
       )}
 
       <section
-        className="fixed z-[101] max-h-[calc(100vh-24px)] overflow-y-auto rounded-3xl border border-white/20 bg-white p-4 text-neutral-950 shadow-2xl"
+        className="fixed z-[101] flex flex-col overflow-hidden rounded-3xl border border-white/20 bg-white p-4 text-neutral-950 shadow-2xl"
         style={popoverStyle}
       >
+        <div className="min-h-0 overflow-y-auto">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
@@ -154,7 +141,8 @@ export function GuidedTourOverlay() {
         <p className="mt-2 text-sm font-semibold leading-6 text-neutral-600">
           {step.description}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-2">
+        </div>
+        <div className="mt-3 flex shrink-0 items-center justify-between gap-2 border-t border-neutral-100 pt-3">
           <button
             type="button"
             onClick={skipTour}

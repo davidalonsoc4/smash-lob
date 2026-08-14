@@ -102,9 +102,9 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
-    chats: { title: "Chats", description: "Entiende el orden, los pendientes y el estado de cada conversación.", steps: [{ title: "Actividad, pendientes y estados", description: "Los chats con mensajes suben por actividad reciente; los que aún están vacíos quedan por Jornada 1, 2, 3… La bolita indica mensajes sin leer y la etiqueta de color muestra el estado del partido." }, { title: "Chats finalizados", description: "Los partidos terminados se separan debajo y pasan a Solo lectura para conservar el historial sin mezclarlo con conversaciones activas." }] },
+    chats: { title: "Chats", description: "Ubica primero las conversaciones que requieren atención.", steps: [{ title: "Chats activos", description: "Aquí están la jornada en curso, la siguiente y cualquier chat futuro que ya tenga mensajes. Las conversaciones con actividad reciente suben como en una app de mensajería." }, { title: "Próximos", description: "Las jornadas posteriores sin actividad quedan separadas aquí. En cuanto llegue un mensaje, ese chat pasa automáticamente a Activos." }, { title: "Chats finalizados", description: "Los partidos terminados se separan debajo y pasan a Solo lectura para conservar el historial sin mezclarlos con los chats en curso." }] },
     match: { title: "Detalle de partido", description: "Consulta el encuentro y sus acciones específicas.", steps: [{ title: "Chat del partido", description: "Esta burbuja abre el chat privado de los cuatro participantes. Todas tus conversaciones están también en Chats, en la NAVBAR." }] },
-    chat: { title: "Chat del partido", description: "Coordina el partido con mensajes y propuestas que responden al instante.", steps: [{ title: "Identidad y lectura", description: "Cada jugador conserva su color y avatar; en tus mensajes, ✓ confirma el envío y ✓✓ azul indica que todos los demás participantes vinculados lo han leído." }, { title: "Propuestas rápidas", description: "El clip abre propuestas de fecha o ubicación. Puedes marcar hasta cuatro horarios directamente, quitar cualquiera desde sus chips y votar con ✓ o ✕ sin esperar visualmente a la red. Cuando la reserva queda confirmada, el resumen de fecha, hora y pista queda fijado sobre el historial." }] },
+    chat: { title: "Chat del partido", description: "Coordina el partido con mensajes y propuestas que responden al instante.", steps: [{ title: "Identidad y lectura", description: "Los mensajes consecutivos se agrupan por jugador: su avatar y color identifican el inicio del bloque y los mensajes nuevos entran con una animación breve. En los tuyos, ✓ confirma el envío y ✓✓ azul indica lectura de todos los demás vinculados." }, { title: "Propuestas rápidas", description: "El clip abre propuestas de fecha o ubicación. Puedes marcar hasta cuatro horarios directamente, quitar cualquiera desde sus chips y votar con ✓ o ✕ sin esperar visualmente a la red. Al completar cuatro votos o cambiar la coordinación, los demás reciben un aviso salvo que tengan ese chat abierto. Cuando la reserva queda confirmada, su resumen queda fijado sobre el historial." }] },
     ranking: {
       title: "Clasificación",
       description: "Interpreta posiciones, puntos y criterios de desempate.",
@@ -147,7 +147,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Notificaciones",
-          description: "Configura los avisos push y decide qué notificaciones quieres recibir en este dispositivo.",
+          description: "Configura los avisos push y decide qué notificaciones quieres recibir. Los mensajes de una misma conversación se agrupan en una sola notificación del chat.",
         },
         {
           title: "Tus ligas y Mis partidos",
@@ -266,9 +266,9 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
-    chats: { title: "Chats", description: "Understand conversation order, unread items and each match status.", steps: [{ title: "Activity, unread items and statuses", description: "Chats with messages rise by recent activity; empty conversations stay in Round 1, 2, 3… order. The dot shows unread messages and the colored badge shows the match status." }, { title: "Finished chats", description: "Finished matches are grouped below and become read-only so history stays available without mixing with active conversations." }] },
+    chats: { title: "Chats", description: "Keep the conversations that need attention at the top.", steps: [{ title: "Active chats", description: "This section contains the current round, the next round and any future chat that already has messages. Recent activity rises like in a messaging app." }, { title: "Upcoming", description: "Later rounds with no activity stay here. As soon as a message arrives, that chat automatically moves to Active." }, { title: "Finished chats", description: "Finished matches stay below in read-only mode so their history does not mix with ongoing chats." }] },
     match: { title: "Match detail", description: "Review the match and its specific actions.", steps: [{ title: "Match chat", description: "This bubble opens the private chat for the four participants. All your conversations are also available under Chats in the bottom navigation." }] },
-    chat: { title: "Match chat", description: "Coordinate the match with messages and proposals that react instantly.", steps: [{ title: "Identity and read receipts", description: "Each player keeps a stable color and avatar; on your messages, ✓ confirms sending and blue ✓✓ means every other linked participant has read it." }, { title: "Quick proposals", description: "The paperclip opens date or location proposals. Select up to four times directly, remove any option from its chip and vote with ✓ or ✕ without waiting for the network. Once the booking is confirmed, its date, time and court stay pinned above the message history." }] },
+    chat: { title: "Match chat", description: "Coordinate the match with messages and proposals that react instantly.", steps: [{ title: "Identity and read receipts", description: "Consecutive messages are grouped by player: their avatar and color mark the start of the block and new messages enter with a short animation. On your messages, ✓ confirms sending and blue ✓✓ means every other linked participant has read it." }, { title: "Quick proposals", description: "The paperclip opens date or location proposals. Select up to four times directly, remove any option from its chip and vote with ✓ or ✕ without waiting for the network. When four votes are completed or coordination changes, the others are notified unless that chat is open. Once booking is confirmed, its summary stays pinned above the history." }] },
     ranking: {
       title: "Standings",
       description: "Understand positions, points and tie-break rules.",
@@ -311,7 +311,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Notifications",
-          description: "Configure push alerts and choose which notifications you want to receive on this device.",
+          description: "Configure push alerts and choose which notifications you want to receive. Messages from the same conversation are grouped into a single chat notification.",
         },
         {
           title: "Your leagues and My matches",
@@ -430,9 +430,9 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
       ],
     },
-    chats: { title: "Chats", description: "Ulertu elkarrizketen ordena, irakurri gabekoak eta partida bakoitzaren egoera.", steps: [{ title: "Jarduera, pendienteak eta egoerak", description: "Mezuak dituzten chat-ak azken jardueraren arabera igotzen dira; hutsik daudenak 1., 2., 3. jardunaldien ordenan geratzen dira. Burbuilak irakurri gabekoak eta kolorezko etiketak partidaren egoera adierazten dute." }, { title: "Amaitutako chat-ak", description: "Amaitutako partidak behean bereizten dira eta irakurketa-soilean geratzen dira, historia chat aktiboekin nahastu gabe mantentzeko." }] },
+    chats: { title: "Chats", description: "Jarri arreta behar duten elkarrizketak lehenengo.", steps: [{ title: "Chat aktiboak", description: "Uneko jardunaldia, hurrengoa eta dagoeneko mezuak dituen etorkizuneko edozein chat hemen agertzen dira. Jarduera berriena gorantz igotzen da mezularitza-aplikazio batean bezala." }, { title: "Hurrengoak", description: "Jarduerarik gabeko ondorengo jardunaldiak hemen geratzen dira. Mezu bat iritsi bezain laster, chat hori Aktiboetara pasatzen da." }, { title: "Amaitutako chat-ak", description: "Amaitutako partidak behean eta irakurketa-soilean geratzen dira, historia martxan dauden chatekin nahastu gabe." }] },
     match: { title: "Partidaren xehetasuna", description: "Ikusi partida eta haren ekintza espezifikoak.", steps: [{ title: "Partidako chat-a", description: "Burbuila honek lau parte-hartzaileen chat pribatua irekitzen du. Elkarrizketa guztiak NAVBAR-eko Chats atalean ere daude." }] },
-    chat: { title: "Partidako chat-a", description: "Koordinatu partida berehala erantzuten duten mezu eta proposamenekin.", steps: [{ title: "Identitatea eta irakurketa", description: "Jokalari bakoitzak bere kolorea eta avatarra mantentzen ditu; zure mezuetan ✓ bidalketa baieztatzen du eta ✓✓ urdinak lotutako gainerako parte-hartzaile guztiek irakurri dutela adierazten du." }, { title: "Proposamen azkarrak", description: "Klipak data edo kokapen proposamenak irekitzen ditu. Gehienez lau ordutegi zuzenean marka ditzakezu, edozein chip-etik kendu eta ✓ edo ✕ bidez bozkatu sareari bisualki itxaron gabe. Erreserba baieztatzen denean, data, ordua eta pista mezuen historiaren gainean finkatuta geratzen dira." }] },
+    chat: { title: "Partidako chat-a", description: "Koordinatu partida berehala erantzuten duten mezu eta proposamenekin.", steps: [{ title: "Identitatea eta irakurketa", description: "Jarraian datozen mezuak jokalariaren arabera taldekatzen dira: avatarrak eta koloreak blokearen hasiera markatzen dute eta mezu berriak animazio labur batekin sartzen dira. Zure mezuetan ✓ bidalketa baieztatzen du eta ✓✓ urdinak lotutako gainerako parte-hartzaile guztiek irakurri dutela adierazten du." }, { title: "Proposamen azkarrak", description: "Klipak data edo kokapen proposamenak irekitzen ditu. Gehienez lau ordutegi zuzenean marka ditzakezu, edozein chip-etik kendu eta ✓ edo ✕ bidez bozkatu sareari bisualki itxaron gabe. Lau boto osatzen direnean edo koordinazioa aldatzen denean, gainerakoek abisua jasotzen dute chat hori irekita ez badute. Erreserba baieztatzen denean, laburpena historiaren gainean finkatzen da." }] },
     ranking: {
       title: "Sailkapena",
       description: "Ulertu postuak, puntuak eta berdinketa-irizpideak.",
@@ -475,7 +475,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jakinarazpenak",
-          description: "Konfiguratu push abisuak eta aukeratu gailu honetan zein jakinarazpen jaso nahi dituzun.",
+          description: "Konfiguratu push abisuak eta aukeratu zein jakinarazpen jaso nahi dituzun. Elkarrizketa bereko mezuak chat jakinarazpen bakarrean taldekatzen dira.",
         },
         {
           title: "Zure ligak eta Nire partidak",
@@ -548,8 +548,8 @@ const tourStructure: Array<{
       { selector: "[data-tour='matches-round-list']", side: "top" },
     ],
   },
-  { key: "chats", version: 1, route: "/chats", audience: players, steps: [{ selector: "[data-tour='chats-conversations']", side: "bottom" }, { selector: "[data-tour='chats-finished']", side: "top" }] },
-  { key: "chat", version: 2, route: "/match/:id/chat", audience: players, steps: [{ selector: "[data-tour='chat-messages']", side: "bottom" }, { selector: "[data-tour='chat-proposals']", side: "top" }] },
+  { key: "chats", version: 2, route: "/chats", audience: players, steps: [{ selector: "[data-tour='chats-conversations']", side: "bottom" }, { selector: "[data-tour='chats-upcoming']", side: "bottom" }, { selector: "[data-tour='chats-finished']", side: "top" }] },
+  { key: "chat", version: 4, route: "/match/:id/chat", audience: players, steps: [{ selector: "[data-tour='chat-messages']", side: "center" }, { selector: "[data-tour='chat-proposals']", side: "top" }] },
   {
     key: "match",
     version: 1,

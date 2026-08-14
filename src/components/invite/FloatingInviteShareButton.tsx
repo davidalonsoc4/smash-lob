@@ -124,7 +124,7 @@ export function FloatingInviteShareButton({
       className="z-50"
       style={{
         position: "fixed",
-        top: "max(10px, calc(env(safe-area-inset-top, 0px) + 8px))",
+        top: "max(10px, calc(var(--app-safe-top) + 8px))",
         right: `max(${rightOffsetPx}px, calc((100vw - 448px) / 2 + ${rightOffsetPx}px))`,
       }}
     >

@@ -43,7 +43,7 @@ describe("v1.7.0 match detail mobile UI polish", () => {
     expect(page).toContain("teamA={match.teamA}")
     expect(page).toContain("teamB={match.teamB}")
     expect(page).toContain("window.visualViewport")
-    expect(page).toContain('className="mt-2 flex shrink-0 items-end gap-2 border-t')
+    expect(page).toContain('className="flex shrink-0 items-end gap-2 border-t')
     expect(shell).toContain("isMatchChatRoute")
     expect(shell).toContain("!isMatchChatRoute &&")
     expect(page).not.toContain('match.teamA.map(name).join(" / ")')

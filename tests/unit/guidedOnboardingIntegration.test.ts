@@ -14,7 +14,9 @@ describe("guided onboarding integration", () => {
     expect(shell).toContain('data-tour="floating-notifications"')
     expect(provider).toContain("includeFirstRunOnly")
     expect(provider).toContain('progress["app-introduction"]')
-    expect(overlay).toContain('width: "min(432px, calc(100vw - 16px))"')
+    expect(overlay).toContain("window.visualViewport")
+    expect(overlay).toContain("maxHeight")
+    expect(overlay).toContain("viewport.top + 12")
   })
 
   it("marks every first-release screen with stable tour selectors", async () => {

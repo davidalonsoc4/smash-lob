@@ -197,11 +197,11 @@ assert(
 
 const backButton = await readFile("src/components/ui/BackButton.tsx", "utf8")
 assert(
-  appShell.includes('max(54px, calc(env(safe-area-inset-top, 0px) + 52px))'),
+  appShell.includes('max(54px, calc(var(--app-safe-top) + 52px))'),
   "Las pantallas con acciones flotantes deben reservar 54 px de entrada superior antes de la cabecera",
 )
 assert(
-  appShell.includes('max(20px, calc(env(safe-area-inset-top, 0px) + 20px))'),
+  appShell.includes('max(20px, calc(var(--app-safe-top) + 20px))'),
   "Las pantallas sin acciones flotantes deben ampliar también su margen superior",
 )
 assert(
@@ -213,7 +213,7 @@ assert(
   "Volver o Refrescar deben poder ocupar la izquierda de la fila funcional superior",
 )
 assert(
-  globals.includes('top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px))'),
+  globals.includes('top: max(10px, calc(var(--app-safe-top) + 8px))'),
   "La fila funcional superior debe respetar el safe area del dispositivo",
 )
 assert(
@@ -253,7 +253,7 @@ assert(
 )
 assert(backButton.includes("app-top-back-control"), "BackButton debe integrarse en la fila funcional superior")
 assert(
-  appShell.includes('top: "max(4px, calc(env(safe-area-inset-top, 0px) + 4px))"') &&
+  appShell.includes('top: "max(4px, calc(var(--app-safe-top) + 4px))"') &&
     appShell.includes("left: getPreproductionBadgeLeft()") &&
     appShell.includes("zIndex: 80"),
   "PRE debe fijar su badge arriba a la izquierda con prioridad visual independiente de la cabecera",

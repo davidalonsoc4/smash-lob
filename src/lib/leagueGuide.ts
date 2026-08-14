@@ -202,7 +202,7 @@ const COPY: Record<Locale, GuideCopy> = {
       "La aplicación permite repartir reservas de pista, bolas y pagos pendientes entre participantes.",
     notificationsTitle: "Notificaciones",
     notificationsDescription:
-      "Cada usuario elige qué avisos recibir y activa las notificaciones push en cada dispositivo.",
+      "Cada usuario elige qué avisos recibir y activa las notificaciones push en cada dispositivo; los avisos de un mismo chat se agrupan, se silencian mientras esa conversación está abierta y también informan al completar cuatro votos o cambiar la coordinación.",
     activityTitle: "Actividad e historial",
     activityDescription:
       "La actividad de la liga conserva cambios, resultados, programación y acciones relevantes según tu acceso.",
@@ -337,7 +337,7 @@ const COPY: Record<Locale, GuideCopy> = {
       "The application can split court bookings, balls and pending payments between participants.",
     notificationsTitle: "Notifications",
     notificationsDescription:
-      "Each user chooses which alerts to receive and enables push notifications on each device.",
+      "Each user chooses which alerts to receive and enables push notifications on each device; alerts from the same chat are grouped, suppressed while that conversation is open and also report four-vote milestones or coordination changes.",
     activityTitle: "Activity and history",
     activityDescription:
       "League activity keeps relevant changes, results, scheduling and actions according to your access.",
@@ -472,7 +472,7 @@ const COPY: Record<Locale, GuideCopy> = {
       "Aplikazioak pista-erreserbak, pilotak eta parte-hartzaileen arteko ordainketak banatzeko aukera ematen du.",
     notificationsTitle: "Jakinarazpenak",
     notificationsDescription:
-      "Erabiltzaile bakoitzak jaso nahi dituen abisuak aukeratzen ditu eta push jakinarazpenak gailu bakoitzean aktibatzen ditu.",
+      "Erabiltzaile bakoitzak jaso nahi dituen abisuak aukeratzen ditu eta push jakinarazpenak gailu bakoitzean aktibatzen ditu; chat bereko abisuak taldekatzen dira, elkarrizketa hori irekita dagoenean isilarazten dira eta lau boto osatzen direnean edo koordinazioa aldatzen denean ere jakinarazten dute.",
     activityTitle: "Jarduera eta historia",
     activityDescription:
       "Ligaren jarduerak aldaketa, emaitza, programazio eta ekintza garrantzitsuak gordetzen ditu zure sarbidearen arabera.",

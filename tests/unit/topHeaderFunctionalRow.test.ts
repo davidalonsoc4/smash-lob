@@ -18,13 +18,13 @@ describe("top functional header row", () => {
       readFile("src/components/spectator/FloatingSpectatorShareButton.tsx", "utf8"),
     ])
 
-    expect(shell).toContain('max(54px, calc(env(safe-area-inset-top, 0px) + 52px))')
-    expect(shell).toContain('max(20px, calc(env(safe-area-inset-top, 0px) + 20px))')
+    expect(shell).toContain('max(54px, calc(var(--app-safe-top) + 52px))')
+    expect(shell).toContain('max(20px, calc(var(--app-safe-top) + 20px))')
     expect(shell).not.toContain("--app-floating-top-reserved-width")
     expect(globals).toContain('.app-main[data-has-floating-top-controls="true"] .app-top-back-control')
     expect(globals).not.toContain("max-width: calc(100% - var(--app-floating-top-reserved-width")
     expect(backButton).toContain("app-top-back-control")
-    expect(shell).toContain('top: "max(4px, calc(env(safe-area-inset-top, 0px) + 4px))"')
+    expect(shell).toContain('top: "max(4px, calc(var(--app-safe-top) + 4px))"')
     expect(shell).toContain("left: getPreproductionBadgeLeft()")
     expect(shell).toContain("zIndex: 80")
     expect(globals).not.toContain(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge")
@@ -50,8 +50,8 @@ describe("top functional header row", () => {
     expect(playerProfile).toContain('<PlayerProfileScreen playerIdOrSlug={id} mode="public" />')
     expect(sharedProfile).toContain('<header className="app-page-header">')
     for (const control of [invite, help, spectatorShare]) {
-      expect(control).toContain('max(10px, calc(env(safe-area-inset-top, 0px) + 8px))')
-      expect(control).not.toContain('max(16px, calc(env(safe-area-inset-top, 0px) + 12px))')
+      expect(control).toContain('max(10px, calc(var(--app-safe-top) + 8px))')
+      expect(control).not.toContain('max(16px, calc(var(--app-safe-top) + 12px))')
     }
   })
 })
