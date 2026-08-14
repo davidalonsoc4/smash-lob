@@ -490,12 +490,10 @@ function getNotificationTitle(
   }
 
   if (event.type === "match_chat_message") {
-    const metadata = toRecord(event.metadata);
-    const round = toNumber(metadata.round);
-    if (recipient?.userId && toStringArray(metadata.mentionedUserIds).includes(recipient.userId)) {
-      const actor = event.actor_display_name || event.actor_email || "Un jugador";
-      return round > 0 ? `${actor} te ha mencionado · Jornada ${round}` : `${actor} te ha mencionado`;
-    }
+    const metadata = toRecord(event.metadata), round = toNumber(metadata.round), kind = String(metadata.chatEventKind ?? ""), status = String(metadata.coordinationStatus ?? "");
+    if (kind === "proposal_four_votes") return round > 0 ? `4 votos · Jornada ${round}` : "Propuesta con 4 votos";
+    if (kind === "coordination_status") { const label = status === "awaiting_booking" ? "Pendiente de reserva" : status === "coordinating" ? "Coordinando" : "Estado del partido"; return round > 0 ? `${label} · Jornada ${round}` : label; }
+    if (recipient?.userId && toStringArray(metadata.mentionedUserIds).includes(recipient.userId)) { const actor = event.actor_display_name || event.actor_email || "Un jugador"; return round > 0 ? `${actor} te ha mencionado · Jornada ${round}` : `${actor} te ha mencionado`; }
     return round > 0 ? `Chat · Jornada ${round}` : "Nuevo mensaje en el chat";
   }
 
@@ -532,9 +530,10 @@ function getNotificationBody(
   playerNamesById: Map<string, string>,
 ) {
   if (event.type === "match_chat_message") {
-    const preview = String(toRecord(event.metadata).messagePreview ?? "").trim();
-    const actor = event.actor_display_name || event.actor_email || "Un jugador";
-    const cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
+    const metadata = toRecord(event.metadata), kind = String(metadata.chatEventKind ?? ""), status = String(metadata.coordinationStatus ?? "");
+    if (kind === "proposal_four_votes") return `La propuesta de ${metadata.proposalKind === "location_proposal" ? "ubicación" : "fecha"} ya tiene las 4 respuestas.`;
+    if (kind === "coordination_status") return metadata.reachedFourVotes === true ? status === "awaiting_booking" ? "La propuesta ha alcanzado 4 votos y ya hay fecha y ubicación aprobadas. Falta confirmar la reserva." : "La propuesta ha alcanzado 4 votos y ha cambiado el estado de coordinación." : status === "awaiting_booking" ? "Ya hay fecha y ubicación aprobadas. Falta confirmar la reserva." : status === "coordinating" ? "Se ha iniciado la coordinación del partido en el chat." : "Ha cambiado el estado de coordinación del partido.";
+    const preview = String(metadata.messagePreview ?? "").trim(), actor = event.actor_display_name || event.actor_email || "Un jugador", cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
     return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat del partido.`;
   }
 
@@ -1151,7 +1150,8 @@ export async function dispatchPushForActivityEvent(
         title: getNotificationTitle(event, recipient),
         body: getNotificationBody(event, recipient, playerNamesById),
         url: getNotificationUrl(event),
-        tag: `smash-lob-${event.id}`,
+        tag: event.type === "match_chat_message" && event.match_id ? `smash-lob-chat-${event.match_id}` : `smash-lob-${event.id}`,
+        chatMatchId: event.type === "match_chat_message" && event.match_id ? event.match_id : null,
       });
 
       try {

@@ -180,7 +180,7 @@ export function GlobalLeagueSearch() {
           aria-label={t.settings.leagueSearchClose}
           onClick={closeSearch}
           className="fixed bottom-0 left-0 right-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
-          style={{ top: "calc(-64px - env(safe-area-inset-top, 0px))" }}
+          style={{ top: "calc(-64px - var(--app-safe-top))" }}
         />
       ) : null}
 
@@ -198,10 +198,10 @@ export function GlobalLeagueSearch() {
             aria-label={t.settings.leagueSearchTitle}
             className="fixed z-40 flex w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
             style={{
-              top: "max(64px, calc(env(safe-area-inset-top, 0px) + 58px))",
+              top: "max(64px, calc(var(--app-safe-top) + 58px))",
               right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
               maxHeight:
-                "min(560px, calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 150px))",
+                "min(560px, calc(100svh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 150px))",
             }}
           >
             <div className="border-b border-neutral-100 px-3 pb-2.5 pt-3">

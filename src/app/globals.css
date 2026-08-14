@@ -4,6 +4,9 @@
   --background: #f5f5f4;
   --app-bottom-nav-safe-surface: #ffffff;
   --app-match-chat-safe-surface: #ffffff;
+  --app-safe-top-fallback: 0px;
+  --app-safe-top: max(env(safe-area-inset-top, 0px), var(--app-safe-top-fallback));
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
   --foreground: #171717;
   --app-font-size-adjust: 0px;
 }
@@ -280,6 +283,14 @@ textarea {
   line-height: 1.15 !important;
 }
 
+.app-page-header.app-match-chat-header { padding-top: max(0.5rem, calc(var(--app-safe-top) + 0.5rem)) !important; }
+.chat-bubble-incoming-first { position: relative; }
+.chat-bubble-incoming-first::before { content: ""; position: absolute; left: -6px; top: -1px; border-top: 9px solid rgb(229 229 229); border-left: 7px solid transparent; }
+.chat-bubble-incoming-first::after { content: ""; position: absolute; left: -4px; top: 0; border-top: 7px solid #fff; border-left: 6px solid transparent; }
+.chat-message-enter { animation: chat-message-enter 180ms cubic-bezier(.2,.7,.2,1); transform-origin: top center; }
+@keyframes chat-message-enter { from { opacity: .25; transform: translateY(-7px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .chat-message-enter { animation: none; } }
+
 /* A wrapper for title actions/avatar must not shift the shared title baseline. */
 .app-page-header > :has(.type-page-title) {
   margin-top: 0 !important;
@@ -287,7 +298,7 @@ textarea {
 
 .app-main[data-has-floating-top-controls="true"] .app-top-back-control {
   position: absolute;
-  top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+  top: max(10px, calc(var(--app-safe-top) + 8px));
   left: 0.75rem;
   z-index: 51;
   display: inline-flex;
@@ -536,7 +547,7 @@ html.dark[data-style="plain"] .status-colors-disabled :where(
 /* Global settings search destinations ----------------------------------- */
 .settings-search-target,
 .app-main [id] {
-  scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 5.5rem);
+  scroll-margin-top: calc(var(--app-safe-top) + 5.5rem);
 }
 
 @keyframes settings-search-highlight {
@@ -1949,7 +1960,7 @@ html[data-style="colorful"] .statistics-history-row + .statistics-history-row {
 
 .statistics-floating-selector-active {
   position: fixed;
-  top: max(54px, calc(env(safe-area-inset-top, 0px) + 52px));
+  top: max(54px, calc(var(--app-safe-top) + 52px));
   left: 50%;
   z-index: 45;
   width: min(424px, calc(100vw - 24px));

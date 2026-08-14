@@ -91,7 +91,7 @@ function getFloatingRight(offsetPx: number) {
 }
 
 function getFloatingTop() {
-  return "max(10px, calc(env(safe-area-inset-top, 0px) + 8px))"
+  return "max(10px, calc(var(--app-safe-top) + 8px))"
 }
 
 function getPreproductionBadgeLeft() {
@@ -308,7 +308,7 @@ export function AppShell({ children }: AppShellProps) {
             aria-label={branding.internalBadgeAriaLabel ?? undefined}
             className="app-preproduction-badge pointer-events-none fixed rounded-full border border-red-200 bg-red-600 px-3 py-1 type-caption font-black uppercase tracking-[0.24em] text-white shadow-lg"
             style={{
-              top: "max(4px, calc(env(safe-area-inset-top, 0px) + 4px))",
+              top: "max(4px, calc(var(--app-safe-top) + 4px))",
               left: getPreproductionBadgeLeft(),
               zIndex: 80,
             }}
@@ -390,10 +390,10 @@ export function AppShell({ children }: AppShellProps) {
               paddingTop: isMatchChatRoute
                 ? "0px"
                 : isLeagueNavigationRoute
-                  ? "env(safe-area-inset-top, 0px)"
+                  ? "var(--app-safe-top)"
                   : hasFloatingTopControls
-                    ? "max(54px, calc(env(safe-area-inset-top, 0px) + 52px))"
-                    : "max(20px, calc(env(safe-area-inset-top, 0px) + 20px))",
+                    ? "max(54px, calc(var(--app-safe-top) + 52px))"
+                    : "max(20px, calc(var(--app-safe-top) + 20px))",
               paddingBottom: isMatchChatRoute
                 ? "0px"
                 : isLeagueNavigationRoute
