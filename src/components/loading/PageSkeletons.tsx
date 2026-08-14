@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/Skeleton"
 function PageFrame({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-stone-200 text-neutral-950">
-      <div className="mx-auto min-h-screen max-w-md bg-stone-50 px-3 pb-24 pt-[max(20px,calc(env(safe-area-inset-top,0px)+20px))] shadow-[0_0_32px_rgba(15,23,42,0.06)]">
+      <div className="mx-auto min-h-screen max-w-md bg-stone-50 px-3 pb-24 pt-[max(20px,calc(var(--app-safe-top)+20px))] shadow-[0_0_32px_rgba(15,23,42,0.06)]">
         {children}
       </div>
     </div>

@@ -26,7 +26,7 @@ const THEME_MODE_STORAGE_KEY = "smash-lob-theme-mode"
 const VISUAL_STYLE_STORAGE_KEY = "smash-lob-visual-style"
 const COLORFUL_PALETTE_STORAGE_KEY = "smash-lob-colorful-palette"
 const DEFAULT_THEME_MODE: ThemeMode = "light"
-const DEFAULT_VISUAL_STYLE: VisualStyle = "plain"
+const DEFAULT_VISUAL_STYLE: VisualStyle = "colorful"
 const DEFAULT_COLORFUL_PALETTE: ColorfulPalette = "indigo"
 
 const COLORFUL_THEME_COLORS: Record<ColorfulPalette, { light: string; dark: string }> = {
@@ -91,7 +91,9 @@ function readStoredVisualStyle(): VisualStyle {
   const stored = window.localStorage.getItem(VISUAL_STYLE_STORAGE_KEY)
   if (isVisualStyle(stored)) return stored
 
-  return readLegacyTheme() === "colorful" ? "colorful" : DEFAULT_VISUAL_STYLE
+  const legacy = readLegacyTheme()
+  if (legacy === "colorful") return "colorful"
+  return isThemeMode(legacy) ? "plain" : DEFAULT_VISUAL_STYLE
 }
 
 function readStoredColorfulPalette(): ColorfulPalette {

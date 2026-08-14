@@ -1,4 +1,4 @@
-const CACHE_VERSION = "smash-lob-v1.8.14"
+const CACHE_VERSION = "smash-lob-v1.8.16"
 const APP_SHELL = [
   "/offline",
   "/manifest.webmanifest",
@@ -80,13 +80,21 @@ self.addEventListener("push", (event) => {
     icon: "/icon-192.png",
     badge: "/icon-192.png",
     tag: payload.tag || "smash-lob-notification",
-    renotify: false,
+    renotify: String(payload.tag || "").startsWith("smash-lob-chat-"),
     data: {
       url,
     },
   }
 
-  event.waitUntil(self.registration.showNotification(title, options))
+  event.waitUntil((async () => {
+    if (payload.chatMatchId) {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
+      const chatPath = `/match/${payload.chatMatchId}/chat`
+      const chatVisible = windows.some((client) => { try { return new URL(client.url).pathname === chatPath && client.visibilityState === "visible" } catch { return false } })
+      if (chatVisible) return
+    }
+    await self.registration.showNotification(title, options)
+  })())
 })
 
 self.addEventListener("notificationclick", (event) => {

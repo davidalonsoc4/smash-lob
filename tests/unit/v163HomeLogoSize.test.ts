@@ -8,7 +8,7 @@ describe("HOME league logo geometry", () => {
       readFile("src/app/page.tsx", "utf8"),
     ])
 
-    expect(globals).toContain('top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px))')
+    expect(globals).toContain('top: max(10px, calc(var(--app-safe-top) + 8px))')
     expect(globals).not.toContain(".app-home-top-logo")
     expect(globals).not.toContain("grid-template-columns: 6.25rem minmax(0, 1fr)")
     expect(home).toContain('activeLeague.logoUrl ? "flex items-start gap-3" : "block"')

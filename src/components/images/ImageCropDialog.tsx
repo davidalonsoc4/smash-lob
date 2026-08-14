@@ -270,7 +270,7 @@ export function ImageCropDialog({
       aria-describedby="image-crop-description"
       className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 px-3 backdrop-blur-sm"
       style={{
-        paddingTop: "max(12px, env(safe-area-inset-top))",
+        paddingTop: "max(12px, var(--app-safe-top))",
         paddingBottom: "max(12px, env(safe-area-inset-bottom))",
       }}
     >
@@ -278,7 +278,7 @@ export function ImageCropDialog({
         className="flex w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl dark:bg-neutral-900"
         style={{
           maxHeight:
-            "calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)))",
+            "calc(100dvh - max(24px, var(--app-safe-top)) - max(24px, env(safe-area-inset-bottom)))",
         }}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 px-4 pt-4">
