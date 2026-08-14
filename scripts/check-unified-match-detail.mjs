@@ -48,13 +48,25 @@ for (const marker of ["<BackButton", "<MatchStatusBadge", "<MatchDetailPairingPa
 assert(sharedView.includes("headerActions") && sharedView.includes("beforePairing"), "MatchDetailView debe admitir extensiones específicas sin duplicar la pantalla")
 assert(pairingPanel.includes('const hasResult = sets.length > 0'), "El emparejamiento compartido debe conservar la vista con/sin resultado")
 assert(
-  (pairingPanel.match(/positionPlacement=\{index === 0 \? "above" : "below"\}/g) ?? []).length === 2,
-  "Sin resultado y con resultado deben colocar la posición del primer jugador encima y la del segundo debajo",
+  pairingPanel.includes('metadataPlacement={index === 0 ? "before-name" : "after-name"}'),
+  "Sin resultado, el primer jugador debe mostrar metadatos antes del nombre y el segundo después",
 )
 assert(
-  pairingPanel.includes('positionLabel && positionPlacement === "above"') &&
-    pairingPanel.includes('positionLabel && positionPlacement === "below"'),
-  "El jugador pendiente debe renderizar la posición según su colocación",
+  pairingPanel.includes('const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\\u00a0"}</p>') &&
+    pairingPanel.includes('const playLine = <p className={metadataClass}>{playerPositionLabel ?? "\\u00a0"}</p>'),
+  "Sin resultado, posición y perfil de juego deben ocupar líneas independientes y estables",
+)
+const finishedPlayer = pairingPanel.slice(
+  pairingPanel.indexOf("function FinishedPlayerName({"),
+  pairingPanel.indexOf("function FinishedPairRow({"),
+)
+assert(
+  !finishedPlayer.includes("getPlayerSideAndHandLabel") && !finishedPlayer.includes("position"),
+  "Con resultado deben ocultarse posición en liga y perfil de juego",
+)
+assert(
+  pairingPanel.includes("const showPendingMetadata = Object.keys(rankingPositions).length > 0"),
+  "Los metadatos competitivos deben limitarse a detalles con posiciones de liga",
 )
 
 assert(personalPage.includes("<PersonalMatchParticipantsPanel"), "El amistoso debe permitir editar participantes desde PARTIDO")
@@ -88,7 +100,8 @@ console.log("Detalle de partido v1.6.0 unificado:")
 console.log("- liga y amistoso comparten MatchDetailView")
 console.log("- liga usa Jornada X como título; amistosos mantienen Partido")
 console.log("- la posición de cada jugador replica el orden visual 1, 2, 3… de Clasificación")
-console.log("- sin resultado, jugador 1 de cada pareja muestra la posición encima; jugador 2 debajo")
+console.log("- sin resultado, jugador 1 usa posición/perfil/nombre y jugador 2 nombre/perfil/posición")
+console.log("- con resultado se ocultan posición y perfil de juego")
 console.log("- cada origen conserva su carga, permisos y persistencia")
 console.log("- amistosos programados permiten editar pareja y contrincantes")
 console.log("- el formulario de resultado también reutiliza la UI de liga")
