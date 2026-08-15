@@ -1,4 +1,4 @@
-const CACHE_VERSION = "smash-lob-v1.8.20"
+const CACHE_VERSION = "smash-lob-v1.8.23"
 const APP_SHELL = [
   "/offline",
   "/manifest.webmanifest",
@@ -80,7 +80,7 @@ self.addEventListener("push", (event) => {
     icon: "/icon-192.png",
     badge: "/icon-192.png",
     tag: payload.tag || "smash-lob-notification",
-    renotify: String(payload.tag || "").startsWith("smash-lob-chat-"),
+    renotify: String(payload.tag || "").startsWith("smash-lob-chat-") && payload.chatStateTransition !== true,
     data: {
       url,
     },
