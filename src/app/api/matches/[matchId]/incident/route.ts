@@ -126,7 +126,7 @@ export async function POST(
     return NextResponse.json({ error: "invalid_match_id" }, { status: 400 })
   }
 
-  const access = await getServerMatchActor(matchId, { requireLeagueAccess: true })
+  const access = await getServerMatchActor(matchId, { requireLeagueAccess: true, requireMutableSeason: true })
 
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
@@ -228,6 +228,7 @@ export async function PUT(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
     requireAdmin: true,
   })
@@ -420,6 +421,7 @@ export async function DELETE(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
     requireAdmin: true,
   })

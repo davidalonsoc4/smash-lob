@@ -284,9 +284,6 @@ textarea {
 }
 
 .app-page-header.app-match-chat-header { padding-top: max(0.5rem, calc(var(--app-safe-top) + 0.5rem)) !important; }
-.chat-bubble-incoming-first { position: relative; }
-.chat-bubble-incoming-first::before { content: ""; position: absolute; left: -6px; top: -1px; border-top: 9px solid rgb(229 229 229); border-left: 7px solid transparent; }
-.chat-bubble-incoming-first::after { content: ""; position: absolute; left: -4px; top: 0; border-top: 7px solid #fff; border-left: 6px solid transparent; }
 .chat-message-enter { animation: chat-message-enter 180ms cubic-bezier(.2,.7,.2,1); transform-origin: top center; }
 @keyframes chat-message-enter { from { opacity: .25; transform: translateY(-7px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .chat-message-enter { animation: none; } }

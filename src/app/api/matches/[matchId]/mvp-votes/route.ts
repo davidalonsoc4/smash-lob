@@ -24,6 +24,7 @@ export async function DELETE(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
   })
 

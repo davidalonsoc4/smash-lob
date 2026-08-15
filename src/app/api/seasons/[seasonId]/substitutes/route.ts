@@ -72,7 +72,7 @@ export async function POST(
     return NextResponse.json({ error: "invalid_season_id" }, { status: 400 })
   }
 
-  const access = await requireSeasonAdmin(seasonId)
+  const access = await requireSeasonAdmin(seasonId, { requireMutable: true })
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }

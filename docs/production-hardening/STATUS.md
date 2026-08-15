@@ -1,3 +1,9 @@
+# v1.8.20 — Perfiles enlazados desde Chat (2026-08-15)
+
+- Los nombres de jugadores visibles en CHAT abren su perfil mediante el `playerId` real del participante.
+- El enlace se aplica al autor del bloque, detalle de votos y referencias de respuesta cuando el participante puede resolverse de forma segura.
+- No hay cambios de API, permisos, Supabase, migraciones ni datos persistidos.
+
 # v1.2.13 — Accesos de cierre y preparación operativa (2026-08-06)
 
 - Inicio añade accesos a Historial y estadísticas y a Compartir resumen cuando la temporada está terminada.

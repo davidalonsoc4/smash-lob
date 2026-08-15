@@ -42,6 +42,7 @@ export async function POST(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
   })
 

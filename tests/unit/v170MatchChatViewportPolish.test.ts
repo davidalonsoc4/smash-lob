@@ -37,7 +37,8 @@ describe("v1.7.0 match chat viewport polish", () => {
 
   it("keeps the composer attached to the visible viewport and avoids iOS input zoom", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain('className="flex shrink-0 items-end gap-2 border-t')
+    expect(page).toContain('data-tour="chat-composer"')
+    expect(page).toContain('replyingTo ? "" : "border-t border-neutral-200"')
     expect(page).toContain("--match-chat-bottom-inset")
     expect(page).toContain("restingViewportHeight - visibleHeight > 120")
     expect(page).toContain('keyboardLikelyOpen ? "0px"')

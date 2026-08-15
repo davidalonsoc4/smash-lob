@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { mapPlayerAvailabilityRow, parsePlayerAvailabilityUpsert } from "@/lib/serverPlayerAvailability"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { requireMutableSeasonForActor } from "@/lib/serverSeasonAccess"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -141,6 +142,9 @@ export async function PUT(
       { status: seasonCheck.status }
     )
   }
+
+  const mutable = await requireMutableSeasonForActor(access.actor, parsed.seasonId, leagueId)
+  if (!mutable.ok) return NextResponse.json({ error: mutable.error }, { status: mutable.status })
 
   const { data, error } = await access.actor.supabase
     .from("player_availability")

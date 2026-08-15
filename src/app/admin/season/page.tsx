@@ -2203,9 +2203,11 @@ function RoundManagementPanel({
 function SeasonPlayerNamesPanel({
   activeLeagueId,
   players,
+  readOnly = false,
 }: {
   activeLeagueId: string;
   players: SeasonPlayerSummary[];
+  readOnly?: boolean;
 }) {
   const { t } = useI18n();
   const { isPlayerClaimed, updateLeaguePlayerName } = useLeagueAccess();
@@ -2255,8 +2257,9 @@ function SeasonPlayerNamesPanel({
     <AppCard>
       <p className="font-bold">Jugadores de temporada</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Revisa quién está conectado o pendiente y corrige nombres sin recrear la
-        temporada ni tocar el calendario ya generado.
+        {readOnly
+          ? "Consulta quién está conectado o pendiente. La temporada finalizada está en solo lectura."
+          : "Revisa quién está conectado o pendiente y corrige nombres sin recrear la temporada ni tocar el calendario ya generado."}
       </p>
 
       <div className="mt-3 space-y-2">
@@ -2288,29 +2291,30 @@ function SeasonPlayerNamesPanel({
                         : t.adminSeason.playerPending}
                     </span>
                   </div>
-                  <input
-                    aria-label={`Nombre de ${player.displayName}`}
-                    value={draftName}
-                    onChange={(event) => {
-                      setDraftNames((currentNames) => ({
-                        ...currentNames,
-                        [player.id]: event.target.value,
-                      }));
-                      setError(null);
-                    }}
-                    className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
-                  />
+                  {readOnly ? (
+                    <p className="truncate text-sm font-black text-neutral-950">{player.displayName}</p>
+                  ) : (
+                    <input
+                      aria-label={`Nombre de ${player.displayName}`}
+                      value={draftName}
+                      onChange={(event) => {
+                        setDraftNames((currentNames) => ({ ...currentNames, [player.id]: event.target.value }));
+                        setError(null);
+                      }}
+                      className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+                    />
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleSave(player)}
-                  disabled={
-                    Boolean(savingPlayerId) || !hasChanges || !draftName.trim()
-                  }
-                  className="inline-flex shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
-                >
-                  {isSavingPlayer ? "..." : "Guardar"}
-                </button>
+                {!readOnly ? (
+                  <button
+                    type="button"
+                    onClick={() => handleSave(player)}
+                    disabled={Boolean(savingPlayerId) || !hasChanges || !draftName.trim()}
+                    className="inline-flex shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                  >
+                    {isSavingPlayer ? "..." : "Guardar"}
+                  </button>
+                ) : null}
               </div>
             </div>
           );
@@ -4302,7 +4306,7 @@ function PlayerMatchActionsSettingsPanel({
 
 export default function AdminSeasonPage() {
   const { t } = useI18n();
-  const { getLeagueInviteCode, hasLeagueAdminRole } = useLeagueAccess();
+  const { getLeagueInviteCode, hasLeagueAdminRole, isSuperuser } = useLeagueAccess();
   const { hydrateSeasonSnapshot, seasons } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const {
@@ -4319,6 +4323,7 @@ export default function AdminSeasonPage() {
     (season) => season.leagueId === activeLeague.id && season.totalRounds > 0,
   );
   const canReopenFinishedSeason =
+    isSuperuser &&
     hasCreatedLeagueSeason &&
     activeSeason.status === "finished" &&
     activeSeason.totalRounds > 0 &&
@@ -4713,12 +4718,13 @@ export default function AdminSeasonPage() {
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
+              readOnly={!isSuperuser}
             />
           </div>
 
           <SeasonSectionIntro
             title="Siguiente ciclo"
-            description="Reabre la temporada si procede o prepara la siguiente edición."
+            description={isSuperuser ? "Reabre la temporada si procede o prepara la siguiente edición." : "La temporada finalizada permanece en solo lectura. Prepara la siguiente edición cuando corresponda."}
           />
           {canReopenFinishedSeason ? (
             <div id="reabrir" className="settings-search-target">
