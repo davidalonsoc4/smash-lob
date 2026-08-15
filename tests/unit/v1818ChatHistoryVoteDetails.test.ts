@@ -33,9 +33,9 @@ describe("v1.8.18 chat history and proposal vote details", () => {
     expect(page).toContain("event.stopPropagation()")
   })
 
-  it("documents proposal vote details in chat tour v6", async () => {
+  it("documents proposal vote details in chat tour v7", async () => {
     const tours = await readFile("src/features/onboarding/tours.ts", "utf8")
-    expect(tours).toContain('{ key: "chat", version: 6')
+    expect(tours).toContain('{ key: "chat", version: 7')
     expect(tours).toContain("quién ha votado a favor, en contra o sigue pendiente")
   })
 })

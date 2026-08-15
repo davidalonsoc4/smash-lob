@@ -103,11 +103,10 @@ export async function POST(request: Request, { params }: Ctx) {
   const senderDisplayName = user.displayName || user.email.split("@")[0]
   let participants: ChatParticipant[] = []
   try { participants = await getParticipants(db, match) } catch { return reply("match_chat_participants_lookup_failed", 500) }
-  const mentions = parsed.kind === "text" ? mentionedParticipants(parsed.body, participants, user.id) : [], beforeCoordination = parsed.kind === "text" ? null : await getServerMatchChatCoordination({ db, match }).catch(() => null)
+  const mentions = parsed.kind === "text" ? mentionedParticipants(parsed.body, participants, user.id) : []
   const { data, error } = await db.from("match_chat_messages").insert({ match_id: matchId, league_id: match.leagueId, season_id: match.seasonId, sender_user_id: user.id, sender_player_id: playerId, sender_display_name: senderDisplayName, body: parsed.body, kind: parsed.kind, payload: parsed.payload }).select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").single()
   if (error) return dbError(error.message)
-  const afterCoordination = beforeCoordination ? await getServerMatchChatCoordination({ db, match }).catch(() => null) : null, statusChanged = Boolean(beforeCoordination && afterCoordination && beforeCoordination.status !== afterCoordination.status)
-  await insertServerActivityEvent({ supabase: db, leagueId: match.leagueId, seasonId: match.seasonId, matchId, actorUserId: user.id, actorEmail: user.email, actorDisplayName: senderDisplayName, type: "match_chat_message", title: "Nuevo mensaje en el chat", metadata: { round: match.round, participantIds: match.participantIds, messagePreview: parsed.body, mentionedUserIds: mentions.map((item) => item.userId), mentionedPlayerIds: mentions.map((item) => item.playerId), chatEventKind: statusChanged ? "coordination_status" : "message", coordinationStatus: statusChanged ? afterCoordination?.status : null } }).catch(() => null)
+  await insertServerActivityEvent({ supabase: db, leagueId: match.leagueId, seasonId: match.seasonId, matchId, actorUserId: user.id, actorEmail: user.email, actorDisplayName: senderDisplayName, type: "match_chat_message", title: "Nuevo mensaje en el chat", metadata: { round: match.round, participantIds: match.participantIds, messagePreview: parsed.body, mentionedUserIds: mentions.map((item) => item.userId), mentionedPlayerIds: mentions.map((item) => item.playerId), chatEventKind: "message" } }).catch(() => null)
   await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId })
   return NextResponse.json({ message: { ...data, responses: [] } }, { status: 201 })
 }
@@ -123,13 +122,23 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const { data: message, error: messageError } = await db.from("match_chat_messages").select("id,kind,payload").eq("id", messageId).eq("match_id", matchId).maybeSingle()
   if (messageError) return dbError(messageError.message)
   if (!message || message.kind === "text") return reply("match_chat_proposal_not_found", 404)
-  const payload = toRecord(message.payload), validKeys = message.kind === "date_proposal" ? (Array.isArray(payload.options) ? payload.options.map((item) => clean(toRecord(item).key, 80)) : []) : [clean(payload.key, 80)]
+  const payload = toRecord(message.payload), validKeys = message.kind === "date_proposal" ? (Array.isArray(payload.options) ? payload.options.filter((item) => toRecord(item).invalidated !== true).map((item) => clean(toRecord(item).key, 80)) : []) : [clean(payload.key, 80)]
   if (!validKeys.includes(optionKey)) return reply("match_chat_invalid_option", 400)
-  const beforeCoordination = await getServerMatchChatCoordination({ db, match }).catch(() => null), beforeVotesResult = await db.from("match_chat_proposal_responses").select("user_id").eq("message_id", messageId).eq("option_key", optionKey), beforeVotes = new Set((beforeVotesResult.data ?? []).map((item) => String(item.user_id))).size
-  const { error } = await db.from("match_chat_proposal_responses").upsert({ message_id: messageId, user_id: user.id, option_key: optionKey, response, updated_at: new Date().toISOString() }, { onConflict: "message_id,user_id,option_key" })
-  if (error) return dbError(error.message)
-  const afterCoordination = await getServerMatchChatCoordination({ db, match }).catch(() => null), afterVotesResult = await db.from("match_chat_proposal_responses").select("user_id").eq("message_id", messageId).eq("option_key", optionKey), afterVotes = new Set((afterVotesResult.data ?? []).map((item) => String(item.user_id))).size, statusChanged = Boolean(beforeCoordination && afterCoordination && beforeCoordination.status !== afterCoordination.status), reachedFourVotes = beforeVotes < 4 && afterVotes >= 4
-  if (statusChanged || reachedFourVotes) { const actorDisplayName = user.displayName || user.email.split("@")[0]; await insertServerActivityEvent({ supabase: db, leagueId: match.leagueId, seasonId: match.seasonId, matchId, actorUserId: user.id, actorEmail: user.email, actorDisplayName, type: "match_chat_message", title: statusChanged ? "Estado de coordinación actualizado" : "Propuesta con 4 votos", metadata: { round: match.round, participantIds: match.participantIds, messagePreview: "", chatEventKind: statusChanged ? "coordination_status" : "proposal_four_votes", coordinationStatus: afterCoordination?.status ?? null, proposalKind: message.kind, reachedFourVotes } }).catch(() => null) }
+  const beforeCoordination = await getServerMatchChatCoordination({ db, match }).catch(() => null)
+  const { data: existingResponse, error: existingResponseError } = await db.from("match_chat_proposal_responses").select("response").eq("message_id", messageId).eq("user_id", user.id).eq("option_key", optionKey).maybeSingle()
+  if (existingResponseError) return dbError(existingResponseError.message)
+  const removingVote = existingResponse?.response === response
+  const writeResult = removingVote
+    ? await db.from("match_chat_proposal_responses").delete().eq("message_id", messageId).eq("user_id", user.id).eq("option_key", optionKey)
+    : await db.from("match_chat_proposal_responses").upsert({ message_id: messageId, user_id: user.id, option_key: optionKey, response, updated_at: new Date().toISOString() }, { onConflict: "message_id,user_id,option_key" })
+  if (writeResult.error) return dbError(writeResult.error.message)
+  const afterCoordination = await getServerMatchChatCoordination({ db, match }).catch(() => null)
+  const approvedBefore = new Set((beforeCoordination?.approvedDates ?? []).map((item) => `${item.messageId}:${item.optionKey}`))
+  const newlyApprovedDate = message.kind === "date_proposal" && Boolean(afterCoordination?.approvedDates.some((item) => item.messageId === messageId && item.optionKey === optionKey && !approvedBefore.has(`${item.messageId}:${item.optionKey}`)))
+  if (newlyApprovedDate && afterCoordination?.status === "awaiting_booking") {
+    const actorDisplayName = user.displayName || user.email.split("@")[0]
+    await insertServerActivityEvent({ supabase: db, leagueId: match.leagueId, seasonId: match.seasonId, matchId, actorUserId: user.id, actorEmail: user.email, actorDisplayName, type: "match_chat_message", title: "Pendiente de reserva", metadata: { round: match.round, participantIds: match.participantIds, messagePreview: "", chatEventKind: "coordination_status", coordinationStatus: "awaiting_booking", proposalKind: message.kind, reachedFourVotes: true, includeActor: true } }).catch(() => null)
+  }
   await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId, includeOverview: false })
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, response: removingVote ? null : response })
 }

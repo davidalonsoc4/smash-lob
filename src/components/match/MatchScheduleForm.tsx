@@ -27,6 +27,7 @@ import {
 import { isDateTimeInsideRoundWindow } from "@/lib/rounds";
 import {
   dateTimeLocalToUtcIso,
+  formatMatchScheduleLongLabel,
   formatNextFullHourForDateTimeInput,
   formatScheduleForDateTimeInput,
 } from "@/lib/matchScheduleTime";
@@ -662,7 +663,7 @@ export function MatchScheduleForm({
         <div className="px-3 pb-3 pt-1">
           <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-black text-neutral-950">
-              {capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
+              {formatMatchScheduleLongLabel(scheduledAt) ?? capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
             </p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-600">
               {displayedLocationText ?? t.matches.missingSchedule}

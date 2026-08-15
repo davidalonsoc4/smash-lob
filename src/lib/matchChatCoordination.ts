@@ -23,6 +23,7 @@ export type MatchChatCoordination = {
   linkedParticipantCount: number
   approvedDates: MatchChatCoordinationDateOption[]
   approvedLocations: MatchChatCoordinationLocationOption[]
+  rejectedLocations: MatchChatCoordinationLocationOption[]
   hasProposals: boolean
 }
 
@@ -45,25 +46,26 @@ function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
 }
 
-function allLinkedParticipantsApproved({
+function allLinkedParticipantsResponded({
   responses,
   optionKey,
   participantUserIds,
+  response,
 }: {
   responses: MessageLike["responses"]
   optionKey: string
   participantUserIds: string[]
+  response: "available" | "unavailable"
 }) {
   if (participantUserIds.length === 0) return false
-  const approved = new Set(
+  const voters = new Set(
     responses
       .filter(
-        (item) =>
-          item.optionKey === optionKey && item.response === "available",
+        (item) => item.optionKey === optionKey && item.response === response,
       )
       .map((item) => item.userId),
   )
-  return participantUserIds.every((userId) => approved.has(userId))
+  return participantUserIds.every((userId) => voters.has(userId))
 }
 
 export function buildMatchChatCoordination({
@@ -85,8 +87,10 @@ export function buildMatchChatCoordination({
   )
   const approvedDates: MatchChatCoordinationDateOption[] = []
   const approvedLocations: MatchChatCoordinationLocationOption[] = []
+  const rejectedLocations: MatchChatCoordinationLocationOption[] = []
   const seenDates = new Set<string>()
-  const seenLocations = new Set<string>()
+  const seenApprovedLocations = new Set<string>()
+  const seenRejectedLocations = new Set<string>()
 
   if (fullyLinked) {
     for (const message of structured) {
@@ -102,10 +106,12 @@ export function buildMatchChatCoordination({
             !startsAt ||
             Number.isNaN(Date.parse(startsAt)) ||
             seenDates.has(startsAt) ||
-            !allLinkedParticipantsApproved({
+            option.invalidated === true ||
+            !allLinkedParticipantsResponded({
               responses: message.responses,
               optionKey,
               participantUserIds,
+              response: "available",
             })
           ) {
             continue
@@ -118,25 +124,43 @@ export function buildMatchChatCoordination({
         const name = clean(payload.name)
         const locationId = clean(payload.locationId) || null
         const identity = locationId ?? name.toLocaleLowerCase("es-ES")
+        if (!optionKey || !name) continue
+
         if (
-          !optionKey ||
-          !name ||
-          seenLocations.has(identity) ||
-          !allLinkedParticipantsApproved({
+          !seenApprovedLocations.has(identity) &&
+          allLinkedParticipantsResponded({
             responses: message.responses,
             optionKey,
             participantUserIds,
+            response: "available",
           })
         ) {
-          continue
+          seenApprovedLocations.add(identity)
+          approvedLocations.push({
+            messageId: message.id,
+            optionKey,
+            name,
+            locationId,
+          })
         }
-        seenLocations.add(identity)
-        approvedLocations.push({
-          messageId: message.id,
-          optionKey,
-          name,
-          locationId,
-        })
+
+        if (
+          !seenRejectedLocations.has(identity) &&
+          allLinkedParticipantsResponded({
+            responses: message.responses,
+            optionKey,
+            participantUserIds,
+            response: "unavailable",
+          })
+        ) {
+          seenRejectedLocations.add(identity)
+          rejectedLocations.push({
+            messageId: message.id,
+            optionKey,
+            name,
+            locationId,
+          })
+        }
       }
     }
   }
@@ -144,7 +168,7 @@ export function buildMatchChatCoordination({
   const status: MatchChatCoordinationStatus =
     matchStatus === "scheduled"
       ? "scheduled"
-      : approvedDates.length > 0 && approvedLocations.length > 0
+      : approvedDates.length > 0
         ? "awaiting_booking"
         : structured.length > 0
           ? "coordinating"
@@ -156,6 +180,7 @@ export function buildMatchChatCoordination({
     linkedParticipantCount: participantUserIds.length,
     approvedDates,
     approvedLocations,
+    rejectedLocations,
     hasProposals: structured.length > 0,
   }
 }

@@ -296,7 +296,13 @@ function getNotificationUrl(event: ActivityEventRow) {
   let targetPath = "/activity?scope=mine";
 
   if (event.match_id) {
-    targetPath = event.type === "match_chat_message" ? `/match/${event.match_id}/chat` : `/match/${event.match_id}`;
+    const metadata = toRecord(event.metadata);
+    const reservationConfirmedFromChat =
+      event.type === "match_scheduled" && metadata.reservationConfirmedFromChat === true;
+    targetPath =
+      event.type === "match_chat_message" || reservationConfirmedFromChat
+        ? `/match/${event.match_id}/chat`
+        : `/match/${event.match_id}`;
   } else if (
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
@@ -491,10 +497,14 @@ function getNotificationTitle(
 
   if (event.type === "match_chat_message") {
     const metadata = toRecord(event.metadata), round = toNumber(metadata.round), kind = String(metadata.chatEventKind ?? ""), status = String(metadata.coordinationStatus ?? "");
-    if (kind === "proposal_four_votes") return round > 0 ? `4 votos · Jornada ${round}` : "Propuesta con 4 votos";
-    if (kind === "coordination_status") { const label = status === "awaiting_booking" ? "Pendiente de reserva" : status === "coordinating" ? "Coordinando" : "Estado del partido"; return round > 0 ? `${label} · Jornada ${round}` : label; }
+    if (kind === "coordination_status" && status === "awaiting_booking") return round > 0 ? `Pendiente de reserva · Jornada ${round}` : "Pendiente de reserva";
     if (recipient?.userId && toStringArray(metadata.mentionedUserIds).includes(recipient.userId)) { const actor = event.actor_display_name || event.actor_email || "Un jugador"; return round > 0 ? `${actor} te ha mencionado · Jornada ${round}` : `${actor} te ha mencionado`; }
     return round > 0 ? `Chat · Jornada ${round}` : "Nuevo mensaje en el chat";
+  }
+
+  if (event.type === "match_scheduled" && toRecord(event.metadata).reservationConfirmedFromChat === true) {
+    const round = toNumber(toRecord(event.metadata).round);
+    return round > 0 ? `Partido programado · Jornada ${round}` : "Partido programado";
   }
 
   if (event.type === "match_result_saved") {
@@ -531,8 +541,7 @@ function getNotificationBody(
 ) {
   if (event.type === "match_chat_message") {
     const metadata = toRecord(event.metadata), kind = String(metadata.chatEventKind ?? ""), status = String(metadata.coordinationStatus ?? "");
-    if (kind === "proposal_four_votes") return `La propuesta de ${metadata.proposalKind === "location_proposal" ? "ubicación" : "fecha"} ya tiene las 4 respuestas.`;
-    if (kind === "coordination_status") return metadata.reachedFourVotes === true ? status === "awaiting_booking" ? "La propuesta ha alcanzado 4 votos y ya hay fecha y ubicación aprobadas. Falta confirmar la reserva." : "La propuesta ha alcanzado 4 votos y ha cambiado el estado de coordinación." : status === "awaiting_booking" ? "Ya hay fecha y ubicación aprobadas. Falta confirmar la reserva." : status === "coordinating" ? "Se ha iniciado la coordinación del partido en el chat." : "Ha cambiado el estado de coordinación del partido.";
+    if (kind === "coordination_status" && status === "awaiting_booking") return "Acuerdo 4/4 en fecha y hora. El partido está a la espera de reservar.";
     const preview = String(metadata.messagePreview ?? "").trim(), actor = event.actor_display_name || event.actor_email || "Un jugador", cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
     return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat del partido.`;
   }
@@ -1146,12 +1155,21 @@ export async function dispatchPushForActivityEvent(
     (subscriptions as PushSubscriptionRow[]).map(async (subscription) => {
       const recipient =
         recipientByEmail.get(normalizeEmail(subscription.user_email)) ?? null;
+      const eventMetadata = toRecord(event.metadata);
+      const reservationConfirmedFromChat =
+        event.type === "match_scheduled" && eventMetadata.reservationConfirmedFromChat === true;
+      const chatThreadEvent = event.type === "match_chat_message" || reservationConfirmedFromChat;
+      const chatStateTransition =
+        reservationConfirmedFromChat ||
+        (event.type === "match_chat_message" &&
+          eventMetadata.chatEventKind === "coordination_status");
       const payload = JSON.stringify({
         title: getNotificationTitle(event, recipient),
         body: getNotificationBody(event, recipient, playerNamesById),
         url: getNotificationUrl(event),
-        tag: event.type === "match_chat_message" && event.match_id ? `smash-lob-chat-${event.match_id}` : `smash-lob-${event.id}`,
-        chatMatchId: event.type === "match_chat_message" && event.match_id ? event.match_id : null,
+        tag: chatThreadEvent && event.match_id ? `smash-lob-chat-${event.match_id}` : `smash-lob-${event.id}`,
+        chatMatchId: chatThreadEvent && event.match_id ? event.match_id : null,
+        chatStateTransition,
       });
 
       try {

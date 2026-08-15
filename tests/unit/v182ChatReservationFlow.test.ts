@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 
 describe("v1.8.2 chat reservation flow", () => {
-  it("requires unanimous linked-player approval for both date and location", () => {
+  it("keeps approved date and location agreements available for reservation", () => {
     const participants = ["u1", "u2", "u3", "u4"].map((userId) => ({ userId }))
     const responses = ["u1", "u2", "u3", "u4"].map((userId) => ({ userId, optionKey: "date-1", response: "available" }))
     const locationResponses = ["u1", "u2", "u3", "u4"].map((userId) => ({ userId, optionKey: "location", response: "available" }))
@@ -20,7 +20,7 @@ describe("v1.8.2 chat reservation flow", () => {
     expect(coordination.approvedLocations).toHaveLength(1)
   })
 
-  it("keeps negotiation as coordinating until date and location are both unanimous", () => {
+  it("moves to awaiting booking as soon as a date and time are unanimous", () => {
     const participants = ["u1", "u2", "u3", "u4"].map((userId) => ({ userId }))
     const coordination = buildMatchChatCoordination({
       matchStatus: "scheduling",
@@ -32,7 +32,9 @@ describe("v1.8.2 chat reservation flow", () => {
         responses: ["u1", "u2", "u3", "u4"].map((userId) => ({ userId, optionKey: "date-1", response: "available" })),
       }],
     })
-    expect(coordination.status).toBe("coordinating")
+    expect(coordination.status).toBe("awaiting_booking")
+    expect(coordination.approvedDates).toHaveLength(1)
+    expect(coordination.approvedLocations).toHaveLength(0)
   })
 
   it("wires confirmation, court selection, calendar message and subtle detail status", async () => {

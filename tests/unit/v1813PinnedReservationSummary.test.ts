@@ -19,7 +19,7 @@ describe("v1.8.13 pinned reservation summary", () => {
 
   it("documents the pinned booking summary in the match-chat guide", async () => {
     const tours = await readFile("src/features/onboarding/tours.ts", "utf8")
-    expect(tours).toContain('key: "chat", version: 6')
+    expect(tours).toContain('key: "chat", version: 7')
     expect(tours).toContain("resumen queda fijado sobre el historial")
   })
 })

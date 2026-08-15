@@ -59,13 +59,14 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(route).toContain("replyTo ? { replyTo } : {}")
   })
 
-  it("surfaces unanimous proposal agreements before both reservation pieces exist", async () => {
+  it("pins reservation actions after a unanimous date without the old agreement panel", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     expect(page).toContain("Acuerdo 4/4")
-    expect(page).toContain("Acuerdo alcanzado")
-    expect(page).toContain("Fecha acordada 4/4")
-    expect(page).toContain("falta acordar ubicación")
+    expect(page).not.toContain("Acuerdo alcanzado")
+    expect(page).not.toContain("Fecha acordada 4/4 · falta acordar ubicación")
     expect(page).toContain("<MatchReservationConfirmation")
+    expect(page).toContain('displayedCoordination?.status === "awaiting_booking"')
+    expect(page).toContain('openProposalMode("date")')
   })
 
   it("compacts chat, uses tail-free first-message corners and keeps only Settings floating on CHAT", async () => {
@@ -88,7 +89,7 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
 
   it("bumps the CHAT tutorial to explain swipe-to-reply", async () => {
     const tours = await readFile("src/features/onboarding/tours.ts", "utf8")
-    expect(tours).toContain('{ key: "chat", version: 6')
+    expect(tours).toContain('{ key: "chat", version: 7')
     expect(tours).toContain("Desliza un mensaje hacia la derecha para responderlo")
   })
 })
