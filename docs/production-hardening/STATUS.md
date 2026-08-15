@@ -1,3 +1,28 @@
+# v1.8.23 — Propuestas propias con contenido más ligero (2026-08-16)
+
+- CHAT conserva el color dominante del tema en el contenedor exterior de las propuestas propias.
+- Fecha, ubicación, votación, detalle de votos y badges interiores vuelven a superficies claras con texto oscuro.
+- Las propuestas recibidas mantienen su presentación blanca y no cambia la lógica de votación, coordinación, reserva ni API.
+- La cabecera de una propuesta propia vuelve a usar el mismo contraste `on-primary` que los mensajes enviados normales; el texto auxiliar y la hora/recibos comparten su estilo sin contaminar las superficies interiores claras.
+- No se añaden migraciones ni se modifica el esquema de Supabase.
+
+# v1.8.22 — Ajustes visuales de Chat y bandeja (2026-08-15)
+
+- Las propuestas de ubicación centran verticalmente el nombre mientras no exista acuerdo y reservan espacio para la etiqueta `Acuerdo 4/4` cuando aparece.
+- CHATS elimina los chevrons laterales de las conversaciones y recupera ese espacio para el contenido.
+- Se conservan el ocultado del panel Pendiente de reserva tras confirmar y la diferenciación visual entre propuestas propias y recibidas.
+- No se añaden migraciones ni se modifica el esquema de Supabase.
+
+# v1.8.21 — Reserva pendiente desde acuerdo de fecha (2026-08-15)
+
+- El detalle de Programación usa el formato `Jueves · 19 de Febrero de 2026 · 19:00`.
+- Una fecha/hora con aprobación 4/4 pasa directamente a `awaiting_booking`; la ubicación ya no es requisito previo.
+- CHAT fija el estado Pendiente de reserva sobre el historial y permite confirmar fecha, ubicación y pista o invalidar las fechas acordadas para abrir una nueva propuesta.
+- Las ubicaciones aprobadas 4/4 se respetan al confirmar; sin acuerdo previo se ofrecen las ubicaciones configuradas, mientras las rechazadas 4/4 quedan señaladas y bloqueadas.
+- Los votos ✓/✕ son reversibles al pulsar de nuevo el mismo voto.
+- Los avisos de acuerdo de fecha y de partido programado comparten el hilo de notificación del chat; ambos incluyen a los cuatro participantes y se silencian en el dispositivo que mantiene ese CHAT visible.
+- No se añaden migraciones ni se modifica el esquema de Supabase.
+
 # v1.8.20 — Perfiles enlazados desde Chat (2026-08-15)
 
 - Los nombres de jugadores visibles en CHAT abren su perfil mediante el `playerId` real del participante.

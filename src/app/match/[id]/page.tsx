@@ -474,6 +474,9 @@ export default function MatchDetailPage() {
                 onConfirmed={() => {
                   window.location.reload()
                 }}
+                onInvalidated={() => {
+                  window.location.reload()
+                }}
               />
             ) : null
           }

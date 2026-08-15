@@ -97,3 +97,40 @@ export function toCalendarFloatingDate(value: Date) {
     value.getSeconds(),
   )}`;
 }
+
+function capitalizeSchedulePart(value: string) {
+  return value ? value.charAt(0).toLocaleUpperCase("es-ES") + value.slice(1) : value;
+}
+
+export function formatMatchScheduleLongLabel(value: string | null | undefined) {
+  const date = parseMatchScheduleDate(value);
+
+  if (!date) {
+    return value?.trim() || null;
+  }
+
+  const weekday = new Intl.DateTimeFormat("es-ES", {
+    weekday: "long",
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
+  }).format(date);
+  const day = new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
+  }).format(date);
+  const month = new Intl.DateTimeFormat("es-ES", {
+    month: "long",
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
+  }).format(date);
+  const year = new Intl.DateTimeFormat("es-ES", {
+    year: "numeric",
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
+  }).format(date);
+  const time = new Intl.DateTimeFormat("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
+  }).format(date);
+
+  return `${capitalizeSchedulePart(weekday)} · ${day} de ${capitalizeSchedulePart(month)} de ${year} · ${time}`;
+}

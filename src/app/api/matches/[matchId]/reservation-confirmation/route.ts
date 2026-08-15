@@ -16,10 +16,10 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type ConfirmBody = {
+  action?: unknown
   dateMessageId?: unknown
   dateOptionKey?: unknown
-  locationMessageId?: unknown
-  locationOptionKey?: unknown
+  locationId?: unknown
   selectedCourt?: unknown
 }
 
@@ -53,20 +53,7 @@ export async function POST(
   }
 
   const body = (await parseJsonBody<ConfirmBody>(request)) ?? {}
-  const dateMessageId = clean(body.dateMessageId, 80)
-  const dateOptionKey = clean(body.dateOptionKey, 80)
-  const locationMessageId = clean(body.locationMessageId, 80)
-  const locationOptionKey = clean(body.locationOptionKey, 80)
-  const selectedCourt = clean(body.selectedCourt, 80)
-  if (
-    !validateUuid(dateMessageId) ||
-    !dateOptionKey ||
-    !validateUuid(locationMessageId) ||
-    !locationOptionKey ||
-    !selectedCourt
-  ) {
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 })
-  }
+  const action = clean(body.action, 40) || "confirm"
 
   let coordination
   try {
@@ -81,22 +68,101 @@ export async function POST(
     )
   }
 
-  if (coordination.status !== "awaiting_booking") {
+  if (coordination.status !== "awaiting_booking" || !coordination.approvedDates.length) {
     return NextResponse.json({ error: "match_reservation_not_ready" }, { status: 409 })
+  }
+
+  if (action === "invalidate_dates") {
+    const senderDisplayName =
+      access.actor.user.displayName || access.actor.user.email.split("@")[0]
+    const invalidatedDates = coordination.approvedDates.map((item) => ({
+      messageId: item.messageId,
+      optionKey: item.optionKey,
+      startsAt: item.startsAt,
+    }))
+    const affectedMessageIds = Array.from(new Set(invalidatedDates.map((item) => item.messageId)))
+    const { data: proposalRows, error: proposalError } = await access.actor.supabase
+      .from("match_chat_messages")
+      .select("id,payload")
+      .eq("match_id", matchId)
+      .in("id", affectedMessageIds)
+    if (proposalError) {
+      return NextResponse.json({ error: "match_reservation_invalidation_failed" }, { status: 500 })
+    }
+    const invalidatedKeysByMessage = new Map<string, Set<string>>()
+    for (const item of invalidatedDates) {
+      const keys = invalidatedKeysByMessage.get(item.messageId) ?? new Set<string>()
+      keys.add(item.optionKey)
+      invalidatedKeysByMessage.set(item.messageId, keys)
+    }
+    for (const row of proposalRows ?? []) {
+      const messageId = String(row.id)
+      const payload = typeof row.payload === "object" && row.payload !== null && !Array.isArray(row.payload) ? row.payload as Record<string, unknown> : {}
+      const invalidatedKeys = invalidatedKeysByMessage.get(messageId) ?? new Set<string>()
+      const options = (Array.isArray(payload.options) ? payload.options : []).map((raw) => {
+        const option = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw as Record<string, unknown> : {}
+        return invalidatedKeys.has(String(option.key ?? "")) ? { ...option, invalidated: true } : option
+      })
+      const update = await access.actor.supabase.from("match_chat_messages").update({ payload: { ...payload, options } }).eq("id", messageId).eq("match_id", matchId)
+      if (update.error) {
+        return NextResponse.json({ error: "match_reservation_invalidation_failed" }, { status: 500 })
+      }
+    }
+    for (const item of invalidatedDates) {
+      const clearedVotes = await access.actor.supabase.from("match_chat_proposal_responses").delete().eq("message_id", item.messageId).eq("option_key", item.optionKey)
+      if (clearedVotes.error) {
+        return NextResponse.json({ error: "match_reservation_invalidation_failed" }, { status: 500 })
+      }
+    }
+    const { error: invalidateError } = await access.actor.supabase
+      .from("match_chat_messages")
+      .insert({
+        match_id: matchId,
+        league_id: access.actor.match.leagueId,
+        season_id: access.actor.match.seasonId,
+        sender_user_id: access.actor.user.id,
+        sender_player_id: access.actor.participantPlayerId,
+        sender_display_name: senderDisplayName,
+        body: "La fecha y hora acordadas ya no están disponibles. Hay que hacer una nueva propuesta.",
+        kind: "text",
+        payload: {
+          systemType: "reservation_agreement_invalidated",
+          invalidatedDates,
+        },
+      })
+    if (invalidateError) {
+      return NextResponse.json({ error: "match_reservation_invalidation_failed" }, { status: 500 })
+    }
+    await broadcastMatchChatRefresh({
+      matchId,
+      leagueId: access.actor.match.leagueId,
+      seasonId: access.actor.match.seasonId,
+    })
+    return NextResponse.json({ ok: true, invalidatedDates })
+  }
+
+  if (action !== "confirm") {
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+  }
+
+  const dateMessageId = clean(body.dateMessageId, 80)
+  const dateOptionKey = clean(body.dateOptionKey, 80)
+  const locationId = clean(body.locationId, 120)
+  const selectedCourt = clean(body.selectedCourt, 80)
+  if (
+    !validateUuid(dateMessageId) ||
+    !dateOptionKey ||
+    !locationId ||
+    !selectedCourt
+  ) {
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
   const approvedDate = coordination.approvedDates.find(
     (item) => item.messageId === dateMessageId && item.optionKey === dateOptionKey,
   )
-  const approvedLocation = coordination.approvedLocations.find(
-    (item) =>
-      item.messageId === locationMessageId && item.optionKey === locationOptionKey,
-  )
-  if (!approvedDate || !approvedLocation) {
+  if (!approvedDate) {
     return NextResponse.json({ error: "match_reservation_option_not_approved" }, { status: 409 })
-  }
-  if (!approvedLocation.locationId) {
-    return NextResponse.json({ error: "match_reservation_location_not_configured" }, { status: 409 })
   }
 
   const { data: leagueRow, error: leagueError } = await access.actor.supabase
@@ -108,10 +174,29 @@ export async function POST(
     return NextResponse.json({ error: "league_location_lookup_failed" }, { status: 500 })
   }
   const locations = normalizeLeagueLocations(leagueRow?.locations)
-  const location = locations.find((item) => item.id === approvedLocation.locationId)
+  const location = locations.find((item) => item.id === locationId)
   if (!location) {
     return NextResponse.json({ error: "match_reservation_location_not_configured" }, { status: 409 })
   }
+
+  const rejectedLocationIds = new Set(
+    coordination.rejectedLocations
+      .map((item) => item.locationId)
+      .filter((value): value is string => Boolean(value)),
+  )
+  if (rejectedLocationIds.has(locationId)) {
+    return NextResponse.json({ error: "match_reservation_location_rejected" }, { status: 409 })
+  }
+
+  const approvedLocationIds = new Set(
+    coordination.approvedLocations
+      .map((item) => item.locationId)
+      .filter((value): value is string => Boolean(value)),
+  )
+  if (approvedLocationIds.size && !approvedLocationIds.has(locationId)) {
+    return NextResponse.json({ error: "match_reservation_location_not_approved" }, { status: 409 })
+  }
+
   const courts = getLeagueLocationCourts(location)
   if (!courts.length) {
     return NextResponse.json({ error: "match_reservation_courts_missing" }, { status: 409 })
@@ -205,6 +290,8 @@ export async function POST(
       locationText,
       selectedCourt,
       reservationConfirmedFromChat: true,
+      includeActor: true,
+      dateLabel,
     },
   }).catch(() => null)
 
