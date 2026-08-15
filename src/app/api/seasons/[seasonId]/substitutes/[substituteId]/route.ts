@@ -14,7 +14,7 @@ export async function DELETE(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
-  const access = await requireSeasonAdmin(seasonId)
+  const access = await requireSeasonAdmin(seasonId, { requireMutable: true })
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }

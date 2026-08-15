@@ -114,6 +114,7 @@ export async function PUT(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
   })
 
@@ -229,6 +230,7 @@ export async function DELETE(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
   })
 

@@ -24,7 +24,7 @@ describe("v1.8.3 chat proposal UX", () => {
   it("lets focus behave naturally except after sending text", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     expect(page).toContain("function focusComposerAfterSend")
-    expect(page).toContain('post("text", {}, text, true)')
+    expect(page).toContain('post("text", replyTo ? { replyTo } : {}, text, true)')
     expect(page).toContain("composerRef.current?.blur()")
     expect(page).not.toContain("preserveComposerFocus")
     expect(page).not.toContain("handleComposerBlur")
