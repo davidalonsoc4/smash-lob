@@ -23,6 +23,7 @@ export async function PUT(
   }
 
   const access = await getServerMatchActor(matchId, {
+    requireMutableSeason: true,
     requireLeagueAccess: true,
     requireAdmin: true,
   })

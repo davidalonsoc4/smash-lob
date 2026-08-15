@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServerLeagueActor, type ServerLeagueActor } from "@/lib/serverLeagueAccess"
+import { requireMutableSeasonForActor } from "@/lib/serverSeasonAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import {
   joinSelfRegistrationSeason,
@@ -54,6 +55,9 @@ export async function POST(
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
+  const mutable = await requireMutableSeasonForActor(access.actor, seasonId, leagueId)
+  if (!mutable.ok) return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+
   try {
     const result = await joinSelfRegistrationSeason({
       actor: access.actor,
@@ -107,6 +111,9 @@ export async function DELETE(
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
+
+  const mutable = await requireMutableSeasonForActor(access.actor, seasonId, leagueId)
+  if (!mutable.ok) return NextResponse.json({ error: mutable.error }, { status: mutable.status })
 
   const body = await parseJsonBody<DeleteBody>(request)
   const playerId = validateUuid(body?.playerId)

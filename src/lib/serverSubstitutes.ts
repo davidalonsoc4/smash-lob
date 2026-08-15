@@ -27,7 +27,7 @@ const substituteErrorCodes = [
   "replacement_has_no_future_matches",
 ] as const
 
-export async function requireSeasonAdmin(seasonId: string) {
+export async function requireSeasonAdmin(seasonId: string, options: { requireMutable?: boolean } = {}) {
   const authResult = await requireAuthenticatedAppUser()
   if (!authResult.ok) return authResult
 
@@ -67,6 +67,10 @@ export async function requireSeasonAdmin(seasonId: string) {
     ) {
       return { ok: false as const, status: 403, error: "forbidden" }
     }
+  }
+
+  if (options.requireMutable && season.status === "finished" && !user.isSuperuser) {
+    return { ok: false as const, status: 409, error: "season_finished_read_only" }
   }
 
   return {

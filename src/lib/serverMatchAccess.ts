@@ -9,6 +9,7 @@ type MatchAccessOptions = {
   requireLeagueAccess?: boolean
   requireParticipant?: boolean
   requireAdmin?: boolean
+  requireMutableSeason?: boolean
 }
 
 function toPlayerIds(value: unknown) {
@@ -169,6 +170,18 @@ export async function getServerMatchActor(
     !isAuthorized(authorizationContext, "match:participant")
   ) {
     return { ok: false, status: 403, error: "forbidden" }
+  }
+
+  if (options.requireMutableSeason && !user.isSuperuser) {
+    const { data: seasonRow, error: seasonError } = await supabase
+      .from("seasons")
+      .select("status")
+      .eq("id", mappedMatch.seasonId)
+      .eq("league_id", mappedMatch.leagueId)
+      .maybeSingle()
+    if (seasonError) return { ok: false, status: 500, error: "season_lookup_failed" }
+    if (!seasonRow) return { ok: false, status: 404, error: "season_not_found" }
+    if (seasonRow.status === "finished") return { ok: false, status: 409, error: "season_finished_read_only" }
   }
 
   return {

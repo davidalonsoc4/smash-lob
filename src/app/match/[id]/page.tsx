@@ -37,7 +37,7 @@ import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 export default function MatchDetailPage() {
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { isLeagueAdmin, isSuperuser } = useLeagueAccess()
   const {
     clearMatchResult,
     resultConfirmations,
@@ -237,10 +237,13 @@ export default function MatchDetailPage() {
   const confirmationsEnabled = roundSettings.resultConfirmationMode !== "none"
   const resultIsLocked = confirmationsEnabled && match.resultLocked
   const isSeasonUpcoming = activeSeason.status === "upcoming"
-  const canManageMatch = !isSeasonUpcoming && (isMatchParticipant || isAdmin)
+  const canMutateSeason = activeSeason.status !== "finished" || isSuperuser
+  const mutableAdmin = isAdmin && canMutateSeason
+  const canManageMatch = canMutateSeason && !isSeasonUpcoming && (isMatchParticipant || isAdmin)
   const canViewCourtBooking = isMatchParticipant || isAdmin
   const hasOpenIncident = match.incidentStatus === "open"
   const canManageSchedule =
+    canMutateSeason &&
     !isSeasonUpcoming &&
     !hasOpenIncident &&
     (isAdmin || (isMatchParticipant && match.status !== "finished"))
@@ -264,6 +267,7 @@ export default function MatchDetailPage() {
         !match.resultReportedByPlayerId)
   )
   const canEditResult =
+    canMutateSeason &&
     !isSeasonUpcoming &&
     match.status === "finished" &&
     !hasOpenIncident &&
@@ -290,10 +294,12 @@ export default function MatchDetailPage() {
   const shouldShowSchedulePanel =
     match.status !== "finished" || hasSchedule || isAdmin
   const canReportIncident =
+    canMutateSeason &&
     !isSeasonUpcoming &&
     isMatchParticipant &&
     roundSettings.allowPlayerIncidents
   const canManageSubstitutions =
+    canMutateSeason &&
     !isSeasonUpcoming &&
     isMatchParticipant &&
     roundSettings.allowPlayerSubstitutions
@@ -335,7 +341,7 @@ export default function MatchDetailPage() {
         <MatchActionsTrigger
           match={match}
           players={players}
-          isAdmin={isAdmin}
+          isAdmin={mutableAdmin}
           canReportIncident={canReportIncident}
           canManageSubstitutions={canManageSubstitutions}
           chatHref={isMatchParticipant ? `/match/${match.id}/chat` : null}
@@ -379,14 +385,14 @@ export default function MatchDetailPage() {
       <MatchActionsContent
         match={match}
         players={players}
-        isAdmin={isAdmin}
+        isAdmin={mutableAdmin}
         canReportIncident={canReportIncident}
         canManageSubstitutions={canManageSubstitutions}
         openPanel={openMatchActionPanel}
         onOpenPanelChange={setOpenMatchActionPanel}
       />
 
-      {shouldShowResultWorkflow ? (
+      {shouldShowResultWorkflow && canMutateSeason ? (
         <MatchResultConfirmationCard
           matchId={match.id}
           participantIds={[...match.teamA, ...match.teamB]}
@@ -400,7 +406,7 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
-      {shouldShowResultWorkflow ? (
+      {shouldShowResultWorkflow && canMutateSeason ? (
         <MvpVotingCard
           match={match}
           currentUserId={currentUserId}
@@ -456,10 +462,10 @@ export default function MatchDetailPage() {
           roundStartsAt={round?.startsAt ?? null}
           roundEndsAt={round?.endsAt ?? null}
           canManage={canManageSchedule}
-          canClearSchedule={isAdmin && !hasOpenIncident}
+          canClearSchedule={mutableAdmin && !hasOpenIncident}
           availabilityRecommendationsEnabled={roundSettings.availabilityRecommendationsEnabled}
           coordinationAction={
-            coordination?.status === "awaiting_booking" ? (
+            canMutateSeason && coordination?.status === "awaiting_booking" ? (
               <MatchReservationConfirmation
                 matchId={match.id}
                 coordination={coordination}
@@ -498,7 +504,7 @@ export default function MatchDetailPage() {
           players={players}
           currentUserId={currentUserId}
           canManage={canManageMatch}
-          canManageAllPayments={isAdmin}
+          canManageAllPayments={mutableAdmin}
           booking={match.courtBooking}
           shouldFocusBooking={shouldFocusBooking}
         />
@@ -514,7 +520,7 @@ export default function MatchDetailPage() {
       ) : null}
 
       {shouldShowResultWorkflow &&
-      (canEditResult || isAdmin) &&
+      (canEditResult || mutableAdmin) &&
       !isEditingResult ? (
         <AppCard>
           <div>
@@ -544,7 +550,7 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
 
-            {isAdmin && confirmationsEnabled ? (
+            {mutableAdmin && confirmationsEnabled ? (
               <button
                 type="button"
                 onClick={handleToggleResultLock}
@@ -563,7 +569,7 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
 
-            {isAdmin && !resultIsLocked ? (
+            {mutableAdmin && !resultIsLocked ? (
               <button
                 type="button"
                 onClick={handleClearResult}

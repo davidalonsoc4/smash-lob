@@ -240,7 +240,7 @@ export function AppShell({ children }: AppShellProps) {
       })
     : []
   const shouldShowSettingsButton =
-    !isMatchChatRoute && !isInitialSeasonSetupRoute && !isPublicAccessRoute
+    !isInitialSeasonSetupRoute && !isPublicAccessRoute
   const shouldShowHelpButton =
     !isMatchChatRoute &&
     !isInitialSeasonSetupRoute &&
@@ -331,7 +331,7 @@ export function AppShell({ children }: AppShellProps) {
             data-tour="floating-notifications"
             aria-label="Notificaciones"
             title="Notificaciones"
-            className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            className={`app-floating-control ${isMatchChatRoute ? "z-[70]" : "z-50"} flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100`}
             style={{
               position: "fixed",
               top: getFloatingTop(),
@@ -366,7 +366,7 @@ export function AppShell({ children }: AppShellProps) {
             data-tour="floating-settings"
             aria-label={t.appHeader.settingsLabel}
             title={t.appHeader.settingsLabel}
-            className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+            className={`app-floating-control ${isMatchChatRoute ? "z-[70]" : "z-50"} flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100`}
             style={{
               position: "fixed",
               top: getFloatingTop(),

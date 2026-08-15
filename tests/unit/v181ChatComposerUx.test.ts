@@ -5,7 +5,7 @@ describe("v1.8.1 match chat composer UX", () => {
   it("lets the composer follow normal focus and only restores it after sending text", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     expect(page).toContain("function focusComposerAfterSend")
-    expect(page).toContain('post("text", {}, text, true)')
+    expect(page).toContain('post("text", replyTo ? { replyTo } : {}, text, true)')
     expect(page).toContain("composerRef.current?.blur()")
     expect(page).not.toContain("function preserveComposerFocus")
     expect(page).not.toContain("function handleComposerBlur")

@@ -19,9 +19,10 @@ type Body = {
 }
 
 
-async function getAuthorizedActor(matchId: string) {
+async function getAuthorizedActor(matchId: string, requireMutableSeason = false) {
   const access = await getServerMatchActor(matchId, {
     requireLeagueAccess: true,
+    requireMutableSeason,
   })
 
   if (!access.ok) {
@@ -125,7 +126,7 @@ export async function PUT(
     return NextResponse.json({ error: "invalid_match_id" }, { status: 400 })
   }
 
-  const access = await getAuthorizedActor(matchId)
+  const access = await getAuthorizedActor(matchId, true)
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
@@ -194,7 +195,7 @@ export async function DELETE(
     return NextResponse.json({ error: "invalid_match_id" }, { status: 400 })
   }
 
-  const access = await getAuthorizedActor(matchId)
+  const access = await getAuthorizedActor(matchId, true)
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
