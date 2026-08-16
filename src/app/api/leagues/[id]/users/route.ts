@@ -33,7 +33,7 @@ export async function GET(
     await Promise.all([
       supabase
         .from("players")
-        .select("id,display_name,avatar_initials,avatar_url")
+        .select("id,display_name,avatar_initials,avatar_url,competitive_avatar_url")
         .eq("league_id", leagueId)
         .order("display_name", { ascending: true }),
       supabase
@@ -93,7 +93,10 @@ export async function GET(
         playerId: player.id,
         displayName: player.display_name,
         avatarInitials: player.avatar_initials,
-        avatarUrl: linkedUser?.avatar_url ?? null,
+        avatarUrl:
+          (typeof player.competitive_avatar_url === "string"
+            ? player.competitive_avatar_url
+            : null) ?? linkedUser?.avatar_url ?? null,
         linkedUserId: membership?.user_id ?? null,
         linkedUserEmail: linkedUser?.email ?? null,
         linkedUserDisplayName: linkedUser?.display_name ?? null,

@@ -30,13 +30,13 @@ async function participant(matchId: string, requireMutableSeason = false) {
   if (!validateUuid(matchId)) return { denied: reply("invalid_match_id", 400) }
   const access = await getServerMatchActor(matchId, { requireLeagueAccess: true, requireParticipant: true, requireMutableSeason })
   if (!access.ok) return { denied: reply(access.error, access.status) }
-  const { supabase: db, user, match, participantPlayerId: playerId } = access.actor
-  return playerId ? { db, user, match, playerId } : { denied: reply("match_chat_forbidden", 403) }
+  const { supabase: db, user, match, participantPlayerId: playerId, isAdmin } = access.actor
+  return playerId ? { db, user, match, playerId, isAdmin } : { denied: reply("match_chat_forbidden", 403) }
 }
 
 async function getParticipants(db: ServerLeagueActor["supabase"], match: { participantIds: string[]; leagueId: string }) {
   const ids = match.participantIds
-  const [playersResult, membershipsResult] = await Promise.all([db.from("players").select("id,display_name").in("id", ids), db.from("league_memberships").select("player_id,user_id").eq("league_id", match.leagueId).in("player_id", ids)])
+  const [playersResult, membershipsResult] = await Promise.all([db.from("players").select("id,display_name,competitive_avatar_url").in("id", ids), db.from("league_memberships").select("player_id,user_id").eq("league_id", match.leagueId).in("player_id", ids)])
   if (playersResult.error || membershipsResult.error) throw new Error("match_chat_participants_lookup_failed")
   const userByPlayer = new Map<string, string | null>((membershipsResult.data ?? []).map((row) => [String(row.player_id), typeof row.user_id === "string" ? row.user_id : null]))
   const userIds = Array.from(new Set(Array.from(userByPlayer.values()).filter((value): value is string => Boolean(value))))
@@ -44,8 +44,9 @@ async function getParticipants(db: ServerLeagueActor["supabase"], match: { parti
   if (avatarsResult.error) throw new Error("match_chat_participants_lookup_failed")
   const avatarByUser = new Map<string, string | null>((avatarsResult.data ?? []).map((row) => [String(row.id), typeof row.avatar_url === "string" ? row.avatar_url : null]))
   const nameByPlayer = new Map<string, string>((playersResult.data ?? []).map((row) => [String(row.id), String(row.display_name ?? "Jugador")]))
+  const competitiveAvatarByPlayer = new Map<string, string | null>((playersResult.data ?? []).map((row) => [String(row.id), typeof row.competitive_avatar_url === "string" ? row.competitive_avatar_url : null]))
   const usedHandles = new Set<string>()
-  return ids.map((playerId) => { const displayName = nameByPlayer.get(playerId) ?? "Jugador", userId = userByPlayer.get(playerId) ?? null, baseHandle = mentionHandle(displayName); let handle = baseHandle, suffix = 2; while (usedHandles.has(handle.toLocaleLowerCase("es-ES"))) handle = `${baseHandle}${suffix++}`; usedHandles.add(handle.toLocaleLowerCase("es-ES")); return { playerId, userId, displayName, handle, avatarUrl: userId ? avatarByUser.get(userId) ?? null : null } satisfies ChatParticipant })
+  return ids.map((playerId) => { const displayName = nameByPlayer.get(playerId) ?? "Jugador", userId = userByPlayer.get(playerId) ?? null, baseHandle = mentionHandle(displayName); let handle = baseHandle, suffix = 2; while (usedHandles.has(handle.toLocaleLowerCase("es-ES"))) handle = `${baseHandle}${suffix++}`; usedHandles.add(handle.toLocaleLowerCase("es-ES")); return { playerId, userId, displayName, handle, avatarUrl: competitiveAvatarByPlayer.get(playerId) ?? (userId ? avatarByUser.get(userId) ?? null : null) } satisfies ChatParticipant })
 }
 
 function parseStructuredMessage(input: ChatBody) {
@@ -69,12 +70,14 @@ export async function GET(request: Request, { params }: Ctx) {
   const { matchId } = await params, markRead = new URL(request.url).searchParams.get("markRead") !== "0"
   const gate = await participant(matchId)
   if ("denied" in gate) return gate.denied
-  const { db, user, match } = gate
+  const { db, user, match, isAdmin } = gate
   try {
     const participants = await getParticipants(db, match)
     const seasonResult = user.isSuperuser ? { data: { status: "active" }, error: null } : await db.from("seasons").select("status").eq("id", match.seasonId).eq("league_id", match.leagueId).maybeSingle()
     if (seasonResult.error) return reply("season_lookup_failed", 500)
-    const seasonReadOnly = !user.isSuperuser && seasonResult.data?.status === "finished"
+    const seasonReadOnly = !user.isSuperuser &&
+      (seasonResult.data?.status === "finished" ||
+        (seasonResult.data?.status === "upcoming" && !isAdmin))
     const { data, error } = await db.from("match_chat_messages").select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").eq("match_id", matchId).order("created_at", { ascending: false }).limit(60)
     if (error) return dbError(error.message)
     const ordered = [...(data ?? [])].reverse(), proposalIds = ordered.filter((message) => message.kind !== "text").map((message) => String(message.id)), linkedUserIds = participants.flatMap((item) => item.userId ? [item.userId] : [])

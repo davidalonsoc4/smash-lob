@@ -1080,3 +1080,98 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se mantiene el alcance de Avatar Lab: únicamente DiceBear Big Smile y Notion Avatar, limitado a PRE y sin persistencia en perfiles o Supabase.
 - La versión visible, el changelog y la caché PWA avanzan a `v1.2.7`.
 - No hay migraciones de Supabase ni cambios en datos persistidos.
+
+## v1.9.0 - Resumen de jornada (2026-08-16)
+
+- Nueva rama funcional prevista: `feature/v1.9.0-product-expansion`, basada en `main` v1.8.23 y destinada a agrupar las mejoras de producto posteriores al bloque de CHAT.
+- `CALENDARIO` convierte la cabecera completa de cada jornada con partidos en un acceso pulsable a `/round/[id]`; no se añade un chevron ni una ruta duplicada.
+- `/round/[id]` se redefine como `Resumen · Jornada X` y muestra estado/progreso, partidos, sets y juegos disputados, resultados compactos enlazados al detalle del partido, MVP y clasificación histórica.
+- Con MVP por `voting` se muestran los MVP de cada partido; con `automatic` o `automatic_advanced` se muestra el MVP de jornada; `none` oculta el bloque.
+- Mientras la jornada no está completa, la clasificación se etiqueta como provisional y los destacados definitivos permanecen bloqueados. Al completarse se calculan cambio de líder, mayor subida, partido más igualado y/o mejor racha según los datos disponibles.
+- La clasificación histórica se calcula ignorando resultados de jornadas posteriores y muestra movimiento respecto a la clasificación anterior.
+- El exportable de jornada y `Compartir resumen` quedan fuera de v1.9.0 inicial y son el siguiente desarrollo previsto.
+- Se documentan en `docs/V1_9_PRODUCT_EXPANSION.md` los frentes posteriores ya acordados para valoración: nivel global orientado a amistosos, auditoría/expansión de estadísticas globales de parejas, sustituciones, cierre de temporada y panel de salud de administración.
+- No hay cambios de API, Supabase ni migraciones en esta iteración.
+
+## v1.9.1 - Pulido del Resumen de jornada (2026-08-16)
+
+- El panel superior de la jornada usa `AppCard accentStrip` sin padding exterior para que la franja de acento quede anclada al borde superior; el titular deja el progreso `X/X partidos` exclusivamente en las métricas.
+- `RESULTADOS` reutiliza `MatchDetailPairingPanel`, exactamente el componente del detalle de PARTIDO, con `linkPlayers={false}` para que el panel completo siga enlazando al partido sin enlaces anidados.
+- Los destacados que representan un partido incorporan `matchId` y reutilizan el mismo `MatchDetailPairingPanel`; el resto de destacados mantiene su tarjeta textual.
+- El contexto bajo `Resumen · Jornada X` vuelve a reflejar el estado real de la temporada y no el estado de la jornada.
+- Se elimina la etiqueta aislada `JX` de la cabecera de clasificación.
+- Se incorpora al pie el botón `Compartir resumen de jornada` con el mismo tratamiento primario del resumen de temporada. La generación/compartición de la imagen continúa pendiente para el siguiente desarrollo.
+- No hay cambios de API, Supabase ni migraciones.
+
+## v1.9.2 - Destacados editoriales en Resumen de jornada (2026-08-16)
+
+- `RESULTADOS` conserva el `MatchDetailPairingPanel` completo como representación canónica de los partidos.
+- `LO MÁS DESTACADO` deja de repetir ese panel: los destacados ligados a un partido usan una tarjeta editorial compacta con motivo, explicación, parejas, marcador global, sets y acceso al detalle.
+- `Partido más igualado` expresa por qué fue igualado mediante la diferencia total de juegos, en lugar de volver a usar los nombres de las parejas como titular.
+- Los destacados no ligados a partidos mantienen la misma jerarquía de etiqueta, titular y detalle para que la sección funcione como lectura editorial de la jornada.
+- El exportable de Resumen de Jornada continúa pendiente como siguiente desarrollo.
+- No hay cambios de API, Supabase ni migraciones.
+
+## v1.9.3 - Comparaciones directas en destacados de jornada (2026-08-16)
+
+- `LO MÁS DESTACADO` demuestra el motivo de cada tarjeta mediante una comparación directa, en lugar de añadir una segunda descripción genérica.
+- `Partido más igualado` mantiene el marcador global de sets y enfrenta los juegos totales de ambas parejas, mostrando además la diferencia que origina el destacado.
+- `Nuevo líder` y `Mayor subida` muestran posición anterior frente a posición actual; `En racha` compara la racha previa con la actual.
+- Se elimina el texto `Ver partido`; la tarjeta completa continúa enlazando al detalle cuando el destacado corresponde a un encuentro.
+- Se converge el contrato legacy de v1.9.1 al `matchId` real usado desde v1.9.2.
+- No hay cambios de API, Supabase ni migraciones.
+
+## v1.9.4 - Tie-break decisivo como destacado de jornada (2026-08-16)
+
+- `LO MÁS DESTACADO` detecta partidos finalizados cuyo tercer set termina exactamente `7-6` o `6-7` y crea el momento `Decidido en tie-break`.
+- El destacado mantiene el marcador global del encuentro y compara de forma directa el tercer set con `Tie-break` como dato central.
+- Los encuentros ya destacados por tie-break se excluyen del cálculo de `Partido más igualado` para evitar duplicar el mismo partido en la sección.
+- La selección de destacados reserva espacio suficiente para conservar los tie-breaks decisivos aunque coincidan con movimientos relevantes de clasificación.
+- No hay cambios de API, Supabase ni migraciones.
+
+## v1.9.5 - Borrado estable al registrar resultado (2026-08-16)
+
+- `MatchResultForm` mantiene el avance automático al siguiente casillero únicamente cuando se introduce un valor válido.
+- Borrar un marcador ya no mueve el foco al casillero anterior, tanto si se elimina un valor existente como si se pulsa Backspace/Delete sobre un campo vacío.
+- El test histórico de destacados v1.9.2 deja de reutilizar un partido con tercer set `7-6`, evitando que choque con la clasificación `Decidido en tie-break` incorporada en v1.9.4.
+- No hay cambios de API, Supabase ni migraciones.
+
+## v1.9.6 - Resumen conectado y destacados simples compactos (2026-08-16)
+
+- El título `Jornada X` de PARTIDO pasa a ser un enlace directo a `/round/X`, reutilizando la ficha `Resumen · Jornada X`.
+- `LO MÁS DESTACADO` compacta en una sola fila los momentos sin partido (`Nuevo líder`, `Mayor subida` y `En racha`) y conserva protagonista + comparación directa.
+- Los momentos ligados a un encuentro (`Partido más igualado` y `Decidido en tie-break`) mantienen el formato detallado con parejas, marcador y comparación porque necesitan más contexto.
+- No hay cambios de API, Supabase ni migraciones.
+
+## v1.9.7 - Jerarquía visual de destacados simples (2026-08-16)
+
+- `NUEVO LÍDER`, `MAYOR SUBIDA` y `EN RACHA` recuperan su etiqueta como título independiente en la primera línea de cada tarjeta.
+- La segunda línea compacta únicamente el contenido: protagonista a la izquierda y comparación directa a la derecha (`2.º → 1.º`, `3 victorias → 4 victorias`, etc.).
+- `PARTIDO MÁS IGUALADO` y `DECIDIDO EN TIE-BREAK` mantienen intacto el formato detallado con parejas, marcador y comparación.
+- No hay cambios de cálculo, API, Supabase ni migraciones.
+
+## v1.9.8 - Pulido de PWA, CHAT y destacados (2026-08-16)
+
+- El aviso de instalación PWA se limita a HOME, a sesiones autenticadas y a cuentas con una pertenencia a liga ya registrada; invitaciones, acceso inicial y rutas públicas dejan de mostrarlo.
+- El resumen fijado de reserva de CHAT usa fecha numérica `DD/MM/YYYY` manteniendo la hora para reducir anchura.
+- El `mt-px` entre mensajes consecutivos ya era común; la diferencia visual se corrige dando a los enviados la misma geometría de borde que los recibidos mediante borde transparente con `background-clip`, sin modificar el margen correcto de entrada.
+- `EN RACHA` deja de mostrar la racha anterior y conserva únicamente las victorias consecutivas actuales.
+- Los destacados asociados a un resultado muestran los dos nombres de cada pareja en líneas separadas y eliminan `/`, manteniendo marcador y comparación.
+- `MatchReservationConfirmation` memoriza los arrays de ubicaciones aprobadas/rechazadas y elimina los dos warnings `react-hooks/exhaustive-deps`.
+- No hay cambios de API, Supabase ni migraciones.
+
+## Product evolution v1.9.9 (2026-08-16)
+
+- Resumen de Jornada incorpora exportable PNG compartible con resultados, MVP, destacados y clasificación.
+- Reutiliza el lenguaje visual de los exportables de temporada y mantiene fallback de descarga cuando Web Share de archivos no está disponible.
+- Sin cambios de API, Supabase ni migraciones.
+
+
+## Product evolution v1.10.0 (2026-08-16)
+
+- Imagen opcional en onboarding de perfil, conservando almacenamiento global y fallback de Google.
+- Override competitivo de imagen por jugador, exclusivo de superadmin y separado de identidad de cuenta.
+- Fecha/hora programada de inicio de temporada con countdown, activación server-side y bloqueo competitivo preinicio.
+- Centro de Difusión para admins con cinco exportables PNG 4:5 basados en datos reales.
+- Nueva migración aditiva `20260816173000_add_competitive_player_images_and_scheduled_seasons.sql`.
+- Scope excluido a propósito: pulido del PNG de Jornada, nivel global y estadísticas de parejas.

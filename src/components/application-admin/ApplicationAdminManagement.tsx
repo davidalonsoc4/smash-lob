@@ -1,5 +1,6 @@
 "use client"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { CompetitivePlayerAvatarEditor } from "@/components/application-admin/CompetitivePlayerAvatarEditor"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -10,6 +11,8 @@ type UserLeagueAccess = {
   leagueId: string
   leagueName: string
   playerId: string | null
+  playerDisplayName: string | null
+  competitiveAvatarUrl: string | null
   role: LeagueAccessRole
   isOwner: boolean
 }
@@ -17,6 +20,7 @@ type ApplicationUser = {
   id: string
   email: string
   displayName: string
+  avatarUrl: string | null
   firstName: string
   lastName: string
   isSuperuser: boolean
@@ -36,6 +40,16 @@ type ApplicationUser = {
   pushSubscriptionCount: number
   enabledPushSubscriptionCount: number
   notificationPreferenceCount: number
+}
+type ApplicationPlayer = {
+  id: string
+  leagueId: string
+  leagueName: string
+  displayName: string
+  linkedUserId: string | null
+  linkedUserEmail: string | null
+  accountAvatarUrl: string | null
+  competitiveAvatarUrl: string | null
 }
 type ApplicationSummary = {
   userCount: number
@@ -61,6 +75,7 @@ type UsersPayload = {
   currentUserId: string
   summary: ApplicationSummary
   items: ApplicationUser[]
+  players: ApplicationPlayer[]
   auditItems: AuditItem[]
 }
 type UserAction =
@@ -261,6 +276,18 @@ function ApplicationUsersView() {
         : current,
     )
   }
+  const visiblePlayers = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("es")
+    const players = payload?.players ?? []
+    if (!normalizedQuery) return players
+    return players.filter((player) =>
+      [player.displayName, player.leagueName, player.linkedUserEmail ?? ""]
+        .join(" ")
+        .toLocaleLowerCase("es")
+        .includes(normalizedQuery),
+    )
+  }, [payload?.players, query])
+
   function getTransferCandidates(leagueId: string, ownerUserId: string) {
     return (payload?.items ?? []).filter(
       (candidate) =>
@@ -487,6 +514,59 @@ function ApplicationUsersView() {
           className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none"
         />
       </AppCard>
+      <AppCard className="p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-bold">Imágenes competitivas de jugadores</p>
+            <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+              Override independiente de la imagen global de cuenta · {visiblePlayers.length} jugadores
+            </p>
+          </div>
+          <span className="rounded-full bg-red-50 px-2 py-1 type-caption font-black text-red-700">
+            SUPERUSER
+          </span>
+        </div>
+        <div className="mt-3 max-h-[32rem] space-y-2 overflow-y-auto pr-1">
+          {visiblePlayers.map((player) => (
+            <div key={player.id} className="rounded-xl border border-neutral-200 p-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-black text-neutral-900">{player.displayName}</p>
+                  <p className="mt-0.5 type-caption font-semibold text-neutral-500">
+                    {player.leagueName}
+                    {player.linkedUserEmail ? ` · ${player.linkedUserEmail}` : " · Sin cuenta vinculada"}
+                  </p>
+                </div>
+              </div>
+              <CompetitivePlayerAvatarEditor
+                playerId={player.id}
+                playerName={player.displayName}
+                accountAvatarUrl={player.accountAvatarUrl}
+                competitiveAvatarUrl={player.competitiveAvatarUrl}
+                onSaved={(avatarUrl) =>
+                  setPayload((current) =>
+                    current
+                      ? {
+                          ...current,
+                          players: current.players.map((item) =>
+                            item.id === player.id
+                              ? { ...item, competitiveAvatarUrl: avatarUrl }
+                              : item,
+                          ),
+                        }
+                      : current,
+                  )
+                }
+              />
+            </div>
+          ))}
+          {!loading && visiblePlayers.length === 0 ? (
+            <p className="rounded-xl bg-neutral-50 px-3 py-3 text-xs font-semibold text-neutral-500">
+              No hay jugadores que coincidan con la búsqueda.
+            </p>
+          ) : null}
+        </div>
+      </AppCard>
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
           {error}
@@ -665,20 +745,22 @@ function ApplicationUsersView() {
                       {user.leagueAccesses.map((access) => (
                         <div
                           key={`${user.id}:${access.leagueId}:${access.role}`}
-                          className="flex items-center justify-between gap-3 rounded-xl bg-neutral-100 px-3 py-2"
+                          className="rounded-xl bg-neutral-100 px-3 py-2"
                         >
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-black">{access.leagueName}</p>
-                            <p className="type-caption font-semibold text-neutral-500">
-                              {roleLabel(access.role)}
-                              {access.isOwner ? " · Propietario" : ""}
-                            </p>
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-black">{access.leagueName}</p>
+                              <p className="type-caption font-semibold text-neutral-500">
+                                {roleLabel(access.role)}
+                                {access.isOwner ? " · Propietario" : ""}
+                              </p>
+                            </div>
+                            {access.playerId ? (
+                              <span className="type-caption font-black text-neutral-400">
+                                JUGADOR VINCULADO
+                              </span>
+                            ) : null}
                           </div>
-                          {access.playerId ? (
-                            <span className="type-caption font-black text-neutral-400">
-                              JUGADOR VINCULADO
-                            </span>
-                          ) : null}
                         </div>
                       ))}
                     </div>

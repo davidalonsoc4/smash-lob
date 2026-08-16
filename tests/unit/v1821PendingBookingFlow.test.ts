@@ -68,12 +68,12 @@ describe("v1.8.21 pending booking flow", () => {
     const chat = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     expect(chat).toContain("const hasConfirmedReservation = Boolean(")
     expect(chat).toContain('record(message.payload).systemType === "reservation_confirmed"')
-    expect(chat).toContain('!readOnly && !hasConfirmedReservation && displayedCoordination?.status === "awaiting_booking"')
+    expect(chat).toContain('!effectiveReadOnly && !hasConfirmedReservation && displayedCoordination?.status === "awaiting_booking"')
   })
 
   it("styles proposal shells by sender while keeping voting content on light surfaces", async () => {
     const chat = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(chat).toContain('mine ? "bg-neutral-950" : "border border-neutral-200 bg-white text-neutral-950"')
+    expect(chat).toContain('mine ? "border border-transparent bg-clip-padding bg-neutral-950" : "border border-neutral-200 bg-white text-neutral-950"')
     expect(chat).toContain('mine ? "bg-neutral-950 text-white" : "text-neutral-950"')
     expect(chat).toContain('text-neutral-950 ${invalidated ? "bg-neutral-100 opacity-70" : "bg-neutral-50"}')
     expect(chat).toContain('className="mt-1.5 flex items-start gap-2 rounded-xl bg-neutral-50 px-2.5 py-1.5 text-neutral-950"')

@@ -28,12 +28,13 @@ export async function GET() {
     seasonsResult,
     pushSubscriptionsResult,
     notificationPreferencesResult,
+    playersResult,
     auditResult,
   ] = await Promise.all([
     supabase
       .from("app_users")
       .select(
-        "id,email,display_name,first_name,last_name,is_superuser,can_create_leagues,profile_completed_at,availability_completed_at,created_at,suspended_at,suspension_reason",
+        "id,email,display_name,first_name,last_name,avatar_url,is_superuser,can_create_leagues,profile_completed_at,availability_completed_at,created_at,suspended_at,suspension_reason",
       )
       .order("created_at", { ascending: false }),
     supabase
@@ -55,6 +56,9 @@ export async function GET() {
       .from("notification_preferences")
       .select("user_email"),
     supabase
+      .from("players")
+      .select("id,league_id,display_name,competitive_avatar_url"),
+    supabase
       .from("application_admin_audit_log")
       .select("id,actor_email,target_email,league_id,action,metadata,created_at")
       .order("created_at", { ascending: false })
@@ -69,6 +73,7 @@ export async function GET() {
     seasonsResult.error ||
     pushSubscriptionsResult.error ||
     notificationPreferencesResult.error ||
+    playersResult.error ||
     auditResult.error
   ) {
     return NextResponse.json({ error: "application_users_lookup_failed" }, { status: 500 })
@@ -81,6 +86,31 @@ export async function GET() {
   const seasons = seasonsResult.data ?? []
   const pushSubscriptions = pushSubscriptionsResult.data ?? []
   const notificationPreferences = notificationPreferencesResult.data ?? []
+  const players = (playersResult.data ?? []) as Array<{
+    id: string
+    league_id: string
+    display_name: string | null
+    competitive_avatar_url: string | null
+  }>
+  const playerById = new Map(players.map((player) => [String(player.id), player]))
+  const userById = new Map<string, { id: string; email: string | null; avatar_url: string | null }>(
+    users.map((user) => [
+      String(user.id),
+      {
+        id: String(user.id),
+        email: typeof user.email === "string" ? user.email : null,
+        avatar_url: typeof user.avatar_url === "string" ? user.avatar_url : null,
+      },
+    ]),
+  )
+  const membershipByPlayerId = new Map<string, { user_id: string | null }>(
+    memberships
+      .filter((membership) => typeof membership.player_id === "string")
+      .map((membership) => [
+        String(membership.player_id),
+        { user_id: typeof membership.user_id === "string" ? membership.user_id : null },
+      ]),
+  )
   const leagueNameById = new Map(
     leagues.map((league) => [String(league.id), String(league.name ?? "Liga")]),
   )
@@ -125,6 +155,15 @@ export async function GET() {
           leagueNameById.get(String(membership.league_id)) ?? "Liga",
         playerId:
           typeof membership.player_id === "string" ? membership.player_id : null,
+        playerDisplayName:
+          typeof membership.player_id === "string"
+            ? String(playerById.get(membership.player_id)?.display_name ?? "Jugador")
+            : null,
+        competitiveAvatarUrl:
+          typeof membership.player_id === "string" &&
+          typeof playerById.get(membership.player_id)?.competitive_avatar_url === "string"
+            ? String(playerById.get(membership.player_id)?.competitive_avatar_url)
+            : null,
         role:
           membership.role === "creator" ||
           membership.role === "admin" ||
@@ -147,6 +186,8 @@ export async function GET() {
           leagueName:
             leagueNameById.get(String(spectator.league_id)) ?? "Liga",
           playerId: null,
+          playerDisplayName: null,
+          competitiveAvatarUrl: null,
           role: "spectator" as const,
           isOwner: false,
         })),
@@ -156,6 +197,7 @@ export async function GET() {
       id: user.id,
       email: user.email,
       displayName: user.display_name ?? "",
+      avatarUrl: typeof user.avatar_url === "string" ? user.avatar_url : null,
       firstName: user.first_name ?? "",
       lastName: user.last_name ?? "",
       isSuperuser: Boolean(user.is_superuser),
@@ -179,6 +221,31 @@ export async function GET() {
       notificationPreferenceCount: notificationCountsByEmail.get(email) ?? 0,
     }
   })
+
+  const playerItems = players
+    .map((player) => {
+      const membership = membershipByPlayerId.get(String(player.id))
+      const linkedUser = membership?.user_id ? userById.get(String(membership.user_id)) : null
+      return {
+        id: String(player.id),
+        leagueId: String(player.league_id),
+        leagueName: String(leagueNameById.get(String(player.league_id)) ?? "Liga"),
+        displayName: String(player.display_name ?? "Jugador"),
+        linkedUserId: linkedUser ? String(linkedUser.id) : null,
+        linkedUserEmail: linkedUser ? String(linkedUser.email ?? "") : null,
+        accountAvatarUrl:
+          linkedUser && typeof linkedUser.avatar_url === "string" ? linkedUser.avatar_url : null,
+        competitiveAvatarUrl:
+          typeof player.competitive_avatar_url === "string"
+            ? player.competitive_avatar_url
+            : null,
+      }
+    })
+    .sort((left, right) =>
+      left.leagueName === right.leagueName
+        ? left.displayName.localeCompare(right.displayName, "es")
+        : left.leagueName.localeCompare(right.leagueName, "es"),
+    )
 
   const summary = {
     userCount: users.length,
@@ -221,6 +288,7 @@ export async function GET() {
     currentUserId: authResult.actor.user.id,
     summary,
     items,
+    players: playerItems,
     auditItems,
   })
 }

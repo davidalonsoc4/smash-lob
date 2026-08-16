@@ -199,7 +199,7 @@ export default function AdminPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } =
     useLeagueAccess()
-  const { activeLeague, matches } = useCurrentLeagueData()
+  const { activeLeague, matches, roundSettings } = useCurrentLeagueData()
   const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
@@ -356,6 +356,14 @@ export default function AdminPage() {
           title="Comunicados"
           description="Publica avisos en HOME y envía notificaciones a la liga."
         />
+        <AdminLinkRow
+          href="/admin/media-kit"
+          title="Centro de difusión"
+          description="Genera imágenes de reglas, inscripciones, calendario, inicio y cuenta atrás listas para compartir."
+        />
+        {roundSettings.registrationFee.enabled ? (
+          <AdminLinkRow href="/admin/season/finances" title="Economía de temporada" description="Controla ingresos de inscripción, gastos y saldo disponible." />
+        ) : null}
       </AdminGroup>
 
       <AdminGroup

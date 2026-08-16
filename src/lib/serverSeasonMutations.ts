@@ -58,6 +58,7 @@ type CreateServerSeasonInput = {
   newPlayerNames: string[]
   roundWindowMode: RoundWindowMode
   seasonStartsAt: string | null
+  scheduledStartAt: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
   mvpSystem: SeasonRoundSettings["mvpSystem"]
@@ -249,6 +250,7 @@ type EditableSeasonRoundSettings = Pick<
   SeasonRoundSettings,
   | "roundWindowMode"
   | "seasonStartsAt"
+  | "scheduledStartAt"
   | "roundWindowDays"
   | "requiresThreeSets"
   | "mvpSystem"
@@ -285,6 +287,7 @@ export async function updateServerSeasonRoundSettings({
     season_id: seasonId,
     round_window_mode: settings.roundWindowMode,
     season_starts_at: settings.seasonStartsAt,
+    scheduled_start_at: settings.scheduledStartAt,
     round_window_days: settings.roundWindowDays,
     requires_three_sets: settings.requiresThreeSets,
     mvp_system: settings.mvpSystem,
@@ -454,7 +457,7 @@ export async function startServerExistingSeason({
   const { data: settingsRow, error: settingsLookupError } = await supabase
     .from("season_settings")
     .select(
-      "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
+      "season_id,league_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
     )
     .eq("season_id", seasonId)
     .eq("league_id", leagueId)
@@ -555,6 +558,10 @@ export async function startServerExistingSeason({
       roundWindowMode:
         settingsRow.round_window_mode === "fixed-days" ? "fixed-days" : "none",
       seasonStartsAt: settingsRow.season_starts_at,
+      scheduledStartAt:
+        typeof settingsRow.scheduled_start_at === "string"
+          ? settingsRow.scheduled_start_at
+          : null,
       roundWindowDays: settingsRow.round_window_days,
       requiresThreeSets: Boolean(settingsRow.requires_three_sets),
       mvpSystem:
@@ -917,6 +924,7 @@ export async function createServerSeason({
     newPlayerNames,
     roundWindowMode,
     seasonStartsAt,
+    scheduledStartAt,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -1273,6 +1281,7 @@ export async function createServerSeason({
       league_id: leagueId,
       round_window_mode: roundWindowMode,
       season_starts_at: seasonStartsAt,
+      scheduled_start_at: scheduledStartAt,
       round_window_days: roundWindowDays,
       requires_three_sets: requiresThreeSets,
       mvp_system: mvpSystem,
@@ -1328,6 +1337,7 @@ export async function createServerSeason({
       seasonId: season.id,
       roundWindowMode,
       seasonStartsAt,
+      scheduledStartAt,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,

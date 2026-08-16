@@ -43,6 +43,7 @@ export async function updateSupabaseSeasonRoundSettings(
         body: JSON.stringify({
           roundWindowMode: settings.roundWindowMode,
           seasonStartsAt: settings.seasonStartsAt,
+          scheduledStartAt: settings.scheduledStartAt,
           roundWindowDays: settings.roundWindowDays,
           requiresThreeSets: settings.requiresThreeSets,
           mvpSystem: settings.mvpSystem,
@@ -228,6 +229,7 @@ export async function startSupabaseSeason({
   newPlayerNames,
   roundWindowMode,
   seasonStartsAt,
+  scheduledStartAt,
   roundWindowDays,
   requiresThreeSets,
   mvpSystem,
@@ -250,6 +252,7 @@ export async function startSupabaseSeason({
   newPlayerNames: string[];
   roundWindowMode: RoundWindowMode;
   seasonStartsAt: string | null;
+  scheduledStartAt?: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: SeasonRoundSettings["mvpSystem"];
@@ -284,6 +287,7 @@ export async function startSupabaseSeason({
         newPlayerNames,
         roundWindowMode,
         seasonStartsAt,
+        scheduledStartAt: scheduledStartAt ?? null,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,

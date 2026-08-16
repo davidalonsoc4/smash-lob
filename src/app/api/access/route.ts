@@ -7,6 +7,7 @@ import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
+import { activateDueScheduledSeasons } from "@/lib/serverScheduledSeason"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type {
   SeasonRoundSettings,
@@ -193,6 +194,14 @@ export async function GET() {
     })
   }
 
+  try {
+    await activateDueScheduledSeasons({ actor: authResult.actor, leagueIds })
+  } catch (scheduledStartError) {
+    logServerEvent("warn", "scheduled-season-activation-failed", {
+      errorCode: scheduledStartError instanceof Error ? scheduledStartError.message : "unknown",
+    })
+  }
+
   const [
     seasonsResult,
     playersResult,
@@ -208,7 +217,7 @@ export async function GET() {
       .in("league_id", leagueIds),
     supabase
       .from("players")
-      .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+      .select("id,league_id,slug,display_name,avatar_initials,avatar_url,competitive_avatar_url")
       .in("league_id", leagueIds),
     supabase
       .from("season_players")
@@ -217,7 +226,7 @@ export async function GET() {
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled"
+        "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled"
       )
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
@@ -320,6 +329,10 @@ export async function GET() {
         preferredSide: membership?.user_id ? preferredSideByUserId.get(membership.user_id) ?? null : null,
         dominantHand: membership?.user_id ? dominantHandByUserId.get(membership.user_id) ?? null : null,
         avatarUrl: resolvePlayerAvatarUrl({
+          competitiveAvatarUrl:
+            typeof player.competitive_avatar_url === "string"
+              ? player.competitive_avatar_url
+              : null,
           linkedUserId: membership?.user_id ?? null,
           users: userAvatarLookup,
         }),
@@ -357,6 +370,10 @@ export async function GET() {
     roundWindowMode:
       settings.round_window_mode === "fixed-days" ? "fixed-days" : "none",
     seasonStartsAt: settings.season_starts_at,
+    scheduledStartAt:
+      typeof settings.scheduled_start_at === "string"
+        ? settings.scheduled_start_at
+        : null,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
     mvpSystem:

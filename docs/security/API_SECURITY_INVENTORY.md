@@ -12,6 +12,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/application-admin/leagues/[leagueId]/transfer` | POST | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/locations` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/locations` | DELETE | Protegido | requireAuthenticatedAppUser + isSuperuser |
+| `/api/application-admin/players/[playerId]/avatar` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/suggestions` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/suggestions` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/users` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
@@ -45,6 +46,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/seasons` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]` | DELETE | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/duplicate` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/seasons/[seasonId]/expenses` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
+| `/api/leagues/[id]/seasons/[seasonId]/expenses` | DELETE | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/finish` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/mvp-selection` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/registration` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
