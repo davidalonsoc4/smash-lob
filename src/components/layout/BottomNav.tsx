@@ -85,7 +85,7 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
   )
 }
 
-export function BottomNav() {
+export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean }) {
   const pathname = usePathname()
   const { t } = useI18n()
   const { activeLeagueId } = useActiveLeague()
@@ -253,6 +253,29 @@ export function BottomNav() {
       >
         {navItems.map((item) => {
           const isActive = item.isActive(pathname)
+          const isDisabled = homeOnlyLocked && item.href !== "/"
+          const content = (
+            <>
+              <span className="relative"><NavIcon icon={item.icon} />{!homeOnlyLocked && item.icon === "chats" && chatUnread > 0 ? <span className="absolute -right-3 -top-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-xs font-black leading-4 text-white">{chatUnread > 99 ? "99+" : chatUnread}</span> : null}</span>
+              <span className="leading-none">{item.label}</span>
+            </>
+          )
+
+          if (isDisabled) {
+            return (
+              <button
+                key={item.href}
+                type="button"
+                disabled
+                aria-disabled="true"
+                title="Disponible cuando comience la temporada"
+                className="app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-400 opacity-40"
+                style={{ minHeight: "52px" }}
+              >
+                {content}
+              </button>
+            )
+          }
 
           return (
             <Link
@@ -275,12 +298,9 @@ export function BottomNav() {
                   ? "app-bottom-nav-active flex flex-col items-center justify-center bg-neutral-950 text-center font-black text-white shadow-sm"
                   : "app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-600 transition active:bg-neutral-100"
               }
-              style={{
-                minHeight: "52px",
-              }}
+              style={{ minHeight: "52px" }}
             >
-              <span className="relative"><NavIcon icon={item.icon} />{item.icon === "chats" && chatUnread > 0 ? <span className="absolute -right-3 -top-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-xs font-black leading-4 text-white">{chatUnread > 99 ? "99+" : chatUnread}</span> : null}</span>
-              <span className="leading-none">{item.label}</span>
+              {content}
             </Link>
           )
         })}

@@ -1,19 +1,14 @@
-"use client"
-
 import type { ReactNode } from "react"
 import { formatMoney } from "@/lib/courtBooking"
 import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
-
 type LeagueRulesSummaryProps = {
   registrationFee?: SeasonRegistrationFee | null
   className?: string
 }
-
 type RuleSectionProps = {
   title: string
   children: ReactNode
 }
-
 function RuleSection({ title, children }: RuleSectionProps) {
   return (
     <section className="rounded-2xl bg-neutral-50 px-3 py-3 ring-1 ring-neutral-100">
@@ -24,11 +19,9 @@ function RuleSection({ title, children }: RuleSectionProps) {
     </section>
   )
 }
-
 function RuleList({ children }: { children: ReactNode }) {
   return <ul className="space-y-1.5">{children}</ul>
 }
-
 function RuleItem({ children }: { children: ReactNode }) {
   return (
     <li className="flex gap-2">
@@ -37,7 +30,6 @@ function RuleItem({ children }: { children: ReactNode }) {
     </li>
   )
 }
-
 export function LeagueRulesSummary({
   registrationFee,
   className = "",
@@ -49,7 +41,6 @@ export function LeagueRulesSummary({
     ? formatMoney(registrationFee?.amount ?? 0)
     : "el importe definido por el organizador"
   const registrationPurpose = registrationFee?.purpose?.trim()
-
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="rounded-2xl bg-neutral-950 px-3 py-3 text-white">
@@ -64,7 +55,6 @@ export function LeagueRulesSummary({
           y mantener la competitividad hasta el último juego.
         </p>
       </div>
-
       <RuleSection title="💰 Inscripción, fianza y cena">
         <RuleList>
           <RuleItem>
@@ -92,7 +82,6 @@ export function LeagueRulesSummary({
           </p>
         ) : null}
       </RuleSection>
-
       <RuleSection title="📅 Organización, buena fe y plazos">
         <RuleList>
           <RuleItem>
@@ -109,7 +98,6 @@ export function LeagueRulesSummary({
           </RuleItem>
         </RuleList>
       </RuleSection>
-
       <RuleSection title="🩹 Suplentes y reemplazos">
         <RuleList>
           <RuleItem>
@@ -130,7 +118,6 @@ export function LeagueRulesSummary({
           </RuleItem>
         </RuleList>
       </RuleSection>
-
       <RuleSection title="🎾 Sistema de competición y puntuación">
         <RuleList>
           <RuleItem>
@@ -150,14 +137,12 @@ export function LeagueRulesSummary({
           </RuleItem>
         </RuleList>
       </RuleSection>
-
       <RuleSection title="✨ Pareja MVP de la jornada">
         <p>
           La pareja con la victoria más demoledora de la jornada recibirá la mención de
           Pareja MVP: prioridad al 3-0 y después a la mayor diferencia de juegos.
         </p>
       </RuleSection>
-
       <RuleSection title="⏳ Tercer set incompleto">
         <RuleList>
           <RuleItem>
@@ -170,7 +155,6 @@ export function LeagueRulesSummary({
           </RuleItem>
         </RuleList>
       </RuleSection>
-
       <RuleSection title="🏆 Desempates en el ranking">
         <RuleList>
           <RuleItem>

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
+import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
 import { isSafeImageUrl } from "@/lib/imageUrl"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
@@ -322,22 +323,10 @@ function FinishedPairRow({
           {sets.map((set, index) => {
             const ownScore = side === "a" ? set.a : set.b
             const rivalScore = side === "a" ? set.b : set.a
-            const wonSet = ownScore > rivalScore
-            return (
-              <span
-                key={index}
-                className={`flex h-7 min-w-7 items-center justify-center rounded-lg px-1.5 type-small leading-none ring-1 ring-inset ${
-                  wonSet
-                    ? "bg-neutral-100 font-black text-neutral-800 ring-neutral-200"
-                    : "bg-neutral-50 font-bold text-neutral-500 ring-neutral-200"
-                }`}
-              >
-                {ownScore}
-              </span>
-            )
+            return <SetGameScore key={index} value={ownScore} won={ownScore > rivalScore} />
           })}
           {points !== null && points !== undefined ? (
-            <div className="relative -translate-y-0.5 ml-1 flex h-11 min-w-11 items-center justify-center self-center rounded-lg bg-white px-3 text-lg font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
+            <div className="relative -translate-y-0.5 ml-1 flex h-9 min-w-9 items-center justify-center self-center rounded-md bg-white px-2 text-base font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
               {points}
             </div>
           ) : null}

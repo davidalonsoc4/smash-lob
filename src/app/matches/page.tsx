@@ -29,6 +29,7 @@ export default function MatchesPage() {
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonUpcoming = activeSeason.status === "upcoming"
+  const isPlayerSeasonLocked = isSeasonUpcoming && !canManageSeason
   const activeScope = searchParams.get("scope") === "mine" ? "mine" : "all"
   const currentUserMatches = matches.filter(
     (match) =>
@@ -157,7 +158,7 @@ export default function MatchesPage() {
         </div>
       </AppCard>
 
-      {isSeasonUpcoming ? (
+      {isPlayerSeasonLocked ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 px-3 py-2.5">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
             Temporada próximamente
@@ -195,7 +196,11 @@ export default function MatchesPage() {
               data-active-round={round.id === activeRoundId ? "true" : undefined}
               className="scroll-mt-24 space-y-4"
             >
-              <div>
+              <Link
+                href={`/round/${round.round}`}
+                aria-label={`Abrir resumen de ${round.name}`}
+                className="block rounded-xl px-1 py-1 transition active:bg-neutral-100"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="type-section-title">{round.name}</h2>
 
@@ -211,7 +216,7 @@ export default function MatchesPage() {
                     {roundWindowText}
                   </p>
                 ) : null}
-              </div>
+              </Link>
 
               <div className="space-y-4">
                 {roundMatches.map((match) => (

@@ -173,15 +173,37 @@ export async function getServerMatchActor(
   }
 
   if (options.requireMutableSeason && !user.isSuperuser) {
-    const { data: seasonRow, error: seasonError } = await supabase
-      .from("seasons")
-      .select("status")
-      .eq("id", mappedMatch.seasonId)
-      .eq("league_id", mappedMatch.leagueId)
-      .maybeSingle()
-    if (seasonError) return { ok: false, status: 500, error: "season_lookup_failed" }
+    const [{ data: seasonRow, error: seasonError }, { data: seasonSettings, error: settingsError }] = await Promise.all([
+      supabase
+        .from("seasons")
+        .select("status")
+        .eq("id", mappedMatch.seasonId)
+        .eq("league_id", mappedMatch.leagueId)
+        .maybeSingle(),
+      supabase
+        .from("season_settings")
+        .select("scheduled_start_at")
+        .eq("season_id", mappedMatch.seasonId)
+        .eq("league_id", mappedMatch.leagueId)
+        .maybeSingle(),
+    ])
+    if (seasonError || settingsError) return { ok: false, status: 500, error: "season_lookup_failed" }
     if (!seasonRow) return { ok: false, status: 404, error: "season_not_found" }
     if (seasonRow.status === "finished") return { ok: false, status: 409, error: "season_finished_read_only" }
+    if (seasonRow.status === "upcoming" && !isAdmin) {
+      const scheduledStartAt =
+        typeof seasonSettings?.scheduled_start_at === "string"
+          ? seasonSettings.scheduled_start_at
+          : null
+      const isFuture = scheduledStartAt
+        ? new Date(scheduledStartAt).getTime() > Date.now()
+        : true
+      return {
+        ok: false,
+        status: 409,
+        error: isFuture ? "season_not_started" : "season_start_pending",
+      }
+    }
   }
 
   return {

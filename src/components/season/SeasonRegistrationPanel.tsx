@@ -1,5 +1,4 @@
 "use client"
-
 import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
@@ -8,7 +7,6 @@ import { showActionFeedback } from "@/lib/actionFeedback"
 import { getPaymentStatusBadgeClassName } from "@/lib/statusStyles"
 import type { PlayerProfile } from "@/data/fakeData"
 import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
-
 type SeasonRegistrationPanelProps = {
   registrationFee: SeasonRegistrationFee
   players: PlayerProfile[]
@@ -20,8 +18,8 @@ type SeasonRegistrationPanelProps = {
   canSendReminder?: boolean
   onTogglePayment: (playerId: string, isPaid: boolean) => Promise<void> | void
   onSendReminder?: () => Promise<boolean> | boolean
+  embedded?: boolean
 }
-
 export function SeasonRegistrationPanel({
   registrationFee,
   players,
@@ -33,11 +31,11 @@ export function SeasonRegistrationPanel({
   canSendReminder = false,
   onTogglePayment,
   onSendReminder,
+  embedded = false,
 }: SeasonRegistrationPanelProps) {
   const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [arePaymentsExpanded, setArePaymentsExpanded] = useState(false)
-
   const automaticallySettledPlayerIdSet = useMemo(
     () => new Set(automaticallySettledPlayerIds.filter(Boolean)),
     [automaticallySettledPlayerIds],
@@ -57,11 +55,9 @@ export function SeasonRegistrationPanel({
       ),
     [automaticallySettledPlayerIdSet, registrationFee.payments],
   )
-
   if (!registrationFee.enabled || registrationFee.amount <= 0) {
     return null
   }
-
   const paidPlayers = players.filter(
     (player) => paymentByPlayerId.get(player.id)?.isPaid,
   )
@@ -83,32 +79,25 @@ export function SeasonRegistrationPanel({
   const purpose =
     registrationFee.purpose?.trim() ||
     "Premios, bolas, bote final, reservas comunes u otros gastos de organización."
-
   if (!canManage && !currentUserPayment) {
     return null
   }
-
   async function handleTogglePayment(playerId: string, isPaid: boolean) {
     if (savingPlayerId) {
       return
     }
-
     setSavingPlayerId(playerId)
-
     try {
       await onTogglePayment(playerId, isPaid)
     } finally {
       setSavingPlayerId(null)
     }
   }
-
   async function handleSendReminder() {
     if (!canSendReminder || !onSendReminder || isSendingReminder) {
       return
     }
-
     setIsSendingReminder(true)
-
     try {
       const sent = await onSendReminder()
       showActionFeedback({
@@ -121,9 +110,8 @@ export function SeasonRegistrationPanel({
       setIsSendingReminder(false)
     }
   }
-
-  return (
-    <AppCard className="border-emerald-200 bg-emerald-50 p-2.5">
+  const content = (
+    <>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-black text-emerald-950">
@@ -137,7 +125,6 @@ export function SeasonRegistrationPanel({
           {paidCount}/{players.length} pagadas
         </span>
       </div>
-
       {canManage ? (
         <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl bg-white/75 px-2.5 py-1.5">
           <p className="type-caption font-semibold text-neutral-600">
@@ -150,7 +137,6 @@ export function SeasonRegistrationPanel({
             </strong>{" "}
             por cobrar · {formatMoney(totalAmount)} total
           </p>
-
           {canSendReminder && pendingPlayers.length > 0 ? (
             <button
               type="button"
@@ -168,13 +154,11 @@ export function SeasonRegistrationPanel({
           {organizerName?.trim() || "la organización"}.
         </p>
       ) : null}
-
       {isSeasonUpcoming && pendingPlayers.length > 0 ? (
         <p className="mt-1.5 type-caption font-semibold leading-4 text-amber-900">
           La temporada no puede comenzar hasta saldar todas las inscripciones.
         </p>
       ) : null}
-
       <details className="mt-1.5 rounded-xl bg-white/65 px-2.5 py-1.5">
         <summary className="cursor-pointer type-caption font-black text-emerald-900">
           Destino de la inscripción
@@ -183,7 +167,6 @@ export function SeasonRegistrationPanel({
           {purpose}
         </p>
       </details>
-
       {canManage ? (
         <button
           type="button"
@@ -197,7 +180,6 @@ export function SeasonRegistrationPanel({
           </span>
         </button>
       ) : null}
-
       {visiblePlayers.length > 0 ? (
         <div className="mt-1.5 space-y-1">
           {visiblePlayers.map((player) => {
@@ -209,7 +191,6 @@ export function SeasonRegistrationPanel({
               !isAutomaticallySettled &&
               (canManage || player.id === currentUserId)
             const isSaving = savingPlayerId === player.id
-
             return (
               <div
                 key={player.id}
@@ -220,7 +201,6 @@ export function SeasonRegistrationPanel({
                   size="sm"
                   className="bg-neutral-950 text-white"
                 />
-
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-black text-neutral-950">
                     {player.displayName}
@@ -240,7 +220,6 @@ export function SeasonRegistrationPanel({
                     ) : null}
                   </div>
                 </div>
-
                 {canEdit ? (
                   <button
                     type="button"
@@ -260,6 +239,10 @@ export function SeasonRegistrationPanel({
           })}
         </div>
       ) : null}
-    </AppCard>
+    </>
   )
+  if (embedded) {
+    return <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-2.5">{content}</div>
+  }
+  return <AppCard className="border-emerald-200 bg-emerald-50 p-2.5">{content}</AppCard>
 }

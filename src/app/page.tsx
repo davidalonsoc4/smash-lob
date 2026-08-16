@@ -11,6 +11,7 @@ import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -46,6 +47,7 @@ import {
   startSupabaseExistingSeason,
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
+import { getScheduledSeasonHomeStage } from "@/lib/seasonScheduling";
 
 const supabaseUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -394,7 +396,7 @@ function SeasonSummaryAwardRow({
 export default function Home() {
   const { t } = useI18n();
   const { data: session } = useSession();
-  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
@@ -402,6 +404,8 @@ export default function Home() {
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const [isLeaguePickerOpen, setIsLeaguePickerOpen] = useState(false);
+  const [isSeasonPickerOpen, setIsSeasonPickerOpen] = useState(false);
+  const [selectedHomeSeasonId, setSelectedHomeSeasonId] = useState<string | null>(null);
   const { currentUserId, currentUser } = useCurrentUser();
   const { activateLeague } = useActiveLeague();
   const { canAccessLeague, isLeagueAdmin, isLeagueSpectator, leagues } = useLeagueAccess();
@@ -414,14 +418,19 @@ export default function Home() {
     rankingPlayers: seasonRankingPlayers,
     matches,
     rounds,
-  } = useCurrentLeagueData();
+  } = useCurrentLeagueData(selectedHomeSeasonId);
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
   const spectatorMode = isLeagueSpectator(activeLeague.id);
   const accessibleHomeLeagues = leagues.filter((league) => canAccessLeague(league.id) || isLeagueSpectator(league.id));
+  const selectableHomeSeasons = seasons.filter((season) => season.leagueId === activeLeague.id).slice().reverse();
+  const canSwitchHomeSeason = selectableHomeSeasons.length > 1;
   const canManageRegistration = canManageSeason;
   const isSeasonClosed = activeSeason.status === "finished";
   const isSeasonUpcoming = activeSeason.status === "upcoming";
+  const isPlayerSeasonLocked = isSeasonUpcoming && !canManageSeason;
+  const isSeasonScheduled =
+    isSeasonUpcoming && Boolean(roundSettings.scheduledStartAt);
   const currentUserMatches = matches.filter((match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId));
   const now = new Date();
   const personalLastMatch = getLastPlayedOrPendingMatch(currentUserMatches, now);
@@ -530,10 +539,25 @@ export default function Home() {
   });
   const isSelfRegistrationSeason =
     roundSettings.rosterMode === "self_registration";
+  const playerCapacity = roundSettings.playerCapacity;
   const isRosterComplete =
     !isSelfRegistrationSeason ||
-    (Boolean(roundSettings.playerCapacity) &&
-      seasonRankingPlayers.length === roundSettings.playerCapacity);
+    (typeof playerCapacity === "number" &&
+      playerCapacity > 0 &&
+      seasonRankingPlayers.length >= playerCapacity);
+  const hasRegistrationFee =
+    roundSettings.registrationFee.enabled && roundSettings.registrationFee.amount > 0;
+  const scheduledHomeStage = getScheduledSeasonHomeStage({
+    isRosterComplete,
+    registrationEnabled: hasRegistrationFee,
+    registrationSettled: isRegistrationSettled,
+  });
+  const showScheduledCountdownHero =
+    isSeasonUpcoming && isSeasonScheduled && scheduledHomeStage === "countdown";
+  const showScheduledRegistrationWaiting =
+    isSeasonUpcoming && isSeasonScheduled && scheduledHomeStage === "registration";
+  const showScheduledRosterWaiting =
+    isSeasonUpcoming && isSeasonScheduled && scheduledHomeStage === "roster";
   const canStartUpcomingSeason = isRegistrationSettled && isRosterComplete;
 
   async function handleToggleRegistrationPayment(
@@ -749,17 +773,41 @@ export default function Home() {
                 <Link href="/personal-matches" role="menuitem" onClick={() => setIsLeaguePickerOpen(false)} className="flex items-center rounded-xl px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800">MIS PARTIDOS</Link>
               </div> : null}
             </div>
-            <SeasonContextLine
-              seasonName={activeSeason.name}
-              statusLabel={
-                activeSeason.status === "finished"
-                  ? t.common.finishedSeasonBadge
-                  : activeSeason.status === "upcoming"
-                    ? t.rounds.statusUpcoming
-                    : t.rounds.statusActive
-              }
-              className="mt-0.5"
-            />
+            <div className="relative mt-0.5">
+              {canSwitchHomeSeason ? (
+                <>
+                  <button
+                    type="button"
+                    data-tour="home-season-switcher"
+                    aria-haspopup="menu"
+                    aria-expanded={isSeasonPickerOpen}
+                    aria-controls="home-season-picker"
+                    onClick={() => setIsSeasonPickerOpen((open) => !open)}
+                    className="type-caption font-bold text-neutral-500 transition hover:text-neutral-800 focus:outline-none focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500"
+                  >
+                    {activeSeason.name}
+                    <span aria-hidden="true"> · </span>
+                    <span>{activeSeason.status === "finished" ? t.common.finishedSeasonBadge : activeSeason.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}</span>
+                  </button>
+                  {isSeasonPickerOpen ? <button type="button" aria-label="Cerrar selector de temporadas" className="fixed inset-0 z-40 cursor-default" onClick={() => setIsSeasonPickerOpen(false)} /> : null}
+                  {isSeasonPickerOpen ? (
+                    <div id="home-season-picker" role="menu" aria-label="Cambiar temporada" className="absolute left-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                      {selectableHomeSeasons.map((season) => (
+                        <button key={season.id} type="button" role="menuitemradio" aria-checked={season.id === activeSeason.id} onClick={() => { setSelectedHomeSeasonId(season.id); setIsSeasonPickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${season.id === activeSeason.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}>
+                          <span className="min-w-0"><span className="block truncate">{season.name}</span><span className="mt-0.5 block type-caption font-semibold text-neutral-500">{season.status === "finished" ? t.common.finishedSeasonBadge : season.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}</span></span>
+                          {season.id === activeSeason.id ? <span aria-hidden="true">✓</span> : null}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <SeasonContextLine
+                  seasonName={activeSeason.name}
+                  statusLabel={activeSeason.status === "finished" ? t.common.finishedSeasonBadge : activeSeason.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}
+                />
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -770,66 +818,73 @@ export default function Home() {
         </div>
       ) : null}
 
-      <div data-tour="home-announcements"><LeagueAnnouncementsCard leagueId={activeLeague.id} /></div>
+      {showScheduledCountdownHero && roundSettings.scheduledStartAt ? (
+        <SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} hero />
+      ) : null}
 
+      {isSeasonUpcoming && isSeasonScheduled && !showScheduledCountdownHero ? (
+        <div className="space-y-3">
+          <AppCard className="border border-neutral-200 bg-neutral-50/80 p-3">
+            <p className="type-panel-title font-black text-neutral-950">Próxima temporada</p>
+            {roundSettings.scheduledStartAt ? (
+              <div className="mt-2"><SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} /></div>
+            ) : null}
+            {showScheduledRosterWaiting && isSelfRegistrationSeason ? (
+              <div className="mt-3">
+                <SeasonRosterWaitingRoom leagueId={activeLeague.id} seasonId={activeSeason.id} />
+              </div>
+            ) : null}
+            {showScheduledRegistrationWaiting && shouldShowRegistrationPanel ? (
+              <div className="mt-3">
+                <SeasonRegistrationPanel
+                  embedded
+                  registrationFee={roundSettings.registrationFee}
+                  players={seasonRankingPlayers}
+                  currentUserId={currentUserId}
+                  canManage={canManageRegistration}
+                  organizerName={organizerName}
+                  automaticallySettledPlayerIds={automaticallySettledRegistrationPlayerIds}
+                  isSeasonUpcoming={isSeasonUpcoming}
+                  canSendReminder={canSendRegistrationReminder}
+                  onTogglePayment={handleToggleRegistrationPayment}
+                  onSendReminder={handleSendRegistrationPaymentReminder}
+                />
+              </div>
+            ) : null}
+            {canManageSeason ? (
+              <>
+                <button type="button" onClick={handleStartUpcomingSeason} disabled={isStartingSeason || isSeasonScheduled || !canStartUpcomingSeason} className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center">
+                  {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
+                </button>
+                <p className="mt-2 text-center text-xs font-semibold text-sky-700">
+                  La temporada se activará automáticamente al llegar la fecha programada.
+                </p>
+                {startSeasonError ? <p className="mt-2 text-center text-sm font-semibold text-red-600">{startSeasonError}</p> : null}
+              </>
+            ) : null}
+          </AppCard>
+        </div>
+      ) : null}
+
+      <div data-tour="home-announcements"><LeagueAnnouncementsCard leagueId={activeLeague.id} /></div>
 
       {activeLeague.recommendations?.trim() ? (
         <AppCard>
-          <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
-            Recomendaciones de la liga
-          </p>
-          <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6 text-neutral-700">
-            {activeLeague.recommendations.trim()}
-          </p>
+          <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">Recomendaciones de la liga</p>
+          <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6 text-neutral-700">{activeLeague.recommendations.trim()}</p>
         </AppCard>
       ) : null}
 
-      {isSeasonUpcoming ? (
+      {isSeasonUpcoming && !isSeasonScheduled ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 p-3">
-          <p className="type-panel-title font-black text-neutral-950">
-            Próxima temporada
-          </p>
-          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-            Inicio pendiente · {seasonRankingPlayers.length} jugadores
-          </p>
-
-          {isSelfRegistrationSeason ? (
-            <div className="mt-3">
-              <SeasonRosterWaitingRoom
-                leagueId={activeLeague.id}
-                seasonId={activeSeason.id}
-              />
-            </div>
-          ) : null}
-
-          {canManageSeason ? (
-            <>
-              <button
-                type="button"
-                onClick={handleStartUpcomingSeason}
-                disabled={isStartingSeason || !canStartUpcomingSeason}
-                className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center"
-              >
-                {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
-              </button>
-
-              {!isRosterComplete ? (
-                <p className="mt-2 text-center text-xs font-semibold text-amber-700">
-                  {t.roster.startIncompleteHint}
-                </p>
-              ) : !isRegistrationSettled ? (
-                <p className="mt-2 text-center text-xs font-semibold text-amber-700">
-                  La temporada no puede comenzar hasta saldar todas las inscripciones.
-                </p>
-              ) : null}
-
-              {startSeasonError ? (
-                <p className="mt-2 text-center text-sm font-semibold text-red-600">
-                  {startSeasonError}
-                </p>
-              ) : null}
-            </>
-          ) : null}
+          <p className="type-panel-title font-black text-neutral-950">Próxima temporada</p>
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">Inicio pendiente · {seasonRankingPlayers.length} jugadores</p>
+          {isSelfRegistrationSeason ? <div className="mt-3"><SeasonRosterWaitingRoom leagueId={activeLeague.id} seasonId={activeSeason.id} /></div> : null}
+          {canManageSeason ? <>
+            <button type="button" onClick={handleStartUpcomingSeason} disabled={isStartingSeason || !canStartUpcomingSeason} className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center">{isStartingSeason ? "Comenzando..." : "Comenzar temporada"}</button>
+            {!isRosterComplete ? <p className="mt-2 text-center text-xs font-semibold text-amber-700">{t.roster.startIncompleteHint}</p> : !isRegistrationSettled ? <p className="mt-2 text-center text-xs font-semibold text-amber-700">La temporada no puede comenzar hasta saldar todas las inscripciones.</p> : null}
+            {startSeasonError ? <p className="mt-2 text-center text-sm font-semibold text-red-600">{startSeasonError}</p> : null}
+          </> : null}
         </AppCard>
       ) : null}
 
@@ -900,7 +955,7 @@ export default function Home() {
         </div>
       ) : null}
 
-      {!isSeasonClosed && !isSeasonUpcoming ? (
+      {!isSeasonClosed && !isPlayerSeasonLocked ? (
         <div className="home-leader-round-grid grid grid-cols-2 gap-3">
           <AppCard className="p-3">
             <div className="flex items-center gap-1.5 text-neutral-500">
@@ -956,7 +1011,7 @@ export default function Home() {
         </div>
       ) : null}
 
-      {!isSeasonClosed && !isSeasonUpcoming ? (
+      {!isSeasonClosed && !isPlayerSeasonLocked ? (
         <DashboardMvpCard
           leagueId={activeLeague.id}
           seasonId={activeSeason.id}
@@ -969,7 +1024,7 @@ export default function Home() {
         />
       ) : null}
 
-      {shouldShowRegistrationPanel ? (
+      {shouldShowRegistrationPanel && !isSeasonScheduled ? (
         <SeasonRegistrationPanel
           registrationFee={roundSettings.registrationFee}
           players={seasonRankingPlayers}
@@ -986,7 +1041,7 @@ export default function Home() {
         />
       ) : null}
 
-      {!isSeasonClosed && !isSeasonUpcoming && pendingPaymentGroups.length > 0 ? (
+      {!isSeasonClosed && !isPlayerSeasonLocked && pendingPaymentGroups.length > 0 ? (
         <section>
           <SectionHeader title="Pagos pendientes" />
 
@@ -1014,7 +1069,7 @@ export default function Home() {
         </section>
       ) : null}
 
-      {!isSeasonUpcoming ? (
+      {!isPlayerSeasonLocked ? (
         <section>
           <AppCard className="overflow-hidden p-0">
             <div className="px-3 pt-3">
@@ -1069,7 +1124,7 @@ export default function Home() {
         </section>
       ) : null}
 
-      {!isSeasonClosed && !isSeasonUpcoming && (leagueNextMatch || nextMatch) ? (
+      {!isSeasonClosed && !isPlayerSeasonLocked && (leagueNextMatch || nextMatch) ? (
         <section data-tour="home-next-match">
           <SectionHeader
             title={
@@ -1130,7 +1185,7 @@ export default function Home() {
           )}
         </section>
       ) : null}
-      {selectedLastMatch && !isSeasonClosed && !isSeasonUpcoming ? (
+      {selectedLastMatch && !isSeasonClosed && !isPlayerSeasonLocked ? (
         <section>
           <SectionHeader
             title={

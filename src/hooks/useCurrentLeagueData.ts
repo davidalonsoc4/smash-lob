@@ -13,7 +13,7 @@ import {
 import { buildSeasonRounds } from "@/lib/rounds"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 
-export function useCurrentLeagueData() {
+export function useCurrentLeagueData(selectedSeasonId?: string | null) {
   const { activeLeagueId } = useActiveLeague()
   const {
     getMembershipForLeague,
@@ -58,13 +58,20 @@ export function useCurrentLeagueData() {
         .at(-1) ?? null
     : null
 
+  const requestedSeason = selectedSeasonId
+    ? seasons.find(
+        (season) =>
+          season.id === selectedSeasonId && season.leagueId === activeLeague.id,
+      ) ?? null
+    : null
   const baseActiveSeason =
-    !canManageLeague &&
+    requestedSeason ??
+    (!canManageLeague &&
     membership?.playerId &&
     !playerParticipatesInStoredSeason &&
     latestPlayerSeason
       ? latestPlayerSeason
-      : storedCurrentSeason
+      : storedCurrentSeason)
   const roundSettings = getSeasonRoundSettings(baseActiveSeason.id)
   const matches = getMatchesByLeagueAndSeason(
     storedMatches,

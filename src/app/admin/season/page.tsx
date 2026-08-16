@@ -1,11 +1,14 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown";
+import { ScheduledStartSettingsPanel } from "@/components/season/ScheduledStartSettingsPanel";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
@@ -50,6 +53,7 @@ import { showActionFeedback } from "@/lib/actionFeedback";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { buildSeasonRounds } from "@/lib/rounds";
+import { datetimeLocalToIso, formatNextScheduledStartForInput, isScheduledSeasonPending } from "@/lib/seasonScheduling";
 
 const allowedPlayerCounts = [8, 12, 16];
 
@@ -902,7 +906,6 @@ function SeasonConfigurationSummary({
     </AppCard>
   );
 }
-
 function RequiresThreeSetsSettingsPanel({
   activeLeagueId,
   roundSettings,
@@ -979,7 +982,6 @@ function RequiresThreeSetsSettingsPanel({
     </AppCard>
   );
 }
-
 function RoundWindowSettingsPanel({
   activeLeagueId,
   roundSettings,
@@ -1319,119 +1321,53 @@ function MvpSystemSettingsPanel({
   );
 }
 
-function RegistrationFeeSettingsPanel({
-  activeLeagueId,
-  roundSettings,
-}: {
-  activeLeagueId: string;
-  roundSettings: SeasonRoundSettings;
-}) {
+function RegistrationFeeSettingsPanel({ activeLeagueId, roundSettings, canToggleEnabled }: { activeLeagueId: string; roundSettings: SeasonRoundSettings; canToggleEnabled: boolean }) {
   const { updateSeasonRoundSettings } = useSeasonSettings();
-  const [amount, setAmount] = useState(
-    String(roundSettings.registrationFee.amount),
-  );
+  const [enabled, setEnabled] = useState(roundSettings.registrationFee.enabled);
+  const [amount, setAmount] = useState(roundSettings.registrationFee.amount > 0 ? String(roundSettings.registrationFee.amount) : "10");
+  const [purpose, setPurpose] = useState(roundSettings.registrationFee.purpose);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const parsedAmount = Number(amount);
-  const normalizedAmount = Number.isFinite(parsedAmount)
-    ? Math.round(parsedAmount * 100) / 100
-    : 0;
-  const hasValidAmount = normalizedAmount > 0;
-  const hasChanges =
-    hasValidAmount &&
-    normalizedAmount !== roundSettings.registrationFee.amount;
+  const normalizedAmount = Number.isFinite(parsedAmount) ? Math.round(parsedAmount * 100) / 100 : 0;
+  const hasValidAmount = !enabled || normalizedAmount > 0;
+  const nextAmount = enabled ? normalizedAmount : roundSettings.registrationFee.amount;
+  const nextPurpose = enabled ? purpose.trim() : roundSettings.registrationFee.purpose;
+  const hasChanges = (canToggleEnabled && enabled !== roundSettings.registrationFee.enabled) || (enabled && (nextAmount !== roundSettings.registrationFee.amount || nextPurpose !== roundSettings.registrationFee.purpose));
 
   async function save() {
-    if (isSaving || !hasChanges) {
-      return;
-    }
-
+    if (isSaving || !hasChanges || !hasValidAmount) return;
     const nextSettings: SeasonRoundSettings = {
-      ...roundSettings,
-      leagueId: activeLeagueId,
-      registrationFee: {
-        ...roundSettings.registrationFee,
-        amount: normalizedAmount,
-      },
+      ...roundSettings, leagueId: activeLeagueId,
+      registrationFee: { ...roundSettings.registrationFee, enabled: canToggleEnabled ? enabled : roundSettings.registrationFee.enabled, amount: nextAmount, purpose: nextPurpose },
     };
-
-    setIsSaving(true);
-    setError(null);
-
-    if (isSupabaseBackedId(roundSettings.seasonId)) {
-      try {
-        await updateSupabaseSeasonRoundSettings(nextSettings);
-      } catch (supabaseError) {
-        recordSupabaseError(
-          "update-season-registration-amount",
-          supabaseError,
-        );
-        setError(
-          "No se ha podido guardar el importe de inscripción en Supabase.",
-        );
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    updateSeasonRoundSettings(nextSettings);
-    showSavedFeedback("Importe de inscripción actualizado.");
-    setIsSaving(false);
+    setIsSaving(true); setError(null);
+    try {
+      if (isSupabaseBackedId(roundSettings.seasonId)) await updateSupabaseSeasonRoundSettings(nextSettings);
+      updateSeasonRoundSettings(nextSettings);
+      showSavedFeedback(canToggleEnabled ? "Inscripción de temporada actualizada." : "Importe de inscripción actualizado.");
+    } catch { setError("No se ha podido guardar la inscripción de temporada."); }
+    finally { setIsSaving(false); }
   }
 
-  if (!roundSettings.registrationFee.enabled) {
-    return null;
-  }
-
-  return (
-    <AppCard>
-      <p className="font-bold">Importe de inscripción</p>
-      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Modifica la cuota de esta temporada. Los jugadores marcados como pagados
-        conservarán su estado.
-      </p>
-
-      <label className="mt-3 block">
-        <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
-          Precio por jugador
-        </span>
-        <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
-          <input
-            type="number"
-            min={0.5}
-            step="0.5"
-            value={amount}
-            onChange={(event) => {
-              setAmount(event.target.value);
-              setError(null);
-            }}
-            className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
-          />
-          <span className="text-sm font-black text-neutral-500">€</span>
-        </div>
-      </label>
-
-      {!hasValidAmount ? (
-        <p className="mt-2 text-xs font-semibold text-red-600">
-          Introduce un importe mayor que 0.
-        </p>
-      ) : null}
-
-      <button
-        type="button"
-        onClick={save}
-        disabled={isSaving || !hasChanges}
-        className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
-      >
-        {isSaving ? "Guardando..." : "Guardar importe"}
-      </button>
-      {error ? (
-        <p className="mt-2 text-center text-xs font-semibold text-red-600">
-          {error}
-        </p>
-      ) : null}
-    </AppCard>
-  );
+  return <AppCard>
+    <p className="font-bold">Inscripción de temporada</p>
+    <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{canToggleEnabled ? "Activa o desactiva la inscripción mientras la temporada no haya comenzado." : "La inscripción queda fijada al comenzar la temporada; solo puedes ajustar sus datos."}</p>
+    {canToggleEnabled ? <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+      <input type="checkbox" checked={enabled} onChange={(event) => { setEnabled(event.target.checked); setError(null); }} className="mt-1" />
+      <span><span className="block text-sm font-black text-neutral-950">Cobrar inscripción esta temporada</span><span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">Puedes cambiar esta decisión hasta que la temporada empiece.</span></span>
+    </label> : null}
+    {enabled ? <div className="mt-3 space-y-3">
+      <label className="block"><span className="text-xs font-black uppercase tracking-wide text-neutral-500">Precio por jugador</span><div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
+        <input type="number" min={0.5} step="0.5" value={amount} onChange={(event) => { setAmount(event.target.value); setError(null); }} className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none" /><span className="text-sm font-black text-neutral-500">€</span>
+      </div></label>
+      <label className="block"><span className="text-xs font-black uppercase tracking-wide text-neutral-500">Concepto</span><input type="text" value={purpose} onChange={(event) => { setPurpose(event.target.value); setError(null); }} placeholder="Inscripción Temporada 1" className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-950 outline-none" /></label>
+    </div> : <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">Esta temporada no cobrará inscripción.</p>}
+    {enabled && !hasValidAmount ? <p className="mt-2 text-xs font-semibold text-red-600">Introduce un importe mayor que 0.</p> : null}
+    {roundSettings.registrationFee.enabled ? <Link href="/admin/season/finances" data-tour="season-admin-finances" className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950">Economía de temporada</Link> : null}
+    <button type="button" onClick={save} disabled={isSaving || !hasChanges || !hasValidAmount} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? "Guardando..." : "Guardar inscripción"}</button>
+    {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
+  </AppCard>;
 }
 
 function BalancedCalendarAuditPanel({
@@ -2428,17 +2364,18 @@ function FinishSeasonPanel({
     </AppCard>
   );
 }
-
 function StartSeasonPanel({
   activeLeagueId,
   activeSeasonId,
   canStartBecauseRegistrationSettled,
   canStartBecauseRosterComplete,
+  scheduledStartAt,
 }: {
   activeLeagueId: string;
   activeSeasonId: string;
   canStartBecauseRegistrationSettled: boolean;
   canStartBecauseRosterComplete: boolean;
+  scheduledStartAt: string | null | undefined;
 }) {
   const router = useRouter();
   const { t } = useI18n();
@@ -2447,9 +2384,15 @@ function StartSeasonPanel({
   const { replaceSeasonMatches } = useMatchData();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isScheduledPending = isScheduledSeasonPending("upcoming", scheduledStartAt);
 
   async function handleStartSeason() {
     if (isSaving) {
+      return;
+    }
+
+    if (isScheduledPending) {
+      setError("La temporada tiene un inicio programado y se activará automáticamente al llegar la fecha.");
       return;
     }
 
@@ -2524,16 +2467,26 @@ function StartSeasonPanel({
         desbloquean la programación de partidos y el registro de resultados.
       </p>
 
+      {scheduledStartAt ? (
+        <div className="mt-3">
+          <SeasonStartCountdown scheduledStartAt={scheduledStartAt} compact />
+        </div>
+      ) : null}
+
       <button
         type="button"
         onClick={handleStartSeason}
-        disabled={isSaving || !canStartBecauseRegistrationSettled || !canStartBecauseRosterComplete}
+        disabled={isSaving || isScheduledPending || !canStartBecauseRegistrationSettled || !canStartBecauseRosterComplete}
         className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
         {isSaving ? "Guardando..." : "Comenzar temporada"}
       </button>
 
-      {!canStartBecauseRosterComplete ? (
+      {isScheduledPending ? (
+        <p className="mt-3 rounded-2xl bg-sky-50 px-3 py-2 text-xs font-semibold leading-5 text-sky-900">
+          Inicio programado. Los jugadores pueden unirse y completar sus datos, pero los controles competitivos permanecen bloqueados hasta la activación automática.
+        </p>
+      ) : !canStartBecauseRosterComplete ? (
         <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
           {t.roster.startIncompleteHint}
         </p>
@@ -2877,6 +2830,8 @@ function NewSeasonForm({
   const [roundWindowMode, setRoundWindowMode] =
     useState<RoundWindowMode>("none");
   const [seasonStartsAt, setSeasonStartsAt] = useState("");
+  const [scheduledStartAt, setScheduledStartAt] = useState("");
+  const [scheduledStartIsFuture, setScheduledStartIsFuture] = useState(true);
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
   const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
@@ -2896,6 +2851,9 @@ function NewSeasonForm({
 
   const parsedRoundWindowDays = Number(roundWindowDays);
   const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
+  const scheduledStartIso = datetimeLocalToIso(scheduledStartAt);
+  const hasValidScheduledStart =
+    !scheduledStartAt || Boolean(scheduledStartIso && scheduledStartIsFuture);
   const isFixedDaysMode = roundWindowMode === "fixed-days";
   const totalSeasonRounds = getSeasonScheduleRoundCount({
     playerCount,
@@ -2971,6 +2929,7 @@ function NewSeasonForm({
     hasValidPlayers &&
     isManualCalendarReady &&
     hasValidRegistrationFee &&
+    hasValidScheduledStart &&
     (roundWindowMode === "none" ||
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
@@ -3118,6 +3077,7 @@ function NewSeasonForm({
       newPlayerNames: rosterMode === "self_registration" ? [] : cleanNewPlayerNames,
       roundWindowMode,
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
+      scheduledStartAt: scheduledStartIso,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
       mvpSystem,
@@ -4030,6 +3990,34 @@ function NewSeasonForm({
       </AppCard>
 
       <AppCard>
+        <p className="font-bold">Inicio programado</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          Opcional. Si eliges fecha y hora, la temporada permanecerá en preparación hasta ese momento. Los jugadores podrán unirse, vincularse y completar su perfil, pero no operar partidos ni resultados.
+        </p>
+        <label className="mt-4 block">
+          <span className="text-sm font-semibold text-neutral-700">Fecha y hora de activación</span>
+          <input
+            type="datetime-local" step={3600} value={scheduledStartAt}
+            onFocus={() => { if (!scheduledStartAt) { setScheduledStartAt(formatNextScheduledStartForInput()); setScheduledStartIsFuture(true); } }}
+            onChange={(event) => {
+              const value = event.target.value;
+              const iso = datetimeLocalToIso(value);
+              setScheduledStartAt(value);
+              setScheduledStartIsFuture(!value || Boolean(iso && new Date(iso).getTime() > Date.now()));
+              setCreationFeedback(null);
+            }}
+            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+          />
+        </label>
+        {scheduledStartAt && !hasValidScheduledStart ? (
+          <p className="mt-2 text-xs font-semibold text-red-600">La fecha programada debe ser futura y válida en horario de Madrid.</p>
+        ) : null}
+        {scheduledStartIso && hasValidScheduledStart ? (
+          <div className="mt-3"><SeasonStartCountdown scheduledStartAt={scheduledStartIso} compact /></div>
+        ) : null}
+      </AppCard>
+
+      <AppCard>
         <p className="font-bold">{t.adminSeason.roundWindowTitle}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {t.adminSeason.newRoundWindowDescription}
@@ -4532,15 +4520,14 @@ export default function AdminSeasonPage() {
             title="Personas e inscripción"
             description="Gestiona la cuota de inscripción y los nombres de la plantilla activa."
           />
-          {roundSettings.registrationFee.enabled ? (
-            <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
-              <RegistrationFeeSettingsPanel
-                key={activeSeason.id}
-                activeLeagueId={activeLeague.id}
-                roundSettings={roundSettings}
-              />
-            </div>
-          ) : null}
+          <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
+            <RegistrationFeeSettingsPanel
+              key={activeSeason.id}
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+              canToggleEnabled={false}
+            />
+          </div>
 
           <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
@@ -4584,11 +4571,14 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
+          <div id="inicio-programado" className="settings-search-target"><ScheduledStartSettingsPanel activeLeagueId={activeLeague.id} roundSettings={roundSettings} /></div>
+
           <div id="inicio-temporada" className="settings-search-target">
             <StartSeasonPanel
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
               canStartBecauseRegistrationSettled={isRegistrationSettled}
+              scheduledStartAt={roundSettings.scheduledStartAt}
               canStartBecauseRosterComplete={
                 roundSettings.rosterMode !== "self_registration" ||
                 (Boolean(roundSettings.playerCapacity) &&
@@ -4672,15 +4662,14 @@ export default function AdminSeasonPage() {
             title="Personas e inscripción"
             description="Revisa la cuota, las plazas y los nombres antes de iniciar la competición."
           />
-          {roundSettings.registrationFee.enabled ? (
-            <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
-              <RegistrationFeeSettingsPanel
-                key={activeSeason.id}
-                activeLeagueId={activeLeague.id}
-                roundSettings={roundSettings}
-              />
-            </div>
-          ) : null}
+          <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
+            <RegistrationFeeSettingsPanel
+              key={activeSeason.id}
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+              canToggleEnabled
+            />
+          </div>
 
           <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel

@@ -54,6 +54,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "La cabecera identifica la liga, la temporada seleccionada y si ya ha finalizado.",
         },
         { title: "Cambia de liga rápidamente", description: "Toca el nombre de la liga para cambiar de competición o abrir Mis partidos sin salir de Inicio." },
+        { title: "Consulta otras temporadas", description: "Si la liga tiene más de una temporada, toca el subtítulo de temporada para abrir una anterior sin cambiar de liga." },
         {
           title: "Comunicados importantes",
           description: "Los avisos de los administradores aparecen aquí para que no se pierdan entre los partidos.",
@@ -179,6 +180,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Jugadores e inscripción",
           description: "Gestiona participantes, plazas e inscripción según el modo configurado para la temporada.",
         },
+        {
+          title: "Economía de temporada",
+          description: "Si hay inscripción, abre la pantalla económica para controlar cobros, registrar gastos y ver el saldo disponible.",
+        },
       ],
     },
   },
@@ -218,6 +223,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "The header identifies the league, selected season and whether it has already finished.",
         },
         { title: "Switch leagues quickly", description: "Tap the league name to switch competitions or open My matches without leaving Home." },
+        { title: "Browse other seasons", description: "If the league has more than one season, tap the season subtitle to open a previous one without switching leagues." },
         {
           title: "Important announcements",
           description: "Administrator notices appear here so they do not get lost among the matches.",
@@ -343,6 +349,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Players and registration",
           description: "Manage participants, available places and registration according to the season mode.",
         },
+        {
+          title: "Season finances",
+          description: "When registration is enabled, open the finance screen to track collections, record expenses and see the available balance.",
+        },
       ],
     },
   },
@@ -382,6 +392,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           description: "Goiburuak liga, hautatutako denboraldia eta amaituta dagoen adierazten ditu.",
         },
         { title: "Aldatu liga azkar", description: "Sakatu ligaren izena lehiaketaz aldatzeko edo Nire partidak irekitzeko Hasieratik irten gabe." },
+        { title: "Ikusi beste denboraldiak", description: "Ligak denboraldi bat baino gehiago badu, sakatu denboraldiaren azpititulua aurreko bat irekitzeko liga aldatu gabe." },
         {
           title: "Ohar garrantzitsuak",
           description: "Administratzaileen oharrak hemen agertzen dira partidetan gal ez daitezen.",
@@ -507,6 +518,10 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Jokalariak eta izen-ematea",
           description: "Kudeatu parte-hartzaileak, plazak eta izen-ematea denboraldiaren moduaren arabera.",
         },
+        {
+          title: "Denboraldiko ekonomia",
+          description: "Izen-ematea badago, ireki ekonomia pantaila kobrantzak, gastuak eta saldo erabilgarria kontrolatzeko.",
+        },
       ],
     },
   },
@@ -521,13 +536,14 @@ const tourStructure: Array<{
 }> = [
   {
     key: "home",
-    version: 5,
+    version: 6,
     route: "/",
     audience: everyone,
     steps: [
       { side: "center", firstRunOnly: true, wide: true },
       { selector: "[data-tour='home-header']", side: "bottom" },
       { selector: "[data-tour='home-league-switcher']", side: "bottom" },
+      { selector: "[data-tour='home-season-switcher']", side: "bottom" },
       { selector: "[data-tour='home-announcements']", side: "bottom" },
       { selector: "[data-tour='home-next-match']", side: "top" },
       { selector: "[data-tour='home-season-actions']", side: "top" },
@@ -593,13 +609,14 @@ const tourStructure: Array<{
   },
   {
     key: "season-admin",
-    version: 2,
+    version: 3,
     route: "/admin/season",
     audience: managers,
     steps: [
       { selector: "[data-tour='season-admin-navigation']", side: "bottom" },
       { selector: "[data-tour='season-admin-calendar']", side: "top" },
       { selector: "[data-tour='season-admin-people']", side: "top" },
+      { selector: "[data-tour='season-admin-finances']", side: "top" },
     ],
   },
 ]
