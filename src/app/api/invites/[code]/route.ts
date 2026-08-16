@@ -259,7 +259,7 @@ async function buildInviteResponse(
         .eq("league_id", league.id),
       supabase
         .from("players")
-        .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+        .select("id,league_id,slug,display_name,avatar_initials,avatar_url,competitive_avatar_url")
         .eq("league_id", league.id),
       fetchSeasonSettings(supabase, league.id),
       fetchMatches(supabase, league.id),
@@ -350,6 +350,10 @@ async function buildInviteResponse(
         avatarInitials: player.avatar_initials,
         userId: membership?.user_id ?? null,
         avatarUrl: resolvePlayerAvatarUrl({
+          competitiveAvatarUrl:
+            typeof player.competitive_avatar_url === "string"
+              ? player.competitive_avatar_url
+              : null,
           linkedUserId: membership?.user_id ?? null,
           users: userAvatarLookup,
         }),

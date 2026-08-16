@@ -28,6 +28,26 @@ export async function POST(
   }
 
   try {
+    if (access.season.status === "upcoming") {
+      const { data: settings, error: settingsError } = await access.actor.supabase
+        .from("season_settings")
+        .select("scheduled_start_at")
+        .eq("season_id", seasonId)
+        .eq("league_id", leagueId)
+        .maybeSingle()
+
+      if (settingsError) {
+        return NextResponse.json({ error: "season_settings_lookup_failed" }, { status: 500 })
+      }
+
+      if (
+        typeof settings?.scheduled_start_at === "string" &&
+        new Date(settings.scheduled_start_at).getTime() > Date.now()
+      ) {
+        return NextResponse.json({ error: "season_scheduled_start_pending" }, { status: 409 })
+      }
+    }
+
     const result =
       access.season.status === "finished"
         ? await reopenServerFinishedSeason({

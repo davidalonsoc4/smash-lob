@@ -55,6 +55,7 @@ type PlayerRow = {
   display_name: string
   avatar_initials: string
   avatar_url: string | null
+  competitive_avatar_url?: string | null
   user_id?: string | null
   account_avatar_url?: string | null
 }
@@ -198,7 +199,7 @@ export async function duplicateServerSeason({
 
   const { data: playerRows, error: playerRowsError } = await supabase
     .from("players")
-    .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+    .select("id,league_id,slug,display_name,avatar_initials,avatar_url,competitive_avatar_url")
     .eq("league_id", leagueId)
     .in("id", playerIds)
 

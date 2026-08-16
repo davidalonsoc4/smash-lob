@@ -51,6 +51,7 @@ export type SeasonRoundSettings = {
   seasonId: string;
   roundWindowMode: RoundWindowMode;
   seasonStartsAt: string | null;
+  scheduledStartAt?: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: MvpSystem;
@@ -96,6 +97,7 @@ type SeasonSettingsContextValue = {
     playerNames: string[];
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
+    scheduledStartAt?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -112,6 +114,7 @@ type SeasonSettingsContextValue = {
     newPlayerNames: string[];
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
+    scheduledStartAt?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -160,6 +163,10 @@ function normalizeSettings(
     seasonId: settings.seasonId,
     roundWindowMode: settings.roundWindowMode as RoundWindowMode,
     seasonStartsAt: settings.seasonStartsAt,
+    scheduledStartAt:
+      typeof (settings as Partial<SeasonRoundSettings>).scheduledStartAt === "string"
+        ? (settings as Partial<SeasonRoundSettings>).scheduledStartAt ?? null
+        : null,
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
     mvpSystem: (settings as Partial<SeasonRoundSettings>).mvpSystem ?? "automatic",
@@ -381,6 +388,7 @@ function parseStoredSettings(
         seasonId: storedSetting.seasonId ?? "",
         roundWindowMode: storedSetting.roundWindowMode ?? "none",
         seasonStartsAt: storedSetting.seasonStartsAt ?? null,
+        scheduledStartAt: storedSetting.scheduledStartAt ?? null,
         roundWindowDays: storedSetting.roundWindowDays ?? null,
         requiresThreeSets: storedSetting.requiresThreeSets ?? true,
         mvpSystem: storedSetting.mvpSystem ?? "automatic",
@@ -432,6 +440,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     seasonId,
     roundWindowMode: "none",
     seasonStartsAt: null,
+    scheduledStartAt: null,
     roundWindowDays: null,
     requiresThreeSets: true,
     mvpSystem: "automatic",
@@ -730,6 +739,7 @@ export function SeasonSettingsProvider({
     playerNames,
     roundWindowMode,
     seasonStartsAt,
+    scheduledStartAt = null,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -744,6 +754,7 @@ export function SeasonSettingsProvider({
     playerNames: string[];
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
+    scheduledStartAt?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -829,6 +840,7 @@ export function SeasonSettingsProvider({
       seasonId,
       roundWindowMode,
       seasonStartsAt,
+      scheduledStartAt,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,
@@ -862,6 +874,7 @@ export function SeasonSettingsProvider({
     newPlayerNames,
     roundWindowMode,
     seasonStartsAt,
+    scheduledStartAt = null,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -880,6 +893,7 @@ export function SeasonSettingsProvider({
     newPlayerNames: string[];
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
+    scheduledStartAt?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -987,6 +1001,7 @@ export function SeasonSettingsProvider({
       seasonId,
       roundWindowMode,
       seasonStartsAt,
+      scheduledStartAt,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,

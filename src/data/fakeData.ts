@@ -95,6 +95,7 @@ export type SeasonRoundSettings = {
   seasonId: string
   roundWindowMode: "none" | "fixed-days"
   seasonStartsAt: string | null
+  scheduledStartAt?: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
   mvpSystem: "none" | "automatic" | "automatic_advanced" | "voting"
@@ -469,6 +470,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     seasonId: "season-2",
     roundWindowMode: "fixed-days",
     seasonStartsAt: "2026-06-14",
+    scheduledStartAt: null,
     roundWindowDays: 15,
     requiresThreeSets: true,
     mvpSystem: "automatic",
@@ -483,6 +485,7 @@ export const seasonRoundSettings: SeasonRoundSettings[] = [
     seasonId: "season-work-1",
     roundWindowMode: "fixed-days",
     seasonStartsAt: "2026-06-18",
+    scheduledStartAt: null,
     roundWindowDays: 15,
     requiresThreeSets: true,
     mvpSystem: "automatic",

@@ -36,7 +36,7 @@ const [
 ])
 
 assert(leaguePage.includes("<MatchDetailView"), "La ruta de liga debe usar MatchDetailView")
-assert(leaguePage.includes('title={`${t.matches.round} ${match.round}`}'), "El partido de liga debe usar Jornada X como título principal")
+assert(leaguePage.includes('href={`/round/${match.round}`}') && leaguePage.includes('{t.matches.round} {match.round}'), "El partido de liga debe usar Jornada X como título principal enlazado al resumen")
 assert(!leaguePage.includes('subtitle={`${t.matches.round} ${match.round}`}'), "La jornada no debe repetirse como subtítulo")
 assert(personalPage.includes('title="Partido"'), "El amistoso debe mantener Partido como título principal")
 assert(personalPage.includes("<MatchDetailView"), "La ruta de amistoso debe usar MatchDetailView")
@@ -98,7 +98,7 @@ assert(
 
 console.log("Detalle de partido v1.6.0 unificado:")
 console.log("- liga y amistoso comparten MatchDetailView")
-console.log("- liga usa Jornada X como título; amistosos mantienen Partido")
+console.log("- liga usa Jornada X como título enlazado al resumen; amistosos mantienen Partido")
 console.log("- la posición de cada jugador replica el orden visual 1, 2, 3… de Clasificación")
 console.log("- sin resultado, jugador 1 usa posición/perfil/nombre y jugador 2 nombre/perfil/posición")
 console.log("- con resultado se ocultan posición y perfil de juego")

@@ -30,8 +30,14 @@ export function MatchReservationConfirmation({
   onInvalidated,
   preserveFocus,
 }: Props) {
-  const approvedLocations = coordination.approvedLocations ?? []
-  const rejectedLocations = coordination.rejectedLocations ?? []
+  const approvedLocations = useMemo(
+    () => coordination.approvedLocations ?? [],
+    [coordination.approvedLocations],
+  )
+  const rejectedLocations = useMemo(
+    () => coordination.rejectedLocations ?? [],
+    [coordination.rejectedLocations],
+  )
   const [open, setOpen] = useState(false)
   const [dateKey, setDateKey] = useState("")
   const [locationId, setLocationId] = useState("")

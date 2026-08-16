@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useParams, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
@@ -237,14 +238,15 @@ export default function MatchDetailPage() {
   const confirmationsEnabled = roundSettings.resultConfirmationMode !== "none"
   const resultIsLocked = confirmationsEnabled && match.resultLocked
   const isSeasonUpcoming = activeSeason.status === "upcoming"
+  const isPlayerSeasonLocked = isSeasonUpcoming && !isAdmin
   const canMutateSeason = activeSeason.status !== "finished" || isSuperuser
   const mutableAdmin = isAdmin && canMutateSeason
-  const canManageMatch = canMutateSeason && !isSeasonUpcoming && (isMatchParticipant || isAdmin)
+  const canManageMatch = canMutateSeason && !isPlayerSeasonLocked && (isMatchParticipant || isAdmin)
   const canViewCourtBooking = isMatchParticipant || isAdmin
   const hasOpenIncident = match.incidentStatus === "open"
   const canManageSchedule =
     canMutateSeason &&
-    !isSeasonUpcoming &&
+    !isPlayerSeasonLocked &&
     !hasOpenIncident &&
     (isAdmin || (isMatchParticipant && match.status !== "finished"))
   const isExceptionalResolution = Boolean(
@@ -268,7 +270,7 @@ export default function MatchDetailPage() {
   )
   const canEditResult =
     canMutateSeason &&
-    !isSeasonUpcoming &&
+    !isPlayerSeasonLocked &&
     match.status === "finished" &&
     !hasOpenIncident &&
     !isExceptionalResolution &&
@@ -295,12 +297,12 @@ export default function MatchDetailPage() {
     match.status !== "finished" || hasSchedule || isAdmin
   const canReportIncident =
     canMutateSeason &&
-    !isSeasonUpcoming &&
+    !isPlayerSeasonLocked &&
     isMatchParticipant &&
     roundSettings.allowPlayerIncidents
   const canManageSubstitutions =
     canMutateSeason &&
-    !isSeasonUpcoming &&
+    !isPlayerSeasonLocked &&
     isMatchParticipant &&
     roundSettings.allowPlayerSubstitutions
   const shouldShowResultWorkflow =
@@ -317,7 +319,15 @@ export default function MatchDetailPage() {
     <MatchDetailView
       backHref="/matches"
       backLabel={t.common.back}
-      title={`${t.matches.round} ${match.round}`}
+      title={
+        <Link
+          href={`/round/${match.round}`}
+          aria-label={`Abrir resumen de la jornada ${match.round}`}
+          className="inline-flex rounded-lg transition active:opacity-60"
+        >
+          {t.matches.round} {match.round}
+        </Link>
+      }
       context={
         <SeasonContextLine
           seasonName={activeSeason.name}
@@ -360,11 +370,11 @@ export default function MatchDetailPage() {
             <></>
           ) : null}
 
-          {isSeasonUpcoming ? (
+          {isPlayerSeasonLocked ? (
             <AppCard>
               <p className="type-panel-title">Temporada próximamente</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                Esta temporada ya está creada, pero todavía no ha comenzado. No se pueden programar partidos ni registrar resultados hasta que un admin pulse Comenzar temporada.
+                Esta temporada ya está creada, pero todavía no ha comenzado. En vista de jugador, la programación y los resultados permanecen bloqueados hasta el inicio.
               </p>
             </AppCard>
           ) : null}

@@ -20,6 +20,7 @@ type CreateSeasonBody = {
   newPlayerNames?: unknown
   roundWindowMode?: unknown
   seasonStartsAt?: unknown
+  scheduledStartAt?: unknown
   roundWindowDays?: unknown
   requiresThreeSets?: unknown
   mvpSystem?: unknown
@@ -117,6 +118,15 @@ function parseOptionalDateOnly(value: unknown) {
   const cleanValue = cleanString(value)
 
   return dateOnlyPattern.test(cleanValue) ? cleanValue : null
+}
+
+
+function parseOptionalScheduledStart(value: unknown) {
+  if (value === null || value === undefined || value === "") return null
+  const cleanValue = cleanString(value)
+  const date = new Date(cleanValue)
+  if (Number.isNaN(date.getTime())) return undefined
+  return date.toISOString()
 }
 
 function parseOptionalPositiveInteger(value: unknown) {
@@ -269,6 +279,7 @@ export async function POST(
     roundWindowMode === "fixed-days"
       ? parseOptionalDateOnly(body?.seasonStartsAt)
       : null
+  const scheduledStartAt = parseOptionalScheduledStart(body?.scheduledStartAt)
   const roundWindowDays =
     roundWindowMode === "fixed-days"
       ? parseOptionalPositiveInteger(body?.roundWindowDays)
@@ -289,10 +300,15 @@ export async function POST(
     !resultConfirmationMode ||
     activeSeasonId === undefined ||
     requiresThreeSets === null ||
+    scheduledStartAt === undefined ||
     !allowedPlayerCounts.has(playerCapacity) ||
     (rosterMode === "self_registration" && calendarMode !== "balanced")
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+  }
+
+  if (scheduledStartAt && new Date(scheduledStartAt).getTime() <= Date.now()) {
+    return NextResponse.json({ error: "scheduled_start_must_be_future" }, { status: 400 })
   }
 
   if (
@@ -353,6 +369,7 @@ export async function POST(
         newPlayerNames,
         roundWindowMode,
         seasonStartsAt,
+        scheduledStartAt,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,
@@ -386,6 +403,7 @@ export async function POST(
         existingPlayerIds: playerIds,
         newPlayerNames,
         roundWindowMode,
+        scheduledStartAt,
         scheduleMode,
         totalRounds:
           result.seasonSnapshot.seasons.find((season) => season.id === createdSeasonId)

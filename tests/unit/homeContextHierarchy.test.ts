@@ -42,6 +42,7 @@ describe("home and primary navigation context hierarchy", () => {
     expect(home).not.toContain("<PlayerAwardCard")
     expect(home).toContain('</AppCard>\n\n          {canManageSeason ? (')
     expect(home).toContain("Próxima temporada")
+    expect(home).toContain("showScheduledCountdownHero")
     expect(home).toContain("Inicio pendiente · {seasonRankingPlayers.length} jugadores")
   })
 

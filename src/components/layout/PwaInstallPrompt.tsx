@@ -11,6 +11,38 @@ type BeforeInstallPromptEvent = Event & {
 }
 
 const dismissedCooldownDays = 7
+const membershipsStorageKey = "smash-lob-user-league-memberships"
+
+function hasStoredLeagueMembership(userId: string | null) {
+  if (typeof window === "undefined" || !userId) {
+    return false
+  }
+
+  const storedValue = window.localStorage.getItem(membershipsStorageKey)
+  if (!storedValue) {
+    return false
+  }
+
+  try {
+    const memberships = JSON.parse(storedValue) as unknown
+    return (
+      Array.isArray(memberships) &&
+      memberships.some((membership) => {
+        if (typeof membership !== "object" || membership === null) {
+          return false
+        }
+
+        const storedUserId = (membership as { userId?: unknown }).userId
+        return (
+          typeof storedUserId === "string" &&
+          storedUserId.trim().toLowerCase() === userId
+        )
+      })
+    )
+  } catch {
+    return false
+  }
+}
 
 function isStandaloneDisplay() {
   if (typeof window === "undefined") {
@@ -54,19 +86,18 @@ function wasRecentlyDismissed(dismissedStorageKey: string) {
 }
 
 export function PwaInstallPrompt() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const pathname = usePathname()
   const branding = useMemo(() => getAppBranding(), [])
   const dismissedStorageKey = `smash-lob-pwa-install-dismissed-at:${branding.variantKey}`
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null)
   const [shouldShowIosHelp, setShouldShowIosHelp] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
-  const isAccessRoute =
-    pathname === "/invite" ||
-    pathname.startsWith("/invite/") ||
-    pathname.startsWith("/spectate/") ||
-    pathname === "/open"
-  const isEntryExperience = status !== "authenticated" || isAccessRoute
+  const sessionUserId = session?.user?.email?.trim().toLowerCase() ?? null
+  const canOfferInstall =
+    status === "authenticated" &&
+    pathname === "/" &&
+    hasStoredLeagueMembership(sessionUserId)
 
   useEffect(() => {
     if (isStandaloneDisplay() || wasRecentlyDismissed(dismissedStorageKey)) {
@@ -118,7 +149,7 @@ export function PwaInstallPrompt() {
     dismiss()
   }
 
-  if (!isVisible || isStandaloneDisplay()) {
+  if (!canOfferInstall || !isVisible || isStandaloneDisplay()) {
     return null
   }
 
@@ -128,9 +159,7 @@ export function PwaInstallPrompt() {
       style={{
         left: "max(0px, calc((100vw - 448px) / 2))",
         right: "max(0px, calc((100vw - 448px) / 2))",
-        bottom: isEntryExperience
-          ? "max(18px, env(safe-area-inset-bottom, 0px))"
-          : "76px",
+        bottom: "76px",
       }}
     >
       <div className="mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-3 shadow-lg">
@@ -146,9 +175,7 @@ export function PwaInstallPrompt() {
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
               {shouldShowIosHelp
                 ? "En iPhone: toca Compartir y después Añadir a pantalla de inicio."
-                : isEntryExperience
-                  ? "Instálala ahora y continúa el acceso o la invitación desde la app."
-                  : "Accede como una app del móvil, sin buscarla en el navegador."}
+                : "Accede como una app del móvil, sin buscarla en el navegador."}
             </p>
 
             <div className="mt-3 flex gap-2">

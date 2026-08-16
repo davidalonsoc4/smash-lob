@@ -22,13 +22,17 @@ export function buildUserAvatarLookup(users: AvatarSourceUser[]): UserAvatarLook
 }
 
 export function resolvePlayerAvatarUrl({
+  competitiveAvatarUrl,
   linkedUserId,
   users,
 }: {
+  competitiveAvatarUrl?: string | null
   linkedUserId?: string | null
   users: UserAvatarLookup
 }) {
-  const linkedUser = linkedUserId ? users.byId.get(linkedUserId) : null
+  const competitiveAvatar = normalizeSafeAvatarUrl(competitiveAvatarUrl)
+  if (competitiveAvatar) return competitiveAvatar
 
+  const linkedUser = linkedUserId ? users.byId.get(linkedUserId) : null
   return normalizeSafeAvatarUrl(linkedUser?.avatarUrl)
 }

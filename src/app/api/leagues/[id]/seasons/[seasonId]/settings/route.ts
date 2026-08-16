@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic"
 type UpdateSeasonSettingsBody = {
   roundWindowMode?: unknown
   seasonStartsAt?: unknown
+  scheduledStartAt?: unknown
   roundWindowDays?: unknown
   requiresThreeSets?: unknown
   mvpSystem?: unknown
@@ -61,6 +62,14 @@ function parseOptionalDateOnly(value: unknown) {
   const cleanValue = cleanString(value)
 
   return dateOnlyPattern.test(cleanValue) ? cleanValue : null
+}
+
+
+function parseOptionalScheduledStart(value: unknown) {
+  if (value === null || value === undefined || value === "") return null
+  const cleanValue = cleanString(value)
+  const date = new Date(cleanValue)
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
 function parseOptionalPositiveInteger(value: unknown) {
@@ -124,6 +133,7 @@ export async function PUT(
     roundWindowMode === "fixed-days"
       ? parseOptionalDateOnly(body?.seasonStartsAt)
       : null
+  const scheduledStartAt = parseOptionalScheduledStart(body?.scheduledStartAt)
   const roundWindowDays =
     roundWindowMode === "fixed-days"
       ? parseOptionalPositiveInteger(body?.roundWindowDays)
@@ -153,6 +163,7 @@ export async function PUT(
   if (
     !roundWindowMode ||
     requiresThreeSets === null ||
+    scheduledStartAt === undefined ||
     !mvpSystem ||
     !resultConfirmationMode ||
     !manualCompletedRounds ||
@@ -165,10 +176,44 @@ export async function PUT(
   }
 
   if (
+    scheduledStartAt &&
+    (access.season.status !== "upcoming" || new Date(scheduledStartAt).getTime() <= Date.now())
+  ) {
+    return NextResponse.json({ error: "scheduled_start_must_be_future" }, { status: 400 })
+  }
+
+  if (
     roundWindowMode === "fixed-days" &&
     (!seasonStartsAt || roundWindowDays === null)
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+  }
+
+  if (access.season.status !== "upcoming") {
+    const { data: currentSettings, error: currentSettingsError } =
+      await access.actor.supabase
+        .from("season_settings")
+        .select("registration_fee")
+        .eq("season_id", seasonId)
+        .maybeSingle()
+
+    if (currentSettingsError) {
+      return NextResponse.json(
+        { error: "season_settings_lookup_failed" },
+        { status: 500 },
+      )
+    }
+
+    const currentRegistrationFee = normalizeSeasonRegistrationFee(
+      currentSettings?.registration_fee,
+    )
+
+    if (currentRegistrationFee.enabled !== registrationFee.enabled) {
+      return NextResponse.json(
+        { error: "registration_state_locked_after_start" },
+        { status: 409 },
+      )
+    }
   }
 
   if (
@@ -187,6 +232,7 @@ export async function PUT(
       settings: {
         roundWindowMode,
         seasonStartsAt,
+        scheduledStartAt,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,
