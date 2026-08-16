@@ -4,6 +4,7 @@ import { FormEvent, type ReactNode, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
+import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -25,12 +26,14 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const {
     canCreateLeagues,
     hasLeagueAdminRole,
+    isAccessHydrated,
     isLeagueSpectator,
     isSuperuser,
     userLeagues,
   } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [initialLeagueEntryResolved, setInitialLeagueEntryResolved] = useState(false)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
@@ -55,7 +58,27 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     !isNewLeagueRoute &&
     !isLeaguesRoute &&
     !isPersonalMatchesRoute
+  useEffect(() => {
+    if (!isAccessHydrated || initialLeagueEntryResolved || isAccessInviteRoute) return
 
+    if (pathname === "/" && userLeagues.length > 1) {
+      router.replace("/leagues")
+      return
+    }
+
+    const resolveTimer = window.setTimeout(() => {
+      setInitialLeagueEntryResolved(true)
+    }, 0)
+
+    return () => window.clearTimeout(resolveTimer)
+  }, [
+    initialLeagueEntryResolved,
+    isAccessHydrated,
+    isAccessInviteRoute,
+    pathname,
+    router,
+    userLeagues.length,
+  ])
   useEffect(() => {
     if (
       isLeagueTransitioning ||
@@ -74,7 +97,6 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     router,
     shouldRequireInitialSeason,
   ])
-
   const spectatorMode = activeLeague
     ? isLeagueSpectator(activeLeague.id)
     : false
@@ -95,7 +117,6 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     (isSuperuser && pathname.startsWith("/application-admin")) ||
     isAccessInviteRoute ||
     isLeagueNavigationRoute
-
   useEffect(() => {
     if (isLeagueTransitioning) {
       return
@@ -105,6 +126,9 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
       router.replace("/")
     }
   }, [isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
+  if (!isAccessHydrated || (!initialLeagueEntryResolved && pathname === "/" && userLeagues.length > 1)) {
+    return <AppBootSkeleton />
+  }
 
   if (isLeagueTransitioning) {
     return children
