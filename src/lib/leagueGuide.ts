@@ -1,23 +1,14 @@
 import type { Locale } from "@/i18n/translations"
 
 export type LeagueGuideSettings = {
-  requiresThreeSets: boolean
-  mvpSystem: "none" | "automatic" | "automatic_advanced" | "voting"
+  seasonStatus?: "upcoming" | "active" | "finished"; scheduledStartAt?: string | null
+  requiresThreeSets: boolean; mvpSystem: "none" | "automatic" | "automatic_advanced" | "voting"
   resultConfirmationMode: "required" | "optional" | "none"
-  registrationFee: {
-    enabled: boolean
-    amount: number
-    purpose: string
-  }
-  rosterMode: "fixed" | "self_registration"
-  playerCapacity: number | null
-  registrationOpen: boolean
-  scheduleMode: "single" | "double" | "extended"
-  calendarMode: "balanced" | "manual"
-  roundWindowMode: "none" | "fixed-days"
-  roundWindowDays: number | null
-  allowPlayerIncidents: boolean
-  allowPlayerSubstitutions: boolean
+  registrationFee: { enabled: boolean; amount: number; purpose: string }
+  rosterMode: "fixed" | "self_registration"; playerCapacity: number | null; registrationOpen: boolean
+  scheduleMode: "single" | "double" | "extended"; calendarMode: "balanced" | "manual"
+  roundWindowMode: "none" | "fixed-days"; roundWindowDays: number | null
+  allowPlayerIncidents: boolean; allowPlayerSubstitutions: boolean
 }
 
 export type LeagueGuideItem = {
@@ -26,83 +17,27 @@ export type LeagueGuideItem = {
   description: string
 }
 
-type GuideCopy = {
-  currentSeasonTitle: string
-  currentSeasonDescription: string
-  appToolsTitle: string
-  appToolsDescription: string
-  rosterFixedTitle: string
+type GuideCopy = Record<
+  | "currentSeasonTitle" | "currentSeasonDescription" | "appToolsTitle" | "appToolsDescription" | "scheduledSeasonTitle" | "scheduledSeasonDescription" | "leagueScopeTitle" | "leagueScopeDescription"
+  | "rosterFixedTitle" | "rosterSelfTitle" | "calendarBalancedTitle" | "calendarBalancedDescription" | "calendarManualTitle" | "calendarManualDescription" | "scheduleSingleTitle" | "scheduleSingleDescription"
+  | "scheduleDoubleTitle" | "scheduleDoubleDescription" | "scheduleExtendedTitle" | "scheduleExtendedDescription" | "roundWindowTitle" | "roundWindowNoneTitle" | "roundWindowNoneDescription" | "threeSetsTitle"
+  | "threeSetsDescription" | "optionalSetsTitle" | "optionalSetsDescription" | "confirmationsRequiredTitle" | "confirmationsRequiredDescription" | "confirmationsOptionalTitle" | "confirmationsOptionalDescription" | "confirmationsNoneTitle"
+  | "confirmationsNoneDescription" | "mvpAutomaticTitle" | "mvpAutomaticDescription" | "mvpAutomaticAdvancedTitle" | "mvpAutomaticAdvancedDescription" | "mvpVotingTitle" | "mvpVotingDescription" | "registrationTitle"
+  | "incidentsTitle" | "incidentsDescription" | "substitutionsTitle" | "substitutionsDescription" | "availabilityTitle" | "availabilityDescription" | "schedulingTitle" | "schedulingDescription"
+  | "friendlyMatchesTitle" | "friendlyMatchesDescription" | "resultsTitle" | "resultsDescription" | "paymentsTitle" | "paymentsWithFeeDescription" | "paymentsWithoutFeeDescription" | "notificationsTitle"
+  | "notificationsDescription" | "activityTitle" | "activityDescription" | "suggestionsTitle" | "suggestionsDescription" | "spectatorsTitle" | "spectatorsDescription" | "inviteParticipationFixedTitle"
+  | "inviteParticipationSelfTitle" | "inviteScheduledStartTitle" | "inviteScheduledStartDescription" | "inviteCalendarTitle" | "inviteResultsTitle" | "invitePlayerActionsTitle" | "inviteCommitmentTitle" | "inviteCommitmentDescription"
+  | "inviteGameRulesTitle" | "inviteGameRulesDescription",
+  string
+> & {
   rosterFixedDescription: (capacity: number | null) => string
-  rosterSelfTitle: string
   rosterSelfDescription: (capacity: number | null, registrationOpen: boolean) => string
-  calendarBalancedTitle: string
-  calendarBalancedDescription: string
-  calendarManualTitle: string
-  calendarManualDescription: string
-  scheduleSingleTitle: string
-  scheduleSingleDescription: string
-  scheduleDoubleTitle: string
-  scheduleDoubleDescription: string
-  scheduleExtendedTitle: string
-  scheduleExtendedDescription: string
-  roundWindowTitle: string
   roundWindowDescription: (days: number | null) => string
-  roundWindowNoneTitle: string
-  roundWindowNoneDescription: string
-  threeSetsTitle: string
-  threeSetsDescription: string
-  optionalSetsTitle: string
-  optionalSetsDescription: string
-  confirmationsRequiredTitle: string
-  confirmationsRequiredDescription: string
-  confirmationsOptionalTitle: string
-  confirmationsOptionalDescription: string
-  confirmationsNoneTitle: string
-  confirmationsNoneDescription: string
-  mvpAutomaticTitle: string
-  mvpAutomaticDescription: string
-  mvpAutomaticAdvancedTitle: string
-  mvpAutomaticAdvancedDescription: string
-  mvpVotingTitle: string
-  mvpVotingDescription: string
-  registrationTitle: string
   registrationDescription: (amount: string, purpose: string) => string
-  incidentsTitle: string
-  incidentsDescription: string
-  substitutionsTitle: string
-  substitutionsDescription: string
-  availabilityTitle: string
-  availabilityDescription: string
-  schedulingTitle: string
-  schedulingDescription: string
-  friendlyMatchesTitle: string
-  friendlyMatchesDescription: string
-  resultsTitle: string
-  resultsDescription: string
-  paymentsTitle: string
-  paymentsWithFeeDescription: string
-  paymentsWithoutFeeDescription: string
-  notificationsTitle: string
-  notificationsDescription: string
-  activityTitle: string
-  activityDescription: string
-  suggestionsTitle: string
-  suggestionsDescription: string
-  spectatorsTitle: string
-  spectatorsDescription: string
-  inviteParticipationFixedTitle: string
   inviteParticipationFixedDescription: (capacity: number | null) => string
-  inviteParticipationSelfTitle: string
   inviteParticipationSelfDescription: (capacity: number | null) => string
-  inviteCalendarTitle: string
-  inviteResultsTitle: string
   inviteResultsDescription: (confirmation: string, mvp: string) => string
-  invitePlayerActionsTitle: string
   invitePlayerActionsDescription: (incidents: boolean, substitutions: boolean) => string
-  inviteCommitmentTitle: string
-  inviteCommitmentDescription: string
-  inviteGameRulesTitle: string
-  inviteGameRulesDescription: string
 }
 
 const COPY: Record<Locale, GuideCopy> = {
@@ -113,6 +48,12 @@ const COPY: Record<Locale, GuideCopy> = {
     appToolsTitle: "Herramientas de la aplicación",
     appToolsDescription:
       "Estas son las funciones disponibles para organizar la liga y seguir tu participación.",
+    scheduledSeasonTitle: "Temporadas programadas",
+    scheduledSeasonDescription:
+      "Antes de la activación, la HOME muestra la cuenta atrás y solo queda cerrada la competición de esa liga: clasificación, calendario, chats y vistas competitivas. Ajustes, Ayuda, Notificaciones, Mis ligas y Mis partidos siguen disponibles. Los administradores con VISTA ADMIN activa pueden continuar preparando la liga.",
+    leagueScopeTitle: "Mis ligas y ámbito personal",
+    leagueScopeDescription:
+      "Mis ligas sirve para cambiar de competición y Mis partidos reúne tus encuentros de liga y amistosos. Ambas áreas son personales y siguen disponibles aunque una de tus ligas tenga una temporada programada o todavía no haya comenzado.",
     rosterFixedTitle: "Plantilla preparada por la organización",
     rosterFixedDescription: (capacity) =>
       capacity
@@ -222,6 +163,9 @@ const COPY: Record<Locale, GuideCopy> = {
       capacity
         ? `Al continuar ocuparás una de las ${capacity} plazas con tu perfil y sumarás puntos individualmente aunque juegues por parejas.`
         : "Al continuar se creará tu plaza con los datos de tu perfil y sumarás puntos individualmente aunque juegues por parejas.",
+    inviteScheduledStartTitle: "Inicio programado",
+    inviteScheduledStartDescription:
+      "Puedes completar tu acceso antes de que empiece la temporada. Hasta su activación, la competición de esta liga permanece cerrada para jugadores, pero Mis ligas y Mis partidos siguen disponibles.",
     inviteCalendarTitle: "Calendario de la temporada",
     inviteResultsTitle: "Resultados, confirmaciones y MVP",
     inviteResultsDescription: (confirmation, mvp) =>
@@ -250,6 +194,12 @@ const COPY: Record<Locale, GuideCopy> = {
     appToolsTitle: "Application tools",
     appToolsDescription:
       "These features are available to organise the league and follow your participation.",
+    scheduledSeasonTitle: "Scheduled seasons",
+    scheduledSeasonDescription:
+      "Before activation, Home shows the countdown and only that league's competitive areas stay closed: standings, calendar, chats and competitive views. Settings, Help, Notifications, My leagues and My matches remain available. Administrators with ADMIN VIEW enabled can keep preparing the league.",
+    leagueScopeTitle: "My leagues and personal scope",
+    leagueScopeDescription:
+      "My leagues lets you switch competitions and My matches brings together your league matches and friendlies. Both are personal areas and remain available even when one of your leagues has a scheduled season or has not started yet.",
     rosterFixedTitle: "Roster prepared by the organisers",
     rosterFixedDescription: (capacity) =>
       capacity
@@ -357,6 +307,9 @@ const COPY: Record<Locale, GuideCopy> = {
       capacity
         ? `Continuing will occupy one of the ${capacity} places with your profile, and you will earn individual points although matches are played in pairs.`
         : "Continuing will create your player place using your profile details, and you will earn individual points although matches are played in pairs.",
+    inviteScheduledStartTitle: "Scheduled start",
+    inviteScheduledStartDescription:
+      "You can complete access before the season starts. Until activation, this league's competition stays closed to players, while My leagues and My matches remain available.",
     inviteCalendarTitle: "Season calendar",
     inviteResultsTitle: "Results, confirmations and MVP",
     inviteResultsDescription: (confirmation, mvp) =>
@@ -385,6 +338,12 @@ const COPY: Record<Locale, GuideCopy> = {
     appToolsTitle: "Aplikazioaren tresnak",
     appToolsDescription:
       "Funtzio hauek liga antolatzeko eta zure parte-hartzea jarraitzeko daude erabilgarri.",
+    scheduledSeasonTitle: "Programatutako denboraldiak",
+    scheduledSeasonDescription:
+      "Aktibatu aurretik, Hasierak atzerako kontaketa erakusten du eta liga horretako lehiaketa-eremuak bakarrik daude itxita: sailkapena, egutegia, txatak eta ikuspegi lehiakorrak. Ezarpenak, Laguntza, Jakinarazpenak, Nire ligak eta Nire partidak erabilgarri jarraitzen dute. ADMIN IKUSPEGIA aktibatuta duten administratzaileek liga prestatzen jarrai dezakete.",
+    leagueScopeTitle: "Nire ligak eta eremu pertsonala",
+    leagueScopeDescription:
+      "Nire ligak ataletik lehiaketa alda dezakezu, eta Nire partidak atalak ligako partidak eta lagunartekoak biltzen ditu. Bi eremuak pertsonalak dira eta erabilgarri jarraitzen dute zure liga batek denboraldia programatuta izan edo oraindik hasi ez bada ere.",
     rosterFixedTitle: "Antolakuntzak prestatutako taldea",
     rosterFixedDescription: (capacity) =>
       capacity
@@ -492,6 +451,9 @@ const COPY: Record<Locale, GuideCopy> = {
       capacity
         ? `Jarraitzean ${capacity} plazetako bat beteko duzu zure profilarekin eta puntuak banaka pilatuko dituzu, partidak bikoteka jokatu arren.`
         : "Jarraitzean zure jokalari-plaza sortuko da profileko datuekin eta puntuak banaka pilatuko dituzu, partidak bikoteka jokatu arren.",
+    inviteScheduledStartTitle: "Programatutako hasiera",
+    inviteScheduledStartDescription:
+      "Denboraldia hasi aurretik sarbidea osa dezakezu. Aktibatu arte, liga honetako lehiaketa itxita dago jokalarientzat, baina Nire ligak eta Nire partidak erabilgarri jarraitzen dute.",
     inviteCalendarTitle: "Denboraldiko egutegia",
     inviteResultsTitle: "Emaitzak, baieztapenak eta MVP",
     inviteResultsDescription: (confirmation, mvp) =>
@@ -671,6 +633,14 @@ export function buildSeasonConfigurationItems({
     getConfirmationItem(settings, copy),
   ]
 
+  if (settings.seasonStatus === "upcoming" && settings.scheduledStartAt) {
+    items.unshift({
+      id: "scheduled-season",
+      title: copy.scheduledSeasonTitle,
+      description: copy.scheduledSeasonDescription,
+    })
+  }
+
   const mvpItem = getMvpItem(settings, copy)
   if (mvpItem) items.push(mvpItem)
 
@@ -716,6 +686,16 @@ export function buildApplicationToolItems({
     settings.registrationFee.enabled && settings.registrationFee.amount > 0
 
   return [
+    {
+      id: "league-scope",
+      title: copy.leagueScopeTitle,
+      description: copy.leagueScopeDescription,
+    },
+    {
+      id: "scheduled-season-access",
+      title: copy.scheduledSeasonTitle,
+      description: copy.scheduledSeasonDescription,
+    },
     {
       id: "availability",
       title: copy.availabilityTitle,
@@ -827,6 +807,14 @@ export function buildInviteRuleItems({
           description: copy.optionalSetsDescription,
         },
   ]
+
+  if (settings.seasonStatus === "upcoming" && settings.scheduledStartAt) {
+    items.splice(1, 0, {
+      id: "invite-scheduled-start",
+      title: copy.inviteScheduledStartTitle,
+      description: copy.inviteScheduledStartDescription,
+    })
+  }
 
   if (hasRegistrationFee) {
     items.push({
