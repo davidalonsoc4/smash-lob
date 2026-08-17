@@ -2,6 +2,7 @@ import { normalizeImageUrl } from "@/lib/imageUrl"
 
 export type LeagueMediaKitKind = "opening" | "rules" | "registration" | "calendar" | "start" | "countdown"
 export type LeagueMediaKitTemplate = "opening_day_premium_01"
+export type LeagueMediaKitHeadlineFont = "impact" | "condensed" | "editorial" | "athletic"
 
 export type LeagueMediaKitImageData = {
   kind: LeagueMediaKitKind
@@ -21,15 +22,23 @@ export type LeagueMediaKitImageData = {
   eventTimeLabel?: string | null
   venue?: string | null
   roundLabel?: string | null
-  footerLabel?: string | null
+  headlineFont?: LeagueMediaKitHeadlineFont
 }
 
 const WIDTH = 1080
 const HEIGHT = 1350
 const PADDING = 58
 const DEFAULT_ACCENT = "#d7a544"
+const APP_ICON_PATH = "/icon-192.png"
 const OPENING_BASE_ASSET = "/media-kit/opening-day-premium-01-base.webp"
 const OPENING_ACCENT_MASK_ASSET = "/media-kit/opening-day-premium-01-accent.png"
+
+const HEADLINE_FONT_PROFILES: Record<LeagueMediaKitHeadlineFont, { family: string; widthScale: number; sizeScale: number; slant: number; strokeScale: number }> = {
+  impact: { family: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif', widthScale: 1, sizeScale: 1, slant: 0, strokeScale: 1 },
+  condensed: { family: '"Arial Narrow", "Roboto Condensed", Arial, sans-serif', widthScale: 0.78, sizeScale: 1.08, slant: 0, strokeScale: 0.9 },
+  editorial: { family: 'Georgia, "Times New Roman", serif', widthScale: 0.92, sizeScale: 0.84, slant: 0, strokeScale: 0.75 },
+  athletic: { family: '"Arial Black", Arial, sans-serif', widthScale: 0.9, sizeScale: 0.9, slant: -0.08, strokeScale: 1.25 },
+}
 
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
   const r = Math.min(radius, width / 2, height / 2)
@@ -143,19 +152,22 @@ function posterGradient(ctx: CanvasRenderingContext2D, accent: string, y: number
   return gradient
 }
 
-function metallicPosterText(ctx: CanvasRenderingContext2D, value: string, centerX: number, y: number, maxWidth: number, size: number, accent: string) {
+function metallicPosterText(ctx: CanvasRenderingContext2D, value: string, centerX: number, y: number, maxWidth: number, size: number, accent: string, headlineFont: LeagueMediaKitHeadlineFont) {
+  const profile = HEADLINE_FONT_PROFILES[headlineFont]
+  const fontSize = Math.round(size * profile.sizeScale)
   ctx.save()
-  ctx.font = `900 ${size}px Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif`
+  ctx.font = `900 ${fontSize}px ${profile.family}`
   ctx.textAlign = "center"
   ctx.textBaseline = "middle"
   const measured = Math.max(1, ctx.measureText(value).width)
-  const scaleX = Math.min(1, maxWidth / measured)
+  const scaleX = Math.min(profile.widthScale, maxWidth / measured)
   ctx.translate(centerX, y)
+  if (profile.slant) ctx.transform(1, 0, profile.slant, 1, 0, 0)
   ctx.scale(scaleX, 1)
   ctx.shadowColor = "rgba(0,0,0,.92)"
   ctx.shadowBlur = 15
   ctx.shadowOffsetY = 9
-  ctx.lineWidth = 2 / scaleX
+  ctx.lineWidth = (2 * profile.strokeScale) / scaleX
   ctx.strokeStyle = mix(accent, 0, 0.46)
   ctx.strokeText(value, 0, 0)
   ctx.fillStyle = posterGradient(ctx, accent, -size / 2, size)
@@ -164,6 +176,25 @@ function metallicPosterText(ctx: CanvasRenderingContext2D, value: string, center
   ctx.fillStyle = "#ffffff"
   ctx.fillText(value, 0, -2)
   ctx.restore()
+}
+
+function drawAppBrandFooter(ctx: CanvasRenderingContext2D, appIcon: HTMLImageElement | null, accent: string) {
+  const iconSize = 48
+  const textWidth = 176
+  const gap = 15
+  const groupWidth = iconSize + gap + textWidth
+  const groupX = (WIDTH - groupWidth) / 2
+  const groupY = 1263
+
+  if (appIcon) {
+    ctx.save(); roundedRect(ctx, groupX, groupY, iconSize, iconSize, 12); ctx.clip(); ctx.drawImage(appIcon, groupX, groupY, iconSize, iconSize); ctx.restore()
+  } else {
+    fillRound(ctx, groupX, groupY, iconSize, iconSize, 12, "#f5f2ea")
+    trackedText(ctx, "S&L", groupX + iconSize / 2, groupY + iconSize / 2 + 1, { size: 13, weight: 900, color: "#111311", align: "center" })
+  }
+
+  trackedText(ctx, "CREADO CON", groupX + iconSize + gap, groupY + 13, { size: 12, weight: 800, color: rgba(accent, 0.82), spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, "SMASH & LOB", groupX + iconSize + gap, groupY + 37, { size: 20, weight: 900, color: "#f4f1ea", spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
 }
 
 function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, fill: string) {
@@ -229,7 +260,8 @@ function openingHeadlineLines(value: string) {
 async function drawOpeningDayPoster(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
   const accent = normalizeAccent(data.accentColor)
   await drawOpeningDayBackground(ctx,accent)
-  const logo = await safeImage(data.leagueLogoUrl)
+  const [logo, appIcon] = await Promise.all([safeImage(data.leagueLogoUrl), safeImage(APP_ICON_PATH)])
+  const headlineFont = data.headlineFont ?? "impact"
 
   if (logo) {
     ctx.save(); ctx.shadowColor = rgba(accent, 0.42); ctx.shadowBlur = 24
@@ -250,7 +282,7 @@ async function drawOpeningDayPoster(ctx: CanvasRenderingContext2D, data: LeagueM
 
   const headline = openingHeadlineLines(data.title)
   const firstY = headline.length === 1 ? 520 : 445
-  headline.slice(0, 2).forEach((line, index) => metallicPosterText(ctx, line, WIDTH / 2, firstY + index * 170, 900, index === 0 ? 184 : 168, accent))
+  headline.slice(0, 2).forEach((line, index) => metallicPosterText(ctx, line, WIDTH / 2, firstY + index * 170, 900, index === 0 ? 184 : 168, accent, headlineFont))
   if (data.subtitle) trackedText(ctx, data.subtitle.toLocaleUpperCase("es-ES"), WIDTH / 2, headline.length === 1 ? 650 : 675, { size: 20, weight: 700, color: "rgba(255,255,255,.82)", spacing: 5, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
 
   const dateTop = 735
@@ -276,9 +308,9 @@ async function drawOpeningDayPoster(ctx: CanvasRenderingContext2D, data: LeagueM
   ctx.strokeStyle = rgba(accent, 0.45); ctx.lineWidth = 2
   ctx.beginPath(); ctx.moveTo(WIDTH / 2, 1040); ctx.lineTo(WIDTH / 2, 1275); ctx.moveTo(160, 1235); ctx.lineTo(920, 1235); ctx.stroke(); ctx.restore()
 
-  ctx.save(); ctx.fillStyle = "rgba(5,6,6,.88)"; ctx.strokeStyle = rgba(accent, 0.68); ctx.lineWidth = 2
-  ctx.beginPath(); ctx.moveTo(360, 1250); ctx.lineTo(720, 1250); ctx.lineTo(754, 1286); ctx.lineTo(720, 1322); ctx.lineTo(360, 1322); ctx.lineTo(326, 1286); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore()
-  trackedText(ctx, (data.footerLabel || "SMASH & LOB").toLocaleUpperCase("es-ES"), WIDTH / 2, 1287, { size: 22, weight: 800, color: mix(accent, 255, 0.22), spacing: 9, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+  ctx.save(); ctx.fillStyle = "rgba(5,6,6,.82)"; ctx.strokeStyle = rgba(accent, 0.48); ctx.lineWidth = 2
+  roundedRect(ctx, 315, 1248, 450, 82, 14); ctx.fill(); ctx.stroke(); ctx.restore()
+  drawAppBrandFooter(ctx, appIcon, accent)
 }
 
 async function drawClassicMediaKit(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {

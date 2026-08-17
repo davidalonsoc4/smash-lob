@@ -1190,3 +1190,8 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Validación final local: `npm run lint`, `npx tsc --noEmit`, `npm run build`, 11/11 tests focalizados y `git diff --check` correctos.
 - La app queda arrancada en `http://localhost:3000`; no se ha realizado push, merge, PRE ni ninguna otra operación remota.
 - La segunda recarga del navegador quedó bloqueada por el onboarding de la sesión local con `app_user_lookup_failed`; no se rellenó el perfil ni se forzó acceso con datos personales. La inspección visual del PNG se completó antes de ese bloqueo.
+- Corrección posterior: la firma inferior deja de ser editable y reutiliza el patrón de los exportables de temporada con el icono de la app, `CREADO CON` y `SMASH & LOB`.
+- El titular principal incorpora cuatro tratamientos seleccionables (`Impacto`, `Condensada`, `Editorial` y `Atlética`) con familia, proporción, tamaño, contorno y, cuando corresponde, inclinación propias en el Canvas exportado.
+- La elección tipográfica se aplica también a las piezas equivalentes de la familia Premium 01.
+- Revisión visual completada en navegador para `Impacto`, `Condensada`, `Editorial` y `Atlética`; las cuatro variantes mantienen jerarquía, encaje y legibilidad, y el nuevo pie fijo aparece integrado sin desbordes ni errores de consola.
+- Validación de la corrección: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `git diff --check` y 13/13 tests focalizados correctos.

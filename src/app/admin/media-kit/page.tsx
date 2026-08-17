@@ -13,6 +13,7 @@ import {
   createLeagueMediaKitImage,
   downloadLeagueMediaKitImage,
   type LeagueMediaKitImageData,
+  type LeagueMediaKitHeadlineFont,
   type LeagueMediaKitKind,
 } from "@/lib/leagueMediaKitImage"
 
@@ -26,6 +27,12 @@ const titles: Record<LeagueMediaKitKind, string> = {
 }
 
 const openingAccentOptions = ["#d7a544", "#bb9448", "#d4643c", "#3d9d86", "#477bd1", "#8b5fc0"]
+const openingHeadlineFontOptions: Array<{ id: LeagueMediaKitHeadlineFont; label: string; detail: string; sampleClass: string }> = [
+  { id: "impact", label: "Impacto", detail: "Cartel deportivo", sampleClass: "font-black tracking-tight" },
+  { id: "condensed", label: "Condensada", detail: "Alta y precisa", sampleClass: "font-black tracking-[-.08em]" },
+  { id: "editorial", label: "Editorial", detail: "Premium clásica", sampleClass: "font-serif font-black tracking-tight" },
+  { id: "athletic", label: "Atlética", detail: "Ancha y dinámica", sampleClass: "font-black italic tracking-[-.04em]" },
+]
 const fieldClass = "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold text-neutral-950 outline-none transition focus:border-neutral-500"
 
 function slug(value: string) { return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() }
@@ -84,8 +91,8 @@ export default function MediaKitPage() {
   const [openingTime, setOpeningTime] = useState(initialOpeningLabels.time)
   const [openingVenue, setOpeningVenue] = useState(firstOpeningMatch?.location ?? "El Pando")
   const [openingRound, setOpeningRound] = useState("Jornada 1")
-  const [openingFooter, setOpeningFooter] = useState("Smash & Lob")
   const [openingAccent, setOpeningAccent] = useState("#d7a544")
+  const [openingHeadlineFont, setOpeningHeadlineFont] = useState<LeagueMediaKitHeadlineFont>("impact")
   const [openingLogoOverride, setOpeningLogoOverride] = useState<string | null>(null)
   const canManage = isLeagueAdmin(activeLeague.id)
   const scheduledLabel = formatScheduledSeasonStart(roundSettings.scheduledStartAt)
@@ -106,10 +113,10 @@ export default function MediaKitPage() {
     eventTimeLabel: openingTime,
     venue: openingVenue,
     roundLabel: openingRound,
-    footerLabel: openingFooter,
-  }), [activeLeague.logoUrl, activeLeague.name, activeSeason.name, openingAccent, openingDate, openingFooter, openingLogoOverride, openingRound, openingSubtitle, openingTime, openingTitle, openingVenue])
+    headlineFont: openingHeadlineFont,
+  }), [activeLeague.logoUrl, activeLeague.name, activeSeason.name, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSubtitle, openingTime, openingTitle, openingVenue])
 
-  const base = { leagueName: activeLeague.name, seasonName: activeSeason.name, leagueLogoUrl: activeLeague.logoUrl, template: "opening_day_premium_01" as const, accentColor: openingAccent }
+  const base = { leagueName: activeLeague.name, seasonName: activeSeason.name, leagueLogoUrl: activeLeague.logoUrl, template: "opening_day_premium_01" as const, accentColor: openingAccent, headlineFont: openingHeadlineFont }
   const pieces: Array<{ kind: LeagueMediaKitKind; data: LeagueMediaKitImageData; disabled?: boolean }> = [
     { kind: "rules", data: { ...base, kind: "rules", eyebrow: "Información oficial", title: "Reglas de la liga", subtitle: "Todo listo para competir", eventDateLabel: roundSettings.requiresThreeSets ? "3 SETS OBLIGATORIOS" : "RESULTADO FLEXIBLE", roundLabel: "REGLAS", eventTimeLabel: roundSettings.mvpSystem === "none" ? "SIN MVP" : "CON MVP", venue: "EN LA APP", rows: [
       { label: "Formato", value: roundSettings.requiresThreeSets ? "3 sets obligatorios" : "Resultado flexible" },
@@ -195,7 +202,19 @@ export default function MediaKitPage() {
               <label className="text-xs font-black text-neutral-700">Hora<input className={fieldClass} value={openingTime} onChange={(event) => setOpeningTime(event.target.value)} maxLength={12} /></label>
               <label className="text-xs font-black text-neutral-700">Jornada<input className={fieldClass} value={openingRound} onChange={(event) => setOpeningRound(event.target.value)} maxLength={22} /></label>
               <label className="text-xs font-black text-neutral-700">Lugar<input className={fieldClass} value={openingVenue} onChange={(event) => setOpeningVenue(event.target.value)} maxLength={24} /></label>
-              <label className="text-xs font-black text-neutral-700 sm:col-span-2">Firma inferior<input className={fieldClass} value={openingFooter} onChange={(event) => setOpeningFooter(event.target.value)} maxLength={30} /></label>
+            </div>
+
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-xs font-black text-neutral-800">Diseño del titular</p>
+              <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-500">Elige el carácter tipográfico del texto principal. El acabado metálico y la legibilidad se adaptan a cada estilo.</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {openingHeadlineFontOptions.map((option) => (
+                  <button key={option.id} type="button" aria-pressed={openingHeadlineFont === option.id} onClick={() => setOpeningHeadlineFont(option.id)} className={`rounded-xl border px-3 py-2.5 text-left transition ${openingHeadlineFont === option.id ? "border-neutral-950 bg-neutral-950 text-white shadow-md" : "border-neutral-200 bg-white text-neutral-900"}`}>
+                    <span className={`block text-base uppercase ${option.sampleClass}`}>{option.label}</span>
+                    <span className={`mt-0.5 block text-[10px] font-bold ${openingHeadlineFont === option.id ? "text-neutral-300" : "text-neutral-500"}`}>{option.detail}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">

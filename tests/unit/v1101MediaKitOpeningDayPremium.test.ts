@@ -10,7 +10,7 @@ describe("v1.10.1 premium opening-day media kit", () => {
     expect(page).toContain("Jornada de apertura")
     expect(page).toContain("Premium 01 · 4:5")
     expect(page).toContain('template: "opening_day_premium_01"')
-    for (const field of ["openingTitle", "openingSubtitle", "openingDate", "openingTime", "openingVenue", "openingRound", "openingFooter"]) {
+    for (const field of ["openingTitle", "openingSubtitle", "openingDate", "openingTime", "openingVenue", "openingRound"]) {
       expect(page).toContain(field)
     }
     expect(page).toContain("Vista previa")
