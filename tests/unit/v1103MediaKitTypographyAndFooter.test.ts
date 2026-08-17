@@ -18,17 +18,17 @@ describe("v1.10.3 media kit typography and fixed app signature", () => {
     expect(image).toContain("drawAppBrandFooter")
   })
 
-  it("offers four genuinely different headline treatments and carries the choice into the PNG", async () => {
+  it("offers eight different headline treatments and carries the editorial default into the PNG", async () => {
     const [page, image] = await Promise.all([
       read("src/app/admin/media-kit/page.tsx"),
       read("src/lib/leagueMediaKitImage.ts"),
     ])
 
-    for (const option of ["Impacto", "Condensada", "Editorial", "Atlética"]) expect(page).toContain(option)
+    for (const option of ["Impacto", "Condensada", "Editorial", "Atlética", "Monumental", "Geométrica", "Didona", "Técnica"]) expect(page).toContain(option)
     expect(page).toContain("openingHeadlineFont")
     expect(page).toContain("Diseño del titular")
     expect(image).toContain("HEADLINE_FONT_PROFILES")
-    expect(image).toContain('headlineFont ?? "impact"')
+    expect(image).toContain('headlineFont ?? "editorial"')
     expect(image).toContain("profile.slant")
     expect(image).toContain("profile.widthScale")
   })

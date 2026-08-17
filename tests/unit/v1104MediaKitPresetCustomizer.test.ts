@@ -11,7 +11,9 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain("function loadPreset")
     expect(page).toContain("setActivePresetKind(kind)")
     expect(page).toContain("compactPresetTitles")
-    expect(page).toContain("grid-cols-[158px_minmax(0,1fr)]")
+    expect(page).toContain('aria-label="Personalización"')
+    expect(page).toContain('aria-label="Vista previa"')
+    expect(page).toContain('setWorkspaceView("preview")')
     expect(page).toContain("aria-pressed={isActive}")
     expect(page).toContain("sharePiece(activePresetKind, openingData)")
     expect(page.indexOf(">Presets<")).toBeLessThan(page.indexOf('id="media-kit-customizer"'))
@@ -24,10 +26,10 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
       "Personalizaci",
       ">Titular<",
       "Subt",
-      "Destacado",
+      "Bloque destacado",
       "Dato central",
-      "Etiqueta izq.",
-      "Etiqueta dcha.",
+      "Etiqueta izquierda",
+      "Etiqueta derecha",
     ]) expect(page).toContain(label)
     expect(page).toContain("compactPresetTitles[activePresetKind]")
     expect(page).toContain('alt="Vista previa del cartel activo"')

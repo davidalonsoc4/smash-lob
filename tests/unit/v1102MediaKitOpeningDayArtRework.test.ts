@@ -6,8 +6,8 @@ const read = (path: string) => readFile(path, "utf8")
 describe("v1.10.2 opening-day Premium 01 art rework", () => {
   it("ships a real 4:5 art base plus a separate accent mask", async () => {
     const [base, mask] = await Promise.all([
-      stat("public/media-kit/opening-day-premium-01-base.webp"),
-      stat("public/media-kit/opening-day-premium-01-accent.png"),
+      stat("public/media-kit/opening-day-premium-01-base-v2.webp"),
+      stat("public/media-kit/opening-day-premium-01-accent-v2.png"),
     ])
     expect(base.size).toBeGreaterThan(20_000)
     expect(mask.size).toBeGreaterThan(20_000)
@@ -15,8 +15,8 @@ describe("v1.10.2 opening-day Premium 01 art rework", () => {
 
   it("loads the art assets and recolors the mask instead of procedurally drawing the whole poster", async () => {
     const image = await read("src/lib/leagueMediaKitImage.ts")
-    expect(image).toContain('OPENING_BASE_ASSET = "/media-kit/opening-day-premium-01-base.webp"')
-    expect(image).toContain('OPENING_ACCENT_MASK_ASSET = "/media-kit/opening-day-premium-01-accent.png"')
+    expect(image).toContain('OPENING_BASE_ASSET = "/media-kit/opening-day-premium-01-base-v2.webp"')
+    expect(image).toContain('OPENING_ACCENT_MASK_ASSET = "/media-kit/opening-day-premium-01-accent-v2.png"')
     expect(image).toContain("tintMask")
     expect(image).toContain('globalCompositeOperation="screen"')
     expect(image).toContain("await drawOpeningDayBackground(ctx,accent)")
@@ -28,7 +28,7 @@ describe("v1.10.2 opening-day Premium 01 art rework", () => {
       read("src/lib/leagueMediaKitImage.ts"),
     ])
     expect(page).toContain("openingLogoOverride ?? activeLeague.logoUrl")
-    expect(page).toContain("logo y datos reales de esta liga")
+    expect(page).toContain("openingSeasonHeader")
     expect(image).toContain("data.leagueLogoUrl")
     expect(image).toContain("data.seasonName")
     expect(image).toContain("data.eventDateLabel")
