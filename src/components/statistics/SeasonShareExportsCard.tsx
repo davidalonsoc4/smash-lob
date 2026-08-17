@@ -270,6 +270,7 @@ export function SeasonShareExportsCard({
       ...branding,
       mode,
       label: seasonFinished && mode === "current" ? "Calendario" : undefined,
+      seasonFinished,
       matches,
       players,
     })

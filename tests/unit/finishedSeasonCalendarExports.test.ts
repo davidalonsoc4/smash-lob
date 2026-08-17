@@ -21,6 +21,8 @@ describe("finished season calendar exports", () => {
     expect(card).toContain('? "calendario"')
     expect(card).toContain('? "Calendario de Smash & Lob"')
     expect(images).toContain('label?: string')
+    expect(images).toContain('seasonFinished?: boolean')
+    expect(images).toContain('const hideFinishedLabel = seasonFinished && match.status === "finished"')
     expect(images).toContain('label ??')
   })
 })

@@ -693,6 +693,7 @@ async function drawMatchCard({
   width,
   includePlayerImages,
   mode,
+  seasonFinished,
 }: {
   context: CanvasRenderingContext2D
   match: MatchData
@@ -703,6 +704,7 @@ async function drawMatchCard({
   width: number
   includePlayerImages: boolean
   mode: SeasonCalendarImageMode
+  seasonFinished?: boolean
 }) {
   const fixturesOnly = mode === "fixtures"
   const height = fixturesOnly ? 112 : 172
@@ -717,25 +719,21 @@ async function drawMatchCard({
     ]
       .filter(Boolean)
       .join(" · ")
+    const hideFinishedLabel = seasonFinished && match.status === "finished"
 
-    fillRoundedRect(context, x + 24, y + 22, 174, 30, 15, statusPalette.background)
-    drawTextCenteredInBox(context, statusLabel, x + 24, y + 22, 174, 30, {
-      size: 14,
-      weight: 900,
-      color: statusPalette.text,
-      maxWidth: 150,
-    })
-    drawText(context, meta || "Fecha y lugar pendientes", x + width - 24, y + 37, {
-      size: 14,
-      weight: 700,
-      color: palette.muted,
-      align: "right",
-      baseline: "middle",
-      maxWidth: width - 240,
+    if (!hideFinishedLabel) {
+      fillRoundedRect(context, x + 24, y + 22, 174, 30, 15, statusPalette.background)
+      drawTextCenteredInBox(context, statusLabel, x + 24, y + 22, 174, 30, {
+        size: 14, weight: 900, color: statusPalette.text, maxWidth: 150,
+      })
+    }
+    drawText(context, meta || "Fecha y lugar pendientes", hideFinishedLabel ? x + 24 : x + width - 24, y + 37, {
+      size: 14, weight: 700, color: palette.muted, align: hideFinishedLabel ? "left" : "right",
+      baseline: "middle", maxWidth: hideFinishedLabel ? width - 48 : width - 240,
     })
 
     context.fillStyle = palette.line
-    context.fillRect(x + 24, y + 68, width - 48, 1)
+    context.fillRect(x + 24, y + 62, width - 48, 1)
   }
 
   const teamAreaWidth = width * 0.35
@@ -837,11 +835,13 @@ export async function createSeasonCalendarImage({
   includePlayerImages = true,
   mode = "current",
   label,
+  seasonFinished = false,
   matches,
   players,
 }: ExportBranding & {
   mode?: SeasonCalendarImageMode
   label?: string
+  seasonFinished?: boolean
   matches: MatchData[]
   players: PlayerProfile[]
 }) {
@@ -935,6 +935,7 @@ export async function createSeasonCalendarImage({
         width: cardWidth,
         includePlayerImages,
         mode,
+        seasonFinished,
       })
     }
 
@@ -1093,6 +1094,7 @@ export async function createSeasonRankingImage({
 
   const tableY = CONTENT_TOP + podiumHeight + 10
   drawCard(context, PADDING, tableY, CONTENT_WIDTH, tableHeight, 30)
+  context.save(); roundedRect(context, PADDING, tableY, CONTENT_WIDTH, tableHeight, 30); context.clip()
   fillRoundedRect(context, PADDING, tableY, CONTENT_WIDTH, 72, 30, palette.accent)
   context.fillStyle = palette.accent
   context.fillRect(PADDING, tableY + 42, CONTENT_WIDTH, 30)
@@ -1191,6 +1193,9 @@ export async function createSeasonRankingImage({
       })
     })
   })
+
+  context.restore()
+  strokeRoundedRect(context, PADDING, tableY, CONTENT_WIDTH, tableHeight, 30, palette.line)
 
   drawFooter({ context, canvasHeight, appIcon })
 
