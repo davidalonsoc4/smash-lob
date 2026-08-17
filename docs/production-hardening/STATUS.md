@@ -1175,3 +1175,110 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Centro de Difusión para admins con cinco exportables PNG 4:5 basados en datos reales.
 - Nueva migración aditiva `20260816173000_add_competitive_player_images_and_scheduled_seasons.sql`.
 - Scope excluido a propósito: pulido del PNG de Jornada, nivel global y estadísticas de parejas.
+
+## Product evolution v1.10.2 — Media Kit visual rework (2026-08-17, en curso)
+
+- Creada la rama local `codex/media-kit-visual-rework` desde `feature/v1.9.0-product-expansion`; `main`, Production y la etiqueta `v1.0.0` permanecen intactos.
+- Aplicado y conservado `stash@{0}` (`WIP Media Kit v1.10.2 untracked`), que recupera dos recursos visuales de `opening_day_premium_01` y dos tests focalizados.
+- El trabajo queda limitado a local: sin push, PRE, merge ni cambios remotos.
+- Checkpoint inicial completado: implementación recuperada auditada y plantilla principal rehecha contra la referencia obligatoria.
+- Implementada `opening_day_premium_01` como cartel dinámico 1080×1350 sobre la base artística recuperada: fondo carbón, máscara de acento tintable, viñeta, partículas, geometría premium, titular metálico, fecha enmarcada, metadatos y firma inferior.
+- `Centro de difusión` incorpora editor completo, logo de liga con override temporal, seis acentos, vista previa del PNG real y acciones separadas para compartir o descargar.
+- Reglas, Inscripciones, Próxima jornada, Inicio de temporada y Cuenta atrás derivan ahora de la misma familia Premium 01.
+- Primera iteración visual revisada en `http://localhost:3000/admin/media-kit`; corregido el layout estrecho detectado en navegador.
+- Validación focalizada: `npx tsc --noEmit` correcto y 11/11 tests de Media Kit correctos.
+- Validación final local: `npm run lint`, `npx tsc --noEmit`, `npm run build`, 11/11 tests focalizados y `git diff --check` correctos.
+- La app queda arrancada en `http://localhost:3000`; no se ha realizado push, merge, PRE ni ninguna otra operación remota.
+- La segunda recarga del navegador quedó bloqueada por el onboarding de la sesión local con `app_user_lookup_failed`; no se rellenó el perfil ni se forzó acceso con datos personales. La inspección visual del PNG se completó antes de ese bloqueo.
+- Corrección posterior: la firma inferior deja de ser editable y reutiliza el patrón de los exportables de temporada con el icono de la app, `CREADO CON` y `SMASH & LOB`.
+- El titular principal incorpora cuatro tratamientos seleccionables (`Impacto`, `Condensada`, `Editorial` y `Atlética`) con familia, proporción, tamaño, contorno y, cuando corresponde, inclinación propias en el Canvas exportado.
+- La elección tipográfica se aplica también a las piezas equivalentes de la familia Premium 01.
+- Revisión visual completada en navegador para `Impacto`, `Condensada`, `Editorial` y `Atlética`; las cuatro variantes mantienen jerarquía, encaje y legibilidad, y el nuevo pie fijo aparece integrado sin desbordes ni errores de consola.
+- Validación de la corrección: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `git diff --check` y 13/13 tests focalizados correctos.
+- Nueva iteración local: el catálogo de piezas pasa a funcionar como `Presets` y se sitúa antes de la composición; cada preset carga sus textos en una única `Personalización y vista previa`, desde la que se comparte o descarga el resultado.
+- La composición identifica el preset activo, permite restablecerlo y renombra los seis campos según su función visual (`Titular`, `Subtítulo`, `Bloque destacado`, `Dato central` y etiquetas laterales) en vez de asumir siempre Jornada de apertura.
+- El color de acento conserva la paleta curada y añade una opción `Personalizado` desplegable con selector visual y código hexadecimal validado.
+- La observación incompleta del usuario sobre borrar texto queda pendiente de concretar; no se ha inferido ni aplicado ningún comportamiento adicional.
+- A petición posterior, `Centro de difusión` abandona la sucesión de tarjetas grandes: los seis presets se compactan en una barra, mientras vista previa, compartir/descargar y personalización conviven en un único espacio de trabajo a dos columnas desde anchura tablet.
+- Botones, campos, variantes tipográficas, acentos y control de logo reducen altura y espaciado; con el color personalizado cerrado, el conjunto está diseñado para quedar visible de un solo vistazo en escritorio.
+- El preset conserva el nombre corto `Apertura` en la biblioteca, mientras su composición inicial recupera el titular `Jornada de apertura` y genera el subtítulo `Un día, X partido(s), el mejor comienzo` con el número real de encuentros de la primera jornada y concordancia singular/plural.
+- La revisión en la anchura real del shell de la app (columna central estrecha) corrige el primer intento que desbordaba: cartel a 155 px, seis presets abreviados en una fila y controles en una columna lateral flexible de 158 px.
+- Tipografía pasa a selector compacto, acento y logo comparten bloque, y las acciones quedan bajo el cartel; el estado cerrado completo se ve antes de la navegación inferior en la captura final.
+- Interacción real verificada: `Altas` carga todos sus textos en la composición activa y `Color personalizado` acepta `#22AACC`, actualizando tanto selector como borrador hexadecimal.
+- Validación final de esta iteración: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `git diff --check` y 16/16 tests focalizados correctos.
+- Ajuste móvil posterior: se descarta la división lateral de preview e inputs; personalización ocupa primero todo el ancho y la vista previa crece a 285 px debajo, con compartir/PNG unidos al cartel.
+- La capa `opening-day-premium-01-accent.png` se reconstruye desde el fondo actual: 1080×1350, RGBA real y alfa derivado de la luminosidad del propio fondo, por lo que focos, líneas, pala, pelota y polvo quedan alineados al píxel y el centro oscuro permanece transparente.
+- Dos propuestas del generador visual se descartaron por incumplir dimensiones y canal alfa; solo se aprovechó su dirección visual y el recurso final se normalizó de forma determinista contra `opening-day-premium-01-base.webp`.
+- Rediseño móvil integral de `Centro de difusión`: los presets pasan a una biblioteca horizontal táctil y el espacio de trabajo separa `Vista previa` y `Personalizar` en dos modos, evitando comprimir simultáneamente cartel y formularios.
+- Seleccionar un preset carga sus datos y vuelve automáticamente a la preview; el modo de edición ofrece campos a ancho cómodo, tipografía, acentos y logo agrupados, más un único CTA para regresar al cartel.
+- Primera versión de `Premium 02 · Formato`: nuevo preset informativo 4:5 con título medio, introducción, filas numeradas y cierre, conservando fondo carbón, acento configurable, logo y firma fija de Smash & Lob.
+- El preset explica clasificación individual, parejas diferentes, repetición mínima de rivales y calendario automático; carga cuatro filas de partida.
+- El editor específico de Premium 02 admite entre 3 y 5 filas, edición de titular/descripción, reordenación, eliminación y alta de bloques; el Canvas adapta altura, espaciado y densidad al número de filas.
+- Ajuste de la plantilla informativa: el título baja 35 px, desaparece toda etiqueta visible `Premium 02` del PNG y de la biblioteca, y las filas dejan de estar numeradas.
+- Cada fila admite ahora un icono de imagen opcional con controles para cargar, cambiar o quitar; sin icono, el diseño utiliza una barra vertical del color de acento como marcador neutro.
+- Corrección de jerarquía en Premium 01: los titulares de dos líneas reducen tamaño y separación vertical, mientras el subtítulo baja y gana aire; se elimina el solapamiento visible en presets como Reglas, Inicio y Cuenta atrás.
+- El preset `Inscripciones` se redefine como aviso de cuota o fianza: prioriza reserva de plaza, importe por jugador y pago único, reutilizando el importe real configurado para la temporada cuando está disponible.
+- Premium 01 y Premium 02 comparten una cabecera de temporada editable, inicializada con la temporada activa pero independiente de los presets para preparar piezas de una temporada futura.
+- Primera versión de `Jornada` con diseño Premium 03: genera una pieza 4:5 por enfrentamiento, permite cargar cualquier partido de la jornada con jugadores, fecha, hora y sede reales, y mantiene todos esos campos editables antes de compartir o descargar.
+- Pulido de Premium 03: nombres de ambas parejas centrados ópticamente y marcadores verticales desplazados al interior. Las sedes cargadas desde partidos se normalizan en todos los presets como `Municipio · Nombre corto`, evitando mostrar el JSON persistido del selector de ubicación.
+- El formato automático de sede queda diferenciado por plantilla: Premium 01 usa `Municipio Nombre corto` sin separador, Premium 03 conserva `Municipio · Nombre corto` y Premium 02 no incorpora ubicación por defecto.
+- El preset `Reglas` migra a Premium 02 y carga filas editables con la configuración real: obligatoriedad de tres sets, reparto de puntos por sets, desempate por diferencia de juegos y juegos a favor, y sistema MVP solo cuando está activo.
+- Nuevo preset informativo `En pista` sobre Premium 02: coloca primero un calentamiento guiado de 10/15 minutos y explica después la variante STAR Point de la liga y el tie-break mediante cuándo se juega, cómo se gana y cómo rota el saque; se descarta el bloque de cambios de lado y resultado final.
+- `Inscripción` fija su composición inicial en `Cuota de inscripción`, `Para gastos derivados de la liga`, `20€`, `Fianza`, `Pago único` y `Por jugador`; los campos se precargan con capitalización normal y el cartel mantiene el tratamiento visual en mayúsculas de Premium 01.
+- El control de icono de cada fila informativa abre ahora una galería de 25 SVG precargados y coloreados con el acento activo; la carga de una imagen personalizada permanece disponible como acción independiente dentro del selector.
+- Compilación local de esta iteración completada correctamente con `npm run build`; no se ejecutan comprobaciones adicionales durante esta fase de ajuste visual.
+- El fondo compartido por las plantillas Premium se sustituye de forma reversible por una variante 1080×1350 que prolonga la textura de la pista hasta el borde inferior y elimina la franja negra visible; la máscara de acento se regenera con las mismas dimensiones a partir del nuevo fondo.
+- La variante de fondo extendida queda integrada y compila correctamente con `npm run build`; los recursos anteriores se conservan sin sobrescribir como respaldo durante la prueba visual.
+- Corrección posterior del render: se detecta que los degradados del Canvas volvían a ocultar la pista extendida al eliminar casi toda la luminosidad inferior; el fondo recupera progresivamente su textura solo desde `y=1040` hasta el borde, manteniendo intacto el oscurecimiento del área tipográfica.
+- La corrección compila con `npm run build` y el servidor local se deja activo en `http://localhost:3000` para revisar la preview y la descarga contra el bundle actualizado.
+- Se elimina la línea horizontal detectada en la recuperación del suelo: la máscara `destination-in` pasa a cubrir todo el lienzo, conservando alfa cero sobre el inicio del degradado en vez de dejar opaca la mitad superior del buffer auxiliar.
+- La corrección de continuidad compila con `npm run build` y el servidor local permanece activo en el puerto 3000 para la siguiente revisión visual.
+- La inspección de la preview real de `Apertura` confirma que la máscara PNG de acento no contiene una discontinuidad horizontal; el corte procedía del `floorGlow` del Canvas, que terminaba en `y=1260` conservando su intensidad máxima. La capa pasa a recorrer hasta el borde y desvanece de nuevo a alfa cero.
+- El nuevo desvanecido de acento compila con `npm run build` y la preview local de `Apertura` se recarga contra el bundle actualizado.
+- La apariencia de dispositivos sin preferencias guardadas cambia a `Claro + Colorido + Grafito` tanto en el script previo a hidratación como en `ThemeProvider`; las elecciones existentes en `localStorage` se siguen respetando.
+- HOME unifica la línea de temporada simple y el selector para varias temporadas mediante `SeasonContextLine`: comparten contenido, tipografía, color, altura y posición, mientras la variante interactiva conserva semántica de botón y foco accesible sin indicios visuales en reposo.
+- La iteración de apariencia predeterminada y cabecera de temporada compila correctamente con `npm run build`; no se ejecutan comprobaciones adicionales durante esta fase visual.
+- Premium 02 y Premium 03 ya reutilizaban el fondo artístico común, pero sus velos negros al 78 % y 72 % lo ocultaban casi por completo; se reducen al 58 % y 54 % para recuperar de forma sutil focos, pista, pala y textura sin comprometer la lectura.
+- Los presets informativos cargan iconos SVG de partida editables: Formato usa gráfico, dos jugadores, rayo y calendario; Reglas usa repetición, gráfico, balanza y trofeo cuando hay MVP; En pista usa pala, estrella, objetivo y rotación.
+- Revisión local en navegador: Premium 02 y Premium 03 regeneran sus previews sin errores; el editor muestra 4 iconos en Formato, 3 en Reglas para la temporada actual sin MVP y 4 en En pista. La iteración compila correctamente con `npm run build`.
+- Todas las imágenes del Media Kit usan ahora el icono oficial de Smash & Lob como logo de cabecera cuando la liga no tiene uno definido; un logo propio u override sigue teniendo prioridad y la firma inferior no cambia.
+- El fallback de logo compila correctamente con `npm run build`; no se ejecutan comprobaciones adicionales en esta fase visual.
+- Premium 02 y Premium 03 separan la cabecera lateral del marco decorativo: sus dos esquinas superiores bajan de `y=72` a `y=148`, justo después del logo, nombre de liga y temporada. Premium 01 conserva el marco original para su cabecera centrada.
+- La variante de marco por composición compila correctamente con `npm run build`; no se ejecutan comprobaciones adicionales durante esta fase visual.
+### Ajustes Media Kit — tipografías y preset En pista (2026-08-17)
+
+- Premium 01 usa `Editorial` como tipografía inicial y también como fallback del exportador.
+- El selector amplía sus opciones con cuatro estilos adicionales: `Monumental`, `Geométrica`, `Didona` y `Técnica`.
+- El preset `En pista` cambia su titular precargado a `DURANTE EL PARTIDO`.
+- Validación solicitada: `npm run build` completado correctamente (compilación, TypeScript y generación estática).
+
+### Media Kit — cinco presets y Premium 04/05 (2026-08-17)
+
+- Se incorporan los presets `Resultados`, `Clasificación`, `MVP`, `Próxima jornada` y `Final de temporada`, alimentados inicialmente con datos de la temporada activa y editables antes de exportar.
+- `Premium 04 · Marcador` introduce una composición de filas densas para marcadores y top 5, con jerarquía específica para posiciones y cifras.
+- `Premium 05 · Protagonista` introduce una composición editorial con fotografía central para MVP y campeón, nombre destacado y hasta tres datos o puestos de apoyo.
+- `Próxima jornada` reutiliza Premium 01 para priorizar fecha, hora, sede y número de jornada.
+- La biblioteca, los editores y los exportadores aceptan las cinco nuevas clases de pieza; Premium 05 permite sustituir o quitar temporalmente la fotografía protagonista.
+- Validación solicitada: `npm run build` completado correctamente con TypeScript y generación estática.
+
+### Media Kit — Premium 06 para Resultados (2026-08-18)
+
+- `Resultados` deja de compartir Premium 04 con `Clasificación`; Premium 04 queda reservado al ranking y su top 5.
+- Se crea `Premium 06 · Resultados`, inspirado en la lectura de la pantalla PARTIDO: nombres apilados de cada pareja a la izquierda, juegos de cada set en columnas y sets ganados en un bloque de mayor peso visual.
+- El preset carga los partidos terminados de la última jornada disponible, usa un mínimo de 2 tarjetas y admite hasta 4 para temporadas de 16 jugadores.
+- El personalizador permite editar los cuatro nombres, los juegos de cada set, añadir o quitar partidos entre 2 y 4, y recalcula automáticamente los sets ganados.
+- Validación solicitada: `npm run build` completado correctamente con la nueva plantilla, editor y tipos de datos de resultados.
+- RESULTADOS incorpora un selector de jornada completa; se inicializa con la última jornada cerrada y, al cambiarla, recarga parejas, juegos y sets antes de permitir el retoque manual.
+- Personalización incorpora un selector común de `Temporada origen`: al cambiarlo, el preset activo vuelve a cargar los datos reales de esa temporada, mientras la cabecera superior permanece editable e independiente.
+- Validación solicitada: `npm run build` completado correctamente con ambos selectores y la recarga de presets por temporada.
+- Preparación de publicación: el Media Kit adopta los tokens tipográficos semánticos globales y elimina la descripción genérica de cabecera detectada por `typography:check`.
+- El presupuesto global de fuente se actualiza de 102.300 a 104.000 líneas para registrar las nuevas plantillas y editores, manteniendo sin cambios los límites de clientes, páginas cliente, rutas API y archivos críticos; el árbol actual ocupa 103.599 líneas.
+
+### Preparación de publicación Media Kit (2026-08-18)
+
+- Playwright usa un servidor dedicado en `127.0.0.1:3100` y un `distDir` independiente (`.next-playwright`), por lo que ya no puede reutilizar accidentalmente una sesión local del puerto 3000 ni interferir con ella.
+- Las pruebas visuales fijan el reloj en una fecha conocida y actualizan las versiones vigentes de los tutoriales de HOME, Ajustes y Administración de temporada; las capturas dejan de depender del día de ejecución o de overlays caducados.
+- El grafito claro oscurece sus tonos secundarios para conservar la nueva apariencia predeterminada y cumplir contraste WCAG AA también en las pantallas públicas.
+- Referencias visuales revisadas y actualizadas para HOME, Calendario, Administración de temporada y las pantallas públicas afectadas por el nuevo grafito predeterminado.
+- Puerta local completa superada con `npm run release:check`: 146 archivos / 480 tests unitarios e integración, 56 tests Playwright, build de producción dentro de presupuesto y `npm audit --omit=dev --audit-level=high` con 0 vulnerabilidades.
+- No hay migraciones nuevas ni cambios sobre migraciones ya aplicadas; el siguiente paso autorizado es publicar el mismo estado en `staging`/PRE y, tras verificarlo, promocionarlo a `main`/Producción.

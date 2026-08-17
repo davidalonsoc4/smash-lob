@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.10.0 league media kit", () => {
-  it("adds a dedicated admin diffusion module with the five agreed pieces", async () => {
+  it("adds a dedicated admin diffusion module with the complete preset catalogue", async () => {
     const [admin, page] = await Promise.all([
       read("src/app/admin/page.tsx"),
       read("src/app/admin/media-kit/page.tsx"),
@@ -12,11 +12,12 @@ describe("v1.10.0 league media kit", () => {
 
     expect(admin).toContain('href="/admin/media-kit"')
     expect(admin).toContain("Centro de difusión")
-    for (const title of ["Reglas de la liga", "Inscripciones", "Calendario", "Inicio de liga", "Cuenta atrás"]) {
+    for (const title of ["Jornada", "Resultados de la jornada", "Clasificación actualizada", "MVP de la jornada", "Próxima jornada", "Final de temporada", "Reglas de la liga", "Inscripciones", "Calendario", "Inicio de liga", "Cuenta atrás"]) {
       expect(page).toContain(title)
     }
-    expect(page).toContain("activeLeague.inviteCode")
-    expect(page).toContain("roundSettings.registrationFee")
+    expect(page).toContain('template: "results_premium_06"')
+    expect(page).toContain('template: "scoreboard_premium_04"')
+    expect(page).toContain('template: "spotlight_premium_05"')
     expect(page).toContain("formatShortDate(round.startsAt)")
   })
 
@@ -38,6 +39,6 @@ describe("v1.10.0 league media kit", () => {
   it("limits countdown sharing to seasons that actually have a scheduled start", async () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
     expect(page).toContain('disabled: !roundSettings.scheduledStartAt')
-    expect(page).toContain('disabled ? "Configura fecha de inicio"')
+    expect(page).toContain('title={disabled ? "Configura fecha de inicio"')
   })
 })

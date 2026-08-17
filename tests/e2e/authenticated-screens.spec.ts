@@ -13,6 +13,7 @@ const screens = [
 ] as const
 
 test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-08-10T10:00:00+02:00"))
   await page.route("**/api/onboarding/progress", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [] }) })
@@ -27,12 +28,12 @@ test.beforeEach(async ({ page }) => {
       "smash-lob-guided-onboarding-v1",
       JSON.stringify({
         "app-introduction": { tourKey: "app-introduction", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        home: { tourKey: "home", tourVersion: 5, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        home: { tourKey: "home", tourVersion: 7, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
         matches: { tourKey: "matches", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
         ranking: { tourKey: "ranking", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
         statistics: { tourKey: "statistics", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        "season-admin": { tourKey: "season-admin", tourVersion: 2, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
-        settings: { tourKey: "settings", tourVersion: 3, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        "season-admin": { tourKey: "season-admin", tourVersion: 3, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
+        settings: { tourKey: "settings", tourVersion: 4, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null },
       }),
     )
     window.localStorage.setItem(
