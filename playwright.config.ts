@@ -1,10 +1,14 @@
 import { defineConfig, devices } from "@playwright/test"
 
+const testPort = 3100
+const testAppUrl = `http://127.0.0.1:${testPort}`
+
 const testEnvironment = {
   AUTH_SECRET: "playwright-only-secret-playwright-only",
   AUTH_GOOGLE_ID: "playwright-google-client",
   AUTH_GOOGLE_SECRET: "playwright-google-secret",
-  NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+  NEXT_PUBLIC_APP_URL: testAppUrl,
+  NEXT_DIST_DIR: ".next-playwright",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "playwright-anon-key",
   SUPABASE_SERVICE_ROLE_KEY: "playwright-service-role-key",
@@ -21,7 +25,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: testAppUrl,
     locale: "es-ES",
     serviceWorkers: "block",
     timezoneId: "Europe/Madrid",
@@ -49,9 +53,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
-    url: "http://127.0.0.1:3000",
-    reuseExistingServer: !process.env.CI,
+    command: `npm run dev -- --port ${testPort}`,
+    url: testAppUrl,
+    reuseExistingServer: false,
     env: testEnvironment,
     timeout: 120_000,
   },
