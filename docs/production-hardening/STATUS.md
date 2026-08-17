@@ -1175,3 +1175,18 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Centro de Difusión para admins con cinco exportables PNG 4:5 basados en datos reales.
 - Nueva migración aditiva `20260816173000_add_competitive_player_images_and_scheduled_seasons.sql`.
 - Scope excluido a propósito: pulido del PNG de Jornada, nivel global y estadísticas de parejas.
+
+## Product evolution v1.10.2 — Media Kit visual rework (2026-08-17, en curso)
+
+- Creada la rama local `codex/media-kit-visual-rework` desde `feature/v1.9.0-product-expansion`; `main`, Production y la etiqueta `v1.0.0` permanecen intactos.
+- Aplicado y conservado `stash@{0}` (`WIP Media Kit v1.10.2 untracked`), que recupera dos recursos visuales de `opening_day_premium_01` y dos tests focalizados.
+- El trabajo queda limitado a local: sin push, PRE, merge ni cambios remotos.
+- Checkpoint inicial completado: implementación recuperada auditada y plantilla principal rehecha contra la referencia obligatoria.
+- Implementada `opening_day_premium_01` como cartel dinámico 1080×1350 sobre la base artística recuperada: fondo carbón, máscara de acento tintable, viñeta, partículas, geometría premium, titular metálico, fecha enmarcada, metadatos y firma inferior.
+- `Centro de difusión` incorpora editor completo, logo de liga con override temporal, seis acentos, vista previa del PNG real y acciones separadas para compartir o descargar.
+- Reglas, Inscripciones, Próxima jornada, Inicio de temporada y Cuenta atrás derivan ahora de la misma familia Premium 01.
+- Primera iteración visual revisada en `http://localhost:3000/admin/media-kit`; corregido el layout estrecho detectado en navegador.
+- Validación focalizada: `npx tsc --noEmit` correcto y 11/11 tests de Media Kit correctos.
+- Validación final local: `npm run lint`, `npx tsc --noEmit`, `npm run build`, 11/11 tests focalizados y `git diff --check` correctos.
+- La app queda arrancada en `http://localhost:3000`; no se ha realizado push, merge, PRE ni ninguna otra operación remota.
+- La segunda recarga del navegador quedó bloqueada por el onboarding de la sesión local con `app_user_lookup_failed`; no se rellenó el perfil ni se forzó acceso con datos personales. La inspección visual del PNG se completó antes de ese bloqueo.
