@@ -90,7 +90,8 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 
 export default function HelpPage() {
   const { locale, t } = useI18n()
-  const { roundSettings } = useCurrentLeagueData()
+  const { activeSeason, roundSettings } = useCurrentLeagueData()
+  const guideSettings = { ...roundSettings, seasonStatus: activeSeason.status }
   const requiresThreeSets = roundSettings.requiresThreeSets
   const registrationFee = roundSettings.registrationFee
   const hasRegistrationFee = Boolean(
@@ -105,12 +106,12 @@ export default function HelpPage() {
     : t.help.summarySetsOptional
   const guideHeadings = getLeagueGuideHeadings(locale)
   const seasonConfigurationItems = buildSeasonConfigurationItems({
-    settings: roundSettings,
+    settings: guideSettings,
     locale,
     registrationAmountLabel,
   })
   const applicationToolItems = buildApplicationToolItems({
-    settings: roundSettings,
+    settings: guideSettings,
     locale,
   })
   const activeMvpItem = seasonConfigurationItems.find(

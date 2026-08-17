@@ -232,6 +232,9 @@ export function AppShell({ children }: AppShellProps) {
   )
   const isScheduledSeasonUtilityRoute =
     pathname === "/" ||
+    pathname === "/leagues" ||
+    isPersonalMatchesRoute ||
+    isPublicAccessRoute ||
     pathname === "/notifications" ||
     pathname === "/help" ||
     pathname === "/settings" ||
@@ -250,7 +253,7 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowLeagueSearch =
-    !scheduledSeasonHomeOnly && pathname === "/leagues" && !isPublicAccessRoute
+    pathname === "/leagues" && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
     ? buildSettingsSearchEntries(locale, {
         isSpectator: !isSuperuser && spectatorMode,
@@ -285,7 +288,7 @@ export function AppShell({ children }: AppShellProps) {
     !isInitialSeasonSetupRoute &&
     !isPersonalMatchesRoute
   const shouldShowPersonalMatchesNav =
-    !scheduledSeasonHomeOnly && isPersonalMatchesRoute && !isPublicAccessRoute
+    isPersonalMatchesRoute && !isPublicAccessRoute
   const shouldShowPlayerInviteButton =
     !isMatchChatRoute &&
     !isPublicAccessRoute &&
