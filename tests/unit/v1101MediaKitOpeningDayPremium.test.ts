@@ -50,9 +50,15 @@ describe("v1.10.1 premium opening-day media kit", () => {
 
   it("prefills event timing in the same Madrid timezone used by scheduled seasons", async () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
+    const openingDateFormatter = page.slice(
+      page.indexOf("function openingDateLabels"),
+      page.indexOf("type MatchdayDraft"),
+    )
 
     expect(page).toContain("SCHEDULED_SEASON_TIME_ZONE")
     expect(page).toContain("firstOpeningMatch?.scheduledAt ?? roundSettings.scheduledStartAt")
     expect(page).toContain('timeZone: SCHEDULED_SEASON_TIME_ZONE')
+    expect(openingDateFormatter).toContain('day: "numeric", month: "long"')
+    expect(openingDateFormatter).not.toContain('year: "numeric"')
   })
 })

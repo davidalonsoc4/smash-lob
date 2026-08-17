@@ -1282,3 +1282,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Referencias visuales revisadas y actualizadas para HOME, Calendario, Administración de temporada y las pantallas públicas afectadas por el nuevo grafito predeterminado.
 - Puerta local completa superada con `npm run release:check`: 146 archivos / 480 tests unitarios e integración, 56 tests Playwright, build de producción dentro de presupuesto y `npm audit --omit=dev --audit-level=high` con 0 vulnerabilidades.
 - No hay migraciones nuevas ni cambios sobre migraciones ya aplicadas; el siguiente paso autorizado es publicar el mismo estado en `staging`/PRE y, tras verificarlo, promocionarlo a `main`/Producción.
+
+### Corrección del aislamiento de Avatar Lab en Producción (2026-08-18)
+
+- El primer smoke de Producción detectó que el layout ejecutaba `notFound()` pero Next.js conservaba un estado HTTP 200 al resolver el 404 dentro de una respuesta en streaming; la API experimental sí devolvía 404 correctamente.
+- `src/proxy.ts` intercepta ahora exclusivamente `/experimental/avatar-lab/:path*` antes del render: continúa en PRE y local, y devuelve un 404 HTTP real con `no-store` en cualquier otro host, incluido Producción.
+- El layout y las APIs conservan sus comprobaciones propias como defensa adicional; el contrato de assets y 13 tests focalizados de acceso, aislamiento y proxy pasan, junto con TypeScript.
+- La republicación queda preparada para desplegar primero en `staging`/PRE y verificar después `main`/Producción.
+- El preset `Apertura` precarga ahora su fecha únicamente como día y mes; el año se omite solo en esta pieza y el formato completo de `Jornada` y los demás presets no cambia.
+- Puerta local final superada con `npm run release:check`: 147 archivos / 482 tests unitarios e integración, 56 tests Playwright, build de producción dentro de presupuesto y auditoría runtime con 0 vulnerabilidades.
