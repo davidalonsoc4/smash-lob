@@ -37,7 +37,8 @@ describe("v1.9.1 round summary polish", () => {
 
     expect(page).toContain('<RoundSummaryShareButton data={roundSummaryImageData} />')
     expect(page).not.toContain("El exportable de jornada se conectará en el siguiente desarrollo")
-    expect(shareButton).toContain("Compartir resumen de jornada")
+    expect(shareButton).toContain("Compartir resumen")
+    expect(shareButton).toContain("Descargar resumen")
     expect(shareButton).toContain("bg-neutral-950 px-3 py-2.5")
   })
 
