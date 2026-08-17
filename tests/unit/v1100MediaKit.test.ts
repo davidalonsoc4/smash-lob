@@ -38,6 +38,6 @@ describe("v1.10.0 league media kit", () => {
   it("limits countdown sharing to seasons that actually have a scheduled start", async () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
     expect(page).toContain('disabled: !roundSettings.scheduledStartAt')
-    expect(page).toContain('disabled ? "Configura fecha de inicio"')
+    expect(page).toContain('title={disabled ? "Configura fecha de inicio"')
   })
 })

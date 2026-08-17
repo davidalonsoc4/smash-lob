@@ -1195,3 +1195,14 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La elección tipográfica se aplica también a las piezas equivalentes de la familia Premium 01.
 - Revisión visual completada en navegador para `Impacto`, `Condensada`, `Editorial` y `Atlética`; las cuatro variantes mantienen jerarquía, encaje y legibilidad, y el nuevo pie fijo aparece integrado sin desbordes ni errores de consola.
 - Validación de la corrección: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `git diff --check` y 13/13 tests focalizados correctos.
+- Nueva iteración local: el catálogo de piezas pasa a funcionar como `Presets` y se sitúa antes de la composición; cada preset carga sus textos en una única `Personalización y vista previa`, desde la que se comparte o descarga el resultado.
+- La composición identifica el preset activo, permite restablecerlo y renombra los seis campos según su función visual (`Titular`, `Subtítulo`, `Bloque destacado`, `Dato central` y etiquetas laterales) en vez de asumir siempre Jornada de apertura.
+- El color de acento conserva la paleta curada y añade una opción `Personalizado` desplegable con selector visual y código hexadecimal validado.
+- La observación incompleta del usuario sobre borrar texto queda pendiente de concretar; no se ha inferido ni aplicado ningún comportamiento adicional.
+- A petición posterior, `Centro de difusión` abandona la sucesión de tarjetas grandes: los seis presets se compactan en una barra, mientras vista previa, compartir/descargar y personalización conviven en un único espacio de trabajo a dos columnas desde anchura tablet.
+- Botones, campos, variantes tipográficas, acentos y control de logo reducen altura y espaciado; con el color personalizado cerrado, el conjunto está diseñado para quedar visible de un solo vistazo en escritorio.
+- El preset y titular inicial `Jornada de apertura` se simplifican a `Apertura` para garantizar una sola línea en la composición base.
+- La revisión en la anchura real del shell de la app (columna central estrecha) corrige el primer intento que desbordaba: cartel a 155 px, seis presets abreviados en una fila y controles en una columna lateral flexible de 158 px.
+- Tipografía pasa a selector compacto, acento y logo comparten bloque, y las acciones quedan bajo el cartel; el estado cerrado completo se ve antes de la navegación inferior en la captura final.
+- Interacción real verificada: `Altas` carga todos sus textos en la composición activa y `Color personalizado` acepta `#22AACC`, actualizando tanto selector como borrador hexadecimal.
+- Validación final de esta iteración: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `git diff --check` y 16/16 tests focalizados correctos.

@@ -7,14 +7,15 @@ describe("v1.10.1 premium opening-day media kit", () => {
   it("turns opening day into an editable Premium 01 template in the app", async () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
 
-    expect(page).toContain("Jornada de apertura")
+    expect(page).toContain('opening: "Apertura"')
+    expect(page).toContain('useState("Apertura")')
     expect(page).toContain("Premium 01 · 4:5")
     expect(page).toContain('template: "opening_day_premium_01"')
     for (const field of ["openingTitle", "openingSubtitle", "openingDate", "openingTime", "openingVenue", "openingRound"]) {
       expect(page).toContain(field)
     }
     expect(page).toContain("Vista previa")
-    expect(page).toContain("Compartir / descargar")
+    expect(page).toContain(': "Compartir"}</button>')
   })
 
   it("uses the league logo by default and supports a temporary logo override", async () => {
@@ -25,8 +26,8 @@ describe("v1.10.1 premium opening-day media kit", () => {
 
     expect(page).toContain("openingLogoOverride ?? activeLeague.logoUrl")
     expect(page).toContain('accept="image/*"')
-    expect(page).toContain("Restaurar logo liga")
-    expect(page).toContain("El cambio solo afecta a esta imagen")
+    expect(page).toContain(">Restaurar</button>")
+    expect(page).toContain("Logo de liga")
     expect(image).toContain('/^(data:|blob:)/i.test(raw)')
     expect(image).toContain("drawImageContain")
   })
@@ -39,7 +40,7 @@ describe("v1.10.1 premium opening-day media kit", () => {
 
     expect(page).toContain("openingAccentOptions")
     expect(page).toContain('type="color"')
-    expect(page).toContain("Recolorea luces, líneas, titular y detalles del cartel")
+    expect(page).toContain("Color de acento")
     expect(image).toContain('const WIDTH = 1080')
     expect(image).toContain('const HEIGHT = 1350')
     expect(image).toContain("drawOpeningDayBackground")
