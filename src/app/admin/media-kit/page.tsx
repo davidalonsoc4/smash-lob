@@ -93,7 +93,7 @@ function openingDateLabels(value: string | null | undefined) {
   const instant = new Date(value)
   if (Number.isNaN(instant.getTime())) return { date: "26 DE SEPTIEMBRE", time: "10:00" }
   return {
-    date: new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", year: "numeric", timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(instant).toLocaleUpperCase("es-ES"),
+    date: new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(instant).toLocaleUpperCase("es-ES"),
     time: new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(instant),
   }
 }

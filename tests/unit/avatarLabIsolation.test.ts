@@ -13,10 +13,14 @@ async function exists(path: string) {
 describe("Avatar Lab PRE isolation", () => {
   it("keeps the complete route in PRE and out of search engines", async () => {
     const layout = await readFile("src/app/experimental/avatar-lab/layout.tsx", "utf8")
+    const proxy = await readFile("src/proxy.ts", "utf8")
     expect(layout).toContain("isAvatarLabRequestContext()")
     expect(layout).toContain("notFound()")
     expect(layout).toContain("index: false")
     expect(layout).toContain("follow: false")
+    expect(proxy).toContain('matcher: "/experimental/avatar-lab/:path*"')
+    expect(proxy).toContain("isAvatarLabRequest(request)")
+    expect(proxy).toContain("status: 404")
   })
 
   it("uses the normal authenticated app shell", async () => {
