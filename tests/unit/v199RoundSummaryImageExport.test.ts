@@ -19,9 +19,12 @@ describe("v1.9.9 round summary image export", () => {
     for (const marker of [
       "RESUMEN DE JORNADA ${data.round}",
       'sectionTitle(context, "Resultados"',
-      'sectionTitle(context, data.mvp.title',
+      'const resultCardWidth = (CONTENT_WIDTH - GRID_GAP) / 2',
       'sectionTitle(context, "Lo más destacado"',
+      'const displayHighlights = buildDisplayHighlights(data)',
+      'const highlightCardWidth = (CONTENT_WIDTH - GRID_GAP) / 2',
       "sectionTitle(context, data.rankingTitle",
+      '"No ha habido cambios de posición tras la jornada."',
       'drawText(context, "Creado con"',
       'drawText(context, "Smash & Lob"',
     ]) {
@@ -35,7 +38,8 @@ describe("v1.9.9 round summary image export", () => {
     expect(page).toContain("results: roundMatches.map")
     expect(page).toContain('roundSettings.mvpSystem === "voting"')
     expect(page).toContain("highlights: highlights.map")
-    expect(page).toContain("ranking: rankingThroughRound.map")
+    expect(page).toContain("ranking: rankingThroughRound")
+    expect(page).toContain('.filter((player) => player.movement !== "—")')
     expect(page).toContain('rankingTitle: isCompleted ? "Clasificación tras la jornada" : "Clasificación provisional"')
   })
 })

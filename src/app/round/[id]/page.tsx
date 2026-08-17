@@ -23,6 +23,7 @@ import {
   getRoundRankingMovements,
   getRoundSummaryMetrics,
 } from "@/lib/roundSummary"
+import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { formatShortDate } from "@/lib/rounds"
 import type { RoundSummaryImageData } from "@/lib/roundSummaryImage"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
@@ -49,6 +50,41 @@ function teamPlayerNames(playerIds: string[], players: RankingPlayer[]) {
     (playerId) =>
       players.find((player) => player.id === playerId)?.displayName ?? "Jugador",
   )
+}
+
+function teamImagePeople(playerIds: string[], players: RankingPlayer[]) {
+  return playerIds.map((playerId) => {
+    const player = players.find((item) => item.id === playerId)
+    return {
+      name: player?.displayName ?? "Jugador",
+      avatarUrl: player?.avatarUrl ?? null,
+      avatarInitials: player?.avatarInitials,
+    }
+  })
+}
+
+function formatRoundExportMatchMeta(scheduledAt?: string | null, location?: string | null) {
+  const parts: string[] = []
+
+  if (scheduledAt) {
+    const date = new Date(scheduledAt)
+    if (!Number.isNaN(date.getTime())) {
+      parts.push(
+        new Intl.DateTimeFormat("es-ES", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date),
+      )
+    }
+  }
+
+  const locationText = getScheduleLocationDisplayText(location)
+  if (locationText) parts.push(locationText)
+
+  return parts.join(" · ") || "Fecha y lugar pendientes"
 }
 
 function MvpPlayers({
@@ -243,12 +279,12 @@ export default function RoundSummaryPage() {
       totalGames: metrics.totalGames,
     },
     results: roundMatches.map((match) => ({
-      teamA: teamPlayerNames(match.teamA, players),
-      teamB: teamPlayerNames(match.teamB, players),
+      teamA: teamImagePeople(match.teamA, players),
+      teamB: teamImagePeople(match.teamB, players),
       pointsA: match.pointsA,
       pointsB: match.pointsB,
       sets: match.sets,
-      statusLabel: match.status === "finished" ? "Finalizado" : "Pendiente",
+      meta: formatRoundExportMatchMeta(match.scheduledAt, match.location),
     })),
     mvp: imageMvp,
     highlights: highlights.map((highlight) => {
@@ -279,24 +315,25 @@ export default function RoundSummaryPage() {
       ? "No hay un dato destacado adicional para esta jornada."
       : "Los destacados se calcularán cuando la jornada esté completada.",
     rankingTitle: isCompleted ? "Clasificación tras la jornada" : "Clasificación provisional",
-    ranking: rankingThroughRound.map((player, index) => {
-      const movement = movementByPlayerId.get(player.id)
-      const movementLabel =
-        round === 1 || !movement || movement.from === null || movement.delta === 0
-          ? "—"
-          : movement.delta > 0
-            ? `▲${movement.delta}`
-            : `▼${Math.abs(movement.delta)}`
-      return {
-        position: index + 1,
-        name: player.displayName,
-        avatarUrl: activeLeague.showRankingAvatars === false ? null : player.avatarUrl ?? null,
-        avatarInitials: player.avatarInitials,
-        movement: movementLabel,
-        gamesDiff: player.gamesDiff,
-        points: player.points,
-      }
-    }),
+    ranking: rankingThroughRound
+      .map((player, index) => {
+        const movement = movementByPlayerId.get(player.id)
+        const movementLabel =
+          round === 1 || !movement || movement.from === null || movement.delta === 0
+            ? "—"
+            : movement.delta > 0
+              ? `▲${movement.delta}`
+              : `▼${Math.abs(movement.delta)}`
+        return {
+          position: index + 1,
+          name: player.displayName,
+          avatarUrl: activeLeague.showRankingAvatars === false ? null : player.avatarUrl ?? null,
+          avatarInitials: player.avatarInitials,
+          movement: movementLabel,
+          gamesDiff: player.gamesDiff,
+          points: player.points,
+        }
+      }).filter((player) => player.movement !== "—"),
   }
 
   return (
