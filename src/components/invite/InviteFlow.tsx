@@ -330,7 +330,9 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   const activeSeasonSettings = activeSeason
     ? getSeasonRoundSettings(activeSeason.id)
     : null
-  const inviteRulesSettings: LeagueGuideSettings = activeSeasonSettings ?? {
+  const inviteRulesSettings: LeagueGuideSettings = activeSeasonSettings
+    ? { ...activeSeasonSettings, seasonStatus: activeSeason?.status }
+    : {
     requiresThreeSets: true,
     mvpSystem: "none",
     resultConfirmationMode: "none",

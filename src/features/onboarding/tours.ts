@@ -53,7 +53,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Resumen de la liga",
           description: "La cabecera identifica la liga, la temporada seleccionada y si ya ha finalizado.",
         },
-        { title: "Cambia de liga rápidamente", description: "Toca el nombre de la liga para cambiar de competición o abrir Mis partidos sin salir de Inicio." },
+        { title: "Cambia de liga rápidamente", description: "Toca el nombre de la liga para cambiar de competición o abrir Mis partidos. Si esta liga tiene una temporada programada, solo su competición queda bloqueada hasta el inicio: Mis ligas, Mis partidos, Ajustes, Ayuda y Notificaciones siguen disponibles." },
         { title: "Consulta otras temporadas", description: "Si la liga tiene más de una temporada, toca el subtítulo de temporada para abrir una anterior sin cambiar de liga." },
         {
           title: "Comunicados importantes",
@@ -152,7 +152,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Tus ligas y Mis partidos",
-          description: "Desde Mis ligas cambias de competición y entras en Mis partidos, donde se reúnen tus partidos de liga y amistosos.",
+          description: "Desde Mis ligas cambias de competición y entras en Mis partidos, donde se reúnen tus partidos de liga y amistosos. Son áreas personales y siguen disponibles aunque la liga activa tenga una temporada programada.",
         },
         {
           title: "Buzón de sugerencias",
@@ -170,7 +170,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       steps: [
         {
           title: "Accesos rápidos",
-          description: "Estos botones llevan directamente a calendario, reglas, personas y acciones de estado.",
+          description: "Estos botones llevan directamente a calendario, reglas, personas y acciones de estado. También puedes programar el inicio: hasta activarse, los jugadores quedan limitados a la HOME de esa competición, mientras los administradores con VISTA ADMIN activa conservan la gestión completa.",
         },
         {
           title: "Calendario y jornadas",
@@ -222,7 +222,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "League overview",
           description: "The header identifies the league, selected season and whether it has already finished.",
         },
-        { title: "Switch leagues quickly", description: "Tap the league name to switch competitions or open My matches without leaving Home." },
+        { title: "Switch leagues quickly", description: "Tap the league name to switch competitions or open My matches. If this league has a scheduled season, only its competitive areas stay locked until the start: My leagues, My matches, Settings, Help and Notifications remain available." },
         { title: "Browse other seasons", description: "If the league has more than one season, tap the season subtitle to open a previous one without switching leagues." },
         {
           title: "Important announcements",
@@ -321,7 +321,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Your leagues and My matches",
-          description: "Use My leagues to switch competitions or open My matches, where league matches and friendlies come together in one personal history.",
+          description: "Use My leagues to switch competitions or open My matches, where league matches and friendlies come together in one personal history. These personal areas remain available even when the active league has a scheduled season.",
         },
         {
           title: "Suggestions",
@@ -339,7 +339,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       steps: [
         {
           title: "Quick links",
-          description: "These buttons take you directly to calendar, rules, people and status actions.",
+          description: "These buttons take you directly to calendar, rules, people and status actions. You can also schedule the season start: until activation, players are limited to that competition’s Home, while administrators with ADMIN VIEW enabled keep full management access.",
         },
         {
           title: "Calendar and rounds",
@@ -391,7 +391,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
           title: "Ligaren laburpena",
           description: "Goiburuak liga, hautatutako denboraldia eta amaituta dagoen adierazten ditu.",
         },
-        { title: "Aldatu liga azkar", description: "Sakatu ligaren izena lehiaketaz aldatzeko edo Nire partidak irekitzeko Hasieratik irten gabe." },
+        { title: "Aldatu liga azkar", description: "Sakatu ligaren izena lehiaketaz aldatzeko edo Nire partidak irekitzeko. Liga honek denboraldi programatua badu, bere lehiaketa-eremuak bakarrik blokeatzen dira hasi arte: Nire ligak, Nire partidak, Ezarpenak, Laguntza eta Jakinarazpenak erabilgarri jarraitzen dute." },
         { title: "Ikusi beste denboraldiak", description: "Ligak denboraldi bat baino gehiago badu, sakatu denboraldiaren azpititulua aurreko bat irekitzeko liga aldatu gabe." },
         {
           title: "Ohar garrantzitsuak",
@@ -490,7 +490,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Zure ligak eta Nire partidak",
-          description: "Nire ligak ataletik txapelketaz alda dezakezu edo Nire partidak ireki, ligako partidak eta lagunartekoak historia pertsonal berean ikusteko.",
+          description: "Nire ligak ataletik txapelketaz alda dezakezu edo Nire partidak ireki, ligako partidak eta lagunartekoak historia pertsonal berean ikusteko. Eremu pertsonal horiek erabilgarri jarraitzen dute liga aktiboak denboraldi programatua badu ere.",
         },
         {
           title: "Iradokizunak",
@@ -508,7 +508,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       steps: [
         {
           title: "Sarbide azkarrak",
-          description: "Botoi hauek egutegira, arauetara, pertsonetara eta egoera-ekintzetara eramaten zaituzte.",
+          description: "Botoi hauek egutegira, arauetara, pertsonetara eta egoera-ekintzetara eramaten zaituzte. Denboraldiaren hasiera ere programa dezakezu: aktibatu arte, jokalariak lehiaketa horretako Hasierara mugatzen dira, eta ADMIN IKUSPEGIA aktibatuta duten administratzaileek kudeaketa osoa mantentzen dute.",
         },
         {
           title: "Egutegia eta jardunaldiak",
@@ -536,7 +536,7 @@ const tourStructure: Array<{
 }> = [
   {
     key: "home",
-    version: 6,
+    version: 7,
     route: "/",
     audience: everyone,
     steps: [
@@ -595,7 +595,7 @@ const tourStructure: Array<{
   },
   {
     key: "settings",
-    version: 3,
+    version: 4,
     route: "/settings",
     audience: everyone,
     steps: [

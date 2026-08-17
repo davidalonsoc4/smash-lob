@@ -112,7 +112,7 @@ describe("guided onboarding", () => {
         audience: playerAudience,
       })
       expect(tour?.key).toBe("settings")
-      expect(tour?.version).toBe(3)
+      expect(tour?.version).toBe(4)
       expect(tour?.steps.map((step) => step.selector)).toEqual(expectedSelectors)
       expect(tour?.steps.map((step) => step.title)).toEqual(expectedTitles[locale])
     }
