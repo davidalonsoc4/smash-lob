@@ -776,19 +776,16 @@ export default function Home() {
             <div className="relative mt-0.5">
               {canSwitchHomeSeason ? (
                 <>
-                  <button
-                    type="button"
-                    data-tour="home-season-switcher"
-                    aria-haspopup="menu"
-                    aria-expanded={isSeasonPickerOpen}
-                    aria-controls="home-season-picker"
-                    onClick={() => setIsSeasonPickerOpen((open) => !open)}
-                    className="type-caption font-bold text-neutral-500 transition hover:text-neutral-800 focus:outline-none focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500"
-                  >
-                    {activeSeason.name}
-                    <span aria-hidden="true"> · </span>
-                    <span>{activeSeason.status === "finished" ? t.common.finishedSeasonBadge : activeSeason.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}</span>
-                  </button>
+                  <SeasonContextLine
+                    seasonName={activeSeason.name}
+                    statusLabel={activeSeason.status === "finished" ? t.common.finishedSeasonBadge : activeSeason.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}
+                    button={{
+                      ariaControls: "home-season-picker",
+                      ariaExpanded: isSeasonPickerOpen,
+                      dataTour: "home-season-switcher",
+                      onClick: () => setIsSeasonPickerOpen((open) => !open),
+                    }}
+                  />
                   {isSeasonPickerOpen ? <button type="button" aria-label="Cerrar selector de temporadas" className="fixed inset-0 z-40 cursor-default" onClick={() => setIsSeasonPickerOpen(false)} /> : null}
                   {isSeasonPickerOpen ? (
                     <div id="home-season-picker" role="menu" aria-label="Cambiar temporada" className="absolute left-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">

@@ -27,7 +27,7 @@ const VISUAL_STYLE_STORAGE_KEY = "smash-lob-visual-style"
 const COLORFUL_PALETTE_STORAGE_KEY = "smash-lob-colorful-palette"
 const DEFAULT_THEME_MODE: ThemeMode = "light"
 const DEFAULT_VISUAL_STYLE: VisualStyle = "colorful"
-const DEFAULT_COLORFUL_PALETTE: ColorfulPalette = "indigo"
+const DEFAULT_COLORFUL_PALETTE: ColorfulPalette = "graphite"
 
 const COLORFUL_THEME_COLORS: Record<ColorfulPalette, { light: string; dark: string }> = {
   indigo: { light: "#5b5ce2", dark: "#17172e" },
