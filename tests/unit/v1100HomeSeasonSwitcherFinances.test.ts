@@ -6,7 +6,7 @@ const read = (path: string) => readFile(path, "utf8")
 describe("v1.10.0 HOME season switcher and registration finances", () => {
   it("views another HOME season without changing the real active-season pointer", async () => {
     const [home, data, tours] = await Promise.all([read("src/app/page.tsx"), read("src/hooks/useCurrentLeagueData.ts"), read("src/features/onboarding/tours.ts")])
-    expect(home).toContain('data-tour="home-season-switcher"'); expect(home).toContain('id="home-season-picker"'); expect(home).toContain("setSelectedHomeSeasonId(season.id)"); expect(home).toContain("selectableHomeSeasons.length > 1")
+    expect(home).toContain('dataTour: "home-season-switcher"'); expect(home).toContain('id="home-season-picker"'); expect(home).toContain("setSelectedHomeSeasonId(season.id)"); expect(home).toContain("selectableHomeSeasons.length > 1")
     expect(data).toContain("selectedSeasonId?: string | null"); expect(data).toContain("requestedSeason ??"); expect(home).not.toContain("activeSeasonIds[")
     expect(tours).toContain("Consulta otras temporadas"); expect(tours).toContain("Browse other seasons"); expect(tours).toContain("Ikusi beste denboraldiak")
   })
