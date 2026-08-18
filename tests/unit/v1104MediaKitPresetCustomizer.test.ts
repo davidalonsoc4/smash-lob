@@ -47,4 +47,23 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain('aria-label="C')
     expect(page).toContain("/^#[0-9a-f]{6}$/i")
   })
+
+  it("adds the frequent green and automatic logo-based accent suggestions", async () => {
+    const page = await read("src/app/admin/media-kit/page.tsx")
+
+    expect(page).toContain('"#53B401"')
+    expect(page).toContain("extractLogoAccentPalette")
+    expect(page).toContain("Sugeridos por el logo")
+    expect(page).toContain("logoAccentSuggestions.map")
+    expect(page).toContain("openingLogoOverride ?? activeLeague.logoUrl")
+  })
+
+  it("prefills Inicio with dynamic players and rounds plus the new campaign copy", async () => {
+    const page = await read("src/app/admin/media-kit/page.tsx")
+
+    expect(page).toContain('subtitle: "Volvemos con más ganas"')
+    expect(page).toContain('roundLabel: `${players.length} jugadores`')
+    expect(page).toContain('eventTimeLabel: "1 campeón"')
+    expect(page).toContain('venue: `${activeSeason.totalRounds} jornadas`')
+  })
 })
