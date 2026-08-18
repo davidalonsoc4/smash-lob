@@ -15,6 +15,7 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain('aria-label="Vista previa"')
     expect(page).toContain('setWorkspaceView("preview")')
     expect(page).toContain("aria-pressed={isActive}")
+    expect(page).toContain('whitespace-nowrap type-micro font-black uppercase tracking-[.1em]')
     expect(page).toContain("sharePiece(activePresetKind, openingData)")
     expect(page.indexOf(">Presets<")).toBeLessThan(page.indexOf('id="media-kit-customizer"'))
   })
