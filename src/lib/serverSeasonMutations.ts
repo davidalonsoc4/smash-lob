@@ -441,6 +441,110 @@ export async function reopenServerFinishedSeason({
   }
 }
 
+export async function prepareServerSelfRegistrationSeasonCalendar({
+  supabase,
+  leagueId,
+  seasonId,
+  actorUserId,
+  actorIsSuperuser,
+}: {
+  supabase: SupabaseClient
+  leagueId: string
+  seasonId: string
+  actorUserId: string
+  actorIsSuperuser: boolean
+}): Promise<{ prepared: boolean; matchCount: number }> {
+  const { data: settingsRow, error: settingsLookupError } = await supabase
+    .from("season_settings")
+    .select("scheduled_start_at,roster_mode,player_capacity,schedule_mode")
+    .eq("season_id", seasonId)
+    .eq("league_id", leagueId)
+    .maybeSingle()
+
+  if (settingsLookupError) {
+    throw new SeasonMutationError(500, "season_settings_lookup_failed")
+  }
+
+  if (
+    settingsRow?.roster_mode !== "self_registration" ||
+    typeof settingsRow.scheduled_start_at !== "string"
+  ) {
+    return { prepared: false, matchCount: 0 }
+  }
+
+  const { data: seasonPlayerRows, error: seasonPlayersError } = await supabase
+    .from("season_players")
+    .select("player_id,status")
+    .eq("season_id", seasonId)
+    .eq("status", "active")
+
+  if (seasonPlayersError) {
+    throw new SeasonMutationError(500, "season_players_lookup_failed")
+  }
+
+  const playerIds = (seasonPlayerRows ?? [])
+    .map((item) => item.player_id)
+    .filter((playerId): playerId is string => typeof playerId === "string")
+  const capacity = Number(settingsRow.player_capacity ?? 0)
+
+  if (!capacity || playerIds.length !== capacity) {
+    throw new SeasonMutationError(409, "roster_incomplete")
+  }
+
+  const scheduleMode: SeasonScheduleMode =
+    settingsRow.schedule_mode === "double" ||
+    settingsRow.schedule_mode === "extended"
+      ? settingsRow.schedule_mode
+      : "single"
+  const generatedMatches = generateBalancedCalendar({
+    leagueId,
+    seasonId,
+    playerIds,
+    scheduleMode,
+  })
+  const { data, error } = await supabase.rpc(
+    "server_prepare_self_registration_season_calendar",
+    {
+      p_actor_user_id: actorUserId,
+      p_actor_is_superuser: actorIsSuperuser,
+      p_league_id: leagueId,
+      p_season_id: seasonId,
+      p_matches: generatedMatches.map((match) => ({
+        round: match.round,
+        teamA: match.teamA,
+        teamB: match.teamB,
+      })),
+    },
+  )
+
+  if (error) {
+    const message = error.message ?? "season_calendar_prepare_failed"
+    if (message.includes("roster_incomplete")) {
+      throw new SeasonMutationError(409, "roster_incomplete")
+    }
+    if (message.includes("season_not_scheduled")) {
+      throw new SeasonMutationError(409, "season_not_scheduled")
+    }
+    if (message.includes("season_prepare_not_allowed")) {
+      throw new SeasonMutationError(409, "season_prepare_not_allowed")
+    }
+    if (message.includes("season_calendar_invalid")) {
+      throw new SeasonMutationError(409, "season_calendar_invalid")
+    }
+    if (message.includes("forbidden")) {
+      throw new SeasonMutationError(403, "forbidden")
+    }
+    throw new SeasonMutationError(500, "season_calendar_prepare_failed", message)
+  }
+
+  const row = Array.isArray(data) ? data[0] : null
+
+  return {
+    prepared: Boolean(row?.prepared),
+    matchCount: Number(row?.match_count ?? generatedMatches.length),
+  }
+}
+
 export async function startServerExistingSeason({
   supabase,
   leagueId,
@@ -524,8 +628,8 @@ export async function startServerExistingSeason({
       if (message.includes("forbidden")) {
         throw new SeasonMutationError(403, "forbidden")
       }
-      if (message.includes("already_exist")) {
-        throw new SeasonMutationError(409, "season_matches_already_exist")
+      if (message.includes("season_calendar_invalid")) {
+        throw new SeasonMutationError(409, "season_calendar_invalid")
       }
       throw new SeasonMutationError(500, "season_start_failed", message)
     }
