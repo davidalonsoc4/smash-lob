@@ -7,6 +7,9 @@ export type ChangelogCategory =
 export type ChangelogRelease = {
   version: string
   date?: string
+  dateRange?: string
+  firstDate?: string
+  latestDate?: string
   title: string
   summary: string
   category: ChangelogCategory
