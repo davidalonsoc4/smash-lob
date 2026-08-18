@@ -5,6 +5,7 @@ import { joinSelfRegistrationSeason } from "@/lib/serverSelfRegistration"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { isActiveStoredLeagueInvite } from "@/lib/inviteValidity"
+import { expirePendingAccessIntentCookie } from "@/lib/serverPendingAccessIntent"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -193,15 +194,18 @@ export async function POST(
           },
         }).catch(() => null)
 
-        return NextResponse.json({
-          ok: true,
-          membership: result.membership,
-          selfRegistration: {
-            registeredCount: result.registeredCount,
-            playerCapacity: result.playerCapacity,
-            rosterComplete: result.rosterComplete,
-          },
-        })
+        return expirePendingAccessIntentCookie(
+          NextResponse.json({
+            ok: true,
+            membership: result.membership,
+            selfRegistration: {
+              registeredCount: result.registeredCount,
+              playerCapacity: result.playerCapacity,
+              rosterComplete: result.rosterComplete,
+            },
+          }),
+          request,
+        )
       } catch (joinError) {
         const message = joinError instanceof Error ? joinError.message : "self_registration_join_failed"
         if (message.includes("profile_incomplete")) {
@@ -414,13 +418,16 @@ export async function POST(
     // Claim success is authoritative; spectator cleanup remains best-effort.
   }
 
-  return NextResponse.json({
-    ok: true,
-    membership: {
-      userId: email,
-      leagueId: membership.league_id,
-      playerId: membership.player_id ?? "",
-      role: toRole(membership.role),
-    },
-  })
+  return expirePendingAccessIntentCookie(
+    NextResponse.json({
+      ok: true,
+      membership: {
+        userId: email,
+        leagueId: membership.league_id,
+        playerId: membership.player_id ?? "",
+        role: toRole(membership.role),
+      },
+    }),
+    request,
+  )
 }

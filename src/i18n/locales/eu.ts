@@ -31,12 +31,28 @@ export const eu = {
     description:
       "Sartu Google-rekin zure ligak, partidak eta emaitzak ikusteko.",
     signInWithGoogle: "Sartu Google-rekin",
+    inviteTitle: "Liga batera gonbidatu zaituzte",
+    inviteDescription:
+      "Sartu Google-rekin liga berrikusteko, arauak onartzeko eta zure jokalaria aukeratzeko.",
+    inviteAction: "Jarraitu eta sartu",
+    spectatorTitle: "Ikusle gisa gonbidatu zaituzte",
+    spectatorDescription:
+      "Sartu Google-rekin liga irakurtzeko baimenarekin kontsultatzeko.",
+    spectatorAction: "Jarraitu ikusle gisa",
     signOut: "Saioa itxi",
     loadingTitle: "Saioa egiaztatzen",
     loadingDescription: "Zure sarbidea prestatzen ari gara.",
     pendingTitle: "Erabiltzailea gonbidapenaren zain",
     pendingDescription:
       "Zure Google kontua oraindik ez dago liga honetako jokalari bati lotuta. Eskatu administratzaileari zure emaila gehitzeko.",
+  },
+
+  pendingAccess: {
+    title: "Gonbidapen bat osatu gabe duzu",
+    inviteDescription: "Ligan sartzeko prozesua utzi zenuen lekutik jarrai dezakezu.",
+    spectatorDescription: "Ikusle sarbidea aktibatzen amai dezakezu.",
+    continue: "Jarraitu",
+    dismiss: "Baztertu",
   },
 
   accountProfile: {

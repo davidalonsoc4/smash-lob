@@ -31,12 +31,28 @@ export const en = {
     description:
       "Sign in with Google to access your leagues, matches and results.",
     signInWithGoogle: "Sign in with Google",
+    inviteTitle: "You have been invited to a league",
+    inviteDescription:
+      "Sign in with Google to review the league, accept its rules and choose your player.",
+    inviteAction: "Continue and join",
+    spectatorTitle: "You have been invited as a spectator",
+    spectatorDescription:
+      "Sign in with Google to view the league with read-only access.",
+    spectatorAction: "Continue as spectator",
     signOut: "Sign out",
     loadingTitle: "Checking session",
     loadingDescription: "Preparing your access.",
     pendingTitle: "User pending invitation",
     pendingDescription:
       "Your Google account is not linked to a player in this league yet. Ask the admin to add your email.",
+  },
+
+  pendingAccess: {
+    title: "You have a pending invitation",
+    inviteDescription: "Continue joining the league from where you left off.",
+    spectatorDescription: "Finish activating your spectator access.",
+    continue: "Continue",
+    dismiss: "Dismiss",
   },
 
   accountProfile: {

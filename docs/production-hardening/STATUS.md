@@ -1306,3 +1306,16 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - No hay migraciones nuevas ni cambios sobre migraciones ya aplicadas; este mismo estado queda autorizado para promoción secuencial a `staging`/PRE y, tras su verificación, a `main`/Producción.
 - Publicación de aplicación verificada en PRE: `staging` `224d764430eccb6a9f6c76ad052a020d7f7ddf49`, despliegue Vercel `dpl_5sk895g3DVBgVFpjwsViMsdiWJ8k` READY y alias `pre.smashandlob.com`; el smoke autenticado confirma health v1.10.8/pre, página experimental disponible y API protegida con 401. El smoke público conserva el 302 previsto por la protección SSO de Vercel.
 - Publicación de aplicación verificada en Producción: `main` `1316a8fddf5d916285d06027406e8f53f128836d`, despliegue Vercel `dpl_9Z4ZDi9aXCgfTqc1R4jBsfLkMNGo` READY y alias `smashandlob.com`; `npm run smoke:prod` confirma health v1.10.8/prod, portada disponible y Avatar Lab bloqueado con 404 tanto en página como en API.
+
+### Recuperación de invitaciones al instalar la PWA (2026-08-18)
+
+- El flujo existente se conserva: los enlaces de jugador y espectador siguen volviendo a su ruta exacta después de Google, y el aviso propio de instalación continúa limitado a HOME tras confirmar una liga.
+- El límite de petición registra durante tres días la última invitación visitada en una cookie `HttpOnly`, `SameSite=Lax`, de ruta raíz y segura bajo HTTPS; solo acepta destinos internos `/invite/:code` y `/spectate/:code`, sin redirecciones externas.
+- El manifiesto declara un identificador estable `/` y arranca la PWA mediante `/launch`; esa ruta recupera una incorporación incompleta o entra en HOME cuando no existe ninguna.
+- Las APIs de alta de jugador y espectador eliminan la intención en la misma respuesta de éxito. Los flujos cliente repiten la limpieza como respaldo y HOME ofrece continuar o descartar una invitación abandonada.
+- El acceso anónimo adapta título, explicación y CTA al enlace recibido sin modificar el callback de OAuth ni el proceso actual de reglas, selección de jugador, perfil o espectador.
+- Validación focalizada: 20/20 tests de intención, redirección OAuth, proxy de Avatar Lab y PWA, más 2/2 recorridos Playwright móvil/escritorio; TypeScript, ESLint, `git diff --check` y revisión real de `/launch` en navegador correctos, sin errores de consola.
+- El endpoint público solo permite consultar o borrar la cookie propia, no acepta cuerpos ni modifica datos de aplicación, y queda registrado explícitamente en el inventario de seguridad: 81 rutas y 117 métodos.
+- El presupuesto de fuente registra la nueva ruta de arranque, API y aviso recuperable: 104.142 líneas y 153 clientes, sin cambiar límites de páginas cliente, rutas API ni archivos críticos.
+- Puerta completa superada con `npm run release:check`: 149 archivos / 495 tests unitarios e integración, 58 tests Playwright —incluida la recuperación de invitación en móvil y escritorio—, build de producción dentro de presupuesto (829.664 bytes gzip en 85 chunks) y auditoría runtime con 0 vulnerabilidades.
+- No se añaden migraciones ni se modifican datos persistentes; el cambio permanece aislado en `codex/pwa-invite-resume` y todavía no se ha publicado en PRE ni Producción.

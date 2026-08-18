@@ -31,12 +31,28 @@ export const es = {
     description:
       "Entra con Google para acceder a tus ligas, partidos y resultados.",
     signInWithGoogle: "Entrar con Google",
+    inviteTitle: "Te han invitado a una liga",
+    inviteDescription:
+      "Accede con Google para revisar la liga, aceptar sus reglas y elegir tu jugador.",
+    inviteAction: "Continuar y unirme",
+    spectatorTitle: "Te han invitado como espectador",
+    spectatorDescription:
+      "Accede con Google para consultar la liga con permisos de solo lectura.",
+    spectatorAction: "Continuar como espectador",
     signOut: "Cerrar sesión",
     loadingTitle: "Comprobando sesión",
     loadingDescription: "Estamos preparando tu acceso.",
     pendingTitle: "Usuario pendiente de invitación",
     pendingDescription:
       "Tu cuenta de Google todavía no está vinculada a un jugador de esta liga. Pide al administrador que añada tu email.",
+  },
+
+  pendingAccess: {
+    title: "Tienes una invitación pendiente",
+    inviteDescription: "Puedes continuar la incorporación a la liga donde la dejaste.",
+    spectatorDescription: "Puedes terminar de activar tu acceso como espectador.",
+    continue: "Continuar",
+    dismiss: "Descartar",
   },
 
   accountProfile: {

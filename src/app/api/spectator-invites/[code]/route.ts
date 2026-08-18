@@ -4,6 +4,7 @@ import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { validateInviteCode } from "@/lib/serverRequest"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { applyPrivateNoStore } from "@/lib/serverResponse"
+import { expirePendingAccessIntentCookie } from "@/lib/serverPendingAccessIntent"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -181,9 +182,12 @@ export async function POST(
     }
   }
 
-  return NextResponse.json({
-    ok: true,
-    leagueId: league.id,
-    access: playerMembership ? "member" : "spectator",
-  })
+  return expirePendingAccessIntentCookie(
+    NextResponse.json({
+      ok: true,
+      leagueId: league.id,
+      access: playerMembership ? "member" : "spectator",
+    }),
+    request,
+  )
 }
