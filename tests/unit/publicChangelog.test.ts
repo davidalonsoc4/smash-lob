@@ -4,7 +4,7 @@ import { buildPublicChangelog } from "@/lib/publicChangelog"
 
 function release(
   version: string,
-  date: string,
+  date: string | undefined,
   category: ChangelogCategory,
   title = version,
   summary = `Resumen ${version}`,
@@ -98,6 +98,26 @@ describe("public changelog", () => {
     expect(publicReleases.map(({ version }) => version)).toEqual([
       "v1.10.1",
       "v1.9.9",
+    ])
+  })
+
+  it("omits empty date metadata from undated public releases", () => {
+    const publicReleases = buildPublicChangelog([
+      release("v0.9.15", undefined, "improvement"),
+      release("v0.9.14", undefined, "improvement"),
+    ])
+
+    expect(publicReleases).toEqual([
+      {
+        version: "v0.9.14 – v0.9.15",
+        category: "improvement",
+        title: "Mejoras generales de la aplicación",
+        summary:
+          "Esta versión mejora distintos aspectos de uso, presentación y funcionamiento.",
+        changes: [
+          "Se han realizado ajustes generales para ofrecer una experiencia más clara y fluida.",
+        ],
+      },
     ])
   })
 

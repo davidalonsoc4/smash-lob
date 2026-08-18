@@ -40,11 +40,13 @@ const PUBLIC_COPY: Record<
 }
 
 function toPublicRelease(release: ChangelogRelease): ChangelogRelease {
+  const datedRelease = release.date ? { date: release.date } : {}
+
   if (release.category === "new") {
     const publicCopy = PUBLIC_NEW_COPY[release.version]
     return {
       version: release.version,
-      date: release.date,
+      ...datedRelease,
       category: release.category,
       title: publicCopy?.title ?? release.title,
       summary: publicCopy?.summary ?? release.summary,
@@ -55,7 +57,7 @@ function toPublicRelease(release: ChangelogRelease): ChangelogRelease {
   const copy = PUBLIC_COPY[release.category]
   return {
     version: release.version,
-    date: release.date,
+    ...datedRelease,
     category: release.category,
     title: copy.title,
     summary: copy.summary,
@@ -109,6 +111,20 @@ export function buildPublicChangelog(
       return
     }
 
+    const dateRange = formatRange(
+      sourceRelease.date,
+      previousGroup.latestSource.date,
+    )
+    const groupedDates = dateRange
+      ? {
+          dateRange,
+          ...(sourceRelease.date ? { firstDate: sourceRelease.date } : {}),
+          ...(previousGroup.latestSource.date
+            ? { latestDate: previousGroup.latestSource.date }
+            : {}),
+        }
+      : {}
+
     previousGroup.release = {
       ...previousGroup.release,
       version:
@@ -116,12 +132,7 @@ export function buildPublicChangelog(
           sourceRelease.version,
           previousGroup.latestSource.version,
         ) ?? previousGroup.release.version,
-      dateRange: formatRange(
-        sourceRelease.date,
-        previousGroup.latestSource.date,
-      ),
-      firstDate: sourceRelease.date,
-      latestDate: previousGroup.latestSource.date,
+      ...groupedDates,
     }
   })
 
