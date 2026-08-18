@@ -1302,3 +1302,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Validación local: 11/11 tests focalizados, ESLint, TypeScript, build de producción y presupuesto de fuente correctos (103.756/104.000 líneas).
 - Ajuste visual posterior: las etiquetas `PRESET`, `INFORMATIVO` y `SIN FECHA` de la biblioteca usan un rol tipográfico micro, menor tracking y una sola línea para permanecer dentro de cada burbuja sin alterar el nombre del preset.
 - La biblioteca ordena sus presets según el recorrido de la temporada: Formato, Reglas, En pista, Cuota, Inicio, Cuenta atrás, Apertura, Agenda, Próxima, Jornada, Resultados, Clasificación, MVP y Final.
+- Puerta local final superada con `npm run release:check`: 148 archivos / 487 tests unitarios e integración, 56 tests Playwright, build de producción dentro de presupuesto (828.623 bytes gzip en 85 chunks) y auditoría runtime con 0 vulnerabilidades.
+- No hay migraciones nuevas ni cambios sobre migraciones ya aplicadas; este mismo estado queda autorizado para promoción secuencial a `staging`/PRE y, tras su verificación, a `main`/Producción.
