@@ -1301,3 +1301,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - `Inicio` precarga `Volvemos con más ganas`, el número real de jugadores como etiqueta izquierda, `1 campeón` como dato central y el número real de jornadas como etiqueta derecha; el resto de su composición no cambia.
 - Validación local: 11/11 tests focalizados, ESLint, TypeScript, build de producción y presupuesto de fuente correctos (103.756/104.000 líneas).
 - Ajuste visual posterior: las etiquetas `PRESET`, `INFORMATIVO` y `SIN FECHA` de la biblioteca usan un rol tipográfico micro, menor tracking y una sola línea para permanecer dentro de cada burbuja sin alterar el nombre del preset.
+- La biblioteca ordena sus presets según el recorrido de la temporada: Formato, Reglas, En pista, Cuota, Inicio, Cuenta atrás, Apertura, Agenda, Próxima, Jornada, Resultados, Clasificación, MVP y Final.

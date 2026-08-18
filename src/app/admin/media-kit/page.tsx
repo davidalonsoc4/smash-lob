@@ -68,6 +68,23 @@ const compactPresetTitles: Record<LeagueMediaKitKind, string> = {
   season_final: "Final",
 }
 
+const presetOrder: LeagueMediaKitKind[] = [
+  "format",
+  "rules",
+  "gameplay",
+  "registration",
+  "start",
+  "countdown",
+  "opening",
+  "calendar",
+  "next_round",
+  "matchday",
+  "results",
+  "standings",
+  "mvp",
+  "season_final",
+]
+
 const openingAccentOptions = ["#d7a544", "#53B401", "#bb9448", "#d4643c", "#3d9d86", "#477bd1", "#8b5fc0"]
 const openingHeadlineFontOptions: Array<{ id: LeagueMediaKitHeadlineFont; label: string; detail: string; sampleClass: string }> = [
   { id: "impact", label: "Impacto", detail: "Cartel deportivo", sampleClass: "font-black tracking-tight" },
@@ -431,6 +448,7 @@ export default function MediaKitPage() {
     rows: [],
   }
   const presets = [{ kind: "opening" as const, data: openingPresetData, disabled: false }, ...pieces]
+    .sort((first, second) => presetOrder.indexOf(first.kind) - presetOrder.indexOf(second.kind))
 
   function applyPresetData(kind: LeagueMediaKitKind, data: LeagueMediaKitImageData) {
     setOpeningTitle(data.title)
