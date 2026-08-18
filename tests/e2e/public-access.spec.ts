@@ -10,6 +10,28 @@ test("opens the app without a session", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Privacidad" })).toBeVisible()
 })
 
+test("recovers an invitation when the installed app starts", async ({ page }) => {
+  const invitationPath =
+    "/invite/SL-FLOW-TEST?leagueId=019fc39c-26cf-43e1-9d4b-9439d3366675"
+
+  await page.goto(invitationPath)
+  await expect(
+    page.getByRole("heading", { name: "Te han invitado a una liga" }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "Continuar y unirme" }),
+  ).toBeVisible()
+  const recoveryCookie = (await page.context().cookies()).find(
+    ({ name }) => name === "smash-lob-pending-access-intent",
+  )
+  expect(recoveryCookie).toBeDefined()
+  expect(decodeURIComponent(recoveryCookie?.value ?? "")).toBe(invitationPath)
+
+  await page.goto("/launch?source=pwa")
+
+  await expect(page).toHaveURL(new RegExp(`${invitationPath.replace("?", "\\?")}$`))
+})
+
 test("shows an actionable authentication error with an incidence code", async ({
   page,
 }) => {

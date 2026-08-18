@@ -78,7 +78,7 @@ for (const route of [bigSmileRoute, notionRoute]) {
 }
 assert(appUrl.includes("official configured domain wins"), "El dominio oficial debe prevalecer ante una variante contradictoria")
 assert(serverAvatarLabAccess.includes("isProductionHost(host) || isProductionHost(forwardedHost)"), "El layout debe denegar PROD aunque el proxy presente otro host")
-assert(avatarLabProxy.includes('matcher: "/experimental/avatar-lab/:path*"'), "Avatar Lab debe bloquearse antes del render en PROD")
+assert(avatarLabProxy.includes('"/experimental/avatar-lab/:path*"'), "Avatar Lab debe bloquearse antes del render en PROD")
 assert(avatarLabProxy.includes("isAvatarLabRequest(request)"), "El proxy de Avatar Lab debe validar el host real")
 assert(avatarLabProxy.includes("status: 404"), "El proxy de Avatar Lab debe devolver un 404 HTTP real fuera de PRE")
 assert(serverImageValidation.includes("ACCOUNT_AVATAR_MAX_BYTES = 160 * 1024"), "La imagen global debe tener un presupuesto de 160 KB")

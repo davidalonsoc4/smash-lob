@@ -5,6 +5,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | Ruta | Método | Exposición | Guarda detectada |
 | --- | --- | --- | --- |
 | `/api/access` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/access-intent` | GET | Público explícito | Allowlist revisada |
+| `/api/access-intent` | DELETE | Público explícito | Allowlist revisada |
 | `/api/account/profile` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/account/profile` | PUT | Protegido | requireAuthenticatedAppUser |
 | `/api/account/profile` | PATCH | Protegido | requireAuthenticatedAppUser |

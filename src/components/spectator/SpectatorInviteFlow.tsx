@@ -11,6 +11,7 @@ import {
   type SpectatorInviteSummary,
 } from "@/lib/spectatorInvites"
 import { addCachedSpectatorLeagueId } from "@/lib/leagueAccessCache"
+import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 
 export function SpectatorInviteFlow() {
   const { data: session } = useSession()
@@ -68,6 +69,7 @@ export function SpectatorInviteFlow() {
       }
 
       window.localStorage.setItem("smash-lob-active-league", result.leagueId)
+      await clearPendingAccessIntent()
       window.location.assign("/")
     } catch {
       setError("No se ha podido activar el acceso de espectador.")

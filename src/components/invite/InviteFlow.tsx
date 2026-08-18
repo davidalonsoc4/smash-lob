@@ -15,6 +15,7 @@ import {
   type LeagueGuideSettings,
 } from "@/lib/leagueGuide"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
+import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 import { ensurePushSubscriptionForLeague } from "@/lib/pushClient"
 
 type InviteFlowProps = {
@@ -418,6 +419,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     activateGrantedLeague(league.id)
     void refreshLeagueAccess()
     void syncPushForInviteLeague(league.id, existingMembership?.playerId || null)
+    await clearPendingAccessIntent()
     router.replace("/")
   }
 
@@ -482,6 +484,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       league.id,
       isSelfRegistration ? result.membership.playerId : selectedPlayerId,
     )
+    await clearPendingAccessIntent()
     router.replace("/")
   }
 

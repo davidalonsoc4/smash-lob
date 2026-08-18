@@ -7,6 +7,7 @@ const OUTPUT = path.resolve("docs/security/API_SECURITY_INVENTORY.md")
 const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 const publicMethods = new Map([
+  ["/api/access-intent", new Set(["GET", "DELETE"])],
   ["/api/auth/[...nextauth]", new Set(["GET", "POST"])],
   ["/api/health", new Set(["GET"])],
   ["/api/observability/client-error", new Set(["POST"])],

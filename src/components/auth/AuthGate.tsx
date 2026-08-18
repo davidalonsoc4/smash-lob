@@ -57,6 +57,22 @@ export function AuthGate({ children }: AuthGateProps) {
   }
 
   if (status === "unauthenticated") {
+    const accessTitle = isInviteRoute
+      ? t.auth.inviteTitle
+      : isSpectatorInviteRoute
+        ? t.auth.spectatorTitle
+        : t.auth.title
+    const accessDescription = isInviteRoute
+      ? t.auth.inviteDescription
+      : isSpectatorInviteRoute
+        ? t.auth.spectatorDescription
+        : t.auth.description
+    const accessAction = isInviteRoute
+      ? t.auth.inviteAction
+      : isSpectatorInviteRoute
+        ? t.auth.spectatorAction
+        : t.auth.signInWithGoogle
+
     return (
       <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
         <AppCard className="w-full max-w-sm">
@@ -64,10 +80,10 @@ export function AuthGate({ children }: AuthGateProps) {
             {t.auth.subtitle}
           </p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-neutral-950">
-            {t.auth.title}
+            {accessTitle}
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
-            {t.auth.description}
+            {accessDescription}
           </p>
           <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-3 text-xs font-semibold leading-5 text-neutral-600">
             Organiza ligas privadas de pádel con calendario, disponibilidad, resultados,
@@ -89,7 +105,7 @@ export function AuthGate({ children }: AuthGateProps) {
             }}
             className="flex mt-5 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
           >
-            {t.auth.signInWithGoogle}
+            {accessAction}
           </button>
 
           <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 type-caption font-bold text-neutral-500">
