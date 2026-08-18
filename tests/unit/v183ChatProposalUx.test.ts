@@ -2,11 +2,15 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("v1.8.3 chat proposal UX", () => {
-  it("starts at the latest messages without smooth scrolling", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain("useLayoutEffect")
-    expect(page).toContain("panel.scrollTop = panel.scrollHeight")
-    expect(page).not.toContain('behavior: "smooth"')
+  it("starts at the latest messages without smooth scrolling through the shared chat hook", async () => {
+    const [page, shared] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+    ])
+    expect(page).toContain("useMatchChatAutoScroll")
+    expect(shared).toContain("useLayoutEffect")
+    expect(shared).toContain("panel.scrollTop = panel.scrollHeight")
+    expect(shared).not.toContain('behavior: "smooth"')
     expect(page).toContain("initialLoadComplete")
   })
 

@@ -3,13 +3,16 @@ import { describe, expect, it } from "vitest"
 
 describe("v1.8.15 immersive chat, grouped push and safe areas", () => {
   it("keeps CHAT full bleed, removes the coordinating strip and groups bubbles from the top", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    const css = await readFile("src/app/globals.css", "utf8")
+    const [page, shared, css] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+      readFile("src/app/globals.css", "utf8"),
+    ])
     expect(page).toContain('data-tour="chat-messages" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-neutral-100"')
     expect(page).not.toContain('>Coordinando</div>')
-    expect(page).toContain("!previousSameSender ? <PlayerAvatar")
-    expect(page).toContain('!previousSameSender ? \"rounded-tl-md \" : \"\"')
-    expect(page).toContain('!previousSameSender ? \"rounded-tr-md \" : \"\"')
+    expect(shared).toContain("<PlayerAvatar")
+    expect(shared).toContain('!previousSameSender ? "rounded-tl-md " : ""')
+    expect(shared).toContain('!previousSameSender ? "rounded-tr-md " : ""')
     expect(css).not.toContain("chat-bubble-incoming-first")
     expect(page).toContain("chat-message-enter")
     expect(page).toContain("chatMessageKey(message)")

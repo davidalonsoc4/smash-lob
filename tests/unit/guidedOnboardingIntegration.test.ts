@@ -31,6 +31,7 @@ describe("guided onboarding integration", () => {
       readFile("src/components/invite/FloatingInviteShareButton.tsx", "utf8"),
       readFile("src/components/spectator/FloatingSpectatorShareButton.tsx", "utf8"),
       readFile("src/components/match/MatchActionsMenu.tsx", "utf8"),
+      readFile("src/components/match/MatchChatFloatingAction.tsx", "utf8"),
     ])
     const source = files.join("\n")
     for (const marker of [

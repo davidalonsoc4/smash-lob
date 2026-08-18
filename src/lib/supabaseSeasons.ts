@@ -9,6 +9,7 @@ import type {
 } from "@/context/SeasonSettingsProvider";
 import type { RosterMode, UserLeagueMembership } from "@/data/fakeData";
 import type { MatchData } from "@/context/MatchDataProvider";
+import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration";
 
 async function readSeasonApiPayload<T>(
   response: Response,
@@ -60,6 +61,37 @@ export async function updateSupabaseSeasonRoundSettings(
     ),
     "season-settings-api",
   );
+}
+
+export async function updateSupabaseSeasonRegistrationPayment({
+  leagueId,
+  seasonId,
+  playerId,
+  isPaid,
+}: {
+  leagueId: string;
+  seasonId: string;
+  playerId: string;
+  isPaid: boolean;
+}) {
+  const payload = await readSeasonApiPayload<{ registrationFee?: unknown }>(
+    await fetch(
+      `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/registration-payment`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId, isPaid }),
+        cache: "no-store",
+      },
+    ),
+    "season-registration-payment-api",
+  );
+
+  if (!payload.registrationFee) {
+    throw new Error("season-registration-payment-api-empty");
+  }
+
+  return normalizeSeasonRegistrationFee(payload.registrationFee);
 }
 
 export async function finishSupabaseActiveSeason({

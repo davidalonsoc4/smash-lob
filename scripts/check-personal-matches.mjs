@@ -38,6 +38,10 @@ const [
   bookingTransferRoute,
   bookingPanel,
   locationPicker,
+  personalChatsPage,
+  personalChatsRoute,
+  personalChatPage,
+  sharedMatchChat,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -71,6 +75,10 @@ const [
   read("src/app/api/personal-matches/[id]/court-booking/transfers/[transferId]/route.ts"),
   read("src/components/personal/PersonalMatchCourtBookingPanel.tsx"),
   read("src/components/personal/PersonalMatchLocationPicker.tsx"),
+  read("src/app/personal-matches/chats/page.tsx"),
+  read("src/app/api/personal-matches/chats/route.ts"),
+  read("src/app/personal-matches/[id]/chat/page.tsx"),
+  read("src/components/match/chat/MatchChatShared.tsx"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -142,7 +150,7 @@ assert(matchDetailView.includes("<MatchDetailPairingPanel"), "La pantalla compar
 assert(!detailPage.includes("<MatchScoreboard"), "El detalle personal no debe reutilizar el marcador compacto")
 assert(matchDetailView.includes("items-start justify-between"), "El detalle compartido debe reservar la esquina derecha para estado y acciones")
 assert(!detailPage.includes('tracking-[0.12em] text-slate-700'), "El detalle amistoso no debe mostrar una etiqueta Amistoso separada")
-assert(detailPage.includes("avatarUrl: participant.avatarUrl ?? null"), "El amistoso debe trasladar los avatares al panel de emparejamiento")
+assert(detailPage.includes("buildPersonalMatchDetailModel"), "El amistoso debe normalizar jugadores y avatares mediante el modelo compartido")
 assert(detailPage.includes("<PersonalMatchParticipantsPanel"), "El detalle amistoso debe permitir editar pareja y contrincantes")
 assert(participantsPanel.includes('action: "participants"') && participantsPanel.includes("<PersonalMatchParticipantSelector"), "El editor de amistoso debe reutilizar el selector y persistir por PATCH")
 assert(detailRoute.includes('action !== "participants"') && detailRoute.includes("replacePersonalMatchParticipants"), "PATCH debe soportar cambios de participantes")
@@ -154,7 +162,7 @@ assert(detailPairingPanel.includes("const showAvatars = [...teamA, ...teamB].som
 assert(detailPairingPanel.includes('alignment="left"') && detailPairingPanel.includes('alignment="right"') && detailPairingPanel.includes('alignment === "right" ? "text-right" : "text-left"'), "Pareja B debe alinear a la derecha todo el contenido textual de cada jugador")
 assert(detailPairingPanel.includes("type-caption font-bold uppercase leading-none tracking-wide") && detailPairingPanel.includes('alignment === "right" ? "text-right" : "text-left"') && !detailPairingPanel.includes("truncate text-center text-[12px]"), "Los títulos Pareja A y Pareja B deben ser pequeños y alinearse con los nombres de sus jugadores")
 assert(detailPairingPanel.includes('const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)') && detailPairingPanel.includes('<FinishedPairRow') && detailPairingPanel.includes('className="space-y-2.5"'), "El detalle debe cambiar a un marcador vertical protagonista cuando ya hay resultado")
-assert(detailPairingPanel.includes('function FinishedPlayerName({') && !detailPairingPanel.includes('positionPlacement: "above" | "below"') && !detailPairingPanel.includes('positionPlacement={index === 0 ? "above" : "below"}') && detailPairingPanel.includes('const showPendingMetadata = showPlayerMetadata || showRankingPosition') && detailPairingPanel.includes('showMetadata={showPendingMetadata}') && detailPairingPanel.includes('showPlayerMetadata={showPlayerMetadata}'), "La posición debe seguir limitada a Liga y el perfil de juego debe poder mostrarse en amistosos pendientes o finalizados")
+assert(detailPairingPanel.includes('function FinishedPlayerName({') && detailPairingPanel.includes('showPendingPlayerMetadata?: boolean') && detailPairingPanel.includes('showFinishedPlayerMetadata?: boolean') && detailPairingPanel.includes('const showPendingMetadata = pendingPlayerMetadata || showRankingPosition') && detailPairingPanel.includes('showMetadata={showPendingMetadata}') && detailPairingPanel.includes('showPlayerMetadata={finishedPlayerMetadata}'), "La posición debe seguir limitada a Liga y el perfil de juego debe usar la misma política de visibilidad en Liga y amistosos")
 assert(detailPairingPanel.includes('side: "a" | "b"') && detailPairingPanel.includes('side="a"') && detailPairingPanel.includes('side="b"') && !detailPairingPanel.includes('mb-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500') && !detailPairingPanel.includes('mt-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500'), "El resultado debe omitir los textos Pareja A/Pareja B y distinguir los lados solo de forma interna")
 assert(!detailPairingPanel.includes('type-caption font-bold uppercase tracking-wide text-neutral-400'), "El resultado no debe mostrar numeracion 1/2/3 sobre los juegos")
 assert(!detailPairingPanel.includes('showAvatars={showAvatars}') && !detailPairingPanel.includes('alignment: "left" | "right"\n  showAvatars: boolean'), "El resultado vertical no debe mostrar avatares; las imagenes quedan solo para el modo pendiente")
@@ -163,16 +171,25 @@ assert(detailPairingPanel.includes('rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 
 assert(detailPairingPanel.includes('className="grid grid-cols-2 items-start gap-2 sm:gap-4"') && detailPairingPanel.includes('{showAvatars ? (') && detailPairingPanel.includes('<PairAvatars playerIds={teamA} players={players} alignment="left" />') && detailPairingPanel.includes('<PairAvatars playerIds={teamB} players={players} alignment="right" />') && detailPairingPanel.includes('className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4"') && detailPairingPanel.includes('pointer-events-none absolute left-1/2 top-1/2 z-20'), "La vista sin resultado debe conservar exactamente su estructura de dos parejas, avatares y VS flotante")
 assert(serverHelper.includes('.select("id,avatar_url")') && serverHelper.includes("avatarUrlByUserId"), "El servidor debe recuperar avatares de participantes vinculados")
 assert(detailPage.includes("<PersonalMatchSchedulePanel"), "El detalle debe incluir fecha, ubicación y acciones")
-assert(schedulePanel.includes("formatMatchScheduleLongLabel"), "La programación personal debe compartir el formato con puntos medios de Liga")
-assert(newPage.includes("<PersonalMatchLocationPicker") && schedulePanel.includes("<PersonalMatchLocationPicker"), "Alta y edición deben compartir el selector flotante de ubicación")
+assert(schedulePanel.includes("<MatchScheduleForm"), "La programación personal debe reutilizar MatchScheduleForm de Liga")
+assert(newPage.includes("<PersonalMatchLocationPicker") && schedulePanel.includes("<MatchScheduleForm"), "Alta mantiene su selector y el detalle reutiliza el selector global de MatchScheduleForm")
 assert(locationPicker.includes('role="dialog"') && locationPicker.includes("backdrop-blur"), "La ubicación personal debe abrirse como popup con fondo difuminado")
+assert(participantSelector.includes('createPortal') && participantSelector.includes('aria-modal="true"') && participantSelector.includes('backdrop-blur-[1px]'), "El selector de jugadores debe abrirse como popup flotante con fondo difuminado")
+assert(personalChatsPage.includes("data-personal-match-chats-list") && personalChatsPage.includes("Todavía no tienes chats de amistosos"), "Mis partidos debe incluir una bandeja con todos los chats de amistosos")
+assert(personalChatsRoute.includes('.from("personal_matches")') && !personalChatsRoute.includes('.eq("status"'), "La bandeja de amistosos no debe filtrar por estado")
+assert(personalChatsRoute.includes("personal_match_chat_schema_missing"), "La bandeja de amistosos debe distinguir una migración de chat pendiente")
+for (const sharedToken of ["MatchChatScreen", "MatchChatTextMessage", "MatchChatComposer", "MatchChatReadOnlyBar", "MatchChatWriteWindowBanner", "useMatchChatViewport", "useMatchChatAutoScroll"]) {
+  assert(personalChatPage.includes(sharedToken), `El chat de amistosos debe reutilizar ${sharedToken}`)
+}
+assert(sharedMatchChat.includes("<PlayerAvatar") && sharedMatchChat.includes("<MatchChatSendIcon />") && sharedMatchChat.includes("MatchChatMessageReceipt"), "La identidad, envío y recibos del chat deben vivir en la base compartida")
+assert(!personalChatPage.includes("<PlayerAvatar") && !personalChatPage.includes("<MatchChatSendIcon"), "El chat de amistosos no debe duplicar avatar ni botón de envío")
 assert(bookingMigration.includes("public.personal_match_bookings") && bookingMigration.includes("enable row level security"), "Falta almacenamiento protegido para pagos personales")
 assert(bookingMigration.includes("from public, anon, authenticated") && bookingMigration.includes("to service_role"), "Los pagos personales deben quedar cerrados al navegador")
 assert(bookingRoute.includes("requireAuthenticatedAppUser") && bookingRoute.includes("getPersonalMatchBookingAccess"), "La reserva personal debe validar autenticación y participación")
 assert(bookingTransferRoute.includes("requireAuthenticatedAppUser") && bookingTransferRoute.includes("currentParticipantId"), "Los pagos personales deben validar al participante")
 assert(detailPage.includes("<PersonalMatchCourtBookingPanel") && bookingPanel.includes("<CourtBookingPanel"), "El amistoso debe reutilizar Pagos y reservas")
 assert(detailPage.includes("<PersonalMatchResultForm"), "El detalle debe permitir registrar/corregir resultado")
-assert(schedulePanel.includes("Cómo llegar"), "El detalle debe permitir abrir la ubicación")
+assert(schedulePanel.includes("<MatchScheduleForm"), "El detalle debe delegar ubicación y mapa en el panel compartido")
 assert(schedulePanel.includes("PersonalAddToCalendarButton"), "El detalle debe permitir añadir al calendario")
 
 assert(appShell.includes("isPersonalMatchesRoute"), "El shell debe detectar el modo personal")
@@ -181,13 +198,14 @@ assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocul
 assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
 assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
 assert(personalNav.includes('aria-label="Navegación de Mis partidos"'), "La navegación personal debe ser accesible")
-for (const label of ["Mis ligas", "Mis partidos", "Mi perfil"]) {
+for (const label of ["Mis ligas", "Mis partidos", "Chats", "Mi perfil"]) {
   assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
 }
 assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no debe incluir + Partido")
 assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis ligas")
+assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats de amistosos")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
-assert(personalNav.includes("grid-cols-3"), "La navegación personal debe repartir tres destinos")
+assert(personalNav.includes("grid-cols-4"), "La navegación personal debe repartir cuatro destinos")
 assert(personalProfilePage.includes("Perfil global"), "Debe existir un perfil global dentro de Mis partidos")
 assert(personalProfilePage.includes("Todos los partidos") && personalProfilePage.includes("Partidos de liga"), "El perfil global debe filtrar por origen")
 assert(personalProfilePage.includes("Todas las ligas") && personalProfilePage.includes("Todas las temporadas"), "El perfil global debe filtrar por liga y temporada")
@@ -221,10 +239,10 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.6.0 correcto:")
+console.log("Mis partidos v1.10.14 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
 console.log("- historial paginado de 10 en 10 y Próximo partido oculto cuando no existe")
-console.log("- liga y amistoso comparten una única MatchDetailView")
+console.log("- liga y amistoso comparten MatchDetailView y una base común de CHAT")
 console.log("- amistosos programados permiten editar pareja y contrincantes")
 console.log("- origen por liga con color estable y metadatos ausentes ocultos de forma independiente")
 console.log("- un único amistoso compartido por cuentas vinculadas y externos permitidos")

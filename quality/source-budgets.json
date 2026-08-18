@@ -1,7 +1,7 @@
 {
-  "maxTotalSourceLines": 105500,
-  "maxClientFiles": 156,
-  "maxClientPages": 47,
+  "maxTotalSourceLines": 107500,
+  "maxClientFiles": 158,
+  "maxClientPages": 49,
   "maxApiRouteLines": 900,
   "files": {
     "src/app/admin/season/page.tsx": 4860,

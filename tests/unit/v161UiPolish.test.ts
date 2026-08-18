@@ -36,7 +36,7 @@ describe("v1.6.1 UI polish", () => {
     expect(participant).toContain("Otro jugador...")
     expect(leagueSchedule).toContain("filteredAvailableLocations.map")
     expect(leagueSchedule).not.toContain("filteredAvailableLocations.slice(0, 6)")
-    expect(friendlySchedule).toContain("<PersonalMatchLocationPicker")
+    expect(friendlySchedule).toContain("<MatchScheduleForm")
     expect(friendlyNew).toContain("<PersonalMatchLocationPicker")
     expect(friendlyLocationPicker).toContain("filteredLocations.map")
     expect(friendlyLocationPicker).toContain('type="search"')

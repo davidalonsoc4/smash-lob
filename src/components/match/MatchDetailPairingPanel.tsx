@@ -21,6 +21,8 @@ type MatchDetailPairingPanelProps = {
   rankingPositions?: Record<string, number | null | undefined>
   linkPlayers?: boolean
   showPlayerMetadata?: boolean
+  showPendingPlayerMetadata?: boolean
+  showFinishedPlayerMetadata?: boolean
 }
 
 function DetailPlayer({
@@ -373,6 +375,8 @@ export function MatchDetailPairingPanel({
   rankingPositions = {},
   linkPlayers = true,
   showPlayerMetadata = false,
+  showPendingPlayerMetadata,
+  showFinishedPlayerMetadata,
 }: MatchDetailPairingPanelProps) {
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
   const showAvatars = [...teamA, ...teamB].some((playerId) =>
@@ -380,7 +384,11 @@ export function MatchDetailPairingPanel({
   )
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
   const showRankingPosition = Object.keys(rankingPositions).length > 0
-  const showPendingMetadata = showPlayerMetadata || showRankingPosition
+  const pendingPlayerMetadata =
+    showPendingPlayerMetadata ?? showPlayerMetadata
+  const finishedPlayerMetadata =
+    showFinishedPlayerMetadata ?? showPlayerMetadata
+  const showPendingMetadata = pendingPlayerMetadata || showRankingPosition
 
   return (
     <AppCard className="overflow-hidden !p-0">
@@ -396,7 +404,7 @@ export function MatchDetailPairingPanel({
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
-              showPlayerMetadata={showPlayerMetadata}
+              showPlayerMetadata={finishedPlayerMetadata}
             />
 
             <FinishedPairRow
@@ -408,7 +416,7 @@ export function MatchDetailPairingPanel({
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
-              showPlayerMetadata={showPlayerMetadata}
+              showPlayerMetadata={finishedPlayerMetadata}
             />
           </div>
         ) : (

@@ -299,6 +299,14 @@ export async function GET(request: Request) {
     );
   }
 
+  // Retención automática del chat de amistosos: el job programado purga
+  // mensajes y recibos cuando han pasado dos meses desde el resultado.
+  try {
+    await supabase.rpc("cleanup_expired_personal_match_chat");
+  } catch {
+    // Best-effort: una limpieza fallida no debe bloquear recordatorios.
+  }
+
   const now = new Date();
   const upcomingReminderWindowEndsAt = new Date(
     now.getTime() + 2 * 60 * 60 * 1000,

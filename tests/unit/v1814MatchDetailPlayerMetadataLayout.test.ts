@@ -20,7 +20,9 @@ describe("v1.8.14 match detail player metadata layout", () => {
               {showRankingPosition ? positionLine : null}
             </>`)
     expect(panel).toContain("min-h-4 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500")
-    expect(panel).toContain("const showPendingMetadata = showPlayerMetadata || showRankingPosition")
+    expect(panel).toContain("showPendingPlayerMetadata?: boolean")
+    expect(panel).toContain("showFinishedPlayerMetadata?: boolean")
+    expect(panel).toContain("const showPendingMetadata = pendingPlayerMetadata || showRankingPosition")
     expect(panel.match(/showMetadata=\{showPendingMetadata\}/g) ?? []).toHaveLength(2)
 
     const finishedPlayer = panel.slice(

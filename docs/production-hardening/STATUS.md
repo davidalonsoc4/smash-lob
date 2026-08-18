@@ -1,3 +1,51 @@
+# v1.10.14 — VISTA ADMIN y simulación de temporada programada (2026-08-19)
+
+- Se corrige el bypass excesivo introducido al permitir que los administradores navegasen una temporada programada: el rol real por sí solo ya no evita el bloqueo de jugador.
+- `isLeagueAdmin(...)` / `canAccessAdmin` —que incorporan `isAdminViewEnabled`— gobiernan ahora el bypass visible en HOME, AppShell, CALENDARIO/PARTIDOS, detalle de PARTIDO, CHAT de Liga y selección de temporada de `useCurrentLeagueData`.
+- Con VISTA ADMIN activada, creador/admin/superusuario conserva la temporada programada navegable y ve también countdown/estado programado en HOME.
+- Con VISTA ADMIN desactivada, esa misma cuenta se comporta como jugador normal para las pruebas locales: navegación bloqueada, HOME previo al inicio y partidos/chats restringidos hasta el comienzo.
+- Los permisos reales no se eliminan del modelo ni de servidor; el cambio afecta al modo de presentación/navegación controlado por VISTA ADMIN.
+- La Jornada 1 sigue sin activarse antes de su fecha y no hay migraciones nuevas.
+
+# v1.10.13 — Inicio programado visible también para admins (2026-08-19)
+
+- Se corrige una regresión de v1.10.11/v1.10.12: permitir que un administrador navegue una temporada programada no debe ocultar en HOME su estado previo al inicio.
+- `SeasonStartCountdown` y el panel `Próxima temporada` pasan a depender del estado programado de la temporada, no de que el usuario esté bloqueado; por tanto también aparecen para creador, administradores y superusuarios.
+- El bloqueo de navegación continúa dependiendo de `isPlayerSeasonLocked` / `isScheduledSeasonHomeLocked`, de modo que los jugadores normales siguen restringidos hasta el inicio y los administradores mantienen calendario, jornadas y partidos accesibles.
+- No se adelanta la activación de la Jornada 1 ni se modifica la fecha programada.
+- No hay cambios de Supabase ni migraciones nuevas.
+
+# v1.10.12 — CHAT compartido entre Liga y Amistosos (2026-08-18)
+
+- Los chats de Liga y Amistosos reutilizan `MatchChatShared.tsx` como base común para cabecera/frame, mensajes de texto, avatares, colores de remitente, recibos de lectura, composer, estado de solo lectura, aviso de las 24 horas y ajuste al viewport/teclado móvil.
+- El chat de Liga conserva como extensiones específicas las propuestas de fecha y ubicación, menciones, respuestas por gesto y confirmación de reserva; los mensajes de texto normales se renderizan con el mismo componente que los amistosos.
+- El chat de Amistosos deja de mantener una segunda implementación visual: usa `MatchChatScreen`, `MatchChatTextMessage`, `MatchChatComposer`, `MatchChatReadOnlyBar`, `MatchChatWriteWindowBanner`, `useMatchChatAutoScroll` y `useMatchChatViewport`.
+- Se añaden pruebas estructurales para impedir que Liga y Amistosos vuelvan a duplicar las piezas visuales comunes del chat.
+- Se mantienen acumulados todos los cambios de v1.10.11: bandeja `Mis partidos > Chats`, selector flotante de jugadores, tutoriales automáticos de una sola ejecución, pago de inscripción corregido, temporada programada plenamente navegable para administradores y botón futuro de transparencia en Economía.
+- No hay migraciones nuevas en v1.10.12. El chat de amistosos sigue dependiendo de la migración aditiva ya preparada `20260818213500_add_personal_match_chat.sql`; esta entrega local no la aplica a ningún Supabase remoto.
+- Validación previa de v1.10.12 en el entorno de preparación: 15/15 checkers estáticos, `git diff --check`, transpilación sintáctica de 49 TS/TSX modificados y 127/127 pruebas unitarias/estructurales modificadas ejecutables sin dependencias del proyecto. La validación completa real de dependencias, lint, typecheck, suite, build, quality y E2E se repite sin short-circuit en el equipo local antes de arrancar desarrollo.
+
+# v1.10.11 — Chats de amistosos, pagos y temporada programada para admins (2026-08-18)
+
+- `Mis partidos > Chats` reúne todas las conversaciones de amistosos del usuario, sin filtrar por estado, con no leídos, último mensaje, Realtime y los estados Programado, Abierto 24 h, Solo lectura e Historial eliminado.
+- El chat de amistosos distingue explícitamente la ausencia del esquema de chat y señala la migración pendiente `20260818213500_add_personal_match_chat.sql`; esta entrega local no aplica migraciones remotas.
+- Los selectores de jugadores de amistosos pasan a popup flotante mediante portal, bloqueo de scroll, cierre con Escape y fondo difuminado, manteniendo identidad y selección manual.
+- El progreso de tutoriales se considera completado por clave de recorrido, no por versión: refrescar o actualizar no vuelve a lanzar un tutorial ya visto. `chats`, `match` y `chat` quedan además admitidos por la API de progreso.
+- El pago de inscripción por parte del propio jugador utiliza una ruta dedicada y autorizada server-side; ya no intenta guardar toda la configuración de temporada mediante una operación reservada a admins.
+- Una temporada programada deja de bloquear a creadores, administradores y superusuarios aunque `VISTA ADMIN` esté desactivada: ven la temporada actual, calendario, jornadas, partidos y chat con normalidad. Los jugadores normales conservan el bloqueo hasta el inicio y no se altera la activación temporal de la Jornada 1.
+- Economía añade al final el botón deshabilitado `Generar informe de transparencia · Próximamente`; la generación del informe queda pendiente para una entrega posterior.
+- La validación local de entrega se ejecuta sin short-circuit: todos los gates se recopilan antes de fallar y, si todo pasa, `npm run dev` queda asociado al mismo PowerShell.
+- Validación previa en el entorno de preparación: `git diff --check`, 15/15 checkers estáticos, inventario de seguridad actualizado a 86 rutas / 124 métodos, presupuesto de fuente en 106.952 líneas / 158 clientes / 49 páginas cliente y transpilación sintáctica de todos los TS/TSX modificados correctos. La suite real, ESLint, typecheck, build, quality y E2E se ejecutan de nuevo en el proyecto local mediante el instalador antes de arrancar desarrollo.
+
+# v1.10.10 — PARTIDO unificado y chat de amistosos (2026-08-18)
+
+- PARTIDO de Liga y Amistoso comparten `MatchDetailView`, `MatchDetailPairingPanel`, `MatchScheduleForm`, `CourtBookingPanel` y `MatchResultForm`; el editor de participantes se mantiene específico porque su negocio es distinto.
+- El perfil REVÉS/DRIVE + DIESTRO/ZURDO del amistoso usa la misma ubicación y ciclo visual que Liga; no se inventa posición de clasificación fuera de competición.
+- Los amistosos incorporan chat privado de texto para participantes vinculados con Realtime y recibos de lectura.
+- Liga y amistosos permiten mensajes durante 24 horas tras registrar el resultado; las acciones de coordinación de Liga se cierran al finalizar el partido.
+- Nueva migración aditiva `20260818213500_add_personal_match_chat.sql`: tablas privadas para mensajes/lecturas y función service-role para purgar chats de amistosos a los dos meses. La ruta programada de notificaciones ejecuta esa limpieza en modo best-effort.
+- Esta entrega es local: no aplicar la migración ni publicar PRE/PROD hasta superar validación y revisión manual.
+
 # v1.8.23 — Propuestas propias con contenido más ligero (2026-08-16)
 
 - CHAT conserva el color dominante del tema en el contenedor exterior de las propuestas propias.
@@ -1359,3 +1407,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Puerta local completa superada con `npm run release:check`: 151 archivos / 508 tests unitarios e integración, 58 tests Playwright, build de producción dentro de presupuesto (836.723 bytes gzip en 85 chunks) y auditoría runtime con 0 vulnerabilidades.
 - Revisión real local completada: fecha con puntos medios, popup de ubicación con fondo difuminado y bloque funcional de pagos visibles en el detalle del amistoso.
 - Pendiente antes de publicación: aplicar y verificar la migración primero en PRE, desplegar `staging`, y solo después repetir migración y promoción en Producción.
+
+### Reserva desde CHAT y Economía por persona - v1.10.9 (2026-08-18)
+
+- La confirmación definitiva de reserva desde CHAT deja de aceptar una pista reservada sin datos económicos: antes de programar exige seleccionar uno o varios pagadores de pista e indicar el importe abonado por cada uno.
+- La API de confirmación valida que todos los pagadores pertenezcan al partido y guarda `booking_reservations`, `booking_transfers` y `booking_updated_at` en la misma operación que fecha, ubicación y pista; las transferencias se calculan con `buildCourtBooking`, igual que en PARTIDO.
+- Si falla la creación del mensaje de sistema del chat, el rollback restaura también reservas y transferencias anteriores, además de la programación.
+- Economía de temporada calcula `availablePerPlayer` a partir del saldo realmente disponible dividido entre los jugadores únicos de la temporada. El panel Disponible muestra `X € POR PERSONA` en lugar de `Ingresado − gastado`.
+- No requiere migraciones de Supabase. La entrega local incluye pruebas focalizadas para el flujo de reserva desde CHAT y el reparto del saldo por jugador; la puerta final de lint, tipos, build y revisión visual se ejecuta tras aplicar el ZIP en el proyecto real.

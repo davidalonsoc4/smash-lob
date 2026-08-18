@@ -17,7 +17,6 @@ const [
   leagueEditor,
   personalEditor,
   personalSchedulePanel,
-  personalLocationPicker,
   matchScheduleForm,
   newLeaguePage,
   seasonAdminPage,
@@ -34,7 +33,6 @@ const [
   read("src/components/league/LeagueLocationsEditor.tsx"),
   read("src/app/personal-matches/new/page.tsx"),
   read("src/components/personal/PersonalMatchSchedulePanel.tsx"),
-  read("src/components/personal/PersonalMatchLocationPicker.tsx"),
   read("src/components/match/MatchScheduleForm.tsx"),
   read("src/app/league/new/page.tsx"),
   read("src/app/admin/season/page.tsx"),
@@ -87,9 +85,9 @@ assert(matchScheduleForm.includes('fetch("/api/locations"'), "Una ubicación nue
 assert(matchEventMeta.includes("getScheduleLocationDisplayText"), "Los metadatos de partido deben normalizar ubicaciones antes de mostrarlas")
 assert(personalEditor.includes('fetch("/api/locations"'), "Los amistosos deben listar ubicaciones globales")
 assert(personalEditor.includes('fetch("/api/locations", {'), "Los amistosos deben poder guardar una ubicación nueva")
-assert(personalSchedulePanel.includes('fetch("/api/locations"'), "Editar un amistoso debe listar ubicaciones globales")
-assert(personalSchedulePanel.includes("<PersonalMatchLocationPicker"), "Editar un amistoso debe reutilizar el selector global")
-assert(personalLocationPicker.includes("+ Añadir nueva ubicación") && personalLocationPicker.includes("onManualLocationNameChange"), "Editar un amistoso debe poder crear ubicación global")
+assert(personalSchedulePanel.includes("<MatchScheduleForm"), "Editar un amistoso debe reutilizar MatchScheduleForm")
+assert(matchScheduleForm.includes('fetch("/api/locations"'), "Editar un amistoso debe listar ubicaciones globales mediante MatchScheduleForm")
+assert(matchScheduleForm.includes("+ Añadir nueva ubicación"), "Editar un amistoso debe poder crear ubicación global mediante MatchScheduleForm")
 
 assert(matchScheduleRoute.includes("saveGlobalLocation"), "Una ubicación libre introducida al programar un partido de liga debe guardarse globalmente")
 assert(matchScheduleRoute.includes('update({ locations: nextLeagueLocations })'), "Programar con una ubicación nueva debe añadirla a la liga desde el endpoint autorizado del partido")

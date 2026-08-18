@@ -29,8 +29,7 @@ export function hasCompletedCurrentTour(
   progress: OnboardingProgressMap,
   tour: OnboardingTourDefinition,
 ) {
-  const item = progress[tour.key]
-  return Boolean(item && item.tourVersion >= tour.version)
+  return Boolean(progress[tour.key])
 }
 
 export function createProgressItem({

@@ -23,12 +23,15 @@ describe("v1.9.8 quick product polish", () => {
     expect(chat).toContain("reservationSummaryDate(reservationSummary.scheduledAt)")
   })
 
-  it("matches the visible same-sender gap by giving sent bubbles the received-bubble border geometry", async () => {
-    const chat = await read("src/app/match/[id]/chat/page.tsx")
+  it("matches the visible same-sender gap through the shared text-bubble geometry", async () => {
+    const [chat, shared] = await Promise.all([
+      read("src/app/match/[id]/chat/page.tsx"),
+      read("src/components/match/chat/MatchChatShared.tsx"),
+    ])
 
     expect(chat).toContain('rowSpacing = index ? previousSameSender ? "mt-px" : "mt-1.5" : ""')
-    expect(chat).toContain('mine ? "border border-transparent bg-clip-padding bg-neutral-950" : "border border-neutral-200 bg-white text-neutral-950"')
-    expect(chat).toContain('border border-transparent bg-clip-padding bg-neutral-950 text-white')
+    expect(shared).toContain('border border-transparent bg-clip-padding bg-neutral-950 text-white')
+    expect(shared).toContain('border border-neutral-200 bg-white text-neutral-950')
   })
 
   it("shows only the current value for En racha", async () => {

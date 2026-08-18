@@ -15,6 +15,9 @@ const tourKeys = new Set<OnboardingTourKey>([
   "statistics",
   "season-admin",
   "settings",
+  "chats",
+  "match",
+  "chat",
 ])
 
 function normalizeTourKey(value: unknown): OnboardingTourKey | null {

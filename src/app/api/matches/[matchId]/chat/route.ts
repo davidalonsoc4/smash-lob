@@ -7,6 +7,7 @@ import { broadcastMatchChatRefresh, getMatchChatRealtimeTopic } from "@/lib/serv
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { getServerMatchChatCoordination } from "@/lib/serverMatchChatCoordination"
+import { getMatchChatWriteUntil, isMatchChatReadOnly } from "@/lib/matchChatWindow"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -22,7 +23,6 @@ const reply = (error: string, status: number) => NextResponse.json({ error }, { 
 const dbError = (message: string) => reply(message.includes("match_chat_") ? "match_chat_unavailable" : message, message.includes("match_chat_") ? 503 : 500)
 const toRecord = (value: unknown): Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {}
 const clean = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : ""
-const isFinished = (match: { status: string; resultRecordedAt: string | null }) => Boolean(match.status === "finished" || match.resultRecordedAt)
 
 function mentionHandle(displayName: string) { const compact = displayName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_]+/g, ""); return compact.slice(0, 40) || "Jugador" }
 
@@ -32,6 +32,28 @@ async function participant(matchId: string, requireMutableSeason = false) {
   if (!access.ok) return { denied: reply(access.error, access.status) }
   const { supabase: db, user, match, participantPlayerId: playerId, isAdmin } = access.actor
   return playerId ? { db, user, match, playerId, isAdmin } : { denied: reply("match_chat_forbidden", 403) }
+}
+
+async function seasonChatReadOnly({
+  db,
+  user,
+  match,
+  isAdmin,
+}: {
+  db: ServerLeagueActor["supabase"]
+  user: { isSuperuser: boolean }
+  match: { seasonId: string; leagueId: string }
+  isAdmin: boolean
+}) {
+  if (user.isSuperuser) return false
+  const result = await db
+    .from("seasons")
+    .select("status")
+    .eq("id", match.seasonId)
+    .eq("league_id", match.leagueId)
+    .maybeSingle()
+  if (result.error) throw new Error("season_lookup_failed")
+  return result.data?.status === "upcoming" && !isAdmin
 }
 
 async function getParticipants(db: ServerLeagueActor["supabase"], match: { participantIds: string[]; leagueId: string }) {
@@ -73,11 +95,7 @@ export async function GET(request: Request, { params }: Ctx) {
   const { db, user, match, isAdmin } = gate
   try {
     const participants = await getParticipants(db, match)
-    const seasonResult = user.isSuperuser ? { data: { status: "active" }, error: null } : await db.from("seasons").select("status").eq("id", match.seasonId).eq("league_id", match.leagueId).maybeSingle()
-    if (seasonResult.error) return reply("season_lookup_failed", 500)
-    const seasonReadOnly = !user.isSuperuser &&
-      (seasonResult.data?.status === "finished" ||
-        (seasonResult.data?.status === "upcoming" && !isAdmin))
+    const seasonReadOnly = await seasonChatReadOnly({ db, user, match, isAdmin })
     const { data, error } = await db.from("match_chat_messages").select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").eq("match_id", matchId).order("created_at", { ascending: false }).limit(60)
     if (error) return dbError(error.message)
     const ordered = [...(data ?? [])].reverse(), proposalIds = ordered.filter((message) => message.kind !== "text").map((message) => String(message.id)), linkedUserIds = participants.flatMap((item) => item.userId ? [item.userId] : [])
@@ -89,18 +107,24 @@ export async function GET(request: Request, { params }: Ctx) {
     if (markRead && latestIncoming && (!readByUser.get(user.id) || Date.parse(readByUser.get(user.id) as string) < Date.parse(String(latestIncoming.created_at)))) { const lastReadAt = new Date().toISOString(), write = await db.from("match_chat_reads").upsert({ match_id: matchId, user_id: user.id, last_read_at: lastReadAt }, { onConflict: "match_id,user_id" }); if (!write.error) { readByUser.set(user.id, lastReadAt); await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId, includeOverview: false }).catch(() => null) } }
     const participantsWithReads = participants.map((item) => ({ ...item, lastReadAt: item.userId ? readByUser.get(item.userId) ?? null : null })), coordination = buildMatchChatCoordination({ matchStatus: match.status, participants: participantsWithReads, messages })
     const reservationSummary = match.status === "scheduled" && match.scheduledAt && match.courtBooking.isReserved ? { scheduledAt: match.scheduledAt, locationText: getScheduleLocationDisplayText(match.location) ?? "Pista reservada" } : null
-    return NextResponse.json({ messages, participants: participantsWithReads, currentUserId: user.id, round: match.round, readOnly: isFinished(match) || seasonReadOnly, coordination, reservationSummary, realtimeTopic: getMatchChatRealtimeTopic(matchId) })
+    return NextResponse.json({ messages, participants: participantsWithReads, currentUserId: user.id, round: match.round, readOnly: isMatchChatReadOnly(match) || seasonReadOnly, writeUntil: getMatchChatWriteUntil(match)?.toISOString() ?? null, coordination, reservationSummary, realtimeTopic: getMatchChatRealtimeTopic(matchId) })
   } catch (error) { return dbError(error instanceof Error ? error.message : "match_chat_lookup_failed") }
 }
 
 export async function POST(request: Request, { params }: Ctx) {
   const { matchId } = await params
-  const gate = await participant(matchId, true)
+  const gate = await participant(matchId)
   if ("denied" in gate) return gate.denied
-  const { db, user, match, playerId } = gate
-  if (isFinished(match)) return reply("match_chat_read_only", 409)
+  const { db, user, match, playerId, isAdmin } = gate
+  const seasonReadOnly = await seasonChatReadOnly({ db, user, match, isAdmin }).catch(() => null)
+  if (seasonReadOnly === null) return reply("season_lookup_failed", 500)
+  if (seasonReadOnly) return reply("match_chat_read_only", 409)
+  if (isMatchChatReadOnly(match)) return reply("match_chat_read_only", 409)
   const parsed = parseStructuredMessage((await parseJsonBody<ChatBody>(request)) ?? {})
   if (!parsed) return reply("match_chat_invalid_body", 400)
+  if ((match.status === "finished" || match.resultRecordedAt) && parsed.kind !== "text") {
+    return reply("match_chat_actions_closed", 409)
+  }
   const { count } = await db.from("match_chat_messages").select("id", { count: "exact", head: true }).eq("sender_user_id", user.id).gte("created_at", new Date(Date.now() - 10_000).toISOString())
   if ((count ?? 0) >= 8) return reply("match_chat_rate_limited", 429)
   const senderDisplayName = user.displayName || user.email.split("@")[0]
@@ -116,10 +140,16 @@ export async function POST(request: Request, { params }: Ctx) {
 
 export async function PATCH(request: Request, { params }: Ctx) {
   const { matchId } = await params
-  const gate = await participant(matchId, true)
+  const gate = await participant(matchId)
   if ("denied" in gate) return gate.denied
-  const { db, user, match } = gate
-  if (isFinished(match)) return reply("match_chat_read_only", 409)
+  const { db, user, match, isAdmin } = gate
+  const seasonReadOnly = await seasonChatReadOnly({ db, user, match, isAdmin }).catch(() => null)
+  if (seasonReadOnly === null) return reply("season_lookup_failed", 500)
+  if (seasonReadOnly) return reply("match_chat_read_only", 409)
+  if (match.status === "finished" || match.resultRecordedAt) {
+    return reply("match_chat_actions_closed", 409)
+  }
+  if (isMatchChatReadOnly(match)) return reply("match_chat_read_only", 409)
   const body = (await parseJsonBody<ResponseBody>(request)) ?? {}, messageId = clean(body.messageId, 80), optionKey = clean(body.optionKey, 80), response = body.response === "available" || body.response === "unavailable" ? body.response : null
   if (!validateUuid(messageId) || !optionKey || !response) return reply("match_chat_invalid_response", 400)
   const { data: message, error: messageError } = await db.from("match_chat_messages").select("id,kind,payload").eq("id", messageId).eq("match_id", matchId).maybeSingle()

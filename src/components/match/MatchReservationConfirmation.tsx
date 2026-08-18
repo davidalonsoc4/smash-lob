@@ -1,30 +1,56 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import type { PlayerProfile } from "@/data/fakeData"
+import type { CourtBookingReservation } from "@/context/MatchDataProvider"
 import {
   getLeagueLocationCourts,
   getLeagueLocationOptionLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations"
 import { formatMatchScheduleLongLabel } from "@/lib/matchScheduleTime"
+import { formatMoney } from "@/lib/courtBooking"
 import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 
 type Props = {
   matchId: string
   coordination: MatchChatCoordination
   locations: LeagueLocation[]
+  participantIds?: string[]
+  players?: PlayerProfile[]
+  currentPlayerId?: string
+  requireReservationPayments?: boolean
   compact?: boolean
   onConfirmed?: () => void | Promise<void>
   onInvalidated?: () => void | Promise<void>
   preserveFocus?: (event: React.PointerEvent<HTMLElement>) => void
 }
 
+type ReservationInput = {
+  playerId: string
+  amount: string
+}
+
 const optionKey = (messageId: string, key: string) => `${messageId}:${key}`
+
+function getPlayerName(playerId: string, players: PlayerProfile[]) {
+  return players.find((player) => player.id === playerId)?.displayName ?? playerId
+}
+
+function parseAmount(value: string) {
+  const parsed = Number(value.replace(",", ".").trim())
+  if (!Number.isFinite(parsed) || parsed <= 0) return null
+  return Math.round((parsed + Number.EPSILON) * 100) / 100
+}
 
 export function MatchReservationConfirmation({
   matchId,
   coordination,
   locations,
+  participantIds = [],
+  players = [],
+  currentPlayerId = "",
+  requireReservationPayments = false,
   compact = false,
   onConfirmed,
   onInvalidated,
@@ -38,10 +64,18 @@ export function MatchReservationConfirmation({
     () => coordination.rejectedLocations ?? [],
     [coordination.rejectedLocations],
   )
+  const bookingParticipantIds = useMemo(
+    () => Array.from(new Set(participantIds.filter(Boolean))),
+    [participantIds],
+  )
   const [open, setOpen] = useState(false)
   const [dateKey, setDateKey] = useState("")
   const [locationId, setLocationId] = useState("")
   const [selectedCourt, setSelectedCourt] = useState("")
+  const [selectedPayerIds, setSelectedPayerIds] = useState<string[]>([])
+  const [reservationInputs, setReservationInputs] = useState<ReservationInput[]>(() =>
+    bookingParticipantIds.map((playerId) => ({ playerId, amount: "" })),
+  )
   const [saving, setSaving] = useState(false)
   const [invalidating, setInvalidating] = useState(false)
   const [error, setError] = useState("")
@@ -74,7 +108,37 @@ export function MatchReservationConfirmation({
   const dateOption = coordination.approvedDates.find(
     (item) => optionKey(item.messageId, item.optionKey) === dateKey,
   )
-  const canConfirm = Boolean(dateOption && selectedLocation && selectedCourt && !saving)
+  const selectedReservationInputs = reservationInputs.filter((input) =>
+    selectedPayerIds.includes(input.playerId),
+  )
+  const parsedReservations = selectedReservationInputs
+    .map((input) => {
+      const amount = parseAmount(input.amount)
+      return amount ? { playerId: input.playerId, amount } : null
+    })
+    .filter((item): item is CourtBookingReservation => Boolean(item))
+  const paymentAmountsAreValid =
+    !requireReservationPayments ||
+    (selectedReservationInputs.length > 0 &&
+      selectedReservationInputs.every((input) => parseAmount(input.amount) !== null))
+  const reservationTotal = parsedReservations.reduce(
+    (total, reservation) => total + reservation.amount,
+    0,
+  )
+  const canConfirm = Boolean(
+    dateOption &&
+      selectedLocation &&
+      selectedCourt &&
+      paymentAmountsAreValid &&
+      !saving,
+  )
+
+  function resetPaymentInputs() {
+    setSelectedPayerIds([])
+    setReservationInputs(
+      bookingParticipantIds.map((playerId) => ({ playerId, amount: "" })),
+    )
+  }
 
   function openConfirmation() {
     setError("")
@@ -86,11 +150,46 @@ export function MatchReservationConfirmation({
       setLocationId(selectableLocations[0].id)
       setSelectedCourt("")
     }
+    if (
+      requireReservationPayments &&
+      selectedPayerIds.length === 0 &&
+      currentPlayerId &&
+      bookingParticipantIds.includes(currentPlayerId)
+    ) {
+      setSelectedPayerIds([currentPlayerId])
+    }
     setOpen(true)
   }
 
+  function togglePayer(playerId: string) {
+    setSelectedPayerIds((currentIds) =>
+      currentIds.includes(playerId)
+        ? currentIds.filter((currentId) => currentId !== playerId)
+        : [...currentIds, playerId],
+    )
+    setError("")
+  }
+
+  function updateReservationAmount(playerId: string, amount: string) {
+    setReservationInputs((currentInputs) =>
+      currentInputs.map((input) =>
+        input.playerId === playerId ? { ...input, amount } : input,
+      ),
+    )
+    setError("")
+  }
+
   async function confirmReservation() {
-    if (!dateOption || !selectedLocation || !selectedCourt || saving) return
+    if (
+      !dateOption ||
+      !selectedLocation ||
+      !selectedCourt ||
+      !paymentAmountsAreValid ||
+      saving
+    ) {
+      return
+    }
+
     setSaving(true)
     setError("")
     const response = await fetch(
@@ -104,6 +203,9 @@ export function MatchReservationConfirmation({
           dateOptionKey: dateOption.optionKey,
           locationId: selectedLocation.id,
           selectedCourt,
+          ...(requireReservationPayments
+            ? { reservations: parsedReservations }
+            : {}),
         }),
       },
     )
@@ -118,6 +220,7 @@ export function MatchReservationConfirmation({
         match_reservation_location_not_configured: "La ubicación elegida ya no está configurada en la liga.",
         match_reservation_courts_missing: "Esta ubicación no tiene pistas configuradas.",
         match_reservation_invalid_court: "La pista elegida ya no es válida.",
+        match_reservation_payments_invalid: "Indica quién pagó la pista y un importe válido para cada pagador.",
       }
       setError(messageByError[data?.error] ?? "No se ha podido confirmar la reserva.")
       return
@@ -126,6 +229,7 @@ export function MatchReservationConfirmation({
     setDateKey("")
     setLocationId("")
     setSelectedCourt("")
+    resetPaymentInputs()
     await onConfirmed?.()
   }
 
@@ -155,6 +259,7 @@ export function MatchReservationConfirmation({
     setDateKey("")
     setLocationId("")
     setSelectedCourt("")
+    resetPaymentInputs()
     await onInvalidated?.()
   }
 
@@ -311,6 +416,79 @@ export function MatchReservationConfirmation({
               )}
             </div>
           ) : null}
+
+          {requireReservationPayments ? (
+          <div className="rounded-xl border border-neutral-200 bg-white p-2.5">
+              <div>
+                <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
+                  Pagos de la reserva
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-neutral-600">
+                  Indica quién pagó la pista y cuánto abonó cada persona.
+                </p>
+              </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                {bookingParticipantIds.map((playerId) => {
+                  const isSelected = selectedPayerIds.includes(playerId)
+                  return (
+                    <button
+                      key={playerId}
+                      type="button"
+                      onPointerDown={preserveFocus}
+                      onClick={() => togglePayer(playerId)}
+                      disabled={saving}
+                      className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
+                        isSelected
+                          ? "border-neutral-950 bg-neutral-950 text-white"
+                          : "border-neutral-200 bg-neutral-50 text-neutral-700"
+                      } disabled:opacity-50`}
+                    >
+                      <span className="block truncate">{getPlayerName(playerId, players)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {selectedReservationInputs.length ? (
+                <div className="mt-2 space-y-1.5">
+                  {selectedReservationInputs.map((input) => (
+                    <label
+                      key={input.playerId}
+                      className="flex items-center justify-between gap-2 rounded-lg bg-neutral-50 px-2.5 py-1.5"
+                    >
+                      <span className="min-w-0 truncate text-xs font-black text-neutral-800">
+                        {getPlayerName(input.playerId, players)}
+                      </span>
+                      <span className="flex w-28 shrink-0 items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2 py-1">
+                        <input
+                          inputMode="decimal"
+                          value={input.amount}
+                          disabled={saving}
+                          onChange={(event) =>
+                            updateReservationAmount(input.playerId, event.target.value)
+                          }
+                          placeholder="0,00"
+                          className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none"
+                        />
+                        <span className="text-xs font-black text-neutral-500">€</span>
+                      </span>
+                    </label>
+                  ))}
+                  <div className="flex items-center justify-between gap-2 px-0.5 pt-0.5 text-xs">
+                    <span className="font-bold text-neutral-600">Total reserva</span>
+                    <span className="font-black text-neutral-950">
+                      {formatMoney(reservationTotal)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-2 rounded-lg bg-neutral-50 px-2.5 py-2 text-xs font-semibold text-neutral-500">
+                  Selecciona al menos un pagador.
+                </p>
+              )}
+            </div>
+            ) : null}
 
           {error ? <p className="rounded-lg bg-red-50 px-2.5 py-2 text-xs font-bold text-red-700">{error}</p> : null}
 

@@ -170,7 +170,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       steps: [
         {
           title: "Accesos rápidos",
-          description: "Estos botones llevan directamente a calendario, reglas, personas y acciones de estado. También puedes programar el inicio: hasta activarse, los jugadores quedan limitados a la HOME de esa competición, mientras los administradores con VISTA ADMIN activa conservan la gestión completa.",
+          description: "Estos botones llevan directamente a calendario, reglas, personas y acciones de estado. También puedes programar el inicio: hasta activarse, los jugadores quedan limitados a la HOME de esa competición, mientras los administradores conservan acceso normal al calendario y la gestión.",
         },
         {
           title: "Calendario y jornadas",
@@ -339,7 +339,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
       steps: [
         {
           title: "Quick links",
-          description: "These buttons take you directly to calendar, rules, people and status actions. You can also schedule the season start: until activation, players are limited to that competition’s Home, while administrators with ADMIN VIEW enabled keep full management access.",
+          description: "These buttons take you directly to calendar, rules, people and status actions. You can also schedule the season start: until activation, players are limited to that competition’s Home, while administrators keep normal access to the calendar and management tools.",
         },
         {
           title: "Calendar and rounds",

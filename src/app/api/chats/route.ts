@@ -3,6 +3,7 @@ import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { validateUuid } from "@/lib/serverRequest"
 import { getChatOverviewRealtimeTopic } from "@/lib/serverChatRealtime"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
+import { isMatchChatReadOnly } from "@/lib/matchChatWindow"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     const messages = messagesByMatch.get(id) ?? [], last = messages[0] ?? null, lastRead = readByMatch.get(id) ?? null, unread = messages.filter((message) => message.sender_user_id !== user.id && (!lastRead || Date.parse(message.created_at) > Date.parse(lastRead))).length
     const coordination = String(match.status) === "scheduling" ? buildMatchChatCoordination({ matchStatus: String(match.status), participants: [...teamA, ...teamB].map((id) => ({ userId: userByPlayer.get(id) ?? null })), messages: messages.filter((message) => message.kind === "date_proposal" || message.kind === "location_proposal").map((message) => ({ id: message.id, kind: message.kind, payload: message.payload, responses: responsesByMessage.get(message.id) ?? [] })) }) : null
     const coordinationStatus = coordination?.status === "coordinating" || coordination?.status === "awaiting_booking" ? coordination.status : null
-    return { id, round: Number(match.round), status: String(match.status), coordinationStatus, scheduledAt: typeof match.scheduled_at === "string" ? match.scheduled_at : null, dateLabel: typeof match.date_label === "string" ? match.date_label : null, readOnly: match.status === "finished" || Boolean(match.result_recorded_at), partner: partnerId ? name(partnerId) : "Pareja", rivals: rivalTeam.map(name), unread, lastMessage: last ? { sender: last.sender_user_id === user.id ? "Yo" : last.sender_display_name, body: last.body, createdAt: last.created_at } : null }
+    return { id, round: Number(match.round), status: String(match.status), coordinationStatus, scheduledAt: typeof match.scheduled_at === "string" ? match.scheduled_at : null, dateLabel: typeof match.date_label === "string" ? match.date_label : null, readOnly: isMatchChatReadOnly({ status: String(match.status), resultRecordedAt: typeof match.result_recorded_at === "string" ? match.result_recorded_at : null }), partner: partnerId ? name(partnerId) : "Pareja", rivals: rivalTeam.map(name), unread, lastMessage: last ? { sender: last.sender_user_id === user.id ? "Yo" : last.sender_display_name, body: last.body, createdAt: last.created_at } : null }
   }).sort((a, b) => { const at = Date.parse(a.lastMessage?.createdAt ?? "") || 0, bt = Date.parse(b.lastMessage?.createdAt ?? "") || 0; if (at || bt) return at && bt ? bt - at || a.round - b.round : at ? -1 : 1; return a.round - b.round })
   return NextResponse.json({ chats, totalUnread: chats.reduce((sum, chat) => sum + chat.unread, 0), realtimeTopic: getChatOverviewRealtimeTopic(leagueId, seasonId) })
 }

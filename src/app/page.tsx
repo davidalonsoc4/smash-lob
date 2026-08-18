@@ -45,7 +45,7 @@ import {
 } from "@/lib/seasonRegistration";
 import {
   startSupabaseExistingSeason,
-  updateSupabaseSeasonRoundSettings,
+  updateSupabaseSeasonRegistrationPayment,
 } from "@/lib/supabaseSeasons";
 import { getScheduledSeasonHomeStage } from "@/lib/seasonScheduling";
 
@@ -553,11 +553,11 @@ export default function Home() {
     registrationSettled: isRegistrationSettled,
   });
   const showScheduledCountdownHero =
-    isSeasonUpcoming && isSeasonScheduled && scheduledHomeStage === "countdown";
+    isSeasonScheduled && scheduledHomeStage === "countdown";
   const showScheduledRegistrationWaiting =
-    isSeasonUpcoming && isSeasonScheduled && scheduledHomeStage === "registration";
+    isSeasonScheduled && scheduledHomeStage === "registration";
   const showScheduledRosterWaiting =
-    isSeasonUpcoming && isSeasonScheduled && scheduledHomeStage === "roster";
+    isSeasonScheduled && scheduledHomeStage === "roster";
   const canStartUpcomingSeason = isRegistrationSettled && isRosterComplete;
 
   async function handleToggleRegistrationPayment(
@@ -568,26 +568,28 @@ export default function Home() {
       return;
     }
 
-    const nextRegistrationFee = ensureSeasonRegistrationPlayers({
-      registrationFee: setSeasonRegistrationPaymentPaidStatus({
-        registrationFee: roundSettings.registrationFee,
-        playerId,
-        isPaid,
-      }),
-      playerIds: seasonRankingPlayers.map((player) => player.id),
-    });
-    const nextSettings = {
+    const nextRegistrationFee = isSupabaseBackedId(activeSeason.id)
+      ? await updateSupabaseSeasonRegistrationPayment({
+          leagueId: activeLeague.id,
+          seasonId: activeSeason.id,
+          playerId,
+          isPaid,
+        })
+      : ensureSeasonRegistrationPlayers({
+          registrationFee: setSeasonRegistrationPaymentPaidStatus({
+            registrationFee: roundSettings.registrationFee,
+            playerId,
+            isPaid,
+          }),
+          playerIds: seasonRankingPlayers.map((player) => player.id),
+        });
+
+    updateSeasonRoundSettings({
       ...roundSettings,
       leagueId: activeLeague.id,
       seasonId: activeSeason.id,
       registrationFee: nextRegistrationFee,
-    };
-
-    if (isSupabaseBackedId(activeSeason.id)) {
-      await updateSupabaseSeasonRoundSettings(nextSettings);
-    }
-
-    updateSeasonRoundSettings(nextSettings);
+    });
   }
 
   async function handleSendRegistrationPaymentReminder() {
@@ -819,7 +821,7 @@ export default function Home() {
         <SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} hero />
       ) : null}
 
-      {isSeasonUpcoming && isSeasonScheduled && !showScheduledCountdownHero ? (
+      {isSeasonScheduled && !showScheduledCountdownHero ? (
         <div className="space-y-3">
           <AppCard className="border border-neutral-200 bg-neutral-50/80 p-3">
             <p className="type-panel-title font-black text-neutral-950">Próxima temporada</p>

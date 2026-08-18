@@ -54,6 +54,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/seasons/[seasonId]/mvp-selection` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/registration` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]/registration` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/seasons/[seasonId]/registration-payment` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]/registration-reminder` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/repair-calendar` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/round-order` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
@@ -106,9 +107,12 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/personal-matches/[id]` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]` | PATCH | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]` | DELETE | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]/chat` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]/chat` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking` | PUT | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking/transfers/[transferId]` | PUT | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/chats` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/people` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/qa` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/qa` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |

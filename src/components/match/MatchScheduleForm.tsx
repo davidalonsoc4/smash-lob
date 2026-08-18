@@ -42,6 +42,12 @@ function capitalizeFirstLetter(value: string | null | undefined) {
   return cleanValue.charAt(0).toLocaleUpperCase("es-ES") + cleanValue.slice(1);
 }
 
+type MatchScheduleActions = {
+  update?: (input: { scheduledAt: string; location: string }) => Promise<boolean>;
+  postpone?: () => Promise<boolean>;
+  clear?: () => Promise<boolean>;
+};
+
 type MatchScheduleFormProps = {
   matchId: string;
   leagueId: string;
@@ -60,6 +66,8 @@ type MatchScheduleFormProps = {
   calendarAction?: ReactNode;
   coordinationAction?: ReactNode;
   availabilityRecommendationsEnabled?: boolean;
+  allowPostpone?: boolean;
+  actions?: MatchScheduleActions;
 };
 
 const otherLocationValue = "__other__";
@@ -82,6 +90,8 @@ export function MatchScheduleForm({
   calendarAction,
   coordinationAction,
   availabilityRecommendationsEnabled = false,
+  allowPostpone = true,
+  actions,
 }: MatchScheduleFormProps) {
   const { t } = useI18n();
   const { updateMatchSchedule, postponeMatch, clearMatchSchedule } = useMatchData();
@@ -345,7 +355,12 @@ export function MatchScheduleForm({
     finalLocation.length > 0 &&
     (!shouldSelectCourt || selectedCourt.trim().length > 0);
   const canPostpone =
-    canManage && !isSaving && !isFinished && !isPostponed && hasSchedule;
+    allowPostpone &&
+    canManage &&
+    !isSaving &&
+    !isFinished &&
+    !isPostponed &&
+    hasSchedule;
   const canClearCurrentSchedule =
     canClearSchedule && !isSaving && hasSchedule && !isFinished;
   const canExpandScheduleActions =
@@ -457,10 +472,13 @@ export function MatchScheduleForm({
     setIsSaving(true);
     setActionError(null);
 
-    const saved = await updateMatchSchedule(matchId, {
+    const scheduleInput = {
       scheduledAt: dateTimeLocalToUtcIso(scheduledAtValue),
       location: finalLocation,
-    });
+    };
+    const saved = actions?.update
+      ? await actions.update(scheduleInput)
+      : await updateMatchSchedule(matchId, scheduleInput);
 
     setIsSaving(false);
 
@@ -508,7 +526,9 @@ export function MatchScheduleForm({
     setIsSaving(true);
     setActionError(null);
 
-    const saved = await postponeMatch(matchId);
+    const saved = actions?.postpone
+      ? await actions.postpone()
+      : await postponeMatch(matchId);
 
     setIsSaving(false);
 
@@ -542,7 +562,9 @@ export function MatchScheduleForm({
     setIsSaving(true);
     setActionError(null);
 
-    const saved = await clearMatchSchedule(matchId);
+    const saved = actions?.clear
+      ? await actions.clear()
+      : await clearMatchSchedule(matchId);
 
     setIsSaving(false);
 

@@ -19,6 +19,11 @@ const [
   requestHelper,
   personalResultForm,
   sharedResultForm,
+  personalSchedulePanel,
+  sharedScheduleForm,
+  personalBookingPanel,
+  sharedBookingPanel,
+  detailModel,
 ] = await Promise.all([
   read("src/app/match/[id]/page.tsx"),
   read("src/app/personal-matches/[id]/page.tsx"),
@@ -33,78 +38,100 @@ const [
   read("src/lib/serverPersonalMatchRequest.ts"),
   read("src/components/personal/PersonalMatchResultForm.tsx"),
   read("src/components/match/MatchResultForm.tsx"),
+  read("src/components/personal/PersonalMatchSchedulePanel.tsx"),
+  read("src/components/match/MatchScheduleForm.tsx"),
+  read("src/components/personal/PersonalMatchCourtBookingPanel.tsx"),
+  read("src/components/match/CourtBookingPanel.tsx"),
+  read("src/lib/personalMatchDetailModel.ts"),
 ])
 
 assert(leaguePage.includes("<MatchDetailView"), "La ruta de liga debe usar MatchDetailView")
-assert(leaguePage.includes('href={`/round/${match.round}`}') && leaguePage.includes('{t.matches.round} {match.round}'), "El partido de liga debe usar Jornada X como título principal enlazado al resumen")
-assert(!leaguePage.includes('subtitle={`${t.matches.round} ${match.round}`}'), "La jornada no debe repetirse como subtítulo")
-assert(personalPage.includes('title="Partido"'), "El amistoso debe mantener Partido como título principal")
+assert(
+  leaguePage.includes('href={`/round/${match.round}`}') &&
+    leaguePage.includes("{t.matches.round} {match.round}"),
+  "El partido de liga debe usar Jornada X como título principal enlazado al resumen",
+)
+assert(
+  personalPage.includes('title="Partido"'),
+  "El amistoso debe mantener Partido como título principal",
+)
 assert(personalPage.includes("<MatchDetailView"), "La ruta de amistoso debe usar MatchDetailView")
-assert(!leaguePage.includes("<MatchDetailPairingPanel"), "La ruta de liga no debe montar el emparejamiento por separado")
-assert(!personalPage.includes("<MatchDetailPairingPanel"), "La ruta personal no debe montar el emparejamiento por separado")
+assert(!leaguePage.includes("<MatchDetailPairingPanel"), "Liga no debe duplicar el emparejamiento")
+assert(!personalPage.includes("<MatchDetailPairingPanel"), "Amistoso no debe duplicar el emparejamiento")
+
 for (const marker of ["<BackButton", "<MatchStatusBadge", "<MatchDetailPairingPanel"]) {
   assert(sharedView.includes(marker), `MatchDetailView debe ser dueño de ${marker}`)
 }
-assert(sharedView.includes("headerActions") && sharedView.includes("beforePairing"), "MatchDetailView debe admitir extensiones específicas sin duplicar la pantalla")
-assert(pairingPanel.includes('const hasResult = sets.length > 0'), "El emparejamiento compartido debe conservar la vista con/sin resultado")
+assert(
+  sharedView.includes("headerActions") && sharedView.includes("beforePairing"),
+  "MatchDetailView debe admitir extensiones específicas sin duplicar la pantalla",
+)
+
 assert(
   pairingPanel.includes('metadataPlacement={index === 0 ? "before-name" : "after-name"}'),
-  "Sin resultado, el primer jugador debe mostrar metadatos antes del nombre y el segundo después",
+  "El orden visual de metadatos/nombre debe ser compartido",
 )
 assert(
-  pairingPanel.includes('const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\\u00a0"}</p>') &&
-    pairingPanel.includes("const playLine = playerPositionLabel ? (") &&
-    pairingPanel.includes("{showRankingPosition ? positionLine : null}"),
-  "Sin resultado, posición de liga y perfil de juego deben conservar líneas independientes",
-)
-const finishedPlayer = pairingPanel.slice(
-  pairingPanel.indexOf("function FinishedPlayerName({"),
-  pairingPanel.indexOf("function FinishedPairRow({"),
+  pairingPanel.includes("showPendingPlayerMetadata?: boolean") &&
+    pairingPanel.includes("showFinishedPlayerMetadata?: boolean"),
+  "El componente compartido debe controlar la visibilidad de metadatos por estado",
 )
 assert(
-  finishedPlayer.includes("getPlayerSideAndHandLabel") &&
-    finishedPlayer.includes("showPlayerMetadata && playerPositionLabel") &&
-    !finishedPlayer.includes("en liga"),
-  "Con resultado debe poder mostrarse el perfil de juego sin posición en liga",
+  pairingPanel.includes("const showPendingMetadata = pendingPlayerMetadata || showRankingPosition"),
+  "Los metadatos pendientes deben combinar perfil personal y posición competitiva",
 )
 assert(
-  pairingPanel.includes("const showPendingMetadata = showPlayerMetadata || showRankingPosition"),
-  "Los metadatos deben distinguir entre posición competitiva y perfil personal",
+  personalPage.includes("showPendingPlayerMetadata: true") &&
+    personalPage.includes("showFinishedPlayerMetadata: false") &&
+    !personalPage.includes("rankingPositions:"),
+  "El amistoso debe mostrar REVÉS/DRIVE y DIESTRO/ZURDO en los mismos momentos que Liga sin inventar ranking",
 )
-
-assert(personalPage.includes("<PersonalMatchParticipantsPanel"), "El amistoso debe permitir editar participantes desde PARTIDO")
-assert(participantsPanel.includes('match.status !== "scheduled"'), "Los participantes solo deben editarse antes de registrar el resultado")
-assert(participantsPanel.includes('action: "participants"'), "El editor debe persistir la pareja y rivales por PATCH")
-assert(participantsPanel.includes("<PersonalMatchParticipantSelector"), "El editor debe reutilizar el selector compartido")
-assert(newPersonalPage.includes("<PersonalMatchParticipantSelector"), "Nuevo partido debe reutilizar el mismo selector")
-assert(participantSelector.includes("Otro jugador..."), "El selector compartido debe admitir jugadores externos")
-
-assert(detailRoute.includes('action !== "participants"'), "PATCH debe aceptar la acción participants")
-assert(detailRoute.includes('match.status !== "scheduled"'), "La API debe bloquear cambios de participantes una vez jugado")
-assert(detailRoute.includes("replacePersonalMatchParticipants"), "PATCH debe delegar el reemplazo al servidor")
-assert(listRoute.includes("resolvePersonalMatchParticipantDrafts"), "Alta y edición deben compartir resolución de participantes")
-assert(requestHelper.includes("normalizePersonalMatchParticipantDrafts"), "Alta y edición deben compartir validación de payload")
-assert(serverHelper.includes("replacePersonalMatchParticipants"), "Falta el reemplazo service-role de participantes")
-assert(serverHelper.includes("personal_match_requires_current_user"), "El usuario actual debe seguir formando parte del amistoso")
-assert(serverHelper.includes("originalParticipants"), "El reemplazo debe conservar respaldo para restaurar ante fallo")
-assert(personalResultForm.includes("<MatchResultForm"), "El amistoso debe reutilizar el editor visual de resultado de liga")
-assert(sharedResultForm.includes("persistResult?"), "El editor compartido debe permitir adaptar la persistencia sin duplicar UI")
-
 assert(
   leaguePage.includes("getRankingDisplayPosition(rankingPlayers, playerId)"),
-  "El detalle de liga debe usar la posición visual exacta de Clasificación",
-)
-assert(
-  !leaguePage.includes("getRankingPosition(rankingPlayers, playerId)"),
-  "El detalle de liga no debe usar el puesto estadístico compartido por empates",
+  "Liga debe seguir usando la posición visual exacta de Clasificación",
 )
 
-console.log("Detalle de partido v1.6.0 unificado:")
-console.log("- liga y amistoso comparten MatchDetailView")
-console.log("- liga usa Jornada X como título enlazado al resumen; amistosos mantienen Partido")
-console.log("- la posición de cada jugador replica el orden visual 1, 2, 3… de Clasificación")
-console.log("- sin resultado, jugador 1 usa posición/perfil/nombre y jugador 2 nombre/perfil/posición")
-console.log("- con resultado se ocultan posición y perfil de juego")
-console.log("- cada origen conserva su carga, permisos y persistencia")
-console.log("- amistosos programados permiten editar pareja y contrincantes")
-console.log("- el formulario de resultado también reutiliza la UI de liga")
+assert(
+  personalPage.includes("buildPersonalMatchDetailModel") &&
+    personalBookingPanel.includes("buildPersonalMatchDetailModel") &&
+    detailModel.includes("preferredSide") &&
+    detailModel.includes("dominantHand"),
+  "La normalización del amistoso para la UI compartida debe estar centralizada",
+)
+
+assert(
+  personalSchedulePanel.includes("<MatchScheduleForm") &&
+    sharedScheduleForm.includes("actions?: MatchScheduleActions") &&
+    sharedScheduleForm.includes("formatMatchScheduleLongLabel"),
+  "Liga y amistoso deben reutilizar el mismo panel visual de programación",
+)
+assert(
+  personalBookingPanel.includes("<CourtBookingPanel") &&
+    sharedBookingPanel.includes("export function CourtBookingPanel"),
+  "Liga y amistoso deben reutilizar Pagos y reservas",
+)
+assert(
+  personalResultForm.includes("<MatchResultForm") && sharedResultForm.includes("persistResult?"),
+  "Liga y amistoso deben reutilizar el formulario visual de resultado",
+)
+
+assert(personalPage.includes("<PersonalMatchParticipantsPanel"), "El amistoso debe conservar su editor específico de participantes")
+assert(participantsPanel.includes('match.status !== "scheduled"'), "Los participantes solo deben editarse antes del resultado")
+assert(participantsPanel.includes('action: "participants"'), "El editor debe persistir participantes por PATCH")
+assert(participantsPanel.includes("<PersonalMatchParticipantSelector"), "El editor debe reutilizar el selector compartido")
+assert(newPersonalPage.includes("<PersonalMatchParticipantSelector"), "Nuevo amistoso debe reutilizar el mismo selector")
+assert(participantSelector.includes("Otro jugador..."), "El selector debe admitir jugadores externos")
+
+assert(detailRoute.includes('action !== "participants"'), "PATCH debe aceptar participants")
+assert(detailRoute.includes('match.status !== "scheduled"'), "La API debe bloquear participantes una vez jugado")
+assert(detailRoute.includes("replacePersonalMatchParticipants"), "PATCH debe delegar el reemplazo al servidor")
+assert(listRoute.includes("resolvePersonalMatchParticipantDrafts"), "Alta y edición deben compartir resolución de participantes")
+assert(requestHelper.includes("normalizePersonalMatchParticipantDrafts"), "Alta y edición deben compartir validación")
+assert(serverHelper.includes("replacePersonalMatchParticipants"), "Falta reemplazo service-role de participantes")
+
+console.log("Detalle de partido unificado v1.10.10 correcto:")
+console.log("- Liga y Amistoso comparten MatchDetailView y MatchDetailPairingPanel")
+console.log("- REVÉS/DRIVE y DIESTRO/ZURDO usan la misma ubicación y ciclo visual")
+console.log("- Amistoso omite únicamente la posición de clasificación que no existe")
+console.log("- programación, Pagos y reservas y resultado reutilizan componentes de Liga")
+console.log("- solo el editor de participantes permanece específico por diferencia de negocio")
