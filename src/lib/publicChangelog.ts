@@ -3,6 +3,15 @@ import "server-only"
 import type { ChangelogCategory, ChangelogRelease } from "@/lib/changelog"
 import { getVersionBlock } from "@/lib/changelogGrouping"
 
+const PUBLIC_NEW_COPY: Partial<
+  Record<string, { title?: string; summary: string }>
+> = {
+  "v1.10.0": {
+    summary:
+      "La aplicación incorpora perfiles personalizados, temporadas con fecha de inicio y nuevas imágenes listas para compartir desde el Centro de Difusión.",
+  },
+}
+
 const PUBLIC_COPY: Record<
   Exclude<ChangelogCategory, "new">,
   { title: string; summary: string; change: string }
@@ -32,12 +41,13 @@ const PUBLIC_COPY: Record<
 
 function toPublicRelease(release: ChangelogRelease): ChangelogRelease {
   if (release.category === "new") {
+    const publicCopy = PUBLIC_NEW_COPY[release.version]
     return {
       version: release.version,
       date: release.date,
       category: release.category,
-      title: release.title,
-      summary: release.summary,
+      title: publicCopy?.title ?? release.title,
+      summary: publicCopy?.summary ?? release.summary,
       changes: [],
     }
   }

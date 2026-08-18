@@ -27,13 +27,27 @@ describe("changelog visibility", () => {
     expect(content).toContain("Información pública")
   })
 
+  it("uses the singular version label for one-release series", async () => {
+    const content = await readFile(
+      "src/components/changelog/ChangelogContent.tsx",
+      "utf8",
+    )
+    expect(content).toContain(
+      'block.releases.length === 1 ? "versión" : "versiones"',
+    )
+  })
+
   it("groups generic public copy while preserving concrete novelty titles", async () => {
     const publicChangelog = await readFile("src/lib/publicChangelog.ts", "utf8")
     expect(publicChangelog).toContain("Mejoras generales de la aplicación")
     expect(publicChangelog).toContain("Mantenimiento y preparación interna")
     expect(publicChangelog).toContain('release.category === "new"')
-    expect(publicChangelog).toContain("title: release.title")
+    expect(publicChangelog).toContain(
+      "title: publicCopy?.title ?? release.title",
+    )
     expect(publicChangelog).toContain("getVersionBlock")
+    expect(publicChangelog).toContain('"v1.10.0"')
+    expect(publicChangelog).toContain("perfiles personalizados")
     expect(publicChangelog).not.toContain("SUPABASE_SERVICE_ROLE_KEY")
     expect(publicChangelog).not.toContain("league_avatar_url")
   })

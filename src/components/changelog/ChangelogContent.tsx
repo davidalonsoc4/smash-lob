@@ -59,7 +59,8 @@ export function ChangelogContent({
                   </span>
                   {detailed ? (
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
-                      {block.releases.length} versiones
+                      {block.releases.length}{" "}
+                      {block.releases.length === 1 ? "versión" : "versiones"}
                     </span>
                   ) : (
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">

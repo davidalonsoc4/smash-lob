@@ -54,14 +54,14 @@ describe("public changelog", () => {
   it("keeps every novelty concrete and separate", () => {
     const publicReleases = buildPublicChangelog([
       release(
-        "v1.10.0",
+        "v1.9.0",
         "16 de agosto de 2026",
         "new",
         "Centro de Difusión",
         "Crea piezas listas para compartir.",
       ),
       release(
-        "v1.9.9",
+        "v1.8.0",
         "15 de agosto de 2026",
         "new",
         "Resumen de Jornada",
@@ -71,7 +71,7 @@ describe("public changelog", () => {
 
     expect(publicReleases).toEqual([
       {
-        version: "v1.10.0",
+        version: "v1.9.0",
         date: "16 de agosto de 2026",
         category: "new",
         title: "Centro de Difusión",
@@ -79,7 +79,7 @@ describe("public changelog", () => {
         changes: [],
       },
       {
-        version: "v1.9.9",
+        version: "v1.8.0",
         date: "15 de agosto de 2026",
         category: "new",
         title: "Resumen de Jornada",
@@ -99,5 +99,22 @@ describe("public changelog", () => {
       "v1.10.1",
       "v1.9.9",
     ])
+  })
+
+  it("uses curated, user-facing copy for technical novelty summaries", () => {
+    const [publicRelease] = buildPublicChangelog([
+      release(
+        "v1.10.0",
+        "16 de agosto de 2026",
+        "new",
+        "Perfiles, temporadas programadas y Centro de Difusión",
+        "Resumen con overrides competitivos y activación server-side.",
+      ),
+    ])
+
+    expect(publicRelease.summary).toBe(
+      "La aplicación incorpora perfiles personalizados, temporadas con fecha de inicio y nuevas imágenes listas para compartir desde el Centro de Difusión.",
+    )
+    expect(publicRelease.summary).not.toMatch(/overrides|server-side/i)
   })
 })
