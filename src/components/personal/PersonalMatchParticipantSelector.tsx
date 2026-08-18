@@ -42,7 +42,7 @@ export function PersonalMatchParticipantSelector({
   }, [people, query])
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-2.5">
+    <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-neutral-200 bg-white p-2.5">
       <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
         {participant.label}
       </p>
@@ -57,9 +57,9 @@ export function PersonalMatchParticipantSelector({
             type="button"
             onClick={() => setIsOpen((current) => !current)}
             aria-expanded={isOpen}
-            className="mt-1.5 flex w-full items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-left outline-none focus:border-neutral-400"
+            className="mt-1.5 flex w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-left outline-none focus:border-neutral-400"
           >
-            <span className="min-w-0">
+            <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-black text-neutral-950">
                 {selectedPerson?.displayName ?? (participant.personKey ? participant.displayName : "Otro jugador...")}
               </span>
@@ -79,7 +79,7 @@ export function PersonalMatchParticipantSelector({
           </button>
 
           {isOpen ? (
-            <div className="mt-1.5 rounded-xl border border-neutral-200 bg-neutral-50/80 p-1.5">
+            <div className="mt-1.5 min-w-0 max-w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/80 p-1.5">
               <input
                 type="search"
                 value={query}
@@ -88,9 +88,9 @@ export function PersonalMatchParticipantSelector({
                 aria-label={`Buscar ${participant.label.toLowerCase()}`}
                 className="w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400"
               />
-              <div className="mt-1.5 flex items-center justify-between gap-2 px-1 type-caption font-semibold text-neutral-500">
-                <span>{filteredPeople.length} conocido{filteredPeople.length === 1 ? "" : "s"}</span>
-                <span>{query.trim() ? "Resultados filtrados" : "Desliza para ver más"}</span>
+              <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2 px-1 type-caption font-semibold text-neutral-500">
+                <span className="shrink-0">{filteredPeople.length} conocido{filteredPeople.length === 1 ? "" : "s"}</span>
+                <span className="min-w-0 truncate text-right">{query.trim() ? "Resultados filtrados" : "Desliza para ver más"}</span>
               </div>
               <div className="mt-1 max-h-52 space-y-1 overflow-y-auto">
                 <button

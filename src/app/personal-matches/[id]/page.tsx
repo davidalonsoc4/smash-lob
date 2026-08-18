@@ -63,6 +63,8 @@ export default function PersonalMatchDetailPage() {
         .toUpperCase() || "JG",
       avatarUrl: participant.avatarUrl ?? null,
       userId: null,
+      preferredSide: participant.preferredSide ?? null,
+      dominantHand: participant.dominantHand ?? null,
     }))
     const teamA = sorted
       .filter((participant) => participant.team === 1)
@@ -137,6 +139,7 @@ export default function PersonalMatchDetailPage() {
         pointsB: scoreboard.pointsB,
         sets: item.sets,
         linkPlayers: false,
+        showPlayerMetadata: true,
       }}
     >
       <PersonalMatchParticipantsPanel match={item} onUpdated={setItem} />

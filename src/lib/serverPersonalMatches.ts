@@ -19,6 +19,13 @@ import {
   getPersonalMatchEventAt,
   sortPersonalMatchParticipants,
 } from "@/lib/personalMatches"
+import { deduplicatePersonalMatchPeople } from "@/lib/personalMatchPeople"
+import {
+  normalizeDominantHand,
+  normalizePreferredPlayerSide,
+  type DominantHand,
+  type PreferredPlayerSide,
+} from "@/lib/accountProfile"
 
 type PersonalMatchPersonRecord = PersonalMatchPerson & {
   userId: string | null
@@ -260,7 +267,7 @@ export async function loadAccessiblePersonalMatchPeople(
 }
 
 export function publicPersonalMatchPeople(people: PersonalMatchPersonRecord[]) {
-  return people.map((person) => ({
+  return deduplicatePersonalMatchPeople(people).map((person) => ({
     key: person.key,
     displayName: person.displayName,
     avatarUrl: person.avatarUrl,
@@ -405,7 +412,14 @@ function mapPersonalMatch(
   row: PersonalMatchRow,
   participantRows: ParticipantRow[],
   currentUserId: string,
-  avatarUrlByUserId: Map<string, string | null> = new Map(),
+  accountMetadataByUserId: Map<
+    string,
+    {
+      avatarUrl: string | null
+      preferredSide: PreferredPlayerSide | null
+      dominantHand: DominantHand | null
+    }
+  > = new Map(),
 ): PersonalMatchItem {
   const sets = normalizeSets(row.sets)
   const participants = sortPersonalMatchParticipants(
@@ -423,7 +437,13 @@ function mapPersonalMatch(
             displayName: participant.display_name,
           }),
           avatarUrl: participant.user_id
-            ? avatarUrlByUserId.get(participant.user_id) ?? null
+            ? accountMetadataByUserId.get(participant.user_id)?.avatarUrl ?? null
+            : null,
+          preferredSide: participant.user_id
+            ? accountMetadataByUserId.get(participant.user_id)?.preferredSide ?? null
+            : null,
+          dominantHand: participant.user_id
+            ? accountMetadataByUserId.get(participant.user_id)?.dominantHand ?? null
             : null,
         }),
       ),
@@ -491,12 +511,19 @@ async function loadPersonalRows(
   const participantUserIds = uniqueStrings(
     participantRows.map((participant) => participant.user_id),
   )
-  const avatarUrlByUserId = new Map<string, string | null>()
+  const accountMetadataByUserId = new Map<
+    string,
+    {
+      avatarUrl: string | null
+      preferredSide: PreferredPlayerSide | null
+      dominantHand: DominantHand | null
+    }
+  >()
 
   if (options.includeAvatars && participantUserIds.length > 0) {
     const appUsersResult = await actor.supabase
       .from("app_users")
-      .select("id,avatar_url")
+      .select("id,avatar_url,preferred_side,dominant_hand")
       .in("id", participantUserIds)
 
     if (appUsersResult.error) {
@@ -505,17 +532,24 @@ async function loadPersonalRows(
 
     for (const appUser of appUsersResult.data ?? []) {
       if (typeof appUser.id !== "string") continue
-      avatarUrlByUserId.set(
-        appUser.id,
-        typeof appUser.avatar_url === "string" ? appUser.avatar_url : null,
-      )
+      accountMetadataByUserId.set(appUser.id, {
+        avatarUrl:
+          typeof appUser.avatar_url === "string" ? appUser.avatar_url : null,
+        preferredSide: normalizePreferredPlayerSide(appUser.preferred_side),
+        dominantHand: normalizeDominantHand(appUser.dominant_hand),
+      })
     }
   }
 
   const mappedById = new Map(
     rows.map((row) => [
       row.id,
-      mapPersonalMatch(row, participantRows, actor.user.id, avatarUrlByUserId),
+      mapPersonalMatch(
+        row,
+        participantRows,
+        actor.user.id,
+        accountMetadataByUserId,
+      ),
     ]),
   )
 

@@ -7,10 +7,11 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useI18n } from "@/i18n/I18nProvider"
-import type {
-  PersonalMatchItem,
-  PersonalMatchNextScope,
-  PersonalMatchesDashboardPayload,
+import {
+  selectUpcomingPersonalMatch,
+  type PersonalMatchItem,
+  type PersonalMatchNextScope,
+  type PersonalMatchesDashboardPayload,
 } from "@/lib/personalMatches"
 
 const pageSize = 10
@@ -27,7 +28,7 @@ function emptyDashboard(): PersonalMatchesDashboardPayload {
 export default function PersonalMatchesPage() {
   const { t } = useI18n()
   const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload>(emptyDashboard)
-  const [nextScope, setNextScope] = useState<PersonalMatchNextScope>("league")
+  const [nextScope, setNextScope] = useState<PersonalMatchNextScope>("all")
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +49,6 @@ export default function PersonalMatchesPage() {
       .then((payload) => {
         if (cancelled) return
         setDashboard(payload)
-        setNextScope(payload.upcoming.league ? "league" : "friendly")
       })
       .catch(() => {
         if (!cancelled) setError("No se ha podido cargar tu historial de partidos.")
@@ -66,11 +66,8 @@ export default function PersonalMatchesPage() {
     dashboard.upcoming.league && dashboard.upcoming.friendly,
   )
   const selectedUpcoming = useMemo<PersonalMatchItem | null>(() => {
-    if (nextScope === "league") {
-      return dashboard.upcoming.league ?? dashboard.upcoming.friendly
-    }
-    return dashboard.upcoming.friendly ?? dashboard.upcoming.league
-  }, [dashboard.upcoming.friendly, dashboard.upcoming.league, nextScope])
+    return selectUpcomingPersonalMatch(dashboard.upcoming, nextScope)
+  }, [dashboard.upcoming, nextScope])
 
   async function loadMore() {
     if (loadingMore || !dashboard.hasMore || dashboard.nextOffset === null) return
@@ -135,18 +132,22 @@ export default function PersonalMatchesPage() {
                 className="flex rounded-lg bg-neutral-100 p-0.5"
                 aria-label="Tipo de próximo partido"
               >
-                {(["league", "friendly"] as const).map((scope) => (
+                {(["all", "league", "friendly"] as const).map((scope) => (
                   <button
                     key={scope}
                     type="button"
                     onClick={() => setNextScope(scope)}
-                    className={`rounded-md px-2.5 py-1 type-caption font-black transition ${
+                    className={`rounded-md px-2 py-1 type-caption font-black transition ${
                       nextScope === scope
                         ? "bg-white text-neutral-950 shadow-sm"
                         : "text-neutral-500"
                     }`}
                   >
-                    {scope === "league" ? "Liga" : "Amistoso"}
+                    {scope === "all"
+                      ? "Todos"
+                      : scope === "league"
+                        ? "Liga"
+                        : "Amistoso"}
                   </button>
                 ))}
               </div>

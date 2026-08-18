@@ -20,6 +20,7 @@ type MatchDetailPairingPanelProps = {
   highlightedPlayerIds?: string[]
   rankingPositions?: Record<string, number | null | undefined>
   linkPlayers?: boolean
+  showPlayerMetadata?: boolean
 }
 
 function DetailPlayer({
@@ -32,6 +33,7 @@ function DetailPlayer({
   alignment,
   metadataPlacement,
   showMetadata,
+  showRankingPosition,
 }: {
   playerId: string
   players?: PlayerProfile[]
@@ -42,6 +44,7 @@ function DetailPlayer({
   alignment: "left" | "right"
   metadataPlacement: "before-name" | "after-name"
   showMetadata: boolean
+  showRankingPosition: boolean
 }) {
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
@@ -60,7 +63,11 @@ function DetailPlayer({
     alignment === "right" ? "text-right" : "text-left"
   }`
   const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\u00a0"}</p>
-  const playLine = <p className={metadataClass}>{playerPositionLabel ?? "\u00a0"}</p>
+  const playLine = playerPositionLabel ? (
+    <p className={metadataClass}>{playerPositionLabel}</p>
+  ) : showRankingPosition ? (
+    <p className={metadataClass}>{"\u00a0"}</p>
+  ) : null
   const nameLine = (
     <div className="min-w-0 overflow-hidden">
       {linkPlayers && player ? (
@@ -84,7 +91,7 @@ function DetailPlayer({
         <div className="space-y-0.5">
           {metadataPlacement === "before-name" ? (
             <>
-              {positionLine}
+              {showRankingPosition ? positionLine : null}
               {playLine}
               {nameLine}
             </>
@@ -92,7 +99,7 @@ function DetailPlayer({
             <>
               {nameLine}
               {playLine}
-              {positionLine}
+              {showRankingPosition ? positionLine : null}
             </>
           )}
         </div>
@@ -188,6 +195,7 @@ function PairDetails({
   linkPlayers,
   alignment,
   showMetadata,
+  showRankingPosition,
 }: {
   playerIds: string[]
   players?: PlayerProfile[]
@@ -197,6 +205,7 @@ function PairDetails({
   linkPlayers: boolean
   alignment: "left" | "right"
   showMetadata: boolean
+  showRankingPosition: boolean
 }) {
   return (
     <div
@@ -224,6 +233,7 @@ function PairDetails({
             alignment={alignment}
             metadataPlacement={index === 0 ? "before-name" : "after-name"}
             showMetadata={showMetadata}
+            showRankingPosition={showRankingPosition}
           />
         </div>
       ))}
@@ -237,15 +247,21 @@ function FinishedPlayerName({
   highlighted,
   substituteLabel,
   linkPlayers,
+  showPlayerMetadata,
 }: {
   playerId: string
   players?: PlayerProfile[]
   highlighted: boolean
   substituteLabel?: string
   linkPlayers: boolean
+  showPlayerMetadata: boolean
 }) {
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
+  const playerPositionLabel = getPlayerSideAndHandLabel(
+    player?.preferredSide,
+    player?.dominantHand,
+  )
   const name = (
     <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
@@ -272,6 +288,12 @@ function FinishedPlayerName({
         )}
       </div>
 
+      {showPlayerMetadata && playerPositionLabel ? (
+        <p className="mt-0.5 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500">
+          {playerPositionLabel}
+        </p>
+      ) : null}
+
       {substituteLabel ? (
         <p className="mt-1 type-caption font-bold leading-3 text-red-700">
           Suplente · por {substituteLabel}
@@ -290,6 +312,7 @@ function FinishedPairRow({
   highlightedPlayerIds,
   substituteLabels,
   linkPlayers,
+  showPlayerMetadata,
 }: {
   side: "a" | "b"
   playerIds: string[]
@@ -299,6 +322,7 @@ function FinishedPairRow({
   highlightedPlayerIds: string[]
   substituteLabels: Record<string, string>
   linkPlayers: boolean
+  showPlayerMetadata: boolean
 }) {
   return (
     <div className="rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 sm:py-3.5">
@@ -314,6 +338,7 @@ function FinishedPairRow({
                 highlighted={highlightedPlayerIds.includes(playerId)}
                 substituteLabel={substituteLabels[playerId]}
                 linkPlayers={linkPlayers}
+                showPlayerMetadata={showPlayerMetadata}
               />
             </div>
           ))}
@@ -347,13 +372,15 @@ export function MatchDetailPairingPanel({
   highlightedPlayerIds = [],
   rankingPositions = {},
   linkPlayers = true,
+  showPlayerMetadata = false,
 }: MatchDetailPairingPanelProps) {
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
   const showAvatars = [...teamA, ...teamB].some((playerId) =>
     isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl),
   )
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
-  const showPendingMetadata = Object.keys(rankingPositions).length > 0
+  const showRankingPosition = Object.keys(rankingPositions).length > 0
+  const showPendingMetadata = showPlayerMetadata || showRankingPosition
 
   return (
     <AppCard className="overflow-hidden !p-0">
@@ -369,6 +396,7 @@ export function MatchDetailPairingPanel({
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
+              showPlayerMetadata={showPlayerMetadata}
             />
 
             <FinishedPairRow
@@ -380,6 +408,7 @@ export function MatchDetailPairingPanel({
               highlightedPlayerIds={highlightedPlayerIds}
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
+              showPlayerMetadata={showPlayerMetadata}
             />
           </div>
         ) : (
@@ -412,6 +441,7 @@ export function MatchDetailPairingPanel({
                 linkPlayers={linkPlayers}
                 alignment="left"
                 showMetadata={showPendingMetadata}
+                showRankingPosition={showRankingPosition}
               />
 
               <PairDetails
@@ -423,6 +453,7 @@ export function MatchDetailPairingPanel({
                 linkPlayers={linkPlayers}
                 alignment="right"
                 showMetadata={showPendingMetadata}
+                showRankingPosition={showRankingPosition}
               />
             </div>
           </>

@@ -89,6 +89,7 @@ describe("personal matches integration", () => {
     expect(serverHelper).toContain("display_name: draft.displayName")
     expect(serverHelper).toContain('key: `user:${user.id}`')
     expect(serverHelper).toContain('`player:${player.id}`')
+    expect(serverHelper).toContain("deduplicatePersonalMatchPeople(people)")
     expect(baseMigration).toContain("enable row level security")
     expect(extensionMigration).toContain("from public, anon, authenticated")
     expect(extensionMigration).toContain("to service_role")
