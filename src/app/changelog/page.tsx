@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
-import { ChangelogContent } from "@/components/changelog/ChangelogContent"
-import { BackButton } from "@/components/ui/BackButton"
+import { ChangelogPageContent } from "@/components/changelog/ChangelogPageContent"
 import { CHANGELOG_RELEASES } from "@/lib/changelog"
 import { buildPublicChangelog } from "@/lib/publicChangelog"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
@@ -14,33 +13,27 @@ export const dynamic = "force-dynamic"
 
 export default async function ChangelogPage() {
   const authResult = await requireAuthenticatedAppUser()
-  const detailed = authResult.ok && authResult.actor.user.isSuperuser
-  const releases = detailed
-    ? CHANGELOG_RELEASES
-    : buildPublicChangelog(CHANGELOG_RELEASES)
+  let canViewDetailed = false
+
+  if (authResult.ok) {
+    if (authResult.actor.user.isSuperuser) {
+      canViewDetailed = true
+    } else {
+      const { data: adminMemberships } = await authResult.actor.supabase
+        .from("league_memberships")
+        .select("league_id")
+        .eq("user_id", authResult.actor.user.id)
+        .in("role", ["creator", "admin"])
+        .limit(1)
+
+      canViewDetailed = Boolean(adminMemberships?.length)
+    }
+  }
 
   return (
-    <div className="compact-page space-y-3">
-      <header className="app-page-header">
-        <BackButton fallbackHref="/settings" label="Volver" />
-        <h1 className="type-page-title font-black tracking-tight">
-          Registro de cambios
-        </h1>
-        <div className="mt-0.5 flex flex-wrap items-center gap-2">
-          <p className="text-sm font-medium text-neutral-500">Smash & Lob</p>
-          {detailed ? (
-            <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-white">
-              Detalle superadmin
-            </span>
-          ) : (
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
-              Información pública
-            </span>
-          )}
-        </div>
-      </header>
-
-      <ChangelogContent releases={releases} detailed={detailed} />
-    </div>
+    <ChangelogPageContent
+      publicReleases={buildPublicChangelog(CHANGELOG_RELEASES)}
+      detailedReleases={canViewDetailed ? CHANGELOG_RELEASES : null}
+    />
   )
 }

@@ -1321,3 +1321,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - No se añaden migraciones ni se modifican datos persistentes.
 - Publicación de aplicación verificada en PRE: `staging` `43086ce404a744d012925ca07a53004afb42ee5c`, despliegue Vercel `dpl_BiKce4SGhUPkxRbTePeJXkWTJe1x` READY y alias `pre.smashandlob.com`; el smoke autenticado confirma health v1.10.8/pre, manifiesto con `id` estable y arranque `/launch`, cookie de invitación `Secure`/`HttpOnly`/`SameSite=Lax`, recuperación sin intención hacia HOME y API protegida con 401. El smoke público conserva el 302 previsto por la protección SSO de Vercel.
 - Publicación de aplicación verificada en Producción: `main` `02e943137f119e4e079cc7f42ac0e487da6fc4be`, despliegue Vercel `dpl_LS5hQaRiBX79M2UfrRV836seTyfh` READY y alias `smashandlob.com`; `npm run smoke:prod` confirma health v1.10.8/prod, portada disponible y Avatar Lab bloqueado. La comprobación específica confirma manifiesto con `id` estable y arranque `/launch`, endpoint de intención operativo, cookie de invitación `Secure`/`HttpOnly`/`SameSite=Lax` y redirección sin intención hacia HOME.
+
+### Registro de cambios público agrupado (2026-08-18)
+
+- La vista pública agrupa versiones consecutivas de la misma serie cuando comparten categoría y texto general; muestra un único rango de versiones y fechas en lugar de repetir el mismo panel.
+- Las entradas con categoría `Novedad` conservan su título y resumen funcional reales para explicar qué capacidad se incorporó, sin exponer el detalle técnico reservado.
+- Creadores, administradores de liga y superusuarios reciben el historial detallado únicamente cuando `Vista admin` está activa; al desactivarla ven exactamente el mismo resumen público que un jugador normal.
+- El detalle completo solo se entrega desde servidor a cuentas autorizadas. Los usuarios normales no reciben ese contenido oculto en el cliente.
+- El presupuesto registra 104.263 líneas, 154 clientes y 47 páginas cliente; el límite puntual de `src/lib/changelog.ts` sube a 2.410 líneas para sus tres campos opcionales de rango.
+- Validación local: 10/10 tests focalizados, ESLint, TypeScript, build de producción, presupuesto de fuente y `git diff --check` correctos. La revisión real en navegador confirma el detalle por versión con `Vista admin`, el resumen agrupado al desactivarla y los rangos de fecha sin concatenaciones. Cambio aislado en `codex/public-changelog-groups`, todavía no publicado.

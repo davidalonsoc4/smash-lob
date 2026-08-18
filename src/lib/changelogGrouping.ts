@@ -28,8 +28,9 @@ export function groupReleasesByVersionBlock(
   return Array.from(grouped.entries()).map(([version, blockReleases]) => ({
     version,
     releases: blockReleases,
-    firstDate: blockReleases.at(-1)?.date,
-    latestDate: blockReleases[0]?.date,
+    firstDate:
+      blockReleases.at(-1)?.firstDate ?? blockReleases.at(-1)?.date,
+    latestDate: blockReleases[0]?.latestDate ?? blockReleases[0]?.date,
     changeCount: blockReleases.reduce(
       (total, release) => total + release.changes.length,
       0,

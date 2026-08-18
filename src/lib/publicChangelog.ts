@@ -1,18 +1,12 @@
 import "server-only"
 
 import type { ChangelogCategory, ChangelogRelease } from "@/lib/changelog"
+import { getVersionBlock } from "@/lib/changelogGrouping"
 
 const PUBLIC_COPY: Record<
-  ChangelogCategory,
+  Exclude<ChangelogCategory, "new">,
   { title: string; summary: string; change: string }
 > = {
-  new: {
-    title: "Nuevas funciones y opciones",
-    summary:
-      "Esta versión incorpora nuevas posibilidades para seguir utilizando y gestionando la aplicación.",
-    change:
-      "Se han añadido o ampliado funciones disponibles para los usuarios.",
-  },
   improvement: {
     title: "Mejoras generales de la aplicación",
     summary:
@@ -36,18 +30,90 @@ const PUBLIC_COPY: Record<
   },
 }
 
-export function buildPublicChangelog(
-  releases: ChangelogRelease[],
-): ChangelogRelease[] {
-  return releases.map((release) => {
-    const copy = PUBLIC_COPY[release.category]
+function toPublicRelease(release: ChangelogRelease): ChangelogRelease {
+  if (release.category === "new") {
     return {
       version: release.version,
       date: release.date,
       category: release.category,
-      title: copy.title,
-      summary: copy.summary,
-      changes: [copy.change],
+      title: release.title,
+      summary: release.summary,
+      changes: [],
+    }
+  }
+
+  const copy = PUBLIC_COPY[release.category]
+  return {
+    version: release.version,
+    date: release.date,
+    category: release.category,
+    title: copy.title,
+    summary: copy.summary,
+    changes: [copy.change],
+  }
+}
+
+function hasSamePublicCopy(
+  first: ChangelogRelease,
+  second: ChangelogRelease,
+) {
+  return (
+    first.category === second.category &&
+    first.title === second.title &&
+    first.summary === second.summary &&
+    first.changes.length === second.changes.length &&
+    first.changes.every((change, index) => change === second.changes[index])
+  )
+}
+
+function formatRange(oldest: string | undefined, latest: string | undefined) {
+  if (!latest) return oldest
+  if (!oldest || oldest === latest) return latest
+  return `${oldest} – ${latest}`
+}
+
+export function buildPublicChangelog(
+  releases: ChangelogRelease[],
+): ChangelogRelease[] {
+  const groups: Array<{
+    latestSource: ChangelogRelease
+    release: ChangelogRelease
+  }> = []
+
+  releases.forEach((sourceRelease) => {
+    const publicRelease = toPublicRelease(sourceRelease)
+    const previousGroup = groups.at(-1)
+    const startsNewGroup =
+      !previousGroup ||
+      sourceRelease.category === "new" ||
+      previousGroup.release.category === "new" ||
+      getVersionBlock(sourceRelease.version) !==
+        getVersionBlock(previousGroup.latestSource.version) ||
+      !hasSamePublicCopy(publicRelease, previousGroup.release)
+
+    if (startsNewGroup) {
+      groups.push({
+        latestSource: sourceRelease,
+        release: publicRelease,
+      })
+      return
+    }
+
+    previousGroup.release = {
+      ...previousGroup.release,
+      version:
+        formatRange(
+          sourceRelease.version,
+          previousGroup.latestSource.version,
+        ) ?? previousGroup.release.version,
+      dateRange: formatRange(
+        sourceRelease.date,
+        previousGroup.latestSource.date,
+      ),
+      firstDate: sourceRelease.date,
+      latestDate: previousGroup.latestSource.date,
     }
   })
+
+  return groups.map(({ release }) => release)
 }
