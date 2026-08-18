@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-type PersonalNavIconName = "matches" | "profile" | "leagues"
+type PersonalNavIconName = "matches" | "chats" | "profile" | "leagues"
 
 function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
   const commonProps = {
@@ -17,6 +17,16 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
     className: "h-4 w-4",
   }
 
+
+  if (icon === "chats") {
+    return (
+      <svg {...commonProps}>
+        <path d="M5 5.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4.5 3v-3H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" />
+        <path d="M7.5 10h9" />
+        <path d="M7.5 13.5h6" />
+      </svg>
+    )
+  }
 
   if (icon === "profile") {
     return (
@@ -53,9 +63,10 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
 export function PersonalMatchesNav() {
   const pathname = usePathname()
   const isProfile = pathname === "/personal-matches/profile"
+  const isChats = pathname === "/personal-matches/chats"
   const isMatchesActive =
     pathname === "/personal-matches" ||
-    (pathname.startsWith("/personal-matches/") && !isProfile)
+    (pathname.startsWith("/personal-matches/") && !isProfile && !isChats)
 
   const items = [
     {
@@ -69,6 +80,12 @@ export function PersonalMatchesNav() {
       label: "Mis partidos",
       icon: "matches" as const,
       active: isMatchesActive,
+    },
+    {
+      href: "/personal-matches/chats",
+      label: "Chats",
+      icon: "chats" as const,
+      active: isChats,
     },
     {
       href: "/personal-matches/profile",
@@ -87,7 +104,7 @@ export function PersonalMatchesNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="grid min-h-[62px] grid-cols-3 gap-1 px-3 py-1.5">
+      <div className="grid min-h-[62px] grid-cols-4 gap-1 px-3 py-1.5">
         {items.map((item) => (
           <Link
             key={item.href}

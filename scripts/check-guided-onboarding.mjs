@@ -62,8 +62,9 @@ const requiredSnippets = new Map([
   ["src/app/page.tsx", ['data-tour="home-header"', 'data-tour="home-league-switcher"', 'data-tour="home-next-match"']],
   ["src/app/matches/page.tsx", ['data-tour="matches-round-list"']],
   ["src/app/chats/page.tsx", ['data-tour={tour}', 'tour="chats-conversations"', 'data-tour="chats-finished"']],
-  ["src/app/match/[id]/chat/page.tsx", ['data-tour="chat-messages"', 'data-tour="chat-proposals"']],
-  ["src/components/match/MatchActionsMenu.tsx", ['data-tour="match-chat-access"']],
+  ["src/app/match/[id]/chat/page.tsx", ['data-tour="chat-messages"', 'data-tour="chat-proposals"', "<MatchChatFrame", "<MatchChatComposer"]],
+  ["src/components/match/chat/MatchChatShared.tsx", ['data-tour="chat-messages"', 'data-tour="chat-composer"', "<MatchChatSendIcon />"]],
+  ["src/components/match/MatchChatFloatingAction.tsx", ['data-tour="match-chat-access"']],
   ["src/app/ranking/page.tsx", ['data-tour="ranking-table"']],
   ["src/app/statistics/page.tsx", ['data-tour="statistics-navigation"']],
   ["src/app/admin/season/page.tsx", ['data-tour="season-admin-navigation"']],
@@ -91,6 +92,16 @@ for (const [file, snippets] of requiredSnippets) {
 }
 
 const toursSource = await readFile("src/features/onboarding/tours.ts", "utf8")
+const progressSource = await readFile("src/features/onboarding/progress.ts", "utf8")
+const progressApiSource = await readFile("src/app/api/onboarding/progress/route.ts", "utf8")
+if (!progressSource.includes("return Boolean(progress[tour.key])")) {
+  failures.push("Los tutoriales ya vistos no deben repetirse por subir la versión del recorrido")
+}
+for (const key of ["chats", "match", "chat"]) {
+  if (!progressApiSource.includes(`"${key}"`)) {
+    failures.push(`La API de progreso no admite el recorrido ${key}`)
+  }
+}
 const structureSource = toursSource.slice(toursSource.indexOf("const tourStructure"))
 if (structureSource.includes('key: "app-introduction"')) {
   failures.push("Bienvenida no debe existir como recorrido independiente")
@@ -186,5 +197,5 @@ console.log("- nueve recorridos contextuales; Chats y Chat explican estados, lec
 console.log("- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera")
 console.log("- guía de Ajustes con perfil, apariencia, notificaciones, cambio Ligas/Mis partidos, sugerencias y buscador")
 console.log("- ayuda flotante y biblioteca para repetir recorridos")
-console.log("- progreso por cuenta con respaldo local")
+console.log("- progreso por cuenta con respaldo local y autoapertura única por recorrido")
 console.log("- API autenticada, rate limit y tabla sin acceso desde navegador")

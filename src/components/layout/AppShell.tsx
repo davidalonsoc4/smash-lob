@@ -204,7 +204,9 @@ export function AppShell({ children }: AppShellProps) {
   const isPersonalMatchesRoute =
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
   const isMatchChatRoute =
-    pathname.startsWith("/match/") && pathname.endsWith("/chat")
+    (pathname.startsWith("/match/") ||
+      pathname.startsWith("/personal-matches/")) &&
+    pathname.endsWith("/chat")
   const isPublicAccessRoute =
     isInviteRoute || isSpectateRoute || isLeagueNavigationRoute
   const isNewLeagueRoute = pathname === "/league/new"
@@ -289,7 +291,7 @@ export function AppShell({ children }: AppShellProps) {
     !isInitialSeasonSetupRoute &&
     !isPersonalMatchesRoute
   const shouldShowPersonalMatchesNav =
-    isPersonalMatchesRoute && !isPublicAccessRoute
+    isPersonalMatchesRoute && !isMatchChatRoute && !isPublicAccessRoute
   const shouldShowPlayerInviteButton =
     !isMatchChatRoute &&
     !isPublicAccessRoute &&

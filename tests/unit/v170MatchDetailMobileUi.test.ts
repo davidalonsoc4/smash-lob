@@ -26,30 +26,38 @@ describe("v1.7.0 match detail mobile UI polish", () => {
 
   it("stacks the chat bubble above the larger match-actions menu", async () => {
     const menu = await readFile("src/components/match/MatchActionsMenu.tsx", "utf8")
-    expect(menu).toContain('aria-label="Abrir chat del partido"')
-    expect(menu).toContain("flex flex-col items-end gap-2")
+    const chatAction = await readFile("src/components/match/MatchChatFloatingAction.tsx", "utf8")
+    expect(menu).toContain("<MatchChatActionLink")
+    expect(chatAction).toContain('aria-label="Abrir chat del partido"')
+    expect(chatAction).toContain("flex flex-col items-end gap-2")
     expect(menu).toContain("min-w-52")
     expect(menu).toContain("px-3 py-2.5 text-left text-sm font-black")
   })
 
-  it("shows journey and current players in an immersive keyboard-aware chat", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    const shell = await readFile("src/components/layout/AppShell.tsx", "utf8")
-    const header = page.match(/<header\b[\s\S]*?<\/header>/)?.[0] ?? ""
-    expect(header).toContain("Chat · Jornada")
-    expect(header).not.toContain("<p")
+  it("shows journey and current players in an immersive keyboard-aware shared chat", async () => {
+    const [page, shared, shell] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+      readFile("src/components/layout/AppShell.tsx", "utf8"),
+    ])
+    expect(page).toContain('matchRound ? `Chat · Jornada ${matchRound}`')
     expect(page).toContain("useCurrentLeagueData")
     expect(page).toContain('import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel"')
     expect(page).toContain("teamA={match.teamA}")
     expect(page).toContain("teamB={match.teamB}")
-    expect(page).toContain("window.visualViewport")
-    expect(page).toContain('data-tour="chat-composer"')
-    expect(page).toContain('replyingTo ? "" : "border-t border-neutral-200"')
+    expect(page).toContain("<MatchChatFrame")
+    expect(page).toContain("<MatchChatComposer")
+    expect(page).toContain("hasTopAttachment={Boolean(replyingTo)}")
+    expect(shared).toContain("window.visualViewport")
+    expect(shared).toContain('data-tour="chat-composer"')
+    expect(shared).toContain('hasTopAttachment ? "" : "border-t border-neutral-200"')
+    expect(shared).toContain("<header")
+    expect(shared).not.toContain("<header><p")
     expect(shell).toContain("isMatchChatRoute")
     expect(shell).toContain("!isMatchChatRoute &&")
     expect(page).not.toContain('match.teamA.map(name).join(" / ")')
     expect(page).not.toContain('match.teamB.map(name).join(" / ")')
-    expect(page).not.toContain('bottom: "calc(72px')
-    expect(page).not.toContain("sticky bottom-16")
+    expect(shared).not.toContain('bottom: "calc(72px')
+    expect(shared).not.toContain("sticky bottom-16")
   })
 })

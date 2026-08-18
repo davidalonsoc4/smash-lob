@@ -24,11 +24,14 @@ describe("v1.8.1 match chat composer UX", () => {
     expect(page).not.toContain('<select value={locationDraft}')
   })
 
-  it("opens match detail from the chat title", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain('import Link from "next/link"')
-    expect(page).toContain('href={`/match/${id}`}')
-    expect(page).toContain('aria-label="Abrir detalle del partido"')
-    expect(page).not.toContain("pointer-events-none absolute left-1/2")
+  it("opens match detail from the shared chat title", async () => {
+    const [page, shared] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+    ])
+    expect(page).toContain('titleHref={`/match/${id}`}')
+    expect(shared).toContain('aria-label="Abrir detalle del partido"')
+    expect(shared).toContain("href={titleHref}")
+    expect(shared).not.toContain("pointer-events-none absolute left-1/2")
   })
 })

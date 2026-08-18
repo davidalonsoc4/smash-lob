@@ -69,16 +69,20 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(page).toContain('openProposalMode("date")')
   })
 
-  it("compacts chat, uses tail-free first-message corners and keeps only Settings floating on CHAT", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    const css = await readFile("src/app/globals.css", "utf8")
-    const shell = await readFile("src/components/layout/AppShell.tsx", "utf8")
+  it("compacts chat with shared tail-free text bubbles and keeps only Settings floating on CHAT", async () => {
+    const [page, shared, css, shell] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+      readFile("src/app/globals.css", "utf8"),
+      readFile("src/components/layout/AppShell.tsx", "utf8"),
+    ])
     expect(page).toContain('ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2"')
-    expect(page).toContain('max-w-[86%] rounded-2xl px-2.5 py-1.5 shadow-sm')
-    expect(page).toContain('!previousSameSender ? "rounded-tl-md " : ""')
-    expect(page).toContain('!previousSameSender ? "rounded-tr-md " : ""')
-    expect(page).toContain('className="flex min-h-14 shrink-0 items-center justify-center border-t')
-    expect(page).not.toContain("chat-bubble-incoming-first")
+    expect(page).toContain("<MatchChatTextMessage")
+    expect(shared).toContain('max-w-[86%] rounded-2xl px-2.5 py-1.5 shadow-sm')
+    expect(shared).toContain('!previousSameSender ? "rounded-tl-md " : ""')
+    expect(shared).toContain('!previousSameSender ? "rounded-tr-md " : ""')
+    expect(shared).toContain('className="flex min-h-14 shrink-0 items-center justify-center border-t')
+    expect(shared).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("border-top: 6px solid #fff")
     expect(shell).toContain("const shouldShowSettingsButton =\n    !isInitialSeasonSetupRoute && !isPublicAccessRoute")

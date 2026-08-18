@@ -11,6 +11,8 @@ import {
 import { formatScheduleDateLabel, mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
+import { buildCourtBooking } from "@/lib/courtBooking"
+import type { CourtBookingReservation } from "@/context/MatchDataProvider"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,10 +23,42 @@ type ConfirmBody = {
   dateOptionKey?: unknown
   locationId?: unknown
   selectedCourt?: unknown
+  reservations?: unknown
 }
 
 const clean = (value: unknown, max = 120) =>
   typeof value === "string" ? value.trim().slice(0, max) : ""
+
+function parseAmount(value: unknown) {
+  const amount = Number(value)
+  if (!Number.isFinite(amount) || amount <= 0) return null
+  return Math.round((amount + Number.EPSILON) * 100) / 100
+}
+
+function parseReservations(value: unknown) {
+  if (!Array.isArray(value)) return null
+
+  const seenPlayerIds = new Set<string>()
+  const reservations = value
+    .map((item) => {
+      if (typeof item !== "object" || item === null || Array.isArray(item)) {
+        return null
+      }
+
+      const payment = item as Record<string, unknown>
+      const playerId = validateUuid(payment.playerId)
+      const amount = parseAmount(payment.amount)
+      if (!playerId || amount === null || seenPlayerIds.has(playerId)) {
+        return null
+      }
+
+      seenPlayerIds.add(playerId)
+      return { playerId, amount }
+    })
+    .filter((item): item is CourtBookingReservation => Boolean(item))
+
+  return reservations.length === value.length ? reservations : null
+}
 
 export async function POST(
   request: Request,
@@ -149,6 +183,11 @@ export async function POST(
   const dateOptionKey = clean(body.dateOptionKey, 80)
   const locationId = clean(body.locationId, 120)
   const selectedCourt = clean(body.selectedCourt, 80)
+  const reservationsWereProvided = body.reservations !== undefined
+  const reservations = reservationsWereProvided
+    ? parseReservations(body.reservations)
+    : null
+  const participantIds = new Set(access.actor.match.participantIds)
   if (
     !validateUuid(dateMessageId) ||
     !dateOptionKey ||
@@ -156,6 +195,17 @@ export async function POST(
     !selectedCourt
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+  }
+  if (
+    reservationsWereProvided &&
+    (!reservations ||
+      reservations.length === 0 ||
+      reservations.some((reservation) => !participantIds.has(reservation.playerId)))
+  ) {
+    return NextResponse.json(
+      { error: "match_reservation_payments_invalid" },
+      { status: 400 },
+    )
   }
 
   const approvedDate = coordination.approvedDates.find(
@@ -209,6 +259,18 @@ export async function POST(
   const scheduleLocation = createScheduledLeagueLocationValue(location, selectedCourt)
   const dateLabel = formatScheduleDateLabel(scheduledAt)
   const previous = access.actor.match
+  const booking = reservationsWereProvided
+    ? buildCourtBooking({
+        participantIds: previous.participantIds,
+        reservations: reservations ?? [],
+        ballPurchases: previous.courtBooking.ballPurchases,
+        previousTransfers: previous.courtBooking.transfers,
+      })
+    : {
+        ...previous.courtBooking,
+        isReserved: true,
+        updatedAt: new Date().toISOString(),
+      }
 
   const { data, error } = await access.actor.supabase
     .from("matches")
@@ -217,8 +279,13 @@ export async function POST(
       scheduled_at: scheduledAt,
       date_label: dateLabel,
       location: scheduleLocation,
-      court_reserved: true,
-      booking_updated_at: new Date().toISOString(),
+      court_reserved: booking.isReserved,
+      booking_reservations: {
+        reservations: booking.reservations,
+        ballPurchases: booking.ballPurchases,
+      },
+      booking_transfers: booking.transfers,
+      booking_updated_at: booking.updatedAt,
     })
     .eq("id", matchId)
     .select(matchSelect)
@@ -263,6 +330,11 @@ export async function POST(
         date_label: previous.dateLabel,
         location: previous.location,
         court_reserved: previous.courtBooking.isReserved,
+        booking_reservations: {
+          reservations: previous.courtBooking.reservations,
+          ballPurchases: previous.courtBooking.ballPurchases,
+        },
+        booking_transfers: previous.courtBooking.transfers,
         booking_updated_at: previous.courtBooking.updatedAt,
       })
       .eq("id", matchId)
@@ -289,6 +361,8 @@ export async function POST(
       location: scheduleLocation,
       locationText,
       selectedCourt,
+      reservations: updatedMatch.courtBooking.reservations,
+      transfers: updatedMatch.courtBooking.transfers,
       reservationConfirmedFromChat: true,
       includeActor: true,
       dateLabel,

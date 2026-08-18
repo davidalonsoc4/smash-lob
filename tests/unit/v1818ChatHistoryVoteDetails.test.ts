@@ -3,19 +3,24 @@ import { describe, expect, it } from "vitest"
 
 describe("v1.8.18 chat history and proposal vote details", () => {
   it("uses asymmetric first-message corners without chat tails", async () => {
-    const [page, css] = await Promise.all([readFile("src/app/match/[id]/chat/page.tsx", "utf8"), readFile("src/app/globals.css", "utf8")])
-    expect(page).toContain('!previousSameSender ? "rounded-tl-md " : ""')
-    expect(page).toContain('!previousSameSender ? "rounded-tr-md " : ""')
-    expect(page).not.toContain("chat-bubble-incoming-first")
+    const [page, shared, css] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+      readFile("src/app/globals.css", "utf8"),
+    ])
+    expect(page).toContain("<MatchChatTextMessage")
+    expect(shared).toContain('!previousSameSender ? "rounded-tl-md " : ""')
+    expect(shared).toContain('!previousSameSender ? "rounded-tr-md " : ""')
+    expect(shared).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("chat-bubble-incoming-first")
   })
 
-  it("keeps timestamp and receipts reserved at the right edge of each message", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain('className="relative"')
-    expect(page).toContain('mine ? "pr-16" : "pr-11"')
-    expect(page).toContain('absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none')
-    expect(page).not.toContain('inline-flex whitespace-nowrap align-baseline leading-none')
+  it("keeps timestamp and receipts reserved at the right edge of each shared text message", async () => {
+    const shared = await readFile("src/components/match/chat/MatchChatShared.tsx", "utf8")
+    expect(shared).toContain('className="relative"')
+    expect(shared).toContain('mine ? "pr-16" : "pr-11"')
+    expect(shared).toContain('absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none')
+    expect(shared).not.toContain('inline-flex whitespace-nowrap align-baseline leading-none')
   })
 
   it("shows settings above the immersive match-chat layer", async () => {

@@ -1,14 +1,10 @@
 "use client"
 
-import { useMemo } from "react"
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import type { CourtBookingReservation } from "@/context/MatchDataProvider"
-import type { PlayerProfile } from "@/data/fakeData"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
-import {
-  sortPersonalMatchParticipants,
-  type PersonalMatchItem,
-} from "@/lib/personalMatches"
+import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
+import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 type PersonalMatchCourtBookingPanelProps = {
   match: PersonalMatchItem
@@ -19,41 +15,7 @@ export function PersonalMatchCourtBookingPanel({
   match,
   onUpdated,
 }: PersonalMatchCourtBookingPanelProps) {
-  const view = useMemo(() => {
-    const participants = sortPersonalMatchParticipants(match.participants)
-    const players: PlayerProfile[] = participants.flatMap((participant) => {
-      if (!participant.bookingParticipantId) return []
-
-      return [{
-        id: participant.bookingParticipantId,
-        leagueId: "personal",
-        slug: `personal-${participant.bookingParticipantId}`,
-        displayName: participant.displayName,
-        avatarInitials: participant.displayName
-          .trim()
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((part) => part[0] ?? "")
-          .join("")
-          .toUpperCase() || "JG",
-        avatarUrl: participant.avatarUrl ?? null,
-        userId: null,
-        preferredSide: participant.preferredSide ?? null,
-        dominantHand: participant.dominantHand ?? null,
-      }]
-    })
-    const teamA = participants
-      .filter((participant) => participant.team === 1)
-      .flatMap((participant) => participant.bookingParticipantId ?? [])
-    const teamB = participants
-      .filter((participant) => participant.team === 2)
-      .flatMap((participant) => participant.bookingParticipantId ?? [])
-    const currentUserId = participants.find(
-      (participant) => participant.isCurrentUser,
-    )?.bookingParticipantId ?? ""
-
-    return { players, teamA, teamB, currentUserId }
-  }, [match.participants])
+  const view = buildPersonalMatchDetailModel(match)
 
   async function requestBooking(
     method: "PUT" | "DELETE",

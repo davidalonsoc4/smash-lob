@@ -43,7 +43,7 @@ describe("v1.6.8 league recommended locations", () => {
       readFile("src/components/personal/PersonalMatchLocationPicker.tsx", "utf8"),
     ])
     expect(createFriendly).toContain("<PersonalMatchLocationPicker")
-    expect(scheduleFriendly).toContain("<PersonalMatchLocationPicker")
+    expect(scheduleFriendly).toContain("<MatchScheduleForm")
     expect(locationPicker).toContain("getLeagueLocationTownNameLabel(location)")
   })
 })

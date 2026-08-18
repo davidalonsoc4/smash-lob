@@ -123,12 +123,13 @@ describe("guided onboarding", () => {
     expect(getOnboardingTours("es").find((tour) => tour.key === "season-admin")?.audience({ ...playerAudience, isLeagueAdmin: true })).toBe(true)
   })
 
-  it("respects tour versions when deciding whether to show again", () => {
+  it("auto-shows each tutorial only once even when its version changes", () => {
     const tour = getOnboardingTours("es").find((item) => item.key === "home")!
     const progress = {
       home: createProgressItem({ tourKey: "home", tourVersion: tour.version, status: "completed" }),
     }
     expect(hasCompletedCurrentTour(progress, tour)).toBe(true)
-    expect(hasCompletedCurrentTour(progress, { ...tour, version: tour.version + 1 })).toBe(false)
+    expect(hasCompletedCurrentTour(progress, { ...tour, version: tour.version + 1 })).toBe(true)
+    expect(hasCompletedCurrentTour(progress, { ...tour, key: "matches" })).toBe(false)
   })
 })

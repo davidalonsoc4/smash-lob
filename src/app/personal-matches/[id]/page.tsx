@@ -3,17 +3,15 @@
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
+import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
 import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
 import { PersonalMatchCourtBookingPanel } from "@/components/personal/PersonalMatchCourtBookingPanel"
 import { PersonalMatchResultForm } from "@/components/personal/PersonalMatchResultForm"
 import { PersonalMatchSchedulePanel } from "@/components/personal/PersonalMatchSchedulePanel"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import type { PlayerProfile } from "@/data/fakeData"
-import {
-  sortPersonalMatchParticipants,
-  type PersonalMatchItem,
-} from "@/lib/personalMatches"
+import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
+import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 export default function PersonalMatchDetailPage() {
   const params = useParams<{ id: string }>()
@@ -47,41 +45,7 @@ export default function PersonalMatchDetailPage() {
     }
   }, [params.id])
 
-  const scoreboard = useMemo(() => {
-    if (!item) return null
-    const sorted = sortPersonalMatchParticipants(item.participants)
-    const players: PlayerProfile[] = sorted.map((participant) => ({
-      id: participant.bookingParticipantId ?? `personal-${participant.team}-${participant.slot}`,
-      leagueId: "personal",
-      slug: `personal-${participant.team}-${participant.slot}`,
-      displayName: participant.displayName,
-      avatarInitials: participant.displayName
-        .trim()
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part[0] ?? "")
-        .join("")
-        .toUpperCase() || "JG",
-      avatarUrl: participant.avatarUrl ?? null,
-      userId: null,
-      preferredSide: participant.preferredSide ?? null,
-      dominantHand: participant.dominantHand ?? null,
-    }))
-    const teamA = sorted
-      .filter((participant) => participant.team === 1)
-      .map((participant) => participant.bookingParticipantId ?? `personal-${participant.team}-${participant.slot}`)
-    const teamB = sorted
-      .filter((participant) => participant.team === 2)
-      .map((participant) => participant.bookingParticipantId ?? `personal-${participant.team}-${participant.slot}`)
-    const pointsA = item.status === "finished"
-      ? item.sets.filter((set) => set.a > set.b).length
-      : null
-    const pointsB = item.status === "finished"
-      ? item.sets.filter((set) => set.b > set.a).length
-      : null
-
-    return { players, teamA, teamB, pointsA, pointsB }
-  }, [item])
+  const scoreboard = useMemo(() => (item ? buildPersonalMatchDetailModel(item) : null), [item])
 
   async function deleteMatch() {
     if (!item?.canDelete || deleting) return
@@ -132,6 +96,9 @@ export default function PersonalMatchDetailPage() {
       status={item.status}
       scheduledAt={item.scheduledAt}
       resultRecordedAt={item.resultRecordedAt}
+      headerActions={
+        <MatchChatFloatingAction href={`/personal-matches/${item.id}/chat`} />
+      }
       pairing={{
         teamA: scoreboard.teamA,
         teamB: scoreboard.teamB,
@@ -140,7 +107,8 @@ export default function PersonalMatchDetailPage() {
         pointsB: scoreboard.pointsB,
         sets: item.sets,
         linkPlayers: false,
-        showPlayerMetadata: true,
+        showPendingPlayerMetadata: true,
+        showFinishedPlayerMetadata: false,
       }}
     >
       <PersonalMatchParticipantsPanel match={item} onUpdated={setItem} />

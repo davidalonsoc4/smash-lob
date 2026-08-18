@@ -40,7 +40,7 @@ describe("v1.10.4 scheduled-season personal scope and guidance", () => {
     expect(help).toContain("seasonStatus: activeSeason.status")
     expect(invite).toContain("seasonStatus: activeSeason?.status")
     expect(tours).toContain("solo su competición queda bloqueada")
-    expect(tours).toContain("VISTA ADMIN activa")
+    expect(tours).toContain("administradores conservan acceso normal al calendario y la gestión")
     expect(tours).toContain('key: "home",\n    version: 7')
     expect(tours).toContain('key: "settings",\n    version: 4')
     expect(tours).toContain('key: "season-admin",\n    version: 3')

@@ -2,10 +2,14 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("v1.7.0 type contracts", () => {
-  it("uses the real BackButton contract in match chat", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain('<BackButton fallbackHref={`/match/${id}`} label="Volver" />')
-    expect(page).not.toContain("<BackButton href=")
+  it("uses the real BackButton contract through the shared match chat frame", async () => {
+    const [page, shared] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+    ])
+    expect(page).toContain('backHref={`/match/${id}`}')
+    expect(shared).toContain('<BackButton fallbackHref={backHref} label="Volver" />')
+    expect(shared).not.toContain("<BackButton href=")
   })
 
   it("does not use the unsupported feature changelog category", async () => {

@@ -16,6 +16,7 @@ import {
   replacePersonalMatchParticipants,
 } from "@/lib/serverPersonalMatches"
 import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMatchRequest"
+import { broadcastPersonalMatchChatRefresh } from "@/lib/serverChatRealtime"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -150,7 +151,10 @@ export async function PATCH(
         .update({
           status: "finished",
           sets,
-          result_recorded_at: nowIso,
+          result_recorded_at:
+            match.status === "finished" && match.result_recorded_at
+              ? match.result_recorded_at
+              : nowIso,
           updated_at: nowIso,
         })
         .eq("id", matchId)
@@ -158,6 +162,7 @@ export async function PATCH(
       if (error) {
         return NextResponse.json({ error: "personal_match_result_failed" }, { status: 500 })
       }
+      await broadcastPersonalMatchChatRefresh(matchId)
     } else {
       if (match.status !== "scheduled") {
         return NextResponse.json(

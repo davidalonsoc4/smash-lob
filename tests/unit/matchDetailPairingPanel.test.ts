@@ -5,12 +5,13 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("match detail pairing panel", () => {
   it("keeps the pending versus view but promotes a vertical result layout when scores exist", async () => {
-    const [panel, leaguePage, personalPage, personalServer, personalModel, sharedView] = await Promise.all([
+    const [panel, leaguePage, personalPage, personalServer, personalModel, personalDetailModel, sharedView] = await Promise.all([
       read("src/components/match/MatchDetailPairingPanel.tsx"),
       read("src/app/match/[id]/page.tsx"),
       read("src/app/personal-matches/[id]/page.tsx"),
       read("src/lib/serverPersonalMatches.ts"),
       read("src/lib/personalMatches.ts"),
+      read("src/lib/personalMatchDetailModel.ts"),
       read("src/components/match/MatchDetailView.tsx"),
     ])
 
@@ -96,10 +97,12 @@ describe("match detail pairing panel", () => {
 
     expect(personalPage).toContain("<MatchDetailView")
     expect(personalPage).toContain("linkPlayers: false")
-    expect(personalPage).toContain("showPlayerMetadata: true")
-    expect(personalPage).toContain("avatarUrl: participant.avatarUrl ?? null")
-    expect(personalPage).toContain("preferredSide: participant.preferredSide ?? null")
-    expect(personalPage).toContain("dominantHand: participant.dominantHand ?? null")
+    expect(personalPage).toContain("showPendingPlayerMetadata: true")
+    expect(personalPage).toContain("showFinishedPlayerMetadata: false")
+    expect(personalPage).toContain("buildPersonalMatchDetailModel(item)")
+    expect(personalDetailModel).toContain("avatarUrl: participant.avatarUrl ?? null")
+    expect(personalDetailModel).toContain("preferredSide: participant.preferredSide ?? null")
+    expect(personalDetailModel).toContain("dominantHand: participant.dominantHand ?? null")
     expect(sharedView).toContain("items-start justify-between")
     expect(sharedView).toContain("<MatchStatusBadge")
     expect(personalPage).not.toContain("<MatchScoreboard")

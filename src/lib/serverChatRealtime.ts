@@ -19,6 +19,11 @@ export function getMatchChatRealtimeTopic(matchId: string) {
   return token ? `sl_chat_match_${token}` : null
 }
 
+export function getPersonalMatchChatRealtimeTopic(matchId: string) {
+  const token = topicToken(`personal-match:${matchId}`)
+  return token ? `sl_chat_personal_${token}` : null
+}
+
 export function getChatOverviewRealtimeTopic(leagueId: string, seasonId: string) {
   const token = topicToken(`overview:${leagueId}:${seasonId}`)
   return token ? `sl_chat_overview_${token}` : null
@@ -61,3 +66,8 @@ export async function broadcastMatchChatRefresh(input: {
 }
 
 export const CHAT_REALTIME_EVENT = REALTIME_EVENT
+
+
+export async function broadcastPersonalMatchChatRefresh(matchId: string) {
+  await broadcastTopic(getPersonalMatchChatRealtimeTopic(matchId)).catch(() => false)
+}

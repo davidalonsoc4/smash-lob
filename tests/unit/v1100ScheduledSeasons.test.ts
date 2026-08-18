@@ -73,7 +73,8 @@ describe("v1.10.0 scheduled season start", () => {
 
     expect(matchAccess).toContain('seasonRow.status === "upcoming" && !isAdmin')
     expect(matchAccess).toContain('error: isFuture ? "season_not_started" : "season_start_pending"')
-    expect(chat).toContain('(seasonResult.data?.status === "upcoming" && !isAdmin)')
+    expect(chat).toContain("seasonChatReadOnly")
+    expect(chat).toContain('result.data?.status === "upcoming" && !isAdmin')
     expect(registration).toContain("joinSelfRegistrationSeason")
     expect(registration).not.toContain("season_not_started")
   })
@@ -143,6 +144,7 @@ describe("v1.10.0 scheduled season start", () => {
     ])
 
     expect(shell).toContain("isScheduledSeasonHomeLocked")
+    expect(shell).toContain("activeRoundSettings.scheduledStartAt,\n        canAccessAdmin,")
     expect(shell).toContain('router.replace("/")')
     expect(shell).toContain("data-scheduled-season-home-lock")
     expect(shell).toContain("<BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} />")
@@ -170,7 +172,7 @@ describe("v1.10.0 scheduled season start", () => {
     expect(nav).toContain("Disponible cuando comience la temporada")
   })
 
-  it("ties pre-start player restrictions to VISTA ADMIN without weakening server admin authorization", async () => {
+  it("lets admins bypass a scheduled-season lock only while VISTA ADMIN is enabled", async () => {
     const [access, home, matches, matchDetail, chatPage, matchAccess] = await Promise.all([
       read("src/context/LeagueAccessProvider.tsx"),
       read("src/app/page.tsx"),

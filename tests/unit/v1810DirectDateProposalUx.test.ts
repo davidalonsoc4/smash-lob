@@ -16,9 +16,15 @@ describe("v1.8.10 direct date proposal UX", () => {
   })
 
   it("makes the send glyph larger and optically shifts it left without resizing its button", async () => {
-    const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain('className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950')
-    expect(page).toContain('className="h-[23px] w-[23px]"')
-    expect(page).toContain('rotate(25deg)')
+    const [page, shared, sendIcon] = await Promise.all([
+      readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+      readFile("src/components/match/MatchChatSendIcon.tsx", "utf8"),
+    ])
+    expect(page).toContain("<MatchChatComposer")
+    expect(shared).toContain('className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950')
+    expect(shared).toContain("<MatchChatSendIcon />")
+    expect(sendIcon).toContain('className="h-[23px] w-[23px]"')
+    expect(sendIcon).toContain('rotate(25deg)')
   })
 })

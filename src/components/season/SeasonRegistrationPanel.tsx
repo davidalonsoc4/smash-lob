@@ -89,6 +89,11 @@ export function SeasonRegistrationPanel({
     setSavingPlayerId(playerId)
     try {
       await onTogglePayment(playerId, isPaid)
+    } catch {
+      showActionFeedback({
+        tone: "error",
+        message: "No se ha podido actualizar el pago de la inscripción.",
+      })
     } finally {
       setSavingPlayerId(null)
     }
