@@ -25,6 +25,16 @@ type CourtBookingPanelProps = {
   canManageAllPayments?: boolean
   booking: CourtBooking
   shouldFocusBooking?: boolean
+  actions?: {
+    update: (input: {
+      participantIds: string[]
+      reservations: CourtBookingReservation[]
+      ballPurchases: CourtBookingReservation[]
+    }) => Promise<boolean>
+    clear: () => Promise<boolean>
+    updateTransfer: (transferId: string, isPaid: boolean) => Promise<boolean>
+    sendReminder?: () => Promise<boolean>
+  }
 }
 
 type ReservationInput = {
@@ -127,6 +137,7 @@ export function CourtBookingPanel({
   canManageAllPayments = false,
   booking,
   shouldFocusBooking = false,
+  actions,
 }: CourtBookingPanelProps) {
   const { t } = useI18n()
   const {
@@ -363,11 +374,14 @@ export function CourtBookingPanel({
     setIsSaving(true)
     setError(null)
 
-    const saved = await updateCourtBooking(matchId, {
+    const bookingInput = {
       participantIds,
       reservations: parsedReservations,
       ballPurchases: parsedBallPurchases,
-    })
+    }
+    const saved = actions
+      ? await actions.update(bookingInput)
+      : await updateCourtBooking(matchId, bookingInput)
 
     setIsSaving(false)
 
@@ -392,7 +406,9 @@ export function CourtBookingPanel({
     setIsSaving(true)
     setError(null)
 
-    const saved = await clearCourtBooking(matchId)
+    const saved = actions
+      ? await actions.clear()
+      : await clearCourtBooking(matchId)
 
     setIsSaving(false)
 
@@ -440,7 +456,9 @@ export function CourtBookingPanel({
     setIsSendingReminder(true)
     setError(null)
 
-    const sent = await sendCourtBookingPaymentReminder(matchId)
+    const sent = actions?.sendReminder
+      ? await actions.sendReminder()
+      : await sendCourtBookingPaymentReminder(matchId)
 
     setIsSendingReminder(false)
 
@@ -459,11 +477,9 @@ export function CourtBookingPanel({
     setIsSaving(true)
     setError(null)
 
-    const saved = await updateCourtBookingTransferPaymentStatus(
-      matchId,
-      transferId,
-      isPaid
-    )
+    const saved = actions
+      ? await actions.updateTransfer(transferId, isPaid)
+      : await updateCourtBookingTransferPaymentStatus(matchId, transferId, isPaid)
 
     setIsSaving(false)
 
@@ -669,7 +685,7 @@ export function CourtBookingPanel({
 
           {canManageExistingBooking ? (
             <div className="space-y-2">
-              {pendingTransfersCount > 0 ? (
+              {pendingTransfersCount > 0 && (!actions || actions.sendReminder) ? (
                 <button
                   type="button"
                   onClick={handleSendReminder}

@@ -1347,3 +1347,15 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - `Próximo partido` incorpora `Todos · Liga · Amistoso`, con `Todos` por defecto y selección cronológica del encuentro más cercano entre ambos tipos.
 - Validación local ampliada: 21/21 tests focalizados, ESLint sin avisos, TypeScript, build de producción, presupuesto de fuente (104.427 líneas) y revisión real en navegador correctos. Se confirmó 14:00 como hora local redondeada, cero desbordamiento de selectores abiertos y metadatos de juego sin posición de liga.
 - Estado de publicación: el primer ajuste horario alcanzó `staging` en `f7ab176`, antes de que se solicitara la pausa; la deduplicación, el arreglo visual, los metadatos de jugadores y el filtro `Todos` permanecen únicamente en el workspace local. No se ha promovido esta tanda a Producción.
+
+### Mis partidos: programación, ubicaciones y pagos (2026-08-18)
+
+- La programación del detalle personal reutiliza el mismo formato largo que PARTIDO de Liga, con día, fecha y hora separados mediante puntos medios.
+- El alta y la edición de amistosos comparten un selector de ubicaciones en popup flotante, con fondo difuminado, búsqueda, selección del catálogo global y alta manual.
+- El detalle incorpora `Pagos y reservas`: informa pagadores de pista y bolas, calcula las transferencias entre los cuatro participantes y permite actualizar su estado con permisos equivalentes al flujo de Liga.
+- Se añade la migración aditiva `20260818133000_add_personal_match_bookings.sql`; crea una tabla separada protegida por RLS y accesible únicamente mediante `service_role`, sin modificar migraciones ya aplicadas ni las filas existentes de partidos personales.
+- Las APIs nuevas requieren autenticación, pertenencia al amistoso, límites de petición y validación server-side de participantes e importes. Los recordatorios de pago no se exponen en amistosos porque la mensajería actual depende del contexto de liga.
+- El presupuesto de fuente registra 105.034 líneas, 156 clientes y 47 páginas cliente; el inventario de seguridad incorpora las tres operaciones protegidas de reserva y transferencias personales.
+- Puerta local completa superada con `npm run release:check`: 151 archivos / 508 tests unitarios e integración, 58 tests Playwright, build de producción dentro de presupuesto (836.723 bytes gzip en 85 chunks) y auditoría runtime con 0 vulnerabilidades.
+- Revisión real local completada: fecha con puntos medios, popup de ubicación con fondo difuminado y bloque funcional de pagos visibles en el detalle del amistoso.
+- Pendiente antes de publicación: aplicar y verificar la migración primero en PRE, desplegar `staging`, y solo después repetir migración y promoción en Producción.

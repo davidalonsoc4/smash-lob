@@ -18,6 +18,7 @@ export type PersonalMatchParticipant = {
   avatarUrl?: string | null
   preferredSide?: "drive" | "reves" | "versatile" | null
   dominantHand?: "right" | "left" | null
+  bookingParticipantId?: string | null
 }
 
 export type PersonalMatchItem = {
@@ -36,6 +37,7 @@ export type PersonalMatchItem = {
   seasonId: string | null
   seasonName: string | null
   round: number | null
+  courtBooking?: import("@/context/MatchDataProvider").CourtBooking
 }
 
 export type PersonalMatchesDashboardPayload = {

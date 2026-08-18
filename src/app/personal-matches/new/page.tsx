@@ -6,12 +6,12 @@ import {
   PersonalMatchParticipantSelector,
   type EditablePersonalMatchParticipant,
 } from "@/components/personal/PersonalMatchParticipantSelector"
+import { PersonalMatchLocationPicker } from "@/components/personal/PersonalMatchLocationPicker"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import {
   createLeagueLocation,
   getLeagueLocationCompactText,
-  getLeagueLocationTownNameLabel,
   sortLeagueLocationsByTownNameLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations"
@@ -46,7 +46,6 @@ export default function NewPersonalMatchPage() {
   const [latestFinishedAt, setLatestFinishedAt] = useState("")
   const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState("")
-  const [locationSearch, setLocationSearch] = useState("")
   const [manualLocationName, setManualLocationName] = useState("")
   const [loadingLocations, setLoadingLocations] = useState(true)
   const [sets, setSets] = useState<PersonalMatchSet[]>([
@@ -138,15 +137,6 @@ export default function NewPersonalMatchPage() {
   const selectedGlobalLocation = globalLocations.find(
     (location) => location.id === selectedLocationId,
   ) ?? null
-  const filteredGlobalLocations = useMemo(() => {
-    const query = locationSearch.trim().toLocaleLowerCase("es-ES")
-    if (!query) return globalLocations
-    return globalLocations.filter((location) =>
-      getLeagueLocationTownNameLabel(location)
-        .toLocaleLowerCase("es-ES")
-        .includes(query),
-    )
-  }, [globalLocations, locationSearch])
   const resolvedLocationName = selectedGlobalLocation
     ? getLeagueLocationCompactText(selectedGlobalLocation)
     : manualLocationName.trim()
@@ -278,61 +268,14 @@ export default function NewPersonalMatchPage() {
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
             />
           </label>
-          <div className="block">
-            <span className="text-xs font-black text-neutral-800">Ubicación · opcional</span>
-            <input
-              type="search"
-              value={locationSearch}
-              onChange={(event) => setLocationSearch(event.target.value)}
-              disabled={loadingLocations}
-              placeholder={loadingLocations ? "Cargando ubicaciones..." : "Buscar ubicación..."}
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400 disabled:bg-neutral-100"
-            />
-            {!loadingLocations ? (
-              <>
-                <div className="mt-1.5 flex items-center justify-between gap-2 type-caption font-semibold text-neutral-500">
-                  <span>{filteredGlobalLocations.length} ubicación{filteredGlobalLocations.length === 1 ? "" : "es"}</span>
-                  <span>{locationSearch.trim() ? "Resultados filtrados" : "Desliza para ver más"}</span>
-                </div>
-                <div className="mt-1 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50/70 p-1">
-                  {filteredGlobalLocations.map((location) => {
-                    const selected = selectedLocationId === location.id
-                    return (
-                      <button
-                        key={location.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedLocationId(location.id)
-                          setManualLocationName("")
-                        }}
-                        className={`w-full rounded-lg border px-2.5 py-2 text-left ${selected ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-900"}`}
-                      >
-                        <span className="block truncate text-xs font-black">{getLeagueLocationTownNameLabel(location)}</span>
-                      </button>
-                    )
-                  })}
-                  {filteredGlobalLocations.length === 0 ? (
-                    <p className="px-2 py-3 text-center type-caption font-semibold text-neutral-500">No hay ubicaciones que coincidan.</p>
-                  ) : null}
-                </div>
-              </>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => { setSelectedLocationId(""); setLocationSearch("") }}
-              className={`mt-1.5 w-full rounded-xl border px-3 py-2.5 text-xs font-black ${!selectedLocationId ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-800"}`}
-            >
-              Otra ubicación / introducir nueva
-            </button>
-            {!selectedLocationId ? (
-              <input
-                value={manualLocationName}
-                onChange={(event) => setManualLocationName(event.target.value.slice(0, 120))}
-                placeholder="Nueva ubicación (se guardará en la app)"
-                className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
-              />
-            ) : null}
-          </div>
+          <PersonalMatchLocationPicker
+            locations={globalLocations}
+            loading={loadingLocations}
+            selectedLocationId={selectedLocationId}
+            manualLocationName={manualLocationName}
+            onSelectedLocationIdChange={setSelectedLocationId}
+            onManualLocationNameChange={setManualLocationName}
+          />
         </div>
       </AppCard>
 

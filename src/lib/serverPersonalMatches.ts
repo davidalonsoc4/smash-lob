@@ -26,6 +26,7 @@ import {
   type DominantHand,
   type PreferredPlayerSide,
 } from "@/lib/accountProfile"
+import { getEmptyCourtBooking, normalizeCourtBooking } from "@/lib/courtBooking"
 
 type PersonalMatchPersonRecord = PersonalMatchPerson & {
   userId: string | null
@@ -43,12 +44,21 @@ type PersonalMatchRow = {
 }
 
 type ParticipantRow = {
+  id: string
   match_id: string
   team: number
   slot: number
   user_id: string | null
   source_player_id: string | null
   display_name: string
+}
+
+type PersonalMatchBookingRow = {
+  match_id: string
+  is_reserved: boolean
+  booking_reservations: unknown
+  booking_transfers: unknown
+  booking_updated_at: string | null
 }
 
 type HistoryIndexRow = {
@@ -420,6 +430,7 @@ function mapPersonalMatch(
       dominantHand: DominantHand | null
     }
   > = new Map(),
+  bookingByMatchId: Map<string, PersonalMatchBookingRow> = new Map(),
 ): PersonalMatchItem {
   const sets = normalizeSets(row.sets)
   const participants = sortPersonalMatchParticipants(
@@ -445,6 +456,7 @@ function mapPersonalMatch(
           dominantHand: participant.user_id
             ? accountMetadataByUserId.get(participant.user_id)?.dominantHand ?? null
             : null,
+          bookingParticipantId: participant.id,
         }),
       ),
   )
@@ -466,6 +478,31 @@ function mapPersonalMatch(
     seasonId: null,
     seasonName: null,
     round: null,
+    courtBooking: (() => {
+      const bookingRow = bookingByMatchId.get(row.id)
+      if (!bookingRow) return getEmptyCourtBooking()
+      const reservationPayload =
+        bookingRow.booking_reservations &&
+        typeof bookingRow.booking_reservations === "object"
+          ? (bookingRow.booking_reservations as {
+              reservations?: unknown
+              ballPurchases?: unknown
+            })
+          : {}
+      return normalizeCourtBooking({
+        isReserved: bookingRow.is_reserved,
+        reservations: Array.isArray(reservationPayload.reservations)
+          ? reservationPayload.reservations
+          : [],
+        ballPurchases: Array.isArray(reservationPayload.ballPurchases)
+          ? reservationPayload.ballPurchases
+          : [],
+        transfers: Array.isArray(bookingRow.booking_transfers)
+          ? bookingRow.booking_transfers
+          : [],
+        updatedAt: bookingRow.booking_updated_at,
+      })
+    })(),
   }
 }
 
@@ -491,23 +528,39 @@ async function loadPersonalRows(
 ) {
   if (ids.length === 0) return [] as PersonalMatchItem[]
 
-  const [matchesResult, participantsResult] = await Promise.all([
+  const [matchesResult, participantsResult, bookingsResult] = await Promise.all([
     actor.supabase
       .from("personal_matches")
       .select("id,created_by_user_id,played_at,location_name,sets,status,result_recorded_at")
       .in("id", ids),
     actor.supabase
       .from("personal_match_participants")
-      .select("match_id,team,slot,user_id,source_player_id,display_name")
+      .select("id,match_id,team,slot,user_id,source_player_id,display_name")
+      .in("match_id", ids),
+    actor.supabase
+      .from("personal_match_bookings")
+      .select("match_id,is_reserved,booking_reservations,booking_transfers,booking_updated_at")
       .in("match_id", ids),
   ])
 
-  if (matchesResult.error || participantsResult.error) {
+  if (
+    matchesResult.error ||
+    participantsResult.error ||
+    (bookingsResult.error &&
+      bookingsResult.error.code !== "42P01" &&
+      bookingsResult.error.code !== "PGRST205")
+  ) {
     throw new Error("personal_matches_lookup_failed")
   }
 
   const rows = (matchesResult.data ?? []) as PersonalMatchRow[]
   const participantRows = (participantsResult.data ?? []) as ParticipantRow[]
+  const bookingByMatchId = new Map(
+    ((bookingsResult.data ?? []) as PersonalMatchBookingRow[]).map((booking) => [
+      booking.match_id,
+      booking,
+    ]),
+  )
   const participantUserIds = uniqueStrings(
     participantRows.map((participant) => participant.user_id),
   )
@@ -549,6 +602,7 @@ async function loadPersonalRows(
         participantRows,
         actor.user.id,
         accountMetadataByUserId,
+        bookingByMatchId,
       ),
     ]),
   )

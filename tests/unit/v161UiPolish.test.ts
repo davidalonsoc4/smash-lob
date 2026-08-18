@@ -30,13 +30,16 @@ describe("v1.6.1 UI polish", () => {
     const leagueSchedule = read("src/components/match/MatchScheduleForm.tsx")
     const friendlySchedule = read("src/components/personal/PersonalMatchSchedulePanel.tsx")
     const friendlyNew = read("src/app/personal-matches/new/page.tsx")
+    const friendlyLocationPicker = read("src/components/personal/PersonalMatchLocationPicker.tsx")
     expect(participant).toContain('type="search"')
     expect(participant).toContain("sourceLeagueNames")
     expect(participant).toContain("Otro jugador...")
     expect(leagueSchedule).toContain("filteredAvailableLocations.map")
     expect(leagueSchedule).not.toContain("filteredAvailableLocations.slice(0, 6)")
-    expect(friendlySchedule).toContain("filteredGlobalLocations.map")
-    expect(friendlyNew).toContain("filteredGlobalLocations.map")
+    expect(friendlySchedule).toContain("<PersonalMatchLocationPicker")
+    expect(friendlyNew).toContain("<PersonalMatchLocationPicker")
+    expect(friendlyLocationPicker).toContain("filteredLocations.map")
+    expect(friendlyLocationPicker).toContain('type="search"')
   })
 
   it("extends Help with locations and friendly-player selection", () => {
