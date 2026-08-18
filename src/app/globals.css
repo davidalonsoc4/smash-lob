@@ -65,6 +65,11 @@ textarea {
   line-height: 1.25;
 }
 
+.type-micro {
+  font-size: 0.5625rem;
+  line-height: 1;
+}
+
 .type-small {
   font-size: 0.8125rem;
   line-height: 1.25;

@@ -1293,3 +1293,15 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Puerta local final superada con `npm run release:check`: 147 archivos / 482 tests unitarios e integración, 56 tests Playwright, build de producción dentro de presupuesto y auditoría runtime con 0 vulnerabilidades.
 - Publicación de aplicación verificada en PRE: `staging` `f3dce430b093bdbac043b88e4864d1f0bacf80e7`, despliegue Vercel `dpl_8YdcQKSyCYVhNqKwzEbFxjnpYmmz` READY y alias `pre.smashandlob.com`; el smoke autenticado confirma health v1.10.8/pre, página experimental disponible y API protegida con 401. El smoke público conserva el 302 previsto por la protección SSO de Vercel.
 - Publicación de aplicación verificada en Producción: `main` `395f863bfdb295d7cbad404c111952102253a591`, despliegue Vercel `dpl_6q7GdrxqWQfCtKzZgE59HYtnebQb` READY y alias `smashandlob.com`; `npm run smoke:prod` confirma health v1.10.8/prod, portada disponible y Avatar Lab bloqueado con 404 tanto en página como en API.
+
+### Media Kit — acentos de logo y preset Inicio (2026-08-18)
+
+- La paleta curada incorpora `#53B401` como color de acento frecuente.
+- Cuando existe un logo de liga o se carga uno temporal, el editor lo analiza automáticamente en el navegador y ofrece hasta cuatro colores útiles: tonos dominantes del propio logo y variantes armónicas; logos sin color aprovechable o bloqueados por CORS mantienen intacta la paleta manual.
+- `Inicio` precarga `Volvemos con más ganas`, el número real de jugadores como etiqueta izquierda, `1 campeón` como dato central y el número real de jornadas como etiqueta derecha; el resto de su composición no cambia.
+- Validación local: 11/11 tests focalizados, ESLint, TypeScript, build de producción y presupuesto de fuente correctos (103.756/104.000 líneas).
+- Ajuste visual posterior: las etiquetas `PRESET`, `INFORMATIVO` y `SIN FECHA` de la biblioteca usan un rol tipográfico micro, menor tracking y una sola línea para permanecer dentro de cada burbuja sin alterar el nombre del preset.
+- La biblioteca ordena sus presets según el recorrido de la temporada: Formato, Reglas, En pista, Cuota, Inicio, Cuenta atrás, Apertura, Agenda, Próxima, Jornada, Resultados, Clasificación, MVP y Final.
+- Puerta local final superada con `npm run release:check`: 148 archivos / 487 tests unitarios e integración, 56 tests Playwright, build de producción dentro de presupuesto (828.623 bytes gzip en 85 chunks) y auditoría runtime con 0 vulnerabilidades.
+- No hay migraciones nuevas ni cambios sobre migraciones ya aplicadas; este mismo estado queda autorizado para promoción secuencial a `staging`/PRE y, tras su verificación, a `main`/Producción.
+- Publicación de aplicación verificada en PRE: `staging` `224d764430eccb6a9f6c76ad052a020d7f7ddf49`, despliegue Vercel `dpl_5sk895g3DVBgVFpjwsViMsdiWJ8k` READY y alias `pre.smashandlob.com`; el smoke autenticado confirma health v1.10.8/pre, página experimental disponible y API protegida con 401. El smoke público conserva el 302 previsto por la protección SSO de Vercel.
