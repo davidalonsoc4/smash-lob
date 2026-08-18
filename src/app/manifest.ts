@@ -5,10 +5,11 @@ export default function manifest(): MetadataRoute.Manifest {
   const branding = getAppBranding()
 
   return {
+    id: "/",
     name: branding.applicationName,
     short_name: branding.shortName,
     description: "Ligas, torneos y rankings privados de pádel.",
-    start_url: "/",
+    start_url: "/launch?source=pwa",
     scope: "/",
     display: "standalone",
     background_color: branding.backgroundColor,

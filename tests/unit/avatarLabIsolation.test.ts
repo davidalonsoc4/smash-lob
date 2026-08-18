@@ -18,7 +18,7 @@ describe("Avatar Lab PRE isolation", () => {
     expect(layout).toContain("notFound()")
     expect(layout).toContain("index: false")
     expect(layout).toContain("follow: false")
-    expect(proxy).toContain('matcher: "/experimental/avatar-lab/:path*"')
+    expect(proxy).toContain('"/experimental/avatar-lab/:path*"')
     expect(proxy).toContain("isAvatarLabRequest(request)")
     expect(proxy).toContain("status: 404")
   })

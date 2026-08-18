@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { type CSSProperties, type ReactNode, useEffect } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
+import { PendingAccessIntentNotice } from "@/components/invite/PendingAccessIntentNotice"
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
@@ -443,7 +444,10 @@ export function AppShell({ children }: AppShellProps) {
               </p>
             </div>
           ) : (
-            children
+            <>
+              {pathname === "/" ? <PendingAccessIntentNotice /> : null}
+              {children}
+            </>
           )}
         </main>
 
