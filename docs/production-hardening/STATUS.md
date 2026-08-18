@@ -1334,3 +1334,28 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Puerta completa superada antes de publicación con `npm run release:check`: 150 archivos / 502 tests unitarios e integración, 58 tests Playwright, build de 830.472 bytes gzip en 85 chunks y auditoría runtime con 0 vulnerabilidades. No hay migraciones ni cambios de datos persistentes.
 - La primera inspección autenticada de PRE confirmó health v1.10.8/pre y `/changelog` con 200, y detectó metadatos de fecha vacíos serializados en entradas antiguas sin fecha. Se omiten ahora esas propiedades cuando no existen; 8/8 tests focalizados, ESLint, TypeScript y build de producción vuelven a quedar correctos antes de la promoción.
 - Publicación de aplicación verificada en PRE: `staging` `55823fdd47750da4e13321e1a3cb696a18b188ac`, despliegue Vercel `dpl_6HYXajo2Mn8JMEywbAbBPC89tqwe` READY y alias `pre.smashandlob.com`; health confirma v1.10.8/pre y `/changelog` responde 200 con la copia pública curada, sin `overrides competitivos` ni propiedades de fecha vacías.
+- Publicación de aplicación verificada en Producción: `main` `fb2c1b9fef69a398972c9c01e0d0f912d8ff0f77`, despliegue Vercel `dpl_7SG5LJZzQ9Za3suGY8C31Jkxv27q` READY y alias `smashandlob.com`; `npm run smoke:prod` confirma v1.10.8/prod, portada disponible y Avatar Lab bloqueado. La inspección específica de `/changelog` confirma la copia pública curada y cero propiedades de fecha vacías.
+
+### Mis partidos: hora, jugadores y detalle de amistosos (2026-08-18)
+
+- `Mis partidos > Crear encuentro` usa ahora la hora local del dispositivo y la redondea siempre a la siguiente hora en punto: por ejemplo, 13:17 precarga 14:00; el cambio de 23:42 a 00:00 del día siguiente también queda cubierto.
+- El selector declara pasos de una hora y reutiliza la misma función de redondeo que la programación de partidos de liga, sin modificar la conversión posterior a UTC al guardar.
+- Validación local: 12/12 tests focalizados, ESLint, TypeScript, build de producción, presupuesto de fuente (104.287 líneas) y `git diff --check` correctos. No hay migraciones ni cambios de datos persistentes.
+- La lista para registrar un amistoso absorbe jugadores históricos sin cuenta vinculada cuando su nombre identifica de forma inequívoca a una única cuenta; acumula todas sus ligas en una sola opción y conserva separadas las coincidencias ambiguas entre dos cuentas reales.
+- Los selectores de pareja y rivales limitan su ancho, permiten encoger el bloque de texto y recortan etiquetas secundarias largas para no salir del panel contenedor.
+- El detalle de un amistoso carga `preferred_side` y `dominant_hand` de las cuentas participantes y muestra etiquetas como `REVÉS DIESTRO` en el mismo panel de parejas; no dibuja la línea de posición de liga y omite la etiqueta para perfiles externos o incompletos.
+- `Próximo partido` incorpora `Todos · Liga · Amistoso`, con `Todos` por defecto y selección cronológica del encuentro más cercano entre ambos tipos.
+- Validación local ampliada: 21/21 tests focalizados, ESLint sin avisos, TypeScript, build de producción, presupuesto de fuente (104.427 líneas) y revisión real en navegador correctos. Se confirmó 14:00 como hora local redondeada, cero desbordamiento de selectores abiertos y metadatos de juego sin posición de liga.
+- Estado de publicación: el primer ajuste horario alcanzó `staging` en `f7ab176`, antes de que se solicitara la pausa; la deduplicación, el arreglo visual, los metadatos de jugadores y el filtro `Todos` permanecen únicamente en el workspace local. No se ha promovido esta tanda a Producción.
+
+### Mis partidos: programación, ubicaciones y pagos (2026-08-18)
+
+- La programación del detalle personal reutiliza el mismo formato largo que PARTIDO de Liga, con día, fecha y hora separados mediante puntos medios.
+- El alta y la edición de amistosos comparten un selector de ubicaciones en popup flotante, con fondo difuminado, búsqueda, selección del catálogo global y alta manual.
+- El detalle incorpora `Pagos y reservas`: informa pagadores de pista y bolas, calcula las transferencias entre los cuatro participantes y permite actualizar su estado con permisos equivalentes al flujo de Liga.
+- Se añade la migración aditiva `20260818133000_add_personal_match_bookings.sql`; crea una tabla separada protegida por RLS y accesible únicamente mediante `service_role`, sin modificar migraciones ya aplicadas ni las filas existentes de partidos personales.
+- Las APIs nuevas requieren autenticación, pertenencia al amistoso, límites de petición y validación server-side de participantes e importes. Los recordatorios de pago no se exponen en amistosos porque la mensajería actual depende del contexto de liga.
+- El presupuesto de fuente registra 105.034 líneas, 156 clientes y 47 páginas cliente; el inventario de seguridad incorpora las tres operaciones protegidas de reserva y transferencias personales.
+- Puerta local completa superada con `npm run release:check`: 151 archivos / 508 tests unitarios e integración, 58 tests Playwright, build de producción dentro de presupuesto (836.723 bytes gzip en 85 chunks) y auditoría runtime con 0 vulnerabilidades.
+- Revisión real local completada: fecha con puntos medios, popup de ubicación con fondo difuminado y bloque funcional de pagos visibles en el detalle del amistoso.
+- Pendiente antes de publicación: aplicar y verificar la migración primero en PRE, desplegar `staging`, y solo después repetir migración y promoción en Producción.

@@ -53,20 +53,23 @@ assert(
 )
 assert(
   pairingPanel.includes('const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\\u00a0"}</p>') &&
-    pairingPanel.includes('const playLine = <p className={metadataClass}>{playerPositionLabel ?? "\\u00a0"}</p>'),
-  "Sin resultado, posición y perfil de juego deben ocupar líneas independientes y estables",
+    pairingPanel.includes("const playLine = playerPositionLabel ? (") &&
+    pairingPanel.includes("{showRankingPosition ? positionLine : null}"),
+  "Sin resultado, posición de liga y perfil de juego deben conservar líneas independientes",
 )
 const finishedPlayer = pairingPanel.slice(
   pairingPanel.indexOf("function FinishedPlayerName({"),
   pairingPanel.indexOf("function FinishedPairRow({"),
 )
 assert(
-  !finishedPlayer.includes("getPlayerSideAndHandLabel") && !finishedPlayer.includes("position"),
-  "Con resultado deben ocultarse posición en liga y perfil de juego",
+  finishedPlayer.includes("getPlayerSideAndHandLabel") &&
+    finishedPlayer.includes("showPlayerMetadata && playerPositionLabel") &&
+    !finishedPlayer.includes("en liga"),
+  "Con resultado debe poder mostrarse el perfil de juego sin posición en liga",
 )
 assert(
-  pairingPanel.includes("const showPendingMetadata = Object.keys(rankingPositions).length > 0"),
-  "Los metadatos competitivos deben limitarse a detalles con posiciones de liga",
+  pairingPanel.includes("const showPendingMetadata = showPlayerMetadata || showRankingPosition"),
+  "Los metadatos deben distinguir entre posición competitiva y perfil personal",
 )
 
 assert(personalPage.includes("<PersonalMatchParticipantsPanel"), "El amistoso debe permitir editar participantes desde PARTIDO")

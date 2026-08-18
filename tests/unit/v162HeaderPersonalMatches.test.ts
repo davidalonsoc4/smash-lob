@@ -32,11 +32,25 @@ describe("v1.6.2 homogeneous headers and personal match flow", () => {
   it("replaces Programar / Ya jugado tabs with an optional result", () => {
     const page = read("src/app/personal-matches/new/page.tsx")
     expect(page).toContain("Crear encuentro")
+    expect(page).toContain("formatNextFullHourForDateTimeInput(now)")
+    expect(page).toContain('type="datetime-local"')
+    expect(page).toContain("step={3600}")
     expect(page).toContain("Resultado · opcional")
     expect(page).toContain("const [includeResult, setIncludeResult] = useState(false)")
     expect(page).toContain('status: includeResult ? "finished" : "scheduled"')
     expect(page).toContain("Añadir resultado")
     expect(page).not.toContain('setStatus("scheduled")')
     expect(page).not.toContain('setStatus("finished")')
+  })
+
+  it("defaults the next-match switch to Todos and keeps player selectors inside their cards", () => {
+    const page = read("src/app/personal-matches/page.tsx")
+    const selector = read("src/components/personal/PersonalMatchParticipantSelector.tsx")
+
+    expect(page).toContain('useState<PersonalMatchNextScope>("all")')
+    expect(page).toContain('(["all", "league", "friendly"] as const)')
+    expect(page).toContain('scope === "all"')
+    expect(selector).toContain("min-w-0 max-w-full overflow-hidden rounded-xl")
+    expect(selector).toContain("min-w-0 flex-1")
   })
 })

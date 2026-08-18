@@ -8,6 +8,7 @@ import {
   getPersonalMatchSetWins,
   getPersonalMatchTeamNames,
   getPersonalMatchTeamPlayers,
+  selectUpcomingPersonalMatch,
   type PersonalMatchItem,
 } from "@/lib/personalMatches"
 
@@ -92,5 +93,24 @@ describe("personal matches", () => {
         })),
       }),
     ).toBe("unknown")
+  })
+
+  it("selects the earliest upcoming match by default and preserves explicit filters", () => {
+    const league = {
+      ...match,
+      id: "league-next",
+      origin: "league" as const,
+      scheduledAt: "2026-08-18T14:00:00.000Z",
+    }
+    const friendly = {
+      ...match,
+      id: "friendly-next",
+      scheduledAt: "2026-08-18T13:00:00.000Z",
+    }
+    const upcoming = { league, friendly }
+
+    expect(selectUpcomingPersonalMatch(upcoming, "all")?.id).toBe("friendly-next")
+    expect(selectUpcomingPersonalMatch(upcoming, "league")?.id).toBe("league-next")
+    expect(selectUpcomingPersonalMatch(upcoming, "friendly")?.id).toBe("friendly-next")
   })
 })

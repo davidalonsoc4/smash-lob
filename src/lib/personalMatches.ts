@@ -7,7 +7,7 @@ export type PersonalMatchTeam = 1 | 2
 export type PersonalMatchSlot = 1 | 2
 export type PersonalMatchOrigin = "friendly" | "league"
 export type PersonalMatchStatus = "scheduled" | "finished"
-export type PersonalMatchNextScope = "league" | "friendly"
+export type PersonalMatchNextScope = "all" | "league" | "friendly"
 
 export type PersonalMatchParticipant = {
   team: PersonalMatchTeam
@@ -16,6 +16,9 @@ export type PersonalMatchParticipant = {
   isCurrentUser: boolean
   personKey?: string | null
   avatarUrl?: string | null
+  preferredSide?: "drive" | "reves" | "versatile" | null
+  dominantHand?: "right" | "left" | null
+  bookingParticipantId?: string | null
 }
 
 export type PersonalMatchItem = {
@@ -34,6 +37,7 @@ export type PersonalMatchItem = {
   seasonId: string | null
   seasonName: string | null
   round: number | null
+  courtBooking?: import("@/context/MatchDataProvider").CourtBooking
 }
 
 export type PersonalMatchesDashboardPayload = {
@@ -121,6 +125,22 @@ export function getPersonalMatchEventAt(
   match: Pick<PersonalMatchItem, "scheduledAt" | "resultRecordedAt">,
 ) {
   return match.scheduledAt ?? match.resultRecordedAt
+}
+
+export function selectUpcomingPersonalMatch(
+  upcoming: PersonalMatchesDashboardPayload["upcoming"],
+  scope: PersonalMatchNextScope,
+) {
+  if (scope === "league") return upcoming.league ?? upcoming.friendly
+  if (scope === "friendly") return upcoming.friendly ?? upcoming.league
+
+  return [upcoming.league, upcoming.friendly]
+    .filter((item): item is PersonalMatchItem => Boolean(item))
+    .sort(
+      (left, right) =>
+        Date.parse(getPersonalMatchEventAt(left) ?? "") -
+        Date.parse(getPersonalMatchEventAt(right) ?? ""),
+    )[0] ?? null
 }
 
 export function formatPersonalMatchDate(value: string | null) {

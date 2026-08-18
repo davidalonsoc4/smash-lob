@@ -37,11 +37,13 @@ describe("v1.6.8 league recommended locations", () => {
   })
 
   it("uses the same visible catalog label in personal-match location searches", async () => {
-    const [createFriendly, scheduleFriendly] = await Promise.all([
+    const [createFriendly, scheduleFriendly, locationPicker] = await Promise.all([
       readFile("src/app/personal-matches/new/page.tsx", "utf8"),
       readFile("src/components/personal/PersonalMatchSchedulePanel.tsx", "utf8"),
+      readFile("src/components/personal/PersonalMatchLocationPicker.tsx", "utf8"),
     ])
-    expect(createFriendly).toContain("getLeagueLocationTownNameLabel(location)")
-    expect(scheduleFriendly).toContain("getLeagueLocationTownNameLabel(location)")
+    expect(createFriendly).toContain("<PersonalMatchLocationPicker")
+    expect(scheduleFriendly).toContain("<PersonalMatchLocationPicker")
+    expect(locationPicker).toContain("getLeagueLocationTownNameLabel(location)")
   })
 })

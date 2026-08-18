@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
+import { PersonalMatchCourtBookingPanel } from "@/components/personal/PersonalMatchCourtBookingPanel"
 import { PersonalMatchResultForm } from "@/components/personal/PersonalMatchResultForm"
 import { PersonalMatchSchedulePanel } from "@/components/personal/PersonalMatchSchedulePanel"
 import { AppCard } from "@/components/ui/AppCard"
@@ -50,7 +51,7 @@ export default function PersonalMatchDetailPage() {
     if (!item) return null
     const sorted = sortPersonalMatchParticipants(item.participants)
     const players: PlayerProfile[] = sorted.map((participant) => ({
-      id: `personal-${participant.team}-${participant.slot}`,
+      id: participant.bookingParticipantId ?? `personal-${participant.team}-${participant.slot}`,
       leagueId: "personal",
       slug: `personal-${participant.team}-${participant.slot}`,
       displayName: participant.displayName,
@@ -63,13 +64,15 @@ export default function PersonalMatchDetailPage() {
         .toUpperCase() || "JG",
       avatarUrl: participant.avatarUrl ?? null,
       userId: null,
+      preferredSide: participant.preferredSide ?? null,
+      dominantHand: participant.dominantHand ?? null,
     }))
     const teamA = sorted
       .filter((participant) => participant.team === 1)
-      .map((participant) => `personal-${participant.team}-${participant.slot}`)
+      .map((participant) => participant.bookingParticipantId ?? `personal-${participant.team}-${participant.slot}`)
     const teamB = sorted
       .filter((participant) => participant.team === 2)
-      .map((participant) => `personal-${participant.team}-${participant.slot}`)
+      .map((participant) => participant.bookingParticipantId ?? `personal-${participant.team}-${participant.slot}`)
     const pointsA = item.status === "finished"
       ? item.sets.filter((set) => set.a > set.b).length
       : null
@@ -137,11 +140,14 @@ export default function PersonalMatchDetailPage() {
         pointsB: scoreboard.pointsB,
         sets: item.sets,
         linkPlayers: false,
+        showPlayerMetadata: true,
       }}
     >
       <PersonalMatchParticipantsPanel match={item} onUpdated={setItem} />
 
       <PersonalMatchSchedulePanel match={item} onUpdated={setItem} />
+
+      <PersonalMatchCourtBookingPanel match={item} onUpdated={setItem} />
 
       {item.status === "scheduled" && item.canManage ? (
         <PersonalMatchResultForm
