@@ -75,7 +75,7 @@ export async function POST(
       type: "season_player_joined",
       title: result.rosterComplete ? "Plantilla completa" : "Nuevo jugador inscrito",
       description: result.rosterComplete
-        ? `${access.actor.user.displayName ?? access.actor.user.email} ha ocupado la última plaza. Ya puedes comenzar la temporada.`
+        ? `${access.actor.user.displayName ?? access.actor.user.email} ha ocupado la última plaza. La plantilla ya está completa y el calendario programado puede prepararse.`
         : `${access.actor.user.displayName ?? access.actor.user.email} se ha unido a la temporada.`,
       metadata: {
         playerId: result.playerId,

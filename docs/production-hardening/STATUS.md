@@ -1,3 +1,13 @@
+# v1.10.15 — Calendario preparado antes del inicio programado (2026-08-19)
+
+- Las temporadas programadas con `roster_mode = self_registration` dejan de esperar al momento de activación para crear partidos: cuando la plantilla está completa se genera el calendario manteniendo la temporada en `upcoming`.
+- `/api/access` ejecuta primero una preparación idempotente de calendarios programados y después la activación de los que ya han alcanzado `scheduled_start_at`; esto cubre también temporadas ya existentes en PRE/PROD.
+- La preparación no depende de que las cuotas estén pagadas: los emparejamientos dependen de la plantilla. La activación real conserva el gate de cuotas pendiente.
+- `server_start_self_registration_season` reutiliza los partidos preparados y valida que el calendario siga siendo compatible con la plantilla, evitando duplicados.
+- Si un administrador libera una plaza antes del inicio, el RPC elimina el calendario preparado en la misma transacción; al completarse de nuevo la plantilla se genera uno nuevo.
+- Nueva migración `20260818232000_prepare_scheduled_self_registration_calendar.sql`.
+- VISTA ADMIN ON conserva acceso previo al calendario; VISTA ADMIN OFF y jugadores normales mantienen el bloqueo programado.
+
 # v1.10.14 — VISTA ADMIN y simulación de temporada programada (2026-08-19)
 
 - Se corrige el bypass excesivo introducido al permitir que los administradores navegasen una temporada programada: el rol real por sí solo ya no evita el bloqueo de jugador.

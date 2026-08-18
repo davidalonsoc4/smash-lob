@@ -7,7 +7,10 @@ import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
-import { activateDueScheduledSeasons } from "@/lib/serverScheduledSeason"
+import {
+  activateDueScheduledSeasons,
+  prepareScheduledSeasonCalendars,
+} from "@/lib/serverScheduledSeason"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type {
   SeasonRoundSettings,
@@ -191,6 +194,17 @@ export async function GET() {
       spectatorLeagueIds: effectiveSpectatorLeagueIds,
       matches: [],
       seasonSnapshot: emptySeasonSnapshot,
+    })
+  }
+
+  try {
+    await prepareScheduledSeasonCalendars({ actor: authResult.actor, leagueIds })
+  } catch (scheduledPrepareError) {
+    logServerEvent("warn", "scheduled-season-calendar-prepare-failed", {
+      errorCode:
+        scheduledPrepareError instanceof Error
+          ? scheduledPrepareError.message
+          : "unknown",
     })
   }
 
