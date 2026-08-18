@@ -37,4 +37,22 @@ describe("changelog grouping", () => {
   it("keeps an unrecognized label intact", () => {
     expect(getVersionBlock("próximamente")).toBe("próximamente")
   })
+
+  it("uses source date boundaries instead of nesting an existing display range", () => {
+    const rangedRelease = {
+      ...release("v1.8.12 – v1.8.16", "16 de agosto", ["a"]),
+      dateRange: "14 de agosto – 16 de agosto",
+      firstDate: "14 de agosto",
+      latestDate: "16 de agosto",
+    }
+    const blocks = groupReleasesByVersionBlock([
+      rangedRelease,
+      release("v1.8.0", "12 de agosto", ["b"]),
+    ])
+
+    expect(blocks[0]).toMatchObject({
+      latestDate: "16 de agosto",
+      firstDate: "12 de agosto",
+    })
+  })
 })

@@ -57,9 +57,16 @@ export function ChangelogContent({
                   <span className="text-sm font-black text-neutral-950">
                     {block.version}
                   </span>
-                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
-                    {block.releases.length} versiones
-                  </span>
+                  {detailed ? (
+                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
+                      {block.releases.length}{" "}
+                      {block.releases.length === 1 ? "versión" : "versiones"}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-neutral-600">
+                      Resumen público
+                    </span>
+                  )}
                   {blockIndex === 0 ? (
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] text-emerald-700">
                       Actual
@@ -78,7 +85,7 @@ export function ChangelogContent({
                 <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
                   {detailed
                     ? `${block.changeCount} cambios documentados. Abre la serie para consultar cada versión y su detalle técnico.`
-                    : "Novedades, mejoras y correcciones publicadas en esta serie."}
+                    : "Versiones equivalentes agrupadas para mostrar únicamente las novedades, mejoras y correcciones relevantes."}
                 </p>
               </div>
 
@@ -107,9 +114,15 @@ export function ChangelogContent({
                       >
                         {category.label}
                       </span>
-                      {release.date ? (
-                        <span className="type-caption font-bold uppercase tracking-[0.12em] text-neutral-400">
-                          {release.date}
+                      {release.dateRange ?? release.date ? (
+                        <span
+                          className={
+                            detailed
+                              ? "type-caption font-bold uppercase tracking-[0.12em] text-neutral-400"
+                              : "rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500"
+                          }
+                        >
+                          {release.dateRange ?? release.date}
                         </span>
                       ) : null}
                     </div>
@@ -121,20 +134,22 @@ export function ChangelogContent({
                       {release.summary}
                     </p>
 
-                    <ul className="mt-2 space-y-2">
-                      {release.changes.map((change) => (
-                        <li
-                          key={change}
-                          className="flex gap-2 text-xs font-semibold leading-5 text-neutral-600"
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400"
-                          />
-                          <span>{change}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {release.changes.length ? (
+                      <ul className="mt-2 space-y-2">
+                        {release.changes.map((change) => (
+                          <li
+                            key={change}
+                            className="flex gap-2 text-xs font-semibold leading-5 text-neutral-600"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400"
+                            />
+                            <span>{change}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </section>
                 )
               })}
