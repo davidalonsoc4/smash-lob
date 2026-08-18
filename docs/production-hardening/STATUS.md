@@ -1334,3 +1334,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Puerta completa superada antes de publicación con `npm run release:check`: 150 archivos / 502 tests unitarios e integración, 58 tests Playwright, build de 830.472 bytes gzip en 85 chunks y auditoría runtime con 0 vulnerabilidades. No hay migraciones ni cambios de datos persistentes.
 - La primera inspección autenticada de PRE confirmó health v1.10.8/pre y `/changelog` con 200, y detectó metadatos de fecha vacíos serializados en entradas antiguas sin fecha. Se omiten ahora esas propiedades cuando no existen; 8/8 tests focalizados, ESLint, TypeScript y build de producción vuelven a quedar correctos antes de la promoción.
 - Publicación de aplicación verificada en PRE: `staging` `55823fdd47750da4e13321e1a3cb696a18b188ac`, despliegue Vercel `dpl_6HYXajo2Mn8JMEywbAbBPC89tqwe` READY y alias `pre.smashandlob.com`; health confirma v1.10.8/pre y `/changelog` responde 200 con la copia pública curada, sin `overrides competitivos` ni propiedades de fecha vacías.
+- Publicación de aplicación verificada en Producción: `main` `fb2c1b9fef69a398972c9c01e0d0f912d8ff0f77`, despliegue Vercel `dpl_7SG5LJZzQ9Za3suGY8C31Jkxv27q` READY y alias `smashandlob.com`; `npm run smoke:prod` confirma v1.10.8/prod, portada disponible y Avatar Lab bloqueado. La inspección específica de `/changelog` confirma la copia pública curada y cero propiedades de fecha vacías.
+
+### Hora inicial de amistosos (2026-08-18)
+
+- `Mis partidos > Crear encuentro` usa ahora la hora local del dispositivo y la redondea siempre a la siguiente hora en punto: por ejemplo, 13:17 precarga 14:00; el cambio de 23:42 a 00:00 del día siguiente también queda cubierto.
+- El selector declara pasos de una hora y reutiliza la misma función de redondeo que la programación de partidos de liga, sin modificar la conversión posterior a UTC al guardar.
+- Validación local: 12/12 tests focalizados, ESLint, TypeScript, build de producción, presupuesto de fuente (104.287 líneas) y `git diff --check` correctos. No hay migraciones ni cambios de datos persistentes.

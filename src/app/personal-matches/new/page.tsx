@@ -19,6 +19,7 @@ import type {
   PersonalMatchPerson,
   PersonalMatchSet,
 } from "@/lib/personalMatches"
+import { formatNextFullHourForDateTimeInput } from "@/lib/matchScheduleTime"
 
 function localDateTimeValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60_000
@@ -59,7 +60,7 @@ export default function NewPersonalMatchPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const now = new Date()
-      setScheduledAt(localDateTimeValue(new Date(now.getTime() + 60 * 60 * 1000)))
+      setScheduledAt(formatNextFullHourForDateTimeInput(now))
       setLatestFinishedAt(localDateTimeValue(new Date(now.getTime() + 24 * 60 * 60 * 1000)))
     }, 0)
 
@@ -270,6 +271,7 @@ export default function NewPersonalMatchPage() {
             <span className="text-xs font-black text-neutral-800">Fecha y hora</span>
             <input
               type="datetime-local"
+              step={3600}
               value={scheduledAt}
               max={includeResult ? latestFinishedAt || undefined : undefined}
               onChange={(event) => setScheduledAt(event.target.value)}

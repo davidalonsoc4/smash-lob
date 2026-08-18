@@ -32,6 +32,9 @@ describe("v1.6.2 homogeneous headers and personal match flow", () => {
   it("replaces Programar / Ya jugado tabs with an optional result", () => {
     const page = read("src/app/personal-matches/new/page.tsx")
     expect(page).toContain("Crear encuentro")
+    expect(page).toContain("formatNextFullHourForDateTimeInput(now)")
+    expect(page).toContain('type="datetime-local"')
+    expect(page).toContain("step={3600}")
     expect(page).toContain("Resultado · opcional")
     expect(page).toContain("const [includeResult, setIncludeResult] = useState(false)")
     expect(page).toContain('status: includeResult ? "finished" : "scheduled"')
