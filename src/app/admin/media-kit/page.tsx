@@ -25,6 +25,7 @@ import {
 import { getSeasonCountdown, formatScheduledSeasonStart, SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundMvpSelection, getSeasonMvpSelection } from "@/lib/mvp"
+import { extractLogoAccentPalette } from "@/lib/logoAccentPalette"
 import {
   createLeagueMediaKitImage,
   downloadLeagueMediaKitImage,
@@ -67,7 +68,24 @@ const compactPresetTitles: Record<LeagueMediaKitKind, string> = {
   season_final: "Final",
 }
 
-const openingAccentOptions = ["#d7a544", "#bb9448", "#d4643c", "#3d9d86", "#477bd1", "#8b5fc0"]
+const presetOrder: LeagueMediaKitKind[] = [
+  "format",
+  "rules",
+  "gameplay",
+  "registration",
+  "start",
+  "countdown",
+  "opening",
+  "calendar",
+  "next_round",
+  "matchday",
+  "results",
+  "standings",
+  "mvp",
+  "season_final",
+]
+
+const openingAccentOptions = ["#d7a544", "#53B401", "#bb9448", "#d4643c", "#3d9d86", "#477bd1", "#8b5fc0"]
 const openingHeadlineFontOptions: Array<{ id: LeagueMediaKitHeadlineFont; label: string; detail: string; sampleClass: string }> = [
   { id: "impact", label: "Impacto", detail: "Cartel deportivo", sampleClass: "font-black tracking-tight" },
   { id: "condensed", label: "Condensada", detail: "Alta y precisa", sampleClass: "font-black tracking-[-.08em]" },
@@ -240,6 +258,7 @@ export default function MediaKitPage() {
   const [showCustomAccent, setShowCustomAccent] = useState(false)
   const [openingHeadlineFont, setOpeningHeadlineFont] = useState<LeagueMediaKitHeadlineFont>("editorial")
   const [openingLogoOverride, setOpeningLogoOverride] = useState<string | null>(null)
+  const [logoAccentResult, setLogoAccentResult] = useState<{ source: string; colors: string[]; failed: boolean } | null>(null)
   const [spotlightImageUrl, setSpotlightImageUrl] = useState<string | null>(null)
   const [formatRows, setFormatRows] = useState<LeagueMediaKitImageData["rows"]>([
     { label: "Clasificación individual", value: "Cada jugador compite por su propia posición y suma sus resultados jornada a jornada.", icon: mediaKitIconToken("chart") },
@@ -254,6 +273,15 @@ export default function MediaKitPage() {
   const [activePresetKind, setActivePresetKind] = useState<LeagueMediaKitKind>("opening")
   const [workspaceView, setWorkspaceView] = useState<"preview" | "customize">("preview")
   const canManage = isLeagueAdmin(activeLeague.id)
+  const accentLogoUrl = openingLogoOverride ?? activeLeague.logoUrl
+  const logoAccentSuggestions = logoAccentResult && logoAccentResult.source === accentLogoUrl ? logoAccentResult.colors : []
+  const logoAccentStatus = !accentLogoUrl
+    ? "idle"
+    : logoAccentResult?.source !== accentLogoUrl
+      ? "loading"
+      : logoAccentResult.failed || logoAccentResult.colors.length === 0
+        ? "error"
+        : "ready"
   const scheduledLabel = formatScheduledSeasonStart(roundSettings.scheduledStartAt)
   const countdown = getSeasonCountdown(roundSettings.scheduledStartAt)
   const matchdayRoundNumbers = [...new Set(sortedMatchdayMatches.map((match) => match.round))]
@@ -399,7 +427,7 @@ export default function MediaKitPage() {
       const status = round.status === "completed" ? "completada" : round.status === "active" ? "en curso" : round.status === "overdue" ? "fuera de plazo" : "pendiente"
       return `Jornada ${round.round}${windowText ? ` · ${windowText}` : ""} · ${status}`
     }) } },
-    { kind: "start", data: { ...base, kind: "start", eyebrow: "Reserva la fecha", title: "Inicio de temporada", subtitle: activeSeason.name, eventDateLabel: scheduledLabel?.split(" · ")[0] ?? "FECHA POR CONFIRMAR", roundLabel: "TEMPORADA", eventTimeLabel: scheduledLabel?.split(" · ")[1] ?? "PRÓXIMAMENTE", venue: `${players.length} JUGADORES`, heroLabel: scheduledLabel ? "Comienza" : "Estado", heroValue: scheduledLabel ?? "Inicio pendiente", rows: [
+    { kind: "start", data: { ...base, kind: "start", eyebrow: "Reserva la fecha", title: "Inicio de temporada", subtitle: "Volvemos con más ganas", eventDateLabel: scheduledLabel?.split(" · ")[0] ?? "FECHA POR CONFIRMAR", roundLabel: `${players.length} jugadores`, eventTimeLabel: "1 campeón", venue: `${activeSeason.totalRounds} jornadas`, heroLabel: scheduledLabel ? "Comienza" : "Estado", heroValue: scheduledLabel ?? "Inicio pendiente", rows: [
       { label: "Temporada", value: activeSeason.name },
       { label: "Jugadores", value: String(players.length) },
       { label: "Jornadas", value: String(activeSeason.totalRounds) },
@@ -420,6 +448,7 @@ export default function MediaKitPage() {
     rows: [],
   }
   const presets = [{ kind: "opening" as const, data: openingPresetData, disabled: false }, ...pieces]
+    .sort((first, second) => presetOrder.indexOf(first.kind) - presetOrder.indexOf(second.kind))
 
   function applyPresetData(kind: LeagueMediaKitKind, data: LeagueMediaKitImageData) {
     setOpeningTitle(data.title)
@@ -454,6 +483,21 @@ export default function MediaKitPage() {
     // The season id is the synchronization boundary; preset data is rebuilt for that season.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSeason.id])
+
+  useEffect(() => {
+    let active = true
+    if (!accentLogoUrl) return () => { active = false }
+    void extractLogoAccentPalette(accentLogoUrl)
+      .then((colors) => {
+        if (!active) return
+        setLogoAccentResult({ source: accentLogoUrl, colors, failed: false })
+      })
+      .catch(() => {
+        if (!active) return
+        setLogoAccentResult({ source: accentLogoUrl, colors: [], failed: true })
+      })
+    return () => { active = false }
+  }, [accentLogoUrl])
 
   function loadPreset(kind: LeagueMediaKitKind, data: LeagueMediaKitImageData) {
     setActivePresetKind(kind)
@@ -638,7 +682,7 @@ export default function MediaKitPage() {
           <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {presets.map(({ kind, data, disabled }) => {
               const isActive = activePresetKind === kind
-              return <button key={kind} type="button" title={disabled ? "Configura fecha de inicio" : data.subtitle || titles[kind]} aria-pressed={isActive} disabled={Boolean(disabled || busy)} onClick={() => loadPreset(kind, data)} className={`min-h-[58px] min-w-[104px] snap-start rounded-2xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/5 disabled:text-neutral-600 ${isActive ? "border-amber-300 bg-amber-300 text-neutral-950 shadow-lg shadow-amber-300/10" : "border-white/10 bg-white/[.06] text-white"}`}><span className="block type-caption font-black uppercase tracking-[.16em] opacity-60">{disabled ? "Sin fecha" : kind === "format" || kind === "rules" || kind === "gameplay" ? "Informativo" : "Preset"}</span><span className="mt-1 block text-xs font-black">{compactPresetTitles[kind]}</span></button>
+              return <button key={kind} type="button" title={disabled ? "Configura fecha de inicio" : data.subtitle || titles[kind]} aria-pressed={isActive} disabled={Boolean(disabled || busy)} onClick={() => loadPreset(kind, data)} className={`min-h-[58px] min-w-[104px] snap-start rounded-2xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/5 disabled:text-neutral-600 ${isActive ? "border-amber-300 bg-amber-300 text-neutral-950 shadow-lg shadow-amber-300/10" : "border-white/10 bg-white/[.06] text-white"}`}><span className="block whitespace-nowrap type-micro font-black uppercase tracking-[.1em] opacity-60">{disabled ? "Sin fecha" : kind === "format" || kind === "rules" || kind === "gameplay" ? "Informativo" : "Preset"}</span><span className="mt-1 block text-xs font-black">{compactPresetTitles[kind]}</span></button>
             })}
           </div>
         </section>
@@ -812,7 +856,7 @@ export default function MediaKitPage() {
               <div className="rounded-2xl border border-neutral-200 p-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="type-caption font-black text-neutral-700">Tipografía del titular<select aria-label="Diseño del titular" value={openingHeadlineFont} onChange={(event) => setOpeningHeadlineFont(event.target.value as LeagueMediaKitHeadlineFont)} className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-black text-neutral-900 outline-none focus:border-neutral-950">{openingHeadlineFontOptions.map((option) => <option key={option.id} value={option.id}>{option.label} · {option.detail}</option>)}</select></label>
-                  <div><p className="type-caption font-black text-neutral-700">Color de acento</p><div className="mt-2 flex flex-wrap items-center gap-2">{openingAccentOptions.map((color) => <button key={color} type="button" aria-label={`Usar color ${color}`} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}<button type="button" aria-label="Color personalizado" aria-expanded={showCustomAccent} onClick={() => { setShowCustomAccent((current) => !current); setCustomAccentDraft(openingAccent) }} className={`min-h-8 rounded-full border px-3 type-caption font-black ${showCustomAccent ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700"}`}>+ Propio</button></div></div>
+                  <div><p className="type-caption font-black text-neutral-700">Color de acento</p><div className="mt-2 flex flex-wrap items-center gap-2">{openingAccentOptions.map((color) => <button key={color} type="button" aria-label={`Usar color ${color}`} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}<button type="button" aria-label="Color personalizado" aria-expanded={showCustomAccent} onClick={() => { setShowCustomAccent((current) => !current); setCustomAccentDraft(openingAccent) }} className={`min-h-8 rounded-full border px-3 type-caption font-black ${showCustomAccent ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700"}`}>+ Propio</button></div>{accentLogoUrl ? <div className="mt-2 rounded-xl bg-neutral-50 px-2.5 py-2"><div className="flex items-center justify-between gap-2"><p className="type-caption font-black text-neutral-600">Sugeridos por el logo</p>{logoAccentStatus === "loading" ? <span className="type-caption font-bold text-neutral-400">Analizando…</span> : null}</div>{logoAccentStatus === "ready" ? <div className="mt-1.5 flex flex-wrap gap-2">{logoAccentSuggestions.map((color) => <button key={color} type="button" aria-label={`Usar color del logo ${color}`} title={color} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}</div> : null}{logoAccentStatus === "error" ? <p className="mt-1 type-caption font-semibold text-neutral-400">No se han podido extraer colores útiles de este logo.</p> : null}</div> : null}</div>
                 </div>
                 {showCustomAccent ? <div className="mt-3 grid grid-cols-[48px_1fr] gap-2 rounded-xl bg-neutral-50 p-2"><input aria-label="Selector de color personalizado" type="color" value={openingAccent} onChange={(event) => { setOpeningAccent(event.target.value); setCustomAccentDraft(event.target.value) }} className="h-10 w-12 cursor-pointer rounded-lg border border-neutral-200 bg-white p-1" /><input aria-label="Código hexadecimal personalizado" value={customAccentDraft} onChange={(event) => updateCustomAccent(event.target.value)} maxLength={7} placeholder="#D7A544" className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-black uppercase text-neutral-900 outline-none focus:border-neutral-950" /></div> : null}
                 <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-200 pt-3"><div><p className="type-caption font-black text-neutral-800">Logo de la liga</p><p className="mt-0.5 type-caption font-semibold text-neutral-500">Cambio temporal para esta imagen.</p></div><div className="flex gap-2"><label className="cursor-pointer rounded-xl bg-neutral-100 px-3 py-2 type-caption font-black text-neutral-800">Cambiar<input className="sr-only" type="file" accept="image/*" onChange={(event) => handleLogoOverride(event.target.files?.[0])} /></label>{openingLogoOverride ? <button type="button" onClick={() => setOpeningLogoOverride(null)} className="inline-flex items-center justify-center rounded-xl border border-neutral-200 px-3 py-2 text-center type-caption font-black text-neutral-700">Restaurar</button> : null}</div></div>

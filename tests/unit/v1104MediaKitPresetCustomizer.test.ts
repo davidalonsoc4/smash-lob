@@ -8,6 +8,7 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
 
     expect(page).toContain("const presets =")
+    expect(page).toContain("presetOrder.indexOf(first.kind)")
     expect(page).toContain("function loadPreset")
     expect(page).toContain("setActivePresetKind(kind)")
     expect(page).toContain("compactPresetTitles")
@@ -15,8 +16,24 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain('aria-label="Vista previa"')
     expect(page).toContain('setWorkspaceView("preview")')
     expect(page).toContain("aria-pressed={isActive}")
+    expect(page).toContain('whitespace-nowrap type-micro font-black uppercase tracking-[.1em]')
     expect(page).toContain("sharePiece(activePresetKind, openingData)")
     expect(page.indexOf(">Presets<")).toBeLessThan(page.indexOf('id="media-kit-customizer"'))
+  })
+
+  it("orders presets from league setup through season closure", async () => {
+    const page = await read("src/app/admin/media-kit/page.tsx")
+    const order = page.slice(page.indexOf("const presetOrder"), page.indexOf("const openingAccentOptions"))
+
+    for (const [first, second] of [
+      ['"format"', '"registration"'],
+      ['"registration"', '"start"'],
+      ['"start"', '"opening"'],
+      ['"opening"', '"matchday"'],
+      ['"matchday"', '"results"'],
+      ['"results"', '"standings"'],
+      ['"mvp"', '"season_final"'],
+    ]) expect(order.indexOf(first)).toBeLessThan(order.indexOf(second))
   })
 
   it("renames the editor and its editable fields around the active composition", async () => {
@@ -46,5 +63,24 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain('aria-label="Selector de color personalizado"')
     expect(page).toContain('aria-label="C')
     expect(page).toContain("/^#[0-9a-f]{6}$/i")
+  })
+
+  it("adds the frequent green and automatic logo-based accent suggestions", async () => {
+    const page = await read("src/app/admin/media-kit/page.tsx")
+
+    expect(page).toContain('"#53B401"')
+    expect(page).toContain("extractLogoAccentPalette")
+    expect(page).toContain("Sugeridos por el logo")
+    expect(page).toContain("logoAccentSuggestions.map")
+    expect(page).toContain("openingLogoOverride ?? activeLeague.logoUrl")
+  })
+
+  it("prefills Inicio with dynamic players and rounds plus the new campaign copy", async () => {
+    const page = await read("src/app/admin/media-kit/page.tsx")
+
+    expect(page).toContain('subtitle: "Volvemos con más ganas"')
+    expect(page).toContain('roundLabel: `${players.length} jugadores`')
+    expect(page).toContain('eventTimeLabel: "1 campeón"')
+    expect(page).toContain('venue: `${activeSeason.totalRounds} jornadas`')
   })
 })
