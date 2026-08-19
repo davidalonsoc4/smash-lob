@@ -43,6 +43,10 @@ const [
   personalChatPage,
   sharedMatchChat,
   dashboardMigration,
+  sharedBookingPanel,
+  paymentLedger,
+  paymentLedgerRoute,
+  paymentsPage,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -81,6 +85,10 @@ const [
   read("src/app/personal-matches/[id]/chat/page.tsx"),
   read("src/components/match/chat/MatchChatShared.tsx"),
   read("supabase/migrations/20260819173000_personal_locations_and_match_dashboard.sql"),
+  read("src/components/match/CourtBookingPanel.tsx"),
+  read("src/lib/paymentLedger.ts"),
+  read("src/app/api/payments/ledger/route.ts"),
+  read("src/app/payments/page.tsx"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -198,6 +206,14 @@ assert(bookingMigration.includes("from public, anon, authenticated") && bookingM
 assert(bookingRoute.includes("requireAuthenticatedAppUser") && bookingRoute.includes("getPersonalMatchBookingAccess"), "La reserva personal debe validar autenticación y participación")
 assert(bookingTransferRoute.includes("requireAuthenticatedAppUser") && bookingTransferRoute.includes("currentParticipantId"), "Los pagos personales deben validar al participante")
 assert(detailPage.includes("<PersonalMatchCourtBookingPanel") && bookingPanel.includes("<CourtBookingPanel"), "El amistoso debe reutilizar Pagos y reservas")
+assert(sharedBookingPanel.includes("participantIds.includes(currentUserId)") && sharedBookingPanel.includes("return [currentUserId]"), "Una reserva nueva debe preseleccionar al usuario actual para que el importe de pista sea editable")
+assert(sharedBookingPanel.includes("editableBallPurchaseInput") && sharedBookingPanel.includes("onFocus={() =>"), "El importe de bolas debe poder iniciar la selección del comprador sin quedar bloqueado")
+assert(paymentLedger.includes('PaymentLedgerSource = "league" | "friendly"'), "El ledger debe distinguir Liga y Amistoso")
+assert(paymentLedgerRoute.includes('.from("league_memberships")') && paymentLedgerRoute.includes('.from("personal_match_bookings")'), "Mis pagos debe agregar ligas y amistosos desde servidor")
+assert(paymentLedgerRoute.includes('requireAuthenticatedAppUser'), "El ledger global debe exigir autenticación")
+assert(paymentsPage.includes('type PaymentScope = "all" | "league" | "friendly"'), "Mis pagos debe ofrecer Todos, Liga actual y Amistosos")
+assert(paymentsPage.includes('item.leagueId === activeLeague.id') && paymentsPage.includes('item.source === "friendly"'), "Los filtros de Mis pagos deben separar la liga activa y los amistosos")
+assert(settingsPage.includes("fetchPaymentLedger") && settingsPage.includes("getPaymentLedgerPendingSummary"), "Ajustes debe mostrar el resumen global de pagos pendientes")
 assert(detailPage.includes("<PersonalMatchResultForm"), "El detalle debe permitir registrar/corregir resultado")
 assert(schedulePanel.includes("<MatchScheduleForm"), "El detalle debe delegar ubicación y mapa en el panel compartido")
 assert(schedulePanel.includes("PersonalAddToCalendarButton"), "El detalle debe permitir añadir al calendario")
@@ -253,7 +269,7 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.10.18 correcto:")
+console.log("Mis partidos v1.10.20 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
 console.log("- historial paginado de 10 en 10 y todos los amistosos futuros en Próximos, sin partidos de Liga")
 console.log("- liga y amistoso comparten MatchDetailView y una base común de CHAT")
