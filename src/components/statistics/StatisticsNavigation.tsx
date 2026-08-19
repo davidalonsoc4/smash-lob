@@ -5,6 +5,7 @@ import Link from "next/link"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type SeasonOption = {
   id: string
@@ -126,6 +127,8 @@ export function StatisticsPageHeader({
   fallbackHref?: string
   statusBadge?: StatusBadge
 }) {
+  const { tx } = useI18n()
+
   const canChooseSeason = Boolean(
     seasons && seasons.length > 1 && onSeasonChange,
   )
@@ -136,7 +139,7 @@ export function StatisticsPageHeader({
   return (
     <>
       <header className="app-page-header">
-        <BackButton fallbackHref={fallbackHref} label="Volver" />
+        <BackButton fallbackHref={fallbackHref} label={tx("Volver")} />
         <h1 className="type-page-title font-black tracking-tight">{title}</h1>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
           {!canChooseSeason ? (
@@ -161,7 +164,7 @@ export function StatisticsPageHeader({
         <AppCard className="p-2">
           <label className="flex items-center gap-2">
             <span className="shrink-0 type-caption font-black text-neutral-700">
-              {includesLeagueWideScope ? "Ámbito" : "Temporada"}
+              {includesLeagueWideScope ? tx("Ámbito") : tx("Temporada")}
             </span>
             <select
               value={selectedSeason.id}
@@ -177,7 +180,7 @@ export function StatisticsPageHeader({
                           ? "Terminada"
                           : season.status === "active"
                             ? "Activa"
-                            : "Próxima"
+                            : tx("Próxima")
                       }`}
                 </option>
               ))}

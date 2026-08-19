@@ -1,3 +1,32 @@
+# v1.10.18 — Plantillas continuistas, ubicaciones estructuradas y amistosos visibles (2026-08-19)
+
+- Las temporadas posteriores con `roster_mode = self_registration` pueden arrancar con jugadores de la temporada anterior ya inscritos: se seleccionan por defecto en administración, se pueden desmarcar y las plazas restantes permanecen abiertas al autoregistro. La Temporada 1 conserva el autoalta del creador cuando corresponde.
+- Las cuotas son estrictamente por temporada: una nueva temporada genera su registro económico con todos los jugadores inicialmente pendientes, sin heredar pagos de la anterior.
+- La plantilla fija admite usuarios globales registrados en Smash & Lob mediante un directorio público limitado a nombre/avatar; el servidor crea o reutiliza el jugador de esa liga y enlaza directamente `league_memberships`.
+- Los amistosos incorporan `location_id`, `location_court` y `location_snapshot`. La pista deja de formar parte de la identidad de la ubicación global y `padel_locations` pasa a ser la fuente maestra cuando existe.
+- Superadmin puede borrar una ubicación del catálogo aunque tenga usos, conservando snapshots históricos; además ve liga/temporada/jornada/fecha/jugadores y puede abrir, cambiar o quitar la ubicación de partidos futuros.
+- `Mis partidos > Próximos partidos` contiene exclusivamente todos los amistosos futuros. Los amistosos programados cuya fecha ya pasó pasan al historial aunque sigan `scheduled`; los partidos de Liga no aparecen nunca en Próximos.
+- `Añadir al calendario` de amistosos conserva siempre sus clases de botón aunque reciba clases de layout desde `MatchScheduleForm`.
+- Nueva migración aditiva `20260819173000_personal_locations_and_match_dashboard.sql`. No limpia automáticamente datos legacy de PROD: la inspección y corrección se hace de forma explícita desde Superadmin antes de eliminar duplicados.
+
+# v1.10.17 — Contexto de Ajustes y safe area de Mis partidos (2026-08-19)
+
+- La NAVBAR de `Mis partidos` reutiliza la misma superficie segura inferior de la NAVBAR de Liga: además del `safe-area-inset-bottom`, activa el estado raíz `data-bottom-nav-visible` para que la barra de gestos móvil conserve el fondo de la navegación.
+- `AJUSTES` deja de renderizar cualquier NAVBAR inferior; al entrar desde Liga o `Mis partidos` ya no aparece de forma implícita la navegación de Liga.
+- El acceso flotante a Ajustes añade un `returnTo` interno con la ruta actual y el botón `Volver` de Ajustes lo consume de forma segura; una entrada directa a Ajustes conserva HOME como fallback.
+- Los chats de Liga y Amistosos ocultan el botón flotante global de Ajustes.
+- No hay cambios de Supabase ni migraciones nuevas.
+
+# v1.10.16 — Liga completa en Euskera e Inglés y pulido de UI (2026-08-19)
+
+- Se mantiene el sistema i18n existente y se completa una auditoría de las pantallas y flujos de Liga para cubrir Español, Euskera e Inglés: navegación, formularios, estados, errores, feedback, chats, economía, clasificación, estadísticas, administración, temporada programada, tutoriales y exportables.
+- `I18nProvider` incorpora `tx(...)` como adaptador para texto visible heredado/dinámico; reutiliza los diccionarios `es/en/eu` existentes y no crea un segundo selector ni otra fuente de estado de idioma.
+- `scripts/check-league-i18n.mjs` comprueba paridad de las claves estructuradas, cobertura de textos `tx`, plantillas dinámicas y mensajes de feedback/error, y detecta español hardcodeado en el núcleo de las pantallas de Liga.
+- El exportable `Calendario de enfrentamientos` conserva el centro del `VS`, reduce el hueco central efectivo y amplía las áreas de los dos nombres para reducir recortes.
+- Los controles flotantes superiores de `AppShell` se agrupan en un contenedor flex; si desaparece `Añadir` porque la plantilla está completa, `Ayuda / Tutorial` se recoloca automáticamente sin dejar un hueco.
+- Los exportables de temporada y media kit reciben el locale activo para traducir también el contenido generado fuera del DOM.
+- No hay cambios de Supabase ni migraciones nuevas.
+
 # v1.10.15 — Calendario preparado antes del inicio programado (2026-08-19)
 
 - Las temporadas programadas con `roster_mode = self_registration` dejan de esperar al momento de activación para crear partidos: cuando la plantilla está completa se genera el calendario manteniendo la temporada en `upcoming`.

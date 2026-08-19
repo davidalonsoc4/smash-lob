@@ -11,6 +11,8 @@ import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
+import { getIntlLocale } from "@/i18n/leagueText";
+import type { Locale } from "@/i18n/translations";
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
@@ -76,14 +78,14 @@ function toTransfers(value: unknown): TransferLike[] {
     .filter((item): item is TransferLike => Boolean(item));
 }
 
-function formatNotificationDate(value: string) {
+function formatNotificationDate(value: string, locale: Locale) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -358,10 +360,12 @@ function getNotificationBody({
   event,
   currentUserId,
   players,
+  locale,
 }: {
   event: ActivityEvent;
   currentUserId: string;
   players: { id: string; displayName: string }[];
+  locale: Locale;
 }) {
   const metadata = event.metadata;
 
@@ -378,7 +382,7 @@ function getNotificationBody({
       typeof metadata.dateLabel === "string" && metadata.dateLabel.trim()
         ? metadata.dateLabel.trim()
         : typeof metadata.scheduledAt === "string"
-          ? formatNotificationDate(metadata.scheduledAt)
+          ? formatNotificationDate(metadata.scheduledAt, locale)
           : null;
     const locationText =
       getScheduleLocationDisplayText(metadata.locationText) ??
@@ -618,6 +622,7 @@ function NotificationCard({
   currentUserId: string;
   players: { id: string; displayName: string }[];
 }) {
+  const { tx, locale } = useI18n();
   const href = getNotificationUrl(event);
 
   return (
@@ -625,15 +630,15 @@ function NotificationCard({
       <AppCard className="app-notification-card p-3 transition active:scale-[0.99]">
         <div className="flex items-start justify-between gap-2">
           <p className="min-w-0 text-sm font-black text-neutral-950">
-            {getNotificationTitle(event, currentUserId)}
+            {tx(getNotificationTitle(event, currentUserId))}
           </p>
           <p className="shrink-0 type-caption font-semibold text-neutral-400">
-            {formatNotificationDate(event.createdAt)}
+            {formatNotificationDate(event.createdAt, locale)}
           </p>
         </div>
 
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
-          {getNotificationBody({ event, currentUserId, players })}
+          {tx(getNotificationBody({ event, currentUserId, players, locale }))}
         </p>
       </AppCard>
     </Link>
@@ -641,6 +646,7 @@ function NotificationCard({
 }
 
 export default function NotificationsPage() {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const { data: session } = useSession();
   const { currentUserId } = useCurrentUser();
@@ -671,7 +677,7 @@ export default function NotificationsPage() {
         }
       } catch {
         if (isMounted) {
-          setError("No se han podido cargar las notificaciones.");
+          setError(tx("No se han podido cargar las notificaciones."));
         }
       } finally {
         if (isMounted) {
@@ -721,14 +727,13 @@ export default function NotificationsPage() {
         <BackButton fallbackHref="/" label={t.common.back} />
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
-          <h1 className="type-page-title text-xl font-black tracking-tight">Notificaciones</h1>
+          <h1 className="type-page-title text-xl font-black tracking-tight">{tx("Notificaciones")}</h1>
           <button
             type="button"
             onClick={() => setRefreshKey((current) => current + 1)}
             className="inline-flex rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 items-center justify-center text-center"
           >
-            Actualizar
-          </button>
+            {tx("Actualizar")}{" "}</button>
         </div>
 
       </header>
@@ -738,11 +743,9 @@ export default function NotificationsPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-black text-neutral-950">
-                Ajustes de notificaciones
-              </p>
+                {tx("Ajustes de notificaciones")}{" "}</p>
               <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                Activa push y elige qué tipos de aviso quieres recibir.
-              </p>
+                {tx("Activa push y elige qué tipos de aviso quieres recibir.")}{" "}</p>
             </div>
             <ClickableChevron className="shrink-0" />
           </div>
@@ -752,22 +755,21 @@ export default function NotificationsPage() {
       {isLoading ? (
         <AppCard>
           <p className="text-sm font-semibold text-neutral-500">
-            Cargando notificaciones...
-          </p>
+            {tx("Cargando notificaciones...")}{" "}</p>
         </AppCard>
       ) : null}
 
       {error ? (
         <AppCard>
-          <p className="font-bold text-red-700">No se han podido cargar</p>
-          <p className="mt-2 text-sm text-neutral-500">{error}</p>
+          <p className="font-bold text-red-700">{tx("No se han podido cargar")}</p>
+          <p className="mt-2 text-sm text-neutral-500">{tx(error)}</p>
         </AppCard>
       ) : null}
 
       {!isLoading && !error && notifications.length === 0 ? (
         <EmptyState
-          title="Estás al día"
-          description="No tienes avisos pendientes. Los próximos partidos, resultados, pagos y comunicados aparecerán aquí."
+          title={tx("Estás al día")}
+          description={tx("No tienes avisos pendientes. Los próximos partidos, resultados, pagos y comunicados aparecerán aquí.")}
           action={{
             label: "Configurar avisos",
             href: "/settings/notifications",

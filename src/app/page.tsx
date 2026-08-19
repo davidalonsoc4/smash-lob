@@ -394,6 +394,7 @@ function SeasonSummaryAwardRow({
 }
 
 export default function Home() {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons } = useSeasonSettings();
@@ -619,7 +620,7 @@ export default function Home() {
         actorDisplayName: actor.actorDisplayName,
         type: "season_registration_payment_reminder",
         title: "Recordatorio de inscripción",
-        description: `Inscripción pendiente · ${formatMoney(roundSettings.registrationFee.amount)}`,
+        description: tx(`Inscripción pendiente · ${formatMoney(roundSettings.registrationFee.amount)}`),
         metadata: {
           amount: roundSettings.registrationFee.amount,
           organizerName,
@@ -696,7 +697,7 @@ export default function Home() {
     }
 
     const confirmed = window.confirm(
-      "¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados.",
+      tx("¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados."),
     );
 
     if (!confirmed) {
@@ -768,11 +769,11 @@ export default function Home() {
           <div className="min-w-0 flex-1">
             <div className="relative">
               <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight"><button type="button" data-tour="home-league-switcher" aria-haspopup="menu" aria-expanded={isLeaguePickerOpen} aria-controls="home-league-picker" onClick={() => setIsLeaguePickerOpen((open) => !open)} className="m-0 block max-w-full truncate border-0 bg-transparent p-0 text-left font-black leading-tight tracking-tight focus:outline-none focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500">{activeLeague.name}</button></h1>
-              {isLeaguePickerOpen ? <button type="button" aria-label="Cerrar selector de ligas" className="fixed inset-0 z-40 cursor-default" onClick={() => setIsLeaguePickerOpen(false)} /> : null}
-              {isLeaguePickerOpen ? <div id="home-league-picker" role="menu" aria-label="Cambiar liga" className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+              {isLeaguePickerOpen ? <button type="button" aria-label={tx("Cerrar selector de ligas")} className="fixed inset-0 z-40 cursor-default" onClick={() => setIsLeaguePickerOpen(false)} /> : null}
+              {isLeaguePickerOpen ? <div id="home-league-picker" role="menu" aria-label={tx("Cambiar liga")} className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                 {accessibleHomeLeagues.map((league) => <button key={league.id} type="button" role="menuitemradio" aria-checked={league.id === activeLeague.id} onClick={() => { if (league.id === activeLeague.id || activateLeague(league.id)) setIsLeaguePickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${league.id === activeLeague.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}><span className="truncate">{league.name}</span>{league.id === activeLeague.id ? <span aria-hidden="true">✓</span> : null}</button>)}
                 <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
-                <Link href="/personal-matches" role="menuitem" onClick={() => setIsLeaguePickerOpen(false)} className="flex items-center rounded-xl px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800">MIS PARTIDOS</Link>
+                <Link href="/personal-matches" role="menuitem" onClick={() => setIsLeaguePickerOpen(false)} className="flex items-center rounded-xl px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800">{tx("MIS PARTIDOS")}</Link>
               </div> : null}
             </div>
             <div className="relative mt-0.5">
@@ -788,9 +789,9 @@ export default function Home() {
                       onClick: () => setIsSeasonPickerOpen((open) => !open),
                     }}
                   />
-                  {isSeasonPickerOpen ? <button type="button" aria-label="Cerrar selector de temporadas" className="fixed inset-0 z-40 cursor-default" onClick={() => setIsSeasonPickerOpen(false)} /> : null}
+                  {isSeasonPickerOpen ? <button type="button" aria-label={tx("Cerrar selector de temporadas")} className="fixed inset-0 z-40 cursor-default" onClick={() => setIsSeasonPickerOpen(false)} /> : null}
                   {isSeasonPickerOpen ? (
-                    <div id="home-season-picker" role="menu" aria-label="Cambiar temporada" className="absolute left-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                    <div id="home-season-picker" role="menu" aria-label={tx("Cambiar temporada")} className="absolute left-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                       {selectableHomeSeasons.map((season) => (
                         <button key={season.id} type="button" role="menuitemradio" aria-checked={season.id === activeSeason.id} onClick={() => { setSelectedHomeSeasonId(season.id); setIsSeasonPickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${season.id === activeSeason.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}>
                           <span className="min-w-0"><span className="block truncate">{season.name}</span><span className="mt-0.5 block type-caption font-semibold text-neutral-500">{season.status === "finished" ? t.common.finishedSeasonBadge : season.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}</span></span>
@@ -813,8 +814,7 @@ export default function Home() {
 
       {spectatorMode ? (
         <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-semibold text-neutral-600 shadow-sm">
-          <span className="font-black text-neutral-950">Vista de espectador</span> · Solo lectura
-        </div>
+          <span className="font-black text-neutral-950">{tx("Vista de espectador")}</span> {tx("· Solo lectura")}{" "}</div>
       ) : null}
 
       {showScheduledCountdownHero && roundSettings.scheduledStartAt ? (
@@ -824,7 +824,7 @@ export default function Home() {
       {isSeasonScheduled && !showScheduledCountdownHero ? (
         <div className="space-y-3">
           <AppCard className="border border-neutral-200 bg-neutral-50/80 p-3">
-            <p className="type-panel-title font-black text-neutral-950">Próxima temporada</p>
+            <p className="type-panel-title font-black text-neutral-950">{tx("Próxima temporada")}</p>
             {roundSettings.scheduledStartAt ? (
               <div className="mt-2"><SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} /></div>
             ) : null}
@@ -853,12 +853,11 @@ export default function Home() {
             {canManageSeason ? (
               <>
                 <button type="button" onClick={handleStartUpcomingSeason} disabled={isStartingSeason || isSeasonScheduled || !canStartUpcomingSeason} className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center">
-                  {isStartingSeason ? "Comenzando..." : "Comenzar temporada"}
+                  {isStartingSeason ? "Comenzando..." : tx("Comenzar temporada")}
                 </button>
                 <p className="mt-2 text-center text-xs font-semibold text-sky-700">
-                  La temporada se activará automáticamente al llegar la fecha programada.
-                </p>
-                {startSeasonError ? <p className="mt-2 text-center text-sm font-semibold text-red-600">{startSeasonError}</p> : null}
+                  {tx("La temporada se activará automáticamente al llegar la fecha programada.")}{" "}</p>
+                {startSeasonError ? <p className="mt-2 text-center text-sm font-semibold text-red-600">{tx(startSeasonError)}</p> : null}
               </>
             ) : null}
           </AppCard>
@@ -869,20 +868,20 @@ export default function Home() {
 
       {activeLeague.recommendations?.trim() ? (
         <AppCard>
-          <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">Recomendaciones de la liga</p>
+          <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">{tx("Recomendaciones de la liga")}</p>
           <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6 text-neutral-700">{activeLeague.recommendations.trim()}</p>
         </AppCard>
       ) : null}
 
       {isSeasonUpcoming && !isSeasonScheduled ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 p-3">
-          <p className="type-panel-title font-black text-neutral-950">Próxima temporada</p>
-          <p className="mt-0.5 type-caption font-semibold text-neutral-500">Inicio pendiente · {seasonRankingPlayers.length} jugadores</p>
+          <p className="type-panel-title font-black text-neutral-950">{tx("Próxima temporada")}</p>
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Inicio pendiente ·")}{" "}{seasonRankingPlayers.length} {tx("jugadores")}</p>
           {isSelfRegistrationSeason ? <div className="mt-3"><SeasonRosterWaitingRoom leagueId={activeLeague.id} seasonId={activeSeason.id} /></div> : null}
           {canManageSeason ? <>
-            <button type="button" onClick={handleStartUpcomingSeason} disabled={isStartingSeason || !canStartUpcomingSeason} className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center">{isStartingSeason ? "Comenzando..." : "Comenzar temporada"}</button>
-            {!isRosterComplete ? <p className="mt-2 text-center text-xs font-semibold text-amber-700">{t.roster.startIncompleteHint}</p> : !isRegistrationSettled ? <p className="mt-2 text-center text-xs font-semibold text-amber-700">La temporada no puede comenzar hasta saldar todas las inscripciones.</p> : null}
-            {startSeasonError ? <p className="mt-2 text-center text-sm font-semibold text-red-600">{startSeasonError}</p> : null}
+            <button type="button" onClick={handleStartUpcomingSeason} disabled={isStartingSeason || !canStartUpcomingSeason} className="flex mt-3 w-full rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center">{isStartingSeason ? "Comenzando..." : tx("Comenzar temporada")}</button>
+            {!isRosterComplete ? <p className="mt-2 text-center text-xs font-semibold text-amber-700">{t.roster.startIncompleteHint}</p> : !isRegistrationSettled ? <p className="mt-2 text-center text-xs font-semibold text-amber-700">{tx("La temporada no puede comenzar hasta saldar todas las inscripciones.")}</p> : null}
+            {startSeasonError ? <p className="mt-2 text-center text-sm font-semibold text-red-600">{tx(startSeasonError)}</p> : null}
           </> : null}
         </AppCard>
       ) : null}
@@ -908,7 +907,7 @@ export default function Home() {
                 />
                 {seasonMvp ? (
                   <SeasonSummaryAwardRow
-                    label="MVP"
+                    label={tx("MVP")}
                     players={seasonMvpPlayers}
                     badge="★"
                     tone="mvp"
@@ -980,7 +979,7 @@ export default function Home() {
                 ? `${leader.points} ${t.common.pointsShort} · ${
                     leader.gamesDiff > 0 ? "+" : ""
                   }${leader.gamesDiff} ${t.ranking.diff.toLowerCase()}`
-                : "Sin resultados"}
+                : tx("Sin resultados")}
             </p>
           </AppCard>
 
@@ -988,13 +987,13 @@ export default function Home() {
             <Link href={`/round/${dashboardRound.round}`} className="block">
               <StatCard
                 label={t.dashboard.rounds}
-                value={`Jornada ${dashboardRound.round}`}
+                value={tx(`Jornada ${dashboardRound.round}`)}
                 helper={
                   dashboardRound.status === "active"
                     ? "Activa"
                     : dashboardRound.status === "overdue"
-                      ? "Fuera de plazo"
-                      : "Próxima"
+                      ? tx("Fuera de plazo")
+                      : tx("Próxima")
                 }
                 icon={<CalendarIcon />}
               />
@@ -1042,7 +1041,7 @@ export default function Home() {
 
       {!isSeasonClosed && !isPlayerSeasonLocked && pendingPaymentGroups.length > 0 ? (
         <section>
-          <SectionHeader title="Pagos pendientes" />
+          <SectionHeader title={tx("Pagos pendientes")} />
 
           <AppCard className="border-amber-200 bg-amber-50 p-3">
             <div className="space-y-2">
@@ -1057,7 +1056,7 @@ export default function Home() {
                       {toPlayerName}
                     </p>
                     <p className="mt-0.5 truncate text-xs font-semibold text-amber-800">
-                      Debes {formatMoney(totalAmount)} en {count} movimiento{count === 1 ? "" : "s"} pendiente{count === 1 ? "" : "s"}
+                      {tx("Debes")} {formatMoney(totalAmount)} {tx("en")} {count} {tx(count === 1 ? "movimiento pendiente" : "movimientos pendientes")}
                     </p>
                   </div>
                   <ClickableChevron className="shrink-0 border-amber-200 bg-amber-100 text-amber-900" />
@@ -1128,8 +1127,8 @@ export default function Home() {
           <SectionHeader
             title={
               effectiveNextMatchScope === "mine"
-                ? "Mi próximo partido"
-                : "Próximo partido"
+                ? tx("Mi próximo partido")
+                : tx("Próximo partido")
             }
             action={
               shouldShowNextMatchScopeSwitch ? (
@@ -1143,8 +1142,7 @@ export default function Home() {
                         : "text-neutral-600"
                     }`}
                   >
-                    Liga
-                  </button>
+                    {tx("Liga")}{" "}</button>
                   <button
                     type="button"
                     onClick={() => setNextMatchScope("mine")}
@@ -1154,8 +1152,7 @@ export default function Home() {
                         : "text-neutral-600"
                     }`}
                   >
-                    Mío
-                  </button>
+                    {tx("Mío")}{" "}</button>
                 </div>
               ) : null
             }
@@ -1168,7 +1165,7 @@ export default function Home() {
               roundStartsAt={selectedNextMatchRound?.startsAt ?? null}
               roundEndsAt={selectedNextMatchRound?.endsAt ?? null}
               headerMode="match-date"
-              headerLeftLabel={`Jornada ${selectedNextMatch.round}`}
+              headerLeftLabel={tx(`Jornada ${selectedNextMatch.round}`)}
               statusPosition="right"
               stackTeamPlayers
               currentUserId={currentUserId}
@@ -1179,8 +1176,7 @@ export default function Home() {
             />
           ) : (
             <AppCard className="border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500">
-              No tienes próximo partido pendiente.
-            </AppCard>
+              {tx("No tienes próximo partido pendiente.")}{" "}</AppCard>
           )}
         </section>
       ) : null}
@@ -1189,8 +1185,8 @@ export default function Home() {
           <SectionHeader
             title={
               effectiveLastMatchScope === "mine"
-                ? "Mi último partido"
-                : "Último partido"
+                ? tx("Mi último partido")
+                : tx("Último partido")
             }
             action={
               shouldShowLastMatchScopeSwitch ? (
@@ -1204,8 +1200,7 @@ export default function Home() {
                         : "text-neutral-600"
                     }`}
                   >
-                    Liga
-                  </button>
+                    {tx("Liga")}{" "}</button>
                   <button
                     type="button"
                     onClick={() => setLastMatchScope("mine")}
@@ -1215,8 +1210,7 @@ export default function Home() {
                         : "text-neutral-600"
                     }`}
                   >
-                    Mío
-                  </button>
+                    {tx("Mío")}{" "}</button>
                 </div>
               ) : null
             }
@@ -1228,7 +1222,7 @@ export default function Home() {
             roundStartsAt={selectedLastMatchRound?.startsAt ?? null}
             roundEndsAt={selectedLastMatchRound?.endsAt ?? null}
             headerMode="match-date"
-            headerLeftLabel={`Jornada ${selectedLastMatch.round}`}
+            headerLeftLabel={tx(`Jornada ${selectedLastMatch.round}`)}
             statusPosition="right"
             stackTeamPlayers
             currentUserId={currentUserId}

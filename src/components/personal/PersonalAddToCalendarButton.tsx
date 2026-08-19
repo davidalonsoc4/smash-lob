@@ -44,10 +44,7 @@ export function PersonalAddToCalendarButton({
       href={calendarUrl}
       target="_blank"
       rel="noreferrer"
-      className={
-        className ??
-        "block w-full rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99]"
-      }
+      className={`inline-flex w-full rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center ${className ?? ""}`}
     >
       Añadir al calendario
     </a>

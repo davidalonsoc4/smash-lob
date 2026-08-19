@@ -79,6 +79,7 @@ function AdminLinkRow({
 }
 
 function AdminInviteCard({ leagueId }: { leagueId: string }) {
+  const { tx } = useI18n()
   const { getLeagueInviteCode, regenerateLeagueInviteCode } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState(() =>
     getLeagueInviteCode(leagueId),
@@ -135,40 +136,36 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
     <div id="invitations" className="settings-search-target px-3 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-black text-neutral-950">Invitaciones</p>
+          <p className="text-sm font-black text-neutral-950">{tx("Invitaciones")}</p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-            Comparte el código o el enlace para que otro jugador entre y reclame su perfil.
-          </p>
+            {tx("Comparte el código o el enlace para que otro jugador entre y reclame su perfil.")}{" "}</p>
         </div>
         <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
-          Acceso
+          {tx("Acceso")}
         </span>
       </div>
 
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
         <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-500">
-          Código de invitación
-        </p>
+          {tx("Código de invitación")}{" "}</p>
         <p className="mt-1 break-all text-sm font-black text-neutral-950">
-          {inviteCode || "Sin código disponible"}
+          {inviteCode || tx("Sin código disponible")}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => copyValue(inviteCode, "Código copiado")}
+            onClick={() => copyValue(inviteCode, tx("Código copiado"))}
             disabled={!inviteCode}
             className="inline-flex rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
           >
-            Copiar código
-          </button>
+            {tx("Copiar código")}{" "}</button>
           <button
             type="button"
             onClick={() => copyValue(inviteUrl, "URL copiada")}
             disabled={!inviteUrl}
             className="inline-flex rounded-xl bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
           >
-            Copiar enlace
-          </button>
+            {tx("Copiar enlace")}{" "}</button>
         </div>
       </div>
 
@@ -178,7 +175,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
         disabled={isRegenerating}
         className="flex mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
       >
-        {isRegenerating ? "Regenerando..." : "Regenerar invitación"}
+        {isRegenerating ? "Regenerando..." : tx("Regenerar invitación")}
       </button>
 
       {copiedLabel ? (
@@ -188,7 +185,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
       ) : null}
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </div>
@@ -196,6 +193,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 }
 
 export default function AdminPage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } =
     useLeagueAccess()
@@ -254,32 +252,30 @@ export default function AdminPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
-          Administración de liga
-        </h1>
+          {tx("Administración de liga")}{" "}</h1>
       </header>
 
       <AdminGroup
-        title="General y apariencia"
-        description="Identidad, lugares habituales y presentación visual de la liga."
+        title={tx("General y apariencia")}
+        description={tx("Identidad, lugares habituales y presentación visual de la liga.")}
       >
         <AdminLinkRow
           href="/admin/league"
-          title="Configuración general"
-          description="Edita nombre, descripción, logo, lugares y estadísticas históricas."
+          title={tx("Configuración general")}
+          description={tx("Edita nombre, descripción, logo, lugares y estadísticas históricas.")}
         />
         <div id="status-colors" className="settings-search-target px-3 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-black text-neutral-950">Código de color</p>
+              <p className="text-sm font-black text-neutral-950">{tx("Código de color")}</p>
               <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-                Usa colores suaves en etiquetas de estado, pagos y jornadas.
-              </p>
+                {tx("Usa colores suaves en etiquetas de estado, pagos y jornadas.")}{" "}</p>
             </div>
             <button
               type="button"
               role="switch"
               aria-checked={statusColorsEnabled}
-              aria-label="Código de color"
+              aria-label={tx("Código de color")}
               onClick={handleStatusColorsToggle}
               disabled={isUpdatingStatusColors}
               className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
@@ -295,53 +291,53 @@ export default function AdminPage() {
           </div>
           {statusColorsError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">
-              {statusColorsError}
+              {tx(statusColorsError)}
             </p>
           ) : null}
         </div>
       </AdminGroup>
 
       <AdminGroup
-        title="Personas y accesos"
+        title={tx("Personas y accesos")}
         description="Plantilla, cuentas vinculadas, espectadores, suplentes e invitaciones."
       >
         <AdminLinkRow
           href="/admin/users"
-          title="Jugadores, usuarios y espectadores"
-          description="Gestiona nombres visibles, vinculaciones, permisos y accesos de lectura."
+          title={tx("Jugadores, usuarios y espectadores")}
+          description={tx("Gestiona nombres visibles, vinculaciones, permisos y accesos de lectura.")}
         />
         <AdminLinkRow
           href="/admin/substitutes"
-          title="Suplentes y reemplazos"
-          description="Gestiona la bolsa de suplentes, sustituciones puntuales y bajas permanentes."
+          title={tx("Suplentes y reemplazos")}
+          description={tx("Gestiona la bolsa de suplentes, sustituciones puntuales y bajas permanentes.")}
         />
         <AdminInviteCard leagueId={activeLeague.id} />
       </AdminGroup>
 
       <AdminGroup
-        title="Competición"
-        description="Temporada, reglas, calendario, jornadas y reconocimientos."
+        title={tx("Competición")}
+        description={tx("Temporada, reglas, calendario, jornadas y reconocimientos.")}
       >
         <AdminLinkRow
           href="/admin/season"
-          title="Administrar temporada"
-          description="Gestiona estado, calendario, reglas, inscripción, plantilla y ciclo de vida."
+          title={tx("Administrar temporada")}
+          description={tx("Gestiona estado, calendario, reglas, inscripción, plantilla y ciclo de vida.")}
         />
         <AdminLinkRow
           href="/admin/mvp"
-          title="Administrar MVP"
-          description="Consulta los MVP de jornadas cerradas y el resultado de la temporada."
+          title={tx("Administrar MVP")}
+          description={tx("Consulta los MVP de jornadas cerradas y el resultado de la temporada.")}
         />
       </AdminGroup>
 
       <AdminGroup
-        title="Operaciones"
-        description="Trabajo diario, incidencias y comunicación con los jugadores."
+        title={tx("Operaciones")}
+        description={tx("Trabajo diario, incidencias y comunicación con los jugadores.")}
       >
         <AdminLinkRow
           href="/admin/incidents"
-          title="Buzón de incidencias"
-          description="Revisa y resuelve las incidencias pendientes de los partidos."
+          title={tx("Buzón de incidencias")}
+          description={tx("Revisa y resuelve las incidencias pendientes de los partidos.")}
           tone={openIncidentCount > 0 ? "warning" : "default"}
           badge={
             openIncidentCount > 0 ? (
@@ -353,39 +349,39 @@ export default function AdminPage() {
         />
         <AdminLinkRow
           href="/admin/announcements"
-          title="Comunicados"
-          description="Publica avisos en HOME y envía notificaciones a la liga."
+          title={tx("Comunicados")}
+          description={tx("Publica avisos en HOME y envía notificaciones a la liga.")}
         />
         <AdminLinkRow
           href="/admin/media-kit"
-          title="Centro de difusión"
-          description="Genera imágenes de reglas, inscripciones, calendario, inicio y cuenta atrás listas para compartir."
+          title={tx("Centro de difusión")}
+          description={tx("Genera imágenes de reglas, inscripciones, calendario, inicio y cuenta atrás listas para compartir.")}
         />
         {roundSettings.registrationFee.enabled ? (
-          <AdminLinkRow href="/admin/season/finances" title="Economía de temporada" description="Controla ingresos de inscripción, gastos y saldo disponible." />
+          <AdminLinkRow href="/admin/season/finances" title={tx("Economía de temporada")} description={tx("Controla ingresos de inscripción, gastos y saldo disponible.")} />
         ) : null}
       </AdminGroup>
 
       <AdminGroup
-        title="Datos y control"
-        description="Auditoría, configuración de avisos y exportaciones."
+        title={tx("Datos y control")}
+        description={tx("Auditoría, configuración de avisos y exportaciones.")}
       >
         <AdminLinkRow
           href="/activity?scope=admin"
-          title="Historial y auditoría"
-          description="Revisa la actividad administrativa y configura los avisos generales de la liga."
+          title={tx("Historial y auditoría")}
+          description={tx("Revisa la actividad administrativa y configura los avisos generales de la liga.")}
         />
         <AdminLinkRow
           href="/admin/exports"
-          title="Exportar datos"
-          description="Descarga clasificación y resultados de cualquier temporada en CSV."
+          title={tx("Exportar datos")}
+          description={tx("Descarga clasificación y resultados de cualquier temporada en CSV.")}
         />
       </AdminGroup>
 
       {qaModeEnabled ? (
         <AdminGroup
-          title="Herramientas internas"
-          description="Utilidades exclusivas para pruebas en entornos controlados."
+          title={tx("Herramientas internas")}
+          description={tx("Utilidades exclusivas para pruebas en entornos controlados.")}
         >
           <AdminLinkRow
             href="/admin/qa"

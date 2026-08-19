@@ -279,7 +279,7 @@ export const eu = {
 
   nav: {
     home: "Hasiera",
-    ranking: "Ranking",
+    ranking: "Sailkapena",
     matches: "Egutegia",
     chats: "Chatak",
     activity: "Jarduera",
@@ -321,7 +321,7 @@ export const eu = {
     gamesDiff: "Jokoen dif.",
     gamesFor: "Aldeko jokoak",
     gamesAgainst: "Kontrako jokoak",
-    diff: "Dif.",
+    diff: "Ald.",
     forShort: "AJ",
     againstShort: "KJ",
   },
@@ -1032,7 +1032,7 @@ export const eu = {
     activePlayersDescription:
       "Kontsultarako zerrenda, jokalariek Google kontua lotu duten egiaztatzeko.",
     playerLinked: "Lotuta",
-    playerPending: "Pendiente",
+    playerPending: "Zain",
     lifecycleTitle: "Denboraldiaren zikloa",
     lifecycleDescription:
       "Amaitu uneko denboraldia edo ireki berri bat bere jokalariekin.",

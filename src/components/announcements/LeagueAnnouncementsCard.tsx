@@ -1,16 +1,18 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText"
 import {
   ANNOUNCEMENTS_REFRESH_EVENT,
   fetchLeagueAnnouncements,
   type LeagueAnnouncement,
 } from "@/lib/announcements"
 
-function formatAnnouncementDate(value: string) {
+function formatAnnouncementDate(value: string, locale: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -20,6 +22,8 @@ function formatAnnouncementDate(value: string) {
 }
 
 export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
+  const { locale, tx } = useI18n()
+  const intlLocale = getIntlLocale(locale)
   const [announcements, setAnnouncements] = useState<LeagueAnnouncement[]>([])
 
   const refreshAnnouncements = useCallback(async () => {
@@ -64,7 +68,7 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
       <div className="flex items-center gap-2 border-b border-orange-200 px-3 py-2">
         <span className="grid h-5 w-5 place-items-center rounded-full bg-orange-500 type-caption font-black text-white">!</span>
         <p className="type-caption font-black uppercase tracking-[0.16em] text-orange-900">
-          Comunicados
+          {tx("Comunicados")}
         </p>
       </div>
 
@@ -78,9 +82,9 @@ export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
               {announcement.body}
             </p>
             <p className="mt-1.5 type-caption font-bold text-orange-800/60">
-              {announcement.createdByDisplayName ?? "Administración"}
-              {formatAnnouncementDate(announcement.publishedAt)
-                ? ` · ${formatAnnouncementDate(announcement.publishedAt)}`
+              {announcement.createdByDisplayName ?? tx("Administración")}
+              {formatAnnouncementDate(announcement.publishedAt, intlLocale)
+                ? ` · ${formatAnnouncementDate(announcement.publishedAt, intlLocale)}`
                 : ""}
             </p>
           </article>

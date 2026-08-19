@@ -8,7 +8,7 @@ describe("v1.9.6 compact round highlights and round navigation", () => {
     const page = await read("src/app/match/[id]/page.tsx")
 
     expect(page).toContain('href={`/round/${match.round}`}')
-    expect(page).toContain('aria-label={`Abrir resumen de la jornada ${match.round}`}')
+    expect(page).toContain('aria-label={tx(`Abrir resumen de la jornada ${match.round}`)}')
     expect(page).toContain("{t.matches.round} {match.round}")
   })
 

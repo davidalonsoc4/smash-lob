@@ -86,6 +86,7 @@ function sortMatchesByOrder<
 }
 
 export default function PlayerMatchesPage() {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -278,13 +279,13 @@ export default function PlayerMatchesPage() {
 
       <div className="flex items-center justify-end gap-1.5">
         <label className="min-w-0">
-          <span className="sr-only">Estado</span>
+          <span className="sr-only">{tx("Estado")}</span>
           <select
             value={activeFilter}
             onChange={(event) =>
               handleFilterChange(event.target.value as MatchFilter)
             }
-            aria-label="Estado de los partidos"
+            aria-label={tx("Estado de los partidos")}
             className="max-w-28 rounded-full border border-neutral-200 bg-white px-2 py-1 type-caption font-black text-neutral-700 shadow-sm outline-none"
           >
             {filterOptions.map((option) => (
@@ -296,13 +297,13 @@ export default function PlayerMatchesPage() {
         </label>
 
         <label className="min-w-0">
-          <span className="sr-only">Orden</span>
+          <span className="sr-only">{tx("Orden")}</span>
           <select
             value={activeSort}
             onChange={(event) =>
               handleSortChange(event.target.value as MatchSort)
             }
-            aria-label="Orden de los partidos"
+            aria-label={tx("Orden de los partidos")}
             className="max-w-40 rounded-full border border-neutral-200 bg-white px-2 py-1 type-caption font-black text-neutral-700 shadow-sm outline-none"
           >
             {sortOptions.map((option) => (

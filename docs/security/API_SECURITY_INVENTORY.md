@@ -13,6 +13,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/app-user` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/application-admin/leagues/[leagueId]/transfer` | POST | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/locations` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
+| `/api/application-admin/locations` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/locations` | DELETE | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/players/[playerId]/avatar` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/suggestions` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
@@ -42,6 +43,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/matches/[matchId]/availability` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/members/[playerId]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/members/[playerId]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/player-directory` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/players/[playerId]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/players/[playerId]/availability` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/players/[playerId]/availability` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |

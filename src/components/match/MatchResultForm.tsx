@@ -103,7 +103,7 @@ export function MatchResultForm({
   persistResult,
   saveErrorMessage,
 }: MatchResultFormProps) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { finishMatch } = useMatchData()
 
   const [sets, setSets] = useState<SetInput[]>(
@@ -323,7 +323,7 @@ export function MatchResultForm({
 
         {actionError ? (
           <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
-            {actionError}
+            {tx(actionError)}
           </p>
         ) : null}
 

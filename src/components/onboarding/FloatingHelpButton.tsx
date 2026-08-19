@@ -17,7 +17,7 @@ export function HelpIcon() {
   )
 }
 
-export function FloatingHelpButton({ right }: { right: string }) {
+export function FloatingHelpButton() {
   const { locale } = useI18n()
   const copy = getOnboardingCopy(locale)
   const { currentTour, progress, startCurrentTour } = useOnboarding()
@@ -32,8 +32,7 @@ export function FloatingHelpButton({ right }: { right: string }) {
         aria-label={copy.helpLabel}
         title={copy.helpLabel}
         onClick={() => setOpen(true)}
-        className="app-floating-control z-50 flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
-        style={{ position: "fixed", top: "max(10px, calc(var(--app-safe-top) + 8px))", right, width: 34, height: 34 }}
+        className="app-floating-control z-50 flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
       >
         <HelpIcon />
       </button>

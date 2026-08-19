@@ -10,6 +10,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { exportRankingCsv, exportResultsCsv } from "@/lib/csvExport"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { calculateSeasonStatistics } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function SpreadsheetIcon() {
   return (
@@ -101,6 +102,7 @@ function CsvExportCard({
 }
 
 export default function AdminExportsPage() {
+  const { tx } = useI18n()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const { hasLeagueAdminRole } = useLeagueAccess()
   const { matches, resultConfirmations } = useMatchData()
@@ -166,9 +168,9 @@ export default function AdminExportsPage() {
   if (!canManage) {
     return (
       <div className="compact-page space-y-3">
-        <BackButton fallbackHref="/admin" label="Volver" />
+        <BackButton fallbackHref="/admin" label={tx("Volver")} />
         <AppCard>
-          <p className="font-black">Acceso restringido</p>
+          <p className="font-black">{tx("Acceso restringido")}</p>
         </AppCard>
       </div>
     )
@@ -177,17 +179,16 @@ export default function AdminExportsPage() {
   return (
     <div className="compact-page space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/admin" label="Volver" />
+        <BackButton fallbackHref="/admin" label={tx("Volver")} />
         <h1 className="type-page-title font-black tracking-tight text-neutral-950">
-          Exportar datos
+          {tx("Exportar datos")}
         </h1>
       </header>
 
       <AppCard className="space-y-4 border-neutral-200 bg-white shadow-sm">
         <label className="block">
           <span className="text-xs font-black text-neutral-700">
-            Temporada que quieres exportar
-          </span>
+            {tx("Temporada que quieres exportar")}{" "}</span>
           <select
             value={selectedSeason.id}
             onChange={(event) => setSeasonId(event.target.value)}
@@ -202,9 +203,9 @@ export default function AdminExportsPage() {
         </label>
 
         <div className="grid grid-cols-3 gap-2">
-          <DataSummaryItem value={ranking.length} label="Jugadores" />
-          <DataSummaryItem value={selectedMatches.length} label="Partidos" />
-          <DataSummaryItem value={finishedMatches} label="Finalizados" />
+          <DataSummaryItem value={ranking.length} label={tx("Jugadores")} />
+          <DataSummaryItem value={selectedMatches.length} label={tx("Partidos")} />
+          <DataSummaryItem value={finishedMatches} label={tx("Finalizados")} />
         </div>
       </AppCard>
 
@@ -217,14 +218,12 @@ export default function AdminExportsPage() {
               </span>
               <div className="min-w-0">
                 <p className="type-caption font-black uppercase tracking-[0.18em] text-white/65">
-                  Opción recomendada
-                </p>
+                  {tx("Opción recomendada")}{" "}</p>
                 <h2 id="excel-export-title" className="mt-1 text-lg font-black">
-                  Libro Excel completo
+                  {tx("Libro Excel completo")}
                 </h2>
                 <p className="mt-1 text-xs font-semibold leading-5 text-white/75">
-                  Un único archivo .xlsx preparado para Excel con toda la información de la temporada separada en hojas.
-                </p>
+                  {tx("Un único archivo .xlsx preparado para Excel con toda la información de la temporada separada en hojas.")}{" "}</p>
               </div>
             </div>
           </div>
@@ -232,16 +231,14 @@ export default function AdminExportsPage() {
           <div className="space-y-4 p-4">
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="rounded-2xl bg-neutral-50 px-3 py-3">
-                <p className="text-sm font-black text-neutral-950">Hoja Clasificación</p>
+                <p className="text-sm font-black text-neutral-950">{tx("Hoja Clasificación")}</p>
                 <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                  Posición, puntos, partidos, victorias, derrotas y balance de juegos.
-                </p>
+                  {tx("Posición, puntos, partidos, victorias, derrotas y balance de juegos.")}{" "}</p>
               </div>
               <div className="rounded-2xl bg-neutral-50 px-3 py-3">
-                <p className="text-sm font-black text-neutral-950">Hoja Resultados</p>
+                <p className="text-sm font-black text-neutral-950">{tx("Hoja Resultados")}</p>
                 <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                  Jornadas, parejas, marcadores, sets, fechas, lugares e incidencias.
-                </p>
+                  {tx("Jornadas, parejas, marcadores, sets, fechas, lugares e incidencias.")}{" "}</p>
               </div>
             </div>
 
@@ -263,8 +260,7 @@ export default function AdminExportsPage() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral-950 px-4 py-3.5 text-sm font-black text-white transition active:scale-[0.99] disabled:bg-neutral-300"
             >
               <DownloadIcon />
-              Descargar libro Excel (.xlsx)
-            </button>
+              {tx("Descargar libro Excel (.xlsx)")}{" "}</button>
           </div>
         </AppCard>
       </section>
@@ -272,19 +268,17 @@ export default function AdminExportsPage() {
       <section className="space-y-2" aria-labelledby="csv-export-title">
         <div className="px-1">
           <h2 id="csv-export-title" className="text-sm font-black text-neutral-950">
-            Archivos CSV por separado
-          </h2>
+            {tx("Archivos CSV por separado")}{" "}</h2>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-            Útiles para importar solo una tabla en Excel, Google Sheets, LibreOffice u otras herramientas.
-          </p>
+            {tx("Útiles para importar solo una tabla en Excel, Google Sheets, LibreOffice u otras herramientas.")}{" "}</p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <CsvExportCard
-            title="Clasificación"
-            description="Una fila por jugador con todas las estadísticas de la temporada."
-            detail={`${ranking.length} jugadores · 10 columnas`}
-            buttonLabel="Descargar clasificación CSV"
+            title={tx("Clasificación")}
+            description={tx("Una fila por jugador con todas las estadísticas de la temporada.")}
+            detail={tx(`${ranking.length} jugadores · 10 columnas`)}
+            buttonLabel={tx("Descargar clasificación CSV")}
             disabled={ranking.length === 0}
             onDownload={() =>
               exportRankingCsv({
@@ -296,10 +290,10 @@ export default function AdminExportsPage() {
           />
 
           <CsvExportCard
-            title="Resultados"
-            description="Una fila por partido con programación, resultado e incidencias."
-            detail={`${selectedMatches.length} partidos · 12 columnas`}
-            buttonLabel="Descargar resultados CSV"
+            title={tx("Resultados")}
+            description={tx("Una fila por partido con programación, resultado e incidencias.")}
+            detail={tx(`${selectedMatches.length} partidos · 12 columnas`)}
+            buttonLabel={tx("Descargar resultados CSV")}
             disabled={selectedMatches.length === 0}
             onDownload={() =>
               exportResultsCsv({
@@ -315,8 +309,7 @@ export default function AdminExportsPage() {
 
       <AppCard className="border-neutral-200 bg-neutral-50 shadow-sm">
         <p className="text-xs font-bold leading-5 text-neutral-600">
-          Los archivos se generan directamente en tu dispositivo. No se envían datos de la liga a ningún servicio externo.
-        </p>
+          {tx("Los archivos se generan directamente en tu dispositivo. No se envían datos de la liga a ningún servicio externo.")}{" "}</p>
       </AppCard>
     </div>
   )

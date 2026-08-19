@@ -6,13 +6,39 @@ import { type MouseEvent } from "react"
 type BackButtonProps = {
   fallbackHref: string
   label: string
+  returnToParam?: string
 }
 
-export function BackButton({ fallbackHref, label }: BackButtonProps) {
+function getSafeInternalReturnTo(value: string | null) {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value === "/settings" ||
+    value.startsWith("/settings/")
+  ) {
+    return null
+  }
+
+  return value
+}
+
+export function BackButton({ fallbackHref, label, returnToParam }: BackButtonProps) {
   const router = useRouter()
 
   function handleBack(event: MouseEvent<HTMLAnchorElement>) {
-    const currentHref = window.location.href
+    const currentUrl = new URL(window.location.href)
+    const explicitReturnTo = returnToParam
+      ? getSafeInternalReturnTo(currentUrl.searchParams.get(returnToParam))
+      : null
+
+    if (explicitReturnTo) {
+      event.preventDefault()
+      router.replace(explicitReturnTo)
+      return
+    }
+
+    const currentHref = currentUrl.href
     const referrerUrl = document.referrer
       ? new URL(document.referrer)
       : null

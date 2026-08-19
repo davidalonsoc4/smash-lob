@@ -12,8 +12,10 @@ import {
 } from "@/lib/spectatorInvites"
 import { addCachedSpectatorLeagueId } from "@/lib/leagueAccessCache"
 import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export function SpectatorInviteFlow() {
+  const { tx } = useI18n()
   const { data: session } = useSession()
   const params = useParams<{ code: string }>()
   const code = decodeURIComponent(params.code ?? "").trim().toUpperCase()
@@ -82,14 +84,13 @@ export function SpectatorInviteFlow() {
       <div className="mx-auto max-w-md space-y-4 pt-8">
         {isLoading ? (
           <AppCard>
-            <p className="font-black">Cargando liga...</p>
+            <p className="font-black">{tx("Cargando liga...")}</p>
           </AppCard>
         ) : notFound ? (
           <AppCard>
-            <p className="font-black">Enlace no válido</p>
+            <p className="font-black">{tx("Enlace no válido")}</p>
             <p className="mt-2 text-sm font-semibold text-neutral-500">
-              Este enlace de espectador no existe o ha sido desactivado.
-            </p>
+              {tx("Este enlace de espectador no existe o ha sido desactivado.")}{" "}</p>
           </AppCard>
         ) : invite ? (
           <>
@@ -105,8 +106,7 @@ export function SpectatorInviteFlow() {
                 />
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
-                    Invitación de espectador
-                  </p>
+                    {tx("Invitación de espectador")}{" "}</p>
                   <h1 className="mt-1 text-2xl font-black tracking-tight">
                     {invite.leagueName}
                   </h1>
@@ -126,10 +126,9 @@ export function SpectatorInviteFlow() {
             </AppCard>
 
             <AppCard>
-              <p className="font-black">Acceso de solo lectura</p>
+              <p className="font-black">{tx("Acceso de solo lectura")}</p>
               <p className="mt-2 text-sm font-semibold leading-6 text-neutral-500">
-                Podrás consultar la Home, el ranking, los partidos, los resultados y los perfiles de jugadores. No podrás programar, votar, confirmar resultados ni ver la actividad interna.
-              </p>
+                {tx("Podrás consultar la Home, el ranking, los partidos, los resultados y los perfiles de jugadores. No podrás programar, votar, confirmar resultados ni ver la actividad interna.")}{" "}</p>
 
               <button
                 type="button"
@@ -142,7 +141,7 @@ export function SpectatorInviteFlow() {
 
               {error ? (
                 <p className="mt-3 text-sm font-semibold text-red-600">
-                  {error}
+                  {tx(error)}
                 </p>
               ) : null}
             </AppCard>

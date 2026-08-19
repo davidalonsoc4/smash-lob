@@ -1,6 +1,9 @@
+"use client"
+
 import { PlayerNameLink } from "./PlayerNameLink"
 import type { PlayerProfile } from "@/data/fakeData"
 import { getPlayerDisplayName } from "@/lib/players"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type TeamPlayersProps = {
   playerIds: string[]
@@ -25,6 +28,7 @@ export function TeamPlayers({
   stackPlayers = false,
   linkPlayers = true,
 }: TeamPlayersProps) {
+  const { tx } = useI18n()
   return (
     <div className={className}>
       {playerIds.map((playerId, index) => {
@@ -58,10 +62,10 @@ export function TeamPlayers({
             ) : null}
             {substituteLabels[playerId] ? (
               <span
-                title={`Suplente por ${substituteLabels[playerId]}`}
+                title={tx(`Suplente por ${substituteLabels[playerId]}`)}
                 className="rounded-full bg-red-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-red-700"
               >
-                Suplente · por {substituteLabels[playerId]}
+                {tx("Suplente · por")}{" "}{substituteLabels[playerId]}
               </span>
             ) : null}
             {!stackPlayers && index < playerIds.length - 1 ? <span>/</span> : null}

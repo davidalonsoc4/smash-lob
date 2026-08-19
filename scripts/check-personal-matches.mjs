@@ -42,6 +42,7 @@ const [
   personalChatsRoute,
   personalChatPage,
   sharedMatchChat,
+  dashboardMigration,
 ] = await Promise.all([
   read("supabase/migrations/20260808110500_add_personal_matches.sql"),
   read("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql"),
@@ -79,6 +80,7 @@ const [
   read("src/app/api/personal-matches/chats/route.ts"),
   read("src/app/personal-matches/[id]/chat/page.tsx"),
   read("src/components/match/chat/MatchChatShared.tsx"),
+  read("supabase/migrations/20260819173000_personal_locations_and_match_dashboard.sql"),
 ])
 
 for (const table of ["personal_matches", "personal_match_participants"]) {
@@ -115,11 +117,19 @@ assert(leaguesPage.includes('href="/personal-matches"'), "Mis ligas debe enlazar
 assert(leaguesPage.includes("partidos de liga") && leaguesPage.includes("amistosos"), "Mis ligas debe explicar el historial agregado")
 assert(personalPage.includes("const pageSize = 10"), "El historial debe paginar diez partidos cada vez")
 assert(personalPage.includes("Cargar 10 más"), "Debe existir carga incremental de diez partidos")
-assert(personalPage.includes("!loading && selectedUpcoming ? ("), "Próximo partido debe ocultarse por completo cuando no existe")
-assert(personalPage.includes("Próximo partido"), "Falta el bloque condicional de próximo partido")
-assert(!personalPage.includes("Sin partidos programados"), "No debe mostrarse un estado vacío para Próximo partido")
-assert(personalPage.includes("hasBothUpcoming"), "El selector Liga/Amistoso debe mostrarse solo cuando existen ambos próximos")
-assert(personalPage.includes('scope === "all"') && personalPage.includes('"Todos"'), "Falta selector Todos/Liga/Amistoso")
+assert(personalPage.includes("dashboard.upcoming.length > 0"), "Próximos partidos debe ocultarse por completo cuando no hay amistosos futuros")
+assert(personalPage.includes("Próximos partidos"), "Falta el bloque de próximos amistosos")
+assert(personalPage.includes("dashboard.upcoming.map"), "Próximos partidos debe mostrar todos los amistosos futuros")
+assert(!personalPage.includes("upcomingScope"), "Próximos no debe volver a mezclar Liga y Amistoso")
+const nextMatchesFunction = dashboardMigration.slice(
+  dashboardMigration.indexOf("create or replace function public.server_next_user_matches"),
+)
+assert(nextMatchesFunction.includes("'friendly'::text as source"), "Próximos debe consultar amistosos")
+assert(!nextMatchesFunction.includes("'league'::text as source"), "Los partidos de Liga nunca deben aparecer en Próximos")
+assert(dashboardMigration.includes("pm.status = 'scheduled' and pm.played_at < now()"), "Un amistoso scheduled pasado debe entrar en el historial")
+assert(serverHelper.includes("loadScheduledFriendlyIndex"), "El servidor debe completar amistosos programados sin depender del orden de despliegue de la migración")
+assert(serverHelper.includes('return loadScheduledFriendlyIndex(actor, "future")'), "Próximos debe cargar directamente todos los amistosos futuros")
+assert(serverHelper.includes('loadScheduledFriendlyIndex(actor, "past")'), "El historial debe completar amistosos scheduled cuya fecha ya pasó")
 assert(serverHelper.includes("server_list_user_match_history"), "La paginación debe resolverse en base de datos")
 assert(serverHelper.includes("safeLimit + 1"), "La API debe detectar si existen más páginas")
 assert(serverHelper.includes('origin: "league"') && serverHelper.includes('origin: "friendly"'), "El servidor debe normalizar liga y amistoso sin duplicarlos")
@@ -206,6 +216,10 @@ assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe e
 assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats de amistosos")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
 assert(personalNav.includes("grid-cols-4"), "La navegación personal debe repartir cuatro destinos")
+assert(personalNav.includes('root.dataset.bottomNavVisible = "true"'), "La NAVBAR personal debe activar la superficie segura inferior")
+assert(personalNav.includes('paddingBottom: "env(safe-area-inset-bottom)"'), "La NAVBAR personal debe respetar el safe area inferior")
+assert(appShell.includes('href={`/settings?returnTo=${encodeURIComponent(pathname)}`}'), "Ajustes debe conservar la ruta personal de origen")
+assert(appShell.includes("const isSettingsRoute ="), "El shell debe tratar Ajustes como contexto neutral")
 assert(personalProfilePage.includes("Perfil global"), "Debe existir un perfil global dentro de Mis partidos")
 assert(personalProfilePage.includes("Todos los partidos") && personalProfilePage.includes("Partidos de liga"), "El perfil global debe filtrar por origen")
 assert(personalProfilePage.includes("Todas las ligas") && personalProfilePage.includes("Todas las temporadas"), "El perfil global debe filtrar por liga y temporada")
@@ -239,12 +253,13 @@ assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe 
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")
 
-console.log("Mis partidos v1.10.15 correcto:")
+console.log("Mis partidos v1.10.18 correcto:")
 console.log("- historial agregado de liga + amistosos sin duplicar datos competitivos")
-console.log("- historial paginado de 10 en 10 y Próximo partido oculto cuando no existe")
+console.log("- historial paginado de 10 en 10 y todos los amistosos futuros en Próximos, sin partidos de Liga")
 console.log("- liga y amistoso comparten MatchDetailView y una base común de CHAT")
 console.log("- amistosos programados permiten editar pareja y contrincantes")
 console.log("- origen por liga con color estable y metadatos ausentes ocultos de forma independiente")
 console.log("- un único amistoso compartido por cuentas vinculadas y externos permitidos")
 console.log("- perfil global con rendimiento, parejas, rivales, rankings y cara a cara filtrable")
+console.log("- NAVBAR personal protegida frente a la barra de gestos y Ajustes con retorno de contexto")
 console.log("- API autenticada, rate limit y persistencia service-role only")

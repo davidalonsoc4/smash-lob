@@ -1,3 +1,5 @@
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 export type WeekdayId =
   | "monday"
   | "tuesday"
@@ -311,6 +313,7 @@ type BuildAvailabilityRecommendationsParams = {
   slotDurationMinutes?: number;
   stepMinutes?: number;
   maxResults?: number;
+  locale?: Locale;
 };
 
 const weekdayByDateIndex: WeekdayId[] = [
@@ -474,17 +477,17 @@ function getCandidateStartMinutesFromSlots({
 }
 
 
-function formatRecommendationDateLabel(date: Date) {
-  const weekday = new Intl.DateTimeFormat("es-ES", {
+function formatRecommendationDateLabel(date: Date, locale: Locale = "es") {
+  const weekday = new Intl.DateTimeFormat(getIntlLocale(locale), {
     weekday: "long",
   }).format(date);
-  const dayMonth = new Intl.DateTimeFormat("es-ES", {
+  const dayMonth = new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   }).format(date);
   const capitalizedWeekday =
-    weekday.charAt(0).toLocaleUpperCase("es-ES") + weekday.slice(1);
+    weekday.charAt(0).toLocaleUpperCase(getIntlLocale(locale)) + weekday.slice(1);
 
   return `${capitalizedWeekday}, ${dayMonth}`;
 }
@@ -556,6 +559,7 @@ export function buildAvailabilityRecommendations({
   slotDurationMinutes = 120,
   stepMinutes = 60,
   maxResults = 5,
+  locale = "es",
 }: BuildAvailabilityRecommendationsParams): AvailabilityRecommendation[] {
   const uniquePlayerIds = [...new Set(playerIds)].filter(Boolean);
 
@@ -626,7 +630,7 @@ export function buildAvailabilityRecommendations({
 
       recommendations.push({
         date: dateValue,
-        dateLabel: formatRecommendationDateLabel(date),
+        dateLabel: formatRecommendationDateLabel(date, locale),
         timeLabel: `${start} - ${end}`,
         dateTimeLocalValue,
         start,

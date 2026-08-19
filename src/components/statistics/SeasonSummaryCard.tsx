@@ -10,6 +10,7 @@ import {
   type SeasonSummaryImageData,
   type SeasonSummaryImageOptions,
 } from "@/lib/seasonSummaryImage"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function sanitizeFilename(value: string) {
   return value
@@ -190,6 +191,7 @@ export function SeasonSummaryCard({
   canExport: boolean
   exportBlockedReason?: string
 }) {
+  const { tx } = useI18n()
   const [busyAction, setBusyAction] = useState<"share" | "download" | null>(null)
   const [includeLeagueLogo, setIncludeLeagueLogo] = useState(true)
   const [includeHeroImages, setIncludeHeroImages] = useState(true)
@@ -297,8 +299,7 @@ export function SeasonSummaryCard({
           <div className="flex items-stretch justify-between gap-4">
             <div className="min-w-0 flex-1 py-1">
               <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
-                Resumen final de temporada
-              </p>
+                {tx("Resumen final de temporada")}{" "}</p>
               <p className="mt-3 break-words type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
                 {data.leagueName}
               </p>
@@ -389,7 +390,7 @@ export function SeasonSummaryCard({
           <div className="flex items-center gap-2">
             <span aria-hidden="true" className="h-2.5 w-2.5 rounded bg-neutral-950" />
             <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-700">
-              Podio final
+              {tx("Podio final")}
             </p>
             <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
           </div>
@@ -415,11 +416,11 @@ export function SeasonSummaryCard({
                 </p>
                 <div className="grid w-24 shrink-0 grid-cols-2 border-l border-neutral-100 pl-2 text-center">
                   <div>
-                    <p className="type-caption font-black uppercase text-neutral-400">Puntos</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Puntos")}</p>
                     <p className="text-xs font-black text-neutral-950">{row.points}</p>
                   </div>
                   <div>
-                    <p className="type-caption font-black uppercase text-neutral-400">DG</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("DG")}</p>
                     <p className="text-xs font-black text-neutral-950">
                       {formatGamesDiff(row.gamesDiff)}
                     </p>
@@ -434,8 +435,7 @@ export function SeasonSummaryCard({
           <div className="flex items-center gap-2">
             <span aria-hidden="true" className="h-2.5 w-2.5 rounded bg-neutral-950" />
             <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-700">
-              Lo más destacado
-            </p>
+              {tx("Lo más destacado")}{" "}</p>
             <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
           </div>
           <div className="mt-2 grid gap-2">
@@ -470,27 +470,26 @@ export function SeasonSummaryCard({
             <img src="/icon-192.png" alt="" className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
-            <p className="type-caption font-semibold text-neutral-400">Creado con</p>
-            <p className="text-xs font-black text-neutral-950">Smash & Lob</p>
+            <p className="type-caption font-semibold text-neutral-400">{tx("Creado con")}</p>
+            <p className="text-xs font-black text-neutral-950">{tx("Smash & Lob")}</p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
           <div>
-            <p className="text-xs font-black text-neutral-900">Personaliza la imagen</p>
+            <p className="text-xs font-black text-neutral-900">{tx("Personaliza la imagen")}</p>
             <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
-              Elige qué elementos visuales se incluyen al compartir o guardar.
-            </p>
+              {tx("Elige qué elementos visuales se incluyen al compartir o guardar.")}{" "}</p>
           </div>
           <div className="mt-3 grid gap-2">
             <ImageOptionToggle
               checked={hasLeagueLogo && includeLeagueLogo}
               disabled={!hasLeagueLogo || busyAction !== null}
-              title="Logo de la liga"
+              title={tx("Logo de la liga")}
               description={
                 hasLeagueLogo
-                  ? "Se mostrará respetando su fondo transparente."
-                  : "Esta liga no tiene un logo guardado."
+                  ? tx("Se mostrará respetando su fondo transparente.")
+                  : tx("Esta liga no tiene un logo guardado.")
               }
               type="logo"
               onChange={() => setIncludeLeagueLogo((current) => !current)}
@@ -498,11 +497,11 @@ export function SeasonSummaryCard({
             <ImageOptionToggle
               checked={hasHeroImages && includeHeroImages}
               disabled={!hasHeroImages || busyAction !== null}
-              title="Fotos de campeón / MVP"
+              title={tx("Fotos de campeón / MVP")}
               description={
                 hasHeroImages
-                  ? "Añade los avatares disponibles a los paneles principales."
-                  : "No hay imágenes de perfil disponibles para mostrar."
+                  ? tx("Añade los avatares disponibles a los paneles principales.")
+                  : tx("No hay imágenes de perfil disponibles para mostrar.")
               }
               type="profiles"
               onChange={() => setIncludeHeroImages((current) => !current)}
@@ -513,10 +512,9 @@ export function SeasonSummaryCard({
         {!canExport ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
             <p className="text-xs font-black text-amber-900">
-              Imagen bloqueada hasta completar los datos
-            </p>
+              {tx("Imagen bloqueada hasta completar los datos")}{" "}</p>
             <p className="mt-0.5 type-caption font-semibold leading-4 text-amber-800">
-              {exportBlockedReason ?? "Revisa los partidos pendientes o no válidos de la temporada."}
+              {exportBlockedReason ?? tx("Revisa los partidos pendientes o no válidos de la temporada.")}
             </p>
           </div>
         ) : null}
@@ -528,7 +526,7 @@ export function SeasonSummaryCard({
             disabled={busyAction !== null || !canExport}
             className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45 items-center justify-center text-center"
           >
-            {busyAction === "share" ? "Preparando…" : "Compartir"}
+            {busyAction === "share" ? tx("Preparando…") : tx("Compartir")}
           </button>
           <button
             type="button"
@@ -536,7 +534,7 @@ export function SeasonSummaryCard({
             disabled={busyAction !== null || !canExport}
             className="inline-flex rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-45 items-center justify-center text-center"
           >
-            {busyAction === "download" ? "Generando…" : "Guardar imagen"}
+            {busyAction === "download" ? "Generando…" : tx("Guardar imagen")}
           </button>
         </div>
       </div>

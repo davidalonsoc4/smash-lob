@@ -43,7 +43,7 @@ describe("home and primary navigation context hierarchy", () => {
     expect(home).toContain('</AppCard>\n\n          {canManageSeason ? (')
     expect(home).toContain("Próxima temporada")
     expect(home).toContain("showScheduledCountdownHero")
-    expect(home).toContain("Inicio pendiente · {seasonRankingPlayers.length} jugadores")
+    expect(home).toContain('{tx("Inicio pendiente ·")}{" "}{seasonRankingPlayers.length} {tx("jugadores")}')
   })
 
   it("puts the page title first and removes repeated league identity from primary NAVBAR screens", async () => {

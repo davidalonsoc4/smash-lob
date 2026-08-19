@@ -2,7 +2,6 @@
 
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
-import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
@@ -32,8 +31,7 @@ export function PersonalMatchSchedulePanel({
           body: JSON.stringify({
             action: "schedule",
             scheduledAt: input.scheduledAt,
-            locationName:
-              getScheduleLocationDisplayText(input.location) ?? input.location,
+            locationName: input.location,
           }),
         },
       )

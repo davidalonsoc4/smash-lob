@@ -1,5 +1,10 @@
+"use client"
+
 import { ListPageSkeleton } from "@/components/loading/PageSkeletons"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export default function Loading() {
-  return <ListPageSkeleton label="Cargando partidos" />
+  const { tx } = useI18n()
+
+  return <ListPageSkeleton label={tx("Cargando partidos")} />
 }

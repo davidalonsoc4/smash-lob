@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { CompetitivePlayerAvatarEditor } from "@/components/application-admin/CompetitivePlayerAvatarEditor"
 import { AppCard } from "@/components/ui/AppCard"
@@ -940,17 +941,76 @@ function ApplicationUsersView() {
     </div>
   )
 }
-type ManagedGlobalLocation = { id: string; name: string; town?: string | null; address?: string | null; courtCount?: number | null; usage: { leagueCount: number; personalMatchCount: number } }
+type ManagedLocationUsageItem = {
+  source: "league" | "friendly"
+  matchId: string
+  leagueId: string | null
+  leagueName: string | null
+  seasonId: string | null
+  seasonName: string | null
+  round: number | null
+  scheduledAt: string | null
+  status: string
+  players: string[]
+  isFuture: boolean
+  href: string
+}
+type ManagedGlobalLocation = {
+  id: string
+  name: string
+  town?: string | null
+  address?: string | null
+  courtCount?: number | null
+  usage: {
+    leagueCount: number
+    personalMatchCount: number
+    matchCount: number
+    items: ManagedLocationUsageItem[]
+  }
+}
 type ManagedLocationsPayload = { locations: ManagedGlobalLocation[]; error?: string }
-async function fetchManagedLocations() { const response = await fetch("/api/application-admin/locations", { cache: "no-store" }); const payload = (await response.json()) as ManagedLocationsPayload; if (!response.ok) throw new Error(payload.error ?? "application_locations_lookup_failed"); return payload.locations }
+
+async function fetchManagedLocations() {
+  const response = await fetch("/api/application-admin/locations", { cache: "no-store" })
+  const payload = (await response.json()) as ManagedLocationsPayload
+  if (!response.ok) throw new Error(payload.error ?? "application_locations_lookup_failed")
+  return payload.locations
+}
+
+function formatManagedMatchDate(value: string | null) {
+  if (!value) return "Sin fecha"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Fecha no válida"
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date)
+}
+
 function ApplicationLocationsView() {
   const { isSuperuser } = useLeagueAccess()
   const [locations, setLocations] = useState<ManagedGlobalLocation[]>([])
   const [query, setQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const loadLocations = useCallback(async () => { setLoading(true); setError(null); try { setLocations(await fetchManagedLocations()) } catch { setError("No se han podido cargar las ubicaciones.") } finally { setLoading(false) } }, [])
+
+  const loadLocations = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      setLocations(await fetchManagedLocations())
+    } catch {
+      setError("No se han podido cargar las ubicaciones.")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!isSuperuser) return
     let cancelled = false
@@ -971,29 +1031,171 @@ function ApplicationLocationsView() {
       cancelled = true
     }
   }, [isSuperuser])
-  const visibleLocations = useMemo(() => { const clean = query.trim().toLocaleLowerCase("es-ES"); return clean ? locations.filter((location) => [location.name, location.town, location.address].filter(Boolean).join(" ").toLocaleLowerCase("es-ES").includes(clean)) : locations }, [locations, query])
+
+  const visibleLocations = useMemo(() => {
+    const clean = query.trim().toLocaleLowerCase("es-ES")
+    return clean
+      ? locations.filter((location) =>
+          [location.name, location.town, location.address]
+            .filter(Boolean)
+            .join(" ")
+            .toLocaleLowerCase("es-ES")
+            .includes(clean),
+        )
+      : locations
+  }, [locations, query])
+
   async function removeLocation(location: ManagedGlobalLocation) {
-    if (busyId || location.usage.leagueCount + location.usage.personalMatchCount > 0) return
-    if (!window.confirm(`¿Eliminar "${location.name}" del catálogo global de ubicaciones? Esta acción no se puede deshacer.`)) return
-    setBusyId(location.id); setError(null)
+    if (busyId) return
+    const usageCount = location.usage.matchCount
+    if (
+      !window.confirm(
+        `¿Eliminar "${location.name}" del catálogo global?${usageCount ? ` Tiene ${usageCount} partido(s) asociado(s), pero su histórico se conservará.` : ""}`,
+      )
+    ) return
+
+    setBusyId(location.id)
+    setError(null)
     try {
-      const response = await fetch("/api/application-admin/locations", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ locationId: location.id }) })
+      const response = await fetch("/api/application-admin/locations", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locationId: location.id }),
+      })
       const payload = (await response.json()) as { error?: string }
       if (!response.ok) throw new Error(payload.error ?? "application_location_delete_failed")
       setLocations((current) => current.filter((item) => item.id !== location.id))
-      showActionFeedback({ message: `${location.name} eliminada del catálogo global.`, tone: "success" })
-    } catch (caughtError) {
-      const message = caughtError instanceof Error && caughtError.message === "global_location_in_use" ? "La ubicación está en uso y no se puede eliminar." : "No se ha podido eliminar la ubicación."
-      setError(message); showActionFeedback({ message, tone: "error" })
-    } finally { setBusyId(null) }
+      showActionFeedback({
+        message: `${location.name} eliminada del catálogo. El histórico de partidos se conserva.`,
+        tone: "success",
+      })
+    } catch {
+      const message = "No se ha podido eliminar la ubicación."
+      setError(message)
+      showActionFeedback({ message, tone: "error" })
+    } finally {
+      setBusyId(null)
+    }
   }
-  if (!isSuperuser) return <div className="compact-page space-y-3"><header className="pt-2"><BackButton fallbackHref="/settings" label="Volver" /><h1 className="mt-2 text-xl font-black">Acceso restringido</h1></header><AppCard><p className="text-sm font-semibold text-neutral-600">Esta pantalla solo está disponible para superusuarios de Smash & Lob.</p></AppCard></div>
+
+  async function changeUsage(
+    location: ManagedGlobalLocation,
+    usage: ManagedLocationUsageItem,
+    nextLocationId: string,
+  ) {
+    if (busyId || !usage.isFuture || !nextLocationId || nextLocationId === location.id) return
+    setBusyId(usage.matchId)
+    setError(null)
+    try {
+      const response = await fetch("/api/application-admin/locations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "change_usage",
+          source: usage.source,
+          matchId: usage.matchId,
+          locationId: nextLocationId,
+        }),
+      })
+      const payload = (await response.json()) as { error?: string }
+      if (!response.ok) throw new Error(payload.error ?? "location_usage_update_failed")
+      await loadLocations()
+      setExpandedId(nextLocationId)
+      showActionFeedback({ message: "Ubicación del partido actualizada.", tone: "success" })
+    } catch {
+      const message = "No se ha podido cambiar la ubicación del partido."
+      setError(message)
+      showActionFeedback({ message, tone: "error" })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function clearUsage(location: ManagedGlobalLocation, usage: ManagedLocationUsageItem) {
+    if (busyId || !usage.isFuture) return
+    if (!window.confirm(`¿Quitar ${location.name} de este partido futuro?`)) return
+    setBusyId(usage.matchId)
+    setError(null)
+    try {
+      const response = await fetch("/api/application-admin/locations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "clear_usage",
+          source: usage.source,
+          matchId: usage.matchId,
+        }),
+      })
+      const payload = (await response.json()) as { error?: string }
+      if (!response.ok) throw new Error(payload.error ?? "location_usage_update_failed")
+      await loadLocations()
+      setExpandedId(location.id)
+      showActionFeedback({ message: "Ubicación quitada del partido futuro.", tone: "success" })
+    } catch {
+      const message = "No se ha podido quitar la ubicación del partido."
+      setError(message)
+      showActionFeedback({ message, tone: "error" })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  if (!isSuperuser) {
+    return <div className="compact-page space-y-3"><header className="pt-2"><BackButton fallbackHref="/settings" label="Volver" /><h1 className="mt-2 text-xl font-black">Acceso restringido</h1></header><AppCard><p className="text-sm font-semibold text-neutral-600">Esta pantalla solo está disponible para superusuarios de Smash & Lob.</p></AppCard></div>
+  }
+
   return <div className="compact-page space-y-3">
-    <header className="pt-2"><BackButton fallbackHref="/application-admin" label="Volver" /><p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-red-600">Superusuario</p><h1 className="mt-0.5 text-xl font-black">Gestión de ubicaciones</h1><p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">Administra el catálogo global de clubes y lugares disponibles en Smash & Lob.</p></header>
-    <AppCard><div className="flex items-center justify-between gap-3"><div><p className="font-bold">Ubicaciones</p><p className="mt-0.5 text-xs font-semibold text-neutral-500">{locations.length} en el catálogo global</p></div><button type="button" onClick={() => void loadLocations()} disabled={loading} className="inline-flex items-center justify-center text-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 disabled:text-neutral-300">Actualizar</button></div><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ubicación..." className="mt-3 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-neutral-400" /></AppCard>
+    <header className="pt-2"><BackButton fallbackHref="/application-admin" label="Volver" /><p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-red-600">Superusuario</p><h1 className="mt-0.5 text-xl font-black">Gestión de ubicaciones</h1><p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">El catálogo global es la fuente maestra. Puedes eliminar ubicaciones aunque tengan histórico; los partidos ya jugados conservan su snapshot.</p></header>
+    <AppCard><div className="flex items-center justify-between gap-3"><div><p className="font-bold">Ubicaciones</p><p className="mt-0.5 text-xs font-semibold text-neutral-500">{locations.length} en el catálogo global</p></div><button type="button" onClick={() => void loadLocations()} disabled={loading} className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-3 py-1.5 text-center text-xs font-black text-neutral-700 disabled:text-neutral-300">Actualizar</button></div><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ubicación..." className="mt-3 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-neutral-400" /></AppCard>
     {error ? <AppCard><p className="text-sm font-semibold text-red-700">{error}</p></AppCard> : null}
     {loading ? <AppCard><p className="text-sm font-semibold text-neutral-500">Cargando ubicaciones...</p></AppCard> : null}
-    {!loading ? <div className="space-y-2">{visibleLocations.map((location) => { const usageCount = location.usage.leagueCount + location.usage.personalMatchCount; return <AppCard key={location.id} className="!p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-neutral-950">{location.name}</p>{location.town || location.address ? <p className="mt-0.5 text-xs font-semibold text-neutral-500">{[location.town, location.address].filter(Boolean).join(" · ")}</p> : null}<p className="mt-1 type-caption font-black uppercase tracking-[0.12em] text-neutral-400">{usageCount ? `En uso · ${location.usage.leagueCount} liga(s) · ${location.usage.personalMatchCount} partido(s)` : "Sin uso"}</p></div><button type="button" onClick={() => void removeLocation(location)} disabled={Boolean(busyId) || usageCount > 0} title={usageCount > 0 ? "No se puede eliminar mientras esté en uso" : "Eliminar ubicación"} className="inline-flex shrink-0 items-center justify-center text-center rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:bg-neutral-100 disabled:text-neutral-300">{busyId === location.id ? "Eliminando..." : usageCount > 0 ? "EN USO" : "Eliminar"}</button></div></AppCard> })}</div> : null}
+    {!loading ? <div className="space-y-2">{visibleLocations.map((location) => {
+      const usageCount = location.usage.matchCount
+      const expanded = expandedId === location.id
+      return <AppCard key={location.id} className="!p-3">
+        <div className="flex items-start justify-between gap-3">
+          <button type="button" onClick={() => setExpandedId(expanded ? null : location.id)} className="min-w-0 flex-1 text-left">
+            <p className="truncate text-sm font-black text-neutral-950">{location.name}</p>
+            {location.town || location.address ? <p className="mt-0.5 text-xs font-semibold text-neutral-500">{[location.town, location.address].filter(Boolean).join(" · ")}</p> : null}
+            <p className="mt-1 type-caption font-black uppercase tracking-[0.12em] text-neutral-400">{usageCount ? `${usageCount} partido(s) · ${location.usage.leagueCount} liga(s)` : location.usage.leagueCount ? `${location.usage.leagueCount} liga(s) configurada(s)` : "Sin uso"} · {expanded ? "Ocultar usos" : "Ver usos"}</p>
+          </button>
+          <button type="button" onClick={() => void removeLocation(location)} disabled={Boolean(busyId)} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700 disabled:bg-neutral-100 disabled:text-neutral-300">{busyId === location.id ? "Eliminando..." : "Eliminar"}</button>
+        </div>
+        {expanded ? <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
+          {location.usage.items.length === 0 ? <p className="text-xs font-semibold text-neutral-500">No hay partidos asociados a esta ubicación.</p> : location.usage.items.map((usage) => <div key={`${usage.source}-${usage.matchId}`} className="rounded-xl bg-neutral-100 p-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black text-neutral-900">{usage.source === "league" ? [usage.leagueName ?? "Liga", usage.seasonName, usage.round ? `Jornada ${usage.round}` : null].filter(Boolean).join(" · ") : "Amistoso"}</p>
+                <p className="mt-0.5 text-xs font-semibold text-neutral-600">{formatManagedMatchDate(usage.scheduledAt)} · {usage.isFuture ? "Futuro" : usage.status === "finished" ? "Finalizado" : "Pasado"}</p>
+                {usage.players.length ? <p className="mt-0.5 truncate type-caption font-semibold text-neutral-500">{usage.players.join(" · ")}</p> : null}
+              </div>
+              <div className="flex shrink-0 gap-1.5">
+                <Link href={usage.href} className="inline-flex items-center justify-center rounded-lg bg-white px-2.5 py-1.5 text-center type-caption font-black text-neutral-700">Abrir</Link>
+                {usage.isFuture ? <>
+                  <select
+                    aria-label="Cambiar ubicación"
+                    defaultValue=""
+                    disabled={Boolean(busyId)}
+                    onChange={(event) => {
+                      const nextLocationId = event.target.value
+                      event.currentTarget.value = ""
+                      if (nextLocationId) void changeUsage(location, usage, nextLocationId)
+                    }}
+                    className="max-w-36 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-black text-neutral-700 disabled:text-neutral-300"
+                  >
+                    <option value="">Cambiar…</option>
+                    {locations.filter((candidate) => candidate.id !== location.id).map((candidate) => (
+                      <option key={candidate.id} value={candidate.id}>{candidate.name}</option>
+                    ))}
+                  </select>
+                  <button type="button" onClick={() => void clearUsage(location, usage)} disabled={Boolean(busyId)} className="inline-flex items-center justify-center rounded-lg bg-amber-50 px-2.5 py-1.5 text-center type-caption font-black text-amber-800 disabled:text-neutral-300">{busyId === usage.matchId ? "Quitando..." : "Quitar ubicación"}</button>
+                </> : null}
+              </div>
+            </div>
+          </div>)}
+        </div> : null}
+      </AppCard>
+    })}</div> : null}
     {!loading && visibleLocations.length === 0 ? <AppCard><p className="text-sm font-semibold text-neutral-500">No hay ubicaciones que coincidan con la búsqueda.</p></AppCard> : null}
   </div>
 }

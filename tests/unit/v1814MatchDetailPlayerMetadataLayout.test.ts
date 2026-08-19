@@ -7,7 +7,7 @@ describe("v1.8.14 match detail player metadata layout", () => {
 
     expect(panel).toContain('metadataPlacement: "before-name" | "after-name"')
     expect(panel).toContain('metadataPlacement={index === 0 ? "before-name" : "after-name"}')
-    expect(panel).toContain('const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\\u00a0"}</p>')
+    expect(panel).toContain('const positionLine = <p className={metadataClass}>{position ? tx(`#${position} en liga`) : "\\u00a0"}</p>')
     expect(panel).toContain("const playLine = playerPositionLabel ? (")
     expect(panel).toContain(`<>
               {showRankingPosition ? positionLine : null}

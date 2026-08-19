@@ -13,6 +13,7 @@ import {
   type MvpSystem,
   type MvpVote,
 } from "@/lib/mvp"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type DashboardMvpCardProps = {
   leagueId: string
@@ -51,6 +52,7 @@ export function DashboardMvpCard({
   votes,
   mvpSystem,
 }: DashboardMvpCardProps) {
+  const { tx } = useI18n()
   const completedRounds = getCompletedRoundNumbers(matches, leagueId, seasonId)
   const latestRoundWithMvp = [...completedRounds].reverse().find((round) =>
     Boolean(
@@ -105,8 +107,7 @@ export function DashboardMvpCard({
             {latestRoundMvp ? (
               <div className="min-w-0 flex-1">
                 <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                  MVP última jornada
-                </p>
+                  {tx("MVP última jornada")}{" "}</p>
                 <div className="mt-1 flex min-w-0 items-center gap-2">
                   <div className="flex -space-x-2">
                     {latestRoundMvpPlayers.slice(0, 2).map((player) => (
@@ -123,7 +124,7 @@ export function DashboardMvpCard({
                   </p>
                 </div>
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  Jornada {latestRoundWithMvp} · {mvpSystem === "voting"
+                  {tx("Jornada")}{" "}{latestRoundWithMvp} · {mvpSystem === "voting"
                     ? `${latestRoundMvp.votes} votos${latestRoundMvp.tied ? " · empate" : ""}`
                     : mvpSystem === "automatic_advanced"
                       ? formatAdvancedRating(
@@ -136,13 +137,13 @@ export function DashboardMvpCard({
             ) : seasonMvp ? (
               <div className="min-w-0 flex-1">
                 <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                  MVP final
+                  {tx("MVP final")}
                 </p>
                 <p className="mt-1 truncate text-sm font-black text-neutral-950">
                   {formatPlayerNames(seasonMvpPlayers)}
                 </p>
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {seasonMvp.votes} MVPs de jornada{seasonMvp.tied ? " · empate" : ""}
+                  {seasonMvp.votes} {tx("MVPs de jornada")}{seasonMvp.tied ? " · empate" : ""}
                 </p>
               </div>
             ) : null}
@@ -153,7 +154,7 @@ export function DashboardMvpCard({
               href="/admin/mvp"
               className="inline-flex shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
             >
-              Gestionar
+              {tx("Gestionar")}
             </Link>
           ) : null}
         </div>
@@ -162,14 +163,14 @@ export function DashboardMvpCard({
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
             <div className="min-w-0">
               <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                MVP final
+                {tx("MVP final")}
               </p>
               <p className="mt-1 truncate text-sm font-black text-neutral-950">
                 {formatPlayerNames(seasonMvpPlayers)}
               </p>
             </div>
             <p className="shrink-0 text-xs font-semibold text-neutral-500">
-              {seasonMvp.votes} jornadas{seasonMvp.tied ? " · empate" : ""}
+              {seasonMvp.votes} {tx("jornadas")}{seasonMvp.tied ? " · empate" : ""}
             </p>
           </div>
         ) : null}

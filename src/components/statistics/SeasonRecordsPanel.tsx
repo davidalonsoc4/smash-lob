@@ -1,3 +1,5 @@
+"use client"
+
 import { AppCard } from "@/components/ui/AppCard"
 import type {
   PlayerSeasonDetail,
@@ -8,6 +10,7 @@ import {
   formatGamesDifference,
   getFriendlyMatchSummary,
 } from "@/lib/statisticsPresentation"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
@@ -51,6 +54,7 @@ export function SeasonRecordsPanel({
   playersById: Map<string, string>
   isLeagueWide?: boolean
 }) {
+  const { tx } = useI18n()
   const comeback = records.biggestComeback
     ? getFriendlyMatchSummary(records.biggestComeback.match, playersById)
     : null
@@ -65,15 +69,14 @@ export function SeasonRecordsPanel({
     <div className="space-y-3">
       <div>
         <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Récord individual
-        </p>
+          {tx("Récord individual")}{" "}</p>
         <RecordCard
-          eyebrow="Mejor racha de victorias"
-          headline={records.longestWinStreak?.displayName ?? "Todavía sin récord"}
+          eyebrow={tx("Mejor racha de victorias")}
+          headline={records.longestWinStreak?.displayName ?? tx("Todavía sin récord")}
           description={
             records.longestWinStreak
-              ? `${records.longestWinStreak.wins} victorias consecutivas sin perder.`
-              : "La racha aparecerá cuando se contabilicen victorias consecutivas."
+              ? tx(`${records.longestWinStreak.wins} victorias consecutivas sin perder.`)
+              : tx("La racha aparecerá cuando se contabilicen victorias consecutivas.")
           }
         />
       </div>
@@ -81,49 +84,49 @@ export function SeasonRecordsPanel({
       <div>
         <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           {isLeagueWide
-            ? "Partidos que marcaron la liga"
-            : "Partidos que marcaron la temporada"}
+            ? tx("Partidos que marcaron la liga")
+            : tx("Partidos que marcaron la temporada")}
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           <RecordCard
             eyebrow="Mayor remontada"
             headline={
               comeback && records.biggestComeback
-                ? `${comeback.winnerNames} remontaron el partido`
-                : "No hubo remontadas"
+                ? tx(`${comeback.winnerNames} remontaron el partido`)
+                : tx("No hubo remontadas")
             }
             description={
               comeback && records.biggestComeback
-                ? `Ganaron después de perder el primer set por ${records.biggestComeback.firstSetDeficit} ${records.biggestComeback.firstSetDeficit === 1 ? "juego" : "juegos"}.`
-                : "Ningún ganador tuvo que levantar un primer set perdido."
+                ? tx(`Ganaron después de perder el primer set por ${records.biggestComeback.firstSetDeficit} ${records.biggestComeback.firstSetDeficit === 1 ? "juego" : "juegos"}.`)
+                : tx("Ningún ganador tuvo que levantar un primer set perdido.")
             }
             matchLine={comeback ? formatFriendlyMatchLine(comeback) : undefined}
           />
           <RecordCard
-            eyebrow="Partido más igualado"
+            eyebrow={tx("Partido más igualado")}
             headline={
               closest
                 ? formatGamesDifference(closest.gamesMargin)
-                : "Sin partido destacado"
+                : tx("Sin partido destacado")
             }
             description={
               closest
-                ? `${closest.winnerNames} se llevaron el duelo con el margen total más pequeño.`
-                : "Se necesita al menos un resultado válido."
+                ? tx(`${closest.winnerNames} se llevaron el duelo con el margen total más pequeño.`)
+                : tx("Se necesita al menos un resultado válido.")
             }
             matchLine={closest ? formatFriendlyMatchLine(closest) : undefined}
           />
           <RecordCard
-            eyebrow="Victoria más contundente"
+            eyebrow={tx("Victoria más contundente")}
             headline={
               biggestWin
-                ? `${biggestWin.winnerNames} ganaron por ${biggestWin.gamesMargin} ${biggestWin.gamesMargin === 1 ? "juego" : "juegos"}`
-                : "Sin victoria destacada"
+                ? tx(`${biggestWin.winnerNames} ganaron por ${biggestWin.gamesMargin} ${biggestWin.gamesMargin === 1 ? "juego" : "juegos"}`)
+                : tx("Sin victoria destacada")
             }
             description={
               biggestWin
-                ? `Fue el resultado con mayor diferencia total de juegos ${isLeagueWide ? "de la liga" : "de la temporada"}.`
-                : "Se necesita al menos un resultado válido."
+                ? tx(`Fue el resultado con mayor diferencia total de juegos ${isLeagueWide ? "de la liga" : "de la temporada"}.`)
+                : tx("Se necesita al menos un resultado válido.")
             }
             matchLine={biggestWin ? formatFriendlyMatchLine(biggestWin) : undefined}
           />
@@ -142,10 +145,11 @@ export function PlayerSeasonRecordsPanel({
   playersById: Map<string, string>
   isLeagueWide?: boolean
 }) {
+  const { tx } = useI18n()
   const positionRange =
     detail.bestPosition !== null && detail.worstPosition !== null
       ? detail.bestPosition === detail.worstPosition
-        ? `${detail.bestPosition}ª posición`
+        ? tx(`${detail.bestPosition}ª posición`)
         : `${detail.bestPosition}ª–${detail.worstPosition}ª`
       : "—"
   const biggestWin = detail.biggestWin
@@ -161,12 +165,12 @@ export function PlayerSeasonRecordsPanel({
   return (
     <div className="grid gap-2 sm:grid-cols-2">
       <RecordCard
-        eyebrow={isLeagueWide ? "Posiciones históricas" : "Posiciones de la temporada"}
+        eyebrow={isLeagueWide ? tx("Posiciones históricas") : tx("Posiciones de la temporada")}
         headline={positionRange}
         description={
           detail.bestPosition !== null
             ? `Mejor puesto: ${detail.bestPosition}ª · peor puesto: ${detail.worstPosition}ª.`
-            : "Todavía no hay evolución suficiente para calcularlo."
+            : tx("Todavía no hay evolución suficiente para calcularlo.")
         }
       />
       <RecordCard
@@ -174,57 +178,57 @@ export function PlayerSeasonRecordsPanel({
         headline={
           detail.bestWinStreak > 0
             ? `${detail.bestWinStreak} victorias seguidas`
-            : "Sin racha de victorias"
+            : tx("Sin racha de victorias")
         }
-        description={`Mayor número de triunfos consecutivos ${isLeagueWide ? "en una misma temporada" : "durante la temporada"}.`}
+        description={tx(`Mayor número de triunfos consecutivos ${isLeagueWide ? "en una misma temporada" : "durante la temporada"}.`)}
       />
       <RecordCard
-        eyebrow="Rival más vencido"
-        headline={detail.mostBeatenOpponent?.displayName ?? "Sin datos"}
+        eyebrow={tx("Rival más vencido")}
+        headline={detail.mostBeatenOpponent?.displayName ?? tx("Sin datos")}
         description={
           detail.mostBeatenOpponent
-            ? `${detail.mostBeatenOpponent.wins} victorias en ${detail.mostBeatenOpponent.matchesPlayed} enfrentamientos · Dif. ${formatSigned(detail.mostBeatenOpponent.gamesDiff)} juegos.`
-            : "Todavía no ha ganado a ningún rival."
+            ? tx(`${detail.mostBeatenOpponent.wins} victorias en ${detail.mostBeatenOpponent.matchesPlayed} enfrentamientos · Dif. ${formatSigned(detail.mostBeatenOpponent.gamesDiff)} juegos.`)
+            : tx("Todavía no ha ganado a ningún rival.")
         }
       />
       <RecordCard
-        eyebrow="Rival que más le ganó"
-        headline={detail.mostLostOpponent?.displayName ?? "Sin datos"}
+        eyebrow={tx("Rival que más le ganó")}
+        headline={detail.mostLostOpponent?.displayName ?? tx("Sin datos")}
         description={
           detail.mostLostOpponent
-            ? `${detail.mostLostOpponent.losses} derrotas en ${detail.mostLostOpponent.matchesPlayed} enfrentamientos.`
-            : "Todavía no ha perdido contra ningún rival."
+            ? tx(`${detail.mostLostOpponent.losses} derrotas en ${detail.mostLostOpponent.matchesPlayed} enfrentamientos.`)
+            : tx("Todavía no ha perdido contra ningún rival.")
         }
       />
       <RecordCard
-        eyebrow="Mayor victoria personal"
+        eyebrow={tx("Mayor victoria personal")}
         headline={
           biggestWin
-            ? `Victoria por ${biggestWin.gamesMargin} ${biggestWin.gamesMargin === 1 ? "juego" : "juegos"}`
-            : "Sin victoria destacada"
+            ? tx(`Victoria por ${biggestWin.gamesMargin} ${biggestWin.gamesMargin === 1 ? "juego" : "juegos"}`)
+            : tx("Sin victoria destacada")
         }
         description={
           biggestWin
-            ? `${biggestWin.winnerNames} firmaron su triunfo más amplio.`
-            : "No hay resultados suficientes."
+            ? tx(`${biggestWin.winnerNames} firmaron su triunfo más amplio.`)
+            : tx("No hay resultados suficientes.")
         }
         matchLine={biggestWin ? formatFriendlyMatchLine(biggestWin) : undefined}
       />
       <RecordCard
-        eyebrow="Partido personal más igualado"
+        eyebrow={tx("Partido personal más igualado")}
         headline={
           closest
             ? formatGamesDifference(closest.gamesMargin)
-            : "Sin partido destacado"
+            : tx("Sin partido destacado")
         }
-        description="El encuentro con el margen total de juegos más pequeño."
+        description={tx("El encuentro con el margen total de juegos más pequeño.")}
         matchLine={closest ? formatFriendlyMatchLine(closest) : undefined}
       />
       {detail.biggestComeback ? (
         <RecordCard
           eyebrow="Mayor remontada personal"
-          headline={`Remontada desde -${detail.biggestComeback.firstSetDeficit} juegos`}
-          description="Terminó ganando después de perder el primer set."
+          headline={tx(`Remontada desde -${detail.biggestComeback.firstSetDeficit} juegos`)}
+          description={tx("Terminó ganando después de perder el primer set.")}
           matchLine={comeback ? formatFriendlyMatchLine(comeback) : undefined}
         />
       ) : null}

@@ -8,7 +8,7 @@ describe("v1.7.0 type contracts", () => {
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
     ])
     expect(page).toContain('backHref={`/match/${id}`}')
-    expect(shared).toContain('<BackButton fallbackHref={backHref} label="Volver" />')
+    expect(shared).toContain('<BackButton fallbackHref={backHref} label={tx("Volver")} />')
     expect(shared).not.toContain("<BackButton href=")
   })
 

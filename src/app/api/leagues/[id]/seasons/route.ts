@@ -18,6 +18,7 @@ type CreateSeasonBody = {
   name?: unknown
   playerIds?: unknown
   newPlayerNames?: unknown
+  appUserIds?: unknown
   roundWindowMode?: unknown
   seasonStartsAt?: unknown
   scheduledStartAt?: unknown
@@ -252,6 +253,7 @@ export async function POST(
   const name = cleanString(body?.name)
   const playerIds = parseUuidArray(body?.playerIds)
   const newPlayerNames = parseNewPlayerNames(body?.newPlayerNames)
+  const appUserIds = parseUuidArray(body?.appUserIds ?? [])
   const roundWindowMode = parseRoundWindowMode(body?.roundWindowMode)
   const scheduleMode = parseScheduleMode(body?.scheduleMode) ?? "single"
   const rosterMode = parseRosterMode(body?.rosterMode) ?? "fixed"
@@ -295,6 +297,7 @@ export async function POST(
     !name ||
     !playerIds ||
     !newPlayerNames ||
+    !appUserIds ||
     !roundWindowMode ||
     !mvpSystem ||
     !resultConfirmationMode ||
@@ -328,23 +331,29 @@ export async function POST(
   const totalPlayers =
     rosterMode === "self_registration"
       ? playerCapacity
-      : playerIds.length + newPlayerNames.length
+      : playerIds.length + appUserIds.length + newPlayerNames.length
 
   if (
     !allowedPlayerCounts.has(totalPlayers) ||
     (rosterMode === "self_registration" &&
-      (playerIds.length > 0 || newPlayerNames.length > 0))
+      (newPlayerNames.length > 0 || appUserIds.length > 0 || playerIds.length > playerCapacity))
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
   const validPlayerValues = new Set<string>([
     ...playerIds,
-    ...newPlayerNames.map((_, index) => `__new_player__${index}`),
+    ...Array.from({ length: appUserIds.length + newPlayerNames.length }, (_, index) =>
+      `__new_player__${index}`,
+    ),
+  ])
+  const validSelfPlayerValues = new Set<string>([
+    ...playerIds,
+    ...Array.from({ length: newPlayerNames.length }, (_, index) => `__new_player__${index}`),
   ])
   const selfPlayerValue = parseSelfPlayerValue({
     value: body?.selfPlayerValue,
-    validPlayerValues,
+    validPlayerValues: validSelfPlayerValues,
   })
   const manualMatches = parseManualMatches({
     value: body?.manualMatches,
@@ -366,6 +375,7 @@ export async function POST(
         activeSeasonId,
         name,
         playerIds,
+        appUserIds,
         newPlayerNames,
         roundWindowMode,
         seasonStartsAt,
@@ -401,6 +411,7 @@ export async function POST(
       metadata: {
         playerCount: totalPlayers,
         existingPlayerIds: playerIds,
+        appUserIds,
         newPlayerNames,
         roundWindowMode,
         scheduledStartAt,

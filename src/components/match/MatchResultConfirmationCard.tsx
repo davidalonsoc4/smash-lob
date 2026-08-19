@@ -10,6 +10,7 @@ import type {
   MatchResultConfirmation,
   MatchResultConfirmationStatus,
 } from "@/lib/supabaseMatchConfirmations";
+import { useI18n } from "@/i18n/I18nProvider"
 
 type MatchResultConfirmationCardProps = {
   matchId: string;
@@ -38,6 +39,7 @@ export function MatchResultConfirmationCard({
   confirmations,
   onSetStatus,
 }: MatchResultConfirmationCardProps) {
+  const { tx } = useI18n()
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currentConfirmation = confirmations.find(
@@ -117,7 +119,7 @@ export function MatchResultConfirmationCard({
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="type-panel-title">Confirmar resultado</p>
+            <p className="type-panel-title">{tx("Confirmar resultado")}</p>
             <span
               className={`shrink-0 rounded-full px-1.5 py-0.5 type-caption font-black ${status.className}`}
             >
@@ -144,7 +146,7 @@ export function MatchResultConfirmationCard({
                   : "bg-neutral-100 text-neutral-800"
               }`}
             >
-              Correcto
+              {tx("Correcto")}
             </button>
 
             <button
@@ -153,14 +155,14 @@ export function MatchResultConfirmationCard({
               disabled={isSaving}
               className="inline-flex rounded-lg bg-red-50 px-2 py-1.5 type-caption font-black text-red-700 disabled:opacity-50 items-center justify-center text-center"
             >
-              Incorrecto
+              {tx("Incorrecto")}
             </button>
           </div>
         ) : null}
       </div>
 
       {error ? (
-        <p className="mt-1 type-caption font-semibold text-red-600">{error}</p>
+        <p className="mt-1 type-caption font-semibold text-red-600">{tx(error)}</p>
       ) : null}
     </AppCard>
   );

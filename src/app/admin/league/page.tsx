@@ -51,6 +51,7 @@ function LeagueIdentityForm({
   initialLogoUrl,
   initialRecommendations,
 }: LeagueIdentityFormProps) {
+  const { tx } = useI18n()
   const { data: session } = useSession()
   const { updateLeagueDetails, updateLeagueLogo } = useLeagueAccess()
   const [name, setName] = useState(initialName)
@@ -100,7 +101,7 @@ function LeagueIdentityForm({
         ...getActorFromSession(session),
         type: "league_updated",
         title: "Datos de liga actualizados",
-        description: `La liga ha pasado a llamarse ${cleanName}.`,
+        description: tx(`La liga ha pasado a llamarse ${cleanName}.`),
         metadata: {
           previousName: initialName,
           nextName: cleanName,
@@ -185,10 +186,9 @@ function LeagueIdentityForm({
   return (
     <form onSubmit={handleSubmitDetails}>
       <AppCard>
-        <p className="font-bold">Datos de la liga</p>
+        <p className="font-bold">{tx("Datos de la liga")}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
-          Edita el nombre, la descripción y el logo que ven los jugadores.
-        </p>
+          {tx("Edita el nombre, la descripción y el logo que ven los jugadores.")}{" "}</p>
 
         <div className="mt-4 flex items-center gap-3 rounded-2xl bg-neutral-100 p-3">
           <LeagueLogo
@@ -199,7 +199,7 @@ function LeagueIdentityForm({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black">{previewLeagueName}</p>
             <p className="mt-1 text-xs text-neutral-500">
-              {logoUrl ? "Logo personalizado activo." : "Se usan iniciales si no hay logo."}
+              {logoUrl ? "Logo personalizado activo." : tx("Se usan iniciales si no hay logo.")}
             </p>
           </div>
         </div>
@@ -222,21 +222,20 @@ function LeagueIdentityForm({
             disabled={!logoUrl || isSavingLogo}
             className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
           >
-            Quitar logo
+            {tx("Quitar logo")}
           </button>
         </div>
 
         {logoError ? (
           <p className="mt-3 text-center text-sm font-semibold text-red-600">
-            {logoError}
+            {tx(logoError)}
           </p>
         ) : null}
 
         <div className="mt-4 space-y-4 border-t border-neutral-100 pt-5">
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
-              Nombre de la liga
-            </span>
+              {tx("Nombre de la liga")}{" "}</span>
             <input
               value={name}
               disabled={isSavingDetails}
@@ -250,8 +249,7 @@ function LeagueIdentityForm({
 
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
-              Descripción
-            </span>
+              {tx("Descripción")}{" "}</span>
             <textarea
               value={description}
               disabled={isSavingDetails}
@@ -269,8 +267,7 @@ function LeagueIdentityForm({
             className="settings-search-target block scroll-mt-28"
           >
             <span className="text-sm font-semibold text-neutral-700">
-              Recomendaciones de la liga
-            </span>
+              {tx("Recomendaciones de la liga")}{" "}</span>
             <textarea
               value={recommendations}
               disabled={isSavingDetails}
@@ -279,12 +276,11 @@ function LeagueIdentityForm({
                 setRecommendations(event.target.value)
                 setDetailsError(null)
               }}
-              placeholder="Bolas recomendadas, pistas habituales, equipamiento o cualquier sugerencia práctica para los jugadores."
+              placeholder={tx("Bolas recomendadas, pistas habituales, equipamiento o cualquier sugerencia práctica para los jugadores.")}
               className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
             />
             <p className="mt-1 text-xs text-neutral-500">
-              Este bloque aparecerá como guía rápida para todos los miembros de la liga.
-            </p>
+              {tx("Este bloque aparecerá como guía rápida para todos los miembros de la liga.")}{" "}</p>
           </label>
         </div>
 
@@ -293,12 +289,12 @@ function LeagueIdentityForm({
           disabled={!canSaveDetails}
           className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
-          {isSavingDetails ? "Guardando..." : "Guardar datos de liga"}
+          {isSavingDetails ? "Guardando..." : tx("Guardar datos de liga")}
         </button>
 
         {detailsError ? (
           <p className="mt-3 text-center text-sm font-semibold text-red-600">
-            {detailsError}
+            {tx(detailsError)}
           </p>
         ) : null}
 
@@ -307,8 +303,8 @@ function LeagueIdentityForm({
       {logoCropSource ? (
         <ImageCropDialog
           src={logoCropSource}
-          title="Recortar logo de la liga"
-          description="Ajusta el encuadre. Los PNG transparentes conservarán el fondo transparente."
+          title={tx("Recortar logo de la liga")}
+          description={tx("Ajusta el encuadre. Los PNG transparentes conservarán el fondo transparente.")}
           shape="square"
           outputSize={512}
           outputType="auto"
@@ -334,7 +330,7 @@ function ProfileStatisticsVisibilityCard({
   leagueId: string
   enabled: boolean
 }) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { updateLeagueShowHistoricalProfileStats } = useLeagueAccess()
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -393,7 +389,7 @@ function ProfileStatisticsVisibilityCard({
       </div>
 
       {error ? (
-        <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>
+        <p className="mt-3 text-xs font-semibold text-red-600">{tx(error)}</p>
       ) : null}
     </AppCard>
   )
@@ -404,6 +400,7 @@ function DeleteLeagueCard({
   leagueName,
   onDeleteLeague,
 }: DeleteLeagueCardProps) {
+  const { tx } = useI18n()
   const [confirmation, setConfirmation] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -433,17 +430,13 @@ function DeleteLeagueCard({
 
   return (
     <AppCard className="border-red-200 bg-red-50">
-      <p className="font-bold text-red-950">Eliminar liga</p>
+      <p className="font-bold text-red-950">{tx("Eliminar liga")}</p>
       <p className="mt-2 text-sm text-red-900/80">
-        Esta acción elimina la liga completa de la base de datos: temporadas,
-        jugadores, partidos, resultados, invitaciones y miembros. Solo aparece
-        para el creador de la liga.
-      </p>
+        {tx("Esta acción elimina la liga completa de la base de datos: temporadas, jugadores, partidos, resultados, invitaciones y miembros. Solo aparece para el creador de la liga.")}{" "}</p>
 
       <label className="mt-4 block">
         <span className="text-sm font-semibold text-red-950">
-          Escribe el nombre exacto de la liga para confirmar
-        </span>
+          {tx("Escribe el nombre exacto de la liga para confirmar")}{" "}</span>
         <input
           value={confirmation}
           disabled={isDeleting}
@@ -462,11 +455,11 @@ function DeleteLeagueCard({
         disabled={!canDelete || isDeleting}
         className="flex mt-3 w-full rounded-2xl bg-red-700 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center"
       >
-        {isDeleting ? "Eliminando..." : "Eliminar liga definitivamente"}
+        {isDeleting ? tx("Eliminando...") : tx("Eliminar liga definitivamente")}
       </button>
 
       {error ? (
-        <p className="mt-3 text-xs font-semibold text-red-700">{error}</p>
+        <p className="mt-3 text-xs font-semibold text-red-700">{tx(error)}</p>
       ) : null}
     </AppCard>
   )
@@ -477,6 +470,7 @@ function LeagueLocationsForm({
   seasonId,
   initialLocations,
 }: LeagueLocationsFormProps) {
+  const { tx } = useI18n()
   const { data: session } = useSession()
   const { t } = useI18n()
   const { updateLeagueLocations } = useLeagueAccess()
@@ -508,8 +502,8 @@ function LeagueLocationsForm({
         seasonId,
         ...getActorFromSession(session),
         type: "league_locations_updated",
-        title: "Lugares actualizados",
-        description: `La liga tiene ${locations.length} lugar${locations.length === 1 ? "" : "es"} habitual${locations.length === 1 ? "" : "es"}.`,
+        title: tx("Lugares actualizados"),
+        description: tx(`La liga tiene ${locations.length} lugar${locations.length === 1 ? "" : "es"} habitual${locations.length === 1 ? "" : "es"}.`),
         metadata: {
           previousLocations: initialLocations,
           nextLocations: locations,
@@ -572,7 +566,7 @@ function LeagueLocationsForm({
 
         {error ? (
           <p className="mt-3 text-center text-sm font-semibold text-red-600">
-            {error}
+            {tx(error)}
           </p>
         ) : null}
 
@@ -582,6 +576,7 @@ function LeagueLocationsForm({
 }
 
 export default function AdminLeaguePage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { deleteLeague, hasLeagueAdminRole, isLeagueCreator } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
@@ -622,21 +617,19 @@ export default function AdminLeaguePage() {
 
       <AppCard className="p-2.5">
         <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-400">
-          Accesos rápidos
-        </p>
+          {tx("Accesos rápidos")}{" "}</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <a href="#identidad" className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800 items-center justify-center">
-            Identidad
+            {tx("Identidad")}
           </a>
           <a href="#lugares" className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800 items-center justify-center">
-            Lugares
+            {tx("Lugares")}
           </a>
           <a href="#estadisticas-perfil" className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-800 items-center justify-center">
-            Estadísticas
-          </a>
+            {tx("Estadísticas")}{" "}</a>
           {canDeleteLeague ? (
             <a href="#zona-sensible" className="inline-flex rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700 items-center justify-center">
-              Zona sensible
+              {tx("Zona sensible")}
             </a>
           ) : null}
         </div>
@@ -644,11 +637,10 @@ export default function AdminLeaguePage() {
 
       <div className="px-1 pt-1">
         <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Identidad
+          {tx("Identidad")}
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Nombre, descripción y logotipo que identifican la competición.
-        </p>
+          {tx("Nombre, descripción y logotipo que identifican la competición.")}{" "}</p>
       </div>
       <div id="identidad" className="settings-search-target">
         <LeagueIdentityForm
@@ -664,11 +656,9 @@ export default function AdminLeaguePage() {
 
       <div className="px-1 pt-1">
         <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Lugares habituales
-        </p>
+          {tx("Lugares habituales")}{" "}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Clubes, municipios, pistas y enlaces de localización usados con frecuencia.
-        </p>
+          {tx("Clubes, municipios, pistas y enlaces de localización usados con frecuencia.")}{" "}</p>
       </div>
       <div id="lugares" className="settings-search-target">
         <LeagueLocationsForm
@@ -681,11 +671,9 @@ export default function AdminLeaguePage() {
 
       <div className="px-1 pt-1">
         <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Historial y perfiles
-        </p>
+          {tx("Historial y perfiles")}{" "}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Decide si los perfiles incluyen estadísticas de temporadas anteriores.
-        </p>
+          {tx("Decide si los perfiles incluyen estadísticas de temporadas anteriores.")}{" "}</p>
       </div>
       <div id="estadisticas-perfil" className="settings-search-target">
         <ProfileStatisticsVisibilityCard
@@ -698,11 +686,10 @@ export default function AdminLeaguePage() {
         <>
           <div className="px-1 pt-1">
             <p className="type-caption font-black uppercase tracking-[0.2em] text-red-400">
-              Zona sensible
+              {tx("Zona sensible")}
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-red-600">
-              Acciones permanentes reservadas al creador de la liga.
-            </p>
+              {tx("Acciones permanentes reservadas al creador de la liga.")}{" "}</p>
           </div>
           <div id="zona-sensible" className="settings-search-target">
           <DeleteLeagueCard

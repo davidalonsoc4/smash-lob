@@ -7,6 +7,7 @@ import { type SeasonRoundSettings, useSeasonSettings } from "@/context/SeasonSet
 import { showActionFeedback } from "@/lib/actionFeedback";
 import { datetimeLocalToIso, formatNextScheduledStartForInput, normalizeScheduledStartAt, toDatetimeLocalValue } from "@/lib/seasonScheduling";
 import { updateSupabaseSeasonRoundSettings } from "@/lib/supabaseSeasons";
+import { useI18n } from "@/i18n/I18nProvider"
 
 type Props = {
   activeLeagueId: string;
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function ScheduledStartSettingsPanel({ activeLeagueId, roundSettings }: Props) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [enabled, setEnabled] = useState(Boolean(roundSettings.scheduledStartAt));
   const [scheduledStartAt, setScheduledStartAt] = useState(toDatetimeLocalValue(roundSettings.scheduledStartAt));
@@ -51,22 +53,20 @@ export function ScheduledStartSettingsPanel({ activeLeagueId, roundSettings }: P
 
   return (
     <AppCard>
-      <p className="font-bold">Inicio de temporada</p>
+      <p className="font-bold">{tx("Inicio de temporada")}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Mientras la temporada no haya empezado puedes alternar entre inicio manual e inicio programado, o cambiar su fecha y hora.
-      </p>
+        {tx("Mientras la temporada no haya empezado puedes alternar entre inicio manual e inicio programado, o cambiar su fecha y hora.")}{" "}</p>
       <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
         <input type="checkbox" checked={enabled} onChange={(event) => { const checked = event.target.checked; setEnabled(checked); if (checked && !scheduledStartAt) { setScheduledStartAt(formatNextScheduledStartForInput()); setScheduledStartIsFuture(true); } setError(null); }} className="mt-1" />
         <span>
-          <span className="block text-sm font-black">Programar inicio</span>
+          <span className="block text-sm font-black">{tx("Programar inicio")}</span>
           <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
-            Desactívalo para volver a un inicio manual mediante “Comenzar temporada”.
-          </span>
+            {tx("Desactívalo para volver a un inicio manual mediante “Comenzar temporada”.")}{" "}</span>
         </span>
       </label>
       {enabled ? (
         <label className="mt-3 block">
-          <span className="text-sm font-semibold text-neutral-700">Fecha y hora de activación</span>
+          <span className="text-sm font-semibold text-neutral-700">{tx("Fecha y hora de activación")}</span>
           <input
             type="datetime-local"
             step={3600}
@@ -82,7 +82,7 @@ export function ScheduledStartSettingsPanel({ activeLeagueId, roundSettings }: P
           />
         </label>
       ) : null}
-      {enabled && !isValid ? <p className="mt-2 text-xs font-semibold text-red-600">La fecha programada debe ser futura y válida en horario de Madrid.</p> : null}
+      {enabled && !isValid ? <p className="mt-2 text-xs font-semibold text-red-600">{tx("La fecha programada debe ser futura y válida en horario de Madrid.")}</p> : null}
       {scheduledStartIso && isValid ? <div className="mt-3"><SeasonStartCountdown scheduledStartAt={scheduledStartIso} compact /></div> : null}
       <button
         type="button"
@@ -90,9 +90,9 @@ export function ScheduledStartSettingsPanel({ activeLeagueId, roundSettings }: P
         disabled={!hasChanges || !isValid || isSaving}
         className="flex mt-3 w-full items-center justify-center rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:bg-neutral-300"
       >
-        {isSaving ? "Guardando..." : "Guardar inicio"}
+        {isSaving ? "Guardando..." : tx("Guardar inicio")}
       </button>
-      {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{error}</p> : null}
+      {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{tx(error)}</p> : null}
     </AppCard>
   );
 }

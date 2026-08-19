@@ -22,6 +22,7 @@ import {
   formatGamesDifference,
   getFriendlyMatchSummary,
 } from "@/lib/statisticsPresentation"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function formatSignedGamesDiff(value: number) {
   if (value > 0) return `+${value}`
@@ -38,6 +39,7 @@ function isGenericPlayerName(value: string) {
 }
 
 export default function StatisticsSeasonPage() {
+  const { tx } = useI18n()
   const {
     activeLeague,
     selectedSeason,
@@ -249,7 +251,7 @@ export default function StatisticsSeasonPage() {
         label: "Mayor remontada",
         headline:
           comeback && comebackRecord
-            ? `${comeback.winnerNames} remontaron desde -${comebackRecord.firstSetDeficit} juegos`
+            ? tx(`${comeback.winnerNames} remontaron desde -${comebackRecord.firstSetDeficit} juegos`)
             : "No hubo remontadas",
         detail: comeback
           ? formatFriendlyMatchLine(comeback)
@@ -279,17 +281,17 @@ export default function StatisticsSeasonPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        title={isLeagueWide ? "Resumen de la liga" : "Compartir resumen de temporada"}
+        title={isLeagueWide ? tx("Resumen de la liga") : tx("Compartir resumen de temporada")}
         description={
           isLeagueWide
-            ? "Vista histórica de todas las temporadas y campeones de la liga."
-            : "Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine."
+            ? tx("Vista histórica de todas las temporadas y campeones de la liga.")
+            : tx("Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine.")
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
         statusBadge={
           !isLeagueWide && selectedSeason.status === "finished" && !summaryIsComplete
-            ? { label: "Datos incompletos", tone: "warning" }
+            ? { label: tx("Datos incompletos"), tone: "warning" }
             : undefined
         }
       />
@@ -329,31 +331,27 @@ export default function StatisticsSeasonPage() {
       {isLeagueWide ? (
         <AppCard>
           <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
-            Histórico completo
-          </p>
+            {tx("Histórico completo")}{" "}</p>
           <p className="mt-1 text-xl font-black">
-            {leagueSeasons.length} temporadas · {statistics.countedMatches} partidos válidos
-          </p>
+            {leagueSeasons.length} {tx("temporadas ·")} {statistics.countedMatches} {tx("partidos válidos")}{" "}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {statistics.leader
-              ? `${statistics.leader.displayName} lidera el histórico con ${statistics.leader.points} puntos y ${statistics.leader.wins} victorias.`
-              : "Todavía no hay resultados suficientes para calcular el histórico."}
+              ? tx(`${statistics.leader.displayName} lidera el histórico con ${statistics.leader.points} puntos y ${statistics.leader.wins} victorias.`)
+              : tx("Todavía no hay resultados suficientes para calcular el histórico.")}
           </p>
           <p className="mt-2 type-caption font-semibold leading-5 text-neutral-500">
-            Las imágenes compartibles se generan por temporada para no mezclar campeones, MVP y podios de competiciones diferentes.
-          </p>
+            {tx("Las imágenes compartibles se generan por temporada para no mezclar campeones, MVP y podios de competiciones diferentes.")}{" "}</p>
         </AppCard>
       ) : null}
 
       <div>
         <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-600">
-          Historial de campeones
-        </p>
+          {tx("Historial de campeones")}{" "}</p>
         {seasonHistory.length === 0 ? (
           <EmptyState
             compact
-            title="Todavía no hay campeones históricos"
-            description="El historial se completará cuando termine la primera temporada de la liga."
+            title={tx("Todavía no hay campeones históricos")}
+            description={tx("El historial se completará cuando termine la primera temporada de la liga.")}
           />
         ) : (
           <AppCard className="overflow-hidden p-0">
@@ -369,12 +367,11 @@ export default function StatisticsSeasonPage() {
                       ? seasonStats.leaders
                           .map((player) => player.displayName)
                           .join(" / ")
-                      : "Sin campeón calculado"}
+                      : tx("Sin campeón calculado")}
                   </p>
                 </div>
                 <span className="shrink-0 text-lg font-black">
-                  {seasonStats.leader?.points ?? 0} pts
-                </span>
+                  {seasonStats.leader?.points ?? 0} {tx("pts")}{" "}</span>
               </div>
             ))}
           </AppCard>

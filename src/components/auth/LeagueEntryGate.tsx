@@ -17,7 +17,7 @@ type LeagueEntryGateProps = {
 }
 
 export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const router = useRouter()
   const pathname = usePathname()
   const { data: session } = useSession()
@@ -161,32 +161,32 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
               {activeLeague?.name}
             </p>
             <h1 className="mt-1 text-2xl font-black tracking-tight">
-              Crea la primera temporada
+              {tx("Crea la primera temporada")}
             </h1>
             <p className="mt-2 text-sm text-neutral-500">
-              Antes de usar la liga hay que configurar jugadores, calendario y reglas.
+              {tx("Antes de usar la liga hay que configurar jugadores, calendario y reglas.")}
             </p>
           </header>
 
           <AppCard>
             {canManageActiveLeagueSeason ? (
               <>
-                <p className="font-bold">Temporada obligatoria</p>
+                <p className="font-bold">{tx("Temporada obligatoria")}</p>
                 <p className="mt-2 text-sm text-neutral-500">
-                  La aplicación permanecerá bloqueada hasta crear la temporada inicial.
+                  {tx("La aplicación permanecerá bloqueada hasta crear la temporada inicial.")}
                 </p>
                 <Link
                   href="/admin/season"
                   className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
                 >
-                  Crear temporada
+                  {tx("Crear temporada")}
                 </Link>
               </>
             ) : (
               <>
-                <p className="font-bold">Temporada pendiente</p>
+                <p className="font-bold">{tx("Temporada pendiente")}</p>
                 <p className="mt-2 text-sm text-neutral-500">
-                  El administrador debe crear la primera temporada antes de que la liga esté disponible.
+                  {tx("El administrador debe crear la primera temporada antes de que la liga esté disponible.")}
                 </p>
               </>
             )}
@@ -266,7 +266,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
             </label>
 
             {error ? (
-              <p className="text-sm font-semibold text-red-600">{error}</p>
+              <p className="text-sm font-semibold text-red-600">{tx(error)}</p>
             ) : null}
 
             <button

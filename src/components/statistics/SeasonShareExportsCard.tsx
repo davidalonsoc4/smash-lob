@@ -17,6 +17,7 @@ import {
   downloadSeasonSummaryImage,
   type SeasonSummaryImageData,
 } from "@/lib/seasonSummaryImage"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type ExportKind =
   | "calendar-current"
@@ -153,6 +154,7 @@ function ExportCard({
   onShare?: () => void
   onDownload: () => void
 }) {
+  const { tx } = useI18n()
   const sharing = busyAction === `${kind}-share`
   const downloading = busyAction === `${kind}-download`
   const busy = busyAction !== null
@@ -183,7 +185,7 @@ function ExportCard({
             disabled={disabled || busy}
             className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-45 items-center justify-center text-center"
           >
-            {sharing ? "Preparando…" : "Compartir"}
+            {sharing ? tx("Preparando…") : tx("Compartir")}
           </button>
         ) : null}
         <button
@@ -196,7 +198,7 @@ function ExportCard({
               : "border border-neutral-200 bg-white text-neutral-900"
           }`}
         >
-          {downloading ? "Generando…" : downloadLabel}
+          {downloading ? tx("Generando…") : tx(downloadLabel)}
         </button>
       </div>
     </div>
@@ -222,6 +224,7 @@ export function SeasonShareExportsCard({
   summaryExport: SummaryExport
   seasonFinished: boolean
 }) {
+  const { tx, locale } = useI18n()
   const [includeLeagueLogo, setIncludeLeagueLogo] = useState(true)
   const [includePlayerImages, setIncludePlayerImages] = useState(true)
   const [busyAction, setBusyAction] = useState<BusyAction>(null)
@@ -250,12 +253,14 @@ export function SeasonShareExportsCard({
       leagueLogoUrl,
       includeLeagueLogo: hasLeagueLogo && includeLeagueLogo,
       includePlayerImages,
+      locale,
     }
 
     if (kind === "summary") {
       return createSeasonSummaryImage(summaryExport.data, {
         includeLeagueLogo: branding.includeLeagueLogo,
         includeHeroImages: includePlayerImages,
+        locale,
       })
     }
 
@@ -284,7 +289,7 @@ export function SeasonShareExportsCard({
         tone: "info",
         message:
           summaryExport.blockedReason ??
-          "Revisa los datos pendientes antes de descargar el resumen.",
+          tx("Revisa los datos pendientes antes de descargar el resumen."),
       })
       return
     }
@@ -303,29 +308,29 @@ export function SeasonShareExportsCard({
             title: `${leagueName} · ${seasonName}`,
             text:
               kind === "ranking"
-                ? "Clasificación de Smash & Lob"
+                ? tx("Clasificación de Smash & Lob")
                 : kind === "calendar-fixtures"
-                  ? "Calendario de enfrentamientos de Smash & Lob"
+                  ? tx("Calendario de enfrentamientos de Smash & Lob")
                   : kind === "summary"
-                    ? "Resumen final de temporada de Smash & Lob"
+                    ? tx("Resumen final de temporada de Smash & Lob")
                     : seasonFinished
-                      ? "Calendario de Smash & Lob"
-                      : "Calendario actual de Smash & Lob",
+                      ? tx("Calendario de Smash & Lob")
+                      : tx("Calendario actual de Smash & Lob"),
             files: [file],
           })
         } else {
           downloadSeasonExportImage(blob, filename)
           showActionFeedback({
             tone: "info",
-            message: "Tu dispositivo no permite compartir esta imagen; se ha descargado.",
+            message: tx("Tu dispositivo no permite compartir esta imagen; se ha descargado."),
           })
         }
       } else if (kind === "summary") {
         downloadSeasonSummaryImage(blob, filename)
-        showActionFeedback({ tone: "success", message: "Resumen de temporada descargado." })
+        showActionFeedback({ tone: "success", message: tx("Resumen de temporada descargado.") })
       } else {
         downloadSeasonExportImage(blob, filename)
-        showActionFeedback({ tone: "success", message: "Imagen guardada correctamente." })
+        showActionFeedback({ tone: "success", message: tx("Imagen guardada correctamente.") })
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -335,7 +340,7 @@ export function SeasonShareExportsCard({
 
       showActionFeedback({
         tone: "error",
-        message: "No se ha podido generar o compartir la imagen.",
+        message: tx("No se ha podido generar o compartir la imagen."),
       })
     }
 
@@ -346,27 +351,26 @@ export function SeasonShareExportsCard({
     <AppCard className="space-y-4 border-neutral-200 bg-white shadow-sm">
       <div>
         <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Imágenes de la temporada
-        </p>
-        <p className="mt-1 type-panel-title text-neutral-950">Compartir temporada</p>
+          {tx("Imágenes de la temporada")}{" "}</p>
+        <p className="mt-1 type-panel-title text-neutral-950">{tx("Compartir temporada")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {seasonFinished
-            ? "El calendario, la clasificación y el resumen final están disponibles para compartir o guardar."
-            : "El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final."}
+            ? tx("El calendario, la clasificación y el resumen final están disponibles para compartir o guardar.")
+            : tx("El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final.")}
         </p>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-        <p className="text-xs font-black text-neutral-900">Apariencia de las imágenes</p>
+        <p className="text-xs font-black text-neutral-900">{tx("Apariencia de las imágenes")}</p>
         <div className="mt-3 grid gap-2">
           <ImageOptionToggle
             checked={hasLeagueLogo && includeLeagueLogo}
             disabled={!hasLeagueLogo || busyAction !== null}
-            title="Logo de la liga"
+            title={tx("Logo de la liga")}
             description={
               hasLeagueLogo
-                ? "Se mostrará en la cabecera respetando su transparencia."
-                : "Esta liga no tiene un logo guardado."
+                ? tx("Se mostrará en la cabecera respetando su transparencia.")
+                : tx("Esta liga no tiene un logo guardado.")
             }
             type="logo"
             onChange={() => setIncludeLeagueLogo((current) => !current)}
@@ -374,11 +378,11 @@ export function SeasonShareExportsCard({
           <ImageOptionToggle
             checked={includePlayerImages}
             disabled={busyAction !== null}
-            title="Imágenes de perfil"
+            title={tx("Imágenes de perfil")}
             description={
               hasPlayerImages
-                ? "Usa los avatares disponibles y un icono genérico cuando falten."
-                : "Se mostrarán iconos genéricos porque no hay fotos disponibles."
+                ? tx("Usa los avatares disponibles y un icono genérico cuando falten.")
+                : tx("Se mostrarán iconos genéricos porque no hay fotos disponibles.")
             }
             type="profiles"
             onChange={() => setIncludePlayerImages((current) => !current)}
@@ -389,11 +393,11 @@ export function SeasonShareExportsCard({
       <div className="grid gap-3">
         <ExportCard
           kind="calendar-current"
-          title={seasonFinished ? "Calendario" : "Calendario actual"}
+          title={seasonFinished ? tx("Calendario") : tx("Calendario actual")}
           description={
             seasonFinished
-              ? "Muestra los enfrentamientos, fechas, ubicaciones, resultados y sets de la temporada."
-              : "Muestra los enfrentamientos, la situación actual de cada partido y los resultados y sets registrados."
+              ? tx("Muestra los enfrentamientos, fechas, ubicaciones, resultados y sets de la temporada.")
+              : tx("Muestra los enfrentamientos, la situación actual de cada partido y los resultados y sets registrados.")
           }
           disabled={matches.length === 0}
           busyAction={busyAction}
@@ -403,8 +407,8 @@ export function SeasonShareExportsCard({
         {!seasonFinished ? (
           <ExportCard
             kind="calendar-fixtures"
-            title="Calendario de enfrentamientos"
-            description="Muestra únicamente las parejas de cada jornada y el VS, sin estados, fechas, ubicaciones ni resultados."
+            title={tx("Calendario de enfrentamientos")}
+            description={tx("Muestra únicamente las parejas de cada jornada y el VS, sin estados, fechas, ubicaciones ni resultados.")}
             disabled={matches.length === 0}
             busyAction={busyAction}
             onShare={() => void runAction("calendar-fixtures", "share")}
@@ -413,8 +417,8 @@ export function SeasonShareExportsCard({
         ) : null}
         <ExportCard
           kind="ranking"
-          title="Clasificación"
-          description="Muestra el podio y la tabla completa con la clasificación actual de la temporada."
+          title={tx("Clasificación")}
+          description={tx("Muestra el podio y la tabla completa con la clasificación actual de la temporada.")}
           disabled={ranking.length === 0}
           busyAction={busyAction}
           onShare={() => void runAction("ranking", "share")}
@@ -423,14 +427,14 @@ export function SeasonShareExportsCard({
         {summaryExport.visible ? (
           <ExportCard
             kind="summary"
-            title="Resumen de temporada"
-            description="Genera la imagen final con campeón, MVP, podio y momentos destacados, sin mostrar una vista previa en la app."
+            title={tx("Resumen de temporada")}
+            description={tx("Genera la imagen final con campeón, MVP, podio y momentos destacados, sin mostrar una vista previa en la app.")}
             disabled={!summaryExport.canExport}
             disabledReason={
               summaryExport.canExport ? undefined : summaryExport.blockedReason
             }
             busyAction={busyAction}
-            downloadLabel="Descargar Resumen de Temporada"
+            downloadLabel={tx("Descargar Resumen de Temporada")}
             onShare={() => void runAction("summary", "share")}
             onDownload={() => void runAction("summary", "download")}
           />

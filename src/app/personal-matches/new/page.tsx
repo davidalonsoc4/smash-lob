@@ -11,7 +11,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import {
   createLeagueLocation,
-  getLeagueLocationCompactText,
+  createScheduledLeagueLocationValue,
   sortLeagueLocationsByTownNameLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations"
@@ -137,8 +137,8 @@ export default function NewPersonalMatchPage() {
   const selectedGlobalLocation = globalLocations.find(
     (location) => location.id === selectedLocationId,
   ) ?? null
-  const resolvedLocationName = selectedGlobalLocation
-    ? getLeagueLocationCompactText(selectedGlobalLocation)
+  const resolvedLocationValue = selectedGlobalLocation
+    ? createScheduledLeagueLocationValue(selectedGlobalLocation, null)
     : manualLocationName.trim()
   const canSubmit =
     !loadingPeople &&
@@ -171,7 +171,7 @@ export default function NewPersonalMatchPage() {
     setError(null)
 
     try {
-      let locationName = resolvedLocationName
+      let locationName = resolvedLocationValue
 
       if (!selectedGlobalLocation && manualLocationName.trim()) {
         const draftLocation = createLeagueLocation({
@@ -199,7 +199,7 @@ export default function NewPersonalMatchPage() {
               location?: LeagueLocation
             }
             locationName = locationPayload.location
-              ? getLeagueLocationCompactText(locationPayload.location)
+              ? createScheduledLeagueLocationValue(locationPayload.location, null)
               : locationName
           }
         }

@@ -14,6 +14,7 @@ import {
   type MatchIncidentType,
   type MatchResolutionType,
 } from "@/lib/matchIncidents"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type ResolutionOption = {
   value: MatchResolutionType
@@ -180,6 +181,7 @@ export function MatchIncidentPanel({
   canReport: boolean
   isAdmin: boolean
 }) {
+  const { tx } = useI18n()
   const { hydrateMatches } = useMatchData()
   const [incidentType, setIncidentType] = useState<MatchIncidentType>("injury")
   const [reason, setReason] = useState("")
@@ -302,7 +304,7 @@ export function MatchIncidentPanel({
     if (isWorking) return
 
     const confirmed = window.confirm(
-      "¿Eliminar la incidencia y devolver el partido a su flujo normal?",
+      tx("¿Eliminar la incidencia y devolver el partido a su flujo normal?"),
     )
 
     if (!confirmed) return
@@ -326,14 +328,13 @@ export function MatchIncidentPanel({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <p className="type-panel-title">Incidencia</p>
+        <p className="type-panel-title">{tx("Incidencia")}</p>
         {isOpen ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase text-amber-800">
-            Pendiente
-          </span>
+            {tx("Pendiente")}{" "}</span>
         ) : isResolved ? (
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase text-emerald-700">
-            Resuelta
+            {tx("Resuelta")}
           </span>
         ) : null}
       </div>
@@ -350,7 +351,7 @@ export function MatchIncidentPanel({
           ) : null}
           {match.incidentNotes ? (
             <p className="mt-1.5 type-caption font-semibold leading-4 text-neutral-500">
-              Resolución: {match.incidentNotes}
+              {tx("Resolución:")}{" "}{match.incidentNotes}
             </p>
           ) : null}
           {getResolutionSummary(match) ? (
@@ -364,7 +365,7 @@ export function MatchIncidentPanel({
       {!isOpen && !isResolved && canReport ? (
         <div className="mt-2 space-y-2">
           <select
-            aria-label="Tipo de incidencia"
+            aria-label={tx("Tipo de incidencia")}
             value={incidentType}
             onChange={(event) =>
               setIncidentType(event.target.value as MatchIncidentType)
@@ -378,11 +379,11 @@ export function MatchIncidentPanel({
             ))}
           </select>
           <textarea
-            aria-label="Motivo de la incidencia"
+            aria-label={tx("Motivo de la incidencia")}
             value={reason}
             onChange={(event) => setReason(event.target.value.slice(0, 500))}
             rows={2}
-            placeholder="Explica brevemente qué ha ocurrido"
+            placeholder={tx("Explica brevemente qué ha ocurrido")}
             className="w-full resize-none rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-semibold outline-none focus:border-neutral-500"
           />
           <button
@@ -391,7 +392,7 @@ export function MatchIncidentPanel({
             disabled={isWorking || reason.trim().length < 3}
             className="flex w-full rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
           >
-            {isWorking ? "Enviando..." : "Comunicar incidencia"}
+            {isWorking ? tx("Enviando...") : tx("Comunicar incidencia")}
           </button>
         </div>
       ) : null}
@@ -399,8 +400,7 @@ export function MatchIncidentPanel({
       {isOpen && isAdmin ? (
         <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
           <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-            ¿Qué debe ocurrir con el partido?
-          </p>
+            {tx("¿Qué debe ocurrir con el partido?")}{" "}</p>
           <div className="space-y-1.5">
             {resolutionOptions.map((option) => (
               <label
@@ -436,15 +436,15 @@ export function MatchIncidentPanel({
 
           {requiresAdministrativeWinner ? (
             <select
-              aria-label="Pareja ganadora"
+              aria-label={tx("Pareja ganadora")}
               value={winningTeam}
               onChange={(event) =>
                 setWinningTeam(event.target.value as "A" | "B")
               }
               className="w-full rounded-xl border border-amber-200 bg-white px-2.5 py-2 text-xs font-bold"
             >
-              <option value="A">Ganadores: {teamALabel}</option>
-              <option value="B">Ganadores: {teamBLabel}</option>
+              <option value="A">{tx("Ganadores:")} {teamALabel}</option>
+              <option value="B">{tx("Ganadores:")} {teamBLabel}</option>
             </select>
           ) : null}
 
@@ -456,16 +456,16 @@ export function MatchIncidentPanel({
                 onChange={(event) => setRankingCounts(event.target.checked)}
                 className="h-4 w-4"
               />
-              <span className="text-xs font-bold">Contabilizar en clasificación</span>
+              <span className="text-xs font-bold">{tx("Contabilizar en clasificación")}</span>
             </label>
           ) : null}
 
           <textarea
-            aria-label="Nota de resolución"
+            aria-label={tx("Nota de resolución")}
             value={notes}
             onChange={(event) => setNotes(event.target.value.slice(0, 1000))}
             rows={2}
-            placeholder="Nota de resolución (opcional)"
+            placeholder={tx("Nota de resolución (opcional)")}
             className="w-full resize-none rounded-xl border border-neutral-200 bg-white px-2.5 py-2 text-xs font-semibold outline-none focus:border-neutral-500"
           />
 
@@ -476,7 +476,7 @@ export function MatchIncidentPanel({
               disabled={isWorking}
               className="inline-flex rounded-xl bg-neutral-950 px-2 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
-              {isWorking ? "Guardando..." : "Aplicar resolución"}
+              {isWorking ? "Guardando..." : tx("Aplicar resolución")}
             </button>
             <button
               type="button"
@@ -484,8 +484,7 @@ export function MatchIncidentPanel({
               disabled={isWorking}
               className="inline-flex rounded-xl bg-red-50 px-2 py-2 text-xs font-black text-red-700 disabled:text-neutral-300 items-center justify-center text-center"
             >
-              Eliminar incidencia
-            </button>
+              {tx("Eliminar incidencia")}{" "}</button>
           </div>
         </div>
       ) : null}
@@ -497,12 +496,12 @@ export function MatchIncidentPanel({
           disabled={isWorking}
           className="flex mt-2 w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-300 items-center justify-center text-center"
         >
-          {isWorking ? "Eliminando..." : "Eliminar resolución"}
+          {isWorking ? "Eliminando..." : tx("Eliminar resolución")}
         </button>
       ) : null}
 
       {error ? (
-        <p className="mt-2 type-caption font-bold text-red-600">{error}</p>
+        <p className="mt-2 type-caption font-bold text-red-600">{tx(error)}</p>
       ) : null}
     </div>
   )

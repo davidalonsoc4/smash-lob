@@ -8,7 +8,7 @@ describe("v1.10.1 premium opening-day media kit", () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
 
     expect(page).toContain('opening: "Apertura"')
-    expect(page).toContain('useState("Jornada de apertura")')
+    expect(page).toContain('useState(() => tx("Jornada de apertura"))')
     expect(page).toContain("1080 × 1350")
     expect(page).toContain('template: "opening_day_premium_01"')
     for (const field of ["openingTitle", "openingSubtitle", "openingDate", "openingTime", "openingVenue", "openingRound"]) {
@@ -26,7 +26,7 @@ describe("v1.10.1 premium opening-day media kit", () => {
 
     expect(page).toContain("openingLogoOverride ?? activeLeague.logoUrl")
     expect(page).toContain('accept="image/*"')
-    expect(page).toContain(">Restaurar</button>")
+    expect(page).toContain('{tx("Restaurar")}</button>')
     expect(page).toContain("Logo de la liga")
     expect(image).toContain('/^(data:|blob:)/i.test(raw)')
     expect(image).toContain("drawImageContain")

@@ -81,16 +81,16 @@ describe("v1.9.0 round summary", () => {
   it("opens the round summary from the full Calendar round header", async () => {
     const calendar = await readFile("src/app/matches/page.tsx", "utf8")
     expect(calendar).toContain('href={`/round/${round.round}`}')
-    expect(calendar).toContain('aria-label={`Abrir resumen de ${round.name}`}')
+    expect(calendar).toContain('aria-label={tx(`Abrir resumen de ${round.name}`)}')
   })
 
   it("builds the round summary screen sections", async () => {
     const page = await readFile("src/app/round/[id]/page.tsx", "utf8")
-    expect(page).toContain("Resumen · Jornada {round}")
+    expect(page).toContain('{tx("Resumen · Jornada")}{" "}{round}')
     expect(page).toContain("Resultados")
-    expect(page).toContain('"MVPs de los partidos" : "MVP de jornada"')
+    expect(page).toContain('tx("MVPs de los partidos") : tx("MVP de jornada")')
     expect(page).toContain("Lo más destacado")
-    expect(page).toContain('isCompleted ? "Clasificación tras la jornada" : "Clasificación provisional"')
+    expect(page).toContain('isCompleted ? tx("Clasificación tras la jornada") : tx("Clasificación provisional")')
   })
 
   it("tracks ranking movement against the previous round", () => {

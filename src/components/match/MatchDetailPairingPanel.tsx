@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
@@ -8,6 +10,7 @@ import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import type { MatchSubstitution } from "@/lib/substitutes"
 import { getMatchSubstituteLabels } from "@/lib/substitutes"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type MatchDetailPairingPanelProps = {
   teamA: string[]
@@ -48,13 +51,14 @@ function DetailPlayer({
   showMetadata: boolean
   showRankingPosition: boolean
 }) {
+  const { tx } = useI18n()
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const name = (
     <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
-        <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
+        <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
           ★
         </span>
       ) : null}
@@ -64,7 +68,7 @@ function DetailPlayer({
   const metadataClass = `min-h-4 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500 ${
     alignment === "right" ? "text-right" : "text-left"
   }`
-  const positionLine = <p className={metadataClass}>{position ? `#${position} en liga` : "\u00a0"}</p>
+  const positionLine = <p className={metadataClass}>{position ? tx(`#${position} en liga`) : "\u00a0"}</p>
   const playLine = playerPositionLabel ? (
     <p className={metadataClass}>{playerPositionLabel}</p>
   ) : showRankingPosition ? (
@@ -115,7 +119,7 @@ function DetailPlayer({
             alignment === "right" ? "text-right" : "text-left"
           }`}
         >
-          Suplente · por {substituteLabel}
+          {tx("Suplente · por")}{" "}{substituteLabel}
         </p>
       ) : null}
     </div>
@@ -258,6 +262,7 @@ function FinishedPlayerName({
   linkPlayers: boolean
   showPlayerMetadata: boolean
 }) {
+  const { tx } = useI18n()
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const playerPositionLabel = getPlayerSideAndHandLabel(
@@ -268,7 +273,7 @@ function FinishedPlayerName({
     <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
-        <span className="ml-1 text-yellow-500" aria-label="MVP de jornada" title="MVP de jornada">
+        <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
           ★
         </span>
       ) : null}
@@ -298,7 +303,7 @@ function FinishedPlayerName({
 
       {substituteLabel ? (
         <p className="mt-1 type-caption font-bold leading-3 text-red-700">
-          Suplente · por {substituteLabel}
+          {tx("Suplente · por")}{" "}{substituteLabel}
         </p>
       ) : null}
     </div>
@@ -378,6 +383,8 @@ export function MatchDetailPairingPanel({
   showPendingPlayerMetadata,
   showFinishedPlayerMetadata,
 }: MatchDetailPairingPanelProps) {
+  const { tx } = useI18n()
+
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
   const showAvatars = [...teamA, ...teamB].some((playerId) =>
     isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl),
@@ -422,8 +429,8 @@ export function MatchDetailPairingPanel({
         ) : (
           <>
             <div className="grid grid-cols-2 items-start gap-2 sm:gap-4">
-              <PairHeader label="Pareja A" points={pointsA} alignment="left" />
-              <PairHeader label="Pareja B" points={pointsB} alignment="right" />
+              <PairHeader label={tx("Pareja A")} points={pointsA} alignment="left" />
+              <PairHeader label={tx("Pareja B")} points={pointsB} alignment="right" />
             </div>
 
             {showAvatars ? (

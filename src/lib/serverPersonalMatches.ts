@@ -27,6 +27,7 @@ import {
   type PreferredPlayerSide,
 } from "@/lib/accountProfile"
 import { getEmptyCourtBooking, normalizeCourtBooking } from "@/lib/courtBooking"
+import { isMissingPersonalLocationColumnsError } from "@/lib/serverPersonalLocationSchema"
 
 type PersonalMatchPersonRecord = PersonalMatchPerson & {
   userId: string | null
@@ -38,6 +39,9 @@ type PersonalMatchRow = {
   created_by_user_id: string | null
   played_at: string
   location_name: string | null
+  location_id: string | null
+  location_court: string | null
+  location_snapshot: unknown
   sets: unknown
   status: string | null
   result_recorded_at: string | null
@@ -468,7 +472,9 @@ function mapPersonalMatch(
     status,
     scheduledAt: row.played_at,
     resultRecordedAt: row.result_recorded_at,
-    locationName: getScheduleLocationDisplayText(row.location_name),
+    locationName:
+      getScheduleLocationDisplayText(row.location_snapshot) ??
+      getScheduleLocationDisplayText(row.location_name),
     sets,
     participants,
     canManage: row.created_by_user_id === currentUserId,
@@ -531,7 +537,7 @@ async function loadPersonalRows(
   const [matchesResult, participantsResult, bookingsResult] = await Promise.all([
     actor.supabase
       .from("personal_matches")
-      .select("id,created_by_user_id,played_at,location_name,sets,status,result_recorded_at")
+      .select("id,created_by_user_id,played_at,location_name,location_id,location_court,location_snapshot,sets,status,result_recorded_at")
       .in("id", ids),
     actor.supabase
       .from("personal_match_participants")
@@ -543,8 +549,29 @@ async function loadPersonalRows(
       .in("match_id", ids),
   ])
 
+  let rows: PersonalMatchRow[]
+  if (isMissingPersonalLocationColumnsError(matchesResult.error)) {
+    const fallbackMatches = await actor.supabase
+      .from("personal_matches")
+      .select("id,created_by_user_id,played_at,location_name,sets,status,result_recorded_at")
+      .in("id", ids)
+    if (fallbackMatches.error) {
+      throw new Error("personal_matches_lookup_failed")
+    }
+    rows = (fallbackMatches.data ?? []).map((row) => ({
+      ...row,
+      location_id: null,
+      location_court: null,
+      location_snapshot: null,
+    })) as PersonalMatchRow[]
+  } else {
+    if (matchesResult.error) {
+      throw new Error("personal_matches_lookup_failed")
+    }
+    rows = (matchesResult.data ?? []) as PersonalMatchRow[]
+  }
+
   if (
-    matchesResult.error ||
     participantsResult.error ||
     (bookingsResult.error &&
       bookingsResult.error.code !== "42P01" &&
@@ -552,8 +579,6 @@ async function loadPersonalRows(
   ) {
     throw new Error("personal_matches_lookup_failed")
   }
-
-  const rows = (matchesResult.data ?? []) as PersonalMatchRow[]
   const participantRows = (participantsResult.data ?? []) as ParticipantRow[]
   const bookingByMatchId = new Map(
     ((bookingsResult.data ?? []) as PersonalMatchBookingRow[]).map((booking) => [
@@ -778,30 +803,94 @@ async function loadLeagueRows(
   })
 }
 
+async function loadScheduledFriendlyIndex(
+  actor: AuthenticatedAppUser,
+  period: "past" | "future",
+) {
+  const participantsResult = await actor.supabase
+    .from("personal_match_participants")
+    .select("match_id")
+    .eq("user_id", actor.user.id)
+
+  if (participantsResult.error) {
+    throw new Error("personal_matches_schedule_index_failed")
+  }
+
+  const matchIds = uniqueStrings(
+    (participantsResult.data ?? []).map((row) => row.match_id),
+  )
+  if (matchIds.length === 0) return [] as HistoryIndexRow[]
+
+  const now = new Date().toISOString()
+  let matchesQuery = actor.supabase
+    .from("personal_matches")
+    .select("id,played_at,status")
+    .in("id", matchIds)
+    .eq("status", "scheduled")
+
+  matchesQuery = period === "future"
+    ? matchesQuery.gte("played_at", now).order("played_at", { ascending: true })
+    : matchesQuery.lt("played_at", now).order("played_at", { ascending: false })
+
+  const matchesResult = await matchesQuery
+  if (matchesResult.error) {
+    throw new Error("personal_matches_schedule_index_failed")
+  }
+
+  return (matchesResult.data ?? []).flatMap((row) =>
+    typeof row.id === "string" && typeof row.played_at === "string"
+      ? [{ source: "friendly", match_id: row.id, event_at: row.played_at }]
+      : [],
+  )
+}
+
 async function loadHistoryIndex(
   actor: AuthenticatedAppUser,
   offset: number,
   limit: number,
 ) {
-  const result = await actor.supabase.rpc("server_list_user_match_history", {
-    p_user_id: actor.user.id,
-    p_limit: limit,
-    p_offset: offset,
-  })
+  // Keep using the server RPC for completed Liga/friendly history, but augment it
+  // with past scheduled friendlies directly. This makes the gap-free dashboard
+  // work even during the short deployment window before the v1.10.18 migration
+  // reaches the linked database.
+  const requiredRpcRows = Math.max(1, offset + limit)
+  const rpcRows: HistoryIndexRow[] = []
+  let rpcOffset = 0
 
-  if (result.error) throw new Error("personal_matches_history_index_failed")
+  while (rpcRows.length < requiredRpcRows) {
+    const pageLimit = Math.min(100, requiredRpcRows - rpcRows.length)
+    const result = await actor.supabase.rpc("server_list_user_match_history", {
+      p_user_id: actor.user.id,
+      p_limit: pageLimit,
+      p_offset: rpcOffset,
+    })
 
-  return ((result.data ?? []) as unknown[]).filter(isHistoryIndexRow)
+    if (result.error) throw new Error("personal_matches_history_index_failed")
+    const pageRows = ((result.data ?? []) as unknown[]).filter(isHistoryIndexRow)
+    rpcRows.push(...pageRows)
+    rpcOffset += pageRows.length
+    if (pageRows.length < pageLimit) break
+  }
+
+  const scheduledPastRows = await loadScheduledFriendlyIndex(actor, "past")
+  const mergedByKey = new Map<string, HistoryIndexRow>()
+  for (const row of [...rpcRows, ...scheduledPastRows]) {
+    mergedByKey.set(`${row.source}:${row.match_id}`, row)
+  }
+
+  return [...mergedByKey.values()]
+    .sort((left, right) => {
+      const leftTime = Date.parse(left.event_at ?? "") || 0
+      const rightTime = Date.parse(right.event_at ?? "") || 0
+      if (leftTime !== rightTime) return rightTime - leftTime
+      return left.match_id.localeCompare(right.match_id)
+    })
+    .slice(offset, offset + limit)
 }
 
 async function loadUpcomingIndex(actor: AuthenticatedAppUser) {
-  const result = await actor.supabase.rpc("server_next_user_matches", {
-    p_user_id: actor.user.id,
-  })
-
-  if (result.error) throw new Error("personal_matches_upcoming_index_failed")
-
-  return ((result.data ?? []) as unknown[]).filter(isHistoryIndexRow)
+  // Próximos intentionally contains every future friendly and never Liga.
+  return loadScheduledFriendlyIndex(actor, "future")
 }
 
 export async function loadPersonalMatchesDashboard(
@@ -832,17 +921,11 @@ export async function loadPersonalMatchesDashboard(
   const upcomingFriendlyIds = upcomingRows
     .filter((row) => row.source === "friendly")
     .map((row) => row.match_id)
-  const upcomingLeagueIds = upcomingRows
-    .filter((row) => row.source === "league")
-    .map((row) => row.match_id)
-
-  const [friendlyItems, leagueItems, upcomingFriendlyItems, upcomingLeagueItems] =
-    await Promise.all([
-      loadPersonalRows(actor, friendlyIds, { includeAvatars: options.includeAvatars }),
-      loadLeagueRows(actor, leagueIds, memberships, { includeAvatars: options.includeAvatars }),
-      loadPersonalRows(actor, upcomingFriendlyIds, { includeAvatars: true }),
-      loadLeagueRows(actor, upcomingLeagueIds, memberships, { includeAvatars: true }),
-    ])
+  const [friendlyItems, leagueItems, upcomingFriendlyItems] = await Promise.all([
+    loadPersonalRows(actor, friendlyIds, { includeAvatars: options.includeAvatars }),
+    loadLeagueRows(actor, leagueIds, memberships, { includeAvatars: options.includeAvatars }),
+    loadPersonalRows(actor, upcomingFriendlyIds, { includeAvatars: true }),
+  ])
 
   const byKey = new Map<string, PersonalMatchItem>()
   for (const item of [...friendlyItems, ...leagueItems]) {
@@ -857,10 +940,7 @@ export async function loadPersonalMatchesDashboard(
     items,
     hasMore,
     nextOffset: hasMore ? safeOffset + safeLimit : null,
-    upcoming: {
-      league: upcomingLeagueItems[0] ?? null,
-      friendly: upcomingFriendlyItems[0] ?? null,
-    },
+    upcoming: upcomingFriendlyItems,
   }
 }
 

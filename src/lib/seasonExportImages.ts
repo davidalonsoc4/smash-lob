@@ -3,6 +3,8 @@ import type { PlayerProfile } from "@/data/fakeData"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import type { RankingPlayer } from "@/lib/ranking"
 import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
+import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
 type ExportBranding = {
   leagueName: string
@@ -10,6 +12,7 @@ type ExportBranding = {
   leagueLogoUrl?: string | null
   includeLeagueLogo?: boolean
   includePlayerImages?: boolean
+  locale?: Locale
 }
 
 export type SeasonCalendarImageMode = "current" | "fixtures"
@@ -444,7 +447,7 @@ function drawPlayerAvatar({
   })
 }
 
-function formatScheduledAt(value: string | null) {
+function formatScheduledAt(value: string | null, locale: Locale) {
   if (!value) {
     return null
   }
@@ -455,7 +458,7 @@ function formatScheduledAt(value: string | null) {
     return null
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -464,20 +467,20 @@ function formatScheduledAt(value: string | null) {
   }).format(date)
 }
 
-function getMatchStatusLabel(match: MatchData) {
+function getMatchStatusLabel(match: MatchData, locale: Locale) {
   if (match.status === "finished") {
-    return match.rankingCounts === false ? "Finalizado · no puntúa" : "Finalizado"
+    return translateLeagueText(locale, match.rankingCounts === false ? "Finalizado · no puntúa" : "Finalizado")
   }
 
   if (match.status === "postponed") {
-    return "Aplazado"
+    return translateLeagueText(locale, "Aplazado")
   }
 
   if (match.status === "scheduled") {
-    return "Programado"
+    return translateLeagueText(locale, "Programado")
   }
 
-  return "Pendiente"
+  return translateLeagueText(locale, "Pendiente")
 }
 
 function getMatchStatusColor(match: MatchData) {
@@ -632,10 +635,12 @@ function drawFooter({
   context,
   canvasHeight,
   appIcon,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   canvasHeight: number
   appIcon: HTMLImageElement | null
+  locale: Locale
 }) {
   const iconSize = 50
   const textBlockWidth = 152
@@ -645,7 +650,7 @@ function drawFooter({
 
   drawBrandMark({ context, appIcon, x: groupX, y: groupY, size: iconSize })
 
-  drawText(context, "Creado con", groupX + iconSize + 16, groupY + 18, {
+  drawText(context, translateLeagueText(locale, "Creado con"), groupX + iconSize + 16, groupY + 18, {
     size: 15,
     weight: 700,
     color: palette.muted,
@@ -694,6 +699,7 @@ async function drawMatchCard({
   includePlayerImages,
   mode,
   seasonFinished,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   match: MatchData
@@ -705,6 +711,7 @@ async function drawMatchCard({
   includePlayerImages: boolean
   mode: SeasonCalendarImageMode
   seasonFinished?: boolean
+  locale: Locale
 }) {
   const fixturesOnly = mode === "fixtures"
   const height = fixturesOnly ? 112 : 172
@@ -712,9 +719,9 @@ async function drawMatchCard({
 
   if (!fixturesOnly) {
     const statusPalette = getMatchStatusColor(match)
-    const statusLabel = getMatchStatusLabel(match)
+    const statusLabel = getMatchStatusLabel(match, locale)
     const meta = [
-      formatScheduledAt(match.scheduledAt) ?? match.dateLabel,
+      formatScheduledAt(match.scheduledAt, locale) ?? match.dateLabel,
       getScheduleLocationDisplayText(match.location),
     ]
       .filter(Boolean)
@@ -727,7 +734,7 @@ async function drawMatchCard({
         size: 14, weight: 900, color: statusPalette.text, maxWidth: 150,
       })
     }
-    drawText(context, meta || "Fecha y lugar pendientes", hideFinishedLabel ? x + 24 : x + width - 24, y + 37, {
+    drawText(context, meta || translateLeagueText(locale, "Fecha y lugar pendientes"), hideFinishedLabel ? x + 24 : x + width - 24, y + 37, {
       size: 14, weight: 700, color: palette.muted, align: hideFinishedLabel ? "left" : "right",
       baseline: "middle", maxWidth: hideFinishedLabel ? width - 48 : width - 240,
     })
@@ -736,17 +743,28 @@ async function drawMatchCard({
     context.fillRect(x + 24, y + 62, width - 48, 1)
   }
 
-  const teamAreaWidth = width * 0.35
-  const centerWidth = width * 0.18
+  const defaultTeamAreaWidth = width * 0.35
+  const defaultCenterWidth = width * 0.18
   const leftX = x + 24
-  const centerX = x + teamAreaWidth + 24
-  const rightX = x + width - 24 - teamAreaWidth
+  const defaultCenterX = x + defaultTeamAreaWidth + 24
+  const scoreCenterX = defaultCenterX + defaultCenterWidth / 2
+  const fixtureVsHalfGap = 24
+  const rightContentEdge = x + width - 24
+  const leftTeamAreaWidth = fixturesOnly
+    ? Math.max(120, scoreCenterX - fixtureVsHalfGap - leftX)
+    : defaultTeamAreaWidth
+  const rightX = fixturesOnly
+    ? scoreCenterX + fixtureVsHalfGap
+    : x + width - 24 - defaultTeamAreaWidth
+  const rightTeamAreaWidth = fixturesOnly
+    ? Math.max(120, rightContentEdge - rightX)
+    : defaultTeamAreaWidth
   const firstRowCenterY = fixturesOnly ? y + 34 : y + 90
   const rowGap = fixturesOnly ? 38 : 36
 
   const teams = [
-    { ids: match.teamA, x: leftX, align: "left" as const },
-    { ids: match.teamB, x: rightX, align: "right" as const },
+    { ids: match.teamA, x: leftX, width: leftTeamAreaWidth, align: "left" as const },
+    { ids: match.teamB, x: rightX, width: rightTeamAreaWidth, align: "right" as const },
   ]
 
   teams.forEach((team) => {
@@ -754,13 +772,13 @@ async function drawMatchCard({
       const profile = players.get(playerId)
       const rowCenterY = firstRowCenterY + index * rowGap
       const avatarSize = 26
-      const avatarX = team.align === "left" ? team.x : team.x + teamAreaWidth - avatarSize
+      const avatarX = team.align === "left" ? team.x : team.x + team.width - avatarSize
       const textX = team.align === "left" ? avatarX + avatarSize + 10 : avatarX - 10
-      const maxTextWidth = teamAreaWidth - avatarSize - 14
+      const maxTextWidth = team.width - avatarSize - 14
 
       drawPlayerAvatar({
         context,
-        playerName: profile?.displayName ?? "Jugador",
+        playerName: profile?.displayName ?? translateLeagueText(locale, "Jugador"),
         avatarUrl: profile?.avatarUrl,
         avatarInitials: profile?.avatarInitials,
         image: avatarImages.get(playerId) ?? null,
@@ -771,7 +789,7 @@ async function drawMatchCard({
         includeImage: includePlayerImages,
       })
 
-      drawText(context, profile?.displayName ?? "Jugador", textX, rowCenterY, {
+      drawText(context, profile?.displayName ?? translateLeagueText(locale, "Jugador"), textX, rowCenterY, {
         size: 17,
         weight: 900,
         color: palette.text,
@@ -785,7 +803,7 @@ async function drawMatchCard({
   drawText(
     context,
     fixturesOnly ? "VS" : getMatchScore(match),
-    centerX + centerWidth / 2,
+    scoreCenterX,
     fixturesOnly ? y + 53 : y + 112,
     {
       size: fixturesOnly ? 23 : match.status === "finished" ? 29 : 24,
@@ -798,7 +816,7 @@ async function drawMatchCard({
 
   if (!fixturesOnly) {
     if (match.status === "finished" && match.sets.length > 0) {
-      drawText(context, formatSetScores(match) ?? "", centerX + centerWidth / 2, y + 149, {
+      drawText(context, formatSetScores(match) ?? "", scoreCenterX, y + 149, {
         size: 15,
         weight: 800,
         color: palette.muted,
@@ -810,9 +828,9 @@ async function drawMatchCard({
       drawText(
         context,
         match.status === "postponed"
-          ? "Pendiente de nueva fecha"
-          : "Sin resultado todavía",
-        centerX + centerWidth / 2,
+          ? translateLeagueText(locale, "Pendiente de nueva fecha")
+          : translateLeagueText(locale, "Sin resultado todavía"),
+        scoreCenterX,
         y + 149,
         {
           size: 14,
@@ -833,6 +851,7 @@ export async function createSeasonCalendarImage({
   leagueLogoUrl,
   includeLeagueLogo = true,
   includePlayerImages = true,
+  locale = "es",
   mode = "current",
   label,
   seasonFinished = false,
@@ -901,15 +920,15 @@ export async function createSeasonCalendarImage({
     label:
       label ??
       (mode === "fixtures"
-        ? "Calendario de enfrentamientos"
-        : "Calendario actual"),
+        ? translateLeagueText(locale, "Calendario de enfrentamientos")
+        : translateLeagueText(locale, "Calendario actual")),
   })
 
   const playersById = new Map(players.map((player) => [player.id, player]))
   let y = CONTENT_TOP
 
   for (const [round, roundMatches] of rounds) {
-    drawText(context, `JORNADA ${round}`, PADDING, y + 20, {
+    drawText(context, `${translateLeagueText(locale, "JORNADA")} ${round}`, PADDING, y + 20, {
       size: 20,
       weight: 900,
       color: palette.muted,
@@ -936,13 +955,14 @@ export async function createSeasonCalendarImage({
         includePlayerImages,
         mode,
         seasonFinished,
+        locale,
       })
     }
 
     y += Math.ceil(roundMatches.length / 2) * cardHeight + 2
   }
 
-  drawFooter({ context, canvasHeight, appIcon })
+  drawFooter({ context, canvasHeight, appIcon, locale })
 
   return canvasToBlob(canvas)
 }
@@ -967,6 +987,7 @@ function drawPodiumCard({
   y,
   width,
   includePlayerImages,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   player: RankingPlayer
@@ -976,6 +997,7 @@ function drawPodiumCard({
   y: number
   width: number
   includePlayerImages: boolean
+  locale: Locale
 }) {
   const accent = position === 1 ? palette.gold : position === 2 ? palette.silver : palette.bronze
   const cardHeight = 156
@@ -1014,19 +1036,19 @@ function drawPodiumCard({
     maxWidth: width - 132,
     baseline: "middle",
   })
-  drawText(context, `${player.points} PTS`, x + 86, y + 70, {
+  drawText(context, `${player.points} ${translateLeagueText(locale, "PTS")}`, x + 86, y + 70, {
     size: 15,
     weight: 900,
     color: palette.muted,
     baseline: "middle",
   })
-  drawText(context, `${player.wins} victorias`, x + 22, y + 112, {
+  drawText(context, `${player.wins} ${translateLeagueText(locale, "victorias")}`, x + 22, y + 112, {
     size: 15,
     weight: 800,
     color: palette.muted,
     baseline: "middle",
   })
-  drawText(context, `Dif. juegos ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 22, y + 112, {
+  drawText(context, `${translateLeagueText(locale, "Dif. juegos")} ${player.gamesDiff >= 0 ? "+" : ""}${player.gamesDiff}`, x + width - 22, y + 112, {
     size: 15,
     weight: 800,
     color: palette.muted,
@@ -1041,6 +1063,7 @@ export async function createSeasonRankingImage({
   leagueLogoUrl,
   includeLeagueLogo = true,
   includePlayerImages = true,
+  locale = "es",
   ranking,
 }: ExportBranding & {
   ranking: RankingPlayer[]
@@ -1071,7 +1094,7 @@ export async function createSeasonRankingImage({
     leagueName,
     seasonName,
     leagueLogo,
-    label: "Clasificación de temporada",
+    label: translateLeagueText(locale, "Clasificación de temporada"),
   })
 
   const podium = ranking.slice(0, 3)
@@ -1088,6 +1111,7 @@ export async function createSeasonRankingImage({
         y: CONTENT_TOP,
         width: podiumWidth,
         includePlayerImages,
+        locale,
       })
     })
   }
@@ -1099,13 +1123,13 @@ export async function createSeasonRankingImage({
   context.fillStyle = palette.accent
   context.fillRect(PADDING, tableY + 42, CONTENT_WIDTH, 30)
 
-  drawText(context, "POS", PADDING + 32, tableY + 36, {
+  drawText(context, translateLeagueText(locale, "POS"), PADDING + 32, tableY + 36, {
     size: 16,
     weight: 900,
     color: palette.inverseText,
     baseline: "middle",
   })
-  drawText(context, "JUGADOR", PADDING + 126, tableY + 36, {
+  drawText(context, translateLeagueText(locale, "JUGADOR"), PADDING + 126, tableY + 36, {
     size: 16,
     weight: 900,
     color: palette.inverseText,
@@ -1118,7 +1142,7 @@ export async function createSeasonRankingImage({
     ["DG", WIDTH - PADDING - 34],
   ] as const
   columns.forEach(([label, columnX]) => {
-    drawText(context, label, columnX, tableY + 36, {
+    drawText(context, translateLeagueText(locale, label), columnX, tableY + 36, {
       size: 16,
       weight: 900,
       color: palette.inverseText,
@@ -1128,7 +1152,7 @@ export async function createSeasonRankingImage({
   })
 
   if (ranking.length === 0) {
-    drawText(context, "Todavía no hay jugadores en la clasificación", WIDTH / 2, tableY + 118, {
+    drawText(context, translateLeagueText(locale, "Todavía no hay jugadores en la clasificación"), WIDTH / 2, tableY + 118, {
       size: 21,
       weight: 800,
       color: palette.muted,
@@ -1197,7 +1221,7 @@ export async function createSeasonRankingImage({
   context.restore()
   strokeRoundedRect(context, PADDING, tableY, CONTENT_WIDTH, tableHeight, 30, palette.line)
 
-  drawFooter({ context, canvasHeight, appIcon })
+  drawFooter({ context, canvasHeight, appIcon, locale })
 
   return canvasToBlob(canvas)
 }

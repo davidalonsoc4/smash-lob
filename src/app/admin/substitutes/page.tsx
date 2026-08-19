@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { calculateSubstituteStats } from "@/lib/substitutes"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type PoolPlayer = {
   id: string
@@ -59,6 +60,7 @@ function getMatchStatusText(status: string) {
 }
 
 export default function AdminSubstitutesPage() {
+  const { tx } = useI18n()
   const { hasLeagueAdminRole } = useLeagueAccess()
   const {
     activeLeague,
@@ -178,7 +180,7 @@ export default function AdminSubstitutesPage() {
   async function createReplacement(event: FormEvent) {
     event.preventDefault()
     if (isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)) return
-    const confirmed = window.confirm(`El reemplazo será permanente desde la jornada ${fromRound}. Los partidos terminados no se modificarán. ¿Continuar?`)
+    const confirmed = window.confirm(tx(`El reemplazo será permanente desde la jornada ${fromRound}. Los partidos terminados no se modificarán. ¿Continuar?`))
     if (!confirmed) return
     setIsSaving(true)
     setError(null)
@@ -210,64 +212,64 @@ export default function AdminSubstitutesPage() {
   }
 
   if (!canManage) {
-    return <div className="space-y-3"><BackButton fallbackHref="/admin" label="Volver" /><AppCard><p className="font-black">Acceso restringido</p></AppCard></div>
+    return <div className="space-y-3"><BackButton fallbackHref="/admin" label={tx("Volver")} /><AppCard><p className="font-black">{tx("Acceso restringido")}</p></AppCard></div>
   }
 
   return (
     <div className="space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref="/admin" label="Volver" />
-        <h1 className="type-page-title font-black">Suplentes y reemplazos</h1>
+        <BackButton fallbackHref="/admin" label={tx("Volver")} />
+        <h1 className="type-page-title font-black">{tx("Suplentes y reemplazos")}</h1>
         <p className="mt-0.5 text-xs font-bold text-neutral-500">{activeSeason.name}</p>
       </header>
 
-      {error ? <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{error}</p> : null}
+      {error ? <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{tx(error)}</p> : null}
 
       <AppCard>
-        <p className="font-black">Bolsa de suplentes</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">Los suplentes son jugadores ajenos a los titulares. Nunca se puede utilizar a un titular de esta temporada como suplente. Puedes dejarlos preparados o añadir uno nuevo desde el propio partido.</p>
+        <p className="font-black">{tx("Bolsa de suplentes")}</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Los suplentes son jugadores ajenos a los titulares. Nunca se puede utilizar a un titular de esta temporada como suplente. Puedes dejarlos preparados o añadir uno nuevo desde el propio partido.")}</p>
         <form onSubmit={addSubstitute} className="mt-3 flex gap-2">
-          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Nombre del suplente" maxLength={80} className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" />
-          <button disabled={isSaving || displayName.trim().length < 2} className="inline-flex rounded-2xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center">Añadir</button>
+          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder={tx("Nombre del suplente")} maxLength={80} className="min-w-0 flex-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" />
+          <button disabled={isSaving || displayName.trim().length < 2} className="inline-flex rounded-2xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center">{tx("Añadir")}</button>
         </form>
         <div className="mt-3 space-y-2">
-          {isLoading ? <p className="text-xs font-semibold text-neutral-500">Cargando...</p> : null}
+          {isLoading ? <p className="text-xs font-semibold text-neutral-500">{tx("Cargando...")}</p> : null}
           {!isLoading && activePool.length === 0 ? (
             <EmptyState
               compact
-              title="Todavía no hay suplentes"
-              description="Añade jugadores externos para tenerlos disponibles cuando falte un titular."
+              title={tx("Todavía no hay suplentes")}
+              description={tx("Añade jugadores externos para tenerlos disponibles cuando falte un titular.")}
             />
           ) : null}
           {activePool.map((item) => {
             const profile = getPoolProfile(item)
-            return <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"><div><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="type-caption font-semibold text-neutral-500">Disponible para sustituciones puntuales</p></div><button type="button" onClick={() => removeSubstitute(item.id)} disabled={isSaving} className="text-xs font-black text-red-600">Retirar</button></div>
+            return <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"><div><p className="text-sm font-black">{profile?.display_name ?? tx("Suplente")}</p><p className="type-caption font-semibold text-neutral-500">{tx("Disponible para sustituciones puntuales")}</p></div><button type="button" onClick={() => removeSubstitute(item.id)} disabled={isSaving} className="text-xs font-black text-red-600">{tx("Retirar")}</button></div>
           })}
         </div>
       </AppCard>
 
       <AppCard>
-        <p className="font-black">Reemplazo permanente</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">El saliente conserva sus puntos y queda como baja. El entrante pasa a ser titular desde cero y ocupa únicamente los partidos futuros.</p>
+        <p className="font-black">{tx("Reemplazo permanente")}</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("El saliente conserva sus puntos y queda como baja. El entrante pasa a ser titular desde cero y ocupa únicamente los partidos futuros.")}</p>
         <form onSubmit={createReplacement} className="mt-3 space-y-3">
-          <label className="block text-xs font-black text-neutral-600">Titular que causa baja<select value={outgoingPlayerId} onChange={(event) => setOutgoingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">Selecciona titular</option>{rankingPlayers.filter((player) => player.seasonPlayerStatus !== "withdrawn" && !payload.replacements.some((replacement) => replacement.outgoing_player_id === player.id)).map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}</select></label>
-          <label className="block text-xs font-black text-neutral-600">Jugador entrante<select value={incomingPlayerId} onChange={(event) => setIncomingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">Añadir un jugador nuevo</option>{activePool.map((item) => { const profile = getPoolProfile(item); return <option key={item.id} value={item.player_id}>{profile?.display_name ?? "Suplente"}</option> })}</select></label>
-          {!incomingPlayerId ? <input value={replacementName} onChange={(event) => setReplacementName(event.target.value)} placeholder="Nombre del nuevo titular" maxLength={80} className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /> : null}
-          <label className="block text-xs font-black text-neutral-600">Desde la jornada<input type="number" min={1} max={activeSeason.totalRounds} value={fromRound} onChange={(event) => setFromRound(Number(event.target.value))} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /></label>
-          <button disabled={isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)} className="flex w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center">Aplicar reemplazo permanente</button>
+          <label className="block text-xs font-black text-neutral-600">{tx("Titular que causa baja")}<select value={outgoingPlayerId} onChange={(event) => setOutgoingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">{tx("Selecciona titular")}</option>{rankingPlayers.filter((player) => player.seasonPlayerStatus !== "withdrawn" && !payload.replacements.some((replacement) => replacement.outgoing_player_id === player.id)).map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}</select></label>
+          <label className="block text-xs font-black text-neutral-600">{tx("Jugador entrante")}<select value={incomingPlayerId} onChange={(event) => setIncomingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">{tx("Añadir un jugador nuevo")}</option>{activePool.map((item) => { const profile = getPoolProfile(item); return <option key={item.id} value={item.player_id}>{profile?.display_name ?? tx("Suplente")}</option> })}</select></label>
+          {!incomingPlayerId ? <input value={replacementName} onChange={(event) => setReplacementName(event.target.value)} placeholder={tx("Nombre del nuevo titular")} maxLength={80} className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /> : null}
+          <label className="block text-xs font-black text-neutral-600">{tx("Desde la jornada")}<input type="number" min={1} max={activeSeason.totalRounds} value={fromRound} onChange={(event) => setFromRound(Number(event.target.value))} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /></label>
+          <button disabled={isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)} className="flex w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center">{tx("Aplicar reemplazo permanente")}</button>
         </form>
 
         {payload.replacements.length > 0 ? (
           <div className="mt-4 border-t border-neutral-100 pt-3">
-            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">Bajas y reemplazos</p>
+            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Bajas y reemplazos")}</p>
             <div className="mt-2 space-y-2">
               {payload.replacements.map((replacement) => {
                 const outgoing = players.find((player) => player.id === replacement.outgoing_player_id)
                 const incoming = players.find((player) => player.id === replacement.incoming_player_id)
                 return (
                   <div key={replacement.id} className="rounded-2xl bg-red-50 px-3 py-2.5">
-                    <p className="truncate whitespace-nowrap text-sm font-black text-neutral-950">{outgoing?.displayName ?? "Titular"} → {incoming?.displayName ?? "Nuevo titular"}</p>
-                    <p className="mt-0.5 type-caption font-semibold text-red-700">Baja y reemplazo desde la jornada {replacement.from_round}</p>
+                    <p className="truncate whitespace-nowrap text-sm font-black text-neutral-950">{outgoing?.displayName ?? tx("Titular")} → {incoming?.displayName ?? tx("Nuevo titular")}</p>
+                    <p className="mt-0.5 type-caption font-semibold text-red-700">{tx("Baja y reemplazo desde la jornada")}{" "}{replacement.from_round}</p>
                   </div>
                 )
               })}
@@ -277,14 +279,14 @@ export default function AdminSubstitutesPage() {
       </AppCard>
 
       <AppCard>
-        <p className="font-black">Historial de sustituciones</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">Participaciones puntuales registradas durante la temporada.</p>
+        <p className="font-black">{tx("Historial de sustituciones")}</p>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Participaciones puntuales registradas durante la temporada.")}</p>
         <div className="mt-3 space-y-2">
           {substitutionHistory.length === 0 ? (
             <EmptyState
               compact
-              title="Sin sustituciones puntuales"
-              description="Las sustituciones de un solo partido aparecerán aquí cuando se utilice un suplente."
+              title={tx("Sin sustituciones puntuales")}
+              description={tx("Las sustituciones de un solo partido aparecerán aquí cuando se utilice un suplente.")}
             />
           ) : (
             substitutionHistory.map((item) => {
@@ -301,11 +303,10 @@ export default function AdminSubstitutesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black">
-                        J{item.match?.round ?? "-"} · {original?.displayName ?? "Titular"} → {substitute?.displayName ?? poolProfile?.display_name ?? "Suplente"}
+                        {tx("J")}{item.match?.round ?? "-"} · {original?.displayName ?? tx("Titular")} → {substitute?.displayName ?? poolProfile?.display_name ?? tx("Suplente")}
                       </p>
                       <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                        Sustitución para un único partido
-                      </p>
+                        {tx("Sustitución para un único partido")}{" "}</p>
                     </div>
                     <span className="shrink-0 rounded-full bg-white px-2 py-1 type-caption font-black text-neutral-600">
                       {getMatchStatusText(item.match?.status ?? "")}
@@ -319,17 +320,17 @@ export default function AdminSubstitutesPage() {
       </AppCard>
 
       <AppCard>
-        <p className="font-black">Rendimiento de suplentes</p>
+        <p className="font-black">{tx("Rendimiento de suplentes")}</p>
         <div className="mt-3 space-y-2">
           {stats.every((item) => item.matchesPlayed === 0) ? (
             <EmptyState
               compact
-              title="Sin participaciones todavía"
-              description="El rendimiento se calculará cuando un suplente complete su primer partido."
+              title={tx("Sin participaciones todavía")}
+              description={tx("El rendimiento se calculará cuando un suplente complete su primer partido.")}
             />
           ) : stats.filter((item) => item.matchesPlayed > 0).map((item) => {
             const profile = getPoolProfile(payload.substitutes.find((poolItem) => poolItem.player_id === item.playerId) as PoolPlayer)
-            return <div key={item.playerId} className="rounded-2xl bg-neutral-50 px-3 py-2.5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">{profile?.display_name ?? "Suplente"}</p><p className="text-sm font-black">{item.points} pts</p></div><p className="mt-1 type-caption font-semibold text-neutral-500">{item.matchesPlayed} partidos · {item.wins} victorias · diferencia {item.gamesDiff > 0 ? "+" : ""}{item.gamesDiff}</p></div>
+            return <div key={item.playerId} className="rounded-2xl bg-neutral-50 px-3 py-2.5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">{profile?.display_name ?? tx("Suplente")}</p><p className="text-sm font-black">{item.points} {tx("pts")}</p></div><p className="mt-1 type-caption font-semibold text-neutral-500">{item.matchesPlayed} {tx("partidos ·")}{" "}{item.wins} {tx("victorias · diferencia")}{" "}{item.gamesDiff > 0 ? "+" : ""}{item.gamesDiff}</p></div>
           })}
         </div>
       </AppCard>

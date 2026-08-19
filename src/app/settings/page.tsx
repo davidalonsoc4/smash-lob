@@ -199,7 +199,7 @@ function AppearanceSummaryPreview({
   )
 }
 function AppearanceSettingsLink() {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { themeMode, visualStyle, colorfulPalette } = useTheme()
   const themeLabels: Record<ThemeMode, string> = {
     light: t.settings.appearanceLight,
@@ -236,9 +236,11 @@ function AppearanceSettingsLink() {
   )
 }
 function SessionSection() {
+  const { tx } = useI18n()
+
   const { t } = useI18n()
   return (
-    <SettingsSection title="Sesión">
+    <SettingsSection title={tx("Sesión")}>
       <button
         type="button"
         onClick={() => signOut({ callbackUrl: "/" })}
@@ -250,26 +252,26 @@ function SessionSection() {
   )
 }
 function SpectatorSettingsPage() {
+  const { tx } = useI18n()
+
   const { t } = useI18n()
   const { data: session } = useSession()
   return (
     <div className="compact-page space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/profile" label={t.common.back} />
-        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Ajustes</h1>
+        <BackButton fallbackHref="/" label={t.common.back} returnToParam="returnTo" />
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{tx("Ajustes")}</h1>
         <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-          Cuenta de espectador · acceso de solo lectura.
-        </p>
+          {tx("Cuenta de espectador · acceso de solo lectura.")}{" "}</p>
       </header>
       <AppCard className="border-blue-100 bg-blue-50">
-        <p className="text-sm font-black text-blue-950">Modo espectador</p>
+        <p className="text-sm font-black text-blue-950">{tx("Modo espectador")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
-          Puedes consultar Home, ranking, partidos, resultados y perfiles. Las opciones de juego y administración permanecen ocultas.
-        </p>
+          {tx("Puedes consultar Home, ranking, partidos, resultados y perfiles. Las opciones de juego y administración permanecen ocultas.")}{" "}</p>
       </AppCard>
       <SettingsSection
-        title="Personal"
-        description="Tu cuenta, idioma y aspecto de la aplicación."
+        title={tx("Personal")}
+        description={tx("Tu cuenta, idioma y aspecto de la aplicación.")}
       >
         <SettingsLinkRow
           href="/settings/profile"
@@ -287,8 +289,7 @@ function SpectatorSettingsPage() {
               />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-black text-neutral-700">
-                ES
-              </div>
+                {tx("ES")}{" "}</div>
             )
           }
         />
@@ -302,27 +303,27 @@ function SpectatorSettingsPage() {
         <AppearanceSettingsLink />
       </SettingsSection>
       <SettingsSection
-        title="Mis ligas"
-        description="Accede a las competiciones que sigues o en las que participas."
+        title={tx("Mis ligas")}
+        description={tx("Accede a las competiciones que sigues o en las que participas.")}
       >
         <SettingsLinkRow
           href="/leagues"
           id="leagues"
           tour="settings-context-switcher"
-          title="Mis ligas"
-          description="Cambia entre ligas donde eres jugador o espectador."
+          title={tx("Mis ligas")}
+          description={tx("Cambia entre ligas donde eres jugador o espectador.")}
         />
       </SettingsSection>
       {isAvatarLabEnabled() ? (
         <SettingsSection
-          title="Laboratorio"
-          description="Funciones experimentales disponibles solo en PRE."
+          title={tx("Laboratorio")}
+          description={tx("Funciones experimentales disponibles solo en PRE.")}
         >
           <SettingsLinkRow
             href="/experimental/avatar-lab"
             id="avatar-lab"
-            title="Laboratorio de avatares"
-            description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
+            title={tx("Laboratorio de avatares")}
+            description={tx("Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil.")}
             badge={
               <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
                 PRE
@@ -332,15 +333,15 @@ function SpectatorSettingsPage() {
         </SettingsSection>
       ) : null}
       <SettingsSection
-        title="Ayuda e información"
-        description="Documentación, novedades y versión instalada."
+        title={tx("Ayuda e información")}
+        description={tx("Documentación, novedades y versión instalada.")}
       >
         <SettingsLinkRow
           href="/settings/suggestions"
           id="suggestions"
           tour="settings-suggestions"
-          title="Buzón de sugerencias"
-          description="Propón mejoras y nuevas funciones para Smash & Lob."
+          title={tx("Buzón de sugerencias")}
+          description={tx("Propón mejoras y nuevas funciones para Smash & Lob.")}
         />
         <SettingsLinkRow
           href="/help"
@@ -351,14 +352,14 @@ function SpectatorSettingsPage() {
         <SettingsLinkRow
           href="/changelog"
           id="changelog"
-          title="Registro de cambios"
-          description="Consulta las novedades publicadas en cada versión."
+          title={tx("Registro de cambios")}
+          description={tx("Consulta las novedades publicadas en cada versión.")}
         />
         <SettingsLinkRow
           href="/about"
           id="about-app"
-          title="Sobre Smash & Lob"
-          description="Consulta la descripción pública y las funciones principales de la aplicación."
+          title={tx("Sobre Smash & Lob")}
+          description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")}
         />
       </SettingsSection>
       <SessionSection />
@@ -380,6 +381,7 @@ export default function SettingsPage() {
   return <PlayerSettingsPage />
 }
 function PlayerSettingsPage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, matches, roundSettings } = useCurrentLeagueData()
@@ -435,7 +437,7 @@ function PlayerSettingsPage() {
       return
     }
     const confirmed = window.confirm(
-      `Vas a desvincularte de ${activeLeague.name}. Tu jugador quedará libre para poder reclamarlo de nuevo con una invitación. ¿Continuar?`,
+      tx(`Vas a desvincularte de ${activeLeague.name}. Tu jugador quedará libre para poder reclamarlo de nuevo con una invitación. ¿Continuar?`),
     )
     if (!confirmed) {
       return
@@ -456,14 +458,14 @@ function PlayerSettingsPage() {
   return (
     <div className="compact-page space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/profile" label={t.common.back} />
+        <BackButton fallbackHref="/" label={t.common.back} returnToParam="returnTo" />
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
           {t.settings.title}
         </h1>
       </header>
       <SettingsSection
-        title="Personal"
-        description="Tu perfil, preferencias y forma de participar en la liga."
+        title={tx("Personal")}
+        description={tx("Tu perfil, preferencias y forma de participar en la liga.")}
       >
         <SettingsLinkRow
           href="/settings/profile"
@@ -485,43 +487,43 @@ function PlayerSettingsPage() {
           href="/settings/notifications"
           id="notifications"
           tour="settings-notifications"
-          title="Notificaciones"
-          description="Activa push y elige qué avisos quieres recibir en este dispositivo."
+          title={tx("Notificaciones")}
+          description={tx("Activa push y elige qué avisos quieres recibir en este dispositivo.")}
         />
         {roundSettings.availabilityRecommendationsEnabled ? (
           <SettingsLinkRow
             href="/availability"
             id="availability"
-            title="Mi disponibilidad"
-            description="Define cuándo puedes jugar para las recomendaciones de esta temporada."
+            title={tx("Mi disponibilidad")}
+            description={tx("Define cuándo puedes jugar para las recomendaciones de esta temporada.")}
           />
         ) : null}
       </SettingsSection>
       <SettingsSection
-        title="Mis ligas"
-        description="Cambia de competición, entra en otra liga o crea una nueva."
+        title={tx("Mis ligas")}
+        description={tx("Cambia de competición, entra en otra liga o crea una nueva.")}
       >
         {hasLeagues ? (
           <SettingsLinkRow
             href="/leagues"
             id="leagues"
             tour="settings-context-switcher"
-            title="Mis ligas"
-            description={`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`}
+            title={tx("Mis ligas")}
+            description={tx(`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`)}
           />
         ) : null}
         <SettingsLinkRow
           href="/invite"
           id="join-league"
           title={t.settings.joinNewExistingLeague}
-          description="Usa un código o enlace de invitación para acceder a otra liga."
+          description={tx("Usa un código o enlace de invitación para acceder a otra liga.")}
         />
         {canCreateLeaguesInCurrentView ? (
           <SettingsLinkRow
             href="/league/new"
             id="create-league"
             title={t.settings.createNewLeague}
-            description="Configura una competición nueva desde cero."
+            description={tx("Configura una competición nueva desde cero.")}
           />
         ) : null}
         {canSelfUnlink ? (
@@ -529,11 +531,9 @@ function PlayerSettingsPage() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-black text-red-950">
-                  Desvincularme de esta liga
-                </p>
+                  {tx("Desvincularme de esta liga")}{" "}</p>
                 <p className="mt-0.5 text-xs font-semibold leading-5 text-red-700">
-                  Libera tu jugador en {activeLeague.name} sin borrar partidos, resultados ni temporadas.
-                </p>
+                  {tx("Libera tu jugador en")}{" "}{activeLeague.name} {tx("sin borrar partidos, resultados ni temporadas.")}{" "}</p>
               </div>
               <button
                 type="button"
@@ -546,30 +546,30 @@ function PlayerSettingsPage() {
             </div>
             {unlinkLeagueError ? (
               <p className="mt-2 text-xs font-bold text-red-700">
-                {unlinkLeagueError}
+                {tx(unlinkLeagueError)}
               </p>
             ) : null}
           </div>
         ) : null}
       </SettingsSection>
       <SettingsSection
-        title="Actividad personal"
-        description="Movimientos económicos e historial de la liga."
+        title={tx("Actividad personal")}
+        description={tx("Movimientos económicos e historial de la liga.")}
       >
         <SettingsLinkRow
           href="/payments"
           id="payments"
-          title="Mis pagos"
+          title={tx("Mis pagos")}
           description={
             hasPendingPayments
               ? `Debes ${formatMoney(owedByMeAmount)} · Te deben ${formatMoney(owedToMeAmount)}`
-              : "Consulta tus pagos, reservas e historial de movimientos."
+              : tx("Consulta tus pagos, reservas e historial de movimientos.")
           }
           tone={hasPendingPayments ? "warning" : "default"}
           badge={
             hasPendingPayments ? (
               <span className="rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-white">
-                {pendingPaymentCount} pendiente{pendingPaymentCount === 1 ? "" : "s"}
+                {pendingPaymentCount} {tx("pendiente")}{pendingPaymentCount === 1 ? "" : "s"}
               </span>
             ) : null
           }
@@ -577,25 +577,25 @@ function PlayerSettingsPage() {
         <SettingsLinkRow
           href="/activity?scope=all"
           id="activity"
-          title="Actividad de la liga"
-          description="Consulta el historial de cambios y acciones desde que te vinculaste."
+          title={tx("Actividad de la liga")}
+          description={tx("Consulta el historial de cambios y acciones desde que te vinculaste.")}
         />
       </SettingsSection>
       {hasAdminRole || isSuperuser ? (
         <SettingsSection
-          title="Administración"
-          description="Herramientas que dependen de tus permisos actuales."
+          title={tx("Administración")}
+          description={tx("Herramientas que dependen de tus permisos actuales.")}
         >
           {hasAdminRole ? (
             <SettingsStaticRow
               id="admin-view"
-              title="Vista admin"
-              description="Oculta temporalmente accesos y acciones de administración para ver la liga como jugador."
+              title={tx("Vista admin")}
+              description={tx("Oculta temporalmente accesos y acciones de administración para ver la liga como jugador.")}
             >
               <SettingsToggle
                 checked={isAdminViewEnabled}
                 onChange={() => setAdminViewEnabled(!isAdminViewEnabled)}
-                label="Vista admin"
+                label={tx("Vista admin")}
               />
             </SettingsStaticRow>
           ) : null}
@@ -604,15 +604,15 @@ function PlayerSettingsPage() {
               href="/admin"
               id="admin"
               title={t.settings.adminPanelTitle}
-              description="Gestiona la liga por áreas: general, personas, competición, operaciones y datos."
+              description={tx("Gestiona la liga por áreas: general, personas, competición, operaciones y datos.")}
             />
           ) : null}
           {isSuperuser ? (
             <SettingsLinkRow
               href="/application-admin"
               id="application-admin"
-              title="Gestión de la app"
-              description="Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob."
+              title={tx("Gestión de la app")}
+              description={tx("Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob.")}
               tone="danger"
             />
           ) : null}
@@ -620,14 +620,14 @@ function PlayerSettingsPage() {
       ) : null}
       {isAvatarLabEnabled() ? (
         <SettingsSection
-          title="Laboratorio"
-          description="Funciones experimentales disponibles solo en PRE."
+          title={tx("Laboratorio")}
+          description={tx("Funciones experimentales disponibles solo en PRE.")}
         >
           <SettingsLinkRow
             href="/experimental/avatar-lab"
             id="avatar-lab"
-            title="Laboratorio de avatares"
-            description="Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil."
+            title={tx("Laboratorio de avatares")}
+            description={tx("Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil.")}
             badge={
               <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
                 PRE
@@ -637,15 +637,15 @@ function PlayerSettingsPage() {
         </SettingsSection>
       ) : null}
       <SettingsSection
-        title="Ayuda e información"
-        description="Documentación, novedades y versión instalada."
+        title={tx("Ayuda e información")}
+        description={tx("Documentación, novedades y versión instalada.")}
       >
         <SettingsLinkRow
           href="/settings/suggestions"
           id="suggestions"
           tour="settings-suggestions"
-          title="Buzón de sugerencias"
-          description="Propón mejoras y nuevas funciones para Smash & Lob."
+          title={tx("Buzón de sugerencias")}
+          description={tx("Propón mejoras y nuevas funciones para Smash & Lob.")}
         />
         <SettingsLinkRow
           href="/help"
@@ -656,14 +656,14 @@ function PlayerSettingsPage() {
         <SettingsLinkRow
           href="/changelog"
           id="changelog"
-          title="Registro de cambios"
-          description="Consulta las novedades publicadas en cada versión."
+          title={tx("Registro de cambios")}
+          description={tx("Consulta las novedades publicadas en cada versión.")}
         />
         <SettingsLinkRow
           href="/about"
           id="about-app"
-          title="Sobre Smash & Lob"
-          description="Consulta la descripción pública y las funciones principales de la aplicación."
+          title={tx("Sobre Smash & Lob")}
+          description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")}
         />
       </SettingsSection>
       <SessionSection />

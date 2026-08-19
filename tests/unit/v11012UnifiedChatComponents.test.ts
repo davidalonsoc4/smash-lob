@@ -41,7 +41,7 @@ describe("v1.10.12 shared league and friendly match chat", () => {
       '"Leído por todos"',
       'allRead ? "✓✓" : "✓"',
       "<MatchChatSendIcon />",
-      'aria-label="Enviar mensaje"',
+      'aria-label={tx("Enviar mensaje")}',
       "maxLength={2000}",
       "window.visualViewport",
       'html.dataset.matchChatActive = "true"',

@@ -9,6 +9,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function NewLeaguePage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const router = useRouter()
   const { activateGrantedLeague } = useActiveLeague()
@@ -60,10 +61,9 @@ export default function NewLeaguePage() {
         </header>
 
         <AppCard>
-          <p className="font-bold">No tienes permisos para crear ligas</p>
+          <p className="font-bold">{tx("No tienes permisos para crear ligas")}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            Tu cuenta puede jugar y administrar las ligas donde tengas permisos, pero no crear ligas nuevas. Puedes unirte a otra liga con un código de invitación.
-          </p>
+            {tx("Tu cuenta puede jugar y administrar las ligas donde tengas permisos, pero no crear ligas nuevas. Puedes unirte a otra liga con un código de invitación.")}{" "}</p>
         </AppCard>
       </div>
     )
@@ -81,10 +81,9 @@ export default function NewLeaguePage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <AppCard>
-          <p className="font-bold">Datos de la liga</p>
+          <p className="font-bold">{tx("Datos de la liga")}</p>
           <p className="mt-2 text-sm text-neutral-500">
-            Primero crea la liga. Después configurarás la Temporada 1 con sus jugadores, jornadas y reglas.
-          </p>
+            {tx("Primero crea la liga. Después configurarás la Temporada 1 con sus jugadores, jornadas y reglas.")}{" "}</p>
 
           <div className="mt-4 space-y-4">
             <label className="block">
@@ -120,26 +119,24 @@ export default function NewLeaguePage() {
 
             <label className="block">
               <span className="text-sm font-semibold text-neutral-700">
-                Recomendaciones de la liga
-              </span>
+                {tx("Recomendaciones de la liga")}{" "}</span>
               <textarea
                 value={leagueRecommendations}
                 onChange={(event) => setLeagueRecommendations(event.target.value)}
                 disabled={isCreating}
-                placeholder="Bolas recomendadas, pistas habituales, equipamiento o normas prácticas para jugar la liga."
+                placeholder={tx("Bolas recomendadas, pistas habituales, equipamiento o normas prácticas para jugar la liga.")}
                 rows={4}
                 className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
               />
               <p className="mt-1 text-xs text-neutral-500">
-                Campo opcional para dejar indicaciones útiles a todos los jugadores.
-              </p>
+                {tx("Campo opcional para dejar indicaciones útiles a todos los jugadores.")}{" "}</p>
             </label>
           </div>
         </AppCard>
 
         {error ? (
           <p className="text-center text-sm font-semibold text-red-600">
-            {error}
+            {tx(error)}
           </p>
         ) : null}
 
@@ -148,7 +145,7 @@ export default function NewLeaguePage() {
           disabled={!canCreate || isCreating}
           className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
         >
-          {isCreating ? "Creando liga..." : t.newLeague.create}
+          {isCreating ? tx("Creando liga...") : t.newLeague.create}
         </button>
       </form>
     </div>

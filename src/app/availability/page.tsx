@@ -8,6 +8,8 @@ import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
+import { getIntlLocale } from "@/i18n/leagueText";
+import type { Locale } from "@/i18n/translations";
 import { showActionFeedback } from "@/lib/actionFeedback";
 import {
   countWeeklyAvailabilitySlots,
@@ -104,7 +106,7 @@ function buildInitialAvailability({
   );
 }
 
-function formatUpdatedAt(value: string | null | undefined) {
+function formatUpdatedAt(value: string | null | undefined, locale: Locale) {
   if (!value) {
     return "Sin guardar todavía";
   }
@@ -115,11 +117,11 @@ function formatUpdatedAt(value: string | null | undefined) {
     return "Guardado recientemente";
   }
 
-  return `Última actualización: ${date.toLocaleDateString("es-ES", {
+  return `Última actualización: ${date.toLocaleDateString(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  })}, ${date.toLocaleTimeString("es-ES", {
+  })}, ${date.toLocaleTimeString(getIntlLocale(locale), {
     hour: "2-digit",
     minute: "2-digit",
   })}`;
@@ -182,6 +184,7 @@ function DayAvailabilityEditor({
   onToggleExpanded: () => void;
   onChange: (slots: AvailabilitySlot[]) => void;
 }) {
+  const { tx } = useI18n()
   const isAvailable = slots.length > 0;
 
   function setAvailable(enabled: boolean) {
@@ -266,7 +269,7 @@ function DayAvailabilityEditor({
                 type="button"
                 onClick={() => removeSlot(index)}
                 className="inline-flex rounded-xl bg-neutral-100 px-2.5 py-2 text-xs font-black text-neutral-600 items-center justify-center text-center"
-                aria-label="Quitar franja"
+                aria-label={tx("Quitar franja")}
               >
                 ×
               </button>
@@ -278,8 +281,7 @@ function DayAvailabilityEditor({
             onClick={() => onChange([...slots, defaultSlot])}
             className="flex w-full rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
           >
-            Añadir otra franja
-          </button>
+            {tx("Añadir otra franja")}{" "}</button>
         </div>
       ) : null}
     </div>
@@ -287,7 +289,7 @@ function DayAvailabilityEditor({
 }
 
 export default function AvailabilityPage() {
-  const { t } = useI18n();
+  const { tx, t, locale } = useI18n();
   const { userId } = useLeagueAccess();
   const { currentUser } = useCurrentUser();
   const { activeLeague, activeSeason, roundSettings } = useCurrentLeagueData();
@@ -514,13 +516,12 @@ export default function AvailabilityPage() {
       <div className="space-y-4">
         <header className="app-page-header">
           <BackButton fallbackHref="/settings" label={t.common.back} />
-          <h1 className="type-page-title text-2xl font-black tracking-tight">Mi disponibilidad</h1>
+          <h1 className="type-page-title text-2xl font-black tracking-tight">{tx("Mi disponibilidad")}</h1>
         </header>
         <AppCard>
-          <p className="font-black">No se usa en esta temporada</p>
+          <p className="font-black">{tx("No se usa en esta temporada")}</p>
           <p className="mt-1 text-sm font-semibold leading-6 text-neutral-500">
-            La disponibilidad y las recomendaciones horarias están desactivadas. Puedes coordinar y proponer fechas desde el chat de cada partido.
-          </p>
+            {tx("La disponibilidad y las recomendaciones horarias están desactivadas. Puedes coordinar y proponer fechas desde el chat de cada partido.")}{" "}</p>
         </AppCard>
       </div>
     );
@@ -529,11 +530,10 @@ export default function AvailabilityPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref="/settings" label="Volver" />
+        <BackButton fallbackHref="/settings" label={tx("Volver")} />
 
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
-          Mi disponibilidad
-        </h1>
+          {tx("Mi disponibilidad")}{" "}</h1>
 
       </header>
 
@@ -541,18 +541,17 @@ export default function AvailabilityPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-black text-neutral-950">
-              Horario semanal habitual
+              {tx("Horario semanal habitual")}
             </p>
             <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-              Define tus horarios habituales. En modo rápido una sola franja se aplica al bloque de días elegido.
-            </p>
+              {tx("Define tus horarios habituales. En modo rápido una sola franja se aplica al bloque de días elegido.")}{" "}</p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-500">
               {slotCount > 0
-                ? `${slotCount} franja${slotCount === 1 ? "" : "s"} configurada${slotCount === 1 ? "" : "s"}`
-                : "Sin franjas: disponibilidad total"}
+                ? `${slotCount} ${tx(slotCount === 1 ? "franja configurada" : "franjas configuradas")}`
+                : tx("Sin franjas: disponibilidad total")}
             </p>
             <p className="mt-0.5 type-caption font-semibold text-neutral-400">
-              {formatUpdatedAt(availability.updatedAt)}
+              {tx(formatUpdatedAt(availability.updatedAt, locale))}
             </p>
           </div>
 
@@ -564,8 +563,7 @@ export default function AvailabilityPage() {
                 !shouldShowCustomEditor ? "bg-white shadow-sm" : "text-neutral-500"
               }`}
             >
-              Rápido
-            </button>
+              {tx("Rápido")}{" "}</button>
             <button
               type="button"
               onClick={() => setEditorMode("custom")}
@@ -573,8 +571,7 @@ export default function AvailabilityPage() {
                 shouldShowCustomEditor ? "bg-white shadow-sm" : "text-neutral-500"
               }`}
             >
-              Por días
-            </button>
+              {tx("Por días")}{" "}</button>
           </div>
         </div>
       </AppCard>
@@ -586,16 +583,15 @@ export default function AvailabilityPage() {
       {!shouldShowCustomEditor ? (
         <>
           <AppCard className="p-2.5">
-            <p className="text-sm font-black text-neutral-950">Laborables</p>
+            <p className="text-sm font-black text-neutral-950">{tx("Laborables")}</p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-              Elige L-J o L-V. Solo uno puede estar activo.
-            </p>
+              {tx("Elige L-J o L-V. Solo uno puede estar activo.")}{" "}</p>
 
             <div className="mt-3 grid grid-cols-3 gap-2">
               {[
                 { id: "weekday4", label: "L-J" },
                 { id: "weekday5", label: "L-V" },
-                { id: "none", label: "Ninguno" },
+                { id: "none", label: tx("Ninguno") },
               ].map((option) => (
                 <button
                   key={option.id}
@@ -626,11 +622,9 @@ export default function AvailabilityPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-black text-neutral-950">
-                  Sábado y domingo
-                </p>
+                  {tx("Sábado y domingo")}{" "}</p>
                 <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                  Una franja común para todo el fin de semana.
-                </p>
+                  {tx("Una franja común para todo el fin de semana.")}{" "}</p>
               </div>
 
               <button
@@ -664,11 +658,9 @@ export default function AvailabilityPage() {
         <section className="space-y-2">
           <div className="px-1">
             <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-              Horario por días
-            </p>
+              {tx("Horario por días")}{" "}</p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              Activa únicamente los días disponibles y despliega cada uno para editar sus franjas.
-            </p>
+              {tx("Activa únicamente los días disponibles y despliega cada uno para editar sus franjas.")}{" "}</p>
           </div>
           <AppCard accentStrip className="overflow-hidden !p-0">
             <div className="divide-y divide-neutral-100">
@@ -693,19 +685,17 @@ export default function AvailabilityPage() {
 
       {isLoading ? (
         <p className="rounded-2xl bg-neutral-100 px-3 py-2 text-xs font-bold text-neutral-500">
-          Cargando disponibilidad guardada...
-        </p>
+          {tx("Cargando disponibilidad guardada...")}{" "}</p>
       ) : null}
 
       {hasInvalidSlots ? (
         <p className="rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
-          Revisa las franjas: la hora de fin debe ser posterior a la hora de inicio.
-        </p>
+          {tx("Revisa las franjas: la hora de fin debe ser posterior a la hora de inicio.")}{" "}</p>
       ) : null}
 
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
 
@@ -715,7 +705,7 @@ export default function AvailabilityPage() {
         disabled={isSaving || hasInvalidSlots}
         className="flex w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white shadow-sm disabled:bg-neutral-300 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Guardar disponibilidad"}
+        {isSaving ? "Guardando..." : tx("Guardar disponibilidad")}
       </button>
 
     </div>

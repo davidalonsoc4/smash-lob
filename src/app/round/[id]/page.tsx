@@ -12,6 +12,8 @@ import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 import { calculateSeasonRanking, type RankingPlayer } from "@/lib/ranking"
 import {
   getMatchMvpSelection,
@@ -63,14 +65,14 @@ function teamImagePeople(playerIds: string[], players: RankingPlayer[]) {
   })
 }
 
-function formatRoundExportMatchMeta(scheduledAt?: string | null, location?: string | null) {
+function formatRoundExportMatchMeta(scheduledAt: string | null | undefined, location: string | null | undefined, locale: Locale) {
   const parts: string[] = []
 
   if (scheduledAt) {
     const date = new Date(scheduledAt)
     if (!Number.isNaN(date.getTime())) {
       parts.push(
-        new Intl.DateTimeFormat("es-ES", {
+        new Intl.DateTimeFormat(getIntlLocale(locale), {
           day: "2-digit",
           month: "short",
           year: "numeric",
@@ -84,7 +86,7 @@ function formatRoundExportMatchMeta(scheduledAt?: string | null, location?: stri
   const locationText = getScheduleLocationDisplayText(location)
   if (locationText) parts.push(locationText)
 
-  return parts.join(" · ") || "Fecha y lugar pendientes"
+  return parts.join(" · ") || translateLeagueText(locale, "Fecha y lugar pendientes")
 }
 
 function MvpPlayers({
@@ -94,10 +96,12 @@ function MvpPlayers({
   playerIds: string[]
   players: RankingPlayer[]
 }) {
+  const { tx } = useI18n()
+
   const selectedPlayers = getPlayersByIds(players, playerIds)
 
   if (selectedPlayers.length === 0) {
-    return <p className="text-sm font-semibold text-neutral-500">Pendiente</p>
+    return <p className="text-sm font-semibold text-neutral-500">{tx("Pendiente")}</p>
   }
 
   return (
@@ -119,7 +123,7 @@ function MvpPlayers({
 }
 
 export default function RoundSummaryPage() {
-  const { t } = useI18n()
+  const { tx, t, locale } = useI18n()
   const params = useParams<{ id: string }>()
   const round = Number(params.id)
   const { votes } = useMvp()
@@ -188,16 +192,14 @@ export default function RoundSummaryPage() {
     return (
       <div className="space-y-4">
         <header className="app-page-header">
-          <BackButton fallbackHref="/matches" label="Volver" />
+          <BackButton fallbackHref="/matches" label={tx("Volver")} />
           <h1 className="type-page-title text-2xl font-black tracking-tight">
-            Resumen de jornada
-          </h1>
+            {tx("Resumen de jornada")}{" "}</h1>
         </header>
         <AppCard>
-          <p className="font-black text-neutral-950">Jornada no disponible</p>
+          <p className="font-black text-neutral-950">{tx("Jornada no disponible")}</p>
           <p className="mt-1 text-sm font-semibold text-neutral-500">
-            No hay partidos para esta jornada en la temporada activa.
-          </p>
+            {tx("No hay partidos para esta jornada en la temporada activa.")}{" "}</p>
         </AppCard>
       </div>
     )
@@ -231,7 +233,7 @@ export default function RoundSummaryPage() {
       ? null
       : roundSettings.mvpSystem === "voting"
         ? {
-            title: "MVPs de los partidos",
+            title: tx("MVPs de los partidos"),
             items: roundMatches.map((match) => {
               const selection = getMatchMvpSelection({ votes, match })
               return {
@@ -239,23 +241,23 @@ export default function RoundSummaryPage() {
                 players: selection ? selection.playerIds.map(imagePerson) : [],
                 pendingText:
                   match.status === "finished"
-                    ? "Pendiente de completar la votación"
-                    : "Disponible al finalizar el partido",
+                    ? tx("Pendiente de completar la votación")
+                    : tx("Disponible al finalizar el partido"),
               }
             }),
           }
         : {
-            title: "MVP de jornada",
+            title: tx("MVP de jornada"),
             items: [
               {
                 players: roundMvp ? roundMvp.playerIds.map(imagePerson) : [],
                 pendingText: isCompleted
-                  ? "No hay MVP computable en esta jornada."
-                  : "Se calculará al completar la jornada.",
+                  ? tx("No hay MVP computable en esta jornada.")
+                  : tx("Se calculará al completar la jornada."),
                 detail: roundMvp
                   ? roundSettings.mvpSystem === "automatic_advanced"
-                    ? `Selección automática avanzada · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`
-                    : `${roundMvp.setsFor ?? 0}-${roundMvp.setsAgainst ?? 0} sets · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`
+                    ? tx(`Selección automática avanzada · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`)
+                    : tx(`${roundMvp.setsFor ?? 0}-${roundMvp.setsAgainst ?? 0} sets · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`)
                   : undefined,
               },
             ],
@@ -270,7 +272,7 @@ export default function RoundSummaryPage() {
     statusLabel,
     dateRange:
       roundData.startsAt && roundData.endsAt
-        ? `${formatShortDate(roundData.startsAt)} · ${formatShortDate(roundData.endsAt)}`
+        ? `${formatShortDate(roundData.startsAt, locale)} · ${formatShortDate(roundData.endsAt, locale)}`
         : null,
     metrics: {
       finishedMatches: metrics.finishedMatches,
@@ -284,7 +286,7 @@ export default function RoundSummaryPage() {
       pointsA: match.pointsA,
       pointsB: match.pointsB,
       sets: match.sets,
-      meta: formatRoundExportMatchMeta(match.scheduledAt, match.location),
+      meta: formatRoundExportMatchMeta(match.scheduledAt, match.location, locale),
     })),
     mvp: imageMvp,
     highlights: highlights.map((highlight) => {
@@ -312,9 +314,9 @@ export default function RoundSummaryPage() {
       }
     }),
     highlightsPendingText: isCompleted
-      ? "No hay un dato destacado adicional para esta jornada."
-      : "Los destacados se calcularán cuando la jornada esté completada.",
-    rankingTitle: isCompleted ? "Clasificación tras la jornada" : "Clasificación provisional",
+      ? tx("No hay un dato destacado adicional para esta jornada.")
+      : tx("Los destacados se calcularán cuando la jornada esté completada."),
+    rankingTitle: isCompleted ? tx("Clasificación tras la jornada") : tx("Clasificación provisional"),
     ranking: rankingThroughRound
       .map((player, index) => {
         const movement = movementByPlayerId.get(player.id)
@@ -339,9 +341,9 @@ export default function RoundSummaryPage() {
   return (
     <div className="space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/matches" label="Volver" />
+        <BackButton fallbackHref="/matches" label={tx("Volver")} />
         <h1 className="type-page-title text-2xl font-black tracking-tight">
-          Resumen · Jornada {round}
+          {tx("Resumen · Jornada")}{" "}{round}
         </h1>
         <SeasonContextLine
           seasonName={activeSeason.name}
@@ -357,7 +359,7 @@ export default function RoundSummaryPage() {
               <p className="type-panel-title font-black text-neutral-950">{statusSummary}</p>
               {roundData.startsAt && roundData.endsAt ? (
                 <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {formatShortDate(roundData.startsAt)} · {formatShortDate(roundData.endsAt)}
+                  {formatShortDate(roundData.startsAt, locale)} · {formatShortDate(roundData.endsAt, locale)}
                 </p>
               ) : null}
             </div>
@@ -369,22 +371,22 @@ export default function RoundSummaryPage() {
               <p className="text-lg font-black leading-none text-neutral-950">
                 {metrics.finishedMatches}/{metrics.totalMatches}
               </p>
-              <p className="mt-1 type-caption font-bold text-neutral-500">Partidos</p>
+              <p className="mt-1 type-caption font-bold text-neutral-500">{tx("Partidos")}</p>
             </div>
             <div className="rounded-xl bg-neutral-50 px-2 py-2.5 text-center">
               <p className="text-lg font-black leading-none text-neutral-950">{metrics.totalSets}</p>
-              <p className="mt-1 type-caption font-bold text-neutral-500">Sets</p>
+              <p className="mt-1 type-caption font-bold text-neutral-500">{tx("Sets")}</p>
             </div>
             <div className="rounded-xl bg-neutral-50 px-2 py-2.5 text-center">
               <p className="text-lg font-black leading-none text-neutral-950">{metrics.totalGames}</p>
-              <p className="mt-1 type-caption font-bold text-neutral-500">Juegos</p>
+              <p className="mt-1 type-caption font-bold text-neutral-500">{tx("Juegos")}</p>
             </div>
           </div>
         </div>
       </AppCard>
 
       <section className="space-y-2.5">
-        <h2 className="type-section-title">Resultados</h2>
+        <h2 className="type-section-title">{tx("Resultados")}</h2>
         <div className="space-y-2.5">
           {roundMatches.map((match) => (
             <Link key={match.id} href={`/match/${match.id}`} className="block transition active:scale-[0.99]">
@@ -406,7 +408,7 @@ export default function RoundSummaryPage() {
       {roundSettings.mvpSystem !== "none" ? (
         <section className="space-y-2.5">
           <h2 className="type-section-title">
-            {roundSettings.mvpSystem === "voting" ? "MVPs de los partidos" : "MVP de jornada"}
+            {roundSettings.mvpSystem === "voting" ? tx("MVPs de los partidos") : tx("MVP de jornada")}
           </h2>
 
           {roundSettings.mvpSystem === "voting" ? (
@@ -416,14 +418,14 @@ export default function RoundSummaryPage() {
                 return (
                   <AppCard key={match.id}>
                     <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
-                      {teamName(match.teamA, players)} vs {teamName(match.teamB, players)}
+                      {teamName(match.teamA, players)} {tx("vs")}{" "}{teamName(match.teamB, players)}
                     </p>
                     <div className="mt-2">
                       {selection ? (
                         <MvpPlayers playerIds={selection.playerIds} players={players} />
                       ) : (
                         <p className="rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-semibold text-neutral-500">
-                          {match.status === "finished" ? "Pendiente de completar la votación" : "Disponible al finalizar el partido"}
+                          {match.status === "finished" ? tx("Pendiente de completar la votación") : tx("Disponible al finalizar el partido")}
                         </p>
                       )}
                     </div>
@@ -438,13 +440,13 @@ export default function RoundSummaryPage() {
                   <MvpPlayers playerIds={roundMvp.playerIds} players={players} />
                   <p className="mt-2 type-caption font-semibold text-neutral-500">
                     {roundSettings.mvpSystem === "automatic_advanced"
-                      ? `Selección automática avanzada · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`
-                      : `${roundMvp.setsFor ?? 0}-${roundMvp.setsAgainst ?? 0} sets · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`}
+                      ? tx(`Selección automática avanzada · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`)
+                      : tx(`${roundMvp.setsFor ?? 0}-${roundMvp.setsAgainst ?? 0} sets · ${formatSigned(roundMvp.gamesDiff ?? 0)} dif. juegos`)}
                   </p>
                 </>
               ) : (
                 <p className="text-sm font-semibold text-neutral-500">
-                  {isCompleted ? "No hay MVP computable en esta jornada." : "Se calculará al completar la jornada."}
+                  {isCompleted ? tx("No hay MVP computable en esta jornada.") : tx("Se calculará al completar la jornada.")}
                 </p>
               )}
             </AppCard>
@@ -453,7 +455,7 @@ export default function RoundSummaryPage() {
       ) : null}
 
       <section className="space-y-2.5">
-        <h2 className="type-section-title">Lo más destacado</h2>
+        <h2 className="type-section-title">{tx("Lo más destacado")}</h2>
         {isCompleted ? (
           highlights.length > 0 ? (
             <div className="grid gap-2.5">
@@ -552,31 +554,29 @@ export default function RoundSummaryPage() {
           ) : (
             <AppCard>
               <p className="text-sm font-semibold text-neutral-500">
-                No hay un dato destacado adicional para esta jornada.
-              </p>
+                {tx("No hay un dato destacado adicional para esta jornada.")}{" "}</p>
             </AppCard>
           )
         ) : (
           <AppCard className="bg-neutral-50/80">
             <p className="text-sm font-semibold text-neutral-500">
-              Los destacados se calcularán cuando la jornada esté completada.
-            </p>
+              {tx("Los destacados se calcularán cuando la jornada esté completada.")}{" "}</p>
           </AppCard>
         )}
       </section>
 
       <section className="space-y-2.5">
         <h2 className="type-section-title">
-          {isCompleted ? "Clasificación tras la jornada" : "Clasificación provisional"}
+          {isCompleted ? tx("Clasificación tras la jornada") : tx("Clasificación provisional")}
         </h2>
 
         <AppCard accentStrip className="overflow-hidden !p-0">
           <div className="grid grid-cols-[2rem_minmax(0,1fr)_2.5rem_2.5rem_2.5rem] items-center gap-1 border-b border-neutral-100 px-3 py-2 type-caption font-black uppercase tracking-[0.1em] text-neutral-500">
-            <span className="text-center">Pos</span>
-            <span>Jugador</span>
-            <span className="text-center">Mov</span>
-            <span className="text-right">Dif</span>
-            <span className="text-right">Pts</span>
+            <span className="text-center">{tx("Pos")}</span>
+            <span>{tx("Jugador")}</span>
+            <span className="text-center">{tx("Mov")}</span>
+            <span className="text-right">{tx("Dif")}</span>
+            <span className="text-right">{tx("Pts")}</span>
           </div>
           <div>
             {rankingThroughRound.map((player, index) => {
