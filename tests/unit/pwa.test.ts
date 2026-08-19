@@ -12,8 +12,11 @@ afterEach(() => {
 describe("service worker lifecycle", () => {
   it("versions the shell, cleans old caches and updates only on request", async () => {
     const source = await readFile("public/sw.js", "utf8")
+    const packageJson = JSON.parse(
+      await readFile("package.json", "utf8"),
+    ) as { version: string }
 
-    expect(source).toContain('CACHE_VERSION = "smash-lob-v1.10.18"')
+    expect(source).toContain(`CACHE_VERSION = "smash-lob-v${packageJson.version}"`)
     expect(source).toContain('caches.match("/offline")')
     expect(source).toContain('event.data?.type === "SKIP_WAITING"')
     expect(source).toContain("event.waitUntil(self.skipWaiting())")
