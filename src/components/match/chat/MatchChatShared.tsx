@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import {
   useEffect,
@@ -13,6 +15,9 @@ import {
 import { MatchChatSendIcon } from "@/components/match/MatchChatSendIcon"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { BackButton } from "@/components/ui/BackButton"
+import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
 export type MatchChatParticipant = {
   userId: string | null
@@ -61,6 +66,7 @@ export function MatchChatMessageReceipt({
   participants: MatchChatParticipant[]
   pending?: boolean
 }) {
+  const { tx } = useI18n()
   const others = participants.filter((item) => item.userId && item.userId !== me)
   const readCount = others.filter(
     (item) =>
@@ -69,12 +75,12 @@ export function MatchChatMessageReceipt({
   ).length
   const allRead = !pending && others.length > 0 && readCount === others.length
   const label = pending
-    ? "Enviando"
+    ? tx("Enviando")
     : allRead
-      ? "Leído por todos"
+      ? tx("Leído por todos")
       : readCount
-        ? `Leído por ${readCount}`
-        : "Enviado"
+        ? tx(`Leído por ${readCount}`)
+        : tx("Enviado")
 
   return (
     <span
@@ -112,6 +118,7 @@ export function MatchChatTextMessage({
   rowClassName?: string
   gestureProps?: HTMLAttributes<HTMLDivElement>
 }) {
+  const { locale } = useI18n()
   const mine = message.sender_user_id === me || pending
   const sender = participants.find((item) => item.userId === message.sender_user_id)
   const senderColor = getMatchChatParticipantColorClass(
@@ -212,7 +219,7 @@ export function MatchChatTextMessage({
             }`}
           >
             <span className="origin-right scale-90 type-caption">
-              {new Date(message.created_at).toLocaleTimeString("es-ES", {
+              {new Date(message.created_at).toLocaleTimeString(getIntlLocale(locale), {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
@@ -255,6 +262,7 @@ export function MatchChatComposer({
   sending?: boolean
   hasTopAttachment?: boolean
 }) {
+  const { tx } = useI18n()
   return (
     <form
       data-tour="chat-composer"
@@ -276,7 +284,7 @@ export function MatchChatComposer({
         maxLength={2000}
         rows={1}
         enterKeyHint="send"
-        placeholder="Escribe un mensaje…"
+        placeholder={tx("Escribe un mensaje…")}
         onKeyDown={
           onKeyDown ??
           ((event) => {
@@ -293,8 +301,8 @@ export function MatchChatComposer({
         type="submit"
         disabled={disabled || sending || !body.trim()}
         onPointerDown={(event) => event.preventDefault()}
-        aria-label="Enviar mensaje"
-        title="Enviar mensaje"
+        aria-label={tx("Enviar mensaje")}
+        title={tx("Enviar mensaje")}
         className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-white transition active:scale-95 disabled:opacity-40"
       >
         <MatchChatSendIcon />
@@ -322,10 +330,11 @@ export function MatchChatWriteWindowBanner({
 }: {
   writeUntil: string | null
 }) {
-  const label = formatMatchChatWriteUntil(writeUntil)
+  const { tx, locale } = useI18n()
+  const label = formatMatchChatWriteUntil(writeUntil, locale)
   return (
     <div className="shrink-0 border-b border-amber-100 bg-amber-50 px-3 py-1.5 text-center type-caption font-bold text-amber-800">
-      Partido finalizado · Puedes seguir escribiendo hasta {label ?? "24 h después del resultado"}.
+      {tx("Partido finalizado · Puedes seguir escribiendo hasta")}{" "}{label ?? tx("24 h después del resultado")}.
     </div>
   )
 }
@@ -344,6 +353,7 @@ export function MatchChatFrame({
   titleHref?: string | null
   children: ReactNode
 }) {
+  const { tx } = useI18n()
   return (
     <div
       ref={viewportRef}
@@ -352,11 +362,11 @@ export function MatchChatFrame({
     >
       <header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
         <div className="relative flex min-h-10 items-center">
-          <BackButton fallbackHref={backHref} label="Volver" />
+          <BackButton fallbackHref={backHref} label={tx("Volver")} />
           {titleHref ? (
             <Link
               href={titleHref}
-              aria-label="Abrir detalle del partido"
+              aria-label={tx("Abrir detalle del partido")}
               className="absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate rounded-lg px-1 text-center transition active:scale-[0.98]"
             >
               <h1 className="type-page-title truncate font-black tracking-tight">{title}</h1>
@@ -400,6 +410,8 @@ export function MatchChatScreen({
   messages: ReactNode
   footer: ReactNode
 }) {
+  const { tx } = useI18n()
+
   return (
     <MatchChatFrame
       viewportRef={viewportRef}
@@ -417,10 +429,10 @@ export function MatchChatScreen({
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2"
         >
           {loading ? (
-            <p className="py-8 text-center text-xs font-bold text-neutral-400">Cargando chat...</p>
+            <p className="py-8 text-center text-xs font-bold text-neutral-400">{tx("Cargando chat...")}</p>
           ) : error && !hasMessages ? (
             <p className="rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-700">
-              {error}
+              {tx(error)}
             </p>
           ) : !hasMessages ? (
             emptyState
@@ -431,7 +443,7 @@ export function MatchChatScreen({
 
         {error && hasMessages ? (
           <div className="shrink-0 border-t border-red-100 bg-red-50 px-3 py-1.5 text-center type-caption font-bold text-red-700">
-            {error}
+            {tx(error)}
           </div>
         ) : null}
 
@@ -446,11 +458,11 @@ export function resizeMatchChatComposer(element: HTMLTextAreaElement) {
   element.style.height = `${Math.min(element.scrollHeight, 128)}px`
 }
 
-export function formatMatchChatWriteUntil(value: string | null) {
+export function formatMatchChatWriteUntil(value: string | null, locale: Locale = "es") {
   if (!value) return null
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return null
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

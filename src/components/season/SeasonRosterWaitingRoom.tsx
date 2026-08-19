@@ -16,7 +16,7 @@ export function SeasonRosterWaitingRoom({
   leagueId: string
   seasonId: string
 }) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const {
     fetchLeagueUsers,
     getMembershipForLeague,
@@ -212,7 +212,7 @@ export function SeasonRosterWaitingRoom({
       ) : null}
 
       {error ? (
-        <p className="mt-2 text-xs font-bold text-red-600">{error}</p>
+        <p className="mt-2 text-xs font-bold text-red-600">{tx(error)}</p>
       ) : null}
     </AppCard>
   )

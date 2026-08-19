@@ -159,7 +159,7 @@ function InviteRulesSummary({
 }
 
 export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const router = useRouter()
   const normalizedCode = useMemo(() => normalizeInviteCode(code), [code])
   const { activateGrantedLeague } = useActiveLeague()
@@ -587,7 +587,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       {error ? (
         <AppCard>
           <p className="font-bold">{t.invites.warningTitle}</p>
-          <p className="mt-2 text-sm text-neutral-500">{error}</p>
+          <p className="mt-2 text-sm text-neutral-500">{tx(error)}</p>
           <button
             type="button"
             onClick={() => setLoadAttempt((currentAttempt) => currentAttempt + 1)}
@@ -746,7 +746,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
           ) : null}
 
           {error ? (
-            <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
+            <p className="mt-3 text-sm font-semibold text-red-600">{tx(error)}</p>
           ) : null}
 
           <button

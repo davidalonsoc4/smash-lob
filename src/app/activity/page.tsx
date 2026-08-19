@@ -11,6 +11,8 @@ import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
@@ -30,14 +32,14 @@ import {
 
 type ActivityScope = "all" | "mine" | "admin"
 
-function formatActivityDate(value: string) {
+function formatActivityDate(value: string, locale: Locale) {
   const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
     return ""
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -137,7 +139,7 @@ function getResultSummaryFromMetadata({
   return `${setsLabel} ${parsedPointsA}-${parsedPointsB} · ${gamesLabel}: ${gamesSummary}`
 }
 
-function formatActivityScheduleDate(value: unknown) {
+function formatActivityScheduleDate(value: unknown, locale: Locale) {
   if (typeof value !== "string" || !value.trim()) {
     return null
   }
@@ -148,7 +150,7 @@ function formatActivityScheduleDate(value: unknown) {
     return null
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -164,14 +166,16 @@ function getActivityLocationText(value: unknown) {
 function getActivityScheduleDescription({
   event,
   round,
+  locale,
 }: {
   event: ActivityEvent
   round: string | null
+  locale: Locale
 }) {
   const metadata = event.metadata
   const dateText =
-    formatActivityScheduleDate(metadata.scheduledAt) ??
-    formatActivityScheduleDate(metadata.nextScheduledAt)
+    formatActivityScheduleDate(metadata.scheduledAt, locale) ??
+    formatActivityScheduleDate(metadata.nextScheduledAt, locale)
   const locationText = getActivityLocationText(
     metadata.location ?? metadata.nextLocation
   )
@@ -188,12 +192,14 @@ function getActivityDescription({
   setsLabel,
   gamesLabel,
   noGamesLabel,
+  locale,
 }: {
   event: ActivityEvent
   roundLabel: string
   setsLabel: string
   gamesLabel: string
   noGamesLabel: string
+  locale: Locale
 }) {
   const metadata = event.metadata
   const round =
@@ -246,7 +252,7 @@ function getActivityDescription({
     event.type === "match_schedule_updated" ||
     event.type === "round_in_play"
   ) {
-    const scheduleDescription = getActivityScheduleDescription({ event, round })
+    const scheduleDescription = getActivityScheduleDescription({ event, round, locale })
 
     if (scheduleDescription) {
       return scheduleDescription
@@ -332,13 +338,14 @@ function ActivityEventCard({
   leagueLogoUrl?: string | null
   showMetadata?: boolean
 }) {
-  const { t } = useI18n()
+  const { t, tx, locale } = useI18n()
   const description = getActivityDescription({
     event,
     roundLabel: t.activity.round,
     setsLabel: t.activity.sets,
     gamesLabel: t.activity.games,
     noGamesLabel: t.activity.noGames,
+    locale,
   })
   const useLeagueLogo = Boolean(leagueLogoUrl && shouldUseLeagueLogoForActor(event))
   const avatarImageUrl = useLeagueLogo ? leagueLogoUrl : event.actorAvatarUrl
@@ -358,7 +365,7 @@ function ActivityEventCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate type-small font-black text-neutral-950">
-                {event.title}
+                {tx(event.title)}
               </p>
               <p className="mt-0.5 type-caption font-semibold text-neutral-500">
                 {getActorLabel(event, t.activity.actorFallback)} · {t.activity.labels[event.type]}
@@ -366,13 +373,13 @@ function ActivityEventCard({
             </div>
 
             <p className="shrink-0 type-caption font-semibold text-neutral-400">
-              {formatActivityDate(event.createdAt)}
+              {formatActivityDate(event.createdAt, locale)}
             </p>
           </div>
 
           {description ? (
             <p className="mt-2 whitespace-pre-line text-xs leading-snug text-neutral-600">
-              {description}
+              {tx(description)}
             </p>
           ) : null}
 
@@ -396,6 +403,7 @@ function ActivityEventCard({
 }
 
 function ActivityPageContent() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -649,11 +657,10 @@ function ActivityPageContent() {
         <section className="space-y-4">
           <div className="px-1">
             <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-              Comunicaciones y avisos
+              {tx("Comunicaciones y avisos")}
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              Define qué eventos generan notificaciones generales para la liga.
-            </p>
+              {tx("Define qué eventos generan notificaciones generales para la liga.")}{" "}</p>
           </div>
           <div id="notification-settings" className="settings-search-target"><AppCard className="p-0">
             <div className="p-3">
@@ -779,7 +786,7 @@ function ActivityPageContent() {
 
             {settingsError ? (
               <p className="border-t border-neutral-100 px-3 py-2.5 text-center text-sm font-semibold text-red-600">
-                {settingsError}
+                {tx(settingsError)}
               </p>
             ) : null}
           </AppCard></div>
@@ -787,11 +794,9 @@ function ActivityPageContent() {
           <section>
             <div className="mb-3 px-1">
               <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-                Historial y auditoría
-              </p>
+                {tx("Historial y auditoría")}{" "}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                Consulta las acciones administrativas separadas de la configuración de avisos.
-              </p>
+                {tx("Consulta las acciones administrativas separadas de la configuración de avisos.")}{" "}</p>
             </div>
             <SectionHeader
               title={t.activity.adminTitle}
@@ -820,7 +825,7 @@ function ActivityPageContent() {
             {error ? (
               <AppCard>
                 <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
-                <p className="mt-2 text-sm text-neutral-500">{error}</p>
+                <p className="mt-2 text-sm text-neutral-500">{tx(error)}</p>
               </AppCard>
             ) : null}
 
@@ -872,7 +877,7 @@ function ActivityPageContent() {
           {error ? (
             <AppCard>
               <p className="font-bold text-red-700">{t.activity.loadErrorTitle}</p>
-              <p className="mt-2 text-sm text-neutral-500">{error}</p>
+              <p className="mt-2 text-sm text-neutral-500">{tx(error)}</p>
             </AppCard>
           ) : null}
 
@@ -896,7 +901,7 @@ function ActivityPageContent() {
             <AppCard>
               <p className="font-bold text-orange-800">{t.activity.lastErrorTitle}</p>
               <p className="mt-2 break-words text-xs font-semibold text-neutral-500">
-                {lastActivityError}
+                {tx(lastActivityError)}
               </p>
             </AppCard>
           ) : null}

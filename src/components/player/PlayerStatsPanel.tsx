@@ -204,6 +204,7 @@ export function PlayerStatsPanel({
   mvpSystem = "automatic",
   mvpSystemBySeasonId,
 }: PlayerStatsPanelProps) {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const finishedMatches = matches.filter(
     (match) =>
@@ -451,11 +452,10 @@ export function PlayerStatsPanel({
 
       <div className="mt-2">
         <p className="mb-2 type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
-          Récords del periodo
-        </p>
+          {tx("Récords del periodo")}{" "}</p>
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-xl bg-neutral-50 p-2.5">
-            <p className="text-xs font-semibold text-neutral-500">Mejor racha</p>
+            <p className="text-xs font-semibold text-neutral-500">{tx("Mejor racha")}</p>
             <p className="mt-1 font-black">
               {bestWinStreak > 0 ? `${bestWinStreak} victorias` : emptyValue}
             </p>
@@ -467,7 +467,7 @@ export function PlayerStatsPanel({
             </p>
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
-            <p className="text-xs font-semibold text-neutral-500">Rival más vencido</p>
+            <p className="text-xs font-semibold text-neutral-500">{tx("Rival más vencido")}</p>
             <p className="type-player-name mt-1 truncate">
               {mostBeatenRival
                 ? getDisplayName(mostBeatenRival.playerId, players)
@@ -478,7 +478,7 @@ export function PlayerStatsPanel({
             </p>
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
-            <p className="text-xs font-semibold text-neutral-500">Rival con más derrotas</p>
+            <p className="text-xs font-semibold text-neutral-500">{tx("Rival con más derrotas")}</p>
             <p className="type-player-name mt-1 truncate">
               {mostLostRival
                 ? getDisplayName(mostLostRival.playerId, players)
@@ -491,7 +491,7 @@ export function PlayerStatsPanel({
             </p>
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
-            <p className="text-xs font-semibold text-neutral-500">Mayor diferencia</p>
+            <p className="text-xs font-semibold text-neutral-500">{tx("Mayor diferencia")}</p>
             <p className="mt-1 font-black">
               {bestMatch ? formatSignedNumber(bestMatch.diff) : emptyValue}
             </p>

@@ -40,6 +40,6 @@ describe("v1.9.9 round summary image export", () => {
     expect(page).toContain("highlights: highlights.map")
     expect(page).toContain("ranking: rankingThroughRound")
     expect(page).toContain('.filter((player) => player.movement !== "—")')
-    expect(page).toContain('rankingTitle: isCompleted ? "Clasificación tras la jornada" : "Clasificación provisional"')
+    expect(page).toContain('rankingTitle: isCompleted ? tx("Clasificación tras la jornada") : tx("Clasificación provisional")')
   })
 })

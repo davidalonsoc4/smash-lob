@@ -30,6 +30,7 @@ function SectionIntro({
 }
 
 export default function AdminUsersPage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { hasLeagueAdminRole, updateLeagueShowRankingAvatars } =
     useLeagueAccess()
@@ -89,15 +90,15 @@ export default function AdminUsersPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/admin" label={t.common.back} />
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
-          Personas y accesos
+          {tx("Personas y accesos")}
         </h1>
       </header>
 
       {showsUpcomingRoster ? (
         <section className="space-y-2">
           <SectionIntro
-            title="Plantilla de temporada"
-            description="Comprueba las plazas ocupadas y pendientes antes de comenzar."
+            title={tx("Plantilla de temporada")}
+            description={tx("Comprueba las plazas ocupadas y pendientes antes de comenzar.")}
           />
           <div id="season-roster" className="settings-search-target">
             <SeasonRosterWaitingRoom
@@ -110,7 +111,7 @@ export default function AdminUsersPage() {
 
       <section className="space-y-2">
         <SectionIntro
-          title="Cuentas y permisos"
+          title={tx("Cuentas y permisos")}
           description="Gestiona nombres visibles, vinculaciones y roles administrativos."
         />
         <div id="users" className="settings-search-target">
@@ -120,8 +121,8 @@ export default function AdminUsersPage() {
 
       <section className="space-y-2">
         <SectionIntro
-          title="Espectadores"
-          description="Revisa y retira accesos de solo lectura a la liga."
+          title={tx("Espectadores")}
+          description={tx("Revisa y retira accesos de solo lectura a la liga.")}
         />
         <div id="spectators" className="settings-search-target">
           <LeagueSpectatorsPanel leagueId={activeLeague.id} />
@@ -130,8 +131,8 @@ export default function AdminUsersPage() {
 
       <section className="space-y-2">
         <SectionIntro
-          title="Apariencia de jugadores"
-          description="Controla cómo se muestran los perfiles en las vistas públicas de la liga."
+          title={tx("Apariencia de jugadores")}
+          description={tx("Controla cómo se muestran los perfiles en las vistas públicas de la liga.")}
         />
         <div id="ranking-avatars" className="settings-search-target">
           <AppCard>
@@ -162,7 +163,7 @@ export default function AdminUsersPage() {
             </div>
             {rankingAvatarsError ? (
               <p className="mt-3 text-xs font-semibold text-red-600">
-                {rankingAvatarsError}
+                {tx(rankingAvatarsError)}
               </p>
             ) : null}
           </AppCard>

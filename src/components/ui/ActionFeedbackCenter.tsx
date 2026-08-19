@@ -50,7 +50,7 @@ function toneClasses(tone: ActionFeedbackTone) {
 }
 
 export function ActionFeedbackCenter({ hasBottomNav = true }: { hasBottomNav?: boolean }) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const [feedback, setFeedback] = useState<ActionFeedbackDetail | null>(null)
   const [isOffline, setIsOffline] = useState(false)
 
@@ -131,7 +131,7 @@ export function ActionFeedbackCenter({ hasBottomNav = true }: { hasBottomNav?: b
               <FeedbackIcon tone={feedback.tone} />
             </div>
             <p className="min-w-0 flex-1 text-xs font-bold leading-5">
-              {feedback.message}
+              {tx(feedback.message)}
             </p>
             {feedback.actionLabel && feedback.onAction ? (
               <button
@@ -143,7 +143,7 @@ export function ActionFeedbackCenter({ hasBottomNav = true }: { hasBottomNav?: b
                 }}
                 className="inline-flex min-h-11 shrink-0 rounded-xl bg-white/80 px-3 text-xs font-black shadow-sm dark:bg-neutral-900/70 items-center justify-center text-center"
               >
-                {feedback.actionLabel}
+                {tx(feedback.actionLabel)}
               </button>
             ) : null}
             <button

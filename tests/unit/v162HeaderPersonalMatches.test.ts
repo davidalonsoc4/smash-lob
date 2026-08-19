@@ -43,13 +43,14 @@ describe("v1.6.2 homogeneous headers and personal match flow", () => {
     expect(page).not.toContain('setStatus("finished")')
   })
 
-  it("defaults the next-match switch to Todos and keeps player selectors inside their cards", () => {
+  it("shows every upcoming friendly without a league/friendly scope switch and keeps player selectors inside their cards", () => {
     const page = read("src/app/personal-matches/page.tsx")
     const selector = read("src/components/personal/PersonalMatchParticipantSelector.tsx")
 
-    expect(page).toContain('useState<PersonalMatchNextScope>("all")')
-    expect(page).toContain('(["all", "league", "friendly"] as const)')
-    expect(page).toContain('scope === "all"')
+    expect(page).toContain("dashboard.upcoming.map")
+    expect(page).toContain("Próximos partidos")
+    expect(page).not.toContain("PersonalMatchNextScope")
+    expect(page).not.toContain('(["all", "league", "friendly"] as const)')
     expect(selector).toContain("min-w-0 max-w-full overflow-hidden rounded-xl")
     expect(selector).toContain("min-w-0 flex-1")
   })

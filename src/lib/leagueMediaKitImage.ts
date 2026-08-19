@@ -1,5 +1,7 @@
 import { normalizeImageUrl } from "@/lib/imageUrl"
 import { mediaKitIconDataUrl } from "@/lib/mediaKitIcons"
+import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
 export type LeagueMediaKitKind =
   | "opening"
@@ -55,6 +57,7 @@ export type LeagueMediaKitImageData = {
   matchup?: { teamA: [string, string]; teamB: [string, string] } | null
   spotlightImageUrl?: string | null
   resultRound?: number | null
+  locale?: Locale
   results?: Array<{
     teamA: [string, string]
     teamB: [string, string]
@@ -234,7 +237,7 @@ function metallicPosterText(ctx: CanvasRenderingContext2D, value: string, center
   ctx.restore()
 }
 
-function drawAppBrandFooter(ctx: CanvasRenderingContext2D, appIcon: HTMLImageElement | null, accent: string) {
+function drawAppBrandFooter(ctx: CanvasRenderingContext2D, appIcon: HTMLImageElement | null, accent: string, locale: Locale) {
   const iconSize = 48
   const textWidth = 176
   const gap = 15
@@ -249,7 +252,7 @@ function drawAppBrandFooter(ctx: CanvasRenderingContext2D, appIcon: HTMLImageEle
     trackedText(ctx, "S&L", groupX + iconSize / 2, groupY + iconSize / 2 + 1, { size: 13, weight: 900, color: "#111311", align: "center" })
   }
 
-  trackedText(ctx, "CREADO CON", groupX + iconSize + gap, groupY + 13, { size: 12, weight: 800, color: rgba(accent, 0.82), spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, translateLeagueText(locale, "CREADO CON"), groupX + iconSize + gap, groupY + 13, { size: 12, weight: 800, color: rgba(accent, 0.82), spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
   trackedText(ctx, "SMASH & LOB", groupX + iconSize + gap, groupY + 37, { size: 20, weight: 900, color: "#f4f1ea", spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
 }
 
@@ -323,8 +326,8 @@ async function drawOpeningDayBackground(ctx: CanvasRenderingContext2D, accent: s
   drawPremiumFrame(ctx, accent, frameLayout)
 }
 
-function openingHeadlineLines(value: string) {
-  const words = value.trim().toLocaleUpperCase("es-ES").split(/\s+/).filter(Boolean)
+function openingHeadlineLines(value: string, locale: Locale) {
+  const words = value.trim().toLocaleUpperCase(getIntlLocale(locale)).split(/\s+/).filter(Boolean)
   if (words.length <= 2) return [words.join(" ")]
   const preferredBreak = words.findIndex((word, index) => index > 0 && ["DE", "DEL", "LA", "EL"].includes(word))
   const breakAt = preferredBreak > 0 ? preferredBreak : Math.ceil(words.length / 2)
@@ -350,16 +353,16 @@ async function drawOpeningDayPoster(ctx: CanvasRenderingContext2D, data: LeagueM
     ctx.restore()
   }
 
-  trackedText(ctx, data.leagueName.toLocaleUpperCase("es-ES"), WIDTH / 2, 202, { size: 28, weight: 800, color: mix(accent, 255, 0.3), spacing: 10, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, 202, { size: 28, weight: 800, color: mix(accent, 255, 0.3), spacing: 10, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
   ctx.save(); ctx.strokeStyle = rgba(accent, 0.65); ctx.lineWidth = 2
   ctx.beginPath(); ctx.moveTo(250, 286); ctx.lineTo(370, 286); ctx.moveTo(710, 286); ctx.lineTo(830, 286); ctx.stroke(); ctx.restore()
-  trackedText(ctx, data.seasonName.toLocaleUpperCase("es-ES"), WIDTH / 2, 286, { size: 25, weight: 700, color: "#f2eee5", spacing: 8, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, 286, { size: 25, weight: 700, color: "#f2eee5", spacing: 8, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
 
-  const headline = openingHeadlineLines(data.title)
+  const headline = openingHeadlineLines(data.title, data.locale ?? "es")
   const hasTwoHeadlineLines = headline.length > 1
   const firstY = hasTwoHeadlineLines ? 410 : 520
   headline.slice(0, 2).forEach((line, index) => metallicPosterText(ctx, line, WIDTH / 2, firstY + index * 145, 900, hasTwoHeadlineLines ? index === 0 ? 150 : 138 : 184, accent, headlineFont))
-  if (data.subtitle) trackedText(ctx, data.subtitle.toLocaleUpperCase("es-ES"), WIDTH / 2, hasTwoHeadlineLines ? 680 : 675, { size: 20, weight: 700, color: "rgba(255,255,255,.82)", spacing: 4, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+  if (data.subtitle) trackedText(ctx, data.subtitle.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, hasTwoHeadlineLines ? 680 : 675, { size: 20, weight: 700, color: "rgba(255,255,255,.82)", spacing: 4, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
 
   const dateTop = 735
   ctx.save()
@@ -368,15 +371,15 @@ async function drawOpeningDayPoster(ctx: CanvasRenderingContext2D, data: LeagueM
   const glow = ctx.createLinearGradient(150, 0, 930, 0); glow.addColorStop(0, "rgba(0,0,0,0)"); glow.addColorStop(0.5, rgba(accent, 0.8)); glow.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = glow; ctx.fillRect(180, dateTop - 2, 720, 3); ctx.restore()
   drawDiamond(ctx, WIDTH / 2, dateTop - 1, 14, mix(accent, 255, 0.25))
-  trackedText(ctx, (data.eventDateLabel || "FECHA POR CONFIRMAR").toLocaleUpperCase("es-ES"), WIDTH / 2, dateTop + 70, { size: 58, weight: 900, color: "#f4f2ee", spacing: 3, align: "center", font: 'Impact, "Arial Narrow Bold", sans-serif' })
+  trackedText(ctx, (data.eventDateLabel || translateLeagueText(data.locale ?? "es", "FECHA POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, dateTop + 70, { size: 58, weight: 900, color: "#f4f2ee", spacing: 3, align: "center", font: 'Impact, "Arial Narrow Bold", sans-serif' })
 
   const metaTop = 910
   ctx.save(); ctx.fillStyle = "rgba(5,6,6,.84)"; ctx.strokeStyle = rgba(accent, 0.36); ctx.lineWidth = 1.5; roundedRect(ctx, 110, metaTop, 860, 112, 8); ctx.fill(); ctx.stroke(); ctx.restore()
-  const meta = [data.roundLabel || "JORNADA 1", data.eventTimeLabel || "HORA"]
+  const meta = [data.roundLabel || translateLeagueText(data.locale ?? "es", "JORNADA 1"), data.eventTimeLabel || translateLeagueText(data.locale ?? "es", "HORA")]
   const centers = [270, 540]
-  meta.forEach((value, index) => trackedText(ctx, value.toLocaleUpperCase("es-ES"), centers[index], metaTop + 58, { size: index === 1 ? 34 : 26, weight: 800, color: index === 1 ? mix(accent, 255, 0.2) : "#eeeae3", spacing: index === 1 ? 4 : 3, align: "center", font: '"Arial Narrow", Arial, sans-serif' }))
-  const venueLines = wrap(ctx, data.venue || "LUGAR", 230, 26, 800).slice(0, 2)
-  venueLines.forEach((line, index) => trackedText(ctx, line.toLocaleUpperCase("es-ES"), 810, metaTop + 58 + (index - (venueLines.length - 1) / 2) * 29, { size: venueLines.length > 1 ? 21 : 26, weight: 800, color: "#eeeae3", spacing: 2, align: "center", font: '"Arial Narrow", Arial, sans-serif' }))
+  meta.forEach((value, index) => trackedText(ctx, value.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), centers[index], metaTop + 58, { size: index === 1 ? 34 : 26, weight: 800, color: index === 1 ? mix(accent, 255, 0.2) : "#eeeae3", spacing: index === 1 ? 4 : 3, align: "center", font: '"Arial Narrow", Arial, sans-serif' }))
+  const venueLines = wrap(ctx, data.venue || translateLeagueText(data.locale ?? "es", "LUGAR"), 230, 26, 800).slice(0, 2)
+  venueLines.forEach((line, index) => trackedText(ctx, line.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 810, metaTop + 58 + (index - (venueLines.length - 1) / 2) * 29, { size: venueLines.length > 1 ? 21 : 26, weight: 800, color: "#eeeae3", spacing: 2, align: "center", font: '"Arial Narrow", Arial, sans-serif' }))
   ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(402, metaTop + 56, 6, 0, Math.PI * 2); ctx.arc(678, metaTop + 56, 6, 0, Math.PI * 2); ctx.fill()
 
   ctx.save()
@@ -390,7 +393,7 @@ async function drawOpeningDayPoster(ctx: CanvasRenderingContext2D, data: LeagueM
 
   ctx.save(); ctx.fillStyle = "rgba(5,6,6,.82)"; ctx.strokeStyle = rgba(accent, 0.48); ctx.lineWidth = 2
   roundedRect(ctx, 315, 1248, 450, 82, 14); ctx.fill(); ctx.stroke(); ctx.restore()
-  drawAppBrandFooter(ctx, appIcon, accent)
+  drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
 async function drawInformationalPremiumPoster(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
@@ -403,10 +406,10 @@ async function drawInformationalPremiumPoster(ctx: CanvasRenderingContext2D, dat
   if (headerLogo) drawImageContain(ctx, headerLogo, 62, 54, 92, 72)
   else { fillRound(ctx, 62, 58, 68, 68, 18, mix(accent, 255, 0.2)); trackedText(ctx, data.leagueName.slice(0, 2).toUpperCase(), 96, 92, { size: 18, weight: 900, color: "#090a09", align: "center" }) }
 
-  trackedText(ctx, data.leagueName.toLocaleUpperCase("es-ES"), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.seasonName.toLocaleUpperCase("es-ES"), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.eyebrow.toLocaleUpperCase("es-ES"), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
-  const titleLines = wrap(ctx, data.title.toLocaleUpperCase("es-ES"), 900, 66, 900).slice(0, 2)
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.eyebrow.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
+  const titleLines = wrap(ctx, data.title.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 900, 66, 900).slice(0, 2)
   titleLines.forEach((line, index) => text(ctx, line, 62, 285 + index * 70, 66, 900, "#f5f2ea"))
   const introY = 280 + titleLines.length * 70
   const introLines = wrap(ctx, data.subtitle ?? "", 900, 26, 700).slice(0, 3)
@@ -435,12 +438,12 @@ async function drawInformationalPremiumPoster(ctx: CanvasRenderingContext2D, dat
   if (data.heroValue) {
     const closingY = Math.min(1150, rowsTop + rows.length * (rowHeight + rowGap) + 4)
     fillRound(ctx, 62, closingY, 956, 78, 20, rgba(accent, 0.14))
-    const closingLines = wrap(ctx, data.heroValue.toLocaleUpperCase("es-ES"), 860, 20, 900).slice(0, 2)
+    const closingLines = wrap(ctx, data.heroValue.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 860, 20, 900).slice(0, 2)
     closingLines.forEach((line, index) => trackedText(ctx, line, WIDTH / 2, closingY + 36 + index * 25, { size: 20, weight: 900, color: mix(accent, 255, 0.26), spacing: 2, align: "center", font: '"Arial Narrow", Arial, sans-serif' }))
   }
 
   ctx.save(); ctx.strokeStyle = rgba(accent, 0.35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(62, 1230); ctx.lineTo(1018, 1230); ctx.stroke(); ctx.restore()
-  drawAppBrandFooter(ctx, appIcon, accent)
+  drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
 async function drawMatchdayPremiumPoster(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
@@ -453,38 +456,38 @@ async function drawMatchdayPremiumPoster(ctx: CanvasRenderingContext2D, data: Le
   if (headerLogo) drawImageContain(ctx, headerLogo, 62, 54, 92, 72)
   else { fillRound(ctx, 62, 58, 68, 68, 18, mix(accent, 255, 0.2)); trackedText(ctx, data.leagueName.slice(0, 2).toUpperCase(), 96, 92, { size: 18, weight: 900, color: "#090a09", align: "center" }) }
 
-  trackedText(ctx, data.leagueName.toLocaleUpperCase("es-ES"), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.seasonName.toLocaleUpperCase("es-ES"), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, (data.eyebrow || "Enfrentamiento").toLocaleUpperCase("es-ES"), 62, 176, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, (data.eyebrow || translateLeagueText(data.locale ?? "es", "Enfrentamiento")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 62, 176, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
 
-  metallicPosterText(ctx, (data.title || "Jornada").toLocaleUpperCase("es-ES"), WIDTH / 2, 265, 900, 92, accent, data.headlineFont ?? "impact")
-  trackedText(ctx, (data.subtitle || "PARTIDO").toLocaleUpperCase("es-ES"), WIDTH / 2, 342, { size: 20, weight: 900, color: "rgba(255,255,255,.74)", spacing: 6, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+  metallicPosterText(ctx, (data.title || translateLeagueText(data.locale ?? "es", "Jornada")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, 265, 900, 92, accent, data.headlineFont ?? "impact")
+  trackedText(ctx, (data.subtitle || translateLeagueText(data.locale ?? "es", "PARTIDO")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, 342, { size: 20, weight: 900, color: "rgba(255,255,255,.74)", spacing: 6, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
 
   const matchup: { teamA: [string, string]; teamB: [string, string] } = data.matchup ?? { teamA: ["JUGADOR 1", "JUGADOR 2"], teamB: ["JUGADOR 3", "JUGADOR 4"] }
   const drawPair = (top: number, label: string, names: [string, string]) => {
     ctx.save(); roundedRect(ctx, 92, top, 896, 202, 24); ctx.fillStyle = "rgba(3,4,4,.72)"; ctx.fill(); ctx.strokeStyle = rgba(accent, 0.42); ctx.lineWidth = 2; ctx.stroke(); ctx.restore()
     fillRound(ctx, 116, top + 24, 9, 154, 5, accent)
     trackedText(ctx, label, WIDTH / 2, top + 34, { size: 14, weight: 900, color: rgba(accent, 0.95), spacing: 4, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
-    fittedText(ctx, (names[0] || "JUGADOR POR CONFIRMAR").toLocaleUpperCase("es-ES"), WIDTH / 2, top + 90, 760, 43, 900, "#f7f3eb")
-    fittedText(ctx, (names[1] || "JUGADOR POR CONFIRMAR").toLocaleUpperCase("es-ES"), WIDTH / 2, top + 147, 760, 43, 900, "#f7f3eb")
+    fittedText(ctx, (names[0] || translateLeagueText(data.locale ?? "es", "JUGADOR POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, top + 90, 760, 43, 900, "#f7f3eb")
+    fittedText(ctx, (names[1] || translateLeagueText(data.locale ?? "es", "JUGADOR POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, top + 147, 760, 43, 900, "#f7f3eb")
   }
 
-  drawPair(390, "PAREJA 1", matchup.teamA)
+  drawPair(390, translateLeagueText(data.locale ?? "es", "PAREJA 1"), matchup.teamA)
   ctx.save(); ctx.shadowColor = rgba(accent, 0.7); ctx.shadowBlur = 28; fillRound(ctx, WIDTH / 2 - 48, 620, 96, 72, 22, accent); ctx.restore()
   trackedText(ctx, "VS", WIDTH / 2, 657, { size: 28, weight: 900, color: "#080908", spacing: 2, align: "center", font: 'Impact, "Arial Narrow Bold", sans-serif' })
-  drawPair(720, "PAREJA 2", matchup.teamB)
+  drawPair(720, translateLeagueText(data.locale ?? "es", "PAREJA 2"), matchup.teamB)
 
   ctx.save(); roundedRect(ctx, 92, 956, 896, 228, 24); ctx.fillStyle = "rgba(3,4,4,.78)"; ctx.fill(); ctx.strokeStyle = rgba(accent, 0.32); ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore()
   trackedText(ctx, "FECHA", 126, 989, { size: 13, weight: 900, color: rgba(accent, 0.9), spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  fittedText(ctx, (data.eventDateLabel || "FECHA POR CONFIRMAR").toLocaleUpperCase("es-ES"), 126, 1032, 610, 29, 900, "#f5f1e9", "left", 19)
+  fittedText(ctx, (data.eventDateLabel || translateLeagueText(data.locale ?? "es", "FECHA POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 126, 1032, 610, 29, 900, "#f5f1e9", "left", 19)
   trackedText(ctx, "HORA", 940, 989, { size: 13, weight: 900, color: rgba(accent, 0.9), spacing: 3, align: "right", font: '"Arial Narrow", Arial, sans-serif' })
-  fittedText(ctx, (data.eventTimeLabel || "--:--").toLocaleUpperCase("es-ES"), 940, 1032, 190, 34, 900, mix(accent, 255, 0.22), "right", 22)
+  fittedText(ctx, (data.eventTimeLabel || "--:--").toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 940, 1032, 190, 34, 900, mix(accent, 255, 0.22), "right", 22)
   ctx.fillStyle = rgba(accent, 0.26); ctx.fillRect(126, 1064, 828, 1)
   trackedText(ctx, "SEDE", 126, 1096, { size: 13, weight: 900, color: rgba(accent, 0.9), spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  fittedText(ctx, (data.venue || "LUGAR POR CONFIRMAR").toLocaleUpperCase("es-ES"), 126, 1140, 810, 29, 900, "#f5f1e9", "left", 19)
+  fittedText(ctx, (data.venue || translateLeagueText(data.locale ?? "es", "LUGAR POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 126, 1140, 810, 29, 900, "#f5f1e9", "left", 19)
 
   ctx.save(); ctx.strokeStyle = rgba(accent, 0.35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(62, 1230); ctx.lineTo(1018, 1230); ctx.stroke(); ctx.restore()
-  drawAppBrandFooter(ctx, appIcon, accent)
+  drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
 async function drawScoreboardPremiumPoster(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
@@ -497,11 +500,11 @@ async function drawScoreboardPremiumPoster(ctx: CanvasRenderingContext2D, data: 
   if (headerLogo) drawImageContain(ctx, headerLogo, 62, 54, 92, 72)
   else { fillRound(ctx, 62, 58, 68, 68, 18, mix(accent, 255, 0.2)); trackedText(ctx, data.leagueName.slice(0, 2).toUpperCase(), 96, 92, { size: 18, weight: 900, color: "#090a09", align: "center" }) }
 
-  trackedText(ctx, data.leagueName.toLocaleUpperCase("es-ES"), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.seasonName.toLocaleUpperCase("es-ES"), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.eyebrow.toLocaleUpperCase("es-ES"), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.eyebrow.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
 
-  const titleLines = wrap(ctx, data.title.toLocaleUpperCase("es-ES"), 900, 64, 900).slice(0, 2)
+  const titleLines = wrap(ctx, data.title.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 900, 64, 900).slice(0, 2)
   titleLines.forEach((line, index) => text(ctx, line, 62, 272 + index * 68, 64, 900, "#f6f2ea"))
   const subtitleY = 270 + titleLines.length * 68
   const subtitleLines = wrap(ctx, data.subtitle ?? "", 900, 24, 700).slice(0, 2)
@@ -517,17 +520,17 @@ async function drawScoreboardPremiumPoster(ctx: CanvasRenderingContext2D, data: 
     ctx.save(); roundedRect(ctx, 62, y, 956, rowHeight, 22); ctx.fillStyle = index === 0 ? rgba(accent, 0.16) : index % 2 === 0 ? "rgba(255,255,255,.07)" : "rgba(255,255,255,.045)"; ctx.fill(); ctx.strokeStyle = index === 0 ? rgba(accent, 0.58) : rgba(accent, 0.24); ctx.lineWidth = index === 0 ? 2 : 1.5; ctx.stroke(); ctx.restore()
     fillRound(ctx, 82, y + (rowHeight - 58) / 2, 58, 58, 16, index === 0 ? accent : "rgba(255,255,255,.1)")
     trackedText(ctx, data.kind === "standings" || data.kind === "season_final" ? String(index + 1) : `P${index + 1}`, 111, y + rowHeight / 2 + 1, { size: 20, weight: 900, color: index === 0 ? "#080908" : mix(accent, 255, 0.24), spacing: 1, align: "center", font: 'Impact, "Arial Narrow Bold", sans-serif' })
-    fittedText(ctx, row.label.toLocaleUpperCase("es-ES"), 164, y + rowHeight / 2 + 2, 575, 29, 900, "#f7f3eb", "left", 18)
-    fittedText(ctx, row.value.toLocaleUpperCase("es-ES"), 982, y + rowHeight / 2 + 2, 238, 30, 900, index === 0 ? mix(accent, 255, 0.24) : "rgba(255,255,255,.78)", "right", 17)
+    fittedText(ctx, row.label.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 164, y + rowHeight / 2 + 2, 575, 29, 900, "#f7f3eb", "left", 18)
+    fittedText(ctx, row.value.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 982, y + rowHeight / 2 + 2, 238, 30, 900, index === 0 ? mix(accent, 255, 0.24) : "rgba(255,255,255,.78)", "right", 17)
   })
 
   if (data.heroValue) {
     const closingY = Math.min(1158, rowsTop + rows.length * (rowHeight + rowGap) + 4)
-    trackedText(ctx, data.heroValue.toLocaleUpperCase("es-ES"), WIDTH / 2, closingY + 24, { size: 18, weight: 900, color: mix(accent, 255, 0.28), spacing: 3, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+    trackedText(ctx, data.heroValue.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, closingY + 24, { size: 18, weight: 900, color: mix(accent, 255, 0.28), spacing: 3, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
   }
 
   ctx.save(); ctx.strokeStyle = rgba(accent, 0.35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(62, 1230); ctx.lineTo(1018, 1230); ctx.stroke(); ctx.restore()
-  drawAppBrandFooter(ctx, appIcon, accent)
+  drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
 async function drawSpotlightPremiumPoster(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
@@ -538,11 +541,11 @@ async function drawSpotlightPremiumPoster(ctx: CanvasRenderingContext2D, data: L
   const [logo, appIcon, spotlightImage] = await Promise.all([safeImage(data.leagueLogoUrl), safeImage(APP_ICON_PATH), safeImage(data.spotlightImageUrl)])
   const headerLogo = logo ?? appIcon
   if (headerLogo) drawImageContain(ctx, headerLogo, 62, 54, 92, 72)
-  trackedText(ctx, data.leagueName.toLocaleUpperCase("es-ES"), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.seasonName.toLocaleUpperCase("es-ES"), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.eyebrow.toLocaleUpperCase("es-ES"), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.eyebrow.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
 
-  const titleLines = wrap(ctx, data.title.toLocaleUpperCase("es-ES"), 900, 60, 900).slice(0, 2)
+  const titleLines = wrap(ctx, data.title.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 900, 60, 900).slice(0, 2)
   titleLines.forEach((line, index) => text(ctx, line, 62, 266 + index * 64, 60, 900, "#f6f2ea"))
   const portraitTop = titleLines.length > 1 ? 370 : 320
   ctx.save(); ctx.shadowColor = rgba(accent, 0.55); ctx.shadowBlur = 46; fillRound(ctx, WIDTH / 2 - 132, portraitTop, 264, 264, 132, rgba(accent, 0.26)); ctx.restore()
@@ -553,7 +556,7 @@ async function drawSpotlightPremiumPoster(ctx: CanvasRenderingContext2D, data: L
   ctx.save(); ctx.strokeStyle = mix(accent, 255, 0.28); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(WIDTH / 2, portraitTop + 132, 128, 0, Math.PI * 2); ctx.stroke(); ctx.restore()
 
   const heroY = portraitTop + 322
-  fittedText(ctx, (data.heroValue || "PROTAGONISTA").toLocaleUpperCase("es-ES"), WIDTH / 2, heroY, 900, 52, 900, mix(accent, 255, 0.2), "center", 28)
+  fittedText(ctx, (data.heroValue || translateLeagueText(data.locale ?? "es", "PROTAGONISTA")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), WIDTH / 2, heroY, 900, 52, 900, mix(accent, 255, 0.2), "center", 28)
   const subtitleLines = wrap(ctx, data.subtitle ?? "", 840, 23, 700).slice(0, 2)
   subtitleLines.forEach((line, index) => text(ctx, line, WIDTH / 2, heroY + 48 + index * 29, 23, 700, "rgba(255,255,255,.7)", "center"))
 
@@ -562,12 +565,12 @@ async function drawSpotlightPremiumPoster(ctx: CanvasRenderingContext2D, data: L
   rows.forEach((row, index) => {
     const y = rowsTop + index * 92
     ctx.save(); roundedRect(ctx, 92, y, 896, 78, 18); ctx.fillStyle = index === 0 ? rgba(accent, 0.15) : "rgba(255,255,255,.055)"; ctx.fill(); ctx.strokeStyle = rgba(accent, index === 0 ? 0.46 : 0.2); ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore()
-    trackedText(ctx, row.label.toLocaleUpperCase("es-ES"), 122, y + 39, { size: 17, weight: 900, color: "rgba(255,255,255,.72)", spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
-    fittedText(ctx, row.value.toLocaleUpperCase("es-ES"), 958, y + 39, 470, 24, 900, index === 0 ? mix(accent, 255, 0.22) : "#f4f0e8", "right", 15)
+    trackedText(ctx, row.label.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 122, y + 39, { size: 17, weight: 900, color: "rgba(255,255,255,.72)", spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
+    fittedText(ctx, row.value.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 958, y + 39, 470, 24, 900, index === 0 ? mix(accent, 255, 0.22) : "#f4f0e8", "right", 15)
   })
 
   ctx.save(); ctx.strokeStyle = rgba(accent, 0.35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(62, 1230); ctx.lineTo(1018, 1230); ctx.stroke(); ctx.restore()
-  drawAppBrandFooter(ctx, appIcon, accent)
+  drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
 async function drawResultsPremiumPoster(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
@@ -578,14 +581,14 @@ async function drawResultsPremiumPoster(ctx: CanvasRenderingContext2D, data: Lea
   const [logo, appIcon] = await Promise.all([safeImage(data.leagueLogoUrl), safeImage(APP_ICON_PATH)])
   const headerLogo = logo ?? appIcon
   if (headerLogo) drawImageContain(ctx, headerLogo, 62, 54, 92, 72)
-  trackedText(ctx, data.leagueName.toLocaleUpperCase("es-ES"), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.seasonName.toLocaleUpperCase("es-ES"), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
-  trackedText(ctx, data.eyebrow.toLocaleUpperCase("es-ES"), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 75, { size: 19, weight: 900, color: mix(accent, 255, 0.38), spacing: 4, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 174, 108, { size: 16, weight: 700, color: "rgba(255,255,255,.62)", spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.eyebrow.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 62, 178, { size: 17, weight: 900, color: accent, spacing: 5, font: '"Arial Narrow", Arial, sans-serif' })
 
-  const titleLines = wrap(ctx, data.title.toLocaleUpperCase("es-ES"), 900, 62, 900).slice(0, 2)
+  const titleLines = wrap(ctx, data.title.toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 900, 62, 900).slice(0, 2)
   titleLines.forEach((line, index) => text(ctx, line, 62, 270 + index * 66, 62, 900, "#f6f2ea"))
   const subtitleY = 270 + titleLines.length * 66
-  trackedText(ctx, (data.subtitle ?? "").toLocaleUpperCase("es-ES"), 62, subtitleY, { size: 21, weight: 800, color: "rgba(255,255,255,.66)", spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, (data.subtitle ?? "").toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 62, subtitleY, { size: 21, weight: 800, color: "rgba(255,255,255,.66)", spacing: 2, font: '"Arial Narrow", Arial, sans-serif' })
 
   const results = (data.results ?? []).slice(0, 4)
   const matchCount = Math.max(2, results.length)
@@ -616,8 +619,8 @@ async function drawResultsPremiumPoster(ctx: CanvasRenderingContext2D, data: Lea
     ctx.save(); roundedRect(ctx, 82, top, 916, height, compact ? 13 : 17); ctx.fillStyle = isWinner ? rgba(accent, 0.13) : "rgba(255,255,255,.045)"; ctx.fill(); ctx.restore()
     const nameSize = compact ? 17 : 21
     const lineGap = compact ? 18 : 23
-    fittedText(ctx, (names[0] || "JUGADOR POR CONFIRMAR").toLocaleUpperCase("es-ES"), 104, top + height / 2 - lineGap / 2, 500, nameSize, 900, isWinner ? "#f8f4ec" : "rgba(255,255,255,.76)", "left", 13)
-    fittedText(ctx, (names[1] || "JUGADOR POR CONFIRMAR").toLocaleUpperCase("es-ES"), 104, top + height / 2 + lineGap / 2, 500, nameSize, 900, isWinner ? "#f8f4ec" : "rgba(255,255,255,.76)", "left", 13)
+    fittedText(ctx, (names[0] || translateLeagueText(data.locale ?? "es", "JUGADOR POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 104, top + height / 2 - lineGap / 2, 500, nameSize, 900, isWinner ? "#f8f4ec" : "rgba(255,255,255,.76)", "left", 13)
+    fittedText(ctx, (names[1] || translateLeagueText(data.locale ?? "es", "JUGADOR POR CONFIRMAR")).toLocaleUpperCase(getIntlLocale(data.locale ?? "es")), 104, top + height / 2 + lineGap / 2, 500, nameSize, 900, isWinner ? "#f8f4ec" : "rgba(255,255,255,.76)", "left", 13)
     const scoreCenters = [714, 786, 858]
     scoreCenters.forEach((center, index) => {
       const score = scores[index]
@@ -631,21 +634,21 @@ async function drawResultsPremiumPoster(ctx: CanvasRenderingContext2D, data: Lea
   Array.from({ length: matchCount }, (_, index) => results[index] ?? null).forEach((result, index) => {
     const y = matchesTop + index * (cardHeight + gap)
     ctx.save(); roundedRect(ctx, 62, y, 956, cardHeight, compact ? 18 : 24); ctx.fillStyle = "rgba(3,4,4,.76)"; ctx.fill(); ctx.strokeStyle = rgba(accent, index === 0 ? 0.46 : 0.25); ctx.lineWidth = index === 0 ? 2 : 1.5; ctx.stroke(); ctx.restore()
-    trackedText(ctx, `PARTIDO ${index + 1}`, 86, y + (compact ? 22 : 28), { size: compact ? 12 : 14, weight: 900, color: rgba(accent, 0.95), spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+    trackedText(ctx, `${translateLeagueText(data.locale ?? "es", "PARTIDO")} ${index + 1}`, 86, y + (compact ? 22 : 28), { size: compact ? 12 : 14, weight: 900, color: rgba(accent, 0.95), spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
     const headerY = y + (compact ? 22 : 28)
     ;["S1", "S2", "S3"].forEach((label, setIndex) => trackedText(ctx, label, [714, 786, 858][setIndex], headerY, { size: 11, weight: 900, color: "rgba(255,255,255,.38)", spacing: 1, align: "center", font: '"Arial Narrow", Arial, sans-serif' }))
-    trackedText(ctx, "SETS", 944, headerY, { size: 11, weight: 900, color: rgba(accent, 0.75), spacing: 1, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
+    trackedText(ctx, translateLeagueText(data.locale ?? "es", "SETS"), 944, headerY, { size: 11, weight: 900, color: rgba(accent, 0.75), spacing: 1, align: "center", font: '"Arial Narrow", Arial, sans-serif' })
     const contentTop = y + (compact ? 34 : 42)
     const contentHeight = cardHeight - (compact ? 42 : 52)
     const pairGap = compact ? 6 : 8
     const pairHeight = (contentHeight - pairGap) / 2
-    const safeResult = result ?? { teamA: ["Pareja por confirmar", ""] as [string, string], teamB: ["Pareja por confirmar", ""] as [string, string], pointsA: 0, pointsB: 0, sets: [] }
+    const safeResult = result ?? { teamA: [translateLeagueText(data.locale ?? "es", "Pareja por confirmar"), ""] as [string, string], teamB: [translateLeagueText(data.locale ?? "es", "Pareja por confirmar"), ""] as [string, string], pointsA: 0, pointsB: 0, sets: [] }
     drawPairRow({ names: safeResult.teamA, scores: safeResult.sets.map((set) => set.a), opponentScores: safeResult.sets.map((set) => set.b), points: safeResult.pointsA, opponentPoints: safeResult.pointsB, top: contentTop, height: pairHeight })
     drawPairRow({ names: safeResult.teamB, scores: safeResult.sets.map((set) => set.b), opponentScores: safeResult.sets.map((set) => set.a), points: safeResult.pointsB, opponentPoints: safeResult.pointsA, top: contentTop + pairHeight + pairGap, height: pairHeight })
   })
 
   ctx.save(); ctx.strokeStyle = rgba(accent, 0.35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(62, 1230); ctx.lineTo(1018, 1230); ctx.stroke(); ctx.restore()
-  drawAppBrandFooter(ctx, appIcon, accent)
+  drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
 async function drawClassicMediaKit(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
@@ -669,22 +672,53 @@ async function drawClassicMediaKit(ctx: CanvasRenderingContext2D, data: LeagueMe
     bullets.forEach((bullet, index) => { text(ctx, "•", PADDING + 24, y + 38 + index * 42, 24, 900, "#152019"); const line = wrap(ctx, bullet, WIDTH - PADDING * 2 - 80, 20, 700)[0] ?? bullet; text(ctx, line, PADDING + 52, y + 37 + index * 42, 20, 700, "#374139") })
   }
   ctx.fillStyle = "#d8ded8"; ctx.fillRect(PADDING, HEIGHT - 92, WIDTH - PADDING * 2, 2)
-  text(ctx, "Creado con Smash & Lob", PADDING, HEIGHT - 48, 19, 900, "#606961")
+  text(ctx, translateLeagueText(data.locale ?? "es", "Creado con Smash & Lob"), PADDING, HEIGHT - 48, 19, 900, "#606961")
   text(ctx, "smashandlob.com", WIDTH - PADDING, HEIGHT - 48, 18, 700, "#7a827c", "right")
 }
 
 export async function createLeagueMediaKitImage(data: LeagueMediaKitImageData) {
+  const locale = data.locale ?? "es"
+  const localizedData: LeagueMediaKitImageData = {
+    ...data,
+    locale,
+    eyebrow: translateLeagueText(locale, data.eyebrow),
+    title: translateLeagueText(locale, data.title),
+    subtitle: data.subtitle ? translateLeagueText(locale, data.subtitle) : data.subtitle,
+    heroValue: data.heroValue ? translateLeagueText(locale, data.heroValue) : data.heroValue,
+    heroLabel: data.heroLabel ? translateLeagueText(locale, data.heroLabel) : data.heroLabel,
+    rows: data.rows.map((row) => ({
+      ...row,
+      label: translateLeagueText(locale, row.label),
+      value: translateLeagueText(locale, row.value),
+    })),
+    bullets: data.bullets?.map((bullet) => translateLeagueText(locale, bullet)),
+    eventDateLabel: data.eventDateLabel ? translateLeagueText(locale, data.eventDateLabel) : data.eventDateLabel,
+    eventTimeLabel: data.eventTimeLabel ? translateLeagueText(locale, data.eventTimeLabel) : data.eventTimeLabel,
+    roundLabel: data.roundLabel ? translateLeagueText(locale, data.roundLabel) : data.roundLabel,
+    venue: data.venue ? translateLeagueText(locale, data.venue) : data.venue,
+    matchup: data.matchup
+      ? {
+          teamA: data.matchup.teamA.map((name) => translateLeagueText(locale, name)) as [string, string],
+          teamB: data.matchup.teamB.map((name) => translateLeagueText(locale, name)) as [string, string],
+        }
+      : data.matchup,
+    results: data.results?.map((result) => ({
+      ...result,
+      teamA: result.teamA.map((name) => translateLeagueText(locale, name)) as [string, string],
+      teamB: result.teamB.map((name) => translateLeagueText(locale, name)) as [string, string],
+    })),
+  }
   const canvas = document.createElement("canvas")
   canvas.width = WIDTH; canvas.height = HEIGHT
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("canvas_unavailable")
-  if (data.template === "results_premium_06") await drawResultsPremiumPoster(ctx, data)
-  else if (data.template === "spotlight_premium_05") await drawSpotlightPremiumPoster(ctx, data)
-  else if (data.template === "scoreboard_premium_04") await drawScoreboardPremiumPoster(ctx, data)
-  else if (data.template === "matchday_premium_03") await drawMatchdayPremiumPoster(ctx, data)
-  else if (data.template === "informational_premium_02") await drawInformationalPremiumPoster(ctx, data)
-  else if (data.template === "opening_day_premium_01") await drawOpeningDayPoster(ctx, data)
-  else await drawClassicMediaKit(ctx, data)
+  if (data.template === "results_premium_06") await drawResultsPremiumPoster(ctx, localizedData)
+  else if (data.template === "spotlight_premium_05") await drawSpotlightPremiumPoster(ctx, localizedData)
+  else if (data.template === "scoreboard_premium_04") await drawScoreboardPremiumPoster(ctx, localizedData)
+  else if (data.template === "matchday_premium_03") await drawMatchdayPremiumPoster(ctx, localizedData)
+  else if (data.template === "informational_premium_02") await drawInformationalPremiumPoster(ctx, localizedData)
+  else if (data.template === "opening_day_premium_01") await drawOpeningDayPoster(ctx, localizedData)
+  else await drawClassicMediaKit(ctx, localizedData)
   return new Promise<Blob>((resolve, reject) => { canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("png_export_failed")), "image/png") })
 }
 

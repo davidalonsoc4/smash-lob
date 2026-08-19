@@ -8,7 +8,8 @@ import { SetGameScore } from "@/components/matches/SetGameScore";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
-import { useI18n } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText";
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
@@ -75,7 +76,7 @@ export function MatchCard({
   statusPosition = "auto",
   hideMissingScheduleMeta = false,
 }: MatchCardProps) {
-  const { t } = useI18n();
+  const { tx, t, locale } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
     substitutions: match.substitutions,
     players,
@@ -134,7 +135,7 @@ export function MatchCard({
       return match.dateLabel ?? t.matches.played;
     }
 
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat(getIntlLocale(locale), {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -152,7 +153,7 @@ export function MatchCard({
 
   const teamATrailing = isFinished ? (
     <div className="flex shrink-0 items-center gap-1 self-center">
-      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja A">
+      <div className="flex items-center gap-1" aria-label={tx("Juegos por set de la pareja A")}>
         {match.sets.map((set, index) => (
           <SetGameScore key={index} value={set.a} won={set.a > set.b} />
         ))}
@@ -165,7 +166,7 @@ export function MatchCard({
 
   const teamBTrailing = isFinished ? (
     <div className="flex shrink-0 items-center gap-1 self-center">
-      <div className="flex items-center gap-1" aria-label="Juegos por set de la pareja B">
+      <div className="flex items-center gap-1" aria-label={tx("Juegos por set de la pareja B")}>
         {match.sets.map((set, index) => (
           <SetGameScore key={index} value={set.b} won={set.b > set.a} />
         ))}

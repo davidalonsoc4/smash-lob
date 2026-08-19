@@ -1,3 +1,6 @@
+import { translateLeagueText } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
+
 export type SeasonSummaryHighlight = {
   label: string
   headline: string
@@ -38,6 +41,7 @@ export type SeasonSummaryImageData = {
 export type SeasonSummaryImageOptions = {
   includeLeagueLogo?: boolean
   includeHeroImages?: boolean
+  locale?: Locale
 }
 
 type CanvasPalette = {
@@ -772,6 +776,7 @@ function drawPodiumRowContent({
   width,
   height,
   row,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
@@ -780,6 +785,7 @@ function drawPodiumRowContent({
   width: number
   height: number
   row: SeasonSummaryPodiumRow
+  locale: Locale
 }) {
   const badgeFill = row.position === 1 ? palette.accent : palette.surfaceAlt
   const badgeText = row.position === 1 ? palette.inverseText : palette.text
@@ -836,8 +842,8 @@ function drawPodiumRowContent({
 
   const metricWidth = metricsWidth / 2
   const metrics = [
-    { label: "PUNTOS", value: `${row.points}` },
-    { label: "DIF. JUEGOS", value: formatGamesDiff(row.gamesDiff) },
+    { label: translateLeagueText(locale, "PUNTOS"), value: `${row.points}` },
+    { label: translateLeagueText(locale, "DIF. JUEGOS"), value: formatGamesDiff(row.gamesDiff) },
   ]
 
   metrics.forEach((metric, index) => {
@@ -858,6 +864,7 @@ function drawPodiumPanel({
   y,
   width,
   rows,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
@@ -865,6 +872,7 @@ function drawPodiumPanel({
   y: number
   width: number
   rows: SeasonSummaryPodiumRow[]
+  locale: Locale
 }) {
   const rowHeight = 100
   const panelHeight = rowHeight * rows.length
@@ -880,6 +888,7 @@ function drawPodiumPanel({
       width,
       height: rowHeight,
       row,
+      locale,
     })
 
     if (index < rows.length - 1) {
@@ -1041,6 +1050,7 @@ function drawHeader({
   y,
   width,
   height,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
@@ -1050,6 +1060,7 @@ function drawHeader({
   y: number
   width: number
   height: number
+  locale: Locale
 }) {
   fillRoundedRect(context, x, y, width, height, 38, palette.accent)
 
@@ -1094,7 +1105,7 @@ function drawHeader({
   context.font = "900 15px Arial, sans-serif"
   context.save()
   context.textBaseline = "middle"
-  context.fillText("RESUMEN FINAL DE TEMPORADA", textLeft, y + 38)
+  context.fillText(translateLeagueText(locale, "RESUMEN FINAL DE TEMPORADA"), textLeft, y + 38)
   context.restore()
 
   const leagueLayout = fitTextLayout({
@@ -1174,6 +1185,7 @@ function drawFooter({
   x,
   y,
   width,
+  locale,
 }: {
   context: CanvasRenderingContext2D
   palette: CanvasPalette
@@ -1181,6 +1193,7 @@ function drawFooter({
   x: number
   y: number
   width: number
+  locale: Locale
 }) {
   const iconSize = 52
   const textBlockWidth = 132
@@ -1192,7 +1205,7 @@ function drawFooter({
   context.font = "700 15px Arial, sans-serif"
   context.save()
   context.textBaseline = "middle"
-  context.fillText("Creado con", groupX + iconSize + 16, y + 22)
+  context.fillText(translateLeagueText(locale, "Creado con"), groupX + iconSize + 16, y + 22)
   context.restore()
 
   context.fillStyle = palette.text
@@ -1209,14 +1222,32 @@ export async function createSeasonSummaryImage(
 ) {
   const includeLeagueLogo = options.includeLeagueLogo === true
   const includeHeroImages = options.includeHeroImages === true
-  const heroes = data.heroes.slice(0, 2)
+  const locale = options.locale ?? "es"
+  const localizedData: SeasonSummaryImageData = {
+    ...data,
+    heroes: data.heroes.map((hero) => ({
+      ...hero,
+      label: translateLeagueText(locale, hero.label),
+      value: translateLeagueText(locale, hero.value),
+      stats: hero.stats.map((stat) => ({
+        label: translateLeagueText(locale, stat.label),
+        value: translateLeagueText(locale, stat.value),
+      })),
+    })),
+    highlights: data.highlights.map((highlight) => ({
+      label: translateLeagueText(locale, highlight.label),
+      headline: translateLeagueText(locale, highlight.headline),
+      detail: translateLeagueText(locale, highlight.detail),
+    })),
+  }
+  const heroes = localizedData.heroes.slice(0, 2)
   const heroCount = Math.max(1, heroes.length)
-  const podiumRowsData = data.podium.slice(0, 3)
-  const highlights = data.highlights.slice(0, 4)
+  const podiumRowsData = localizedData.podium.slice(0, 3)
+  const highlights = localizedData.highlights.slice(0, 4)
 
   const [appIconImage, leagueLogoImage, heroImages] = await Promise.all([
     loadOptionalImage(APP_ICON_PATH),
-    includeLeagueLogo ? loadOptionalImage(data.leagueLogoUrl ?? null) : Promise.resolve(null),
+    includeLeagueLogo ? loadOptionalImage(localizedData.leagueLogoUrl ?? null) : Promise.resolve(null),
     Promise.all(
       heroes.map((hero) =>
         includeHeroImages ? loadOptionalImage(hero.imageUrl ?? null) : Promise.resolve(null),
@@ -1226,7 +1257,7 @@ export async function createSeasonSummaryImage(
 
   const measurementCanvas = document.createElement("canvas")
   const measurementContext = measurementCanvas.getContext("2d")
-  if (!measurementContext) throw new Error("No se pudo preparar la imagen")
+  if (!measurementContext) throw new Error(translateLeagueText(locale, "No se pudo preparar la imagen"))
 
   const headerHeight = 254
   const heroHeight = 220
@@ -1277,7 +1308,7 @@ export async function createSeasonSummaryImage(
   canvas.width = CANVAS_WIDTH
   canvas.height = canvasHeight
   const context = canvas.getContext("2d")
-  if (!context) throw new Error("No se pudo preparar la imagen")
+  if (!context) throw new Error(translateLeagueText(locale, "No se pudo preparar la imagen"))
 
   const palette = getCanvasPalette()
   drawCanvasBackground({ context, palette, width: canvas.width, height: canvas.height })
@@ -1287,15 +1318,16 @@ export async function createSeasonSummaryImage(
     context,
     palette,
     leagueLogo: leagueLogoImage,
-    data,
+    data: localizedData,
     x: HORIZONTAL_PADDING,
     y: currentY,
     width: CONTENT_WIDTH,
     height: headerHeight,
+    locale,
   })
   currentY += headerHeight + headerGap
 
-  const heroesToDraw = heroes.length > 0 ? heroes : data.heroes.slice(0, 1)
+  const heroesToDraw = heroes.length > 0 ? heroes : localizedData.heroes.slice(0, 1)
   heroesToDraw.forEach((hero, index) => {
     drawHeroCard({
       context,
@@ -1313,7 +1345,7 @@ export async function createSeasonSummaryImage(
   drawSectionLabel({
     context,
     palette,
-    text: "Podio final",
+    text: translateLeagueText(locale, "Podio final"),
     x: HORIZONTAL_PADDING,
     y: currentY + sectionLabelHeight / 2,
     width: CONTENT_WIDTH,
@@ -1327,6 +1359,7 @@ export async function createSeasonSummaryImage(
       y: currentY,
       width: CONTENT_WIDTH,
       rows: podiumRowsData,
+      locale,
     })
   }
   currentY += podiumHeight + betweenSectionsGap
@@ -1334,7 +1367,7 @@ export async function createSeasonSummaryImage(
   drawSectionLabel({
     context,
     palette,
-    text: "Lo más destacado",
+    text: translateLeagueText(locale, "Lo más destacado"),
     x: HORIZONTAL_PADDING,
     y: currentY + sectionLabelHeight / 2,
     width: CONTENT_WIDTH,
@@ -1363,11 +1396,12 @@ export async function createSeasonSummaryImage(
     x: HORIZONTAL_PADDING,
     y: currentY,
     width: CONTENT_WIDTH,
+    locale,
   })
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("No se pudo generar la imagen"))),
+      (blob) => (blob ? resolve(blob) : reject(new Error(translateLeagueText(locale, "No se pudo generar la imagen")))),
       "image/png",
     )
   })

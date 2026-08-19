@@ -13,9 +13,9 @@ describe("v1.8.19 proposal option detail and message timestamp alignment", () =>
 
   it("makes both date text and location text independently expandable", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain("proposalVoteDate(startsAt)")
+    expect(page).toContain("proposalVoteDate(startsAt, locale)")
     expect(page).toContain('invalidated ? "line-through text-neutral-500" : ""')
-    expect(page).toContain('<span className="block text-sm font-bold">{String(payload.name ?? "Ubicación propuesta")}</span>')
+    expect(page).toContain('<span className="block text-sm font-bold">{String(payload.name ?? tx("Ubicación propuesta"))}</span>')
     expect(page).toContain("aria-expanded={optionExpanded}")
     expect(page).toContain("aria-expanded={locationExpanded}")
     expect(page).toContain("current === locationDetailKey ? null : locationDetailKey")

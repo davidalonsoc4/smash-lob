@@ -34,7 +34,7 @@ function AccountProfileForm({
 }: {
   initialProfile: AccountProfile
 }) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { data: session } = useSession()
   const { saveProfile, saveAvatar: saveAccountAvatar } = useAccountProfile()
   const { currentUser } = useCurrentUser()
@@ -209,10 +209,10 @@ function AccountProfileForm({
         className="border-t border-neutral-100 pt-3"
       >
         <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-          Datos de cuenta
+          {tx("Datos de cuenta")}
         </p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          El nombre se actualiza en todas las ligas vinculadas a esta cuenta.
+          {tx("El nombre se actualiza en todas las ligas vinculadas a esta cuenta.")}
         </p>
         <div className="grid grid-cols-2 gap-2">
           <label className="block">
@@ -269,7 +269,7 @@ function AccountProfileForm({
         </button>
 
         {nameError ? (
-          <p className="mt-2 text-xs font-bold text-red-600">{nameError}</p>
+          <p className="mt-2 text-xs font-bold text-red-600">{tx(nameError)}</p>
         ) : null}
       </form>
 
@@ -306,7 +306,7 @@ function AccountProfileForm({
 
           {avatarError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">
-              {avatarError}
+              {tx(avatarError)}
             </p>
           ) : null}
         </div>
@@ -315,8 +315,8 @@ function AccountProfileForm({
       {avatarCropSource ? (
         <ImageCropDialog
           src={avatarCropSource}
-          title="Recortar imagen de perfil"
-          description="Ajusta el encuadre, el zoom y la orientación antes de guardar la imagen."
+          title={tx("Recortar imagen de perfil")}
+          description={tx("Ajusta el encuadre, el zoom y la orientación antes de guardar la imagen.")}
           shape="circle"
           outputSize={256}
           outputType="image/webp"
@@ -336,7 +336,7 @@ function AccountProfileForm({
 }
 
 export function AccountProfileSettings() {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { profile, isLoading } = useAccountProfile()
   const { currentUser } = useCurrentUser()
 

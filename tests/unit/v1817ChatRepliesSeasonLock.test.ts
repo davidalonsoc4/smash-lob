@@ -52,7 +52,7 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(page).toContain("Math.abs(dx) > Math.abs(dy) * 1.2")
     expect(page).toContain("dx >= 44")
     expect(page).toContain("const replyingHref = participantProfileHref(replyingParticipant)")
-    expect(page).toContain("Responder a {replyingHref ? <Link href={replyingHref}")
+    expect(page).toContain('{tx("Responder a")} {replyingHref ? <Link href={replyingHref}')
     expect(page).toContain("{replyingTo.sender_display_name}</Link> : replyingTo.sender_display_name}")
     expect(page).toContain("payloadReplyReference(payload)")
     expect(route).toContain("replySource = toRecord(payload.replyTo)")
@@ -69,7 +69,7 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(page).toContain('openProposalMode("date")')
   })
 
-  it("compacts chat with shared tail-free text bubbles and keeps only Settings floating on CHAT", async () => {
+  it("compacts chat with shared tail-free text bubbles and removes global floating controls from CHAT", async () => {
     const [page, shared, css, shell] = await Promise.all([
       readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
@@ -85,7 +85,7 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(shared).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("border-top: 6px solid #fff")
-    expect(shell).toContain("const shouldShowSettingsButton =\n    !isInitialSeasonSetupRoute && !isPublicAccessRoute")
+    expect(shell).toContain("const shouldShowSettingsButton =\n    !isMatchChatRoute &&")
     expect(shell).toContain("const shouldShowHelpButton =\n    !isMatchChatRoute &&")
     expect(shell).toContain("const shouldShowNotificationsButton =\n    !isMatchChatRoute &&")
     expect(shell).toContain('isMatchChatRoute ? "z-[70]" : "z-50"')

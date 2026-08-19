@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import type { PlayerRoundProgress } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type ChartMode = "position" | "points"
 
@@ -64,6 +65,7 @@ export function SeasonProgressChart({
   playerA: PlayerSeries | null
   playerB: PlayerSeries | null
 }) {
+  const { tx } = useI18n()
   const [mode, setMode] = useState<ChartMode>("position")
   const chart = useMemo(() => {
     const allProgress = [playerA?.progress ?? [], playerB?.progress ?? []]
@@ -102,10 +104,9 @@ export function SeasonProgressChart({
   if (!playerA || !playerB || chart.rounds.length === 0) {
     return (
       <AppCard>
-        <p className="font-black">Evolución comparada</p>
+        <p className="font-black">{tx("Evolución comparada")}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
-          Se necesitan resultados de varias jornadas para dibujar la evolución.
-        </p>
+          {tx("Se necesitan resultados de varias jornadas para dibujar la evolución.")}{" "}</p>
       </AppCard>
     )
   }
@@ -125,10 +126,9 @@ export function SeasonProgressChart({
     <AppCard>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-black">Evolución comparada</p>
+          <p className="font-black">{tx("Evolución comparada")}</p>
           <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-            Posición y puntos acumulados después de cada jornada contabilizada.
-          </p>
+            {tx("Posición y puntos acumulados después de cada jornada contabilizada.")}{" "}</p>
         </div>
         <div className="flex rounded-xl bg-neutral-100 p-1 text-xs font-black">
           <button
@@ -140,8 +140,7 @@ export function SeasonProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Posición
-          </button>
+            {tx("Posición")}{" "}</button>
           <button
             type="button"
             onClick={() => setMode("points")}
@@ -151,8 +150,7 @@ export function SeasonProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Puntos
-          </button>
+            {tx("Puntos")}{" "}</button>
         </div>
       </div>
 
@@ -166,9 +164,9 @@ export function SeasonProgressChart({
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           className="min-w-[560px] w-full"
           role="img"
-          aria-label={`Evolución de ${playerA.displayName} y ${playerB.displayName} por ${
+          aria-label={tx(`Evolución de ${playerA.displayName} y ${playerB.displayName} por ${
             mode === "position" ? "posición" : "puntos"
-          }`}
+          }`)}
         >
           {ticks.map((tick, index) => (
             <g key={index}>
@@ -207,7 +205,7 @@ export function SeasonProgressChart({
                 textAnchor="middle"
                 className="statistics-chart-label"
               >
-                J{round}
+                {tx("J")}{round}
               </text>
             )
           })}
@@ -231,7 +229,7 @@ export function SeasonProgressChart({
               className="statistics-chart-point statistics-chart-series-a"
             >
               <title>
-                {playerA.displayName} · J{point.round} · {point.value}
+                {playerA.displayName} {tx("· J")}{point.round} · {point.value}
               </title>
             </circle>
           ))}
@@ -246,7 +244,7 @@ export function SeasonProgressChart({
               className="statistics-chart-point statistics-chart-series-b"
             >
               <title>
-                {playerB.displayName} · J{point.round} · {point.value}
+                {playerB.displayName} {tx("· J")}{point.round} · {point.value}
               </title>
             </rect>
           ))}
@@ -257,7 +255,7 @@ export function SeasonProgressChart({
         {[playerA, playerB].map((player) => (
           <p key={player.playerId}>
             {player.displayName}: {player.progress.map((row) =>
-              `jornada ${row.round}, ${row.position}ª posición, ${row.points} puntos`,
+              tx(`jornada ${row.round}, ${row.position}ª posición, ${row.points} puntos`),
             ).join("; ")}
           </p>
         ))}

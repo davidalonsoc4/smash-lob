@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { createOrGetSpectatorInvite } from "@/lib/spectatorInvites"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type FloatingSpectatorShareButtonProps = {
   leagueId: string
   leagueName: string
   seasonName: string
-  rightOffsetPx: number
 }
 
 function ShareIcon() {
@@ -35,8 +35,8 @@ export function FloatingSpectatorShareButton({
   leagueId,
   leagueName,
   seasonName,
-  rightOffsetPx,
 }: FloatingSpectatorShareButtonProps) {
+  const { tx } = useI18n()
   const [isWorking, setIsWorking] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,8 +56,8 @@ export function FloatingSpectatorShareButton({
 
     try {
       const invite = await createOrGetSpectatorInvite(leagueId)
-      const title = `Ver ${leagueName}`
-      const text = `Sigue ${leagueName} · ${seasonName} en Smash & Lob como espectador.`
+      const title = tx(`Ver ${leagueName}`)
+      const text = tx(`Sigue ${leagueName} · ${seasonName} en Smash & Lob como espectador.`)
 
       if (navigator.share) {
         try {
@@ -82,21 +82,14 @@ export function FloatingSpectatorShareButton({
   }
 
   return (
-    <div
-      className="z-50"
-      style={{
-        position: "fixed",
-        top: "max(10px, calc(var(--app-safe-top) + 8px))",
-        right: `max(${rightOffsetPx}px, calc((100vw - 448px) / 2 + ${rightOffsetPx}px))`,
-      }}
-    >
+    <div className="relative z-50 shrink-0">
       <button
         type="button"
         data-tour="floating-share-spectators"
         onClick={handleShare}
         disabled={isWorking}
-        aria-label="Compartir enlace de espectador"
-        title={copied ? "Enlace copiado" : "Compartir con espectadores"}
+        aria-label={tx("Compartir enlace de espectador")}
+        title={copied ? tx("Enlace copiado") : tx("Compartir con espectadores")}
         className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100 disabled:cursor-wait disabled:opacity-60"
       >
         <ShareIcon />
@@ -104,13 +97,12 @@ export function FloatingSpectatorShareButton({
 
       {copied ? (
         <div className="absolute right-0 mt-2 w-max max-w-[220px] rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white shadow-sm">
-          Enlace de espectador copiado
-        </div>
+          {tx("Enlace de espectador copiado")}{" "}</div>
       ) : null}
 
       {error ? (
         <div className="absolute right-0 mt-2 w-56 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700 shadow-sm">
-          {error}
+          {tx(error)}
         </div>
       ) : null}
     </div>

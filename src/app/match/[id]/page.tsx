@@ -36,7 +36,7 @@ import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 
 export default function MatchDetailPage() {
-  const { t } = useI18n()
+  const { tx, t, locale } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin, isSuperuser } = useLeagueAccess()
   const {
@@ -110,9 +110,9 @@ export default function MatchDetailPage() {
       return null
     }
 
-    return `${t.rounds.from} ${formatShortDate(round.startsAt)} ${
+    return `${t.rounds.from} ${formatShortDate(round.startsAt, locale)} ${
       t.rounds.to
-    } ${formatShortDate(round.endsAt)}`
+    } ${formatShortDate(round.endsAt, locale)}`
   }
 
   function getRoundStatusText() {
@@ -151,7 +151,7 @@ export default function MatchDetailPage() {
     }
 
     const confirmed = window.confirm(
-      "¿Seguro que quieres limpiar el resultado? El partido volverá a quedar pendiente de resultado y se eliminarán los sets guardados."
+      tx("¿Seguro que quieres limpiar el resultado? El partido volverá a quedar pendiente de resultado y se eliminarán los sets guardados.")
     )
 
     if (!confirmed) {
@@ -187,8 +187,8 @@ export default function MatchDetailPage() {
     const nextLocked = !match.resultLocked
     const confirmed = window.confirm(
       nextLocked
-        ? "¿Marcar este resultado como definitivo? Los jugadores ya no podrán confirmarlo, impugnarlo ni editarlo hasta que un admin lo desbloquee."
-        : "¿Desbloquear este resultado? Volverá a admitir correcciones según el flujo de confirmación."
+        ? tx("¿Marcar este resultado como definitivo? Los jugadores ya no podrán confirmarlo, impugnarlo ni editarlo hasta que un admin lo desbloquee.")
+        : tx("¿Desbloquear este resultado? Volverá a admitir correcciones según el flujo de confirmación.")
     )
 
     if (!confirmed) {
@@ -322,7 +322,7 @@ export default function MatchDetailPage() {
       title={
         <Link
           href={`/round/${match.round}`}
-          aria-label={`Abrir resumen de la jornada ${match.round}`}
+          aria-label={tx(`Abrir resumen de la jornada ${match.round}`)}
           className="inline-flex rounded-lg transition active:opacity-60"
         >
           {t.matches.round} {match.round}
@@ -372,10 +372,9 @@ export default function MatchDetailPage() {
 
           {isPlayerSeasonLocked ? (
             <AppCard>
-              <p className="type-panel-title">Temporada próximamente</p>
+              <p className="type-panel-title">{tx("Temporada próximamente")}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                Esta temporada ya está creada, pero todavía no ha comenzado. En vista de jugador, la programación y los resultados permanecen bloqueados hasta el inicio.
-              </p>
+                {tx("Esta temporada ya está creada, pero todavía no ha comenzado. En vista de jugador, la programación y los resultados permanecen bloqueados hasta el inicio.")}{" "}</p>
             </AppCard>
           ) : null}
         </>
@@ -540,11 +539,11 @@ export default function MatchDetailPage() {
             <p className="type-panel-title">{t.matchResult.registeredTitle}</p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
               {resultIsLocked
-                ? "El resultado está fijado como definitivo por la administración."
+                ? tx("El resultado está fijado como definitivo por la administración.")
                 : currentResultConfirmation?.status === "disputed"
-                  ? "Lo has marcado como incorrecto. Ya puedes corregirlo y pasarás a figurar como la persona que informó el resultado."
+                  ? tx("Lo has marcado como incorrecto. Ya puedes corregirlo y pasarás a figurar como la persona que informó el resultado.")
                   : resultReporterName
-                    ? `Informado por ${resultReporterName}. Solo esa persona puede modificarlo, salvo que otro jugador lo marque como incorrecto.`
+                    ? tx(`Informado por ${resultReporterName}. Solo esa persona puede modificarlo, salvo que otro jugador lo marque como incorrecto.`)
                     : t.matchResult.registeredDescription}
             </p>
           </div>
@@ -558,7 +557,7 @@ export default function MatchDetailPage() {
                 className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
               >
                 {currentResultConfirmation?.status === "disputed"
-                  ? "Corregir resultado"
+                  ? tx("Corregir resultado")
                   : t.matchResult.editButton}
               </button>
             ) : null}
@@ -577,7 +576,7 @@ export default function MatchDetailPage() {
                 {isUpdatingResultLock
                   ? "Guardando..."
                   : resultIsLocked
-                    ? "Desbloquear resultado"
+                    ? tx("Desbloquear resultado")
                     : "Fijar como definitivo"}
               </button>
             ) : null}
@@ -589,14 +588,14 @@ export default function MatchDetailPage() {
                 disabled={isClearingResult || isUpdatingResultLock}
                 className="inline-flex rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300 sm:col-span-2 items-center justify-center text-center"
               >
-                {isClearingResult ? "Limpiando..." : "Limpiar resultado"}
+                {isClearingResult ? "Limpiando..." : tx("Limpiar resultado")}
               </button>
             ) : null}
           </div>
 
           {clearResultError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">
-              {clearResultError}
+              {tx(clearResultError)}
             </p>
           ) : null}
         </AppCard>

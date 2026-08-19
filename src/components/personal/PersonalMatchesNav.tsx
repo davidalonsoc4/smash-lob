@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect } from "react"
 
 type PersonalNavIconName = "matches" | "chats" | "profile" | "leagues"
 
@@ -62,6 +63,15 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
 
 export function PersonalMatchesNav() {
   const pathname = usePathname()
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.bottomNavVisible = "true"
+
+    return () => {
+      delete root.dataset.bottomNavVisible
+    }
+  }, [])
   const isProfile = pathname === "/personal-matches/profile"
   const isChats = pathname === "/personal-matches/chats"
   const isMatchesActive =

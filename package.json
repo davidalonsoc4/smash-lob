@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.10.15",
+  "version": "1.10.18",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -20,12 +20,12 @@
     "test:visual": "playwright test --grep @visual",
     "avatars:check": "node scripts/check-avatar-assets.mjs",
     "version:check": "node scripts/check-release-version.mjs",
-    "validate": "npm run version:check && npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run avatars:check && npm run migrations:check && npm run onboarding:check && npm run local-auth:check && npm run locations:check && npm run typography:check && npm run match-detail:check && npm run personal-matches:check && npm run mvp:check && npm run api-security:check && npm run quality:source && npm run lint && npm run typecheck && npm run test && npm run build && npm run quality:build",
+    "validate": "npm run version:check && npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run avatars:check && npm run migrations:check && npm run onboarding:check && npm run local-auth:check && npm run locations:check && npm run typography:check && npm run match-detail:check && npm run personal-matches:check && npm run mvp:check && npm run api-security:check && npm run i18n:check && npm run quality:source && npm run lint && npm run typecheck && npm run test && npm run build && npm run quality:build",
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.10.15 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.10.15 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.10.18 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.10.18 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",
@@ -43,7 +43,8 @@
     "locations:check": "node scripts/check-global-locations.mjs",
     "typography:check": "node scripts/check-typography-system.mjs",
     "match-detail:check": "node scripts/check-unified-match-detail.mjs",
-    "mvp:check": "node scripts/check-advanced-mvp.mjs"
+    "mvp:check": "node scripts/check-advanced-mvp.mjs",
+    "i18n:check": "node scripts/check-league-i18n.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",

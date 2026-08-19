@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type FloatingInviteShareButtonProps = {
   initialInviteCode: string
   leagueName: string
   unclaimedCount: number
-  rightOffsetPx: number
   onGenerateInviteCode: () => Promise<string | null>
 }
 
@@ -39,18 +39,18 @@ export function FloatingInviteShareButton({
   initialInviteCode,
   leagueName,
   unclaimedCount,
-  rightOffsetPx,
   onGenerateInviteCode,
 }: FloatingInviteShareButtonProps) {
+  const { tx } = useI18n()
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const currentInviteCode = generatedInviteCode ?? initialInviteCode
-  const title = `Invitación a ${leagueName}`
-  const text = `Únete a ${leagueName} en Smash & Lob. Quedan ${unclaimedCount} jugador${
+  const title = tx(`Invitación a ${leagueName}`)
+  const text = tx(`Únete a ${leagueName} en Smash & Lob. Quedan ${unclaimedCount} jugador${
     unclaimedCount === 1 ? "" : "es"
-  } sin vincular.`
+  } sin vincular.`)
 
   async function copyInviteUrl(inviteUrl: string) {
     await navigator.clipboard.writeText(inviteUrl)
@@ -120,26 +120,19 @@ export function FloatingInviteShareButton({
   }
 
   return (
-    <div
-      className="z-50"
-      style={{
-        position: "fixed",
-        top: "max(10px, calc(var(--app-safe-top) + 8px))",
-        right: `max(${rightOffsetPx}px, calc((100vw - 448px) / 2 + ${rightOffsetPx}px))`,
-      }}
-    >
+    <div className="relative z-50 shrink-0">
       <button
         type="button"
         data-tour="floating-invite-players"
         onClick={handleShare}
         disabled={isGenerating}
-        aria-label="Invitar jugadores a la liga"
+        aria-label={tx("Invitar jugadores a la liga")}
         title={
           isGenerating
-            ? "Generando invitación"
+            ? tx("Generando invitación")
             : copied
-              ? "Enlace copiado"
-              : "Invitar jugadores a la liga"
+              ? tx("Enlace copiado")
+              : tx("Invitar jugadores a la liga")
         }
         className="app-floating-primary-control flex items-center justify-center rounded-full border border-neutral-200 bg-neutral-950 text-white shadow-sm transition active:scale-[0.96] active:bg-neutral-800 disabled:cursor-wait disabled:opacity-70"
         style={{
@@ -152,13 +145,12 @@ export function FloatingInviteShareButton({
 
       {copied ? (
         <div className="absolute right-0 mt-2 w-max max-w-[220px] rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white shadow-sm">
-          Enlace copiado
-        </div>
+          {tx("Enlace copiado")}{" "}</div>
       ) : null}
 
       {error ? (
         <div className="absolute right-0 mt-2 w-56 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700 shadow-sm">
-          {error}
+          {tx(error)}
         </div>
       ) : null}
     </div>

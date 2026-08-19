@@ -35,6 +35,7 @@ function getPositionLabel(index: number) {
 }
 
 export function RankingTable({ players, showAvatars = true }: RankingTableProps) {
+  const { tx } = useI18n()
   const { t } = useI18n()
 
   const sortedPlayers = sortRankingRows(players)
@@ -43,12 +44,12 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
     <AppCard accentStrip className="app-ranking-list overflow-hidden !p-0">
       <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 border-b border-neutral-100 px-3 py-2.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="w-7 shrink-0 text-center">POS</span>
-          <span>Jugador</span>
+          <span className="w-7 shrink-0 text-center">{tx("POS")}</span>
+          <span>{tx("Jugador")}</span>
         </div>
-        <span className="text-right">J</span>
-        <span className="text-right">Dif</span>
-        <span className="text-right">PTS</span>
+        <span className="text-right">{tx("J")}</span>
+        <span className="text-right">{tx("Dif")}</span>
+        <span className="text-right">{tx("PTS")}</span>
       </div>
 
       <div>
@@ -75,11 +76,11 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
                 </p>
                 {player.seasonPlayerStatus === "withdrawn" ? (
                   <span className="mt-0.5 inline-flex rounded-full bg-red-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-red-700">
-                    Baja{player.replacedFromRound ? ` desde J${player.replacedFromRound}` : ""}
+                    {tx("Baja")}{player.replacedFromRound ? ` ${tx("desde J")}${player.replacedFromRound}` : ""}
                   </span>
                 ) : player.joinedFromRound && player.joinedFromRound > 1 ? (
                   <span className="mt-0.5 inline-flex rounded-full bg-amber-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-amber-700">
-                    Desde J{player.joinedFromRound}
+                    {tx("Desde J")}{player.joinedFromRound}
                   </span>
                 ) : null}
               </div>
@@ -107,8 +108,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
       </div>
 
       <p className="border-t border-neutral-100 px-3 py-2.5 type-caption font-semibold text-neutral-600">
-        J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados
-      </p>
+        {tx("J = jornadas jugadas · Dif = diferencia de juegos · PTS = sets ganados")}{" "}</p>
     </AppCard>
   )
 }

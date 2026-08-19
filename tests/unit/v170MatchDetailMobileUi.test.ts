@@ -8,7 +8,7 @@ describe("v1.7.0 match detail mobile UI polish", () => {
       'import { createPortal } from "react-dom"',
       "createPortal(<>",
       'aria-haspopup="dialog"',
-      'aria-label="Buscar ubicación"',
+      'aria-label={tx("Buscar ubicación")}',
       "z-[100]",
       "z-[110]",
       "bg-neutral-950/45",
@@ -28,7 +28,7 @@ describe("v1.7.0 match detail mobile UI polish", () => {
     const menu = await readFile("src/components/match/MatchActionsMenu.tsx", "utf8")
     const chatAction = await readFile("src/components/match/MatchChatFloatingAction.tsx", "utf8")
     expect(menu).toContain("<MatchChatActionLink")
-    expect(chatAction).toContain('aria-label="Abrir chat del partido"')
+    expect(chatAction).toContain('aria-label={tx("Abrir chat del partido")}')
     expect(chatAction).toContain("flex flex-col items-end gap-2")
     expect(menu).toContain("min-w-52")
     expect(menu).toContain("px-3 py-2.5 text-left text-sm font-black")
@@ -40,7 +40,7 @@ describe("v1.7.0 match detail mobile UI polish", () => {
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
       readFile("src/components/layout/AppShell.tsx", "utf8"),
     ])
-    expect(page).toContain('matchRound ? `Chat · Jornada ${matchRound}`')
+    expect(page).toContain('matchRound ? tx(`Chat · Jornada ${matchRound}`)')
     expect(page).toContain("useCurrentLeagueData")
     expect(page).toContain('import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel"')
     expect(page).toContain("teamA={match.teamA}")

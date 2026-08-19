@@ -9,6 +9,7 @@ import type { LeagueMemberRole } from "@/data/fakeData"
 import type { LeagueUserManagementPlayer } from "@/lib/supabaseAdminUsers"
 import { recordActivityEvent } from "@/lib/activity"
 import { showActionFeedback } from "@/lib/actionFeedback"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type PlayerUserCardProps = {
   leagueId: string
@@ -56,6 +57,7 @@ function PlayerUserCard({
   onUnlink,
   onRename,
 }: PlayerUserCardProps) {
+  const { tx } = useI18n()
   const { data: session } = useSession()
   const [displayName, setDisplayName] = useState(item.displayName)
   const [isSavingName, setIsSavingName] = useState(false)
@@ -157,7 +159,7 @@ function PlayerUserCard({
     if (!canManageLink || isUnlinking) return
 
     const confirmed = window.confirm(
-      `¿Seguro que quieres desvincular la cuenta de ${item.displayName}? El jugador quedará libre para reclamarlo de nuevo con invitación.`
+      tx(`¿Seguro que quieres desvincular la cuenta de ${item.displayName}? El jugador quedará libre para reclamarlo de nuevo con invitación.`)
     )
 
     if (!confirmed) return
@@ -180,7 +182,7 @@ function PlayerUserCard({
         ...getActorFromSession(session),
         type: "player_unlinked",
         title: "Cuenta desvinculada",
-        description: `${item.displayName} ya no tiene una cuenta vinculada en esta liga.`,
+        description: tx(`${item.displayName} ya no tiene una cuenta vinculada en esta liga.`),
         metadata: {
           targetPlayerId: item.playerId,
           targetPlayerName: item.displayName,
@@ -214,7 +216,7 @@ function PlayerUserCard({
               ? item.linkedUserDisplayName
                 ? `${item.linkedUserDisplayName} · ${item.linkedUserEmail}`
                 : item.linkedUserEmail
-              : "Este jugador todavía no tiene cuenta vinculada."}
+              : tx("Este jugador todavía no tiene cuenta vinculada.")}
             </p>
           </div>
         </div>
@@ -231,8 +233,7 @@ function PlayerUserCard({
       <div className="mt-4 space-y-3">
         <label className="block">
           <span className="text-sm font-semibold text-neutral-700">
-            Nombre visible del jugador
-          </span>
+            {tx("Nombre visible del jugador")}{" "}</span>
           <input
             value={displayName}
             disabled={isSavingName}
@@ -250,7 +251,7 @@ function PlayerUserCard({
           disabled={!canSaveName || isSavingName}
           className="flex w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 shadow-sm disabled:bg-neutral-200 disabled:text-neutral-400 items-center justify-center text-center"
         >
-          {isSavingName ? "Guardando..." : "Guardar nombre"}
+          {isSavingName ? "Guardando..." : tx("Guardar nombre")}
         </button>
       </div>
 
@@ -280,16 +281,15 @@ function PlayerUserCard({
         </div>
       ) : item.role === "creator" ? (
         <p className="mt-3 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
-          El creador no se puede degradar ni desvincular desde este panel.
-        </p>
+          {tx("El creador no se puede degradar ni desvincular desde este panel.")}{" "}</p>
       ) : isCurrentUser ? (
         <p className="mt-3 rounded-2xl bg-white p-3 text-xs font-semibold text-neutral-500">
-          No puedes quitarte tus propios permisos ni desvincular tu propia cuenta.
+          {tx("No puedes quitarte tus propios permisos ni desvincular tu propia cuenta.")}
         </p>
       ) : null}
 
       {error ? (
-        <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
+        <p className="mt-3 text-sm font-semibold text-red-600">{tx(error)}</p>
       ) : null}
     </div>
   )
@@ -298,6 +298,7 @@ function PlayerUserCard({
 export function LeagueUsersManagementPanel({
   leagueId,
 }: LeagueUsersManagementPanelProps) {
+  const { tx } = useI18n()
   const {
     fetchLeagueUsers,
     unlinkLeaguePlayerAccount,
@@ -373,28 +374,25 @@ export function LeagueUsersManagementPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Jugadores y usuarios</p>
+      <p className="font-bold">{tx("Jugadores y usuarios")}</p>
       <p className="mt-2 text-sm text-neutral-500">
-        Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos
-        de administración. Estos jugadores pertenecen a la liga; cada temporada
-        decide cuáles participan.
-      </p>
+        {tx("Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos de administración. Estos jugadores pertenecen a la liga; cada temporada decide cuáles participan.")}{" "}</p>
       <p className="mt-3 text-xs font-semibold text-neutral-500">
-        Total: {items.length} · Vinculados: {linkedCount} · Sin vincular:{" "}
+        {tx("Total:")} {items.length} {tx("· Vinculados:")} {linkedCount} {tx("· Sin vincular:")}{" "}
         {unlinkedCount}
       </p>
 
       <div className="mt-4 space-y-3">
         {isLoading ? (
           <div className="rounded-2xl bg-neutral-100 p-3">
-            <p className="font-bold">Cargando usuarios...</p>
+            <p className="font-bold">{tx("Cargando usuarios...")}</p>
           </div>
         ) : null}
 
         {!isLoading && loadError ? (
           <div className="rounded-2xl bg-neutral-100 p-3">
-            <p className="font-bold">No hay usuarios para mostrar</p>
-            <p className="mt-2 text-sm text-neutral-500">{loadError}</p>
+            <p className="font-bold">{tx("No hay usuarios para mostrar")}</p>
+            <p className="mt-2 text-sm text-neutral-500">{tx(loadError)}</p>
           </div>
         ) : null}
 

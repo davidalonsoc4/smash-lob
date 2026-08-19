@@ -1,3 +1,6 @@
+import { getIntlLocale } from "@/i18n/leagueText";
+import type { Locale } from "@/i18n/translations";
+
 export const MATCH_SCHEDULE_TIME_ZONE = "Europe/Madrid";
 
 const localDateTimePattern =
@@ -98,39 +101,58 @@ export function toCalendarFloatingDate(value: Date) {
   )}`;
 }
 
-function capitalizeSchedulePart(value: string) {
-  return value ? value.charAt(0).toLocaleUpperCase("es-ES") + value.slice(1) : value;
+function capitalizeSchedulePart(value: string, locale: Locale) {
+  return value
+    ? value.charAt(0).toLocaleUpperCase(getIntlLocale(locale)) + value.slice(1)
+    : value;
 }
 
-export function formatMatchScheduleLongLabel(value: string | null | undefined) {
+export function formatMatchScheduleLongLabel(
+  value: string | null | undefined,
+  locale: Locale = "es",
+) {
   const date = parseMatchScheduleDate(value);
 
   if (!date) {
     return value?.trim() || null;
   }
 
-  const weekday = new Intl.DateTimeFormat("es-ES", {
-    weekday: "long",
-    timeZone: MATCH_SCHEDULE_TIME_ZONE,
-  }).format(date);
-  const day = new Intl.DateTimeFormat("es-ES", {
-    day: "numeric",
-    timeZone: MATCH_SCHEDULE_TIME_ZONE,
-  }).format(date);
-  const month = new Intl.DateTimeFormat("es-ES", {
-    month: "long",
-    timeZone: MATCH_SCHEDULE_TIME_ZONE,
-  }).format(date);
-  const year = new Intl.DateTimeFormat("es-ES", {
-    year: "numeric",
-    timeZone: MATCH_SCHEDULE_TIME_ZONE,
-  }).format(date);
-  const time = new Intl.DateTimeFormat("es-ES", {
+  const intlLocale = getIntlLocale(locale);
+  const time = new Intl.DateTimeFormat(intlLocale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
     timeZone: MATCH_SCHEDULE_TIME_ZONE,
   }).format(date);
 
-  return `${capitalizeSchedulePart(weekday)} · ${day} de ${capitalizeSchedulePart(month)} de ${year} · ${time}`;
+  if (locale === "es") {
+    const weekday = new Intl.DateTimeFormat(intlLocale, {
+      weekday: "long",
+      timeZone: MATCH_SCHEDULE_TIME_ZONE,
+    }).format(date);
+    const day = new Intl.DateTimeFormat(intlLocale, {
+      day: "numeric",
+      timeZone: MATCH_SCHEDULE_TIME_ZONE,
+    }).format(date);
+    const month = new Intl.DateTimeFormat(intlLocale, {
+      month: "long",
+      timeZone: MATCH_SCHEDULE_TIME_ZONE,
+    }).format(date);
+    const year = new Intl.DateTimeFormat(intlLocale, {
+      year: "numeric",
+      timeZone: MATCH_SCHEDULE_TIME_ZONE,
+    }).format(date);
+
+    return `${capitalizeSchedulePart(weekday, locale)} · ${day} de ${capitalizeSchedulePart(month, locale)} de ${year} · ${time}`;
+  }
+
+  const dateLabel = new Intl.DateTimeFormat(intlLocale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: MATCH_SCHEDULE_TIME_ZONE,
+  }).format(date);
+
+  return `${capitalizeSchedulePart(dateLabel, locale)} · ${time}`;
 }

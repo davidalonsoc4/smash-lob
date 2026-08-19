@@ -19,7 +19,6 @@ import {
   type RosterMode,
 } from "@/data/fakeData";
 import {
-  getNewPlayerIndexFromToken,
   getSeasonScheduleRoundCount,
   type SeasonScheduleMode,
 } from "@/lib/calendar";
@@ -883,8 +882,6 @@ export function SeasonSettingsProvider({
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
-    selfPlayerValue = null,
-    registrationRecipientPlayerId = null,
     availabilityRecommendationsEnabled = false,
   }: {
     leagueId: string;
@@ -960,20 +957,6 @@ export function SeasonSettingsProvider({
     });
     const newPlayerIds = newPlayers.map((player) => player.id);
     const finalPlayerIds = [...uniquePlayerIds, ...newPlayerIds];
-    const selectedNewPlayerIndex = selfPlayerValue
-      ? getNewPlayerIndexFromToken(selfPlayerValue)
-      : null;
-    const selfPlayerId = selfPlayerValue
-      ? selectedNewPlayerIndex === null
-        ? selfPlayerValue
-        : (newPlayerIds[selectedNewPlayerIndex] ?? null)
-      : null;
-    const resolvedRegistrationRecipientPlayerId =
-      registrationRecipientPlayerId &&
-      finalPlayerIds.includes(registrationRecipientPlayerId)
-        ? registrationRecipientPlayerId
-        : selfPlayerId;
-
     setSeasonData((currentSeasonData) => {
       const nextSeasonData = {
         seasons: [...currentSeasonData.seasons, newSeason],
@@ -1013,9 +996,7 @@ export function SeasonSettingsProvider({
         amount: registrationFeeAmount,
         purpose: registrationFeePurpose,
         playerIds: finalPlayerIds,
-        paidPlayerIds: resolvedRegistrationRecipientPlayerId
-          ? [resolvedRegistrationRecipientPlayerId]
-          : [],
+        paidPlayerIds: [],
       }),
       rosterMode: "fixed",
       playerCapacity: finalPlayerIds.length,

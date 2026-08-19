@@ -5,6 +5,9 @@ import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { showActionFeedback } from "@/lib/actionFeedback"
+import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
 type SuggestionCategory = "improvement" | "feature" | "usability" | "other"
 type SuggestionStatus = "new" | "reviewing" | "planned" | "declined" | "completed"
@@ -53,8 +56,8 @@ const statusCopy: Record<SuggestionStatus, { label: string; className: string }>
   completed: { label: "Completada", className: "bg-emerald-100 text-emerald-700" },
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-ES", {
+function formatDate(value: string, locale: Locale) {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -75,6 +78,7 @@ function getSubmitError(error: string | undefined) {
 }
 
 export default function SuggestionsPage() {
+  const { tx, locale } = useI18n()
   const [category, setCategory] = useState<SuggestionCategory>("improvement")
   const [title, setTitle] = useState("")
   const [details, setDetails] = useState("")
@@ -163,18 +167,16 @@ export default function SuggestionsPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref="/settings" label="Volver" />
+        <BackButton fallbackHref="/settings" label={tx("Volver")} />
         <h1 className="type-page-title font-black tracking-tight">
-          Buzón de sugerencias
-        </h1>
-        <p className="mt-0.5 text-sm font-medium text-neutral-500">Smash & Lob</p>
+          {tx("Buzón de sugerencias")}{" "}</h1>
+        <p className="mt-0.5 text-sm font-medium text-neutral-500">{tx("Smash & Lob")}</p>
       </header>
 
       <AppCard className="p-3">
-        <p className="text-sm font-black text-neutral-950">Tipo de propuesta</p>
+        <p className="text-sm font-black text-neutral-950">{tx("Tipo de propuesta")}</p>
         <p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">
-          Las ideas se revisan de forma privada y no se publican junto a tu cuenta.
-        </p>
+          {tx("Las ideas se revisan de forma privada y no se publican junto a tu cuenta.")}{" "}</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {categoryOptions.map((option) => {
             const selected = category === option.value
@@ -203,11 +205,11 @@ export default function SuggestionsPage() {
         </div>
 
         <label className="mt-3 block">
-          <span className="text-xs font-black text-neutral-800">Título</span>
+          <span className="text-xs font-black text-neutral-800">{tx("Título")}</span>
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value.slice(0, 120))}
-            placeholder="Ejemplo: Filtrar el ranking por temporada"
+            placeholder={tx("Ejemplo: Filtrar el ranking por temporada")}
             className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-400"
           />
           <span className="mt-1 block text-right type-caption font-bold text-neutral-400">
@@ -216,12 +218,12 @@ export default function SuggestionsPage() {
         </label>
 
         <label className="mt-2 block">
-          <span className="text-xs font-black text-neutral-800">Explícala brevemente</span>
+          <span className="text-xs font-black text-neutral-800">{tx("Explícala brevemente")}</span>
           <textarea
             value={details}
             onChange={(event) => setDetails(event.target.value.slice(0, 2000))}
             rows={5}
-            placeholder="Qué cambiarías, dónde lo usarías y qué problema solucionaría."
+            placeholder={tx("Qué cambiarías, dónde lo usarías y qué problema solucionaría.")}
             className="mt-1 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold leading-5 outline-none focus:border-neutral-400"
           />
           <span className="mt-1 block text-right type-caption font-bold text-neutral-400">
@@ -240,7 +242,7 @@ export default function SuggestionsPage() {
 
         {error ? (
           <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-700">
-            {error}
+            {tx(error)}
           </p>
         ) : null}
       </AppCard>
@@ -248,13 +250,12 @@ export default function SuggestionsPage() {
       <section className="space-y-2">
         <div className="px-1">
           <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-            Tus últimas sugerencias
-          </p>
+            {tx("Tus últimas sugerencias")}{" "}</p>
         </div>
 
         {loadingItems ? (
           <AppCard className="p-3">
-            <p className="text-xs font-semibold text-neutral-500">Cargando...</p>
+            <p className="text-xs font-semibold text-neutral-500">{tx("Cargando...")}</p>
           </AppCard>
         ) : items.length > 0 ? (
           <div className="space-y-2">
@@ -276,7 +277,7 @@ export default function SuggestionsPage() {
                     </span>
                   </div>
                   <p className="mt-2 type-caption font-bold uppercase tracking-[0.12em] text-neutral-400">
-                    {formatDate(item.createdAt)}
+                    {formatDate(item.createdAt, locale)}
                   </p>
                 </AppCard>
               )
@@ -285,8 +286,8 @@ export default function SuggestionsPage() {
         ) : (
           <EmptyState
             compact
-            title="Todavía no has enviado propuestas"
-            description="Cuando envíes una idea desde el formulario superior podrás consultar aquí su estado."
+            title={tx("Todavía no has enviado propuestas")}
+            description={tx("Cuando envíes una idea desde el formulario superior podrás consultar aquí su estado.")}
           />
         )}
       </section>

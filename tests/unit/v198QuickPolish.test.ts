@@ -20,7 +20,7 @@ describe("v1.9.8 quick product polish", () => {
 
     expect(chat).toContain("const reservationSummaryDate =")
     expect(chat).toContain('day: "2-digit", month: "2-digit", year: "numeric"')
-    expect(chat).toContain("reservationSummaryDate(reservationSummary.scheduledAt)")
+    expect(chat).toContain("reservationSummaryDate(reservationSummary.scheduledAt, locale)")
   })
 
   it("matches the visible same-sender gap through the shared text-bubble geometry", async () => {

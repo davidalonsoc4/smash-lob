@@ -7,7 +7,7 @@ describe("v1.8.22 chat location alignment and chats cleanup", () => {
     expect(page).toContain("locationAgreed = optionHasAgreement(message, locationKey)")
     expect(page).toContain('className={`flex min-h-10 w-full flex-col text-left ${locationAgreed ? "items-start justify-start" : "justify-center"}`}')
     expect(page).toContain("{locationAgreed ? <span")
-    expect(page).toContain(">Acuerdo 4/4</span> : null}")
+    expect(page).toContain('>{tx("Acuerdo 4/4")}</span> : null}')
   })
 
   it("removes conversation chevrons and gives the content their space back", async () => {

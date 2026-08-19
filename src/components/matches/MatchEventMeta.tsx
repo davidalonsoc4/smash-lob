@@ -1,4 +1,7 @@
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
+import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
 type MatchEventMetaProps = {
   eventAt: string | null
@@ -8,31 +11,35 @@ type MatchEventMetaProps = {
   hideMissingRows?: boolean
 }
 
-function capitalizeFirst(value: string) {
-  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value
+function capitalizeFirst(value: string, locale: Locale) {
+  return value
+    ? value.charAt(0).toLocaleUpperCase(getIntlLocale(locale)) + value.slice(1)
+    : value
 }
 
 export function formatMatchEventDateTime(
   value: string | null,
   fallback: string | null = null,
+  locale: Locale = "es",
 ) {
-  if (!value) return fallback || "Fecha y hora pendientes"
+  if (!value) return fallback || translateLeagueText(locale, "Fecha y hora pendientes")
 
   const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
-    return fallback || "Fecha y hora pendientes"
+    return fallback || translateLeagueText(locale, "Fecha y hora pendientes")
   }
 
   const weekday = capitalizeFirst(
-    new Intl.DateTimeFormat("es-ES", { weekday: "long" }).format(date),
+    new Intl.DateTimeFormat(getIntlLocale(locale), { weekday: "long" }).format(date),
+    locale,
   )
-  const dateLabel = new Intl.DateTimeFormat("es-ES", {
+  const dateLabel = new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "short",
     year: "numeric",
   }).format(date)
-  const timeLabel = new Intl.DateTimeFormat("es-ES", {
+  const timeLabel = new Intl.DateTimeFormat(getIntlLocale(locale), {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date)
@@ -44,19 +51,20 @@ export function MatchEventMeta({
   eventAt,
   dateFallback = null,
   locationText = null,
-  locationFallback = "Ubicación no indicada",
+  locationFallback = null,
   hideMissingRows = false,
 }: MatchEventMetaProps) {
+  const { locale, tx } = useI18n()
   const normalizedLocation =
     getScheduleLocationDisplayText(locationText) ??
     getScheduleLocationDisplayText(locationFallback)
   const hasDate = Boolean(eventAt || dateFallback)
   const dateText = hasDate
-    ? formatMatchEventDateTime(eventAt, dateFallback)
+    ? formatMatchEventDateTime(eventAt, dateFallback, locale)
     : hideMissingRows
       ? null
-      : formatMatchEventDateTime(eventAt, dateFallback)
-  const location = normalizedLocation ?? (hideMissingRows ? null : "Ubicación no indicada")
+      : formatMatchEventDateTime(eventAt, dateFallback, locale)
+  const location = normalizedLocation ?? (hideMissingRows ? null : tx("Ubicación no indicada"))
 
   if (!dateText && !location) return null
 

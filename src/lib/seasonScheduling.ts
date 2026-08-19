@@ -1,3 +1,6 @@
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
+
 export type SeasonLifecycleStatus = "upcoming" | "active" | "finished"
 
 export type SeasonCountdown = {
@@ -106,13 +109,13 @@ export function getSeasonCountdown(scheduledStartAt: string | null | undefined, 
   }
 }
 
-export function formatScheduledSeasonStart(scheduledStartAt: string | null | undefined) {
+export function formatScheduledSeasonStart(scheduledStartAt: string | null | undefined, locale: Locale = "es") {
   const normalized = normalizeScheduledStartAt(scheduledStartAt)
   if (!normalized) return null
   const date = new Date(normalized)
-  const dateLabel = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(date)
-  const timeLabel = new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(date)
-  return `${dateLabel.charAt(0).toLocaleUpperCase("es-ES")}${dateLabel.slice(1)} · ${timeLabel}`
+  const dateLabel = new Intl.DateTimeFormat(getIntlLocale(locale), { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(date)
+  const timeLabel = new Intl.DateTimeFormat(getIntlLocale(locale), { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(date)
+  return `${dateLabel.charAt(0).toLocaleUpperCase(getIntlLocale(locale))}${dateLabel.slice(1)} · ${timeLabel}`
 }
 
 export function toDatetimeLocalValue(value: string | null | undefined) {

@@ -139,6 +139,7 @@ export function CourtBookingPanel({
   shouldFocusBooking = false,
   actions,
 }: CourtBookingPanelProps) {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const {
     updateCourtBooking,
@@ -496,21 +497,19 @@ export function CourtBookingPanel({
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="type-panel-title text-neutral-950">Pagos y reservas</p>
+            <p className="type-panel-title text-neutral-950">{tx("Pagos y reservas")}</p>
             {booking.isReserved ? (
               <span className={getBookingStatusBadgeClassName(true)}>
-                Guardado
+                {tx("Guardado")}
               </span>
             ) : (
               <span className={getBookingStatusBadgeClassName(false)}>
-                Pendiente
-              </span>
+                {tx("Pendiente")}{" "}</span>
             )}
           </div>
 
           <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
-            Indica quién pagó pista y bolas. La app calcula las transferencias.
-          </p>
+            {tx("Indica quién pagó pista y bolas. La app calcula las transferencias.")}{" "}</p>
         </div>
 
         <button
@@ -541,7 +540,7 @@ export function CourtBookingPanel({
       <div className="mt-1.5 grid grid-cols-3 divide-x divide-neutral-200 overflow-hidden rounded-lg bg-neutral-100 text-center">
         <div className="px-2 py-1">
           <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-            Total
+            {tx("Total")}
           </p>
           <p className="text-xs font-black text-neutral-950">
             {formatMoney(booking.isReserved ? totalReservedAmount : totalAmount)}
@@ -549,7 +548,7 @@ export function CourtBookingPanel({
         </div>
         <div className="px-2 py-1">
           <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-            Pagan
+            {tx("Pagan")}
           </p>
           <p className="text-xs font-black text-neutral-950">
             {booking.isReserved ? paidByCount : new Set([...parsedReservations, ...parsedBallPurchases].map((payment) => payment.playerId)).size}
@@ -557,7 +556,7 @@ export function CourtBookingPanel({
         </div>
         <div className="px-2 py-1">
           <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-            Pend.
+            {tx("Pend.")}
           </p>
           <p className="text-xs font-black text-neutral-950">
             {pendingTransfersCount}
@@ -569,15 +568,15 @@ export function CourtBookingPanel({
         <div className="mt-1.5 space-y-1.5">
           <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5">
             <p className="text-xs font-semibold leading-5 text-neutral-700">
-              <span className="font-black text-neutral-950">Pista pagada por:</span>{" "}
+              <span className="font-black text-neutral-950">{tx("Pista pagada por:")}</span>{" "}
               <span className="font-bold">
-                {savedPayerNames || "Sin pagador informado"}
+                {savedPayerNames || tx("Sin pagador informado")}
               </span>
             </p>
             <p className="text-xs font-semibold leading-5 text-neutral-700">
-              <span className="font-black text-neutral-950">Bolas compradas por:</span>{" "}
+              <span className="font-black text-neutral-950">{tx("Bolas compradas por:")}</span>{" "}
               <span className="font-bold">
-                {savedBallBuyerName || "Sin comprador informado"}
+                {savedBallBuyerName || tx("Sin comprador informado")}
               </span>
             </p>
           </div>
@@ -585,7 +584,7 @@ export function CourtBookingPanel({
           {booking.transfers.length > 0 ? (
             <div className="space-y-1.5">
               <p className="text-xs font-black uppercase tracking-wide text-neutral-500">
-                Transferencias
+                {tx("Transferencias")}
               </p>
               {booking.transfers.map((transfer) => {
                 const isCurrentUserTransfer = transfer.fromPlayerId === currentUserId
@@ -611,7 +610,7 @@ export function CourtBookingPanel({
 
                       <div className="flex shrink-0 items-center gap-1.5">
                         <span className={getPaymentStatusBadgeClassName(transfer.isPaid)}>
-                          {transfer.isPaid ? "Pagado" : "Pendiente"}
+                          {transfer.isPaid ? "Pagado" : tx("Pendiente")}
                         </span>
 
                         {canPayerManageTransfer ? (
@@ -631,14 +630,14 @@ export function CourtBookingPanel({
                             }`}
                             aria-label={
                               transfer.isPaid
-                                ? "Marcar transferencia como pendiente"
+                                ? tx("Marcar transferencia como pendiente")
                                 : "Marcar transferencia como pagada"
                             }
                           >
                             {isSaving
                               ? "..."
                               : transfer.isPaid
-                                ? "↩ Marcar pendiente"
+                                ? tx("↩ Marcar pendiente")
                                 : "✓ Marcar pagado"}
                           </button>
                         ) : null}
@@ -663,20 +662,19 @@ export function CourtBookingPanel({
             </div>
           ) : (
             <div className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-900">
-              <p className="font-black">No hay pagos pendientes.</p>
+              <p className="font-black">{tx("No hay pagos pendientes.")}</p>
               <p className="mt-0.5 text-xs font-semibold">
-                El importe ya queda compensado entre los jugadores.
-              </p>
+                {tx("El importe ya queda compensado entre los jugadores.")}{" "}</p>
             </div>
           )}
 
           {pendingCurrentUserTransfers.length > 0 ? (
             <div className="rounded-lg bg-orange-100 px-2.5 py-1.5 text-xs text-orange-900">
-              <p className="font-black">Tienes pagos pendientes</p>
+              <p className="font-black">{tx("Tienes pagos pendientes")}</p>
               <div className="mt-1.5 space-y-1">
                 {pendingCurrentUserTransfers.map((transfer) => (
                   <p key={transfer.id} className="text-xs font-semibold">
-                    Paga {formatMoney(transfer.amount)} a {getPlayerName(transfer.toPlayerId, players)}.
+                    {tx("Paga")} {formatMoney(transfer.amount)} {tx("a")} {getPlayerName(transfer.toPlayerId, players)}.
                   </p>
                 ))}
               </div>
@@ -702,16 +700,14 @@ export function CourtBookingPanel({
                   onClick={() => setIsEditing(true)}
                   className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm active:bg-neutral-100 items-center justify-center text-center"
                 >
-                  Editar
-                </button>
+                  {tx("Editar")}{" "}</button>
                 <button
                   type="button"
                   onClick={handleClearBooking}
                   disabled={isSaving || !canCancelBooking}
                   className="inline-flex rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 type-caption font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
                 >
-                  Cancelar reserva
-                </button>
+                  {tx("Cancelar reserva")}{" "}</button>
               </div>
             </div>
           ) : null}
@@ -731,8 +727,7 @@ export function CourtBookingPanel({
               >
                 <span className="min-w-0">
                   <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
-                    Compró las bolas
-                  </span>
+                    {tx("Compró las bolas")}{" "}</span>
                   <span className="block truncate text-sm font-black text-neutral-950">
                     {ballBuyerSummary}
                   </span>
@@ -799,8 +794,7 @@ export function CourtBookingPanel({
                 >
                   <span className="min-w-0">
                     <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
-                      Pagó la pista
-                    </span>
+                      {tx("Pagó la pista")}{" "}</span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
                     </span>
@@ -866,14 +860,13 @@ export function CourtBookingPanel({
                 >
                   <span className="min-w-0">
                     <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
-                      Pagaron la pista
-                    </span>
+                      {tx("Pagaron la pista")}{" "}</span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
                     </span>
                   </span>
                   <span className="inline-flex h-6 shrink-0 items-center rounded-md bg-neutral-100 px-2 type-caption font-black text-neutral-700">
-                    Cambiar
+                    {tx("Cambiar")}
                   </span>
                 </button>
 
@@ -929,7 +922,7 @@ export function CourtBookingPanel({
               </div>
 
               <div className="flex items-center justify-between gap-2 rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs">
-                <p className="font-bold text-neutral-700">Total informado</p>
+                <p className="font-bold text-neutral-700">{tx("Total informado")}</p>
                 <p className="font-black text-neutral-950">{formatMoney(totalAmount)}</p>
               </div>
             </>
@@ -937,7 +930,7 @@ export function CourtBookingPanel({
 
           {error ? (
             <p className="rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
-              {error}
+              {tx(error)}
             </p>
           ) : null}
 
@@ -949,8 +942,7 @@ export function CourtBookingPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
               >
-                Cancelar
-              </button>
+                {tx("Cancelar")}{" "}</button>
             ) : (
               <button
                 type="button"
@@ -958,8 +950,7 @@ export function CourtBookingPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
               >
-                Cerrar
-              </button>
+                {tx("Cerrar")}{" "}</button>
             )}
 
             <button
@@ -967,7 +958,7 @@ export function CourtBookingPanel({
               disabled={!canSave}
               className="inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
-              {isSaving ? "Guardando..." : "Guardar pagos"}
+              {isSaving ? "Guardando..." : tx("Guardar pagos")}
             </button>
           </div>
         </form>

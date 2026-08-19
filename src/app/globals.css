@@ -2081,7 +2081,8 @@ html[data-theme][data-bottom-nav-visible="true"] body {
   background: var(--app-bottom-nav-safe-surface) !important;
 }
 
-html[data-theme][data-bottom-nav-visible="true"] .app-bottom-nav {
+html[data-theme][data-bottom-nav-visible="true"] .app-bottom-nav,
+html[data-theme][data-bottom-nav-visible="true"] .personal-matches-bottom-nav {
   background: var(--app-bottom-nav-safe-surface) !important;
 }
 /* Match chat owns the whole standalone viewport, including the mobile gesture area. */

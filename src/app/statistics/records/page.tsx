@@ -3,8 +3,10 @@
 import { SeasonRecordsPanel } from "@/components/statistics/SeasonRecordsPanel"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export default function StatisticsRecordsPage() {
+  const { tx } = useI18n()
   const {
     selectedSeason,
     buildStatisticsHref,
@@ -16,11 +18,11 @@ export default function StatisticsRecordsPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        title={isLeagueWide ? "Récords de la liga" : "Récords de temporada"}
+        title={isLeagueWide ? tx("Récords de la liga") : tx("Récords de temporada")}
         description={
           isLeagueWide
-            ? "Las mejores rachas y los partidos más destacados de todo el historial de la liga."
-            : "Las mejores rachas y los partidos que marcaron la competición."
+            ? tx("Las mejores rachas y los partidos más destacados de todo el historial de la liga.")
+            : tx("Las mejores rachas y los partidos que marcaron la competición.")
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}

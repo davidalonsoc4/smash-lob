@@ -5,6 +5,7 @@ import { getTeamDisplayName } from "@/lib/players"
 import { parseMatchScheduleDate, toCalendarFloatingDate } from "@/lib/matchScheduleTime"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import type { PlayerProfile } from "@/data/fakeData"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type AddToCalendarButtonProps = {
   leagueName: string
@@ -66,6 +67,7 @@ function getCalendarData({
 }
 
 export function AddToCalendarButton(props: AddToCalendarButtonProps) {
+  const { tx } = useI18n()
   const calendarData = useMemo(() => getCalendarData(props), [props])
 
   if (!calendarData) {
@@ -80,8 +82,7 @@ export function AddToCalendarButton(props: AddToCalendarButtonProps) {
         rel="noreferrer"
         className="flex w-full rounded-xl border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center"
       >
-        Añadir al calendario
-      </a>
+        {tx("Añadir al calendario")}{" "}</a>
     </div>
   )
 }

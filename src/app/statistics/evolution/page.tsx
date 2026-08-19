@@ -3,8 +3,10 @@
 import { AllPlayersProgressChart } from "@/components/statistics/AllPlayersProgressChart"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export default function StatisticsEvolutionPage() {
+  const { tx } = useI18n()
   const {
     selectedSeason,
     buildStatisticsHref,
@@ -21,11 +23,11 @@ export default function StatisticsEvolutionPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        title="Evolución de la liga"
+        title={tx("Evolución de la liga")}
         description={
           isLeagueWide
-            ? "Compara a todos los jugadores a través de cada temporada, separando los periodos y reiniciando sus métricas."
-            : "Compara en un único gráfico la posición, los puntos y la diferencia de juegos de todos los jugadores."
+            ? tx("Compara a todos los jugadores a través de cada temporada, separando los periodos y reiniciando sus métricas.")
+            : tx("Compara en un único gráfico la posición, los puntos y la diferencia de juegos de todos los jugadores.")
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}

@@ -1,6 +1,8 @@
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
 type Season = {
   id: string
@@ -190,8 +192,8 @@ export function buildSeasonRounds({
   })
 }
 
-export function formatShortDate(dateValue: string) {
-  return new Intl.DateTimeFormat("es-ES", {
+export function formatShortDate(dateValue: string, locale: Locale = "es") {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "short",
     year: "numeric",

@@ -23,7 +23,7 @@ describe("v1.6.6 HOME quick league switcher", () => {
     expect(home).toContain('role="menuitemradio"')
     expect(home).toContain("aria-checked={league.id === activeLeague.id}")
     expect(home).toContain('href="/personal-matches"')
-    expect(home).toContain(">MIS PARTIDOS</Link>")
+    expect(home).toContain('{tx("MIS PARTIDOS")}</Link>')
     expect(home).not.toContain("Cambiar liga ▼")
     expect(home).not.toContain("Cambiar liga ▾")
   })

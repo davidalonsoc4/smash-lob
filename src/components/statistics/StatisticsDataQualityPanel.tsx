@@ -1,5 +1,8 @@
+"use client"
+
 import { AppCard } from "@/components/ui/AppCard"
 import type { SeasonDataQuality } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function badgeClassName(tone: "ok" | "warning" | "error" | "neutral") {
   if (tone === "ok") return "bg-emerald-100 text-emerald-800"
@@ -15,6 +18,7 @@ export function StatisticsDataQualityPanel({
   quality: SeasonDataQuality
   seasonStatus: "upcoming" | "active" | "finished"
 }) {
+  const { tx } = useI18n()
   const issues = [
     quality.pendingMatches > 0
       ? {
@@ -30,7 +34,7 @@ export function StatisticsDataQualityPanel({
       : null,
     quality.invalidFinishedMatches > 0
       ? {
-          label: `${quality.invalidFinishedMatches} no válidos`,
+          label: tx(`${quality.invalidFinishedMatches} no válidos`),
           tone: "error" as const,
         }
       : null,
@@ -57,13 +61,13 @@ export function StatisticsDataQualityPanel({
     <AppCard className="statistics-quality-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="type-panel-title">Estado de los datos</p>
+          <p className="type-panel-title">{tx("Estado de los datos")}</p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
             {complete
-              ? "Temporada cerrada y estadísticas listas para su resumen final."
+              ? tx("Temporada cerrada y estadísticas listas para su resumen final.")
               : seasonStatus === "finished"
-                ? "La temporada está cerrada, pero conviene revisar los avisos antes de tomar los récords como definitivos."
-                : "Los datos se actualizarán a medida que se completen y validen los partidos."}
+                ? tx("La temporada está cerrada, pero conviene revisar los avisos antes de tomar los récords como definitivos.")
+                : tx("Los datos se actualizarán a medida que se completen y validen los partidos.")}
           </p>
         </div>
         <span
@@ -87,15 +91,13 @@ export function StatisticsDataQualityPanel({
           ))
         ) : (
           <span className={`rounded-full px-2.5 py-1 type-caption font-black ${badgeClassName("ok")}`}>
-            Sin incidencias estadísticas
-          </span>
+            {tx("Sin incidencias estadísticas")}{" "}</span>
         )}
       </div>
 
       {!quality.hasCountedResults ? (
         <p className="mt-2 text-xs font-semibold text-amber-700">
-          Aún no hay resultados válidos para clasificación.
-        </p>
+          {tx("Aún no hay resultados válidos para clasificación.")}{" "}</p>
       ) : null}
     </AppCard>
   )

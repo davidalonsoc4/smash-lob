@@ -55,6 +55,7 @@ type CreateServerSeasonInput = {
   activeSeasonId: string | null
   name: string
   playerIds: string[]
+  appUserIds: string[]
   newPlayerNames: string[]
   roundWindowMode: RoundWindowMode
   seasonStartsAt: string | null
@@ -1025,6 +1026,7 @@ export async function createServerSeason({
     activeSeasonId,
     name,
     playerIds,
+    appUserIds,
     newPlayerNames,
     roundWindowMode,
     seasonStartsAt,
@@ -1046,7 +1048,17 @@ export async function createServerSeason({
   } = input
   const { supabase, user, membership } = actor
   const isSelfRegistration = rosterMode === "self_registration"
-  const selfRegistrationProfileName = isSelfRegistration
+  const { count: existingSeasonCount, error: seasonCountError } = await supabase
+    .from("seasons")
+    .select("id", { count: "exact", head: true })
+    .eq("league_id", leagueId)
+  if (seasonCountError) {
+    throw new SeasonMutationError(500, "season_count_lookup_failed")
+  }
+  const isFirstLeagueSeason = (existingSeasonCount ?? 0) === 0
+  const shouldAutoEnrollCreator =
+    isSelfRegistration && isFirstLeagueSeason && playerIds.length === 0
+  const selfRegistrationProfileName = shouldAutoEnrollCreator
     ? [user.firstName, user.lastName]
         .filter((value): value is string => Boolean(value?.trim()))
         .join(" ")
@@ -1054,7 +1066,7 @@ export async function createServerSeason({
     : ""
 
   if (
-    isSelfRegistration &&
+    shouldAutoEnrollCreator &&
     (!user.profileCompletedAt ||
       !user.firstName?.trim() ||
       !user.lastName?.trim() ||
@@ -1063,13 +1075,15 @@ export async function createServerSeason({
     throw new SeasonMutationError(409, "profile_incomplete")
   }
 
-  const uniquePlayerIds = isSelfRegistration
-    ? []
-    : await assertLeaguePlayerIds({
-        supabase,
-        leagueId,
-        playerIds,
-      })
+  const uniquePlayerIds = await assertLeaguePlayerIds({
+    supabase,
+    leagueId,
+    playerIds,
+  })
+  const cleanAppUserIds = isSelfRegistration ? [] : Array.from(new Set(appUserIds))
+  if (cleanAppUserIds.includes(user.id)) {
+    throw new SeasonMutationError(400, "invalid_app_user_ids")
+  }
   const cleanNewPlayerNames = isSelfRegistration
     ? []
     : newPlayerNames
@@ -1100,7 +1114,7 @@ export async function createServerSeason({
 
   const totalPlayers = isSelfRegistration
     ? playerCapacity
-    : uniquePlayerIds.length + cleanNewPlayerNames.length
+    : uniquePlayerIds.length + cleanAppUserIds.length + cleanNewPlayerNames.length
   const { data: finishedSeason, error: finishError } = shouldFinishCurrentSeason
     ? await supabase
         .from("seasons")
@@ -1162,7 +1176,7 @@ export async function createServerSeason({
     avatar_url?: string | null
   } | null = null
 
-  if (isSelfRegistration) {
+  if (shouldAutoEnrollCreator) {
     const profileName = selfRegistrationProfileName
 
     if (membership?.playerId) {
@@ -1219,13 +1233,112 @@ export async function createServerSeason({
     }
   }
 
+  const appLinkedPlayers: Array<{
+    id: string
+    league_id: string
+    slug: string
+    display_name: string
+    avatar_initials: string
+    avatar_url?: string | null
+  }> = []
+
+  if (cleanAppUserIds.length > 0) {
+    const [appUsersResult, appMembershipsResult] = await Promise.all([
+      supabase
+        .from("app_users")
+        .select("id,display_name,first_name,last_name,avatar_url,profile_completed_at")
+        .in("id", cleanAppUserIds),
+      supabase
+        .from("league_memberships")
+        .select("user_id,player_id,role")
+        .eq("league_id", leagueId)
+        .in("user_id", cleanAppUserIds),
+    ])
+
+    if (appUsersResult.error || appMembershipsResult.error) {
+      throw new SeasonMutationError(500, "season_app_users_lookup_failed")
+    }
+
+    const userById = new Map((appUsersResult.data ?? []).map((item) => [item.id, item]))
+    const membershipByUserId = new Map(
+      (appMembershipsResult.data ?? []).map((item) => [item.user_id, item]),
+    )
+
+    if (userById.size !== cleanAppUserIds.length) {
+      throw new SeasonMutationError(400, "invalid_app_user_ids")
+    }
+
+    for (const [index, appUserId] of cleanAppUserIds.entries()) {
+      const appUser = userById.get(appUserId)
+      if (!appUser || !appUser.profile_completed_at) {
+        throw new SeasonMutationError(400, "invalid_app_user_ids")
+      }
+
+      const existingMembership = membershipByUserId.get(appUserId)
+      if (existingMembership?.player_id) {
+        if (uniquePlayerIds.includes(existingMembership.player_id)) {
+          throw new SeasonMutationError(409, "duplicate_season_player")
+        }
+        const { data: existingPlayer, error: existingPlayerError } = await supabase
+          .from("players")
+          .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+          .eq("id", existingMembership.player_id)
+          .eq("league_id", leagueId)
+          .single()
+        if (existingPlayerError) {
+          throw new SeasonMutationError(500, "season_app_player_lookup_failed")
+        }
+        appLinkedPlayers.push(existingPlayer)
+        continue
+      }
+
+      const displayName =
+        (typeof appUser.display_name === "string" && appUser.display_name.trim()) ||
+        [appUser.first_name, appUser.last_name]
+          .filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+          .join(" ") ||
+        "Jugador"
+      const { data: createdPlayer, error: createdPlayerError } = await supabase
+        .from("players")
+        .insert({
+          league_id: leagueId,
+          slug: `${slug(displayName)}-${Date.now()}-app-${index + 1}`,
+          display_name: displayName,
+          avatar_initials: initials(displayName),
+          avatar_url: typeof appUser.avatar_url === "string" ? appUser.avatar_url : null,
+        })
+        .select("id,league_id,slug,display_name,avatar_initials,avatar_url")
+        .single()
+      if (createdPlayerError) {
+        throw new SeasonMutationError(500, "season_app_player_create_failed")
+      }
+
+      const { error: appMembershipError } = await supabase
+        .from("league_memberships")
+        .upsert(
+          {
+            user_id: appUserId,
+            league_id: leagueId,
+            player_id: createdPlayer.id,
+            role: existingMembership?.role ?? "player",
+          },
+          { onConflict: "user_id,league_id" },
+        )
+      if (appMembershipError) {
+        throw new SeasonMutationError(500, "season_app_membership_link_failed")
+      }
+      appLinkedPlayers.push(createdPlayer)
+    }
+  }
+
   const finalPlayerIds = isSelfRegistration
-    ? selfRegistrationPlayer
+    ? shouldAutoEnrollCreator && selfRegistrationPlayer
       ? [selfRegistrationPlayer.id]
-      : []
+      : uniquePlayerIds
     : [
         ...uniquePlayerIds,
         ...(newPlayers ?? []).map((player) => player.id),
+        ...appLinkedPlayers.map((player) => player.id),
       ]
   const selectedSelfPlayerId = isSelfRegistration
     ? selfRegistrationPlayer?.id ?? null
@@ -1267,40 +1380,6 @@ export async function createServerSeason({
     }
   }
 
-  let registrationRecipientPlayerId =
-    selectedSelfPlayerId && linkedMembershipRole === "creator"
-      ? selectedSelfPlayerId
-      : null
-  const { data: leagueOwner, error: leagueOwnerError } = await supabase
-    .from("leagues")
-    .select("created_by_user_id")
-    .eq("id", leagueId)
-    .maybeSingle()
-
-  if (leagueOwnerError) {
-    throw new SeasonMutationError(500, "season_league_owner_lookup_failed")
-  }
-
-  if (leagueOwner?.created_by_user_id) {
-    const { data: creatorMembership, error: creatorMembershipError } =
-      await supabase
-        .from("league_memberships")
-        .select("player_id")
-        .eq("league_id", leagueId)
-        .eq("user_id", leagueOwner.created_by_user_id)
-        .maybeSingle()
-
-    if (creatorMembershipError) {
-      throw new SeasonMutationError(500, "season_creator_membership_lookup_failed")
-    }
-
-    if (
-      creatorMembership?.player_id &&
-      finalPlayerIds.includes(creatorMembership.player_id)
-    ) {
-      registrationRecipientPlayerId = creatorMembership.player_id
-    }
-  }
 
   if (finalPlayerIds.length > 0) {
     const { error: seasonPlayersError } = await supabase
@@ -1320,7 +1399,10 @@ export async function createServerSeason({
   const resolvedManualMatches = !isSelfRegistration && manualMatches
     ? resolveManualCalendarDraft({
         matches: manualMatches,
-        newPlayerIds: (newPlayers ?? []).map((player) => player.id),
+        newPlayerIds: [
+          ...(newPlayers ?? []).map((player) => player.id),
+          ...appLinkedPlayers.map((player) => player.id),
+        ],
       })
     : []
   const seasonMatches = isSelfRegistration
@@ -1374,9 +1456,7 @@ export async function createServerSeason({
     amount: registrationFeeAmount,
     purpose: registrationFeePurpose,
     playerIds: finalPlayerIds,
-    paidPlayerIds: registrationRecipientPlayerId
-      ? [registrationRecipientPlayerId]
-      : [],
+    paidPlayerIds: [],
   })
   const { error: settingsError } = await supabase
     .from("season_settings")
@@ -1429,6 +1509,7 @@ export async function createServerSeason({
   ]
   const playerProfiles = [
     ...(newPlayers ?? []).map(mapPlayer),
+    ...appLinkedPlayers.map(mapPlayer),
     ...(selfRegistrationPlayer ? [mapPlayer(selfRegistrationPlayer)] : []),
   ]
   const seasonPlayers: SeasonPlayer[] = finalPlayerIds.map((playerId) => ({

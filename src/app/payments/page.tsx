@@ -13,6 +13,8 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 import {
   fetchSupabaseActivityEvents,
   type ActivityEvent,
@@ -91,14 +93,14 @@ function toPlayerPayments(value: unknown) {
     }))
 }
 
-function formatEventDate(value: string) {
+function formatEventDate(value: string, locale: Locale) {
   const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
     return ""
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -179,18 +181,19 @@ function PaymentActivityList({
   isLoading: boolean
   error: string | null
 }) {
+  const { tx, locale } = useI18n()
+
   if (isLoading) {
     return (
       <p className="rounded-2xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-        Cargando movimientos...
-      </p>
+        {tx("Cargando movimientos...")}{" "}</p>
     )
   }
 
   if (error) {
     return (
       <p className="rounded-2xl bg-red-50 px-3 py-3 text-xs font-bold text-red-700">
-        {error}
+        {tx(error)}
       </p>
     )
   }
@@ -198,7 +201,7 @@ function PaymentActivityList({
   if (events.length === 0) {
     return (
       <p className="rounded-2xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-        No hay movimientos registrados.
+        {tx("No hay movimientos registrados.")}
       </p>
     )
   }
@@ -213,22 +216,22 @@ function PaymentActivityList({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-black text-neutral-950">
-                {event.title}
+                {tx(event.title)}
               </p>
               <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                {getPaymentEventLabel(event.type)}
+                {tx(getPaymentEventLabel(event.type))}
                 {event.actorDisplayName ? ` · ${event.actorDisplayName}` : ""}
               </p>
             </div>
 
             <p className="shrink-0 type-caption font-semibold text-neutral-400">
-              {formatEventDate(event.createdAt)}
+              {formatEventDate(event.createdAt, locale)}
             </p>
           </div>
 
           {event.description ? (
             <p className="mt-2 text-xs leading-snug text-neutral-600">
-              {event.description}
+              {tx(event.description)}
             </p>
           ) : null}
         </div>
@@ -238,6 +241,7 @@ function PaymentActivityList({
 }
 
 export default function PaymentsPage() {
+  const { tx } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -278,7 +282,7 @@ export default function PaymentsPage() {
         }
       } catch {
         if (isMounted) {
-          setEventsError("No se ha podido cargar el historial de movimientos.")
+          setEventsError(tx("No se ha podido cargar el historial de movimientos."))
         }
       } finally {
         if (isMounted) {
@@ -501,7 +505,7 @@ export default function PaymentsPage() {
       message:
         sentCount === 1
           ? "Recordatorio enviado."
-          : `Recordatorios enviados para ${sentCount} partidos.`,
+          : tx(`Recordatorios enviados para ${sentCount} partidos.`),
     })
   }
 
@@ -544,9 +548,9 @@ export default function PaymentsPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref="/settings" label="Volver" />
+        <BackButton fallbackHref="/settings" label={tx("Volver")} />
 
-        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Mis pagos</h1>
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{tx("Mis pagos")}</h1>
 
       </header>
 
@@ -578,27 +582,25 @@ export default function PaymentsPage() {
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm">
                 <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
-                  Debes
+                  {tx("Debes")}
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
                   {formatMoney(owedByMeAmount)}
                 </p>
                 <p className="text-xs font-semibold text-neutral-500">
-                  {pendingOwedByMe.length} movimiento
-                  {pendingOwedByMe.length === 1 ? "" : "s"}
+                  {pendingOwedByMe.length} {tx(pendingOwedByMe.length === 1 ? "movimiento" : "movimientos")}
                 </p>
               </div>
 
               <div className="rounded-2xl bg-white px-3 py-2.5 shadow-sm">
                 <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
-                  Te deben
+                  {tx("Te deben")}
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
                   {formatMoney(owedToMeAmount)}
                 </p>
                 <p className="text-xs font-semibold text-neutral-500">
-                  {pendingOwedToMe.length} movimiento
-                  {pendingOwedToMe.length === 1 ? "" : "s"}
+                  {pendingOwedToMe.length} {tx(pendingOwedToMe.length === 1 ? "movimiento" : "movimientos")}
                 </p>
               </div>
             </div>
@@ -610,13 +612,13 @@ export default function PaymentsPage() {
                 disabled={isSendingReminder}
                 className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
-                {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
+                {isSendingReminder ? tx("Enviando...") : tx("Mandar recordatorio")}
               </button>
             ) : null}
 
             {reminderError ? (
               <p className="mt-2 text-xs font-bold text-red-700">
-                {reminderError}
+                {tx(reminderError)}
               </p>
             ) : null}
           </AppCard>
@@ -765,15 +767,13 @@ export default function PaymentsPage() {
 
           <AppCard>
             <p className="text-sm font-black text-neutral-950">
-              Estado de pagos y reservas
-            </p>
+              {tx("Estado de pagos y reservas")}{" "}</p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
-              Deudas pendientes o ya saldadas calculadas desde las reservas.
-            </p>
+              {tx("Deudas pendientes o ya saldadas calculadas desde las reservas.")}{" "}</p>
 
             {paymentStatusError ? (
               <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
-                {paymentStatusError}
+                {tx(paymentStatusError)}
               </p>
             ) : null}
 
@@ -784,7 +784,7 @@ export default function PaymentsPage() {
                   const toName = getPlayerName(transfer.toPlayerId)
                   const description =
                     transfer.fromPlayerId === currentUser.id
-                      ? `Debes pagar a ${toName}`
+                      ? tx(`Debes pagar a ${toName}`)
                       : `${fromName} debe pagarte`
 
                   return (
@@ -798,7 +798,7 @@ export default function PaymentsPage() {
                             {description}
                           </p>
                           <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                            Jornada {match.round}
+                            {tx("Jornada")}{" "}{match.round}
                           </p>
                         </div>
 
@@ -813,7 +813,7 @@ export default function PaymentsPage() {
                                 : "text-amber-600"
                             }`}
                           >
-                            {transfer.isPaid ? "Pagado" : "Pendiente"}
+                            {transfer.isPaid ? tx("Pagado") : tx("Pendiente")}
                           </p>
                         </div>
                       </div>
@@ -831,8 +831,8 @@ export default function PaymentsPage() {
                           className="flex mt-2 w-full rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                         >
                           {updatingTransferId === transfer.id
-                            ? "Guardando..."
-                            : "Marcar como pagado"}
+                            ? tx("Guardando...")
+                            : tx("Marcar como pagado")}
                         </button>
                       ) : null}
                     </div>
@@ -840,8 +840,7 @@ export default function PaymentsPage() {
                 })
               ) : (
                 <p className="rounded-2xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-                  No hay pagos de reservas para ti.
-                </p>
+                  {tx("No hay pagos de reservas para ti.")}{" "}</p>
               )}
             </div>
           </AppCard>
@@ -849,17 +848,16 @@ export default function PaymentsPage() {
       ) : (
         <AppCard>
           <p className="text-sm font-black text-neutral-950">
-            {activeTab === "all" ? "Todos los movimientos" : "Mis movimientos"}
+            {tx(activeTab === "all" ? "Todos los movimientos" : "Mis movimientos")}
           </p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            Historial de acciones registradas sobre pagos y reservas.
-          </p>
+            {tx("Historial de acciones registradas sobre pagos y reservas.")}{" "}</p>
 
           <div className="mt-3">
             <PaymentActivityList
               events={visibleActivityEvents}
               isLoading={isEventsLoading}
-              error={eventsError}
+              error={eventsError ? tx(eventsError) : null}
             />
           </div>
         </AppCard>

@@ -1,16 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
-  selectUpcomingPersonalMatch,
-  type PersonalMatchItem,
-  type PersonalMatchNextScope,
   type PersonalMatchesDashboardPayload,
 } from "@/lib/personalMatches"
 
@@ -21,14 +18,13 @@ function emptyDashboard(): PersonalMatchesDashboardPayload {
     items: [],
     hasMore: false,
     nextOffset: null,
-    upcoming: { league: null, friendly: null },
+    upcoming: [],
   }
 }
 
 export default function PersonalMatchesPage() {
   const { t } = useI18n()
   const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload>(emptyDashboard)
-  const [nextScope, setNextScope] = useState<PersonalMatchNextScope>("all")
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,12 +58,6 @@ export default function PersonalMatchesPage() {
     }
   }, [])
 
-  const hasBothUpcoming = Boolean(
-    dashboard.upcoming.league && dashboard.upcoming.friendly,
-  )
-  const selectedUpcoming = useMemo<PersonalMatchItem | null>(() => {
-    return selectUpcomingPersonalMatch(dashboard.upcoming, nextScope)
-  }, [dashboard.upcoming, nextScope])
 
   async function loadMore() {
     if (loadingMore || !dashboard.hasMore || dashboard.nextOffset === null) return
@@ -120,41 +110,21 @@ export default function PersonalMatchesPage() {
         <span aria-hidden="true" className="text-3xl font-light leading-none">+</span>
       </Link>
 
-      {!loading && selectedUpcoming ? (
+      {!loading && dashboard.upcoming.length > 0 ? (
         <section className="space-y-2">
           <div className="flex items-center justify-between gap-3 px-1">
             <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-              Próximo partido
+              Próximos partidos
             </p>
-
-            {hasBothUpcoming ? (
-              <div
-                className="flex rounded-lg bg-neutral-100 p-0.5"
-                aria-label="Tipo de próximo partido"
-              >
-                {(["all", "league", "friendly"] as const).map((scope) => (
-                  <button
-                    key={scope}
-                    type="button"
-                    onClick={() => setNextScope(scope)}
-                    className={`rounded-md px-2 py-1 type-caption font-black transition ${
-                      nextScope === scope
-                        ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-500"
-                    }`}
-                  >
-                    {scope === "all"
-                      ? "Todos"
-                      : scope === "league"
-                        ? "Liga"
-                        : "Amistoso"}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            <span className="type-caption font-bold text-neutral-400">
+              {dashboard.upcoming.length} amistoso{dashboard.upcoming.length === 1 ? "" : "s"}
+            </span>
           </div>
-
-          <PersonalMatchCard match={selectedUpcoming} />
+          <div className="space-y-2">
+            {dashboard.upcoming.map((match) => (
+              <PersonalMatchCard key={`upcoming-${match.id}`} match={match} />
+            ))}
+          </div>
         </section>
       ) : null}
 
@@ -179,7 +149,7 @@ export default function PersonalMatchesPage() {
         ) : dashboard.items.length === 0 ? (
           <EmptyState
             title="Todavía no hay partidos en tu historial"
-            description="Aquí aparecerán tus partidos terminados de liga y los amistosos que registres en Smash & Lob."
+            description="Aquí aparecerán tus partidos terminados de liga y los amistosos terminados o cuya fecha ya haya pasado."
             action={{ label: "Crear mi primer encuentro", href: "/personal-matches/new" }}
           />
         ) : (

@@ -15,8 +15,8 @@ describe("v1.8.1 match chat composer UX", () => {
 
   it("uses a paperclip and cleaner proposal choices", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
-    expect(page).toContain('aria-label="Adjuntar propuesta"')
-    expect(page).toContain('title="Proponer fecha o ubicación"')
+    expect(page).toContain('aria-label={tx("Adjuntar propuesta")}')
+    expect(page).toContain('title={tx("Proponer fecha o ubicación")}')
     expect(page).toContain("Adjuntar al chat")
     expect(page).toContain("Propón horarios")
     expect(page).toContain("Propón una pista")
@@ -30,7 +30,7 @@ describe("v1.8.1 match chat composer UX", () => {
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
     ])
     expect(page).toContain('titleHref={`/match/${id}`}')
-    expect(shared).toContain('aria-label="Abrir detalle del partido"')
+    expect(shared).toContain('aria-label={tx("Abrir detalle del partido")}')
     expect(shared).toContain("href={titleHref}")
     expect(shared).not.toContain("pointer-events-none absolute left-1/2")
   })

@@ -5,8 +5,10 @@ import { PlayerComparisonPanel } from "@/components/statistics/PlayerComparisonP
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 import { calculatePlayerComparison } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export default function StatisticsComparePage() {
+  const { tx } = useI18n()
   const {
     selectedSeason,
     buildStatisticsHref,
@@ -52,11 +54,11 @@ export default function StatisticsComparePage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        title="Cara a cara"
+        title={tx("Cara a cara")}
         description={
           isLeagueWide
-            ? "Compara su rendimiento histórico, las rachas, los duelos directos y los resultados ante rivales comunes de todas las temporadas."
-            : "Compara su rendimiento general, la forma reciente, los duelos directos y los resultados ante rivales comunes."
+            ? tx("Compara su rendimiento histórico, las rachas, los duelos directos y los resultados ante rivales comunes de todas las temporadas.")
+            : tx("Compara su rendimiento general, la forma reciente, los duelos directos y los resultados ante rivales comunes.")
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
