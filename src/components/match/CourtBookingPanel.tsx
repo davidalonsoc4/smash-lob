@@ -173,12 +173,18 @@ export function CourtBookingPanel({
       reservations: booking.ballPurchases,
     })
   )
-  const [selectedPayerIds, setSelectedPayerIds] = useState(() =>
-    getInitialSelectedPayerIds({
+  const [selectedPayerIds, setSelectedPayerIds] = useState(() => {
+    const selectedIds = getInitialSelectedPayerIds({
       participantIds,
       reservations: booking.reservations,
     })
-  )
+
+    if (selectedIds.length === 0 && participantIds.includes(currentUserId)) {
+      return [currentUserId]
+    }
+
+    return selectedIds
+  })
   const [selectedBallBuyerId, setSelectedBallBuyerId] = useState(() =>
     getInitialSelectedSinglePayerId({
       participantIds,
@@ -288,6 +294,10 @@ export function CourtBookingPanel({
     selectedReservationInputs.length === 1 ? selectedReservationInputs[0] : null
   const selectedBallPurchaseInput =
     selectedBallPurchaseInputs.length === 1 ? selectedBallPurchaseInputs[0] : null
+  const fallbackBallPurchaseInput =
+    ballPurchaseInputs.find((input) => input.playerId === currentUserId) ?? null
+  const editableBallPurchaseInput =
+    selectedBallPurchaseInput ?? fallbackBallPurchaseInput
 
   function updateReservationAmount(playerId: string, amount: string) {
     setReservationInputs((currentInputs) =>
@@ -433,10 +443,7 @@ export function CourtBookingPanel({
       })
     )
     setSelectedPayerIds(
-      getInitialSelectedPayerIds({
-        participantIds,
-        reservations: [],
-      })
+      participantIds.includes(currentUserId) ? [currentUserId] : []
     )
     setSelectedBallBuyerId("")
     setIsPayerSelectorOpen(false)
@@ -740,15 +747,23 @@ export function CourtBookingPanel({
               <label className="flex min-w-0 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
                 <input
                   inputMode="decimal"
-                  value={selectedBallPurchaseInput?.amount ?? ""}
-                  disabled={isSaving || !selectedBallPurchaseInput}
+                  value={editableBallPurchaseInput?.amount ?? ""}
+                  disabled={isSaving || !editableBallPurchaseInput}
+                  onFocus={() => {
+                    if (!selectedBallBuyerId && editableBallPurchaseInput) {
+                      selectBallBuyer(editableBallPurchaseInput.playerId)
+                    }
+                  }}
                   onChange={(event) => {
-                    if (!selectedBallPurchaseInput) {
+                    if (!editableBallPurchaseInput) {
                       return
                     }
 
+                    if (!selectedBallBuyerId) {
+                      setSelectedBallBuyerId(editableBallPurchaseInput.playerId)
+                    }
                     updateBallPurchaseAmount(
-                      selectedBallPurchaseInput.playerId,
+                      editableBallPurchaseInput.playerId,
                       event.target.value
                     )
                   }}

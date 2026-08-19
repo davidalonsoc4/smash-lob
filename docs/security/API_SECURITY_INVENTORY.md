@@ -104,6 +104,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/onboarding/progress` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/onboarding/progress` | PATCH | Protegido | requireAuthenticatedAppUser |
 | `/api/onboarding/progress` | DELETE | Protegido | requireAuthenticatedAppUser |
+| `/api/payments/ledger` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]` | GET | Protegido | requireAuthenticatedAppUser |
