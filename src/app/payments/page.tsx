@@ -1,14 +1,11 @@
-"use client"
+﻿"use client"
 
-import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
-import {
-  type CourtBookingTransfer,
-  type MatchData,
-  useMatchData,
-} from "@/context/MatchDataProvider"
+import { type MatchData, useMatchData } from "@/context/MatchDataProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -20,14 +17,15 @@ import {
   type ActivityEvent,
 } from "@/lib/activity"
 import { formatMoney, roundMoney } from "@/lib/courtBooking"
-import { showActionFeedback } from "@/lib/actionFeedback"
+import {
+  fetchPaymentLedger,
+  getPaymentLedgerPendingSummary,
+  setPaymentLedgerTransferPaid,
+  type PaymentLedgerItem,
+} from "@/lib/paymentLedger"
 
 type PaymentTab = "status" | "movements" | "all"
-
-type PaymentMovement = {
-  match: MatchData
-  transfer: CourtBookingTransfer
-}
+type PaymentScope = "all" | "league" | "friendly"
 
 type EconomyScope = "league" | string
 
@@ -37,10 +35,6 @@ const paymentEventTypes = new Set<ActivityEvent["type"]>([
   "court_booking_payment_paid",
   "court_booking_payment_reminder",
 ])
-
-function getPendingAmount(movements: PaymentMovement[]) {
-  return movements.reduce((sum, { transfer }) => sum + transfer.amount, 0)
-}
 
 function getRecordedMatchCost(match: MatchData) {
   const court = match.courtBooking.reservations.reduce(
@@ -57,40 +51,6 @@ function getRecordedMatchCost(match: MatchData) {
     balls: roundMoney(balls),
     total: roundMoney(court + balls),
   }
-}
-
-function toRecord(value: unknown): Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {}
-}
-
-function toTransfers(value: unknown) {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value
-    .map((item) => toRecord(item))
-    .map((transfer) => ({
-      fromPlayerId: String(transfer.fromPlayerId ?? ""),
-      toPlayerId: String(transfer.toPlayerId ?? ""),
-      amount: Number(transfer.amount),
-      isPaid: Boolean(transfer.isPaid),
-    }))
-}
-
-function toPlayerPayments(value: unknown) {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value
-    .map((item) => toRecord(item))
-    .map((payment) => ({
-      playerId: String(payment.playerId ?? ""),
-      amount: Number(payment.amount),
-    }))
 }
 
 function formatEventDate(value: string, locale: Locale) {
@@ -131,45 +91,6 @@ function getPaymentEventLabel(type: ActivityEvent["type"]) {
 
 function isPaymentActivityEvent(event: ActivityEvent) {
   return paymentEventTypes.has(event.type)
-}
-
-function isUserInPaymentEvent({
-  event,
-  currentUserId,
-  currentUserMatchIds,
-}: {
-  event: ActivityEvent
-  currentUserId: string
-  currentUserMatchIds: Set<string>
-}) {
-  if (!isPaymentActivityEvent(event)) {
-    return false
-  }
-
-  if (event.matchId && currentUserMatchIds.has(event.matchId)) {
-    return true
-  }
-
-  const transfers = toTransfers(event.metadata.transfers)
-  const paidTransfer = toRecord(event.metadata.paidTransfer)
-  const paidTransferPlayerIds = [
-    String(paidTransfer.fromPlayerId ?? ""),
-    String(paidTransfer.toPlayerId ?? ""),
-  ]
-  const payments = [
-    ...toPlayerPayments(event.metadata.reservations),
-    ...toPlayerPayments(event.metadata.ballPurchases),
-  ]
-
-  return (
-    transfers.some(
-      (transfer) =>
-        transfer.fromPlayerId === currentUserId ||
-        transfer.toPlayerId === currentUserId
-    ) ||
-    paidTransferPlayerIds.includes(currentUserId) ||
-    payments.some((payment) => payment.playerId === currentUserId)
-  )
 }
 
 function PaymentActivityList({
@@ -240,29 +161,202 @@ function PaymentActivityList({
   )
 }
 
+function formatLedgerDate(value: string | null, locale: Locale) {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date)
+}
+
+function getLedgerSourceLabel(
+  item: PaymentLedgerItem,
+  tx: (value: string) => string,
+) {
+  if (item.source === "friendly") return tx("Amistoso")
+
+  return [
+    item.leagueName ?? tx("Liga"),
+    item.seasonName,
+    item.round ? `J${item.round}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+}
+
+function PaymentLedgerList({
+  items,
+  isLoading,
+  error,
+  updatingTransferId,
+  onMarkPaid,
+}: {
+  items: PaymentLedgerItem[]
+  isLoading: boolean
+  error: string | null
+  updatingTransferId: string | null
+  onMarkPaid: (item: PaymentLedgerItem) => void
+}) {
+  const { tx, locale } = useI18n()
+
+  if (isLoading) {
+    return (
+      <p className="rounded-2xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
+        {tx("Cargando pagos...")}
+      </p>
+    )
+  }
+
+  if (error) {
+    return (
+      <p className="rounded-2xl bg-red-50 px-3 py-3 text-xs font-bold text-red-700">
+        {tx(error)}
+      </p>
+    )
+  }
+
+  if (items.length === 0) {
+    return (
+      <p className="rounded-2xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
+        {tx("No hay pagos para este filtro.")}
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => {
+        const description =
+          item.direction === "owe"
+            ? `${tx("Debes pagar a")} ${item.toName}`
+            : `${item.fromName} ${tx("debe pagarte")}`
+        const ledgerDate = formatLedgerDate(item.eventAt, locale)
+        const itemKey = `${item.source}-${item.matchId}-${item.transferId}`
+
+        return (
+          <div
+            key={itemKey}
+            className="rounded-2xl border border-neutral-100 bg-neutral-50 px-3 py-2.5"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-black text-neutral-950">{description}</p>
+                <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+                  {getLedgerSourceLabel(item, tx)}
+                  {ledgerDate ? ` · ${ledgerDate}` : ` · ${tx("Fecha pendiente")}`}
+                </p>
+              </div>
+
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-black text-neutral-950">
+                  {formatMoney(item.amount)}
+                </p>
+                <p
+                  className={`type-caption font-black uppercase tracking-[0.14em] ${
+                    item.isPaid ? "text-emerald-600" : "text-amber-600"
+                  }`}
+                >
+                  {item.isPaid ? tx("Pagado") : tx("Pendiente")}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Link
+                href={item.href}
+                className="flex rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
+              >
+                {tx("Ver partido")}
+              </Link>
+              {!item.isPaid ? (
+                <button
+                  type="button"
+                  onClick={() => onMarkPaid(item)}
+                  disabled={updatingTransferId === itemKey}
+                  className="flex rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                >
+                  {updatingTransferId === itemKey
+                    ? tx("Guardando...")
+                    : tx("Marcar como pagado")}
+                </button>
+              ) : (
+                <span className="flex rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 items-center justify-center text-center">
+                  {tx("Saldado")}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function PaymentsPage() {
   const { tx } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { activeLeague, activeSeason, matches, players } = useCurrentLeagueData()
+  const { activeLeague, activeSeason } = useCurrentLeagueData()
   const { isLeagueAdmin } = useLeagueAccess()
   const { seasons, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const { t } = useI18n()
-  const {
-    matches: storedMatches,
-    sendCourtBookingPaymentReminder,
-    updateCourtBookingTransferPaymentStatus,
-  } = useMatchData()
+  const { matches: storedMatches } = useMatchData()
   const canViewAllMovements = isLeagueAdmin(activeLeague.id)
   const [activeTab, setActiveTab] = useState<PaymentTab>("status")
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [isEventsLoading, setIsEventsLoading] = useState(true)
   const [eventsError, setEventsError] = useState<string | null>(null)
-  const [isSendingReminder, setIsSendingReminder] = useState(false)
+  const [ledgerItems, setLedgerItems] = useState<PaymentLedgerItem[]>([])
+  const [isLedgerLoading, setIsLedgerLoading] = useState(true)
+  const [ledgerError, setLedgerError] = useState<string | null>(null)
+  const [paymentScope, setPaymentScope] = useState<PaymentScope>("all")
   const [updatingTransferId, setUpdatingTransferId] = useState<string | null>(null)
   const [paymentStatusError, setPaymentStatusError] = useState<string | null>(null)
-  const [reminderError, setReminderError] = useState<string | null>(null)
   const [isEconomyExpanded, setIsEconomyExpanded] = useState(false)
   const [economyScope, setEconomyScope] = useState<EconomyScope>(activeSeason.id)
+
+  const refreshLedger = useCallback(async () => {
+    try {
+      const payload = await fetchPaymentLedger()
+      setLedgerItems(payload.items)
+      setLedgerError(null)
+    } catch {
+      setLedgerError("No se han podido cargar tus pagos.")
+    } finally {
+      setIsLedgerLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadLedger() {
+      try {
+        const payload = await fetchPaymentLedger()
+        if (isMounted) {
+          setLedgerItems(payload.items)
+          setLedgerError(null)
+        }
+      } catch {
+        if (isMounted) {
+          setLedgerError("No se han podido cargar tus pagos.")
+        }
+      } finally {
+        if (isMounted) {
+          setIsLedgerLoading(false)
+        }
+      }
+    }
+
+    void loadLedger()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -298,61 +392,31 @@ export default function PaymentsPage() {
     }
   }, [activeLeague.id])
 
-  const allMovements = useMemo(
-    () =>
-      matches
-        .flatMap((match) =>
-          match.courtBooking.transfers.map((transfer) => ({ match, transfer }))
-        )
-        .sort((left, right) => right.match.round - left.match.round),
-    [matches]
-  )
-  const myMovements = useMemo(
-    () =>
-      allMovements.filter(
-        ({ transfer }) =>
-          transfer.fromPlayerId === currentUser.id ||
-          transfer.toPlayerId === currentUser.id
-      ),
-    [allMovements, currentUser.id]
-  )
-  const currentUserMatchIds = useMemo(
-    () =>
-      new Set(
-        matches
-          .filter(
-            (match) =>
-              match.teamA.includes(currentUser.id) ||
-              match.teamB.includes(currentUser.id)
-          )
-          .map((match) => match.id)
-      ),
-    [currentUser.id, matches]
-  )
   const paymentEvents = useMemo(
     () => events.filter(isPaymentActivityEvent),
     [events]
   )
-  const myPaymentEvents = useMemo(
+  const pendingSummary = useMemo(
+    () => getPaymentLedgerPendingSummary(ledgerItems),
+    [ledgerItems],
+  )
+  const pendingPaymentCount =
+    pendingSummary.owedByMeCount + pendingSummary.owedToMeCount
+  const scopedLedgerItems = useMemo(
     () =>
-      paymentEvents.filter((event) =>
-        isUserInPaymentEvent({
-          event,
-          currentUserId: currentUser.id,
-          currentUserMatchIds,
-        })
-      ),
-    [currentUser.id, currentUserMatchIds, paymentEvents]
+      ledgerItems.filter((item) => {
+        if (paymentScope === "friendly") return item.source === "friendly"
+        if (paymentScope === "league") {
+          return item.source === "league" && item.leagueId === activeLeague.id
+        }
+        return true
+      }),
+    [activeLeague.id, ledgerItems, paymentScope],
   )
-  const pendingOwedByMe = myMovements.filter(
-    ({ transfer }) => transfer.fromPlayerId === currentUser.id && !transfer.isPaid
+  const scopedPendingLedgerItems = useMemo(
+    () => scopedLedgerItems.filter((item) => !item.isPaid),
+    [scopedLedgerItems],
   )
-  const pendingOwedToMe = myMovements.filter(
-    ({ transfer }) => transfer.toPlayerId === currentUser.id && !transfer.isPaid
-  )
-  const owedByMeAmount = getPendingAmount(pendingOwedByMe)
-  const owedToMeAmount = getPendingAmount(pendingOwedToMe)
-  const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
 
   const leagueSeasons = useMemo(
     () => seasons.filter((season) => season.leagueId === activeLeague.id),
@@ -465,85 +529,34 @@ export default function PaymentsPage() {
       : leagueSeasons.find((season) => season.id === effectiveEconomyScope)?.name ??
         activeSeason.name
 
-  const getPlayerName = (playerId: string) =>
-    players.find((player) => player.id === playerId)?.displayName ?? playerId
+  async function handleMarkTransferPaid(item: PaymentLedgerItem) {
+    if (updatingTransferId) return
 
-  async function handleSendReminder() {
-    if (isSendingReminder || pendingOwedToMe.length === 0) {
-      return
-    }
-
-    const transfersByMatch = new Map<string, string[]>()
-
-    pendingOwedToMe.forEach(({ match, transfer }) => {
-      const transferIds = transfersByMatch.get(match.id) ?? []
-      transferIds.push(transfer.id)
-      transfersByMatch.set(match.id, transferIds)
-    })
-
-    setIsSendingReminder(true)
-    setReminderError(null)
-
-    const results = await Promise.all(
-      Array.from(transfersByMatch.entries()).map(([matchId, transferIds]) =>
-        sendCourtBookingPaymentReminder(matchId, transferIds)
-      )
-    )
-    const sentCount = results.filter(Boolean).length
-
-    setIsSendingReminder(false)
-
-    if (sentCount === 0) {
-      setReminderError(
-        "No se ha podido mandar el recordatorio. Revisa Supabase o smash-lob-last-supabase-error."
-      )
-      return
-    }
-
-    showActionFeedback({
-      tone: "success",
-      message:
-        sentCount === 1
-          ? "Recordatorio enviado."
-          : tx(`Recordatorios enviados para ${sentCount} partidos.`),
-    })
-  }
-
-  async function handleMarkTransferPaid({
-    matchId,
-    transferId,
-  }: {
-    matchId: string
-    transferId: string
-  }) {
-    if (updatingTransferId) {
-      return
-    }
-
-    setUpdatingTransferId(transferId)
+    setUpdatingTransferId(`${item.source}-${item.matchId}-${item.transferId}`)
     setPaymentStatusError(null)
 
-    const saved = await updateCourtBookingTransferPaymentStatus(
-      matchId,
-      transferId,
-      true
-    )
-
-    setUpdatingTransferId(null)
-
-    if (!saved) {
+    const saved = await setPaymentLedgerTransferPaid(item, true)
+    if (saved) {
+      await refreshLedger()
+    } else {
       setPaymentStatusError(
-        "No se ha podido marcar el pago como pagado. Revisa Supabase o smash-lob-last-supabase-error."
+        "No se ha podido marcar el pago como pagado. Revisa Supabase o smash-lob-last-supabase-error.",
       )
     }
+
+    setUpdatingTransferId(null)
   }
 
   const tabs: { id: PaymentTab; label: string }[] = [
-    { id: "status", label: "Estado" },
-    { id: "movements", label: "Movimientos" },
-    ...(canViewAllMovements ? [{ id: "all" as const, label: "Todos" }] : []),
+    { id: "status", label: tx("Estado") },
+    { id: "movements", label: tx("Movimientos") },
+    ...(canViewAllMovements ? [{ id: "all" as const, label: tx("Admin") }] : []),
   ]
-  const visibleActivityEvents = activeTab === "all" ? paymentEvents : myPaymentEvents
+  const paymentScopeOptions: { id: PaymentScope; label: string }[] = [
+    { id: "all", label: tx("Todos") },
+    { id: "league", label: activeLeague.name },
+    { id: "friendly", label: tx("Amistosos") },
+  ]
 
   return (
     <div className="compact-page space-y-3">
@@ -572,6 +585,25 @@ export default function PaymentsPage() {
         ))}
       </div>
 
+      {activeTab !== "all" ? (
+        <div className="grid grid-cols-3 rounded-2xl border border-neutral-200 bg-white p-1 text-xs font-black">
+          {paymentScopeOptions.map((scope) => (
+            <button
+              key={scope.id}
+              type="button"
+              onClick={() => setPaymentScope(scope.id)}
+              className={`min-w-0 truncate rounded-xl px-2 py-2 ${
+                paymentScope === scope.id
+                  ? "bg-neutral-950 text-white"
+                  : "text-neutral-500"
+              }`}
+            >
+              {scope.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {activeTab === "status" ? (
         <>
           <AppCard
@@ -585,10 +617,10 @@ export default function PaymentsPage() {
                   {tx("Debes")}
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
-                  {formatMoney(owedByMeAmount)}
+                  {formatMoney(pendingSummary.owedByMe)}
                 </p>
                 <p className="text-xs font-semibold text-neutral-500">
-                  {pendingOwedByMe.length} {tx(pendingOwedByMe.length === 1 ? "movimiento" : "movimientos")}
+                  {pendingSummary.owedByMeCount} {tx(pendingSummary.owedByMeCount === 1 ? "movimiento" : "movimientos")}
                 </p>
               </div>
 
@@ -597,30 +629,14 @@ export default function PaymentsPage() {
                   {tx("Te deben")}
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
-                  {formatMoney(owedToMeAmount)}
+                  {formatMoney(pendingSummary.owedToMe)}
                 </p>
                 <p className="text-xs font-semibold text-neutral-500">
-                  {pendingOwedToMe.length} {tx(pendingOwedToMe.length === 1 ? "movimiento" : "movimientos")}
+                  {pendingSummary.owedToMeCount} {tx(pendingSummary.owedToMeCount === 1 ? "movimiento" : "movimientos")}
                 </p>
               </div>
             </div>
 
-            {pendingOwedToMe.length > 0 ? (
-              <button
-                type="button"
-                onClick={handleSendReminder}
-                disabled={isSendingReminder}
-                className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
-              >
-                {isSendingReminder ? tx("Enviando...") : tx("Mandar recordatorio")}
-              </button>
-            ) : null}
-
-            {reminderError ? (
-              <p className="mt-2 text-xs font-bold text-red-700">
-                {tx(reminderError)}
-              </p>
-            ) : null}
           </AppCard>
 
           <AppCard className="overflow-hidden p-0">
@@ -767,9 +783,11 @@ export default function PaymentsPage() {
 
           <AppCard>
             <p className="text-sm font-black text-neutral-950">
-              {tx("Estado de pagos y reservas")}{" "}</p>
+              {tx("Pagos pendientes")}
+            </p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
-              {tx("Deudas pendientes o ya saldadas calculadas desde las reservas.")}{" "}</p>
+              {tx("Liga y amistosos de tu cuenta, con el origen de cada deuda.")}
+            </p>
 
             {paymentStatusError ? (
               <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
@@ -777,85 +795,42 @@ export default function PaymentsPage() {
               </p>
             ) : null}
 
-            <div className="mt-3 space-y-2">
-              {myMovements.length > 0 ? (
-                myMovements.map(({ match, transfer }) => {
-                  const fromName = getPlayerName(transfer.fromPlayerId)
-                  const toName = getPlayerName(transfer.toPlayerId)
-                  const description =
-                    transfer.fromPlayerId === currentUser.id
-                      ? tx(`Debes pagar a ${toName}`)
-                      : `${fromName} debe pagarte`
-
-                  return (
-                    <div
-                      key={`${match.id}-${transfer.id}`}
-                      className="rounded-2xl border border-neutral-100 bg-neutral-50 px-3 py-2.5"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-black text-neutral-950">
-                            {description}
-                          </p>
-                          <p className="mt-0.5 text-xs font-semibold text-neutral-500">
-                            {tx("Jornada")}{" "}{match.round}
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm font-black text-neutral-950">
-                            {formatMoney(transfer.amount)}
-                          </p>
-                          <p
-                            className={`type-caption font-black uppercase tracking-[0.14em] ${
-                              transfer.isPaid
-                                ? "text-emerald-600"
-                                : "text-amber-600"
-                            }`}
-                          >
-                            {transfer.isPaid ? tx("Pagado") : tx("Pendiente")}
-                          </p>
-                        </div>
-                      </div>
-
-                      {!transfer.isPaid ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleMarkTransferPaid({
-                              matchId: match.id,
-                              transferId: transfer.id,
-                            })
-                          }
-                          disabled={updatingTransferId === transfer.id}
-                          className="flex mt-2 w-full rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
-                        >
-                          {updatingTransferId === transfer.id
-                            ? tx("Guardando...")
-                            : tx("Marcar como pagado")}
-                        </button>
-                      ) : null}
-                    </div>
-                  )
-                })
-              ) : (
-                <p className="rounded-2xl bg-neutral-50 px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-                  {tx("No hay pagos de reservas para ti.")}{" "}</p>
-              )}
+            <div className="mt-3">
+              <PaymentLedgerList
+                items={scopedPendingLedgerItems}
+                isLoading={isLedgerLoading}
+                error={ledgerError}
+                updatingTransferId={updatingTransferId}
+                onMarkPaid={(item) => void handleMarkTransferPaid(item)}
+              />
             </div>
           </AppCard>
         </>
+      ) : activeTab === "movements" ? (
+        <AppCard>
+          <p className="text-sm font-black text-neutral-950">{tx("Mis movimientos")}</p>
+          <p className="mt-1 text-xs font-semibold text-neutral-500">
+            {tx("Pagos pendientes y saldados de todas tus ligas y amistosos.")}
+          </p>
+          <div className="mt-3">
+            <PaymentLedgerList
+              items={scopedLedgerItems}
+              isLoading={isLedgerLoading}
+              error={ledgerError}
+              updatingTransferId={updatingTransferId}
+              onMarkPaid={(item) => void handleMarkTransferPaid(item)}
+            />
+          </div>
+        </AppCard>
       ) : (
         <AppCard>
-          <p className="text-sm font-black text-neutral-950">
-            {tx(activeTab === "all" ? "Todos los movimientos" : "Mis movimientos")}
-          </p>
+          <p className="text-sm font-black text-neutral-950">{tx("Todos los movimientos")}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {tx("Historial de acciones registradas sobre pagos y reservas.")}{" "}</p>
-
+            {tx("Historial administrativo de pagos de la liga activa.")}
+          </p>
           <div className="mt-3">
             <PaymentActivityList
-              events={visibleActivityEvents}
+              events={paymentEvents}
               isLoading={isEventsLoading}
               error={eventsError ? tx(eventsError) : null}
             />

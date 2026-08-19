@@ -1,6 +1,6 @@
 "use client"
 import type { ReactNode } from "react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
@@ -17,6 +17,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { formatMoney } from "@/lib/courtBooking"
+import { fetchPaymentLedger, getPaymentLedgerPendingSummary } from "@/lib/paymentLedger"
 const settingsVersionLabel = `Smash & Lob · ${APP_VERSION_LABEL}`
 type SettingsSectionProps = {
   title: string
@@ -384,7 +385,7 @@ function PlayerSettingsPage() {
   const { tx } = useI18n()
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { activeLeague, matches, roundSettings } = useCurrentLeagueData()
+  const { activeLeague, roundSettings } = useCurrentLeagueData()
   const {
     canCreateLeagues,
     getMembershipForLeague,
@@ -405,33 +406,36 @@ function PlayerSettingsPage() {
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
   const [unlinkLeagueError, setUnlinkLeagueError] = useState<string | null>(null)
-  const paymentMovements = matches
-    .flatMap((match) =>
-      match.courtBooking.transfers
-        .filter(
-          (transfer) =>
-            transfer.fromPlayerId === currentUser.id ||
-            transfer.toPlayerId === currentUser.id,
-        )
-        .map((transfer) => ({ match, transfer })),
-    )
-    .sort((left, right) => right.match.round - left.match.round)
-  const pendingOwedByMe = paymentMovements.filter(
-    ({ transfer }) => transfer.fromPlayerId === currentUser.id && !transfer.isPaid,
+  const [paymentLedgerItems, setPaymentLedgerItems] = useState<Awaited<ReturnType<typeof fetchPaymentLedger>>["items"]>([])
+  const [paymentLedgerLoaded, setPaymentLedgerLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetchPaymentLedger()
+      .then((payload) => {
+        if (!cancelled) setPaymentLedgerItems(payload.items)
+      })
+      .catch(() => null)
+      .finally(() => {
+        if (!cancelled) setPaymentLedgerLoaded(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const pendingPaymentSummary = useMemo(
+    () => getPaymentLedgerPendingSummary(paymentLedgerItems),
+    [paymentLedgerItems],
   )
-  const pendingOwedToMe = paymentMovements.filter(
-    ({ transfer }) => transfer.toPlayerId === currentUser.id && !transfer.isPaid,
-  )
-  const owedByMeAmount = pendingOwedByMe.reduce(
-    (sum, { transfer }) => sum + transfer.amount,
-    0,
-  )
-  const owedToMeAmount = pendingOwedToMe.reduce(
-    (sum, { transfer }) => sum + transfer.amount,
-    0,
-  )
-  const pendingPaymentCount = pendingOwedByMe.length + pendingOwedToMe.length
-  const hasPendingPayments = pendingPaymentCount > 0
+  const owedByMeAmount = pendingPaymentSummary.owedByMe
+  const owedToMeAmount = pendingPaymentSummary.owedToMe
+  const pendingPaymentCount =
+    pendingPaymentSummary.owedByMeCount + pendingPaymentSummary.owedToMeCount
+  const hasPendingPayments = paymentLedgerLoaded && pendingPaymentCount > 0
+
   async function handleUnlinkCurrentLeague() {
     if (!canSelfUnlink || isUnlinkingLeague) {
       return
