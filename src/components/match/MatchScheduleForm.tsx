@@ -7,6 +7,8 @@ import { useMatchData } from "@/context/MatchDataProvider";
 import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
 import { AppCard } from "@/components/ui/AppCard";
 import { useI18n } from "@/i18n/I18nProvider";
+import { getIntlLocale } from "@/i18n/leagueText";
+import type { Locale } from "@/i18n/translations";
 import {
   createLeagueLocation,
   createScheduledLeagueLocationValue,
@@ -32,14 +34,14 @@ import {
   formatScheduleForDateTimeInput,
 } from "@/lib/matchScheduleTime";
 
-function capitalizeFirstLetter(value: string | null | undefined) {
+function capitalizeFirstLetter(value: string | null | undefined, locale: Locale) {
   const cleanValue = value?.trim();
 
   if (!cleanValue) {
     return value ?? null;
   }
 
-  return cleanValue.charAt(0).toLocaleUpperCase("es-ES") + cleanValue.slice(1);
+  return cleanValue.charAt(0).toLocaleUpperCase(getIntlLocale(locale)) + cleanValue.slice(1);
 }
 
 type MatchScheduleActions = {
@@ -93,7 +95,7 @@ export function MatchScheduleForm({
   allowPostpone = true,
   actions,
 }: MatchScheduleFormProps) {
-  const { t } = useI18n();
+  const { tx, t, locale } = useI18n();
   const { updateMatchSchedule, postponeMatch, clearMatchSchedule } = useMatchData();
   const [addedLeagueLocations, setAddedLeagueLocations] = useState<LeagueLocation[]>([]);
   const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([]);
@@ -299,7 +301,7 @@ export function MatchScheduleForm({
     ? getLeagueLocationTownNameLabel(selectedLeagueLocation)
     : selectedLocation === otherLocationValue
       ? customLocation.trim() || "Otra ubicación"
-      : "Seleccionar ubicación";
+      : tx("Seleccionar ubicación");
   const selectedLocationCourts = selectedLeagueLocation
     ? getLeagueLocationCourts(selectedLeagueLocation)
     : [];
@@ -685,7 +687,7 @@ export function MatchScheduleForm({
         <div className="px-3 pb-3 pt-1">
           <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
             <p className="font-black text-neutral-950">
-              {formatMatchScheduleLongLabel(scheduledAt) ?? capitalizeFirstLetter(dateLabel) ?? t.matches.pendingDate}
+              {formatMatchScheduleLongLabel(scheduledAt, locale) ?? capitalizeFirstLetter(dateLabel, locale) ?? t.matches.pendingDate}
             </p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-600">
               {displayedLocationText ?? t.matches.missingSchedule}
@@ -792,7 +794,7 @@ export function MatchScheduleForm({
 
           {actionError ? (
             <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
-              {actionError}
+              {tx(actionError)}
             </p>
           ) : null}
 
@@ -850,35 +852,35 @@ export function MatchScheduleForm({
                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                   </button>
                   {isLocationPickerOpen && typeof document !== "undefined" ? createPortal(<>
-                    <button type="button" aria-label="Cerrar buscador de ubicaciones" onClick={closeLocationPicker} className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]" />
-                    <section role="dialog" aria-modal="true" aria-label="Buscar ubicación" className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl" style={{ top: "max(14px, calc(var(--app-safe-top) + 10px))", maxHeight: "min(440px, calc(100dvh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 28px))" }}>
+                    <button type="button" aria-label={tx("Cerrar buscador de ubicaciones")} onClick={closeLocationPicker} className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]" />
+                    <section role="dialog" aria-modal="true" aria-label={tx("Buscar ubicación")} className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl" style={{ top: "max(14px, calc(var(--app-safe-top) + 10px))", maxHeight: "min(440px, calc(100dvh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 28px))" }}>
                       <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
-                        <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-neutral-950">Seleccionar ubicación</p><p className="type-caption font-semibold text-neutral-400">{normalizedAvailableLocations.length} disponibles</p></div><button type="button" onClick={closeLocationPicker} aria-label="Cerrar" className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500">×</button></div>
+                        <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-neutral-950">{tx("Seleccionar ubicación")}</p><p className="type-caption font-semibold text-neutral-400">{tx(`${normalizedAvailableLocations.length} disponibles`)}</p></div><button type="button" onClick={closeLocationPicker} aria-label={tx("Cerrar")} className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500">×</button></div>
                         <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-                          <input ref={locationSearchInputRef} type="search" value={locationSearch} onChange={(event) => setLocationSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") closeLocationPicker(); if (event.key === "Enter") event.preventDefault() }} disabled={isSaving || isSavingLocation} placeholder={loadingGlobalLocations ? "Cargando ubicaciones..." : "Buscar por localidad o nombre..."} className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none" />
-                          {locationSearch ? <button type="button" onClick={() => setLocationSearch("")} aria-label="Borrar búsqueda" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-center text-xs font-black text-neutral-600">×</button> : null}
+                          <input ref={locationSearchInputRef} type="search" value={locationSearch} onChange={(event) => setLocationSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") closeLocationPicker(); if (event.key === "Enter") event.preventDefault() }} disabled={isSaving || isSavingLocation} placeholder={loadingGlobalLocations ? tx("Cargando ubicaciones...") : tx("Buscar por localidad o nombre...")} className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none" />
+                          {locationSearch ? <button type="button" onClick={() => setLocationSearch("")} aria-label={tx("Borrar búsqueda")} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-center text-xs font-black text-neutral-600">×</button> : null}
                         </div>
                       </div>
                       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-                        {isAddingLeagueLocation ? <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5"><p className="text-sm font-black text-neutral-900">Nueva ubicación</p><p className="mt-0.5 type-caption font-semibold text-neutral-500">Se guardará en el catálogo global de Smash & Lob.</p>
+                        {isAddingLeagueLocation ? <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5"><p className="text-sm font-black text-neutral-900">{tx("Nueva ubicación")}</p><p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Se guardará en el catálogo global de Smash & Lob.")}</p>
                           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                            <input value={newLocationName} onChange={(event) => setNewLocationName(event.target.value)} placeholder="Nombre del club" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
-                            <input value={newLocationTown} onChange={(event) => setNewLocationTown(event.target.value)} placeholder="Localidad" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
-                            <input value={newLocationAddress} onChange={(event) => setNewLocationAddress(event.target.value)} placeholder="Dirección o enlace de Google Maps" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400 sm:col-span-2" />
-                            <input value={newLocationCourtCount} onChange={(event) => setNewLocationCourtCount(event.target.value.replace(/[^0-9]/g, "").slice(0, 2))} inputMode="numeric" placeholder="Número de pistas (opcional)" disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
-                            <button type="button" onClick={handleCreateLeagueLocation} disabled={!newLocationDraft || isSavingLocation} className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center text-sm font-black text-white disabled:bg-neutral-300">{isSavingLocation ? "Guardando..." : "Guardar y seleccionar"}</button>
+                            <input value={newLocationName} onChange={(event) => setNewLocationName(event.target.value)} placeholder={tx("Nombre del club")} disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
+                            <input value={newLocationTown} onChange={(event) => setNewLocationTown(event.target.value)} placeholder={tx("Localidad")} disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
+                            <input value={newLocationAddress} onChange={(event) => setNewLocationAddress(event.target.value)} placeholder={tx("Dirección o enlace de Google Maps")} disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400 sm:col-span-2" />
+                            <input value={newLocationCourtCount} onChange={(event) => setNewLocationCourtCount(event.target.value.replace(/[^0-9]/g, "").slice(0, 2))} inputMode="numeric" placeholder={tx("Número de pistas (opcional)")} disabled={isSavingLocation} className="rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400" />
+                            <button type="button" onClick={handleCreateLeagueLocation} disabled={!newLocationDraft || isSavingLocation} className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center text-sm font-black text-white disabled:bg-neutral-300">{isSavingLocation ? "Guardando..." : tx("Guardar y seleccionar")}</button>
                           </div>
                         </div> : <>
-                          {recommendedLocations.length > 0 && recommendedFilteredLocations.length > 0 ? <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200"><p className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">Recomendadas por la liga</p><div className="space-y-1 p-1">{recommendedFilteredLocations.map(renderLocationOption)}</div></div> : null}
-                          {!loadingGlobalLocations && recommendedLocations.length > 0 && otherFilteredLocations.length > 0 ? <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200"><p className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">Todas las ubicaciones</p><div className="space-y-1 p-1">{otherFilteredLocations.map(renderLocationOption)}</div></div> : null}
+                          {recommendedLocations.length > 0 && recommendedFilteredLocations.length > 0 ? <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200"><p className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Recomendadas por la liga")}</p><div className="space-y-1 p-1">{recommendedFilteredLocations.map(renderLocationOption)}</div></div> : null}
+                          {!loadingGlobalLocations && recommendedLocations.length > 0 && otherFilteredLocations.length > 0 ? <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200"><p className="border-b border-neutral-100 bg-neutral-50 px-2.5 py-1.5 type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Todas las ubicaciones")}</p><div className="space-y-1 p-1">{otherFilteredLocations.map(renderLocationOption)}</div></div> : null}
                           {!loadingGlobalLocations && recommendedLocations.length === 0 ? <div className="space-y-1">{filteredAvailableLocations.map(renderLocationOption)}</div> : null}
-                          {loadingGlobalLocations ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">Cargando el catálogo global...</p> : null}
-                          {!loadingGlobalLocations && filteredAvailableLocations.length === 0 ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">No hay ubicaciones que coincidan con la búsqueda.</p> : null}
+                          {loadingGlobalLocations ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">{tx("Cargando el catálogo global...")}</p> : null}
+                          {!loadingGlobalLocations && filteredAvailableLocations.length === 0 ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">{tx("No hay ubicaciones que coincidan con la búsqueda.")}</p> : null}
                         </>}
                       </div>
                       <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
-                        <button type="button" onClick={() => setIsAddingLeagueLocation((current) => !current)} disabled={isSaving || isSavingLocation} className="flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-center text-sm font-black text-neutral-800 disabled:text-neutral-400">{isAddingLeagueLocation ? "Cancelar nueva ubicación" : "+ Añadir nueva ubicación"}</button>
+                        <button type="button" onClick={() => setIsAddingLeagueLocation((current) => !current)} disabled={isSaving || isSavingLocation} className="flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-center text-sm font-black text-neutral-800 disabled:text-neutral-400">{isAddingLeagueLocation ? tx("Cancelar nueva ubicación") : tx("+ Añadir nueva ubicación")}</button>
                       </div>
                     </section>
                   </>, document.body) : null}

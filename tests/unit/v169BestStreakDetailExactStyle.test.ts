@@ -22,7 +22,7 @@ describe("v1.6.9 best streak detail exact style", () => {
 
     // El título "Mejor racha" conserva su peso; no debe confundirse con el detalle.
     expect(panel).toContain(
-      '<p className="text-xs font-semibold text-neutral-500">Mejor racha</p>',
+      '<p className="text-xs font-semibold text-neutral-500">{tx("Mejor racha")}</p>',
     )
   })
 })

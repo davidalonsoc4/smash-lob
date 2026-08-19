@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { requestPwaUpdate } from "@/lib/pwaUpdate"
 import { APP_VERSION } from "@/lib/appVersion"
+import { useI18n } from "@/i18n/I18nProvider"
 
 const UPDATE_PROMPT_SESSION_KEY = `smash-lob-pwa-update-handled:${APP_VERSION}`
 
@@ -23,6 +24,7 @@ function markUpdatePromptHandledForSession() {
 }
 
 export function PwaUpdatePrompt() {
+  const { tx } = useI18n()
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
   const [isApplying, setIsApplying] = useState(false)
   const reloadTimeoutRef = useRef<number | null>(null)
@@ -105,11 +107,9 @@ export function PwaUpdatePrompt() {
       aria-live="polite"
     >
       <p className="text-sm font-black text-neutral-950">
-        Hay una nueva versión disponible
-      </p>
+        {tx("Hay una nueva versión disponible")}{" "}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Actualiza cuando quieras. Las operaciones guardadas no se perderán.
-      </p>
+        {tx("Actualiza cuando quieras. Las operaciones guardadas no se perderán.")}{" "}</p>
       <div className="mt-3 flex gap-2">
         <button
           type="button"
@@ -138,8 +138,7 @@ export function PwaUpdatePrompt() {
           }}
           className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 disabled:text-neutral-400 items-center justify-center text-center"
         >
-          Más tarde
-        </button>
+          {tx("Más tarde")}{" "}</button>
       </div>
     </div>
   )

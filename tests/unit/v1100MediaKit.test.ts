@@ -18,7 +18,7 @@ describe("v1.10.0 league media kit", () => {
     expect(page).toContain('template: "results_premium_06"')
     expect(page).toContain('template: "scoreboard_premium_04"')
     expect(page).toContain('template: "spotlight_premium_05"')
-    expect(page).toContain("formatShortDate(round.startsAt)")
+    expect(page).toContain("formatShortDate(round.startsAt, locale)")
   })
 
   it("generates a branded 4:5 PNG and keeps native share with download fallback", async () => {
@@ -39,6 +39,6 @@ describe("v1.10.0 league media kit", () => {
   it("limits countdown sharing to seasons that actually have a scheduled start", async () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
     expect(page).toContain('disabled: !roundSettings.scheduledStartAt')
-    expect(page).toContain('title={disabled ? "Configura fecha de inicio"')
+    expect(page).toContain('title={disabled ? tx("Configura fecha de inicio")')
   })
 })

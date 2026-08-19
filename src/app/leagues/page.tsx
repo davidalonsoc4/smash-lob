@@ -12,6 +12,7 @@ import { calculateSeasonRanking } from "@/lib/ranking";
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations";
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle";
 import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles";
+import { useI18n } from "@/i18n/I18nProvider"
 
 function getSeasonStatusLabel(season: {
   status: "upcoming" | "active" | "finished";
@@ -24,6 +25,7 @@ function getSeasonStatusLabel(season: {
 }
 
 export default function LeaguesPage() {
+  const { tx } = useI18n()
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
   const {
     canCreateLeagues,
@@ -63,15 +65,14 @@ export default function LeaguesPage() {
   return (
     <div className="space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/settings" label="Volver" />
+        <BackButton fallbackHref="/settings" label={tx("Volver")} />
 
-        <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">Mis ligas</h1>
+        <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">{tx("Mis ligas")}</h1>
       </header>
 
       <section className="space-y-2">
         <p className="px-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Actividad personal
-        </p>
+          {tx("Actividad personal")}{" "}</p>
         <Link
           href="/personal-matches"
           className="block rounded-2xl border border-neutral-950 bg-neutral-950 p-3 text-white shadow-[0_2px_12px_rgba(15,23,42,0.12)] transition active:scale-[0.99]"
@@ -88,10 +89,9 @@ export default function LeaguesPage() {
               </svg>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-black">Mis partidos</p>
+              <p className="text-lg font-black">{tx("Mis partidos")}</p>
               <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-300">
-                Consulta tus partidos de liga y registra los amistosos que juegas fuera de competición.
-              </p>
+                {tx("Consulta tus partidos de liga y registra los amistosos que juegas fuera de competición.")}{" "}</p>
             </div>
             <span className="shrink-0 text-lg font-black text-neutral-400">›</span>
           </div>
@@ -101,13 +101,13 @@ export default function LeaguesPage() {
           href="/personal-matches/new"
           className="flex rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 shadow-[0_1px_8px_rgba(15,23,42,0.05)] transition active:scale-[0.99] items-center justify-center"
         >
-          + Registrar encuentro amistoso
+          {tx("+ Registrar encuentro amistoso")}
         </Link>
       </section>
 
       <section className="space-y-3">
         <p className="px-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Tus ligas
+          {tx("Tus ligas")}
         </p>
         {userLeagues.map((league) => {
           const season = getActiveSeasonByLeagueId(league.id);
@@ -162,12 +162,11 @@ export default function LeaguesPage() {
                     </p>
                     {isActive ? (
                       <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 type-caption font-black uppercase tracking-wide text-white">
-                        Actual
-                      </span>
+                        {tx("Actual")}{" "}</span>
                     ) : null}
                   </div>
                   <p className="mt-1 line-clamp-1 text-xs font-semibold text-neutral-500">
-                    {league.description || "Sin descripción"}
+                    {league.description || tx("Sin descripción")}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <span
@@ -180,16 +179,13 @@ export default function LeaguesPage() {
                     </span>
                     {isAdmin ? (
                       <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
-                        Admin
-                      </span>
+                        {tx("Admin")}{" "}</span>
                     ) : isSpectator ? (
                       <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-600">
-                        Espectador
-                      </span>
+                        {tx("Espectador")}{" "}</span>
                     ) : null}
                     <span className="type-caption font-bold uppercase tracking-wide text-neutral-400">
-                      Toca para entrar
-                    </span>
+                      {tx("Toca para entrar")}{" "}</span>
                   </div>
                 </div>
               </div>
@@ -197,24 +193,21 @@ export default function LeaguesPage() {
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-                    Jugadores
-                  </p>
+                    {tx("Jugadores")}{" "}</p>
                   <p className="mt-0.5 text-base font-black text-neutral-950">
                     {seasonPlayerCount || "-"}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-                    Partidos
-                  </p>
+                    {tx("Partidos")}{" "}</p>
                   <p className="mt-0.5 text-base font-black text-neutral-950">
                     {finishedMatches}/{seasonMatches.length || 0}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-100 px-2 py-2">
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-                    Líder
-                  </p>
+                    {tx("Líder")}{" "}</p>
                   <p className="mt-0.5 truncate text-xs font-black text-neutral-950">
                     {leader?.displayName ?? "-"}
                   </p>
@@ -225,8 +218,7 @@ export default function LeaguesPage() {
         })}
         {userLeagues.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-neutral-200 bg-white px-3 py-4 text-center text-xs font-semibold text-neutral-500">
-            Todavía no perteneces a ninguna liga. Puedes seguir usando Mis partidos.
-          </p>
+            {tx("Todavía no perteneces a ninguna liga. Puedes seguir usando Mis partidos.")}{" "}</p>
         ) : null}
       </section>
 
@@ -236,15 +228,13 @@ export default function LeaguesPage() {
             href="/invite"
             className="flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800 items-center justify-center"
           >
-            Unirme con invitación
-          </Link>
+            {tx("Unirme con invitación")}{" "}</Link>
           {canCreateLeaguesInCurrentView ? (
             <Link
               href="/league/new"
               className="flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
             >
-              Crear nueva liga
-            </Link>
+              {tx("Crear nueva liga")}{" "}</Link>
           ) : null}
         </div>
       </AppCard>

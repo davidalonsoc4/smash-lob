@@ -78,7 +78,7 @@ function getEnabledCount(preferences: NotificationPreferences) {
 }
 
 export default function NotificationSettingsPage() {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { activeLeague } = useCurrentLeagueData()
   const { currentUserId } = useCurrentUser()
   const [preferences, setPreferences] = useState<NotificationPreferences>(
@@ -556,7 +556,7 @@ export default function NotificationSettingsPage() {
 
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-semibold text-red-700">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </div>

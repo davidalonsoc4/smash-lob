@@ -6,6 +6,7 @@ import {
   type MvpMatch,
   type MvpPlayer,
 } from "@/lib/mvp"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type PlayerMvpPanelProps = {
   leagueId: string
@@ -23,6 +24,7 @@ export function PlayerMvpPanel({
   matches,
   isSeasonClosed,
 }: PlayerMvpPanelProps) {
+  const { tx } = useI18n()
   const summary = getPlayerMvpSummary({
     leagueId,
     seasonId,
@@ -36,11 +38,9 @@ export function PlayerMvpPanel({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-            MVP
-          </p>
+            {tx("MVP")}{" "}</p>
           <p className="mt-1 text-sm font-black text-neutral-950">
-            Reconocimientos de jornada
-          </p>
+            {tx("Reconocimientos de jornada")}{" "}</p>
         </div>
 
         <div className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
@@ -48,25 +48,23 @@ export function PlayerMvpPanel({
             {summary.roundMvpCount}
           </p>
           <p className="mt-1 type-caption font-black uppercase tracking-wide text-neutral-300">
-            total
+            {tx("total")}
           </p>
         </div>
       </div>
 
       {summary.roundMvpRounds.length > 0 ? (
         <p className="mt-3 text-xs font-semibold leading-relaxed text-neutral-500">
-          Jornadas: {summary.roundMvpRounds.map((round) => `Jornada ${round}`).join(" · ")}
+          {tx("Jornadas:")}{" "}{summary.roundMvpRounds.map((round) => tx(`Jornada ${round}`)).join(" · ")}
         </p>
       ) : (
         <p className="mt-3 rounded-xl bg-neutral-100 px-3 py-2 text-xs font-semibold text-neutral-500">
-          Todavía no tiene MVPs de jornada en esta temporada.
-        </p>
+          {tx("Todavía no tiene MVPs de jornada en esta temporada.")}{" "}</p>
       )}
 
       {showFinalMvp ? (
         <p className="mt-2 inline-flex rounded-full bg-neutral-950 px-3 py-1 type-caption font-black uppercase tracking-wide text-white">
-          MVP final de temporada
-        </p>
+          {tx("MVP final de temporada")}{" "}</p>
       ) : null}
     </AppCard>
   )

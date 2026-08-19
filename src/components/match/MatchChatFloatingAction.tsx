@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function ChatIcon() {
   return (
@@ -19,12 +22,13 @@ function ChatIcon() {
 }
 
 export function MatchChatActionLink({ href }: { href: string }) {
+  const { tx } = useI18n()
   return (
     <Link
       data-tour="match-chat-access"
       href={href}
-      aria-label="Abrir chat del partido"
-      title="Chat del partido"
+      aria-label={tx("Abrir chat del partido")}
+      title={tx("Chat del partido")}
       className="app-floating-primary-control grid h-10 w-10 place-items-center rounded-full border border-neutral-950 bg-neutral-950 text-white shadow-lg transition active:scale-95"
     >
       <ChatIcon />

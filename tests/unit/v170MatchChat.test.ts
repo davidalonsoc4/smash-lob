@@ -45,7 +45,7 @@ describe("v1.7.0 match chat MVP", () => {
     expect(page).toContain('chatHref={isMatchParticipant ? `/match/${match.id}/chat` : null}')
     expect(page).not.toContain("Habla con los otros jugadores y organiza el encuentro.")
     expect(menu).toContain("<MatchChatActionLink")
-    expect(chatAction).toContain('aria-label="Abrir chat del partido"')
+    expect(chatAction).toContain('aria-label={tx("Abrir chat del partido")}')
     expect(chatAction).toContain("app-floating-primary-control")
     expect(chatAction).toContain("bg-neutral-950 text-white")
     expect(chatAction).toContain("flex flex-col items-end gap-2")

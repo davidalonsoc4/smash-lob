@@ -13,7 +13,7 @@ describe("v1.10.0 HOME season switcher and registration finances", () => {
 
   it("embeds registration below the countdown inside Próxima temporada", async () => {
     const [home, panel] = await Promise.all([read("src/app/page.tsx"), read("src/components/season/SeasonRegistrationPanel.tsx")])
-    const card = home.indexOf('>Próxima temporada</p>'), registration = home.indexOf("showScheduledRegistrationWaiting && shouldShowRegistrationPanel"), announcements = home.indexOf('data-tour="home-announcements"')
+    const card = home.indexOf('{tx("Próxima temporada")}</p>'), registration = home.indexOf("showScheduledRegistrationWaiting && shouldShowRegistrationPanel"), announcements = home.indexOf('data-tour="home-announcements"')
     expect(card).toBeGreaterThan(-1); expect(registration).toBeGreaterThan(card); expect(announcements).toBeGreaterThan(registration); expect(home).toContain("<SeasonRegistrationPanel\n                  embedded"); expect(panel).toContain("embedded?: boolean")
   })
 

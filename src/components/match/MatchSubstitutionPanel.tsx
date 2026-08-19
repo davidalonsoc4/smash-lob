@@ -42,7 +42,7 @@ export function MatchSubstitutionPanel({
   match: MatchData
   players: PlayerProfile[]
 }) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const [payload, setPayload] = useState<Payload | null>(null)
   const [originalPlayerId, setOriginalPlayerId] = useState("")
   const [substituteSelection, setSubstituteSelection] = useState("")
@@ -304,7 +304,7 @@ export function MatchSubstitutionPanel({
         ) : null}
 
         {error ? (
-          <p className="mt-2 type-caption font-bold text-red-700">{error}</p>
+          <p className="mt-2 type-caption font-bold text-red-700">{tx(error)}</p>
         ) : null}
     </div>
   )

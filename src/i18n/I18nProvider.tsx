@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useEffect,
   useState,
 } from "react"
@@ -12,10 +13,12 @@ import {
   Locale,
   TranslationDictionary,
 } from "./translations"
+import { translateLeagueText } from "./leagueText"
 
 type I18nContextValue = {
   locale: Locale
   t: TranslationDictionary
+  tx: (source: string) => string
   setLocale: (locale: Locale) => void
   toggleLocale: () => void
 }
@@ -57,9 +60,15 @@ export function I18nProvider({ children }: I18nProviderProps) {
     setLocale(availableLocales[nextIndex])
   }
 
+  const tx = useCallback(
+    (source: string) => translateLeagueText(locale, source),
+    [locale],
+  )
+
   const value = {
     locale,
     t: getTranslations(locale),
+    tx,
     setLocale,
     toggleLocale,
   }

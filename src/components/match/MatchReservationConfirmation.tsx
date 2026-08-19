@@ -11,6 +11,7 @@ import {
 import { formatMatchScheduleLongLabel } from "@/lib/matchScheduleTime"
 import { formatMoney } from "@/lib/courtBooking"
 import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type Props = {
   matchId: string
@@ -56,6 +57,7 @@ export function MatchReservationConfirmation({
   onInvalidated,
   preserveFocus,
 }: Props) {
+  const { tx, locale } = useI18n()
   const approvedLocations = useMemo(
     () => coordination.approvedLocations ?? [],
     [coordination.approvedLocations],
@@ -273,8 +275,7 @@ export function MatchReservationConfirmation({
         onClick={openConfirmation}
         className="inline-flex h-7 items-center justify-center rounded-full bg-neutral-950 px-3 text-center type-caption font-black text-white transition active:scale-[0.98]"
       >
-        Confirmar reserva
-      </button>
+        {tx("Confirmar reserva")}{" "}</button>
     )
   }
 
@@ -290,10 +291,9 @@ export function MatchReservationConfirmation({
           </span>
         ) : null}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-black text-neutral-950">Pendiente de reserva</p>
+          <p className="text-sm font-black text-neutral-950">{tx("Pendiente de reserva")}</p>
           <p className="type-caption font-semibold text-neutral-600">
-            Acuerdo 4/4 en fecha y hora. Falta confirmar la reserva definitiva.
-          </p>
+            {tx("Acuerdo 4/4 en fecha y hora. Falta confirmar la reserva definitiva.")}{" "}</p>
         </div>
         {open ? (
           <button
@@ -302,26 +302,25 @@ export function MatchReservationConfirmation({
             onClick={() => setOpen(false)}
             className="inline-flex h-7 items-center justify-center rounded-full bg-white/80 px-2.5 text-center type-caption font-black text-neutral-600"
           >
-            Cerrar
-          </button>
+            {tx("Cerrar")}{" "}</button>
         ) : null}
       </div>
 
       <div className="mt-2 space-y-1 type-caption font-semibold text-neutral-700">
         {coordination.approvedDates.map((option) => (
           <p key={optionKey(option.messageId, option.optionKey)} className="truncate">
-            <span className="font-black text-indigo-700">Fecha</span> · {formatMatchScheduleLongLabel(option.startsAt)}
+            <span className="font-black text-indigo-700">{tx("Fecha")}</span> · {formatMatchScheduleLongLabel(option.startsAt, locale)}
           </p>
         ))}
         {approvedLocations.length ? (
           <p className="truncate">
-            <span className="font-black text-indigo-700">Ubicación acordada</span> · {approvedLocations.map((item) => item.name).join(" · ")}
+            <span className="font-black text-indigo-700">{tx("Ubicación acordada")}</span> · {approvedLocations.map((item) => item.name).join(" · ")}
           </p>
         ) : (
-          <p><span className="font-black text-indigo-700">Ubicación</span> · Sin acuerdo previo; se elegirá al confirmar.</p>
+          <p><span className="font-black text-indigo-700">{tx("Ubicación")}</span> {tx("· Sin acuerdo previo; se elegirá al confirmar.")}</p>
         )}
         {rejectedLocations.length ? (
-          <p className="text-red-700"><span className="font-black">No utilizar</span> · {rejectedLocations.map((item) => item.name).join(" · ")}</p>
+          <p className="text-red-700"><span className="font-black">{tx("No utilizar")}</span> · {rejectedLocations.map((item) => item.name).join(" · ")}</p>
         ) : null}
       </div>
 
@@ -333,8 +332,7 @@ export function MatchReservationConfirmation({
             onClick={openConfirmation}
             className="flex min-h-9 items-center justify-center rounded-xl bg-neutral-950 px-2.5 py-2 text-center type-caption font-black text-white transition active:scale-[0.99]"
           >
-            Confirmar reserva
-          </button>
+            {tx("Confirmar reserva")}{" "}</button>
           <button
             type="button"
             disabled={invalidating}
@@ -342,13 +340,13 @@ export function MatchReservationConfirmation({
             onClick={() => void invalidateAgreedDates()}
             className="flex min-h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-2.5 py-2 text-center type-caption font-black text-neutral-700 transition active:scale-[0.99] disabled:opacity-50"
           >
-            {invalidating ? "Actualizando…" : "Fecha/hora no disponible"}
+            {invalidating ? tx("Actualizando…") : tx("Fecha/hora no disponible")}
           </button>
         </div>
       ) : (
         <div className="mt-3 space-y-2.5">
           <div>
-            <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-500">Fecha y hora reservada</p>
+            <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Fecha y hora reservada")}</p>
             <div className="space-y-1.5">
               {coordination.approvedDates.map((option) => {
                 const key = optionKey(option.messageId, option.optionKey)
@@ -360,7 +358,7 @@ export function MatchReservationConfirmation({
                     onClick={() => setDateKey(key)}
                     className={`flex w-full items-center justify-center rounded-lg border px-2.5 py-2 text-center text-xs font-black ${dateKey === key ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}
                   >
-                    {formatMatchScheduleLongLabel(option.startsAt)}
+                    {formatMatchScheduleLongLabel(option.startsAt, locale)}
                   </button>
                 )
               })}
@@ -368,7 +366,7 @@ export function MatchReservationConfirmation({
           </div>
 
           <div>
-            <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-500">Ubicación reservada</p>
+            <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Ubicación reservada")}</p>
             {selectableLocations.length ? (
               <div className="space-y-1.5">
                 {selectableLocations.map((location) => (
@@ -387,16 +385,16 @@ export function MatchReservationConfirmation({
                 ))}
               </div>
             ) : (
-              <p className="rounded-lg bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-800">No queda ninguna ubicación válida configurada para confirmar la reserva.</p>
+              <p className="rounded-lg bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-800">{tx("No queda ninguna ubicación válida configurada para confirmar la reserva.")}</p>
             )}
             {rejectedLocations.length ? (
-              <p className="mt-1.5 type-caption font-bold text-red-700">Descartadas 4/4: {rejectedLocations.map((item) => item.name).join(" · ")}</p>
+              <p className="mt-1.5 type-caption font-bold text-red-700">{tx("Descartadas 4/4:")} {rejectedLocations.map((item) => item.name).join(" · ")}</p>
             ) : null}
           </div>
 
           {selectedLocation ? (
             <div>
-              <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-500">Pista reservada</p>
+              <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Pista reservada")}</p>
               {courts.length ? (
                 <div className="grid grid-cols-3 gap-1.5">
                   {courts.map((court) => (
@@ -412,7 +410,7 @@ export function MatchReservationConfirmation({
                   ))}
                 </div>
               ) : (
-                <p className="rounded-lg bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-800">Esta ubicación no tiene pistas configuradas. Añade el número de pistas antes de confirmar la reserva.</p>
+                <p className="rounded-lg bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-800">{tx("Esta ubicación no tiene pistas configuradas. Añade el número de pistas antes de confirmar la reserva.")}</p>
               )}
             </div>
           ) : null}
@@ -421,11 +419,9 @@ export function MatchReservationConfirmation({
           <div className="rounded-xl border border-neutral-200 bg-white p-2.5">
               <div>
                 <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
-                  Pagos de la reserva
-                </p>
+                  {tx("Pagos de la reserva")}{" "}</p>
                 <p className="mt-0.5 text-xs font-semibold text-neutral-600">
-                  Indica quién pagó la pista y cuánto abonó cada persona.
-                </p>
+                  {tx("Indica quién pagó la pista y cuánto abonó cada persona.")}{" "}</p>
               </div>
 
               <div className="mt-2 grid grid-cols-2 gap-1.5">
@@ -476,7 +472,7 @@ export function MatchReservationConfirmation({
                     </label>
                   ))}
                   <div className="flex items-center justify-between gap-2 px-0.5 pt-0.5 text-xs">
-                    <span className="font-bold text-neutral-600">Total reserva</span>
+                    <span className="font-bold text-neutral-600">{tx("Total reserva")}</span>
                     <span className="font-black text-neutral-950">
                       {formatMoney(reservationTotal)}
                     </span>
@@ -484,13 +480,12 @@ export function MatchReservationConfirmation({
                 </div>
               ) : (
                 <p className="mt-2 rounded-lg bg-neutral-50 px-2.5 py-2 text-xs font-semibold text-neutral-500">
-                  Selecciona al menos un pagador.
-                </p>
+                  {tx("Selecciona al menos un pagador.")}{" "}</p>
               )}
             </div>
             ) : null}
 
-          {error ? <p className="rounded-lg bg-red-50 px-2.5 py-2 text-xs font-bold text-red-700">{error}</p> : null}
+          {error ? <p className="rounded-lg bg-red-50 px-2.5 py-2 text-xs font-bold text-red-700">{tx(error)}</p> : null}
 
           <button
             type="button"
@@ -499,7 +494,7 @@ export function MatchReservationConfirmation({
             onClick={() => void confirmReservation()}
             className="flex w-full items-center justify-center rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:opacity-40"
           >
-            {saving ? "Confirmando…" : "Confirmar reserva y programar"}
+            {saving ? tx("Confirmando…") : tx("Confirmar reserva y programar")}
           </button>
           <button
             type="button"
@@ -508,12 +503,12 @@ export function MatchReservationConfirmation({
             onClick={() => void invalidateAgreedDates()}
             className="flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-center type-caption font-black text-neutral-700 disabled:opacity-50"
           >
-            {invalidating ? "Actualizando…" : "La fecha/hora acordada no está disponible"}
+            {invalidating ? "Actualizando…" : tx("La fecha/hora acordada no está disponible")}
           </button>
         </div>
       )}
 
-      {error && !open ? <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-2 text-xs font-bold text-red-700">{error}</p> : null}
+      {error && !open ? <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-2 text-xs font-bold text-red-700">{tx(error)}</p> : null}
     </div>
   )
 }

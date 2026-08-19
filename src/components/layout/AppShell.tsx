@@ -36,10 +36,6 @@ const settingsSearchHubRoutes = new Set([
   "/application-admin",
 ])
 
-type InviteFloatingControlsProps = {
-  rightOffsetPx: number
-}
-
 function SettingsIcon() {
   return (
     <svg
@@ -100,7 +96,7 @@ function getPreproductionBadgeLeft() {
   return "max(4px, calc((100vw - 448px) / 2 + 4px))"
 }
 
-function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
+function InviteFloatingControls() {
   const {
     getLeagueInviteCode,
     isLeagueAdmin,
@@ -147,14 +143,13 @@ function InviteFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) 
       initialInviteCode={inviteCode}
       leagueName={activeLeague.name}
       unclaimedCount={inviteCount}
-      rightOffsetPx={rightOffsetPx}
       onGenerateInviteCode={() => regenerateLeagueInviteCode(activeLeague.id)}
     />
   )
 }
 
 
-function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProps) {
+function SpectatorFloatingControls() {
   const { canShareSpectatorInvite } = useLeagueAccess()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
 
@@ -167,12 +162,12 @@ function SpectatorFloatingControls({ rightOffsetPx }: InviteFloatingControlsProp
       leagueId={activeLeague.id}
       leagueName={activeLeague.name}
       seasonName={activeSeason.name}
-      rightOffsetPx={rightOffsetPx}
     />
   )
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const { tx } = useI18n()
   const { t, locale } = useI18n()
 
   useEffect(() => {
@@ -203,6 +198,8 @@ export function AppShell({ children }: AppShellProps) {
   const isLeagueNavigationRoute = pathname === "/open"
   const isPersonalMatchesRoute =
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
+  const isSettingsRoute =
+    pathname === "/settings" || pathname.startsWith("/settings/")
   const isMatchChatRoute =
     (pathname.startsWith("/match/") ||
       pathname.startsWith("/personal-matches/")) &&
@@ -272,7 +269,10 @@ export function AppShell({ children }: AppShellProps) {
       })
     : []
   const shouldShowSettingsButton =
-    !isInitialSeasonSetupRoute && !isPublicAccessRoute
+    !isMatchChatRoute &&
+    !isSettingsRoute &&
+    !isInitialSeasonSetupRoute &&
+    !isPublicAccessRoute
   const shouldShowHelpButton =
     !isMatchChatRoute &&
     !isInitialSeasonSetupRoute &&
@@ -286,6 +286,7 @@ export function AppShell({ children }: AppShellProps) {
     !spectatorMode
   const shouldShowBottomNav =
     !isMatchChatRoute &&
+    !isSettingsRoute &&
     !isPublicAccessRoute &&
     !isNewLeagueRoute &&
     !isInitialSeasonSetupRoute &&
@@ -349,66 +350,46 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         ) : null}
 
-        {hasPlayerInviteControl ? (
-          <InviteFloatingControls rightOffsetPx={142} />
-        ) : null}
-
-        {hasSpectatorShareControl ? (
-          <SpectatorFloatingControls rightOffsetPx={100} />
-        ) : null}
-
-        {shouldShowNotificationsButton ? (
-          <Link
-            href="/notifications"
-            data-tour="floating-notifications"
-            aria-label="Notificaciones"
-            title="Notificaciones"
-            className={`app-floating-control ${isMatchChatRoute ? "z-[70]" : "z-50"} flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100`}
-            style={{
-              position: "fixed",
-              top: getFloatingTop(),
-              right: getFloatingRight(shouldShowSettingsButton ? 58 : 16),
-              width: "34px",
-              height: "34px",
-            }}
-          >
-            <NotificationsIcon />
-          </Link>
-        ) : null}
-
-        {shouldShowHelpButton ? (
-          <FloatingHelpButton
-            right={getFloatingRight(
-              hasPlayerInviteControl
-                ? 184
-                : hasSpectatorShareControl
-                  ? 142
-                  : shouldShowNotificationsButton
-                    ? 100
-                    : shouldShowSettingsButton
-                      ? 58
-                      : 16,
-            )}
-          />
-        ) : null}
-
-        {shouldShowSettingsButton ? (
-          <Link
-            href="/settings"
-            data-tour="floating-settings"
-            aria-label={t.appHeader.settingsLabel}
-            title={t.appHeader.settingsLabel}
-            className={`app-floating-control ${isMatchChatRoute ? "z-[70]" : "z-50"} flex items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100`}
+        {hasFloatingTopControls ? (
+          <div
+            data-floating-top-toolbar
+            className={`flex items-center gap-2 ${isMatchChatRoute ? "z-[70]" : "z-50"}`}
             style={{
               position: "fixed",
               top: getFloatingTop(),
               right: getFloatingRight(16),
-              width: "34px",
-              height: "34px",
             }}
           >
-            <SettingsIcon />
-          </Link>
+            {shouldShowHelpButton ? <FloatingHelpButton /> : null}
+
+            {hasPlayerInviteControl ? <InviteFloatingControls /> : null}
+
+            {hasSpectatorShareControl ? <SpectatorFloatingControls /> : null}
+
+            {shouldShowNotificationsButton ? (
+              <Link
+                href="/notifications"
+                data-tour="floating-notifications"
+                aria-label={tx("Notificaciones")}
+                title={tx("Notificaciones")}
+                className="app-floating-control flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+              >
+                <NotificationsIcon />
+              </Link>
+            ) : null}
+
+            {shouldShowSettingsButton ? (
+              <Link
+                href={`/settings?returnTo=${encodeURIComponent(pathname)}`}
+                data-tour="floating-settings"
+                aria-label={t.appHeader.settingsLabel}
+                title={t.appHeader.settingsLabel}
+                className="app-floating-control flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm backdrop-blur transition active:scale-[0.96] active:bg-neutral-100"
+              >
+                <SettingsIcon />
+              </Link>
+            ) : null}
+          </div>
         ) : null}
 
         <main
@@ -440,10 +421,9 @@ export function AppShell({ children }: AppShellProps) {
               aria-live="polite"
               className="rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm"
             >
-              <p className="type-panel-title font-black text-neutral-950">Temporada programada</p>
+              <p className="type-panel-title font-black text-neutral-950">{tx("Temporada programada")}</p>
               <p className="mt-1 text-sm font-semibold text-neutral-600">
-                Esta sección estará disponible cuando comience la temporada. Volviendo a Inicio…
-              </p>
+                {tx("Esta sección estará disponible cuando comience la temporada. Volviendo a Inicio…")}{" "}</p>
             </div>
           ) : (
             <>
@@ -454,7 +434,11 @@ export function AppShell({ children }: AppShellProps) {
         </main>
 
         {shouldShowSettingsSearch ? (
-          <GlobalSettingsSearch locale={locale} entries={settingsSearchEntries} />
+          <GlobalSettingsSearch
+            locale={locale}
+            entries={settingsSearchEntries}
+            hasBottomNav={shouldShowBottomNav}
+          />
         ) : null}
 
         {shouldShowLeagueSearch ? <GlobalLeagueSearch /> : null}

@@ -7,6 +7,7 @@ import { showActionFeedback } from "@/lib/actionFeedback"
 import { getPaymentStatusBadgeClassName } from "@/lib/statusStyles"
 import type { PlayerProfile } from "@/data/fakeData"
 import type { SeasonRegistrationFee } from "@/lib/seasonRegistration"
+import { useI18n } from "@/i18n/I18nProvider"
 type SeasonRegistrationPanelProps = {
   registrationFee: SeasonRegistrationFee
   players: PlayerProfile[]
@@ -33,6 +34,7 @@ export function SeasonRegistrationPanel({
   onSendReminder,
   embedded = false,
 }: SeasonRegistrationPanelProps) {
+  const { tx } = useI18n()
   const [savingPlayerId, setSavingPlayerId] = useState<string | null>(null)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [arePaymentsExpanded, setArePaymentsExpanded] = useState(false)
@@ -120,14 +122,13 @@ export function SeasonRegistrationPanel({
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-black text-emerald-950">
-            Inscripciones
+            {tx("Inscripciones")}
             <span className="ml-1.5 text-xs font-bold text-emerald-700">
-              · {formatMoney(registrationFee.amount)}/jugador
-            </span>
+              · {formatMoney(registrationFee.amount)}{tx("/jugador")}{" "}</span>
           </p>
         </div>
         <span className={getPaymentStatusBadgeClassName(paidCount === players.length)}>
-          {paidCount}/{players.length} pagadas
+          {paidCount}/{players.length} {tx("pagadas")}
         </span>
       </div>
       {canManage ? (
@@ -136,11 +137,11 @@ export function SeasonRegistrationPanel({
             <strong className="font-black text-neutral-950">
               {pendingPlayers.length}
             </strong>{" "}
-            pendientes ·{" "}
+            {tx("pendientes ·")}{" "}
             <strong className="font-black text-neutral-950">
               {formatMoney(pendingAmount)}
             </strong>{" "}
-            por cobrar · {formatMoney(totalAmount)} total
+            {tx("por cobrar ·")}{" "}{formatMoney(totalAmount)} {tx("total")}
           </p>
           {canSendReminder && pendingPlayers.length > 0 ? (
             <button
@@ -149,25 +150,23 @@ export function SeasonRegistrationPanel({
               disabled={isSendingReminder}
               className="inline-flex shrink-0 rounded-full bg-neutral-950 px-2.5 py-1 type-caption font-black text-white transition active:scale-[0.98] disabled:opacity-40 items-center justify-center text-center"
             >
-              {isSendingReminder ? "Enviando..." : "Recordar"}
+              {isSendingReminder ? tx("Enviando...") : tx("Recordar")}
             </button>
           ) : null}
         </div>
       ) : currentUserPayment && !currentUserPayment.isPaid ? (
         <p className="mt-2 rounded-xl bg-amber-50 px-2.5 py-1.5 type-caption font-semibold text-amber-900">
-          Debes {formatMoney(registrationFee.amount)} a{" "}
-          {organizerName?.trim() || "la organización"}.
+          {tx("Debes")} {formatMoney(registrationFee.amount)} {tx("a")}{" "}
+          {organizerName?.trim() || tx("la organización")}.
         </p>
       ) : null}
       {isSeasonUpcoming && pendingPlayers.length > 0 ? (
         <p className="mt-1.5 type-caption font-semibold leading-4 text-amber-900">
-          La temporada no puede comenzar hasta saldar todas las inscripciones.
-        </p>
+          {tx("La temporada no puede comenzar hasta saldar todas las inscripciones.")}{" "}</p>
       ) : null}
       <details className="mt-1.5 rounded-xl bg-white/65 px-2.5 py-1.5">
         <summary className="cursor-pointer type-caption font-black text-emerald-900">
-          Destino de la inscripción
-        </summary>
+          {tx("Destino de la inscripción")}{" "}</summary>
         <p className="mt-1 type-caption font-semibold leading-4 text-neutral-600">
           {purpose}
         </p>
@@ -216,7 +215,7 @@ export function SeasonRegistrationPanel({
                         ? "Destinatario"
                         : isPaid
                           ? "Pagada"
-                          : "Pendiente"}
+                          : tx("Pendiente")}
                     </span>
                     {!isPaid ? (
                       <span className="type-caption font-semibold text-neutral-500">
@@ -236,7 +235,7 @@ export function SeasonRegistrationPanel({
                         : "bg-emerald-600 text-white"
                     }`}
                   >
-                    {isSaving ? "..." : isPaid ? "Pendiente" : "Marcar pagada"}
+                    {isSaving ? "..." : isPaid ? tx("Pendiente") : "Marcar pagada"}
                   </button>
                 ) : null}
               </div>

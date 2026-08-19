@@ -24,6 +24,8 @@ function MvpPlayerLine({
   players: MvpPlayer[]
   helper: string
 }) {
+  const { tx } = useI18n()
+
   return (
     <div className="mt-3 flex items-center gap-3 rounded-2xl bg-neutral-100 p-3">
       <div className="flex -space-x-2">
@@ -47,7 +49,7 @@ function MvpPlayerLine({
         <p className="truncate text-base font-black text-neutral-950">
           {players.length > 0
             ? players.map((player) => player.displayName).join(" / ")
-            : "Pendiente"}
+            : tx("Pendiente")}
         </p>
         <p className="text-xs font-semibold text-neutral-500">{helper}</p>
       </div>
@@ -56,6 +58,7 @@ function MvpPlayerLine({
 }
 
 export default function AdminMvpPage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { hasLeagueAdminRole } = useLeagueAccess()
   const { votes } = useMvp()
@@ -105,15 +108,12 @@ export default function AdminMvpPage() {
         <header className="app-page-header">
           <BackButton fallbackHref="/admin" label={t.common.back} />
           <h1 className="type-page-title mt-1 text-xl font-black tracking-tight">
-            Administrar MVP
-          </h1>
+            {tx("Administrar MVP")}{" "}</h1>
         </header>
         <AppCard>
-          <p className="font-bold">Sistema MVP desactivado</p>
+          <p className="font-bold">{tx("Sistema MVP desactivado")}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Puedes activarlo o cambiar su metodología desde Administración de
-            temporada.
-          </p>
+            {tx("Puedes activarlo o cambiar su metodología desde Administración de temporada.")}{" "}</p>
         </AppCard>
       </div>
     )
@@ -127,37 +127,34 @@ export default function AdminMvpPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/admin" label={t.common.back} />
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
-          Administrar MVP
-        </h1>
+          {tx("Administrar MVP")}{" "}</h1>
       </header>
 
       {isSeasonClosed ? (
         <AppCard>
-          <p className="font-bold">MVP final de temporada</p>
+          <p className="font-bold">{tx("MVP final de temporada")}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            Se asigna al jugador que más MVP de jornada acumula. Los empates se
-            mantienen como MVP compartidos.
-          </p>
+            {tx("Se asigna al jugador que más MVP de jornada acumula. Los empates se mantienen como MVP compartidos.")}{" "}</p>
           <MvpPlayerLine
-            label={seasonMvp?.tied ? "Empate final" : "Resultado final"}
+            label={seasonMvp?.tied ? "Empate final" : tx("Resultado final")}
             players={seasonMvpPlayers}
             helper={
               seasonMvp
-                ? `${seasonMvp.votes} MVP de jornada acumulados${seasonMvp.tied ? " · compartido" : ""}`
-                : "No hay MVP final disponible"
+                ? tx(`${seasonMvp.votes} MVP de jornada acumulados${seasonMvp.tied ? " · compartido" : ""}`)
+                : tx("No hay MVP final disponible")
             }
           />
         </AppCard>
       ) : null}
 
       <AppCard>
-        <p className="font-bold">MVP por jornada</p>
+        <p className="font-bold">{tx("MVP por jornada")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {isVoting
-            ? "Cada partido se cierra cuando alguien alcanza 3 votos o, si no ocurre, al votar los cuatro jugadores. La jornada se decide cuando todos sus partidos tienen MVP."
+            ? tx("Cada partido se cierra cuando alguien alcanza 3 votos o, si no ocurre, al votar los cuatro jugadores. La jornada se decide cuando todos sus partidos tienen MVP.")
             : isAdvancedAutomatic
-              ? "Primero se elige la pareja vencedora más dominante. Entre sus integrantes, un índice ajustado por compañero y rivales usa resultado, sets y juegos acumulados hasta esa jornada; un empate técnico mantiene el MVP compartido."
-              : "Gana la pareja vencedora con mejor diferencia de juegos cuando todos los partidos tienen resultado."}
+              ? tx("Primero se elige la pareja vencedora más dominante. Entre sus integrantes, un índice ajustado por compañero y rivales usa resultado, sets y juegos acumulados hasta esa jornada; un empate técnico mantiene el MVP compartido.")
+              : tx("Gana la pareja vencedora con mejor diferencia de juegos cuando todos los partidos tienen resultado.")}
         </p>
 
         {completedRounds.length > 0 ? (
@@ -183,29 +180,28 @@ export default function AdminMvpPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-black">Jornada {round}</p>
+                      <p className="font-black">{tx("Jornada")}{" "}{round}</p>
                       <p className="mt-1 text-xs font-semibold text-neutral-500">
-                        Jornada completa
-                      </p>
+                        {tx("Jornada completa")}{" "}</p>
                     </div>
                     <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-                      {isVoting ? "Votación" : isAdvancedAutomatic ? "Auto avanzado" : "Auto"}
+                      {isVoting ? tx("Votación") : isAdvancedAutomatic ? "Auto avanzado" : "Auto"}
                     </span>
                   </div>
 
                   <MvpPlayerLine
-                    label="MVP de jornada"
+                    label={tx("MVP de jornada")}
                     players={roundMvpPlayers}
                     helper={
                       roundMvp
                         ? isVoting
                           ? `${roundMvp.votes} votos${roundMvp.tied ? " · empate compartido" : ""}`
                           : isAdvancedAutomatic
-                            ? `Pareja ${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesDiff} dif. juegos · índice ${((roundMvp.adjustedRating ?? 0) * 100).toFixed(1)}${roundMvp.tied ? " · empate técnico" : ""}`
-                            : `${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`
+                            ? tx(`Pareja ${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesDiff} dif. juegos · índice ${((roundMvp.adjustedRating ?? 0) * 100).toFixed(1)}${roundMvp.tied ? " · empate técnico" : ""}`)
+                            : tx(`${roundMvp.setsFor}-${roundMvp.setsAgainst} sets · ${roundMvp.gamesFor}-${roundMvp.gamesAgainst} juegos · ${roundMvp.gamesDiff} dif.`)
                         : isVoting
-                          ? "Pendiente de completar todas las votaciones"
-                          : "Pendiente"
+                          ? tx("Pendiente de completar todas las votaciones")
+                          : tx("Pendiente")
                     }
                   />
                 </div>
@@ -214,8 +210,7 @@ export default function AdminMvpPage() {
           </div>
         ) : (
           <p className="mt-3 rounded-2xl bg-neutral-100 p-3 text-sm font-semibold text-neutral-500">
-            No hay jornadas completas todavía.
-          </p>
+            {tx("No hay jornadas completas todavía.")}{" "}</p>
         )}
       </AppCard>
     </div>

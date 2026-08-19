@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -10,6 +11,7 @@ import {
 } from "react"
 import { useRouter } from "next/navigation"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
+import { translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 import {
   getSettingsSearchCopy,
@@ -55,11 +57,14 @@ function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
 export function GlobalSettingsSearch({
   locale,
   entries,
+  hasBottomNav = true,
 }: {
   locale: Locale
   entries: SettingsSearchEntry[]
+  hasBottomNav?: boolean
 }) {
   const router = useRouter()
+  const tx = useCallback((source: string) => translateLeagueText(locale, source), [locale])
   const copy = getSettingsSearchCopy(locale)
   const listboxId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -269,7 +274,7 @@ export function GlobalSettingsSearch({
       {isOpen ? (
         <button
           type="button"
-          aria-label="Cerrar búsqueda"
+          aria-label={tx("Cerrar búsqueda")}
           onClick={closeSearch}
           className="fixed bottom-0 left-0 right-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
           style={{
@@ -282,7 +287,9 @@ export function GlobalSettingsSearch({
         className="fixed z-40"
         style={{
           right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
-          bottom: "calc(84px + env(safe-area-inset-bottom, 0px))",
+          bottom: hasBottomNav
+            ? "calc(84px + env(safe-area-inset-bottom, 0px))"
+            : "max(14px, env(safe-area-inset-bottom, 0px))",
         }}
       >
         {isOpen ? (
@@ -303,13 +310,13 @@ export function GlobalSettingsSearch({
                 <div>
                   <p className="text-sm font-black text-neutral-950">{copy.title}</p>
                   <p className="type-caption font-semibold text-neutral-400">
-                    {entries.length} opciones disponibles
+                    {entries.length} {tx("opciones disponibles")}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={closeSearch}
-                  aria-label="Cerrar"
+                  aria-label={tx("Cerrar")}
                   className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500"
                 >
                   ×

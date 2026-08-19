@@ -12,7 +12,7 @@ describe("v1.8.13 pinned reservation summary", () => {
   it("keeps the reservation summary fixed above the independently scrollable message history", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     expect(page).toContain('reservationSummary ? <div className="flex shrink-0 items-center')
-    expect(page).toContain('<span className="uppercase tracking-wide text-blue-700">Reserva</span>')
+    expect(page).toContain('<span className="uppercase tracking-wide text-blue-700">{tx("Reserva")}</span>')
     expect(page).toContain('className="min-w-0 flex-1 truncate type-caption font-black"')
     expect(page).toContain('ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto')
   })

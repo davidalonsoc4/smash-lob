@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo } from "react"
 import { AppCard } from "@/components/ui/AppCard"
@@ -9,6 +10,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { normalizeInternalNavigationTarget } from "@/lib/leagueNavigation"
 
 export function LeagueNotificationRedirect() {
+  const { tx } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { activateLeague } = useActiveLeague()
@@ -49,15 +51,15 @@ export function LeagueNotificationRedirect() {
     <AppCard>
       <p className="font-black">
         {hasAccessError
-          ? "No se puede abrir la notificación"
-          : "Abriendo liga"}
+          ? tx("No se puede abrir la notificación")
+          : tx("Abriendo liga")}
       </p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
         {hasAccessError
-          ? "No tienes acceso a la liga de esta notificación o el acceso ya no está disponible."
+          ? tx("No tienes acceso a la liga de esta notificación o el acceso ya no está disponible.")
           : leagueName
             ? `Cambiando a ${leagueName}…`
-            : "Comprobando el acceso y cargando la liga correcta…"}
+            : tx("Comprobando el acceso y cargando la liga correcta…")}
       </p>
 
       {hasAccessError ? (
@@ -65,7 +67,7 @@ export function LeagueNotificationRedirect() {
           href="/leagues"
           className="flex mt-3 rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
         >
-          Ver mis ligas
+          {tx("Ver mis ligas")}
         </Link>
       ) : null}
     </AppCard>

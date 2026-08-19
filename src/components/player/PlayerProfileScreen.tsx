@@ -33,6 +33,7 @@ type PlayerProfileScreenProps = {
 }
 
 export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScreenProps) {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const { matches: allMatches } = useMatchData()
   const { votes } = useMvp()
@@ -197,7 +198,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
             />
             {playerPositionLabel ? (
               <p className="mt-0.5 type-caption font-bold text-neutral-500">
-                Posición preferida · {playerPositionLabel}
+                {tx("Posición preferida ·")}{" "}{playerPositionLabel}
               </p>
             ) : null}
           </div>
@@ -246,10 +247,9 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
           <AppCard className="p-2.5 transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="type-panel-title font-black">Mi disponibilidad</p>
+                <p className="type-panel-title font-black">{tx("Mi disponibilidad")}</p>
                 <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-                  Configura tus horarios habituales para que la app pueda recomendar fechas de partido.
-                </p>
+                  {tx("Configura tus horarios habituales para que la app pueda recomendar fechas de partido.")}{" "}</p>
               </div>
               <ClickableChevron className="shrink-0" />
             </div>

@@ -8,13 +8,17 @@ import {
 } from "@/lib/serverRequest"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { saveGlobalLocation } from "@/lib/serverGlobalLocations"
-import { createLeagueLocation } from "@/lib/leagueLocations"
+import {
+  getScheduleLocationDisplayText,
+  normalizeScheduleLocationValue,
+} from "@/lib/leagueLocations"
 import type { PersonalMatchStatus } from "@/lib/personalMatches"
 import {
   loadPersonalMatchesDashboard,
   resolvePersonalMatchParticipantDrafts,
 } from "@/lib/serverPersonalMatches"
 import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMatchRequest"
+import { isMissingPersonalLocationColumnsError } from "@/lib/serverPersonalLocationSchema"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -78,7 +82,13 @@ export async function POST(request: Request) {
 
   const body = await parseJsonBody<CreatePersonalMatchBody>(request)
   const scheduledAt = validateIsoDateTime(body?.scheduledAt)
-  const locationName = normalizeBoundedText(body?.locationName, 120) || null
+  const rawLocation = normalizeBoundedText(body?.locationName, 4000) || null
+  const structuredLocation = rawLocation
+    ? normalizeScheduleLocationValue(rawLocation)
+    : null
+  const locationName = structuredLocation
+    ? getScheduleLocationDisplayText(structuredLocation)
+    : normalizeBoundedText(rawLocation, 120) || null
   const status = normalizeStatus(body?.status)
   const drafts = normalizePersonalMatchParticipantDrafts(body?.participants)
   const sets = status === "scheduled" ? [] : validateMatchSets(body?.sets)
@@ -129,22 +139,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "personal_match_create_failed" }, { status: 500 })
     }
 
-    if (locationName) {
-      const globalLocation = createLeagueLocation({
-        name: locationName,
-        town: null,
-        address: null,
-        courtCount: null,
+    if (structuredLocation) {
+      const savedLocation = await saveGlobalLocation(authResult.actor.supabase, {
+        ...structuredLocation,
         selectedCourt: null,
-        googlePlaceId: null,
-        googlePlaceName: null,
-        googleMapsUrl: null,
-        latitude: null,
-        longitude: null,
       })
-
-      if (globalLocation) {
-        await saveGlobalLocation(authResult.actor.supabase, globalLocation).catch(() => null)
+      const locationSnapshot = {
+        ...savedLocation,
+        selectedCourt: structuredLocation.selectedCourt ?? null,
+      }
+      const { error: locationUpdateError } = await authResult.actor.supabase
+        .from("personal_matches")
+        .update({
+          location_id: savedLocation.id,
+          location_court: structuredLocation.selectedCourt ?? null,
+          location_snapshot: locationSnapshot,
+          location_name: getScheduleLocationDisplayText(locationSnapshot),
+        })
+        .eq("id", data)
+      if (
+        locationUpdateError &&
+        !isMissingPersonalLocationColumnsError(locationUpdateError)
+      ) {
+        return NextResponse.json({ error: "personal_match_location_save_failed" }, { status: 500 })
       }
     }
 

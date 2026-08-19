@@ -86,6 +86,7 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
 }
 
 export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean }) {
+  const { tx } = useI18n()
   const pathname = usePathname()
   const { t } = useI18n()
   const { activeLeagueId } = useActiveLeague()
@@ -268,7 +269,7 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
                 type="button"
                 disabled
                 aria-disabled="true"
-                title="Disponible cuando comience la temporada"
+                title={tx("Disponible cuando comience la temporada")}
                 className="app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-400 opacity-40"
                 style={{ minHeight: "52px" }}
               >

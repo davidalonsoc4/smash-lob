@@ -14,6 +14,7 @@ import {
   upsertStoredPlayerAvailability,
 } from "@/lib/playerAvailability";
 import { fetchSupabaseMatchPlayerAvailabilities } from "@/lib/supabasePlayerAvailability";
+import { useI18n } from "@/i18n/I18nProvider"
 
 type MatchAvailabilitySuggestionsProps = {
   matchId: string;
@@ -89,18 +90,20 @@ function AvailabilitySuggestionCard({
   totalPlayers: number;
   onSelectSuggestion: (dateTimeLocalValue: string) => void;
 }) {
+  const { tx } = useI18n()
+
   const isPerfectMatch = suggestion.coverage === totalPlayers;
   const missingNames = suggestion.missingPlayerIds.map((playerId) =>
     getPlayerName(players, playerId),
   );
-  const missingLabel = missingNames.length > 0 ? `Faltan: ${missingNames.join(", ")}` : null;
+  const missingLabel = missingNames.length > 0 ? `${tx("Faltan:")} ${missingNames.join(", ")}` : null;
 
   return (
     <button
       type="button"
       onClick={() => onSelectSuggestion(suggestion.dateTimeLocalValue)}
       className="group w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-2 text-left shadow-sm transition hover:border-neutral-400 hover:bg-neutral-50 active:scale-[0.99]"
-      aria-label={`Seleccionar horario recomendado ${suggestion.dateLabel}, ${suggestion.timeLabel}`}
+      aria-label={`${tx("Seleccionar horario recomendado")} ${suggestion.dateLabel}, ${suggestion.timeLabel}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
@@ -135,13 +138,11 @@ function AvailabilitySuggestionCard({
           </p>
         ) : (
           <span className="type-caption font-semibold text-emerald-700">
-            Todos disponibles
-          </span>
+            {tx("Todos disponibles")}{" "}</span>
         )}
 
         <span className="shrink-0 type-caption font-black uppercase tracking-wide text-neutral-500 group-hover:text-neutral-900">
-          Seleccionar
-        </span>
+          {tx("Seleccionar")}{" "}</span>
       </div>
     </button>
   );
@@ -158,6 +159,7 @@ export function MatchAvailabilitySuggestions({
   onUseSuggestion,
   onDefaultSuggestionReady,
 }: MatchAvailabilitySuggestionsProps) {
+  const { tx, locale } = useI18n()
   const [availabilities, setAvailabilities] = useState<PlayerAvailability[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasRemoteError, setHasRemoteError] = useState(false);
@@ -238,8 +240,9 @@ export function MatchAvailabilitySuggestions({
         startsAt: roundStartsAt,
         endsAt: roundEndsAt,
         maxResults: 5,
+        locale,
       }),
-    [availabilities, roundEndsAt, roundStartsAt, uniquePlayerIds],
+    [availabilities, locale, roundEndsAt, roundStartsAt, uniquePlayerIds],
   );
   const defaultDateTimeLocalValue = useMemo(
     () =>
@@ -280,12 +283,12 @@ export function MatchAvailabilitySuggestions({
   };
   const bestRecommendation = recommendations[0] ?? null;
   const summaryText = isLoading
-    ? "Calculando..."
+    ? tx("Calculando...")
     : bestRecommendation
-      ? `${recommendations.length} propuesta${recommendations.length === 1 ? "" : "s"}. Mejor: ${bestRecommendation.dateLabel}, ${bestRecommendation.timeLabel}.`
+      ? `${recommendations.length} ${tx(recommendations.length === 1 ? "propuesta" : "propuestas")}. ${tx("Mejor:")} ${bestRecommendation.dateLabel}, ${bestRecommendation.timeLabel}.`
       : playersWithConfiguredAvailability.length === 0
-        ? "Sin restricciones: todos cuentan como disponibles."
-        : "Sin huecos comunes.";
+        ? tx("Sin restricciones: todos cuentan como disponibles.")
+        : tx("Sin huecos comunes.");
 
   return (
     <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-2">
@@ -297,7 +300,7 @@ export function MatchAvailabilitySuggestions({
       >
         <div className="min-w-0">
           <p className="type-panel-title text-neutral-950">
-            Horarios recomendados
+            {tx("Horarios recomendados")}
           </p>
           <p className="mt-0.5 line-clamp-1 type-caption font-semibold leading-4 text-neutral-500">
             {summaryText}
@@ -325,14 +328,12 @@ export function MatchAvailabilitySuggestions({
         <div className="mt-2 space-y-1.5">
           {hasRemoteError ? (
             <p className="rounded-lg bg-amber-50 p-2 type-caption font-bold text-amber-800">
-              No se ha podido cargar la disponibilidad remota. Se muestran datos de este dispositivo si existen.
-            </p>
+              {tx("No se ha podido cargar la disponibilidad remota. Se muestran datos de este dispositivo si existen.")}{" "}</p>
           ) : null}
 
           {unrestrictedPlayerIds.length > 0 ? (
             <p className="rounded-lg bg-white p-2 type-caption font-semibold leading-4 text-neutral-500">
-              Sin disponibilidad informada: {unrestrictedPlayersLabel}. Se consideran disponibles por defecto.
-            </p>
+              {tx("Sin disponibilidad informada:")}{" "}{unrestrictedPlayersLabel}{tx(". Se consideran disponibles por defecto.")}{" "}</p>
           ) : null}
 
           {recommendations.length > 0 ? (
@@ -349,8 +350,7 @@ export function MatchAvailabilitySuggestions({
             </div>
           ) : (
             <p className="rounded-lg bg-white p-2 text-xs font-semibold leading-5 text-neutral-500">
-              No hay huecos de 2 horas entre las restricciones informadas. Puedes introducir el horario manualmente.
-            </p>
+              {tx("No hay huecos de 2 horas entre las restricciones informadas. Puedes introducir el horario manualmente.")}{" "}</p>
           )}
         </div>
       ) : null}

@@ -53,6 +53,7 @@ import {
   type MatchResultConfirmation,
   type MatchResultConfirmationStatus,
 } from "@/lib/supabaseMatchConfirmations";
+import { useI18n } from "@/i18n/I18nProvider"
 
 export type MatchStatus = "finished" | "scheduling" | "scheduled" | "postponed";
 
@@ -570,6 +571,7 @@ function mergeConfirmations(
 }
 
 export function MatchDataProvider({ children }: MatchDataProviderProps) {
+  const { tx } = useI18n()
   const { data: session } = useSession();
   const {
     finishSeason,
@@ -1124,7 +1126,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             type: "season_finished",
             title: "Temporada finalizada",
             description: winnerName
-              ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+              ? tx(`Enhorabuena a ${winnerName}, ganador de la temporada.`)
               : "La temporada ha finalizado.",
             metadata: {
               automatic: true,
@@ -1463,7 +1465,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           type: "season_finished",
           title: "Temporada finalizada",
           description: winnerName
-            ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+            ? tx(`Enhorabuena a ${winnerName}, ganador de la temporada.`)
             : "La temporada ha finalizado.",
           metadata: {
             automatic: true,

@@ -21,6 +21,7 @@ const [
   newLeaguePage,
   seasonAdminPage,
   matchEventMeta,
+  structuredPersonalMigration,
 ] = await Promise.all([
   read("supabase/migrations/20260808183000_add_global_padel_locations.sql"),
   read("src/lib/serverGlobalLocations.ts"),
@@ -37,6 +38,7 @@ const [
   read("src/app/league/new/page.tsx"),
   read("src/app/admin/season/page.tsx"),
   read("src/components/matches/MatchEventMeta.tsx"),
+  read("supabase/migrations/20260819173000_personal_locations_and_match_dashboard.sql"),
 ])
 
 assert(migration.includes("create table if not exists public.padel_locations"), "Falta padel_locations")
@@ -46,7 +48,15 @@ assert(migration.includes("grant all on table public.padel_locations to service_
 assert(serverCatalog.includes('.from("padel_locations")'), "El servidor debe usar el catálogo global")
 assert(serverCatalog.includes('.from("leagues").select("locations")'), "Se deben importar ubicaciones históricas de ligas")
 assert(serverCatalog.includes('.from("personal_matches")'), "Se deben importar ubicaciones históricas de amistosos")
-assert(serverCatalog.includes("onConflict: \"canonical_key\""), "Las ubicaciones globales deben deduplicarse")
+assert(serverCatalog.includes('onConflict: \"canonical_key\"'), "Las ubicaciones globales deben deduplicarse")
+assert(structuredPersonalMigration.includes("location_id uuid references public.padel_locations(id) on delete set null"), "Los amistosos deben guardar referencia estructurada a la ubicación global")
+assert(structuredPersonalMigration.includes("location_court text") && structuredPersonalMigration.includes("location_snapshot jsonb"), "Pista y snapshot histórico deben persistirse por separado")
+const catalogListFunction = serverCatalog.slice(
+  serverCatalog.indexOf("export async function listGlobalLocations"),
+  serverCatalog.indexOf("export type ManagedGlobalLocationUsageItem"),
+)
+assert(catalogListFunction.includes("return loadLegacyLocations(supabase)"), "Debe existir compatibilidad con bases sin padel_locations")
+assert(!catalogListFunction.includes("saveGlobalLocations(supabase"), "Con padel_locations disponible el catálogo no debe reconstruirse desde partidos o ligas")
 assert(locationsApi.includes("requireAuthenticatedAppUser"), "La API global debe exigir autenticación")
 assert(locationsApi.includes("global_location_create"), "El alta global debe tener rate limit")
 assert(leagueCreateApi.includes("saveGlobalLocations"), "Crear liga debe alimentar el catálogo global")
@@ -85,14 +95,16 @@ assert(matchScheduleForm.includes('fetch("/api/locations"'), "Una ubicación nue
 assert(matchEventMeta.includes("getScheduleLocationDisplayText"), "Los metadatos de partido deben normalizar ubicaciones antes de mostrarlas")
 assert(personalEditor.includes('fetch("/api/locations"'), "Los amistosos deben listar ubicaciones globales")
 assert(personalEditor.includes('fetch("/api/locations", {'), "Los amistosos deben poder guardar una ubicación nueva")
+assert(personalEditor.includes("createScheduledLeagueLocationValue"), "Crear un amistoso debe enviar la ubicación global estructurada, nunca aplanada como texto")
 assert(personalSchedulePanel.includes("<MatchScheduleForm"), "Editar un amistoso debe reutilizar MatchScheduleForm")
+assert(personalSchedulePanel.includes("locationName: input.location"), "Editar un amistoso debe enviar la ubicación estructurada y no aplanarla con la pista")
 assert(matchScheduleForm.includes('fetch("/api/locations"'), "Editar un amistoso debe listar ubicaciones globales mediante MatchScheduleForm")
 assert(matchScheduleForm.includes("+ Añadir nueva ubicación"), "Editar un amistoso debe poder crear ubicación global mediante MatchScheduleForm")
 
 assert(matchScheduleRoute.includes("saveGlobalLocation"), "Una ubicación libre introducida al programar un partido de liga debe guardarse globalmente")
 assert(matchScheduleRoute.includes('update({ locations: nextLeagueLocations })'), "Programar con una ubicación nueva debe añadirla a la liga desde el endpoint autorizado del partido")
 
-console.log("Ubicaciones globales v1.6.0 correctas:")
-console.log("- catálogo único service-role con deduplicación y compatibilidad histórica")
+console.log("Ubicaciones globales v1.10.18 correctas:")
+console.log("- catálogo maestro service-role con deduplicación; fallback legacy solo si la tabla aún no existe")
 console.log("- la primera temporada y la administración buscan ubicaciones existentes o añaden nuevas")
 console.log("- partidos de liga priorizan recomendaciones y fijan Añadir nueva ubicación fuera del scroll; amistosos reutilizan el catálogo global")

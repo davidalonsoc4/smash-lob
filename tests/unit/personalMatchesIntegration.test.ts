@@ -21,27 +21,30 @@ describe("personal matches integration", () => {
     expect(migration).not.toContain("insert into public.personal_matches\n    select")
   })
 
-  it("paginates history ten at a time and exposes separate upcoming league/friendly matches", async () => {
+  it("paginates history ten at a time and exposes every future friendly without league matches in Próximos", async () => {
     const [page, listRoute, serverHelper, migration] = await Promise.all([
       readFile("src/app/personal-matches/page.tsx", "utf8"),
       readFile("src/app/api/personal-matches/route.ts", "utf8"),
       readFile("src/lib/serverPersonalMatches.ts", "utf8"),
-      readFile("supabase/migrations/20260808124000_extend_personal_matches_schedule.sql", "utf8"),
+      readFile("supabase/migrations/20260819173000_personal_locations_and_match_dashboard.sql", "utf8"),
     ])
 
     expect(page).toContain("const pageSize = 10")
     expect(page).toContain("Cargar 10 más")
-    expect(page).toContain("Liga")
-    expect(page).toContain("Amistoso")
-    expect(page).toContain("hasBothUpcoming")
+    expect(page).toContain("Próximos partidos")
+    expect(page).toContain("dashboard.upcoming.map")
     expect(listRoute).toContain('searchParams.get("offset")')
     expect(listRoute).toContain('searchParams.get("limit")')
     expect(listRoute).toContain('searchParams.get("includeUpcoming")')
     expect(serverHelper).toContain("safeLimit + 1")
     expect(serverHelper).toContain("server_list_user_match_history")
-    expect(serverHelper).toContain("server_next_user_matches")
+    expect(serverHelper).toContain('loadScheduledFriendlyIndex(actor, "future")')
+    expect(serverHelper).toContain("upcoming: upcomingFriendlyItems")
     expect(migration).toContain("limit least(greatest(coalesce(p_limit, 10), 1), 100)")
     expect(migration).toContain("offset greatest(coalesce(p_offset, 0), 0)")
+    const nextFunction = migration.slice(migration.indexOf("create or replace function public.server_next_user_matches"))
+    expect(nextFunction).toContain("'friendly'::text as source")
+    expect(nextFunction).not.toContain("'league'::text as source")
   })
 
   it("supports scheduled friendlies and a league-like detail experience", async () => {

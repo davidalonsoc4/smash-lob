@@ -24,7 +24,7 @@ describe("v1.8.23 proposal inner surface contrast", () => {
     expect(page).toContain('mine ? "border border-transparent bg-clip-padding bg-neutral-950" : "border border-neutral-200 bg-white text-neutral-950"')
     expect(page).not.toContain('mine ? "bg-neutral-950 text-white" : "border border-neutral-200 bg-white text-neutral-950"')
     expect(page).toContain('mine ? "bg-neutral-950 text-white" : "text-neutral-950"')
-    expect(page).toContain('type-caption font-semibold ${mine ? "text-neutral-300" : "text-neutral-400"}`}>Toca para ver quién ha votado</p>')
+    expect(page).toContain('type-caption font-semibold ${mine ? "text-neutral-300" : "text-neutral-400"}`}>{tx("Toca para ver quién ha votado")}</p>')
     expect(page).toContain('className="shrink-0"><span className={`inline-flex whitespace-nowrap leading-none ${mine ? "text-neutral-300" : "text-neutral-400"}`}')
     expect(page).toContain('className="origin-right scale-90 type-caption"')
     expect(page).toContain('const idleVoteClass = "border-neutral-200 bg-white text-neutral-500"')

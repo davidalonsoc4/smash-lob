@@ -56,7 +56,7 @@ describe("v1.10.9 reservation payments and season economy", () => {
 
   it("shows the per-person amount under Disponible instead of the old helper", async () => {
     const screen = await readFile("src/components/season/SeasonFinanceScreen.tsx", "utf8")
-    expect(screen).toContain('helper={`${formatMoney(summary.availablePerPlayer)} POR PERSONA`}')
+    expect(screen).toContain('helper={tx(`${formatMoney(summary.availablePerPlayer)} POR PERSONA`)}')
     expect(screen).not.toContain('helper="Ingresado − gastado"')
   })
 

@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 export default function ManualInvitePage() {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const router = useRouter()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -53,7 +53,7 @@ export default function ManualInvitePage() {
           </label>
 
           {error ? (
-            <p className="text-sm font-semibold text-red-600">{error}</p>
+            <p className="text-sm font-semibold text-red-600">{tx(error)}</p>
           ) : null}
 
           <button

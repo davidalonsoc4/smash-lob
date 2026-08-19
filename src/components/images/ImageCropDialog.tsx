@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { createPortal } from "react-dom"
+import { useI18n } from "@/i18n/I18nProvider"
 import {
   clampCropOffset,
   cropImageElementToDataUrl,
@@ -83,6 +84,7 @@ export function ImageCropDialog({
   onCancel,
   onConfirm,
 }: ImageCropDialogProps) {
+  const { tx } = useI18n()
   const imageRef = useRef<HTMLImageElement | null>(null)
   const dragRef = useRef<DragState | null>(null)
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 })
@@ -297,7 +299,7 @@ export function ImageCropDialog({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            aria-label={cancelLabel}
+            aria-label={tx(cancelLabel)}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-lg font-black text-neutral-600 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-300 text-center"
           >
             ×
@@ -323,7 +325,7 @@ export function ImageCropDialog({
               <img
                 ref={imageRef}
                 src={src}
-                alt="Vista previa del recorte"
+                alt={tx("Vista previa del recorte")}
                 draggable={false}
                 onLoad={(event) => {
                   setNaturalSize({
@@ -345,7 +347,7 @@ export function ImageCropDialog({
           </div>
 
           <p className="mt-2 text-center type-caption font-semibold text-neutral-500 dark:text-neutral-400">
-            Arrastra la imagen para colocarla dentro del marco.
+            {tx("Arrastra la imagen para colocarla dentro del marco.")}
           </p>
 
           <div className="mt-4 flex items-center gap-3">
@@ -354,7 +356,7 @@ export function ImageCropDialog({
               onClick={() => rotate(-90)}
               disabled={isSaving}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
-              aria-label="Girar a la izquierda"
+              aria-label={tx("Girar a la izquierda")}
             >
               <RotateIcon direction="left" />
             </button>
@@ -376,7 +378,7 @@ export function ImageCropDialog({
               onClick={() => rotate(90)}
               disabled={isSaving}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
-              aria-label="Girar a la derecha"
+              aria-label={tx("Girar a la derecha")}
             >
               <RotateIcon direction="right" />
             </button>
@@ -384,7 +386,7 @@ export function ImageCropDialog({
 
           {error ? (
             <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
-              {error}
+              {tx(error)}
             </p>
           ) : null}
         </div>
@@ -396,7 +398,7 @@ export function ImageCropDialog({
             disabled={isSaving}
             className="inline-flex rounded-2xl bg-neutral-100 px-3 py-3 text-sm font-black text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200 items-center justify-center text-center"
           >
-            {cancelLabel}
+            {tx(cancelLabel)}
           </button>
           <button
             type="button"
@@ -404,7 +406,7 @@ export function ImageCropDialog({
             disabled={isSaving || !naturalSize.width}
             className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300 dark:bg-white dark:text-neutral-950 dark:disabled:bg-neutral-700 items-center justify-center text-center"
           >
-            {isSaving ? "Procesando..." : confirmLabel}
+            {isSaving ? tx("Procesando...") : tx(confirmLabel)}
           </button>
         </div>
       </div>

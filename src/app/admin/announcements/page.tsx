@@ -16,12 +16,15 @@ import {
   type LeagueAnnouncement,
 } from "@/lib/announcements"
 import { showActionFeedback } from "@/lib/actionFeedback"
+import { useI18n } from "@/i18n/I18nProvider"
+import { getIntlLocale } from "@/i18n/leagueText"
+import type { Locale } from "@/i18n/translations"
 
-function formatDate(value: string) {
+function formatDate(value: string, locale: Locale) {
   const date = new Date(value)
   return Number.isNaN(date.getTime())
     ? ""
-    : new Intl.DateTimeFormat("es-ES", {
+    : new Intl.DateTimeFormat(getIntlLocale(locale), {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -31,6 +34,7 @@ function formatDate(value: string) {
 }
 
 export default function AdminAnnouncementsPage() {
+  const { tx, locale } = useI18n()
   const { activeLeague } = useCurrentLeagueData()
   const { seasons, playerProfiles } = useSeasonSettings()
   const leagueSeasons = useMemo(
@@ -107,10 +111,10 @@ export default function AdminAnnouncementsPage() {
     if (announcement.seasonId) {
       return (
         leagueSeasons.find((season) => season.id === announcement.seasonId)?.name ??
-        "Temporada"
+        tx("Temporada")
       )
     }
-    return "Toda la liga"
+    return tx("Toda la liga")
   }
 
   function toggleTargetPlayer(playerId: string) {
@@ -124,12 +128,11 @@ export default function AdminAnnouncementsPage() {
   if (!canManage) {
     return (
       <div className="compact-page space-y-3">
-        <BackButton fallbackHref="/admin" label="Volver" />
+        <BackButton fallbackHref="/admin" label={tx("Volver")} />
         <AppCard>
-          <p className="font-black">Acceso restringido</p>
+          <p className="font-black">{tx("Acceso restringido")}</p>
           <p className="mt-1 text-sm font-semibold text-neutral-500">
-            Solo la organización puede publicar comunicados.
-          </p>
+            {tx("Solo la organización puede publicar comunicados.")}{" "}</p>
         </AppCard>
       </div>
     )
@@ -173,7 +176,7 @@ export default function AdminAnnouncementsPage() {
         code.includes("players_required")
           ? "Selecciona al menos un jugador."
           : code.includes("season_required")
-            ? "Selecciona una temporada."
+            ? tx("Selecciona una temporada.")
             : "No se ha podido procesar el comunicado.",
       )
     } finally {
@@ -182,7 +185,7 @@ export default function AdminAnnouncementsPage() {
   }
 
   async function handleDelete(announcement: LeagueAnnouncement) {
-    if (!window.confirm(`¿Eliminar el comunicado “${announcement.title}”?`)) {
+    if (!window.confirm(tx(`¿Eliminar el comunicado “${announcement.title}”?`))) {
       return
     }
 
@@ -209,29 +212,29 @@ export default function AdminAnnouncementsPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref="/admin" label="Volver" />
-        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">Comunicados</h1>
+        <BackButton fallbackHref="/admin" label={tx("Volver")} />
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{tx("Comunicados")}</h1>
       </header>
 
       <AppCard>
         <div className="space-y-3">
           <label className="block">
-            <span className="text-xs font-black text-neutral-700">Título</span>
+            <span className="text-xs font-black text-neutral-700">{tx("Título")}</span>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value.slice(0, 100))}
-              placeholder="Cambio de pista, fecha límite, cena final..."
+              placeholder={tx("Cambio de pista, fecha límite, cena final...")}
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-500"
             />
           </label>
 
           <label className="block">
-            <span className="text-xs font-black text-neutral-700">Mensaje</span>
+            <span className="text-xs font-black text-neutral-700">{tx("Mensaje")}</span>
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value.slice(0, 1500))}
               rows={4}
-              placeholder="Escribe el comunicado..."
+              placeholder={tx("Escribe el comunicado...")}
               className="mt-1 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold outline-none focus:border-neutral-500"
             />
             <span className="mt-1 block text-right type-caption font-bold text-neutral-400">
@@ -240,12 +243,12 @@ export default function AdminAnnouncementsPage() {
           </label>
 
           <div>
-            <p className="text-xs font-black text-neutral-700">Destinatarios</p>
+            <p className="text-xs font-black text-neutral-700">{tx("Destinatarios")}</p>
             <div className="mt-1 grid grid-cols-3 gap-1.5">
               {([
-                ["league", "Toda la liga"],
-                ["season", "Temporada"],
-                ["players", "Jugadores"],
+                ["league", tx("Toda la liga")],
+                ["season", tx("Temporada")],
+                ["players", tx("Jugadores")],
               ] as const).map(([value, label]) => (
                 <button
                   key={value}
@@ -265,13 +268,13 @@ export default function AdminAnnouncementsPage() {
 
           {audienceMode === "season" ? (
             <label className="block">
-              <span className="text-xs font-black text-neutral-700">Temporada</span>
+              <span className="text-xs font-black text-neutral-700">{tx("Temporada")}</span>
               <select
                 value={seasonId}
                 onChange={(event) => setSeasonId(event.target.value)}
                 className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"
               >
-                <option value="">Selecciona una temporada</option>
+                <option value="">{tx("Selecciona una temporada")}</option>
                 {leagueSeasons.map((season) => (
                   <option key={season.id} value={season.id}>
                     {season.name}
@@ -284,9 +287,9 @@ export default function AdminAnnouncementsPage() {
           {audienceMode === "players" ? (
             <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-black">Selecciona jugadores</p>
+                <p className="text-xs font-black">{tx("Selecciona jugadores")}</p>
                 <span className="type-caption font-black text-neutral-500">
-                  {targetPlayerIds.length} seleccionados
+                  {tx(`${targetPlayerIds.length} seleccionados`)}
                 </span>
               </div>
               <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
@@ -328,7 +331,7 @@ export default function AdminAnnouncementsPage() {
                 onChange={(event) => setPinned(event.target.checked)}
                 className="h-4 w-4"
               />
-              <span className="text-xs font-black text-orange-950">Fijar en la HOME</span>
+              <span className="text-xs font-black text-orange-950">{tx("Fijar en la HOME")}</span>
             </label>
             <label className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2.5">
               <input
@@ -337,15 +340,14 @@ export default function AdminAnnouncementsPage() {
                 onChange={(event) => setSendNotification(event.target.checked)}
                 className="h-4 w-4"
               />
-              <span className="text-xs font-black text-blue-950">Enviar notificación</span>
+              <span className="text-xs font-black text-blue-950">{tx("Enviar notificación")}</span>
             </label>
           </div>
 
           {pinned ? (
             <label className="block">
               <span className="text-xs font-black text-neutral-700">
-                Ocultar automáticamente (opcional)
-              </span>
+                {tx("Ocultar automáticamente (opcional)")}{" "}</span>
               <input
                 type="datetime-local"
                 value={expiresAt}
@@ -357,8 +359,7 @@ export default function AdminAnnouncementsPage() {
 
           {!pinned && !sendNotification ? (
             <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-800">
-              Marca al menos “Fijar en la HOME” o “Enviar notificación”.
-            </p>
+              {tx("Marca al menos “Fijar en la HOME” o “Enviar notificación”.")}{" "}</p>
           ) : null}
 
           <button
@@ -371,25 +372,25 @@ export default function AdminAnnouncementsPage() {
           </button>
 
           {error ? (
-            <p className="text-center text-xs font-bold text-red-600">{error}</p>
+            <p className="text-center text-xs font-bold text-red-600">{tx(error)}</p>
           ) : null}
         </div>
       </AppCard>
 
       <div>
         <p className="mb-2 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-          Publicados y enviados
+          {tx("Publicados y enviados")}
         </p>
 
         {isLoading ? (
-          <AppCard><p className="text-sm font-bold text-neutral-500">Cargando...</p></AppCard>
+          <AppCard><p className="text-sm font-bold text-neutral-500">{tx("Cargando...")}</p></AppCard>
         ) : announcements.length === 0 ? (
           <EmptyState
             compact
-            title="Todavía no hay comunicados"
-            description="Publica el primero para informar a toda la liga, una temporada o jugadores concretos."
+            title={tx("Todavía no hay comunicados")}
+            description={tx("Publica el primero para informar a toda la liga, una temporada o jugadores concretos.")}
             action={{
-              label: "Crear comunicado",
+              label: tx("Crear comunicado"),
               onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }),
             }}
           />
@@ -407,25 +408,24 @@ export default function AdminAnnouncementsPage() {
                         </span>
                       ) : (
                         <span className="rounded-full bg-blue-100 px-2 py-0.5 type-caption font-black uppercase text-blue-700">
-                          Solo aviso
-                        </span>
+                          {tx("Solo aviso")}{" "}</span>
                       )}
                     </div>
                     <p className="mt-1 line-clamp-3 whitespace-pre-line text-xs font-semibold leading-4 text-neutral-600">
                       {announcement.body}
                     </p>
                     <p className="mt-1.5 type-caption font-bold text-neutral-500">
-                      Para: {getAudienceLabel(announcement)}
+                      {tx("Para:")}{" "}{getAudienceLabel(announcement)}
                     </p>
                     <p className="mt-1 type-caption font-bold text-neutral-400">
-                      {formatDate(announcement.publishedAt)}
+                      {formatDate(announcement.publishedAt, locale)}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleDelete(announcement)}
                     disabled={deletingId === announcement.id}
-                    aria-label={`Eliminar ${announcement.title}`}
+                    aria-label={tx(`Eliminar ${announcement.title}`)}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-red-100 text-xl font-black leading-none text-red-700 transition hover:bg-red-200 disabled:opacity-40"
                   >
                     ×

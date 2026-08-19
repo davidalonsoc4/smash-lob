@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -73,6 +73,12 @@ type SeasonPlayerSummary = {
   avatarUrl?: string | null;
 };
 
+type SeasonAppDirectoryPerson = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
+
 type ManualCalendarTeamKey = "teamA" | "teamB";
 
 type ManualCalendarRoundDraft = {
@@ -129,6 +135,7 @@ function SeasonNavigation({
   canReopenFinishedSeason: boolean;
   registrationEnabled: boolean;
 }) {
+  const { tx } = useI18n()
   let groups: SeasonNavigationGroup[];
 
   if (isActiveSeason) {
@@ -158,7 +165,7 @@ function SeasonNavigation({
           ...(registrationEnabled
             ? [{ href: "#inscripcion", label: "Inscripción" }]
             : []),
-          { href: "#jugadores", label: "Jugadores" },
+          { href: "#jugadores", label: tx("Jugadores") },
         ],
       },
       {
@@ -175,7 +182,7 @@ function SeasonNavigation({
         title: "Preparación",
         links: [
           { href: "#inicio-temporada", label: "Comenzar", primary: true },
-          { href: "#jugadores", label: "Jugadores" },
+          { href: "#jugadores", label: tx("Jugadores") },
           ...(registrationEnabled
             ? [{ href: "#inscripcion", label: "Inscripción" }]
             : []),
@@ -210,11 +217,11 @@ function SeasonNavigation({
   } else if (hasCreatedLeagueSeason) {
     groups = [
       {
-        title: "Temporada finalizada",
+        title: tx("Temporada finalizada"),
         links: [
           { href: "#resumen-configuracion", label: "Configuración" },
           { href: "#invitacion", label: "Invitación" },
-          { href: "#jugadores", label: "Jugadores" },
+          { href: "#jugadores", label: tx("Jugadores") },
           ...(canReopenFinishedSeason
             ? [{ href: "#reabrir", label: "Reabrir" }]
             : []),
@@ -232,7 +239,7 @@ function SeasonNavigation({
       {
         title: "Primera temporada",
         links: [
-          { href: "#nueva-temporada", label: "Crear temporada", primary: true },
+          { href: "#nueva-temporada", label: tx("Crear temporada"), primary: true },
         ],
       },
     ];
@@ -241,16 +248,14 @@ function SeasonNavigation({
   return (
     <AppCard className="p-3">
       <p className="text-sm font-black text-neutral-950">
-        Navegación de temporada
-      </p>
+        {tx("Navegación de temporada")}{" "}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Accede directamente al bloque que necesitas sin recorrer toda la pantalla.
-      </p>
+        {tx("Accede directamente al bloque que necesitas sin recorrer toda la pantalla.")}{" "}</p>
       <div className="mt-3 space-y-3">
         {groups.map((group) => (
-          <div key={group.title}>
+          <div key={tx(group.title)}>
             <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-600">
-              {group.title}
+              {tx(group.title)}
             </p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {group.links.map((link) => (
@@ -265,7 +270,7 @@ function SeasonNavigation({
                         : "bg-neutral-100 text-neutral-800"
                   }`}
                 >
-                  {link.label}
+                  {tx(link.label)}
                 </a>
               ))}
             </div>
@@ -558,6 +563,8 @@ function InviteLinkCard({
   inviteCode: string;
   leagueName: string;
 }) {
+  const { tx } = useI18n()
+
   const { t } = useI18n();
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -587,8 +594,7 @@ function InviteLinkCard({
 
       <div className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5">
         <p className="text-xs font-semibold uppercase text-neutral-500">
-          Código de invitación
-        </p>
+          {tx("Código de invitación")}{" "}</p>
         <p className="mt-1 break-all text-sm font-black text-neutral-950">
           {inviteCode}
         </p>
@@ -596,19 +602,17 @@ function InviteLinkCard({
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => handleCopy(inviteCode, "Código copiado")}
+            onClick={() => handleCopy(inviteCode, tx("Código copiado"))}
             className="inline-flex rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 items-center justify-center text-center"
           >
-            Copiar código
-          </button>
+            {tx("Copiar código")}{" "}</button>
 
           <button
             type="button"
-            onClick={() => handleCopy(inviteUrl, "URL copiada")}
+            onClick={() => handleCopy(inviteUrl, tx("URL copiada"))}
             className="inline-flex rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-800 items-center justify-center text-center"
           >
-            Copiar URL
-          </button>
+            {tx("Copiar URL")}{" "}</button>
         </div>
       </div>
 
@@ -621,7 +625,7 @@ function InviteLinkCard({
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -666,6 +670,7 @@ function MvpSystemOptions({
   value: MvpSystem;
   onChange: (value: MvpSystem) => void;
 }) {
+  const { tx } = useI18n()
   return (
     <div className="mt-3 grid gap-2">
       {mvpSystemOptions.map((option) => {
@@ -682,13 +687,13 @@ function MvpSystemOptions({
                 : "border-neutral-200 bg-white text-neutral-900"
             }`}
           >
-            <span className="block text-sm font-black">{option.title}</span>
+            <span className="block text-sm font-black">{tx(option.title)}</span>
             <span
               className={`mt-1 block text-xs font-semibold leading-5 ${
                 selected ? "text-neutral-300" : "text-neutral-500"
               }`}
             >
-              {option.description}
+              {tx(option.description)}
             </span>
           </button>
         );
@@ -730,6 +735,7 @@ function ResultConfirmationOptions({
   value: ResultConfirmationMode;
   onChange: (value: ResultConfirmationMode) => void;
 }) {
+  const { tx } = useI18n()
   return (
     <div className="mt-3 grid gap-2">
       {resultConfirmationOptions.map((option) => {
@@ -746,13 +752,13 @@ function ResultConfirmationOptions({
                 : "border-neutral-200 bg-white text-neutral-900"
             }`}
           >
-            <span className="block text-sm font-black">{option.title}</span>
+            <span className="block text-sm font-black">{tx(option.title)}</span>
             <span
               className={`mt-1 block text-xs font-semibold leading-5 ${
                 selected ? "text-neutral-300" : "text-neutral-500"
               }`}
             >
-              {option.description}
+              {tx(option.description)}
             </span>
           </button>
         );
@@ -826,6 +832,7 @@ function SeasonConfigurationSummary({
   matches: ReturnType<typeof useCurrentLeagueData>["matches"];
   playerCount: number;
 }) {
+  const { tx } = useI18n()
   const calendarValue = getFinishedSeasonScheduleLabel({
     totalRounds: activeSeason.totalRounds,
     playerCount,
@@ -842,23 +849,23 @@ function SeasonConfigurationSummary({
     activeSeason.status === "active"
       ? "En juego"
       : activeSeason.status === "upcoming"
-        ? "Próxima"
-        : "Finalizada";
+        ? tx("Próxima")
+        : tx("Finalizada");
   const rosterValue =
     roundSettings.rosterMode === "self_registration"
-      ? `${playerCount}/${roundSettings.playerCapacity ?? "—"} · Autoinscripción`
-      : `${playerCount} jugadores · Plantilla fija`;
+      ? tx(`${playerCount}/${roundSettings.playerCapacity ?? "—"} · Autoinscripción`)
+      : tx(`${playerCount} jugadores · Plantilla fija`);
   const roundWindowValue =
     roundSettings.roundWindowMode === "fixed-days"
-      ? `${roundSettings.roundWindowDays ?? "—"} días por jornada`
+      ? tx(`${roundSettings.roundWindowDays ?? "—"} días por jornada`)
       : "Sin margen fijo";
   const registrationValue = roundSettings.registrationFee.enabled
-    ? `${roundSettings.registrationFee.amount} € por jugador`
+    ? tx(`${roundSettings.registrationFee.amount} € por jugador`)
     : "Sin cuota";
   const items = [
     ["Estado", statusValue],
     ["Plantilla", rosterValue],
-    ["Calendario", `${calendarValue} · ${activeSeason.totalRounds} jornadas`],
+    ["Calendario", tx(`${calendarValue} · ${activeSeason.totalRounds} jornadas`)],
     [
       "Resultado",
       roundSettings.requiresThreeSets
@@ -881,13 +888,13 @@ function SeasonConfigurationSummary({
     <AppCard className="p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-bold">Resumen de configuración</p>
+          <p className="font-bold">{tx("Resumen de configuración")}</p>
           <p className="mt-0.5 truncate text-xs font-semibold text-neutral-500">
             {activeSeason.name}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
-          {statusValue}
+          {tx(statusValue)}
         </span>
       </div>
 
@@ -895,10 +902,10 @@ function SeasonConfigurationSummary({
         {items.slice(1).map(([title, value]) => (
           <div key={title} className="min-w-0 rounded-xl bg-neutral-100 px-2.5 py-2">
             <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
-              {title}
+              {tx(title)}
             </p>
             <p className="mt-0.5 type-caption font-black leading-4 text-neutral-800">
-              {value}
+              {tx(value)}
             </p>
           </div>
         ))}
@@ -913,6 +920,7 @@ function RequiresThreeSetsSettingsPanel({
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
 }) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [requiresThreeSets, setRequiresThreeSets] = useState(
     roundSettings.requiresThreeSets,
@@ -947,10 +955,9 @@ function RequiresThreeSetsSettingsPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Regla de los tres sets</p>
+      <p className="font-bold">{tx("Regla de los tres sets")}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Decide si todos los partidos deben completar los tres sets, aunque una pareja gane los dos primeros.
-      </p>
+        {tx("Decide si todos los partidos deben completar los tres sets, aunque una pareja gane los dos primeros.")}{" "}</p>
 
       <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
         <input
@@ -963,10 +970,9 @@ function RequiresThreeSetsSettingsPanel({
           className="mt-1"
         />
         <span>
-          <span className="block text-sm font-black">Jugar 3 sets completos siempre</span>
+          <span className="block text-sm font-black">{tx("Jugar 3 sets completos siempre")}</span>
           <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
-            Desactívalo para permitir cerrar el partido cuando una pareja ya haya ganado los sets necesarios.
-          </span>
+            {tx("Desactívalo para permitir cerrar el partido cuando una pareja ya haya ganado los sets necesarios.")}{" "}</span>
         </span>
       </label>
 
@@ -976,9 +982,9 @@ function RequiresThreeSetsSettingsPanel({
         disabled={!hasChanges || isSaving}
         className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Guardar regla"}
+        {isSaving ? "Guardando..." : tx("Guardar regla")}
       </button>
-      {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{error}</p> : null}
+      {error ? <p className="mt-2 text-center text-xs font-bold text-red-600">{tx(error)}</p> : null}
     </AppCard>
   );
 }
@@ -989,7 +995,7 @@ function RoundWindowSettingsPanel({
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
 }) {
-  const { t } = useI18n();
+  const { t, tx } = useI18n();
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [selectedMode, setSelectedMode] = useState<RoundWindowMode>(
     roundSettings.roundWindowMode,
@@ -1157,7 +1163,7 @@ function RoundWindowSettingsPanel({
       </button>
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -1171,6 +1177,7 @@ function ResultConfirmationSettingsPanel({
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
 }) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [selectedMode, setSelectedMode] = useState<ResultConfirmationMode>(
     roundSettings.resultConfirmationMode,
@@ -1197,25 +1204,22 @@ function ResultConfirmationSettingsPanel({
         await updateSupabaseSeasonRoundSettings(nextSettings);
       } catch (supabaseError) {
         recordSupabaseError("update-season-result-confirmations", supabaseError);
-        setError(
-          "No se ha podido guardar la configuración de confirmaciones en Supabase.",
-        );
+        setError(tx("No se ha podido guardar la configuración de confirmaciones en Supabase."));
         setIsSaving(false);
         return;
       }
     }
 
     updateSeasonRoundSettings(nextSettings);
-    showSavedFeedback("Confirmaciones de resultado actualizadas.");
+    showSavedFeedback(tx("Confirmaciones de resultado actualizadas."));
     setIsSaving(false);
   }
 
   return (
     <AppCard>
-      <p className="font-bold">Confirmación de resultados</p>
+      <p className="font-bold">{tx("Confirmación de resultados")}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Decide si los jugadores deben validar los resultados registrados.
-      </p>
+        {tx("Decide si los jugadores deben validar los resultados registrados.")}{" "}</p>
 
       <ResultConfirmationOptions
         value={selectedMode}
@@ -1232,11 +1236,11 @@ function ResultConfirmationSettingsPanel({
         }
         className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Guardar confirmaciones"}
+        {isSaving ? tx("Guardando...") : tx("Guardar confirmaciones")}
       </button>
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -1250,6 +1254,7 @@ function MvpSystemSettingsPanel({
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
 }) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [selectedSystem, setSelectedSystem] = useState<MvpSystem>(
     roundSettings.mvpSystem,
@@ -1276,26 +1281,22 @@ function MvpSystemSettingsPanel({
         await updateSupabaseSeasonRoundSettings(nextSettings);
       } catch (supabaseError) {
         recordSupabaseError("update-season-mvp-system", supabaseError);
-        setError(
-          "No se ha podido guardar el sistema MVP en Supabase. Revisa smash-lob-last-supabase-error.",
-        );
+        setError(tx("No se ha podido guardar el sistema MVP en Supabase. Revisa smash-lob-last-supabase-error."));
         setIsSaving(false);
         return;
       }
     }
 
     updateSeasonRoundSettings(nextSettings);
-    showSavedFeedback("Sistema MVP actualizado.");
+    showSavedFeedback(tx("Sistema MVP actualizado."));
     setIsSaving(false);
   }
 
   return (
     <AppCard>
-      <p className="font-bold">Sistema MVP</p>
+      <p className="font-bold">{tx("Sistema MVP")}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Puedes cambiarlo antes o durante la temporada. Los votos solo se usan
-        cuando está seleccionado el modo por votación.
-      </p>
+        {tx("Puedes cambiarlo antes o durante la temporada. Los votos solo se usan cuando está seleccionado el modo por votación.")}{" "}</p>
 
       <MvpSystemOptions
         value={selectedSystem}
@@ -1310,11 +1311,11 @@ function MvpSystemSettingsPanel({
         disabled={isSaving || selectedSystem === roundSettings.mvpSystem}
         className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Guardar sistema MVP"}
+        {isSaving ? tx("Guardando...") : tx("Guardar sistema MVP")}
       </button>
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -1322,6 +1323,7 @@ function MvpSystemSettingsPanel({
 }
 
 function RegistrationFeeSettingsPanel({ activeLeagueId, roundSettings, canToggleEnabled }: { activeLeagueId: string; roundSettings: SeasonRoundSettings; canToggleEnabled: boolean }) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [enabled, setEnabled] = useState(roundSettings.registrationFee.enabled);
   const [amount, setAmount] = useState(roundSettings.registrationFee.amount > 0 ? String(roundSettings.registrationFee.amount) : "10");
@@ -1345,28 +1347,28 @@ function RegistrationFeeSettingsPanel({ activeLeagueId, roundSettings, canToggle
     try {
       if (isSupabaseBackedId(roundSettings.seasonId)) await updateSupabaseSeasonRoundSettings(nextSettings);
       updateSeasonRoundSettings(nextSettings);
-      showSavedFeedback(canToggleEnabled ? "Inscripción de temporada actualizada." : "Importe de inscripción actualizado.");
-    } catch { setError("No se ha podido guardar la inscripción de temporada."); }
+      showSavedFeedback(canToggleEnabled ? tx("Inscripción de temporada actualizada.") : tx("Importe de inscripción actualizado."));
+    } catch { setError(tx("No se ha podido guardar la inscripción de temporada.")); }
     finally { setIsSaving(false); }
   }
 
   return <AppCard>
-    <p className="font-bold">Inscripción de temporada</p>
-    <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{canToggleEnabled ? "Activa o desactiva la inscripción mientras la temporada no haya comenzado." : "La inscripción queda fijada al comenzar la temporada; solo puedes ajustar sus datos."}</p>
+    <p className="font-bold">{tx("Inscripción de temporada")}</p>
+    <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{canToggleEnabled ? tx("Activa o desactiva la inscripción mientras la temporada no haya comenzado.") : tx("La inscripción queda fijada al comenzar la temporada; solo puedes ajustar sus datos.")}</p>
     {canToggleEnabled ? <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
       <input type="checkbox" checked={enabled} onChange={(event) => { setEnabled(event.target.checked); setError(null); }} className="mt-1" />
-      <span><span className="block text-sm font-black text-neutral-950">Cobrar inscripción esta temporada</span><span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">Puedes cambiar esta decisión hasta que la temporada empiece.</span></span>
+      <span><span className="block text-sm font-black text-neutral-950">{tx("Cobrar inscripción esta temporada")}</span><span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">{tx("Puedes cambiar esta decisión hasta que la temporada empiece.")}</span></span>
     </label> : null}
     {enabled ? <div className="mt-3 space-y-3">
-      <label className="block"><span className="text-xs font-black uppercase tracking-wide text-neutral-500">Precio por jugador</span><div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
+      <label className="block"><span className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Precio por jugador")}</span><div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
         <input type="number" min={0.5} step="0.5" value={amount} onChange={(event) => { setAmount(event.target.value); setError(null); }} className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none" /><span className="text-sm font-black text-neutral-500">€</span>
       </div></label>
-      <label className="block"><span className="text-xs font-black uppercase tracking-wide text-neutral-500">Concepto</span><input type="text" value={purpose} onChange={(event) => { setPurpose(event.target.value); setError(null); }} placeholder="Inscripción Temporada 1" className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-950 outline-none" /></label>
-    </div> : <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">Esta temporada no cobrará inscripción.</p>}
-    {enabled && !hasValidAmount ? <p className="mt-2 text-xs font-semibold text-red-600">Introduce un importe mayor que 0.</p> : null}
-    {roundSettings.registrationFee.enabled ? <Link href="/admin/season/finances" data-tour="season-admin-finances" className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950">Economía de temporada</Link> : null}
-    <button type="button" onClick={save} disabled={isSaving || !hasChanges || !hasValidAmount} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? "Guardando..." : "Guardar inscripción"}</button>
-    {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
+      <label className="block"><span className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Concepto")}</span><input type="text" value={purpose} onChange={(event) => { setPurpose(event.target.value); setError(null); }} placeholder={tx("Inscripción Temporada 1")} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-950 outline-none" /></label>
+    </div> : <p className="mt-3 rounded-2xl bg-neutral-100 px-3 py-2.5 text-xs font-semibold leading-5 text-neutral-600">{tx("Esta temporada no cobrará inscripción.")}</p>}
+    {enabled && !hasValidAmount ? <p className="mt-2 text-xs font-semibold text-red-600">{tx("Introduce un importe mayor que 0.")}</p> : null}
+    {roundSettings.registrationFee.enabled ? <Link href="/admin/season/finances" data-tour="season-admin-finances" className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950">{tx("Economía de temporada")}</Link> : null}
+    <button type="button" onClick={save} disabled={isSaving || !hasChanges || !hasValidAmount} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? tx("Guardando...") : tx("Guardar inscripción")}</button>
+    {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{tx(error)}</p> : null}
   </AppCard>;
 }
 
@@ -1385,7 +1387,7 @@ function BalancedCalendarAuditPanel({
   playerIds: string[];
   matches: ReturnType<typeof useCurrentLeagueData>["matches"];
 }) {
-  const { t } = useI18n();
+  const { t, tx } = useI18n();
   const { replaceSeasonMatches } = useMatchData();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1683,7 +1685,7 @@ function BalancedCalendarAuditPanel({
       ) : null}
       {error ? (
         <p className="mt-3 text-center text-xs font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -1706,6 +1708,7 @@ function RoundManagementPanel({
   roundSettings: SeasonRoundSettings;
   matches: ReturnType<typeof useCurrentLeagueData>["matches"];
 }) {
+  const { tx } = useI18n()
   const { reorderSeasonRounds } = useMatchData();
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const isUpcomingSeason = activeSeason.status === "upcoming";
@@ -1762,7 +1765,7 @@ function RoundManagementPanel({
     }
 
     updateSeasonRoundSettings(nextSettings);
-    showSavedFeedback("Gestión de jornadas actualizada.");
+    showSavedFeedback(tx("Gestión de jornadas actualizada."));
     setIsSaving(false);
   }
 
@@ -1865,7 +1868,7 @@ function RoundManagementPanel({
       nextRoundByCurrentRound.get(currentRound) ?? currentRound,
     );
     setRoundOrder(defaultRoundOrder);
-    showSavedFeedback("Gestión y orden de jornadas actualizados.");
+    showSavedFeedback(tx("Gestión y orden de jornadas actualizados."));
     setIsSavingRoundOrder(false);
   }
 
@@ -1878,11 +1881,11 @@ function RoundManagementPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Gestión y orden de jornadas</p>
+      <p className="font-bold">{tx("Gestión y orden de jornadas")}</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
         {isUpcomingSeason
-          ? "Reordena el calendario y deja preparada la jornada inicial antes de comenzar la temporada."
-          : "Control manual para activar, finalizar, reabrir o mover la jornada activa cuando haga falta."}
+          ? tx("Reordena el calendario y deja preparada la jornada inicial antes de comenzar la temporada.")
+          : tx("Control manual para activar, finalizar, reabrir o mover la jornada activa cuando haga falta.")}
       </p>
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
@@ -1908,17 +1911,17 @@ function RoundManagementPanel({
                         : "bg-sky-50 text-sky-800 ring-sky-200/80"
               }`}
             >
-              <span className="block">J{round.round}</span>
+              <span className="block">{tx("J")}{round.round}</span>
               <span className="mt-1 block type-caption uppercase tracking-wide opacity-70">
                 {isInitialRound
                   ? "Inicial"
                   : round.status === "active"
                     ? "Activa"
                     : round.status === "completed"
-                      ? "Finalizada"
+                      ? tx("Finalizada")
                       : round.status === "overdue"
-                        ? "Fuera de plazo"
-                        : "Próxima"}
+                        ? tx("Fuera de plazo")
+                        : tx("Próxima")}
               </span>
             </button>
           );
@@ -1928,10 +1931,9 @@ function RoundManagementPanel({
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2.5">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
-            Jornada seleccionada
-          </span>
+            {tx("Jornada seleccionada")}{" "}</span>
           <span className="text-sm font-black text-neutral-950">
-            Jornada {selectedRound}
+            {tx("Jornada")}{" "}{selectedRound}
           </span>
         </div>
 
@@ -1944,8 +1946,7 @@ function RoundManagementPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
-                Empezar por esta
-              </button>
+                {tx("Empezar por esta")}{" "}</button>
               <button
                 type="button"
                 onClick={() =>
@@ -1957,13 +1958,10 @@ function RoundManagementPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
-                Orden automático
-              </button>
+                {tx("Orden automático")}{" "}</button>
             </div>
             <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
-              Finalizar y reabrir jornadas estará disponible cuando comience la
-              temporada.
-            </p>
+              {tx("Finalizar y reabrir jornadas estará disponible cuando comience la temporada.")}{" "}</p>
           </>
         ) : (
           <>
@@ -1974,7 +1972,7 @@ function RoundManagementPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
-                Activar
+                {tx("Activar")}
               </button>
               <button
                 type="button"
@@ -1982,7 +1980,7 @@ function RoundManagementPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
               >
-                Finalizar
+                {tx("Finalizar")}
               </button>
               <button
                 type="button"
@@ -1990,7 +1988,7 @@ function RoundManagementPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
-                Reabrir
+                {tx("Reabrir")}
               </button>
               <button
                 type="button"
@@ -2003,8 +2001,7 @@ function RoundManagementPanel({
                 disabled={isSaving}
                 className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
-                Modo automático
-              </button>
+                {tx("Modo automático")}{" "}</button>
             </div>
 
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -2014,16 +2011,14 @@ function RoundManagementPanel({
                 disabled={isSaving || previousRound === activeRound?.round}
                 className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
-                Jornada anterior
-              </button>
+                {tx("Jornada anterior")}{" "}</button>
               <button
                 type="button"
                 onClick={() => activateRound(nextRound)}
                 disabled={isSaving || nextRound === activeRound?.round}
                 className="inline-flex rounded-2xl bg-white px-3 py-3 text-xs font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
               >
-                Siguiente jornada
-              </button>
+                {tx("Siguiente jornada")}{" "}</button>
             </div>
           </>
         )}
@@ -2034,16 +2029,13 @@ function RoundManagementPanel({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-black text-neutral-950">
-                Orden de jornadas
-              </p>
+                {tx("Orden de jornadas")}{" "}</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                Reordena el calendario sin salir de esta gestión. Al guardar,
-                los partidos se renumeran con el nuevo orden.
-              </p>
+                {tx("Reordena el calendario sin salir de esta gestión. Al guardar, los partidos se renumeran con el nuevo orden.")}{" "}</p>
             </div>
             {hasRoundOrderChanges ? (
               <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
-                Cambios
+                {tx("Cambios")}
               </span>
             ) : null}
           </div>
@@ -2056,10 +2048,10 @@ function RoundManagementPanel({
               >
                 <div className="min-w-0">
                   <p className="text-sm font-black text-neutral-950">
-                    Posición {index + 1}
+                    {tx("Posición")}{" "}{index + 1}
                   </p>
                   <p className="text-xs font-semibold text-neutral-600">
-                    Jornada {round}
+                    {tx("Jornada")}{" "}{round}
                   </p>
                 </div>
 
@@ -2113,7 +2105,7 @@ function RoundManagementPanel({
               disabled={isSavingRoundOrder || !hasRoundOrderChanges}
               className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm font-black text-neutral-800 disabled:text-neutral-300 items-center justify-center text-center"
             >
-              Restaurar
+              {tx("Restaurar")}
             </button>
             <button
               type="button"
@@ -2121,7 +2113,7 @@ function RoundManagementPanel({
               disabled={isSavingRoundOrder || !hasRoundOrderChanges}
               className="inline-flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
-              {isSavingRoundOrder ? "Guardando..." : "Guardar orden"}
+              {isSavingRoundOrder ? "Guardando..." : tx("Guardar orden")}
             </button>
           </div>
         </div>
@@ -2129,7 +2121,7 @@ function RoundManagementPanel({
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -2145,6 +2137,7 @@ function SeasonPlayerNamesPanel({
   players: SeasonPlayerSummary[];
   readOnly?: boolean;
 }) {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const { isPlayerClaimed, updateLeaguePlayerName } = useLeagueAccess();
   const [draftNames, setDraftNames] = useState<Record<string, string>>(() =>
@@ -2191,11 +2184,11 @@ function SeasonPlayerNamesPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Jugadores de temporada</p>
+      <p className="font-bold">{tx("Jugadores de temporada")}</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
         {readOnly
-          ? "Consulta quién está conectado o pendiente. La temporada finalizada está en solo lectura."
-          : "Revisa quién está conectado o pendiente y corrige nombres sin recrear la temporada ni tocar el calendario ya generado."}
+          ? tx("Consulta quién está conectado o pendiente. La temporada finalizada está en solo lectura.")
+          : tx("Revisa quién está conectado o pendiente y corrige nombres sin recrear la temporada ni tocar el calendario ya generado.")}
       </p>
 
       <div className="mt-3 space-y-2">
@@ -2231,7 +2224,7 @@ function SeasonPlayerNamesPanel({
                     <p className="truncate text-sm font-black text-neutral-950">{player.displayName}</p>
                   ) : (
                     <input
-                      aria-label={`Nombre de ${player.displayName}`}
+                      aria-label={tx(`Nombre de ${player.displayName}`)}
                       value={draftName}
                       onChange={(event) => {
                         setDraftNames((currentNames) => ({ ...currentNames, [player.id]: event.target.value }));
@@ -2248,7 +2241,7 @@ function SeasonPlayerNamesPanel({
                     disabled={Boolean(savingPlayerId) || !hasChanges || !draftName.trim()}
                     className="inline-flex shrink-0 rounded-2xl bg-neutral-950 px-3 py-2.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                   >
-                    {isSavingPlayer ? "..." : "Guardar"}
+                    {isSavingPlayer ? "..." : tx("Guardar")}
                   </button>
                 ) : null}
               </div>
@@ -2259,7 +2252,7 @@ function SeasonPlayerNamesPanel({
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -2275,6 +2268,7 @@ function FinishSeasonPanel({
   activeSeasonId: string;
   winnerName?: string | null;
 }) {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const router = useRouter();
   const { data: session } = useSession();
@@ -2322,9 +2316,9 @@ function FinishSeasonPanel({
         seasonId: activeSeasonId,
         ...getActorFromSession(session),
         type: "season_finished",
-        title: "Temporada finalizada",
+        title: tx("Temporada finalizada"),
         description: winnerName
-          ? `Enhorabuena a ${winnerName}, ganador de la temporada.`
+          ? tx(`Enhorabuena a ${winnerName}, ganador de la temporada.`)
           : "La temporada ha finalizado.",
         metadata: {
           winnerName: winnerName ?? null,
@@ -2358,7 +2352,7 @@ function FinishSeasonPanel({
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -2377,6 +2371,7 @@ function StartSeasonPanel({
   canStartBecauseRosterComplete: boolean;
   scheduledStartAt: string | null | undefined;
 }) {
+  const { tx } = useI18n()
   const router = useRouter();
   const { t } = useI18n();
   const { data: session } = useSession();
@@ -2409,7 +2404,7 @@ function StartSeasonPanel({
     }
 
     const confirmed = window.confirm(
-      "¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados.",
+      tx("¿Comenzar la temporada? A partir de ese momento se podrán programar partidos y registrar resultados."),
     );
 
     if (!confirmed) {
@@ -2461,11 +2456,9 @@ function StartSeasonPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Comenzar temporada</p>
+      <p className="font-bold">{tx("Comenzar temporada")}</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
-        La temporada está creada, pero todavía no está activa. Al comenzar se
-        desbloquean la programación de partidos y el registro de resultados.
-      </p>
+        {tx("La temporada está creada, pero todavía no está activa. Al comenzar se desbloquean la programación de partidos y el registro de resultados.")}{" "}</p>
 
       {scheduledStartAt ? (
         <div className="mt-3">
@@ -2479,26 +2472,24 @@ function StartSeasonPanel({
         disabled={isSaving || isScheduledPending || !canStartBecauseRegistrationSettled || !canStartBecauseRosterComplete}
         className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Comenzar temporada"}
+        {isSaving ? "Guardando..." : tx("Comenzar temporada")}
       </button>
 
       {isScheduledPending ? (
         <p className="mt-3 rounded-2xl bg-sky-50 px-3 py-2 text-xs font-semibold leading-5 text-sky-900">
-          Inicio programado. Los jugadores pueden unirse y completar sus datos, pero los controles competitivos permanecen bloqueados hasta la activación automática.
-        </p>
+          {tx("Inicio programado. Los jugadores pueden unirse y completar sus datos, pero los controles competitivos permanecen bloqueados hasta la activación automática.")}{" "}</p>
       ) : !canStartBecauseRosterComplete ? (
         <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
           {t.roster.startIncompleteHint}
         </p>
       ) : !canStartBecauseRegistrationSettled ? (
         <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">
-          Hay inscripciones pendientes. La temporada no podrá comenzar hasta que se marquen como pagadas.
-        </p>
+          {tx("Hay inscripciones pendientes. La temporada no podrá comenzar hasta que se marquen como pagadas.")}{" "}</p>
       ) : null}
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -2512,6 +2503,7 @@ function ReopenSeasonPanel({
   activeLeagueId: string;
   activeSeasonId: string;
 }) {
+  const { tx } = useI18n()
   const router = useRouter();
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, startSeason } = useSeasonSettings();
@@ -2525,7 +2517,7 @@ function ReopenSeasonPanel({
     }
 
     const confirmed = window.confirm(
-      "¿Reabrir esta temporada? Volverá a estar activa para poder corregir partidos o resultados.",
+      tx("¿Reabrir esta temporada? Volverá a estar activa para poder corregir partidos o resultados."),
     );
 
     if (!confirmed) {
@@ -2578,11 +2570,9 @@ function ReopenSeasonPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Reabrir temporada pasada</p>
+      <p className="font-bold">{tx("Reabrir temporada pasada")}</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Úsalo solo si la temporada se cerró por error o necesitas corregir algún
-        resultado. La temporada volverá a estar activa.
-      </p>
+        {tx("Úsalo solo si la temporada se cerró por error o necesitas corregir algún resultado. La temporada volverá a estar activa.")}{" "}</p>
 
       <button
         type="button"
@@ -2590,12 +2580,12 @@ function ReopenSeasonPanel({
         disabled={isSaving}
         className="flex mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-sm font-black text-neutral-950 ring-1 ring-neutral-200 disabled:text-neutral-300 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Reabrir temporada pasada"}
+        {isSaving ? tx("Guardando...") : tx("Reabrir temporada pasada")}
       </button>
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -2611,6 +2601,7 @@ function SeasonDangerZone({
   activeSeasonId: string;
   totalRounds: number;
 }) {
+  const { tx } = useI18n()
   const router = useRouter();
   const { deleteSeason, hydrateSeasonSnapshot } = useSeasonSettings();
   const { deleteRoundMatches, deleteSeasonMatches } = useMatchData();
@@ -2625,7 +2616,7 @@ function SeasonDangerZone({
     }
 
     const confirmed = window.confirm(
-      `¿Eliminar la Jornada ${selectedRound}? Se borrarán sus partidos y resultados.`,
+      tx(`¿Eliminar la Jornada ${selectedRound}? Se borrarán sus partidos y resultados.`),
     );
 
     if (!confirmed) {
@@ -2653,7 +2644,7 @@ function SeasonDangerZone({
     }
 
     deleteRoundMatches(activeSeasonId, selectedRound);
-    showSavedFeedback(`Jornada ${selectedRound} eliminada.`);
+    showSavedFeedback(tx(`Jornada ${selectedRound} eliminada.`));
     setIsSaving(false);
   }
 
@@ -2663,7 +2654,7 @@ function SeasonDangerZone({
     }
 
     const confirmed = window.confirm(
-      "¿Eliminar la temporada completa? Se borrarán sus jornadas, partidos y resultados.",
+      tx("¿Eliminar la temporada completa? Se borrarán sus jornadas, partidos y resultados."),
     );
 
     if (!confirmed) {
@@ -2699,17 +2690,14 @@ function SeasonDangerZone({
 
   return (
     <AppCard>
-      <p className="font-bold">Zona de eliminación</p>
+      <p className="font-bold">{tx("Zona de eliminación")}</p>
       <p className="mt-1 text-xs font-semibold text-neutral-500">
-        Permite borrar jornadas o temporadas completas si el calendario se creó
-        mal. Es una acción destructiva.
-      </p>
+        {tx("Permite borrar jornadas o temporadas completas si el calendario se creó mal. Es una acción destructiva.")}{" "}</p>
 
       <div className="mt-3 rounded-2xl bg-neutral-100 p-3">
         <label className="block">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-            Jornada a eliminar
-          </span>
+            {tx("Jornada a eliminar")}{" "}</span>
           <select
             value={selectedRound}
             onChange={(event) => setSelectedRound(Number(event.target.value))}
@@ -2719,7 +2707,7 @@ function SeasonDangerZone({
             {Array.from({ length: totalRounds }, (_, index) => index + 1).map(
               (round) => (
                 <option key={round} value={round}>
-                  Jornada {round}
+                  {tx("Jornada")}{" "}{round}
                 </option>
               ),
             )}
@@ -2732,8 +2720,7 @@ function SeasonDangerZone({
           disabled={isSaving}
           className="flex mt-3 w-full rounded-2xl bg-red-50 px-3 py-2.5 text-sm font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
         >
-          Eliminar jornada
-        </button>
+          {tx("Eliminar jornada")}{" "}</button>
       </div>
 
       <button
@@ -2742,12 +2729,11 @@ function SeasonDangerZone({
         disabled={isSaving}
         className="flex mt-3 w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center"
       >
-        Eliminar temporada completa
-      </button>
+        {tx("Eliminar temporada completa")}{" "}</button>
 
       {error ? (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -2767,6 +2753,7 @@ function NewSeasonForm({
   currentPlayers: SeasonPlayerSummary[];
   initialLocations: LeagueLocation[];
 }) {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const router = useRouter();
   const { data: session } = useSession();
@@ -2807,6 +2794,10 @@ function NewSeasonForm({
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
   );
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([]);
+  const [appDirectory, setAppDirectory] = useState<SeasonAppDirectoryPerson[]>([]);
+  const [appDirectoryLeagueId, setAppDirectoryLeagueId] = useState<string | null>(null);
+  const [selectedAppUsers, setSelectedAppUsers] = useState<SeasonAppDirectoryPerson[]>([]);
+  const [appPlayerQuery, setAppPlayerQuery] = useState("");
   const [selfPlayerValue, setSelfPlayerValue] = useState<string | null>(() =>
     leagueSeasonCount === 0 && userId && !isSuperuser
       ? getNewPlayerToken(0)
@@ -2849,6 +2840,35 @@ function NewSeasonForm({
   const inviteCode = getLeagueInviteCode(activeLeagueId);
   const canLinkSelfPlayer = Boolean(isFirstLeagueSeason && userId && !isSuperuser);
 
+  useEffect(() => {
+    if (!isSupabaseBackedId(activeLeagueId)) return;
+
+    let cancelled = false;
+    void fetch(`/api/leagues/${activeLeagueId}/player-directory`, { cache: "no-store" })
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as
+          | { people?: SeasonAppDirectoryPerson[] }
+          | null;
+        if (!response.ok || !Array.isArray(payload?.people)) {
+          throw new Error("player_directory_lookup_failed");
+        }
+        if (!cancelled) {
+          setAppDirectory(payload.people);
+          setAppDirectoryLeagueId(activeLeagueId);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAppDirectory([]);
+          setAppDirectoryLeagueId(activeLeagueId);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeLeagueId]);
+
   const parsedRoundWindowDays = Number(roundWindowDays);
   const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
   const scheduledStartIso = datetimeLocalToIso(scheduledStartAt);
@@ -2869,16 +2889,30 @@ function NewSeasonForm({
   const removedPlayers = currentPlayers.filter(
     (player) => !selectedPlayerIdSet.has(player.id),
   );
-  const newPlayerSlotCount = Math.max(
-    playerCount - selectedPlayerIds.length,
-    0,
-  );
-  const visibleNewPlayerNames = resizePlayerNames(
-    newPlayerNames,
-    newPlayerSlotCount,
-  );
+  const fixedOccupiedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length;
+  const newPlayerSlotCount = Math.max(playerCount - fixedOccupiedPlayerCount, 0);
+  const visibleNewPlayerNames = resizePlayerNames(newPlayerNames, newPlayerSlotCount);
   const cleanNewPlayerNames = visibleNewPlayerNames.map((playerName) =>
     playerName.trim(),
+  );
+  const appPlayerTokenOffset = visibleNewPlayerNames.length;
+  const selectedAppUserIds = selectedAppUsers.map((person) => person.userId);
+  const selectedAppUserIdSet = new Set(selectedAppUserIds);
+  const normalizedAppPlayerQuery = appPlayerQuery.trim().toLocaleLowerCase("es");
+  const isAppDirectoryLoading =
+    isSupabaseBackedId(activeLeagueId) && appDirectoryLeagueId !== activeLeagueId;
+  const activeAppDirectory = appDirectoryLeagueId === activeLeagueId ? appDirectory : [];
+  const filteredAppDirectory = activeAppDirectory
+    .filter((person) => !selectedAppUserIdSet.has(person.userId))
+    .filter(
+      (person) =>
+        !normalizedAppPlayerQuery ||
+        person.displayName.toLocaleLowerCase("es").includes(normalizedAppPlayerQuery),
+    )
+    .slice(0, 8);
+  const maxSelectableAppUsers = Math.max(
+    playerCount - selectedPlayerIds.length - (canLinkSelfPlayer ? 1 : 0),
+    0,
   );
   const manualPlayerOptions = [
     ...selectedPlayerIds.map((playerId) => {
@@ -2894,8 +2928,12 @@ function NewSeasonForm({
       label:
         playerName.trim() ||
         (isFirstLeagueSeason
-          ? `Jugador ${selectedPlayerIds.length + index + 1}`
+          ? tx(`Jugador ${selectedPlayerIds.length + index + 1}`)
           : `Sustituto ${index + 1}`),
+    })),
+    ...selectedAppUsers.map((person, index) => ({
+      value: getNewPlayerToken(appPlayerTokenOffset + index),
+      label: person.displayName,
     })),
   ];
   const validManualPlayerValues = new Set(
@@ -2915,10 +2953,11 @@ function NewSeasonForm({
     });
   const hasValidPlayers =
     allowedPlayerCounts.includes(playerCount) &&
-    (rosterMode === "self_registration" ||
-      (selectedPlayerIds.length <= playerCount &&
-        selectedPlayerIds.length + cleanNewPlayerNames.length === playerCount &&
-        cleanNewPlayerNames.every(Boolean)));
+    (rosterMode === "self_registration"
+      ? selectedPlayerIds.length <= playerCount
+      : selectedPlayerIds.length <= playerCount &&
+        selectedPlayerIds.length + selectedAppUsers.length + cleanNewPlayerNames.length === playerCount &&
+        cleanNewPlayerNames.every(Boolean));
   const hasValidRegistrationFee =
     !hasRegistrationFee ||
     (Number.isFinite(parsedRegistrationFeeAmount) &&
@@ -2959,7 +2998,9 @@ function NewSeasonForm({
     setPlayerCount(nextCount);
 
     if (rosterMode === "self_registration") {
-      setSelectedPlayerIds([]);
+      const nextSelectedPlayerIds = selectedPlayerIds.slice(0, nextCount);
+      setSelectedPlayerIds(nextSelectedPlayerIds);
+      setSelectedAppUsers([]);
       setNewPlayerNames([]);
       setSelfPlayerValue(null);
       setCreationFeedback(null);
@@ -2967,15 +3008,18 @@ function NewSeasonForm({
     }
 
     const nextSelectedPlayerIds = selectedPlayerIds.slice(0, nextCount);
+    const nextMaxAppUsers = Math.max(
+      nextCount - nextSelectedPlayerIds.length - (canLinkSelfPlayer ? 1 : 0),
+      0,
+    );
+    const nextSelectedAppUsers = selectedAppUsers.slice(0, nextMaxAppUsers);
 
     setSelectedPlayerIds(nextSelectedPlayerIds);
+    setSelectedAppUsers(nextSelectedAppUsers);
     setNewPlayerNames((currentNames) =>
       resizePlayerNames(
         currentNames,
-        Math.max(
-          nextCount - Math.min(nextSelectedPlayerIds.length, nextCount),
-          0,
-        ),
+        Math.max(nextCount - nextSelectedPlayerIds.length - nextSelectedAppUsers.length, 0),
       ),
     );
     refreshManualCalendarFromPlayers({
@@ -3009,7 +3053,7 @@ function NewSeasonForm({
       ? selectedPlayerIds.filter(
           (currentPlayerId) => currentPlayerId !== playerId,
         )
-      : selectedPlayerIds.length >= playerCount
+      : selectedPlayerIds.length + (rosterMode === "fixed" ? selectedAppUsers.length : 0) >= playerCount
         ? selectedPlayerIds
         : [...selectedPlayerIds, playerId];
 
@@ -3034,13 +3078,47 @@ function NewSeasonForm({
     setCreationFeedback(null);
   }
 
+  function addAppUser(person: SeasonAppDirectoryPerson) {
+    if (
+      selectedAppUsers.some((item) => item.userId === person.userId) ||
+      selectedAppUsers.length >= maxSelectableAppUsers
+    ) {
+      return;
+    }
+
+    const nextSelectedAppUsers = [...selectedAppUsers, person];
+    setSelectedAppUsers(nextSelectedAppUsers);
+    setNewPlayerNames((currentNames) =>
+      resizePlayerNames(
+        currentNames,
+        Math.max(playerCount - selectedPlayerIds.length - nextSelectedAppUsers.length, 0),
+      ),
+    );
+    setAppPlayerQuery("");
+    setCreationFeedback(null);
+  }
+
+  function removeAppUser(userIdToRemove: string) {
+    const nextSelectedAppUsers = selectedAppUsers.filter(
+      (person) => person.userId !== userIdToRemove,
+    );
+    setSelectedAppUsers(nextSelectedAppUsers);
+    setNewPlayerNames((currentNames) =>
+      resizePlayerNames(
+        currentNames,
+        Math.max(playerCount - selectedPlayerIds.length - nextSelectedAppUsers.length, 0),
+      ),
+    );
+    setCreationFeedback(null);
+  }
+
   async function handleCancelLeagueCreation() {
     if (!isFirstLeagueSeason || isSaving) {
       return;
     }
 
     const confirmed = window.confirm(
-      `¿Cancelar la creación de ${activeLeagueName}? Se eliminará la liga completa porque todavía no tiene ninguna temporada.`,
+      tx(`¿Cancelar la creación de ${activeLeagueName}? Se eliminará la liga completa porque todavía no tiene ninguna temporada.`),
     );
 
     if (!confirmed) {
@@ -3073,7 +3151,8 @@ function NewSeasonForm({
     const settings = {
       leagueId: activeLeagueId,
       name: newSeasonName.trim(),
-      playerIds: rosterMode === "self_registration" ? [] : selectedPlayerIds,
+      playerIds: selectedPlayerIds,
+      appUserIds: rosterMode === "fixed" ? selectedAppUserIds : [],
       newPlayerNames: rosterMode === "self_registration" ? [] : cleanNewPlayerNames,
       roundWindowMode,
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
@@ -3201,11 +3280,11 @@ function NewSeasonForm({
         ...getActorFromSession(session),
         type: "season_created",
         title: "Nueva temporada creada",
-        description: `${playerCount} jugadores · ${totalSeasonRounds} jornadas.`,
+        description: tx(`${playerCount} jugadores · ${totalSeasonRounds} jornadas.`),
         metadata: {
           playerCount,
-          existingPlayerIds:
-            rosterMode === "self_registration" ? [] : selectedPlayerIds,
+          existingPlayerIds: selectedPlayerIds,
+          appUserIds: rosterMode === "fixed" ? selectedAppUserIds : [],
           newPlayerNames:
             rosterMode === "self_registration" ? [] : cleanNewPlayerNames,
           rosterMode,
@@ -3242,18 +3321,15 @@ function NewSeasonForm({
         <p className="font-bold">{t.adminSeason.newSeasonTitle}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {isFirstLeagueSeason
-            ? "Configura la Temporada 1 con sus jugadores, calendario y reglas antes de abrir invitaciones."
+            ? tx("Configura la Temporada 1 con sus jugadores, calendario y reglas antes de abrir invitaciones.")
             : t.adminSeason.newSeasonDescription}
         </p>
 
         {!isFirstLeagueSeason ? (
           <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
-            <p className="font-black">No hay temporada activa.</p>
+            <p className="font-black">{tx("No hay temporada activa.")}</p>
             <p className="mt-1">
-              Confirma quién continúa, quita bajas, añade sustitutos y se
-              generarán las jornadas de la nueva temporada, pero quedará en
-              estado próximamente hasta que pulses Comenzar temporada.
-            </p>
+              {tx("Confirma quién continúa, quita bajas, añade sustitutos y se generarán las jornadas de la nueva temporada, pero quedará en estado próximamente hasta que pulses Comenzar temporada.")}{" "}</p>
           </div>
         ) : null}
 
@@ -3277,11 +3353,9 @@ function NewSeasonForm({
           {isFirstLeagueSeason ? (
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
               <p className="text-sm font-black text-neutral-900">
-                Ubicaciones de la liga
-              </p>
+                {tx("Ubicaciones de la liga")}{" "}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                Busca clubes ya guardados o añade uno nuevo. Estas ubicaciones estarán disponibles al programar los partidos.
-              </p>
+                {tx("Busca clubes ya guardados o añade uno nuevo. Estas ubicaciones estarán disponibles al programar los partidos.")}{" "}</p>
 
               <div className="mt-3">
                 <LeagueLocationsEditor
@@ -3321,8 +3395,7 @@ function NewSeasonForm({
                 disabled={isSaving}
                 className="flex mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
               >
-                Cancelar creación de la liga
-              </button>
+                {tx("Cancelar creación de la liga")}{" "}</button>
             </div>
           ) : null}
 
@@ -3342,7 +3415,13 @@ function NewSeasonForm({
                       setRosterMode(mode);
                       if (mode === "self_registration") {
                         setCalendarMode("balanced");
-                        setSelectedPlayerIds([]);
+                        const nextIds = isFirstLeagueSeason
+                          ? []
+                          : currentPlayers
+                              .map((player) => player.id)
+                              .slice(0, playerCount);
+                        setSelectedPlayerIds(nextIds);
+                        setSelectedAppUsers([]);
                         setNewPlayerNames([]);
                         setSelfPlayerValue(null);
                       } else {
@@ -3350,6 +3429,7 @@ function NewSeasonForm({
                           .map((player) => player.id)
                           .slice(0, playerCount);
                         setSelectedPlayerIds(nextIds);
+                        setSelectedAppUsers([]);
                         setNewPlayerNames(
                           resizePlayerNames([], Math.max(playerCount - nextIds.length, 0)),
                         );
@@ -3415,21 +3495,19 @@ function NewSeasonForm({
         <p className="font-bold">{t.adminSeason.seasonPlayersTitle}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {isFirstLeagueSeason
-            ? "Añade los jugadores que formarán parte de esta primera temporada."
+            ? tx("Añade los jugadores que formarán parte de esta primera temporada.")
             : t.adminSeason.seasonPlayersDescription}
         </p>
 
         {canLinkSelfPlayer ? (
           <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-900">
-            El primer jugador de la lista serás tú. Tu cuenta, perfil y foto se
-            vincularán automáticamente a ese jugador al crear la temporada.
-          </div>
+            {tx("El primer jugador de la lista serás tú. Tu cuenta, perfil y foto se vincularán automáticamente a ese jugador al crear la temporada.")}{" "}</div>
         ) : null}
 
         <div className="mt-3 grid grid-cols-2 gap-2 text-center">
           <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
             <p className="text-xs font-semibold text-neutral-500">
-              Seleccionados
+              {tx("Seleccionados")}
             </p>
             <p className="text-lg font-black">
               {selectedPlayerIds.length}/{playerCount}
@@ -3437,7 +3515,7 @@ function NewSeasonForm({
           </div>
           <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
             <p className="text-xs font-semibold text-neutral-500">
-              {isFirstLeagueSeason ? "Jugadores" : "Sustitutos"}
+              {isFirstLeagueSeason ? tx("Jugadores") : "Sustitutos"}
             </p>
             <p className="text-lg font-black">{newPlayerSlotCount}</p>
           </div>
@@ -3450,7 +3528,8 @@ function NewSeasonForm({
               (currentPlayer) => currentPlayer.id === player.id,
             );
             const isDisabled =
-              !isSelected && selectedPlayerIds.length >= playerCount;
+              !isSelected &&
+              selectedPlayerIds.length + selectedAppUsers.length >= playerCount;
 
             return (
               <button
@@ -3475,18 +3554,17 @@ function NewSeasonForm({
                     className={`mt-0.5 block text-xs ${isSelected ? "text-neutral-300" : "text-neutral-500"}`}
                   >
                     {isFirstLeagueSeason
-                      ? "Jugador"
+                      ? tx("Jugador")
                       : isSelected
-                        ? "Continúa"
+                        ? tx("Continúa")
                         : wasInPreviousSeason
-                          ? "Baja esta temporada"
-                          : "Jugador de la liga"}
+                          ? tx("Baja esta temporada")
+                          : tx("Jugador de la liga")}
                   </span>
                 </span>
                 {canLinkSelfPlayer && selectedSelfPlayerValue === player.id ? (
                   <span className="shrink-0 rounded-full bg-amber-300 px-3 py-1 type-caption font-black text-neutral-950">
-                    Tú
-                  </span>
+                    {tx("Tú")}{" "}</span>
                 ) : null}
               </button>
             );
@@ -3495,16 +3573,87 @@ function NewSeasonForm({
 
         {!isFirstLeagueSeason && continuingPlayers.length > 0 ? (
           <p className="mt-3 truncate whitespace-nowrap text-xs font-semibold text-neutral-500">
-            Continúan:{" "}
+            {tx("Continúan:")}{" "}
             {continuingPlayers.map((player) => player.displayName).join(", ")}
           </p>
         ) : null}
 
         {!isFirstLeagueSeason && removedPlayers.length > 0 ? (
           <p className="mt-2 truncate whitespace-nowrap text-xs font-semibold text-amber-700">
-            No entran en la nueva temporada:{" "}
+            {tx("No entran en la nueva temporada:")}{" "}
             {removedPlayers.map((player) => player.displayName).join(", ")}
           </p>
+        ) : null}
+
+        {isSupabaseBackedId(activeLeagueId) && maxSelectableAppUsers > 0 ? (
+          <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="text-sm font-black text-neutral-900">
+              {tx("Seleccionar jugador de Smash & Lob")}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+              {tx("Busca usuarios ya registrados en la aplicación. Se vinculará su perfil directamente a esta liga sin que tengan que reclamar el jugador después.")}
+            </p>
+
+            {selectedAppUsers.length > 0 ? (
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {selectedAppUsers.map((person) => (
+                  <div
+                    key={person.userId}
+                    className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 ring-1 ring-neutral-200"
+                  >
+                    <PlayerAvatar player={person} size="sm" />
+                    <span className="min-w-0 flex-1 truncate text-xs font-black text-neutral-900">
+                      {person.displayName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAppUser(person.userId)}
+                      className="rounded-full px-2 py-1 text-xs font-black text-red-600 hover:bg-red-50"
+                    >
+                      {tx("Quitar")}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {selectedAppUsers.length < maxSelectableAppUsers ? (
+              <>
+                <input
+                  value={appPlayerQuery}
+                  onChange={(event) => setAppPlayerQuery(event.target.value)}
+                  placeholder={tx("Buscar jugador por nombre")}
+                  className="mt-3 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 outline-none focus:border-neutral-400"
+                />
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {isAppDirectoryLoading ? (
+                    <p className="text-xs font-semibold text-neutral-500">
+                      {tx("Cargando jugadores…")}
+                    </p>
+                  ) : filteredAppDirectory.length > 0 ? (
+                    filteredAppDirectory.map((person) => (
+                      <button
+                        key={person.userId}
+                        type="button"
+                        onClick={() => addAppUser(person)}
+                        className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-left ring-1 ring-neutral-200 hover:ring-neutral-400"
+                      >
+                        <PlayerAvatar player={person} size="sm" />
+                        <span className="min-w-0 flex-1 truncate text-xs font-black text-neutral-900">
+                          {person.displayName}
+                        </span>
+                        <span className="text-xs font-black text-neutral-500">+</span>
+                      </button>
+                    ))
+                  ) : appPlayerQuery.trim() ? (
+                    <p className="text-xs font-semibold text-neutral-500">
+                      {tx("No hay usuarios registrados que coincidan con la búsqueda.")}
+                    </p>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+          </div>
         ) : null}
 
         {newPlayerSlotCount > 0 ? (
@@ -3518,8 +3667,7 @@ function NewSeasonForm({
                   {canLinkSelfPlayer &&
                   selectedSelfPlayerValue === getNewPlayerToken(index) ? (
                     <span className="rounded-full bg-amber-300 px-2.5 py-0.5 type-caption font-black text-neutral-950">
-                      Tú
-                    </span>
+                      {tx("Tú")}{" "}</span>
                   ) : null}
                 </span>
                 <input
@@ -3527,8 +3675,8 @@ function NewSeasonForm({
                   placeholder={
                     isFirstLeagueSeason
                       ? selectedSelfPlayerValue === getNewPlayerToken(index)
-                        ? "Tu nombre"
-                        : `Jugador ${selectedPlayerIds.length + index + 1}`
+                        ? tx("Tu nombre")
+                        : tx(`Jugador ${selectedPlayerIds.length + index + 1}`)
                       : `Sustituto ${index + 1}`
                   }
                   onChange={(event) => {
@@ -3550,14 +3698,52 @@ function NewSeasonForm({
             {t.adminSeason.selfRegistrationWaitingTitle}
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-emerald-800">
-            {t.adminSeason.selfRegistrationWaitingDescription.replace(
-              "{count}",
-              String(playerCount),
-            )}
+            {isFirstLeagueSeason
+              ? t.adminSeason.selfRegistrationWaitingDescription.replace(
+                  "{count}",
+                  String(playerCount),
+                )
+              : tx("Los jugadores de la temporada anterior están seleccionados por defecto. Puedes quitar cualquiera antes de crear la nueva temporada; los seleccionados quedarán inscritos automáticamente y las plazas restantes quedarán abiertas al autoregistro.")}
           </p>
-          <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2.5 text-xs font-semibold text-emerald-900">
-            {t.adminSeason.selfRegistrationCreatorNotice}
-          </div>
+
+          {!isFirstLeagueSeason ? (
+            <>
+              <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2.5 text-center text-sm font-black text-emerald-950">
+                {selectedPlayerIds.length}/{playerCount} · {Math.max(playerCount - selectedPlayerIds.length, 0)} {tx("plazas disponibles")}
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {currentPlayers.map((player) => {
+                  const isSelected = selectedPlayerIds.includes(player.id);
+                  return (
+                    <button
+                      key={player.id}
+                      type="button"
+                      onClick={() => toggleExistingPlayer(player.id)}
+                      className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-black ${
+                        isSelected
+                          ? "bg-emerald-900 text-white"
+                          : "bg-white/80 text-emerald-950 ring-1 ring-emerald-200"
+                      }`}
+                    >
+                      <PlayerAvatar
+                        player={player}
+                        size="sm"
+                        className={isSelected ? "bg-white text-neutral-900" : ""}
+                      />
+                      <span className="min-w-0 flex-1 truncate">{player.displayName}</span>
+                      <span className="text-xs font-black">
+                        {isSelected ? tx("Inscrito") : tx("No continúa")}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2.5 text-xs font-semibold text-emerald-900">
+              {t.adminSeason.selfRegistrationCreatorNotice}
+            </div>
+          )}
         </AppCard>
       )}
 
@@ -3669,11 +3855,10 @@ function NewSeasonForm({
           <div className="mt-4 space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
-                {totalSeasonRounds} jornadas ·{" "}
+                {totalSeasonRounds} {tx("jornadas ·")}{" "}
                 {getMatchesPerRound(playerCount)}{" "}
-                {getMatchesPerRound(playerCount) === 1 ? "partido" : "partidos"}{" "}
-                por jornada
-              </p>
+                {getMatchesPerRound(playerCount) === 1 ? tx("partido") : "partidos"}{" "}
+                {tx("por jornada")}{" "}</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
                 {scheduleMode === "double"
                   ? t.adminSeason.manualCalendarDoubleHelp
@@ -3693,8 +3878,7 @@ function NewSeasonForm({
                 }}
                 className="flex mt-3 w-full rounded-2xl bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm items-center justify-center text-center"
               >
-                Restaurar calendario automático
-              </button>
+                {tx("Restaurar calendario automático")}{" "}</button>
             </div>
 
             {manualCalendar.map((round, roundIndex) => (
@@ -3703,7 +3887,7 @@ function NewSeasonForm({
                 className="rounded-2xl border border-neutral-200 p-3"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-black">Jornada {round.round}</p>
+                  <p className="font-black">{tx("Jornada")}{" "}{round.round}</p>
                   <div className="flex shrink-0 gap-2">
                     <button
                       type="button"
@@ -3757,11 +3941,11 @@ function NewSeasonForm({
                       >
                         <div className="mb-3 flex items-center justify-between gap-3">
                           <p className="text-sm font-black">
-                            Partido {matchIndex + 1}
+                            {tx("Partido")}{" "}{matchIndex + 1}
                           </p>
                           {hasDuplicatePlayers ? (
                             <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black text-amber-800">
-                              Revisa duplicados
+                              {tx("Revisa duplicados")}
                             </span>
                           ) : null}
                         </div>
@@ -3801,7 +3985,7 @@ function NewSeasonForm({
                                         className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold text-neutral-950 outline-none"
                                       >
                                         <option value="">
-                                          Jugador {playerIndex + 1}
+                                          {tx("Jugador")}{" "}{playerIndex + 1}
                                         </option>
                                         {manualPlayerOptions.map((option) => (
                                           <option
@@ -3828,9 +4012,7 @@ function NewSeasonForm({
 
             {!isManualCalendarReady ? (
               <p className="rounded-2xl bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-800">
-                Completa todos los desplegables sin repetir jugador dentro de la
-                misma jornada para poder crear la temporada.
-              </p>
+                {tx("Completa todos los desplegables sin repetir jugador dentro de la misma jornada para poder crear la temporada.")}{" "}</p>
             ) : null}
           </div>
         ) : null}
@@ -3873,19 +4055,17 @@ function NewSeasonForm({
             className="mt-0.5 h-4 w-4"
           />
           <span>
-            <span className="block text-sm font-black">Disponibilidad y recomendaciones</span>
+            <span className="block text-sm font-black">{tx("Disponibilidad y recomendaciones")}</span>
             <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-              Opcional. Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos. Por defecto se coordina desde el chat.
-            </span>
+              {tx("Opcional. Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos. Por defecto se coordina desde el chat.")}{" "}</span>
           </span>
         </label>
       </AppCard>
 
       <AppCard>
-        <p className="font-bold">Sistema MVP</p>
+        <p className="font-bold">{tx("Sistema MVP")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Decide si habrá MVP de jornada y cómo se seleccionará.
-        </p>
+          {tx("Decide si habrá MVP de jornada y cómo se seleccionará.")}{" "}</p>
 
         <MvpSystemOptions
           value={mvpSystem}
@@ -3899,10 +4079,9 @@ function NewSeasonForm({
 
 
       <AppCard>
-        <p className="font-bold">Confirmación de resultados</p>
+        <p className="font-bold">{tx("Confirmación de resultados")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Decide si los resultados necesitan validación de los jugadores.
-        </p>
+          {tx("Decide si los resultados necesitan validación de los jugadores.")}{" "}</p>
 
         <ResultConfirmationOptions
           value={resultConfirmationMode}
@@ -3914,10 +4093,9 @@ function NewSeasonForm({
       </AppCard>
 
       <AppCard>
-        <p className="font-bold">Inscripción</p>
+        <p className="font-bold">{tx("Inscripción")}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
-          Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.
-        </p>
+          {tx("Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.")}{" "}</p>
 
         <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
           <input
@@ -3932,19 +4110,16 @@ function NewSeasonForm({
 
           <span>
             <span className="block text-sm font-black">
-              Activar inscripción de temporada
-            </span>
+              {tx("Activar inscripción de temporada")}{" "}</span>
             <span className="mt-1 block text-xs text-neutral-500">
-              En HOME aparecerá un panel para consultar y gestionar los pagos.
-            </span>
+              {tx("En HOME aparecerá un panel para consultar y gestionar los pagos.")}{" "}</span>
           </span>
         </label>
 
         {hasRegistrationFee ? (
           <label className="mt-4 block">
             <span className="text-sm font-semibold text-neutral-700">
-              Precio por jugador
-            </span>
+              {tx("Precio por jugador")}{" "}</span>
             <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
               <input
                 type="number"
@@ -3961,8 +4136,7 @@ function NewSeasonForm({
             </div>
             {!hasValidRegistrationFee ? (
               <span className="mt-2 block text-xs font-semibold text-red-600">
-                Introduce un importe mayor que 0.
-              </span>
+                {tx("Introduce un importe mayor que 0.")}{" "}</span>
             ) : null}
           </label>
         ) : null}
@@ -3970,8 +4144,7 @@ function NewSeasonForm({
         {hasRegistrationFee ? (
           <label className="mt-4 block">
             <span className="text-sm font-semibold text-neutral-700">
-              Destino de la inscripción
-            </span>
+              {tx("Destino de la inscripción")}{" "}</span>
             <textarea
               value={registrationFeePurpose}
               onChange={(event) => {
@@ -3979,23 +4152,21 @@ function NewSeasonForm({
                 setCreationFeedback(null);
               }}
               rows={3}
-              placeholder="Ejemplo: premios, bolas, bote final o gastos comunes de organización."
+              placeholder={tx("Ejemplo: premios, bolas, bote final o gastos comunes de organización.")}
               className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold leading-5 text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
             />
             <span className="mt-2 block text-xs font-semibold leading-5 text-neutral-500">
-              Esta explicación se mostrará a los jugadores junto al estado de sus pagos.
-            </span>
+              {tx("Esta explicación se mostrará a los jugadores junto al estado de sus pagos.")}{" "}</span>
           </label>
         ) : null}
       </AppCard>
 
       <AppCard>
-        <p className="font-bold">Inicio programado</p>
+        <p className="font-bold">{tx("Inicio programado")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Opcional. Si eliges fecha y hora, la temporada permanecerá en preparación hasta ese momento. Los jugadores podrán unirse, vincularse y completar su perfil, pero no operar partidos ni resultados.
-        </p>
+          {tx("Opcional. Si eliges fecha y hora, la temporada permanecerá en preparación hasta ese momento. Los jugadores podrán unirse, vincularse y completar su perfil, pero no operar partidos ni resultados.")}{" "}</p>
         <label className="mt-4 block">
-          <span className="text-sm font-semibold text-neutral-700">Fecha y hora de activación</span>
+          <span className="text-sm font-semibold text-neutral-700">{tx("Fecha y hora de activación")}</span>
           <input
             type="datetime-local" step={3600} value={scheduledStartAt}
             onFocus={() => { if (!scheduledStartAt) { setScheduledStartAt(formatNextScheduledStartForInput()); setScheduledStartIsFuture(true); } }}
@@ -4010,7 +4181,7 @@ function NewSeasonForm({
           />
         </label>
         {scheduledStartAt && !hasValidScheduledStart ? (
-          <p className="mt-2 text-xs font-semibold text-red-600">La fecha programada debe ser futura y válida en horario de Madrid.</p>
+          <p className="mt-2 text-xs font-semibold text-red-600">{tx("La fecha programada debe ser futura y válida en horario de Madrid.")}</p>
         ) : null}
         {scheduledStartIso && hasValidScheduledStart ? (
           <div className="mt-3"><SeasonStartCountdown scheduledStartAt={scheduledStartIso} compact /></div>
@@ -4100,12 +4271,12 @@ function NewSeasonForm({
         disabled={!canStartSeason}
         className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Crear temporada"}
+        {isSaving ? "Guardando..." : tx("Crear temporada")}
       </button>
 
       {error ? (
         <p className="text-center text-sm font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
 
@@ -4127,6 +4298,7 @@ function AvailabilityRecommendationsSettingsPanel({
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
 }) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [enabled, setEnabled] = useState(roundSettings.availabilityRecommendationsEnabled);
   const [isSaving, setIsSaving] = useState(false);
@@ -4169,13 +4341,12 @@ function AvailabilityRecommendationsSettingsPanel({
           className="mt-0.5 h-4 w-4"
         />
         <span>
-          <span className="block text-sm font-black">Disponibilidad y recomendaciones</span>
+          <span className="block text-sm font-black">{tx("Disponibilidad y recomendaciones")}</span>
           <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-            Si está activado, los jugadores pueden guardar sus horarios y la app propone franjas comunes al programar partidos. Si está desactivado, la coordinación se hace desde el chat.
-          </span>
+            {tx("Si está activado, los jugadores pueden guardar sus horarios y la app propone franjas comunes al programar partidos. Si está desactivado, la coordinación se hace desde el chat.")}{" "}</span>
         </span>
       </label>
-      {error ? <p className="mt-2 text-xs font-bold text-red-600">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs font-bold text-red-600">{tx(error)}</p> : null}
     </AppCard>
   );
 }
@@ -4188,6 +4359,7 @@ function PlayerMatchActionsSettingsPanel({
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
 }) {
+  const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings();
   const [allowIncidents, setAllowIncidents] = useState(
     roundSettings.allowPlayerIncidents,
@@ -4233,11 +4405,9 @@ function PlayerMatchActionsSettingsPanel({
 
   return (
     <AppCard>
-      <p className="font-bold">Acciones de partido para jugadores</p>
+      <p className="font-bold">{tx("Acciones de partido para jugadores")}</p>
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        Creator y administradores siempre conservarán estas opciones. Los cambios
-        solo afectan a los jugadores normales de esta temporada.
-      </p>
+        {tx("Creator y administradores siempre conservarán estas opciones. Los cambios solo afectan a los jugadores normales de esta temporada.")}{" "}</p>
 
       <div className="mt-3 space-y-2">
         <label className="flex items-start gap-3 rounded-2xl border border-neutral-200 px-3 py-3">
@@ -4250,10 +4420,9 @@ function PlayerMatchActionsSettingsPanel({
             className="mt-0.5 h-4 w-4"
           />
           <span>
-            <span className="block text-sm font-black">Permitir comunicar incidencias</span>
+            <span className="block text-sm font-black">{tx("Permitir comunicar incidencias")}</span>
             <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-              Los participantes podrán abrir una incidencia desde Más acciones.
-            </span>
+              {tx("Los participantes podrán abrir una incidencia desde Más acciones.")}{" "}</span>
           </span>
         </label>
 
@@ -4267,10 +4436,9 @@ function PlayerMatchActionsSettingsPanel({
             className="mt-0.5 h-4 w-4"
           />
           <span>
-            <span className="block text-sm font-black">Permitir gestionar suplentes</span>
+            <span className="block text-sm font-black">{tx("Permitir gestionar suplentes")}</span>
             <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-              Los participantes podrán asignar o retirar suplentes de sus partidos.
-            </span>
+              {tx("Los participantes podrán asignar o retirar suplentes de sus partidos.")}{" "}</span>
           </span>
         </label>
       </div>
@@ -4281,11 +4449,11 @@ function PlayerMatchActionsSettingsPanel({
         disabled={isSaving || !hasChanges}
         className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500 items-center justify-center text-center"
       >
-        {isSaving ? "Guardando..." : "Guardar permisos"}
+        {isSaving ? "Guardando..." : tx("Guardar permisos")}
       </button>
       {error ? (
         <p className="mt-2 text-center text-xs font-semibold text-red-600">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </AppCard>
@@ -4293,6 +4461,7 @@ function PlayerMatchActionsSettingsPanel({
 }
 
 export default function AdminSeasonPage() {
+  const { tx } = useI18n()
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole, isSuperuser } = useLeagueAccess();
   const { hydrateSeasonSnapshot, seasons } = useSeasonSettings();
@@ -4366,7 +4535,7 @@ export default function AdminSeasonPage() {
     if (isDuplicatingSeason || activeSeason.status !== "finished") return;
 
     const confirmed = window.confirm(
-      `¿Duplicar “${activeSeason.name}” como “${getSuggestedSeasonName(activeSeason.name)}”? Se conservarán jugadores y configuración, pero calendario, resultados, pagos y progreso empezarán de cero.`,
+      tx(`¿Duplicar “${activeSeason.name}” como “${getSuggestedSeasonName(activeSeason.name)}”? Se conservarán jugadores y configuración, pero calendario, resultados, pagos y progreso empezarán de cero.`),
     );
     if (!confirmed) return;
 
@@ -4397,7 +4566,7 @@ export default function AdminSeasonPage() {
                 ? "No se han podido recuperar todos los jugadores de la última temporada."
                 : code.includes("season_duplicate_player_memberships_failed")
                   ? "No se han podido recuperar las vinculaciones de los jugadores."
-                  : `No se ha podido duplicar la temporada${code ? ` (${code})` : ""}.`,
+                  : tx(`No se ha podido duplicar la temporada${code ? ` (${code})` : ""}.`),
       );
     } finally {
       setIsDuplicatingSeason(false);
@@ -4413,9 +4582,9 @@ export default function AdminSeasonPage() {
           {isActiveSeason
             ? t.adminSeason.title
             : isUpcomingSeason
-              ? "Temporada próximamente"
+              ? tx("Temporada próximamente")
               : hasCreatedLeagueSeason
-                ? "Temporada finalizada"
+                ? tx("Temporada finalizada")
                 : t.adminSeason.newSeasonTitle}
         </h1>
       </header>
@@ -4446,8 +4615,8 @@ export default function AdminSeasonPage() {
       {isActiveSeason ? (
         <>
           <SeasonSectionIntro
-            title="Calendario y jornadas"
-            description="Ordena la competición, ajusta los plazos y comprueba el equilibrio del calendario."
+            title={tx("Calendario y jornadas")}
+            description={tx("Ordena la competición, ajusta los plazos y comprueba el equilibrio del calendario.")}
           />
           <div id="jornadas" data-tour="season-admin-calendar" className="settings-search-target">
             <RoundManagementPanel
@@ -4478,8 +4647,8 @@ export default function AdminSeasonPage() {
           ) : null}
 
           <SeasonSectionIntro
-            title="Reglas de competición"
-            description="Define MVP, confirmaciones, formato de sets y acciones permitidas a los jugadores."
+            title={tx("Reglas de competición")}
+            description={tx("Define MVP, confirmaciones, formato de sets y acciones permitidas a los jugadores.")}
           />
           <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
@@ -4517,8 +4686,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Personas e inscripción"
-            description="Gestiona la cuota de inscripción y los nombres de la plantilla activa."
+            title={tx("Personas e inscripción")}
+            description={tx("Gestiona la cuota de inscripción y los nombres de la plantilla activa.")}
           />
           <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
             <RegistrationFeeSettingsPanel
@@ -4537,8 +4706,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Ciclo de vida"
-            description="Finaliza la temporada o accede a las acciones irreversibles."
+            title={tx("Ciclo de vida")}
+            description={tx("Finaliza la temporada o accede a las acciones irreversibles.")}
           />
           <div id="cierre" className="settings-search-target">
             <FinishSeasonPanel
@@ -4559,8 +4728,8 @@ export default function AdminSeasonPage() {
       ) : isUpcomingSeason ? (
         <>
           <SeasonSectionIntro
-            title="Preparación"
-            description="Completa la plantilla y comprueba los requisitos antes de comenzar."
+            title={tx("Preparación")}
+            description={tx("Completa la plantilla y comprueba los requisitos antes de comenzar.")}
           />
           {roundSettings.rosterMode === "self_registration" ? (
             <div id="plantilla-temporada" className="settings-search-target">
@@ -4588,8 +4757,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Calendario y jornadas"
-            description="Revisa el equilibrio, el orden y las fechas antes de publicar la temporada."
+            title={tx("Calendario y jornadas")}
+            description={tx("Revisa el equilibrio, el orden y las fechas antes de publicar la temporada.")}
           />
           {canAuditCalendar ? (
             <div id="equilibrio-calendario" className="settings-search-target">
@@ -4620,8 +4789,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Reglas de competición"
-            description="Configura MVP, confirmaciones, formato de sets y acciones de los jugadores."
+            title={tx("Reglas de competición")}
+            description={tx("Configura MVP, confirmaciones, formato de sets y acciones de los jugadores.")}
           />
           <div id="mvp" className="settings-search-target">
             <MvpSystemSettingsPanel
@@ -4659,8 +4828,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Personas e inscripción"
-            description="Revisa la cuota, las plazas y los nombres antes de iniciar la competición."
+            title={tx("Personas e inscripción")}
+            description={tx("Revisa la cuota, las plazas y los nombres antes de iniciar la competición.")}
           />
           <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
             <RegistrationFeeSettingsPanel
@@ -4679,8 +4848,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Zona sensible"
-            description="Acciones que pueden eliminar la temporada o su calendario."
+            title={tx("Zona sensible")}
+            description={tx("Acciones que pueden eliminar la temporada o su calendario.")}
           />
           <div id="zona-sensible" className="settings-search-target">
             <SeasonDangerZone
@@ -4693,8 +4862,8 @@ export default function AdminSeasonPage() {
       ) : hasCreatedLeagueSeason ? (
         <>
           <SeasonSectionIntro
-            title="Accesos y plantilla"
-            description="Consulta la invitación y los jugadores de la temporada finalizada."
+            title={tx("Accesos y plantilla")}
+            description={tx("Consulta la invitación y los jugadores de la temporada finalizada.")}
           />
           <div id="invitacion" className="settings-search-target">
             <InviteLinkCard
@@ -4712,8 +4881,8 @@ export default function AdminSeasonPage() {
           </div>
 
           <SeasonSectionIntro
-            title="Siguiente ciclo"
-            description={isSuperuser ? "Reabre la temporada si procede o prepara la siguiente edición." : "La temporada finalizada permanece en solo lectura. Prepara la siguiente edición cuando corresponda."}
+            title={tx("Siguiente ciclo")}
+            description={isSuperuser ? tx("Reabre la temporada si procede o prepara la siguiente edición.") : tx("La temporada finalizada permanece en solo lectura. Prepara la siguiente edición cuando corresponda.")}
           />
           {canReopenFinishedSeason ? (
             <div id="reabrir" className="settings-search-target">
@@ -4726,19 +4895,17 @@ export default function AdminSeasonPage() {
 
           <div id="nueva-temporada" className="settings-search-target space-y-3">
             <AppCard>
-              <p className="font-bold">Preparar la siguiente temporada</p>
+              <p className="font-bold">{tx("Preparar la siguiente temporada")}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                La configuración de la temporada finalizada se conserva arriba.
-                Abre este formulario solo cuando vayas a crear la siguiente.
-              </p>
+                {tx("La configuración de la temporada finalizada se conserva arriba. Abre este formulario solo cuando vayas a crear la siguiente.")}{" "}</p>
               <button
                 type="button"
                 onClick={() => setIsNewSeasonFormOpen((current) => !current)}
                 className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
               >
                 {isNewSeasonFormOpen
-                  ? "Ocultar nueva temporada"
-                  : "Configurar nueva temporada"}
+                  ? tx("Ocultar nueva temporada")
+                  : tx("Configurar nueva temporada")}
               </button>
               <button
                 type="button"
@@ -4748,11 +4915,11 @@ export default function AdminSeasonPage() {
               >
                 {isDuplicatingSeason
                   ? "Duplicando..."
-                  : "Duplicar última temporada"}
+                  : tx("Duplicar última temporada")}
               </button>
               {duplicateSeasonError ? (
                 <p className="mt-2 text-center text-xs font-bold text-red-600">
-                  {duplicateSeasonError}
+                  {tx(duplicateSeasonError)}
                 </p>
               ) : null}
             </AppCard>
@@ -4772,8 +4939,8 @@ export default function AdminSeasonPage() {
       ) : (
         <>
           <SeasonSectionIntro
-            title="Nueva temporada"
-            description="Configura desde cero la primera edición de la liga."
+            title={tx("Nueva temporada")}
+            description={tx("Configura desde cero la primera edición de la liga.")}
           />
           <div id="nueva-temporada" className="settings-search-target">
             <NewSeasonForm

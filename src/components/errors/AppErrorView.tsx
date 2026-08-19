@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export function AppErrorView({
   title,
@@ -14,6 +15,7 @@ export function AppErrorView({
   incidenceCode?: string
   onRetry?: () => void
 }) {
+  const { tx } = useI18n()
   return (
     <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
       <AppCard className="w-full max-w-sm">
@@ -28,7 +30,7 @@ export function AppErrorView({
             className="mt-4 rounded-2xl bg-neutral-100 px-3 py-3 text-xs font-black text-neutral-700"
             aria-live="polite"
           >
-            Código de incidencia: {incidenceCode}
+            {tx("Código de incidencia:")}{" "}{incidenceCode}
           </p>
         ) : null}
         <div className="mt-4 grid gap-2">
@@ -38,15 +40,13 @@ export function AppErrorView({
               onClick={onRetry}
               className="inline-flex rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
             >
-              Volver a intentarlo
-            </button>
+              {tx("Volver a intentarlo")}{" "}</button>
           ) : null}
           <Link
             href="/"
             className="inline-flex rounded-2xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-black text-neutral-800 items-center justify-center"
           >
-            Ir al inicio
-          </Link>
+            {tx("Ir al inicio")}{" "}</Link>
         </div>
       </AppCard>
     </main>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import type { PlayerRoundProgress } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type ChartMode = "position" | "points" | "gamesDiff"
 
@@ -48,6 +49,7 @@ export function AllPlayersProgressChart({
 }: {
   series: LeagueProgressSeries[]
 }) {
+  const { tx } = useI18n()
   const [mode, setMode] = useState<ChartMode>("position")
   const [hiddenPlayerIds, setHiddenPlayerIds] = useState<Set<string>>(
     () => new Set(),
@@ -207,11 +209,9 @@ export function AllPlayersProgressChart({
   if (series.length === 0 || chart.rounds.length === 0) {
     return (
       <AppCard>
-        <p className="font-black">Todavía no hay evolución</p>
+        <p className="font-black">{tx("Todavía no hay evolución")}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
-          Se necesitan resultados contabilizados en varias jornadas para
-          representar la evolución.
-        </p>
+          {tx("Se necesitan resultados contabilizados en varias jornadas para representar la evolución.")}{" "}</p>
       </AppCard>
     )
   }
@@ -270,8 +270,7 @@ export function AllPlayersProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Posición
-          </button>
+            {tx("Posición")}{" "}</button>
           <button
             type="button"
             onClick={() => setMode("points")}
@@ -281,8 +280,7 @@ export function AllPlayersProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Puntos
-          </button>
+            {tx("Puntos")}{" "}</button>
           <button
             type="button"
             onClick={() => setMode("gamesDiff")}
@@ -292,23 +290,21 @@ export function AllPlayersProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Dif. juegos
-          </button>
+            {tx("Dif. juegos")}{" "}</button>
         </div>
         <div className="flex rounded-xl bg-neutral-100 p-1 type-caption font-black">
           <button
             type="button"
             onClick={() => setHiddenPlayerIds(new Set())}
             aria-pressed={allPlayersVisible}
-            aria-label="Mostrar todos los jugadores"
+            aria-label={tx("Mostrar todos los jugadores")}
             className={`rounded-lg px-2.5 py-1.5 transition ${
               allPlayersVisible
                 ? "bg-white text-neutral-950 shadow-sm"
                 : "text-neutral-500"
             }`}
           >
-            Todos
-          </button>
+            {tx("Todos")}{" "}</button>
           <button
             type="button"
             onClick={() =>
@@ -317,27 +313,26 @@ export function AllPlayersProgressChart({
               )
             }
             aria-pressed={topThreeVisible}
-            aria-label="Mostrar los tres primeros jugadores"
+            aria-label={tx("Mostrar los tres primeros jugadores")}
             className={`rounded-lg px-2.5 py-1.5 transition ${
               topThreeVisible
                 ? "bg-white text-neutral-950 shadow-sm"
                 : "text-neutral-500"
             }`}
           >
-            Top 3
+            {tx("Top 3")}
           </button>
         </div>
       </div>
 
       <div className="mt-2 flex items-center justify-between gap-2">
         <p className="type-caption font-semibold text-neutral-500">
-          Pulsa un jugador para mostrar u ocultar su línea.
-          {spansMultipleSeasons
-            ? " Las temporadas se separan y reinician sus métricas."
+          {tx("Pulsa un jugador para mostrar u ocultar su línea.")}{" "}{spansMultipleSeasons
+            ? tx(" Las temporadas se separan y reinician sus métricas.")
             : ""}
         </p>
         <span className="shrink-0 type-caption font-bold text-neutral-500">
-          {visibleSeries.length}/{series.length} visibles
+          {visibleSeries.length}/{series.length} {tx("visibles")}
         </span>
       </div>
 
@@ -375,8 +370,7 @@ export function AllPlayersProgressChart({
 
       {visibleSeries.length === 0 ? (
         <div className="mt-4 rounded-xl bg-neutral-50 p-3 text-center text-xs font-semibold text-neutral-500">
-          Selecciona al menos un jugador para mostrar el gráfico.
-        </div>
+          {tx("Selecciona al menos un jugador para mostrar el gráfico.")}{" "}</div>
       ) : (
         <div className="mt-3 overflow-x-auto">
           <svg
@@ -384,13 +378,13 @@ export function AllPlayersProgressChart({
             className="w-full"
             style={{ minWidth: `${chart.minWidthPercent}%` }}
             role="img"
-            aria-label={`Evolución de ${visibleSeries.length} jugadores por ${
+            aria-label={tx(`Evolución de ${visibleSeries.length} jugadores por ${
               mode === "position"
                 ? "posición"
                 : mode === "points"
                   ? "puntos"
                   : "diferencia de juegos"
-            }`}
+            }`)}
           >
             {ticks.map((tick, index) => (
               <g key={index}>
@@ -473,8 +467,8 @@ export function AllPlayersProgressChart({
                     mode === "position"
                       ? formatPosition(point.value)
                       : mode === "gamesDiff"
-                        ? `${formatSigned(point.value)} juegos`
-                        : `${point.value} puntos`
+                        ? tx(`${formatSigned(point.value)} juegos`)
+                        : tx(`${point.value} puntos`)
                   }`
                   if (player.marker === 1) {
                     return (
@@ -538,7 +532,7 @@ export function AllPlayersProgressChart({
             {player.progress
               .map(
                 (row) =>
-                  `${row.label ?? `jornada ${row.round}`}, ${row.position}ª posición, ${row.points} puntos y ${formatSigned(row.gamesDiff)} de diferencia de juegos`,
+                  tx(`${row.label ?? tx(`jornada ${row.round}`)}, ${row.position}ª posición, ${row.points} puntos y ${formatSigned(row.gamesDiff)} de diferencia de juegos`),
               )
               .join("; ")}
           </p>

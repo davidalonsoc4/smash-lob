@@ -12,8 +12,8 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain("function loadPreset")
     expect(page).toContain("setActivePresetKind(kind)")
     expect(page).toContain("compactPresetTitles")
-    expect(page).toContain('aria-label="Personalización"')
-    expect(page).toContain('aria-label="Vista previa"')
+    expect(page).toContain('aria-label={tx("Personalización")}')
+    expect(page).toContain('aria-label={tx("Vista previa")}')
     expect(page).toContain('setWorkspaceView("preview")')
     expect(page).toContain("aria-pressed={isActive}")
     expect(page).toContain('whitespace-nowrap type-micro font-black uppercase tracking-[.1em]')
@@ -41,7 +41,7 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
 
     for (const label of [
       "Personalizaci",
-      ">Titular<",
+      'tx("Titular")',
       "Subt",
       "Bloque destacado",
       "Dato central",
@@ -49,7 +49,7 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
       "Etiqueta derecha",
     ]) expect(page).toContain(label)
     expect(page).toContain("compactPresetTitles[activePresetKind]")
-    expect(page).toContain('alt="Vista previa del cartel activo"')
+    expect(page).toContain('alt={tx("Vista previa del cartel activo")}')
   })
 
   it("adds an expandable custom accent color without removing the curated palette", async () => {
@@ -59,9 +59,9 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     expect(page).toContain("showCustomAccent")
     expect(page).toContain("customAccentDraft")
     expect(page).toContain("aria-expanded={showCustomAccent}")
-    expect(page).toContain('aria-label="Color personalizado"')
-    expect(page).toContain('aria-label="Selector de color personalizado"')
-    expect(page).toContain('aria-label="C')
+    expect(page).toContain('aria-label={tx("Color personalizado")}')
+    expect(page).toContain('aria-label={tx("Selector de color personalizado")}')
+    expect(page).toContain('aria-label={tx(`Usar color ${color}`)}')
     expect(page).toContain("/^#[0-9a-f]{6}$/i")
   })
 
@@ -79,8 +79,8 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
 
     expect(page).toContain('subtitle: "Volvemos con más ganas"')
-    expect(page).toContain('roundLabel: `${players.length} jugadores`')
+    expect(page).toContain('roundLabel: tx(`${players.length} jugadores`)')
     expect(page).toContain('eventTimeLabel: "1 campeón"')
-    expect(page).toContain('venue: `${activeSeason.totalRounds} jornadas`')
+    expect(page).toContain('venue: tx(`${activeSeason.totalRounds} jornadas`)')
   })
 })

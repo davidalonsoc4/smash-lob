@@ -8,7 +8,7 @@ import {
   getPersonalMatchSetWins,
   getPersonalMatchTeamNames,
   getPersonalMatchTeamPlayers,
-  selectUpcomingPersonalMatch,
+  getPersonalMatchEventAt,
   type PersonalMatchItem,
 } from "@/lib/personalMatches"
 
@@ -95,22 +95,10 @@ describe("personal matches", () => {
     ).toBe("unknown")
   })
 
-  it("selects the earliest upcoming match by default and preserves explicit filters", () => {
-    const league = {
-      ...match,
-      id: "league-next",
-      origin: "league" as const,
-      scheduledAt: "2026-08-18T14:00:00.000Z",
-    }
-    const friendly = {
-      ...match,
-      id: "friendly-next",
-      scheduledAt: "2026-08-18T13:00:00.000Z",
-    }
-    const upcoming = { league, friendly }
-
-    expect(selectUpcomingPersonalMatch(upcoming, "all")?.id).toBe("friendly-next")
-    expect(selectUpcomingPersonalMatch(upcoming, "league")?.id).toBe("league-next")
-    expect(selectUpcomingPersonalMatch(upcoming, "friendly")?.id).toBe("friendly-next")
+  it("uses the scheduled date as the event timestamp and falls back to the recorded result", () => {
+    expect(getPersonalMatchEventAt(match)).toBe("2026-08-08T08:00:00.000Z")
+    expect(getPersonalMatchEventAt({ ...match, scheduledAt: null })).toBe(
+      "2026-08-08T10:00:00.000Z",
+    )
   })
 })

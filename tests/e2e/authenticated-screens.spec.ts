@@ -228,33 +228,12 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
         ],
         hasMore: true,
         nextOffset: 10,
-        upcoming: {
-          league: {
-            id: "33333333-3333-4333-8333-333333333333",
-            origin: "league",
-            status: "scheduled",
-            scheduledAt: "2026-08-12T18:00:00.000Z",
-            resultRecordedAt: null,
-            locationName: "Club Liga",
-            sets: [],
-            participants: [
-              { team: 1, slot: 1, displayName: "QA v1.1", isCurrentUser: true },
-              { team: 1, slot: 2, displayName: "Mikel", isCurrentUser: false },
-              { team: 2, slot: 1, displayName: "Iker", isCurrentUser: false },
-              { team: 2, slot: 2, displayName: "Aitor", isCurrentUser: false },
-            ],
-            canManage: false,
-            canDelete: false,
-            leagueId: "league-1",
-            leagueName: "Liga QA",
-            seasonId: "season-1",
-            round: 4,
-          },
-          friendly: {
+        upcoming: [
+          {
             id: "44444444-4444-4444-8444-444444444444",
             origin: "friendly",
             status: "scheduled",
-            scheduledAt: "2026-08-13T19:00:00.000Z",
+            scheduledAt: "2026-08-23T19:00:00.000Z",
             resultRecordedAt: null,
             locationName: "Padel Indoor",
             sets: [],
@@ -271,16 +250,15 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
             seasonId: null,
             round: null,
           },
-        },
+        ],
       }),
     })
   })
 
   await page.goto("/personal-matches")
   await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
-  await expect(page.getByText("Próximo partido", { exact: true })).toBeVisible()
-  await expect(page.getByRole("button", { name: "Liga", exact: true })).toBeVisible()
-  await expect(page.getByRole("button", { name: "Amistoso", exact: true })).toBeVisible()
+  await expect(page.getByText("Próximos partidos", { exact: true })).toBeVisible()
+  await expect(page.getByText("1 amistoso", { exact: true })).toBeVisible()
   await expect(page.getByText("QA v1.1", { exact: true }).first()).toBeVisible()
   await expect(page.getByText("Álvaro", { exact: true }).first()).toBeVisible()
   await expect(page.getByText("Victoria", { exact: true }).first()).toBeVisible()
@@ -313,17 +291,14 @@ test("personal matches hide the whole upcoming section when there is no future m
         items: [],
         hasMore: false,
         nextOffset: null,
-        upcoming: {
-          league: null,
-          friendly: null,
-        },
+        upcoming: [],
       }),
     })
   })
 
   await page.goto("/personal-matches")
   await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
-  await expect(page.getByText("Próximo partido", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("Próximos partidos", { exact: true })).toHaveCount(0)
   await expect(page.getByText("Sin partidos programados", { exact: true })).toHaveCount(0)
   await expect(page.getByText("Historial", { exact: true })).toBeVisible()
 })

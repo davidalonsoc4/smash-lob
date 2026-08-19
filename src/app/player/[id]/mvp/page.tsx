@@ -10,8 +10,10 @@ import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { getPlayerRoundMvpMatches } from "@/lib/mvp"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export default function PlayerMvpMatchesPage() {
+  const { tx } = useI18n()
   const params = useParams<{ id: string }>()
   const { matches } = useMatchData()
   const { votes } = useMvp()
@@ -49,16 +51,15 @@ export default function PlayerMvpMatchesPage() {
   return (
     <div className="space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref={player ? `/player/${player.slug}` : "/ranking"} label="Volver" />
+        <BackButton fallbackHref={player ? `/player/${player.slug}` : "/ranking"} label={tx("Volver")} />
 
         <div className="flex items-center gap-3">
           {player ? <PlayerAvatar player={player} size="lg" previewable /> : null}
           <div className="min-w-0">
             <h1 className="type-page-title text-2xl font-black tracking-tight">
-              MVPs de jornada
-            </h1>
+              {tx("MVPs de jornada")}{" "}</h1>
             <p className="mt-1 max-w-full truncate whitespace-nowrap text-sm text-neutral-500">
-              {player ? player.displayName : "Jugador no encontrado"}
+              {player ? player.displayName : tx("Jugador no encontrado")}
             </p>
           </div>
         </div>
@@ -67,8 +68,7 @@ export default function PlayerMvpMatchesPage() {
       <AppCard>
         <div className="flex items-center justify-between gap-4">
           <p className="min-w-0 text-sm font-semibold leading-relaxed text-neutral-500">
-            Aquí aparecen los partidos en los que este jugador fue MVP de la jornada, ya sea por el sistema automático o por votación.
-          </p>
+            {tx("Aquí aparecen los partidos en los que este jugador fue MVP de la jornada, ya sea por el sistema automático o por votación.")}{" "}</p>
           <div className="shrink-0 rounded-2xl bg-neutral-950 px-3 py-2 text-center text-white">
             <p className="text-xl font-black leading-none">{mvpMatches.length}</p>
             <p className="mt-1 type-caption font-black uppercase tracking-wide text-neutral-300">
@@ -81,8 +81,7 @@ export default function PlayerMvpMatchesPage() {
       {mvpMatches.length === 0 ? (
         <AppCard>
           <p className="text-sm font-semibold text-neutral-500">
-            Todavía no hay partidos MVP para este jugador.
-          </p>
+            {tx("Todavía no hay partidos MVP para este jugador.")}{" "}</p>
         </AppCard>
       ) : null}
 

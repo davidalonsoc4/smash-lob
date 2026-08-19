@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 import { getPlayerMvpSummary } from "@/lib/mvp"
 import { calculatePlayerSeasonDetail } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function formatPercent(value: number) {
   return `${Math.round(value)}%`
@@ -20,6 +21,7 @@ function formatSigned(value: number) {
 }
 
 export default function StatisticsPlayerPage() {
+  const { tx } = useI18n()
   const {
     activeLeague,
     selectedSeason,
@@ -107,11 +109,11 @@ export default function StatisticsPlayerPage() {
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        title="Análisis individual"
+        title={tx("Análisis individual")}
         description={
           isLeagueWide
-            ? "Rendimiento histórico, rachas, compañero más fuerte, rivales y récords de un jugador en toda la liga."
-            : "Rendimiento, rachas, compañero más fuerte, rivales y récords de un jugador."
+            ? tx("Rendimiento histórico, rachas, compañero más fuerte, rivales y récords de un jugador en toda la liga.")
+            : tx("Rendimiento, rachas, compañero más fuerte, rivales y récords de un jugador.")
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
@@ -120,16 +122,15 @@ export default function StatisticsPlayerPage() {
       {statistics.ranking.length === 0 ? (
         <EmptyState
           compact
-          title="Sin jugadores para analizar"
-          description="El análisis individual se activará cuando exista una plantilla con estadísticas."
+          title={tx("Sin jugadores para analizar")}
+          description={tx("El análisis individual se activará cuando exista una plantilla con estadísticas.")}
         />
       ) : (
         <>
           <FloatingStatisticsSelector>
             <label className="flex items-center gap-2">
               <span className="shrink-0 text-xs font-black text-neutral-700">
-                Jugador
-              </span>
+                {tx("Jugador")}{" "}</span>
               <select
                 value={selectedPlayer?.id ?? ""}
                 onChange={(event) => setSelectedPlayerId(event.target.value)}
@@ -149,67 +150,60 @@ export default function StatisticsPlayerPage() {
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <AppCard>
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-                    Victorias
-                  </p>
+                    {tx("Victorias")}{" "}</p>
                   <p className="mt-1 text-xl font-black">
                     {formatPercent(playerDetail.winRate)}
                   </p>
                   <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                    {playerDetail.player.wins}V · {playerDetail.player.losses}D
-                  </p>
+                    {playerDetail.player.wins}{tx("V ·")} {playerDetail.player.losses}{tx("D")}{" "}</p>
                 </AppCard>
                 <AppCard>
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-                    Mejor racha
+                    {tx("Mejor racha")}
                   </p>
                   <p className="mt-1 text-xl font-black">
                     {playerDetail.bestWinStreak}
                   </p>
                   <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                    victorias seguidas
-                  </p>
+                    {tx("victorias seguidas")}{" "}</p>
                 </AppCard>
                 <AppCard>
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-                    MVP jornada
-                  </p>
+                    {tx("MVP jornada")}{" "}</p>
                   <p className="mt-1 text-xl font-black">
                     {playerMvpSummary?.roundMvpCount ?? 0}
                   </p>
                   <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                    {playerMvpSummary?.votesReceived ?? 0} votos recibidos
+                    {playerMvpSummary?.votesReceived ?? 0} {tx("votos recibidos")}
                   </p>
                 </AppCard>
                 <AppCard>
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-                    Dif. juegos
-                  </p>
+                    {tx("Dif. juegos")}{" "}</p>
                   <p className="mt-1 text-xl font-black">
                     {formatSigned(playerDetail.player.gamesDiff)}
                   </p>
                   <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                    {playerDetail.player.points} puntos
-                  </p>
+                    {playerDetail.player.points} {tx("puntos")}{" "}</p>
                 </AppCard>
               </div>
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <AppCard>
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-                    Compañero más fuerte
-                  </p>
+                    {tx("Compañero más fuerte")}{" "}</p>
                   <p className="mt-1 truncate font-black">
                     {playerDetail.strongestTeammate?.displayName ?? "—"}
                   </p>
                   <p className="mt-0.5 text-xs font-semibold text-neutral-500">
                     {playerDetail.strongestTeammate
-                      ? `Dif. sets ${formatSigned(playerDetail.strongestTeammate.setsDiff)} · Dif. juegos ${formatSigned(playerDetail.strongestTeammate.gamesDiff)}`
-                      : "Sin datos suficientes"}
+                      ? tx(`Dif. sets ${formatSigned(playerDetail.strongestTeammate.setsDiff)} · Dif. juegos ${formatSigned(playerDetail.strongestTeammate.gamesDiff)}`)
+                      : tx("Sin datos suficientes")}
                   </p>
                 </AppCard>
                 <AppCard>
                   <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-                    {isBalancedCalendar ? "Rival más difícil" : "Rival más habitual"}
+                    {isBalancedCalendar ? tx("Rival más difícil") : tx("Rival más habitual")}
                   </p>
                   <p className="mt-1 truncate font-black">
                     {(isBalancedCalendar
@@ -220,19 +214,18 @@ export default function StatisticsPlayerPage() {
                   <p className="mt-0.5 text-xs font-semibold text-neutral-500">
                     {isBalancedCalendar
                       ? playerDetail.toughestOpponent
-                        ? `${formatPercent(playerDetail.toughestOpponent.winRate)} de victorias · Dif. ${formatSigned(playerDetail.toughestOpponent.gamesDiff)}`
-                        : "Sin datos suficientes"
+                        ? `${formatPercent(playerDetail.toughestOpponent.winRate)} ${tx("de victorias · Dif.")} ${formatSigned(playerDetail.toughestOpponent.gamesDiff)}`
+                        : tx("Sin datos suficientes")
                       : playerDetail.mostFrequentOpponent
                         ? `${playerDetail.mostFrequentOpponent.matchesPlayed} duelos · ${playerDetail.mostFrequentOpponent.wins}V/${playerDetail.mostFrequentOpponent.losses}D`
-                        : "Sin datos suficientes"}
+                        : tx("Sin datos suficientes")}
                   </p>
                 </AppCard>
               </div>
 
               <div>
                 <p className="mb-2 type-caption font-black uppercase tracking-[0.18em] text-neutral-400">
-                  Récords del jugador
-                </p>
+                  {tx("Récords del jugador")}{" "}</p>
                 <PlayerSeasonRecordsPanel
                   detail={playerDetail}
                   playersById={playersById}
@@ -249,7 +242,7 @@ export default function StatisticsPlayerPage() {
 
               {playerDetail.opponents.length > 0 ? (
                 <AppCard>
-                  <p className="font-black">Cara a cara por rival</p>
+                  <p className="font-black">{tx("Cara a cara por rival")}</p>
                   <div className="mt-2 space-y-2">
                     {playerDetail.opponents.map((opponent) => (
                       <div
@@ -261,8 +254,7 @@ export default function StatisticsPlayerPage() {
                             {opponent.displayName}
                           </p>
                           <p className="type-caption font-semibold text-neutral-500">
-                            {opponent.matchesPlayed} duelos · {opponent.wins}V · {opponent.losses}D
-                          </p>
+                            {opponent.matchesPlayed} {tx("duelos ·")} {opponent.wins}{tx("V ·")} {opponent.losses}{tx("D")}{" "}</p>
                         </div>
                         <span className="shrink-0 text-xs font-black">
                           {formatPercent(opponent.winRate)}

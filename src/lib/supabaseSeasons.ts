@@ -258,6 +258,7 @@ export async function startSupabaseSeason({
   activeSeasonId,
   name,
   playerIds,
+  appUserIds = [],
   newPlayerNames,
   roundWindowMode,
   seasonStartsAt,
@@ -281,6 +282,7 @@ export async function startSupabaseSeason({
   activeSeasonId: string | null;
   name: string;
   playerIds: string[];
+  appUserIds?: string[];
   newPlayerNames: string[];
   roundWindowMode: RoundWindowMode;
   seasonStartsAt: string | null;
@@ -316,6 +318,7 @@ export async function startSupabaseSeason({
         activeSeasonId,
         name,
         playerIds,
+        appUserIds,
         newPlayerNames,
         roundWindowMode,
         seasonStartsAt,

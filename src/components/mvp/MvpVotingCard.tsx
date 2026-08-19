@@ -14,6 +14,7 @@ import {
   type MvpPlayer,
   type MvpSystem,
 } from "@/lib/mvp";
+import { useI18n } from "@/i18n/I18nProvider"
 
 type MvpVotingCardProps = {
   match: MvpMatch;
@@ -30,6 +31,7 @@ export function MvpVotingCard({
   matches,
   mvpSystem,
 }: MvpVotingCardProps) {
+  const { tx } = useI18n()
   const { votes, voteForMatchMvp } = useMvp();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,33 +73,33 @@ export function MvpVotingCard({
     const adjustedRating = roundMvp?.adjustedRating
     const advancedDetail =
       typeof adjustedRating === "number"
-        ? `Índice ajustado ${(adjustedRating * 100).toFixed(1)}${roundMvp?.tied ? " · empate técnico" : ""}`
+        ? tx(`Índice ajustado ${(adjustedRating * 100).toFixed(1)}${roundMvp?.tied ? " · empate técnico" : ""}`)
         : "Índice ajustado pendiente"
 
     return (
       <AppCard className="p-2.5">
         <div className="flex items-center justify-between gap-2">
-          <p className="type-panel-title">MVP de la jornada</p>
+          <p className="type-panel-title">{tx("MVP de la jornada")}</p>
           <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
-            {isAdvancedAutomatic ? "Automático avanzado" : "Automático"}
+            {isAdvancedAutomatic ? tx("Automático avanzado") : tx("Automático")}
           </span>
         </div>
 
         {roundMvpPlayers.length > 0 && roundMvp ? (
           <MvpResultPanel
-            title={`Jornada ${match.round}`}
+            title={tx(`Jornada ${match.round}`)}
             players={roundMvpPlayers}
             detail={
               isAdvancedAutomatic
                 ? advancedDetail
-                : `${roundMvp.gamesDiff ?? 0} dif. de juegos`
+                : tx(`${roundMvp.gamesDiff ?? 0} dif. de juegos`)
             }
           />
         ) : (
           <p className="mt-2 text-xs font-semibold text-neutral-500">
             {isAdvancedAutomatic
-              ? "Se calculará al completar la jornada usando resultados, compañeros y rivales."
-              : "Se calculará al completar la jornada."}
+              ? tx("Se calculará al completar la jornada usando resultados, compañeros y rivales.")
+              : tx("Se calculará al completar la jornada.")}
           </p>
         )}
       </AppCard>
@@ -135,11 +137,10 @@ export function MvpVotingCard({
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="type-panel-title">MVP del partido</p>
+        <p className="type-panel-title">{tx("MVP del partido")}</p>
         {hasPendingVote ? (
           <span className="rounded-full bg-amber-200 px-2 py-1 type-caption font-black text-amber-900">
-            Voto pendiente
-          </span>
+            {tx("Voto pendiente")}{" "}</span>
         ) : currentVote || matchProgress.complete ? (
           <span className="rounded-full bg-emerald-100 px-2 py-1 type-caption font-black text-emerald-700">
             {matchProgress.complete ? "Cerrado" : "Votado"}
@@ -180,21 +181,20 @@ export function MvpVotingCard({
 
       {!isParticipant ? (
         <p className="mt-2 text-xs font-semibold text-neutral-500">
-          Solo pueden votar los participantes.
-        </p>
+          {tx("Solo pueden votar los participantes.")}{" "}</p>
       ) : null}
 
       {error ? (
-        <p className="mt-1.5 type-caption font-semibold text-red-600">{error}</p>
+        <p className="mt-1.5 type-caption font-semibold text-red-600">{tx(error)}</p>
       ) : null}
 
       {matchProgress.complete && matchMvpPlayers.length > 0 ? (
-        <MvpResultPanel title="Partido" players={matchMvpPlayers} />
+        <MvpResultPanel title={tx("Partido")} players={matchMvpPlayers} />
       ) : null}
 
       {roundMvp && roundMvpPlayers.length > 0 ? (
         <MvpResultPanel
-          title={`Jornada ${match.round}`}
+          title={tx(`Jornada ${match.round}`)}
           players={roundMvpPlayers}
         />
       ) : null}

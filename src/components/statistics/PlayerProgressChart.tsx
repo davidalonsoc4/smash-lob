@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import type { PlayerRoundProgress } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type ChartMode = "position" | "points" | "gamesDiff"
 
@@ -50,6 +51,7 @@ export function PlayerProgressChart({
   displayName: string
   progress: PlayerRoundProgress[]
 }) {
+  const { tx } = useI18n()
   const [mode, setMode] = useState<ChartMode>("position")
   const spansMultipleSeasons =
     new Set(progress.map((row) => row.seasonId).filter(Boolean)).size > 1
@@ -178,11 +180,10 @@ export function PlayerProgressChart({
     <AppCard>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="type-panel-title">Evolución</p>
+          <p className="type-panel-title">{tx("Evolución")}</p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-            Consulta cómo ha cambiado {displayName} después de cada jornada contabilizada.
-            {spansMultipleSeasons
-              ? " Cada temporada aparece separada y reinicia sus métricas."
+            {tx("Consulta cómo ha cambiado")}{" "}{displayName} {tx("después de cada jornada contabilizada.")}{" "}{spansMultipleSeasons
+              ? tx(" Cada temporada aparece separada y reinicia sus métricas.")
               : ""}
           </p>
         </div>
@@ -196,8 +197,7 @@ export function PlayerProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Posición
-          </button>
+            {tx("Posición")}{" "}</button>
           <button
             type="button"
             onClick={() => setMode("points")}
@@ -207,8 +207,7 @@ export function PlayerProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Puntos
-          </button>
+            {tx("Puntos")}{" "}</button>
           <button
             type="button"
             onClick={() => setMode("gamesDiff")}
@@ -218,14 +217,12 @@ export function PlayerProgressChart({
                 : "text-neutral-500"
             }`}
           >
-            Dif. juegos
-          </button>
+            {tx("Dif. juegos")}{" "}</button>
         </div>
       </div>
 
       <p className="mt-2 type-caption font-semibold text-neutral-500">
-        Pulsa o mantén el cursor sobre un punto para ver partido, resultado y cambio.
-      </p>
+        {tx("Pulsa o mantén el cursor sobre un punto para ver partido, resultado y cambio.")}{" "}</p>
 
       <div className="mt-2 overflow-x-auto">
         <svg
@@ -233,13 +230,13 @@ export function PlayerProgressChart({
           className="w-full"
           style={{ minWidth: `${chart.minWidthPercent}%` }}
           role="img"
-          aria-label={`Evolución de ${displayName} por ${
+          aria-label={tx(`Evolución de ${displayName} por ${
             mode === "position"
               ? "posición"
               : mode === "points"
                 ? "puntos"
                 : "diferencia de juegos"
-          }`}
+          }`)}
         >
           {ticks.map((tick, index) => (
             <g key={index}>
@@ -307,13 +304,13 @@ export function PlayerProgressChart({
 
           {chart.points.map(({ row, value, x, y, previousValue }) => {
             const detail = [
-              row.label ?? row.shortLabel ?? `Jornada ${row.round}`,
+              row.label ?? row.shortLabel ?? tx(`Jornada ${row.round}`),
               getMetricLabel(mode, value),
               getChangeLabel(mode, value, previousValue),
-              row.teammateNames ? `Compañero: ${row.teammateNames}` : null,
+              row.teammateNames ? tx(`Compañero: ${row.teammateNames}`) : null,
               row.opponentNames ? `Rivales: ${row.opponentNames}` : null,
               row.resultLabel
-                ? `Resultado: ${row.outcome === "win" ? "Victoria" : "Derrota"} · ${row.resultLabel}`
+                ? tx(`Resultado: ${row.outcome === "win" ? "Victoria" : "Derrota"} · ${row.resultLabel}`)
                 : null,
             ]
               .filter(Boolean)
@@ -348,10 +345,10 @@ export function PlayerProgressChart({
               : undefined
           return (
             <p key={row.round}>
-              {row.label ?? `Jornada ${row.round}`}: {getMetricLabel(mode, value)}. {getChangeLabel(mode, value, previousValue)}.
-              {row.teammateNames ? ` Compañero: ${row.teammateNames}.` : ""}
-              {row.opponentNames ? ` Rivales: ${row.opponentNames}.` : ""}
-              {row.resultLabel ? ` Resultado: ${row.resultLabel}.` : ""}
+              {row.label ?? tx(`Jornada ${row.round}`)}: {getMetricLabel(mode, value)}. {getChangeLabel(mode, value, previousValue)}.
+              {row.teammateNames ? ` ${tx("Compañero:")} ${row.teammateNames}.` : ""}
+              {row.opponentNames ? ` ${tx("Rivales:")} ${row.opponentNames}.` : ""}
+              {row.resultLabel ? ` ${tx("Resultado:")} ${row.resultLabel}.` : ""}
             </p>
           )
         })}

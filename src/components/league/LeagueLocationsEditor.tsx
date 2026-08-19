@@ -11,6 +11,7 @@ import {
   sortLeagueLocationsByOptionLabel,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
+import { useI18n } from "@/i18n/I18nProvider"
 
 type LeagueLocationsEditorProps = {
   locations: LeagueLocation[];
@@ -191,6 +192,7 @@ export function LeagueLocationsEditor({
   disabled = false,
   copy,
 }: LeagueLocationsEditorProps) {
+  const { tx } = useI18n()
   const googleInputRef = useRef<HTMLInputElement | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingLocationId, setEditingLocationId] = useState<string | null>(
@@ -484,10 +486,9 @@ export function LeagueLocationsEditor({
       <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-black text-neutral-950">Ubicaciones de la app</p>
+            <p className="text-sm font-black text-neutral-950">{tx("Ubicaciones de la app")}</p>
             <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
-              Añade a la liga cualquier club ya guardado por otros jugadores.
-            </p>
+              {tx("Añade a la liga cualquier club ya guardado por otros jugadores.")}{" "}</p>
           </div>
           <span className="shrink-0 rounded-full bg-white px-2 py-1 type-caption font-black text-neutral-500 shadow-sm">
             {catalogLocations.length}
@@ -495,16 +496,16 @@ export function LeagueLocationsEditor({
         </div>
 
         {catalogLoading ? (
-          <p className="mt-3 text-xs font-semibold text-neutral-400">Cargando ubicaciones...</p>
+          <p className="mt-3 text-xs font-semibold text-neutral-400">{tx("Cargando ubicaciones...")}</p>
         ) : availableCatalogLocations.length > 0 ? (
           <div className="mt-3 space-y-2">
             <label className="block">
-              <span className="sr-only">Buscar ubicación guardada</span>
+              <span className="sr-only">{tx("Buscar ubicación guardada")}</span>
               <input
                 value={catalogSearch}
                 onChange={(event) => setCatalogSearch(event.target.value)}
                 disabled={disabled}
-                placeholder="Buscar por nombre, localidad o dirección..."
+                placeholder={tx("Buscar por nombre, localidad o dirección...")}
                 className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100"
               />
             </label>
@@ -528,21 +529,18 @@ export function LeagueLocationsEditor({
                       </span>
                     </span>
                     <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-700">
-                      Añadir
-                    </span>
+                      {tx("Añadir")}{" "}</span>
                   </button>
                 ))}
               </div>
             ) : (
               <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-400">
-                No hay ubicaciones que coincidan con la búsqueda.
-              </p>
+                {tx("No hay ubicaciones que coincidan con la búsqueda.")}{" "}</p>
             )}
           </div>
         ) : (
           <p className="mt-3 text-xs font-semibold text-neutral-400">
-            No quedan ubicaciones del catálogo por añadir a esta liga.
-          </p>
+            {tx("No quedan ubicaciones del catálogo por añadir a esta liga.")}{" "}</p>
         )}
       </div>
 

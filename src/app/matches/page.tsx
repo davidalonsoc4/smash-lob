@@ -20,7 +20,7 @@ import { formatShortDate } from "@/lib/rounds"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
 
 export default function MatchesPage() {
-  const { t } = useI18n()
+  const { tx, t, locale } = useI18n()
   const searchParams = useSearchParams()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -66,9 +66,9 @@ export default function MatchesPage() {
       return null
     }
 
-    return `${t.rounds.from} ${formatShortDate(round.startsAt)} ${
+    return `${t.rounds.from} ${formatShortDate(round.startsAt, locale)} ${
       t.rounds.to
-    } ${formatShortDate(round.endsAt)}`
+    } ${formatShortDate(round.endsAt, locale)}`
   }
 
   function getRoundStatusText(round: (typeof rounds)[number]) {
@@ -105,8 +105,7 @@ export default function MatchesPage() {
       <AppCard data-tour="matches-scope" className="p-2">
         <div className="flex items-center gap-2 overflow-x-auto">
           <p className="shrink-0 type-caption font-black text-neutral-700">
-            Vista del calendario
-          </p>
+            {tx("Vista del calendario")}{" "}</p>
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <Link
@@ -119,8 +118,7 @@ export default function MatchesPage() {
               }`}
             >
               <span className="whitespace-nowrap type-caption font-black">
-                Liga completa
-              </span>
+                {tx("Liga completa")}{" "}</span>
               <span
                 className={`rounded-full px-1.5 py-0.5 type-caption font-black ${
                   activeScope === "all"
@@ -142,8 +140,7 @@ export default function MatchesPage() {
               }`}
             >
               <span className="whitespace-nowrap type-caption font-black">
-                Mis partidos
-              </span>
+                {tx("Mis partidos")}{" "}</span>
               <span
                 className={`rounded-full px-1.5 py-0.5 type-caption font-black ${
                   activeScope === "mine"
@@ -161,18 +158,15 @@ export default function MatchesPage() {
       {isPlayerSeasonLocked ? (
         <AppCard className="border border-neutral-200 bg-neutral-50/80 px-3 py-2.5">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
-            Temporada próximamente
-          </p>
+            {tx("Temporada próximamente")}{" "}</p>
           <p className="mt-1 text-sm font-semibold text-neutral-600">
-            La temporada está creada, pero todavía no ha comenzado. Los partidos se desbloquearán al comenzar la temporada.
-          </p>
+            {tx("La temporada está creada, pero todavía no ha comenzado. Los partidos se desbloquearán al comenzar la temporada.")}{" "}</p>
           {canManageSeason ? (
             <Link
               href="/admin/season"
               className="mt-3 inline-flex rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white items-center justify-center text-center"
             >
-              Administrar temporada
-            </Link>
+              {tx("Administrar temporada")}{" "}</Link>
           ) : null}
         </AppCard>
       ) : null}
@@ -198,7 +192,7 @@ export default function MatchesPage() {
             >
               <Link
                 href={`/round/${round.round}`}
-                aria-label={`Abrir resumen de ${round.name}`}
+                aria-label={tx(`Abrir resumen de ${round.name}`)}
                 className="block rounded-xl px-1 py-1 transition active:bg-neutral-100"
               >
                 <div className="flex items-center justify-between gap-3">
@@ -227,7 +221,7 @@ export default function MatchesPage() {
                     roundStartsAt={round.startsAt}
                     roundEndsAt={round.endsAt}
                     headerMode="match-date"
-                    headerLeftLabel={`Jornada ${match.round}`}
+                    headerLeftLabel={tx(`Jornada ${match.round}`)}
                     statusPosition="right"
                     stackTeamPlayers
                     currentUserId={currentUserId}
@@ -245,8 +239,8 @@ export default function MatchesPage() {
                     }
                     highlightedPlayerLabel={
                       roundSettings.mvpSystem === "voting"
-                        ? "MVP del partido"
-                        : "MVP de jornada"
+                        ? tx("MVP del partido")
+                        : tx("MVP de jornada")
                     }
                     leagueLocations={activeLeague.locations}
                     showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
@@ -262,23 +256,23 @@ export default function MatchesPage() {
           <EmptyState
             title={
               activeScope === "mine"
-                ? "Todavía no tienes partidos"
-                : "El calendario todavía está vacío"
+                ? tx("Todavía no tienes partidos")
+                : tx("El calendario todavía está vacío")
             }
             description={
               activeScope === "mine"
-                ? "Cuando formes parte de un partido aparecerá aquí con su jornada, rivales y programación."
+                ? tx("Cuando formes parte de un partido aparecerá aquí con su jornada, rivales y programación.")
                 : isSeasonUpcoming
-                  ? "Los partidos se mostrarán al comenzar la temporada o cuando el administrador termine de preparar el calendario."
-                  : "No hay partidos disponibles para esta temporada."
+                  ? tx("Los partidos se mostrarán al comenzar la temporada o cuando el administrador termine de preparar el calendario.")
+                  : tx("No hay partidos disponibles para esta temporada.")
             }
             action={
               activeScope === "mine"
-                ? { label: "Ver calendario completo", href: "/matches" }
+                ? { label: tx("Ver calendario completo"), href: "/matches" }
                 : canManageSeason
-                  ? { label: "Administrar temporada", href: "/admin/season" }
+                  ? { label: tx("Administrar temporada"), href: "/admin/season" }
                   : roundSettings.availabilityRecommendationsEnabled
-                    ? { label: "Revisar mi disponibilidad", href: "/availability" }
+                    ? { label: tx("Revisar mi disponibilidad"), href: "/availability" }
                     : undefined
             }
           />

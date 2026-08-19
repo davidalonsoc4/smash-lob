@@ -8,12 +8,14 @@ import {
   removeLeagueSpectator,
   type LeagueSpectator,
 } from "@/lib/spectatorInvites"
+import { useI18n } from "@/i18n/I18nProvider"
 
 type LeagueSpectatorsPanelProps = {
   leagueId: string
 }
 
 export function LeagueSpectatorsPanel({ leagueId }: LeagueSpectatorsPanelProps) {
+  const { tx } = useI18n()
   const [spectators, setSpectators] = useState<LeagueSpectator[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [removingUserId, setRemovingUserId] = useState<string | null>(null)
@@ -49,7 +51,7 @@ export function LeagueSpectatorsPanel({ leagueId }: LeagueSpectatorsPanelProps) 
     if (removingUserId) return
 
     const confirmed = window.confirm(
-      `¿Quitar el acceso de espectador a ${spectator.displayName || spectator.email}?`,
+      tx(`¿Quitar el acceso de espectador a ${spectator.displayName || spectator.email}?`),
     )
 
     if (!confirmed) return
@@ -73,10 +75,9 @@ export function LeagueSpectatorsPanel({ leagueId }: LeagueSpectatorsPanelProps) 
     <AppCard>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-black">Espectadores</p>
+          <p className="font-black">{tx("Espectadores")}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            Cuentas de Google con acceso de solo lectura a la liga.
-          </p>
+            {tx("Cuentas de Google con acceso de solo lectura a la liga.")}{" "}</p>
         </div>
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-black text-neutral-700">
           {spectators.length}
@@ -85,12 +86,10 @@ export function LeagueSpectatorsPanel({ leagueId }: LeagueSpectatorsPanelProps) 
 
       {isLoading ? (
         <p className="mt-4 text-sm font-semibold text-neutral-500">
-          Cargando espectadores...
-        </p>
+          {tx("Cargando espectadores...")}{" "}</p>
       ) : spectators.length === 0 ? (
         <p className="mt-4 rounded-2xl bg-neutral-50 px-3 py-3 text-sm font-semibold text-neutral-500">
-          Todavía no se ha unido ningún espectador.
-        </p>
+          {tx("Todavía no se ha unido ningún espectador.")}{" "}</p>
       ) : (
         <div className="mt-4 space-y-2">
           {spectators.map((spectator) => {
@@ -140,7 +139,7 @@ export function LeagueSpectatorsPanel({ leagueId }: LeagueSpectatorsPanelProps) 
       )}
 
       {error ? (
-        <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
+        <p className="mt-3 text-sm font-semibold text-red-600">{tx(error)}</p>
       ) : null}
     </AppCard>
   )

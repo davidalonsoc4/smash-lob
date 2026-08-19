@@ -8,6 +8,7 @@ import type {
   PlayerComparisonOpponentPerformance,
   PlayerRecentForm,
 } from "@/lib/seasonStatistics"
+import { useI18n } from "@/i18n/I18nProvider"
 
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
@@ -26,11 +27,11 @@ function getCompactPlayerName(displayName: string) {
 }
 
 function RecentForm({ form }: { form: PlayerRecentForm }) {
+  const { tx } = useI18n()
   if (form.matches.length === 0) {
     return (
       <p className="type-caption font-semibold text-neutral-500">
-        Sin partidos contabilizados
-      </p>
+        {tx("Sin partidos contabilizados")}{" "}</p>
     )
   }
 
@@ -39,20 +40,19 @@ function RecentForm({ form }: { form: PlayerRecentForm }) {
       {form.matches.map((match) => (
         <span
           key={match.matchId}
-          title={`${match.roundLabel ?? `J${match.round}`} · Dif. ${formatSigned(match.gamesDiff)}`}
+          title={tx(`${match.roundLabel ?? `J${match.round}`} · Dif. ${formatSigned(match.gamesDiff)}`)}
           className={`grid h-6 w-6 place-items-center rounded-full type-caption font-black ${
             match.outcome === "win"
               ? "bg-emerald-100 text-emerald-800"
               : "bg-red-100 text-red-700"
           }`}
         >
-          {match.outcome === "win" ? "V" : "D"}
+          {tx(match.outcome === "win" ? "V" : "D")}
         </span>
       ))}
       <span className="ml-1 type-caption font-bold text-neutral-500">
-        {form.wins}V · {form.losses}D
-        {form.currentStreakOutcome && form.currentStreak > 0
-          ? ` · Racha ${form.currentStreak}${form.currentStreakOutcome === "win" ? "V" : "D"}`
+        {form.wins}{tx("V ·")} {form.losses}{tx("D")}{" "}{form.currentStreakOutcome && form.currentStreak > 0
+          ? tx(` · Racha ${form.currentStreak}${form.currentStreakOutcome === "win" ? "V" : "D"}`)
           : ""}
       </span>
     </div>
@@ -66,6 +66,7 @@ function CommonOpponentSummary({
   playerName: string
   performance: PlayerComparisonOpponentPerformance
 }) {
+  const { tx } = useI18n()
   return (
     <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5">
       <p className="type-player-name truncate">{playerName}</p>
@@ -73,7 +74,7 @@ function CommonOpponentSummary({
         {formatPercent(getWinRate(performance.wins, performance.matchesPlayed))}
       </p>
       <p className="type-caption font-semibold text-neutral-500">
-        {performance.wins}V · {performance.losses}D · Dif. {formatSigned(performance.gamesDiff)}
+        {performance.wins}{tx("V ·")} {performance.losses}{tx("D · Dif.")} {formatSigned(performance.gamesDiff)}
       </p>
     </div>
   )
@@ -98,13 +99,13 @@ export function PlayerComparisonPanel({
   onPlayerAChange,
   onPlayerBChange,
 }: PlayerComparisonPanelProps) {
+  const { tx } = useI18n()
   if (players.length < 2) {
     return (
       <AppCard>
-        <p className="font-black">Cara a cara no disponible</p>
+        <p className="font-black">{tx("Cara a cara no disponible")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          Se necesitan al menos dos jugadores con estadísticas.
-        </p>
+          {tx("Se necesitan al menos dos jugadores con estadísticas.")}{" "}</p>
       </AppCard>
     )
   }
@@ -122,8 +123,7 @@ export function PlayerComparisonPanel({
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
           <label className="min-w-0">
             <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
-              Jugador 1
-            </span>
+              {tx("Jugador 1")}{" "}</span>
             <select
               value={playerAId}
               onChange={(event) => onPlayerAChange(event.target.value)}
@@ -145,8 +145,7 @@ export function PlayerComparisonPanel({
 
           <label className="min-w-0">
             <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
-              Jugador 2
-            </span>
+              {tx("Jugador 2")}{" "}</span>
             <select
               value={playerBId}
               onChange={(event) => onPlayerBChange(event.target.value)}
@@ -188,28 +187,27 @@ export function PlayerComparisonPanel({
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-1.5 text-center">
                   <div className="rounded-lg bg-neutral-50 px-1.5 py-2">
-                    <p className="type-caption font-black uppercase text-neutral-400">Puntos</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Puntos")}</p>
                     <p className="mt-0.5 text-base font-black">{player.points}</p>
                   </div>
                   <div className="rounded-lg bg-neutral-50 px-1.5 py-2">
-                    <p className="type-caption font-black uppercase text-neutral-400">Victorias</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Victorias")}</p>
                     <p className="mt-0.5 text-base font-black">
                       {formatPercent(getWinRate(player.wins, player.matchesPlayed))}
                     </p>
                   </div>
                   <div className="rounded-lg bg-neutral-50 px-1.5 py-2">
-                    <p className="type-caption font-black uppercase text-neutral-400">Balance</p>
-                    <p className="mt-0.5 text-sm font-black">{player.wins}V/{player.losses}D</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Balance")}</p>
+                    <p className="mt-0.5 text-sm font-black">{player.wins}{tx("V/")}{player.losses}{tx("D")}</p>
                   </div>
                   <div className="rounded-lg bg-neutral-50 px-1.5 py-2">
-                    <p className="type-caption font-black uppercase text-neutral-400">Dif. juegos</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Dif. juegos")}</p>
                     <p className="mt-0.5 text-sm font-black">{formatSigned(player.gamesDiff)}</p>
                   </div>
                 </div>
                 <div className="mt-2">
                   <p className="mb-1 type-caption font-black uppercase tracking-wide text-neutral-400">
-                    Últimos partidos
-                  </p>
+                    {tx("Últimos partidos")}{" "}</p>
                   <RecentForm form={form} />
                 </div>
               </AppCard>
@@ -218,7 +216,7 @@ export function PlayerComparisonPanel({
 
           <AppCard>
             <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
-              Enfrentamientos directos
+              {tx("Enfrentamientos directos")}
             </p>
             {comparison.rivalry.matchesPlayed > 0 ? (
               <>
@@ -230,15 +228,15 @@ export function PlayerComparisonPanel({
                     <p className="mt-0.5 text-xl font-black">
                       {comparison.rivalry.playerAWins}
                     </p>
-                    <p className="type-caption font-semibold text-neutral-500">victorias</p>
+                    <p className="type-caption font-semibold text-neutral-500">{tx("victorias")}</p>
                   </div>
                   <div className="rounded-xl bg-neutral-100 px-2 py-2">
-                    <p className="type-caption font-bold text-neutral-500">Duelos</p>
+                    <p className="type-caption font-bold text-neutral-500">{tx("Duelos")}</p>
                     <p className="mt-0.5 text-xl font-black">
                       {comparison.rivalry.matchesPlayed}
                     </p>
                     <p className="type-caption font-semibold text-neutral-500">
-                      {isLeagueWide ? "en la liga" : "esta temporada"}
+                      {isLeagueWide ? tx("en la liga") : tx("esta temporada")}
                     </p>
                   </div>
                   <div className="rounded-xl bg-neutral-50 px-2 py-2">
@@ -248,18 +246,18 @@ export function PlayerComparisonPanel({
                     <p className="mt-0.5 text-xl font-black">
                       {comparison.rivalry.playerBWins}
                     </p>
-                    <p className="type-caption font-semibold text-neutral-500">victorias</p>
+                    <p className="type-caption font-semibold text-neutral-500">{tx("victorias")}</p>
                   </div>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                   <div className="rounded-xl border border-neutral-100 px-3 py-2">
-                    <p className="type-caption font-black uppercase text-neutral-400">Sets ganados</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Sets ganados")}</p>
                     <p className="mt-0.5 font-black">
                       {comparison.rivalry.playerASets} – {comparison.rivalry.playerBSets}
                     </p>
                   </div>
                   <div className="rounded-xl border border-neutral-100 px-3 py-2">
-                    <p className="type-caption font-black uppercase text-neutral-400">Juegos ganados</p>
+                    <p className="type-caption font-black uppercase text-neutral-400">{tx("Juegos ganados")}</p>
                     <p className="mt-0.5 font-black">
                       {comparison.rivalry.playerAGames} – {comparison.rivalry.playerBGames}
                     </p>
@@ -269,8 +267,8 @@ export function PlayerComparisonPanel({
             ) : (
               <p className="mt-1 text-xs font-semibold text-neutral-500">
                 {isLeagueWide
-                  ? "Todavía no se han enfrentado como rivales en ninguna temporada."
-                  : "Todavía no se han enfrentado como rivales esta temporada."}
+                  ? tx("Todavía no se han enfrentado como rivales en ninguna temporada.")
+                  : tx("Todavía no se han enfrentado como rivales esta temporada.")}
               </p>
             )}
           </AppCard>
@@ -279,15 +277,12 @@ export function PlayerComparisonPanel({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-400">
-                  Contra rivales comunes
-                </p>
+                  {tx("Contra rivales comunes")}{" "}</p>
                 <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
-                  Compara cómo rinde cada jugador frente a los mismos oponentes.
-                </p>
+                  {tx("Compara cómo rinde cada jugador frente a los mismos oponentes.")}{" "}</p>
               </div>
               <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-1 type-caption font-black">
-                {comparison.commonOpponents.rows.length} rivales
-              </span>
+                {comparison.commonOpponents.rows.length} {tx("rivales")}{" "}</span>
             </div>
 
             {comparison.commonOpponents.rows.length > 0 ? (
@@ -303,7 +298,7 @@ export function PlayerComparisonPanel({
                   />
                 </div>
                 <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 px-3 type-caption font-black uppercase tracking-wide text-neutral-400">
-                  <span>Rival</span>
+                  <span>{tx("Rival")}</span>
                   <span
                     className="max-w-[72px] truncate text-right"
                     title={comparison.playerA.displayName}
@@ -328,19 +323,15 @@ export function PlayerComparisonPanel({
                       </p>
                       <div className="text-right">
                         <p className="type-caption font-black">
-                          {opponent.playerA.wins}V/{opponent.playerA.losses}D
-                        </p>
+                          {opponent.playerA.wins}{tx("V/")}{opponent.playerA.losses}{tx("D")}{" "}</p>
                         <p className="type-caption font-semibold text-neutral-500">
-                          {formatSigned(opponent.playerA.gamesDiff)} juegos
-                        </p>
+                          {formatSigned(opponent.playerA.gamesDiff)} {tx("juegos")}{" "}</p>
                       </div>
                       <div className="min-w-[48px] text-right">
                         <p className="type-caption font-black">
-                          {opponent.playerB.wins}V/{opponent.playerB.losses}D
-                        </p>
+                          {opponent.playerB.wins}{tx("V/")}{opponent.playerB.losses}{tx("D")}{" "}</p>
                         <p className="type-caption font-semibold text-neutral-500">
-                          {formatSigned(opponent.playerB.gamesDiff)} juegos
-                        </p>
+                          {formatSigned(opponent.playerB.gamesDiff)} {tx("juegos")}{" "}</p>
                       </div>
                     </div>
                   ))}
@@ -348,8 +339,7 @@ export function PlayerComparisonPanel({
               </>
             ) : (
               <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
-                Aún no hay suficientes enfrentamientos contra los mismos rivales para comparar este apartado.
-              </p>
+                {tx("Aún no hay suficientes enfrentamientos contra los mismos rivales para comparar este apartado.")}{" "}</p>
             )}
           </AppCard>
         </>

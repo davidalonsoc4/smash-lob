@@ -7,7 +7,7 @@ describe("v1.10.6 round summary export fine polish", () => {
     const image = await readFile("src/lib/roundSummaryImage.ts", "utf8")
 
     expect(page).toContain('getScheduleLocationDisplayText(location)')
-    expect(page).toContain('meta: formatRoundExportMatchMeta(match.scheduledAt, match.location)')
+    expect(page).toContain('meta: formatRoundExportMatchMeta(match.scheduledAt, match.location, locale)')
     expect(image).toContain('drawText(context, result.meta ?? "Fecha y lugar pendientes"')
     expect(image).not.toContain('drawText(context, (result.statusLabel ?? "Pendiente").toUpperCase()')
     expect(image).not.toContain('statusLabel?: string')
