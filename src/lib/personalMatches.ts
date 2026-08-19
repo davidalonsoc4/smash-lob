@@ -27,6 +27,7 @@ export type PersonalMatchItem = {
   scheduledAt: string | null
   resultRecordedAt: string | null
   locationName: string | null
+  scheduleLocation?: string | null
   sets: PersonalMatchSet[]
   participants: PersonalMatchParticipant[]
   canManage: boolean

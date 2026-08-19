@@ -228,7 +228,11 @@ export function MatchScheduleForm({
           scheduleLocation: location,
         });
         if (scheduledGlobalLocation) {
-          setSelectedLocation((current) => current || scheduledGlobalLocation.id);
+          setSelectedLocation((current) =>
+            !current || current === otherLocationValue
+              ? scheduledGlobalLocation.id
+              : current,
+          );
           setSelectedCourt(
             (current) => current || scheduledGlobalLocation.selectedCourt || "",
           );
