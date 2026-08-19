@@ -54,7 +54,7 @@ export function PersonalMatchSchedulePanel({
       status={scheduleStatus}
       scheduledAt={match.scheduledAt}
       dateLabel={null}
-      location={match.locationName}
+      location={match.scheduleLocation ?? match.locationName}
       availableLocations={[]}
       playerIds={[...detail.teamA, ...detail.teamB]}
       players={detail.players}

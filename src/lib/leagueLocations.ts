@@ -543,6 +543,28 @@ export function createScheduledLeagueLocationValue(
   });
 }
 
+function findUniqueLeagueLocation(
+  locations: LeagueLocation[],
+  predicate: (location: LeagueLocation) => boolean,
+) {
+  const matches = locations.filter(predicate);
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function parseLegacyScheduleLocationText(value: string) {
+  const cleanValue = value.trim();
+  const courtMatch = cleanValue.match(/^(.*?)\s*(?:·|\s-\s)\s*(Pista\s+\d+)\s*$/i);
+
+  if (!courtMatch) {
+    return { locationText: cleanValue, selectedCourt: null };
+  }
+
+  return {
+    locationText: courtMatch[1]?.trim() ?? cleanValue,
+    selectedCourt: cleanSelectedCourt(courtMatch[2]),
+  };
+}
+
 export function findLeagueLocationByScheduleLocation({
   locations,
   scheduleLocation,
@@ -567,44 +589,123 @@ export function findLeagueLocationByScheduleLocation({
       storedLocationRecord?.court ??
       storedLocationRecord?.courtName,
   );
-  const normalizedCandidates = [
-    cleanScheduleLocation,
-    storedLocationId,
-    parsedLocation?.id,
-    parsedLocation?.name,
-    parsedLocation?.town,
-    parsedLocation?.address,
-    parsedLocation?.googlePlaceName,
-    parsedLocation?.googleMapsUrl,
-  ]
-    .filter((item): item is string => Boolean(item))
-    .map((item) => item.trim().toLowerCase());
-
-  const matchedLocation = normalizedLocations.find((location) => {
-    const locationCandidates = [
-      location.id,
-      location.name,
-      location.town,
-      location.address,
-      location.googlePlaceName,
-      location.googleMapsUrl,
-    ]
-      .filter((item): item is string => Boolean(item))
-      .map((item) => item.trim().toLowerCase());
-
-    return locationCandidates.some((candidate) =>
-      normalizedCandidates.includes(candidate),
-    );
+  const legacyLocation = storedLocationRecord
+    ? null
+    : parseLegacyScheduleLocationText(cleanScheduleLocation);
+  const selectedCourt =
+    parsedLocation?.selectedCourt ??
+    storedSelectedCourt ??
+    legacyLocation?.selectedCourt ??
+    null;
+  const withSelectedCourt = (location: LeagueLocation) => ({
+    ...location,
+    selectedCourt,
   });
 
-  if (matchedLocation) {
-    return {
-      ...matchedLocation,
-      selectedCourt: parsedLocation?.selectedCourt ?? storedSelectedCourt ?? null,
-    };
+  // A stored catalog id is authoritative. Never let a coincidental town/name match
+  // replace a location that was explicitly selected and persisted.
+  if (storedLocationId) {
+    const byId = normalizedLocations.find(
+      (location) =>
+        normalizeLocationIdentityPart(location.id) ===
+        normalizeLocationIdentityPart(storedLocationId),
+    );
+
+    if (byId) {
+      return withSelectedCourt(byId);
+    }
   }
 
-  return parsedLocation ?? null;
+  if (parsedLocation) {
+    const googlePlaceId = normalizeLocationIdentityPart(parsedLocation.googlePlaceId);
+
+    if (googlePlaceId) {
+      const byGooglePlace = findUniqueLeagueLocation(
+        normalizedLocations,
+        (location) =>
+          normalizeLocationIdentityPart(location.googlePlaceId) === googlePlaceId,
+      );
+
+      if (byGooglePlace) {
+        return withSelectedCourt(byGooglePlace);
+      }
+    }
+
+    const identityKey = getLeagueLocationIdentityKey(parsedLocation);
+    const byIdentity = findUniqueLeagueLocation(
+      normalizedLocations,
+      (location) => getLeagueLocationIdentityKey(location) === identityKey,
+    );
+
+    if (byIdentity) {
+      return withSelectedCourt(byIdentity);
+    }
+
+    // The snapshot remains a valid historical location if its catalog entry no
+    // longer exists. It must not be rebound using a weak field such as town.
+    return { ...parsedLocation, selectedCourt };
+  }
+
+  const legacyText = normalizeLocationIdentityPart(
+    legacyLocation?.locationText ?? cleanScheduleLocation,
+  );
+
+  if (!legacyText) {
+    return null;
+  }
+
+  const exactLabelMatch = findUniqueLeagueLocation(
+    normalizedLocations,
+    (location) =>
+      normalizeLocationIdentityPart(getLeagueLocationOptionLabel(location)) ===
+      legacyText,
+  );
+
+  if (exactLabelMatch) {
+    return withSelectedCourt(exactLabelMatch);
+  }
+
+  // Old friendly matches sometimes stored only the location name. Accept that
+  // legacy form only when it identifies exactly one catalog entry.
+  const exactNameMatch = findUniqueLeagueLocation(
+    normalizedLocations,
+    (location) => normalizeLocationIdentityPart(location.name) === legacyText,
+  );
+
+  if (exactNameMatch) {
+    return withSelectedCourt(exactNameMatch);
+  }
+
+  const exactMapsMatch = findUniqueLeagueLocation(
+    normalizedLocations,
+    (location) =>
+      Boolean(location.googleMapsUrl) &&
+      normalizeLocationIdentityPart(location.googleMapsUrl) === legacyText,
+  );
+
+  if (exactMapsMatch) {
+    return withSelectedCourt(exactMapsMatch);
+  }
+
+  const exactAddressMatch = findUniqueLeagueLocation(
+    normalizedLocations,
+    (location) =>
+      Boolean(location.address) &&
+      normalizeLocationIdentityPart(location.address) === legacyText,
+  );
+
+  if (exactAddressMatch) {
+    return withSelectedCourt(exactAddressMatch);
+  }
+
+  const exactPlaceNameMatch = findUniqueLeagueLocation(
+    normalizedLocations,
+    (location) =>
+      Boolean(location.googlePlaceName) &&
+      normalizeLocationIdentityPart(location.googlePlaceName) === legacyText,
+  );
+
+  return exactPlaceNameMatch ? withSelectedCourt(exactPlaceNameMatch) : null;
 }
 
 

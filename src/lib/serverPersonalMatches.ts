@@ -3,10 +3,12 @@ import "server-only"
 import type { AuthenticatedAppUser } from "@/lib/serverAuth"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import {
+  createScheduledLeagueLocationValue,
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,
   getScheduleLocationDisplayText,
   getScheduleLocationFallbackText,
+  normalizeLeagueLocation,
   normalizeLeagueLocations,
 } from "@/lib/leagueLocations"
 import {
@@ -465,6 +467,19 @@ function mapPersonalMatch(
       ),
   )
   const status = normalizePersonalStatus(row.status, sets)
+  const snapshotLocation = normalizeLeagueLocation(row.location_snapshot)
+  const structuredLocation = snapshotLocation
+    ? {
+        ...snapshotLocation,
+        selectedCourt: row.location_court ?? snapshotLocation.selectedCourt ?? null,
+      }
+    : null
+  const scheduleLocation = structuredLocation
+    ? createScheduledLeagueLocationValue(
+        structuredLocation,
+        structuredLocation.selectedCourt,
+      )
+    : row.location_name
 
   return {
     id: row.id,
@@ -473,8 +488,9 @@ function mapPersonalMatch(
     scheduledAt: row.played_at,
     resultRecordedAt: row.result_recorded_at,
     locationName:
-      getScheduleLocationDisplayText(row.location_snapshot) ??
+      getScheduleLocationDisplayText(structuredLocation) ??
       getScheduleLocationDisplayText(row.location_name),
+    scheduleLocation,
     sets,
     participants,
     canManage: row.created_by_user_id === currentUserId,
