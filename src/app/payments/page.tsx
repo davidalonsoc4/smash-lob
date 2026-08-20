@@ -4,7 +4,6 @@ import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { type MatchData, useMatchData } from "@/context/MatchDataProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -19,6 +18,7 @@ import {
 import { formatMoney, roundMoney } from "@/lib/courtBooking"
 import {
   fetchPaymentLedger,
+  filterPaymentLedgerItems,
   getPaymentLedgerPendingSummary,
   setPaymentLedgerTransferPaid,
   type PaymentLedgerItem,
@@ -26,8 +26,6 @@ import {
 
 type PaymentTab = "status" | "movements" | "all"
 type PaymentScope = "all" | "league" | "friendly"
-
-type EconomyScope = "league" | string
 
 const paymentEventTypes = new Set<ActivityEvent["type"]>([
   "court_booking_updated",
@@ -193,13 +191,13 @@ function PaymentLedgerList({
   isLoading,
   error,
   updatingTransferId,
-  onMarkPaid,
+  onSetPaidStatus,
 }: {
   items: PaymentLedgerItem[]
   isLoading: boolean
   error: string | null
   updatingTransferId: string | null
-  onMarkPaid: (item: PaymentLedgerItem) => void
+  onSetPaidStatus: (item: PaymentLedgerItem, isPaid: boolean) => void
 }) {
   const { tx, locale } = useI18n()
 
@@ -275,13 +273,24 @@ function PaymentLedgerList({
               {!item.isPaid ? (
                 <button
                   type="button"
-                  onClick={() => onMarkPaid(item)}
+                  onClick={() => onSetPaidStatus(item, true)}
                   disabled={updatingTransferId === itemKey}
-                  className="flex rounded-2xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                  className="flex rounded-2xl bg-neutral-950 px-3 py-2 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                 >
                   {updatingTransferId === itemKey
                     ? tx("Guardando...")
                     : tx("Marcar como pagado")}
+                </button>
+              ) : item.canMarkPending ? (
+                <button
+                  type="button"
+                  onClick={() => onSetPaidStatus(item, false)}
+                  disabled={updatingTransferId === itemKey}
+                  className="flex rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 type-caption font-black text-emerald-700 disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400 items-center justify-center text-center"
+                >
+                  {updatingTransferId === itemKey
+                    ? tx("Guardando...")
+                    : tx("Marcar como pendiente")}
                 </button>
               ) : (
                 <span className="flex rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 items-center justify-center text-center">
@@ -298,9 +307,9 @@ function PaymentLedgerList({
 
 export default function PaymentsPage() {
   const { tx } = useI18n()
-  const { currentUser } = useCurrentUser()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { isLeagueAdmin, userLeagues, getMembershipForLeague } =
+    useLeagueAccess()
   const { seasons, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const { t } = useI18n()
   const { matches: storedMatches } = useMatchData()
@@ -316,7 +325,8 @@ export default function PaymentsPage() {
   const [updatingTransferId, setUpdatingTransferId] = useState<string | null>(null)
   const [paymentStatusError, setPaymentStatusError] = useState<string | null>(null)
   const [isEconomyExpanded, setIsEconomyExpanded] = useState(false)
-  const [economyScope, setEconomyScope] = useState<EconomyScope>(activeSeason.id)
+  const [selectedLeagueId, setSelectedLeagueId] = useState(activeLeague.id)
+  const [selectedSeasonId, setSelectedSeasonId] = useState(activeSeason.id)
 
   const refreshLedger = useCallback(async () => {
     try {
@@ -396,47 +406,47 @@ export default function PaymentsPage() {
     () => events.filter(isPaymentActivityEvent),
     [events]
   )
-  const pendingSummary = useMemo(
-    () => getPaymentLedgerPendingSummary(ledgerItems),
-    [ledgerItems],
+  const selectedLeague =
+    userLeagues.find((league) => league.id === selectedLeagueId) ?? activeLeague
+  const selectedLeagueSeasons = useMemo(
+    () => seasons.filter((season) => season.leagueId === selectedLeague.id),
+    [selectedLeague.id, seasons],
   )
-  const pendingPaymentCount =
-    pendingSummary.owedByMeCount + pendingSummary.owedToMeCount
+  const selectedSeason =
+    selectedLeagueSeasons.find((season) => season.id === selectedSeasonId) ??
+    selectedLeagueSeasons.find(
+      (season) => season.id === selectedLeague.activeSeasonId,
+    ) ??
+    selectedLeagueSeasons.at(-1) ??
+    activeSeason
+  const selectedPlayerId =
+    getMembershipForLeague(selectedLeague.id)?.playerId ?? null
+
   const scopedLedgerItems = useMemo(
     () =>
-      ledgerItems.filter((item) => {
-        if (paymentScope === "friendly") return item.source === "friendly"
-        if (paymentScope === "league") {
-          return item.source === "league" && item.leagueId === activeLeague.id
-        }
-        return true
+      filterPaymentLedgerItems(ledgerItems, {
+        scope: paymentScope,
+        leagueId: selectedLeague.id,
+        seasonId: selectedSeason.id,
       }),
-    [activeLeague.id, ledgerItems, paymentScope],
+    [ledgerItems, paymentScope, selectedLeague.id, selectedSeason.id],
   )
+  const scopedPendingSummary = useMemo(
+    () => getPaymentLedgerPendingSummary(scopedLedgerItems),
+    [scopedLedgerItems],
+  )
+  const pendingPaymentCount =
+    scopedPendingSummary.owedByMeCount + scopedPendingSummary.owedToMeCount
   const scopedPendingLedgerItems = useMemo(
     () => scopedLedgerItems.filter((item) => !item.isPaid),
     [scopedLedgerItems],
   )
 
-  const leagueSeasons = useMemo(
-    () => seasons.filter((season) => season.leagueId === activeLeague.id),
-    [activeLeague.id, seasons]
-  )
-  const effectiveEconomyScope =
-    economyScope === "league" ||
-    leagueSeasons.some((season) => season.id === economyScope)
-      ? economyScope
-      : activeSeason.id
   const economicSummary = useMemo(() => {
-    const selectedSeasonIds = new Set(
-      effectiveEconomyScope === "league"
-        ? leagueSeasons.map((season) => season.id)
-        : [effectiveEconomyScope]
-    )
     const scopedMatches = storedMatches.filter(
       (match) =>
-        match.leagueId === activeLeague.id &&
-        selectedSeasonIds.has(match.seasonId)
+        match.leagueId === selectedLeague.id &&
+        match.seasonId === selectedSeason.id
     )
     let courtCost = 0
     let ballCost = 0
@@ -452,7 +462,8 @@ export default function PaymentsPage() {
       ballCost += cost.balls
 
       if (
-        participantIds.includes(currentUser.id) &&
+        selectedPlayerId &&
+        participantIds.includes(selectedPlayerId) &&
         participantIds.length > 0
       ) {
         userMatchShare += cost.total / participantIds.length
@@ -463,44 +474,40 @@ export default function PaymentsPage() {
     let registrationPaid = 0
     let userRegistration = 0
     let userRegistrationPaid = 0
+    const registrationFee =
+      getSeasonRoundSettings(selectedSeason.id).registrationFee
 
-    leagueSeasons
-      .filter((season) => selectedSeasonIds.has(season.id))
-      .forEach((season) => {
-        const registrationFee = getSeasonRoundSettings(season.id).registrationFee
-
-        if (!registrationFee.enabled || registrationFee.amount <= 0) {
-          return
-        }
-
-        const fallbackPlayerIds = seasonPlayers
-          .filter((seasonPlayer) => seasonPlayer.seasonId === season.id)
-          .map((seasonPlayer) => seasonPlayer.playerId)
-        const paymentPlayerIds = registrationFee.payments.map(
-          (payment) => payment.playerId
+    if (registrationFee.enabled && registrationFee.amount > 0) {
+      const fallbackPlayerIds = seasonPlayers
+        .filter((seasonPlayer) => seasonPlayer.seasonId === selectedSeason.id)
+        .map((seasonPlayer) => seasonPlayer.playerId)
+      const paymentPlayerIds = registrationFee.payments.map(
+        (payment) => payment.playerId
+      )
+      const chargedPlayerIds = Array.from(
+        new Set(
+          paymentPlayerIds.length > 0 ? paymentPlayerIds : fallbackPlayerIds,
         )
-        const chargedPlayerIds = Array.from(
-          new Set(
-            paymentPlayerIds.length > 0 ? paymentPlayerIds : fallbackPlayerIds
+      )
+      const currentUserPayment = selectedPlayerId
+        ? registrationFee.payments.find(
+            (payment) => payment.playerId === selectedPlayerId
           )
-        )
-        const currentUserPayment = registrationFee.payments.find(
-          (payment) => payment.playerId === currentUser.id
-        )
+        : null
 
-        registrationExpected += registrationFee.amount * chargedPlayerIds.length
-        registrationPaid +=
-          registrationFee.amount *
-          registrationFee.payments.filter((payment) => payment.isPaid).length
+      registrationExpected += registrationFee.amount * chargedPlayerIds.length
+      registrationPaid +=
+        registrationFee.amount *
+        registrationFee.payments.filter((payment) => payment.isPaid).length
 
-        if (chargedPlayerIds.includes(currentUser.id)) {
-          userRegistration += registrationFee.amount
+      if (selectedPlayerId && chargedPlayerIds.includes(selectedPlayerId)) {
+        userRegistration += registrationFee.amount
 
-          if (currentUserPayment?.isPaid) {
-            userRegistrationPaid += registrationFee.amount
-          }
+        if (currentUserPayment?.isPaid) {
+          userRegistrationPaid += registrationFee.amount
         }
-      })
+      }
+    }
 
     return {
       courtCost: roundMoney(courtCost),
@@ -515,32 +522,53 @@ export default function PaymentsPage() {
       matchCount: scopedMatches.length,
     }
   }, [
-    activeLeague.id,
-    currentUser.id,
-    effectiveEconomyScope,
     getSeasonRoundSettings,
-    leagueSeasons,
     seasonPlayers,
+    selectedLeague.id,
+    selectedPlayerId,
+    selectedSeason.id,
     storedMatches,
   ])
-  const economyScopeLabel =
-    effectiveEconomyScope === "league"
-      ? t.payments.allLeague
-      : leagueSeasons.find((season) => season.id === effectiveEconomyScope)?.name ??
-        activeSeason.name
+  const economyScopeLabel = `${selectedLeague.name} · ${selectedSeason.name}`
+  const scopeDescription =
+    paymentScope === "league"
+      ? economyScopeLabel
+      : paymentScope === "friendly"
+        ? tx("Amistosos")
+        : tx("Liga y amistosos de tu cuenta, con el origen de cada deuda.")
 
-  async function handleMarkTransferPaid(item: PaymentLedgerItem) {
+  function handleLeagueSelection(leagueId: string) {
+    setSelectedLeagueId(leagueId)
+    const league = userLeagues.find((candidate) => candidate.id === leagueId)
+    const leagueSeasons = seasons.filter(
+      (season) => season.leagueId === leagueId,
+    )
+    const nextSeason =
+      leagueSeasons.find((season) => season.id === league?.activeSeasonId) ??
+      leagueSeasons.at(-1)
+
+    if (nextSeason) {
+      setSelectedSeasonId(nextSeason.id)
+    }
+  }
+
+  async function handleSetTransferPaidStatus(
+    item: PaymentLedgerItem,
+    isPaid: boolean,
+  ) {
     if (updatingTransferId) return
 
     setUpdatingTransferId(`${item.source}-${item.matchId}-${item.transferId}`)
     setPaymentStatusError(null)
 
-    const saved = await setPaymentLedgerTransferPaid(item, true)
+    const saved = await setPaymentLedgerTransferPaid(item, isPaid)
     if (saved) {
       await refreshLedger()
     } else {
       setPaymentStatusError(
-        "No se ha podido marcar el pago como pagado. Revisa Supabase o smash-lob-last-supabase-error.",
+        isPaid
+          ? "No se ha podido marcar el pago como pagado."
+          : "No se ha podido volver a marcar el pago como pendiente.",
       )
     }
 
@@ -554,7 +582,7 @@ export default function PaymentsPage() {
   ]
   const paymentScopeOptions: { id: PaymentScope; label: string }[] = [
     { id: "all", label: tx("Todos") },
-    { id: "league", label: activeLeague.name },
+    { id: "league", label: tx("Liga") },
     { id: "friendly", label: tx("Amistosos") },
   ]
 
@@ -604,6 +632,42 @@ export default function PaymentsPage() {
         </div>
       ) : null}
 
+      {activeTab !== "all" && paymentScope === "league" ? (
+        <AppCard>
+          <div className="grid gap-3">
+            <label className="block type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
+              {tx("Liga")}
+              <select
+                value={selectedLeague.id}
+                onChange={(event) => handleLeagueSelection(event.target.value)}
+                className="mt-1.5 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold text-neutral-950 outline-none"
+              >
+                {userLeagues.map((league) => (
+                  <option key={league.id} value={league.id}>
+                    {league.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
+              {tx("Temporada")}
+              <select
+                value={selectedSeason.id}
+                onChange={(event) => setSelectedSeasonId(event.target.value)}
+                className="mt-1.5 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold text-neutral-950 outline-none"
+              >
+                {selectedLeagueSeasons.map((season) => (
+                  <option key={season.id} value={season.id}>
+                    {season.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </AppCard>
+      ) : null}
+
       {activeTab === "status" ? (
         <>
           <AppCard
@@ -617,10 +681,15 @@ export default function PaymentsPage() {
                   {tx("Debes")}
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
-                  {formatMoney(pendingSummary.owedByMe)}
+                  {formatMoney(scopedPendingSummary.owedByMe)}
                 </p>
                 <p className="text-xs font-semibold text-neutral-500">
-                  {pendingSummary.owedByMeCount} {tx(pendingSummary.owedByMeCount === 1 ? "movimiento" : "movimientos")}
+                  {scopedPendingSummary.owedByMeCount}{" "}
+                  {tx(
+                    scopedPendingSummary.owedByMeCount === 1
+                      ? "movimiento"
+                      : "movimientos",
+                  )}
                 </p>
               </div>
 
@@ -629,17 +698,23 @@ export default function PaymentsPage() {
                   {tx("Te deben")}
                 </p>
                 <p className="mt-1 text-lg font-black text-neutral-950">
-                  {formatMoney(pendingSummary.owedToMe)}
+                  {formatMoney(scopedPendingSummary.owedToMe)}
                 </p>
                 <p className="text-xs font-semibold text-neutral-500">
-                  {pendingSummary.owedToMeCount} {tx(pendingSummary.owedToMeCount === 1 ? "movimiento" : "movimientos")}
+                  {scopedPendingSummary.owedToMeCount}{" "}
+                  {tx(
+                    scopedPendingSummary.owedToMeCount === 1
+                      ? "movimiento"
+                      : "movimientos",
+                  )}
                 </p>
               </div>
             </div>
 
           </AppCard>
 
-          <AppCard className="overflow-hidden p-0">
+          {paymentScope === "league" ? (
+            <AppCard className="overflow-hidden p-0">
             <button
               type="button"
               onClick={() => setIsEconomyExpanded((current) => !current)}
@@ -682,23 +757,7 @@ export default function PaymentsPage() {
 
             {isEconomyExpanded ? (
               <div className="border-t border-neutral-100 px-3 pb-3 pt-3">
-                <label className="block type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                  {t.payments.scopeLabel}
-                  <select
-                    value={effectiveEconomyScope}
-                    onChange={(event) => setEconomyScope(event.target.value)}
-                    className="mt-1.5 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold text-neutral-950 outline-none"
-                  >
-                    <option value="league">{t.payments.allLeague}</option>
-                    {leagueSeasons.map((season) => (
-                      <option key={season.id} value={season.id}>
-                        {season.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="rounded-2xl bg-neutral-50 px-3 py-2.5">
                     <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-400">
                       {t.payments.recordedSpend}
@@ -779,14 +838,15 @@ export default function PaymentsPage() {
                 </p>
               </div>
             ) : null}
-          </AppCard>
+            </AppCard>
+          ) : null}
 
           <AppCard>
             <p className="text-sm font-black text-neutral-950">
               {tx("Pagos pendientes")}
             </p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
-              {tx("Liga y amistosos de tu cuenta, con el origen de cada deuda.")}
+              {scopeDescription}
             </p>
 
             {paymentStatusError ? (
@@ -801,7 +861,9 @@ export default function PaymentsPage() {
                 isLoading={isLedgerLoading}
                 error={ledgerError}
                 updatingTransferId={updatingTransferId}
-                onMarkPaid={(item) => void handleMarkTransferPaid(item)}
+                onSetPaidStatus={(item, isPaid) =>
+                  void handleSetTransferPaidStatus(item, isPaid)
+                }
               />
             </div>
           </AppCard>
@@ -810,7 +872,7 @@ export default function PaymentsPage() {
         <AppCard>
           <p className="text-sm font-black text-neutral-950">{tx("Mis movimientos")}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">
-            {tx("Pagos pendientes y saldados de todas tus ligas y amistosos.")}
+            {scopeDescription}
           </p>
           <div className="mt-3">
             <PaymentLedgerList
@@ -818,7 +880,9 @@ export default function PaymentsPage() {
               isLoading={isLedgerLoading}
               error={ledgerError}
               updatingTransferId={updatingTransferId}
-              onMarkPaid={(item) => void handleMarkTransferPaid(item)}
+              onSetPaidStatus={(item, isPaid) =>
+                  void handleSetTransferPaidStatus(item, isPaid)
+                }
             />
           </div>
         </AppCard>

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+﻿import { NextResponse } from "next/server"
 import type { CourtBookingTransfer } from "@/context/MatchDataProvider"
 import type { PaymentLedgerItem } from "@/lib/paymentLedger"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic"
 type LeagueMembershipRow = {
   league_id: string
   player_id: string | null
+  role: string | null
 }
 
 type LeagueMatchRow = {
@@ -38,6 +39,7 @@ type PersonalParticipantRow = {
 type PersonalMatchRow = {
   id: string
   played_at: string | null
+  created_by_user_id: string | null
 }
 
 type PersonalBookingRow = {
@@ -104,7 +106,7 @@ export async function GET(request: Request) {
     const [membershipsResult, personalMembershipsResult] = await Promise.all([
       actor.supabase
         .from("league_memberships")
-        .select("league_id,player_id")
+        .select("league_id,player_id,role")
         .eq("user_id", actor.user.id),
       actor.supabase
         .from("personal_match_participants")
@@ -121,6 +123,14 @@ export async function GET(request: Request) {
       memberships
         .filter((membership) => membership.player_id)
         .map((membership) => [membership.league_id, membership.player_id as string]),
+    )
+    const managedLeagueIds = new Set(
+      memberships
+        .filter(
+          (membership) =>
+            membership.role === "creator" || membership.role === "admin",
+        )
+        .map((membership) => membership.league_id),
     )
     const leagueIds = [...leaguePlayerByLeagueId.keys()]
 
@@ -162,7 +172,7 @@ export async function GET(request: Request) {
     const [personalMatchesResult, personalBookingsResult, personalParticipantsResult] =
       personalMatchIds.length > 0
         ? await Promise.all([
-            actor.supabase.from("personal_matches").select("id,played_at").in("id", personalMatchIds),
+            actor.supabase.from("personal_matches").select("id,played_at,created_by_user_id").in("id", personalMatchIds),
             actor.supabase
               .from("personal_match_bookings")
               .select("match_id,booking_transfers")
@@ -220,6 +230,9 @@ export async function GET(request: Request) {
           direction: transfer.fromPlayerId === currentPlayerId ? "owe" : "owed",
           amount: transfer.amount,
           isPaid: transfer.isPaid,
+          canMarkPending:
+            transfer.toPlayerId === currentPlayerId ||
+            managedLeagueIds.has(match.league_id),
           paidAt: transfer.paidAt,
           eventAt: match.scheduled_at,
           fromName: playerNames.get(transfer.fromPlayerId) ?? "Jugador",
@@ -267,6 +280,9 @@ export async function GET(request: Request) {
           direction: transfer.fromPlayerId === currentParticipantId ? "owe" : "owed",
           amount: transfer.amount,
           isPaid: transfer.isPaid,
+          canMarkPending:
+            transfer.toPlayerId === currentParticipantId ||
+            match?.created_by_user_id === actor.user.id,
           paidAt: transfer.paidAt,
           eventAt: match?.played_at ?? null,
           fromName: personalParticipantNames.get(transfer.fromPlayerId) ?? "Jugador",

@@ -1,4 +1,4 @@
-export type PaymentLedgerSource = "league" | "friendly"
+﻿export type PaymentLedgerSource = "league" | "friendly"
 export type PaymentLedgerDirection = "owe" | "owed"
 
 export type PaymentLedgerItem = {
@@ -8,6 +8,7 @@ export type PaymentLedgerItem = {
   direction: PaymentLedgerDirection
   amount: number
   isPaid: boolean
+  canMarkPending?: boolean
   paidAt: string | null
   eventAt: string | null
   fromName: string
@@ -22,6 +23,32 @@ export type PaymentLedgerItem = {
 
 export type PaymentLedgerPayload = {
   items: PaymentLedgerItem[]
+}
+
+
+export function filterPaymentLedgerItems(
+  items: PaymentLedgerItem[],
+  filter: {
+    scope: "all" | "league" | "friendly"
+    leagueId?: string | null
+    seasonId?: string | null
+  },
+) {
+  return items.filter((item) => {
+    if (filter.scope === "friendly") {
+      return item.source === "friendly"
+    }
+
+    if (filter.scope === "league") {
+      return (
+        item.source === "league" &&
+        item.leagueId === filter.leagueId &&
+        item.seasonId === filter.seasonId
+      )
+    }
+
+    return true
+  })
 }
 
 export function getPaymentLedgerPendingSummary(items: PaymentLedgerItem[]) {

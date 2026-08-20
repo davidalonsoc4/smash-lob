@@ -188,6 +188,24 @@ function truncateText(
   return `${visible.trimEnd()}…`
 }
 
+function getFittedTextSize(
+  context: CanvasRenderingContext2D,
+  value: string,
+  maxWidth: number,
+  preferredSize: number,
+  minimumSize: number,
+  weight = 700,
+) {
+  for (let size = preferredSize; size >= minimumSize; size -= 1) {
+    context.font = `${weight} ${size}px Arial, sans-serif`
+    if (context.measureText(value).width <= maxWidth) {
+      return size
+    }
+  }
+
+  return minimumSize
+}
+
 function drawText(
   context: CanvasRenderingContext2D,
   value: string,
@@ -747,7 +765,8 @@ async function drawMatchCard({
   const defaultCenterWidth = width * 0.18
   const leftX = x + 24
   const defaultCenterX = x + defaultTeamAreaWidth + 24
-  const scoreCenterX = defaultCenterX + defaultCenterWidth / 2
+  const regularScoreCenterX = defaultCenterX + defaultCenterWidth / 2
+  const scoreCenterX = fixturesOnly ? x + width / 2 : regularScoreCenterX
   const fixtureVsHalfGap = 24
   const rightContentEdge = x + width - 24
   const leftTeamAreaWidth = fixturesOnly
@@ -789,8 +808,13 @@ async function drawMatchCard({
         includeImage: includePlayerImages,
       })
 
-      drawText(context, profile?.displayName ?? translateLeagueText(locale, "Jugador"), textX, rowCenterY, {
-        size: 17,
+      const playerName = profile?.displayName ?? translateLeagueText(locale, "Jugador")
+      const playerNameSize = fixturesOnly
+        ? getFittedTextSize(context, playerName, maxTextWidth, 17, 13, 900)
+        : 17
+
+      drawText(context, playerName, textX, rowCenterY, {
+        size: playerNameSize,
         weight: 900,
         color: palette.text,
         align: team.align,
