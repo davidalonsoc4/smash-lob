@@ -14,9 +14,9 @@ describe("finished season calendar exports", () => {
       'seasonFinished={selectedSeason.status === "finished"}',
     )
     expect(page).toContain('leagueName={activeLeague.name}')
-    expect(card).toContain('title={seasonFinished ? tx("Calendario") : tx("Calendario actual")}')
-    expect(card).toContain('{!seasonFinished ? (')
-    expect(card).toContain('kind="calendar-fixtures"')
+    expect(card).toContain('title: seasonFinished ? tx("Calendario") : tx("Calendario actual")')
+    expect(card).toContain('...(!seasonFinished')
+    expect(card).toContain('kind: "calendar-fixtures" as const')
     expect(card).toContain('seasonFinished && mode === "current" ? "Calendario" : undefined')
     expect(card).toContain('? "calendario"')
     expect(card).toContain('? tx("Calendario de Smash & Lob")')

@@ -51,23 +51,23 @@ const WIDTH = 1080
 const PADDING = 54
 const CONTENT_WIDTH = WIDTH - PADDING * 2
 const APP_ICON_PATH = "/icon-192.png"
-const HEADER_HEIGHT = 244
+const HEADER_HEIGHT = 254
 const HEADER_TOP = 34
-const CONTENT_TOP = HEADER_TOP + HEADER_HEIGHT + 28
+const CONTENT_TOP = HEADER_TOP + HEADER_HEIGHT + 30
 const FOOTER_HEIGHT = 80
 const FOOTER_BOTTOM = 30
 
 const palette: CanvasPalette = {
-  background: "#f4f5f2",
+  background: "#f3f4f2",
   surface: "#ffffff",
-  surfaceAlt: "#edf1ec",
-  text: "#162018",
-  muted: "#6e766f",
-  line: "#dde3dc",
-  accent: "#19211b",
-  accentSoft: "#314034",
+  surfaceAlt: "#f1f2ef",
+  text: "#171817",
+  muted: "#676c68",
+  line: "#dfe1dc",
+  accent: "#151615",
+  accentSoft: "#2e3730",
   inverseText: "#ffffff",
-  inverseMuted: "#cfd7cf",
+  inverseMuted: "#c9ceca",
   gold: "#c79a2b",
   silver: "#8f9892",
   bronze: "#ab7249",
@@ -125,7 +125,7 @@ function drawCard(
   radius = 28,
 ) {
   context.save()
-  context.shadowColor = "rgba(12, 20, 14, 0.08)"
+  context.shadowColor = "rgba(23, 24, 23, 0.08)"
   context.shadowBlur = 24
   context.shadowOffsetY = 10
   fillRoundedRect(context, x, y, width, height, radius, palette.surface)
@@ -147,9 +147,14 @@ function createCanvas(height: number) {
   context.fillRect(0, 0, WIDTH, height)
 
   context.save()
-  context.strokeStyle = "rgba(107, 118, 111, 0.08)"
+  context.strokeStyle = "rgba(112, 119, 113, 0.08)"
   context.lineWidth = 2
-  roundedRect(context, 28, 28, WIDTH - 56, height - 56, 44)
+  roundedRect(context, 28, 28, WIDTH - 56, height - 56, 48)
+  context.stroke()
+  context.setLineDash([10, 16])
+  context.beginPath()
+  context.moveTo(WIDTH / 2, 28)
+  context.lineTo(WIDTH / 2, height - 28)
   context.stroke()
   context.restore()
 
@@ -186,6 +191,117 @@ function truncateText(
   }
 
   return `${visible.trimEnd()}…`
+}
+
+type TextLayout = {
+  fontSize: number
+  lineHeight: number
+  lines: string[]
+}
+
+function wrapTextLines({
+  context,
+  text,
+  maxWidth,
+  maxLines,
+}: {
+  context: CanvasRenderingContext2D
+  text: string
+  maxWidth: number
+  maxLines: number
+}) {
+  const normalized = text.trim().replace(/\s+/g, " ")
+  if (!normalized) return [""]
+
+  const words = normalized.split(" ")
+  const lines: string[] = []
+  let current = ""
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word
+    if (context.measureText(candidate).width <= maxWidth) {
+      current = candidate
+      continue
+    }
+
+    if (current) {
+      lines.push(current)
+      current = word
+    } else {
+      lines.push(truncateText(context, word, maxWidth))
+      current = ""
+    }
+  }
+
+  if (current) lines.push(current)
+  if (lines.length <= maxLines) return lines
+  const visible = lines.slice(0, maxLines)
+  visible[maxLines - 1] = truncateText(context, lines.slice(maxLines - 1).join(" "), maxWidth)
+  return visible
+}
+
+function fitTextLayout({
+  context,
+  text,
+  maxWidth,
+  maxLines,
+  maxFontSize,
+  minFontSize,
+  fontWeight,
+  lineHeightRatio = 1.08,
+}: {
+  context: CanvasRenderingContext2D
+  text: string
+  maxWidth: number
+  maxLines: number
+  maxFontSize: number
+  minFontSize: number
+  fontWeight: number
+  lineHeightRatio?: number
+}): TextLayout {
+  for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 1) {
+    context.font = `${fontWeight} ${fontSize}px Arial, sans-serif`
+    const lines = wrapTextLines({ context, text, maxWidth, maxLines })
+    if (lines.length <= maxLines) {
+      return {
+        fontSize,
+        lineHeight: Math.round(fontSize * lineHeightRatio),
+        lines,
+      }
+    }
+  }
+
+  context.font = `${fontWeight} ${minFontSize}px Arial, sans-serif`
+  return {
+    fontSize: minFontSize,
+    lineHeight: Math.round(minFontSize * lineHeightRatio),
+    lines: wrapTextLines({ context, text, maxWidth, maxLines }),
+  }
+}
+
+function drawTextLines({
+  context,
+  lines,
+  x,
+  y,
+  width,
+  height,
+  lineHeight,
+}: {
+  context: CanvasRenderingContext2D
+  lines: string[]
+  x: number
+  y: number
+  width: number
+  height: number
+  lineHeight: number
+}) {
+  const totalHeight = lineHeight * Math.max(1, lines.length)
+  let currentY = y + (height - totalHeight) / 2 + lineHeight * 0.78
+  for (const line of lines) {
+    context.fillText(line, x, currentY, width)
+    currentY += lineHeight
+  }
 }
 
 function getFittedTextSize(
@@ -553,62 +669,87 @@ async function drawHeader({
   context.save()
   roundedRect(context, PADDING, HEADER_TOP, CONTENT_WIDTH, HEADER_HEIGHT, 38)
   context.clip()
-  context.strokeStyle = "rgba(255, 255, 255, 0.08)"
+  context.strokeStyle = "rgba(255, 255, 255, 0.075)"
   context.lineWidth = 3
   context.beginPath()
-  context.arc(PADDING + CONTENT_WIDTH - 40, HEADER_TOP + HEADER_HEIGHT + 8, 240, Math.PI, Math.PI * 1.65)
+  context.arc(PADDING + CONTENT_WIDTH - 36, HEADER_TOP + HEADER_HEIGHT + 10, 248, Math.PI, Math.PI * 1.65)
   context.stroke()
   context.beginPath()
-  context.moveTo(PADDING + CONTENT_WIDTH * 0.56, HEADER_TOP - 24)
-  context.lineTo(PADDING + CONTENT_WIDTH + 46, HEADER_TOP + HEADER_HEIGHT * 0.66)
+  context.moveTo(PADDING + CONTENT_WIDTH * 0.55, HEADER_TOP - 20)
+  context.lineTo(PADDING + CONTENT_WIDTH + 40, HEADER_TOP + HEADER_HEIGHT * 0.65)
   context.stroke()
   context.restore()
 
   const textLeft = PADDING + 30
-  let textRight = PADDING + CONTENT_WIDTH - 30
-
+  const logoTop = HEADER_TOP + 18
+  const logoBottomMargin = 18
+  const logoMaxHeight = leagueLogo ? HEADER_HEIGHT - (logoTop - HEADER_TOP) - logoBottomMargin : 0
+  const logoAspect = leagueLogo ? leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight) : 1
+  const leagueLogoWidth = leagueLogo ? logoMaxHeight * logoAspect : 0
+  const leagueLogoX = PADDING + CONTENT_WIDTH - leagueLogoWidth - 18
   if (leagueLogo) {
-    const logoTop = HEADER_TOP + 16
-    const logoRightMargin = 18
-    const logoBottomMargin = 16
-    const logoMaxHeight = HEADER_HEIGHT - (logoTop - HEADER_TOP) - logoBottomMargin
-    const logoAspect = leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight)
-    const logoWidth = logoMaxHeight * logoAspect
-    const logoX = PADDING + CONTENT_WIDTH - logoWidth - logoRightMargin
     drawTransparentImageContain({
       context,
       image: leagueLogo,
-      x: logoX,
+      x: leagueLogoX,
       y: logoTop,
-      width: logoWidth,
+      width: leagueLogoWidth,
       height: logoMaxHeight,
       withShadow: true,
     })
-    textRight = logoX - 18
   }
 
-  const availableWidth = Math.max(280, textRight - textLeft)
+  const textRight = leagueLogo ? leagueLogoX - 18 : PADDING + CONTENT_WIDTH - 30
+  const titleWidth = Math.max(240, textRight - textLeft)
 
-  drawText(context, label.toUpperCase(), textLeft, HEADER_TOP + 40, {
+  drawText(context, label.toUpperCase(), textLeft, HEADER_TOP + 38, {
     size: 15,
     weight: 900,
     color: palette.inverseMuted,
     baseline: "middle",
-    maxWidth: availableWidth,
+    maxWidth: titleWidth,
   })
 
-  drawText(context, leagueName.toUpperCase(), textLeft, HEADER_TOP + 105, {
-    size: 24,
-    weight: 900,
-    color: palette.inverseMuted,
-    maxWidth: availableWidth,
+  const leagueLayout = fitTextLayout({
+    context,
+    text: leagueName.toUpperCase(),
+    maxWidth: titleWidth,
+    maxLines: 2,
+    maxFontSize: 24,
+    minFontSize: 18,
+    fontWeight: 900,
+  })
+  context.fillStyle = palette.inverseMuted
+  context.font = `900 ${leagueLayout.fontSize}px Arial, sans-serif`
+  drawTextLines({
+    context,
+    lines: leagueLayout.lines,
+    x: textLeft,
+    y: HEADER_TOP + 84,
+    width: titleWidth,
+    height: 48,
+    lineHeight: leagueLayout.lineHeight,
   })
 
-  drawText(context, seasonName, textLeft, HEADER_TOP + 180, {
-    size: 54,
-    weight: 900,
-    color: palette.inverseText,
-    maxWidth: availableWidth,
+  const seasonLayout = fitTextLayout({
+    context,
+    text: seasonName,
+    maxWidth: titleWidth,
+    maxLines: 2,
+    maxFontSize: 56,
+    minFontSize: 36,
+    fontWeight: 900,
+  })
+  context.fillStyle = palette.inverseText
+  context.font = `900 ${seasonLayout.fontSize}px Arial, sans-serif`
+  drawTextLines({
+    context,
+    lines: seasonLayout.lines,
+    x: textLeft,
+    y: HEADER_TOP + 136,
+    width: titleWidth,
+    height: 84,
+    lineHeight: seasonLayout.lineHeight,
   })
 }
 
@@ -660,11 +801,11 @@ function drawFooter({
   appIcon: HTMLImageElement | null
   locale: Locale
 }) {
-  const iconSize = 50
-  const textBlockWidth = 152
+  const iconSize = 52
+  const textBlockWidth = 132
   const groupWidth = iconSize + 16 + textBlockWidth
   const groupX = (WIDTH - groupWidth) / 2
-  const groupY = canvasHeight - FOOTER_BOTTOM - FOOTER_HEIGHT + 10
+  const groupY = canvasHeight - FOOTER_BOTTOM - FOOTER_HEIGHT + 8
 
   drawBrandMark({ context, appIcon, x: groupX, y: groupY, size: iconSize })
 
@@ -952,14 +1093,14 @@ export async function createSeasonCalendarImage({
   let y = CONTENT_TOP
 
   for (const [round, roundMatches] of rounds) {
-    drawText(context, `${translateLeagueText(locale, "JORNADA")} ${round}`, PADDING, y + 20, {
-      size: 20,
+    drawText(context, `${translateLeagueText(locale, "JORNADA")} ${round}`, PADDING, y + 18, {
+      size: 19,
       weight: 900,
-      color: palette.muted,
+      color: palette.text,
       baseline: "middle",
     })
     context.fillStyle = palette.line
-    context.fillRect(PADDING + 154, y + 18, CONTENT_WIDTH - 154, 2)
+    context.fillRect(PADDING + 184, y + 17, CONTENT_WIDTH - 184, 2)
     y += 44
 
     const cardGap = 18
