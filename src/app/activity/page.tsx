@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { ActivityAvatar } from "@/components/activity/ActivityAvatar"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
@@ -605,6 +606,10 @@ function ActivityPageContent() {
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
+        <BackButton
+          fallbackHref={requestedScope === "admin" ? "/admin" : "/settings"}
+          label={t.common.back}
+        />
         <h1 className="type-page-title font-black tracking-tight">
           {t.activity.title}
         </h1>

@@ -28,7 +28,7 @@ describe("v1.10.17 settings context and personal safe area", () => {
 
     expect(shell).toContain('const isSettingsRoute =')
     expect(shell).toContain('pathname === "/settings" || pathname.startsWith("/settings/")')
-    expect(shell).toContain('!isSettingsRoute &&\n    !isPublicAccessRoute')
+    expect(shell).toContain('!isSettingsContextRoute &&\n    !isPublicAccessRoute')
     expect(shell).toContain('href={`/settings?returnTo=${encodeURIComponent(pathname)}`}')
     expect(settings).toContain('fallbackHref="/"')
     expect(settings).toContain('returnToParam="returnTo"')

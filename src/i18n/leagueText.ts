@@ -1,4 +1,4 @@
-import { es } from "./locales/es"
+﻿import { es } from "./locales/es"
 import { en } from "./locales/en"
 import { eu } from "./locales/eu"
 import type { Locale } from "./translations"
@@ -2444,6 +2444,9 @@ const FINAL_OVERRIDES = {
     "Inicio programado desactivado.": "Scheduled start disabled.",
     "Recordatorio enviado a los jugadores pendientes.": "Reminder sent to players with pending payment.",
     "Marcar como pagado": "Mark as paid",
+    "Marcar como pendiente": "Mark as pending",
+    "No se ha podido marcar el pago como pagado.": "The payment could not be marked as paid.",
+    "No se ha podido volver a marcar el pago como pendiente.": "The payment could not be marked as pending again.",
     "No se ha podido mandar el recordatorio.": "The reminder could not be sent.",
     "Revisa los datos pendientes antes de guardar el resumen.": "Review the missing data before saving the summary.",
     "Datos de liga actualizados": "League details updated",
@@ -3084,6 +3087,9 @@ const FINAL_OVERRIDES = {
     "Inicio programado desactivado.": "Programatutako hasiera desgaitu da.",
     "Recordatorio enviado a los jugadores pendientes.": "Oroigarria bidali zaie ordainketa zain duten jokalariei.",
     "Marcar como pagado": "Ordaindutzat markatu",
+    "Marcar como pendiente": "Zain dagoela markatu",
+    "No se ha podido marcar el pago como pagado.": "Ezin izan da ordainketa ordaindutzat markatu.",
+    "No se ha podido volver a marcar el pago como pendiente.": "Ezin izan da ordainketa berriro zain dagoela markatu.",
     "No se ha podido mandar el recordatorio.": "Ezin izan da oroigarria bidali.",
     "Revisa los datos pendientes antes de guardar el resumen.": "Berrikusi falta diren datuak laburpena gorde aurretik.",
     "Datos de liga actualizados": "Ligako datuak eguneratuta",
