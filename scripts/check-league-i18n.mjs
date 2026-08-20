@@ -583,7 +583,8 @@ const exportImage = read("src/lib/seasonExportImages.ts")
 for (const marker of [
   "translateLeagueText",
   "locale: Locale",
-  "const scoreCenterX = defaultCenterX + defaultCenterWidth / 2",
+  "const regularScoreCenterX = defaultCenterX + defaultCenterWidth / 2",
+  "const scoreCenterX = fixturesOnly ? x + width / 2 : regularScoreCenterX",
   "const fixtureVsHalfGap = 24",
   "scoreCenterX - fixtureVsHalfGap - leftX",
   "scoreCenterX + fixtureVsHalfGap",

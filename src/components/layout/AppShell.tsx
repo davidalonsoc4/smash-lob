@@ -200,6 +200,20 @@ export function AppShell({ children }: AppShellProps) {
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
   const isSettingsRoute =
     pathname === "/settings" || pathname.startsWith("/settings/")
+  const isSettingsContextRoute =
+    isSettingsRoute ||
+    pathname === "/availability" ||
+    pathname === "/leagues" ||
+    pathname === "/payments" ||
+    pathname === "/activity" ||
+    pathname === "/help" ||
+    pathname === "/changelog" ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname === "/application-admin" ||
+    pathname.startsWith("/application-admin/") ||
+    pathname === "/experimental/avatar-lab" ||
+    pathname.startsWith("/experimental/avatar-lab/")
   const isMatchChatRoute =
     (pathname.startsWith("/match/") ||
       pathname.startsWith("/personal-matches/")) &&
@@ -286,7 +300,7 @@ export function AppShell({ children }: AppShellProps) {
     !spectatorMode
   const shouldShowBottomNav =
     !isMatchChatRoute &&
-    !isSettingsRoute &&
+    !isSettingsContextRoute &&
     !isPublicAccessRoute &&
     !isNewLeagueRoute &&
     !isInitialSeasonSetupRoute &&

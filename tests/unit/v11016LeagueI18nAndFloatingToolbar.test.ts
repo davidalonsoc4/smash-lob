@@ -63,7 +63,10 @@ describe("v1.10.16 league i18n and UI polish", () => {
     const exportImage = await read("src/lib/seasonExportImages.ts")
 
     expect(exportImage).toContain(
-      "const scoreCenterX = defaultCenterX + defaultCenterWidth / 2",
+      "const regularScoreCenterX = defaultCenterX + defaultCenterWidth / 2",
+    )
+    expect(exportImage).toContain(
+      "const scoreCenterX = fixturesOnly ? x + width / 2 : regularScoreCenterX",
     )
     expect(exportImage).toContain("const fixtureVsHalfGap = 24")
     expect(exportImage).toContain("scoreCenterX - fixtureVsHalfGap - leftX")
