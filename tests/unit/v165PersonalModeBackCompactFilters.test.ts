@@ -21,6 +21,7 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
     expect(profile).toContain('["all", "Todos", "Todos los partidos"]')
     expect(profile).toContain('["league", "Liga", "Partidos de liga"]')
     expect(profile).toContain('["friendly", "Amistoso", "Amistosos"]')
+    expect(profile).toContain('origin === "league" ? (')
     expect(profile).toContain('aria-label="Liga"')
     expect(profile).toContain('aria-label="Temporada"')
     expect(profile).toContain("Todas las ligas")
@@ -40,6 +41,7 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
       'value === "friendly"',
       'setLeagueId("")',
       'setSeasonId("")',
+      'const effectiveLeagueId = origin === "league" ? leagueId : ""',
       "value={effectiveLeagueId}",
       "value={effectiveSeasonId}",
       "getPersonalProfileHeadToHead",
@@ -47,6 +49,7 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
       expect(profile).toContain(token)
     }
 
+    expect(profile).not.toContain('disabled={origin === "friendly"}')
     expect(statistics).toContain("data-personal-profile-sections")
     expect(statistics).toContain("Resumen")
     expect(statistics).toContain("Parejas / rivales")

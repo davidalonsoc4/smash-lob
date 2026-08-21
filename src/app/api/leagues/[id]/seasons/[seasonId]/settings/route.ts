@@ -15,6 +15,7 @@ type UpdateSeasonSettingsBody = {
   roundWindowMode?: unknown
   seasonStartsAt?: unknown
   scheduledStartAt?: unknown
+  preseasonSecretDaysBefore?: unknown
   roundWindowDays?: unknown
   requiresThreeSets?: unknown
   mvpSystem?: unknown
@@ -86,6 +87,12 @@ function parseOptionalPositiveInteger(value: unknown) {
   return numberValue
 }
 
+function parseOptionalPreseasonSecretDays(value: unknown) {
+  if (value === null || value === undefined || value === "") return null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 90 ? parsed : undefined
+}
+
 function parseManualCompletedRounds(value: unknown) {
   if (!Array.isArray(value)) {
     return null
@@ -134,6 +141,7 @@ export async function PUT(
       ? parseOptionalDateOnly(body?.seasonStartsAt)
       : null
   const scheduledStartAt = parseOptionalScheduledStart(body?.scheduledStartAt)
+  const preseasonSecretDaysBefore = parseOptionalPreseasonSecretDays(body?.preseasonSecretDaysBefore)
   const roundWindowDays =
     roundWindowMode === "fixed-days"
       ? parseOptionalPositiveInteger(body?.roundWindowDays)
@@ -164,6 +172,7 @@ export async function PUT(
     !roundWindowMode ||
     requiresThreeSets === null ||
     scheduledStartAt === undefined ||
+    preseasonSecretDaysBefore === undefined ||
     !mvpSystem ||
     !resultConfirmationMode ||
     !manualCompletedRounds ||
@@ -233,6 +242,7 @@ export async function PUT(
         roundWindowMode,
         seasonStartsAt,
         scheduledStartAt,
+        preseasonSecretDaysBefore: scheduledStartAt ? preseasonSecretDaysBefore : null,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,

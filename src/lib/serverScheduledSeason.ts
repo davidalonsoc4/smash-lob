@@ -105,3 +105,71 @@ export async function activateDueScheduledSeasons({
     }
   }
 }
+
+const AUTOMATION_ACTOR_USER_ID = "00000000-0000-0000-0000-000000000000"
+
+export type AutomatedSeasonActivation = {
+  leagueId: string
+  seasonId: string
+  scheduledStartAt: string
+}
+
+/**
+ * Starts due programmed seasons from the protected notification cron.
+ * /api/access keeps the same activation as a fallback, while this path makes
+ * the transition happen even when nobody has the app open.
+ */
+export async function activateDueScheduledSeasonsFromAutomation({
+  supabase,
+  now = new Date(),
+}: {
+  supabase: AuthenticatedAppUser["supabase"]
+  now?: Date
+}): Promise<AutomatedSeasonActivation[]> {
+  const { data, error } = await supabase
+    .from("season_settings")
+    .select("league_id,season_id,scheduled_start_at,seasons!inner(status)")
+    .not("scheduled_start_at", "is", null)
+    .lte("scheduled_start_at", now.toISOString())
+    .limit(250)
+
+  if (error) throw new Error("scheduled_season_automation_lookup_failed")
+
+  const activated: AutomatedSeasonActivation[] = []
+
+  for (const row of data ?? []) {
+    const joinedSeason = Array.isArray(row.seasons) ? row.seasons[0] : row.seasons
+    const scheduledStartAt =
+      typeof row.scheduled_start_at === "string" ? row.scheduled_start_at : null
+    if (!joinedSeason || joinedSeason.status !== "upcoming" || !scheduledStartAt) continue
+
+    try {
+      await startServerExistingSeason({
+        supabase,
+        leagueId: String(row.league_id),
+        seasonId: String(row.season_id),
+        actorUserId: AUTOMATION_ACTOR_USER_ID,
+        actorIsSuperuser: true,
+      })
+      activated.push({
+        leagueId: String(row.league_id),
+        seasonId: String(row.season_id),
+        scheduledStartAt,
+      })
+    } catch (startError) {
+      if (
+        isSeasonMutationError(startError) &&
+        [
+          "roster_incomplete",
+          "registration_unsettled",
+          "season_calendar_invalid",
+        ].includes(startError.code)
+      ) {
+        continue
+      }
+      throw startError
+    }
+  }
+
+  return activated
+}

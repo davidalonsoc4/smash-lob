@@ -246,13 +246,10 @@ export function AppShell({ children }: AppShellProps) {
   )
   const isScheduledSeasonUtilityRoute =
     pathname === "/" ||
-    pathname === "/leagues" ||
+    isSettingsContextRoute ||
     isPersonalMatchesRoute ||
     isPublicAccessRoute ||
-    pathname === "/notifications" ||
-    pathname === "/help" ||
-    pathname === "/settings" ||
-    pathname.startsWith("/settings/")
+    pathname === "/notifications"
   const canCreateLeague = canCreateLeagues && isAdminViewEnabled
   const canSelfUnlink = Boolean(
     activeMembership && activeMembership.role !== "creator",

@@ -33,6 +33,7 @@ export type ActivityEventType =
   | "season_created"
   | "season_duplicated"
   | "season_started"
+  | "season_opening_announced"
   | "season_player_joined"
   | "season_player_left"
   | "player_name_updated"
@@ -84,6 +85,7 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "season_created",
   "season_duplicated",
   "season_started",
+  "season_opening_announced",
   "season_player_joined",
   "season_player_left",
   "player_name_updated",

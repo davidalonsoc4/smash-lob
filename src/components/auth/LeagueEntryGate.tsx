@@ -16,6 +16,22 @@ type LeagueEntryGateProps = {
   children: ReactNode
 }
 
+function isDocumentReload() {
+  if (typeof window === "undefined") {
+    return false
+  }
+
+  const navigationEntry = window.performance.getEntriesByType(
+    "navigation",
+  )[0] as PerformanceNavigationTiming | undefined
+
+  if (navigationEntry) {
+    return navigationEntry.type === "reload"
+  }
+
+  return window.performance.navigation?.type === 1
+}
+
 export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const { t, tx } = useI18n()
   const router = useRouter()
@@ -61,7 +77,11 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   useEffect(() => {
     if (!isAccessHydrated || initialLeagueEntryResolved || isAccessInviteRoute) return
 
-    if (pathname === "/" && userLeagues.length > 1) {
+    if (
+      pathname === "/" &&
+      userLeagues.length > 1 &&
+      !isDocumentReload()
+    ) {
       router.replace("/leagues")
       return
     }

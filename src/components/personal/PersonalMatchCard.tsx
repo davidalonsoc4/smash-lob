@@ -7,6 +7,8 @@ import { SetGameScore } from "@/components/matches/SetGameScore"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
+import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
+import { getMatchStatusBadgeClassName } from "@/lib/statusStyles"
 import {
   getPersonalMatchOriginBadgeClass,
   getPersonalMatchOriginBadgeStyle,
@@ -24,7 +26,12 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
   const teamB = getPersonalMatchTeamPlayers(match.participants, 2)
   const setWins = getPersonalMatchSetWins(match.sets)
   const outcome = getPersonalMatchOutcome(match)
-  const isFinished = match.status === "finished"
+  const displayStatus = getMatchDisplayStatus({
+    status: match.status,
+    scheduledAt: match.scheduledAt,
+    resultRecordedAt: match.resultRecordedAt,
+  })
+  const isFinished = displayStatus === "finished"
 
   return (
     <AppCard className="relative !p-3 transition active:scale-[0.99]">
@@ -53,8 +60,12 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
                 : "Finalizado"}
           </span>
         ) : (
-          <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 type-caption font-black uppercase tracking-wide text-blue-700">
-            Programado
+          <span className={getMatchStatusBadgeClassName(displayStatus)}>
+            {displayStatus === "in_progress"
+              ? "En juego"
+              : displayStatus === "result_pending"
+                ? "Pendiente de resultado"
+                : "Programado"}
           </span>
         )}
       </div>

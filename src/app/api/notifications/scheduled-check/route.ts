@@ -13,6 +13,9 @@ import {
   type ResultReminderHour,
 } from "@/lib/matchLifecycle";
 import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
+import { getPreseasonAccessPhase } from "@/lib/preseasonSecrets";
+import { runScheduledSeasonStartAutomation } from "@/lib/serverScheduledSeasonAutomation";
+import { runPersonalMatchNotificationAutomation } from "@/lib/serverPersonalMatchAutomation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +47,8 @@ type SeasonSettingRow = {
   season_id: string;
   mvp_system: string | null;
   result_confirmation_mode: string | null;
+  scheduled_start_at: string | null;
+  preseason_secret_days_before: number | null;
 };
 
 type VoteRow = {
@@ -100,6 +105,35 @@ async function hasExistingRoundInPlayEvent({
     .eq("season_id", seasonId)
     .eq("type", "round_in_play")
     .contains("metadata", { round })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data && data.length > 0);
+}
+
+async function hasExistingSeasonOpeningAnnouncementEvent({
+  supabase,
+  leagueId,
+  seasonId,
+  scheduledStartAt,
+  secretDaysBefore,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  leagueId: string;
+  seasonId: string;
+  scheduledStartAt: string;
+  secretDaysBefore: number;
+}) {
+  const { data, error } = await supabase
+    .from("activity_events")
+    .select("id")
+    .eq("league_id", leagueId)
+    .eq("season_id", seasonId)
+    .eq("type", "season_opening_announced")
+    .contains("metadata", { scheduledStartAt, secretDaysBefore })
     .limit(1);
 
   if (error) {
@@ -203,6 +237,48 @@ async function hasExistingUpcomingReminderEvent({
   return Boolean(data && data.length > 0);
 }
 
+async function createSeasonOpeningAnnouncementEvent({
+  supabase,
+  setting,
+}: {
+  supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>;
+  setting: SeasonSettingRow;
+}) {
+  const scheduledStartAt = setting.scheduled_start_at;
+  const secretDaysBefore = setting.preseason_secret_days_before;
+
+  if (!scheduledStartAt || !secretDaysBefore) {
+    throw new Error("invalid_preseason_announcement_setting");
+  }
+
+  const { data, error } = await supabase
+    .from("activity_events")
+    .insert({
+      league_id: setting.league_id,
+      season_id: setting.season_id,
+      match_id: null,
+      actor_user_id: null,
+      actor_email: "system@smash-lob.local",
+      actor_display_name: "Smash & Lob",
+      type: "season_opening_announced",
+      title: "¡Novedades!",
+      description: "Entra en Smash & Lob para descubrir la nueva información de la Jornada 1.",
+      metadata: {
+        scheduledStartAt,
+        secretDaysBefore,
+        automatic: true,
+      },
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as ActivityInsertResult).id;
+}
+
 async function createActivityEvent({
   supabase,
   match,
@@ -299,6 +375,18 @@ export async function GET(request: Request) {
     );
   }
 
+  const now = new Date();
+
+  let seasonStartAutomation: Awaited<ReturnType<typeof runScheduledSeasonStartAutomation>>;
+  try {
+    seasonStartAutomation = await runScheduledSeasonStartAutomation({ supabase, now });
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "scheduled_season_activation_failed" },
+      { status: 500 },
+    );
+  }
+
   // Retención automática del chat de amistosos: el job programado purga
   // mensajes y recibos cuando han pasado dos meses desde el resultado.
   try {
@@ -307,7 +395,13 @@ export async function GET(request: Request) {
     // Best-effort: una limpieza fallida no debe bloquear recordatorios.
   }
 
-  const now = new Date();
+  let personalMatchAutomation: Awaited<ReturnType<typeof runPersonalMatchNotificationAutomation>>;
+  try {
+    personalMatchAutomation = await runPersonalMatchNotificationAutomation({ supabase, now });
+  } catch {
+    return NextResponse.json({ ok: false, error: "personal_match_notification_automation_failed" }, { status: 500 });
+  }
+
   const upcomingReminderWindowEndsAt = new Date(
     now.getTime() + 2 * 60 * 60 * 1000,
   );
@@ -324,7 +418,7 @@ export async function GET(request: Request) {
       .limit(500),
     supabase
       .from("season_settings")
-      .select("league_id,season_id,mvp_system,result_confirmation_mode")
+      .select("league_id,season_id,mvp_system,result_confirmation_mode,scheduled_start_at,preseason_secret_days_before")
       .limit(1000),
   ]);
 
@@ -344,6 +438,15 @@ export async function GET(request: Request) {
 
   const matches = (scheduledResult.data ?? []) as MatchRow[];
   const settings = (settingsResult.data ?? []) as SeasonSettingRow[];
+  const preseasonAnnouncementSettings = settings.filter(
+    (setting) =>
+      getPreseasonAccessPhase({
+        status: "upcoming",
+        scheduledStartAt: setting.scheduled_start_at,
+        secretDaysBefore: setting.preseason_secret_days_before,
+        now: now.getTime(),
+      }) === "secrets",
+  );
   const votingSeasonIds = new Set(
     settings
       .filter((setting) => setting.mvp_system === "voting")
@@ -389,17 +492,24 @@ export async function GET(request: Request) {
   );
   const allSeasonIds = Array.from(
     new Set(
-      [...matches, ...finishedMatches]
-        .map((match) => match.season_id)
-        .filter(Boolean),
+      [
+        ...matches.map((match) => match.season_id),
+        ...finishedMatches.map((match) => match.season_id),
+        ...preseasonAnnouncementSettings.map((setting) => setting.season_id),
+      ].filter(Boolean),
     ),
   );
 
   if (allSeasonIds.length === 0) {
+    let sent = 0;
+    for (const eventId of seasonStartAutomation.eventIds) {
+      const result = await dispatchPushForActivityEvent(eventId);
+      sent += result.sent;
+    }
     return NextResponse.json({
       ok: true,
-      created: 0,
-      sent: 0,
+      created: seasonStartAutomation.eventIds.length + personalMatchAutomation.created,
+      sent: sent + personalMatchAutomation.sent,
       autoValidated: 0,
     });
   }
@@ -418,6 +528,9 @@ export async function GET(request: Request) {
 
   const seasonById = new Map(
     ((seasons ?? []) as SeasonRow[]).map((season) => [season.id, season]),
+  );
+  const preseasonAnnouncementCandidates = preseasonAnnouncementSettings.filter(
+    (setting) => seasonById.get(setting.season_id)?.status === "upcoming",
   );
   const activeMatches = matches.filter(
     (match) => seasonById.get(match.season_id)?.status === "active",
@@ -653,9 +766,41 @@ export async function GET(request: Request) {
     }
   }
 
-  const eventIds: string[] = [];
+  const eventIds: string[] = [...seasonStartAutomation.eventIds];
+
+  for (const setting of preseasonAnnouncementCandidates) {
+    if (!setting.scheduled_start_at || !setting.preseason_secret_days_before) {
+      continue;
+    }
+
+    const alreadySent = await hasExistingSeasonOpeningAnnouncementEvent({
+      supabase,
+      leagueId: setting.league_id,
+      seasonId: setting.season_id,
+      scheduledStartAt: setting.scheduled_start_at,
+      secretDaysBefore: setting.preseason_secret_days_before,
+    });
+
+    if (alreadySent) {
+      continue;
+    }
+
+    const eventId = await createSeasonOpeningAnnouncementEvent({
+      supabase,
+      setting,
+    });
+
+    eventIds.push(eventId);
+  }
 
   for (const match of roundCandidates.values()) {
+    if (
+      match.round === 1 &&
+      seasonStartAutomation.combinedRoundOneSeasonIds.has(match.season_id)
+    ) {
+      continue;
+    }
+
     const alreadySent = await hasExistingRoundInPlayEvent({
       supabase,
       leagueId: match.league_id,
@@ -838,7 +983,7 @@ export async function GET(request: Request) {
     eventIds.push(eventId);
   }
 
-  let sent = 0;
+  let sent = personalMatchAutomation.sent;
 
   for (const eventId of eventIds) {
     const result = await dispatchPushForActivityEvent(eventId);
@@ -847,7 +992,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    created: eventIds.length,
+    created: eventIds.length + personalMatchAutomation.created,
     sent,
     autoValidated: autoConfirmationRows.length,
   });
