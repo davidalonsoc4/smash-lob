@@ -15,6 +15,8 @@ type PersonalProfileStatisticsProps = {
   comparisonPeople: Array<{ key: string; name: string; avatarUrl: string | null }>
   comparisonKey: string
   onComparisonChange: (key: string) => void
+  onRelationSelect: (key: string) => void
+  onOpenPlayerProfile: (playerId: string, leagueId: string | null) => void
   headToHead: PersonalProfileHeadToHead | null
 }
 
@@ -29,6 +31,10 @@ function percentage(value: number) {
 
 function decimal(value: number) {
   return (Math.round(value * 10) / 10).toFixed(1)
+}
+
+function countText(value: number, singular: string, plural: string) {
+  return `${value} ${value === 1 ? singular : plural}`
 }
 
 function StatTile({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
@@ -66,29 +72,40 @@ function RelationHighlight({
   label,
   relation,
   detail,
+  onSelect,
 }: {
   label: string
   relation: PersonalProfileRelation | null
   detail: (relation: PersonalProfileRelation) => string
+  onSelect: (key: string) => void
 }) {
-  return (
-    <div className="rounded-xl bg-neutral-50 px-3 py-2.5">
-      <p className="type-caption font-black uppercase tracking-wide text-neutral-500">{label}</p>
-      {relation ? (
-        <>
-          <div className="mt-1 flex min-w-0 items-center gap-2">
-            <PlayerAvatar
-              player={{ displayName: relation.name, avatarUrl: relation.avatarUrl }}
-              size="sm"
-            />
-            <p className="min-w-0 truncate type-player-name text-neutral-950">{relation.name}</p>
-          </div>
-          <p className="mt-1 type-caption font-semibold text-neutral-500">{detail(relation)}</p>
-        </>
-      ) : (
+  if (!relation) {
+    return (
+      <div className="rounded-xl bg-neutral-50 px-3 py-2.5">
+        <p className="type-caption font-black uppercase tracking-wide text-neutral-500">{label}</p>
         <p className="mt-1 text-sm font-black text-neutral-400">—</p>
-      )}
-    </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(relation.key)}
+      className="w-full rounded-xl bg-neutral-50 px-3 py-2.5 text-left transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+      aria-label={`${label}: ${relation.name}. Abrir cara a cara`}
+    >
+      <p className="type-caption font-black uppercase tracking-wide text-neutral-500">{label}</p>
+      <div className="mt-1 flex min-w-0 items-center gap-2">
+        <PlayerAvatar
+          player={{ displayName: relation.name, avatarUrl: relation.avatarUrl }}
+          size="sm"
+        />
+        <p className="min-w-0 flex-1 truncate type-player-name text-neutral-950">{relation.name}</p>
+        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-neutral-400"><path d="M8 5L13 10L8 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </div>
+      <p className="mt-1 type-caption font-semibold text-neutral-500">{detail(relation)}</p>
+    </button>
   )
 }
 
@@ -96,10 +113,12 @@ function RelationTable({
   title,
   subtitle,
   rows,
+  onSelect,
 }: {
   title: string
   subtitle: string
   rows: PersonalProfileRelation[]
+  onSelect: (key: string) => void
 }) {
   return (
     <AppCard className="p-3">
@@ -116,9 +135,12 @@ function RelationTable({
       {rows.length > 0 ? (
         <div className="mt-3 space-y-1.5">
           {rows.map((row, index) => (
-            <div
+            <button
               key={row.key}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-neutral-100 px-3 py-2.5"
+              type="button"
+              onClick={() => onSelect(row.key)}
+              className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-neutral-100 px-3 py-2.5 text-left transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              aria-label={`Abrir cara a cara con ${row.name}`}
             >
               <div className="flex min-w-0 items-center gap-2">
                 <span className="w-4 shrink-0 text-center type-caption font-black text-neutral-400">
@@ -131,17 +153,20 @@ function RelationTable({
                 <div className="min-w-0">
                   <p className="type-player-name truncate">{row.name}</p>
                   <p className="type-caption font-semibold text-neutral-500">
-                    {row.matches} partidos · {row.wins}V/{row.losses}D
+                    {countText(row.matches, "partido", "partidos")} · {row.wins}V/{row.losses}D
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-black">{percentage(row.winRate)}</p>
-                <p className="type-caption font-semibold text-neutral-500">
-                  {signed(row.gamesDiff)} juegos
-                </p>
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <p className="text-sm font-black">{percentage(row.winRate)}</p>
+                  <p className="type-caption font-semibold text-neutral-500">
+                    {signed(row.gamesDiff)} juegos
+                  </p>
+                </div>
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-neutral-400"><path d="M8 5L13 10L8 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       ) : (
@@ -224,26 +249,26 @@ function SummarySection({ stats }: { stats: PersonalProfileStats }) {
   )
 }
 
-function RelationsSection({ stats }: { stats: PersonalProfileStats }) {
+function RelationsSection({ stats, onSelect }: { stats: PersonalProfileStats; onSelect: (key: string) => void }) {
   return (
     <div className="space-y-3">
       <AppCard className="p-3">
         <p className="text-xs font-semibold text-neutral-500">Destacados</p>
         <p className="mt-0.5 type-panel-title">Parejas y rivales</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <RelationHighlight label="Con quien más juegas" relation={stats.mostFrequentTeammate} detail={(row) => `${row.matches} partidos · ${percentage(row.winRate)} victorias`} />
-          <RelationHighlight label="Mejor pareja" relation={stats.bestTeammate} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
-          <RelationHighlight label="Peor pareja" relation={stats.worstTeammate} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
-          <RelationHighlight label="A quien más te enfrentas" relation={stats.mostFrequentRival} detail={(row) => `${row.matches} duelos · ${percentage(row.winRate)} victorias`} />
-          <RelationHighlight label="Rival más vencido" relation={stats.mostBeatenRival} detail={(row) => `${row.wins} victorias en ${row.matches} duelos`} />
-          <RelationHighlight label="Némesis" relation={stats.nemesis} detail={(row) => `${row.losses} derrotas en ${row.matches} duelos`} />
-          <RelationHighlight label="Mejor balance contra" relation={stats.bestRivalRecord} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
-          <RelationHighlight label="Rival más duro" relation={stats.toughestRival} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
+          <RelationHighlight label="Con quien más juegas" relation={stats.mostFrequentTeammate} onSelect={onSelect} detail={(row) => `${countText(row.matches, "partido", "partidos")} · ${percentage(row.winRate)} victorias`} />
+          <RelationHighlight label="Mejor pareja" relation={stats.bestTeammate} onSelect={onSelect} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
+          <RelationHighlight label="Peor pareja" relation={stats.worstTeammate} onSelect={onSelect} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
+          <RelationHighlight label="A quien más te enfrentas" relation={stats.mostFrequentRival} onSelect={onSelect} detail={(row) => `${countText(row.matches, "duelo", "duelos")} · ${percentage(row.winRate)} victorias`} />
+          <RelationHighlight label="Rival más vencido" relation={stats.mostBeatenRival} onSelect={onSelect} detail={(row) => `${countText(row.wins, "victoria", "victorias")} en ${countText(row.matches, "duelo", "duelos")}`} />
+          <RelationHighlight label="Némesis" relation={stats.nemesis} onSelect={onSelect} detail={(row) => `${countText(row.losses, "derrota", "derrotas")} en ${countText(row.matches, "duelo", "duelos")}`} />
+          <RelationHighlight label="Mejor balance contra" relation={stats.bestRivalRecord} onSelect={onSelect} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
+          <RelationHighlight label="Rival más duro" relation={stats.toughestRival} onSelect={onSelect} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
         </div>
       </AppCard>
 
-      <RelationTable title="Todos tus compañeros" subtitle="Ordenados por partidos juntos" rows={stats.teammateRelations} />
-      <RelationTable title="Todos tus rivales" subtitle="Ordenados por enfrentamientos" rows={stats.rivalRelations} />
+      <RelationTable title="Todos tus compañeros" subtitle="Ordenados por partidos juntos" rows={stats.teammateRelations} onSelect={onSelect} />
+      <RelationTable title="Todos tus rivales" subtitle="Ordenados por enfrentamientos" rows={stats.rivalRelations} onSelect={onSelect} />
     </div>
   )
 }
@@ -252,11 +277,13 @@ function HeadToHeadSection({
   people,
   comparisonKey,
   onComparisonChange,
+  onOpenPlayerProfile,
   headToHead,
 }: {
   people: PersonalProfileStatisticsProps["comparisonPeople"]
   comparisonKey: string
   onComparisonChange: (key: string) => void
+  onOpenPlayerProfile: (playerId: string, leagueId: string | null) => void
   headToHead: PersonalProfileHeadToHead | null
 }) {
   if (people.length === 0) {
@@ -291,13 +318,29 @@ function HeadToHeadSection({
       {headToHead ? (
         <>
           <AppCard className="p-3">
-            <div className="flex items-center gap-3">
-              <PlayerAvatar player={{ displayName: headToHead.person.name, avatarUrl: headToHead.person.avatarUrl }} size="lg" previewable />
-              <div className="min-w-0">
-                <p className="type-player-name-prominent truncate">{headToHead.person.name}</p>
-                <p className="text-xs font-semibold text-neutral-500">{headToHead.sharedMatches} partidos compartidos · {headToHead.rivalMatches} como rivales · {headToHead.teammateMatches} como pareja</p>
+            {headToHead.person.profilePlayerId ? (
+              <button
+                type="button"
+                onClick={() => onOpenPlayerProfile(headToHead.person.profilePlayerId!, headToHead.person.profileLeagueId)}
+                className="flex w-full items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+                aria-label={`Abrir estadísticas de ${headToHead.person.name}`}
+              >
+                <PlayerAvatar player={{ displayName: headToHead.person.name, avatarUrl: headToHead.person.avatarUrl }} size="lg" />
+                <div className="min-w-0 flex-1">
+                  <p className="type-player-name-prominent truncate underline-offset-2 hover:underline">{headToHead.person.name}</p>
+                  <p className="text-xs font-semibold text-neutral-500">{countText(headToHead.sharedMatches, "partido compartido", "partidos compartidos")} · {countText(headToHead.rivalMatches, "como rival", "como rivales")} · {headToHead.teammateMatches} como pareja</p>
+                </div>
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-neutral-400"><path d="M8 5L13 10L8 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <PlayerAvatar player={{ displayName: headToHead.person.name, avatarUrl: headToHead.person.avatarUrl }} size="lg" />
+                <div className="min-w-0">
+                  <p className="type-player-name-prominent truncate">{headToHead.person.name}</p>
+                  <p className="text-xs font-semibold text-neutral-500">{countText(headToHead.sharedMatches, "partido compartido", "partidos compartidos")} · {countText(headToHead.rivalMatches, "como rival", "como rivales")} · {headToHead.teammateMatches} como pareja</p>
+                </div>
               </div>
-            </div>
+            )}
           </AppCard>
 
           <AppCard className="p-3">
@@ -363,6 +406,8 @@ export function PersonalProfileStatistics({
   comparisonPeople,
   comparisonKey,
   onComparisonChange,
+  onRelationSelect,
+  onOpenPlayerProfile,
   headToHead,
 }: PersonalProfileStatisticsProps) {
   return (
@@ -388,9 +433,9 @@ export function PersonalProfileStatistics({
 
       <div className="mt-3">
         {section === "summary" ? <SummarySection stats={stats} /> : null}
-        {section === "relations" ? <RelationsSection stats={stats} /> : null}
+        {section === "relations" ? <RelationsSection stats={stats} onSelect={onRelationSelect} /> : null}
         {section === "head-to-head" ? (
-          <HeadToHeadSection people={comparisonPeople} comparisonKey={comparisonKey} onComparisonChange={onComparisonChange} headToHead={headToHead} />
+          <HeadToHeadSection people={comparisonPeople} comparisonKey={comparisonKey} onComparisonChange={onComparisonChange} onOpenPlayerProfile={onOpenPlayerProfile} headToHead={headToHead} />
         ) : null}
       </div>
     </>
