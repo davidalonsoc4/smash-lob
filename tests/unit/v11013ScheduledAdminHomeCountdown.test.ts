@@ -29,7 +29,7 @@ describe("v1.10.13 scheduled admin HOME countdown", () => {
       "{isSeasonScheduled && !showScheduledCountdownHero ? (",
     )
     expect(home).toContain(
-      "<SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} hero />",
+      "scheduledStartAt={roundSettings.scheduledStartAt}",
     )
 
     expect(home).not.toContain(

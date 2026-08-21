@@ -74,7 +74,7 @@ describe("v1.10.14 VISTA ADMIN scheduled-season simulation", () => {
       'isSeasonScheduled && scheduledHomeStage === "countdown"',
     )
     expect(home).toContain(
-      "<SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} hero />",
+      "scheduledStartAt={roundSettings.scheduledStartAt}",
     )
     expect(home).toContain(
       "{isSeasonScheduled && !showScheduledCountdownHero ? (",

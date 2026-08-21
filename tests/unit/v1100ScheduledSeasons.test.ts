@@ -110,7 +110,8 @@ describe("v1.10.0 scheduled season start", () => {
     expect(home).toContain('typeof playerCapacity === "number"')
     expect(home).toContain("playerCapacity > 0")
     expect(home).toContain("seasonRankingPlayers.length >= playerCapacity")
-    expect(home).toContain("scheduledStartAt={roundSettings.scheduledStartAt} hero")
+    expect(home).toContain("scheduledStartAt={roundSettings.scheduledStartAt}")
+    expect(home).toContain("preseasonSecretDaysBefore={playerPreseasonSecretDaysBefore}")
     expect(home).toContain("showScheduledRegistrationWaiting && shouldShowRegistrationPanel")
     expect(home).toContain("shouldShowRegistrationPanel && !isSeasonScheduled")
     expect(home).toContain("SeasonStartCountdown")
@@ -126,7 +127,8 @@ describe("v1.10.0 scheduled season start", () => {
     expect(countdown).toContain("grid-cols-4")
     expect(countdown).toContain("min-h-[calc(100dvh-13rem)]")
     expect(countdown).toContain("sessionStorage")
-    expect(countdown).toContain("window.location.reload()")
+    expect(countdown).toContain("requestLeagueAccessRefresh()")
+    expect(countdown).not.toContain("window.location.reload()")
   })
 
   it("confines scheduled pre-start players to HOME until the season is actually active", async () => {

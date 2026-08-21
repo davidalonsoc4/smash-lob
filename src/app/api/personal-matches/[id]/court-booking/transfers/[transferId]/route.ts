@@ -8,6 +8,7 @@ import {
 import { loadPersonalMatch } from "@/lib/serverPersonalMatches"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { normalizeBoundedText, parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -62,6 +63,15 @@ export async function PUT(
       isPaid: body.isPaid,
     })
     await savePersonalMatchBooking(authResult.actor, matchId, booking)
+    await dispatchPersonalMatchPush({
+      matchId,
+      actorUserId: authResult.actor.user.id,
+      preferenceKey: "booking_payments",
+      title: "Pago del amistoso",
+      body: body.isPaid
+        ? "Se ha marcado un pago del amistoso como realizado."
+        : "Un pago del amistoso vuelve a estar pendiente.",
+    }).catch(() => null)
     const item = await loadPersonalMatch(authResult.actor, matchId)
     return NextResponse.json({ item })
   } catch {

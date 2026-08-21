@@ -19,6 +19,7 @@ import {
 } from "@/lib/serverPersonalMatches"
 import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMatchRequest"
 import { isMissingPersonalLocationColumnsError } from "@/lib/serverPersonalLocationSchema"
+import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -164,6 +165,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "personal_match_location_save_failed" }, { status: 500 })
       }
     }
+
+    await dispatchPersonalMatchPush({
+      matchId: data,
+      actorUserId: authResult.actor.user.id,
+      preferenceKey: "match_schedule",
+      title: "Nuevo amistoso",
+      body: locationName
+        ? `Te han añadido a un amistoso · ${locationName}`
+        : "Te han añadido a un nuevo amistoso.",
+    }).catch(() => null)
 
     return NextResponse.json({ id: data }, { status: 201 })
   } catch (error) {

@@ -12,6 +12,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
+import { LEAGUE_ACCESS_REFRESH_EVENT } from "@/lib/appRefreshEvents";
 import {
   deleteSupabaseLeague,
   regenerateSupabaseLeagueInviteCode,
@@ -692,6 +693,15 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       return false;
     }
   }, [hydrateMatches, hydrateSeasonSnapshot, userId]);
+
+  useEffect(() => {
+    const handleLeagueAccessRefresh = () => {
+      void refreshLeagueAccess();
+    };
+
+    window.addEventListener(LEAGUE_ACCESS_REFRESH_EVENT, handleLeagueAccessRefresh);
+    return () => window.removeEventListener(LEAGUE_ACCESS_REFRESH_EVENT, handleLeagueAccessRefresh);
+  }, [refreshLeagueAccess]);
 
   const persistMemberships = useCallback(
     (nextMemberships: UserLeagueMembership[]) => {

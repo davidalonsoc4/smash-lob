@@ -1,4 +1,4 @@
-﻿const CACHE_VERSION = "smash-lob-v1.10.25"
+const CACHE_VERSION = "smash-lob-v1.10.29"
 const APP_SHELL = [
   "/offline",
   "/manifest.webmanifest",
@@ -87,11 +87,16 @@ self.addEventListener("push", (event) => {
   }
 
   event.waitUntil((async () => {
-    if (payload.chatMatchId) {
+    const visiblePath =
+      typeof payload.visiblePath === "string" && payload.visiblePath.startsWith("/")
+        ? payload.visiblePath
+        : payload.chatMatchId
+          ? `/match/${payload.chatMatchId}/chat`
+          : null
+    if (visiblePath) {
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
-      const chatPath = `/match/${payload.chatMatchId}/chat`
-      const chatVisible = windows.some((client) => { try { return new URL(client.url).pathname === chatPath && client.visibilityState === "visible" } catch { return false } })
-      if (chatVisible) return
+      const targetVisible = windows.some((client) => { try { return new URL(client.url).pathname === visiblePath && client.visibilityState === "visible" } catch { return false } })
+      if (targetVisible) return
     }
     await self.registration.showNotification(title, options)
   })())

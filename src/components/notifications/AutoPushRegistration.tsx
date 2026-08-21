@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
-import {
-  ensurePushSubscriptionForLeague,
-  hasPushAutoPermissionBeenPrompted,
-} from "@/lib/pushClient"
+import { ensurePushSubscriptionForLeague } from "@/lib/pushClient"
 
 export function AutoPushRegistration() {
   const { activeLeagueId } = useActiveLeague()
@@ -35,7 +32,7 @@ export function AutoPushRegistration() {
       const result = await ensurePushSubscriptionForLeague({
         leagueId: activeLeagueId,
         playerId,
-        requestPermissionIfNeeded: !hasPushAutoPermissionBeenPrompted(),
+        requestPermissionIfNeeded: false,
       })
 
       if (isCancelled || result.ok) {

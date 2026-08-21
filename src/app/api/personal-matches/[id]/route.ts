@@ -21,6 +21,7 @@ import {
 import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMatchRequest"
 import { broadcastPersonalMatchChatRefresh } from "@/lib/serverChatRealtime"
 import { isMissingPersonalLocationColumnsError } from "@/lib/serverPersonalLocationSchema"
+import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -207,6 +208,19 @@ export async function PATCH(
         )
       }
     }
+
+    const pushCopy =
+      action === "schedule"
+        ? { title: "Amistoso actualizado", body: "Han cambiado la fecha, hora o ubicación del amistoso." }
+        : action === "result"
+          ? { title: "Resultado del amistoso", body: "Ya se ha registrado el resultado del amistoso." }
+          : { title: "Jugadores del amistoso", body: "Se ha actualizado la composición del amistoso." }
+    await dispatchPersonalMatchPush({
+      matchId,
+      actorUserId: authResult.actor.user.id,
+      preferenceKey: action === "result" ? "match_results" : "match_schedule",
+      ...pushCopy,
+    }).catch(() => null)
 
     const item = await loadPersonalMatch(authResult.actor, matchId)
     return NextResponse.json({ item })

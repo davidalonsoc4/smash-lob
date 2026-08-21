@@ -229,6 +229,12 @@ export const activityEventDefinitions: Record<
     personalScope: "league_wide",
     pushReady: true,
   },
+  season_opening_announced: {
+    category: "season",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
   season_player_joined: {
     category: "season",
     defaultMode: "notify",

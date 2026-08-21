@@ -7,6 +7,7 @@ import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
+import { getPreseasonAccessPhase, redactPreseasonMatch } from "@/lib/preseasonSecrets"
 import {
   activateDueScheduledSeasons,
   prepareScheduledSeasonCalendars,
@@ -274,6 +275,19 @@ export async function GET() {
     )
   }
 
+  const preseasonSecretSettingsResult = await supabase
+    .from("season_settings")
+    .select("season_id,preseason_secret_days_before")
+    .in("league_id", leagueIds)
+  const preseasonSecretDaysBySeasonId = new Map(
+    (preseasonSecretSettingsResult.error ? [] : preseasonSecretSettingsResult.data ?? []).map((settings) => [
+      String(settings.season_id),
+      typeof settings.preseason_secret_days_before === "number"
+        ? settings.preseason_secret_days_before
+        : null,
+    ]),
+  )
+
   const schedulingRows = (matchesResult.data ?? []).filter((match) => match.status === "scheduling"), schedulingIds = schedulingRows.map((match) => String(match.id))
   const proposalsResult = schedulingIds.length ? await supabase.from("match_chat_messages").select("id,match_id,kind,payload").in("match_id", schedulingIds).in("kind", ["date_proposal", "location_proposal"]) : { data: [], error: null }
   if (proposalsResult.error) return buildLeagueSnapshotFailure("match_chat_messages", proposalsResult.error)
@@ -388,6 +402,8 @@ export async function GET() {
       typeof settings.scheduled_start_at === "string"
         ? settings.scheduled_start_at
         : null,
+    preseasonSecretDaysBefore:
+      preseasonSecretDaysBySeasonId.get(String(settings.season_id)) ?? null,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
     mvpSystem:
@@ -457,14 +473,50 @@ export async function GET() {
     substitutionsByMatchId.set(item.matchId, currentItems)
   }
 
+  const seasonById = new Map(seasons.map((season) => [season.id, season]))
+  const settingsBySeasonId = new Map(
+    seasonSettings.map((settings) => [settings.seasonId, settings]),
+  )
+  const leagueById = new Map(leagues.map((league) => [league.id, league]))
+  const adminLeagueIds = new Set(
+    ownMemberships
+      .filter((membership) => membership.role === "creator" || membership.role === "admin")
+      .map((membership) => membership.leagueId),
+  )
+
   const matches: MatchData[] = (matchesResult.data ?? []).map((match) => {
     const mappedMatch = mapSupabaseMatch(match)
-
-    return {
+    const hydratedMatch: MatchData = {
       ...mappedMatch,
       coordinationStatus: coordinationStatusByMatchId.get(mappedMatch.id) ?? null,
       substitutions: substitutionsByMatchId.get(mappedMatch.id) ?? [],
     }
+    const season = seasonById.get(hydratedMatch.seasonId)
+    const settings = settingsBySeasonId.get(hydratedMatch.seasonId)
+    const league = leagueById.get(hydratedMatch.leagueId)
+    const canSeePreparedDetails = isSuperuser || adminLeagueIds.has(hydratedMatch.leagueId)
+
+    if (
+      !canSeePreparedDetails &&
+      season?.status === "upcoming" &&
+      settings?.scheduledStartAt &&
+      league
+    ) {
+      const phase = getPreseasonAccessPhase({
+        status: season.status,
+        scheduledStartAt: settings.scheduledStartAt,
+        secretDaysBefore: settings.preseasonSecretDaysBefore,
+      })
+      if (phase !== "active") {
+        return redactPreseasonMatch({
+          match: hydratedMatch,
+          phase,
+          leagueLocations: league.locations,
+        })
+      }
+    }
+
+    return hydratedMatch
   })
   const memberships: UserLeagueMembership[] = (
     leagueMembershipsResult.data ?? []

@@ -38,6 +38,7 @@ type ActivityEventType =
   | "season_created"
   | "season_duplicated"
   | "season_started"
+  | "season_opening_announced"
   | "season_player_joined"
   | "season_player_left"
   | "player_name_updated"
@@ -128,6 +129,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "season_created" ||
     type === "season_duplicated" ||
     type === "season_started" ||
+    type === "season_opening_announced" ||
     type === "season_player_joined" ||
     type === "season_player_left" ||
     type === "player_name_updated" ||
@@ -451,9 +453,61 @@ export async function fetchServerActivityEvents({
     throw error
   }
 
-  const events = (data ?? []).map((item) =>
+  let events = (data ?? []).map((item) =>
     mapActivityEvent(item as Record<string, unknown>)
   )
+
+  if (!viewer.isAdmin && !viewer.user.isSuperuser) {
+    const matchSeasonIds = Array.from(
+      new Set(
+        events
+          .filter((event) => Boolean(event.matchId && event.seasonId))
+          .map((event) => event.seasonId)
+          .filter((seasonId): seasonId is string => Boolean(seasonId)),
+      ),
+    )
+
+    if (matchSeasonIds.length > 0) {
+      const [{ data: seasonRows, error: seasonError }, { data: settingsRows, error: settingsError }] = await Promise.all([
+        viewer.supabase.from("seasons").select("id,status").in("id", matchSeasonIds),
+        viewer.supabase.from("season_settings").select("season_id,scheduled_start_at").in("season_id", matchSeasonIds),
+      ])
+
+      if (seasonError || settingsError) {
+        throw seasonError ?? settingsError
+      }
+
+      const statusBySeasonId = new Map(
+        (seasonRows ?? []).map((row) => [String(row.id), String(row.status)]),
+      )
+      const scheduledStartBySeasonId = new Map(
+        (settingsRows ?? []).map((row) => [
+          String(row.season_id),
+          typeof row.scheduled_start_at === "string" ? row.scheduled_start_at : null,
+        ]),
+      )
+      const now = Date.now()
+      const hiddenMatchSeasonIds = new Set(
+        matchSeasonIds.filter((seasonId) => {
+          if (statusBySeasonId.get(seasonId) !== "upcoming") return false
+          const scheduledStartAt = scheduledStartBySeasonId.get(seasonId)
+          if (!scheduledStartAt) return false
+          const scheduledStartMs = new Date(scheduledStartAt).getTime()
+          return Number.isFinite(scheduledStartMs) && scheduledStartMs > now
+        }),
+      )
+
+      events = events.filter(
+        (event) =>
+          !(
+            event.matchId &&
+            event.seasonId &&
+            hiddenMatchSeasonIds.has(event.seasonId)
+          ),
+      )
+    }
+  }
+
   const usersByEmail = await fetchUsersByEmail(
     viewer.supabase,
     events

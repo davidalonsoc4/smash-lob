@@ -287,6 +287,7 @@ function isLeagueWideEvent(event: ActivityEventRow) {
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
     event.type === "season_started" ||
+    event.type === "season_opening_announced" ||
     event.type === "season_finished" ||
     event.type === "round_in_play"
   );
@@ -307,6 +308,7 @@ function getNotificationUrl(event: ActivityEventRow) {
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
     event.type === "season_started" ||
+    event.type === "season_opening_announced" ||
     event.type === "season_finished" ||
     event.type === "season_player_joined" ||
     event.type === "season_player_left" ||
@@ -440,6 +442,10 @@ function getNotificationTitle(
 
   if (event.type === "season_duplicated") {
     return "Nueva temporada preparada";
+  }
+
+  if (event.type === "season_opening_announced") {
+    return "¡Novedades!";
   }
 
   if (event.type === "season_finished") {
@@ -597,6 +603,10 @@ function getNotificationBody(
     if (playerCount > 0 && totalRounds > 0) {
       return `${playerCount} jugadores · ${totalRounds} jornadas.`;
     }
+  }
+
+  if (event.type === "season_opening_announced") {
+    return event.description?.trim() || "Entra en Smash & Lob para descubrir la nueva información de la Jornada 1.";
   }
 
   if (event.type === "season_finished") {
@@ -1083,6 +1093,33 @@ export async function dispatchPushForActivityEvent(
 
   if (eventMetadata.skipPush === true) {
     return { ok: true, sent: 0, reason: "disabled_for_event" };
+  }
+
+  if (event.match_id && event.season_id) {
+    const [{ data: seasonRow, error: seasonError }, { data: settingsRow, error: settingsError }] = await Promise.all([
+      supabase.from("seasons").select("status").eq("id", event.season_id).maybeSingle(),
+      supabase.from("season_settings").select("scheduled_start_at").eq("season_id", event.season_id).maybeSingle(),
+    ]);
+
+    if (seasonError || settingsError) {
+      return { ok: true, sent: 0, reason: "preseason_guard_unavailable" };
+    }
+
+    const scheduledStartAt =
+      typeof settingsRow?.scheduled_start_at === "string"
+        ? settingsRow.scheduled_start_at
+        : null;
+    const scheduledStartMs = scheduledStartAt
+      ? new Date(scheduledStartAt).getTime()
+      : Number.NaN;
+    const scheduledSeasonStillHidden =
+      seasonRow?.status === "upcoming" &&
+      Number.isFinite(scheduledStartMs) &&
+      scheduledStartMs > Date.now();
+
+    if (scheduledSeasonStillHidden) {
+      return { ok: true, sent: 0, reason: "scheduled_season_prestart" };
+    }
   }
 
   let leagueNotificationsEnabled = true;

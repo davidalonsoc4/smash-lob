@@ -48,6 +48,7 @@ import {
   updateSupabaseSeasonRegistrationPayment,
 } from "@/lib/supabaseSeasons";
 import { getScheduledSeasonHomeStage } from "@/lib/seasonScheduling";
+import { detectPreseasonOpening } from "@/lib/preseasonSecrets";
 
 const supabaseUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -432,6 +433,11 @@ export default function Home() {
   const isPlayerSeasonLocked = isSeasonUpcoming && !canManageSeason;
   const isSeasonScheduled =
     isSeasonUpcoming && Boolean(roundSettings.scheduledStartAt);
+  const preseasonOpening = isSeasonScheduled
+    ? detectPreseasonOpening({ matches, leagueLocations: activeLeague.locations })
+    : null;
+  const playerPreseasonSecretDaysBefore =
+    isPlayerSeasonLocked ? roundSettings.preseasonSecretDaysBefore ?? null : null;
   const currentUserMatches = matches.filter((match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId));
   const now = new Date();
   const personalLastMatch = getLastPlayedOrPendingMatch(currentUserMatches, now);
@@ -818,7 +824,14 @@ export default function Home() {
       ) : null}
 
       {showScheduledCountdownHero && roundSettings.scheduledStartAt ? (
-        <SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} hero />
+        <SeasonStartCountdown
+          scheduledStartAt={roundSettings.scheduledStartAt}
+          hero
+          preseasonSecretDaysBefore={playerPreseasonSecretDaysBefore}
+          opening={preseasonOpening}
+          leagueName={activeLeague.name}
+          seasonName={activeSeason.name}
+        />
       ) : null}
 
       {isSeasonScheduled && !showScheduledCountdownHero ? (
