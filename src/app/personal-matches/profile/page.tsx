@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { PersonalProfileStatistics, type PersonalProfileSection } from "@/components/personal/PersonalProfileStatistics"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
@@ -7,6 +8,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
@@ -39,8 +41,10 @@ async function loadAllFinishedMatches() {
 }
 
 export default function PersonalProfilePage() {
+  const router = useRouter()
   const { t } = useI18n()
   const { profile } = useAccountProfile()
+  const { activateLeague } = useActiveLeague()
   const [items, setItems] = useState<PersonalMatchItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -126,6 +130,17 @@ export default function PersonalProfilePage() {
     () => getPersonalProfileHeadToHead(filteredMatches, effectiveComparisonKey),
     [effectiveComparisonKey, filteredMatches],
   )
+
+  function openHeadToHead(personKey: string) {
+    setComparisonKey(personKey)
+    setSection("head-to-head")
+  }
+
+  function openPlayerProfile(playerId: string, sourceLeagueId: string | null) {
+    if (sourceLeagueId && !activateLeague(sourceLeagueId)) return
+    router.push(`/player/${playerId}`)
+  }
+
   const displayName = profile?.displayName?.trim() || "Mi perfil"
   const playerPositionLabel = getPlayerSideAndHandLabel(profile?.preferredSide, profile?.dominantHand)
 
@@ -180,6 +195,8 @@ export default function PersonalProfilePage() {
           comparisonPeople={comparisonPeople}
           comparisonKey={effectiveComparisonKey}
           onComparisonChange={setComparisonKey}
+          onRelationSelect={openHeadToHead}
+          onOpenPlayerProfile={openPlayerProfile}
           headToHead={headToHead}
         />
       )}

@@ -18,6 +18,8 @@ export type PersonalProfileRelation = {
   key: string
   name: string
   avatarUrl: string | null
+  profilePlayerId: string | null
+  profileLeagueId: string | null
   matches: number
   wins: number
   losses: number
@@ -107,6 +109,8 @@ export type PersonalProfileHeadToHead = {
     key: string
     name: string
     avatarUrl: string | null
+    profilePlayerId: string | null
+    profileLeagueId: string | null
   }
   sharedMatches: number
   teammateMatches: number
@@ -194,6 +198,8 @@ function upsertRelation(
     key,
     name: participant.displayName.trim() || "Jugador",
     avatarUrl: participant.avatarUrl ?? null,
+    profilePlayerId: participant.profilePlayerId ?? null,
+    profileLeagueId: participant.profileLeagueId ?? null,
     matches: 0,
     wins: 0,
     losses: 0,
@@ -205,6 +211,8 @@ function upsertRelation(
 
   current.name = participant.displayName.trim() || current.name
   if (participant.avatarUrl) current.avatarUrl = participant.avatarUrl
+  if (!current.profilePlayerId && participant.profilePlayerId) current.profilePlayerId = participant.profilePlayerId
+  if (!current.profileLeagueId && participant.profileLeagueId) current.profileLeagueId = participant.profileLeagueId
   current.matches += 1
   current.setsFor += performance.setsFor
   current.setsAgainst += performance.setsAgainst
@@ -527,6 +535,8 @@ export function getPersonalProfileHeadToHead(
     key: personKey,
     name: rivalry?.name ?? teammate?.name ?? personRelation.name,
     avatarUrl: teammate?.avatarUrl ?? rivalry?.avatarUrl ?? null,
+    profilePlayerId: teammate?.profilePlayerId ?? rivalry?.profilePlayerId ?? null,
+    profileLeagueId: teammate?.profileLeagueId ?? rivalry?.profileLeagueId ?? null,
   }
 
   return {

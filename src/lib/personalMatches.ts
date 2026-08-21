@@ -14,6 +14,8 @@ export type PersonalMatchParticipant = {
   displayName: string
   isCurrentUser: boolean
   personKey?: string | null
+  profilePlayerId?: string | null
+  profileLeagueId?: string | null
   avatarUrl?: string | null
   preferredSide?: "drive" | "reves" | "versatile" | null
   dominantHand?: "right" | "left" | null

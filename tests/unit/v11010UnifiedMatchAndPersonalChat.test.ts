@@ -35,28 +35,42 @@ describe("v1.10.10 unified match detail and friendly chat", () => {
     expect(detailModel).toContain("dominantHand: participant.dominantHand")
   })
 
-  it("keeps both chats writable for 24h after the recorded result", () => {
-    const resultRecordedAt = "2026-08-18T18:00:00.000Z"
+  it("keeps both chats writable through the whole calendar day after the result", () => {
+    const resultRecordedAt = "2026-08-20T20:57:00.000Z"
     const writeUntil = getMatchChatWriteUntil({
       status: "finished",
       resultRecordedAt,
     })
+    const earlierSameDayResult = getMatchChatWriteUntil({
+      status: "finished",
+      resultRecordedAt: "2026-08-20T06:15:00.000Z",
+    })
 
-    expect(writeUntil?.toISOString()).toBe("2026-08-19T18:00:00.000Z")
+    expect(writeUntil?.toISOString()).toBe("2026-08-21T22:00:00.000Z")
+    expect(earlierSameDayResult?.toISOString()).toBe(writeUntil?.toISOString())
     expect(
       isMatchChatReadOnly({
         status: "finished",
         resultRecordedAt,
-        now: new Date("2026-08-19T17:59:59.999Z"),
+        now: new Date("2026-08-21T21:59:59.999Z"),
       }),
     ).toBe(false)
     expect(
       isMatchChatReadOnly({
         status: "finished",
         resultRecordedAt,
-        now: new Date("2026-08-19T18:00:00.000Z"),
+        now: new Date("2026-08-21T22:00:00.000Z"),
       }),
     ).toBe(true)
+  })
+
+  it("keeps the calendar-day cutoff correct across Madrid daylight-saving changes", () => {
+    const writeUntil = getMatchChatWriteUntil({
+      status: "finished",
+      resultRecordedAt: "2026-10-24T20:30:00.000Z",
+    })
+
+    expect(writeUntil?.toISOString()).toBe("2026-10-25T23:00:00.000Z")
   })
 
   it("retains friendly chat for two calendar months and then expires it", () => {
@@ -117,7 +131,7 @@ describe("v1.10.10 unified match detail and friendly chat", () => {
     expect(shell).toContain('pathname.endsWith("/chat")')
   })
 
-  it("gives league chat the same 24h grace period but closes coordination actions at result", async () => {
+  it("gives league chat the same full-next-day grace period but closes coordination actions at result", async () => {
     const [api, page, shared, overview] = await Promise.all([
       read("src/app/api/matches/[matchId]/chat/route.ts"),
       read("src/app/match/[id]/chat/page.tsx"),
@@ -131,7 +145,9 @@ describe("v1.10.10 unified match detail and friendly chat", () => {
     expect(page).toContain("matchFinished")
     expect(page).toContain("<MatchChatWriteWindowBanner")
     expect(page).toContain("<MatchChatReadOnlyBar>")
-    expect(shared).toContain("24 h después del resultado")
+    expect(shared).toContain("Partido finalizado · Puedes seguir escribiendo durante todo el día")
+    expect(shared).toContain("El chat finalizará el")
+    expect(shared).toContain("formatMatchChatLastWritableDay")
     expect(overview).toContain("isMatchChatReadOnly")
   })
 })
