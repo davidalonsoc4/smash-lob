@@ -40,7 +40,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/announcements` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/announcements/[announcementId]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/invite` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
-| `/api/leagues/[id]/matches/[matchId]/availability` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/matches/[matchId]/availability` | GET | Protegido | getServerMatchActor |
 | `/api/leagues/[id]/members/[playerId]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/members/[playerId]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/player-directory` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |

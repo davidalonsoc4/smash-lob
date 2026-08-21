@@ -8,6 +8,7 @@ import {
   isMatchChatReadOnly,
   isPersonalMatchChatExpired,
 } from "@/lib/matchChatWindow"
+import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
 import {
   broadcastPersonalMatchChatRefresh,
   getPersonalMatchChatRealtimeTopic,
@@ -304,6 +305,18 @@ export async function POST(request: Request, { params }: Ctx) {
     return reply("personal_match_chat_write_failed", 500)
   }
 
-  await broadcastPersonalMatchChatRefresh(match.id)
+  await Promise.all([
+    broadcastPersonalMatchChatRefresh(match.id),
+    dispatchPersonalMatchPush({
+      matchId: match.id,
+      actorUserId: user.id,
+      preferenceKey: "match_chat",
+      title: "Nuevo mensaje · Amistoso",
+      body: `${senderDisplayName}: ${text.length > 120 ? `${text.slice(0, 117)}...` : text}`,
+      url: `/personal-matches/${match.id}/chat`,
+      tag: `smash-lob-chat-personal-${match.id}`,
+      visiblePath: `/personal-matches/${match.id}/chat`,
+    }).catch(() => null),
+  ])
   return NextResponse.json({ message: data }, { status: 201 })
 }

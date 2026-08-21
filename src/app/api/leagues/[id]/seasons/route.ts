@@ -22,6 +22,7 @@ type CreateSeasonBody = {
   roundWindowMode?: unknown
   seasonStartsAt?: unknown
   scheduledStartAt?: unknown
+  preseasonSecretDaysBefore?: unknown
   roundWindowDays?: unknown
   requiresThreeSets?: unknown
   mvpSystem?: unknown
@@ -142,6 +143,12 @@ function parseOptionalPositiveInteger(value: unknown) {
   }
 
   return numberValue
+}
+
+function parseOptionalPreseasonSecretDays(value: unknown) {
+  if (value === null || value === undefined || value === "") return null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 90 ? parsed : undefined
 }
 
 function parseOptionalPositiveNumber(value: unknown) {
@@ -282,6 +289,7 @@ export async function POST(
       ? parseOptionalDateOnly(body?.seasonStartsAt)
       : null
   const scheduledStartAt = parseOptionalScheduledStart(body?.scheduledStartAt)
+  const preseasonSecretDaysBefore = parseOptionalPreseasonSecretDays(body?.preseasonSecretDaysBefore)
   const roundWindowDays =
     roundWindowMode === "fixed-days"
       ? parseOptionalPositiveInteger(body?.roundWindowDays)
@@ -304,6 +312,7 @@ export async function POST(
     activeSeasonId === undefined ||
     requiresThreeSets === null ||
     scheduledStartAt === undefined ||
+    preseasonSecretDaysBefore === undefined ||
     !allowedPlayerCounts.has(playerCapacity) ||
     (rosterMode === "self_registration" && calendarMode !== "balanced")
   ) {
@@ -380,6 +389,7 @@ export async function POST(
         roundWindowMode,
         seasonStartsAt,
         scheduledStartAt,
+        preseasonSecretDaysBefore: scheduledStartAt ? preseasonSecretDaysBefore : null,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,
@@ -415,6 +425,7 @@ export async function POST(
         newPlayerNames,
         roundWindowMode,
         scheduledStartAt,
+        preseasonSecretDaysBefore: scheduledStartAt ? preseasonSecretDaysBefore : null,
         scheduleMode,
         totalRounds:
           result.seasonSnapshot.seasons.find((season) => season.id === createdSeasonId)

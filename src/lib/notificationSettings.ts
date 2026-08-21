@@ -68,6 +68,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
       "season_created",
       "season_duplicated",
       "season_started",
+      "season_opening_announced",
       "season_finished",
     ],
   },

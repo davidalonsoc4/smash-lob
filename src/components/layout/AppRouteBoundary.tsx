@@ -10,6 +10,7 @@ import { OfflineGate } from "@/components/layout/OfflineGate"
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt"
 import { PwaUpdatePrompt } from "@/components/layout/PwaUpdatePrompt"
 import { AutoPushRegistration } from "@/components/notifications/AutoPushRegistration"
+import { PushPermissionReminder } from "@/components/notifications/PushPermissionReminder"
 import { AccountProfileProvider } from "@/context/AccountProfileProvider"
 import { ActiveLeagueProvider } from "@/context/ActiveLeagueProvider"
 import { CurrentUserProvider } from "@/context/CurrentUserProvider"
@@ -52,6 +53,7 @@ export function AppRouteBoundary({ children }: { children: ReactNode }) {
                           <LeagueEntryGate>
                             <OnboardingProvider>
                               <AutoPushRegistration />
+                              <PushPermissionReminder />
                               <AppShell>{children}</AppShell>
                               <GuidedTourOverlay />
                             </OnboardingProvider>

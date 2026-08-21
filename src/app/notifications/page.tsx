@@ -103,6 +103,7 @@ function getNotificationUrl(event: ActivityEvent) {
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
     event.type === "season_started" ||
+    event.type === "season_opening_announced" ||
     event.type === "season_finished" ||
     event.type === "round_in_play" ||
     event.type === "round_mvp_awarded" ||
@@ -143,6 +144,7 @@ function isLeagueWideNotification(event: ActivityEvent) {
     event.type === "season_created" ||
     event.type === "season_duplicated" ||
     event.type === "season_started" ||
+    event.type === "season_opening_announced" ||
     event.type === "season_finished"
   );
 }
@@ -297,6 +299,10 @@ function getNotificationTitle(event: ActivityEvent, currentUserId: string) {
 
   if (event.type === "court_booking_payment_paid") {
     return "Pago de pista recibido";
+  }
+
+  if (event.type === "season_opening_announced") {
+    return "¡Novedades!";
   }
 
   if (event.type === "season_registration_payment_reminder") {
@@ -600,6 +606,10 @@ function getNotificationBody({
     }
 
     return event.description || "Ya se ha decidido el MVP de la jornada.";
+  }
+
+  if (event.type === "season_opening_announced") {
+    return event.description || "Entra en Smash & Lob para descubrir la nueva información de la Jornada 1.";
   }
 
   if (event.type === "round_in_play") {

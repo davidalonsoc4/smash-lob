@@ -94,7 +94,7 @@ export default function PersonalProfilePage() {
       .sort((a, b) => a.name.localeCompare(b.name, "es"))
   }, [items, leagueId])
 
-  const effectiveLeagueId = origin === "friendly" ? "" : leagueId
+  const effectiveLeagueId = origin === "league" ? leagueId : ""
   const effectiveSeasonId = effectiveLeagueId ? seasonId : ""
   const filteredMatches = useMemo(
     () =>
@@ -154,10 +154,12 @@ export default function PersonalProfilePage() {
             <button key={value} type="button" aria-label={ariaLabel} aria-pressed={origin === value} onClick={() => { setOrigin(value); if (value === "friendly") { setLeagueId(""); setSeasonId("") } }} className={`flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center type-caption font-black transition ${origin === value ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{label}</button>
           ))}
         </div>
-        <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-          <label className="min-w-0"><span className="sr-only">Liga</span><select aria-label="Liga" value={effectiveLeagueId} disabled={origin === "friendly"} onChange={(event) => { setLeagueId(event.target.value); setSeasonId("") }} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">Todas las ligas</option>{leagues.map((league) => <option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
-          <label className="min-w-0"><span className="sr-only">Temporada</span><select aria-label="Temporada" value={effectiveSeasonId} disabled={!effectiveLeagueId} onChange={(event) => setSeasonId(event.target.value)} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">Todas las temporadas</option>{seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
-        </div>
+        {origin === "league" ? (
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+            <label className="min-w-0"><span className="sr-only">Liga</span><select aria-label="Liga" value={effectiveLeagueId} onChange={(event) => { setLeagueId(event.target.value); setSeasonId("") }} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400"><option value="">Todas las ligas</option>{leagues.map((league) => <option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
+            <label className="min-w-0"><span className="sr-only">Temporada</span><select aria-label="Temporada" value={effectiveSeasonId} disabled={!effectiveLeagueId} onChange={(event) => setSeasonId(event.target.value)} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">Todas las temporadas</option>{seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
+          </div>
+        ) : null}
       </AppCard>
 
       {loading ? (

@@ -27,13 +27,14 @@ export function BackButton({ fallbackHref, label, returnToParam }: BackButtonPro
   const router = useRouter()
 
   function handleBack(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault()
+
     const currentUrl = new URL(window.location.href)
     const explicitReturnTo = returnToParam
       ? getSafeInternalReturnTo(currentUrl.searchParams.get(returnToParam))
       : null
 
     if (explicitReturnTo) {
-      event.preventDefault()
       router.replace(explicitReturnTo)
       return
     }
@@ -47,9 +48,11 @@ export function BackButton({ fallbackHref, label, returnToParam }: BackButtonPro
       referrerUrl.href !== currentHref
 
     if (canGoBackInsideApp) {
-      event.preventDefault()
       router.back()
+      return
     }
+
+    router.push(fallbackHref)
   }
 
   return (

@@ -2823,6 +2823,8 @@ function NewSeasonForm({
   const [seasonStartsAt, setSeasonStartsAt] = useState("");
   const [scheduledStartAt, setScheduledStartAt] = useState("");
   const [scheduledStartIsFuture, setScheduledStartIsFuture] = useState(true);
+  const [secretPhaseEnabled, setSecretPhaseEnabled] = useState(false);
+  const [secretDaysBefore, setSecretDaysBefore] = useState("7");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
   const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
@@ -2872,8 +2874,16 @@ function NewSeasonForm({
   const parsedRoundWindowDays = Number(roundWindowDays);
   const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
   const scheduledStartIso = datetimeLocalToIso(scheduledStartAt);
+  const parsedSecretDaysBefore = Number(secretDaysBefore);
+  const hasValidSecretPhase =
+    !secretPhaseEnabled ||
+    (Number.isInteger(parsedSecretDaysBefore) && parsedSecretDaysBefore >= 1 && parsedSecretDaysBefore <= 90);
+  const preseasonSecretDaysBefore =
+    scheduledStartIso && secretPhaseEnabled && hasValidSecretPhase
+      ? parsedSecretDaysBefore
+      : null;
   const hasValidScheduledStart =
-    !scheduledStartAt || Boolean(scheduledStartIso && scheduledStartIsFuture);
+    !scheduledStartAt || Boolean(scheduledStartIso && scheduledStartIsFuture && hasValidSecretPhase);
   const isFixedDaysMode = roundWindowMode === "fixed-days";
   const totalSeasonRounds = getSeasonScheduleRoundCount({
     playerCount,
@@ -3157,6 +3167,7 @@ function NewSeasonForm({
       roundWindowMode,
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       scheduledStartAt: scheduledStartIso,
+      preseasonSecretDaysBefore,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
       mvpSystem,
@@ -4180,8 +4191,44 @@ function NewSeasonForm({
             className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
           />
         </label>
-        {scheduledStartAt && !hasValidScheduledStart ? (
+        {scheduledStartAt && (!scheduledStartIso || !scheduledStartIsFuture) ? (
           <p className="mt-2 text-xs font-semibold text-red-600">{tx("La fecha programada debe ser futura y válida en horario de Madrid.")}</p>
+        ) : null}
+        {scheduledStartAt ? (
+          <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={secretPhaseEnabled}
+                onChange={(event) => { setSecretPhaseEnabled(event.target.checked); setCreationFeedback(null); }}
+                className="mt-1"
+              />
+              <span>
+                <span className="block text-sm font-black">{tx("Activar Fase secretos")}</span>
+                <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                  {tx("Antes del inicio, los jugadores podrán ver una apertura segura de la Jornada 1 sin conocer los emparejamientos.")}
+                </span>
+              </span>
+            </label>
+            {secretPhaseEnabled ? (
+              <label className="mt-3 block">
+                <span className="text-sm font-semibold text-neutral-700">{tx("Comenzar Fase secretos")}</span>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={90}
+                    step={1}
+                    value={secretDaysBefore}
+                    onChange={(event) => { setSecretDaysBefore(event.target.value); setCreationFeedback(null); }}
+                    className="w-24 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
+                  />
+                  <span className="text-sm font-semibold text-neutral-600">{tx("días antes del inicio")}</span>
+                </div>
+                {!hasValidSecretPhase ? <span className="mt-2 block text-xs font-semibold text-red-600">{tx("Introduce entre 1 y 90 días.")}</span> : null}
+              </label>
+            ) : null}
+          </div>
         ) : null}
         {scheduledStartIso && hasValidScheduledStart ? (
           <div className="mt-3"><SeasonStartCountdown scheduledStartAt={scheduledStartIso} compact /></div>

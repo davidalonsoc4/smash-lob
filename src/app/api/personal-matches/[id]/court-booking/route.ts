@@ -9,6 +9,7 @@ import {
 import { loadPersonalMatch } from "@/lib/serverPersonalMatches"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -79,6 +80,13 @@ export async function PUT(
       previousTransfers: access.booking.transfers,
     })
     await savePersonalMatchBooking(authResult.actor, matchId, booking)
+    await dispatchPersonalMatchPush({
+      matchId,
+      actorUserId: authResult.actor.user.id,
+      preferenceKey: "booking_updates",
+      title: "Reserva del amistoso",
+      body: "Se ha actualizado la reserva y el reparto de gastos del amistoso.",
+    }).catch(() => null)
     const item = await loadPersonalMatch(authResult.actor, matchId)
     return NextResponse.json({ item })
   } catch {
@@ -123,6 +131,13 @@ export async function DELETE(
       return NextResponse.json({ error: "forbidden" }, { status: 403 })
     }
     await savePersonalMatchBooking(authResult.actor, matchId, getEmptyCourtBooking())
+    await dispatchPersonalMatchPush({
+      matchId,
+      actorUserId: authResult.actor.user.id,
+      preferenceKey: "booking_updates",
+      title: "Reserva del amistoso",
+      body: "Se ha eliminado la reserva y el reparto de gastos del amistoso.",
+    }).catch(() => null)
     const item = await loadPersonalMatch(authResult.actor, matchId)
     return NextResponse.json({ item })
   } catch {

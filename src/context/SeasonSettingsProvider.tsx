@@ -51,6 +51,7 @@ export type SeasonRoundSettings = {
   roundWindowMode: RoundWindowMode;
   seasonStartsAt: string | null;
   scheduledStartAt?: string | null;
+  preseasonSecretDaysBefore?: number | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: MvpSystem;
@@ -97,6 +98,7 @@ type SeasonSettingsContextValue = {
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
+    preseasonSecretDaysBefore?: number | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -114,6 +116,7 @@ type SeasonSettingsContextValue = {
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
+    preseasonSecretDaysBefore?: number | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -165,6 +168,10 @@ function normalizeSettings(
     scheduledStartAt:
       typeof (settings as Partial<SeasonRoundSettings>).scheduledStartAt === "string"
         ? (settings as Partial<SeasonRoundSettings>).scheduledStartAt ?? null
+        : null,
+    preseasonSecretDaysBefore:
+      typeof (settings as Partial<SeasonRoundSettings>).preseasonSecretDaysBefore === "number"
+        ? (settings as Partial<SeasonRoundSettings>).preseasonSecretDaysBefore ?? null
         : null,
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
@@ -388,6 +395,10 @@ function parseStoredSettings(
         roundWindowMode: storedSetting.roundWindowMode ?? "none",
         seasonStartsAt: storedSetting.seasonStartsAt ?? null,
         scheduledStartAt: storedSetting.scheduledStartAt ?? null,
+        preseasonSecretDaysBefore:
+          typeof storedSetting.preseasonSecretDaysBefore === "number"
+            ? storedSetting.preseasonSecretDaysBefore
+            : null,
         roundWindowDays: storedSetting.roundWindowDays ?? null,
         requiresThreeSets: storedSetting.requiresThreeSets ?? true,
         mvpSystem: storedSetting.mvpSystem ?? "automatic",
@@ -440,6 +451,7 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     roundWindowMode: "none",
     seasonStartsAt: null,
     scheduledStartAt: null,
+    preseasonSecretDaysBefore: null,
     roundWindowDays: null,
     requiresThreeSets: true,
     mvpSystem: "automatic",
@@ -739,6 +751,7 @@ export function SeasonSettingsProvider({
     roundWindowMode,
     seasonStartsAt,
     scheduledStartAt = null,
+    preseasonSecretDaysBefore = null,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -754,6 +767,7 @@ export function SeasonSettingsProvider({
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
+    preseasonSecretDaysBefore?: number | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -840,6 +854,7 @@ export function SeasonSettingsProvider({
       roundWindowMode,
       seasonStartsAt,
       scheduledStartAt,
+      preseasonSecretDaysBefore,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,
@@ -874,6 +889,7 @@ export function SeasonSettingsProvider({
     roundWindowMode,
     seasonStartsAt,
     scheduledStartAt = null,
+    preseasonSecretDaysBefore = null,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -891,6 +907,7 @@ export function SeasonSettingsProvider({
     roundWindowMode: RoundWindowMode;
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
+    preseasonSecretDaysBefore?: number | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -985,6 +1002,7 @@ export function SeasonSettingsProvider({
       roundWindowMode,
       seasonStartsAt,
       scheduledStartAt,
+      preseasonSecretDaysBefore,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,

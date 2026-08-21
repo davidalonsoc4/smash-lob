@@ -35,6 +35,25 @@ type PersonalChatSnapshot = {
   realtimeTopic: string | null
 }
 
+let fallbackPendingMessageSequence = 0
+
+function createPendingMessageId() {
+  const cryptoApi = typeof globalThis !== "undefined" ? globalThis.crypto : undefined
+
+  if (cryptoApi && typeof cryptoApi.randomUUID === "function") {
+    return `pending-${cryptoApi.randomUUID()}`
+  }
+
+  if (cryptoApi && typeof cryptoApi.getRandomValues === "function") {
+    const values = new Uint32Array(4)
+    cryptoApi.getRandomValues(values)
+    return `pending-${Array.from(values, (value) => value.toString(36)).join("-")}`
+  }
+
+  fallbackPendingMessageSequence += 1
+  return `pending-fallback-${fallbackPendingMessageSequence}`
+}
+
 function mapSnapshot(value: unknown): PersonalChatSnapshot {
   const source =
     typeof value === "object" && value !== null && !Array.isArray(value)
@@ -159,10 +178,30 @@ export default function PersonalMatchChatPage() {
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const text = body.trim()
-    if (!text || sending || snapshot?.readOnly || snapshot?.expired) return
+    if (!text || sending || snapshot?.readOnly || snapshot?.expired || !snapshot) return
 
+    const optimisticId = createPendingMessageId()
+    const senderDisplayName =
+      snapshot.participants.find((participant) => participant.userId === snapshot.currentUserId)?.displayName ??
+      "Tú"
+    const optimisticMessage: PersonalChatMessage = {
+      id: optimisticId,
+      sender_user_id: snapshot.currentUserId,
+      sender_display_name: senderDisplayName,
+      body: text,
+      created_at: new Date().toISOString(),
+    }
+
+    setSnapshot((current) =>
+      current
+        ? { ...current, messages: [...current.messages, optimisticMessage] }
+        : current,
+    )
+    setBody("")
+    if (composerRef.current) composerRef.current.style.height = "auto"
     setSending(true)
     setError(null)
+
     try {
       const response = await fetch(
         `/api/personal-matches/${encodeURIComponent(id)}/chat`,
@@ -184,11 +223,30 @@ export default function PersonalMatchChatPage() {
         throw new Error("send_failed")
       }
 
-      setBody("")
-      if (composerRef.current) composerRef.current.style.height = "auto"
-      await loadChat({ silent: true })
+      const confirmed = payload?.message as PersonalChatMessage | undefined
+      if (confirmed?.id) {
+        setSnapshot((current) => {
+          if (!current) return current
+          const withoutPending = current.messages.filter((message) => message.id !== optimisticId)
+          if (withoutPending.some((message) => message.id === confirmed.id)) {
+            return { ...current, messages: withoutPending }
+          }
+          return { ...current, messages: [...withoutPending, confirmed] }
+        })
+      } else {
+        void loadChat({ silent: true })
+      }
       requestAnimationFrame(() => composerRef.current?.focus())
     } catch (sendError) {
+      setSnapshot((current) =>
+        current
+          ? { ...current, messages: current.messages.filter((message) => message.id !== optimisticId) }
+          : current,
+      )
+      setBody((current) => current || text)
+      requestAnimationFrame(() => {
+        if (composerRef.current) resizeMatchChatComposer(composerRef.current)
+      })
       setError(
         sendError instanceof Error &&
           sendError.message === "personal_match_chat_schema_missing"
