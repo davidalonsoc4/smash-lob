@@ -17,7 +17,7 @@ function match(overrides: Partial<PersonalMatchItem> = {}): PersonalMatchItem {
     sets: [{ a: 6, b: 4 }, { a: 6, b: 3 }],
     participants: [
       { team: 1, slot: 1, displayName: "Davo", isCurrentUser: true, personKey: "user:self" },
-      { team: 1, slot: 2, displayName: "Álvaro", isCurrentUser: false, personKey: "user:alvaro" },
+      { team: 1, slot: 2, displayName: "Álvaro", isCurrentUser: false, personKey: "user:alvaro", profilePlayerId: "player-alvaro", profileLeagueId: "league-a" },
       { team: 2, slot: 1, displayName: "Unai", isCurrentUser: false, personKey: "user:unai" },
       { team: 2, slot: 2, displayName: "Joseba", isCurrentUser: false, personKey: "player:joseba" },
     ],
@@ -102,6 +102,8 @@ describe("personal global profile statistics", () => {
     const comparison = getPersonalProfileHeadToHead(items, "user:alvaro")
 
     expect(comparison?.person.name).toBe("Álvaro")
+    expect(comparison?.person.profilePlayerId).toBe("player-alvaro")
+    expect(comparison?.person.profileLeagueId).toBe("league-a")
     expect(comparison?.sharedMatches).toBe(3)
     expect(comparison?.teammateMatches).toBe(2)
     expect(comparison?.rivalMatches).toBe(1)

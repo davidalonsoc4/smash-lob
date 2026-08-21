@@ -17,6 +17,7 @@ import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { BackButton } from "@/components/ui/BackButton"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/leagueText"
+import { MATCH_CHAT_TIME_ZONE } from "@/lib/matchChatWindow"
 import type { Locale } from "@/i18n/translations"
 
 export type MatchChatParticipant = {
@@ -331,10 +332,18 @@ export function MatchChatWriteWindowBanner({
   writeUntil: string | null
 }) {
   const { tx, locale } = useI18n()
-  const label = formatMatchChatWriteUntil(writeUntil, locale)
+  const closeDay = formatMatchChatWriteUntil(writeUntil, locale)
+  const lastWritableDay = formatMatchChatLastWritableDay(writeUntil, locale)
   return (
     <div className="shrink-0 border-b border-amber-100 bg-amber-50 px-3 py-1.5 text-center type-caption font-bold text-amber-800">
-      {tx("Partido finalizado · Puedes seguir escribiendo hasta")}{" "}{label ?? tx("24 h después del resultado")}.
+      {closeDay && lastWritableDay ? (
+        <>
+          {tx("Partido finalizado · Puedes seguir escribiendo durante todo el día")} {lastWritableDay}.{" "}
+          {tx("El chat finalizará el")} {closeDay}.
+        </>
+      ) : (
+        tx("Partido finalizado")
+      )}
     </div>
   )
 }
@@ -458,18 +467,27 @@ export function resizeMatchChatComposer(element: HTMLTextAreaElement) {
   element.style.height = `${Math.min(element.scrollHeight, 128)}px`
 }
 
+function formatMatchChatDay(value: Date, locale: Locale) {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
+    timeZone: MATCH_CHAT_TIME_ZONE,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(value)
+}
+
 export function formatMatchChatWriteUntil(value: string | null, locale: Locale = "es") {
   if (!value) return null
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return null
-  return new Intl.DateTimeFormat(getIntlLocale(locale), {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date)
+  return formatMatchChatDay(date, locale)
+}
+
+export function formatMatchChatLastWritableDay(value: string | null, locale: Locale = "es") {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return formatMatchChatDay(new Date(date.getTime() - 1), locale)
 }
 
 export function useMatchChatAutoScroll({

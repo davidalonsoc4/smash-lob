@@ -437,6 +437,7 @@ function mapPersonalMatch(
     }
   > = new Map(),
   bookingByMatchId: Map<string, PersonalMatchBookingRow> = new Map(),
+  sourcePlayerLeagueById: Map<string, string> = new Map(),
 ): PersonalMatchItem {
   const sets = normalizeSets(row.sets)
   const participants = sortPersonalMatchParticipants(
@@ -453,6 +454,10 @@ function mapPersonalMatch(
             sourcePlayerId: participant.source_player_id,
             displayName: participant.display_name,
           }),
+          profilePlayerId: participant.source_player_id,
+          profileLeagueId: participant.source_player_id
+            ? sourcePlayerLeagueById.get(participant.source_player_id) ?? null
+            : null,
           avatarUrl: participant.user_id
             ? accountMetadataByUserId.get(participant.user_id)?.avatarUrl ?? null
             : null,
@@ -605,6 +610,10 @@ async function loadPersonalRows(
   const participantUserIds = uniqueStrings(
     participantRows.map((participant) => participant.user_id),
   )
+  const sourcePlayerIds = uniqueStrings(
+    participantRows.map((participant) => participant.source_player_id),
+  )
+  const sourcePlayerLeagueById = new Map<string, string>()
   const accountMetadataByUserId = new Map<
     string,
     {
@@ -614,13 +623,23 @@ async function loadPersonalRows(
     }
   >()
 
-  if (options.includeAvatars && participantUserIds.length > 0) {
-    const appUsersResult = await actor.supabase
-      .from("app_users")
-      .select("id,avatar_url,preferred_side,dominant_hand")
-      .in("id", participantUserIds)
+  if (options.includeAvatars) {
+    const [appUsersResult, sourcePlayersResult] = await Promise.all([
+      participantUserIds.length > 0
+        ? actor.supabase
+            .from("app_users")
+            .select("id,avatar_url,preferred_side,dominant_hand")
+            .in("id", participantUserIds)
+        : Promise.resolve({ data: [], error: null }),
+      sourcePlayerIds.length > 0
+        ? actor.supabase
+            .from("players")
+            .select("id,league_id")
+            .in("id", sourcePlayerIds)
+        : Promise.resolve({ data: [], error: null }),
+    ])
 
-    if (appUsersResult.error) {
+    if (appUsersResult.error || sourcePlayersResult.error) {
       throw new Error("personal_matches_avatar_lookup_failed")
     }
 
@@ -633,6 +652,11 @@ async function loadPersonalRows(
         dominantHand: normalizeDominantHand(appUser.dominant_hand),
       })
     }
+    for (const player of sourcePlayersResult.data ?? []) {
+      if (typeof player.id === "string" && typeof player.league_id === "string") {
+        sourcePlayerLeagueById.set(player.id, player.league_id)
+      }
+    }
   }
 
   const mappedById = new Map(
@@ -644,6 +668,7 @@ async function loadPersonalRows(
         actor.user.id,
         accountMetadataByUserId,
         bookingByMatchId,
+        sourcePlayerLeagueById,
       ),
     ]),
   )
@@ -769,6 +794,8 @@ async function loadLeagueRows(
           displayName: playerById.get(playerId)?.display_name ?? "Jugador",
           isCurrentUser: ownPlayerIds.has(playerId),
           personKey: userId ? `user:${userId}` : `player:${playerId}`,
+          profilePlayerId: playerId,
+          profileLeagueId: match.leagueId,
           avatarUrl: userId ? avatarUrlByUserId.get(userId) ?? null : null,
         }
       }),
@@ -780,6 +807,8 @@ async function loadLeagueRows(
           displayName: playerById.get(playerId)?.display_name ?? "Jugador",
           isCurrentUser: ownPlayerIds.has(playerId),
           personKey: userId ? `user:${userId}` : `player:${playerId}`,
+          profilePlayerId: playerId,
+          profileLeagueId: match.leagueId,
           avatarUrl: userId ? avatarUrlByUserId.get(userId) ?? null : null,
         }
       }),
