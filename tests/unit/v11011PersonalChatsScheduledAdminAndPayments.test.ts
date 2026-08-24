@@ -107,10 +107,11 @@ describe("v1.10.11 personal chats, scheduled admin access and registration payme
     expect(home).toContain("round.status === \"upcoming\"")
   })
 
-  it("adds only the placeholder for the future season transparency report", async () => {
+  it("exposes the season transparency report instead of the old placeholder", async () => {
     const finance = await read("src/components/season/SeasonFinanceScreen.tsx")
     expect(finance).toContain("data-season-finance-report")
-    expect(finance).toContain("Generar informe de transparencia · Próximamente")
-    expect(finance).toContain("disabled")
+    expect(finance).toContain("data-season-finance-report-preview")
+    expect(finance).toContain("data-season-finance-report-excel")
+    expect(finance).not.toContain("Generar informe de transparencia · Próximamente")
   })
 })

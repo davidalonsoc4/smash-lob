@@ -43,7 +43,7 @@ export async function createSupabaseLeague({
   }
 }
 
-export async function fetchSupabaseLeagueSnapshot(): Promise<{
+export async function fetchSupabaseLeagueSnapshot(options: { adminContext?: boolean } = {}): Promise<{
   isSuperuser: boolean
   leagues: League[]
   canCreateLeagues: boolean
@@ -52,7 +52,7 @@ export async function fetchSupabaseLeagueSnapshot(): Promise<{
   matches: MatchData[]
   seasonSnapshot: SeasonSnapshot
 }> {
-  const response = await fetch("/api/access", { cache: "no-store" })
+  const response = await fetch(options.adminContext ? "/api/access?context=admin" : "/api/access", { cache: "no-store" })
 
   if (!response.ok) {
     throw new Error(`access-api-${response.status}`)
@@ -67,4 +67,22 @@ export async function fetchSupabaseLeagueSnapshot(): Promise<{
     matches: MatchData[]
     seasonSnapshot: SeasonSnapshot
   }
+}
+
+
+export async function updateSupabaseLeagueExperienceMode({
+  leagueId,
+  mode,
+}: {
+  leagueId: string
+  mode: "admin" | "player" | "player_experience"
+}) {
+  const response = await fetch(`/api/leagues/${encodeURIComponent(leagueId)}/experience-mode`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode }),
+    cache: "no-store",
+  })
+  if (!response.ok) throw new Error(`experience-mode-api-${response.status}`)
+  return (await response.json()) as { mode: "admin" | "player" | "player_experience" }
 }

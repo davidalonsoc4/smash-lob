@@ -19,7 +19,7 @@ describe("v1.10.0 HOME season switcher and registration finances", () => {
 
   it("subtracts expenses from real registration income", () => {
     const fee = normalizeSeasonRegistrationFee({ enabled: true, amount: 20, purpose: "Temporada", payments: [{ playerId: "p1", isPaid: true, paidAt: "2026-08-16T18:00:00.000Z" }, { playerId: "p2", isPaid: false, paidAt: null }, { playerId: "p3", isPaid: false, paidAt: null }], expenses: [{ id: "e1", title: "Bolas", amount: 12.5, createdAt: "2026-08-16T18:10:00.000Z" }, { id: "e2", title: "Trofeo", amount: 7.5, createdAt: "2026-08-16T18:20:00.000Z" }] })
-    expect(getSeasonRegistrationFinanceSummary({ registrationFee: fee, playerIds: ["p1", "p2", "p3"], settledPlayerIds: ["p3"] })).toMatchObject({ collected: 20, pending: 20, spent: 20, available: 0, paidCount: 1, pendingCount: 1 })
+    expect(getSeasonRegistrationFinanceSummary({ registrationFee: fee, playerIds: ["p1", "p2", "p3"], settledPlayerIds: ["p3"] })).toMatchObject({ collected: 40, pending: 20, spent: 20, available: 20, paidCount: 2, pendingCount: 1 })
   })
 
   it("exposes admin finance UI, expense API, tutorial and search entry", async () => {

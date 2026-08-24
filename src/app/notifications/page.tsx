@@ -106,6 +106,7 @@ function getNotificationUrl(event: ActivityEvent) {
     event.type === "season_opening_announced" ||
     event.type === "season_finished" ||
     event.type === "round_in_play" ||
+    event.type === "round_pairings_revealed" ||
     event.type === "round_mvp_awarded" ||
     event.type === "season_registration_payment_reminder" ||
     event.type === "league_announcement_published"
@@ -145,7 +146,8 @@ function isLeagueWideNotification(event: ActivityEvent) {
     event.type === "season_duplicated" ||
     event.type === "season_started" ||
     event.type === "season_opening_announced" ||
-    event.type === "season_finished"
+    event.type === "season_finished" ||
+    event.type === "round_pairings_revealed"
   );
 }
 
@@ -348,6 +350,10 @@ function getNotificationTitle(event: ActivityEvent, currentUserId: string) {
 
   if (event.type === "round_in_play") {
     return "Jornada en juego";
+  }
+
+  if (event.type === "round_pairings_revealed") {
+    return "Nueva jornada desbloqueada";
   }
 
   if (
@@ -618,6 +624,13 @@ function getNotificationBody({
     return typeof round === "number" || typeof round === "string"
       ? `La Jornada ${round} ya está en juego.`
       : "Hay una jornada en juego ahora mismo.";
+  }
+
+  if (event.type === "round_pairings_revealed") {
+    const round = metadata.round;
+    return typeof round === "number" || typeof round === "string"
+      ? `Ya puedes consultar los emparejamientos de la Jornada ${round} y empezar a organizar el partido.`
+      : "Ya puedes consultar los nuevos emparejamientos y empezar a organizar el partido.";
   }
 
   return event.description || "Nueva actividad en tu liga.";

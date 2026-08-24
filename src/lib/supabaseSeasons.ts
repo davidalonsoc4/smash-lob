@@ -46,6 +46,11 @@ export async function updateSupabaseSeasonRoundSettings(
           seasonStartsAt: settings.seasonStartsAt,
           scheduledStartAt: settings.scheduledStartAt,
           preseasonSecretDaysBefore: settings.preseasonSecretDaysBefore ?? null,
+          calendarVisibilityMode: settings.calendarVisibilityMode ?? "full",
+          revealedThroughRound: settings.revealedThroughRound ?? 0,
+          openingRoundEnabled: settings.openingRoundEnabled ?? false,
+          openingRoundAt: settings.openingRoundAt ?? null,
+          openingRoundLocation: settings.openingRoundLocation ?? null,
           roundWindowDays: settings.roundWindowDays,
           requiresThreeSets: settings.requiresThreeSets,
           mvpSystem: settings.mvpSystem,
@@ -220,16 +225,41 @@ export async function updateSupabaseSeasonRoundOrder({
   );
 }
 
+export async function revealSupabaseSeasonRound({
+  leagueId,
+  seasonId,
+  round,
+}: {
+  leagueId: string;
+  seasonId: string;
+  round: number;
+}) {
+  return readSeasonApiPayload<{ ok?: boolean; revealedThroughRound?: number }>(
+    await fetch(
+      `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/reveal-round`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ round }),
+        cache: "no-store",
+      },
+    ),
+    "season-reveal-round-api",
+  );
+}
+
 export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
   leagueId,
   seasonId,
   playerIds,
   scheduleMode = "single",
+  reroll = false,
 }: {
   leagueId: string;
   seasonId: string;
   playerIds: string[];
   scheduleMode?: SeasonScheduleMode;
+  reroll?: boolean;
 }): Promise<MatchData[]> {
   const payload = await readSeasonApiPayload<{ matches?: MatchData[] }>(
     await fetch(
@@ -240,6 +270,7 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
         body: JSON.stringify({
           playerIds,
           scheduleMode,
+          reroll,
         }),
         cache: "no-store",
       },
@@ -265,6 +296,11 @@ export async function startSupabaseSeason({
   seasonStartsAt,
   scheduledStartAt,
   preseasonSecretDaysBefore = null,
+  calendarVisibilityMode = "full",
+  revealedThroughRound = 0,
+  openingRoundEnabled = false,
+  openingRoundAt = null,
+  openingRoundLocation = null,
   roundWindowDays,
   requiresThreeSets,
   mvpSystem,
@@ -290,6 +326,11 @@ export async function startSupabaseSeason({
   seasonStartsAt: string | null;
   scheduledStartAt?: string | null;
   preseasonSecretDaysBefore?: number | null;
+  calendarVisibilityMode?: SeasonRoundSettings["calendarVisibilityMode"];
+  revealedThroughRound?: number;
+  openingRoundEnabled?: boolean;
+  openingRoundAt?: string | null;
+  openingRoundLocation?: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: SeasonRoundSettings["mvpSystem"];
@@ -327,6 +368,11 @@ export async function startSupabaseSeason({
         seasonStartsAt,
         scheduledStartAt: scheduledStartAt ?? null,
         preseasonSecretDaysBefore,
+        calendarVisibilityMode,
+        revealedThroughRound,
+        openingRoundEnabled,
+        openingRoundAt,
+        openingRoundLocation,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,

@@ -9,6 +9,12 @@ import {
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { RosterMode } from "@/data/fakeData"
+import {
+  createScheduledLeagueLocationValue,
+  getLeagueLocationIdentityKey,
+  normalizeLeagueLocations,
+  normalizeScheduleLocationValue,
+} from "@/lib/leagueLocations"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -23,6 +29,10 @@ type CreateSeasonBody = {
   seasonStartsAt?: unknown
   scheduledStartAt?: unknown
   preseasonSecretDaysBefore?: unknown
+  calendarVisibilityMode?: unknown
+  openingRoundEnabled?: unknown
+  openingRoundAt?: unknown
+  openingRoundLocation?: unknown
   roundWindowDays?: unknown
   requiresThreeSets?: unknown
   mvpSystem?: unknown
@@ -89,6 +99,12 @@ function parseCalendarMode(value: unknown): "balanced" | "manual" | null {
   return value === "balanced" || value === "manual" ? value : null
 }
 
+function parseCalendarVisibilityMode(
+  value: unknown,
+): SeasonRoundSettings["calendarVisibilityMode"] | null {
+  return value === "full" || value === "progressive" ? value : null
+}
+
 function parseScheduleMode(value: unknown): SeasonScheduleMode | null {
   return value === "single" || value === "double" || value === "extended"
     ? value
@@ -129,6 +145,13 @@ function parseOptionalScheduledStart(value: unknown) {
   const date = new Date(cleanValue)
   if (Number.isNaN(date.getTime())) return undefined
   return date.toISOString()
+}
+
+function parseOpeningRoundLocation(value: unknown) {
+  if (value === null || value === undefined || value === "") return null
+  if (typeof value !== "string") return undefined
+  const location = normalizeScheduleLocationValue(value)
+  return location ? createScheduledLeagueLocationValue(location, null) : undefined
 }
 
 function parseOptionalPositiveInteger(value: unknown) {
@@ -265,6 +288,10 @@ export async function POST(
   const scheduleMode = parseScheduleMode(body?.scheduleMode) ?? "single"
   const rosterMode = parseRosterMode(body?.rosterMode) ?? "fixed"
   const calendarMode = parseCalendarMode(body?.calendarMode) ?? "balanced"
+  const calendarVisibilityMode = parseCalendarVisibilityMode(body?.calendarVisibilityMode) ?? "full"
+  const openingRoundEnabled = body?.openingRoundEnabled === true
+  const openingRoundAt = parseOptionalScheduledStart(body?.openingRoundAt)
+  const openingRoundLocation = parseOpeningRoundLocation(body?.openingRoundLocation)
   const playerCapacity = Number(body?.playerCapacity)
   const availabilityRecommendationsEnabled =
     typeof body?.availabilityRecommendationsEnabled === "boolean"
@@ -313,14 +340,44 @@ export async function POST(
     requiresThreeSets === null ||
     scheduledStartAt === undefined ||
     preseasonSecretDaysBefore === undefined ||
+    openingRoundAt === undefined ||
+    openingRoundLocation === undefined ||
     !allowedPlayerCounts.has(playerCapacity) ||
     (rosterMode === "self_registration" && calendarMode !== "balanced")
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
+  const effectiveOpeningRoundAt =
+    openingRoundEnabled && scheduledStartAt ? scheduledStartAt : openingRoundAt
+
   if (scheduledStartAt && new Date(scheduledStartAt).getTime() <= Date.now()) {
     return NextResponse.json({ error: "scheduled_start_must_be_future" }, { status: 400 })
+  }
+
+  if (openingRoundEnabled && (!effectiveOpeningRoundAt || !openingRoundLocation || new Date(effectiveOpeningRoundAt).getTime() <= Date.now())) {
+    return NextResponse.json({ error: "opening_round_must_have_future_datetime_and_location" }, { status: 400 })
+  }
+
+  if (openingRoundLocation) {
+    const { data: leagueRow, error: leagueError } = await access.actor.supabase
+      .from("leagues")
+      .select("locations")
+      .eq("id", leagueId)
+      .maybeSingle()
+    if (leagueError) {
+      return NextResponse.json({ error: "league_locations_lookup_failed" }, { status: 500 })
+    }
+    const requestedLocation = normalizeScheduleLocationValue(openingRoundLocation)
+    const leagueLocations = normalizeLeagueLocations(leagueRow?.locations)
+    const belongsToLeague = Boolean(
+      requestedLocation && leagueLocations.some(
+        (location) => getLeagueLocationIdentityKey(location) === getLeagueLocationIdentityKey(requestedLocation),
+      ),
+    )
+    if (!belongsToLeague) {
+      return NextResponse.json({ error: "opening_round_location_invalid" }, { status: 400 })
+    }
   }
 
   if (
@@ -390,6 +447,11 @@ export async function POST(
         seasonStartsAt,
         scheduledStartAt,
         preseasonSecretDaysBefore: scheduledStartAt ? preseasonSecretDaysBefore : null,
+        calendarVisibilityMode,
+        revealedThroughRound: 0,
+        openingRoundEnabled,
+        openingRoundAt: openingRoundEnabled ? effectiveOpeningRoundAt : null,
+        openingRoundLocation: openingRoundEnabled ? openingRoundLocation : null,
         roundWindowDays,
         requiresThreeSets,
         mvpSystem,
@@ -426,6 +488,10 @@ export async function POST(
         roundWindowMode,
         scheduledStartAt,
         preseasonSecretDaysBefore: scheduledStartAt ? preseasonSecretDaysBefore : null,
+        calendarVisibilityMode,
+        openingRoundEnabled,
+        openingRoundAt: openingRoundEnabled ? effectiveOpeningRoundAt : null,
+        openingRoundLocation: openingRoundEnabled ? openingRoundLocation : null,
         scheduleMode,
         totalRounds:
           result.seasonSnapshot.seasons.find((season) => season.id === createdSeasonId)

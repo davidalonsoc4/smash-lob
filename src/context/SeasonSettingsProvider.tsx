@@ -35,6 +35,7 @@ import {
 } from "@/lib/resultConfirmations";
 
 export type RoundWindowMode = "none" | "fixed-days";
+export type CalendarVisibilityMode = "full" | "progressive";
 
 
 function normalizeSeasonScheduleMode(value: unknown): SeasonScheduleMode {
@@ -52,6 +53,11 @@ export type SeasonRoundSettings = {
   seasonStartsAt: string | null;
   scheduledStartAt?: string | null;
   preseasonSecretDaysBefore?: number | null;
+  calendarVisibilityMode?: CalendarVisibilityMode;
+  revealedThroughRound?: number;
+  openingRoundEnabled?: boolean;
+  openingRoundAt?: string | null;
+  openingRoundLocation?: string | null;
   roundWindowDays: number | null;
   requiresThreeSets: boolean;
   mvpSystem: MvpSystem;
@@ -99,6 +105,11 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
     preseasonSecretDaysBefore?: number | null;
+    calendarVisibilityMode?: CalendarVisibilityMode;
+    revealedThroughRound?: number;
+    openingRoundEnabled?: boolean;
+    openingRoundAt?: string | null;
+    openingRoundLocation?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -117,6 +128,11 @@ type SeasonSettingsContextValue = {
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
     preseasonSecretDaysBefore?: number | null;
+    calendarVisibilityMode?: CalendarVisibilityMode;
+    revealedThroughRound?: number;
+    openingRoundEnabled?: boolean;
+    openingRoundAt?: string | null;
+    openingRoundLocation?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -172,6 +188,24 @@ function normalizeSettings(
     preseasonSecretDaysBefore:
       typeof (settings as Partial<SeasonRoundSettings>).preseasonSecretDaysBefore === "number"
         ? (settings as Partial<SeasonRoundSettings>).preseasonSecretDaysBefore ?? null
+        : null,
+    calendarVisibilityMode:
+      (settings as Partial<SeasonRoundSettings>).calendarVisibilityMode === "progressive"
+        ? "progressive"
+        : "full",
+    revealedThroughRound:
+      typeof (settings as Partial<SeasonRoundSettings>).revealedThroughRound === "number"
+        ? Math.max(0, Math.floor((settings as Partial<SeasonRoundSettings>).revealedThroughRound ?? 0))
+        : 0,
+    openingRoundEnabled:
+      (settings as Partial<SeasonRoundSettings>).openingRoundEnabled === true,
+    openingRoundAt:
+      typeof (settings as Partial<SeasonRoundSettings>).openingRoundAt === "string"
+        ? (settings as Partial<SeasonRoundSettings>).openingRoundAt ?? null
+        : null,
+    openingRoundLocation:
+      typeof (settings as Partial<SeasonRoundSettings>).openingRoundLocation === "string"
+        ? (settings as Partial<SeasonRoundSettings>).openingRoundLocation ?? null
         : null,
     roundWindowDays: settings.roundWindowDays,
     requiresThreeSets: settings.requiresThreeSets ?? true,
@@ -752,6 +786,11 @@ export function SeasonSettingsProvider({
     seasonStartsAt,
     scheduledStartAt = null,
     preseasonSecretDaysBefore = null,
+    calendarVisibilityMode = "full",
+    revealedThroughRound = 0,
+    openingRoundEnabled = false,
+    openingRoundAt = null,
+    openingRoundLocation = null,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -768,6 +807,11 @@ export function SeasonSettingsProvider({
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
     preseasonSecretDaysBefore?: number | null;
+    calendarVisibilityMode?: CalendarVisibilityMode;
+    revealedThroughRound?: number;
+    openingRoundEnabled?: boolean;
+    openingRoundAt?: string | null;
+    openingRoundLocation?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -855,6 +899,11 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       scheduledStartAt,
       preseasonSecretDaysBefore,
+      calendarVisibilityMode,
+      revealedThroughRound,
+      openingRoundEnabled,
+      openingRoundAt,
+      openingRoundLocation,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,
@@ -890,6 +939,11 @@ export function SeasonSettingsProvider({
     seasonStartsAt,
     scheduledStartAt = null,
     preseasonSecretDaysBefore = null,
+    calendarVisibilityMode = "full",
+    revealedThroughRound = 0,
+    openingRoundEnabled = false,
+    openingRoundAt = null,
+    openingRoundLocation = null,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -908,6 +962,11 @@ export function SeasonSettingsProvider({
     seasonStartsAt: string | null;
     scheduledStartAt?: string | null;
     preseasonSecretDaysBefore?: number | null;
+    calendarVisibilityMode?: CalendarVisibilityMode;
+    revealedThroughRound?: number;
+    openingRoundEnabled?: boolean;
+    openingRoundAt?: string | null;
+    openingRoundLocation?: string | null;
     roundWindowDays: number | null;
     requiresThreeSets: boolean;
     mvpSystem: MvpSystem;
@@ -1003,6 +1062,11 @@ export function SeasonSettingsProvider({
       seasonStartsAt,
       scheduledStartAt,
       preseasonSecretDaysBefore,
+      calendarVisibilityMode,
+      revealedThroughRound,
+      openingRoundEnabled,
+      openingRoundAt,
+      openingRoundLocation,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,

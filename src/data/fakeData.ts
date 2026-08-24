@@ -52,11 +52,14 @@ export type LeagueMember = {
   role: LeagueMemberRole
 }
 
+export type LeagueExperienceMode = "admin" | "player" | "player_experience"
+
 export type UserLeagueMembership = {
   userId: string
   leagueId: string
   playerId: string
   role: LeagueMemberRole
+  experienceMode?: LeagueExperienceMode
 }
 
 export type SeasonPlayer = {
@@ -96,6 +99,11 @@ export type SeasonRoundSettings = {
   roundWindowMode: "none" | "fixed-days"
   seasonStartsAt: string | null
   scheduledStartAt?: string | null
+  preseasonSecretDaysBefore?: number | null
+  calendarVisibilityMode?: "full" | "progressive"
+  revealedThroughRound?: number
+  openingRoundEnabled?: boolean
+  openingRoundAt?: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
   mvpSystem: "none" | "automatic" | "automatic_advanced" | "voting"

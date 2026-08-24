@@ -182,11 +182,11 @@ export function AppShell({ children }: AppShellProps) {
     transitioningLeagueId,
   } = useActiveLeague()
   const {
+    canAccessLeagueAdminTools,
     canCreateLeagues,
     canShareSpectatorInvite,
     getMembershipForLeague,
     hasLeagueAdminRole,
-    isAdminViewEnabled,
     isLeagueAdmin,
     isLeagueSpectator,
     isSuperuser,
@@ -232,7 +232,8 @@ export function AppShell({ children }: AppShellProps) {
     : null
   const spectatorMode = isLeagueSpectator(activeLeagueId)
   const activeMembership = getMembershipForLeague(activeLeagueId)
-  const canAccessAdmin = isLeagueAdmin(activeLeagueId)
+  const competitionAdmin = isLeagueAdmin(activeLeagueId)
+  const canAccessAdmin = canAccessLeagueAdminTools(activeLeagueId)
   const hasAdminRole = hasLeagueAdminRole(activeLeagueId)
   const scheduledSeasonHomeOnly = Boolean(
     activeSeason &&
@@ -241,7 +242,7 @@ export function AppShell({ children }: AppShellProps) {
       isScheduledSeasonHomeLocked(
         activeSeason.status,
         activeRoundSettings.scheduledStartAt,
-        canAccessAdmin,
+        competitionAdmin,
       ),
   )
   const isScheduledSeasonUtilityRoute =
@@ -250,16 +251,25 @@ export function AppShell({ children }: AppShellProps) {
     isPersonalMatchesRoute ||
     isPublicAccessRoute ||
     pathname === "/notifications"
-  const canCreateLeague = canCreateLeagues && isAdminViewEnabled
+  const canCreateLeague = canCreateLeagues && canAccessAdmin
   const canSelfUnlink = Boolean(
     activeMembership && activeMembership.role !== "creator",
   )
 
   useEffect(() => {
+    const isAdminOnlyRoute =
+      pathname === "/admin" ||
+      pathname.startsWith("/admin/") ||
+      pathname === "/application-admin" ||
+      pathname.startsWith("/application-admin/")
+    if (isAdminOnlyRoute && !canAccessAdmin) {
+      router.replace("/settings")
+      return
+    }
     if (scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute) {
       router.replace("/")
     }
-  }, [isScheduledSeasonUtilityRoute, router, scheduledSeasonHomeOnly])
+  }, [canAccessAdmin, isScheduledSeasonUtilityRoute, pathname, router, scheduledSeasonHomeOnly])
 
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
@@ -273,8 +283,8 @@ export function AppShell({ children }: AppShellProps) {
         canCreateLeague,
         canSelfUnlink,
         qaEnabled: qaModeEnabled,
-        isSuperuser,
-        avatarLabEnabled: isAvatarLabEnabled(),
+        isSuperuser: isSuperuser && canAccessAdmin,
+        avatarLabEnabled: isAvatarLabEnabled() && canAccessAdmin,
         availabilityRecommendationsEnabled:
           activeRoundSettings?.availabilityRecommendationsEnabled === true,
       })

@@ -14,6 +14,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useMatchData } from "@/context/MatchDataProvider";
 import {
+  type CalendarVisibilityMode,
   RoundWindowMode,
   SeasonRoundSettings,
   useSeasonSettings,
@@ -27,6 +28,7 @@ import {
   startSupabaseExistingSeason,
   startSupabaseSeason,
   replaceSupabaseUpcomingSeasonBalancedCalendar,
+  revealSupabaseSeasonRound,
   duplicateSupabaseSeason,
   updateSupabaseSeasonRoundOrder,
   updateSupabaseSeasonRoundSettings,
@@ -45,7 +47,13 @@ import {
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
 import type { MvpSystem } from "@/lib/mvp";
-import type { LeagueLocation } from "@/lib/leagueLocations";
+import {
+  createScheduledLeagueLocationValue,
+  findLeagueLocationByScheduleLocation,
+  getLeagueLocationTownNameLabel,
+  sortLeagueLocationsByTownNameLabel,
+  type LeagueLocation,
+} from "@/lib/leagueLocations";
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations";
 import type { RosterMode } from "@/data/fakeData";
 import { recordActivityEvent } from "@/lib/activity";
@@ -53,7 +61,8 @@ import { showActionFeedback } from "@/lib/actionFeedback";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { buildSeasonRounds } from "@/lib/rounds";
-import { datetimeLocalToIso, formatNextScheduledStartForInput, isScheduledSeasonPending } from "@/lib/seasonScheduling";
+import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar";
+import { datetimeLocalToIso, formatNextScheduledStartForInput, isScheduledSeasonPending, toDatetimeLocalValue } from "@/lib/seasonScheduling";
 
 const allowedPlayerCounts = [8, 12, 16];
 
@@ -991,9 +1000,13 @@ function RequiresThreeSetsSettingsPanel({
 function RoundWindowSettingsPanel({
   activeLeagueId,
   roundSettings,
+  locations,
+  canEditOpening = false,
 }: {
   activeLeagueId: string;
   roundSettings: SeasonRoundSettings;
+  locations: LeagueLocation[];
+  canEditOpening?: boolean;
 }) {
   const { t, tx } = useI18n();
   const { updateSeasonRoundSettings } = useSeasonSettings();
@@ -1003,6 +1016,25 @@ function RoundWindowSettingsPanel({
   const [seasonStartsAt, setSeasonStartsAt] = useState(
     roundSettings.seasonStartsAt ?? "",
   );
+  const [openingRoundEnabled, setOpeningRoundEnabled] = useState(
+    roundSettings.openingRoundEnabled === true,
+  );
+  const [openingRoundAt, setOpeningRoundAt] = useState(
+    toDatetimeLocalValue(roundSettings.openingRoundAt),
+  );
+  const initialOpeningLocation = findLeagueLocationByScheduleLocation({
+    locations,
+    scheduleLocation: roundSettings.openingRoundLocation,
+  });
+  const [openingRoundLocationId, setOpeningRoundLocationId] = useState(
+    initialOpeningLocation?.id ?? "",
+  );
+  const sortedOpeningLocations = sortLeagueLocationsByTownNameLabel(locations);
+  const selectedOpeningLocation =
+    sortedOpeningLocations.find((location) => location.id === openingRoundLocationId) ?? null;
+  const openingRoundLocation = selectedOpeningLocation
+    ? createScheduledLeagueLocationValue(selectedOpeningLocation, null)
+    : null;
   const [roundWindowDays, setRoundWindowDays] = useState(
     roundSettings.roundWindowDays
       ? String(roundSettings.roundWindowDays)
@@ -1016,9 +1048,13 @@ function RoundWindowSettingsPanel({
     Number.isInteger(parsedRoundWindowDays) && parsedRoundWindowDays >= 1
       ? parsedRoundWindowDays
       : null;
+  const openingRoundIso = datetimeLocalToIso(openingRoundAt);
+  const scheduledOpeningRoundIso = roundSettings.scheduledStartAt ?? null;
+  const effectiveOpeningRoundIso = scheduledOpeningRoundIso ?? openingRoundIso;
   const isValid =
-    selectedMode === "none" ||
-    (seasonStartsAt.length > 0 && normalizedDays !== null);
+    (selectedMode === "none" ||
+      (seasonStartsAt.length > 0 && normalizedDays !== null)) &&
+    (!openingRoundEnabled || Boolean(effectiveOpeningRoundIso && openingRoundLocation));
   const hasChanges =
     selectedMode !== roundSettings.roundWindowMode ||
     (selectedMode === "fixed-days" &&
@@ -1026,7 +1062,13 @@ function RoundWindowSettingsPanel({
         normalizedDays !== roundSettings.roundWindowDays)) ||
     (selectedMode === "none" &&
       (roundSettings.seasonStartsAt !== null ||
-        roundSettings.roundWindowDays !== null));
+        roundSettings.roundWindowDays !== null)) ||
+    (canEditOpening &&
+      (openingRoundEnabled !== (roundSettings.openingRoundEnabled === true) ||
+        (openingRoundEnabled
+          ? effectiveOpeningRoundIso !== (roundSettings.openingRoundAt ?? null) ||
+            openingRoundLocation !== (roundSettings.openingRoundLocation ?? null)
+          : Boolean(roundSettings.openingRoundAt || roundSettings.openingRoundLocation))));
 
   async function save() {
     if (isSaving || !isValid || !hasChanges) {
@@ -1039,6 +1081,20 @@ function RoundWindowSettingsPanel({
       roundWindowMode: selectedMode,
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       roundWindowDays: isFixedDaysMode ? normalizedDays : null,
+      openingRoundEnabled: canEditOpening
+        ? openingRoundEnabled
+        : roundSettings.openingRoundEnabled === true,
+      openingRoundAt: canEditOpening
+        ? openingRoundEnabled
+          ? effectiveOpeningRoundIso
+          : null
+        : roundSettings.openingRoundAt ?? null,
+      openingRoundLocation: canEditOpening
+        ? openingRoundEnabled
+          ? openingRoundLocation
+          : null
+        : roundSettings.openingRoundLocation ?? null,
+      scheduledStartAt: roundSettings.scheduledStartAt ?? null,
     };
 
     setIsSaving(true);
@@ -1105,11 +1161,106 @@ function RoundWindowSettingsPanel({
         ))}
       </div>
 
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={openingRoundEnabled}
+            disabled={!canEditOpening}
+            onChange={(event) => {
+              const checked = event.target.checked;
+              setOpeningRoundEnabled(checked);
+              if (checked && !roundSettings.scheduledStartAt && !openingRoundAt) {
+                setOpeningRoundAt(formatNextScheduledStartForInput());
+              }
+              setError(null);
+            }}
+            className="mt-1"
+          />
+          <span>
+            <span className="block text-sm font-black text-neutral-950">
+              {t.adminSeason.openingRoundTitle}
+            </span>
+            <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+              {t.adminSeason.openingRoundDescription}
+            </span>
+          </span>
+        </label>
+
+        {openingRoundEnabled ? (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {roundSettings.scheduledStartAt ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-3">
+                <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                  {t.adminSeason.openingRoundDateTime}
+                </span>
+                <p className="mt-2 text-sm font-black text-neutral-950">
+                  {toDatetimeLocalValue(roundSettings.scheduledStartAt).replace("T", " · ")}
+                </p>
+                <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                  {t.adminSeason.openingRoundScheduledStartHelp}
+                </p>
+              </div>
+            ) : (
+              <label className="block">
+                <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                  {t.adminSeason.openingRoundDateTime}
+                </span>
+                <input
+                  type="datetime-local"
+                  step={3600}
+                  value={openingRoundAt}
+                  disabled={!canEditOpening}
+                  onFocus={() => {
+                    if (!openingRoundAt) setOpeningRoundAt(formatNextScheduledStartForInput());
+                  }}
+                  onChange={(event) => {
+                    setOpeningRoundAt(event.target.value);
+                    setError(null);
+                  }}
+                  className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+                />
+              </label>
+            )}
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                {t.adminSeason.openingRoundLocation}
+              </span>
+              <select
+                value={openingRoundLocationId}
+                disabled={!canEditOpening}
+                onChange={(event) => {
+                  setOpeningRoundLocationId(event.target.value);
+                  setError(null);
+                }}
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+              >
+                <option value="">{t.adminSeason.openingRoundLocationPlaceholder}</option>
+                {sortedOpeningLocations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {getLeagueLocationTownNameLabel(location)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <span className="sm:col-span-2 block text-xs font-semibold leading-5 text-neutral-500">
+              {t.adminSeason.openingRoundAutoScheduleHelp}
+            </span>
+          </div>
+        ) : null}
+
+        {!canEditOpening ? (
+          <p className="mt-2 text-xs font-semibold text-neutral-500">
+            {t.adminSeason.openingRoundLocked}
+          </p>
+        ) : null}
+      </div>
+
       {isFixedDaysMode ? (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
-              {t.adminSeason.seasonStartDate}
+              {openingRoundEnabled ? t.adminSeason.regularLeagueStart : t.adminSeason.seasonStartDate}
             </span>
             <input
               type="date"
@@ -1166,6 +1317,194 @@ function RoundWindowSettingsPanel({
           {tx(error)}
         </p>
       ) : null}
+    </AppCard>
+  );
+}
+
+function ProgressiveCalendarSettingsPanel({
+  activeLeagueId,
+  activeSeason,
+  roundSettings,
+  matches,
+}: {
+  activeLeagueId: string;
+  activeSeason: { id: string; totalRounds: number; status?: "upcoming" | "active" | "finished" };
+  roundSettings: SeasonRoundSettings;
+  matches: ReturnType<typeof useCurrentLeagueData>["matches"];
+}) {
+  const { t } = useI18n();
+  const { updateSeasonRoundSettings } = useSeasonSettings();
+  const [selectedMode, setSelectedMode] = useState<CalendarVisibilityMode>(
+    roundSettings.calendarVisibilityMode === "progressive" ? "progressive" : "full",
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const seasonStatus = activeSeason.status ?? "active";
+  const effectiveRevealed = getEffectiveRevealedThroughRound({
+    seasonStatus,
+    totalRounds: activeSeason.totalRounds,
+    settings: { ...roundSettings, calendarVisibilityMode: selectedMode },
+    matches: matches.filter((match) => match.seasonId === activeSeason.id),
+  });
+  const nextRound = Math.min(activeSeason.totalRounds, effectiveRevealed + 1);
+  const canRevealNext =
+    selectedMode === "progressive" && effectiveRevealed < activeSeason.totalRounds;
+  const hasModeChanges = selectedMode !== (roundSettings.calendarVisibilityMode ?? "full");
+
+  async function saveMode() {
+    if (isSaving || !hasModeChanges) return;
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      calendarVisibilityMode: selectedMode,
+      revealedThroughRound:
+        selectedMode === "progressive" ? roundSettings.revealedThroughRound ?? 0 : 0,
+    };
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (isSupabaseBackedId(activeSeason.id)) {
+        await updateSupabaseSeasonRoundSettings(nextSettings);
+      }
+      updateSeasonRoundSettings(nextSettings);
+      showSavedFeedback(
+        selectedMode === "progressive"
+          ? t.adminSeason.calendarVisibilityProgressiveEnabled
+          : t.adminSeason.calendarVisibilityFullEnabled,
+      );
+    } catch (caughtError) {
+      recordSupabaseError("update-progressive-calendar", caughtError);
+      setError(t.adminSeason.calendarVisibilitySaveError);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function revealNext() {
+    if (isSaving || !canRevealNext) return;
+    const confirmed = window.confirm(
+      `Se revelarán los emparejamientos de la Jornada ${nextRound}. Esta acción no se puede deshacer. ¿Continuar?`,
+    );
+    if (!confirmed) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      let revealedThroughRound = nextRound;
+      if (isSupabaseBackedId(activeSeason.id)) {
+        const payload = await revealSupabaseSeasonRound({
+          leagueId: activeLeagueId,
+          seasonId: activeSeason.id,
+          round: nextRound,
+        });
+        revealedThroughRound = payload.revealedThroughRound ?? nextRound;
+      }
+      updateSeasonRoundSettings({
+        ...roundSettings,
+        leagueId: activeLeagueId,
+        calendarVisibilityMode: "progressive",
+        revealedThroughRound: Math.max(
+          roundSettings.revealedThroughRound ?? 0,
+          revealedThroughRound,
+        ),
+      });
+      showSavedFeedback(`Jornada ${nextRound} revelada a los jugadores.`);
+    } catch (caughtError) {
+      recordSupabaseError("reveal-progressive-round", caughtError);
+      setError("No se ha podido revelar la siguiente jornada.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <AppCard>
+      <p className="font-bold">{t.adminSeason.calendarVisibilityTitle}</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        {t.adminSeason.calendarVisibilityDescription}
+      </p>
+
+      <div className="mt-3 space-y-2">
+        {([
+          ["full", t.adminSeason.calendarVisibilityFullTitle, t.adminSeason.calendarVisibilityFullDescription],
+          ["progressive", t.adminSeason.calendarVisibilityProgressiveTitle, t.adminSeason.calendarVisibilityProgressiveDescription],
+        ] as const).map(([mode, title, description]) => (
+          <label
+            key={mode}
+            className={`flex items-start gap-3 rounded-2xl border p-3 ${
+              selectedMode === mode ? "border-neutral-950 bg-neutral-100" : "border-neutral-200 bg-white"
+            }`}
+          >
+            <input
+              type="radio"
+              name="calendarVisibilityMode"
+              checked={selectedMode === mode}
+              onChange={() => {
+                setSelectedMode(mode);
+                setError(null);
+              }}
+              className="mt-1"
+            />
+            <span>
+              <span className="block text-sm font-black text-neutral-950">{title}</span>
+              <span
+                className={`mt-1 block text-xs font-semibold leading-5 ${
+                  selectedMode === mode ? "text-neutral-700" : "text-neutral-500"
+                }`}
+              >
+                {description}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={saveMode}
+        disabled={isSaving || !hasModeChanges}
+        className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500"
+      >
+        {isSaving ? t.adminSeason.calendarVisibilitySaving : t.adminSeason.calendarVisibilitySave}
+      </button>
+
+      {selectedMode === "progressive" ? (
+        <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">{t.adminSeason.calendarVisibilityVisibleNow}</p>
+              <p className="mt-1 text-sm font-black text-neutral-950">
+                {effectiveRevealed > 0
+                  ? t.adminSeason.calendarVisibilityThroughRound.replace("{round}", String(effectiveRevealed))
+                  : t.adminSeason.calendarVisibilityNoneRevealed}
+              </p>
+            </div>
+            <span className="rounded-full bg-neutral-200 px-2.5 py-1 text-xs font-black text-neutral-700">
+              {effectiveRevealed}/{activeSeason.totalRounds}
+            </span>
+          </div>
+          {canRevealNext ? (
+            <button
+              type="button"
+              onClick={revealNext}
+              disabled={isSaving || hasModeChanges}
+              className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-950 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950 disabled:border-neutral-200 disabled:text-neutral-400"
+            >
+              {t.adminSeason.calendarVisibilityRevealRound.replace("{round}", String(nextRound))}
+            </button>
+          ) : (
+            <p className="mt-2 text-xs font-semibold text-neutral-500">
+              {t.adminSeason.calendarVisibilityAllRevealed}
+            </p>
+          )}
+          {hasModeChanges ? (
+            <p className="mt-2 text-xs font-semibold text-neutral-500">
+              {t.adminSeason.calendarVisibilitySaveFirst}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
     </AppCard>
   );
 }
@@ -1377,6 +1716,7 @@ function BalancedCalendarAuditPanel({
   activeSeason,
   playerIds,
   matches,
+  roundSettings,
 }: {
   activeLeagueId: string;
   activeSeason: {
@@ -1386,6 +1726,7 @@ function BalancedCalendarAuditPanel({
   };
   playerIds: string[];
   matches: ReturnType<typeof useCurrentLeagueData>["matches"];
+  roundSettings: SeasonRoundSettings;
 }) {
   const { t, tx } = useI18n();
   const { replaceSeasonMatches } = useMatchData();
@@ -1525,35 +1866,60 @@ function BalancedCalendarAuditPanel({
         ]),
   ];
 
-  async function repairCalendar() {
-    if (isSaving || calendarAudit.isPerfectlyBalanced || !canRepair) {
-      return;
+  function shuffledPlayerIds() {
+    const shuffled = [...playerIds]
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const randomValues = new Uint32Array(1)
+      globalThis.crypto?.getRandomValues?.(randomValues)
+      const randomValue = randomValues[0] ?? Math.floor(Math.random() * 0xffffffff)
+      const swapIndex = randomValue % (index + 1)
+      ;[shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]]
     }
+    return shuffled
+  }
 
-    const confirmed = window.confirm(t.adminSeason.repairCalendarConfirm);
+  async function replaceCalendar(reroll: boolean) {
+    if (isSaving || !canRepair || (!reroll && calendarAudit.isPerfectlyBalanced)) return
 
-    if (!confirmed) {
-      return;
-    }
+    const confirmed = window.confirm(
+      reroll
+        ? t.adminSeason.rerollConfirm
+        : t.adminSeason.repairCalendarConfirm,
+    )
+    if (!confirmed) return
 
-    setIsSaving(true);
-    setError(null);
+    setIsSaving(true)
+    setError(null)
 
     try {
+      const sourcePlayerIds = reroll ? shuffledPlayerIds() : playerIds
       const repairedMatches = isSupabaseBackedId(activeSeason.id)
         ? await replaceSupabaseUpcomingSeasonBalancedCalendar({
             leagueId: activeLeagueId,
             seasonId: activeSeason.id,
             playerIds,
             scheduleMode: scheduleMode ?? "single",
+            reroll,
           })
         : generateBalancedCalendar({
             leagueId: activeLeagueId,
             seasonId: activeSeason.id,
-            playerIds,
+            playerIds: sourcePlayerIds,
             scheduleMode: scheduleMode ?? "single",
           }).map((match) => ({
             ...match,
+            status:
+              roundSettings.openingRoundEnabled &&
+              roundSettings.openingRoundAt &&
+              match.round === 1
+                ? "scheduled" as const
+                : match.status,
+            scheduledAt:
+              roundSettings.openingRoundEnabled &&
+              roundSettings.openingRoundAt &&
+              match.round === 1
+                ? roundSettings.openingRoundAt
+                : match.scheduledAt,
             rankingCounts: true,
             incidentType: null,
             incidentStatus: null,
@@ -1564,20 +1930,32 @@ function BalancedCalendarAuditPanel({
             resolutionType: null,
             substitutions: [],
             courtBooking: getEmptyCourtBooking(),
-          }));
+          }))
 
-      replaceSeasonMatches(activeSeason.id, repairedMatches);
-      showSavedFeedback(t.adminSeason.repairCalendarSuccess);
+      replaceSeasonMatches(activeSeason.id, repairedMatches)
+      showSavedFeedback(
+        reroll
+          ? t.adminSeason.rerollSuccess
+          : t.adminSeason.repairCalendarSuccess,
+      )
     } catch (repairError) {
-      recordSupabaseError("repair-balanced-calendar", repairError);
+      recordSupabaseError(reroll ? "reroll-balanced-calendar" : "repair-balanced-calendar", repairError)
       setError(
         repairError instanceof Error
           ? repairError.message
           : t.adminSeason.repairCalendarError,
-      );
+      )
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
+  }
+
+  async function repairCalendar() {
+    await replaceCalendar(false)
+  }
+
+  async function rerollCalendar() {
+    await replaceCalendar(true)
   }
 
   return (
@@ -1682,6 +2060,24 @@ function BalancedCalendarAuditPanel({
               : t.adminSeason.repairCalendar}
           </button>
         </>
+      ) : null}
+      {canRepair ? (
+        <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+            {t.adminSeason.rerollEyebrow}
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+            {t.adminSeason.rerollDescription}
+          </p>
+          <button
+            type="button"
+            onClick={rerollCalendar}
+            disabled={isSaving}
+            className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-950 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950 disabled:border-neutral-200 disabled:text-neutral-400"
+          >
+            {isSaving ? t.adminSeason.rerollGenerating : t.adminSeason.rerollButton}
+          </button>
+        </div>
       ) : null}
       {error ? (
         <p className="mt-3 text-center text-xs font-semibold text-red-600">
@@ -2823,6 +3219,10 @@ function NewSeasonForm({
   const [seasonStartsAt, setSeasonStartsAt] = useState("");
   const [scheduledStartAt, setScheduledStartAt] = useState("");
   const [scheduledStartIsFuture, setScheduledStartIsFuture] = useState(true);
+  const [calendarVisibilityMode, setCalendarVisibilityMode] = useState<"full" | "progressive">("full");
+  const [openingRoundEnabled, setOpeningRoundEnabled] = useState(false);
+  const [openingRoundAt, setOpeningRoundAt] = useState("");
+  const [openingRoundLocationId, setOpeningRoundLocationId] = useState("");
   const [secretPhaseEnabled, setSecretPhaseEnabled] = useState(false);
   const [secretDaysBefore, setSecretDaysBefore] = useState("7");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
@@ -2874,6 +3274,15 @@ function NewSeasonForm({
   const parsedRoundWindowDays = Number(roundWindowDays);
   const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
   const scheduledStartIso = datetimeLocalToIso(scheduledStartAt);
+  const openingRoundIso = datetimeLocalToIso(openingRoundAt);
+  const effectiveOpeningRoundIso = scheduledStartIso ?? openingRoundIso;
+  const selectedOpeningRoundLocation =
+    leagueLocations.find((location) => location.id === openingRoundLocationId) ?? null;
+  const openingRoundLocation = selectedOpeningRoundLocation
+    ? createScheduledLeagueLocationValue(selectedOpeningRoundLocation, null)
+    : null;
+  const hasValidOpeningRound =
+    !openingRoundEnabled || Boolean(effectiveOpeningRoundIso && openingRoundLocation);
   const parsedSecretDaysBefore = Number(secretDaysBefore);
   const hasValidSecretPhase =
     !secretPhaseEnabled ||
@@ -2979,6 +3388,7 @@ function NewSeasonForm({
     isManualCalendarReady &&
     hasValidRegistrationFee &&
     hasValidScheduledStart &&
+    hasValidOpeningRound &&
     (roundWindowMode === "none" ||
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
@@ -3168,6 +3578,11 @@ function NewSeasonForm({
       seasonStartsAt: isFixedDaysMode ? seasonStartsAt : null,
       scheduledStartAt: scheduledStartIso,
       preseasonSecretDaysBefore,
+      calendarVisibilityMode,
+      revealedThroughRound: 0,
+      openingRoundEnabled,
+      openingRoundAt: openingRoundEnabled ? effectiveOpeningRoundIso : null,
+      openingRoundLocation: openingRoundEnabled ? openingRoundLocation : null,
       roundWindowDays: isFixedDaysMode ? parsedRoundWindowDays : null,
       requiresThreeSets,
       mvpSystem,
@@ -3301,6 +3716,9 @@ function NewSeasonForm({
           rosterMode,
           playerCapacity: playerCount,
           calendarMode,
+          calendarVisibilityMode,
+          openingRoundEnabled,
+          openingRoundAt: openingRoundEnabled ? effectiveOpeningRoundIso : null,
           scheduleMode,
           totalRounds: totalSeasonRounds,
           mvpSystem,
@@ -3764,6 +4182,32 @@ function NewSeasonForm({
           {t.adminSeason.calendarDescription}
         </p>
 
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+            {t.adminSeason.calendarVisibilityTitle}
+          </p>
+          <div className="mt-2 space-y-2">
+            {([
+              ["full", t.adminSeason.calendarVisibilityFullTitle, t.adminSeason.newCalendarVisibilityFullDescription],
+              ["progressive", t.adminSeason.calendarVisibilityProgressiveTitle, t.adminSeason.newCalendarVisibilityProgressiveDescription],
+            ] as const).map(([mode, title, description]) => (
+              <label key={mode} className={`flex items-start gap-3 rounded-2xl border p-3 ${calendarVisibilityMode === mode ? "border-neutral-950 bg-white" : "border-neutral-200 bg-white/60"}`}>
+                <input
+                  type="radio"
+                  name="newCalendarVisibility"
+                  checked={calendarVisibilityMode === mode}
+                  onChange={() => { setCalendarVisibilityMode(mode); setCreationFeedback(null); }}
+                  className="mt-1"
+                />
+                <span>
+                  <span className="block text-sm font-black text-neutral-950">{title}</span>
+                  <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">{description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -4186,6 +4630,11 @@ function NewSeasonForm({
               const iso = datetimeLocalToIso(value);
               setScheduledStartAt(value);
               setScheduledStartIsFuture(!value || Boolean(iso && new Date(iso).getTime() > Date.now()));
+              if (openingRoundEnabled && value) {
+                setOpeningRoundAt(value);
+              } else if (!value && openingRoundEnabled && !openingRoundAt) {
+                setOpeningRoundAt(formatNextScheduledStartForInput());
+              }
               setCreationFeedback(null);
             }}
             className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
@@ -4275,11 +4724,94 @@ function NewSeasonForm({
           ))}
         </div>
 
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={openingRoundEnabled}
+              onChange={(event) => {
+                const checked = event.target.checked;
+                setOpeningRoundEnabled(checked);
+                if (!checked) {
+                  setOpeningRoundAt("");
+                  setOpeningRoundLocationId("");
+                } else if (scheduledStartAt) {
+                  setOpeningRoundAt(scheduledStartAt);
+                } else if (!openingRoundAt) {
+                  setOpeningRoundAt(formatNextScheduledStartForInput());
+                }
+                setCreationFeedback(null);
+              }}
+              className="mt-1"
+            />
+            <span>
+              <span className="block text-sm font-black text-neutral-950">{t.adminSeason.openingRoundTitle}</span>
+              <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                {t.adminSeason.openingRoundCreateDescription}
+              </span>
+            </span>
+          </label>
+          {openingRoundEnabled ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {scheduledStartAt ? (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-3">
+                  <span className="text-sm font-semibold text-neutral-700">{t.adminSeason.openingRoundDateTime}</span>
+                  <p className="mt-2 text-sm font-black text-neutral-950">{scheduledStartAt.replace("T", " · ")}</p>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+                    {t.adminSeason.openingRoundScheduledStartHelp}
+                  </p>
+                </div>
+              ) : (
+                <label className="block">
+                  <span className="text-sm font-semibold text-neutral-700">{t.adminSeason.openingRoundDateTime}</span>
+                  <input
+                    type="datetime-local"
+                    step={3600}
+                    value={openingRoundAt}
+                    onFocus={() => {
+                      if (!openingRoundAt) setOpeningRoundAt(formatNextScheduledStartForInput());
+                    }}
+                    onChange={(event) => {
+                      setOpeningRoundAt(event.target.value);
+                      setCreationFeedback(null);
+                    }}
+                    className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                  />
+                </label>
+              )}
+              <label className="block">
+                <span className="text-sm font-semibold text-neutral-700">{t.adminSeason.openingRoundLocation}</span>
+                <select
+                  value={openingRoundLocationId}
+                  onChange={(event) => {
+                    setOpeningRoundLocationId(event.target.value);
+                    setCreationFeedback(null);
+                  }}
+                  className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                >
+                  <option value="">{t.adminSeason.openingRoundLocationPlaceholder}</option>
+                  {sortLeagueLocationsByTownNameLabel(leagueLocations).map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {getLeagueLocationTownNameLabel(location)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span className="sm:col-span-2 block text-xs font-semibold leading-5 text-neutral-500">
+                {t.adminSeason.openingRoundCreateAutoHelp}
+              </span>
+              {!scheduledStartAt && openingRoundAt && !openingRoundIso ? (
+                <span className="sm:col-span-2 block text-xs font-semibold text-red-600">{t.adminSeason.openingRoundInvalid}</span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
         {isFixedDaysMode ? (
           <div className="mt-4 space-y-4">
             <label className="block">
               <span className="text-sm font-semibold text-neutral-700">
-                {t.adminSeason.seasonStartDate}
+                {openingRoundEnabled ? t.adminSeason.regularLeagueStart : t.adminSeason.seasonStartDate}
               </span>
 
               <input
@@ -4679,6 +5211,17 @@ export default function AdminSeasonPage() {
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
+              locations={activeLeague.locations}
+              canEditOpening={false}
+            />
+          </div>
+
+          <div id="visibilidad-calendario" className="settings-search-target">
+            <ProgressiveCalendarSettingsPanel
+              activeLeagueId={activeLeague.id}
+              activeSeason={activeSeason}
+              roundSettings={roundSettings}
+              matches={matches}
             />
           </div>
 
@@ -4689,6 +5232,7 @@ export default function AdminSeasonPage() {
                 activeSeason={activeSeason}
                 playerIds={players.map((player) => player.id)}
                 matches={matches}
+                roundSettings={roundSettings}
               />
             </div>
           ) : null}
@@ -4814,6 +5358,7 @@ export default function AdminSeasonPage() {
                 activeSeason={activeSeason}
                 playerIds={players.map((player) => player.id)}
                 matches={matches}
+                roundSettings={roundSettings}
               />
             </div>
           ) : null}
@@ -4832,6 +5377,17 @@ export default function AdminSeasonPage() {
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
+              locations={activeLeague.locations}
+              canEditOpening
+            />
+          </div>
+
+          <div id="visibilidad-calendario" className="settings-search-target">
+            <ProgressiveCalendarSettingsPanel
+              activeLeagueId={activeLeague.id}
+              activeSeason={activeSeason}
+              roundSettings={roundSettings}
+              matches={matches}
             />
           </div>
 

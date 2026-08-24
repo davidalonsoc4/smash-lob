@@ -1,6 +1,7 @@
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
+import { SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 import { getIntlLocale } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 
@@ -12,6 +13,13 @@ type Season = {
 }
 
 export type SeasonRoundStatus = "upcoming" | "active" | "overdue" | "completed"
+
+const madridDateValueFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: SCHEDULED_SEASON_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
 
 export type SeasonRound = {
   id: string
@@ -79,8 +87,26 @@ function getRoundWindow({
     }
   }
 
+  if (settings.openingRoundEnabled && round === 1) {
+    if (!settings.openingRoundAt) {
+      return { startsAt: null, endsAt: null }
+    }
+
+    const openingDate = new Date(settings.openingRoundAt)
+    if (Number.isNaN(openingDate.getTime())) {
+      return { startsAt: null, endsAt: null }
+    }
+
+    const dateValue = madridDateValueFormatter.format(openingDate)
+    return { startsAt: dateValue, endsAt: dateValue }
+  }
+
   const seasonStart = parseLocalDate(settings.seasonStartsAt)
-  const startsAt = addDays(seasonStart, (round - 1) * settings.roundWindowDays)
+  const regularRoundIndex = settings.openingRoundEnabled ? round - 2 : round - 1
+  if (regularRoundIndex < 0) {
+    return { startsAt: null, endsAt: null }
+  }
+  const startsAt = addDays(seasonStart, regularRoundIndex * settings.roundWindowDays)
   const endsAt = addDays(startsAt, settings.roundWindowDays - 1)
 
   return {
