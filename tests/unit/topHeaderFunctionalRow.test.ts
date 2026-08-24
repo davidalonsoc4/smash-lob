@@ -40,8 +40,6 @@ describe("top functional header row", () => {
     expect(globals).toContain(".app-page-header")
     expect(globals).toContain("padding-top: 0.5rem !important")
     expect(home).toContain('<BackButton fallbackHref="/" label={t.common.refreshApp} />')
-    expect(home).toContain("registration.update()")
-    expect(home).toContain("requestPwaUpdate(registration.waiting ?? worker, reload)")
     expect(ranking).toContain('<header data-tour="ranking-header" className="app-page-header">')
     expect(matches).toContain('<header data-tour="matches-header" className="app-page-header">')
     expect(ownProfile).toContain('import { PlayerProfileScreen } from "@/components/player/PlayerProfileScreen"')

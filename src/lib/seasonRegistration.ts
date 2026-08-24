@@ -37,19 +37,27 @@ export function getSeasonRegistrationPendingPayments({ registrationFee, playerId
 
 export function isSeasonRegistrationSettled(input: Parameters<typeof getSeasonRegistrationPendingPayments>[0]) { return getSeasonRegistrationPendingPayments(input).length === 0 }
 export function getSeasonRegistrationExpenseTotal(registrationFee: SeasonRegistrationFee) { return roundMoney(registrationFee.expenses.reduce((total, expense) => total + expense.amount, 0)) }
-export function getSeasonRegistrationCollectedAmount({ registrationFee, playerIds }: { registrationFee: SeasonRegistrationFee; playerIds: string[] }) {
+export function getSeasonRegistrationCollectedAmount({ registrationFee, playerIds, settledPlayerIds = [] }: { registrationFee: SeasonRegistrationFee; playerIds: string[]; settledPlayerIds?: string[] }) {
   if (!registrationFee.enabled || registrationFee.amount <= 0) return 0
-  const players = new Set(playerIds.filter(Boolean)); return roundMoney(registrationFee.payments.filter((payment) => players.has(payment.playerId) && payment.isPaid).length * registrationFee.amount)
+  const players = new Set(playerIds.filter(Boolean))
+  const contributed = new Set(settledPlayerIds.filter((playerId) => players.has(playerId)))
+  registrationFee.payments.forEach((payment) => {
+    if (players.has(payment.playerId) && payment.isPaid) contributed.add(payment.playerId)
+  })
+  return roundMoney(contributed.size * registrationFee.amount)
 }
 export function getSeasonRegistrationFinanceSummary({ registrationFee, playerIds, settledPlayerIds = [] }: { registrationFee: SeasonRegistrationFee; playerIds: string[]; settledPlayerIds?: string[] }) {
   const uniquePlayerIds = [...new Set(playerIds.filter(Boolean))]
-  const collected = getSeasonRegistrationCollectedAmount({ registrationFee, playerIds: uniquePlayerIds })
+  const settled = new Set(settledPlayerIds.filter(Boolean))
+  const paymentByPlayerId = new Map(registrationFee.payments.map((payment) => [payment.playerId, payment]))
+  const collected = getSeasonRegistrationCollectedAmount({ registrationFee, playerIds: uniquePlayerIds, settledPlayerIds })
   const pendingIds = getSeasonRegistrationPendingPayments({ registrationFee, playerIds: uniquePlayerIds, settledPlayerIds })
   const spent = getSeasonRegistrationExpenseTotal(registrationFee)
   const available = roundMoney(collected - spent)
   const availablePerPlayer = uniquePlayerIds.length
     ? roundMoney(available / uniquePlayerIds.length)
     : 0
+  const paidCount = uniquePlayerIds.filter((playerId) => settled.has(playerId) || paymentByPlayerId.get(playerId)?.isPaid).length
 
   return {
     collected,
@@ -57,7 +65,7 @@ export function getSeasonRegistrationFinanceSummary({ registrationFee, playerIds
     spent,
     available,
     availablePerPlayer,
-    paidCount: registrationFee.payments.filter((payment) => uniquePlayerIds.includes(payment.playerId) && payment.isPaid).length,
+    paidCount,
     pendingCount: pendingIds.length,
   }
 }

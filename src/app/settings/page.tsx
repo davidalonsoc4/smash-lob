@@ -387,25 +387,28 @@ function PlayerSettingsPage() {
   const { currentUser } = useCurrentUser()
   const { activeLeague, roundSettings } = useCurrentLeagueData()
   const {
+    canAccessLeagueAdminTools,
     canCreateLeagues,
+    getLeagueExperienceMode,
     getMembershipForLeague,
     hasLeagueAdminRole,
-    isLeagueAdmin,
     isSuperuser,
-    isAdminViewEnabled,
-    setAdminViewEnabled,
+    setLeagueExperienceMode,
     unlinkLeaguePlayerAccount,
     userLeagues,
   } = useLeagueAccess()
   const router = useRouter()
   const activeMembership = getMembershipForLeague(activeLeague.id)
   const hasAdminRole = hasLeagueAdminRole(activeLeague.id)
-  const canAccessAdmin = isLeagueAdmin(activeLeague.id)
-  const canCreateLeaguesInCurrentView = canCreateLeagues && isAdminViewEnabled
+  const experienceMode = getLeagueExperienceMode(activeLeague.id)
+  const canAccessAdmin = canAccessLeagueAdminTools(activeLeague.id)
+  const canCreateLeaguesInCurrentView = canCreateLeagues && canAccessAdmin
   const canSelfUnlink = Boolean(activeMembership && activeMembership.role !== "creator")
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
   const [unlinkLeagueError, setUnlinkLeagueError] = useState<string | null>(null)
+  const [isSavingExperienceMode, setIsSavingExperienceMode] = useState(false)
+  const [experienceModeError, setExperienceModeError] = useState<string | null>(null)
   const [paymentLedgerItems, setPaymentLedgerItems] = useState<Awaited<ReturnType<typeof fetchPaymentLedger>>["items"]>([])
   const [paymentLedgerLoaded, setPaymentLedgerLoaded] = useState(false)
 
@@ -435,6 +438,19 @@ function PlayerSettingsPage() {
   const pendingPaymentCount =
     pendingPaymentSummary.owedByMeCount + pendingPaymentSummary.owedToMeCount
   const hasPendingPayments = paymentLedgerLoaded && pendingPaymentCount > 0
+
+  async function handleExperienceModeChange(
+    mode: "admin" | "player" | "player_experience",
+  ) {
+    if (isSavingExperienceMode || mode === experienceMode) return
+    setIsSavingExperienceMode(true)
+    setExperienceModeError(null)
+    const ok = await setLeagueExperienceMode(activeLeague.id, mode)
+    setIsSavingExperienceMode(false)
+    if (!ok) {
+      setExperienceModeError(tx("No se ha podido cambiar el modo de experiencia."))
+    }
+  }
 
   async function handleUnlinkCurrentLeague() {
     if (!canSelfUnlink || isUnlinkingLeague) {
@@ -591,17 +607,79 @@ function PlayerSettingsPage() {
           description={tx("Herramientas que dependen de tus permisos actuales.")}
         >
           {hasAdminRole ? (
-            <SettingsStaticRow
+            <div
               id="admin-view"
-              title={tx("Vista admin")}
-              description={tx("Oculta temporalmente accesos y acciones de administración para ver la liga como jugador.")}
+              className="settings-row settings-row-default settings-search-target px-3 py-3"
             >
-              <SettingsToggle
-                checked={isAdminViewEnabled}
-                onChange={() => setAdminViewEnabled(!isAdminViewEnabled)}
-                label={tx("Vista admin")}
-              />
-            </SettingsStaticRow>
+              <p className="text-sm font-black text-neutral-950">
+                {tx("Modo de experiencia")}
+              </p>
+              <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
+                {tx("Elige cómo quieres vivir esta liga sin cambiar tus permisos reales de administrador.")}
+              </p>
+              <div
+                className="mt-3 grid gap-2"
+                role="radiogroup"
+                aria-label={tx("Modo de experiencia")}
+              >
+                {[
+                  {
+                    mode: "admin" as const,
+                    title: tx("ADMINISTRADOR"),
+                    description: tx("Vista completa con información y controles de administración."),
+                  },
+                  {
+                    mode: "player" as const,
+                    title: tx("JUGADOR"),
+                    description: tx("Vive la liga como cualquier jugador. Solo este ajuste seguirá permitiéndote volver a modo admin."),
+                  },
+                  {
+                    mode: "player_experience" as const,
+                    title: tx("EXPERIENCIA JUGADOR"),
+                    description: tx("Las pantallas de competición se comportan como jugador, pero Administración sigue disponible."),
+                  },
+                ].map((option) => {
+                  const selected = experienceMode === option.mode
+                  return (
+                    <button
+                      key={option.mode}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      disabled={isSavingExperienceMode}
+                      onClick={() => void handleExperienceModeChange(option.mode)}
+                      className={`flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition disabled:opacity-60 ${
+                        selected
+                          ? "border-neutral-950 bg-neutral-50"
+                          : "border-neutral-200 bg-white active:bg-neutral-50"
+                      }`}
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-black tracking-wide text-neutral-950">
+                          {option.title}
+                        </span>
+                        <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
+                          {option.description}
+                        </span>
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                          selected ? "border-neutral-950" : "border-neutral-300"
+                        }`}
+                      >
+                        {selected ? (
+                          <span className="h-2.5 w-2.5 rounded-full bg-neutral-950" />
+                        ) : null}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              {experienceModeError ? (
+                <p className="mt-2 text-xs font-bold text-red-600">{experienceModeError}</p>
+              ) : null}
+            </div>
           ) : null}
           {canAccessAdmin ? (
             <SettingsLinkRow
@@ -611,7 +689,7 @@ function PlayerSettingsPage() {
               description={tx("Gestiona la liga por áreas: general, personas, competición, operaciones y datos.")}
             />
           ) : null}
-          {isSuperuser ? (
+          {isSuperuser && canAccessAdmin ? (
             <SettingsLinkRow
               href="/application-admin"
               id="application-admin"

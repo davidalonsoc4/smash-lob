@@ -31,7 +31,7 @@ describe("v1.10.0 pending-season registration settings", () => {
     )
 
     expect(route).toContain('access.season.status !== "upcoming"')
-    expect(route).toContain('.select("registration_fee")')
+    expect(route).toContain('.select("registration_fee,opening_round_enabled,opening_round_at,opening_round_location")')
     expect(route).toContain("currentRegistrationFee.enabled !== registrationFee.enabled")
     expect(route).toContain("registration_state_locked_after_start")
   })

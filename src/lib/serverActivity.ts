@@ -21,6 +21,7 @@ type ActivityEventType =
   | "match_mvp_awarded"
   | "match_upcoming_reminder"
   | "round_in_play"
+  | "round_pairings_revealed"
   | "round_mvp_awarded"
   | "court_booking_updated"
   | "court_booking_cleared"
@@ -112,6 +113,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_mvp_awarded" ||
     type === "match_upcoming_reminder" ||
     type === "round_in_play" ||
+    type === "round_pairings_revealed" ||
     type === "round_mvp_awarded" ||
     type === "court_booking_updated" ||
     type === "court_booking_cleared" ||
@@ -457,7 +459,7 @@ export async function fetchServerActivityEvents({
     mapActivityEvent(item as Record<string, unknown>)
   )
 
-  if (!viewer.isAdmin && !viewer.user.isSuperuser) {
+  if (!viewer.isCompetitionAdmin) {
     const matchSeasonIds = Array.from(
       new Set(
         events
@@ -468,42 +470,80 @@ export async function fetchServerActivityEvents({
     )
 
     if (matchSeasonIds.length > 0) {
-      const [{ data: seasonRows, error: seasonError }, { data: settingsRows, error: settingsError }] = await Promise.all([
+      const eventMatchIds = Array.from(
+        new Set(
+          events
+            .map((event) => event.matchId)
+            .filter((matchId): matchId is string => Boolean(matchId)),
+        ),
+      )
+      const [
+        { data: seasonRows, error: seasonError },
+        { data: settingsRows, error: settingsError },
+        { data: matchRows, error: matchError },
+      ] = await Promise.all([
         viewer.supabase.from("seasons").select("id,status").in("id", matchSeasonIds),
-        viewer.supabase.from("season_settings").select("season_id,scheduled_start_at").in("season_id", matchSeasonIds),
+        viewer.supabase
+          .from("season_settings")
+          .select("season_id,scheduled_start_at,calendar_visibility_mode,revealed_through_round")
+          .in("season_id", matchSeasonIds),
+        viewer.supabase.from("matches").select("id,round").in("id", eventMatchIds),
       ])
 
-      if (seasonError || settingsError) {
-        throw seasonError ?? settingsError
+      if (seasonError || settingsError || matchError) {
+        throw seasonError ?? settingsError ?? matchError
       }
 
       const statusBySeasonId = new Map(
         (seasonRows ?? []).map((row) => [String(row.id), String(row.status)]),
       )
-      const scheduledStartBySeasonId = new Map(
-        (settingsRows ?? []).map((row) => [
-          String(row.season_id),
-          typeof row.scheduled_start_at === "string" ? row.scheduled_start_at : null,
-        ]),
+      const settingsBySeasonId = new Map(
+        (settingsRows ?? []).map((row) => [String(row.season_id), row]),
+      )
+      const roundByMatchId = new Map(
+        (matchRows ?? []).map((row) => [String(row.id), Number(row.round ?? 0)]),
       )
       const now = Date.now()
-      const hiddenMatchSeasonIds = new Set(
-        matchSeasonIds.filter((seasonId) => {
-          if (statusBySeasonId.get(seasonId) !== "upcoming") return false
-          const scheduledStartAt = scheduledStartBySeasonId.get(seasonId)
-          if (!scheduledStartAt) return false
-          const scheduledStartMs = new Date(scheduledStartAt).getTime()
-          return Number.isFinite(scheduledStartMs) && scheduledStartMs > now
-        }),
-      )
+      const hiddenMatchIds = new Set<string>()
+
+      for (const event of events) {
+        if (!event.matchId || !event.seasonId) continue
+        const seasonStatus = statusBySeasonId.get(event.seasonId)
+        const settings = settingsBySeasonId.get(event.seasonId)
+
+        if (seasonStatus === "upcoming") {
+          const scheduledStartAt =
+            typeof settings?.scheduled_start_at === "string"
+              ? settings.scheduled_start_at
+              : null
+          const scheduledStartMs = scheduledStartAt
+            ? new Date(scheduledStartAt).getTime()
+            : Number.NaN
+          if (Number.isFinite(scheduledStartMs) && scheduledStartMs > now) {
+            hiddenMatchIds.add(event.matchId)
+            continue
+          }
+        }
+
+        if (
+          settings?.calendar_visibility_mode === "progressive" &&
+          seasonStatus !== "finished"
+        ) {
+          const storedReveal = Math.max(
+            0,
+            Number(settings.revealed_through_round ?? 0) || 0,
+          )
+          const effectiveReveal =
+            seasonStatus === "active" ? Math.max(storedReveal, 1) : storedReveal
+          const matchRound = roundByMatchId.get(event.matchId) ?? 0
+          if (matchRound > effectiveReveal) {
+            hiddenMatchIds.add(event.matchId)
+          }
+        }
+      }
 
       events = events.filter(
-        (event) =>
-          !(
-            event.matchId &&
-            event.seasonId &&
-            hiddenMatchSeasonIds.has(event.seasonId)
-          ),
+        (event) => !event.matchId || !hiddenMatchIds.has(event.matchId),
       )
     }
   }

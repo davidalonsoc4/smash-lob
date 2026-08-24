@@ -141,6 +141,10 @@ export default function RoundSummaryPage() {
   const roundMatches = matches
     .filter((match) => match.round === round)
     .sort((first, second) => first.id.localeCompare(second.id))
+  const isSecretRound =
+    roundSettings.calendarVisibilityMode === "progressive" &&
+    roundMatches.length > 0 &&
+    roundMatches.every((match) => match.teamA.length === 0 && match.teamB.length === 0)
   const metrics = getRoundSummaryMetrics(roundMatches)
   const isCompleted = roundData?.status === "completed"
 
@@ -187,6 +191,43 @@ export default function RoundSummaryPage() {
           matches,
           mvpSystem: roundSettings.mvpSystem,
         })
+
+  if (isSecretRound && roundData) {
+    return (
+      <div className="space-y-4">
+        <header className="app-page-header">
+          <BackButton fallbackHref="/matches" label={tx("Volver")} />
+          <h1 className="type-page-title text-2xl font-black tracking-tight">
+            {roundData.name}
+          </h1>
+          <SeasonContextLine
+            seasonName={activeSeason.name}
+            statusLabel={tx("Emparejamientos secretos")}
+            className="mt-0.5"
+          />
+        </header>
+        <AppCard className="border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-5 text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center text-neutral-400">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+          </div>
+          <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+            {tx("Emparejamientos secretos")}
+          </p>
+          <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">
+            {tx("Esta jornada todavía no ha sido revelada. Se desbloqueará al finalizar la anterior o, como máximo, al llegar su fecha de inicio.")}
+          </p>
+          {roundData.startsAt && roundData.endsAt ? (
+            <p className="mt-3 text-xs font-black text-neutral-500">
+              {formatShortDate(roundData.startsAt, locale)} · {formatShortDate(roundData.endsAt, locale)}
+            </p>
+          ) : null}
+        </AppCard>
+      </div>
+    )
+  }
 
   if (!Number.isFinite(round) || roundMatches.length === 0 || !roundData) {
     return (

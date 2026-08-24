@@ -173,9 +173,16 @@ export default function MatchesPage() {
 
       <div data-tour="matches-round-list" className="space-y-7">
         {rounds.map((round) => {
-          const roundMatches = visibleMatches.filter(
-            (match) => match.round === round.round
-          )
+          const allRoundMatches = matches.filter((match) => match.round === round.round)
+          const roundIsSecret =
+            roundSettings.calendarVisibilityMode === "progressive" &&
+            allRoundMatches.length > 0 &&
+            allRoundMatches.every(
+              (match) => match.teamA.length === 0 && match.teamB.length === 0,
+            )
+          const roundMatches = roundIsSecret
+            ? allRoundMatches
+            : visibleMatches.filter((match) => match.round === round.round)
           const roundWindowText = getRoundWindowText(round)
           const roundStatusText = getRoundStatusText(round)
 
@@ -190,69 +197,103 @@ export default function MatchesPage() {
               data-active-round={round.id === activeRoundId ? "true" : undefined}
               className="scroll-mt-24 space-y-4"
             >
-              <Link
-                href={`/round/${round.round}`}
-                aria-label={tx(`Abrir resumen de ${round.name}`)}
-                className="block rounded-xl px-1 py-1 transition active:bg-neutral-100"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="type-section-title">{round.name}</h2>
-
-                  {roundStatusText ? (
-                    <span className={getRoundStatusBadgeClassName(round.status)}>
-                      {roundStatusText}
-                    </span>
+              {roundIsSecret ? (
+                <div className="px-1 py-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="type-section-title">{round.name}</h2>
+                    {roundStatusText ? (
+                      <span className={getRoundStatusBadgeClassName(round.status)}>
+                        {roundStatusText}
+                      </span>
+                    ) : null}
+                  </div>
+                  {roundWindowText ? (
+                    <p className="mt-1 text-sm text-neutral-500">{roundWindowText}</p>
                   ) : null}
                 </div>
+              ) : (
+                <Link
+                  href={`/round/${round.round}`}
+                  aria-label={tx(`Abrir resumen de ${round.name}`)}
+                  className="block rounded-xl px-1 py-1 transition active:bg-neutral-100"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="type-section-title">{round.name}</h2>
+                    {roundStatusText ? (
+                      <span className={getRoundStatusBadgeClassName(round.status)}>
+                        {roundStatusText}
+                      </span>
+                    ) : null}
+                  </div>
+                  {roundWindowText ? (
+                    <p className="mt-1 text-sm text-neutral-500">{roundWindowText}</p>
+                  ) : null}
+                </Link>
+              )}
 
-                {roundWindowText ? (
-                  <p className="mt-1 text-sm text-neutral-500">
-                    {roundWindowText}
+              {roundIsSecret ? (
+                <AppCard className="border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-4 text-center">
+                  <div className="mx-auto flex h-9 w-9 items-center justify-center text-neutral-400">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+                      <rect x="5" y="10" width="14" height="10" rx="2" />
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                    </svg>
+                  </div>
+                  <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                    {tx("Emparejamientos secretos")}
                   </p>
-                ) : null}
-              </Link>
-
-              <div className="space-y-4">
-                {roundMatches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    players={players}
-                    roundStartsAt={round.startsAt}
-                    roundEndsAt={round.endsAt}
-                    headerMode="match-date"
-                    headerLeftLabel={tx(`Jornada ${match.round}`)}
-                    statusPosition="right"
-                    stackTeamPlayers
-                    currentUserId={currentUserId}
-                    highlightedPlayerIds={
-                      roundSettings.mvpSystem === "voting"
-                        ? (getMatchMvpSelection({ votes, match })?.playerIds ?? [])
-                        : getRoundMvpPlayerIds({
-                            leagueId: activeLeague.id,
-                            seasonId: activeSeason.id,
-                            round: match.round,
-                            matches,
-                            votes,
-                            mvpSystem: roundSettings.mvpSystem,
-                          })
-                    }
-                    highlightedPlayerLabel={
-                      roundSettings.mvpSystem === "voting"
-                        ? tx("MVP del partido")
-                        : tx("MVP de jornada")
-                    }
-                    leagueLocations={activeLeague.locations}
-                    showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
-                    hideMissingScheduleMeta
-                  />
-                ))}
-              </div>
+                  <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">
+                    {tx("Se revelarán cuando finalice la jornada anterior o, como máximo, al comenzar esta jornada.")}
+                  </p>
+                </AppCard>
+              ) : (
+                <div className="space-y-4">
+                  {roundMatches.map((match) => (
+                    <MatchCard
+                      key={match.id}
+                      match={match}
+                      players={players}
+                      roundStartsAt={round.startsAt}
+                      roundEndsAt={round.endsAt}
+                      headerMode="match-date"
+                      headerLeftLabel={tx(`Jornada ${match.round}`)}
+                      statusPosition="right"
+                      stackTeamPlayers
+                      currentUserId={currentUserId}
+                      highlightedPlayerIds={
+                        roundSettings.mvpSystem === "voting"
+                          ? (getMatchMvpSelection({ votes, match })?.playerIds ?? [])
+                          : getRoundMvpPlayerIds({
+                              leagueId: activeLeague.id,
+                              seasonId: activeSeason.id,
+                              round: match.round,
+                              matches,
+                              votes,
+                              mvpSystem: roundSettings.mvpSystem,
+                            })
+                      }
+                      highlightedPlayerLabel={
+                        roundSettings.mvpSystem === "voting"
+                          ? tx("MVP del partido")
+                          : tx("MVP de jornada")
+                      }
+                      leagueLocations={activeLeague.locations}
+                      showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
+                      hideMissingScheduleMeta
+                    />
+                  ))}
+                </div>
+              )}
             </section>
           )
         })}
 
-        {visibleMatches.length === 0 ? (
+        {visibleMatches.length === 0 && !matches.some(
+          (match) =>
+            roundSettings.calendarVisibilityMode === "progressive" &&
+            match.teamA.length === 0 &&
+            match.teamB.length === 0,
+        ) ? (
           <EmptyState
             title={
               activeScope === "mine"

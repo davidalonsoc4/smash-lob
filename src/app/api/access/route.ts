@@ -8,6 +8,7 @@ import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import { getPreseasonAccessPhase, redactPreseasonMatch } from "@/lib/preseasonSecrets"
+import { getEffectiveRevealedThroughRound, redactProgressiveMatch } from "@/lib/progressiveCalendar"
 import {
   activateDueScheduledSeasons,
   prepareScheduledSeasonCalendars,
@@ -83,7 +84,7 @@ function mapLeague(league: Record<string, unknown>): League {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const authResult = await requireAuthenticatedAppUser()
 
   if (!authResult.ok) {
@@ -101,7 +102,7 @@ export async function GET() {
   const [ownMembershipResult, spectatorResult] = await Promise.all([
     supabase
       .from("league_memberships")
-      .select("user_id,league_id,player_id,role")
+      .select("user_id,league_id,player_id,role,experience_mode")
       .eq("user_id", userId),
     supabase
       .from("league_spectators")
@@ -109,8 +110,11 @@ export async function GET() {
       .eq("user_id", userId),
   ])
 
-  if (ownMembershipResult.error || spectatorResult.error) {
-    return NextResponse.json({ error: "access_lookup_failed" }, { status: 500 })
+  if (ownMembershipResult.error) {
+    return buildLeagueSnapshotFailure("own_league_memberships", ownMembershipResult.error)
+  }
+  if (spectatorResult.error) {
+    return buildLeagueSnapshotFailure("league_spectators", spectatorResult.error)
   }
 
   const ownMemberships: UserLeagueMembership[] = (ownMembershipResult.data ?? []).map(
@@ -119,6 +123,10 @@ export async function GET() {
       leagueId: membership.league_id,
       playerId: membership.player_id ?? "",
       role: toRole(membership.role),
+      experienceMode:
+        membership.experience_mode === "player" || membership.experience_mode === "player_experience"
+          ? membership.experience_mode
+          : "admin",
     })
   )
   const memberLeagueIds = new Set(
@@ -241,7 +249,7 @@ export async function GET() {
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled"
+        "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location"
       )
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
@@ -253,7 +261,7 @@ export async function GET() {
       .in("league_id", leagueIds),
     supabase
       .from("league_memberships")
-      .select("user_id,league_id,player_id,role")
+      .select("user_id,league_id,player_id,role,experience_mode")
       .in("league_id", leagueIds),
   ])
 
@@ -404,6 +412,17 @@ export async function GET() {
         : null,
     preseasonSecretDaysBefore:
       preseasonSecretDaysBySeasonId.get(String(settings.season_id)) ?? null,
+    calendarVisibilityMode:
+      settings.calendar_visibility_mode === "progressive" ? "progressive" : "full",
+    revealedThroughRound:
+      typeof settings.revealed_through_round === "number"
+        ? settings.revealed_through_round
+        : 0,
+    openingRoundEnabled: settings.opening_round_enabled === true,
+    openingRoundAt:
+      typeof settings.opening_round_at === "string" ? settings.opening_round_at : null,
+    openingRoundLocation:
+      typeof settings.opening_round_location === "string" ? settings.opening_round_location : null,
     roundWindowDays: settings.round_window_days,
     requiresThreeSets: settings.requires_three_sets,
     mvpSystem:
@@ -478,23 +497,41 @@ export async function GET() {
     seasonSettings.map((settings) => [settings.seasonId, settings]),
   )
   const leagueById = new Map(leagues.map((league) => [league.id, league]))
-  const adminLeagueIds = new Set(
-    ownMemberships
-      .filter((membership) => membership.role === "creator" || membership.role === "admin")
-      .map((membership) => membership.leagueId),
+  const ownMembershipByLeagueId = new Map(
+    ownMemberships.map((membership) => [membership.leagueId, membership]),
   )
+  const requestedAdminContext =
+    new URL(request.url).searchParams.get("context") === "admin"
 
-  const matches: MatchData[] = (matchesResult.data ?? []).map((match) => {
+  const canSeeCompetitionAdminData = (leagueId: string) => {
+    const membership = ownMembershipByLeagueId.get(leagueId)
+    if (!membership) return isSuperuser
+    if (membership.role !== "creator" && membership.role !== "admin") return false
+    if (membership.experienceMode === "player") return false
+    if (membership.experienceMode === "player_experience") return requestedAdminContext
+    return true
+  }
+
+  const hydratedMatches: MatchData[] = (matchesResult.data ?? []).map((match) => {
     const mappedMatch = mapSupabaseMatch(match)
-    const hydratedMatch: MatchData = {
+    return {
       ...mappedMatch,
       coordinationStatus: coordinationStatusByMatchId.get(mappedMatch.id) ?? null,
       substitutions: substitutionsByMatchId.get(mappedMatch.id) ?? [],
     }
+  })
+  const matchesBySeasonId = new Map<string, MatchData[]>()
+  for (const match of hydratedMatches) {
+    const current = matchesBySeasonId.get(match.seasonId) ?? []
+    current.push(match)
+    matchesBySeasonId.set(match.seasonId, current)
+  }
+
+  const matches: MatchData[] = hydratedMatches.map((hydratedMatch) => {
     const season = seasonById.get(hydratedMatch.seasonId)
     const settings = settingsBySeasonId.get(hydratedMatch.seasonId)
     const league = leagueById.get(hydratedMatch.leagueId)
-    const canSeePreparedDetails = isSuperuser || adminLeagueIds.has(hydratedMatch.leagueId)
+    const canSeePreparedDetails = canSeeCompetitionAdminData(hydratedMatch.leagueId)
 
     if (
       !canSeePreparedDetails &&
@@ -516,6 +553,22 @@ export async function GET() {
       }
     }
 
+    if (
+      !canSeePreparedDetails &&
+      season &&
+      settings?.calendarVisibilityMode === "progressive"
+    ) {
+      const revealedThrough = getEffectiveRevealedThroughRound({
+        seasonStatus: season.status,
+        totalRounds: season.totalRounds,
+        settings,
+        matches: matchesBySeasonId.get(season.id) ?? [],
+      })
+      if (hydratedMatch.round > revealedThrough) {
+        return redactProgressiveMatch(hydratedMatch)
+      }
+    }
+
     return hydratedMatch
   })
   const memberships: UserLeagueMembership[] = (
@@ -529,8 +582,11 @@ export async function GET() {
       leagueId: membership.league_id,
       playerId: membership.player_id ?? "",
       role: toRole(membership.role),
+      experienceMode:
+        membership.experience_mode === "player" || membership.experience_mode === "player_experience"
+          ? membership.experience_mode
+          : "admin",
     }))
-    .filter((membership) => !(isSuperuser && membership.userId === email))
 
   const payload = {
     isSuperuser,

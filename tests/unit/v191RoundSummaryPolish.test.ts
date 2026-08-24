@@ -37,9 +37,9 @@ describe("v1.9.1 round summary polish", () => {
 
     expect(page).toContain('<RoundSummaryShareButton data={roundSummaryImageData} />')
     expect(page).not.toContain("El exportable de jornada se conectará en el siguiente desarrollo")
-    expect(shareButton).toContain("Compartir resumen")
-    expect(shareButton).toContain("Descargar resumen")
-    expect(shareButton).toContain("bg-neutral-950 px-3 py-2.5")
+    expect(shareButton).toContain('tx("Ver imagen")')
+    expect(shareButton).toContain("GeneratedImagePreviewModal")
+    expect(shareButton).toContain("data-round-summary-preview")
   })
 
   it("marks match-based highlights with their real match id", async () => {

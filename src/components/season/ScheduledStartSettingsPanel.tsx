@@ -40,6 +40,10 @@ export function ScheduledStartSettingsPanel({ activeLeagueId, roundSettings }: P
       leagueId: activeLeagueId,
       scheduledStartAt: scheduledStartIso,
       preseasonSecretDaysBefore: scheduledStartIso ? nextSecretDaysBefore : null,
+      openingRoundAt:
+        roundSettings.openingRoundEnabled && scheduledStartIso
+          ? scheduledStartIso
+          : roundSettings.openingRoundAt ?? null,
     };
 
     setIsSaving(true);

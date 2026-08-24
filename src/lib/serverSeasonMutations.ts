@@ -1,5 +1,7 @@
 import "server-only"
 
+import { randomInt } from "node:crypto"
+
 import {
   generateBalancedCalendar,
   generateManualCalendar,
@@ -61,6 +63,11 @@ type CreateServerSeasonInput = {
   seasonStartsAt: string | null
   scheduledStartAt: string | null
   preseasonSecretDaysBefore: number | null
+  calendarVisibilityMode: SeasonRoundSettings["calendarVisibilityMode"]
+  revealedThroughRound: number
+  openingRoundEnabled: boolean
+  openingRoundAt: string | null
+  openingRoundLocation: string | null
   roundWindowDays: number | null
   requiresThreeSets: boolean
   mvpSystem: SeasonRoundSettings["mvpSystem"]
@@ -170,15 +177,28 @@ function hasBookingReservationItems(value: unknown) {
   )
 }
 
-function isPristineUpcomingMatch(match: Record<string, unknown>) {
+function isPristineUpcomingMatch(
+  match: Record<string, unknown>,
+  openingRoundAt: string | null = null,
+  openingRoundLocation: string | null = null,
+) {
+  const round = Number(match.round)
+  const scheduledAt = typeof match.scheduled_at === "string" ? match.scheduled_at : null
+  const openingScheduleAllowed =
+    round === 1 && Boolean(openingRoundAt) && scheduledAt === openingRoundAt
+  const openingLocationAllowed =
+    openingScheduleAllowed &&
+    (match.location === null ||
+      (Boolean(openingRoundLocation) && match.location === openingRoundLocation))
+
   return (
-    match.status === "scheduling" &&
+    (match.status === "scheduling" || (openingScheduleAllowed && match.status === "scheduled")) &&
     match.points_a === null &&
     match.points_b === null &&
     !hasArrayItems(match.sets) &&
-    match.scheduled_at === null &&
+    (scheduledAt === null || openingScheduleAllowed) &&
     match.date_label === null &&
-    match.location === null &&
+    (match.location === null || openingLocationAllowed) &&
     match.result_recorded_at === null &&
     match.result_reported_by_player_id === null &&
     !Boolean(match.result_locked) &&
@@ -254,6 +274,11 @@ type EditableSeasonRoundSettings = Pick<
   | "seasonStartsAt"
   | "scheduledStartAt"
   | "preseasonSecretDaysBefore"
+  | "calendarVisibilityMode"
+  | "revealedThroughRound"
+  | "openingRoundEnabled"
+  | "openingRoundAt"
+  | "openingRoundLocation"
   | "roundWindowDays"
   | "requiresThreeSets"
   | "mvpSystem"
@@ -271,11 +296,13 @@ export async function updateServerSeasonRoundSettings({
   leagueId,
   seasonId,
   settings,
+  seasonStatus,
 }: {
   supabase: SupabaseClient
   leagueId: string
   seasonId: string
   settings: EditableSeasonRoundSettings
+  seasonStatus: "upcoming" | "active" | "finished"
 }) {
   const seasonPlayerIds = await getSeasonPlayerIds({
     supabase,
@@ -292,6 +319,11 @@ export async function updateServerSeasonRoundSettings({
     season_starts_at: settings.seasonStartsAt,
     scheduled_start_at: settings.scheduledStartAt,
     preseason_secret_days_before: settings.preseasonSecretDaysBefore ?? null,
+    calendar_visibility_mode: settings.calendarVisibilityMode === "progressive" ? "progressive" : "full",
+    revealed_through_round: Math.max(0, settings.revealedThroughRound ?? 0),
+    opening_round_enabled: settings.openingRoundEnabled === true,
+    opening_round_at: settings.openingRoundEnabled ? settings.openingRoundAt ?? null : null,
+    opening_round_location: settings.openingRoundEnabled ? settings.openingRoundLocation ?? null : null,
     round_window_days: settings.roundWindowDays,
     requires_three_sets: settings.requiresThreeSets,
     mvp_system: settings.mvpSystem,
@@ -322,6 +354,23 @@ export async function updateServerSeasonRoundSettings({
 
     if (insertError) {
       throw new SeasonMutationError(500, "season_settings_create_failed")
+    }
+  }
+
+  if (seasonStatus === "upcoming" && settings.openingRoundEnabled && settings.openingRoundAt) {
+    const { error: openingScheduleError } = await supabase
+      .from("matches")
+      .update({
+        scheduled_at: settings.openingRoundAt,
+        date_label: null,
+        location: settings.openingRoundLocation ?? null,
+        status: "scheduled",
+      })
+      .eq("season_id", seasonId)
+      .eq("round", 1)
+
+    if (openingScheduleError) {
+      throw new SeasonMutationError(500, "opening_round_schedule_sync_failed")
     }
   }
 }
@@ -460,7 +509,7 @@ export async function prepareServerSelfRegistrationSeasonCalendar({
 }): Promise<{ prepared: boolean; matchCount: number }> {
   const { data: settingsRow, error: settingsLookupError } = await supabase
     .from("season_settings")
-    .select("scheduled_start_at,roster_mode,player_capacity,schedule_mode")
+    .select("scheduled_start_at,roster_mode,player_capacity,schedule_mode,opening_round_enabled,opening_round_at,opening_round_location")
     .eq("season_id", seasonId)
     .eq("league_id", leagueId)
     .maybeSingle()
@@ -541,6 +590,22 @@ export async function prepareServerSelfRegistrationSeasonCalendar({
     throw new SeasonMutationError(500, "season_calendar_prepare_failed", message)
   }
 
+  if (settingsRow.opening_round_enabled === true && typeof settingsRow.opening_round_at === "string") {
+    const { error: openingScheduleError } = await supabase
+      .from("matches")
+      .update({
+        scheduled_at: settingsRow.opening_round_at,
+        date_label: null,
+        location: typeof settingsRow.opening_round_location === "string" ? settingsRow.opening_round_location : null,
+        status: "scheduled",
+      })
+      .eq("season_id", seasonId)
+      .eq("round", 1)
+    if (openingScheduleError) {
+      throw new SeasonMutationError(500, "opening_round_schedule_sync_failed")
+    }
+  }
+
   const row = Array.isArray(data) ? data[0] : null
 
   return {
@@ -565,7 +630,7 @@ export async function startServerExistingSeason({
   const { data: settingsRow, error: settingsLookupError } = await supabase
     .from("season_settings")
     .select(
-      "season_id,league_id,round_window_mode,season_starts_at,scheduled_start_at,preseason_secret_days_before,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
+      "season_id,league_id,round_window_mode,season_starts_at,scheduled_start_at,preseason_secret_days_before,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
     )
     .eq("season_id", seasonId)
     .eq("league_id", leagueId)
@@ -638,6 +703,17 @@ export async function startServerExistingSeason({
       throw new SeasonMutationError(500, "season_start_failed", message)
     }
 
+    if (settingsRow.opening_round_enabled === true && typeof settingsRow.opening_round_at === "string") {
+      const { error: openingScheduleError } = await supabase
+        .from("matches")
+        .update({ scheduled_at: settingsRow.opening_round_at, date_label: null, location: typeof settingsRow.opening_round_location === "string" ? settingsRow.opening_round_location : null, status: "scheduled" })
+        .eq("season_id", seasonId)
+        .eq("round", 1)
+      if (openingScheduleError) {
+        throw new SeasonMutationError(500, "opening_round_schedule_sync_failed")
+      }
+    }
+
     const [{ data: season, error: seasonError }, { data: matches, error: matchesError }] =
       await Promise.all([
         supabase
@@ -673,6 +749,21 @@ export async function startServerExistingSeason({
       preseasonSecretDaysBefore:
         typeof settingsRow.preseason_secret_days_before === "number"
           ? settingsRow.preseason_secret_days_before
+          : null,
+      calendarVisibilityMode:
+        settingsRow.calendar_visibility_mode === "progressive" ? "progressive" : "full",
+      revealedThroughRound:
+        typeof settingsRow.revealed_through_round === "number"
+          ? settingsRow.revealed_through_round
+          : 0,
+      openingRoundEnabled: settingsRow.opening_round_enabled === true,
+      openingRoundAt:
+        typeof settingsRow.opening_round_at === "string"
+          ? settingsRow.opening_round_at
+          : null,
+      openingRoundLocation:
+        typeof settingsRow.opening_round_location === "string"
+          ? settingsRow.opening_round_location
           : null,
       roundWindowDays: settingsRow.round_window_days,
       requiresThreeSets: Boolean(settingsRow.requires_three_sets),
@@ -915,23 +1006,18 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
   season,
   playerIds,
   scheduleMode,
+  reroll = false,
 }: {
   supabase: SupabaseClient
   season: ServerSeason
   playerIds: string[]
   scheduleMode: SeasonScheduleMode
+  reroll?: boolean
 }): Promise<MatchData[]> {
   const expectedRoundCount = getSeasonScheduleRoundCount({
     playerCount: playerIds.length,
     mode: scheduleMode,
   })
-  const generatedMatches = generateBalancedCalendar({
-    leagueId: season.leagueId,
-    seasonId: season.id,
-    playerIds,
-    scheduleMode,
-  })
-
   if (season.status !== "upcoming") {
     throw new SeasonMutationError(
       409,
@@ -948,6 +1034,26 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     )
   }
 
+  const { data: calendarSettings, error: calendarSettingsError } = await supabase
+    .from("season_settings")
+    .select("opening_round_enabled,opening_round_at,opening_round_location")
+    .eq("season_id", season.id)
+    .maybeSingle()
+
+  if (calendarSettingsError) {
+    throw new SeasonMutationError(500, "season_calendar_repair_settings_lookup_failed")
+  }
+
+  const openingRoundAt =
+    calendarSettings?.opening_round_enabled === true &&
+    typeof calendarSettings.opening_round_at === "string"
+      ? calendarSettings.opening_round_at
+      : null
+  const openingRoundLocation =
+    openingRoundAt && typeof calendarSettings?.opening_round_location === "string"
+      ? calendarSettings.opening_round_location
+      : null
+
   const { data: existingMatches, error: matchesError } = await supabase
     .from("matches")
     .select(matchSelect)
@@ -955,6 +1061,67 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
 
   if (matchesError) {
     throw new SeasonMutationError(500, "season_calendar_repair_lookup_failed")
+  }
+
+  const baseGeneratedMatches = generateBalancedCalendar({
+    leagueId: season.leagueId,
+    seasonId: season.id,
+    playerIds,
+    scheduleMode,
+  })
+
+  const calendarSignature = (
+    matches: Array<{ round: number; teamA: string[]; teamB: string[] }>,
+  ) =>
+    matches
+      .map((match) => {
+        const teams = [
+          [...match.teamA].sort().join("+"),
+          [...match.teamB].sort().join("+"),
+        ].sort()
+        return `${match.round}:${teams.join("|")}`
+      })
+      .sort((left, right) => left.localeCompare(right))
+      .join(";")
+
+  const currentSignature = calendarSignature(
+    (existingMatches ?? []).map((match) => ({
+      round: Number(match.round),
+      teamA: Array.isArray(match.team_a) ? match.team_a.map(String) : [],
+      teamB: Array.isArray(match.team_b) ? match.team_b.map(String) : [],
+    })),
+  )
+
+  let generatedMatches = baseGeneratedMatches
+  if (reroll && playerIds.length > 1) {
+    for (let attempt = 0; attempt < 32; attempt += 1) {
+      const shuffledPlayerIds = [...playerIds]
+      for (let index = shuffledPlayerIds.length - 1; index > 0; index -= 1) {
+        const swapIndex = randomInt(index + 1)
+        ;[shuffledPlayerIds[index], shuffledPlayerIds[swapIndex]] = [
+          shuffledPlayerIds[swapIndex],
+          shuffledPlayerIds[index],
+        ]
+      }
+      const candidate = generateBalancedCalendar({
+        leagueId: season.leagueId,
+        seasonId: season.id,
+        playerIds: shuffledPlayerIds,
+        scheduleMode,
+      })
+      if (calendarSignature(candidate) !== currentSignature) {
+        generatedMatches = candidate
+        break
+      }
+    }
+  }
+
+  if (reroll && calendarSignature(generatedMatches) === currentSignature) {
+    throw new SeasonMutationError(
+      409,
+      "season_calendar_reroll_no_alternative",
+      "No se ha encontrado un calendario equilibrado diferente. No se ha modificado el calendario actual.",
+    )
   }
 
   if ((existingMatches ?? []).length !== generatedMatches.length) {
@@ -967,7 +1134,7 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
 
   if (
     (existingMatches ?? []).some(
-      (match) => !isPristineUpcomingMatch(match as Record<string, unknown>)
+      (match) => !isPristineUpcomingMatch(match as Record<string, unknown>, openingRoundAt, openingRoundLocation)
     )
   ) {
     throw new SeasonMutationError(
@@ -1000,7 +1167,10 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     round: match.round,
     team_a: match.teamA,
     team_b: match.teamB,
-    status: "scheduling",
+    status: openingRoundAt && match.round === 1 ? "scheduled" : "scheduling",
+    scheduled_at: openingRoundAt && match.round === 1 ? openingRoundAt : null,
+    date_label: null,
+    location: openingRoundAt && match.round === 1 ? openingRoundLocation : null,
   }))
 
   const { data: updatedMatches, error: updateError } = await supabase
@@ -1039,6 +1209,11 @@ export async function createServerSeason({
     seasonStartsAt,
     scheduledStartAt,
     preseasonSecretDaysBefore,
+    calendarVisibilityMode,
+    revealedThroughRound,
+    openingRoundEnabled,
+    openingRoundAt,
+    openingRoundLocation,
     roundWindowDays,
     requiresThreeSets,
     mvpSystem,
@@ -1434,23 +1609,27 @@ export async function createServerSeason({
       ? await supabase
           .from("matches")
           .insert(
-            seasonMatches.map((match) => ({
+            seasonMatches.map((match) => {
+              const useOpeningSchedule =
+                openingRoundEnabled && Boolean(openingRoundAt) && match.round === 1
+              return {
               league_id: match.leagueId,
               season_id: match.seasonId,
               round: match.round,
-              status: match.status,
+              status: useOpeningSchedule ? "scheduled" : match.status,
               team_a: match.teamA,
               team_b: match.teamB,
               points_a: match.pointsA,
               points_b: match.pointsB,
               sets: match.sets,
-              scheduled_at: match.scheduledAt,
-              date_label: match.dateLabel,
-              location: match.location,
+              scheduled_at: useOpeningSchedule ? openingRoundAt : match.scheduledAt,
+              date_label: useOpeningSchedule ? null : match.dateLabel,
+              location: useOpeningSchedule ? openingRoundLocation : match.location,
               result_recorded_at: match.resultRecordedAt,
               result_reported_by_player_id: match.resultReportedByPlayerId,
               result_locked: match.resultLocked,
-            }))
+              }
+            })
           )
           .select(matchSelect)
       : { data: [], error: null }
@@ -1475,6 +1654,11 @@ export async function createServerSeason({
       season_starts_at: seasonStartsAt,
       scheduled_start_at: scheduledStartAt,
       preseason_secret_days_before: scheduledStartAt ? preseasonSecretDaysBefore : null,
+      calendar_visibility_mode: calendarVisibilityMode === "progressive" ? "progressive" : "full",
+      revealed_through_round: Math.max(0, revealedThroughRound),
+      opening_round_enabled: openingRoundEnabled,
+      opening_round_at: openingRoundEnabled ? openingRoundAt : null,
+      opening_round_location: openingRoundEnabled ? openingRoundLocation : null,
       round_window_days: roundWindowDays,
       requires_three_sets: requiresThreeSets,
       mvp_system: mvpSystem,
@@ -1533,6 +1717,11 @@ export async function createServerSeason({
       seasonStartsAt,
       scheduledStartAt,
       preseasonSecretDaysBefore: scheduledStartAt ? preseasonSecretDaysBefore : null,
+      calendarVisibilityMode: calendarVisibilityMode === "progressive" ? "progressive" : "full",
+      revealedThroughRound: Math.max(0, revealedThroughRound),
+      openingRoundEnabled,
+      openingRoundAt: openingRoundEnabled ? openingRoundAt : null,
+      openingRoundLocation: openingRoundEnabled ? openingRoundLocation : null,
       roundWindowDays,
       requiresThreeSets,
       mvpSystem,

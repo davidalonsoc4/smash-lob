@@ -1,9 +1,10 @@
 import "server-only"
 
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import type { LeagueMemberRole } from "@/data/fakeData"
+import type { LeagueExperienceMode, LeagueMemberRole } from "@/data/fakeData"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { isAuthorized } from "@/lib/authorizationPolicy"
+import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar"
 
 type MatchAccessOptions = {
   requireLeagueAccess?: boolean
@@ -44,6 +45,7 @@ export async function getServerMatchActor(
         membership: {
           role: LeagueMemberRole
           playerId: string | null
+          experienceMode: LeagueExperienceMode
         } | null
         isAdmin: boolean
         isSpectator: boolean
@@ -107,22 +109,20 @@ export async function getServerMatchActor(
 
   const mappedMatch = mapSupabaseMatch(matchRow as Record<string, unknown>)
 
-  const [membershipResult, spectatorResult] = user.isSuperuser
-    ? [{ data: null, error: null }, { data: null, error: null }]
-    : await Promise.all([
-        supabase
-          .from("league_memberships")
-          .select("role,player_id")
-          .eq("league_id", matchRow.league_id)
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("league_spectators")
-          .select("league_id")
-          .eq("league_id", matchRow.league_id)
-          .eq("user_id", user.id)
-          .maybeSingle(),
-      ])
+  const [membershipResult, spectatorResult] = await Promise.all([
+    supabase
+      .from("league_memberships")
+      .select("role,player_id,experience_mode")
+      .eq("league_id", matchRow.league_id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("league_spectators")
+      .select("league_id")
+      .eq("league_id", matchRow.league_id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ])
 
   if (membershipResult.error || spectatorResult.error) {
     return { ok: false, status: 500, error: "match_access_lookup_failed" }
@@ -135,6 +135,11 @@ export async function getServerMatchActor(
           typeof membershipResult.data.player_id === "string"
             ? membershipResult.data.player_id
             : null,
+        experienceMode:
+          membershipResult.data.experience_mode === "player" ||
+          membershipResult.data.experience_mode === "player_experience"
+            ? membershipResult.data.experience_mode
+            : "admin",
       }
     : null
   const isSpectator = Boolean(spectatorResult.data)
@@ -152,7 +157,12 @@ export async function getServerMatchActor(
     isSpectator,
     isParticipant: Boolean(participantPlayerId),
   }
-  const isAdmin = isAuthorized(authorizationContext, "league:admin")
+  const actualIsAdmin = isAuthorized(authorizationContext, "league:admin")
+  const experienceMode = membership?.experienceMode ?? "admin"
+  const canUseAdminTools = actualIsAdmin &&
+    (!membership || experienceMode !== "player")
+  const isAdmin = actualIsAdmin &&
+    (!membership || experienceMode === "admin")
 
   if (
     options.requireLeagueAccess &&
@@ -161,7 +171,7 @@ export async function getServerMatchActor(
     return { ok: false, status: 403, error: "forbidden" }
   }
 
-  if (options.requireAdmin && !isAdmin) {
+  if (options.requireAdmin && !canUseAdminTools) {
     return { ok: false, status: 403, error: "forbidden" }
   }
 
@@ -172,34 +182,79 @@ export async function getServerMatchActor(
     return { ok: false, status: 403, error: "forbidden" }
   }
 
-  if (
-    (options.requireMutableSeason && !user.isSuperuser) ||
-    (!user.isSuperuser && !isAdmin)
-  ) {
+  if ((!user.isSuperuser || !isAdmin) && (options.requireMutableSeason || !isAdmin)) {
     const [{ data: seasonRow, error: seasonError }, { data: seasonSettings, error: settingsError }] = await Promise.all([
       supabase
         .from("seasons")
-        .select("status")
+        .select("status,total_rounds")
         .eq("id", mappedMatch.seasonId)
         .eq("league_id", mappedMatch.leagueId)
         .maybeSingle(),
       supabase
         .from("season_settings")
-        .select("scheduled_start_at")
+        .select("scheduled_start_at,calendar_visibility_mode,revealed_through_round,round_window_mode,season_starts_at,round_window_days,opening_round_enabled,opening_round_at")
         .eq("season_id", mappedMatch.seasonId)
         .eq("league_id", mappedMatch.leagueId)
         .maybeSingle(),
     ])
     if (seasonError || settingsError) return { ok: false, status: 500, error: "season_lookup_failed" }
     if (!seasonRow) return { ok: false, status: 404, error: "season_not_found" }
-    if (
-      options.requireMutableSeason &&
-      !user.isSuperuser &&
-      seasonRow.status === "finished"
-    ) {
+    if (options.requireMutableSeason && seasonRow.status === "finished") {
       return { ok: false, status: 409, error: "season_finished_read_only" }
     }
-    if (seasonRow.status === "upcoming" && !isAdmin) {
+
+    if (
+      !options.requireAdmin &&
+      !isAdmin &&
+      seasonSettings?.calendar_visibility_mode === "progressive"
+    ) {
+      const { data: seasonMatches, error: seasonMatchesError } = await supabase
+        .from("matches")
+        .select(matchSelect)
+        .eq("season_id", mappedMatch.seasonId)
+      if (seasonMatchesError) {
+        return { ok: false, status: 500, error: "season_matches_lookup_failed" }
+      }
+      const settings = {
+        leagueId: mappedMatch.leagueId,
+        seasonId: mappedMatch.seasonId,
+        roundWindowMode: seasonSettings.round_window_mode === "fixed-days" ? "fixed-days" as const : "none" as const,
+        seasonStartsAt: typeof seasonSettings.season_starts_at === "string" ? seasonSettings.season_starts_at : null,
+        scheduledStartAt: typeof seasonSettings.scheduled_start_at === "string" ? seasonSettings.scheduled_start_at : null,
+        preseasonSecretDaysBefore: null,
+        calendarVisibilityMode: "progressive" as const,
+        revealedThroughRound: typeof seasonSettings.revealed_through_round === "number" ? seasonSettings.revealed_through_round : 0,
+        openingRoundEnabled: seasonSettings.opening_round_enabled === true,
+        openingRoundAt: typeof seasonSettings.opening_round_at === "string" ? seasonSettings.opening_round_at : null,
+        roundWindowDays: typeof seasonSettings.round_window_days === "number" ? seasonSettings.round_window_days : null,
+        requiresThreeSets: true,
+        mvpSystem: "automatic" as const,
+        resultConfirmationMode: "optional" as const,
+        manualActiveRound: null,
+        manualCompletedRounds: [],
+        registrationFee: { enabled: false, amount: 0, purpose: "", payments: [], expenses: [] },
+        rosterMode: "fixed" as const,
+        playerCapacity: null,
+        registrationOpen: false,
+        rosterCompletedAt: null,
+        scheduleMode: "single" as const,
+        calendarMode: "balanced" as const,
+        allowPlayerIncidents: true,
+        allowPlayerSubstitutions: true,
+        availabilityRecommendationsEnabled: false,
+      }
+      const revealedThrough = getEffectiveRevealedThroughRound({
+        seasonStatus: seasonRow.status === "finished" ? "finished" : seasonRow.status === "active" ? "active" : "upcoming",
+        totalRounds: Number(seasonRow.total_rounds) || 0,
+        settings,
+        matches: (seasonMatches ?? []).map((row) => mapSupabaseMatch(row as Record<string, unknown>)),
+      })
+      if (mappedMatch.round > revealedThrough) {
+        return { ok: false, status: 404, error: "match_not_revealed" }
+      }
+    }
+
+    if (seasonRow.status === "upcoming" && !isAdmin && !options.requireAdmin) {
       const scheduledStartAt =
         typeof seasonSettings?.scheduled_start_at === "string"
           ? seasonSettings.scheduled_start_at

@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.10.29",
+  "version": "1.11.0",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -11,7 +11,7 @@
     "env:check": "node scripts/check-required-env.mjs",
     "secrets:check": "node scripts/check-repository-secrets.mjs",
     "security:check": "node scripts/check-security-baseline.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit --incremental false -p tsconfig.build.json",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
@@ -24,8 +24,8 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.10.29 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.10.29 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.11.0 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.11.0 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",

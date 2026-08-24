@@ -61,7 +61,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     key: "mvp_awards",
     eventTypes: ["match_mvp_awarded", "round_mvp_awarded"],
   },
-  { key: "round_events", eventTypes: ["round_in_play"] },
+  { key: "round_events", eventTypes: ["round_in_play", "round_pairings_revealed"] },
   {
     key: "season_lifecycle",
     eventTypes: [

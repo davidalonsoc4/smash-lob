@@ -157,7 +157,7 @@ describe("v1.10.26 preseason secret phase", () => {
     expect(mutations).toContain("preseason_secret_days_before")
     expect(access).toContain("redactPreseasonMatch")
     expect(access).toContain("preseasonSecretSettingsResult.error ? []")
-    expect(access).toContain("adminLeagueIds.has(hydratedMatch.leagueId)")
+    expect(access).toContain("canSeeCompetitionAdminData(hydratedMatch.leagueId)")
     expect(access).toContain('if (phase !== "active")')
   })
 
@@ -169,14 +169,14 @@ describe("v1.10.26 preseason secret phase", () => {
       read("src/app/api/leagues/[id]/matches/[matchId]/availability/route.ts"),
     ])
 
-    expect(activity).toContain("hiddenMatchSeasonIds")
-    expect(activity).toContain("!viewer.isAdmin && !viewer.user.isSuperuser")
+    expect(activity).toContain("hiddenMatchIds")
+    expect(activity).toContain("!viewer.isCompetitionAdmin")
     expect(activity).toContain("event.matchId")
     expect(push).toContain('reason: "scheduled_season_prestart"')
     expect(push).toContain('seasonRow?.status === "upcoming"')
     expect(push).toContain("scheduledStartMs > Date.now()")
-    expect(matchAccess).toContain("(options.requireMutableSeason && !user.isSuperuser) ||")
-    expect(matchAccess).toContain("(!user.isSuperuser && !isAdmin)")
+    expect(matchAccess).toContain("(!user.isSuperuser || !isAdmin)")
+    expect(matchAccess).toContain("experienceMode")
     expect(matchAccess).toContain('seasonRow.status === "upcoming" && !isAdmin')
     expect(availability).toContain("getServerMatchActor(matchId, { requireLeagueAccess: true })")
     expect(availability).toContain("access.actor.match.participantIds")

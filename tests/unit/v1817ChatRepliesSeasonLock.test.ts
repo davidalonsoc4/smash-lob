@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("v1.8.17 finished-season lock and chat replies", () => {
-  it("makes finished seasons immutable for non-superadmins in shared server gates", async () => {
+  it("keeps finished seasons immutable outside the effective competition-admin experience", async () => {
     const seasonAccess = await readFile("src/lib/serverSeasonAccess.ts", "utf8")
     const matchAccess = await readFile("src/lib/serverMatchAccess.ts", "utf8")
     const substitutes = await readFile("src/lib/serverSubstitutes.ts", "utf8")
@@ -10,7 +10,8 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(seasonAccess).toContain('error: "season_finished_read_only"')
     expect(seasonAccess).toContain("requireMutableSeasonForActor")
     expect(matchAccess).toContain("requireMutableSeason?: boolean")
-    expect(matchAccess).toContain("options.requireMutableSeason && !user.isSuperuser")
+    expect(matchAccess).toContain("options.requireMutableSeason || !isAdmin")
+    expect(matchAccess).toContain('experienceMode === "admin"')
     expect(matchAccess).toContain('seasonRow.status === "finished"')
     expect(substitutes).toContain("options.requireMutable && season.status === \"finished\" && !user.isSuperuser")
   })

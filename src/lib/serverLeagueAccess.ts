@@ -21,6 +21,7 @@ export type ServerLeagueActor = {
     role: "creator" | "admin" | "player"
     playerId: string | null
     joinedAt: string | null
+    experienceMode: "admin" | "player" | "player_experience"
   } | null
 }
 
@@ -31,6 +32,7 @@ type GetServerLeagueActorOptions = {
 
 export type ServerLeagueViewer = ServerLeagueActor & {
   isAdmin: boolean
+  isCompetitionAdmin: boolean
   isSpectator: boolean
   spectatorJoinedAt: string | null
 }
@@ -82,7 +84,7 @@ export async function getServerLeagueViewer(
   const [membershipResult, spectatorResult] = await Promise.all([
     supabase
       .from("league_memberships")
-      .select("role,player_id,joined_at")
+      .select("role,player_id,joined_at,experience_mode")
       .eq("league_id", leagueId)
       .eq("user_id", id)
       .maybeSingle(),
@@ -95,6 +97,24 @@ export async function getServerLeagueViewer(
   ])
 
   if (membershipResult.error || spectatorResult.error) {
+    console.error("[serverLeagueAccess] league viewer lookup failed", {
+      membership: membershipResult.error
+        ? {
+            code: membershipResult.error.code ?? null,
+            message: membershipResult.error.message ?? null,
+            details: membershipResult.error.details ?? null,
+            hint: membershipResult.error.hint ?? null,
+          }
+        : null,
+      spectator: spectatorResult.error
+        ? {
+            code: spectatorResult.error.code ?? null,
+            message: spectatorResult.error.message ?? null,
+            details: spectatorResult.error.details ?? null,
+            hint: spectatorResult.error.hint ?? null,
+          }
+        : null,
+    })
     return { ok: false, status: 500, error: "league_membership_lookup_failed" }
   }
 
@@ -109,6 +129,11 @@ export async function getServerLeagueViewer(
           typeof membershipResult.data.joined_at === "string"
             ? membershipResult.data.joined_at
             : null,
+        experienceMode:
+          membershipResult.data.experience_mode === "player" ||
+          membershipResult.data.experience_mode === "player_experience"
+            ? membershipResult.data.experience_mode
+            : "admin",
       }
     : null
   const spectatorJoinedAt =
@@ -123,6 +148,8 @@ export async function getServerLeagueViewer(
     isSpectator,
   }
   const isAdmin = isAuthorized(authorizationContext, "league:admin")
+  const isCompetitionAdmin =
+    isAdmin && (!membership || membership.experienceMode === "admin")
 
   if (options.requireAdmin && !isAdmin) {
     return { ok: false, status: 403, error: "forbidden" }
@@ -159,6 +186,7 @@ export async function getServerLeagueViewer(
       },
       membership,
       isAdmin,
+      isCompetitionAdmin,
       isSpectator,
       spectatorJoinedAt,
     },

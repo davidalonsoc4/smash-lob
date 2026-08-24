@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { LEAGUE_ACCESS_REFRESH_EVENT } from "@/lib/appRefreshEvents";
@@ -33,6 +34,7 @@ import {
 import {
   createSupabaseLeague,
   fetchSupabaseLeagueSnapshot,
+  updateSupabaseLeagueExperienceMode,
 } from "@/lib/supabaseLeagues";
 import {
   normalizeLeagueLocations,
@@ -51,6 +53,7 @@ import {
   leagueMembers,
   leagues as defaultLeagues,
   type League,
+  type LeagueExperienceMode,
   type LeagueMemberRole,
   type PlayerProfile,
   type UserLeagueMembership,
@@ -75,6 +78,10 @@ type LeagueAccessContextValue = {
   canCreateLeagues: boolean;
   isAdminViewEnabled: boolean;
   setAdminViewEnabled: (enabled: boolean) => void;
+  getLeagueExperienceMode: (leagueId: string) => LeagueExperienceMode;
+  setLeagueExperienceMode: (leagueId: string, mode: LeagueExperienceMode) => Promise<boolean>;
+  usesPlayerExperience: (leagueId: string) => boolean;
+  canAccessLeagueAdminTools: (leagueId: string) => boolean;
   leagues: League[];
   userMemberships: UserLeagueMembership[];
   spectatorLeagueIds: string[];
@@ -490,6 +497,8 @@ function recordSupabaseError(action: string, error: unknown) {
 
 export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const { data: session, status: sessionStatus } = useSession();
+  const pathname = usePathname();
+  const adminSnapshotContext = pathname === "/admin" || pathname.startsWith("/admin/");
   const { hydrateMatches } = useMatchData();
   const {
     hydrateSeasonSnapshot,
@@ -566,7 +575,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
     async function hydrateSupabaseAccess() {
       try {
-        const snapshot = await fetchSupabaseLeagueSnapshot();
+        const snapshot = await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext });
 
         if (isCancelled) {
           return;
@@ -628,6 +637,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       window.clearTimeout(cachedAccessTimer);
     };
   }, [
+    adminSnapshotContext,
     hydrateMatches,
     hydrateSeasonSnapshot,
     sessionStatus,
@@ -640,7 +650,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     }
 
     try {
-      const snapshot = await fetchSupabaseLeagueSnapshot();
+      const snapshot = await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext });
       const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : [];
       const fallbackMemberships = isDemoDataEnabled()
         ? defaultUserLeagueMemberships
@@ -692,7 +702,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       recordSupabaseError("refresh-league-access", error);
       return false;
     }
-  }, [hydrateMatches, hydrateSeasonSnapshot, userId]);
+  }, [adminSnapshotContext, hydrateMatches, hydrateSeasonSnapshot, userId]);
 
   useEffect(() => {
     const handleLeagueAccessRefresh = () => {
@@ -1701,28 +1711,81 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [getMembershipForLeague, isSuperuser],
   );
 
-  const isLeagueAdmin = useCallback(
+  const getLeagueExperienceMode = useCallback(
+    (leagueId: string): LeagueExperienceMode => {
+      if (isSuperuser && !getMembershipForLeague(leagueId)) return "admin"
+      const membership = getMembershipForLeague(leagueId)
+      if (!membership || !adminRoles.includes(membership.role)) return "player"
+      return membership.experienceMode === "player" ||
+        membership.experienceMode === "player_experience"
+        ? membership.experienceMode
+        : "admin"
+    },
+    [getMembershipForLeague, isSuperuser],
+  )
+
+  const usesPlayerExperience = useCallback(
+    (leagueId: string) => getLeagueExperienceMode(leagueId) !== "admin",
+    [getLeagueExperienceMode],
+  )
+
+  const canAccessLeagueAdminTools = useCallback(
     (leagueId: string) =>
-      isAdminViewEnabled && hasLeagueAdminRole(leagueId),
-    [hasLeagueAdminRole, isAdminViewEnabled],
-  );
+      hasLeagueAdminRole(leagueId) && getLeagueExperienceMode(leagueId) !== "player",
+    [getLeagueExperienceMode, hasLeagueAdminRole],
+  )
+
+  const isLeagueAdmin = useCallback(
+    (leagueId: string) => {
+      if (!hasLeagueAdminRole(leagueId)) return false
+      const mode = getLeagueExperienceMode(leagueId)
+      return mode === "admin" || (mode === "player_experience" && adminSnapshotContext)
+    },
+    [adminSnapshotContext, getLeagueExperienceMode, hasLeagueAdminRole],
+  )
 
   const isLeagueCreator = useCallback(
     (leagueId: string) => {
-      if (!isAdminViewEnabled) {
-        return false;
-      }
-
-      if (isSuperuser) {
-        return true;
-      }
-
-      const membership = getMembershipForLeague(leagueId);
-
-      return membership?.role === "creator";
+      if (getLeagueExperienceMode(leagueId) === "player") return false
+      if (isSuperuser) return true
+      const membership = getMembershipForLeague(leagueId)
+      return membership?.role === "creator"
     },
-    [getMembershipForLeague, isAdminViewEnabled, isSuperuser],
-  );
+    [getLeagueExperienceMode, getMembershipForLeague, isSuperuser],
+  )
+
+  const setLeagueExperienceMode = useCallback(
+    async (leagueId: string, mode: LeagueExperienceMode) => {
+      if (!hasLeagueAdminRole(leagueId)) return false
+
+      try {
+        if (isPersistentLeagueId(leagueId) && !isDemoDataEnabled()) {
+          await updateSupabaseLeagueExperienceMode({ leagueId, mode })
+        }
+
+        setMemberships((currentMemberships) => {
+          const nextMemberships = currentMemberships.map((membership) =>
+            membership.leagueId === leagueId && membership.userId === userId
+              ? { ...membership, experienceMode: mode }
+              : membership,
+          )
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(storageKey, JSON.stringify(nextMemberships))
+          }
+          return nextMemberships
+        })
+
+        if (isPersistentLeagueId(leagueId) && !isDemoDataEnabled()) {
+          window.setTimeout(() => { void refreshLeagueAccess() }, 0)
+        }
+        return true
+      } catch (error) {
+        recordSupabaseError("update-league-experience-mode", error)
+        return false
+      }
+    },
+    [hasLeagueAdminRole, refreshLeagueAccess, userId],
+  )
 
   const value = useMemo(
     () => ({
@@ -1731,6 +1794,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       canCreateLeagues,
       isAdminViewEnabled,
       setAdminViewEnabled,
+      getLeagueExperienceMode,
+      setLeagueExperienceMode,
+      usesPlayerExperience,
+      canAccessLeagueAdminTools,
       leagues,
       userMemberships,
       spectatorLeagueIds,
@@ -1767,6 +1834,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     }),
     [
       canAccessLeague,
+      canAccessLeagueAdminTools,
       canShareSpectatorInvite,
       createLeague,
       claimPlayer,
@@ -1776,6 +1844,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       unlinkLeaguePlayerAccount,
       updateLeaguePlayerName,
       getLeagueByInviteCode,
+      getLeagueExperienceMode,
+      setLeagueExperienceMode,
+      usesPlayerExperience,
       getLeagueInviteCode,
       getMembershipForLeague,
       getUnclaimedPlayersForLeague,

@@ -146,7 +146,7 @@ describe("v1.10.0 scheduled season start", () => {
     ])
 
     expect(shell).toContain("isScheduledSeasonHomeLocked")
-    expect(shell).toContain("activeRoundSettings.scheduledStartAt,\n        canAccessAdmin,")
+    expect(shell).toContain("activeRoundSettings.scheduledStartAt,\n        competitionAdmin,")
     expect(shell).toContain('router.replace("/")')
     expect(shell).toContain("data-scheduled-season-home-lock")
     expect(shell).toContain("<BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} />")
@@ -174,7 +174,7 @@ describe("v1.10.0 scheduled season start", () => {
     expect(nav).toContain("Disponible cuando comience la temporada")
   })
 
-  it("lets admins bypass a scheduled-season lock only while VISTA ADMIN is enabled", async () => {
+  it("lets admin experience bypass the scheduled-season lock while player experiences remain locked", async () => {
     const [access, home, matches, matchDetail, chatPage, matchAccess] = await Promise.all([
       read("src/context/LeagueAccessProvider.tsx"),
       read("src/app/page.tsx"),
@@ -183,7 +183,9 @@ describe("v1.10.0 scheduled season start", () => {
       read("src/app/match/[id]/chat/page.tsx"),
       read("src/lib/serverMatchAccess.ts"),
     ])
-    expect(access).toContain("isAdminViewEnabled && hasLeagueAdminRole(leagueId)")
+    expect(access).toContain("getLeagueExperienceMode")
+    expect(access).toContain("usesPlayerExperience")
+    expect(access).toContain('mode === "admin" || (mode === "player_experience" && adminSnapshotContext)')
     expect(home).toContain("isPlayerSeasonLocked = isSeasonUpcoming && !canManageSeason")
     expect(matches).toContain("isPlayerSeasonLocked = isSeasonUpcoming && !canManageSeason")
     expect(matchDetail).toContain("isPlayerSeasonLocked = isSeasonUpcoming && !isAdmin")
