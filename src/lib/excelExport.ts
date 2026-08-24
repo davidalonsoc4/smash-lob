@@ -9,6 +9,10 @@ import {
   type ExportRows,
 } from "@/lib/csvExport"
 import type { RankingPlayer } from "@/lib/ranking"
+import {
+  buildSeasonFinanceWorkbookRows,
+  type SeasonFinanceTransparencyData,
+} from "@/lib/seasonFinanceTransparency"
 
 type WorkbookSheet = {
   name: string
@@ -410,6 +414,26 @@ export function exportSeasonExcelWorkbook({
 
   downloadWorkbook(
     `${getExportSafeFilenamePart(leagueName)}-${getExportSafeFilenamePart(seasonName)}-datos.xlsx`,
+    buildZip(files),
+  )
+}
+
+export function exportSeasonFinanceExcelWorkbook(
+  data: SeasonFinanceTransparencyData,
+) {
+  const rows = buildSeasonFinanceWorkbookRows(data)
+  const files = buildWorkbookFiles({
+    leagueName: data.leagueName,
+    seasonName: data.seasonName,
+    sheets: [
+      { name: "Resumen", rows: rows.summaryRows },
+      { name: "Pagos", rows: rows.paymentsRows },
+      { name: "Gastos", rows: rows.expensesRows },
+    ],
+  })
+
+  downloadWorkbook(
+    `${getExportSafeFilenamePart(data.leagueName)}-${getExportSafeFilenamePart(data.seasonName)}-transparencia-gastos.xlsx`,
     buildZip(files),
   )
 }

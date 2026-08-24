@@ -16,6 +16,7 @@ export type ActivityEventType =
   | "match_upcoming_reminder"
   | "match_chat_message"
   | "round_in_play"
+  | "round_pairings_revealed"
   | "round_mvp_awarded"
   | "court_booking_updated"
   | "court_booking_cleared"
@@ -70,6 +71,7 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "match_result_updated",
   "match_result_cleared",
   "match_result_disputed",
+  "round_pairings_revealed",
   "round_mvp_awarded",
   "court_booking_updated",
   "court_booking_cleared",

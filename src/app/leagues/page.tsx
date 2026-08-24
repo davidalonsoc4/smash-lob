@@ -28,13 +28,13 @@ export default function LeaguesPage() {
   const { tx } = useI18n()
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
   const {
+    canAccessLeagueAdminTools,
     canCreateLeagues,
-    isAdminViewEnabled,
     isLeagueAdmin,
     isLeagueSpectator,
     userLeagues,
   } = useLeagueAccess();
-  const canCreateLeaguesInCurrentView = canCreateLeagues && isAdminViewEnabled;
+  const canCreateLeaguesInCurrentView = canCreateLeagues && canAccessLeagueAdminTools(activeLeagueId);
   const { matches, resultConfirmations } = useMatchData();
   const {
     getActiveSeasonByLeagueId,

@@ -39,6 +39,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/announcements` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/announcements` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/announcements/[announcementId]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/experience-mode` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/invite` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/matches/[matchId]/availability` | GET | Protegido | getServerMatchActor |
 | `/api/leagues/[id]/members/[playerId]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
@@ -59,6 +60,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/seasons/[seasonId]/registration-payment` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]/registration-reminder` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/repair-calendar` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
+| `/api/leagues/[id]/seasons/[seasonId]/reveal-round` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/round-order` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/rounds/[round]/matches` | DELETE | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/settings` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |

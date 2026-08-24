@@ -45,6 +45,7 @@ type MvpManualSelectionInput = {
 type MvpContextValue = {
   votes: MvpVote[];
   manualSelections: MvpManualSelection[];
+  refreshMvpData: () => Promise<boolean>;
   voteForMatchMvp: (input: MvpVoteInput) => Promise<boolean>;
   clearVotesForMatch: (matchId: string) => Promise<boolean>;
   setManualMvpSelection: (input: MvpManualSelectionInput) => void;
@@ -213,6 +214,33 @@ export function MvpProvider({ children }: MvpProviderProps) {
     [],
   );
 
+  const refreshMvpData = useCallback(async () => {
+    if (!supabaseLeagueIdKey) {
+      return true;
+    }
+
+    try {
+      const result = await fetchSupabaseMvpData(supabaseLeagueIds);
+      setVotes((currentVotes) =>
+        persistVotes(mergeVotes(currentVotes, result.votes)),
+      );
+      setManualSelections((currentSelections) =>
+        persistManualSelections(
+          mergeManualSelections(currentSelections, result.manualSelections),
+        ),
+      );
+      return true;
+    } catch (error) {
+      recordSupabaseError("fetch-mvp-data", error);
+      return false;
+    }
+  }, [
+    persistManualSelections,
+    persistVotes,
+    supabaseLeagueIdKey,
+    supabaseLeagueIds,
+  ]);
+
   useEffect(() => {
     if (!supabaseLeagueIdKey) {
       return;
@@ -352,6 +380,7 @@ export function MvpProvider({ children }: MvpProviderProps) {
     () => ({
       votes,
       manualSelections,
+      refreshMvpData,
       voteForMatchMvp,
       clearVotesForMatch,
       setManualMvpSelection,
@@ -359,6 +388,7 @@ export function MvpProvider({ children }: MvpProviderProps) {
     [
       clearVotesForMatch,
       manualSelections,
+      refreshMvpData,
       setManualMvpSelection,
       voteForMatchMvp,
       votes,

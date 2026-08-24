@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { GeneratedImagePreviewModal } from "@/components/images/GeneratedImagePreviewModal"
 import { AppCard } from "@/components/ui/AppCard"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import {
@@ -192,9 +193,15 @@ export function SeasonSummaryCard({
   exportBlockedReason?: string
 }) {
   const { tx } = useI18n()
-  const [busyAction, setBusyAction] = useState<"share" | "download" | null>(null)
+  const [busyAction, setBusyAction] = useState<"preview" | "share" | "download" | null>(null)
   const [includeLeagueLogo, setIncludeLeagueLogo] = useState(true)
   const [includeHeroImages, setIncludeHeroImages] = useState(true)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState(false)
+  const previewUrlRef = useRef<string | null>(null)
 
   const hasLeagueLogo = Boolean(data.leagueLogoUrl)
   const hasHeroImages = useMemo(
@@ -206,6 +213,13 @@ export function SeasonSummaryCard({
     includeLeagueLogo: hasLeagueLogo && includeLeagueLogo,
     includeHeroImages: hasHeroImages && includeHeroImages,
   }
+
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+    },
+    [],
+  )
 
   function reportBlockedExport() {
     showActionFeedback({
@@ -233,39 +247,66 @@ export function SeasonSummaryCard({
     }
   }
 
-  async function handleDownload() {
+  async function openPreview() {
     if (!canExport) {
       reportBlockedExport()
       return
     }
+    if (busyAction) return
 
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = null
+    }
+    setPreviewUrl(null)
+    setPreviewBlob(null)
+    setPreviewOpen(true)
+    setPreviewLoading(true)
+    setPreviewError(false)
+    setBusyAction("preview")
+
+    try {
+      const blob = await createImage()
+      if (!blob) {
+        setPreviewError(true)
+        return
+      }
+      const objectUrl = URL.createObjectURL(blob)
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = objectUrl
+      setPreviewBlob(blob)
+      setPreviewUrl(objectUrl)
+    } finally {
+      setPreviewLoading(false)
+      setBusyAction(null)
+    }
+  }
+
+  function closePreview() {
+    if (busyAction) return
+    setPreviewOpen(false)
+  }
+
+  async function downloadPreview() {
+    if (busyAction || !previewBlob) return
     setBusyAction("download")
-    const blob = await createImage()
-    if (blob) {
+    try {
       downloadSeasonSummaryImage(
-        blob,
+        previewBlob,
         `${sanitizeFilename(data.leagueName)}-${sanitizeFilename(data.seasonName)}.png`,
       )
       showActionFeedback({ tone: "success", message: "Resumen guardado como imagen." })
+    } finally {
+      setBusyAction(null)
     }
-    setBusyAction(null)
   }
 
-  async function handleShare() {
-    if (!canExport) {
-      reportBlockedExport()
-      return
-    }
-
+  async function sharePreview() {
+    if (busyAction || !previewBlob) return
     setBusyAction("share")
-    const blob = await createImage()
-    if (!blob) {
-      setBusyAction(null)
-      return
-    }
 
     const filename = `${sanitizeFilename(data.leagueName)}-${sanitizeFilename(data.seasonName)}.png`
-    const file = new File([blob], filename, { type: "image/png" })
+    const file = new File([previewBlob], filename, { type: "image/png" })
 
     try {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
@@ -275,7 +316,7 @@ export function SeasonSummaryCard({
           files: [file],
         })
       } else {
-        downloadSeasonSummaryImage(blob, filename)
+        downloadSeasonSummaryImage(previewBlob, filename)
         showActionFeedback({
           tone: "info",
           message:
@@ -283,16 +324,16 @@ export function SeasonSummaryCard({
         })
       }
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        setBusyAction(null)
-        return
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        showActionFeedback({ tone: "error", message: "No se pudo compartir el resumen." })
       }
-      showActionFeedback({ tone: "error", message: "No se pudo compartir el resumen." })
+    } finally {
+      setBusyAction(null)
     }
-    setBusyAction(null)
   }
 
   return (
+    <>
     <AppCard className="overflow-hidden p-0">
       <div className="bg-neutral-100 p-3">
         <div className="overflow-hidden rounded-[1.75rem] bg-neutral-950 p-4 text-white shadow-sm">
@@ -519,25 +560,29 @@ export function SeasonSummaryCard({
           </div>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => void handleShare()}
-            disabled={busyAction !== null || !canExport}
-            className="inline-flex rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45 items-center justify-center text-center"
-          >
-            {busyAction === "share" ? tx("Preparando…") : tx("Compartir")}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleDownload()}
-            disabled={busyAction !== null || !canExport}
-            className="inline-flex rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-45 items-center justify-center text-center"
-          >
-            {busyAction === "download" ? "Generando…" : tx("Guardar imagen")}
-          </button>
-        </div>
+        <button
+          type="button"
+          data-season-summary-preview
+          onClick={() => void openPreview()}
+          disabled={busyAction !== null || !canExport}
+          className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {busyAction === "preview" ? tx("Preparando…") : tx("Ver imagen")}
+        </button>
       </div>
     </AppCard>
+
+    <GeneratedImagePreviewModal
+      open={previewOpen}
+      title={`${tx("Resumen de temporada")} · ${data.seasonName}`}
+      previewUrl={previewUrl}
+      loading={previewLoading}
+      error={previewError}
+      busyAction={busyAction}
+      onClose={closePreview}
+      onDownload={downloadPreview}
+      onShare={sharePreview}
+    />
+    </>
   )
 }

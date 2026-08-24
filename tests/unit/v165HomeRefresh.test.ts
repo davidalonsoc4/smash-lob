@@ -9,15 +9,13 @@ describe("v1.6.5 HOME refresh and compact season sharing", () => {
     expect(home).not.toContain("app-home-top-logo")
   })
 
-  it("adds a real PWA refresh control in the Back slot", async () => {
+  it("refreshes HOME data without forcing a full page reload", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
-    expect(home).toContain('<BackButton fallbackHref="/" label={t.common.refreshApp} />')
-    expect(home).toContain('onClickCapture={(event) => { event.preventDefault(); event.stopPropagation(); void refreshApp(); }}')
-    expect(home).toContain('<BackButton fallbackHref="/" label={t.common.refreshApp} />')
-    expect(home).toContain("await registration.update()")
-    expect(home).toContain("registration.waiting ?? registration.installing")
-    expect(home).toContain("requestPwaUpdate(registration.waiting ?? worker, reload)")
-    expect(home).toContain("window.location.reload()")
+    expect(home).toContain("void refreshApp()")
+    expect(home).toContain("refreshLeagueAccess()")
+    expect(home).toContain("refreshMvpData()")
+    expect(home).toContain("await registration?.update()")
+    expect(home).not.toContain("window.location.reload()")
   })
 
   it("shortens the finished-season share action in every locale", async () => {

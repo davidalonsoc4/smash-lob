@@ -16,10 +16,9 @@ import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
 import { getPreseasonAccessPhase } from "@/lib/preseasonSecrets";
 import { runScheduledSeasonStartAutomation } from "@/lib/serverScheduledSeasonAutomation";
 import { runPersonalMatchNotificationAutomation } from "@/lib/serverPersonalMatchAutomation";
-
+import { runProgressiveCalendarRevealAutomation } from "@/lib/serverProgressiveCalendarAutomation";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
 type MatchRow = {
   id: string;
   league_id: string;
@@ -35,13 +34,12 @@ type MatchRow = {
   result_reported_by_player_id: string | null;
   result_locked: boolean | null;
 };
-
 type SeasonRow = {
   id: string;
   name: string | null;
   status: string | null;
+  total_rounds: number | null;
 };
-
 type SeasonSettingRow = {
   league_id: string;
   season_id: string;
@@ -50,43 +48,35 @@ type SeasonSettingRow = {
   scheduled_start_at: string | null;
   preseason_secret_days_before: number | null;
 };
-
 type VoteRow = {
   match_id: string | null;
   voter_player_id: string;
   selected_player_id: string;
 };
-
 type ConfirmationRow = {
   match_id: string;
   player_id: string;
   status: "confirmed" | "disputed";
 };
-
 type ActivityInsertResult = {
   id: string;
 };
-
 function toPlayerIds(value: unknown) {
   if (!Array.isArray(value)) {
     return [];
   }
-
   return value.filter((item): item is string => typeof item === "string");
 }
-
 function getParticipantIds(match: MatchRow) {
   return Array.from(
     new Set([...toPlayerIds(match.team_a), ...toPlayerIds(match.team_b)]),
   );
 }
-
 function getScheduleSummary(match: MatchRow) {
   return [match.date_label, getScheduleLocationFallbackText(match.location)]
     .filter((item): item is string => Boolean(item?.trim()))
     .join(" · ");
 }
-
 async function hasExistingRoundInPlayEvent({
   supabase,
   leagueId,
@@ -106,14 +96,11 @@ async function hasExistingRoundInPlayEvent({
     .eq("type", "round_in_play")
     .contains("metadata", { round })
     .limit(1);
-
   if (error) {
     throw error;
   }
-
   return Boolean(data && data.length > 0);
 }
-
 async function hasExistingSeasonOpeningAnnouncementEvent({
   supabase,
   leagueId,
@@ -135,14 +122,11 @@ async function hasExistingSeasonOpeningAnnouncementEvent({
     .eq("type", "season_opening_announced")
     .contains("metadata", { scheduledStartAt, secretDaysBefore })
     .limit(1);
-
   if (error) {
     throw error;
   }
-
   return Boolean(data && data.length > 0);
 }
-
 async function hasExistingResultReminderEvent({
   supabase,
   matchId,
@@ -159,11 +143,9 @@ async function hasExistingResultReminderEvent({
     .eq("type", "match_result_missing_reminder")
     .contains("metadata", { reminderHour })
     .limit(1);
-
   if (error) {
     throw error;
   }
-
   return Boolean(data && data.length > 0);
 }
 
@@ -402,6 +384,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "personal_match_notification_automation_failed" }, { status: 500 });
   }
 
+  let progressiveCalendarAutomation: Awaited<ReturnType<typeof runProgressiveCalendarRevealAutomation>>;
+  try {
+    progressiveCalendarAutomation = await runProgressiveCalendarRevealAutomation({ supabase, now });
+  } catch {
+    return NextResponse.json({ ok: false, error: "progressive_calendar_automation_failed" }, { status: 500 });
+  }
+
   const upcomingReminderWindowEndsAt = new Date(
     now.getTime() + 2 * 60 * 60 * 1000,
   );
@@ -508,7 +497,10 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({
       ok: true,
-      created: seasonStartAutomation.eventIds.length + personalMatchAutomation.created,
+      created:
+        seasonStartAutomation.eventIds.length +
+        personalMatchAutomation.created +
+        progressiveCalendarAutomation.created,
       sent: sent + personalMatchAutomation.sent,
       autoValidated: 0,
     });
@@ -516,7 +508,7 @@ export async function GET(request: Request) {
 
   const { data: seasons, error: seasonsError } = await supabase
     .from("seasons")
-    .select("id,name,status")
+    .select("id,name,status,total_rounds")
     .in("id", allSeasonIds);
 
   if (seasonsError) {
@@ -992,7 +984,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    created: eventIds.length + personalMatchAutomation.created,
+    created: eventIds.length + personalMatchAutomation.created + progressiveCalendarAutomation.created,
     sent,
     autoValidated: autoConfirmationRows.length,
   });

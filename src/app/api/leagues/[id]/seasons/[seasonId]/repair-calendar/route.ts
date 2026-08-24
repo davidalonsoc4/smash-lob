@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic"
 type RepairCalendarBody = {
   playerIds?: unknown
   scheduleMode?: unknown
+  reroll?: unknown
 }
 
 function parsePlayerIds(value: unknown) {
@@ -57,6 +58,7 @@ export async function POST(
   const body = await parseJsonBody<RepairCalendarBody>(request)
   const playerIds = parsePlayerIds(body?.playerIds)
   const scheduleMode = parseScheduleMode(body?.scheduleMode)
+  const reroll = body?.reroll === true
 
   if (!playerIds || !scheduleMode) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -73,6 +75,7 @@ export async function POST(
       season: access.season,
       playerIds: validatedPlayerIds,
       scheduleMode,
+      reroll,
     })
 
     return NextResponse.json({ matches })

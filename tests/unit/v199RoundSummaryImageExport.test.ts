@@ -10,7 +10,7 @@ describe("v1.9.9 round summary image export", () => {
     expect(page).not.toContain("El exportable de jornada se conectará en el siguiente desarrollo")
     expect(button).toContain("createRoundSummaryImage(data)")
     expect(button).toContain("navigator.canShare?.({ files: [file] })")
-    expect(button).toContain("downloadRoundSummaryImage(blob, filename)")
+    expect(button).toContain("downloadRoundSummaryImage(previewBlob, filename)")
   })
 
   it("exports the agreed round content with season-style branding", async () => {

@@ -289,7 +289,8 @@ function isLeagueWideEvent(event: ActivityEventRow) {
     event.type === "season_started" ||
     event.type === "season_opening_announced" ||
     event.type === "season_finished" ||
-    event.type === "round_in_play"
+    event.type === "round_in_play" ||
+    event.type === "round_pairings_revealed"
   );
 }
 
@@ -313,6 +314,7 @@ function getNotificationUrl(event: ActivityEventRow) {
     event.type === "season_player_joined" ||
     event.type === "season_player_left" ||
     event.type === "round_in_play" ||
+    event.type === "round_pairings_revealed" ||
     event.type === "round_mvp_awarded" ||
     event.type === "season_registration_payment_reminder" ||
     event.type === "league_announcement_published"
@@ -469,6 +471,10 @@ function getNotificationTitle(
 
   if (event.type === "round_in_play") {
     return "Jornada en juego";
+  }
+
+  if (event.type === "round_pairings_revealed") {
+    return "Nueva jornada desbloqueada";
   }
 
   if (event.type === "match_result_missing_reminder") {
@@ -696,6 +702,13 @@ function getNotificationBody(
     return typeof round === "number"
       ? `La Jornada ${round} ya está en juego.`
       : "Hay una jornada en juego ahora mismo.";
+  }
+
+  if (event.type === "round_pairings_revealed") {
+    const round = toRecord(event.metadata).round;
+    return typeof round === "number"
+      ? `Ya puedes consultar los emparejamientos de la Jornada ${round} y empezar a organizar el partido.`
+      : "Ya puedes consultar los nuevos emparejamientos y empezar a organizar el partido.";
   }
 
   if (event.type === "match_result_missing_reminder") {
@@ -1096,12 +1109,29 @@ export async function dispatchPushForActivityEvent(
   }
 
   if (event.match_id && event.season_id) {
-    const [{ data: seasonRow, error: seasonError }, { data: settingsRow, error: settingsError }] = await Promise.all([
-      supabase.from("seasons").select("status").eq("id", event.season_id).maybeSingle(),
-      supabase.from("season_settings").select("scheduled_start_at").eq("season_id", event.season_id).maybeSingle(),
+    const [
+      { data: seasonRow, error: seasonError },
+      { data: settingsRow, error: settingsError },
+      { data: matchRow, error: matchError },
+    ] = await Promise.all([
+      supabase
+        .from("seasons")
+        .select("status,total_rounds")
+        .eq("id", event.season_id)
+        .maybeSingle(),
+      supabase
+        .from("season_settings")
+        .select("scheduled_start_at,calendar_visibility_mode,revealed_through_round")
+        .eq("season_id", event.season_id)
+        .maybeSingle(),
+      supabase
+        .from("matches")
+        .select("round")
+        .eq("id", event.match_id)
+        .maybeSingle(),
     ]);
 
-    if (seasonError || settingsError) {
+    if (seasonError || settingsError || matchError) {
       return { ok: true, sent: 0, reason: "preseason_guard_unavailable" };
     }
 
@@ -1119,6 +1149,23 @@ export async function dispatchPushForActivityEvent(
 
     if (scheduledSeasonStillHidden) {
       return { ok: true, sent: 0, reason: "scheduled_season_prestart" };
+    }
+
+    const progressiveCalendar = settingsRow?.calendar_visibility_mode === "progressive";
+    const matchRound = Number(matchRow?.round ?? 0);
+    const storedReveal = Math.max(
+      0,
+      Number(settingsRow?.revealed_through_round ?? 0) || 0,
+    );
+    const effectiveReveal =
+      seasonRow?.status === "active" ? Math.max(storedReveal, 1) : storedReveal;
+
+    if (
+      progressiveCalendar &&
+      seasonRow?.status !== "finished" &&
+      matchRound > effectiveReveal
+    ) {
+      return { ok: true, sent: 0, reason: "progressive_round_hidden" };
     }
   }
 

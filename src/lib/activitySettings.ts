@@ -127,6 +127,12 @@ export const activityEventDefinitions: Record<
     personalScope: "league_wide",
     pushReady: true,
   },
+  round_pairings_revealed: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "league_wide",
+    pushReady: true,
+  },
   round_mvp_awarded: {
     category: "season",
     defaultMode: "notify",
