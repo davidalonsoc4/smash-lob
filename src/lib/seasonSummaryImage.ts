@@ -1,5 +1,12 @@
 import { translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
+import {
+  SHARED_EXPORT_APP_ICON_PATH,
+  SHARED_EXPORT_HEADER_HEIGHT,
+  drawSharedExportFooter,
+  drawSharedExportHeader,
+  loadSharedExportImage,
+} from "@/lib/exportImageChrome"
 
 export type SeasonSummaryHighlight = {
   label: string
@@ -74,7 +81,6 @@ type HighlightLayout = {
 const CANVAS_WIDTH = 1080
 const HORIZONTAL_PADDING = 54
 const CONTENT_WIDTH = CANVAS_WIDTH - HORIZONTAL_PADDING * 2
-const APP_ICON_PATH = "/icon-192.png"
 
 function getCanvasPalette(): CanvasPalette {
   return {
@@ -359,73 +365,6 @@ async function loadOptionalImage(src?: string | null) {
     image.onerror = () => resolve(null)
     image.src = src
   })
-}
-
-function getContainedImagePlacement({
-  image,
-  x,
-  y,
-  width,
-  height,
-}: {
-  image: HTMLImageElement
-  x: number
-  y: number
-  width: number
-  height: number
-}) {
-  const sourceRatio = image.width / image.height
-  const targetRatio = width / height
-  let drawWidth = width
-  let drawHeight = height
-
-  if (sourceRatio > targetRatio) {
-    drawHeight = width / sourceRatio
-  } else {
-    drawWidth = height * sourceRatio
-  }
-
-  return {
-    x: x + (width - drawWidth) / 2,
-    y: y + (height - drawHeight) / 2,
-    width: drawWidth,
-    height: drawHeight,
-  }
-}
-
-function drawTransparentImageContain({
-  context,
-  image,
-  x,
-  y,
-  width,
-  height,
-  withShadow = false,
-}: {
-  context: CanvasRenderingContext2D
-  image: HTMLImageElement
-  x: number
-  y: number
-  width: number
-  height: number
-  withShadow?: boolean
-}) {
-  const placement = getContainedImagePlacement({ image, x, y, width, height })
-
-  context.save()
-  if (withShadow) {
-    context.shadowColor = "rgba(15, 23, 42, 0.14)"
-    context.shadowBlur = 8
-    context.shadowOffsetY = 2
-  }
-  context.drawImage(
-    image,
-    placement.x,
-    placement.y,
-    placement.width,
-    placement.height,
-  )
-  context.restore()
 }
 
 function drawImageCover({
@@ -1006,151 +945,6 @@ function drawHighlightCard({
 
 }
 
-function drawBrandMark({
-  context,
-  palette,
-  appIcon,
-  x,
-  y,
-  size,
-}: {
-  context: CanvasRenderingContext2D
-  palette: CanvasPalette
-  appIcon: HTMLImageElement | null
-  x: number
-  y: number
-  size: number
-}) {
-  if (appIcon) {
-    drawImageCover({
-      context,
-      image: appIcon,
-      x,
-      y,
-      width: size,
-      height: size,
-      radius: Math.round(size * 0.24),
-      background: palette.surface,
-    })
-    return
-  }
-
-  fillRoundedRect(context, x, y, size, size, Math.round(size * 0.24), palette.surface)
-  context.fillStyle = palette.accent
-  context.font = `900 ${Math.round(size * 0.28)}px Arial, sans-serif`
-  drawCenteredText({ context, text: "S&L", x: x + size / 2, y: y + size / 2 })
-}
-
-function drawHeader({
-  context,
-  palette,
-  leagueLogo,
-  data,
-  x,
-  y,
-  width,
-  height,
-  locale,
-}: {
-  context: CanvasRenderingContext2D
-  palette: CanvasPalette
-  leagueLogo: HTMLImageElement | null
-  data: SeasonSummaryImageData
-  x: number
-  y: number
-  width: number
-  height: number
-  locale: Locale
-}) {
-  fillRoundedRect(context, x, y, width, height, 38, palette.accent)
-
-  context.save()
-  roundedRect(context, x, y, width, height, 38)
-  context.clip()
-  context.strokeStyle = "rgba(255, 255, 255, 0.075)"
-  context.lineWidth = 3
-  context.beginPath()
-  context.arc(x + width - 36, y + height + 10, 248, Math.PI, Math.PI * 1.65)
-  context.stroke()
-  context.beginPath()
-  context.moveTo(x + width * 0.55, y - 20)
-  context.lineTo(x + width + 40, y + height * 0.65)
-  context.stroke()
-  context.restore()
-
-  const logoRightMargin = 18
-  const logoTop = y + 18
-  const logoBottomMargin = 18
-  const logoMaxHeight = leagueLogo ? height - (logoTop - y) - logoBottomMargin : 0
-  const logoAspect = leagueLogo ? leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight) : 1
-  const leagueLogoWidth = leagueLogo ? logoMaxHeight * logoAspect : 0
-  const leagueLogoX = x + width - leagueLogoWidth - logoRightMargin
-  if (leagueLogo) {
-    drawTransparentImageContain({
-      context,
-      image: leagueLogo,
-      x: leagueLogoX,
-      y: logoTop,
-      width: leagueLogoWidth,
-      height: logoMaxHeight,
-      withShadow: true,
-    })
-  }
-
-  const textLeft = x + 30
-  const textRight = leagueLogo ? leagueLogoX - 18 : x + width - 30
-  const titleWidth = Math.max(240, textRight - textLeft)
-
-  context.fillStyle = palette.inverseMuted
-  context.font = "900 15px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText(translateLeagueText(locale, "RESUMEN FINAL DE TEMPORADA"), textLeft, y + 38)
-  context.restore()
-
-  const leagueLayout = fitTextLayout({
-    context,
-    text: data.leagueName.toUpperCase(),
-    maxWidth: titleWidth,
-    maxLines: 2,
-    maxFontSize: 24,
-    minFontSize: 18,
-    fontWeight: 900,
-  })
-  context.fillStyle = palette.inverseMuted
-  context.font = `900 ${leagueLayout.fontSize}px Arial, sans-serif`
-  drawTextLines({
-    context,
-    lines: leagueLayout.lines,
-    x: textLeft,
-    y: y + 84,
-    width: titleWidth,
-    height: 48,
-    lineHeight: leagueLayout.lineHeight,
-  })
-
-  const seasonLayout = fitTextLayout({
-    context,
-    text: data.seasonName,
-    maxWidth: titleWidth,
-    maxLines: 2,
-    maxFontSize: 56,
-    minFontSize: 36,
-    fontWeight: 900,
-  })
-  context.fillStyle = palette.inverseText
-  context.font = `900 ${seasonLayout.fontSize}px Arial, sans-serif`
-  drawTextLines({
-    context,
-    lines: seasonLayout.lines,
-    x: textLeft,
-    y: y + 136,
-    width: titleWidth,
-    height: 84,
-    lineHeight: seasonLayout.lineHeight,
-  })
-}
-
 function drawCanvasBackground({
   context,
   palette,
@@ -1175,44 +969,6 @@ function drawCanvasBackground({
   context.moveTo(width / 2, 28)
   context.lineTo(width / 2, height - 28)
   context.stroke()
-  context.restore()
-}
-
-function drawFooter({
-  context,
-  palette,
-  appIcon,
-  x,
-  y,
-  width,
-  locale,
-}: {
-  context: CanvasRenderingContext2D
-  palette: CanvasPalette
-  appIcon: HTMLImageElement | null
-  x: number
-  y: number
-  width: number
-  locale: Locale
-}) {
-  const iconSize = 52
-  const textBlockWidth = 132
-  const groupWidth = iconSize + 16 + textBlockWidth
-  const groupX = x + (width - groupWidth) / 2
-  drawBrandMark({ context, palette, appIcon, x: groupX, y: y + 5, size: iconSize })
-
-  context.fillStyle = palette.muted
-  context.font = "700 15px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText(translateLeagueText(locale, "Creado con"), groupX + iconSize + 16, y + 22)
-  context.restore()
-
-  context.fillStyle = palette.text
-  context.font = "900 21px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText("Smash & Lob", groupX + iconSize + 16, y + 44)
   context.restore()
 }
 
@@ -1246,8 +1002,8 @@ export async function createSeasonSummaryImage(
   const highlights = localizedData.highlights.slice(0, 4)
 
   const [appIconImage, leagueLogoImage, heroImages] = await Promise.all([
-    loadOptionalImage(APP_ICON_PATH),
-    includeLeagueLogo ? loadOptionalImage(localizedData.leagueLogoUrl ?? null) : Promise.resolve(null),
+    loadSharedExportImage(SHARED_EXPORT_APP_ICON_PATH),
+    includeLeagueLogo ? loadSharedExportImage(localizedData.leagueLogoUrl ?? null) : Promise.resolve(null),
     Promise.all(
       heroes.map((hero) =>
         includeHeroImages ? loadOptionalImage(hero.imageUrl ?? null) : Promise.resolve(null),
@@ -1259,7 +1015,7 @@ export async function createSeasonSummaryImage(
   const measurementContext = measurementCanvas.getContext("2d")
   if (!measurementContext) throw new Error(translateLeagueText(locale, "No se pudo preparar la imagen"))
 
-  const headerHeight = 254
+  const headerHeight = SHARED_EXPORT_HEADER_HEIGHT
   const heroHeight = 220
   const heroGap = 16
   const podiumRowHeight = 100
@@ -1314,16 +1070,16 @@ export async function createSeasonSummaryImage(
   drawCanvasBackground({ context, palette, width: canvas.width, height: canvas.height })
 
   let currentY = topPadding
-  drawHeader({
+  drawSharedExportHeader({
     context,
-    palette,
     leagueLogo: leagueLogoImage,
-    data: localizedData,
+    eyebrow: translateLeagueText(locale, "RESUMEN FINAL DE TEMPORADA"),
+    leagueName: localizedData.leagueName,
+    seasonName: localizedData.seasonName,
     x: HORIZONTAL_PADDING,
     y: currentY,
     width: CONTENT_WIDTH,
     height: headerHeight,
-    locale,
   })
   currentY += headerHeight + headerGap
 
@@ -1389,9 +1145,8 @@ export async function createSeasonSummaryImage(
   })
 
   currentY += footerGap
-  drawFooter({
+  drawSharedExportFooter({
     context,
-    palette,
     appIcon: appIconImage,
     x: HORIZONTAL_PADDING,
     y: currentY,
