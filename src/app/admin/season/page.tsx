@@ -1760,7 +1760,12 @@ function BalancedCalendarAuditPanel({
     Boolean(scheduleMode) &&
     [8, 12, 16].includes(playerIds.length) &&
     seasonMatches.length > 0;
+  const hasRecordedResults = seasonMatches.some((match) =>
+    match.pointsA !== null || match.pointsB !== null || match.sets.length > 0 ||
+    Boolean(match.resultRecordedAt) || Boolean(match.resultReportedByPlayerId),
+  );
   const canRepair = activeSeason.status === "upcoming";
+  const canReroll = !hasRecordedResults;
 
   if (!canAudit || !audit || !scheduleMode) {
     return null;
@@ -1879,7 +1884,8 @@ function BalancedCalendarAuditPanel({
   }
 
   async function replaceCalendar(reroll: boolean) {
-    if (isSaving || !canRepair || (!reroll && calendarAudit.isPerfectlyBalanced)) return
+    if (isSaving || (reroll ? !canReroll : !canRepair) ||
+      (!reroll && calendarAudit.isPerfectlyBalanced)) return
 
     const confirmed = window.confirm(
       reroll
@@ -1941,9 +1947,12 @@ function BalancedCalendarAuditPanel({
     } catch (repairError) {
       recordSupabaseError(reroll ? "reroll-balanced-calendar" : "repair-balanced-calendar", repairError)
       setError(
-        repairError instanceof Error
-          ? repairError.message
-          : t.adminSeason.repairCalendarError,
+        repairError instanceof Error &&
+          repairError.message === "season_calendar_reroll_has_results"
+          ? t.adminSeason.rerollBlockedByResults
+          : repairError instanceof Error
+            ? repairError.message
+            : t.adminSeason.repairCalendarError,
       )
     } finally {
       setIsSaving(false)
@@ -2061,24 +2070,24 @@ function BalancedCalendarAuditPanel({
           </button>
         </>
       ) : null}
-      {canRepair ? (
-        <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
-            {t.adminSeason.rerollEyebrow}
-          </p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
-            {t.adminSeason.rerollDescription}
-          </p>
-          <button
-            type="button"
-            onClick={rerollCalendar}
-            disabled={isSaving}
-            className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-950 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950 disabled:border-neutral-200 disabled:text-neutral-400"
-          >
-            {isSaving ? t.adminSeason.rerollGenerating : t.adminSeason.rerollButton}
-          </button>
-        </div>
-      ) : null}
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+          {t.adminSeason.rerollEyebrow}
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+          {hasRecordedResults
+            ? t.adminSeason.rerollBlockedByResults
+            : t.adminSeason.rerollDescription}
+        </p>
+        <button
+          type="button"
+          onClick={rerollCalendar}
+          disabled={isSaving || !canReroll}
+          className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-950 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950 disabled:border-neutral-200 disabled:text-neutral-400"
+        >
+          {isSaving ? t.adminSeason.rerollGenerating : t.adminSeason.rerollButton}
+        </button>
+      </div>
       {error ? (
         <p className="mt-3 text-center text-xs font-semibold text-red-600">
           {tx(error)}
