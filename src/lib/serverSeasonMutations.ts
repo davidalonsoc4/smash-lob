@@ -177,6 +177,17 @@ function hasBookingReservationItems(value: unknown) {
   )
 }
 
+function hasRecordedMatchResult(match: Record<string, unknown>) {
+  return (
+    (match.points_a !== null && match.points_a !== undefined) ||
+    (match.points_b !== null && match.points_b !== undefined) ||
+    hasArrayItems(match.sets) ||
+    (typeof match.result_recorded_at === "string" && match.result_recorded_at.length > 0) ||
+    (typeof match.result_reported_by_player_id === "string" &&
+      match.result_reported_by_player_id.length > 0)
+  )
+}
+
 function isPristineUpcomingMatch(
   match: Record<string, unknown>,
   openingRoundAt: string | null = null,
@@ -1018,11 +1029,11 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     playerCount: playerIds.length,
     mode: scheduleMode,
   })
-  if (season.status !== "upcoming") {
+  if (!reroll && season.status !== "upcoming") {
     throw new SeasonMutationError(
       409,
       "season_calendar_repair_not_allowed",
-      "Solo se puede regenerar el calendario antes de comenzar la temporada."
+      "Solo se puede reparar el calendario antes de comenzar la temporada."
     )
   }
 
@@ -1132,7 +1143,20 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     )
   }
 
+  const hasRecordedResults = (existingMatches ?? []).some((match) =>
+    hasRecordedMatchResult(match as Record<string, unknown>),
+  )
+
+  if (reroll && hasRecordedResults) {
+    throw new SeasonMutationError(
+      409,
+      "season_calendar_reroll_has_results",
+      "No se puede hacer REROLL porque ya hay resultados registrados en esta temporada.",
+    )
+  }
+
   if (
+    !reroll &&
     (existingMatches ?? []).some(
       (match) => !isPristineUpcomingMatch(match as Record<string, unknown>, openingRoundAt, openingRoundLocation)
     )
@@ -1172,6 +1196,40 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     date_label: null,
     location: openingRoundAt && match.round === 1 ? openingRoundLocation : null,
   }))
+
+  if (reroll) {
+    const { error: rerollError } = await supabase.rpc(
+      "reroll_season_calendar_matches",
+      {
+        p_season_id: season.id,
+        p_matches: payload,
+      },
+    )
+
+    if (rerollError) {
+      if (rerollError.message.includes("season_calendar_reroll_has_results")) {
+        throw new SeasonMutationError(
+          409,
+          "season_calendar_reroll_has_results",
+          "No se puede hacer REROLL porque ya hay resultados registrados en esta temporada.",
+        )
+      }
+      throw new SeasonMutationError(500, "season_calendar_reroll_update_failed")
+    }
+
+    const { data: rerolledMatches, error: rerolledMatchesError } = await supabase
+      .from("matches")
+      .select(matchSelect)
+      .eq("season_id", season.id)
+
+    if (rerolledMatchesError) {
+      throw new SeasonMutationError(500, "season_calendar_reroll_lookup_failed")
+    }
+
+    return (rerolledMatches ?? []).map((match) =>
+      mapSupabaseMatch(match as Record<string, unknown>)
+    )
+  }
 
   const { data: updatedMatches, error: updateError } = await supabase
     .from("matches")

@@ -49,12 +49,6 @@ export async function POST(
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
-  const access = await getServerSeasonAdmin(leagueId, seasonId, { requireMutable: true })
-
-  if (!access.ok) {
-    return NextResponse.json({ error: access.error }, { status: access.status })
-  }
-
   const body = await parseJsonBody<RepairCalendarBody>(request)
   const playerIds = parsePlayerIds(body?.playerIds)
   const scheduleMode = parseScheduleMode(body?.scheduleMode)
@@ -62,6 +56,12 @@ export async function POST(
 
   if (!playerIds || !scheduleMode) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+  }
+
+  const access = await getServerSeasonAdmin(leagueId, seasonId, { requireMutable: !reroll })
+
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
   try {
