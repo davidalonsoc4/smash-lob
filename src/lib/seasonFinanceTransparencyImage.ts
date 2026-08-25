@@ -2,22 +2,25 @@ import { formatMoney } from "@/lib/courtBooking"
 import { getIntlLocale } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 import type { SeasonFinanceTransparencyData } from "@/lib/seasonFinanceTransparency"
+import {
+  SHARED_EXPORT_APP_ICON_PATH,
+  SHARED_EXPORT_HEADER_HEIGHT,
+  drawSharedExportFooter,
+  drawSharedExportHeader,
+  loadSharedExportImage,
+} from "@/lib/exportImageChrome"
 
 const WIDTH = 1080
 const PAGE_PADDING = 56
-const CARD_RADIUS = 30
-const HEADER_HEIGHT = 210
 const SUMMARY_CARD_HEIGHT = 118
 const ROW_HEIGHT = 46
 const FOOTER_HEIGHT = 82
-const APP_ICON_PATH = "/icon-192.png"
 
 const backgroundColor = "#f5f6f2"
 const surfaceColor = "#ffffff"
 const borderColor = "#dde3dc"
 const mutedTextColor = "#667067"
 const headingTextColor = "#101611"
-const accentColor = "#19211b"
 const softAccentColor = "#ecf2eb"
 const positiveColor = "#0f6d37"
 const negativeColor = "#9f1239"
@@ -57,11 +60,6 @@ export type SeasonFinanceTransparencyLabels = {
   }
 }
 
-type TextLayout = {
-  fontSize: number
-  lineHeight: number
-  lines: string[]
-}
 
 function drawRoundedRect(
   context: CanvasRenderingContext2D,
@@ -104,251 +102,6 @@ function drawText(
   context.fillText(text, x, y)
 }
 
-function wrapText(
-  context: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxLines = 99,
-) {
-  const words = text.trim().split(/\s+/).filter(Boolean)
-  if (words.length === 0) return [""]
-
-  const lines: string[] = []
-  let currentLine = words[0]
-
-  for (let index = 1; index < words.length; index += 1) {
-    const candidate = `${currentLine} ${words[index]}`
-    if (context.measureText(candidate).width <= maxWidth) {
-      currentLine = candidate
-    } else {
-      lines.push(currentLine)
-      currentLine = words[index]
-      if (lines.length === maxLines - 1) {
-        const last = [currentLine, ...words.slice(index + 1)].join(" ")
-        let truncated = last
-        while (
-          truncated.length > 1 &&
-          context.measureText(`${truncated}…`).width > maxWidth
-        ) {
-          truncated = truncated.slice(0, -1)
-        }
-        lines.push(`${truncated}…`)
-        return lines
-      }
-    }
-  }
-
-  lines.push(currentLine)
-  return lines.slice(0, maxLines)
-}
-
-function fitTextLayout({
-  context,
-  text,
-  maxWidth,
-  maxLines,
-  maxFontSize,
-  minFontSize,
-  fontWeight,
-  lineHeightRatio = 1.12,
-}: {
-  context: CanvasRenderingContext2D
-  text: string
-  maxWidth: number
-  maxLines: number
-  maxFontSize: number
-  minFontSize: number
-  fontWeight: number
-  lineHeightRatio?: number
-}): TextLayout {
-  for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 2) {
-    context.font = `${fontWeight} ${fontSize}px Arial, sans-serif`
-    const lines = wrapText(context, text, maxWidth, maxLines)
-    const truncated = lines.some((line) => line.endsWith("…"))
-    if (!truncated || fontSize === minFontSize) {
-      return {
-        fontSize,
-        lineHeight: Math.round(fontSize * lineHeightRatio),
-        lines,
-      }
-    }
-  }
-
-  return {
-    fontSize: minFontSize,
-    lineHeight: Math.round(minFontSize * lineHeightRatio),
-    lines: [text],
-  }
-}
-
-function drawTextLines({
-  context,
-  lines,
-  x,
-  y,
-  width,
-  lineHeight,
-}: {
-  context: CanvasRenderingContext2D
-  lines: string[]
-  x: number
-  y: number
-  width: number
-  lineHeight: number
-}) {
-  context.save()
-  context.textAlign = "left"
-  context.textBaseline = "top"
-  lines.forEach((line, index) => {
-    context.fillText(line, x, y + index * lineHeight, width)
-  })
-  context.restore()
-}
-
-function drawCenteredText({
-  context,
-  text,
-  x,
-  y,
-}: {
-  context: CanvasRenderingContext2D
-  text: string
-  x: number
-  y: number
-}) {
-  context.save()
-  context.textAlign = "center"
-  context.textBaseline = "middle"
-  context.fillText(text, x, y)
-  context.restore()
-}
-
-function drawImageCover({
-  context,
-  image,
-  x,
-  y,
-  width,
-  height,
-  radius,
-  background,
-}: {
-  context: CanvasRenderingContext2D
-  image: HTMLImageElement
-  x: number
-  y: number
-  width: number
-  height: number
-  radius: number
-  background: string
-}) {
-  const sourceRatio = image.width / Math.max(1, image.height)
-  const targetRatio = width / Math.max(1, height)
-  let cropWidth = image.width
-  let cropHeight = image.height
-  let cropX = 0
-  let cropY = 0
-
-  if (sourceRatio > targetRatio) {
-    cropWidth = image.height * targetRatio
-    cropX = (image.width - cropWidth) / 2
-  } else {
-    cropHeight = image.width / targetRatio
-    cropY = (image.height - cropHeight) / 2
-  }
-
-  context.save()
-  context.beginPath()
-  context.roundRect(x, y, width, height, radius)
-  context.clip()
-  context.fillStyle = background
-  context.fillRect(x, y, width, height)
-  context.drawImage(image, cropX, cropY, cropWidth, cropHeight, x, y, width, height)
-  context.restore()
-}
-
-function drawBrandMark({
-  context,
-  appIcon,
-  x,
-  y,
-  size,
-}: {
-  context: CanvasRenderingContext2D
-  appIcon: HTMLImageElement | null
-  x: number
-  y: number
-  size: number
-}) {
-  if (appIcon) {
-    drawImageCover({
-      context,
-      image: appIcon,
-      x,
-      y,
-      width: size,
-      height: size,
-      radius: Math.round(size * 0.24),
-      background: surfaceColor,
-    })
-    return
-  }
-
-  drawRoundedRect(context, x, y, size, size, Math.round(size * 0.24), surfaceColor)
-  context.fillStyle = accentColor
-  context.font = `900 ${Math.round(size * 0.28)}px Arial, sans-serif`
-  drawCenteredText({ context, text: "S&L", x: x + size / 2, y: y + size / 2 })
-}
-
-async function loadOptionalImage(src?: string | null) {
-  if (!src) return null
-
-  return new Promise<HTMLImageElement | null>((resolve) => {
-    const image = new Image()
-    image.crossOrigin = "anonymous"
-    image.onload = () => resolve(image)
-    image.onerror = () => resolve(null)
-    image.src = src
-  })
-}
-
-function drawTransparentImageContain({
-  context,
-  image,
-  x,
-  y,
-  width,
-  height,
-}: {
-  context: CanvasRenderingContext2D
-  image: HTMLImageElement
-  x: number
-  y: number
-  width: number
-  height: number
-}) {
-  const sourceRatio = image.width / Math.max(1, image.height)
-  const targetRatio = width / height
-  let drawWidth = width
-  let drawHeight = height
-
-  if (sourceRatio > targetRatio) {
-    drawHeight = width / sourceRatio
-  } else {
-    drawWidth = height * sourceRatio
-  }
-
-  const drawX = x + (width - drawWidth) / 2
-  const drawY = y + (height - drawHeight) / 2
-
-  context.save()
-  context.shadowColor = "rgba(0, 0, 0, 0.18)"
-  context.shadowBlur = 18
-  context.shadowOffsetY = 8
-  context.drawImage(image, drawX, drawY, drawWidth, drawHeight)
-  context.restore()
-}
-
 function dateLabel(value: string | null, locale: Locale) {
   if (!value) return "—"
   const date = new Date(value)
@@ -374,114 +127,6 @@ function generatedLabel(value: string, locale: Locale) {
   }).format(date)
 }
 
-
-function drawExportHeader({
-  context,
-  data,
-  leagueLogo,
-  labels,
-  x,
-  y,
-  width,
-  height,
-}: {
-  context: CanvasRenderingContext2D
-  data: SeasonFinanceTransparencyData
-  leagueLogo: HTMLImageElement | null
-  labels: SeasonFinanceTransparencyLabels
-  x: number
-  y: number
-  width: number
-  height: number
-}) {
-  drawRoundedRect(context, x, y, width, height, 38, accentColor)
-
-  context.save()
-  context.beginPath()
-  context.roundRect(x, y, width, height, 38)
-  context.clip()
-  context.strokeStyle = "rgba(255, 255, 255, 0.075)"
-  context.lineWidth = 3
-  context.beginPath()
-  context.arc(x + width - 36, y + height + 10, 248, Math.PI, Math.PI * 1.65)
-  context.stroke()
-  context.beginPath()
-  context.moveTo(x + width * 0.55, y - 20)
-  context.lineTo(x + width + 40, y + height * 0.65)
-  context.stroke()
-  context.restore()
-
-  const logoRightMargin = 18
-  const logoTop = y + 18
-  const logoBottomMargin = 18
-  const logoMaxHeight = leagueLogo ? height - (logoTop - y) - logoBottomMargin : 0
-  const logoAspect = leagueLogo
-    ? leagueLogo.naturalWidth / Math.max(1, leagueLogo.naturalHeight)
-    : 1
-  const leagueLogoWidth = leagueLogo ? logoMaxHeight * logoAspect : 0
-  const leagueLogoX = x + width - leagueLogoWidth - logoRightMargin
-  if (leagueLogo) {
-    drawTransparentImageContain({
-      context,
-      image: leagueLogo,
-      x: leagueLogoX,
-      y: logoTop,
-      width: leagueLogoWidth,
-      height: logoMaxHeight,
-    })
-  }
-
-  const textLeft = x + 30
-  const textRight = leagueLogo ? leagueLogoX - 18 : x + width - 30
-  const titleWidth = Math.max(240, textRight - textLeft)
-
-  context.fillStyle = "#c9ceca"
-  context.font = "900 15px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText(labels.title.toUpperCase(), textLeft, y + 38)
-  context.restore()
-
-  const leagueLayout = fitTextLayout({
-    context,
-    text: data.leagueName.toUpperCase(),
-    maxWidth: titleWidth,
-    maxLines: 2,
-    maxFontSize: 24,
-    minFontSize: 18,
-    fontWeight: 900,
-  })
-  context.fillStyle = "#c9ceca"
-  context.font = `900 ${leagueLayout.fontSize}px Arial, sans-serif`
-  drawTextLines({
-    context,
-    lines: leagueLayout.lines,
-    x: textLeft,
-    y: y + 84,
-    width: titleWidth,
-    lineHeight: leagueLayout.lineHeight,
-  })
-
-  const seasonLayout = fitTextLayout({
-    context,
-    text: data.seasonName,
-    maxWidth: titleWidth,
-    maxLines: 2,
-    maxFontSize: 56,
-    minFontSize: 36,
-    fontWeight: 900,
-  })
-  context.fillStyle = "#ffffff"
-  context.font = `900 ${seasonLayout.fontSize}px Arial, sans-serif`
-  drawTextLines({
-    context,
-    lines: seasonLayout.lines,
-    x: textLeft,
-    y: y + 136,
-    width: titleWidth,
-    lineHeight: seasonLayout.lineHeight,
-  })
-}
 
 function drawCanvasBackground({
   context,
@@ -509,40 +154,6 @@ function drawCanvasBackground({
   context.restore()
 }
 
-function drawFooter({
-  context,
-  appIcon,
-  x,
-  y,
-  width,
-}: {
-  context: CanvasRenderingContext2D
-  appIcon: HTMLImageElement | null
-  x: number
-  y: number
-  width: number
-}) {
-  const iconSize = 52
-  const textBlockWidth = 132
-  const groupWidth = iconSize + 16 + textBlockWidth
-  const groupX = x + (width - groupWidth) / 2
-  drawBrandMark({ context, appIcon, x: groupX, y: y + 5, size: iconSize })
-
-  context.fillStyle = mutedTextColor
-  context.font = "700 15px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText("Creado con", groupX + iconSize + 16, y + 22)
-  context.restore()
-
-  context.fillStyle = headingTextColor
-  context.font = "900 21px Arial, sans-serif"
-  context.save()
-  context.textBaseline = "middle"
-  context.fillText("Smash & Lob", groupX + iconSize + 16, y + 44)
-  context.restore()
-}
-
 export async function createSeasonFinanceTransparencyImage({
   data,
   locale,
@@ -560,7 +171,7 @@ export async function createSeasonFinanceTransparencyImage({
     : 154
   const height =
     PAGE_PADDING * 2 +
-    HEADER_HEIGHT +
+    SHARED_EXPORT_HEADER_HEIGHT +
     24 +
     SUMMARY_CARD_HEIGHT * 2 +
     18 +
@@ -580,24 +191,25 @@ export async function createSeasonFinanceTransparencyImage({
   if (!context) throw new Error("canvas_not_available")
 
   const [appIconImage, leagueLogo] = await Promise.all([
-    loadOptionalImage(APP_ICON_PATH),
-    loadOptionalImage(data.leagueLogoUrl ?? null),
+    loadSharedExportImage(SHARED_EXPORT_APP_ICON_PATH),
+    loadSharedExportImage(data.leagueLogoUrl ?? null),
   ])
   drawCanvasBackground({ context, width: WIDTH, height })
 
   let y = PAGE_PADDING
-  drawExportHeader({
+  drawSharedExportHeader({
     context,
-    data,
     leagueLogo,
-    labels,
+    eyebrow: labels.title,
+    leagueName: data.leagueName,
+    seasonName: data.seasonName,
     x: PAGE_PADDING,
     y,
     width: WIDTH - PAGE_PADDING * 2,
-    height: HEADER_HEIGHT,
+    height: SHARED_EXPORT_HEADER_HEIGHT,
   })
 
-  y += HEADER_HEIGHT + 24
+  y += SHARED_EXPORT_HEADER_HEIGHT + 24
   const summaryGap = 14
   const summaryWidth = (WIDTH - PAGE_PADDING * 2 - summaryGap) / 2
   const summaryCards = [
@@ -804,12 +416,13 @@ export async function createSeasonFinanceTransparencyImage({
       color: mutedTextColor,
     },
   )
-  drawFooter({
+  drawSharedExportFooter({
     context,
     appIcon: appIconImage,
     x: PAGE_PADDING,
     y: y + 4,
     width: WIDTH - PAGE_PADDING * 2,
+    locale,
   })
 
   return new Promise<Blob>((resolve, reject) => {
