@@ -25,12 +25,13 @@ export default function MatchesPage() {
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const { votes } = useMvp()
-  const { activeLeague, activeSeason, roundSettings, rounds, players, matches } =
+  const { activeLeague, activeSeason, roundSettings, rounds, players, rankingPlayers, matches } =
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonUpcoming = activeSeason.status === "upcoming"
   const isPlayerSeasonLocked = isSeasonUpcoming && !canManageSeason
   const activeScope = searchParams.get("scope") === "mine" ? "mine" : "all"
+  const isCurrentUserSeasonPlayer = rankingPlayers.some((player) => player.id === currentUserId)
   const currentUserMatches = matches.filter(
     (match) =>
       match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId),
@@ -185,10 +186,12 @@ export default function MatchesPage() {
             : visibleMatches.filter((match) => match.round === round.round)
           const roundWindowText = getRoundWindowText(round)
           const roundStatusText = getRoundStatusText(round)
+          const currentUserRestsThisRound =
+            activeScope === "mine" && isCurrentUserSeasonPlayer && !roundIsSecret &&
+            allRoundMatches.some((match) => match.teamA.length === 2 && match.teamB.length === 2) &&
+            roundMatches.length === 0
 
-          if (roundMatches.length === 0) {
-            return null
-          }
+          if (roundMatches.length === 0 && !currentUserRestsThisRound) return null
 
           return (
             <section
@@ -245,6 +248,11 @@ export default function MatchesPage() {
                   <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">
                     {tx("Se revelarán cuando finalice la jornada anterior o, como máximo, al comenzar esta jornada.")}
                   </p>
+                </AppCard>
+              ) : currentUserRestsThisRound ? (
+                <AppCard className="border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-4 text-center">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-600">{t.matches.byeRoundTitle}</p>
+                  <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">{t.matches.byeRoundDescription}</p>
                 </AppCard>
               ) : (
                 <div className="space-y-4">

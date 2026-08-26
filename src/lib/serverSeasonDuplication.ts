@@ -10,6 +10,7 @@ import type {
 import type { PlayerProfile, Season, SeasonPlayer } from "@/data/fakeData"
 import { buildSeasonRegistrationFee, normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import { isSeasonPlayerCountInRange } from "@/lib/seasonPlayerCount"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
 
 export class SeasonDuplicationError extends Error {
@@ -193,7 +194,7 @@ export async function duplicateServerSeason({
     ),
   )
 
-  if (playerIds.length < 4 || playerIds.length % 4 !== 0) {
+  if (!isSeasonPlayerCountInRange(playerIds.length)) {
     throw new SeasonDuplicationError(409, "season_player_count_invalid")
   }
 

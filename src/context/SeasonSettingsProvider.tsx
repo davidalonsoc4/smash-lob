@@ -85,6 +85,11 @@ type SeasonSettingsContextValue = {
   getSeasonPlayers: (seasonId: string) => SeasonPlayer[];
   getSeasonRoundSettings: (seasonId: string) => SeasonRoundSettings;
   updateSeasonRoundSettings: (settings: SeasonRoundSettings) => void;
+  updateSeasonCalendarDefinition: (settings: {
+    seasonId: string;
+    totalRounds: number;
+    scheduleMode: SeasonScheduleMode;
+  }) => void;
   updatePlayerProfile: (player: {
     playerId: string;
     displayName: string;
@@ -138,6 +143,7 @@ type SeasonSettingsContextValue = {
     mvpSystem: MvpSystem;
     resultConfirmationMode: ResultConfirmationMode;
     scheduleMode?: SeasonScheduleMode;
+    targetRoundCount?: number;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
@@ -830,7 +836,10 @@ export function SeasonSettingsProvider({
       leagueId,
       name: seasonName,
       status: "upcoming",
-      totalRounds: Math.max(cleanPlayerNames.length - 1, 1),
+      totalRounds: getSeasonScheduleRoundCount({
+        playerCount: cleanPlayerNames.length,
+        mode: "single",
+      }),
       completedRounds: 0,
     };
     const existingPlayerIds = new Set(
@@ -949,6 +958,7 @@ export function SeasonSettingsProvider({
     mvpSystem,
     resultConfirmationMode,
     scheduleMode = "single",
+    targetRoundCount,
     registrationFeeEnabled = false,
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
@@ -972,6 +982,7 @@ export function SeasonSettingsProvider({
     mvpSystem: MvpSystem;
     resultConfirmationMode: ResultConfirmationMode;
     scheduleMode?: SeasonScheduleMode;
+    targetRoundCount?: number;
     registrationFeeEnabled?: boolean;
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
@@ -993,6 +1004,7 @@ export function SeasonSettingsProvider({
       totalRounds: getSeasonScheduleRoundCount({
         playerCount: totalPlayers,
         mode: scheduleMode,
+        targetRoundCount,
       }),
       completedRounds: 0,
     };
@@ -1092,6 +1104,37 @@ export function SeasonSettingsProvider({
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };
+  }
+
+  function updateSeasonCalendarDefinition({
+    seasonId,
+    totalRounds,
+    scheduleMode,
+  }: {
+    seasonId: string;
+    totalRounds: number;
+    scheduleMode: SeasonScheduleMode;
+  }) {
+    setSeasonData((currentSeasonData) => {
+      const nextSeasonData = {
+        ...currentSeasonData,
+        seasons: currentSeasonData.seasons.map((season) =>
+          season.id === seasonId ? { ...season, totalRounds } : season,
+        ),
+      };
+      persistSeasonData(nextSeasonData);
+      return nextSeasonData;
+    });
+
+    setSeasonSettings((currentSettings) => {
+      const nextSettings = currentSettings.map((settings) =>
+        settings.seasonId === seasonId
+          ? { ...settings, scheduleMode }
+          : settings,
+      );
+      window.localStorage.setItem(storageKey, JSON.stringify(nextSettings));
+      return nextSettings;
+    });
   }
 
   function updateSeasonRoundSettings(settings: SeasonRoundSettings) {
@@ -1253,6 +1296,7 @@ export function SeasonSettingsProvider({
     getSeasonPlayers,
     getSeasonRoundSettings,
     updateSeasonRoundSettings,
+    updateSeasonCalendarDefinition,
     updatePlayerProfile,
     hydrateSeasonSnapshot,
     finishActiveSeason,

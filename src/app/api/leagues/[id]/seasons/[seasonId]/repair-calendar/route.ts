@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server"
-import type { SeasonScheduleMode } from "@/lib/calendar"
+import {
+  getSeasonScheduleRoundCount,
+  isValidSeasonScheduleTarget,
+  type SeasonScheduleMode,
+} from "@/lib/calendar"
 import { getServerSeasonAdmin } from "@/lib/serverSeasonAccess"
 import {
   assertLeaguePlayerIds,
@@ -15,6 +19,7 @@ type RepairCalendarBody = {
   playerIds?: unknown
   scheduleMode?: unknown
   reroll?: unknown
+  targetRoundCount?: unknown
 }
 
 function parsePlayerIds(value: unknown) {
@@ -53,6 +58,10 @@ export async function POST(
   const playerIds = parsePlayerIds(body?.playerIds)
   const scheduleMode = parseScheduleMode(body?.scheduleMode)
   const reroll = body?.reroll === true
+  const requestedTargetRoundCount =
+    body?.targetRoundCount === undefined || body?.targetRoundCount === null
+      ? null
+      : Number(body.targetRoundCount)
 
   if (!playerIds || !scheduleMode) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -70,15 +79,35 @@ export async function POST(
       leagueId,
       playerIds,
     })
+    const targetRoundCount =
+      requestedTargetRoundCount ??
+      (reroll
+        ? access.season.totalRounds
+        : getSeasonScheduleRoundCount({
+            playerCount: validatedPlayerIds.length,
+            mode: scheduleMode,
+          }))
+
+    if (
+      !isValidSeasonScheduleTarget({
+        playerCount: validatedPlayerIds.length,
+        mode: scheduleMode,
+        targetRoundCount,
+      })
+    ) {
+      return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+    }
+
     const matches = await replaceServerUpcomingSeasonBalancedCalendar({
       supabase: access.actor.supabase,
       season: access.season,
       playerIds: validatedPlayerIds,
       scheduleMode,
+      targetRoundCount,
       reroll,
     })
 
-    return NextResponse.json({ matches })
+    return NextResponse.json({ matches, totalRounds: targetRoundCount, scheduleMode })
   } catch (error) {
     if (isSeasonMutationError(error)) {
       const body: { error: string; message?: string } = {
