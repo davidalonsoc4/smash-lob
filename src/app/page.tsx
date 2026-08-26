@@ -710,6 +710,9 @@ export default function Home() {
   const overdueRound = rounds.find((round) => round.status === "overdue");
   const nextRound = rounds.find((round) => round.status === "upcoming");
   const dashboardRound = activeRound ?? overdueRound ?? nextRound ?? null;
+  const dashboardRoundMatches = dashboardRound ? matches.filter((match) => match.round === dashboardRound.round) : [];
+  const dashboardRoundRevealed = dashboardRoundMatches.some((match) => match.teamA.length === 2 && match.teamB.length === 2);
+  const currentUserRestsInDashboardRound = Boolean(dashboardRound && dashboardRoundRevealed && seasonRankingPlayers.some((player) => player.id === currentUserId) && !dashboardRoundMatches.some((match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)));
 
   async function handleStartUpcomingSeason() {
     if (isStartingSeason || !isSeasonUpcoming || !canManageSeason) {
@@ -1054,6 +1057,13 @@ export default function Home() {
             />
           )}
         </div>
+      ) : null}
+
+      {!isSeasonClosed && !isPlayerSeasonLocked && currentUserRestsInDashboardRound ? (
+        <AppCard className="border border-dashed border-neutral-300 bg-neutral-50/80 p-3 text-center">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-600">{t.matches.byeRoundTitle}</p>
+          <p className="mt-1 text-sm font-semibold text-neutral-600">{t.matches.byeRoundDescription}</p>
+        </AppCard>
       ) : null}
 
       {!isSeasonClosed && !isPlayerSeasonLocked ? (

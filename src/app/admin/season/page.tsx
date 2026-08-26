@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { SeasonPlayerCountSelector } from "@/components/season/SeasonPlayerCountSelector";
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown";
 import { ScheduledStartSettingsPanel } from "@/components/season/ScheduledStartSettingsPanel";
 import { AppCard } from "@/components/ui/AppCard";
@@ -37,12 +38,18 @@ import {
   auditSeasonCalendar,
   generateBalancedCalendar,
   generateManualCalendar,
+  getSeasonCalendarAuditChecks,
+  getSeasonMaxBalancedLegCount,
+  getSeasonMaxRoundCount,
   getSeasonScheduleRoundCount,
   inferSeasonScheduleMode,
+  isOptimizedCustomSeasonCalendar,
+  isValidSeasonScheduleTarget,
   getNewPlayerIndexFromToken,
   getNewPlayerToken,
   resolveManualCalendarDraft,
   type ManualCalendarMatchDraft,
+  type SeasonCalendarAuditCheckKey,
   type SeasonScheduleMode,
 } from "@/lib/calendar";
 import { getEmptyCourtBooking } from "@/lib/courtBooking";
@@ -63,8 +70,12 @@ import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { buildSeasonRounds } from "@/lib/rounds";
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar";
 import { datetimeLocalToIso, formatNextScheduledStartForInput, isScheduledSeasonPending, toDatetimeLocalValue } from "@/lib/seasonScheduling";
-
-const allowedPlayerCounts = [8, 12, 16];
+import {
+  getDefaultSeasonPlayerCount,
+  getSeasonBaseRoundCount,
+  getSeasonMatchesPerRound,
+  isSeasonPlayerCountInRange,
+} from "@/lib/seasonPlayerCount";
 
 function showSavedFeedback(message: string) {
   showActionFeedback({ tone: "success", message });
@@ -74,6 +85,7 @@ const supabaseUuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type CalendarMode = "balanced" | "manual";
+type SeasonDurationMode = "complete" | "custom";
 
 type SeasonPlayerSummary = {
   id: string;
@@ -296,35 +308,34 @@ function getSuggestedSeasonName(name: string) {
   return `${match[1].trim()} ${Number(match[2]) + 1}`;
 }
 
-function getTotalRoundCount(playerCount: number) {
-  return Math.max(playerCount - 1, 1);
-}
-
-function getMatchesPerRound(playerCount: number) {
-  return Math.max(playerCount / 4, 1);
-}
+function getTotalRoundCount(playerCount: number) { return getSeasonBaseRoundCount(playerCount); }
+function getMatchesPerRound(playerCount: number) { return getSeasonMatchesPerRound(playerCount); }
 
 function getManualCalendarDraftRoundCount({
   playerCount,
   scheduleMode,
+  targetRoundCount,
 }: {
   playerCount: number;
   scheduleMode: SeasonScheduleMode;
+  targetRoundCount?: number;
 }) {
-  return scheduleMode === "extended"
-    ? getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode })
-    : getTotalRoundCount(playerCount);
+  return scheduleMode === "double"
+    ? getSeasonBaseRoundCount(playerCount)
+    : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, targetRoundCount });
 }
 
 function createEmptyManualCalendar({
   playerCount,
   scheduleMode,
+  targetRoundCount,
 }: {
   playerCount: number;
   scheduleMode: SeasonScheduleMode;
+  targetRoundCount?: number;
 }): ManualCalendarRoundDraft[] {
   return Array.from(
-    { length: getManualCalendarDraftRoundCount({ playerCount, scheduleMode }) },
+    { length: getManualCalendarDraftRoundCount({ playerCount, scheduleMode, targetRoundCount }) },
     (_, roundIndex) => ({
       round: roundIndex + 1,
       matches: Array.from({ length: getMatchesPerRound(playerCount) }, () => ({
@@ -356,16 +367,26 @@ function getDraftPlayerValues({
 function createBalancedManualCalendar(
   playerValues: string[],
   scheduleMode: SeasonScheduleMode = "single",
+  targetRoundCount?: number,
 ): ManualCalendarRoundDraft[] {
+  const generationMode = scheduleMode === "double" ? "single" : scheduleMode;
+  const generationTarget = scheduleMode === "double"
+    ? getSeasonBaseRoundCount(playerValues.length)
+    : targetRoundCount;
   const balancedMatches = generateBalancedCalendar({
     leagueId: "manual-draft",
     seasonId: "manual-draft-season",
     playerIds: playerValues,
-    scheduleMode: scheduleMode === "extended" ? "extended" : "single",
+    scheduleMode: generationMode,
+    targetRoundCount: generationTarget,
   });
 
   if (balancedMatches.length === 0) {
-    return createEmptyManualCalendar({ playerCount: playerValues.length, scheduleMode });
+    return createEmptyManualCalendar({
+      playerCount: playerValues.length,
+      scheduleMode,
+      targetRoundCount,
+    });
   }
 
   return Array.from(
@@ -373,6 +394,7 @@ function createBalancedManualCalendar(
       length: getManualCalendarDraftRoundCount({
         playerCount: playerValues.length,
         scheduleMode,
+        targetRoundCount,
       }),
     },
     (_, roundIndex) => {
@@ -548,10 +570,7 @@ function resizePlayerNames(currentNames: string[], nextCount: number) {
 }
 
 function getNextPlayerCount(currentCount: number) {
-  return (
-    allowedPlayerCounts.find((count) => count >= Math.max(currentCount, 8)) ??
-    allowedPlayerCounts[allowedPlayerCounts.length - 1]
-  );
+  return getDefaultSeasonPlayerCount(currentCount);
 }
 
 function getDefaultNewSeasonName({ seasonCount }: { seasonCount: number }) {
@@ -785,7 +804,7 @@ function getFinishedSeasonScheduleLabel({
   playerCount: number;
   matches: ReturnType<typeof useCurrentLeagueData>["matches"];
 }) {
-  const baseRoundCount = Math.max(playerCount - 1, 1);
+  const baseRoundCount = getSeasonBaseRoundCount(playerCount);
 
   if (totalRounds === baseRoundCount) {
     return "Vuelta única";
@@ -1730,8 +1749,10 @@ function BalancedCalendarAuditPanel({
 }) {
   const { t, tx } = useI18n();
   const { replaceSeasonMatches } = useMatchData();
+  const { updateSeasonCalendarDefinition } = useSeasonSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandMultiplier, setExpandMultiplier] = useState(2);
   const seasonMatches = useMemo(
     () => matches.filter((match) => match.seasonId === activeSeason.id),
     [activeSeason.id, matches],
@@ -1752,13 +1773,14 @@ function BalancedCalendarAuditPanel({
             matches: seasonMatches,
             playerIds,
             mode: scheduleMode,
+            expectedRoundCount: activeSeason.totalRounds,
           })
         : null,
-    [playerIds, scheduleMode, seasonMatches],
+    [activeSeason.totalRounds, playerIds, scheduleMode, seasonMatches],
   );
   const canAudit =
     Boolean(scheduleMode) &&
-    [8, 12, 16].includes(playerIds.length) &&
+    isSeasonPlayerCountInRange(playerIds.length) &&
     seasonMatches.length > 0;
   const hasRecordedResults = seasonMatches.some((match) =>
     match.pointsA !== null || match.pointsB !== null || match.sets.length > 0 ||
@@ -1766,110 +1788,121 @@ function BalancedCalendarAuditPanel({
   );
   const canRepair = activeSeason.status === "upcoming";
   const canReroll = !hasRecordedResults;
+  const baseRoundCount = getSeasonBaseRoundCount(playerIds.length);
+  const maxLongMultiplier = getSeasonMaxBalancedLegCount(playerIds.length);
+  const maxRoundCount = getSeasonMaxRoundCount(playerIds.length);
+  const availableLongMultipliers = Array.from(
+    { length: Math.max(maxLongMultiplier - 1, 0) },
+    (_, index) => index + 2,
+  ).filter((multiplier) => baseRoundCount * multiplier > activeSeason.totalRounds);
+  const selectedExpandMultiplier = availableLongMultipliers.includes(expandMultiplier)
+    ? expandMultiplier
+    : (availableLongMultipliers[0] ?? null);
+  const canExpandDouble =
+    canReroll && activeSeason.totalRounds < baseRoundCount * 2;
+  const canExpandLong = canReroll && selectedExpandMultiplier !== null;
 
   if (!canAudit || !audit || !scheduleMode) {
     return null;
   }
 
   const calendarAudit = audit;
+  const isCustomDuration =
+    scheduleMode === "extended" && activeSeason.totalRounds % baseRoundCount !== 0;
   const modeLabel =
     scheduleMode === "single"
       ? t.adminSeason.singleRoundCalendar
       : scheduleMode === "double"
         ? t.adminSeason.doubleRoundCalendar
-        : t.adminSeason.extendedCalendar;
-  const checkRows = [
-    {
-      label: t.adminSeason.calendarAuditMatchStructure,
-      ok: calendarAudit.invalidMatchCount === 0,
-      detail:
-        calendarAudit.invalidMatchCount === 0
-          ? t.adminSeason.calendarAuditAllCorrect
-          : `${calendarAudit.invalidMatchCount} ${t.adminSeason.calendarAuditIncorrectMatches}`,
-    },
-    {
-      label: t.adminSeason.calendarAuditRoundStructure,
-      ok:
-        calendarAudit.invalidRoundMatchCount === 0 &&
-        calendarAudit.invalidRoundAppearanceCount === 0,
-      detail:
-        calendarAudit.invalidRoundMatchCount === 0 &&
-        calendarAudit.invalidRoundAppearanceCount === 0
-          ? t.adminSeason.calendarAuditAllCorrect
-          : t.adminSeason.calendarAuditRoundStructureError
-              .replace(
-                "{rounds}",
-                String(calendarAudit.invalidRoundMatchCount),
-              )
-              .replace(
-                "{appearances}",
-                String(calendarAudit.invalidRoundAppearanceCount),
-              ),
-    },
-    {
-      label: t.adminSeason.calendarAuditPartners,
-      ok: calendarAudit.invalidTeammatePairCount === 0,
-      detail:
-        calendarAudit.invalidTeammatePairCount === 0
-          ? t.adminSeason.calendarAuditExpectedTimes.replace(
-              "{count}",
-              String(calendarAudit.expectedTeammateCount),
-            )
-          : `${calendarAudit.invalidTeammatePairCount} ${t.adminSeason.calendarAuditIncorrect}`,
-    },
-    {
-      label: t.adminSeason.calendarAuditOpponents,
-      ok: calendarAudit.invalidOpponentPairCount === 0,
-      detail:
-        calendarAudit.invalidOpponentPairCount === 0
-          ? t.adminSeason.calendarAuditExpectedTimes.replace(
-              "{count}",
-              String(calendarAudit.expectedOpponentCount),
-            )
-          : `${calendarAudit.invalidOpponentPairCount} ${t.adminSeason.calendarAuditIncorrect}`,
-    },
-    {
-      label: t.adminSeason.calendarAuditFirstLeg,
-      ok: calendarAudit.firstLegBalanced,
-      detail: calendarAudit.firstLegBalanced
-        ? t.adminSeason.calendarAuditBalancedLeg
-        : t.adminSeason.calendarAuditUnbalancedLeg,
-    },
-    ...(scheduleMode === "single"
-      ? []
-      : [
-          {
-            label: t.adminSeason.calendarAuditSecondLeg,
-            ok: calendarAudit.secondLegBalanced === true,
-            detail:
-              calendarAudit.secondLegBalanced === true
-                ? t.adminSeason.calendarAuditBalancedLeg
-                : t.adminSeason.calendarAuditUnbalancedLeg,
-          },
-          {
-            label:
-              scheduleMode === "double"
-                ? t.adminSeason.calendarAuditExactSecondLeg
-                : t.adminSeason.calendarAuditRemixedSecondLeg,
-            ok: calendarAudit.modeStructureCorrect,
-            detail:
-              scheduleMode === "double"
-                ? t.adminSeason.calendarAuditRepeatedRounds
-                    .replace(
-                      "{count}",
-                      String(calendarAudit.repeatedRoundCount),
-                    )
-                    .replace(
-                      "{total}",
-                      String(calendarAudit.baseRoundCount),
-                    )
-                : t.adminSeason.calendarAuditRepeatedMatches.replace(
-                    "{count}",
-                    String(calendarAudit.repeatedMatchCount),
-                  ),
-          },
-        ]),
-  ];
+        : isCustomDuration
+          ? t.adminSeason.durationCustomTitle
+          : t.adminSeason.extendedCalendar;
+  const auditLabels: Record<SeasonCalendarAuditCheckKey, string> = {
+    matchStructure: t.adminSeason.calendarAuditMatchStructure,
+    roundStructure: t.adminSeason.calendarAuditRoundStructure,
+    roundMatchCount: t.adminSeason.calendarAuditMatchesPerRound,
+    roundAppearanceCount: t.adminSeason.calendarAuditMaxOneAppearance,
+    byeRoundCount: t.adminSeason.calendarAuditByesPerRound,
+    byePlayerCount: t.adminSeason.calendarAuditByesPerPlayer,
+    consecutiveByes: t.adminSeason.calendarAuditNoConsecutiveByes,
+    quartets: t.adminSeason.calendarAuditQuartets,
+    partners: t.adminSeason.calendarAuditPartners,
+    opponents: t.adminSeason.calendarAuditOpponents,
+    firstLeg: t.adminSeason.calendarAuditFirstLeg,
+    secondLeg: t.adminSeason.calendarAuditSecondLeg,
+    durationBalance: t.adminSeason.calendarAuditDurationBalance,
+    modeStructure:
+      scheduleMode === "double"
+        ? t.adminSeason.calendarAuditExactSecondLeg
+        : t.adminSeason.calendarAuditExtendedStructure,
+  }
+  const auditDetails: Record<SeasonCalendarAuditCheckKey, string> = {
+    matchStructure: calendarAudit.invalidMatchCount === 0
+      ? t.adminSeason.calendarAuditAllCorrect
+      : `${calendarAudit.invalidMatchCount} ${t.adminSeason.calendarAuditIncorrectMatches}`,
+    roundStructure:
+      calendarAudit.invalidRoundMatchCount === 0 && calendarAudit.invalidRoundAppearanceCount === 0
+        ? t.adminSeason.calendarAuditAllCorrect
+        : t.adminSeason.calendarAuditRoundStructureError
+            .replace("{rounds}", String(calendarAudit.invalidRoundMatchCount))
+            .replace("{appearances}", String(calendarAudit.invalidRoundAppearanceCount)),
+    roundMatchCount: calendarAudit.invalidRoundMatchCount === 0
+      ? t.adminSeason.calendarAuditMatchesPerRoundOk.replace("{count}", String(calendarAudit.expectedMatchesPerRound))
+      : t.adminSeason.calendarAuditMatchesPerRoundError.replace("{count}", String(calendarAudit.invalidRoundMatchCount)),
+    roundAppearanceCount: calendarAudit.invalidRoundAppearanceCount === 0
+      ? t.adminSeason.calendarAuditMaxOneAppearanceOk
+      : t.adminSeason.calendarAuditSingleAppearanceError.replace("{count}", String(calendarAudit.invalidRoundAppearanceCount)),
+    byeRoundCount: calendarAudit.invalidByeRoundCount === 0
+      ? t.adminSeason.calendarAuditByesPerRoundOk.replace("{count}", String(calendarAudit.expectedByesPerRound))
+      : t.adminSeason.calendarAuditByesPerRoundError.replace("{count}", String(calendarAudit.invalidByeRoundCount)),
+    byePlayerCount: scheduleMode === "extended"
+      ? t.adminSeason.calendarAuditByesPerPlayerRange
+          .replace("{min}", String(calendarAudit.byeCountMin))
+          .replace("{max}", String(calendarAudit.byeCountMax))
+      : calendarAudit.invalidByePlayerCount === 0
+        ? t.adminSeason.calendarAuditByesPerPlayerOk.replace("{count}", String(calendarAudit.expectedByesPerPlayer))
+        : t.adminSeason.calendarAuditByesPerPlayerError.replace("{count}", String(calendarAudit.invalidByePlayerCount)),
+    consecutiveByes: calendarAudit.consecutiveByeCount === 0
+      ? t.adminSeason.calendarAuditNoConsecutiveByesOk
+      : t.adminSeason.calendarAuditNoConsecutiveByesError.replace("{count}", String(calendarAudit.consecutiveByeCount)),
+    quartets: calendarAudit.repeatedQuartetCount === 0
+      ? t.adminSeason.calendarAuditQuartetsOk
+      : t.adminSeason.calendarAuditQuartetsError.replace("{count}", String(calendarAudit.repeatedQuartetCount)),
+    partners: calendarAudit.invalidTeammatePairCount === 0
+      ? scheduleMode === "extended"
+        ? t.adminSeason.calendarAuditMaxPartnerFrequency.replace("{count}", String(calendarAudit.expectedTeammateCount))
+        : calendarAudit.hasByes
+          ? t.adminSeason.calendarAuditFlexiblePartners
+          : t.adminSeason.calendarAuditExpectedTimes.replace("{count}", String(calendarAudit.expectedTeammateCount))
+      : `${calendarAudit.invalidTeammatePairCount} ${t.adminSeason.calendarAuditIncorrect}`,
+    opponents: calendarAudit.invalidOpponentPairCount === 0
+      ? scheduleMode === "extended"
+        ? t.adminSeason.calendarAuditMaxOpponentFrequency.replace("{count}", String(calendarAudit.expectedOpponentCount))
+        : calendarAudit.hasByes
+          ? t.adminSeason.calendarAuditFlexibleOpponents.replace("{count}", String(calendarAudit.expectedOpponentCount))
+          : t.adminSeason.calendarAuditExpectedTimes.replace("{count}", String(calendarAudit.expectedOpponentCount))
+      : `${calendarAudit.invalidOpponentPairCount} ${t.adminSeason.calendarAuditIncorrect}`,
+    firstLeg: calendarAudit.firstLegBalanced ? t.adminSeason.calendarAuditBalancedLeg : t.adminSeason.calendarAuditUnbalancedLeg,
+    secondLeg: calendarAudit.secondLegBalanced === true ? t.adminSeason.calendarAuditBalancedLeg : t.adminSeason.calendarAuditUnbalancedLeg,
+    durationBalance: calendarAudit.partialRoundCount === 0
+      ? t.adminSeason.calendarAuditDurationPerfect
+          .replace("{count}", String(calendarAudit.completeLegCount))
+      : t.adminSeason.calendarAuditDurationOptimized
+          .replace("{complete}", String(calendarAudit.completeLegCount))
+          .replace("{partial}", String(calendarAudit.partialRoundCount))
+          .replace("{min}", String(calendarAudit.playerMatchCountMin))
+          .replace("{max}", String(calendarAudit.playerMatchCountMax)),
+    modeStructure: scheduleMode === "double"
+      ? t.adminSeason.calendarAuditRepeatedRounds.replace("{count}", String(calendarAudit.repeatedRoundCount)).replace("{total}", String(calendarAudit.baseRoundCount))
+      : t.adminSeason.calendarAuditRepeatedMatches.replace("{count}", String(calendarAudit.repeatedMatchCount)),
+  }
+  const optimizedCustomCalendar = isOptimizedCustomSeasonCalendar(calendarAudit);
+  const auditIsAcceptable = calendarAudit.isBalanced || optimizedCustomCalendar;
+  const checkRows = getSeasonCalendarAuditChecks(calendarAudit).map((check) => ({
+    ...check,
+    label: auditLabels[check.key],
+    detail: auditDetails[check.key],
+  }));
 
   function shuffledPlayerIds() {
     const shuffled = [...playerIds]
@@ -1883,69 +1916,108 @@ function BalancedCalendarAuditPanel({
     return shuffled
   }
 
-  async function replaceCalendar(reroll: boolean) {
-    if (isSaving || (reroll ? !canReroll : !canRepair) ||
-      (!reroll && calendarAudit.isPerfectlyBalanced)) return
+  const currentScheduleMode: SeasonScheduleMode = scheduleMode;
+
+  async function replaceCalendar(
+    reroll: boolean,
+    options?: { scheduleMode: SeasonScheduleMode; targetRoundCount: number; expansion?: boolean },
+  ) {
+    const targetMode: SeasonScheduleMode = options?.scheduleMode ?? currentScheduleMode;
+    const targetRoundCount = options?.targetRoundCount ?? activeSeason.totalRounds;
+    const isExpansion = options?.expansion === true;
+
+    if (
+      isSaving ||
+      (reroll ? !canReroll : !canRepair) ||
+      (!reroll && calendarAudit.isBalanced) ||
+      (isExpansion && targetRoundCount <= activeSeason.totalRounds)
+    ) return;
 
     const confirmed = window.confirm(
-      reroll
-        ? t.adminSeason.rerollConfirm
-        : t.adminSeason.repairCalendarConfirm,
-    )
-    if (!confirmed) return
+      isExpansion
+        ? t.adminSeason.expandSeasonConfirm
+            .replace("{rounds}", String(targetRoundCount))
+        : reroll
+          ? t.adminSeason.rerollConfirm
+          : t.adminSeason.repairCalendarConfirm,
+    );
+    if (!confirmed) return;
 
-    setIsSaving(true)
-    setError(null)
+    setIsSaving(true);
+    setError(null);
 
     try {
-      const sourcePlayerIds = reroll ? shuffledPlayerIds() : playerIds
-      const repairedMatches = isSupabaseBackedId(activeSeason.id)
-        ? await replaceSupabaseUpcomingSeasonBalancedCalendar({
-            leagueId: activeLeagueId,
-            seasonId: activeSeason.id,
-            playerIds,
-            scheduleMode: scheduleMode ?? "single",
-            reroll,
-          })
-        : generateBalancedCalendar({
-            leagueId: activeLeagueId,
-            seasonId: activeSeason.id,
-            playerIds: sourcePlayerIds,
-            scheduleMode: scheduleMode ?? "single",
-          }).map((match) => ({
-            ...match,
-            status:
-              roundSettings.openingRoundEnabled &&
-              roundSettings.openingRoundAt &&
-              match.round === 1
-                ? "scheduled" as const
-                : match.status,
-            scheduledAt:
-              roundSettings.openingRoundEnabled &&
-              roundSettings.openingRoundAt &&
-              match.round === 1
-                ? roundSettings.openingRoundAt
-                : match.scheduledAt,
-            rankingCounts: true,
-            incidentType: null,
-            incidentStatus: null,
-            incidentReason: null,
-            incidentNotes: null,
-            incidentCreatedAt: null,
-            incidentResolvedAt: null,
-            resolutionType: null,
-            substitutions: [],
-            courtBooking: getEmptyCourtBooking(),
-          }))
+      const sourcePlayerIds = reroll && !isExpansion ? shuffledPlayerIds() : playerIds;
+      let repairedMatches;
+      let resolvedRoundCount = targetRoundCount;
+      let resolvedScheduleMode = targetMode;
 
-      replaceSeasonMatches(activeSeason.id, repairedMatches)
+      if (isSupabaseBackedId(activeSeason.id)) {
+        const result = await replaceSupabaseUpcomingSeasonBalancedCalendar({
+          leagueId: activeLeagueId,
+          seasonId: activeSeason.id,
+          playerIds,
+          scheduleMode: targetMode,
+          targetRoundCount,
+          reroll,
+        });
+        repairedMatches = result.matches;
+        resolvedRoundCount = result.totalRounds;
+        resolvedScheduleMode = result.scheduleMode;
+      } else {
+        repairedMatches = generateBalancedCalendar({
+          leagueId: activeLeagueId,
+          seasonId: activeSeason.id,
+          playerIds: sourcePlayerIds,
+          scheduleMode: targetMode,
+          targetRoundCount,
+        }).map((match) => ({
+          ...match,
+          status:
+            roundSettings.openingRoundEnabled &&
+            roundSettings.openingRoundAt &&
+            match.round === 1
+              ? "scheduled" as const
+              : match.status,
+          scheduledAt:
+            roundSettings.openingRoundEnabled &&
+            roundSettings.openingRoundAt &&
+            match.round === 1
+              ? roundSettings.openingRoundAt
+              : match.scheduledAt,
+          rankingCounts: true,
+          incidentType: null,
+          incidentStatus: null,
+          incidentReason: null,
+          incidentNotes: null,
+          incidentCreatedAt: null,
+          incidentResolvedAt: null,
+          resolutionType: null,
+          substitutions: [],
+          courtBooking: getEmptyCourtBooking(),
+        }));
+      }
+
+      replaceSeasonMatches(activeSeason.id, repairedMatches);
+      if (resolvedRoundCount !== activeSeason.totalRounds || resolvedScheduleMode !== currentScheduleMode) {
+        updateSeasonCalendarDefinition({
+          seasonId: activeSeason.id,
+          totalRounds: resolvedRoundCount,
+          scheduleMode: resolvedScheduleMode,
+        });
+      }
       showSavedFeedback(
-        reroll
-          ? t.adminSeason.rerollSuccess
-          : t.adminSeason.repairCalendarSuccess,
-      )
+        isExpansion
+          ? t.adminSeason.expandSeasonSuccess.replace("{rounds}", String(resolvedRoundCount))
+          : reroll
+            ? t.adminSeason.rerollSuccess
+            : t.adminSeason.repairCalendarSuccess,
+      );
     } catch (repairError) {
-      recordSupabaseError(reroll ? "reroll-balanced-calendar" : "repair-balanced-calendar", repairError)
+      recordSupabaseError(
+        isExpansion ? "expand-balanced-calendar" : reroll ? "reroll-balanced-calendar" : "repair-balanced-calendar",
+        repairError,
+      );
       setError(
         repairError instanceof Error &&
           repairError.message === "season_calendar_reroll_has_results"
@@ -1953,18 +2025,41 @@ function BalancedCalendarAuditPanel({
           : repairError instanceof Error
             ? repairError.message
             : t.adminSeason.repairCalendarError,
-      )
+      );
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
   async function repairCalendar() {
-    await replaceCalendar(false)
+    await replaceCalendar(false, {
+      scheduleMode: currentScheduleMode,
+      targetRoundCount: activeSeason.totalRounds,
+    });
   }
 
   async function rerollCalendar() {
-    await replaceCalendar(true)
+    await replaceCalendar(true, {
+      scheduleMode: currentScheduleMode,
+      targetRoundCount: activeSeason.totalRounds,
+    });
+  }
+
+  async function expandToDoubleRound() {
+    await replaceCalendar(true, {
+      scheduleMode: "double",
+      targetRoundCount: baseRoundCount * 2,
+      expansion: true,
+    });
+  }
+
+  async function expandToLongSeason() {
+    if (!selectedExpandMultiplier) return;
+    await replaceCalendar(true, {
+      scheduleMode: "extended",
+      targetRoundCount: baseRoundCount * selectedExpandMultiplier,
+      expansion: true,
+    });
   }
 
   return (
@@ -1978,14 +2073,18 @@ function BalancedCalendarAuditPanel({
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 type-caption font-black ${
-            calendarAudit.isPerfectlyBalanced
+            calendarAudit.isBalanced
               ? "bg-emerald-100 text-emerald-800"
-              : "bg-amber-100 text-amber-800"
+              : optimizedCustomCalendar
+                ? "bg-blue-100 text-blue-800"
+                : "bg-amber-100 text-amber-800"
           }`}
         >
-          {calendarAudit.isPerfectlyBalanced
+          {calendarAudit.isBalanced
             ? t.adminSeason.calendarAuditOk
-            : t.adminSeason.calendarAuditNeedsRepair}
+            : optimizedCustomCalendar
+              ? t.adminSeason.calendarAuditOptimized
+              : t.adminSeason.calendarAuditNeedsRepair}
         </span>
       </div>
 
@@ -2042,18 +2141,22 @@ function BalancedCalendarAuditPanel({
               className={`shrink-0 rounded-full px-2 py-1 type-caption font-black ${
                 check.ok
                   ? "bg-emerald-100 text-emerald-800"
-                  : "bg-amber-100 text-amber-800"
+                  : optimizedCustomCalendar
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-amber-100 text-amber-800"
               }`}
             >
               {check.ok
                 ? t.adminSeason.calendarAuditOk
-                : t.adminSeason.calendarAuditNeedsRepair}
+                : optimizedCustomCalendar
+                  ? t.adminSeason.calendarAuditOptimized
+                  : t.adminSeason.calendarAuditNeedsRepair}
             </span>
           </div>
         ))}
       </div>
 
-      {!calendarAudit.isPerfectlyBalanced && canRepair ? (
+      {!auditIsAcceptable && canRepair ? (
         <>
           <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2.5 text-xs font-semibold leading-5 text-amber-900">
             {t.adminSeason.calendarAuditRepairHelp}
@@ -2087,6 +2190,64 @@ function BalancedCalendarAuditPanel({
         >
           {isSaving ? t.adminSeason.rerollGenerating : t.adminSeason.rerollButton}
         </button>
+      </div>
+      <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+          {t.adminSeason.expandSeasonEyebrow}
+        </p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+          {hasRecordedResults
+            ? t.adminSeason.expandSeasonBlockedByResults
+            : activeSeason.totalRounds >= maxRoundCount
+              ? t.adminSeason.expandSeasonAtMaximum
+                  .replace("{rounds}", String(maxRoundCount))
+              : t.adminSeason.expandSeasonDescription
+                  .replace("{max}", String(maxLongMultiplier))
+                  .replace("{rounds}", String(maxRoundCount))}
+        </p>
+
+        {canExpandDouble ? (
+          <button
+            type="button"
+            onClick={expandToDoubleRound}
+            disabled={isSaving}
+            className="mt-3 flex w-full items-center justify-center rounded-2xl border border-neutral-950 bg-white px-4 py-3 text-center text-sm font-black text-neutral-950 disabled:border-neutral-200 disabled:text-neutral-400"
+          >
+            {t.adminSeason.expandDoubleButton
+              .replace("{rounds}", String(baseRoundCount * 2))}
+          </button>
+        ) : null}
+
+        {canExpandLong ? (
+          <div className="mt-3 rounded-2xl bg-white p-3">
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                {t.adminSeason.expandLongLabel}
+              </span>
+              <select
+                value={selectedExpandMultiplier ?? ""}
+                onChange={(event) => setExpandMultiplier(Number(event.target.value))}
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none"
+              >
+                {availableLongMultipliers.map((multiplier) => (
+                  <option key={multiplier} value={multiplier}>
+                    ×{multiplier} · {baseRoundCount * multiplier} {t.adminSeason.roundsShortLabel}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={expandToLongSeason}
+              disabled={isSaving}
+              className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-300"
+            >
+              {isSaving
+                ? t.adminSeason.rerollGenerating
+                : t.adminSeason.expandLongButton}
+            </button>
+          </div>
+        ) : null}
       </div>
       {error ? (
         <p className="mt-3 text-center text-xs font-semibold text-red-600">
@@ -3209,7 +3370,12 @@ function NewSeasonForm({
       : null,
   );
   const [calendarMode, setCalendarMode] = useState<CalendarMode>("balanced");
+  const [durationMode, setDurationMode] = useState<SeasonDurationMode>("complete");
   const [scheduleMode, setScheduleMode] = useState<SeasonScheduleMode>("single");
+  const [longMultiplier, setLongMultiplier] = useState(2);
+  const [customRoundCount, setCustomRoundCount] = useState(
+    getSeasonBaseRoundCount(defaultPlayerCount),
+  );
   const [manualCalendar, setManualCalendar] = useState<
     ManualCalendarRoundDraft[]
   >(() =>
@@ -3303,9 +3469,27 @@ function NewSeasonForm({
   const hasValidScheduledStart =
     !scheduledStartAt || Boolean(scheduledStartIso && scheduledStartIsFuture && hasValidSecretPhase);
   const isFixedDaysMode = roundWindowMode === "fixed-days";
-  const totalSeasonRounds = getSeasonScheduleRoundCount({
+  const baseSeasonRounds = getSeasonBaseRoundCount(playerCount);
+  const maxLongMultiplier = getSeasonMaxBalancedLegCount(playerCount);
+  const maxSeasonRounds = getSeasonMaxRoundCount(playerCount);
+  const effectiveScheduleMode: SeasonScheduleMode =
+    durationMode === "custom" ? "extended" : scheduleMode;
+  const totalSeasonRounds =
+    durationMode === "custom"
+      ? customRoundCount
+      : getSeasonScheduleRoundCount({
+          playerCount,
+          mode: scheduleMode,
+          longMultiplier,
+        });
+  const completeLegMultiplier =
+    totalSeasonRounds > 0 && totalSeasonRounds % baseSeasonRounds === 0
+      ? totalSeasonRounds / baseSeasonRounds
+      : null;
+  const hasValidDuration = isValidSeasonScheduleTarget({
     playerCount,
-    mode: scheduleMode,
+    mode: effectiveScheduleMode,
+    targetRoundCount: totalSeasonRounds,
   });
   const selectedPlayerIdSet = useMemo(
     () => new Set(selectedPlayerIds),
@@ -3380,7 +3564,7 @@ function NewSeasonForm({
       validPlayerValues: validManualPlayerValues,
     });
   const hasValidPlayers =
-    allowedPlayerCounts.includes(playerCount) &&
+    isSeasonPlayerCountInRange(playerCount) &&
     (rosterMode === "self_registration"
       ? selectedPlayerIds.length <= playerCount
       : selectedPlayerIds.length <= playerCount &&
@@ -3394,6 +3578,7 @@ function NewSeasonForm({
     !isSaving &&
     newSeasonName.trim().length > 0 &&
     hasValidPlayers &&
+    hasValidDuration &&
     isManualCalendarReady &&
     hasValidRegistrationFee &&
     hasValidScheduledStart &&
@@ -3406,11 +3591,13 @@ function NewSeasonForm({
   function refreshManualCalendarFromPlayers({
     selectedIds,
     count,
-    mode = scheduleMode,
+    mode = effectiveScheduleMode,
+    targetRounds = totalSeasonRounds,
   }: {
     selectedIds: string[];
     count: number;
     mode?: SeasonScheduleMode;
+    targetRounds?: number;
   }) {
     setManualCalendar(
       createBalancedManualCalendar(
@@ -3419,12 +3606,19 @@ function NewSeasonForm({
           playerCount: count,
         }),
         mode,
+        targetRounds,
       ),
     );
   }
 
   function handlePlayerCountChange(nextCount: number) {
     setPlayerCount(nextCount);
+    const nextBaseRounds = getSeasonBaseRoundCount(nextCount);
+    const nextMaxMultiplier = getSeasonMaxBalancedLegCount(nextCount);
+    setLongMultiplier((current) => Math.min(Math.max(current, 2), nextMaxMultiplier));
+    setCustomRoundCount((current) =>
+      Math.min(Math.max(current || nextBaseRounds, 1), getSeasonMaxRoundCount(nextCount)),
+    );
 
     if (rosterMode === "self_registration") {
       const nextSelectedPlayerIds = selectedPlayerIds.slice(0, nextCount);
@@ -3451,9 +3645,20 @@ function NewSeasonForm({
         Math.max(nextCount - nextSelectedPlayerIds.length - nextSelectedAppUsers.length, 0),
       ),
     );
+    const nextLongMultiplier = Math.min(Math.max(longMultiplier, 2), nextMaxMultiplier);
+    const nextTargetRounds =
+      durationMode === "custom"
+        ? Math.min(Math.max(customRoundCount || nextBaseRounds, 1), getSeasonMaxRoundCount(nextCount))
+        : getSeasonScheduleRoundCount({
+            playerCount: nextCount,
+            mode: scheduleMode,
+            longMultiplier: nextLongMultiplier,
+          });
     refreshManualCalendarFromPlayers({
       selectedIds: nextSelectedPlayerIds,
       count: nextCount,
+      mode: durationMode === "custom" ? "extended" : scheduleMode,
+      targetRounds: nextTargetRounds,
     });
     if (isFirstLeagueSeason && userId && !isSuperuser) {
       setSelfPlayerValue(
@@ -3598,7 +3803,8 @@ function NewSeasonForm({
       resultConfirmationMode,
       availabilityRecommendationsEnabled,
       manualMatches,
-      scheduleMode,
+      scheduleMode: effectiveScheduleMode,
+      targetRoundCount: totalSeasonRounds,
       registrationFeeEnabled: hasRegistrationFee,
       registrationFeeAmount: hasRegistrationFee
         ? parsedRegistrationFeeAmount
@@ -3682,7 +3888,8 @@ function NewSeasonForm({
           leagueId: activeLeagueId,
           seasonId: result.season.id,
           matches: resolvedManualMatches,
-          scheduleMode,
+          scheduleMode: effectiveScheduleMode,
+          targetRoundCount: totalSeasonRounds,
         }).map((match) => ({
           ...match,
           rankingCounts: true,
@@ -3703,7 +3910,8 @@ function NewSeasonForm({
           leagueId: activeLeagueId,
           seasonId: result.season.id,
           playerIds: result.playerIds,
-          scheduleMode,
+          scheduleMode: effectiveScheduleMode,
+          targetRoundCount: totalSeasonRounds,
         });
       }
     }
@@ -3728,7 +3936,9 @@ function NewSeasonForm({
           calendarVisibilityMode,
           openingRoundEnabled,
           openingRoundAt: openingRoundEnabled ? effectiveOpeningRoundIso : null,
-          scheduleMode,
+          scheduleMode: effectiveScheduleMode,
+          durationMode,
+          longMultiplier: durationMode === "complete" && scheduleMode === "extended" ? longMultiplier : null,
           totalRounds: totalSeasonRounds,
           mvpSystem,
           resultConfirmationMode,
@@ -3904,27 +4114,10 @@ function NewSeasonForm({
             </div>
           </div>
 
-          <div>
-            <p className="text-sm font-semibold text-neutral-700">
-              {t.adminSeason.playerCount}
-            </p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {allowedPlayerCounts.map((count) => (
-                <button
-                  key={count}
-                  type="button"
-                  onClick={() => handlePlayerCountChange(count)}
-                  className={`rounded-2xl px-3 py-2.5 text-sm font-black ${
-                    playerCount === count
-                      ? "bg-neutral-950 text-white"
-                      : "bg-neutral-100 text-neutral-800"
-                  }`}
-                >
-                  {count}
-                </button>
-              ))}
-            </div>
-          </div>
+          <SeasonPlayerCountSelector
+            playerCount={playerCount}
+            onChange={handlePlayerCountChange}
+          />
         </div>
       </AppCard>
 
@@ -4185,138 +4378,312 @@ function NewSeasonForm({
         </AppCard>
       )}
 
-      <AppCard>
-        <p className="font-bold">{t.adminSeason.calendarTitle}</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
+      <AppCard data-season-calendar-type>
+        <div className="flex items-center gap-2">
+          <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+            1
+          </span>
+          <p className="font-bold">{t.adminSeason.calendarModeLabel}</p>
+        </div>
+        <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
           {t.adminSeason.calendarDescription}
         </p>
 
-        <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
-            {t.adminSeason.calendarVisibilityTitle}
-          </p>
-          <div className="mt-2 space-y-2">
-            {([
-              ["full", t.adminSeason.calendarVisibilityFullTitle, t.adminSeason.newCalendarVisibilityFullDescription],
-              ["progressive", t.adminSeason.calendarVisibilityProgressiveTitle, t.adminSeason.newCalendarVisibilityProgressiveDescription],
-            ] as const).map(([mode, title, description]) => (
-              <label key={mode} className={`flex items-start gap-3 rounded-2xl border p-3 ${calendarVisibilityMode === mode ? "border-neutral-950 bg-white" : "border-neutral-200 bg-white/60"}`}>
-                <input
-                  type="radio"
-                  name="newCalendarVisibility"
-                  checked={calendarVisibilityMode === mode}
-                  onChange={() => { setCalendarVisibilityMode(mode); setCreationFeedback(null); }}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block text-sm font-black text-neutral-950">{title}</span>
-                  <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">{description}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-black">
-                {t.adminSeason.seasonLengthTitle}
-              </p>
-              <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {t.adminSeason.seasonLengthDescription}
-              </p>
-            </div>
-            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-neutral-700">
-              {totalSeasonRounds} {t.adminSeason.roundsShortLabel}
-            </span>
-          </div>
-
-          <div className="mt-3 grid gap-2">
-            {(["single", "double", "extended"] as SeasonScheduleMode[]).map(
-              (mode) => {
-                const isSelected = scheduleMode === mode;
-
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => {
-                      setScheduleMode(mode);
-                      refreshManualCalendarFromPlayers({
-                        selectedIds: selectedPlayerIds,
-                        count: playerCount,
-                        mode,
-                      });
-                      setCreationFeedback(null);
-                    }}
-                    className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                      isSelected
-                        ? "border-neutral-950 bg-white shadow-sm"
-                        : "border-transparent bg-white/60 text-neutral-600"
-                    }`}
-                  >
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-black">
-                        {mode === "single"
-                          ? t.adminSeason.singleRoundCalendar
-                          : mode === "double"
-                            ? t.adminSeason.doubleRoundCalendar
-                            : t.adminSeason.extendedCalendar}
-                      </span>
-                      {isSelected ? (
-                        <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
-                          {t.common.active}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="mt-1 block text-xs font-semibold text-neutral-500">
-                      {mode === "single"
-                        ? t.adminSeason.singleRoundCalendarDescription
-                        : mode === "double"
-                          ? t.adminSeason.doubleRoundCalendarDescription
-                          : t.adminSeason.extendedCalendarDescription}
-                    </span>
-                  </button>
-                );
-              },
-            )}
-          </div>
-        </div>
-
         {rosterMode === "fixed" ? (
-        <label className="mt-4 block rounded-2xl bg-neutral-100 p-3">
-          <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
-            {t.adminSeason.calendarModeLabel}
-          </span>
-          <select
-            value={calendarMode}
-            onChange={(event) => {
-              setCalendarMode(event.target.value as CalendarMode);
-              setCreationFeedback(null);
-            }}
-            className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none focus:border-neutral-400"
-          >
-            <option value="balanced">{t.adminSeason.balancedCalendar}</option>
-            <option value="manual">{t.adminSeason.manualCalendar}</option>
-          </select>
-          <p className="mt-2 text-xs font-semibold text-neutral-500">
-            {calendarMode === "balanced"
-              ? t.adminSeason.balancedCalendarDescription
-              : t.adminSeason.manualCalendarDescription}
-          </p>
-        </label>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {([
+              ["balanced", t.adminSeason.balancedCalendar, t.adminSeason.balancedCalendarDescription],
+              ["manual", t.adminSeason.manualCalendar, t.adminSeason.manualCalendarDescription],
+            ] as const).map(([mode, title, description]) => {
+              const isSelected = calendarMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setCalendarMode(mode);
+                    setCreationFeedback(null);
+                  }}
+                  className={`rounded-2xl border p-3 text-left transition ${
+                    isSelected
+                      ? "border-neutral-950 bg-neutral-50 shadow-sm"
+                      : "border-neutral-200 bg-white text-neutral-600"
+                  }`}
+                >
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-black text-neutral-950">{title}</span>
+                    {isSelected ? (
+                      <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
+                        {t.common.active}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                    {description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         ) : (
-          <div className="mt-4 rounded-2xl bg-neutral-100 p-3">
-            <p className="text-sm font-black">{t.adminSeason.balancedCalendar}</p>
-            <p className="mt-1 text-xs font-semibold text-neutral-500">
+          <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+            <p className="text-sm font-black text-emerald-950">
+              {t.adminSeason.balancedCalendar}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-emerald-800">
               {t.adminSeason.selfRegistrationCalendarDescription}
             </p>
           </div>
         )}
+      </AppCard>
 
-        {rosterMode === "fixed" && calendarMode === "manual" ? (
-          <div className="mt-4 space-y-4">
+      <AppCard data-season-duration>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+                2
+              </span>
+              <p className="text-sm font-black">
+                {t.adminSeason.seasonLengthTitle}
+              </p>
+            </div>
+            <p className="mt-2 text-xs font-semibold text-neutral-500">
+              {t.adminSeason.seasonLengthDescription}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+            {totalSeasonRounds} {t.adminSeason.roundsShortLabel}
+          </span>
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {([
+              ["complete", t.adminSeason.durationCompleteTitle, t.adminSeason.durationCompleteDescription],
+              ["custom", t.adminSeason.durationCustomTitle, t.adminSeason.durationCustomDescription],
+            ] as const).map(([mode, title, description]) => {
+              const isSelected = durationMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setDurationMode(mode);
+                    const nextMode: SeasonScheduleMode = mode === "custom" ? "extended" : scheduleMode;
+                    const nextTarget = mode === "custom"
+                      ? Math.min(Math.max(customRoundCount, 1), maxSeasonRounds)
+                      : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, longMultiplier });
+                    refreshManualCalendarFromPlayers({
+                      selectedIds: selectedPlayerIds,
+                      count: playerCount,
+                      mode: nextMode,
+                      targetRounds: nextTarget,
+                    });
+                    setCreationFeedback(null);
+                  }}
+                  className={`rounded-2xl border px-3 py-2.5 text-left transition ${
+                    isSelected
+                      ? "border-neutral-950 bg-neutral-50 shadow-sm"
+                      : "border-neutral-200 bg-white text-neutral-600"
+                  }`}
+                >
+                  <span className="text-sm font-black">{title}</span>
+                  {mode === "complete" ? (
+                    <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-emerald-800">
+                      {t.adminSeason.durationRecommended}
+                    </span>
+                  ) : null}
+                  <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                    {description}
+                  </span>
+                </button>
+              );
+            })}
+        </div>
+
+        {durationMode === "complete" ? (
+            <div className="mt-3 grid gap-2">
+              {(["single", "double", "extended"] as SeasonScheduleMode[]).map(
+                (mode) => {
+                  const isSelected = scheduleMode === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => {
+                        setScheduleMode(mode);
+                        const nextTarget = getSeasonScheduleRoundCount({
+                          playerCount,
+                          mode,
+                          longMultiplier,
+                        });
+                        refreshManualCalendarFromPlayers({
+                          selectedIds: selectedPlayerIds,
+                          count: playerCount,
+                          mode,
+                          targetRounds: nextTarget,
+                        });
+                        setCreationFeedback(null);
+                      }}
+                      className={`rounded-2xl border px-3 py-2.5 text-left transition ${
+                        isSelected
+                          ? "border-neutral-950 bg-neutral-50 shadow-sm"
+                          : "border-neutral-200 bg-white text-neutral-600"
+                      }`}
+                    >
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-black">
+                          {mode === "single"
+                            ? t.adminSeason.singleRoundCalendar
+                            : mode === "double"
+                              ? t.adminSeason.doubleRoundCalendar
+                              : t.adminSeason.extendedCalendar}
+                        </span>
+                        {isSelected ? (
+                          <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
+                            {t.common.active}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="mt-1 block text-xs font-semibold text-neutral-500">
+                        {mode === "single"
+                          ? t.adminSeason.singleRoundCalendarDescription
+                          : mode === "double"
+                            ? t.adminSeason.doubleRoundCalendarDescription
+                            : t.adminSeason.extendedCalendarDescription}
+                      </span>
+                    </button>
+                  );
+                },
+              )}
+
+              {scheduleMode === "extended" ? (
+                <label className="rounded-2xl border border-neutral-200 bg-white p-3">
+                  <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                    {t.adminSeason.longMultiplierLabel}
+                  </span>
+                  <select
+                    value={longMultiplier}
+                    onChange={(event) => {
+                      const nextMultiplier = Number(event.target.value);
+                      setLongMultiplier(nextMultiplier);
+                      refreshManualCalendarFromPlayers({
+                        selectedIds: selectedPlayerIds,
+                        count: playerCount,
+                        mode: "extended",
+                        targetRounds: baseSeasonRounds * nextMultiplier,
+                      });
+                      setCreationFeedback(null);
+                    }}
+                    className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none"
+                  >
+                    {Array.from({ length: Math.max(maxLongMultiplier - 1, 0) }, (_, index) => index + 2).map((multiplier) => (
+                      <option key={multiplier} value={multiplier}>
+                        ×{multiplier} · {baseSeasonRounds * multiplier} {t.adminSeason.roundsShortLabel}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
+                    {t.adminSeason.longMultiplierHelp
+                      .replace("{max}", String(maxLongMultiplier))
+                      .replace("{rounds}", String(maxSeasonRounds))}
+                  </p>
+                </label>
+              ) : null}
+            </div>
+          ) : (
+            <label className="mt-3 block rounded-2xl border border-neutral-200 bg-white p-3">
+              <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
+                {t.adminSeason.customRoundCountLabel}
+              </span>
+              <input
+                type="number"
+                min={1}
+                max={maxSeasonRounds}
+                step={1}
+                value={customRoundCount}
+                onChange={(event) => {
+                  const rawValue = Number(event.target.value);
+                  const nextRounds = Number.isInteger(rawValue)
+                    ? Math.min(Math.max(rawValue, 1), maxSeasonRounds)
+                    : 1;
+                  setCustomRoundCount(nextRounds);
+                  refreshManualCalendarFromPlayers({
+                    selectedIds: selectedPlayerIds,
+                    count: playerCount,
+                    mode: "extended",
+                    targetRounds: nextRounds,
+                  });
+                  setCreationFeedback(null);
+                }}
+                className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-950 outline-none"
+              />
+              <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
+                {t.adminSeason.customRoundCountHelp
+                  .replace("{max}", String(maxSeasonRounds))}
+              </p>
+              <p className={`mt-2 rounded-xl px-3 py-2 text-xs font-black ${
+                completeLegMultiplier
+                  ? "bg-emerald-50 text-emerald-800"
+                  : "bg-amber-50 text-amber-800"
+              }`}>
+                {completeLegMultiplier
+                  ? t.adminSeason.perfectDurationBadge
+                      .replace("{count}", String(completeLegMultiplier))
+                  : t.adminSeason.optimizedDurationBadge
+                      .replace("{rounds}", String(totalSeasonRounds))}
+              </p>
+            </label>
+        )}
+      </AppCard>
+
+      <AppCard data-season-calendar-visibility>
+        <div className="flex items-center gap-2">
+          <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+            3
+          </span>
+          <p className="font-bold">{t.adminSeason.calendarVisibilityTitle}</p>
+        </div>
+        <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
+          {t.adminSeason.calendarVisibilityDescription}
+        </p>
+        <div className="mt-3 space-y-2">
+          {([
+            ["full", t.adminSeason.calendarVisibilityFullTitle, t.adminSeason.newCalendarVisibilityFullDescription],
+            ["progressive", t.adminSeason.calendarVisibilityProgressiveTitle, t.adminSeason.newCalendarVisibilityProgressiveDescription],
+          ] as const).map(([mode, title, description]) => (
+            <label
+              key={mode}
+              className={`flex items-start gap-3 rounded-2xl border p-3 ${
+                calendarVisibilityMode === mode
+                  ? "border-neutral-950 bg-neutral-50"
+                  : "border-neutral-200 bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="newCalendarVisibility"
+                checked={calendarVisibilityMode === mode}
+                onChange={() => {
+                  setCalendarVisibilityMode(mode);
+                  setCreationFeedback(null);
+                }}
+                className="mt-1"
+              />
+              <span>
+                <span className="block text-sm font-black text-neutral-950">{title}</span>
+                <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                  {description}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </AppCard>
+
+      {rosterMode === "fixed" && calendarMode === "manual" ? (
+        <AppCard data-season-manual-calendar>
+          <div className="space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
                 {totalSeasonRounds} {tx("jornadas ·")}{" "}
@@ -4324,9 +4691,9 @@ function NewSeasonForm({
                 {getMatchesPerRound(playerCount) === 1 ? tx("partido") : "partidos"}{" "}
                 {tx("por jornada")}{" "}</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {scheduleMode === "double"
+                {effectiveScheduleMode === "double"
                   ? t.adminSeason.manualCalendarDoubleHelp
-                  : scheduleMode === "extended"
+                  : effectiveScheduleMode === "extended"
                     ? t.adminSeason.manualCalendarLongHelp
                     : t.adminSeason.manualCalendarSingleHelp}
               </p>
@@ -4336,7 +4703,8 @@ function NewSeasonForm({
                   refreshManualCalendarFromPlayers({
                     selectedIds: selectedPlayerIds,
                     count: playerCount,
-                    mode: scheduleMode,
+                    mode: effectiveScheduleMode,
+                    targetRounds: totalSeasonRounds,
                   });
                   setCreationFeedback(null);
                 }}
@@ -4479,8 +4847,8 @@ function NewSeasonForm({
                 {tx("Completa todos los desplegables sin repetir jugador dentro de la misma jornada para poder crear la temporada.")}{" "}</p>
             ) : null}
           </div>
-        ) : null}
-      </AppCard>
+        </AppCard>
+      ) : null}
 
       <AppCard>
         <p className="font-bold">{t.adminSeason.resultRulesTitle}</p>
@@ -5112,11 +5480,11 @@ export default function AdminSeasonPage() {
       : [],
   });
   const canAuditCalendar =
-    [
-      Math.max(players.length - 1, 1),
-      Math.max(players.length - 1, 1) * 2,
-    ].includes(activeSeason.totalRounds) &&
-    [8, 12, 16].includes(players.length);
+    isValidSeasonScheduleTarget({
+      playerCount: players.length,
+      mode: "extended",
+      targetRoundCount: activeSeason.totalRounds,
+    }) && matches.some((match) => match.seasonId === activeSeason.id);
 
 
   async function handleDuplicateLastSeason() {

@@ -253,15 +253,21 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
   seasonId,
   playerIds,
   scheduleMode = "single",
+  targetRoundCount,
   reroll = false,
 }: {
   leagueId: string;
   seasonId: string;
   playerIds: string[];
   scheduleMode?: SeasonScheduleMode;
+  targetRoundCount?: number;
   reroll?: boolean;
-}): Promise<MatchData[]> {
-  const payload = await readSeasonApiPayload<{ matches?: MatchData[] }>(
+}): Promise<{ matches: MatchData[]; totalRounds: number; scheduleMode: SeasonScheduleMode }> {
+  const payload = await readSeasonApiPayload<{
+    matches?: MatchData[];
+    totalRounds?: number;
+    scheduleMode?: SeasonScheduleMode;
+  }>(
     await fetch(
       `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/repair-calendar`,
       {
@@ -270,6 +276,7 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
         body: JSON.stringify({
           playerIds,
           scheduleMode,
+          targetRoundCount,
           reroll,
         }),
         cache: "no-store",
@@ -278,11 +285,19 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
     "season-repair-api",
   );
 
-  if (!payload.matches) {
+  if (
+    !payload.matches ||
+    typeof payload.totalRounds !== "number" ||
+    !payload.scheduleMode
+  ) {
     throw new Error("season-repair-api-empty");
   }
 
-  return payload.matches;
+  return {
+    matches: payload.matches,
+    totalRounds: payload.totalRounds,
+    scheduleMode: payload.scheduleMode,
+  };
 }
 
 export async function startSupabaseSeason({
@@ -307,6 +322,7 @@ export async function startSupabaseSeason({
   resultConfirmationMode,
   manualMatches,
   scheduleMode = "single",
+  targetRoundCount,
   registrationFeeEnabled = false,
   registrationFeeAmount = 0,
   registrationFeePurpose = "",
@@ -337,6 +353,7 @@ export async function startSupabaseSeason({
   resultConfirmationMode: SeasonRoundSettings["resultConfirmationMode"];
   manualMatches?: ManualCalendarMatchDraft[];
   scheduleMode?: SeasonScheduleMode;
+  targetRoundCount?: number;
   registrationFeeEnabled?: boolean;
   registrationFeeAmount?: number;
   registrationFeePurpose?: string;
@@ -379,6 +396,7 @@ export async function startSupabaseSeason({
         resultConfirmationMode,
         manualMatches,
         scheduleMode,
+        targetRoundCount,
         registrationFeeEnabled,
         registrationFeeAmount,
         registrationFeePurpose,
