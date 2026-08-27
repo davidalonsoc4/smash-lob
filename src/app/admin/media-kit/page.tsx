@@ -26,18 +26,26 @@ import { getSeasonCountdown, formatScheduledSeasonStart, SCHEDULED_SEASON_TIME_Z
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundMvpSelection, getSeasonMvpSelection } from "@/lib/mvp"
 import { extractLogoAccentPalette } from "@/lib/logoAccentPalette"
+import { buildMediaKitWelcomeLetter } from "@/lib/mediaKitWelcomeLetter"
 import {
   createLeagueMediaKitImage,
   downloadLeagueMediaKitImage,
+  WELCOME_LETTER_FONT_OPTIONS,
+  WELCOME_LOGO_STYLE_OPTIONS,
+  WELCOME_SIGNATURE_FONT_OPTIONS,
   type LeagueMediaKitImageData,
   type LeagueMediaKitHeadlineFont,
   type LeagueMediaKitKind,
+  type LeagueMediaKitWelcomeLetterFont,
+  type LeagueMediaKitWelcomeLogoStyle,
+  type LeagueMediaKitWelcomeSignatureFont,
 } from "@/lib/leagueMediaKitImage"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 
 const titles: Record<LeagueMediaKitKind, string> = {
+  welcome: "Carta de bienvenida",
   opening: "Apertura",
   matchday: "Jornada",
   format: "Formato de la liga",
@@ -55,6 +63,7 @@ const titles: Record<LeagueMediaKitKind, string> = {
 }
 
 const compactPresetTitles: Record<LeagueMediaKitKind, string> = {
+  welcome: "Bienvenida",
   opening: "Apertura",
   matchday: "Jornada",
   format: "Formato",
@@ -72,6 +81,7 @@ const compactPresetTitles: Record<LeagueMediaKitKind, string> = {
 }
 
 const presetOrder: LeagueMediaKitKind[] = [
+  "welcome",
   "format",
   "rules",
   "gameplay",
@@ -263,6 +273,11 @@ export default function MediaKitPage() {
   const [customAccentDraft, setCustomAccentDraft] = useState("#d7a544")
   const [showCustomAccent, setShowCustomAccent] = useState(false)
   const [openingHeadlineFont, setOpeningHeadlineFont] = useState<LeagueMediaKitHeadlineFont>("editorial")
+  const [welcomeLetterFont, setWelcomeLetterFont] = useState<LeagueMediaKitWelcomeLetterFont>("club_classic")
+  const [welcomeLogoStyle, setWelcomeLogoStyle] = useState<LeagueMediaKitWelcomeLogoStyle>("clean_stamp")
+  const [welcomeSignatureFont, setWelcomeSignatureFont] = useState<LeagueMediaKitWelcomeSignatureFont>("allura")
+  const [welcomeRecipientName, setWelcomeRecipientName] = useState("")
+  const [welcomeRecipientGender, setWelcomeRecipientGender] = useState<"masculine" | "feminine">("masculine")
   const [openingLogoOverride, setOpeningLogoOverride] = useState<string | null>(null)
   const [logoAccentResult, setLogoAccentResult] = useState<{ source: string; colors: string[]; failed: boolean } | null>(null)
   const [spotlightImageUrl, setSpotlightImageUrl] = useState<string | null>(null)
@@ -278,6 +293,48 @@ export default function MediaKitPage() {
   const [matchdayDraft, setMatchdayDraft] = useState<MatchdayDraft>(() => defaultMatchdayDraft)
   const [activePresetKind, setActivePresetKind] = useState<LeagueMediaKitKind>("opening")
   const [workspaceView, setWorkspaceView] = useState<"preview" | "customize">("preview")
+  const hasCalendarByes = useMemo(() => {
+    if (players.length === 0) return false
+    const roundsWithMatches = [...new Set(matches.map((match) => match.round))]
+    if (roundsWithMatches.length === 0) return players.length % 4 !== 0
+    return roundsWithMatches.some((round) => {
+      const participants = new Set(
+        matches
+          .filter((match) => match.round === round)
+          .flatMap((match) => [...match.teamA, ...match.teamB])
+          .filter(Boolean),
+      )
+      return participants.size < players.length
+    })
+  }, [matches, players.length])
+  const welcomeInputBase = useMemo(() => ({
+    locale,
+    leagueName: activeLeague.name,
+    seasonName: activeSeason.name,
+    playerCount: players.length,
+    totalRounds: activeSeason.totalRounds,
+    hasByes: hasCalendarByes,
+    registrationFee: roundSettings.registrationFee,
+    scheduledStartAt: roundSettings.scheduledStartAt,
+    openingRoundEnabled: roundSettings.openingRoundEnabled,
+    openingRoundAt: roundSettings.openingRoundAt,
+    openingRoundLocation: mediaKitLocationLabel(roundSettings.openingRoundLocation, activeLeague.locations, " · "),
+  }), [activeLeague.locations, activeLeague.name, activeSeason.name, activeSeason.totalRounds, hasCalendarByes, locale, players.length, roundSettings.openingRoundAt, roundSettings.openingRoundEnabled, roundSettings.openingRoundLocation, roundSettings.registrationFee, roundSettings.scheduledStartAt])
+  const welcomeDefaults = useMemo(() => buildMediaKitWelcomeLetter({
+    ...welcomeInputBase,
+    recipientName: welcomeRecipientName,
+    recipientGender: welcomeRecipientGender,
+  }), [welcomeInputBase, welcomeRecipientGender, welcomeRecipientName])
+  const [welcomeBody, setWelcomeBody] = useState(() => welcomeDefaults.bodyText)
+  const [welcomeSignoff, setWelcomeSignoff] = useState(() => welcomeDefaults.signoff)
+  const [welcomeSignature, setWelcomeSignature] = useState(() => welcomeDefaults.signature)
+  const applyWelcomeAutomaticText = (recipientName = welcomeRecipientName, recipientGender = welcomeRecipientGender) => {
+    const letter = buildMediaKitWelcomeLetter({ ...welcomeInputBase, recipientName, recipientGender })
+    setOpeningTitle(letter.title)
+    setWelcomeBody(letter.bodyText)
+    setWelcomeSignoff(letter.signoff)
+    setWelcomeSignature(letter.signature)
+  }
   const canManage = isLeagueAdmin(activeLeague.id)
   const accentLogoUrl = openingLogoOverride ?? activeLeague.logoUrl
   const logoAccentSuggestions = logoAccentResult && logoAccentResult.source === accentLogoUrl ? logoAccentResult.colors : []
@@ -366,6 +423,7 @@ export default function MediaKitPage() {
       icon: mediaKitIconToken("trophy"),
     })
   }
+  const isWelcomePreset = activePresetKind === "welcome"
   const isResultsPreset = activePresetKind === "results"
   const isScoreboardPreset = activePresetKind === "standings"
   const isSpotlightPreset = activePresetKind === "mvp" || activePresetKind === "season_final"
@@ -377,14 +435,17 @@ export default function MediaKitPage() {
 
   const openingData = useMemo<LeagueMediaKitImageData>(() => ({
     kind: activePresetKind,
-    template: isResultsPreset ? "results_premium_06" : isSpotlightPreset ? "spotlight_premium_05" : isScoreboardPreset ? "scoreboard_premium_04" : isInformationalPreset ? "informational_premium_02" : activePresetKind === "matchday" ? "matchday_premium_03" : "opening_day_premium_01",
+    template: isWelcomePreset ? "welcome_letter_premium_07" : isResultsPreset ? "results_premium_06" : isSpotlightPreset ? "spotlight_premium_05" : isScoreboardPreset ? "scoreboard_premium_04" : isInformationalPreset ? "informational_premium_02" : activePresetKind === "matchday" ? "matchday_premium_03" : "opening_day_premium_01",
     leagueName: activeLeague.name,
     seasonName: openingSeasonHeader,
     leagueLogoUrl: openingLogoOverride ?? activeLeague.logoUrl,
     locale,
-    eyebrow: activePresetKind === "format" ? "Cómo funciona" : activePresetKind === "rules" ? "Reglamento" : activePresetKind === "gameplay" ? "Guía de juego" : activePresetKind === "results" ? "Jornada completada" : activePresetKind === "standings" ? "Ranking oficial" : activePresetKind === "mvp" ? "Jugador destacado" : activePresetKind === "season_final" ? "Cierre oficial" : activePresetKind === "matchday" ? "Enfrentamiento oficial" : "Evento oficial",
+    eyebrow: isWelcomePreset ? welcomeDefaults.eyebrow : activePresetKind === "format" ? "Cómo funciona" : activePresetKind === "rules" ? "Reglamento" : activePresetKind === "gameplay" ? "Guía de juego" : activePresetKind === "results" ? "Jornada completada" : activePresetKind === "standings" ? "Ranking oficial" : activePresetKind === "mvp" ? "Jugador destacado" : activePresetKind === "season_final" ? "Cierre oficial" : activePresetKind === "matchday" ? "Enfrentamiento oficial" : "Evento oficial",
     title: activePresetKind === "matchday" ? matchdayDraft.roundLabel : openingTitle,
-    subtitle: activePresetKind === "matchday" ? matchdayDraft.matchLabel : openingSubtitle,
+    subtitle: isWelcomePreset ? undefined : activePresetKind === "matchday" ? matchdayDraft.matchLabel : openingSubtitle,
+    bodyText: isWelcomePreset ? welcomeBody : undefined,
+    signoff: isWelcomePreset ? welcomeSignoff : undefined,
+    signature: isWelcomePreset ? welcomeSignature : undefined,
     rows: isInformationalPreset ? formatRows : [],
     heroValue: isInformationalPreset ? formatClosing : undefined,
     accentColor: openingAccent,
@@ -393,14 +454,18 @@ export default function MediaKitPage() {
     venue: activePresetKind === "matchday" ? matchdayDraft.venue : openingVenue,
     roundLabel: activePresetKind === "matchday" ? matchdayDraft.roundLabel : openingRound,
     headlineFont: openingHeadlineFont,
+    welcomeLetterFont: isWelcomePreset ? welcomeLetterFont : undefined,
+    welcomeLogoStyle: isWelcomePreset ? welcomeLogoStyle : undefined,
+    welcomeSignatureFont: isWelcomePreset ? welcomeSignatureFont : undefined,
     matchup: activePresetKind === "matchday" ? { teamA: matchdayDraft.teamA, teamB: matchdayDraft.teamB } : undefined,
     spotlightImageUrl: isSpotlightPreset ? spotlightImageUrl : undefined,
     resultRound: isResultsPreset ? selectedResultRound : undefined,
     results: isResultsPreset ? resultCards : undefined,
-  }), [activeLeague.logoUrl, activeLeague.name, activePresetKind, formatClosing, formatRows, isInformationalPreset, isResultsPreset, isScoreboardPreset, isSpotlightPreset, matchdayDraft, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSeasonHeader, openingSubtitle, openingTime, openingTitle, openingVenue, resultCards, selectedResultRound, spotlightImageUrl])
+  }), [activeLeague.logoUrl, activeLeague.name, activePresetKind, formatClosing, formatRows, isInformationalPreset, isResultsPreset, isScoreboardPreset, isSpotlightPreset, isWelcomePreset, matchdayDraft, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSeasonHeader, openingSubtitle, openingTime, openingTitle, openingVenue, resultCards, selectedResultRound, spotlightImageUrl, welcomeBody, welcomeDefaults.eyebrow, welcomeLetterFont, welcomeLogoStyle, welcomeSignatureFont, welcomeSignoff, welcomeSignature])
 
   const base = { leagueName: activeLeague.name, seasonName: openingSeasonHeader, leagueLogoUrl: activeLeague.logoUrl, locale, template: "opening_day_premium_01" as const, accentColor: openingAccent, headlineFont: openingHeadlineFont }
   const pieces: Array<{ kind: LeagueMediaKitKind; data: LeagueMediaKitImageData; disabled?: boolean }> = [
+    { kind: "welcome", data: { ...base, kind: "welcome", template: "welcome_letter_premium_07", eyebrow: welcomeDefaults.eyebrow, title: welcomeDefaults.title, bodyText: welcomeDefaults.bodyText, signoff: welcomeDefaults.signoff, signature: welcomeDefaults.signature, welcomeLetterFont: "club_classic", welcomeLogoStyle: "clean_stamp", welcomeSignatureFont: "allura", rows: [] } },
     { kind: "matchday", disabled: sortedMatchdayMatches.length === 0, data: { ...base, kind: "matchday", template: "matchday_premium_03", eyebrow: "Enfrentamiento oficial", title: defaultMatchdayDraft.roundLabel, subtitle: defaultMatchdayDraft.matchLabel, eventDateLabel: defaultMatchdayDraft.date, eventTimeLabel: defaultMatchdayDraft.time, venue: defaultMatchdayDraft.venue, roundLabel: defaultMatchdayDraft.roundLabel, matchup: { teamA: defaultMatchdayDraft.teamA, teamB: defaultMatchdayDraft.teamB }, rows: [] } },
     { kind: "results", data: { ...base, kind: "results", template: "results_premium_06", eyebrow: "Jornada completada", title: "Resultados de la jornada", subtitle: latestCompletedRound ? tx(`Jornada ${latestCompletedRound} · Marcadores oficiales`) : "Los marcadores aparecerán al cerrar la jornada", rows: [], resultRound: latestCompletedRound, results: loadedResultCards } },
     { kind: "standings", data: { ...base, kind: "standings", template: "scoreboard_premium_04", eyebrow: "Ranking oficial", title: "Clasificación actualizada", subtitle: latestCompletedRound ? tx(`Después de la jornada ${latestCompletedRound}`) : "Así arranca la competición", heroValue: "Top 5 · Puntos y diferencia de juegos", rows: standingsRows.length > 0 ? standingsRows : [{ label: "Clasificación pendiente", value: "—" }] } },
@@ -458,8 +523,16 @@ export default function MediaKitPage() {
     .sort((first, second) => presetOrder.indexOf(first.kind) - presetOrder.indexOf(second.kind))
 
   function applyPresetData(kind: LeagueMediaKitKind, data: LeagueMediaKitImageData) {
-    setOpeningTitle(tx(data.title))
+    setOpeningTitle(kind === "welcome" ? data.title : tx(data.title))
     setOpeningSubtitle(data.subtitle ? tx(data.subtitle) : "")
+    if (kind === "welcome") {
+      setWelcomeBody(data.bodyText ?? welcomeDefaults.bodyText)
+      setWelcomeSignoff(data.signoff ?? welcomeDefaults.signoff)
+      setWelcomeSignature(data.signature ?? welcomeDefaults.signature)
+      setWelcomeLetterFont(data.welcomeLetterFont ?? "club_classic")
+      setWelcomeLogoStyle(data.welcomeLogoStyle ?? "clean_stamp")
+      setWelcomeSignatureFont(data.welcomeSignatureFont ?? "allura")
+    }
     setOpeningDate(data.eventDateLabel ?? "")
     setOpeningTime(data.eventTimeLabel ?? "")
     setOpeningRound(data.roundLabel ? tx(data.roundLabel) : "")
@@ -689,7 +762,7 @@ export default function MediaKitPage() {
           <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {presets.map(({ kind, data, disabled }) => {
               const isActive = activePresetKind === kind
-              return <button key={kind} type="button" title={disabled ? tx("Configura fecha de inicio") : data.subtitle ? tx(data.subtitle) : tx(titles[kind])} aria-pressed={isActive} disabled={Boolean(disabled || busy)} onClick={() => loadPreset(kind, data)} className={`min-h-[58px] min-w-[104px] snap-start rounded-2xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/5 disabled:text-neutral-600 ${isActive ? "border-amber-300 bg-amber-300 text-neutral-950 shadow-lg shadow-amber-300/10" : "border-white/10 bg-white/[.06] text-white"}`}><span className="block whitespace-nowrap type-micro font-black uppercase tracking-[.1em] opacity-60">{disabled ? tx("Sin fecha") : kind === "format" || kind === "rules" || kind === "gameplay" ? tx("Informativo") : tx("Preset")}</span><span className="mt-1 block text-xs font-black">{tx(compactPresetTitles[kind])}</span></button>
+              return <button key={kind} type="button" title={disabled ? tx("Configura fecha de inicio") : data.subtitle ? tx(data.subtitle) : tx(titles[kind])} aria-pressed={isActive} disabled={Boolean(disabled || busy)} onClick={() => loadPreset(kind, data)} className={`min-h-[58px] min-w-[104px] snap-start rounded-2xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/5 disabled:text-neutral-600 ${isActive ? "border-amber-300 bg-amber-300 text-neutral-950 shadow-lg shadow-amber-300/10" : "border-white/10 bg-white/[.06] text-white"}`}><span className="block whitespace-nowrap type-micro font-black uppercase tracking-[.1em] opacity-60">{disabled ? tx("Sin fecha") : kind === "welcome" ? tx("Carta") : kind === "format" || kind === "rules" || kind === "gameplay" ? tx("Informativo") : tx("Preset")}</span><span className="mt-1 block text-xs font-black">{tx(compactPresetTitles[kind])}</span></button>
             })}
           </div>
         </section>
@@ -722,7 +795,91 @@ export default function MediaKitPage() {
                 <p className="mt-1.5 type-caption font-semibold text-neutral-500">{tx("La temporada origen recarga los datos reales. La cabecera superior puede retocarse sin cambiarla.")}</p>
               </div>
 
-              {isResultsPreset ? (
+              {isWelcomePreset ? (
+                <div className="space-y-3">
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div><p className="type-caption font-black uppercase tracking-[.14em] text-amber-800">{tx("Carta contextual")}</p><p className="mt-1 type-caption font-semibold leading-4 text-amber-900/70">{tx("La carta se construye con los datos reales de la temporada. Inscripción, Jornada de Apertura, inicio programado y descansos solo aparecen cuando corresponden.")}</p></div>
+                      <button type="button" onClick={() => applyWelcomeAutomaticText()} className="inline-flex shrink-0 items-center justify-center rounded-xl border border-amber-300 bg-white px-3 py-2 text-center type-caption font-black text-amber-900">{tx("Restaurar texto automático")}</button>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="type-caption font-black text-neutral-700">{tx("Destinatario")}</p>
+                        <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Personaliza el saludo y cualquier palabra con género sin tocar manualmente el texto de la carta.")}</p>
+                        <div className="mt-2 grid gap-3 sm:grid-cols-[1fr_180px]">
+                          <label className="block type-caption font-black text-neutral-700">{tx("Nombre")}<input className={fieldClass} value={welcomeRecipientName} onChange={(event) => { const nextName = event.target.value; setWelcomeRecipientName(nextName); applyWelcomeAutomaticText(nextName, welcomeRecipientGender) }} maxLength={50} placeholder={tx("Nombre del destinatario")} /></label>
+                          <label className="block type-caption font-black text-neutral-700">{tx("Género")}<select className={fieldClass} value={welcomeRecipientGender} onChange={(event) => { const nextGender = event.target.value as "masculine" | "feminine"; setWelcomeRecipientGender(nextGender); applyWelcomeAutomaticText(welcomeRecipientName, nextGender) }}><option value="masculine">{tx("Masculino")}</option><option value="feminine">{tx("Femenino")}</option></select></label>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-end justify-between gap-3">
+                          <div>
+                            <p className="type-caption font-black text-neutral-700">{tx("Tipografía de la carta")}</p>
+                            <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Elige un estilo editorial. Si las fuentes web no están disponibles, la exportación usa una serifa segura como alternativa.")}</p>
+                          </div>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {WELCOME_LETTER_FONT_OPTIONS.map((option) => {
+                            const selected = welcomeLetterFont === option.id
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() => setWelcomeLetterFont(option.id)}
+                                className={`min-h-[76px] rounded-xl border px-3 py-2 text-left transition ${selected ? "border-amber-400 bg-amber-50 ring-1 ring-amber-300" : "border-neutral-200 bg-white hover:border-neutral-300"}`}
+                              >
+                                <span className="block text-base text-neutral-950" style={{ fontFamily: option.previewFamily }}>{tx(option.label)}</span>
+                                <span className="mt-1 block type-caption font-semibold text-neutral-500">{tx(option.detail)}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <p className="type-caption font-black text-neutral-700">{tx("Sello institucional")}</p>
+                          <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("El logo original permanece en la cabecera. El sello es un remate opcional junto a la firma.")}</p>
+                          <div className="mt-2 grid gap-2">
+                            {WELCOME_LOGO_STYLE_OPTIONS.map((option) => {
+                              const selected = welcomeLogoStyle === option.id
+                              return (
+                                <button key={option.id} type="button" aria-pressed={selected} onClick={() => setWelcomeLogoStyle(option.id)} className={`min-h-[58px] rounded-xl border px-3 py-2 text-left transition ${selected ? "border-sky-700 bg-sky-50 ring-1 ring-sky-200" : "border-neutral-200 bg-white hover:border-neutral-300"}`}>
+                                  <span className="block text-sm font-black text-neutral-950">{tx(option.label)}</span>
+                                  <span className="mt-0.5 block type-caption font-semibold text-neutral-500">{tx(option.detail)}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="type-caption font-black text-neutral-700">{tx("Estilo de firma")}</p>
+                          <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("La firma puede usar una caligrafía manuscrita sin alterar el cuerpo formal de la carta.")}</p>
+                          <div className="mt-2 grid gap-2">
+                            {WELCOME_SIGNATURE_FONT_OPTIONS.map((option) => {
+                              const selected = welcomeSignatureFont === option.id
+                              return (
+                                <button key={option.id} type="button" aria-pressed={selected} onClick={() => setWelcomeSignatureFont(option.id)} className={`min-h-[58px] rounded-xl border px-3 py-2 text-left transition ${selected ? "border-amber-400 bg-amber-50 ring-1 ring-amber-300" : "border-neutral-200 bg-white hover:border-neutral-300"}`}>
+                                  <span className="block text-lg text-neutral-950" style={{ fontFamily: option.previewFamily }}>{tx(option.label)}</span>
+                                  <span className="mt-0.5 block type-caption font-semibold text-neutral-500">{tx(option.detail)}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <label className="block type-caption font-black text-neutral-700">{tx("Título de la carta")}<input className={fieldClass} value={openingTitle} onChange={(event) => setOpeningTitle(event.target.value)} maxLength={60} /></label>
+                      <label className="block type-caption font-black text-neutral-700">{tx("Texto de la carta")}<textarea className="mt-1 min-h-72 w-full resize-y rounded-xl border border-neutral-200 bg-white px-3 py-3 text-xs font-semibold leading-5 text-neutral-950 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" value={welcomeBody} onChange={(event) => setWelcomeBody(event.target.value)} maxLength={1600} /></label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="block type-caption font-black text-neutral-700">{tx("Despedida")}<input className={fieldClass} value={welcomeSignoff} onChange={(event) => setWelcomeSignoff(event.target.value)} maxLength={40} /></label>
+                        <label className="block type-caption font-black text-neutral-700">{tx("Firma")}<input className={fieldClass} value={welcomeSignature} onChange={(event) => setWelcomeSignature(event.target.value)} maxLength={60} /></label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : isResultsPreset ? (
                 <div className="space-y-3">
                   <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
                     <p className="type-caption font-black uppercase tracking-[.14em] text-amber-800">{tx("Cargar jornada")}</p>
@@ -862,7 +1019,7 @@ export default function MediaKitPage() {
 
               <div className="rounded-2xl border border-neutral-200 p-3">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="type-caption font-black text-neutral-700">{tx("Tipografía del titular")}<select aria-label={tx("Diseño del titular")} value={openingHeadlineFont} onChange={(event) => setOpeningHeadlineFont(event.target.value as LeagueMediaKitHeadlineFont)} className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-black text-neutral-900 outline-none focus:border-neutral-950">{openingHeadlineFontOptions.map((option) => <option key={option.id} value={option.id}>{tx(option.label)} · {tx(option.detail)}</option>)}</select></label>
+                  {isWelcomePreset ? <div className="rounded-xl bg-neutral-50 px-3 py-2"><p className="type-caption font-black text-neutral-700">{tx("Diseño de carta")}</p><p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">{tx("Tipografía editorial fija para mantener el carácter institucional del documento.")}</p></div> : <label className="type-caption font-black text-neutral-700">{tx("Tipografía del titular")}<select aria-label={tx("Diseño del titular")} value={openingHeadlineFont} onChange={(event) => setOpeningHeadlineFont(event.target.value as LeagueMediaKitHeadlineFont)} className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-black text-neutral-900 outline-none focus:border-neutral-950">{openingHeadlineFontOptions.map((option) => <option key={option.id} value={option.id}>{tx(option.label)} · {tx(option.detail)}</option>)}</select></label>}
                   <div><p className="type-caption font-black text-neutral-700">{tx("Color de acento")}</p><div className="mt-2 flex flex-wrap items-center gap-2">{openingAccentOptions.map((color) => <button key={color} type="button" aria-label={tx(`Usar color ${color}`)} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}<button type="button" aria-label={tx("Color personalizado")} aria-expanded={showCustomAccent} onClick={() => { setShowCustomAccent((current) => !current); setCustomAccentDraft(openingAccent) }} className={`min-h-8 rounded-full border px-3 type-caption font-black ${showCustomAccent ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700"}`}>{tx("+ Propio")}</button></div>{accentLogoUrl ? <div className="mt-2 rounded-xl bg-neutral-50 px-2.5 py-2"><div className="flex items-center justify-between gap-2"><p className="type-caption font-black text-neutral-600">{tx("Sugeridos por el logo")}</p>{logoAccentStatus === "loading" ? <span className="type-caption font-bold text-neutral-400">{tx("Analizando…")}</span> : null}</div>{logoAccentStatus === "ready" ? <div className="mt-1.5 flex flex-wrap gap-2">{logoAccentSuggestions.map((color) => <button key={color} type="button" aria-label={tx(`Usar color del logo ${color}`)} title={color} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}</div> : null}{logoAccentStatus === "error" ? <p className="mt-1 type-caption font-semibold text-neutral-400">{tx("No se han podido extraer colores útiles de este logo.")}</p> : null}</div> : null}</div>
                 </div>
                 {showCustomAccent ? <div className="mt-3 grid grid-cols-[48px_1fr] gap-2 rounded-xl bg-neutral-50 p-2"><input aria-label={tx("Selector de color personalizado")} type="color" value={openingAccent} onChange={(event) => { setOpeningAccent(event.target.value); setCustomAccentDraft(event.target.value) }} className="h-10 w-12 cursor-pointer rounded-lg border border-neutral-200 bg-white p-1" /><input aria-label={tx("Código hexadecimal personalizado")} value={customAccentDraft} onChange={(event) => updateCustomAccent(event.target.value)} maxLength={7} placeholder="#D7A544" className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-black uppercase text-neutral-900 outline-none focus:border-neutral-950" /></div> : null}
