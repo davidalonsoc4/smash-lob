@@ -1,3 +1,91 @@
+# v1.13.8 — Sello azul premium reforzado (2026-08-27)
+
+- La Carta de bienvenida mantiene la textura de papel premium y el sello orgánico, pero refuerza el azul del sello para que el logo gane presencia y legibilidad.
+- Se conservan el tamaño grande del sello, su posición irregular y el solape natural con la firma sin reescalados.
+- Continúa sobre `feature/v1.13.0-media-kit-welcome-letter`; al quedar cerrada esta iteración, el siguiente paso es subir todo v1.13 a PRE.
+
+# v1.13.6 — Refuerzo visual de sello y papel (2026-08-27)
+
+- La Carta de bienvenida refuerza la textura del papel premium para que el grano se perciba mejor sin comprometer la legibilidad.
+- El sello limpio y el sello tinta recuperan presencia con un azul tinta más vivo y un contraste superior, manteniendo su colocación orgánica junto a la firma.
+- Se mantiene el tamaño grande del sello, su inclinación/posición irregular y la firma sin reescalado.
+- Continúa sobre `feature/v1.13.0-media-kit-welcome-letter`; v1.12 y v1.13 siguen fuera de PROD hasta cerrar la rama.
+
+# v1.13.5 — Acabado premium de carta y sello (2026-08-27)
+
+- La Carta de bienvenida incorpora textura sutil de papel premium, sello azul grisáceo menos intenso y mayor legibilidad del logo.
+- Se conserva el sello grande y orgánico de v1.13.4 y la firma mantiene siempre su tamaño aunque exista solape.
+- El cierre final deja de repetir el nombre del destinatario; el nombre continúa personalizando el saludo inicial.
+- Continúa en `feature/v1.13.0-media-kit-welcome-letter`; v1.12 y v1.13 siguen fuera de PROD hasta cerrar la rama.
+
+# v1.13.4 — Sello orgánico y firma sin restricciones (2026-08-27)
+
+- El sello de la Carta de bienvenida aumenta a 164 px para ganar presencia en el bloque de cierre.
+- Su posición varía de forma aleatoria controlada hasta ±26 px en horizontal, ±20 px en vertical y ±9° de inclinación en cada render.
+- La firma conserva siempre el tamaño asociado a la tipografía elegida; no se reduce para evitar el sello y se permite el solape parcial intencionado.
+- El sello mantiene sus variantes Sin sello, Sello limpio y Sello tinta y continúa usando el logo normal de la liga en cabecera.
+- Continúa en `feature/v1.13.0-media-kit-welcome-letter`; v1.12 y v1.13 siguen fuera de PROD hasta cerrar la rama.
+
+# v1.13.3 — Personalización de destinatario, logo y sello (2026-08-27)
+
+- La Carta de bienvenida incorpora nombre del destinatario y selector Masculino/Femenino para resolver automáticamente Bienvenido/Bienvenida y cualquier tratamiento dependiente del género.
+- El logo de la liga se conserva siempre normal en la esquina superior izquierda cuando existe.
+- El sello queda como elemento independiente junto a la firma y ofrece Sin sello, Sello limpio y Sello tinta.
+- La firma automática pasa a `Organización de {NOMBRE DE LA LIGA}` y continúa siendo editable.
+- Continúa en `feature/v1.13.0-media-kit-welcome-letter`; v1.12 y v1.13 siguen fuera de PROD hasta cerrar la rama.
+
+# v1.13.2 — Sello institucional, firma manuscrita y cierre de párrafos (2026-08-27)
+
+- La Carta de bienvenida permite mostrar el logo original o convertirlo en un sello azul tinta, con variantes limpia e impresión orgánica.
+- La firma incorpora estilos independientes del cuerpo: clásica, Allura, Petit Formal Script y Great Vibes; por defecto se usa Allura.
+- El texto automático separa en bloques propios «Desde este momento…» y «Bienvenido/a a Smash & Lob», también en inglés y euskera.
+- Las fuentes manuscritas se cargan bajo demanda junto a las serif premium y mantienen fallback local si la red no está disponible.
+- Continúa en `feature/v1.13.0-media-kit-welcome-letter`; v1.12 y v1.13 siguen fuera de PROD hasta cerrar la rama.
+
+# v1.13.1 — Párrafos y tipografía premium en la carta (2026-08-27)
+
+- La Carta de bienvenida respeta saltos manuales y separa cada bloque automático con una línea completa de aire.
+- Personalizar incorpora cuatro estilos: Club clásico (Cormorant Garamond + Libre Baskerville), Editorial premium (Instrument Serif + Lora), Baskerville y Lora.
+- Las fuentes se cargan bajo demanda desde Google Fonts al componer la carta; el render conserva fallback serif local si la red no está disponible.
+- La altura de la carta sigue calculándose antes de dibujar para reducir el cuerpo si hace falta y proteger la firma y el último párrafo.
+- Continúa en `feature/v1.13.0-media-kit-welcome-letter`; v1.12 y v1.13 permanecen fuera de PROD hasta cerrar la rama.
+
+# v1.13.0 — Carta institucional de bienvenida (2026-08-26)
+
+- Rama: `feature/v1.13.0-media-kit-welcome-letter`.
+- Media Kit incorpora el preset **Carta de bienvenida**, con diseño premium de documento institucional y texto completo editable.
+- El contenido automático se construye con los datos reales de la temporada: inscripción, Jornada de Apertura, inicio programado y descansos solo aparecen cuando existen.
+- La carta explica de forma breve acceso por invitación, perfil, gestión desde la app y Formato Smash & Lob; título, cuerpo, despedida y firma se pueden personalizar y restaurar.
+- v1.12 continúa pendiente de PROD; v1.13 parte de v1.12.4 y se desplegarán conjuntamente cuando se cierre esta rama.
+
+# v1.12.4 — Auditoría personalizada y creación más clara (2026-08-26)
+
+- La auditoría de calendario deja de limitarse a 1×/2× vueltas completas: cualquier duración válida, incluida una personalizada como 11 jugadores y 13 jornadas, muestra Equilibrio del calendario y REROLL.
+- El panel identifica las duraciones parciales como Personalizada y muestra cada regla aplicable; los repartos matemáticamente no exactos se describen mediante el rango optimizado realmente obtenido.
+- REROLL conserva la misma protección: cualquier resultado registrado bloquea la regeneración.
+- La creación separa Tipo de calendario, Duración y Visibilidad en tarjetas independientes y numeradas; Equilibrado/Manual pasan de desplegable a opciones visibles.
+- No hay cambios de esquema ni migraciones nuevas.
+
+# v1.12.2 — Auditoría adaptativa del calendario (2026-08-26)
+- v1.12.2: el panel de Equilibrio del calendario adapta sus validaciones al número real de jugadores; los formatos con descansos muestran por separado partidos por jornada, máximo una aparición, descansos por jornada y jugador, ausencia de descansos consecutivos y cuartetos no repetidos.
+
+- La misma rama `feature/v1.12.0-flexible-season-size` continúa acumulando el desarrollo v1.12.x; no se publica en PRE/PROD.
+- Todos los tamaños entre 8 y 24 jugadores pueden crear temporada. Los múltiplos de cuatro conservan el calendario perfectamente equilibrado sin descansos y el resto usa un calendario equilibrado con descansos.
+- Los calendarios con descansos usan N jornadas por vuelta, `floor(N/4)` partidos por jornada y `N mod 4` descansos por jornada; cada jugador descansa exactamente `N mod 4` veces por vuelta.
+- El generador cíclico determinista evita descansos consecutivos, parejas repetidas y cuartetos repetidos dentro de cada vuelta y limita la repetición de rivales.
+- HOME y Mis partidos identifican explícitamente las jornadas de descanso del jugador sin romper el ocultamiento progresivo de emparejamientos.
+- Revisión de continuidad: el resumen de temporadas finalizadas y el fallback local de creación inicial usan también el cómputo flexible de jornadas, evitando tratar las plantillas con descansos como `N-1` jornadas.
+- La auditoría, API, duplicación y calendario manual comparten las reglas flexibles. La migración `20260825214500_allow_flexible_season_player_capacity.sql` elimina únicamente la antigua exigencia SQL de múltiplo de cuatro, conservando el rango legacy 4..32 en BBDD mientras la aplicación limita nuevas temporadas a 8..24.
+
+# v1.12.0 — Tamaño flexible de temporada (2026-08-25)
+
+- Rama prevista: `feature/v1.12.0-flexible-season-size`, creada desde `main` en `dcdf9ea54e284e7704cbf4562c37fda236528d0f`.
+- La creación de temporada usa un selector genérico de 8 a 24 jugadores, ajustable de uno en uno.
+- En esta fase solo 8, 12, 16, 20 y 24 permiten crear la temporada; los demás tamaños se muestran como futuros formatos con descansos.
+- La validación de tamaño se centraliza y se reutiliza en cliente, API y duplicación de temporadas.
+- El generador equilibrado añade starters cíclicos verificados para 20 y 24 jugadores y conserva la auditoría de pareja única y doble oposición por vuelta.
+- No hay migraciones ni cambios de datos persistidos.
+
 # v1.10.18 — Plantillas continuistas, ubicaciones estructuradas y amistosos visibles (2026-08-19)
 
 - Las temporadas posteriores con `roster_mode = self_registration` pueden arrancar con jugadores de la temporada anterior ya inscritos: se seleccionan por defecto en administración, se pueden desmarcar y las plazas restantes permanecen abiertas al autoregistro. La Temporada 1 conserva el autoalta del creador cuando corresponde.
@@ -1454,3 +1542,13 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Si falla la creación del mensaje de sistema del chat, el rollback restaura también reservas y transferencias anteriores, además de la programación.
 - Economía de temporada calcula `availablePerPlayer` a partir del saldo realmente disponible dividido entre los jugadores únicos de la temporada. El panel Disponible muestra `X € POR PERSONA` en lugar de `Ingresado − gastado`.
 - No requiere migraciones de Supabase. La entrega local incluye pruebas focalizadas para el flujo de reserva desde CHAT y el reparto del saldo por jugador; la puerta final de lint, tipos, build y revisión visual se ejecuta tras aplicar el ZIP en el proyecto real.
+
+
+### Duración flexible y ampliación de temporadas - v1.12.3 (2026-08-26)
+
+- La duración deja de estar acoplada al número de jugadores: creación con equilibrio completo o número personalizado de jornadas.
+- Temporada larga escalable por vueltas completas hasta el máximo determinista soportado para cada plantilla de 8 a 24 jugadores.
+- Los múltiplos exactos de la vuelta base generan vueltas completas equilibradas; los tramos parciales usan optimización determinista y la auditoría distingue equilibrio completo de resultado optimizado.
+- Gestión puede ampliar una temporada existente a doble vuelta o temporada larga mientras no haya resultados, usando la misma barrera de seguridad que REROLL.
+- La migración `20260826002000_resize_balanced_season_calendar.sql` realiza el redimensionado de forma atómica y limpia el estado operativo ligado a los emparejamientos sustituidos.
+- La entrega se valida localmente con las puertas habituales y requiere aplicar la migración antes de publicar el código.

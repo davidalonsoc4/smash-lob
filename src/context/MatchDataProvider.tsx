@@ -144,6 +144,7 @@ type MatchDataContextValue = {
     seasonId: string;
     playerIds: string[];
     scheduleMode?: SeasonScheduleMode;
+    targetRoundCount?: number;
   }) => MatchData[];
   updateMatchSchedule: (
     matchId: string,
@@ -746,17 +747,20 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       seasonId,
       playerIds,
       scheduleMode = "single",
+      targetRoundCount,
     }: {
       leagueId: string;
       seasonId: string;
       playerIds: string[];
       scheduleMode?: SeasonScheduleMode;
+      targetRoundCount?: number;
     }) => {
       const seasonMatches = generateBalancedCalendar({
         leagueId,
         seasonId,
         playerIds,
         scheduleMode,
+        targetRoundCount,
       }).map((match): MatchData => ({
         ...match,
         rankingCounts: true,

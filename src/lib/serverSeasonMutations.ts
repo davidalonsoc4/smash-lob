@@ -7,6 +7,7 @@ import {
   generateManualCalendar,
   getNewPlayerIndexFromToken,
   getSeasonScheduleRoundCount,
+  isValidSeasonScheduleTarget,
   resolveManualCalendarDraft,
   type ManualCalendarMatchDraft,
   type SeasonScheduleMode,
@@ -74,6 +75,7 @@ type CreateServerSeasonInput = {
   resultConfirmationMode: SeasonRoundSettings["resultConfirmationMode"]
   manualMatches?: ManualCalendarMatchDraft[]
   scheduleMode: SeasonScheduleMode
+  targetRoundCount: number
   registrationFeeEnabled: boolean
   registrationFeeAmount: number
   registrationFeePurpose: string
@@ -536,6 +538,17 @@ export async function prepareServerSelfRegistrationSeasonCalendar({
     return { prepared: false, matchCount: 0 }
   }
 
+  const { data: seasonRow, error: seasonLookupError } = await supabase
+    .from("seasons")
+    .select("total_rounds")
+    .eq("id", seasonId)
+    .eq("league_id", leagueId)
+    .maybeSingle()
+
+  if (seasonLookupError || !seasonRow) {
+    throw new SeasonMutationError(500, "season_lookup_failed")
+  }
+
   const { data: seasonPlayerRows, error: seasonPlayersError } = await supabase
     .from("season_players")
     .select("player_id,status")
@@ -565,6 +578,7 @@ export async function prepareServerSelfRegistrationSeasonCalendar({
     seasonId,
     playerIds,
     scheduleMode,
+    targetRoundCount: Number(seasonRow.total_rounds),
   })
   const { data, error } = await supabase.rpc(
     "server_prepare_self_registration_season_calendar",
@@ -652,6 +666,17 @@ export async function startServerExistingSeason({
   }
 
   if (settingsRow?.roster_mode === "self_registration") {
+    const { data: seasonLengthRow, error: seasonLengthError } = await supabase
+      .from("seasons")
+      .select("total_rounds")
+      .eq("id", seasonId)
+      .eq("league_id", leagueId)
+      .single()
+
+    if (seasonLengthError) {
+      throw new SeasonMutationError(500, "season_lookup_failed")
+    }
+
     const { data: seasonPlayerRows, error: seasonPlayersError } = await supabase
       .from("season_players")
       .select("player_id,status")
@@ -681,6 +706,7 @@ export async function startServerExistingSeason({
       seasonId,
       playerIds,
       scheduleMode,
+      targetRoundCount: Number(seasonLengthRow.total_rounds),
     })
     const { error: startError } = await supabase.rpc(
       "server_start_self_registration_season",
@@ -1017,18 +1043,33 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
   season,
   playerIds,
   scheduleMode,
+  targetRoundCount,
   reroll = false,
 }: {
   supabase: SupabaseClient
   season: ServerSeason
   playerIds: string[]
   scheduleMode: SeasonScheduleMode
+  targetRoundCount?: number
   reroll?: boolean
 }): Promise<MatchData[]> {
-  const expectedRoundCount = getSeasonScheduleRoundCount({
-    playerCount: playerIds.length,
-    mode: scheduleMode,
-  })
+  const expectedRoundCount =
+    targetRoundCount ??
+    getSeasonScheduleRoundCount({
+      playerCount: playerIds.length,
+      mode: scheduleMode,
+    })
+
+  if (
+    !isValidSeasonScheduleTarget({
+      playerCount: playerIds.length,
+      mode: scheduleMode,
+      targetRoundCount: expectedRoundCount,
+    })
+  ) {
+    throw new SeasonMutationError(400, "invalid_target_round_count")
+  }
+
   if (!reroll && season.status !== "upcoming") {
     throw new SeasonMutationError(
       409,
@@ -1037,7 +1078,7 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     )
   }
 
-  if (season.totalRounds !== expectedRoundCount) {
+  if (!reroll && season.totalRounds !== expectedRoundCount) {
     throw new SeasonMutationError(
       409,
       "season_calendar_repair_round_count_mismatch",
@@ -1074,11 +1115,37 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     throw new SeasonMutationError(500, "season_calendar_repair_lookup_failed")
   }
 
+  const hasRecordedResults = (existingMatches ?? []).some((match) =>
+    hasRecordedMatchResult(match as Record<string, unknown>),
+  )
+
+  if (reroll && hasRecordedResults) {
+    throw new SeasonMutationError(
+      409,
+      "season_calendar_reroll_has_results",
+      "No se puede regenerar ni ampliar el calendario porque ya hay resultados registrados en esta temporada.",
+    )
+  }
+
+  if (
+    !reroll &&
+    (existingMatches ?? []).some(
+      (match) => !isPristineUpcomingMatch(match as Record<string, unknown>, openingRoundAt, openingRoundLocation)
+    )
+  ) {
+    throw new SeasonMutationError(
+      409,
+      "season_calendar_repair_dirty_matches",
+      "Hay partidos ya programados o modificados. No se ha reemplazado el calendario para evitar perder datos."
+    )
+  }
+
   const baseGeneratedMatches = generateBalancedCalendar({
     leagueId: season.leagueId,
     seasonId: season.id,
     playerIds,
     scheduleMode,
+    targetRoundCount: expectedRoundCount,
   })
 
   const calendarSignature = (
@@ -1103,8 +1170,10 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     })),
   )
 
+  const isResize = season.totalRounds !== expectedRoundCount
+
   let generatedMatches = baseGeneratedMatches
-  if (reroll && playerIds.length > 1) {
+  if (reroll && !isResize && playerIds.length > 1) {
     for (let attempt = 0; attempt < 32; attempt += 1) {
       const shuffledPlayerIds = [...playerIds]
       for (let index = shuffledPlayerIds.length - 1; index > 0; index -= 1) {
@@ -1119,6 +1188,7 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
         seasonId: season.id,
         playerIds: shuffledPlayerIds,
         scheduleMode,
+        targetRoundCount: expectedRoundCount,
       })
       if (calendarSignature(candidate) !== currentSignature) {
         generatedMatches = candidate
@@ -1127,11 +1197,57 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     }
   }
 
-  if (reroll && calendarSignature(generatedMatches) === currentSignature) {
+  if (reroll && !isResize && calendarSignature(generatedMatches) === currentSignature) {
     throw new SeasonMutationError(
       409,
       "season_calendar_reroll_no_alternative",
       "No se ha encontrado un calendario equilibrado diferente. No se ha modificado el calendario actual.",
+    )
+  }
+
+  const resizePayload = generatedMatches.map((match) => ({
+    round: match.round,
+    team_a: match.teamA,
+    team_b: match.teamB,
+    status: openingRoundAt && match.round === 1 ? "scheduled" : "scheduling",
+    scheduled_at: openingRoundAt && match.round === 1 ? openingRoundAt : null,
+    location: openingRoundAt && match.round === 1 ? openingRoundLocation : null,
+  }))
+
+  if (reroll && isResize) {
+    const { error: resizeError } = await supabase.rpc(
+      "resize_season_calendar_matches",
+      {
+        p_season_id: season.id,
+        p_total_rounds: expectedRoundCount,
+        p_schedule_mode: scheduleMode,
+        p_matches: resizePayload,
+      },
+    )
+
+    if (resizeError) {
+      if (resizeError.message.includes("season_calendar_resize_has_results")) {
+        throw new SeasonMutationError(
+          409,
+          "season_calendar_reroll_has_results",
+          "No se puede regenerar ni ampliar el calendario porque ya hay resultados registrados en esta temporada.",
+        )
+      }
+      throw new SeasonMutationError(500, "season_calendar_resize_update_failed", resizeError.message)
+    }
+
+    const { data: resizedMatches, error: resizedMatchesError } = await supabase
+      .from("matches")
+      .select(matchSelect)
+      .eq("season_id", season.id)
+      .order("round", { ascending: true })
+
+    if (resizedMatchesError) {
+      throw new SeasonMutationError(500, "season_calendar_resize_lookup_failed")
+    }
+
+    return (resizedMatches ?? []).map((match) =>
+      mapSupabaseMatch(match as Record<string, unknown>)
     )
   }
 
@@ -1143,36 +1259,9 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     )
   }
 
-  const hasRecordedResults = (existingMatches ?? []).some((match) =>
-    hasRecordedMatchResult(match as Record<string, unknown>),
-  )
-
-  if (reroll && hasRecordedResults) {
-    throw new SeasonMutationError(
-      409,
-      "season_calendar_reroll_has_results",
-      "No se puede hacer REROLL porque ya hay resultados registrados en esta temporada.",
-    )
-  }
-
-  if (
-    !reroll &&
-    (existingMatches ?? []).some(
-      (match) => !isPristineUpcomingMatch(match as Record<string, unknown>, openingRoundAt, openingRoundLocation)
-    )
-  ) {
-    throw new SeasonMutationError(
-      409,
-      "season_calendar_repair_dirty_matches",
-      "Hay partidos ya programados o modificados. No se ha reemplazado el calendario para evitar perder datos."
-    )
-  }
-
   const sortedExistingMatches = [...(existingMatches ?? [])].sort(
     (firstMatch, secondMatch) => {
-      const roundDifference =
-        Number(firstMatch.round) - Number(secondMatch.round)
-
+      const roundDifference = Number(firstMatch.round) - Number(secondMatch.round)
       return roundDifference !== 0
         ? roundDifference
         : String(firstMatch.id).localeCompare(String(secondMatch.id))
@@ -1180,8 +1269,7 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
   )
   const sortedGeneratedMatches = [...generatedMatches].sort(
     (firstMatch, secondMatch) =>
-      firstMatch.round - secondMatch.round ||
-      firstMatch.id.localeCompare(secondMatch.id)
+      firstMatch.round - secondMatch.round || firstMatch.id.localeCompare(secondMatch.id)
   )
 
   const payload = sortedGeneratedMatches.map((match, index) => ({
@@ -1278,6 +1366,7 @@ export async function createServerSeason({
     resultConfirmationMode,
     manualMatches,
     scheduleMode,
+    targetRoundCount,
     registrationFeeEnabled,
     registrationFeeAmount,
     registrationFeePurpose,
@@ -1356,6 +1445,17 @@ export async function createServerSeason({
   const totalPlayers = isSelfRegistration
     ? playerCapacity
     : uniquePlayerIds.length + cleanAppUserIds.length + cleanNewPlayerNames.length
+
+  if (
+    !isValidSeasonScheduleTarget({
+      playerCount: totalPlayers,
+      mode: scheduleMode,
+      targetRoundCount,
+    })
+  ) {
+    throw new SeasonMutationError(400, "invalid_target_round_count")
+  }
+
   const { data: finishedSeason, error: finishError } = shouldFinishCurrentSeason
     ? await supabase
         .from("seasons")
@@ -1375,10 +1475,7 @@ export async function createServerSeason({
       league_id: leagueId,
       name,
       status: "upcoming",
-      total_rounds: getSeasonScheduleRoundCount({
-        playerCount: totalPlayers,
-        mode: scheduleMode,
-      }),
+      total_rounds: targetRoundCount,
       completed_rounds: 0,
     })
     .select("id,league_id,name,status,total_rounds,completed_rounds")
@@ -1654,12 +1751,14 @@ export async function createServerSeason({
           seasonId: season.id,
           matches: resolvedManualMatches,
           scheduleMode,
+          targetRoundCount,
         })
       : generateBalancedCalendar({
           leagueId,
           seasonId: season.id,
           playerIds: finalPlayerIds,
           scheduleMode,
+          targetRoundCount,
         })
 
   const { data: matchesData, error: matchesError } =

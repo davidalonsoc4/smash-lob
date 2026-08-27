@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
-import type { ManualCalendarMatchDraft, SeasonScheduleMode } from "@/lib/calendar"
+import {
+  getSeasonScheduleRoundCount,
+  isValidSeasonScheduleTarget,
+  type ManualCalendarMatchDraft,
+  type SeasonScheduleMode,
+} from "@/lib/calendar"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import {
@@ -9,6 +14,7 @@ import {
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { RosterMode } from "@/data/fakeData"
+import { isSeasonPlayerCountInRange } from "@/lib/seasonPlayerCount"
 import {
   createScheduledLeagueLocationValue,
   getLeagueLocationIdentityKey,
@@ -39,6 +45,7 @@ type CreateSeasonBody = {
   resultConfirmationMode?: unknown
   manualMatches?: unknown
   scheduleMode?: unknown
+  targetRoundCount?: unknown
   registrationFeeEnabled?: unknown
   registrationFeeAmount?: unknown
   registrationFeePurpose?: unknown
@@ -49,7 +56,6 @@ type CreateSeasonBody = {
   availabilityRecommendationsEnabled?: unknown
 }
 
-const allowedPlayerCounts = new Set([8, 12, 16])
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/
 
 function cleanString(value: unknown) {
@@ -286,6 +292,10 @@ export async function POST(
   const appUserIds = parseUuidArray(body?.appUserIds ?? [])
   const roundWindowMode = parseRoundWindowMode(body?.roundWindowMode)
   const scheduleMode = parseScheduleMode(body?.scheduleMode) ?? "single"
+  const requestedTargetRoundCount =
+    body?.targetRoundCount === undefined || body?.targetRoundCount === null
+      ? undefined
+      : Number(body.targetRoundCount)
   const rosterMode = parseRosterMode(body?.rosterMode) ?? "fixed"
   const calendarMode = parseCalendarMode(body?.calendarMode) ?? "balanced"
   const calendarVisibilityMode = parseCalendarVisibilityMode(body?.calendarVisibilityMode) ?? "full"
@@ -342,7 +352,7 @@ export async function POST(
     preseasonSecretDaysBefore === undefined ||
     openingRoundAt === undefined ||
     openingRoundLocation === undefined ||
-    !allowedPlayerCounts.has(playerCapacity) ||
+    !isSeasonPlayerCountInRange(playerCapacity) ||
     (rosterMode === "self_registration" && calendarMode !== "balanced")
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -398,9 +408,17 @@ export async function POST(
     rosterMode === "self_registration"
       ? playerCapacity
       : playerIds.length + appUserIds.length + newPlayerNames.length
+  const targetRoundCount =
+    requestedTargetRoundCount ??
+    getSeasonScheduleRoundCount({ playerCount: totalPlayers, mode: scheduleMode })
 
   if (
-    !allowedPlayerCounts.has(totalPlayers) ||
+    !isSeasonPlayerCountInRange(totalPlayers) ||
+    !isValidSeasonScheduleTarget({
+      playerCount: totalPlayers,
+      mode: scheduleMode,
+      targetRoundCount,
+    }) ||
     (rosterMode === "self_registration" &&
       (newPlayerNames.length > 0 || appUserIds.length > 0 || playerIds.length > playerCapacity))
   ) {
@@ -458,6 +476,7 @@ export async function POST(
         resultConfirmationMode,
         manualMatches,
         scheduleMode,
+        targetRoundCount,
         registrationFeeEnabled,
         registrationFeeAmount,
         registrationFeePurpose,
@@ -493,6 +512,7 @@ export async function POST(
         openingRoundAt: openingRoundEnabled ? effectiveOpeningRoundAt : null,
         openingRoundLocation: openingRoundEnabled ? openingRoundLocation : null,
         scheduleMode,
+        targetRoundCount,
         totalRounds:
           result.seasonSnapshot.seasons.find((season) => season.id === createdSeasonId)
             ?.totalRounds ?? null,
