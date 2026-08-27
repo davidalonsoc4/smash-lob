@@ -4,6 +4,7 @@ import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 
 export type LeagueMediaKitKind =
+  | "welcome"
   | "opening"
   | "matchday"
   | "format"
@@ -19,6 +20,7 @@ export type LeagueMediaKitKind =
   | "next_round"
   | "season_final"
 export type LeagueMediaKitTemplate =
+  | "welcome_letter_premium_07"
   | "opening_day_premium_01"
   | "informational_premium_02"
   | "matchday_premium_03"
@@ -35,6 +37,48 @@ export type LeagueMediaKitHeadlineFont =
   | "didone"
   | "technical"
 
+export type LeagueMediaKitWelcomeLetterFont =
+  | "club_classic"
+  | "editorial_luxury"
+  | "baskerville"
+  | "lora"
+
+export type LeagueMediaKitWelcomeLogoStyle =
+  | "none"
+  | "clean_stamp"
+  | "ink_stamp"
+
+export type LeagueMediaKitWelcomeSignatureFont =
+  | "classic"
+  | "allura"
+  | "petit_formal"
+  | "great_vibes"
+
+export const WELCOME_LETTER_FONT_OPTIONS: Array<{
+  id: LeagueMediaKitWelcomeLetterFont
+  label: string
+  detail: string
+  previewFamily: string
+}> = [
+  { id: "club_classic", label: "Club clásico", detail: "Cormorant + Baskerville", previewFamily: '"Cormorant Garamond", Georgia, serif' },
+  { id: "editorial_luxury", label: "Editorial premium", detail: "Instrument Serif + Lora", previewFamily: '"Instrument Serif", Georgia, serif' },
+  { id: "baskerville", label: "Baskerville", detail: "Sobria y formal", previewFamily: '"Libre Baskerville", Georgia, serif' },
+  { id: "lora", label: "Lora", detail: "Elegante y contemporánea", previewFamily: '"Lora", Georgia, serif' },
+]
+
+export const WELCOME_LOGO_STYLE_OPTIONS: Array<{ id: LeagueMediaKitWelcomeLogoStyle; label: string; detail: string }> = [
+  { id: "none", label: "Sin sello", detail: "Solo logo de liga en cabecera" },
+  { id: "clean_stamp", label: "Sello limpio", detail: "Azul tinta · institucional" },
+  { id: "ink_stamp", label: "Sello tinta", detail: "Azul tinta · impresión orgánica" },
+]
+
+export const WELCOME_SIGNATURE_FONT_OPTIONS: Array<{ id: LeagueMediaKitWelcomeSignatureFont; label: string; detail: string; previewFamily: string }> = [
+  { id: "classic", label: "Firma clásica", detail: "Tipografía de la carta", previewFamily: '"Cormorant Garamond", Georgia, serif' },
+  { id: "allura", label: "Manuscrita elegante", detail: "Allura", previewFamily: '"Allura", cursive' },
+  { id: "petit_formal", label: "Formal caligráfica", detail: "Petit Formal Script", previewFamily: '"Petit Formal Script", cursive' },
+  { id: "great_vibes", label: "Firma premium", detail: "Great Vibes", previewFamily: '"Great Vibes", cursive' },
+]
+
 export type LeagueMediaKitImageData = {
   kind: LeagueMediaKitKind
   template?: LeagueMediaKitTemplate
@@ -44,6 +88,9 @@ export type LeagueMediaKitImageData = {
   eyebrow: string
   title: string
   subtitle?: string | null
+  bodyText?: string | null
+  signoff?: string | null
+  signature?: string | null
   heroValue?: string | null
   heroLabel?: string | null
   rows: Array<{ label: string; value: string; icon?: string | null }>
@@ -54,6 +101,9 @@ export type LeagueMediaKitImageData = {
   venue?: string | null
   roundLabel?: string | null
   headlineFont?: LeagueMediaKitHeadlineFont
+  welcomeLetterFont?: LeagueMediaKitWelcomeLetterFont
+  welcomeLogoStyle?: LeagueMediaKitWelcomeLogoStyle
+  welcomeSignatureFont?: LeagueMediaKitWelcomeSignatureFont
   matchup?: { teamA: [string, string]; teamB: [string, string] } | null
   spotlightImageUrl?: string | null
   resultRound?: number | null
@@ -86,6 +136,249 @@ const HEADLINE_FONT_PROFILES: Record<LeagueMediaKitHeadlineFont, { family: strin
   technical: { family: 'Consolas, "Courier New", monospace', widthScale: 0.84, sizeScale: 0.78, slant: 0, strokeScale: 0.84 },
 }
 
+type WelcomeLetterFontProfile = {
+  titleFamily: string
+  titleWeight: number
+  bodyFamily: string
+  bodyWeight: number
+  signatureFamily: string
+  signatureWeight: number
+}
+
+const WELCOME_LETTER_FONT_PROFILES: Record<LeagueMediaKitWelcomeLetterFont, WelcomeLetterFontProfile> = {
+  club_classic: {
+    titleFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+    titleWeight: 600,
+    bodyFamily: '"Libre Baskerville", Georgia, "Times New Roman", serif',
+    bodyWeight: 400,
+    signatureFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+    signatureWeight: 600,
+  },
+  editorial_luxury: {
+    titleFamily: '"Instrument Serif", Georgia, "Times New Roman", serif',
+    titleWeight: 400,
+    bodyFamily: '"Lora", Georgia, "Times New Roman", serif',
+    bodyWeight: 400,
+    signatureFamily: '"Instrument Serif", Georgia, "Times New Roman", serif',
+    signatureWeight: 400,
+  },
+  baskerville: {
+    titleFamily: '"Libre Baskerville", Georgia, "Times New Roman", serif',
+    titleWeight: 700,
+    bodyFamily: '"Libre Baskerville", Georgia, "Times New Roman", serif',
+    bodyWeight: 400,
+    signatureFamily: '"Libre Baskerville", Georgia, "Times New Roman", serif',
+    signatureWeight: 700,
+  },
+  lora: {
+    titleFamily: '"Lora", Georgia, "Times New Roman", serif',
+    titleWeight: 600,
+    bodyFamily: '"Lora", Georgia, "Times New Roman", serif',
+    bodyWeight: 400,
+    signatureFamily: '"Lora", Georgia, "Times New Roman", serif',
+    signatureWeight: 600,
+  },
+}
+
+const WELCOME_LETTER_FONT_STYLESHEET =
+  "https://fonts.googleapis.com/css2?family=Allura&family=Cormorant+Garamond:wght@400;600;700&family=Great+Vibes&family=Instrument+Serif:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Petit+Formal+Script&display=swap"
+let welcomeLetterFontsPromise: Promise<void> | null = null
+
+async function ensureWelcomeLetterFonts() {
+  if (typeof document === "undefined" || !document.fonts) return
+  if (welcomeLetterFontsPromise) return welcomeLetterFontsPromise
+
+  welcomeLetterFontsPromise = new Promise<void>((resolve) => {
+    const finish = async () => {
+      try {
+        await document.fonts.ready
+        await Promise.all([
+          document.fonts.load('600 50px "Cormorant Garamond"'),
+          document.fonts.load('400 23px "Libre Baskerville"'),
+          document.fonts.load('400 50px "Instrument Serif"'),
+          document.fonts.load('400 23px "Lora"'),
+          document.fonts.load('400 42px "Allura"'),
+          document.fonts.load('400 36px "Petit Formal Script"'),
+          document.fonts.load('400 40px "Great Vibes"'),
+        ])
+      } catch {
+        // Offline exports keep working with the built-in serif fallback stack.
+      }
+      resolve()
+    }
+
+    const existing = document.querySelector<HTMLLinkElement>('link[data-smash-welcome-fonts="true"]')
+    if (existing) {
+      if (existing.sheet) void finish()
+      else {
+        existing.addEventListener("load", () => void finish(), { once: true })
+        existing.addEventListener("error", () => resolve(), { once: true })
+      }
+      return
+    }
+
+    const link = document.createElement("link")
+    link.rel = "stylesheet"
+    link.href = WELCOME_LETTER_FONT_STYLESHEET
+    link.crossOrigin = "anonymous"
+    link.dataset.smashWelcomeFonts = "true"
+    link.addEventListener("load", () => void finish(), { once: true })
+    link.addEventListener("error", () => resolve(), { once: true })
+    document.head.appendChild(link)
+  })
+
+  return welcomeLetterFontsPromise
+}
+
+const WELCOME_SIGNATURE_FONT_PROFILES: Record<LeagueMediaKitWelcomeSignatureFont, { family: string | null; weight: number; size: number }> = {
+  classic: { family: null, weight: 600, size: 27 },
+  allura: { family: '"Allura", "Segoe Script", cursive', weight: 400, size: 44 },
+  petit_formal: { family: '"Petit Formal Script", "Segoe Script", cursive', weight: 400, size: 35 },
+  great_vibes: { family: '"Great Vibes", "Segoe Script", cursive', weight: 400, size: 42 },
+}
+
+const WELCOME_STAMP_INK_CLEAN = "#2f7bbf"
+const WELCOME_STAMP_INK_TINTA = "#296ead"
+
+function createInkLogo(image: HTMLImageElement, ink: string, distressed = false, clean = false) {
+  const width = Math.max(1, image.naturalWidth || image.width)
+  const height = Math.max(1, image.naturalHeight || image.height)
+  const canvas = document.createElement("canvas")
+  canvas.width = width
+  canvas.height = height
+  const imageCtx = canvas.getContext("2d", { willReadFrequently: true })
+  if (!imageCtx) return canvas
+  imageCtx.drawImage(image, 0, 0, width, height)
+  try {
+    const data = imageCtx.getImageData(0, 0, width, height)
+    const pixels = data.data
+    const { r: inkR, g: inkG, b: inkB } = hexRgb(ink)
+    let opaquePixels = 0
+    let nearWhitePixels = 0
+    let generatedInk = 0
+    for (let index = 0; index < pixels.length; index += 4) {
+      const alpha = pixels[index + 3] / 255
+      if (alpha < 0.02) continue
+      opaquePixels += 1
+      const r = pixels[index]
+      const g = pixels[index + 1]
+      const b = pixels[index + 2]
+      const maxChannel = Math.max(r, g, b)
+      const minChannel = Math.min(r, g, b)
+      const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel
+      const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+      if (luminance > 0.96 && saturation < 0.06) nearWhitePixels += 1
+      const inkStrength = Math.max(0, Math.min(1, (1 - luminance) * 1.55 + saturation * 0.55))
+      const x = (index / 4) % width
+      const y = Math.floor(index / 4 / width)
+      const wear = distressed && ((x * 17 + y * 31 + x * y * 7) % 101 < 7) ? 0.22 : 1
+      const visibleStrength = clean ? Math.max(0.52, Math.min(0.95, inkStrength * 0.68 + 0.32)) : Math.max(0.34, Math.min(0.94, inkStrength * 0.80 + 0.18))
+      const nextAlpha = alpha * visibleStrength * wear
+      generatedInk += nextAlpha
+      pixels[index] = inkR
+      pixels[index + 1] = inkG
+      pixels[index + 2] = inkB
+      pixels[index + 3] = Math.round(nextAlpha * 255)
+    }
+    const mostlyTransparentWhiteArtwork = opaquePixels > 0 && opaquePixels < width * height * 0.48 && generatedInk < opaquePixels * 0.04
+    if (mostlyTransparentWhiteArtwork) {
+      imageCtx.clearRect(0, 0, width, height)
+      imageCtx.drawImage(image, 0, 0, width, height)
+      imageCtx.globalCompositeOperation = "source-in"
+      imageCtx.fillStyle = ink
+      imageCtx.fillRect(0, 0, width, height)
+      imageCtx.globalCompositeOperation = "source-over"
+    } else {
+      imageCtx.putImageData(data, 0, 0)
+    }
+    void nearWhitePixels
+  } catch {
+    imageCtx.clearRect(0, 0, width, height)
+    imageCtx.save()
+    imageCtx.filter = clean ? "grayscale(1) sepia(0.14) saturate(1.55) contrast(1.18)" : "grayscale(1) sepia(0.30) saturate(1.42) contrast(1.20)"
+    imageCtx.globalAlpha = distressed ? 0.80 : 0.78
+    imageCtx.drawImage(image, 0, 0, width, height)
+    imageCtx.globalCompositeOperation = "source-in"
+    imageCtx.fillStyle = ink
+    imageCtx.fillRect(0, 0, width, height)
+    imageCtx.restore()
+  }
+  return canvas
+}
+
+const WELCOME_STAMP_SIZE = 164
+const WELCOME_STAMP_JITTER_X = 26
+const WELCOME_STAMP_JITTER_Y = 20
+const WELCOME_STAMP_MAX_ROTATION_DEG = 9
+
+function randomWelcomeStampOffset(limit: number) {
+  return (Math.random() * 2 - 1) * limit
+}
+
+function randomWelcomeStampRotation() {
+  return randomWelcomeStampOffset(WELCOME_STAMP_MAX_ROTATION_DEG) * Math.PI / 180
+}
+
+function drawWelcomeLogoStamp(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, size: number, mode: Exclude<LeagueMediaKitWelcomeLogoStyle, "none">, rotationRadians = 0) {
+  const distressed = mode === "ink_stamp"
+  const stampInk = distressed ? WELCOME_STAMP_INK_TINTA : WELCOME_STAMP_INK_CLEAN
+  const inkLogo = createInkLogo(image, stampInk, distressed, !distressed)
+  ctx.save()
+  ctx.translate(x + size / 2, y + size / 2)
+  ctx.rotate(rotationRadians)
+  ctx.strokeStyle = distressed ? "rgba(41,110,173,.76)" : "rgba(47,123,191,.72)"
+  ctx.lineWidth = distressed ? 3 : 1.8
+  if (distressed) ctx.setLineDash([18, 5, 10, 4, 24, 6])
+  ctx.beginPath()
+  ctx.arc(0, 0, size / 2 - 2, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.setLineDash([])
+  ctx.globalAlpha = distressed ? 0.64 : 0.56
+  ctx.beginPath()
+  ctx.arc(0, 0, size / 2 - 11, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.globalAlpha = distressed ? 0.88 : 0.84
+  drawImageContain(ctx, inkLogo, -size * 0.31, -size * 0.27, size * 0.62, size * 0.54)
+  if (distressed) {
+    ctx.globalAlpha = 0.18
+    ctx.strokeStyle = stampInk
+    ctx.lineWidth = 1.2
+    for (let index = 0; index < 6; index += 1) {
+      const offset = -size * 0.24 + index * size * 0.084
+      ctx.beginPath()
+      ctx.moveTo(-size * 0.23, offset)
+      ctx.lineTo(size * 0.22, offset + 2)
+      ctx.stroke()
+    }
+  }
+  ctx.restore()
+}
+
+function drawWelcomePaperTexture(ctx: CanvasRenderingContext2D) {
+  ctx.save()
+  for (let index = 0; index < 3600; index += 1) {
+    const x = (index * 43.17) % WIDTH
+    const y = (index * 67.91) % HEIGHT
+    const radius = 0.55 + ((index * 19.37) % 100) / 100 * 1.18
+    ctx.fillStyle = index % 4 === 0 ? "rgba(118,107,88,.026)" : "rgba(255,255,255,.042)"
+    ctx.beginPath()
+    ctx.arc(x, y, radius, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.strokeStyle = "rgba(118,107,88,.040)"
+  ctx.lineWidth = 0.75
+  for (let index = 0; index < 220; index += 1) {
+    const x = (index * 91.73) % WIDTH
+    const y = (index * 53.29) % HEIGHT
+    const length = 12 + ((index * 17.11) % 100) / 100 * 28
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x + length, y + ((index % 7) - 3) * 0.75)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
   const r = Math.min(radius, width / 2, height / 2)
   ctx.beginPath()
@@ -105,8 +398,8 @@ function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number
   ctx.save(); ctx.font = `${weight} ${size}px Arial, sans-serif`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "alphabetic"; ctx.fillText(value, x, y); ctx.restore()
 }
 
-function wrap(ctx: CanvasRenderingContext2D, value: string, maxWidth: number, size: number, weight = 700) {
-  ctx.save(); ctx.font = `${weight} ${size}px Arial, sans-serif`
+function wrap(ctx: CanvasRenderingContext2D, value: string, maxWidth: number, size: number, weight = 700, font = "Arial, sans-serif") {
+  ctx.save(); ctx.font = `${weight} ${size}px ${font}`
   const words = value.trim().split(/\s+/); const lines: string[] = []; let current = ""
   for (const word of words) {
     const next = current ? `${current} ${word}` : word
@@ -155,7 +448,7 @@ function drawImageCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement |
   ctx.drawImage(image, (image.width - sourceWidth) / 2, (image.height - sourceHeight) / 2, sourceWidth, sourceHeight, x, y, width, height)
 }
 
-function drawImageContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) {
+function drawImageContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement | HTMLCanvasElement, x: number, y: number, width: number, height: number) {
   const scale = Math.min(width / image.width, height / image.height)
   const drawWidth = image.width * scale
   const drawHeight = image.height * scale
@@ -651,6 +944,149 @@ async function drawResultsPremiumPoster(ctx: CanvasRenderingContext2D, data: Lea
   drawAppBrandFooter(ctx, appIcon, accent, data.locale ?? "es")
 }
 
+
+async function drawWelcomeLetterPremium(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
+  const accent = normalizeAccent(data.accentColor)
+  const locale = data.locale ?? "es"
+  const paper = "#f8f5ee"
+  const ink = "#20231f"
+  const muted = "#6d716b"
+  const fontProfile = WELCOME_LETTER_FONT_PROFILES[data.welcomeLetterFont ?? "club_classic"]
+
+  ctx.fillStyle = paper
+  ctx.fillRect(0, 0, WIDTH, HEIGHT)
+  drawWelcomePaperTexture(ctx)
+
+  const wash = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT)
+  wash.addColorStop(0, rgba(accent, 0.055))
+  wash.addColorStop(0.36, "rgba(255,255,255,0)")
+  wash.addColorStop(1, rgba(accent, 0.018))
+  ctx.fillStyle = wash
+  ctx.fillRect(0, 0, WIDTH, HEIGHT)
+
+  ctx.save()
+  ctx.strokeStyle = rgba(accent, 0.52)
+  ctx.lineWidth = 2
+  ctx.strokeRect(34, 34, WIDTH - 68, HEIGHT - 68)
+  ctx.strokeStyle = rgba(accent, 0.22)
+  ctx.lineWidth = 1
+  ctx.strokeRect(46, 46, WIDTH - 92, HEIGHT - 92)
+  ctx.restore()
+
+  const [logo, appIcon] = await Promise.all([safeImage(data.leagueLogoUrl), safeImage(APP_ICON_PATH)])
+  const headerLogo = logo ?? appIcon
+  const sealStyle = data.welcomeLogoStyle ?? "clean_stamp"
+  if (headerLogo) drawImageContain(ctx, headerLogo, 74, 75, 98, 82)
+  else {
+    fillRound(ctx, 78, 80, 72, 72, 18, rgba(accent, 0.18))
+    trackedText(ctx, data.leagueName.slice(0, 2).toUpperCase(), 114, 116, { size: 18, weight: 900, color: ink, align: "center" })
+  }
+
+  trackedText(ctx, data.leagueName.toLocaleUpperCase(getIntlLocale(locale)), 194, 98, { size: 18, weight: 900, color: ink, spacing: 3, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, data.seasonName.toLocaleUpperCase(getIntlLocale(locale)), 194, 132, { size: 15, weight: 700, color: muted, spacing: 2.2, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, (data.eyebrow || translateLeagueText(locale, "Comunicación oficial")).toLocaleUpperCase(getIntlLocale(locale)), 1008, 108, { size: 13, weight: 900, color: accent, spacing: 3.2, align: "right", font: '"Arial Narrow", Arial, sans-serif' })
+
+  ctx.save()
+  ctx.fillStyle = rgba(accent, 0.44)
+  ctx.fillRect(74, 186, WIDTH - 148, 2)
+  ctx.restore()
+
+  ctx.save()
+  ctx.font = `${fontProfile.titleWeight} 50px ${fontProfile.titleFamily}`
+  ctx.fillStyle = ink
+  ctx.textAlign = "left"
+  ctx.textBaseline = "alphabetic"
+  ctx.fillText(data.title || translateLeagueText(locale, "Carta de bienvenida"), 94, 274)
+  ctx.restore()
+
+  const body = (data.bodyText ?? data.subtitle ?? "").trim()
+  const maxWidth = 890
+  const bodyTop = 342
+  const bodyBottom = 1045
+  let chosenSize = 23
+  let chosenLineHeight = 34
+  let bodyLines: Array<{ value: string; paragraphBreak: boolean }> = []
+
+  const buildBodyLines = (size: number) => {
+    const entries: Array<{ value: string; paragraphBreak: boolean }> = []
+    const paragraphs = body.replace(/\r\n?/g, "\n").split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean)
+    paragraphs.forEach((paragraph, paragraphIndex) => {
+      const manualLines = paragraph.split("\n").map((line) => line.trim()).filter(Boolean)
+      manualLines.forEach((manualLine, manualLineIndex) => {
+        const lines = wrap(ctx, manualLine, maxWidth, size, fontProfile.bodyWeight, fontProfile.bodyFamily)
+        lines.forEach((line, lineIndex) => entries.push({
+          value: line,
+          paragraphBreak: paragraphIndex > 0 && manualLineIndex === 0 && lineIndex === 0,
+        }))
+      })
+    })
+    return entries
+  }
+
+  for (const size of [23, 22, 21, 20, 19, 18]) {
+    const lines = buildBodyLines(size)
+    const lineHeight = Math.round(size * 1.48)
+    const breaks = lines.filter((line) => line.paragraphBreak).length
+    const requiredHeight = lines.length * lineHeight + breaks * lineHeight
+    chosenSize = size
+    chosenLineHeight = lineHeight
+    bodyLines = lines
+    if (requiredHeight <= bodyBottom - bodyTop) break
+  }
+
+  let bodyY = bodyTop
+  ctx.save()
+  ctx.font = `${fontProfile.bodyWeight} ${chosenSize}px ${fontProfile.bodyFamily}`
+  ctx.fillStyle = "#343833"
+  ctx.textAlign = "left"
+  ctx.textBaseline = "alphabetic"
+  for (const line of bodyLines) {
+    if (line.paragraphBreak) bodyY += chosenLineHeight
+    if (bodyY > bodyBottom) break
+    ctx.fillText(line.value, 94, bodyY)
+    bodyY += chosenLineHeight
+  }
+  ctx.restore()
+
+  const signatureTop = Math.max(1085, Math.min(1138, bodyY + 24))
+  ctx.save()
+  ctx.font = `italic 21px ${fontProfile.bodyFamily}`
+  ctx.fillStyle = muted
+  ctx.fillText(data.signoff || translateLeagueText(locale, "Atentamente,"), 94, signatureTop)
+  const signatureProfile = WELCOME_SIGNATURE_FONT_PROFILES[data.welcomeSignatureFont ?? "allura"]
+  const signatureFamily = signatureProfile.family ?? fontProfile.signatureFamily
+  const signatureWeight = data.welcomeSignatureFont === "classic" ? fontProfile.signatureWeight : signatureProfile.weight
+  const signatureSize = data.welcomeSignatureFont === "classic" ? 27 : signatureProfile.size
+  const signatureText = data.signature || `Organización de ${data.leagueName}`
+  // The signature keeps its chosen size even when the stamp overlaps it: the slight
+  // imperfection is intentional and makes the generated letter feel physically stamped.
+  ctx.font = `${signatureWeight} ${signatureSize}px ${signatureFamily}`
+  ctx.fillStyle = ink
+  ctx.fillText(signatureText, 94, signatureTop + 48)
+  ctx.restore()
+  ctx.fillStyle = accent
+  ctx.fillRect(94, signatureTop + 64, 168, 3)
+
+  if (logo && sealStyle !== "none") {
+    const stampX = 790 + randomWelcomeStampOffset(WELCOME_STAMP_JITTER_X)
+    const stampY = Math.min(1065, signatureTop - 54 + randomWelcomeStampOffset(WELCOME_STAMP_JITTER_Y))
+    drawWelcomeLogoStamp(ctx, logo, stampX, stampY, WELCOME_STAMP_SIZE, sealStyle, randomWelcomeStampRotation())
+  }
+
+  ctx.save()
+  ctx.strokeStyle = rgba(accent, 0.26)
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(74, 1242)
+  ctx.lineTo(1006, 1242)
+  ctx.stroke()
+  ctx.restore()
+
+  if (appIcon) drawImageContain(ctx, appIcon, 76, 1260, 38, 38)
+  trackedText(ctx, "SMASH & LOB", appIcon ? 130 : 76, 1278, { size: 14, weight: 900, color: ink, spacing: 2.4, font: '"Arial Narrow", Arial, sans-serif' })
+  trackedText(ctx, "smashandlob.com", 1004, 1278, { size: 13, weight: 700, color: muted, spacing: 1.1, align: "right", font: '"Arial Narrow", Arial, sans-serif' })
+}
+
 async function drawClassicMediaKit(ctx: CanvasRenderingContext2D, data: LeagueMediaKitImageData) {
   ctx.fillStyle = "#f3f4f1"; ctx.fillRect(0, 0, WIDTH, HEIGHT)
   fillRound(ctx, PADDING, 46, WIDTH - PADDING * 2, 330, 34, "#151c17")
@@ -684,6 +1120,9 @@ export async function createLeagueMediaKitImage(data: LeagueMediaKitImageData) {
     eyebrow: translateLeagueText(locale, data.eyebrow),
     title: translateLeagueText(locale, data.title),
     subtitle: data.subtitle ? translateLeagueText(locale, data.subtitle) : data.subtitle,
+    bodyText: data.bodyText,
+    signoff: data.signoff,
+    signature: data.signature,
     heroValue: data.heroValue ? translateLeagueText(locale, data.heroValue) : data.heroValue,
     heroLabel: data.heroLabel ? translateLeagueText(locale, data.heroLabel) : data.heroLabel,
     rows: data.rows.map((row) => ({
@@ -712,7 +1151,11 @@ export async function createLeagueMediaKitImage(data: LeagueMediaKitImageData) {
   canvas.width = WIDTH; canvas.height = HEIGHT
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("canvas_unavailable")
-  if (data.template === "results_premium_06") await drawResultsPremiumPoster(ctx, localizedData)
+  if (data.template === "welcome_letter_premium_07") {
+    await ensureWelcomeLetterFonts()
+    await drawWelcomeLetterPremium(ctx, localizedData)
+  }
+  else if (data.template === "results_premium_06") await drawResultsPremiumPoster(ctx, localizedData)
   else if (data.template === "spotlight_premium_05") await drawSpotlightPremiumPoster(ctx, localizedData)
   else if (data.template === "scoreboard_premium_04") await drawScoreboardPremiumPoster(ctx, localizedData)
   else if (data.template === "matchday_premium_03") await drawMatchdayPremiumPoster(ctx, localizedData)
