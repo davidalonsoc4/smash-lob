@@ -35,13 +35,18 @@ const securityHeaders = [
     : []),
 ];
 
+const extraDevOrigins = (process.env.DEV_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   typescript: {
     tsconfigPath:
       process.env.NODE_ENV === "development" ? "tsconfig.json" : "tsconfig.build.json",
   },
-  allowedDevOrigins: ["192.168.3.2", "localhost", "127.0.0.1"],
+  allowedDevOrigins: ["192.168.3.2", "localhost", "127.0.0.1", ...extraDevOrigins],
   async headers() {
     return [
       {
