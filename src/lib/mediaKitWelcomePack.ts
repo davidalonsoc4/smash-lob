@@ -321,11 +321,11 @@ export function buildWelcomePackBagSealPrintHtml({
     .rule span { height: .18mm; background: rgba(255,255,255,.24); }
     .rule i { width: 1.45mm; height: 1.45mm; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 1.8mm rgba(255,255,255,.22); }
     .season-name { margin-top: 2mm; color: rgba(255,255,255,.76); font-size: 2.15mm; font-weight: 850; text-transform: uppercase; letter-spacing: .2mm; }
-    .creator-row { margin-top: 2.5mm; display: flex; align-items: center; justify-content: center; gap: 1.8mm; }
-    .creator-icon { width: 5.2mm; height: 5.2mm; border-radius: 1.3mm; object-fit: cover; }
+    .creator-row { margin-top: 1.15mm; display: flex; align-items: center; justify-content: center; gap: .85mm; }
+    .creator-icon { width: 2.6mm; height: 2.6mm; border-radius: .65mm; object-fit: cover; }
     .creator-copy { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; font-family: "Arial Narrow", Arial, sans-serif; }
-    .creator-overline { color: color-mix(in srgb, var(--accent) 82%, white 18%); font-size: 1.45mm; font-weight: 800; letter-spacing: .42mm; }
-    .creator-name { margin-top: .65mm; color: #f4f1ea; font-size: 1.95mm; font-weight: 900; letter-spacing: .18mm; }
+    .creator-overline { color: color-mix(in srgb, var(--accent) 82%, white 18%); font-size: .78mm; font-weight: 800; letter-spacing: .22mm; }
+    .creator-name { margin-top: .3mm; color: #f4f1ea; font-size: 1.05mm; font-weight: 900; letter-spacing: .09mm; }
     @media screen {
       body { padding: 12px; background: #e5e7eb; }
       .sheet { margin: 0 auto 16px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.14); }

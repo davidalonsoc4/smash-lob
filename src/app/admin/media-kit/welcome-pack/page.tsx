@@ -40,11 +40,11 @@ type SealLeague = {
 
 function SmashAndLobSignature({ accent }: { accent: string }) {
   return (
-    <div className="mt-3 flex items-center justify-center gap-2">
-      <Image src="/icon-192.png" alt="" width={24} height={24} className="h-6 w-6 rounded-md object-cover" />
+    <div className="mt-1.5 flex items-center justify-center gap-1">
+      <Image src="/icon-192.png" alt="" width={12} height={12} className="h-3 w-3 rounded-[3px] object-cover" />
       <div className="text-left leading-none" style={{ fontFamily: '"Arial Narrow", Arial, sans-serif' }}>
-        <p className="text-[6px] font-extrabold uppercase tracking-[.3em]" style={{ color: accent }}>Creado con</p>
-        <p className="mt-1 text-[8px] font-black uppercase tracking-[.14em] text-[#f4f1ea]">Smash &amp; Lob</p>
+        <p className="text-[4px] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>Creado con</p>
+        <p className="mt-0.5 text-[5px] font-black uppercase tracking-[.1em] text-[#f4f1ea]">Smash &amp; Lob</p>
       </div>
     </div>
   )
@@ -292,18 +292,22 @@ export default function WelcomePackMediaKitPage() {
           </div>
           <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-600">1 disponible</span>
         </div>
-        <AppCard className="!border-neutral-950 !bg-neutral-950 text-white">
-          <p className="type-caption font-black uppercase tracking-[.16em] text-amber-300">Activo</p>
-          <div className="mt-1 flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-black">Precinto de bolsa</h3>
-              <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-                Personalizado por jugador · adhesivo · doble cara espejo.
-              </p>
-            </div>
-            <span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em]">
+        <AppCard className="relative overflow-hidden !border-neutral-200 !bg-white !p-0 shadow-sm">
+          <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
+          <div className="flex items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-emerald-800">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Activo
+            </span>
+            <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">
               Diseño único
             </span>
+          </div>
+          <div className="px-4 py-3 pl-5">
+            <h3 className="text-base font-black text-neutral-950">Precinto de bolsa</h3>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
+              Personalizado por jugador · adhesivo · doble cara espejo.
+            </p>
           </div>
         </AppCard>
         <div className="flex gap-2 overflow-x-auto pb-1">
