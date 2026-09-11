@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   WELCOME_PACK_BAG_SEAL,
   WELCOME_PACK_GENERAL_FONT_OPTIONS,
+  WELCOME_PACK_OVERGRIP_BAND,
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
   buildWelcomePackBagSealPrintHtml,
   getWelcomePackBagSealSheetCount,
@@ -61,6 +62,15 @@ describe("Media Kit Welcome Pack", () => {
     expect(html).toContain("general-font-geometric")
     expect(WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.length).toBeGreaterThanOrEqual(7)
     expect(WELCOME_PACK_GENERAL_FONT_OPTIONS.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it("keeps overgrip production dimensions pending until the real pack is measured", () => {
+    expect(WELCOME_PACK_OVERGRIP_BAND.material).toBe("Cartulina mate")
+    expect(WELCOME_PACK_OVERGRIP_BAND.minGsm).toBe(200)
+    expect(WELCOME_PACK_OVERGRIP_BAND.maxGsm).toBe(250)
+    expect(WELCOME_PACK_OVERGRIP_BAND.dimensionsStatus).toBe("pending-real-measurement")
+    expect("trimWidthMm" in WELCOME_PACK_OVERGRIP_BAND).toBe(false)
+    expect("trimHeightMm" in WELCOME_PACK_OVERGRIP_BAND).toBe(false)
   })
 
   it("normalizes accent", () => {

@@ -70,6 +70,13 @@ export const WELCOME_PACK_BAG_SEAL = {
   itemsPerA4: 8,
 } as const
 
+export const WELCOME_PACK_OVERGRIP_BAND = {
+  material: "Cartulina mate",
+  minGsm: 200,
+  maxGsm: 250,
+  dimensionsStatus: "pending-real-measurement",
+} as const
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")

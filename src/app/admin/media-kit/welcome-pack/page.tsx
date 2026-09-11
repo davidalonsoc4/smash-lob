@@ -12,6 +12,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 import {
   WELCOME_PACK_BAG_SEAL,
+  WELCOME_PACK_OVERGRIP_BAND,
   WELCOME_PACK_FONT_STYLESHEET,
   WELCOME_PACK_GENERAL_FONT_OPTIONS,
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
@@ -27,7 +28,6 @@ import {
 const futurePieces = [
   "Faja del bote",
   "Precinto del bote",
-  "Fajín del overgrip",
   "Sello de temporada",
   "Pegatinas",
   "Carnet oficial",
@@ -163,6 +163,128 @@ function SealPreview(props: {
   )
 }
 
+
+function OvergripLeagueLogo({ league }: { league: SealLeague }) {
+  const normalizedLogoUrl = league.logoUrl ? normalizeImageUrl(league.logoUrl) : null
+
+  if (normalizedLogoUrl) {
+    return (
+      <Image
+        unoptimized
+        src={normalizedLogoUrl}
+        alt={league.name}
+        width={112}
+        height={62}
+        className="relative z-10 h-auto max-h-[58px] w-auto max-w-[112px] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.38)]"
+      />
+    )
+  }
+
+  const initials = league.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SL"
+  return <span className="text-xl font-black tracking-[.22em] text-white">{initials}</span>
+}
+
+function OvergripBandPreview({
+  league,
+  seasonName,
+  playerName,
+  accent,
+  playerFont,
+  generalFont,
+}: {
+  league: SealLeague
+  seasonName: string
+  playerName: string
+  accent: string
+  playerFont: WelcomePackPlayerNameFont
+  generalFont: WelcomePackGeneralFont
+}) {
+  const generalFamily = getWelcomePackGeneralFontFamily(generalFont)
+  const playerFamily = getWelcomePackPlayerNameFontFamily(playerFont)
+
+  const premiumBackground = [
+    `radial-gradient(circle at 16% 12%, ${accent}4A 0%, transparent 27%)`,
+    "radial-gradient(circle at 82% 28%, rgba(255,255,255,.15) 0%, transparent 20%)",
+    `radial-gradient(circle at 62% 110%, ${accent}2C 0%, transparent 38%)`,
+    "linear-gradient(135deg, rgba(255,255,255,.055) 0%, transparent 28%, rgba(255,255,255,.025) 62%, transparent 100%)",
+    "linear-gradient(165deg, #1A1A1A 0%, #090909 52%, #020202 100%)",
+  ].join(", ")
+
+  return (
+    <div className="mx-auto w-full max-w-[430px]">
+      <div className="mb-3 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[.12em] text-neutral-500">
+        <span>Vista previa · fajín desplegado</span>
+        <span>Sin escala · medidas pendientes</span>
+      </div>
+
+      <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
+        <p className="mb-1.5 text-[8px] font-black uppercase tracking-[.18em] text-neutral-500">Exterior</p>
+        <div
+          className="relative aspect-[4.25/1] overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
+          style={{ backgroundImage: premiumBackground, fontFamily: generalFamily }}
+        >
+          <div className="absolute inset-[6px] rounded-[9px] border border-white/12" />
+          <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
+          <div className="absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/7" />
+          <div className="absolute right-[-25px] top-[-20px] h-24 w-24 rounded-full border border-white/7" />
+          <div className="absolute left-1/3 top-0 h-full border-l border-dashed border-white/10" />
+          <div className="absolute right-1/3 top-0 h-full border-l border-dashed border-white/10" />
+
+          <div className="relative z-10 grid h-full grid-cols-[1fr_1.15fr_1fr] items-stretch">
+            <div className="flex min-w-0 flex-col justify-center px-3">
+              <p className="text-[7px] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Jugador</p>
+              <p
+                className="mt-1.5 line-clamp-2 text-[16px] leading-[.95] text-white"
+                style={{ fontFamily: playerFamily }}
+              >
+                {playerName}
+              </p>
+              <span className="mt-2 h-px w-9 bg-white/20" />
+            </div>
+
+            <div className="relative flex flex-col items-center justify-center px-2 text-center">
+              <div className="absolute inset-x-4 top-1/2 h-8 -translate-y-1/2 rounded-full bg-white/8 blur-xl" />
+              <OvergripLeagueLogo league={league} />
+              <p className="mt-1 max-w-[118px] truncate text-[7px] font-black uppercase tracking-[.14em] text-white/50">{league.name}</p>
+            </div>
+
+            <div className="flex min-w-0 flex-col items-end justify-center px-3 text-right">
+              <p className="text-[7px] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Liga</p>
+              <p className="mt-1 max-w-full truncate text-[10px] font-black uppercase tracking-[.08em] text-white">{league.name}</p>
+              <p className="mt-1 text-[8px] font-bold uppercase tracking-[.12em] text-white/55">{seasonName}</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="mb-1.5 mt-4 text-[8px] font-black uppercase tracking-[.18em] text-neutral-500">Reverso</p>
+        <div
+          className="relative aspect-[4.25/1] overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.22)]"
+          style={{ backgroundImage: premiumBackground, fontFamily: generalFamily }}
+        >
+          <div className="absolute inset-[6px] rounded-[9px] border border-white/12" />
+          <div className="absolute inset-x-0 bottom-0 h-[3px]" style={{ backgroundColor: accent }} />
+          <div className="absolute left-[-18px] top-[-25px] h-24 w-24 rounded-full border border-white/7" />
+          <div className="absolute right-[-18px] bottom-[-25px] h-24 w-24 rounded-full border border-white/7" />
+          <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+            <p className="text-[7px] font-black uppercase tracking-[.34em]" style={{ color: accent }}>Smash &amp; Lob</p>
+            <p className="mt-1.5 text-[20px] font-black uppercase tracking-[.12em] text-white">Welcome Pack</p>
+            <div className="mt-2 grid grid-cols-[34px_7px_34px] items-center gap-2">
+              <span className="h-px bg-white/20" />
+              <span className="h-[6px] w-[6px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
+              <span className="h-px bg-white/20" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[10px] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
+        <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m².
+        Las medidas finales se fijarán después de medir el overgrip y su envase real.
+      </div>
+    </div>
+  )
+}
+
 export default function WelcomePackMediaKitPage() {
   const { tx } = useI18n()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -175,9 +297,12 @@ export default function WelcomePackMediaKitPage() {
     () => [...players].sort((a, b) => a.displayName.localeCompare(b.displayName, "es", { sensitivity: "base" })),
     [players],
   )
+  const [activePiece, setActivePiece] = useState<"bag-seal" | "overgrip-band">("bag-seal")
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [playerFont, setPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
   const [generalFont, setGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
+  const [overgripPlayerFont, setOvergripPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
+  const [overgripGeneralFont, setOvergripGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
   const [showSignature, setShowSignature] = useState(true)
   const [printError, setPrintError] = useState<string | null>(null)
   const normalizedLogoUrl = isSafeImageUrl(activeLeague.logoUrl) ? normalizeImageUrl(activeLeague.logoUrl) : null
@@ -290,26 +415,47 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Piezas</p>
             <h2 className="text-base font-black text-neutral-950">Diseños del Welcome Pack</h2>
           </div>
-          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-600">1 disponible</span>
+          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-600">2 disponibles</span>
         </div>
-        <AppCard className="relative overflow-hidden !border-neutral-200 !bg-white !p-0 shadow-sm">
-          <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
-          <div className="flex items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-emerald-800">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Activo
-            </span>
-            <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">
-              Diseño único
-            </span>
-          </div>
-          <div className="px-4 py-3 pl-5">
-            <h3 className="text-base font-black text-neutral-950">Precinto de bolsa</h3>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
-              Personalizado por jugador · adhesivo · doble cara espejo.
-            </p>
-          </div>
-        </AppCard>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setActivePiece("bag-seal")}
+            className={`relative overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+          >
+            <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
+            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] ${activePiece === "bag-seal" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "bag-seal" ? "bg-emerald-500" : "bg-neutral-400"}`} />
+                {activePiece === "bag-seal" ? "Activo" : "Disponible"}
+              </span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Diseño único</span>
+            </div>
+            <div className="px-4 py-3 pl-5">
+              <h3 className="text-base font-black text-neutral-950">Precinto de bolsa</h3>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · adhesivo · doble cara espejo.</p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActivePiece("overgrip-band")}
+            className={`relative overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+          >
+            <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
+            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] ${activePiece === "overgrip-band" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "overgrip-band" ? "bg-emerald-500" : "bg-neutral-400"}`} />
+                {activePiece === "overgrip-band" ? "Activo" : "Disponible"}
+              </span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Nuevo</span>
+            </div>
+            <div className="px-4 py-3 pl-5">
+              <h3 className="text-base font-black text-neutral-950">Fajín del overgrip</h3>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · cartulina mate · anverso y reverso.</p>
+            </div>
+          </button>
+        </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {futurePieces.map((piece) => (
             <div key={piece} className="min-w-[128px] rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
@@ -320,6 +466,7 @@ export default function WelcomePackMediaKitPage() {
         </div>
       </section>
 
+{activePiece === "bag-seal" ? (
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
         <div className="space-y-4">
           <AppCard>
@@ -420,6 +567,85 @@ export default function WelcomePackMediaKitPage() {
         </AppCard>
       </div>
 
+      ) : (
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
+        <div className="space-y-4">
+          <AppCard>
+            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
+            <h2 className="mt-1 text-base font-black">Fajín del overgrip</h2>
+            <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
+              Exterior con jugador, logo y temporada. Reverso dedicado al Welcome Pack. Una sola dirección visual premium.
+            </p>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="text-xs font-black text-neutral-700">
+                Jugador de la vista previa
+                <select
+                  value={selectedPlayer?.id ?? ""}
+                  onChange={(event) => setSelectedPlayerId(event.target.value)}
+                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                >
+                  {sortedPlayers.map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}
+                </select>
+              </label>
+
+              <label className="text-xs font-black text-neutral-700">
+                Tipografía del nombre
+                <select
+                  value={overgripPlayerFont}
+                  onChange={(event) => setOvergripPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
+                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                >
+                  {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                </select>
+                <span className="mt-1 block text-[10px] font-semibold text-neutral-500">
+                  {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description}
+                </span>
+              </label>
+
+              <label className="text-xs font-black text-neutral-700">
+                Tipografía general
+                <select
+                  value={overgripGeneralFont}
+                  onChange={(event) => setOvergripGeneralFont(event.target.value as WelcomePackGeneralFont)}
+                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                >
+                  {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label} · {option.description}</option>)}
+                </select>
+              </label>
+
+              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
+                <p className="text-[9px] font-black uppercase tracking-[.12em] text-neutral-400">Material previsto</p>
+                <p className="mt-1 text-xs font-black text-neutral-950">{WELCOME_PACK_OVERGRIP_BAND.material}</p>
+                <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">{WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m²</p>
+              </div>
+            </div>
+          </AppCard>
+
+          <AppCard>
+            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Medidas</p>
+            <h2 className="mt-1 text-base font-black">Pendientes de cerrar</h2>
+            <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
+              No se fija todavía ninguna medida ni plancha A4: primero mediremos el overgrip real y su envase para que el fajín cierre exactamente y se imprima al 100 %.
+            </p>
+          </AppCard>
+        </div>
+
+        <AppCard className="lg:sticky lg:top-3">
+          <OvergripBandPreview
+            league={{ name: activeLeague.name, logoUrl: normalizedLogoUrl }}
+            seasonName={seasonName}
+            playerName={playerName}
+            accent={accent}
+            playerFont={overgripPlayerFont}
+            generalFont={overgripGeneralFont}
+          />
+        </AppCard>
+      </div>
+
+      )}
+
+{activePiece === "bag-seal" ? (
       <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -440,6 +666,22 @@ export default function WelcomePackMediaKitPage() {
         </div>
         {printError ? <p className="mt-3 rounded-xl bg-red-950/70 px-3 py-2 text-xs font-bold text-red-100">{printError}</p> : null}
       </section>
+      ) : (
+      <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
+            <h2 className="mt-1 text-base font-black">Impresión pendiente de medidas</h2>
+            <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
+              El diseño del fajín ya puede validarse. La plancha A4 se habilitará cuando midamos el overgrip real para no inventar escala ni dimensiones.
+            </p>
+          </div>
+          <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
+            Medir antes de imprimir
+          </span>
+        </div>
+      </section>
+      )}
     </div>
   )
 }
