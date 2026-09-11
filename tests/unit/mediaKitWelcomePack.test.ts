@@ -36,6 +36,7 @@ describe("Media Kit Welcome Pack", () => {
     expect(html).toContain('src="/icon-192.png"')
     expect(html).toContain("CREADO CON")
     expect(html).toContain("SMASH &amp; LOB")
+    expect(html).toContain(".creator-row { margin-top: 3.05mm; display: flex; align-items: center; justify-content: center; gap: .85mm; }")
     expect(html).toContain(".creator-icon { width: 2.6mm; height: 2.6mm;")
     expect(html).toContain(".creator-name { margin-top: .3mm; color: #f4f1ea; font-size: 1.05mm;")
     expect(html).toContain("seal-face-top { transform: rotate(180deg)")

@@ -124,7 +124,7 @@ function SealFace({
           <span className="h-px bg-white/20" />
         </div>
         <p className="mt-2 text-[8px] font-black uppercase tracking-[.13em] text-white/74">{seasonName}</p>
-        {showSignature ? <SmashAndLobSignature accent={accent} /> : null}
+        {showSignature ? <div className="mt-3.5"><SmashAndLobSignature accent={accent} /></div> : null}
       </div>
     </div>
   )
