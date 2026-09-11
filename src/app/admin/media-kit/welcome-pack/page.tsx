@@ -234,34 +234,34 @@ function OvergripBandPreview({
           <div className="absolute right-[-25px] top-[-20px] h-24 w-24 rounded-full border border-white/7" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
-          <div className="relative z-10 grid h-full grid-cols-3 items-stretch">
-            <div className="flex min-w-0 items-center gap-1.5 px-2.5">
-              <div className="relative flex h-[34px] w-[54px] shrink-0 items-center justify-center">
-                <div className="absolute inset-x-1.5 top-1/2 h-4 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
-                <div className="relative scale-[.58]">
+          <div className="relative z-10 grid h-full grid-cols-[1.18fr_.94fr_.58fr] items-stretch">
+            <div className="flex min-w-0 items-center gap-1 px-2">
+              <div className="relative flex h-[24px] w-[38px] shrink-0 items-center justify-center">
+                <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
+                <div className="relative scale-[.42]">
                   <OvergripLeagueLogo league={league} />
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="truncate text-[0.4375rem] font-black uppercase tracking-[.04em] text-white">{league.name}</p>
-                <p className="mt-0.5 truncate text-[0.3125rem] font-bold uppercase tracking-[.08em] text-white/58">{seasonName}</p>
+                <p className="truncate text-[0.3125rem] font-black uppercase tracking-[.03em] text-white">{league.name}</p>
+                <p className="mt-px truncate text-[0.21875rem] font-bold uppercase tracking-[.06em] text-white/58">{seasonName}</p>
               </div>
             </div>
 
-            <div className="flex min-w-0 flex-col items-center justify-center px-2 text-center">
-              <p className="text-[0.3125rem] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Smash &amp; Lob</p>
-              <p className="mt-0.5 text-[0.75rem] font-black uppercase tracking-[.07em] text-white">Welcome Pack</p>
-              <div className="mt-0.5 grid grid-cols-[18px_4px_18px] items-center gap-1">
+            <div className="flex min-w-0 flex-col items-center justify-center px-1 text-center">
+              <p className="text-[0.21875rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Smash &amp; Lob</p>
+              <p className="mt-px text-[0.5625rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
+              <div className="mt-px grid grid-cols-[12px_3px_12px] items-center gap-1">
                 <span className="h-px bg-white/20" />
-                <span className="h-[3px] w-[3px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
+                <span className="h-[2px] w-[2px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
                 <span className="h-px bg-white/20" />
               </div>
             </div>
 
-            <div className="flex min-w-0 flex-col justify-center px-2.5 text-right">
-              <p className="text-[0.3125rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Jugador</p>
+            <div className="flex min-w-0 flex-col justify-center pl-0.5 pr-1.5 text-left -ml-1">
+              <p className="text-[0.21875rem] font-black uppercase tracking-[.1em]" style={{ color: accent }}>Jugador</p>
               <p
-                className="mt-0.5 truncate text-[0.6875rem] leading-none text-white"
+                className="mt-px truncate text-[0.46875rem] leading-none text-white"
                 style={{ fontFamily: playerFamily }}
               >
                 {playerName}
