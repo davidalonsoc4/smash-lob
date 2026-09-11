@@ -400,7 +400,7 @@ export default function PaymentsPage() {
     return () => {
       isMounted = false
     }
-  }, [activeLeague.id])
+  }, [activeLeague.id, tx])
 
   const paymentEvents = useMemo(
     () => events.filter(isPaymentActivityEvent),

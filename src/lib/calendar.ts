@@ -1770,35 +1770,6 @@ function getRoundMatches(
   return matches.filter((match) => match.round === round)
 }
 
-function rotateLegRounds({
-  leg,
-  startRound,
-  roundCount,
-}: {
-  leg: GeneratedMatch[]
-  startRound: number
-  roundCount: number
-}) {
-  const baseRoundCount = getBaseRoundCount(leg)
-  const rotated: GeneratedMatch[] = []
-
-  for (let offset = 0; offset < roundCount; offset += 1) {
-    const sourceRound = ((startRound - 1 + offset) % baseRoundCount) + 1
-    getRoundMatches(leg, sourceRound).forEach((match, matchIndex) => {
-      rotated.push(
-        cloneMatchForRound({
-          match,
-          round: offset + 1,
-          matchIndex,
-          idSuffix: `partial-${startRound}`,
-        }),
-      )
-    })
-  }
-
-  return rotated
-}
-
 function getCustomPartialScore({
   previousMatches,
   candidate,

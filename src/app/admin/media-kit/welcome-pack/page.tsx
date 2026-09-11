@@ -43,8 +43,8 @@ function SmashAndLobSignature({ accent }: { accent: string }) {
     <div className="mt-1.5 flex items-center justify-center gap-1">
       <Image src="/icon-192.png" alt="" width={12} height={12} className="h-3 w-3 rounded-[3px] object-cover" />
       <div className="text-left leading-none" style={{ fontFamily: '"Arial Narrow", Arial, sans-serif' }}>
-        <p className="text-[4px] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>Creado con</p>
-        <p className="mt-0.5 text-[5px] font-black uppercase tracking-[.1em] text-[#f4f1ea]">Smash &amp; Lob</p>
+        <p className="text-[0.25rem] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>Creado con</p>
+        <p className="mt-0.5 text-[0.3125rem] font-black uppercase tracking-[.1em] text-[#f4f1ea]">Smash &amp; Lob</p>
       </div>
     </div>
   )
@@ -107,13 +107,13 @@ function SealFace({
       <div className="absolute inset-x-6 top-0 h-[1px] bg-white/10" />
       <div className="absolute inset-x-9 top-[17px] h-[1px] bg-white/6" />
       <div className="relative z-10 flex w-full flex-col items-center justify-center px-5 pb-4 pt-5 text-center" style={{ fontFamily: getWelcomePackGeneralFontFamily(generalFont) }}>
-        <p className="mb-2 text-[8px] font-black uppercase tracking-[.28em]" style={{ color: accent }}>
+        <p className="mb-2 text-[0.5rem] font-black uppercase tracking-[.28em]" style={{ color: accent }}>
           Welcome Pack
         </p>
         <SealLeagueLogo league={league} />
-        <p className="mt-2 max-w-[148px] truncate text-[8px] font-black uppercase tracking-[.12em] text-white/52">{league.name}</p>
+        <p className="mt-2 max-w-[148px] truncate text-[0.5rem] font-black uppercase tracking-[.12em] text-white/52">{league.name}</p>
         <p
-          className="mt-3 max-w-[155px] text-balance text-[18px] font-semibold leading-[.96] text-white drop-shadow-[0_6px_14px_rgba(0,0,0,.4)]"
+          className="mt-3 max-w-[155px] text-balance text-[1.125rem] font-semibold leading-[.96] text-white drop-shadow-[0_6px_14px_rgba(0,0,0,.4)]"
           style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerFont) }}
         >
           {playerName}
@@ -123,7 +123,7 @@ function SealFace({
           <span className="h-[7px] w-[7px] rotate-45 rounded-[1px] shadow-[0_0_12px_rgba(255,255,255,.24)]" style={{ backgroundColor: accent }} />
           <span className="h-px bg-white/20" />
         </div>
-        <p className="mt-2 text-[8px] font-black uppercase tracking-[.13em] text-white/74">{seasonName}</p>
+        <p className="mt-2 text-[0.5rem] font-black uppercase tracking-[.13em] text-white/74">{seasonName}</p>
         {showSignature ? <div className="mt-3.5"><SmashAndLobSignature accent={accent} /></div> : null}
       </div>
     </div>
@@ -141,7 +141,7 @@ function SealPreview(props: {
 }) {
   return (
     <div className="mx-auto w-full max-w-[260px]">
-      <div className="mb-2 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[.12em] text-neutral-500">
+      <div className="mb-2 flex items-center justify-between gap-2 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
         <span>Vista previa</span>
         <span>
           {WELCOME_PACK_BAG_SEAL.trimWidthMm} × {WELCOME_PACK_BAG_SEAL.trimHeightMm} mm · provisional
@@ -152,11 +152,11 @@ function SealPreview(props: {
         <SealFace {...props} />
         <div className="pointer-events-none absolute inset-x-[-18px] top-1/2 z-20 flex -translate-y-1/2 items-center gap-1">
           <span className="h-px flex-1 border-t border-dashed border-amber-400/55" />
-          <span className="rounded-full bg-amber-200/90 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[.1em] text-neutral-950">pliegue</span>
+          <span className="rounded-full bg-amber-200/90 px-1.5 py-0.5 text-[0.4375rem] font-black uppercase tracking-[.1em] text-neutral-950">pliegue</span>
           <span className="h-px flex-1 border-t border-dashed border-amber-400/55" />
         </div>
       </div>
-      <p className="mt-3 text-center text-[10px] font-bold leading-4 text-neutral-500">
+      <p className="mt-3 text-center text-[0.625rem] font-bold leading-4 text-neutral-500">
         La línea de pliegue es solo una guía de la preview; el diseño impreso no lleva una franja sólida en el centro.
       </p>
     </div>
@@ -212,7 +212,7 @@ function OvergripBandPreview({
 
   return (
     <div className="mx-auto w-full max-w-[470px]">
-      <div className="mb-3 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[.12em] text-neutral-500">
+      <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
         <span>Vista previa · fajín completo</span>
         <span>Sin escala · medidas pendientes</span>
       </div>
@@ -236,13 +236,13 @@ function OvergripBandPreview({
                 <div className="absolute inset-x-5 top-1/2 h-7 -translate-y-1/2 rounded-full bg-white/8 blur-xl" />
                 <OvergripLeagueLogo league={league} />
               </div>
-              <p className="mt-2 truncate text-[10px] font-black uppercase tracking-[.08em] text-white">{league.name}</p>
-              <p className="mt-1 text-[8px] font-bold uppercase tracking-[.12em] text-white/58">{seasonName}</p>
+              <p className="mt-2 truncate text-[0.625rem] font-black uppercase tracking-[.08em] text-white">{league.name}</p>
+              <p className="mt-1 text-[0.5rem] font-bold uppercase tracking-[.12em] text-white/58">{seasonName}</p>
             </div>
 
             <div className="flex min-w-0 flex-col items-center justify-center px-4 text-center">
-              <p className="text-[7px] font-black uppercase tracking-[.28em]" style={{ color: accent }}>Smash &amp; Lob</p>
-              <p className="mt-2 text-[22px] font-black uppercase tracking-[.14em] text-white">Welcome Pack</p>
+              <p className="text-[0.4375rem] font-black uppercase tracking-[.28em]" style={{ color: accent }}>Smash &amp; Lob</p>
+              <p className="mt-2 text-[1.375rem] font-black uppercase tracking-[.14em] text-white">Welcome Pack</p>
               <div className="mt-2 grid grid-cols-[36px_7px_36px] items-center gap-2">
                 <span className="h-px bg-white/20" />
                 <span className="h-[6px] w-[6px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
@@ -251,9 +251,9 @@ function OvergripBandPreview({
             </div>
 
             <div className="flex min-w-0 flex-col justify-center px-4 text-right">
-              <p className="text-[7px] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Jugador</p>
+              <p className="text-[0.4375rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Jugador</p>
               <p
-                className="mt-1.5 text-balance text-[20px] leading-[.95] text-white"
+                className="mt-1.5 text-balance text-[1.25rem] leading-[.95] text-white"
                 style={{ fontFamily: playerFamily }}
               >
                 {playerName}
@@ -263,7 +263,7 @@ function OvergripBandPreview({
         </div>
       </div>
 
-      <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[10px] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
+      <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m².
         Las medidas finales se fijarán después de medir el overgrip y su envase real.
       </div>
@@ -360,7 +360,6 @@ export default function WelcomePackMediaKitPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/admin/media-kit" label={tx("Volver")} />
         <div>
-          <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Media Kit</p>
           <h1 className="type-page-title">Welcome Pack</h1>
         </div>
       </header>
@@ -388,7 +387,7 @@ export default function WelcomePackMediaKitPage() {
               ))}
             </select>
           </label>
-          <div className="rounded-xl bg-amber-50 px-3 py-2 text-[10px] font-bold leading-4 text-amber-900 ring-1 ring-amber-200">
+          <div className="rounded-xl bg-amber-50 px-3 py-2 text-[0.625rem] font-bold leading-4 text-amber-900 ring-1 ring-amber-200">
             Medidas provisionales hasta medir y probar la bolsa real a escala 100 %.
           </div>
         </div>
@@ -400,7 +399,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Piezas</p>
             <h2 className="text-base font-black text-neutral-950">Diseños del Welcome Pack</h2>
           </div>
-          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black text-neutral-600">2 disponibles</span>
+          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">2 disponibles</span>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           <button
@@ -410,11 +409,11 @@ export default function WelcomePackMediaKitPage() {
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] ${activePiece === "bag-seal" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "bag-seal" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "bag-seal" ? "bg-emerald-500" : "bg-neutral-400"}`} />
                 {activePiece === "bag-seal" ? "Activo" : "Disponible"}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Diseño único</span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Diseño único</span>
             </div>
             <div className="px-4 py-3 pl-5">
               <h3 className="text-base font-black text-neutral-950">Precinto de bolsa</h3>
@@ -429,11 +428,11 @@ export default function WelcomePackMediaKitPage() {
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] ${activePiece === "overgrip-band" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "overgrip-band" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "overgrip-band" ? "bg-emerald-500" : "bg-neutral-400"}`} />
                 {activePiece === "overgrip-band" ? "Activo" : "Disponible"}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Nuevo</span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Nuevo</span>
             </div>
             <div className="px-4 py-3 pl-5">
               <h3 className="text-base font-black text-neutral-950">Fajín del overgrip</h3>
@@ -444,8 +443,8 @@ export default function WelcomePackMediaKitPage() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           {futurePieces.map((piece) => (
             <div key={piece} className="min-w-[128px] rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
-              <p className="text-[10px] font-black leading-4">{piece}</p>
-              <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[.08em]">Próximamente</p>
+              <p className="text-[0.625rem] font-black leading-4">{piece}</p>
+              <p className="mt-0.5 text-[0.5625rem] font-bold uppercase tracking-[.08em]">Próximamente</p>
             </div>
           ))}
         </div>
@@ -488,7 +487,7 @@ export default function WelcomePackMediaKitPage() {
                     </option>
                   ))}
                 </select>
-                <span className="mt-1 block text-[10px] font-semibold text-neutral-500">
+                <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
                   {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === playerFont)?.description}
                 </span>
               </label>
@@ -507,22 +506,22 @@ export default function WelcomePackMediaKitPage() {
               <div className="text-xs font-black text-neutral-700">
                 Firma Smash &amp; Lob
                 <div className="mt-1 grid grid-cols-2 gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-                  <button type="button" onClick={() => setShowSignature(true)} className={`h-8 rounded-lg text-[11px] font-black ${showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>Sí</button>
-                  <button type="button" onClick={() => setShowSignature(false)} className={`h-8 rounded-lg text-[11px] font-black ${!showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>No</button>
+                  <button type="button" onClick={() => setShowSignature(true)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>Sí</button>
+                  <button type="button" onClick={() => setShowSignature(false)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${!showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>No</button>
                 </div>
               </div>
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2 text-center">
               <div className="rounded-xl bg-neutral-50 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-[.1em] text-neutral-400">Corte</p>
+                <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Corte</p>
                 <p className="mt-1 text-xs font-black">45 × 120 mm</p>
               </div>
               <div className="rounded-xl bg-neutral-50 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-[.1em] text-neutral-400">Sangrado</p>
+                <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Sangrado</p>
                 <p className="mt-1 text-xs font-black">2 mm</p>
               </div>
               <div className="rounded-xl bg-neutral-50 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-[.1em] text-neutral-400">Pliegue</p>
+                <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Pliegue</p>
                 <p className="mt-1 text-xs font-black">60 / 60 mm</p>
               </div>
             </div>
@@ -583,7 +582,7 @@ export default function WelcomePackMediaKitPage() {
                 >
                   {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
                 </select>
-                <span className="mt-1 block text-[10px] font-semibold text-neutral-500">
+                <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
                   {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description}
                 </span>
               </label>
@@ -600,9 +599,9 @@ export default function WelcomePackMediaKitPage() {
               </label>
 
               <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                <p className="text-[9px] font-black uppercase tracking-[.12em] text-neutral-400">Material previsto</p>
+                <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Material previsto</p>
                 <p className="mt-1 text-xs font-black text-neutral-950">{WELCOME_PACK_OVERGRIP_BAND.material}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">{WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m²</p>
+                <p className="mt-0.5 text-[0.625rem] font-semibold text-neutral-500">{WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m²</p>
               </div>
             </div>
           </AppCard>
@@ -644,7 +643,7 @@ export default function WelcomePackMediaKitPage() {
             type="button"
             onClick={printAll}
             disabled={!sortedPlayers.length}
-            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-xs font-black text-neutral-950 hover:bg-amber-100 disabled:bg-neutral-700 disabled:text-neutral-400"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-center text-xs font-black text-neutral-950 hover:bg-amber-100 disabled:bg-neutral-700 disabled:text-neutral-400"
           >
             Imprimir todo · {sortedPlayers.length}
           </button>

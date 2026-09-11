@@ -448,7 +448,7 @@ export default function MediaKitPage() {
     spotlightImageUrl: isSpotlightPreset ? spotlightImageUrl : undefined,
     resultRound: isResultsPreset ? selectedResultRound : undefined,
     results: isResultsPreset ? resultCards : undefined,
-  }), [activeLeague.logoUrl, activeLeague.name, activePresetKind, formatClosing, formatRows, isInformationalPreset, isResultsPreset, isScoreboardPreset, isSpotlightPreset, isWelcomePreset, matchdayDraft, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSeasonHeader, openingSubtitle, openingTime, openingTitle, openingVenue, resultCards, selectedResultRound, spotlightImageUrl, welcomeBody, welcomeDefaults.eyebrow, welcomeLetterFont, welcomeLogoStyle, welcomeSignatureFont, welcomeSignoff, welcomeSignature])
+  }), [activeLeague.logoUrl, activeLeague.name, activePresetKind, formatClosing, formatRows, isInformationalPreset, isResultsPreset, isScoreboardPreset, isSpotlightPreset, isWelcomePreset, locale, matchdayDraft, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSeasonHeader, openingSubtitle, openingTime, openingTitle, openingVenue, resultCards, selectedResultRound, spotlightImageUrl, welcomeBody, welcomeDefaults.eyebrow, welcomeLetterFont, welcomeLogoStyle, welcomeSignatureFont, welcomeSignoff, welcomeSignature])
 
   const base = { leagueName: activeLeague.name, seasonName: openingSeasonHeader, leagueLogoUrl: activeLeague.logoUrl, locale, template: "opening_day_premium_01" as const, accentColor: openingAccent, headlineFont: openingHeadlineFont }
   const pieces: Array<{ kind: LeagueMediaKitKind; data: LeagueMediaKitImageData; disabled?: boolean }> = [

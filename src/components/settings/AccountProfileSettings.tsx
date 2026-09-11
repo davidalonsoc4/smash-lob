@@ -336,7 +336,7 @@ function AccountProfileForm({
 }
 
 export function AccountProfileSettings() {
-  const { t, tx } = useI18n()
+  const { t } = useI18n()
   const { profile, isLoading } = useAccountProfile()
   const { currentUser } = useCurrentUser()
 
