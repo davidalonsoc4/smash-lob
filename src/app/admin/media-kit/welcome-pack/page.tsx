@@ -211,15 +211,15 @@ function OvergripBandPreview({
   ].join(", ")
 
   return (
-    <div className="mx-auto w-full max-w-[620px]">
+    <div className="mx-auto w-full max-w-[430px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
         <span>Vista previa · fajín completo</span>
         <span>{WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm · provisional</span>
       </div>
 
-      <div className="overflow-x-auto rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
+      <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
         <div
-          className="relative mx-auto min-w-[520px] overflow-hidden rounded-[11px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
+          className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[11px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
           style={{
             aspectRatio: `${WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} / ${WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm}`,
             backgroundImage: premiumBackground,
@@ -235,33 +235,33 @@ function OvergripBandPreview({
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
           <div className="relative z-10 grid h-full grid-cols-3 items-stretch">
-            <div className="flex min-w-0 items-center gap-2 px-3">
-              <div className="relative flex h-[44px] w-[72px] shrink-0 items-center justify-center">
-                <div className="absolute inset-x-2 top-1/2 h-5 -translate-y-1/2 rounded-full bg-white/8 blur-lg" />
-                <div className="relative scale-[.72]">
+            <div className="flex min-w-0 items-center gap-1.5 px-2.5">
+              <div className="relative flex h-[34px] w-[54px] shrink-0 items-center justify-center">
+                <div className="absolute inset-x-1.5 top-1/2 h-4 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
+                <div className="relative scale-[.58]">
                   <OvergripLeagueLogo league={league} />
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="truncate text-[0.5625rem] font-black uppercase tracking-[.06em] text-white">{league.name}</p>
-                <p className="mt-0.5 truncate text-[0.4375rem] font-bold uppercase tracking-[.1em] text-white/58">{seasonName}</p>
+                <p className="truncate text-[0.4375rem] font-black uppercase tracking-[.04em] text-white">{league.name}</p>
+                <p className="mt-0.5 truncate text-[0.3125rem] font-bold uppercase tracking-[.08em] text-white/58">{seasonName}</p>
               </div>
             </div>
 
-            <div className="flex min-w-0 flex-col items-center justify-center px-3 text-center">
-              <p className="text-[0.375rem] font-black uppercase tracking-[.22em]" style={{ color: accent }}>Smash &amp; Lob</p>
-              <p className="mt-1 text-[1rem] font-black uppercase tracking-[.1em] text-white">Welcome Pack</p>
-              <div className="mt-1 grid grid-cols-[24px_5px_24px] items-center gap-1.5">
+            <div className="flex min-w-0 flex-col items-center justify-center px-2 text-center">
+              <p className="text-[0.3125rem] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Smash &amp; Lob</p>
+              <p className="mt-0.5 text-[0.75rem] font-black uppercase tracking-[.07em] text-white">Welcome Pack</p>
+              <div className="mt-0.5 grid grid-cols-[18px_4px_18px] items-center gap-1">
                 <span className="h-px bg-white/20" />
-                <span className="h-[4px] w-[4px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
+                <span className="h-[3px] w-[3px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
                 <span className="h-px bg-white/20" />
               </div>
             </div>
 
-            <div className="flex min-w-0 flex-col justify-center px-3 text-right">
-              <p className="text-[0.375rem] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Jugador</p>
+            <div className="flex min-w-0 flex-col justify-center px-2.5 text-right">
+              <p className="text-[0.3125rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Jugador</p>
               <p
-                className="mt-1 truncate text-[0.9375rem] leading-none text-white"
+                className="mt-0.5 truncate text-[0.6875rem] leading-none text-white"
                 style={{ fontFamily: playerFamily }}
               >
                 {playerName}
@@ -560,7 +560,7 @@ export default function WelcomePackMediaKitPage() {
       </div>
 
       ) : (
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(520px,620px)] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
         <div className="space-y-4">
           <AppCard>
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
