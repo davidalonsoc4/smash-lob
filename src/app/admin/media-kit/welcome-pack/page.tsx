@@ -211,19 +211,23 @@ function OvergripBandPreview({
   ].join(", ")
 
   return (
-    <div className="mx-auto w-full max-w-[470px]">
+    <div className="mx-auto w-full max-w-[620px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
         <span>Vista previa · fajín completo</span>
-        <span>Sin escala · medidas pendientes</span>
+        <span>{WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm · provisional</span>
       </div>
 
-      <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
+      <div className="overflow-x-auto rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
         <div
-          className="relative aspect-[5.2/1] overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
-          style={{ backgroundImage: premiumBackground, fontFamily: generalFamily }}
+          className="relative mx-auto min-w-[520px] overflow-hidden rounded-[11px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
+          style={{
+            aspectRatio: `${WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} / ${WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm}`,
+            backgroundImage: premiumBackground,
+            fontFamily: generalFamily,
+          }}
         >
-          <div className="absolute inset-[6px] rounded-[9px] border border-white/12" />
-          <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
+          <div className="absolute inset-[4px] rounded-[7px] border border-white/12" />
+          <div className="absolute inset-x-0 top-0 h-[2px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-y-0 left-1/3 border-l border-dashed border-white/10" />
           <div className="absolute inset-y-0 right-1/3 border-l border-dashed border-white/10" />
           <div className="absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/7" />
@@ -231,29 +235,33 @@ function OvergripBandPreview({
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
           <div className="relative z-10 grid h-full grid-cols-3 items-stretch">
-            <div className="flex min-w-0 flex-col justify-center px-4">
-              <div className="relative flex items-center justify-center rounded-[12px] border border-white/8 bg-white/[0.03] px-3 py-2">
-                <div className="absolute inset-x-5 top-1/2 h-7 -translate-y-1/2 rounded-full bg-white/8 blur-xl" />
-                <OvergripLeagueLogo league={league} />
+            <div className="flex min-w-0 items-center gap-2 px-3">
+              <div className="relative flex h-[44px] w-[72px] shrink-0 items-center justify-center">
+                <div className="absolute inset-x-2 top-1/2 h-5 -translate-y-1/2 rounded-full bg-white/8 blur-lg" />
+                <div className="relative scale-[.72]">
+                  <OvergripLeagueLogo league={league} />
+                </div>
               </div>
-              <p className="mt-2 truncate text-[0.625rem] font-black uppercase tracking-[.08em] text-white">{league.name}</p>
-              <p className="mt-1 text-[0.5rem] font-bold uppercase tracking-[.12em] text-white/58">{seasonName}</p>
-            </div>
-
-            <div className="flex min-w-0 flex-col items-center justify-center px-4 text-center">
-              <p className="text-[0.4375rem] font-black uppercase tracking-[.28em]" style={{ color: accent }}>Smash &amp; Lob</p>
-              <p className="mt-2 text-[1.375rem] font-black uppercase tracking-[.14em] text-white">Welcome Pack</p>
-              <div className="mt-2 grid grid-cols-[36px_7px_36px] items-center gap-2">
-                <span className="h-px bg-white/20" />
-                <span className="h-[6px] w-[6px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
-                <span className="h-px bg-white/20" />
+              <div className="min-w-0">
+                <p className="truncate text-[0.5625rem] font-black uppercase tracking-[.06em] text-white">{league.name}</p>
+                <p className="mt-0.5 truncate text-[0.4375rem] font-bold uppercase tracking-[.1em] text-white/58">{seasonName}</p>
               </div>
             </div>
 
-            <div className="flex min-w-0 flex-col justify-center px-4 text-right">
-              <p className="text-[0.4375rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Jugador</p>
+            <div className="flex min-w-0 flex-col items-center justify-center px-3 text-center">
+              <p className="text-[0.375rem] font-black uppercase tracking-[.22em]" style={{ color: accent }}>Smash &amp; Lob</p>
+              <p className="mt-1 text-[1rem] font-black uppercase tracking-[.1em] text-white">Welcome Pack</p>
+              <div className="mt-1 grid grid-cols-[24px_5px_24px] items-center gap-1.5">
+                <span className="h-px bg-white/20" />
+                <span className="h-[4px] w-[4px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
+                <span className="h-px bg-white/20" />
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-col justify-center px-3 text-right">
+              <p className="text-[0.375rem] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Jugador</p>
               <p
-                className="mt-1.5 text-balance text-[1.25rem] leading-[.95] text-white"
+                className="mt-1 truncate text-[0.9375rem] leading-none text-white"
                 style={{ fontFamily: playerFamily }}
               >
                 {playerName}
@@ -265,7 +273,7 @@ function OvergripBandPreview({
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m².
-        Las medidas finales se fijarán después de medir el overgrip y su envase real.
+        Medida temporal de diseño: {WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm, basada en una estimación real de {WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMaxMm} × {WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMaxMm} mm.
       </div>
     </div>
   )
@@ -552,7 +560,7 @@ export default function WelcomePackMediaKitPage() {
       </div>
 
       ) : (
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(520px,620px)] lg:items-start">
         <div className="space-y-4">
           <AppCard>
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
@@ -610,7 +618,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Medidas</p>
             <h2 className="mt-1 text-base font-black">Pendientes de cerrar</h2>
             <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-              No se fija todavía ninguna medida ni plancha A4: primero mediremos el overgrip real y su envase para que el fajín cierre exactamente y se imprima al 100 %.
+              Trabajamos temporalmente con {WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm. La referencia medida está entre {WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMaxMm} mm de largo y {WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMaxMm} mm de alto; antes de imprimir al 100 % confirmaremos la medida definitiva.
             </p>
           </AppCard>
         </div>
@@ -657,7 +665,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
             <h2 className="mt-1 text-base font-black">Impresión pendiente de medidas</h2>
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-              El diseño del fajín ya puede validarse. La plancha A4 se habilitará cuando midamos el overgrip real para no inventar escala ni dimensiones.
+              El diseño ya usa provisionalmente 170 × 20 mm. La plancha A4 seguirá bloqueada hasta confirmar la medida física definitiva y evitar imprimir una pieza incorrecta.
             </p>
           </div>
           <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">

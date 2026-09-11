@@ -74,7 +74,13 @@ export const WELCOME_PACK_OVERGRIP_BAND = {
   material: "Cartulina mate",
   minGsm: 200,
   maxGsm: 250,
-  dimensionsStatus: "pending-real-measurement",
+  dimensionsStatus: "temporary-estimate",
+  estimatedWidthMinMm: 165,
+  estimatedWidthMaxMm: 170,
+  estimatedHeightMinMm: 15,
+  estimatedHeightMaxMm: 20,
+  provisionalWidthMm: 170,
+  provisionalHeightMm: 20,
 } as const
 
 function escapeHtml(value: string) {
