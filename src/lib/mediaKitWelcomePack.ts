@@ -54,11 +54,19 @@ function faceMarkup({
   logoUrl?: string | null
 }) {
   const logo = logoUrl
-    ? `<span class="logo-medallion"><span class="logo-core"><img src="${escapeHtml(logoUrl)}" alt="" /></span></span>`
-    : `<span class="logo-medallion"><span class="logo-core logo-fallback">${escapeHtml(initials(leagueName))}</span></span>`
+    ? `<span class="logo-medallion"><span class="logo-ring"><span class="logo-core"><img src="${escapeHtml(logoUrl)}" alt="" /></span></span></span>`
+    : `<span class="logo-medallion"><span class="logo-ring"><span class="logo-core logo-fallback">${escapeHtml(initials(leagueName))}</span></span></span>`
 
-  return `<div class="face-ornament face-ornament-a" aria-hidden="true"></div>
-    <div class="face-ornament face-ornament-b" aria-hidden="true"></div>
+  return `<div class="background-ring background-ring-a" aria-hidden="true"></div>
+    <div class="background-ring background-ring-b" aria-hidden="true"></div>
+    <div class="background-texture" aria-hidden="true"></div>
+    <div class="background-glow" aria-hidden="true"></div>
+    <div class="frame" aria-hidden="true"></div>
+    <div class="accent-line" aria-hidden="true"></div>
+    <div class="corner corner-a" aria-hidden="true"></div>
+    <div class="corner corner-b" aria-hidden="true"></div>
+    <div class="spark spark-a" aria-hidden="true"></div>
+    <div class="spark spark-b" aria-hidden="true"></div>
     <div class="face-inner">
       <div class="eyebrow">WELCOME PACK</div>
       ${logo}
@@ -141,31 +149,48 @@ export function buildWelcomePackBagSealPrintHtml({
     .sheet:last-child { break-after: auto; page-break-after: auto; }
     .seal-cell { --accent: ${accent}; position: relative; width: 49mm; height: 124mm; overflow: hidden; background: #050505; }
     .seal-trim { position: absolute; inset: 2mm; display: grid; grid-template-rows: 60mm 60mm; overflow: hidden; background: #050505; }
-    .trim-guide { position: absolute; inset: 2mm; z-index: 20; border: .16mm solid rgba(0,0,0,.72); pointer-events: none; }
-    .fold-tick { position: absolute; top: 61.85mm; z-index: 30; width: 2mm; height: .3mm; background: #111; }
+    .trim-guide { position: absolute; inset: 2mm; z-index: 30; border: .16mm solid rgba(0,0,0,.72); pointer-events: none; }
+    .fold-tick { position: absolute; top: 61.85mm; z-index: 40; width: 2mm; height: .3mm; background: #111; }
     .fold-tick-left { left: 0; }
     .fold-tick-right { right: 0; }
+
     .seal-face { position: relative; min-height: 60mm; overflow: hidden; background:
-      radial-gradient(circle at 14% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 29%),
-      linear-gradient(160deg, #121212 0%, #080808 48%, #030303 100%); }
-    .seal-face::before { content: ""; position: absolute; inset: 1.55mm; border: .16mm solid rgba(255,255,255,.14); pointer-events: none; }
-    .seal-face::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.35mm; background: var(--accent); }
-    .seal-face-bottom { transform: rotate(180deg); }
-    .face-ornament { position: absolute; width: 8mm; height: 8mm; opacity: .9; }
-    .face-ornament-a { top: 3.2mm; right: 3.2mm; border-top: .45mm solid var(--accent); border-right: .45mm solid var(--accent); }
-    .face-ornament-b { left: 3.2mm; bottom: 3.2mm; border-left: .28mm solid rgba(255,255,255,.35); border-bottom: .28mm solid rgba(255,255,255,.35); }
-    .face-inner { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.4mm 4.2mm 4.5mm; text-align: center; }
-    .eyebrow { margin-bottom: 2.1mm; color: var(--accent); font-size: 2.1mm; font-weight: 900; letter-spacing: .62mm; line-height: 1; }
-    .logo-medallion { display: grid; width: 11.6mm; height: 11.6mm; place-items: center; border: .34mm solid var(--accent); border-radius: 999px; box-shadow: 0 0 0 .35mm rgba(255,255,255,.09); }
-    .logo-core { display: grid; width: 9.5mm; height: 9.5mm; place-items: center; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.98); color: #080808; font-size: 2.8mm; font-weight: 950; }
+      radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 34%),
+      radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 28%),
+      radial-gradient(circle at 88% 8%, rgba(255,255,255,.10) 0%, transparent 24%),
+      linear-gradient(158deg,#181818 0%,#080808 52%,#020202 100%); }
+    .seal-face-top { transform: rotate(180deg); }
+    .seal-face-bottom { transform: none; }
+
+    .background-ring { position: absolute; border-radius: 999px; border-style: solid; border-color: var(--accent); pointer-events: none; }
+    .background-ring-a { width: 30mm; height: 30mm; left: -12mm; top: 5mm; border-width: .28mm; opacity: .34; box-shadow: 0 0 10mm color-mix(in srgb, var(--accent) 16%, transparent); }
+    .background-ring-b { width: 34mm; height: 34mm; right: -14mm; bottom: -2mm; border-width: .2mm; opacity: .18; }
+    .background-texture { position: absolute; inset: 0; opacity: .11; background-image: repeating-linear-gradient(118deg,transparent 0,transparent 3.2mm,rgba(255,255,255,.34) 3.45mm,transparent 3.7mm); }
+    .background-glow { position: absolute; width: 24mm; height: 24mm; left: 50%; top: 26%; transform: translateX(-50%); border-radius: 999px; background: var(--accent); filter: blur(8mm); opacity: .28; }
+    .frame { position: absolute; inset: 1.55mm; border: .16mm solid rgba(255,255,255,.14); pointer-events: none; }
+    .accent-line { position: absolute; left: 6mm; right: 6mm; top: 0; height: 1mm; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+    .corner { position: absolute; width: 7.5mm; height: 7.5mm; }
+    .corner-a { right: 3mm; top: 3mm; border-right: .42mm solid var(--accent); border-top: .42mm solid var(--accent); }
+    .corner-b { left: 3mm; bottom: 3mm; border-left: .24mm solid rgba(255,255,255,.32); border-bottom: .24mm solid rgba(255,255,255,.32); }
+    .spark { position: absolute; width: .9mm; height: .9mm; border-radius: 999px; background: var(--accent); }
+    .spark-a { left: 4.5mm; top: 5.2mm; box-shadow: 3.2mm 1.8mm 0 color-mix(in srgb, var(--accent) 55%, transparent), 1.1mm 5mm 0 rgba(255,255,255,.22); }
+    .spark-b { right: 5mm; bottom: 7mm; opacity: .45; box-shadow: -2.3mm -1.2mm 0 rgba(255,255,255,.18); }
+
+    .face-inner { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.2mm 4.1mm 4.3mm; text-align: center; }
+    .eyebrow { margin-bottom: 2mm; color: var(--accent); font-size: 2.05mm; font-weight: 900; letter-spacing: .72mm; line-height: 1; }
+    .logo-medallion { display: grid; width: 13.2mm; height: 13.2mm; place-items: center; border: .28mm solid var(--accent); border-radius: 999px; box-shadow: 0 0 6mm color-mix(in srgb, var(--accent) 26%, transparent), inset 0 0 0 .25mm rgba(255,255,255,.10); }
+    .logo-ring { display: grid; width: 11.2mm; height: 11.2mm; place-items: center; border: .18mm solid rgba(255,255,255,.22); border-radius: 999px; }
+    .logo-core { display: grid; width: 9.9mm; height: 9.9mm; place-items: center; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.97); color: #080808; font-size: 2.8mm; font-weight: 950; box-shadow: inset 0 0 2.4mm rgba(0,0,0,.12); }
     .logo-core img { width: 100%; height: 100%; padding: 1mm; object-fit: contain; }
-    .league-name { max-width: 34mm; margin-top: 1.8mm; overflow: hidden; color: rgba(255,255,255,.57); font-size: 2.05mm; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: .16mm; white-space: nowrap; text-overflow: ellipsis; }
-    .player-name { max-width: 36.5mm; margin-top: 2.4mm; color: #fff; font-family: Georgia, "Times New Roman", serif; font-size: 4.55mm; font-weight: 700; line-height: .98; text-wrap: balance; }
-    .rule { display: grid; grid-template-columns: 8mm 1.5mm 8mm; align-items: center; gap: 1.15mm; margin-top: 2.4mm; }
-    .rule span { height: .18mm; background: rgba(255,255,255,.24); }
-    .rule i { width: 1.45mm; height: 1.45mm; transform: rotate(45deg); background: var(--accent); }
-    .season-name { margin-top: 2mm; color: rgba(255,255,255,.76); font-size: 2.15mm; font-weight: 850; text-transform: uppercase; letter-spacing: .2mm; }
-    .signature { margin-top: 1.35mm; color: rgba(255,255,255,.28); font-size: 1.7mm; font-weight: 850; letter-spacing: .42mm; }
+    .league-name { max-width: 34mm; margin-top: 1.7mm; overflow: hidden; color: rgba(255,255,255,.56); font-size: 2mm; font-weight: 850; line-height: 1.05; text-transform: uppercase; letter-spacing: .22mm; white-space: nowrap; text-overflow: ellipsis; }
+    .player-name { max-width: 37mm; margin-top: 2.2mm; color: #fff; font-family: Georgia, "Times New Roman", serif; font-size: 4.7mm; font-weight: 700; line-height: .94; text-wrap: balance; text-shadow: 0 .6mm 3mm rgba(0,0,0,.68); }
+    .rule { display: grid; grid-template-columns: 8.5mm 1.7mm 8.5mm; align-items: center; gap: 1.2mm; margin-top: 2.4mm; }
+    .rule span:first-child { height: .18mm; background: linear-gradient(90deg, transparent, rgba(255,255,255,.34)); }
+    .rule span:last-child { height: .18mm; background: linear-gradient(90deg, rgba(255,255,255,.34), transparent); }
+    .rule i { width: 1.6mm; height: 1.6mm; transform: rotate(45deg); border: .2mm solid var(--accent); box-shadow: 0 0 2mm color-mix(in srgb, var(--accent) 45%, transparent); }
+    .season-name { margin-top: 1.9mm; color: rgba(255,255,255,.80); font-size: 2.15mm; font-weight: 850; text-transform: uppercase; letter-spacing: .24mm; }
+    .signature { margin-top: 1.2mm; color: rgba(255,255,255,.30); font-size: 1.65mm; font-weight: 850; letter-spacing: .5mm; }
+
     @media screen {
       body { padding: 12px; background: #e5e7eb; }
       .sheet { margin: 0 auto 16px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.14); }
