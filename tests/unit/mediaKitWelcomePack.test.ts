@@ -21,7 +21,7 @@ describe("Media Kit Welcome Pack", () => {
     expect(WELCOME_PACK_BAG_SEAL.bleedMm).toBe(2)
   })
 
-  it("builds one mirrored premium seal design", () => {
+  it("builds one mirrored premium seal with the top face rotated", () => {
     const html = buildWelcomePackBagSealPrintHtml({
       players: [{ id: "p1", displayName: "David Alonso" }],
       leagueName: "PRO League",
@@ -30,15 +30,15 @@ describe("Media Kit Welcome Pack", () => {
       accentColor: "#53B401",
     })
 
-    expect(html).toContain("seal-face-bottom")
-    expect(html).toContain("rotate(180deg)")
+    expect(html).toContain("seal-face-top")
+    expect(html).toContain(".seal-face-top { transform: rotate(180deg); }")
+    expect(html).toContain(".seal-face-bottom { transform: none; }")
     expect(html).toContain("David Alonso")
     expect(html).toContain("WELCOME PACK")
     expect(html).toContain("logo-medallion")
+    expect(html).toContain("background-glow")
+    expect(html).toContain("background-texture")
     expect(html).toContain("--accent: #53B401")
-    expect(html).not.toContain("design-frame")
-    expect(html).not.toContain("design-stripe")
-    expect(html).not.toContain("design-split")
   })
 
   it("normalizes the league accent", () => {
