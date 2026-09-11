@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 import {
   WELCOME_PACK_BAG_SEAL,
+  WELCOME_PACK_GENERAL_FONT_OPTIONS,
+  WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
   buildWelcomePackBagSealPrintHtml,
   getWelcomePackBagSealSheetCount,
   normalizeWelcomePackAccentColor,
@@ -21,27 +23,44 @@ describe("Media Kit Welcome Pack", () => {
     expect(WELCOME_PACK_BAG_SEAL.bleedMm).toBe(2)
   })
 
-  it("builds one mirrored premium seal with the top face rotated", () => {
+  it("uses the real app icon and common Media Kit branding", () => {
     const html = buildWelcomePackBagSealPrintHtml({
       players: [{ id: "p1", displayName: "David Alonso" }],
       leagueName: "PRO League",
       seasonName: "Temporada 1",
-      logoUrl: null,
+      logoUrl: "https://example.com/logo.png",
       accentColor: "#53B401",
+      showSignature: true,
     })
 
-    expect(html).toContain("seal-face-top")
-    expect(html).toContain(".seal-face-top { transform: rotate(180deg); }")
-    expect(html).toContain(".seal-face-bottom { transform: none; }")
-    expect(html).toContain("David Alonso")
-    expect(html).toContain("WELCOME PACK")
-    expect(html).toContain("logo-medallion")
-    expect(html).toContain("background-glow")
-    expect(html).toContain("background-texture")
-    expect(html).toContain("--accent: #53B401")
+    expect(html).toContain('src="/icon-192.png"')
+    expect(html).toContain("CREADO CON")
+    expect(html).toContain("SMASH &amp; LOB")
+    expect(html).toContain("seal-face-top { transform: rotate(180deg)")
+    expect(html).toContain("seal-face-bottom { transform: none")
+    expect(html).not.toContain("logo-medallion")
+    expect(html).not.toContain(".seal-face::after")
   })
 
-  it("normalizes the league accent", () => {
+  it("can hide branding and customize typography", () => {
+    const html = buildWelcomePackBagSealPrintHtml({
+      players: [{ id: "p1", displayName: "David Alonso" }],
+      leagueName: "PRO League",
+      seasonName: "Temporada 1",
+      accentColor: "#D7A544",
+      showSignature: false,
+      playerNameFont: "great-vibes",
+      generalFont: "geometric",
+    })
+
+    expect(html).not.toContain("CREADO CON")
+    expect(html).toContain("player-font-great-vibes")
+    expect(html).toContain("general-font-geometric")
+    expect(WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.length).toBeGreaterThanOrEqual(7)
+    expect(WELCOME_PACK_GENERAL_FONT_OPTIONS.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it("normalizes accent", () => {
     expect(normalizeWelcomePackAccentColor("#00aaff")).toBe("#00AAFF")
     expect(normalizeWelcomePackAccentColor("invalid")).toBe("#D7A544")
   })

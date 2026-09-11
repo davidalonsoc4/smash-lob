@@ -1,11 +1,6 @@
 import type { ReactNode } from "react"
-import { MediaKitSectionNav } from "@/components/media-kit/MediaKitSectionNav"
+import { MediaKitWorkspaceShell } from "@/components/media-kit/MediaKitWorkspaceShell"
 
 export default function MediaKitLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="space-y-3">
-      <MediaKitSectionNav />
-      {children}
-    </div>
-  )
+  return <MediaKitWorkspaceShell>{children}</MediaKitWorkspaceShell>
 }

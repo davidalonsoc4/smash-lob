@@ -3,6 +3,63 @@ export type WelcomePackBagSealPlayer = {
   displayName: string
 }
 
+export type WelcomePackPlayerNameFont =
+  | "editorial-serif"
+  | "clean-sans"
+  | "manuscript-elegant"
+  | "manuscript-casual"
+  | "allura"
+  | "great-vibes"
+  | "petit-formal"
+
+export type WelcomePackGeneralFont =
+  | "narrow-premium"
+  | "geometric"
+  | "editorial"
+
+export const WELCOME_PACK_FONT_STYLESHEET =
+  "https://fonts.googleapis.com/css2?family=Allura&family=Great+Vibes&family=Petit+Formal+Script&display=swap"
+
+export const WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS: {
+  id: WelcomePackPlayerNameFont
+  label: string
+  description: string
+}[] = [
+  {
+    id: "manuscript-elegant",
+    label: "Manuscrita elegante",
+    description: "Aspecto premium y más cercano a las demos.",
+  },
+  {
+    id: "manuscript-casual",
+    label: "Manuscrita casual",
+    description: "Más fresca y cercana, con aire handwritten.",
+  },
+  {
+    id: "editorial-serif",
+    label: "Serif editorial",
+    description: "Clásica y sofisticada, tipo invitación.",
+  },
+  {
+    id: "clean-sans",
+    label: "Sans premium",
+    description: "Limpia, firme y muy legible.",
+  },
+  { id: "allura", label: "Allura", description: "Ligera y elegante." },
+  { id: "great-vibes", label: "Great Vibes", description: "Caligrafía premium." },
+  { id: "petit-formal", label: "Petit Formal", description: "Formal y refinada." },
+]
+
+export const WELCOME_PACK_GENERAL_FONT_OPTIONS: Array<{
+  id: WelcomePackGeneralFont
+  label: string
+  description: string
+}> = [
+  { id: "narrow-premium", label: "Actual", description: "Condensada premium." },
+  { id: "geometric", label: "Geométrica", description: "Moderna y limpia." },
+  { id: "editorial", label: "Editorial", description: "Serifa elegante." },
+]
+
 export const WELCOME_PACK_BAG_SEAL = {
   trimWidthMm: 45,
   trimHeightMm: 120,
@@ -26,6 +83,44 @@ export function normalizeWelcomePackAccentColor(value: string) {
   return /^#[0-9a-f]{6}$/i.test(value.trim()) ? value.trim().toUpperCase() : "#D7A544"
 }
 
+export function normalizeWelcomePackPlayerNameFont(value: string): WelcomePackPlayerNameFont {
+  return WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.some((option) => option.id === value)
+    ? (value as WelcomePackPlayerNameFont)
+    : "manuscript-elegant"
+}
+
+export function getWelcomePackPlayerNameFontFamily(font: WelcomePackPlayerNameFont) {
+  switch (font) {
+    case "clean-sans":
+      return 'Inter, "Segoe UI", Arial, sans-serif'
+    case "editorial-serif":
+      return 'Georgia, "Times New Roman", serif'
+    case "manuscript-casual":
+      return '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive'
+    case "allura":
+      return '"Allura", "Segoe Script", cursive'
+    case "great-vibes":
+      return '"Great Vibes", "Segoe Script", cursive'
+    case "petit-formal":
+      return '"Petit Formal Script", "Segoe Script", cursive'
+    case "manuscript-elegant":
+    default:
+      return '"Snell Roundhand", "Brush Script MT", "Segoe Script", cursive'
+  }
+}
+
+export function getWelcomePackGeneralFontFamily(font: WelcomePackGeneralFont) {
+  switch (font) {
+    case "geometric":
+      return '"Century Gothic", Futura, Arial, sans-serif'
+    case "editorial":
+      return 'Georgia, "Times New Roman", serif'
+    case "narrow-premium":
+    default:
+      return '"Arial Narrow", "Roboto Condensed", Arial, sans-serif'
+  }
+}
+
 export function getWelcomePackBagSealSheetCount(playerCount: number) {
   return Math.max(0, Math.ceil(Math.max(0, playerCount) / WELCOME_PACK_BAG_SEAL.itemsPerA4))
 }
@@ -42,39 +137,51 @@ function initials(value: string) {
   )
 }
 
+function brandSignatureMarkup() {
+  return `<div class="creator-row">
+    <img class="creator-icon" src="/icon-192.png" alt="" />
+    <span class="creator-copy"><span class="creator-overline">CREADO CON</span><span class="creator-name">SMASH &amp; LOB</span></span>
+  </div>`
+}
+
+function logoMarkup({ leagueName, logoUrl }: { leagueName: string; logoUrl?: string | null }) {
+  if (logoUrl) {
+    return `<div class="league-logo-wrap"><img class="league-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(leagueName)}" /></div>`
+  }
+
+  return `<div class="league-logo-wrap"><span class="league-logo-fallback">${escapeHtml(initials(leagueName))}</span></div>`
+}
+
 function faceMarkup({
   playerName,
   leagueName,
   seasonName,
   logoUrl,
+  playerNameFont,
+  generalFont,
+  showSignature,
 }: {
   playerName: string
   leagueName: string
   seasonName: string
   logoUrl?: string | null
+  playerNameFont: WelcomePackPlayerNameFont
+  generalFont: WelcomePackGeneralFont
+  showSignature: boolean
 }) {
-  const logo = logoUrl
-    ? `<span class="logo-medallion"><span class="logo-ring"><span class="logo-core"><img src="${escapeHtml(logoUrl)}" alt="" /></span></span></span>`
-    : `<span class="logo-medallion"><span class="logo-ring"><span class="logo-core logo-fallback">${escapeHtml(initials(leagueName))}</span></span></span>`
-
-  return `<div class="background-ring background-ring-a" aria-hidden="true"></div>
-    <div class="background-ring background-ring-b" aria-hidden="true"></div>
-    <div class="background-texture" aria-hidden="true"></div>
-    <div class="background-glow" aria-hidden="true"></div>
-    <div class="frame" aria-hidden="true"></div>
-    <div class="accent-line" aria-hidden="true"></div>
-    <div class="corner corner-a" aria-hidden="true"></div>
-    <div class="corner corner-b" aria-hidden="true"></div>
-    <div class="spark spark-a" aria-hidden="true"></div>
-    <div class="spark spark-b" aria-hidden="true"></div>
-    <div class="face-inner">
+  return `<div class="face-glow face-glow-a" aria-hidden="true"></div>
+    <div class="face-glow face-glow-b" aria-hidden="true"></div>
+    <div class="face-ring face-ring-a" aria-hidden="true"></div>
+    <div class="face-ring face-ring-b" aria-hidden="true"></div>
+    <div class="face-sheen" aria-hidden="true"></div>
+    <div class="face-inner general-font-${generalFont}">
       <div class="eyebrow">WELCOME PACK</div>
-      ${logo}
+      ${logoMarkup({ leagueName, logoUrl })}
       <div class="league-name">${escapeHtml(leagueName)}</div>
-      <div class="player-name">${escapeHtml(playerName)}</div>
+      <div class="player-name player-font-${playerNameFont}">${escapeHtml(playerName)}</div>
       <div class="rule"><span></span><i></i><span></span></div>
       <div class="season-name">${escapeHtml(seasonName)}</div>
-      <div class="signature">SMASH &amp; LOB</div>
+      ${showSignature ? brandSignatureMarkup() : ""}
     </div>`
 }
 
@@ -83,17 +190,26 @@ function sealMarkup({
   leagueName,
   seasonName,
   logoUrl,
+  playerNameFont,
+  generalFont,
+  showSignature,
 }: {
   player: WelcomePackBagSealPlayer
   leagueName: string
   seasonName: string
   logoUrl?: string | null
+  playerNameFont: WelcomePackPlayerNameFont
+  generalFont: WelcomePackGeneralFont
+  showSignature: boolean
 }) {
   const face = faceMarkup({
     playerName: player.displayName,
     leagueName,
     seasonName,
     logoUrl,
+    playerNameFont,
+    generalFont,
+    showSignature,
   })
 
   return `<div class="seal-cell" data-player-id="${escapeHtml(player.id)}">
@@ -113,14 +229,22 @@ export function buildWelcomePackBagSealPrintHtml({
   seasonName,
   logoUrl,
   accentColor,
+  playerNameFont = "manuscript-elegant",
+  generalFont = "narrow-premium",
+  showSignature = true,
 }: {
   players: WelcomePackBagSealPlayer[]
   leagueName: string
   seasonName: string
   logoUrl?: string | null
   accentColor: string
+  playerNameFont?: WelcomePackPlayerNameFont
+  generalFont?: WelcomePackGeneralFont
+  showSignature?: boolean
 }) {
   const accent = normalizeWelcomePackAccentColor(accentColor)
+  const font = normalizeWelcomePackPlayerNameFont(playerNameFont)
+
   const sheets = Array.from(
     { length: getWelcomePackBagSealSheetCount(players.length) },
     (_, index) => players.slice(index * WELCOME_PACK_BAG_SEAL.itemsPerA4, (index + 1) * WELCOME_PACK_BAG_SEAL.itemsPerA4),
@@ -129,7 +253,7 @@ export function buildWelcomePackBagSealPrintHtml({
   const sheetMarkup = sheets
     .map(
       (sheetPlayers) => `<section class="sheet">${sheetPlayers
-        .map((player) => sealMarkup({ player, leagueName, seasonName, logoUrl }))
+        .map((player) => sealMarkup({ player, leagueName, seasonName, logoUrl, playerNameFont: font, generalFont, showSignature }))
         .join("")}</section>`,
     )
     .join("")
@@ -139,6 +263,7 @@ export function buildWelcomePackBagSealPrintHtml({
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="${WELCOME_PACK_FONT_STYLESHEET}" />
   <title>Welcome Pack · Precintos de bolsa · ${escapeHtml(leagueName)}</title>
   <style>
     @page { size: A4 portrait; margin: 4mm; }
@@ -149,48 +274,58 @@ export function buildWelcomePackBagSealPrintHtml({
     .sheet:last-child { break-after: auto; page-break-after: auto; }
     .seal-cell { --accent: ${accent}; position: relative; width: 49mm; height: 124mm; overflow: hidden; background: #050505; }
     .seal-trim { position: absolute; inset: 2mm; display: grid; grid-template-rows: 60mm 60mm; overflow: hidden; background: #050505; }
-    .trim-guide { position: absolute; inset: 2mm; z-index: 30; border: .16mm solid rgba(0,0,0,.72); pointer-events: none; }
-    .fold-tick { position: absolute; top: 61.85mm; z-index: 40; width: 2mm; height: .3mm; background: #111; }
+    .trim-guide { position: absolute; inset: 2mm; z-index: 20; border: .16mm solid rgba(0,0,0,.72); pointer-events: none; }
+    .fold-tick { position: absolute; top: 61.85mm; z-index: 30; width: 2mm; height: .3mm; background: #111; }
     .fold-tick-left { left: 0; }
     .fold-tick-right { right: 0; }
-
-    .seal-face { position: relative; min-height: 60mm; overflow: hidden; background:
-      radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 34%),
-      radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 28%),
-      radial-gradient(circle at 88% 8%, rgba(255,255,255,.10) 0%, transparent 24%),
-      linear-gradient(158deg,#181818 0%,#080808 52%,#020202 100%); }
+    .seal-face {
+      position: relative;
+      min-height: 60mm;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(255,255,255,.18) 0%, transparent 18%),
+        radial-gradient(circle at 50% 76%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 34%),
+        linear-gradient(145deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 26%),
+        linear-gradient(160deg, #191919 0%, #0A0A0A 48%, #020202 100%);
+    }
+    .seal-face::before { content: ""; position: absolute; inset: 1.55mm; border: .16mm solid rgba(255,255,255,.14); border-radius: 2.2mm; pointer-events: none; }
     .seal-face-top { transform: rotate(180deg); }
     .seal-face-bottom { transform: none; }
-
-    .background-ring { position: absolute; border-radius: 999px; border-style: solid; border-color: var(--accent); pointer-events: none; }
-    .background-ring-a { width: 30mm; height: 30mm; left: -12mm; top: 5mm; border-width: .28mm; opacity: .34; box-shadow: 0 0 10mm color-mix(in srgb, var(--accent) 16%, transparent); }
-    .background-ring-b { width: 34mm; height: 34mm; right: -14mm; bottom: -2mm; border-width: .2mm; opacity: .18; }
-    .background-texture { position: absolute; inset: 0; opacity: .11; background-image: repeating-linear-gradient(118deg,transparent 0,transparent 3.2mm,rgba(255,255,255,.34) 3.45mm,transparent 3.7mm); }
-    .background-glow { position: absolute; width: 24mm; height: 24mm; left: 50%; top: 26%; transform: translateX(-50%); border-radius: 999px; background: var(--accent); filter: blur(8mm); opacity: .28; }
-    .frame { position: absolute; inset: 1.55mm; border: .16mm solid rgba(255,255,255,.14); pointer-events: none; }
-    .accent-line { position: absolute; left: 6mm; right: 6mm; top: 0; height: 1mm; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
-    .corner { position: absolute; width: 7.5mm; height: 7.5mm; }
-    .corner-a { right: 3mm; top: 3mm; border-right: .42mm solid var(--accent); border-top: .42mm solid var(--accent); }
-    .corner-b { left: 3mm; bottom: 3mm; border-left: .24mm solid rgba(255,255,255,.32); border-bottom: .24mm solid rgba(255,255,255,.32); }
-    .spark { position: absolute; width: .9mm; height: .9mm; border-radius: 999px; background: var(--accent); }
-    .spark-a { left: 4.5mm; top: 5.2mm; box-shadow: 3.2mm 1.8mm 0 color-mix(in srgb, var(--accent) 55%, transparent), 1.1mm 5mm 0 rgba(255,255,255,.22); }
-    .spark-b { right: 5mm; bottom: 7mm; opacity: .45; box-shadow: -2.3mm -1.2mm 0 rgba(255,255,255,.18); }
-
-    .face-inner { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.2mm 4.1mm 4.3mm; text-align: center; }
-    .eyebrow { margin-bottom: 2mm; color: var(--accent); font-size: 2.05mm; font-weight: 900; letter-spacing: .72mm; line-height: 1; }
-    .logo-medallion { display: grid; width: 13.2mm; height: 13.2mm; place-items: center; border: .28mm solid var(--accent); border-radius: 999px; box-shadow: 0 0 6mm color-mix(in srgb, var(--accent) 26%, transparent), inset 0 0 0 .25mm rgba(255,255,255,.10); }
-    .logo-ring { display: grid; width: 11.2mm; height: 11.2mm; place-items: center; border: .18mm solid rgba(255,255,255,.22); border-radius: 999px; }
-    .logo-core { display: grid; width: 9.9mm; height: 9.9mm; place-items: center; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.97); color: #080808; font-size: 2.8mm; font-weight: 950; box-shadow: inset 0 0 2.4mm rgba(0,0,0,.12); }
-    .logo-core img { width: 100%; height: 100%; padding: 1mm; object-fit: contain; }
-    .league-name { max-width: 34mm; margin-top: 1.7mm; overflow: hidden; color: rgba(255,255,255,.56); font-size: 2mm; font-weight: 850; line-height: 1.05; text-transform: uppercase; letter-spacing: .22mm; white-space: nowrap; text-overflow: ellipsis; }
-    .player-name { max-width: 37mm; margin-top: 2.2mm; color: #fff; font-family: Georgia, "Times New Roman", serif; font-size: 4.7mm; font-weight: 700; line-height: .94; text-wrap: balance; text-shadow: 0 .6mm 3mm rgba(0,0,0,.68); }
-    .rule { display: grid; grid-template-columns: 8.5mm 1.7mm 8.5mm; align-items: center; gap: 1.2mm; margin-top: 2.4mm; }
-    .rule span:first-child { height: .18mm; background: linear-gradient(90deg, transparent, rgba(255,255,255,.34)); }
-    .rule span:last-child { height: .18mm; background: linear-gradient(90deg, rgba(255,255,255,.34), transparent); }
-    .rule i { width: 1.6mm; height: 1.6mm; transform: rotate(45deg); border: .2mm solid var(--accent); box-shadow: 0 0 2mm color-mix(in srgb, var(--accent) 45%, transparent); }
-    .season-name { margin-top: 1.9mm; color: rgba(255,255,255,.80); font-size: 2.15mm; font-weight: 850; text-transform: uppercase; letter-spacing: .24mm; }
-    .signature { margin-top: 1.2mm; color: rgba(255,255,255,.30); font-size: 1.65mm; font-weight: 850; letter-spacing: .5mm; }
-
+    .face-glow { position: absolute; border-radius: 999px; filter: blur(4mm); opacity: .5; }
+    .face-glow-a { top: 2mm; left: -3mm; width: 16mm; height: 16mm; background: color-mix(in srgb, var(--accent) 38%, transparent); }
+    .face-glow-b { bottom: 3mm; right: -2mm; width: 18mm; height: 18mm; background: color-mix(in srgb, var(--accent) 20%, transparent); }
+    .face-ring { position: absolute; border-radius: 999px; border: .18mm solid rgba(255,255,255,.07); }
+    .face-ring-a { top: 8mm; right: -6mm; width: 20mm; height: 20mm; }
+    .face-ring-b { left: -5mm; top: 18mm; width: 14mm; height: 14mm; }
+    .face-sheen { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,.04) 60%, rgba(255,255,255,0) 100%); mix-blend-mode: screen; }
+    .face-inner { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.4mm 4.2mm 4.5mm; text-align: center; }
+    .general-font-narrow-premium { font-family: "Arial Narrow", "Roboto Condensed", Arial, sans-serif; }
+    .general-font-geometric { font-family: "Century Gothic", Futura, Arial, sans-serif; }
+    .general-font-editorial { font-family: Georgia, "Times New Roman", serif; }
+    .eyebrow { margin-bottom: 2.1mm; color: var(--accent); font-size: 2.1mm; font-weight: 900; letter-spacing: .62mm; line-height: 1; }
+    .league-logo-wrap { position: relative; display: flex; align-items: center; justify-content: center; min-height: 13mm; width: 100%; margin-top: .8mm; }
+    .league-logo-wrap::before { content: ""; position: absolute; left: 7mm; right: 7mm; top: 50%; height: 4.2mm; transform: translateY(-50%); background: rgba(255,255,255,.10); filter: blur(3.8mm); }
+    .league-logo { position: relative; z-index: 1; max-width: 30mm; max-height: 12.2mm; object-fit: contain; filter: drop-shadow(0 2mm 4mm rgba(0,0,0,.38)); }
+    .league-logo-fallback { position: relative; z-index: 1; color: #fff; font-size: 4.2mm; font-weight: 900; letter-spacing: .5mm; text-transform: uppercase; }
+    .league-name { max-width: 34mm; margin-top: 1.8mm; overflow: hidden; color: rgba(255,255,255,.57); font-size: 2.05mm; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: .16mm; white-space: nowrap; text-overflow: ellipsis; }
+    .player-name { max-width: 36.5mm; margin-top: 2.7mm; color: #fff; font-size: 4.8mm; line-height: .98; text-wrap: balance; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
+    .player-font-editorial-serif { font-family: Georgia, "Times New Roman", serif; }
+    .player-font-clean-sans { font-family: Inter, "Segoe UI", Arial, sans-serif; font-weight: 800; }
+    .player-font-manuscript-elegant { font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive; font-weight: 700; }
+    .player-font-manuscript-casual { font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive; font-weight: 700; }
+    .player-font-allura { font-family: "Allura", "Segoe Script", cursive; font-size: 5.7mm; font-weight: 400; }
+    .player-font-great-vibes { font-family: "Great Vibes", "Segoe Script", cursive; font-size: 5.5mm; font-weight: 400; }
+    .player-font-petit-formal { font-family: "Petit Formal Script", "Segoe Script", cursive; font-size: 4.15mm; font-weight: 400; }
+    .rule { display: grid; grid-template-columns: 8mm 1.5mm 8mm; align-items: center; gap: 1.15mm; margin-top: 2.5mm; }
+    .rule span { height: .18mm; background: rgba(255,255,255,.24); }
+    .rule i { width: 1.45mm; height: 1.45mm; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 1.8mm rgba(255,255,255,.22); }
+    .season-name { margin-top: 2mm; color: rgba(255,255,255,.76); font-size: 2.15mm; font-weight: 850; text-transform: uppercase; letter-spacing: .2mm; }
+    .creator-row { margin-top: 2.5mm; display: flex; align-items: center; justify-content: center; gap: 1.8mm; }
+    .creator-icon { width: 5.2mm; height: 5.2mm; border-radius: 1.3mm; object-fit: cover; }
+    .creator-copy { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; font-family: "Arial Narrow", Arial, sans-serif; }
+    .creator-overline { color: color-mix(in srgb, var(--accent) 82%, white 18%); font-size: 1.45mm; font-weight: 800; letter-spacing: .42mm; }
+    .creator-name { margin-top: .65mm; color: #f4f1ea; font-size: 1.95mm; font-weight: 900; letter-spacing: .18mm; }
     @media screen {
       body { padding: 12px; background: #e5e7eb; }
       .sheet { margin: 0 auto 16px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.14); }
@@ -208,7 +343,10 @@ export function buildWelcomePackBagSealPrintHtml({
           image.addEventListener("load", resolve, { once: true });
           image.addEventListener("error", resolve, { once: true });
         });
-      })).then(function () { window.setTimeout(function () { window.print(); }, 250); });
+      })).then(function () {
+        var fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
+        Promise.resolve(fontsReady).then(function () { window.setTimeout(function () { window.print(); }, 250); });
+      });
     });
   </script>
 </body>
