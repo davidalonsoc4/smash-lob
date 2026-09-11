@@ -211,67 +211,53 @@ function OvergripBandPreview({
   ].join(", ")
 
   return (
-    <div className="mx-auto w-full max-w-[430px]">
+    <div className="mx-auto w-full max-w-[470px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[.12em] text-neutral-500">
-        <span>Vista previa · fajín desplegado</span>
+        <span>Vista previa · fajín completo</span>
         <span>Sin escala · medidas pendientes</span>
       </div>
 
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
-        <p className="mb-1.5 text-[8px] font-black uppercase tracking-[.18em] text-neutral-500">Exterior</p>
         <div
-          className="relative aspect-[4.25/1] overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
+          className="relative aspect-[5.2/1] overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
           style={{ backgroundImage: premiumBackground, fontFamily: generalFamily }}
         >
           <div className="absolute inset-[6px] rounded-[9px] border border-white/12" />
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
+          <div className="absolute inset-y-0 left-1/3 border-l border-dashed border-white/10" />
+          <div className="absolute inset-y-0 right-1/3 border-l border-dashed border-white/10" />
           <div className="absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/7" />
           <div className="absolute right-[-25px] top-[-20px] h-24 w-24 rounded-full border border-white/7" />
-          <div className="absolute left-1/3 top-0 h-full border-l border-dashed border-white/10" />
-          <div className="absolute right-1/3 top-0 h-full border-l border-dashed border-white/10" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
-          <div className="relative z-10 grid h-full grid-cols-[1fr_1.15fr_1fr] items-stretch">
-            <div className="flex min-w-0 flex-col justify-center px-3">
+          <div className="relative z-10 grid h-full grid-cols-3 items-stretch">
+            <div className="flex min-w-0 flex-col justify-center px-4">
+              <div className="relative flex items-center justify-center rounded-[12px] border border-white/8 bg-white/[0.03] px-3 py-2">
+                <div className="absolute inset-x-5 top-1/2 h-7 -translate-y-1/2 rounded-full bg-white/8 blur-xl" />
+                <OvergripLeagueLogo league={league} />
+              </div>
+              <p className="mt-2 truncate text-[10px] font-black uppercase tracking-[.08em] text-white">{league.name}</p>
+              <p className="mt-1 text-[8px] font-bold uppercase tracking-[.12em] text-white/58">{seasonName}</p>
+            </div>
+
+            <div className="flex min-w-0 flex-col items-center justify-center px-4 text-center">
+              <p className="text-[7px] font-black uppercase tracking-[.28em]" style={{ color: accent }}>Smash &amp; Lob</p>
+              <p className="mt-2 text-[22px] font-black uppercase tracking-[.14em] text-white">Welcome Pack</p>
+              <div className="mt-2 grid grid-cols-[36px_7px_36px] items-center gap-2">
+                <span className="h-px bg-white/20" />
+                <span className="h-[6px] w-[6px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
+                <span className="h-px bg-white/20" />
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-col justify-center px-4 text-right">
               <p className="text-[7px] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Jugador</p>
               <p
-                className="mt-1.5 line-clamp-2 text-[16px] leading-[.95] text-white"
+                className="mt-1.5 text-balance text-[20px] leading-[.95] text-white"
                 style={{ fontFamily: playerFamily }}
               >
                 {playerName}
               </p>
-              <span className="mt-2 h-px w-9 bg-white/20" />
-            </div>
-
-            <div className="relative flex flex-col items-center justify-center px-2 text-center">
-              <div className="absolute inset-x-4 top-1/2 h-8 -translate-y-1/2 rounded-full bg-white/8 blur-xl" />
-              <OvergripLeagueLogo league={league} />
-              <p className="mt-1 max-w-[118px] truncate text-[7px] font-black uppercase tracking-[.14em] text-white/50">{league.name}</p>
-            </div>
-
-            <div className="flex min-w-0 flex-col items-end justify-center px-3 text-right">
-              <p className="text-[7px] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Liga</p>
-              <p className="mt-1 max-w-full truncate text-[10px] font-black uppercase tracking-[.08em] text-white">{league.name}</p>
-              <p className="mt-1 text-[8px] font-bold uppercase tracking-[.12em] text-white/55">{seasonName}</p>
-            </div>
-          </div>
-        </div>
-
-        <p className="mb-1.5 mt-4 text-[8px] font-black uppercase tracking-[.18em] text-neutral-500">Reverso</p>
-        <div
-          className="relative aspect-[4.25/1] overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.22)]"
-          style={{ backgroundImage: premiumBackground, fontFamily: generalFamily }}
-        >
-          <div className="absolute inset-[6px] rounded-[9px] border border-white/12" />
-          <div className="absolute inset-x-0 bottom-0 h-[3px]" style={{ backgroundColor: accent }} />
-          <div className="absolute left-[-18px] top-[-25px] h-24 w-24 rounded-full border border-white/7" />
-          <div className="absolute right-[-18px] bottom-[-25px] h-24 w-24 rounded-full border border-white/7" />
-          <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
-            <p className="text-[7px] font-black uppercase tracking-[.34em]" style={{ color: accent }}>Smash &amp; Lob</p>
-            <p className="mt-1.5 text-[20px] font-black uppercase tracking-[.12em] text-white">Welcome Pack</p>
-            <div className="mt-2 grid grid-cols-[34px_7px_34px] items-center gap-2">
-              <span className="h-px bg-white/20" />
-              <span className="h-[6px] w-[6px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
-              <span className="h-px bg-white/20" />
             </div>
           </div>
         </div>
@@ -284,7 +270,6 @@ function OvergripBandPreview({
     </div>
   )
 }
-
 export default function WelcomePackMediaKitPage() {
   const { tx } = useI18n()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -574,7 +559,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
             <h2 className="mt-1 text-base font-black">Fajín del overgrip</h2>
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-              Exterior con jugador, logo y temporada. Reverso dedicado al Welcome Pack. Una sola dirección visual premium.
+              Vista única del diseño completo a imprimir, organizada en tres zonas: identidad de liga, título Welcome Pack y nombre del jugador.
             </p>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
