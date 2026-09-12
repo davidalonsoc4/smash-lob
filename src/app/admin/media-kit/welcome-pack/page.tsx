@@ -202,6 +202,7 @@ function OvergripBandPreview({
   const playerFamily = getWelcomePackPlayerNameFontFamily(playerFont)
   const [playerFirstName, ...playerSurnameParts] = playerName.trim().split(/\s+/)
   const playerSurname = playerSurnameParts.join(" ")
+  const sideReservePercent = (WELCOME_PACK_OVERGRIP_BAND.sideReserveMm / WELCOME_PACK_OVERGRIP_BAND.widthMm) * 100
 
   const premiumBackground = [
     `radial-gradient(circle at 16% 12%, ${accent}4A 0%, transparent 27%)`,
@@ -215,31 +216,37 @@ function OvergripBandPreview({
     <div className="mx-auto w-full max-w-[430px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
         <span>Vista previa · fajín completo</span>
-        <span>{WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm · provisional</span>
+        <span>{WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm · definitivo</span>
       </div>
 
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
         <div
           className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[11px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
           style={{
-            aspectRatio: `${WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} / ${WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm}`,
+            aspectRatio: `${WELCOME_PACK_OVERGRIP_BAND.widthMm} / ${WELCOME_PACK_OVERGRIP_BAND.heightMm}`,
             backgroundImage: premiumBackground,
             fontFamily: generalFamily,
           }}
         >
           <div className="absolute inset-[4px] rounded-[7px] border border-white/12" />
           <div className="absolute inset-x-0 top-0 h-[2px]" style={{ backgroundColor: accent }} />
-          <div className="absolute inset-y-0 left-0 w-[2.94%] border-r border-dashed border-white/20 bg-black/10" />
-          <div className="absolute inset-y-0 right-0 w-[2.94%] border-l border-dashed border-white/20 bg-black/10" />
-          <div className="absolute inset-y-0 left-1/3 border-l border-dashed border-white/10" />
-          <div className="absolute inset-y-0 right-1/3 border-l border-dashed border-white/10" />
+          <div
+            className="absolute inset-y-0 left-0 border-r border-dashed border-white/25 bg-black/10"
+            style={{ width: `${sideReservePercent}%` }}
+          />
+          <div
+            className="absolute inset-y-0 right-0 border-l border-dashed border-white/25 bg-black/10"
+            style={{ width: `${sideReservePercent}%` }}
+          />
+          <div className="absolute inset-y-0 left-[40%] border-l border-dashed border-white/10" />
+          <div className="absolute inset-y-0 right-[40%] border-l border-dashed border-white/10" />
           <div className="absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/7" />
           <div className="absolute right-[-25px] top-[-20px] h-24 w-24 rounded-full border border-white/7" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
           <div className="relative z-10 h-full">
-            <div className="absolute left-[4.5%] top-0 flex h-full w-[32%] min-w-0 items-center gap-0 px-1">
-              <div className="relative -mr-1 flex h-[24px] w-[36px] shrink-0 items-center justify-center">
+            <div className="absolute left-[10%] top-0 flex h-full w-[28%] min-w-0 items-center gap-0 px-1">
+              <div className="relative -mr-1 flex h-[24px] w-[34px] shrink-0 items-center justify-center">
                 <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
                 <div className="relative scale-[.42]">
                   <OvergripLeagueLogo league={league} />
@@ -261,7 +268,7 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="absolute right-[4.5%] top-0 flex h-full w-[26%] min-w-0 items-center justify-start pl-1 text-left">
+            <div className="absolute right-[10%] top-0 flex h-full w-[24%] min-w-0 items-center justify-start pl-1 text-left">
               <p
                 className="flex min-w-0 flex-col text-[0.46875rem] leading-[1.02] text-white"
                 style={{ fontFamily: playerFamily }}
@@ -276,7 +283,7 @@ function OvergripBandPreview({
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m².
-        Medida temporal de diseño: {WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm, basada en una estimación real de {WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMaxMm} × {WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMaxMm} mm.
+        Medida definitiva: {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Se reservan {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm por lateral para pegado, dejando {WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm útiles para contenido.
       </div>
     </div>
   )
@@ -447,7 +454,7 @@ export default function WelcomePackMediaKitPage() {
             </div>
             <div className="px-4 py-3 pl-5">
               <h3 className="text-base font-black text-neutral-950">Fajín del overgrip</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · cartulina mate · anverso y reverso.</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · cartulina mate · diseño completo.</p>
             </div>
           </button>
 
@@ -568,7 +575,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
             <h2 className="mt-1 text-base font-black">Fajín del overgrip</h2>
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-              Vista única del diseño completo a imprimir, organizada en tres zonas: identidad de liga, título Welcome Pack y nombre del jugador.
+              Vista única del diseño completo a imprimir, con tres zonas de contenido y 10 mm reservados para pegado en cada lateral.
             </p>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -618,9 +625,9 @@ export default function WelcomePackMediaKitPage() {
 
           <AppCard>
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Medidas</p>
-            <h2 className="mt-1 text-base font-black">Pendientes de cerrar</h2>
+            <h2 className="mt-1 text-base font-black">Medidas definitivas</h2>
             <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-              Trabajamos temporalmente con {WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm} × {WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm} mm. La referencia medida está entre {WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMaxMm} mm de largo y {WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMinMm}–{WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMaxMm} mm de alto; antes de imprimir al 100 % confirmaremos la medida definitiva.
+              El fajín mide {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Reservamos {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm en cada lateral para el pegado; el área útil central para el diseño es de {WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm.
             </p>
           </AppCard>
         </div>
@@ -665,13 +672,13 @@ export default function WelcomePackMediaKitPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
-            <h2 className="mt-1 text-base font-black">Impresión pendiente de medidas</h2>
+            <h2 className="mt-1 text-base font-black">Medidas cerradas · diseño en revisión</h2>
             <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-              El diseño ya usa provisionalmente 170 × 20 mm. La plancha A4 seguirá bloqueada hasta confirmar la medida física definitiva y evitar imprimir una pieza incorrecta.
+              El fajín ya usa la medida definitiva de {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm y respeta {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm por lateral para el pegado. Cerraremos el diseño antes de preparar la plancha A4.
             </p>
           </div>
           <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
-            Medir antes de imprimir
+            Diseño en revisión
           </span>
         </div>
       </section>
