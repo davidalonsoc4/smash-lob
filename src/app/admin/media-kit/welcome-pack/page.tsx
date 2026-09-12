@@ -42,7 +42,7 @@ function SmashAndLobSignature({ accent }: { accent: string }) {
   return (
     <div className="mt-1.5 flex items-center justify-center gap-1">
       <Image src="/icon-192.png" alt="" width={12} height={12} className="h-3 w-3 rounded-[3px] object-cover" />
-      <div className="text-left leading-none" style={{ fontFamily: '\"Arial Narrow\", Arial, sans-serif' }}>
+      <div className="text-left leading-none" style={{ fontFamily: '"Arial Narrow", Arial, sans-serif' }}>
         <p className="text-[0.25rem] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>Creado con</p>
         <p className="mt-0.5 text-[0.3125rem] font-black uppercase tracking-[.1em] text-[#f4f1ea]">Smash &amp; Lob</p>
       </div>
@@ -248,9 +248,9 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-[54%] flex w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
+            <div className="absolute left-1/2 top-[58%] flex w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
               <p className="text-[0.21875rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Smash &amp; Lob</p>
-              <p className="mt-px text-[0.5625rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
+              <p className="mt-px text-[0.46875rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
               <div className="mt-px grid grid-cols-[12px_3px_12px] items-center gap-1">
                 <span className="h-px bg-white/20" />
                 <span className="h-[2px] w-[2px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
