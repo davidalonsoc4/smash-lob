@@ -42,7 +42,7 @@ function SmashAndLobSignature({ accent }: { accent: string }) {
   return (
     <div className="mt-1.5 flex items-center justify-center gap-1">
       <Image src="/icon-192.png" alt="" width={12} height={12} className="h-3 w-3 rounded-[3px] object-cover" />
-      <div className="text-left leading-none" style={{ fontFamily: '"Arial Narrow", Arial, sans-serif' }}>
+      <div className="text-left leading-none" style={{ fontFamily: '\"Arial Narrow\", Arial, sans-serif' }}>
         <p className="text-[0.25rem] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>Creado con</p>
         <p className="mt-0.5 text-[0.3125rem] font-black uppercase tracking-[.1em] text-[#f4f1ea]">Smash &amp; Lob</p>
       </div>
@@ -234,8 +234,8 @@ function OvergripBandPreview({
           <div className="absolute right-[-25px] top-[-20px] h-24 w-24 rounded-full border border-white/7" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
-          <div className="relative z-10 grid h-full grid-cols-[1.18fr_.86fr_.46fr] items-stretch">
-            <div className="flex min-w-0 items-center gap-1 px-2">
+          <div className="relative z-10 h-full">
+            <div className="absolute left-0 top-0 flex h-full w-[47.2%] min-w-0 items-center gap-1 px-2">
               <div className="relative flex h-[24px] w-[38px] shrink-0 items-center justify-center">
                 <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
                 <div className="relative scale-[.42]">
@@ -248,7 +248,7 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="flex min-w-0 flex-col items-start justify-center px-0.5 text-left -ml-2">
+            <div className="absolute left-1/2 top-[54%] flex w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
               <p className="text-[0.21875rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Smash &amp; Lob</p>
               <p className="mt-px text-[0.5625rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
               <div className="mt-px grid grid-cols-[12px_3px_12px] items-center gap-1">
@@ -258,9 +258,9 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="flex min-w-0 items-center justify-start pl-0 pr-1 text-left -ml-3">
+            <div className="absolute right-[3%] top-0 flex h-full w-[25%] min-w-0 items-center justify-start pl-2 text-left">
               <p
-                className="truncate text-[0.46875rem] leading-none text-white"
+                className="line-clamp-2 whitespace-normal break-words text-[0.46875rem] leading-[1.05] text-white"
                 style={{ fontFamily: playerFamily }}
               >
                 {playerName}
