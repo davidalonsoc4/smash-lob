@@ -91,12 +91,11 @@ export function BallCanWrapPreview({ leagueName, leagueLogoUrl, seasonName, play
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_30%,rgba(255,255,255,.025)_62%,transparent)] mix-blend-screen" />
 
           <div className="relative z-10 grid h-full grid-cols-[19%_30%_36%_15%]">
-            <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 bg-black/16 px-2">
+            <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 bg-black/[.16] px-2">
               <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
               <div className="flex -rotate-90 flex-col items-center whitespace-nowrap text-center">
                 <p className="text-[1.55rem] font-black leading-none tracking-[-.04em] text-white">HEAD</p>
                 <p className="mt-1 text-[0.48rem] font-black uppercase tracking-[.16em]" style={{ color: accent }}>Padel Pro S+</p>
-                <p className="mt-1 text-[0.36rem] font-bold uppercase tracking-[.16em] text-white/46">3 balls</p>
               </div>
             </section>
 
@@ -118,10 +117,7 @@ export function BallCanWrapPreview({ leagueName, leagueLogoUrl, seasonName, play
 
             <section className="flex min-w-0 flex-col justify-center border-r border-white/10 px-3.5 py-3">
               <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[0.4rem] font-black uppercase tracking-[.18em]" style={{ color: accent }}>Plantilla oficial</p>
-                  <p className="mt-0.5 text-[0.68rem] font-black uppercase tracking-[.06em] text-white">Jugadores</p>
-                </div>
+                <p className="text-[0.68rem] font-black uppercase tracking-[.06em] text-white">Jugadores</p>
                 <span className="rounded-full border border-white/10 bg-white/[.04] px-2 py-1 text-[0.38rem] font-black text-white/62">{roster.length}</span>
               </div>
 
@@ -147,14 +143,13 @@ export function BallCanWrapPreview({ leagueName, leagueLogoUrl, seasonName, play
               <Image src="/icon-192.png" alt="" width={38} height={38} className="mt-2 h-9 w-9 rounded-[10px] object-cover shadow-[0_8px_20px_rgba(0,0,0,.42)]" />
               <p className="mt-2 text-[0.48rem] font-black uppercase leading-tight tracking-[.08em] text-white">Smash &amp; Lob</p>
               <div className="mt-3 h-px w-8" style={{ backgroundColor: `${accent}99` }} />
-              <p className="mt-2 text-[0.34rem] font-bold uppercase tracking-[.14em] text-white/40">Formato oficial</p>
             </section>
           </div>
         </div>
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Diseño pensado para cubrir la etiqueta original del bote HEAD Padel Pro S+ manteniendo la marca del producto, la identidad de liga, la plantilla y la firma de Smash &amp; Lob.
+        <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Diseño pensado para cubrir la etiqueta original del bote HEAD Padel Pro S+ manteniendo la marca del producto, la identidad de liga, el listado de jugadores y la firma de Smash &amp; Lob.
       </div>
     </div>
   )
