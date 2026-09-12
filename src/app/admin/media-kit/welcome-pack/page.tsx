@@ -163,7 +163,6 @@ function SealPreview(props: {
   )
 }
 
-
 function OvergripLeagueLogo({ league }: { league: SealLeague }) {
   const normalizedLogoUrl = league.logoUrl ? normalizeImageUrl(league.logoUrl) : null
 
@@ -201,6 +200,8 @@ function OvergripBandPreview({
 }) {
   const generalFamily = getWelcomePackGeneralFontFamily(generalFont)
   const playerFamily = getWelcomePackPlayerNameFontFamily(playerFont)
+  const [playerFirstName, ...playerSurnameParts] = playerName.trim().split(/\s+/)
+  const playerSurname = playerSurnameParts.join(" ")
 
   const premiumBackground = [
     `radial-gradient(circle at 16% 12%, ${accent}4A 0%, transparent 27%)`,
@@ -228,6 +229,8 @@ function OvergripBandPreview({
         >
           <div className="absolute inset-[4px] rounded-[7px] border border-white/12" />
           <div className="absolute inset-x-0 top-0 h-[2px]" style={{ backgroundColor: accent }} />
+          <div className="absolute inset-y-0 left-0 w-[2.94%] border-r border-dashed border-white/20 bg-black/10" />
+          <div className="absolute inset-y-0 right-0 w-[2.94%] border-l border-dashed border-white/20 bg-black/10" />
           <div className="absolute inset-y-0 left-1/3 border-l border-dashed border-white/10" />
           <div className="absolute inset-y-0 right-1/3 border-l border-dashed border-white/10" />
           <div className="absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/7" />
@@ -235,8 +238,8 @@ function OvergripBandPreview({
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
           <div className="relative z-10 h-full">
-            <div className="absolute left-[2%] top-0 flex h-full w-[36%] min-w-0 items-center gap-1 px-1.5">
-              <div className="relative flex h-[24px] w-[38px] shrink-0 items-center justify-center">
+            <div className="absolute left-[4.5%] top-0 flex h-full w-[32%] min-w-0 items-center gap-0 px-1">
+              <div className="relative -mr-1 flex h-[24px] w-[36px] shrink-0 items-center justify-center">
                 <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
                 <div className="relative scale-[.42]">
                   <OvergripLeagueLogo league={league} />
@@ -248,7 +251,7 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-[55%] flex w-[22%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
+            <div className="absolute left-1/2 top-[52%] flex w-[20%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
               <p className="text-[0.21875rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Smash &amp; Lob</p>
               <p className="mt-px text-[0.46875rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
               <div className="mt-px grid grid-cols-[12px_3px_12px] items-center gap-1">
@@ -258,12 +261,13 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="absolute right-[3%] top-0 flex h-full w-[27%] min-w-0 items-center justify-start pl-1.5 text-left">
+            <div className="absolute right-[4.5%] top-0 flex h-full w-[26%] min-w-0 items-center justify-start pl-1 text-left">
               <p
-                className="line-clamp-2 whitespace-normal break-words text-[0.46875rem] leading-[1.05] text-white"
+                className="flex min-w-0 flex-col text-[0.46875rem] leading-[1.02] text-white"
                 style={{ fontFamily: playerFamily }}
               >
-                {playerName}
+                <span className="block truncate">{playerFirstName || playerName}</span>
+                {playerSurname ? <span className="block truncate">{playerSurname}</span> : null}
               </p>
             </div>
           </div>
@@ -277,6 +281,7 @@ function OvergripBandPreview({
     </div>
   )
 }
+
 export default function WelcomePackMediaKitPage() {
   const { tx } = useI18n()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -315,7 +320,6 @@ export default function WelcomePackMediaKitPage() {
     link.dataset.smashWelcomePackFonts = "true"
     document.head.appendChild(link)
   }, [])
-
 
   if (!isLeagueAdmin(activeLeague.id)) {
     return (
