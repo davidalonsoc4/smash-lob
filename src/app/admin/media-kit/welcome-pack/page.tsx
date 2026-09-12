@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
+import { BallCanWrapPreview } from "@/components/media-kit/BallCanWrapPreview"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -26,7 +27,6 @@ import {
 } from "@/lib/mediaKitWelcomePack"
 
 const futurePieces = [
-  "Faja del bote",
   "Precinto del bote",
   "Sello de temporada",
   "Pegatinas",
@@ -301,7 +301,7 @@ export default function WelcomePackMediaKitPage() {
     () => [...players].sort((a, b) => a.displayName.localeCompare(b.displayName, "es", { sensitivity: "base" })),
     [players],
   )
-  const [activePiece, setActivePiece] = useState<"bag-seal" | "overgrip-band">("bag-seal")
+  const [activePiece, setActivePiece] = useState<"bag-seal" | "overgrip-band" | "ball-can-wrap">("bag-seal")
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [playerFont, setPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
   const [generalFont, setGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
@@ -417,7 +417,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Piezas</p>
             <h2 className="text-base font-black text-neutral-950">Diseños del Welcome Pack</h2>
           </div>
-          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">2 disponibles</span>
+          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">3 disponibles</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2">
           <button
@@ -458,6 +458,25 @@ export default function WelcomePackMediaKitPage() {
             </div>
           </button>
 
+          <button
+            type="button"
+            onClick={() => setActivePiece("ball-can-wrap")}
+            className={`relative min-w-[240px] flex-none overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+          >
+            <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
+            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "ball-can-wrap" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "ball-can-wrap" ? "bg-emerald-500" : "bg-neutral-400"}`} />
+                {activePiece === "ball-can-wrap" ? "Activo" : "Disponible"}
+              </span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">240 × 130 mm</span>
+            </div>
+            <div className="px-4 py-3 pl-5">
+              <h3 className="text-base font-black text-neutral-950">Faja del bote</h3>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">HEAD Padel Pro S+ · adhesiva · diseño premium.</p>
+            </div>
+          </button>
+
           {futurePieces.map((piece) => (
             <div key={piece} className="min-w-[180px] flex-none rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
               <p className="text-[0.625rem] font-black leading-4">{piece}</p>
@@ -467,221 +486,283 @@ export default function WelcomePackMediaKitPage() {
         </div>
       </section>
 
-{activePiece === "bag-seal" ? (
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
-        <div className="space-y-4">
-          <AppCard>
-            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
-            <h2 className="mt-1 text-base font-black">Precinto de bolsa</h2>
-            <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-              Diseño premium: logo grande sin fondo añadido, nombre personalizable y firma “Creado con Smash &amp; Lob”.
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="text-xs font-black text-neutral-700">
-                Jugador de la vista previa
-                <select
-                  value={selectedPlayer?.id ?? ""}
-                  onChange={(event) => setSelectedPlayerId(event.target.value)}
-                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
-                >
-                  {sortedPlayers.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.displayName}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-xs font-black text-neutral-700">
-                Tipografía del nombre
-                <select
-                  value={playerFont}
-                  onChange={(event) => setPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
-                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
-                >
-                  {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
-                  {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === playerFont)?.description}
-                </span>
-              </label>
-              <label className="text-xs font-black text-neutral-700">
-                Tipografía general
-                <select
-                  value={generalFont}
-                  onChange={(event) => setGeneralFont(event.target.value as WelcomePackGeneralFont)}
-                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
-                >
-                  {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => (
-                    <option key={option.id} value={option.id}>{option.label} · {option.description}</option>
-                  ))}
-                </select>
-              </label>
-              <div className="text-xs font-black text-neutral-700">
-                Firma Smash &amp; Lob
-                <div className="mt-1 grid grid-cols-2 gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-                  <button type="button" onClick={() => setShowSignature(true)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>Sí</button>
-                  <button type="button" onClick={() => setShowSignature(false)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${!showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>No</button>
+      {activePiece === "bag-seal" ? (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
+          <div className="space-y-4">
+            <AppCard>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
+              <h2 className="mt-1 text-base font-black">Precinto de bolsa</h2>
+              <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
+                Diseño premium: logo grande sin fondo añadido, nombre personalizable y firma “Creado con Smash &amp; Lob”.
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="text-xs font-black text-neutral-700">
+                  Jugador de la vista previa
+                  <select
+                    value={selectedPlayer?.id ?? ""}
+                    onChange={(event) => setSelectedPlayerId(event.target.value)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {sortedPlayers.map((player) => (
+                      <option key={player.id} value={player.id}>
+                        {player.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs font-black text-neutral-700">
+                  Tipografía del nombre
+                  <select
+                    value={playerFont}
+                    onChange={(event) => setPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
+                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === playerFont)?.description}
+                  </span>
+                </label>
+                <label className="text-xs font-black text-neutral-700">
+                  Tipografía general
+                  <select
+                    value={generalFont}
+                    onChange={(event) => setGeneralFont(event.target.value as WelcomePackGeneralFont)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => (
+                      <option key={option.id} value={option.id}>{option.label} · {option.description}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="text-xs font-black text-neutral-700">
+                  Firma Smash &amp; Lob
+                  <div className="mt-1 grid grid-cols-2 gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
+                    <button type="button" onClick={() => setShowSignature(true)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>Sí</button>
+                    <button type="button" onClick={() => setShowSignature(false)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${!showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>No</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-neutral-50 p-2.5">
-                <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Corte</p>
-                <p className="mt-1 text-xs font-black">45 × 120 mm</p>
+              <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-xl bg-neutral-50 p-2.5">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Corte</p>
+                  <p className="mt-1 text-xs font-black">45 × 120 mm</p>
+                </div>
+                <div className="rounded-xl bg-neutral-50 p-2.5">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Sangrado</p>
+                  <p className="mt-1 text-xs font-black">2 mm</p>
+                </div>
+                <div className="rounded-xl bg-neutral-50 p-2.5">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Pliegue</p>
+                  <p className="mt-1 text-xs font-black">60 / 60 mm</p>
+                </div>
               </div>
-              <div className="rounded-xl bg-neutral-50 p-2.5">
-                <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Sangrado</p>
-                <p className="mt-1 text-xs font-black">2 mm</p>
+            </AppCard>
+            <AppCard>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Impresión eficiente</p>
+              <h2 className="mt-1 text-base font-black">Plancha A4</h2>
+              <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
+                Hasta 8 precintos por A4: 4 columnas × 2 filas, con sangrado y marcas provisionales de corte/pliegue.
+              </p>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5">
+                <span className="text-xs font-bold text-neutral-600">{sortedPlayers.length} jugadores</span>
+                <span className="text-xs font-black text-neutral-950">{sheetCount} A4</span>
               </div>
-              <div className="rounded-xl bg-neutral-50 p-2.5">
-                <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Pliegue</p>
-                <p className="mt-1 text-xs font-black">60 / 60 mm</p>
-              </div>
-            </div>
-          </AppCard>
-          <AppCard>
-            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Impresión eficiente</p>
-            <h2 className="mt-1 text-base font-black">Plancha A4</h2>
-            <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-              Hasta 8 precintos por A4: 4 columnas × 2 filas, con sangrado y marcas provisionales de corte/pliegue.
-            </p>
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5">
-              <span className="text-xs font-bold text-neutral-600">{sortedPlayers.length} jugadores</span>
-              <span className="text-xs font-black text-neutral-950">{sheetCount} A4</span>
-            </div>
+            </AppCard>
+          </div>
+          <AppCard className="lg:sticky lg:top-3">
+            <SealPreview
+              league={{ name: activeLeague.name, logoUrl: normalizedLogoUrl }}
+              seasonName={seasonName}
+              playerName={playerName}
+              accent={accent}
+              playerFont={playerFont}
+              generalFont={generalFont}
+              showSignature={showSignature}
+            />
           </AppCard>
         </div>
-        <AppCard className="lg:sticky lg:top-3">
-          <SealPreview
-            league={{ name: activeLeague.name, logoUrl: normalizedLogoUrl }}
-            seasonName={seasonName}
-            playerName={playerName}
-            accent={accent}
-            playerFont={playerFont}
-            generalFont={generalFont}
-            showSignature={showSignature}
-          />
-        </AppCard>
-      </div>
+      ) : activePiece === "overgrip-band" ? (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
+          <div className="space-y-4">
+            <AppCard>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
+              <h2 className="mt-1 text-base font-black">Fajín del overgrip</h2>
+              <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
+                Vista única del diseño completo a imprimir, con tres zonas de contenido y 10 mm reservados para pegado en cada lateral.
+              </p>
 
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="text-xs font-black text-neutral-700">
+                  Jugador de la vista previa
+                  <select
+                    value={selectedPlayer?.id ?? ""}
+                    onChange={(event) => setSelectedPlayerId(event.target.value)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {sortedPlayers.map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}
+                  </select>
+                </label>
+
+                <label className="text-xs font-black text-neutral-700">
+                  Tipografía del nombre
+                  <select
+                    value={overgripPlayerFont}
+                    onChange={(event) => setOvergripPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                  </select>
+                  <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
+                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description}
+                  </span>
+                </label>
+
+                <label className="text-xs font-black text-neutral-700">
+                  Tipografía general
+                  <select
+                    value={overgripGeneralFont}
+                    onChange={(event) => setOvergripGeneralFont(event.target.value as WelcomePackGeneralFont)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label} · {option.description}</option>)}
+                  </select>
+                </label>
+
+                <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Material previsto</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">{WELCOME_PACK_OVERGRIP_BAND.material}</p>
+                  <p className="mt-0.5 text-[0.625rem] font-semibold text-neutral-500">{WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m²</p>
+                </div>
+              </div>
+            </AppCard>
+
+            <AppCard>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Medidas</p>
+              <h2 className="mt-1 text-base font-black">Medidas definitivas</h2>
+              <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
+                El fajín mide {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Reservamos {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm en cada lateral para el pegado; el área útil central para el diseño es de {WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm.
+              </p>
+            </AppCard>
+          </div>
+
+          <AppCard className="lg:sticky lg:top-3">
+            <OvergripBandPreview
+              league={{ name: activeLeague.name, logoUrl: normalizedLogoUrl }}
+              seasonName={seasonName}
+              playerName={playerName}
+              accent={accent}
+              playerFont={overgripPlayerFont}
+              generalFont={overgripGeneralFont}
+            />
+          </AppCard>
+        </div>
       ) : (
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
-        <div className="space-y-4">
-          <AppCard>
-            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
-            <h2 className="mt-1 text-base font-black">Fajín del overgrip</h2>
-            <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-              Vista única del diseño completo a imprimir, con tres zonas de contenido y 10 mm reservados para pegado en cada lateral.
-            </p>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
+          <div className="space-y-4">
+            <AppCard>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Diseño</p>
+              <h2 className="mt-1 text-base font-black">Faja del bote de bolas</h2>
+              <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
+                Faja adhesiva premium para cubrir la etiqueta original del bote HEAD Padel Pro S+, manteniendo la marca del producto e integrándola con la identidad de la liga.
+              </p>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="text-xs font-black text-neutral-700">
-                Jugador de la vista previa
-                <select
-                  value={selectedPlayer?.id ?? ""}
-                  onChange={(event) => setSelectedPlayerId(event.target.value)}
-                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
-                >
-                  {sortedPlayers.map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}
-                </select>
-              </label>
-
-              <label className="text-xs font-black text-neutral-700">
-                Tipografía del nombre
-                <select
-                  value={overgripPlayerFont}
-                  onChange={(event) => setOvergripPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
-                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
-                >
-                  {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-                </select>
-                <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
-                  {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description}
-                </span>
-              </label>
-
-              <label className="text-xs font-black text-neutral-700">
-                Tipografía general
-                <select
-                  value={overgripGeneralFont}
-                  onChange={(event) => setOvergripGeneralFont(event.target.value as WelcomePackGeneralFont)}
-                  className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
-                >
-                  {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label} · {option.description}</option>)}
-                </select>
-              </label>
-
-              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Material previsto</p>
-                <p className="mt-1 text-xs font-black text-neutral-950">{WELCOME_PACK_OVERGRIP_BAND.material}</p>
-                <p className="mt-0.5 text-[0.625rem] font-semibold text-neutral-500">{WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m²</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Medida definitiva</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">240 × 130 mm</p>
+                </div>
+                <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Material</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">Vinilo adhesivo mate</p>
+                </div>
+                <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Producto</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">HEAD Padel Pro S+</p>
+                </div>
+                <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Jugadores</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">{sortedPlayers.length} · nombre y apellido</p>
+                </div>
               </div>
-            </div>
-          </AppCard>
+            </AppCard>
 
-          <AppCard>
-            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Medidas</p>
-            <h2 className="mt-1 text-base font-black">Medidas definitivas</h2>
-            <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-              El fajín mide {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Reservamos {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm en cada lateral para el pegado; el área útil central para el diseño es de {WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm.
-            </p>
+            <AppCard>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Composición</p>
+              <h2 className="mt-1 text-base font-black">Diseño envolvente</h2>
+              <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
+                Marca HEAD y Padel Pro S+ en vertical, logo y nombre de liga con temporada, listado manuscrito de jugadores ordenado alfabéticamente por nombre y después apellido, y firma “Creado con Smash &amp; Lob”. Todo sobre negro con el color de énfasis compartido del Media Kit.
+              </p>
+            </AppCard>
+          </div>
+
+          <AppCard className="lg:sticky lg:top-3">
+            <BallCanWrapPreview
+              leagueName={activeLeague.name}
+              leagueLogoUrl={normalizedLogoUrl}
+              seasonName={seasonName}
+              players={sortedPlayers.map((player) => ({ id: player.id, displayName: player.displayName }))}
+              accent={accent}
+            />
           </AppCard>
         </div>
-
-        <AppCard className="lg:sticky lg:top-3">
-          <OvergripBandPreview
-            league={{ name: activeLeague.name, logoUrl: normalizedLogoUrl }}
-            seasonName={seasonName}
-            playerName={playerName}
-            accent={accent}
-            playerFont={overgripPlayerFont}
-            generalFont={overgripGeneralFont}
-          />
-        </AppCard>
-      </div>
-
       )}
 
-{activePiece === "bag-seal" ? (
-      <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
-            <h2 className="mt-1 text-base font-black">Imprimir todo</h2>
-            <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-              Incluye el precinto de bolsa para todos los jugadores de {seasonName}.
-            </p>
+      {activePiece === "bag-seal" ? (
+        <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
+              <h2 className="mt-1 text-base font-black">Imprimir todo</h2>
+              <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
+                Incluye el precinto de bolsa para todos los jugadores de {seasonName}.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={printAll}
+              disabled={!sortedPlayers.length}
+              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-center text-xs font-black text-neutral-950 hover:bg-amber-100 disabled:bg-neutral-700 disabled:text-neutral-400"
+            >
+              Imprimir todo · {sortedPlayers.length}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={printAll}
-            disabled={!sortedPlayers.length}
-            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-center text-xs font-black text-neutral-950 hover:bg-amber-100 disabled:bg-neutral-700 disabled:text-neutral-400"
-          >
-            Imprimir todo · {sortedPlayers.length}
-          </button>
-        </div>
-        {printError ? <p className="mt-3 rounded-xl bg-red-950/70 px-3 py-2 text-xs font-bold text-red-100">{printError}</p> : null}
-      </section>
+          {printError ? <p className="mt-3 rounded-xl bg-red-950/70 px-3 py-2 text-xs font-bold text-red-100">{printError}</p> : null}
+        </section>
+      ) : activePiece === "overgrip-band" ? (
+        <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
+              <h2 className="mt-1 text-base font-black">Medidas cerradas · diseño en revisión</h2>
+              <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
+                El fajín ya usa la medida definitiva de {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm y respeta {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm por lateral para el pegado. Cerraremos el diseño antes de preparar la plancha A4.
+              </p>
+            </div>
+            <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
+              Diseño en revisión
+            </span>
+          </div>
+        </section>
       ) : (
-      <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
-            <h2 className="mt-1 text-base font-black">Medidas cerradas · diseño en revisión</h2>
-            <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-              El fajín ya usa la medida definitiva de {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm y respeta {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm por lateral para el pegado. Cerraremos el diseño antes de preparar la plancha A4.
-            </p>
+        <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
+              <h2 className="mt-1 text-base font-black">Medidas cerradas · prueba física pendiente</h2>
+              <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
+                La faja ya trabaja a 240 × 130 mm. Antes de preparar la plancha A4 definitiva haremos una prueba al 100 % sobre el bote para comprobar el cierre, el solape y la altura real del vinilo.
+              </p>
+            </div>
+            <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
+              Diseño en revisión
+            </span>
           </div>
-          <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
-            Diseño en revisión
-          </span>
-        </div>
-      </section>
+        </section>
       )}
     </div>
   )
