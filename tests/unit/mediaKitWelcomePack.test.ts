@@ -64,17 +64,15 @@ describe("Media Kit Welcome Pack", () => {
     expect(WELCOME_PACK_GENERAL_FONT_OPTIONS.length).toBeGreaterThanOrEqual(3)
   })
 
-  it("keeps the overgrip estimate explicit and provisional until final measurement", () => {
+  it("keeps the final overgrip measurements explicit", () => {
     expect(WELCOME_PACK_OVERGRIP_BAND.material).toBe("Cartulina mate")
     expect(WELCOME_PACK_OVERGRIP_BAND.minGsm).toBe(200)
     expect(WELCOME_PACK_OVERGRIP_BAND.maxGsm).toBe(250)
-    expect(WELCOME_PACK_OVERGRIP_BAND.dimensionsStatus).toBe("temporary-estimate")
-    expect(WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMinMm).toBe(165)
-    expect(WELCOME_PACK_OVERGRIP_BAND.estimatedWidthMaxMm).toBe(170)
-    expect(WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMinMm).toBe(15)
-    expect(WELCOME_PACK_OVERGRIP_BAND.estimatedHeightMaxMm).toBe(20)
-    expect(WELCOME_PACK_OVERGRIP_BAND.provisionalWidthMm).toBe(170)
-    expect(WELCOME_PACK_OVERGRIP_BAND.provisionalHeightMm).toBe(20)
+    expect(WELCOME_PACK_OVERGRIP_BAND.dimensionsStatus).toBe("final")
+    expect(WELCOME_PACK_OVERGRIP_BAND.widthMm).toBe(120)
+    expect(WELCOME_PACK_OVERGRIP_BAND.heightMm).toBe(18)
+    expect(WELCOME_PACK_OVERGRIP_BAND.sideReserveMm).toBe(10)
+    expect(WELCOME_PACK_OVERGRIP_BAND.contentWidthMm).toBe(100)
   })
 
   it("normalizes accent", () => {
