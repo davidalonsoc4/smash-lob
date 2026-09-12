@@ -235,7 +235,7 @@ function OvergripBandPreview({
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
           <div className="relative z-10 h-full">
-            <div className="absolute left-0 top-0 flex h-full w-[47.2%] min-w-0 items-center gap-1 px-2">
+            <div className="absolute left-[2%] top-0 flex h-full w-[36%] min-w-0 items-center gap-1 px-1.5">
               <div className="relative flex h-[24px] w-[38px] shrink-0 items-center justify-center">
                 <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
                 <div className="relative scale-[.42]">
@@ -243,12 +243,12 @@ function OvergripBandPreview({
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="truncate text-[0.3125rem] font-black uppercase tracking-[.03em] text-white">{league.name}</p>
+                <p className="line-clamp-2 whitespace-normal text-[0.3125rem] font-black uppercase leading-[1.05] tracking-[.03em] text-white">{league.name}</p>
                 <p className="mt-px truncate text-[0.21875rem] font-bold uppercase tracking-[.06em] text-white/58">{seasonName}</p>
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-[58%] flex w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
+            <div className="absolute left-1/2 top-[55%] flex w-[22%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
               <p className="text-[0.21875rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Smash &amp; Lob</p>
               <p className="mt-px text-[0.46875rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
               <div className="mt-px grid grid-cols-[12px_3px_12px] items-center gap-1">
@@ -258,7 +258,7 @@ function OvergripBandPreview({
               </div>
             </div>
 
-            <div className="absolute right-[3%] top-0 flex h-full w-[25%] min-w-0 items-center justify-start pl-2 text-left">
+            <div className="absolute right-[3%] top-0 flex h-full w-[27%] min-w-0 items-center justify-start pl-1.5 text-left">
               <p
                 className="line-clamp-2 whitespace-normal break-words text-[0.46875rem] leading-[1.05] text-white"
                 style={{ fontFamily: playerFamily }}
@@ -408,11 +408,11 @@ export default function WelcomePackMediaKitPage() {
           </div>
           <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">2 disponibles</span>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="flex gap-2 overflow-x-auto pb-2">
           <button
             type="button"
             onClick={() => setActivePiece("bag-seal")}
-            className={`relative overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative min-w-[240px] flex-none overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
@@ -431,7 +431,7 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("overgrip-band")}
-            className={`relative overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative min-w-[240px] flex-none overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
@@ -446,10 +446,9 @@ export default function WelcomePackMediaKitPage() {
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · cartulina mate · anverso y reverso.</p>
             </div>
           </button>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
+
           {futurePieces.map((piece) => (
-            <div key={piece} className="min-w-[128px] rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
+            <div key={piece} className="min-w-[180px] flex-none rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
               <p className="text-[0.625rem] font-black leading-4">{piece}</p>
               <p className="mt-0.5 text-[0.5625rem] font-bold uppercase tracking-[.08em]">Próximamente</p>
             </div>
