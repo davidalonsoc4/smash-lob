@@ -1,0 +1,45 @@
+/* Welcome Pack · overgrip band visual tuning.
+   Final physical geometry: 120 × 18 mm.
+   Outer glue reserves: 10 mm each side.
+   Internal empty gaps: 5 mm on both sides of the 24 mm Welcome Pack block.
+
+   The page is currently in rapid visual-review mode; these selectors are scoped to
+   the 430 px overgrip preview so the rest of the Media Kit is unaffected. */
+
+[class~="max-w-[430px]"] [class~="left-[10%]"][class~="w-[28%]"] {
+  left: 8.333333% !important; /* 10 / 120 */
+  width: 27.5% !important;   /* 33 / 120 */
+}
+
+[class~="max-w-[430px]"] [class~="left-[10%]"][class~="w-[28%]"] > [class~="min-w-0"] {
+  flex: 1 1 0%;
+  text-align: center;
+}
+
+[class~="max-w-[430px]"] [class~="left-[10%]"][class~="w-[28%]"] > [class~="min-w-0"] > p {
+  text-align: center;
+}
+
+[class~="max-w-[430px]"] [class~="right-[10%]"][class~="w-[24%]"] {
+  right: 8.333333% !important; /* 10 / 120 */
+  width: 27.5% !important;    /* 33 / 120 */
+  justify-content: center !important;
+  padding-left: 0.25rem !important;
+  padding-right: 0.25rem !important;
+  text-align: center !important;
+}
+
+[class~="max-w-[430px]"] [class~="right-[10%]"][class~="w-[24%]"] > p {
+  width: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+[class~="max-w-[430px]"] [class~="right-[10%]"][class~="w-[24%]"] > p > span {
+  width: 100%;
+  text-align: center;
+}
+
+/* The centre block remains 24 mm (20% of 120 mm), centred from 48–72 mm.
+   With the side blocks ending at 43 mm and starting again at 77 mm, this leaves
+   exactly 5 mm of content-free space on each side of Welcome Pack. */
