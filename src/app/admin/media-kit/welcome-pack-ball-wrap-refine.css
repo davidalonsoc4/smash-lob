@@ -11,9 +11,15 @@
   display: none !important;
 }
 
-/* Visual identification test: highlight the rounded inset frame in green. */
+/* Keep the rounded inset frame in the DOM, but make it fully transparent. */
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:first-child {
-  border-color: #00ff00 !important;
+  opacity: 0 !important;
+}
+
+/* Visual identification test: highlight the full-height internal grey dividers. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child,
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) {
+  border-right-color: #ff00ff !important;
 }
 
 /* Keep the player roster compact so the handwritten names sit comfortably inside
