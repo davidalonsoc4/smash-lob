@@ -11,6 +11,20 @@
   display: none !important;
 }
 
+/* Keep the player roster compact so the handwritten names sit comfortably inside
+   their third of the wrap without increasing the overall visual height. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div {
+  gap: 2px !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  font-size: 0.5rem !important;
+  line-height: 1.06 !important;
+  padding-bottom: 0.08rem !important;
+}
+
 /* Keep PDF geometry independent from the viewport used to open the print dialog.
    The live desktop preview resolves to a 404 px design canvas. Printing always uses
    that same logical canvas and then scales it to the physical 240 x 130 mm trim. */
@@ -56,5 +70,9 @@
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(5) {
     font-size: 0.34rem !important;
     letter-spacing: 0.11em !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+    font-size: 0.47rem !important;
   }
 }
