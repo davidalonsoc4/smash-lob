@@ -99,7 +99,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   <p data-sl-ball-brand-head="true" className="text-[2.2rem] font-black leading-none tracking-[-.05em] text-white">HEAD</p>
                   <p data-sl-ball-brand-model="true" className="mt-1 text-[0.66rem] font-black uppercase tracking-[.12em]">
                     <span data-sl-ball-model-name="true" className="text-white">Padel Pro</span>{" "}
-                    <span data-sl-ball-model-plus="true" style={{ color: accent }}>S+</span>
+                    <span data-sl-ball-model-plus="true" style={{ color: accent, WebkitTextFillColor: accent }}>S+</span>
                   </p>
                 </div>
               </section>
