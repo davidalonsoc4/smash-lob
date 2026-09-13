@@ -1,6 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
+import {
+  WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
+  getWelcomePackPlayerNameFontFamily,
+  type WelcomePackPlayerNameFont,
+} from "@/lib/mediaKitWelcomePack"
 
 type Player = { id: string; displayName: string }
 type Props = {
@@ -52,6 +58,7 @@ function LeagueNameText({ leagueName }: { leagueName: string }) {
 }
 
 export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent }: Props) {
+  const [playerListFont, setPlayerListFont] = useState<WelcomePackPlayerNameFont>("great-vibes")
   const roster = sortedPlayers(players)
   const oneColumn = roster.length <= 8
   const midpoint = Math.ceil(roster.length / 2)
@@ -89,9 +96,9 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
               <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 px-2">
                 <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
                 <div className="flex -rotate-90 flex-col items-center whitespace-nowrap text-center">
-                  <p className="text-[1.55rem] font-black leading-none tracking-[-.04em] text-white">HEAD</p>
-                  <p className="mt-1 text-[0.48rem] font-black uppercase tracking-[.16em]" style={{ color: accent }}>Padel Pro S+</p>
-                  <p className="mt-1 text-[0.36rem] font-bold uppercase tracking-[.16em] text-white/46">3 balls</p>
+                  <p className="text-[2.2rem] font-black leading-none tracking-[-.05em] text-white">HEAD</p>
+                  <p className="mt-1 text-[0.66rem] font-black uppercase tracking-[.12em]" style={{ color: accent }}>Padel Pro S+</p>
+                  <p className="mt-1 text-[0.44rem] font-bold uppercase tracking-[.14em] text-white/46">3 balls</p>
                 </div>
               </section>
 
@@ -116,7 +123,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate text-[0.63rem] leading-none text-white/92" style={{ fontFamily: '"Great Vibes", "Segoe Script", cursive' }}>{player.displayName}</p>
+                        <p key={player.id} className="truncate text-[0.63rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
                       ))}
                     </div>
                   ))}
@@ -125,6 +132,23 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
+        <label className="text-xs font-black text-neutral-700">
+          Tipografía del listado de jugadores
+          <select
+            value={playerListFont}
+            onChange={(event) => setPlayerListFont(event.target.value as WelcomePackPlayerNameFont)}
+            className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+          >
+            {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}{option.id === "great-vibes" ? " · actual" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
