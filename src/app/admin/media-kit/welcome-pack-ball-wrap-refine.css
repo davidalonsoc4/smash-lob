@@ -43,6 +43,22 @@
   pointer-events: none;
 }
 
+/* Cleaner premium layout: remove section labels and let the remaining content breathe. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:first-child,
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:first-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:first-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:first-child {
+  display: none !important;
+}
+
+/* With the JUGADORES header gone, remove its reserved vertical offset so the roster
+   is centered naturally by the existing flex/grid layout. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child {
+  margin-top: 0 !important;
+  transform: none !important;
+}
+
 /* Keep the player roster compact so the handwritten names sit comfortably inside
    their third of the wrap without increasing the overall visual height. */
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div,
@@ -55,12 +71,6 @@
   font-size: 0.5rem !important;
   line-height: 1.06 !important;
   padding-bottom: 0.08rem !important;
-}
-
-/* Lift the complete roster slightly so the visual mass sits better under JUGADORES. */
-[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
-.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child {
-  transform: translateY(-4px) !important;
 }
 
 /* Keep PDF geometry independent from the viewport used to open the print dialog.
