@@ -71,7 +71,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
             <div className="absolute right-[-46px] bottom-[-56px] h-40 w-40 rounded-full border border-white/6" />
 
             <div className="relative z-10 grid h-full grid-cols-[22%_30%_48%] px-3">
-              <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 bg-black/16 px-2">
+              <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 px-2">
                 <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
                 <div className="flex -rotate-90 flex-col items-center whitespace-nowrap text-center">
                   <p className="text-[1.55rem] font-black leading-none tracking-[-.04em] text-white">HEAD</p>
