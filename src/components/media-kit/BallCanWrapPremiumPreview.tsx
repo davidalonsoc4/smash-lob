@@ -36,6 +36,21 @@ function LeagueMark({ leagueName, leagueLogoUrl }: Pick<Props, "leagueName" | "l
   return <span className="text-3xl font-black tracking-[.2em] text-white">{initials}</span>
 }
 
+function LeagueNameText({ leagueName }: { leagueName: string }) {
+  const normalized = leagueName.trim()
+  const smashAndLobMatch = normalized.match(/^(SMASH\s*&\s*LOB)\s+(.+)$/i)
+
+  if (!smashAndLobMatch) return <>{normalized}</>
+
+  return (
+    <>
+      {smashAndLobMatch[1]}
+      <br />
+      {smashAndLobMatch[2]}
+    </>
+  )
+}
+
 export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent }: Props) {
   const roster = sortedPlayers(players)
   const oneColumn = roster.length <= 8
@@ -83,7 +98,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
               <section className="flex min-w-0 flex-col items-center justify-center border-r border-white/10 px-5 text-center">
                 <p className="mb-2 text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Welcome Pack</p>
                 <div className="flex min-h-[76px] w-full items-center justify-center"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div>
-                <p className="mt-1 line-clamp-2 max-w-[118px] text-[0.58rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white">{leagueName}</p>
+                <p className="mt-1 line-clamp-2 max-w-[118px] whitespace-normal text-[0.58rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white"><LeagueNameText leagueName={leagueName} /></p>
                 <div className="mt-2 grid grid-cols-[26px_4px_26px] items-center gap-1.5">
                   <span className="h-px bg-white/18" />
                   <span className="h-[3px] w-[3px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
