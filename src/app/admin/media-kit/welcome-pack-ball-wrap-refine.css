@@ -11,6 +11,11 @@
   display: none !important;
 }
 
+/* Visual identification test: highlight the rounded inset frame in green. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:first-child {
+  border-color: #00ff00 !important;
+}
+
 /* Keep the player roster compact so the handwritten names sit comfortably inside
    their third of the wrap without increasing the overall visual height. */
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div,
