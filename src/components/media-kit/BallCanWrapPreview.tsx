@@ -167,9 +167,12 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     setPrintError(null)
     popup.opener = null
 
+    const sourceIsMobile = window.matchMedia("(max-width: 480px)").matches
     const clone = design.cloneNode(true) as HTMLElement
     const scale = (TRIM_WIDTH_MM * CSS_PX_PER_MM) / bounds.width
     clone.classList.add("sl-ball-wrap-print-design")
+    if (sourceIsMobile) clone.classList.add("sl-ball-wrap-print-source-mobile")
+    clone.style.setProperty("--ball-wrap-accent", props.accent)
     clone.style.width = `${bounds.width}px`
     clone.style.height = `${bounds.height}px`
     clone.style.minWidth = `${bounds.width}px`
