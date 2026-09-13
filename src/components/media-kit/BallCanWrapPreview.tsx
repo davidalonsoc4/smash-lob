@@ -1,12 +1,35 @@
 "use client"
 
-import { useEffect, useRef, type ComponentProps, type CSSProperties } from "react"
+import { useEffect, useRef, useState, type ComponentProps, type CSSProperties } from "react"
 import { BallCanWrapPremiumPreview } from "@/components/media-kit/BallCanWrapPremiumPreview"
 
 type BallCanWrapPreviewProps = ComponentProps<typeof BallCanWrapPremiumPreview>
 
+const TRIM_WIDTH_MM = 240
+const TRIM_HEIGHT_MM = 130
+const BLEED_MM = 3
+const PRINT_WIDTH_MM = TRIM_WIDTH_MM + BLEED_MM * 2
+const PRINT_HEIGHT_MM = TRIM_HEIGHT_MM + BLEED_MM * 2
+const CSS_PX_PER_MM = 96 / 25.4
+
+function documentPrintStyles() {
+  return Array.from(document.querySelectorAll<HTMLStyleElement | HTMLLinkElement>('style, link[rel="stylesheet"]'))
+    .map((node) => node.outerHTML)
+    .join("\n")
+}
+
+function cropMarksMarkup() {
+  return `
+    <span class="crop crop-tl-h"></span><span class="crop crop-tl-v"></span>
+    <span class="crop crop-tr-h"></span><span class="crop crop-tr-v"></span>
+    <span class="crop crop-bl-h"></span><span class="crop crop-bl-v"></span>
+    <span class="crop crop-br-h"></span><span class="crop crop-br-v"></span>
+  `
+}
+
 export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const [printError, setPrintError] = useState<string | null>(null)
 
   useEffect(() => {
     const root = rootRef.current
@@ -122,9 +145,125 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     }
   }, [props.accent, props.leagueName, props.seasonName, props.players])
 
+  function printPdf() {
+    const design = rootRef.current?.querySelector('[class~="rounded-[14px]"]') as HTMLElement | null
+    if (!design) {
+      setPrintError("No se ha podido preparar la faja para impresión.")
+      return
+    }
+
+    const bounds = design.getBoundingClientRect()
+    if (!bounds.width || !bounds.height) {
+      setPrintError("La vista previa todavía no tiene un tamaño válido para impresión.")
+      return
+    }
+
+    const popup = window.open("", "_blank", "width=1280,height=900")
+    if (!popup) {
+      setPrintError("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para generar el PDF.")
+      return
+    }
+
+    setPrintError(null)
+    popup.opener = null
+
+    const clone = design.cloneNode(true) as HTMLElement
+    const scale = (TRIM_WIDTH_MM * CSS_PX_PER_MM) / bounds.width
+    clone.classList.add("sl-ball-wrap-print-design")
+    clone.style.width = `${bounds.width}px`
+    clone.style.height = `${bounds.height}px`
+    clone.style.minWidth = `${bounds.width}px`
+    clone.style.maxWidth = "none"
+    clone.style.border = "0"
+    clone.style.borderRadius = "0"
+    clone.style.boxShadow = "none"
+    clone.style.transform = `scale(${scale})`
+    clone.style.transformOrigin = "top left"
+
+    popup.document.open()
+    popup.document.write(`<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <base href="${window.location.origin}/" />
+  <title>Welcome Pack · Faja bote · ${props.leagueName}</title>
+  ${documentPrintStyles()}
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 297mm; min-height: 210mm; background: #fff; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sheet { width: 297mm; height: 210mm; display: flex; align-items: center; justify-content: center; overflow: hidden; break-after: page; page-break-after: always; }
+    .piece { position: relative; width: ${PRINT_WIDTH_MM}mm; height: ${PRINT_HEIGHT_MM}mm; overflow: visible; background: #090909; }
+    .bleed { position: absolute; inset: 0; overflow: hidden; background: #090909; }
+    .bleed::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 26% 10%, ${props.accent}45 0%, transparent 28%), radial-gradient(circle at 78% 86%, ${props.accent}28 0%, transparent 32%), radial-gradient(circle at 72% 18%, rgba(255,255,255,.13) 0%, transparent 22%), linear-gradient(130deg, rgba(255,255,255,.055) 0%, transparent 25%, rgba(255,255,255,.018) 56%, transparent 100%), linear-gradient(165deg, #1a1a1a 0%, #090909 48%, #020202 100%); }
+    .bleed::after { content: ""; position: absolute; inset: 0 0 auto; height: .85mm; background: ${props.accent}; }
+    .trim { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; overflow: hidden; background: #090909; }
+    .sl-ball-wrap-print-design { position: absolute !important; left: 0 !important; top: 0 !important; margin: 0 !important; }
+    .crop { position: absolute; z-index: 50; display: block; background: #111; }
+    .crop-tl-h, .crop-bl-h { left: -5mm; width: 4mm; height: .18mm; }
+    .crop-tr-h, .crop-br-h { right: -5mm; width: 4mm; height: .18mm; }
+    .crop-tl-v, .crop-tr-v { top: -5mm; width: .18mm; height: 4mm; }
+    .crop-bl-v, .crop-br-v { bottom: -5mm; width: .18mm; height: 4mm; }
+    .crop-tl-h, .crop-tr-h { top: ${BLEED_MM}mm; }
+    .crop-bl-h, .crop-br-h { bottom: ${BLEED_MM}mm; }
+    .crop-tl-v, .crop-bl-v { left: ${BLEED_MM}mm; }
+    .crop-tr-v, .crop-br-v { right: ${BLEED_MM}mm; }
+    @media screen {
+      body { display: flex; align-items: flex-start; justify-content: center; padding-top: 12px; background: #ececec; }
+      .sheet { background: white; box-shadow: 0 12px 42px rgba(0,0,0,.18); }
+    }
+  </style>
+</head>
+<body>
+  <section class="sheet">
+    <div class="piece">
+      <div class="bleed" aria-hidden="true"></div>
+      <div class="trim">${clone.outerHTML}</div>
+      ${cropMarksMarkup()}
+    </div>
+  </section>
+  <script>
+    (async () => {
+      try {
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        await Promise.all(Array.from(document.images).map((img) => img.complete ? Promise.resolve() : new Promise((resolve) => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', resolve, { once: true });
+        })));
+      } finally {
+        setTimeout(() => { window.focus(); window.print(); }, 150);
+      }
+    })();
+  <\/script>
+</body>
+</html>`)
+    popup.document.close()
+  }
+
   return (
     <div ref={rootRef} style={{ "--ball-wrap-accent": props.accent } as CSSProperties}>
       <BallCanWrapPremiumPreview {...props} />
+
+      <div className="mx-auto mt-4 w-full max-w-[430px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">PDF de impresión</p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+              A4 apaisado · 1 faja por página · 3 mm de sangrado · marcas de corte · tamaño final 240 × 130 mm.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={printPdf}
+            className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800"
+          >
+            Generar PDF / imprimir
+          </button>
+        </div>
+        {printError ? <p className="mt-2 text-xs font-bold text-red-600">{printError}</p> : null}
+      </div>
     </div>
   )
 }
