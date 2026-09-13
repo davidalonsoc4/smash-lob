@@ -245,3 +245,33 @@ div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-ca
     font-size: 0.49rem !important;
   }
 }
+
+/* Force the combined adhesive sheet to use a physical A4 landscape page in Chromium/Edge.
+   The component already positions the artwork on a 297 x 210 mm canvas; the named page
+   prevents the print dialog from reinterpreting that canvas as portrait. */
+@page sl-ball-wrap-landscape {
+  size: 297mm 210mm;
+  margin: 0;
+}
+
+@media print {
+  .sheet:has(.wrap-piece) {
+    page: sl-ball-wrap-landscape;
+    width: 297mm !important;
+    height: 210mm !important;
+    min-width: 297mm !important;
+    min-height: 210mm !important;
+    max-width: 297mm !important;
+    max-height: 210mm !important;
+  }
+
+  body:has(.sheet > .wrap-piece) {
+    width: 297mm !important;
+    height: 210mm !important;
+    min-width: 297mm !important;
+    min-height: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+}
