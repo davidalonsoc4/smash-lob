@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState, type ComponentProps, type CSSProperties } from "react"
-import { BallCanSealPreview } from "@/components/media-kit/BallCanSealPreview"
 import { BallCanWrapPremiumPreview } from "@/components/media-kit/BallCanWrapPremiumPreview"
 
 type BallCanWrapPreviewProps = ComponentProps<typeof BallCanWrapPremiumPreview>
@@ -54,7 +53,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     const root = rootRef.current
     if (!root) return
 
-    const design = root.querySelector('[data-sl-ball-wrap-design="true"]') as HTMLElement | null
+    const design = root.querySelector('[class~="rounded-[14px]"]') as HTMLElement | null
     const contentLayer = design?.children.item(5) as HTMLElement | null
     const grid = contentLayer?.children.item(2) as HTMLElement | null
     const sections = grid ? Array.from(grid.children).filter((node): node is HTMLElement => node instanceof HTMLElement) : []
@@ -161,7 +160,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
   }, [props.accent, props.leagueName, props.seasonName, props.players])
 
   function printPdf() {
-    const design = rootRef.current?.querySelector('[data-sl-ball-wrap-design="true"]') as HTMLElement | null
+    const design = rootRef.current?.querySelector('[class~="rounded-[14px]"]') as HTMLElement | null
     if (!design) {
       setPrintError("No se ha podido preparar la faja para impresión.")
       return
@@ -229,11 +228,12 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
   <title>Welcome Pack · Adhesivos · ${safeLeagueName}</title>
   ${documentPrintStyles()}
   <style>
+    @page sl-ball-can-landscape { size: A4 landscape; margin: 0; }
     @page { size: A4 landscape; margin: 0; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; width: 297mm; min-height: 210mm; background: #fff; }
+    html, body { margin: 0; padding: 0; width: 297mm; min-width: 297mm; max-width: 297mm; height: 210mm; min-height: 210mm; max-height: 210mm; background: #fff; overflow: hidden; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .sheet { position: relative; width: 297mm; height: 210mm; overflow: hidden; background: #fff; }
+    .sheet { page: sl-ball-can-landscape; position: relative; width: 297mm; min-width: 297mm; max-width: 297mm; height: 210mm; min-height: 210mm; max-height: 210mm; overflow: hidden; background: #fff; break-after: page; page-break-after: always; }
     .wrap-piece { position: absolute; left: 25.5mm; top: 14mm; width: ${PRINT_WIDTH_MM}mm; height: ${PRINT_HEIGHT_MM}mm; }
     .trim { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; z-index: 10; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; overflow: hidden; }
     .sl-ball-wrap-print-design { position: absolute !important; left: 0 !important; top: 0 !important; margin: 0 !important; }
@@ -284,6 +284,10 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     .seal-tr-v { right:${SEAL_BLEED_MM}mm; top:-4mm; } .seal-tr-h { right:-4mm; top:${SEAL_BLEED_MM}mm; }
     .seal-bl-v { left:${SEAL_BLEED_MM}mm; bottom:-4mm; } .seal-bl-h { left:-4mm; bottom:${SEAL_BLEED_MM}mm; }
     .seal-br-v { right:${SEAL_BLEED_MM}mm; bottom:-4mm; } .seal-br-h { right:-4mm; bottom:${SEAL_BLEED_MM}mm; }
+    @media print {
+      html, body, .sheet { width: 297mm !important; min-width: 297mm !important; max-width: 297mm !important; height: 210mm !important; min-height: 210mm !important; max-height: 210mm !important; }
+      .sheet { page: sl-ball-can-landscape; }
+    }
     @media screen { body { display:flex; justify-content:center; padding-top:12px; background:#ececec; } .sheet { box-shadow:0 12px 42px rgba(0,0,0,.18); } }
   </style>
 </head>
@@ -314,7 +318,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
           img.addEventListener('error', resolve, { once: true });
         })));
       } finally {
-        setTimeout(() => { window.focus(); window.print(); }, 150);
+        setTimeout(() => { window.focus(); window.print(); }, 250);
       }
     })();
   <\/script>
@@ -325,10 +329,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
   return (
     <div ref={rootRef} style={{ "--ball-wrap-accent": props.accent } as CSSProperties}>
-      <div data-sl-ball-wrap-design="true">
-        <BallCanWrapPremiumPreview {...props} />
-      </div>
-      <BallCanSealPreview leagueName={props.leagueName} leagueLogoUrl={props.leagueLogoUrl} accent={props.accent} />
+      <BallCanWrapPremiumPreview {...props} />
 
       <div className="mx-auto mt-4 w-full max-w-[430px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
