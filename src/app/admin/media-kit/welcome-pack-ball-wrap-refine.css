@@ -16,6 +16,23 @@
   opacity: 0 !important;
 }
 
+/* Apply the same subtle black/16 treatment to the whole wrap background without
+   dimming logos, text, accent dividers or the bottom signature. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"],
+.sl-ball-wrap-print-design {
+  isolation: isolate;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"]::before,
+.sl-ball-wrap-print-design::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+}
+
 /* Keep the original full-height grey dividers in place but fully transparent. */
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child,
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2),
