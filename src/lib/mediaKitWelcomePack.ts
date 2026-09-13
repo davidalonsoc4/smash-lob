@@ -61,13 +61,15 @@ export const WELCOME_PACK_GENERAL_FONT_OPTIONS: Array<{
 ]
 
 export const WELCOME_PACK_BAG_SEAL = {
-  trimWidthMm: 45,
-  trimHeightMm: 120,
-  faceHeightMm: 60,
+  trimWidthMm: 50,
+  trimHeightMm: 130,
+  faceHeightMm: 65,
   bleedMm: 2,
-  printedWidthMm: 49,
-  printedHeightMm: 124,
-  itemsPerA4: 8,
+  printedWidthMm: 54,
+  printedHeightMm: 134,
+  columnsPerA4: 3,
+  rowsPerA4: 2,
+  itemsPerA4: 6,
 } as const
 
 export const WELCOME_PACK_OVERGRIP_BAND = {
@@ -269,6 +271,8 @@ export function buildWelcomePackBagSealPrintHtml({
     )
     .join("")
 
+  const foldTickTopMm = WELCOME_PACK_BAG_SEAL.printedHeightMm / 2 - 0.15
+
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -281,17 +285,17 @@ export function buildWelcomePackBagSealPrintHtml({
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; }
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .sheet { width: 202mm; min-height: 289mm; display: grid; grid-template-columns: repeat(4, 49mm); grid-template-rows: repeat(2, 124mm); gap: 2mm; align-content: start; break-after: page; page-break-after: always; }
+    .sheet { width: 202mm; min-height: 289mm; display: grid; grid-template-columns: repeat(${WELCOME_PACK_BAG_SEAL.columnsPerA4}, ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm); grid-template-rows: repeat(${WELCOME_PACK_BAG_SEAL.rowsPerA4}, ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm); gap: 2mm; align-content: start; justify-content: center; break-after: page; page-break-after: always; }
     .sheet:last-child { break-after: auto; page-break-after: auto; }
-    .seal-cell { --accent: ${accent}; position: relative; width: 49mm; height: 124mm; overflow: hidden; background: #050505; }
-    .seal-trim { position: absolute; inset: 2mm; display: grid; grid-template-rows: 60mm 60mm; overflow: hidden; background: #050505; }
-    .trim-guide { position: absolute; inset: 2mm; z-index: 20; border: .16mm solid rgba(0,0,0,.72); pointer-events: none; }
-    .fold-tick { position: absolute; top: 61.85mm; z-index: 30; width: 2mm; height: .3mm; background: #111; }
+    .seal-cell { --accent: ${accent}; position: relative; width: ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm; height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; overflow: hidden; background: #050505; }
+    .seal-trim { position: absolute; inset: ${WELCOME_PACK_BAG_SEAL.bleedMm}mm; display: grid; grid-template-rows: ${WELCOME_PACK_BAG_SEAL.faceHeightMm}mm ${WELCOME_PACK_BAG_SEAL.faceHeightMm}mm; overflow: hidden; background: #050505; }
+    .trim-guide { position: absolute; inset: ${WELCOME_PACK_BAG_SEAL.bleedMm}mm; z-index: 20; border: .16mm solid rgba(0,0,0,.72); pointer-events: none; }
+    .fold-tick { position: absolute; top: ${foldTickTopMm}mm; z-index: 30; width: 2mm; height: .3mm; background: #111; }
     .fold-tick-left { left: 0; }
     .fold-tick-right { right: 0; }
     .seal-face {
       position: relative;
-      min-height: 60mm;
+      min-height: ${WELCOME_PACK_BAG_SEAL.faceHeightMm}mm;
       overflow: hidden;
       background:
         radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 28%),
