@@ -98,15 +98,10 @@
   padding-bottom: 0.08rem !important;
 }
 
-/* Keep PDF geometry independent from the viewport used to open the print dialog.
-   The live desktop preview resolves to a 404 px design canvas. Printing always uses
-   that same logical canvas and then scales it to the physical 240 x 130 mm trim. */
+/* The print clone keeps the exact logical width/height measured from the live preview.
+   BallCanWrapPreview then scales that clone to 240 x 130 mm, so typography and spacing
+   preserve the same proportions on mobile and desktop instead of being forced to 404 px. */
 .sl-ball-wrap-print-design {
-  width: 404px !important;
-  height: 218.833333px !important;
-  min-width: 404px !important;
-  max-width: 404px !important;
-  transform: scale(2.245264) !important;
   transform-origin: top left !important;
 }
 
