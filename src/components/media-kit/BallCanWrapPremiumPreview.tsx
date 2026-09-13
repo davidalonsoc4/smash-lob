@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { BallCanSealPreview } from "@/components/media-kit/BallCanSealPreview"
 import {
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
   getWelcomePackPlayerNameFontFamily,
@@ -81,7 +80,16 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       </div>
 
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
-        <div className="relative mx-auto w-full overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_18px_34px_rgba(0,0,0,.32)]" style={{ aspectRatio: `${WIDTH_MM} / ${HEIGHT_MM}`, backgroundImage: premiumBackground }}>
+        <div
+          ref={(node) => {
+            if (!node) return
+            const outer = node.closest('[data-sl-ball-wrap-design="true"]')
+            if (outer && outer !== node) outer.removeAttribute("data-sl-ball-wrap-design")
+            node.dataset.slBallWrapDesign = "true"
+          }}
+          className="relative mx-auto w-full overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_18px_34px_rgba(0,0,0,.32)]"
+          style={{ aspectRatio: `${WIDTH_MM} / ${HEIGHT_MM}`, backgroundImage: premiumBackground }}
+        >
           <div className="absolute inset-[5px] rounded-[10px] border border-white/10" />
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_30%,rgba(255,255,255,.025)_62%,transparent)] mix-blend-screen" />
@@ -157,8 +165,6 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.
       </div>
-
-      <BallCanSealPreview leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} accent={accent} />
     </div>
   )
 }
