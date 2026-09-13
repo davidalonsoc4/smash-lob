@@ -43,6 +43,16 @@
   transform-origin: top left !important;
 }
 
+/* Print/PDF must contain no preview or cutting guide lines. The outer crop marks are
+   intentionally suppressed and the subtle rounded inset frame is preview-only. */
+.crop {
+  display: none !important;
+}
+
+.sl-ball-wrap-print-design > div:first-child {
+  display: none !important;
+}
+
 /* Mobile preview: the fixed rem/px typography does not shrink with the responsive
    canvas, so reduce the identity copy and league mark on narrow screens. */
 @media (max-width: 480px) {
