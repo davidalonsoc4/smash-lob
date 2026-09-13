@@ -78,7 +78,6 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   <p className="mt-1 text-[0.48rem] font-black uppercase tracking-[.16em]" style={{ color: accent }}>Padel Pro S+</p>
                   <p className="mt-1 text-[0.36rem] font-bold uppercase tracking-[.16em] text-white/46">3 balls</p>
                 </div>
-                <p className="absolute inset-x-2 bottom-3 text-center text-[0.3rem] font-black uppercase tracking-[.16em] text-white/28">Creado con Smash &amp; Lob</p>
               </section>
 
               <section className="flex min-w-0 flex-col items-center justify-center border-r border-white/10 px-5 text-center">
@@ -114,7 +113,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. El bloque de marca conserva la firma sutil de Smash &amp; Lob y el listado de hasta 8 jugadores se muestra en una sola columna.
+        <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.
       </div>
     </div>
   )
