@@ -32,22 +32,22 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     signature.style.position = "absolute"
     signature.style.left = "0"
     signature.style.right = "0"
-    signature.style.bottom = "10px"
+    signature.style.bottom = "7px"
     signature.style.display = "flex"
     signature.style.alignItems = "center"
     signature.style.justifyContent = "center"
-    signature.style.gap = "4px"
+    signature.style.gap = "2px"
     signature.style.pointerEvents = "none"
-    signature.style.opacity = "1"
+    signature.style.opacity = ".72"
 
     const icon = document.createElement("img")
     icon.src = "/icon-192.png"
     icon.alt = ""
-    icon.width = 12
-    icon.height = 12
-    icon.style.width = "12px"
-    icon.style.height = "12px"
-    icon.style.borderRadius = "3px"
+    icon.width = 7
+    icon.height = 7
+    icon.style.width = "7px"
+    icon.style.height = "7px"
+    icon.style.borderRadius = "2px"
 
     const text = document.createElement("div")
     text.style.textAlign = "left"
@@ -56,15 +56,15 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
     const overline = document.createElement("div")
     overline.textContent = "CREADO CON"
-    overline.style.fontSize = "4px"
+    overline.style.fontSize = "2.25px"
     overline.style.fontWeight = "800"
     overline.style.letterSpacing = ".24em"
     overline.style.color = props.accent
 
     const brand = document.createElement("div")
     brand.textContent = "SMASH & LOB"
-    brand.style.marginTop = "2px"
-    brand.style.fontSize = "5px"
+    brand.style.marginTop = "1px"
+    brand.style.fontSize = "2.75px"
     brand.style.fontWeight = "900"
     brand.style.letterSpacing = ".1em"
     brand.style.color = "#f4f1ea"
