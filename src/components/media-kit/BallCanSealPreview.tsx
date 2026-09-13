@@ -63,12 +63,11 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: Props)
   .accent-top, .accent-bottom { position: absolute; left: 0; right: 0; height: .55mm; background: ${accent}; }
   .accent-top { top: 0; }
   .accent-bottom { bottom: 0; opacity: .72; }
-  .content { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; display: grid; grid-template-columns: 10mm .35mm minmax(0, 1fr); align-items: center; gap: 2mm; padding: 1.7mm 2.2mm; color: white; }
+  .content { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; display: grid; grid-template-columns: 9mm minmax(0, 1fr); align-items: center; gap: .8mm; padding: 1.5mm 1.4mm; color: white; }
   .logo { height: 8mm; display: flex; align-items: center; justify-content: center; }
-  .logo img { display: block; max-width: 9mm; max-height: 7.5mm; object-fit: contain; filter: drop-shadow(0 1mm 1.6mm rgba(0,0,0,.35)); }
-  .fallback { font-weight: 900; font-size: 3mm; letter-spacing: .45mm; }
-  .divider { width: .35mm; height: 6.5mm; background: ${accent}; border-radius: 999px; }
-  .name { min-width: 0; text-align: center; font-size: 2.35mm; line-height: 1; font-weight: 900; text-transform: uppercase; letter-spacing: .08mm; white-space: nowrap; }
+  .logo img { display: block; max-width: 8.5mm; max-height: 7.5mm; object-fit: contain; filter: drop-shadow(0 1mm 1.6mm rgba(0,0,0,.35)); }
+  .fallback { font-weight: 900; font-size: 3mm; letter-spacing: .3mm; }
+  .name { min-width: 0; text-align: center; font-size: 2.8mm; line-height: 1; font-weight: 900; text-transform: uppercase; letter-spacing: .03mm; white-space: nowrap; }
   .crop { position: absolute; background: #111; }
   .crop.v { width: .2mm; height: 3mm; }
   .crop.h { width: 3mm; height: .2mm; }
@@ -86,7 +85,6 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: Props)
         <div class="accent-top"></div><div class="accent-bottom"></div>
         <div class="content">
           <div class="logo">${leagueMark}</div>
-          <div class="divider"></div>
           <div class="name">${safeLeagueName}</div>
         </div>
       </div>
@@ -129,16 +127,15 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: Props)
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-x-0 bottom-0 h-[2px] opacity-70" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_32%,rgba(255,255,255,.02)_68%,transparent)]" />
-          <div className="relative z-10 grid h-full grid-cols-[52px_2px_minmax(0,1fr)] items-center gap-2 px-3">
+          <div className="relative z-10 grid h-full grid-cols-[44px_minmax(0,1fr)] items-center gap-1 px-2">
             <div className="flex min-w-0 items-center justify-center">
               {leagueLogoUrl ? (
-                <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={70} height={44} className="h-auto max-h-[38px] w-auto max-w-[44px] object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,.38)]" />
+                <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={70} height={44} className="h-auto max-h-[38px] w-auto max-w-[42px] object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,.38)]" />
               ) : (
-                <span className="text-base font-black tracking-[.12em] text-white">{initials(leagueName)}</span>
+                <span className="text-base font-black tracking-[.08em] text-white">{initials(leagueName)}</span>
               )}
             </div>
-            <span className="h-[36px] w-[2px] rounded-full" style={{ backgroundColor: accent }} />
-            <p className="whitespace-nowrap text-center text-[0.54rem] font-black uppercase tracking-[.025em] text-white">{leagueName}</p>
+            <p className="whitespace-nowrap text-center text-[0.68rem] font-black uppercase tracking-[.01em] text-white">{leagueName}</p>
           </div>
         </div>
       </div>
