@@ -30,7 +30,7 @@ function sortedPlayers(players: Player[]) {
   return [...players].sort((a, b) => {
     const left = parts(a.displayName)
     const right = parts(b.displayName)
-    return left.firstName.localeCompare(right.firstName, "es", { sensitivity: "base" }) || left.surname.localeCompare(right.surname, "es", { sensitivity: "base" })
+    return left.surname.localeCompare(right.surname, "es", { sensitivity: "base" }) || left.firstName.localeCompare(right.firstName, "es", { sensitivity: "base" })
   })
 }
 
