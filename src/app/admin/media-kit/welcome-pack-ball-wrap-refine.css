@@ -25,6 +25,12 @@
   padding-bottom: 0.08rem !important;
 }
 
+/* Lift the complete roster slightly so the visual mass sits better under JUGADORES. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child {
+  transform: translateY(-4px) !important;
+}
+
 /* Keep PDF geometry independent from the viewport used to open the print dialog.
    The live desktop preview resolves to a 404 px design canvas. Printing always uses
    that same logical canvas and then scales it to the physical 240 x 130 mm trim. */
