@@ -127,15 +127,17 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: Props)
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-x-0 bottom-0 h-[2px] opacity-70" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_32%,rgba(255,255,255,.02)_68%,transparent)]" />
-          <div className="relative z-10 grid h-full grid-cols-[44px_minmax(0,1fr)] items-center gap-1 px-2">
-            <div className="flex min-w-0 items-center justify-center">
-              {leagueLogoUrl ? (
-                <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={70} height={44} className="h-auto max-h-[38px] w-auto max-w-[42px] object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,.38)]" />
-              ) : (
-                <span className="text-base font-black tracking-[.08em] text-white">{initials(leagueName)}</span>
-              )}
+          <div className="relative z-10 flex h-full items-center justify-center px-2">
+            <div className="flex min-w-0 items-center justify-center gap-1.5">
+              <div className="flex shrink-0 items-center justify-center">
+                {leagueLogoUrl ? (
+                  <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={70} height={44} className="h-auto max-h-[38px] w-auto max-w-[40px] object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,.38)]" />
+                ) : (
+                  <span className="text-base font-black tracking-[.08em] text-white">{initials(leagueName)}</span>
+                )}
+              </div>
+              <p className="whitespace-nowrap text-[0.68rem] font-black uppercase tracking-[.01em] text-white">{leagueName}</p>
             </div>
-            <p className="whitespace-nowrap text-center text-[0.68rem] font-black uppercase tracking-[.01em] text-white">{leagueName}</p>
           </div>
         </div>
       </div>
