@@ -20,50 +20,61 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
     const [brandSection, leagueSection, playersSection] = sections
 
-    const signature = Array.from(brandSection.children).find((node) => node instanceof HTMLParagraphElement) as HTMLParagraphElement | undefined
-    if (signature) {
-      signature.textContent = ""
-      signature.style.display = "flex"
-      signature.style.alignItems = "center"
-      signature.style.justifyContent = "center"
-      signature.style.gap = "4px"
-      signature.style.opacity = "1"
-
-      const icon = document.createElement("img")
-      icon.src = "/icon-192.png"
-      icon.alt = ""
-      icon.width = 12
-      icon.height = 12
-      icon.style.width = "12px"
-      icon.style.height = "12px"
-      icon.style.borderRadius = "3px"
-
-      const text = document.createElement("div")
-      text.style.textAlign = "left"
-      text.style.lineHeight = "1"
-      text.style.fontFamily = '"Arial Narrow", Arial, sans-serif'
-
-      const overline = document.createElement("div")
-      overline.textContent = "CREADO CON"
-      overline.style.fontSize = "4px"
-      overline.style.fontWeight = "800"
-      overline.style.letterSpacing = ".24em"
-      overline.style.color = props.accent
-
-      const brand = document.createElement("div")
-      brand.textContent = "SMASH & LOB"
-      brand.style.marginTop = "2px"
-      brand.style.fontSize = "5px"
-      brand.style.fontWeight = "900"
-      brand.style.letterSpacing = ".1em"
-      brand.style.color = "#f4f1ea"
-
-      text.append(overline, brand)
-      signature.replaceChildren(icon, text)
+    const brandSignature = Array.from(brandSection.children).find((node) => node instanceof HTMLParagraphElement) as HTMLParagraphElement | undefined
+    if (brandSignature) {
+      brandSignature.style.display = "none"
     }
+
+    leagueSection.querySelector('[data-sl-ball-wrap-signature="true"]')?.remove()
+
+    const signature = document.createElement("div")
+    signature.dataset.slBallWrapSignature = "true"
+    signature.style.position = "absolute"
+    signature.style.left = "0"
+    signature.style.right = "0"
+    signature.style.bottom = "10px"
+    signature.style.display = "flex"
+    signature.style.alignItems = "center"
+    signature.style.justifyContent = "center"
+    signature.style.gap = "4px"
+    signature.style.pointerEvents = "none"
+    signature.style.opacity = "1"
+
+    const icon = document.createElement("img")
+    icon.src = "/icon-192.png"
+    icon.alt = ""
+    icon.width = 12
+    icon.height = 12
+    icon.style.width = "12px"
+    icon.style.height = "12px"
+    icon.style.borderRadius = "3px"
+
+    const text = document.createElement("div")
+    text.style.textAlign = "left"
+    text.style.lineHeight = "1"
+    text.style.fontFamily = '"Arial Narrow", Arial, sans-serif'
+
+    const overline = document.createElement("div")
+    overline.textContent = "CREADO CON"
+    overline.style.fontSize = "4px"
+    overline.style.fontWeight = "800"
+    overline.style.letterSpacing = ".24em"
+    overline.style.color = props.accent
+
+    const brand = document.createElement("div")
+    brand.textContent = "SMASH & LOB"
+    brand.style.marginTop = "2px"
+    brand.style.fontSize = "5px"
+    brand.style.fontWeight = "900"
+    brand.style.letterSpacing = ".1em"
+    brand.style.color = "#f4f1ea"
+
+    text.append(overline, brand)
+    signature.append(icon, text)
 
     leagueSection.style.position = "relative"
     playersSection.style.position = "relative"
+    leagueSection.appendChild(signature)
 
     const welcomeTitle = leagueSection.querySelector(':scope > p:first-child') as HTMLElement | null
     if (welcomeTitle) {
