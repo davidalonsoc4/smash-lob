@@ -74,6 +74,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
     leagueSection.style.position = "relative"
     playersSection.style.position = "relative"
+    playersSection.style.overflow = "hidden"
     leagueSection.appendChild(signature)
 
     const welcomeTitle = leagueSection.querySelector(':scope > p:first-child') as HTMLElement | null
@@ -100,15 +101,23 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     if (playersList) {
       playersList.style.marginTop = "26px"
       playersList.style.textAlign = "center"
+      playersList.style.overflow = "hidden"
       playersList.querySelectorAll("div").forEach((column) => {
         const element = column as HTMLElement
         element.style.alignItems = "center"
         element.style.textAlign = "center"
+        element.style.overflow = "hidden"
+        element.style.gap = "3px"
       })
       playersList.querySelectorAll("p").forEach((name) => {
         const element = name as HTMLElement
         element.style.width = "100%"
         element.style.textAlign = "center"
+        element.style.fontSize = "0.54rem"
+        element.style.lineHeight = "1.08"
+        element.style.paddingBottom = "1px"
+        element.style.overflow = "visible"
+        element.style.textOverflow = "clip"
       })
     }
   }, [props.accent, props.leagueName, props.seasonName, props.players])
