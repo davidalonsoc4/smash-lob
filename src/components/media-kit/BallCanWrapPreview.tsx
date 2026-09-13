@@ -180,6 +180,8 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     clone.style.transform = `scale(${scale})`
     clone.style.transformOrigin = "top left"
 
+    const cloneMarkup = clone.outerHTML
+
     popup.document.open()
     popup.document.write(`<!doctype html>
 <html lang="es">
@@ -195,12 +197,33 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     html, body { margin: 0; padding: 0; width: 297mm; min-height: 210mm; background: #fff; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .sheet { width: 297mm; height: 210mm; display: flex; align-items: center; justify-content: center; overflow: hidden; break-after: page; page-break-after: always; }
-    .piece { position: relative; width: ${PRINT_WIDTH_MM}mm; height: ${PRINT_HEIGHT_MM}mm; overflow: visible; background: #090909; }
-    .bleed { position: absolute; inset: 0; overflow: hidden; background: #090909; }
-    .bleed::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 26% 10%, ${props.accent}45 0%, transparent 28%), radial-gradient(circle at 78% 86%, ${props.accent}28 0%, transparent 32%), radial-gradient(circle at 72% 18%, rgba(255,255,255,.13) 0%, transparent 22%), linear-gradient(130deg, rgba(255,255,255,.055) 0%, transparent 25%, rgba(255,255,255,.018) 56%, transparent 100%), linear-gradient(165deg, #1a1a1a 0%, #090909 48%, #020202 100%); }
-    .bleed::after { content: ""; position: absolute; inset: 0 0 auto; height: .85mm; background: ${props.accent}; }
-    .trim { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; overflow: hidden; background: #090909; }
+    .piece { position: relative; width: ${PRINT_WIDTH_MM}mm; height: ${PRINT_HEIGHT_MM}mm; overflow: visible; background: transparent; }
+    .trim { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; z-index: 10; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; overflow: hidden; background: transparent; }
     .sl-ball-wrap-print-design { position: absolute !important; left: 0 !important; top: 0 !important; margin: 0 !important; }
+
+    .bleed-segment { position: absolute; z-index: 1; overflow: hidden; background: transparent; }
+    .bleed-copy { position: absolute; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; }
+    .bleed-copy .sl-ball-wrap-print-design > div:first-child,
+    .bleed-copy .sl-ball-wrap-print-design > div:nth-child(n+4) { display: none !important; }
+
+    .bleed-top { left: ${BLEED_MM}mm; top: 0; width: ${TRIM_WIDTH_MM}mm; height: ${BLEED_MM}mm; }
+    .bleed-top .bleed-copy { left: 0; top: ${BLEED_MM}mm; transform: scaleY(-1); transform-origin: top center; }
+    .bleed-bottom { left: ${BLEED_MM}mm; bottom: 0; width: ${TRIM_WIDTH_MM}mm; height: ${BLEED_MM}mm; }
+    .bleed-bottom .bleed-copy { left: 0; bottom: ${BLEED_MM}mm; transform: scaleY(-1); transform-origin: bottom center; }
+    .bleed-left { left: 0; top: ${BLEED_MM}mm; width: ${BLEED_MM}mm; height: ${TRIM_HEIGHT_MM}mm; }
+    .bleed-left .bleed-copy { left: ${BLEED_MM}mm; top: 0; transform: scaleX(-1); transform-origin: left center; }
+    .bleed-right { right: 0; top: ${BLEED_MM}mm; width: ${BLEED_MM}mm; height: ${TRIM_HEIGHT_MM}mm; }
+    .bleed-right .bleed-copy { right: ${BLEED_MM}mm; top: 0; transform: scaleX(-1); transform-origin: right center; }
+
+    .bleed-tl { left: 0; top: 0; width: ${BLEED_MM}mm; height: ${BLEED_MM}mm; }
+    .bleed-tl .bleed-copy { left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; transform: scale(-1, -1); transform-origin: top left; }
+    .bleed-tr { right: 0; top: 0; width: ${BLEED_MM}mm; height: ${BLEED_MM}mm; }
+    .bleed-tr .bleed-copy { right: ${BLEED_MM}mm; top: ${BLEED_MM}mm; transform: scale(-1, -1); transform-origin: top right; }
+    .bleed-bl { left: 0; bottom: 0; width: ${BLEED_MM}mm; height: ${BLEED_MM}mm; }
+    .bleed-bl .bleed-copy { left: ${BLEED_MM}mm; bottom: ${BLEED_MM}mm; transform: scale(-1, -1); transform-origin: bottom left; }
+    .bleed-br { right: 0; bottom: 0; width: ${BLEED_MM}mm; height: ${BLEED_MM}mm; }
+    .bleed-br .bleed-copy { right: ${BLEED_MM}mm; bottom: ${BLEED_MM}mm; transform: scale(-1, -1); transform-origin: bottom right; }
+
     .crop { position: absolute; z-index: 50; display: block; background: #111; }
     .crop-tl-h, .crop-bl-h { left: -5mm; width: 4mm; height: .18mm; }
     .crop-tr-h, .crop-br-h { right: -5mm; width: 4mm; height: .18mm; }
@@ -219,8 +242,15 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 <body>
   <section class="sheet">
     <div class="piece">
-      <div class="bleed" aria-hidden="true"></div>
-      <div class="trim">${clone.outerHTML}</div>
+      <div class="bleed-segment bleed-top" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-bottom" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-left" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-right" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-tl" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-tr" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-bl" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="bleed-segment bleed-br" aria-hidden="true"><div class="bleed-copy">${cloneMarkup}</div></div>
+      <div class="trim">${cloneMarkup}</div>
       ${cropMarksMarkup()}
     </div>
   </section>
