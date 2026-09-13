@@ -43,3 +43,58 @@
 /* The centre block remains 24 mm (20% of 120 mm), centred from 48–72 mm.
    With the side blocks ending at 43 mm and starting again at 77 mm, this leaves
    exactly 5 mm of content-free space on each side of Welcome Pack. */
+
+/* Welcome Pack · ball-can wrap visual tuning.
+   Final physical geometry: 240 × 130 mm.
+   The first and last 5 mm keep the same background and top accent band but contain
+   no content. The remaining 230 mm are split into 3 exactly equal 76.6667 mm blocks. */
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(2) {
+  z-index: 4 !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(4),
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(5) {
+  background: transparent !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* Reuse the compact Smash & Lob signature treatment in the balls-brand block. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > p {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.375rem !important;
+  font-size: 0 !important;
+  opacity: 0.48;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > p::before {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  content: "";
+  border-radius: 3px;
+  background: url("/icon-192.png") center / contain no-repeat;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > p::after {
+  content: "CREADO CON\A SMASH & LOB";
+  white-space: pre;
+  text-align: left;
+  font-size: 0.3rem;
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.72);
+}
