@@ -1,0 +1,12 @@
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 1.82rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.075em !important;
+  transform: scaleX(0.9);
+  transform-origin: center;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3) {
+  display: none !important;
+}
