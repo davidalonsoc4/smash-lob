@@ -104,7 +104,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate text-[0.63rem] leading-none text-white/92" style={{ fontFamily: '\"Great Vibes\", \"Segoe Script\", cursive' }}>{player.displayName}</p>
+                        <p key={player.id} className="truncate text-[0.63rem] leading-none text-white/92" style={{ fontFamily: '"Great Vibes", "Segoe Script", cursive' }}>{player.displayName}</p>
                       ))}
                     </div>
                   ))}
