@@ -1,11 +1,17 @@
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child,
 .sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child {
   font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
-  font-size: 1.82rem !important;
+  font-size: 2.2rem !important;
   font-weight: 900 !important;
   letter-spacing: -0.075em !important;
   transform: scaleX(0.9);
   transform-origin: center;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2),
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2) {
+  font-size: 0.66rem !important;
+  letter-spacing: 0.12em !important;
 }
 
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3),
@@ -117,6 +123,26 @@
 /* Bag seal physical format refinement: keep the approved design, update only geometry. */
 [class~="aspect-[45/120]"] {
   aspect-ratio: 50 / 130 !important;
+}
+
+[class~="max-w-[260px]"] > div:first-child > span:last-child {
+  font-size: 0 !important;
+}
+
+[class~="max-w-[260px]"] > div:first-child > span:last-child::after {
+  content: "50 × 130 mm · definitivo";
+  font-size: 0.625rem;
+}
+
+body:has([class~="aspect-[45/120]"]) [class~="bg-amber-50"][class~="text-amber-900"] {
+  font-size: 0 !important;
+}
+
+body:has([class~="aspect-[45/120]"]) [class~="bg-amber-50"][class~="text-amber-900"]::after {
+  content: "Precinto de bolsa · 50 × 130 mm · medida definitiva.";
+  display: block;
+  font-size: 0.625rem;
+  line-height: 1rem;
 }
 
 /* Keep the visible production notes synchronized with the 50 x 130 mm format without
