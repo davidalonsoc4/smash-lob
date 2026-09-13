@@ -16,10 +16,31 @@
   opacity: 0 !important;
 }
 
-/* Visual identification test: highlight the full-height internal grey dividers. */
+/* Keep the original full-height grey dividers in place but fully transparent. */
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child,
-[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) {
-  border-right-color: #ff00ff !important;
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2),
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) {
+  border-right-color: rgba(255, 255, 255, 0) !important;
+}
+
+/* Mirror the subtle accent divider on the right edge of the league block. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2),
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) {
+  position: relative !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2)::after,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2)::after {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  right: 0;
+  bottom: 1.25rem;
+  width: 1px;
+  background-color: var(--ball-wrap-accent, #d4af37);
+  opacity: 0.533;
+  pointer-events: none;
 }
 
 /* Keep the player roster compact so the handwritten names sit comfortably inside
