@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { BallCanSealPreview } from "@/components/media-kit/BallCanSealPreview"
 import {
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
   getWelcomePackPlayerNameFontFamily,
@@ -156,6 +157,8 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.
       </div>
+
+      <BallCanSealPreview leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} accent={accent} />
     </div>
   )
 }
