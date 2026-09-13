@@ -96,7 +96,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
               <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 px-2">
                 <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
                 <div data-sl-ball-brand="true" className="flex -rotate-90 flex-col items-center whitespace-nowrap text-center">
-                  <p data-sl-ball-brand-head="true" className="text-[3.4rem] font-black leading-none tracking-[-.05em] text-white">HEAD</p>
+                  <p data-sl-ball-brand-head="true" className="text-[3.4rem] font-black leading-none tracking-[-.05em] text-white" style={{ transform: "scale(1.45)" }}>HEAD</p>
                   <p data-sl-ball-brand-model="true" className="mt-1 text-[0.66rem] font-black uppercase tracking-[.12em]" style={{ color: accent, WebkitTextFillColor: accent }}>
                     <span data-sl-ball-model-name="true" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>Padel Pro</span>{" "}
                     <span data-sl-ball-model-plus="true">S+</span>
