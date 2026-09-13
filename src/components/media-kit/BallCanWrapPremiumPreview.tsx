@@ -58,10 +58,8 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       </div>
 
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
-        <div
-          className="relative mx-auto w-full overflow-hidden rounded-[14px] text-white shadow-[0_18px_34px_rgba(0,0,0,.32)]"
-          style={{ aspectRatio: `${WIDTH_MM} / ${HEIGHT_MM}`, backgroundImage: premiumBackground, border: 0, borderRadius: 0 }}
-        >
+        <div className="relative mx-auto w-full overflow-hidden rounded-[14px] border border-black/40 text-white shadow-[0_18px_34px_rgba(0,0,0,.32)]" style={{ aspectRatio: `${WIDTH_MM} / ${HEIGHT_MM}`, backgroundImage: premiumBackground }}>
+          <div className="absolute inset-[5px] rounded-[10px] border border-white/10" />
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_30%,rgba(255,255,255,.025)_62%,transparent)] mix-blend-screen" />
 
@@ -73,7 +71,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
             <div className="absolute right-[-46px] bottom-[-56px] h-40 w-40 rounded-full border border-white/6" />
 
             <div className="relative z-10 grid h-full grid-cols-[22%_30%_48%] px-3">
-              <section className="relative flex min-w-0 items-center justify-center bg-black/16 px-2">
+              <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 bg-black/16 px-2">
                 <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
                 <div className="flex -rotate-90 flex-col items-center whitespace-nowrap text-center">
                   <p className="text-[1.55rem] font-black leading-none tracking-[-.04em] text-white">HEAD</p>
@@ -82,8 +80,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                 </div>
               </section>
 
-              <section className="relative flex min-w-0 flex-col items-center justify-center px-5 text-center">
-                <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
+              <section className="flex min-w-0 flex-col items-center justify-center border-r border-white/10 px-5 text-center">
                 <p className="mb-2 text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Welcome Pack</p>
                 <div className="flex min-h-[76px] w-full items-center justify-center"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div>
                 <p className="mt-1 line-clamp-2 max-w-[118px] text-[0.58rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white">{leagueName}</p>
