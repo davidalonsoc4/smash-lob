@@ -1,5 +1,4 @@
-[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child,
-.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child {
+[data-sl-ball-brand="true"] > [data-sl-ball-brand-head="true"] {
   font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
   font-size: 2.2rem !important;
   font-weight: 900 !important;
@@ -8,14 +7,15 @@
   transform-origin: center;
 }
 
-[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2),
-.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2) {
+[data-sl-ball-brand="true"] > [data-sl-ball-brand-model="true"] {
   font-size: 0.66rem !important;
   letter-spacing: 0.12em !important;
 }
 
-[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3),
-.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3) {
+/* Never allow legacy/smaller copies of the ball model line to coexist with the
+   definitive PADEL PRO + S+ row. */
+[data-sl-ball-brand="true"] > p:not([data-sl-ball-brand-head="true"]):not([data-sl-ball-brand-model="true"]),
+[data-sl-ball-brand-model="true"] > span:nth-of-type(n + 3) {
   display: none !important;
 }
 
@@ -99,10 +99,46 @@
 }
 
 /* The print clone keeps the exact logical width/height measured from the live preview.
-   BallCanWrapPreview then scales that clone to 240 x 130 mm, so typography and spacing
-   preserve the same proportions on mobile and desktop instead of being forced to 404 px. */
+   BallCanWrapPreview then scales that clone to 240 x 130 mm. */
 .sl-ball-wrap-print-design {
   transform-origin: top left !important;
+}
+
+/* A PDF generated from a phone opens in a desktop-sized print window. Preserve the
+   compact mobile identity sizes explicitly on that clone so PDF and mobile preview match. */
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section {
+  padding-left: 0.55rem !important;
+  padding-right: 0.55rem !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) {
+  min-height: 48px !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) img {
+  max-width: 86px !important;
+  max-height: 44px !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) > span {
+  font-size: 1.25rem !important;
+  letter-spacing: 0.14em !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(3) {
+  max-width: 90px !important;
+  font-size: 0.41rem !important;
+  line-height: 0.96 !important;
+  letter-spacing: 0.035em !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(5) {
+  font-size: 0.29rem !important;
+  letter-spacing: 0.09em !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  font-size: 0.49rem !important;
 }
 
 /* Print/PDF must contain no preview or cutting guide lines. The outer crop marks are
@@ -168,39 +204,37 @@ div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-ca
   line-height: 1.25rem;
 }
 
-/* Mobile preview: the fixed rem/px typography does not shrink with the responsive
-   canvas, so reduce the identity copy and league mark on narrow screens. */
+/* Mobile preview: use the same compact identity sizing that is carried into the PDF. */
 @media (max-width: 480px) {
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section {
-    padding-left: 0.7rem !important;
-    padding-right: 0.7rem !important;
-  }
-
-  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:first-child,
-  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:first-child > p:first-child {
-    font-size: 0.34rem !important;
-    letter-spacing: 0.16em !important;
+    padding-left: 0.55rem !important;
+    padding-right: 0.55rem !important;
   }
 
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) {
-    min-height: 58px !important;
+    min-height: 48px !important;
   }
 
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) img {
-    max-width: 100px !important;
-    max-height: 52px !important;
+    max-width: 86px !important;
+    max-height: 44px !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) > span {
+    font-size: 1.25rem !important;
+    letter-spacing: 0.14em !important;
   }
 
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(3) {
-    max-width: 104px !important;
-    font-size: 0.48rem !important;
-    line-height: 1 !important;
-    letter-spacing: 0.045em !important;
+    max-width: 90px !important;
+    font-size: 0.41rem !important;
+    line-height: 0.96 !important;
+    letter-spacing: 0.035em !important;
   }
 
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(5) {
-    font-size: 0.34rem !important;
-    letter-spacing: 0.11em !important;
+    font-size: 0.29rem !important;
+    letter-spacing: 0.09em !important;
   }
 
   [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
