@@ -180,6 +180,13 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     clone.style.transform = `scale(${scale})`
     clone.style.transformOrigin = "top left"
 
+    // The dashed limits for the 5 mm glue reserves are preview-only guides.
+    // Keep the reserved areas themselves, but never include their guide lines in print/PDF.
+    const leftGlueGuide = clone.children.item(3) as HTMLElement | null
+    const rightGlueGuide = clone.children.item(4) as HTMLElement | null
+    leftGlueGuide?.style.setProperty("border-right", "0", "important")
+    rightGlueGuide?.style.setProperty("border-left", "0", "important")
+
     const cloneMarkup = clone.outerHTML
 
     popup.document.open()
