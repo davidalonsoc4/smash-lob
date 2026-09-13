@@ -10,3 +10,51 @@
 [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3) {
   display: none !important;
 }
+
+/* Keep PDF geometry independent from the viewport used to open the print dialog.
+   The live desktop preview resolves to a 404 px design canvas. Printing always uses
+   that same logical canvas and then scales it to the physical 240 x 130 mm trim. */
+.sl-ball-wrap-print-design {
+  width: 404px !important;
+  height: 218.833333px !important;
+  min-width: 404px !important;
+  max-width: 404px !important;
+  transform: scale(2.245264) !important;
+  transform-origin: top left !important;
+}
+
+/* Mobile preview: the fixed rem/px typography does not shrink with the responsive
+   canvas, so reduce the identity copy and league mark on narrow screens. */
+@media (max-width: 480px) {
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section {
+    padding-left: 0.7rem !important;
+    padding-right: 0.7rem !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:first-child,
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:first-child > p:first-child {
+    font-size: 0.34rem !important;
+    letter-spacing: 0.16em !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) {
+    min-height: 58px !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) img {
+    max-width: 100px !important;
+    max-height: 52px !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(3) {
+    max-width: 104px !important;
+    font-size: 0.48rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0.045em !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(5) {
+    font-size: 0.34rem !important;
+    letter-spacing: 0.11em !important;
+  }
+}
