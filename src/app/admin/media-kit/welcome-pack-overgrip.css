@@ -98,3 +98,55 @@
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.72);
 }
+
+/* Ball-can wrap: keep handwritten descenders and flourishes visible. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3),
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div {
+  overflow: visible !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  line-height: 1.18 !important;
+  padding-bottom: 0.125rem !important;
+}
+
+/* Ball-can wrap: approximate the HEAD wordmark with a tighter, heavier face. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.065em !important;
+  transform: scaleX(0.9);
+  transform-origin: center;
+}
+
+/* Keep PADEL PRO neutral and reserve the league accent only for S+. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2) {
+  color: transparent !important;
+  font-size: 0 !important;
+  letter-spacing: 0 !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2)::before {
+  content: "PADEL PRO ";
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.44rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2)::after {
+  content: "S+";
+  color: var(--ball-wrap-accent);
+  font-size: 0.44rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+/* Move the compact league signature a few millimetres upward without changing scale. */
+[class~="max-w-[430px]"] [data-sl-ball-wrap-signature="true"] {
+  bottom: 12px !important;
+}
