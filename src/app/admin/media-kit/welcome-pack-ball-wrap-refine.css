@@ -12,6 +12,10 @@
   letter-spacing: 0.12em !important;
 }
 
+[data-sl-ball-model-plus="true"] {
+  color: var(--ball-wrap-accent, #d4af37) !important;
+}
+
 /* Never allow legacy/smaller copies of the ball model line to coexist with the
    definitive PADEL PRO + S+ row. */
 [data-sl-ball-brand="true"] > p:not([data-sl-ball-brand-head="true"]):not([data-sl-ball-brand-model="true"]),
