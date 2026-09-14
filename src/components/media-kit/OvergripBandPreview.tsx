@@ -6,7 +6,6 @@ import { normalizeImageUrl } from "@/lib/imageUrl"
 import {
   WELCOME_PACK_OVERGRIP_BAND,
   getWelcomePackGeneralFontFamily,
-  getWelcomePackPlayerNameFontFamily,
   type WelcomePackGeneralFont,
   type WelcomePackPlayerNameFont,
 } from "@/lib/mediaKitWelcomePack"
@@ -21,6 +20,15 @@ type Props = {
   playerFont: WelcomePackPlayerNameFont
   generalFont: WelcomePackGeneralFont
 }
+
+const OVERGRIP_BLEED_MM = 2
+const PRINTED_WIDTH_MM = WELCOME_PACK_OVERGRIP_BAND.widthMm + OVERGRIP_BLEED_MM * 2
+const PRINTED_HEIGHT_MM = WELCOME_PACK_OVERGRIP_BAND.heightMm + OVERGRIP_BLEED_MM * 2
+const A4_LANDSCAPE_WIDTH_MM = 297
+const A4_LANDSCAPE_HEIGHT_MM = 210
+const COLUMNS_PER_A4 = Math.floor(A4_LANDSCAPE_WIDTH_MM / PRINTED_WIDTH_MM)
+const ROWS_PER_A4 = Math.floor(A4_LANDSCAPE_HEIGHT_MM / PRINTED_HEIGHT_MM)
+const ITEMS_PER_A4 = COLUMNS_PER_A4 * ROWS_PER_A4
 
 function documentPrintStyles() {
   return Array.from(document.querySelectorAll<HTMLStyleElement | HTMLLinkElement>('style, link[rel="stylesheet"]'))
@@ -37,25 +45,30 @@ function LeagueLogo({ league }: { league: League }) {
         unoptimized
         src={normalizedLogoUrl}
         alt={league.name}
-        width={112}
-        height={62}
-        className="relative z-10 h-auto max-h-[58px] w-auto max-w-[112px] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.38)]"
+        width={160}
+        height={90}
+        className="h-auto max-h-[42px] w-auto max-w-[72px] object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.34)]"
       />
     )
   }
 
   const initials = league.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SL"
-  return <span className="text-xl font-black tracking-[.22em] text-white">{initials}</span>
+  return <span className="text-[1.2rem] font-black tracking-[.16em] text-white">{initials}</span>
+}
+
+function cropMarksMarkup() {
+  return `<span class="crop crop-tl-h"></span><span class="crop crop-tl-v"></span>
+    <span class="crop crop-tr-h"></span><span class="crop crop-tr-v"></span>
+    <span class="crop crop-bl-h"></span><span class="crop crop-bl-v"></span>
+    <span class="crop crop-br-h"></span><span class="crop crop-br-v"></span>`
 }
 
 export function OvergripBandPreview(props: Props) {
-  const { league, playerName, accent, playerFont, generalFont } = props
+  const { league, accent, generalFont } = props
   const designRef = useRef<HTMLDivElement>(null)
   const [printError, setPrintError] = useState<string | null>(null)
   const generalFamily = getWelcomePackGeneralFontFamily(generalFont)
-  const playerFamily = getWelcomePackPlayerNameFontFamily(playerFont)
-  const [playerFirstName, ...playerSurnameParts] = playerName.trim().split(/\s+/)
-  const playerSurname = playerSurnameParts.join(" ")
+
   const premiumBackground = [
     `radial-gradient(circle at 16% 12%, ${accent}4A 0%, transparent 27%)`,
     "radial-gradient(circle at 82% 28%, rgba(255,255,255,.15) 0%, transparent 20%)",
@@ -71,7 +84,7 @@ export function OvergripBandPreview(props: Props) {
       return
     }
 
-    const popup = window.open("", "_blank", "width=1000,height=800")
+    const popup = window.open("", "_blank", "width=1200,height=900")
     if (!popup) {
       setPrintError("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para generar el PDF.")
       return
@@ -80,15 +93,19 @@ export function OvergripBandPreview(props: Props) {
     setPrintError(null)
     popup.opener = null
 
-    const clone = design.cloneNode(true) as HTMLElement
-    clone.style.width = `${WELCOME_PACK_OVERGRIP_BAND.widthMm}mm`
-    clone.style.height = `${WELCOME_PACK_OVERGRIP_BAND.heightMm}mm`
-    clone.style.maxWidth = "none"
-    clone.style.margin = "0"
-    clone.style.borderRadius = "0"
-    clone.style.boxShadow = "none"
-    clone.style.borderWidth = "0"
-    clone.style.aspectRatio = "auto"
+    const copies = Array.from({ length: ITEMS_PER_A4 }, () => {
+      const clone = design.cloneNode(true) as HTMLElement
+      clone.style.width = `${PRINTED_WIDTH_MM}mm`
+      clone.style.height = `${PRINTED_HEIGHT_MM}mm`
+      clone.style.maxWidth = "none"
+      clone.style.margin = "0"
+      clone.style.padding = `${OVERGRIP_BLEED_MM}mm`
+      clone.style.borderRadius = "0"
+      clone.style.boxShadow = "none"
+      clone.style.borderWidth = "0"
+      clone.style.aspectRatio = "auto"
+      return `<div class="slot">${clone.outerHTML}${cropMarksMarkup()}</div>`
+    }).join("")
 
     popup.document.open()
     popup.document.write(`<!doctype html>
@@ -97,21 +114,53 @@ export function OvergripBandPreview(props: Props) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <base href="${window.location.origin}/" />
-  <title>Welcome Pack · Fajín overgrip · ${league.name}</title>
+  <title>Fajín overgrip · ${league.name} · ${ITEMS_PER_A4} uds</title>
   ${documentPrintStyles()}
   <style>
-    @page { size: A4 portrait; margin: 0; }
+    @page { size: 297mm 210mm; margin: 0; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; width: 210mm; min-height: 297mm; background: #fff; }
+    html, body { margin: 0; padding: 0; width: 297mm; height: 210mm; background: #fff; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .sheet { width: 210mm; height: 297mm; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .piece { position: relative; width: ${WELCOME_PACK_OVERGRIP_BAND.widthMm}mm; height: ${WELCOME_PACK_OVERGRIP_BAND.heightMm}mm; overflow: hidden; }
-    .piece > [data-overgrip-band-design="true"] { width: 100% !important; height: 100% !important; max-width: none !important; margin: 0 !important; }
-    @media screen { body { display: flex; justify-content: center; padding-top: 12px; background: #ececec; } .sheet { background: white; box-shadow: 0 12px 42px rgba(0,0,0,.18); } }
+    .sheet {
+      width: 297mm;
+      height: 210mm;
+      display: grid;
+      grid-template-columns: repeat(${COLUMNS_PER_A4}, ${PRINTED_WIDTH_MM}mm);
+      grid-template-rows: repeat(${ROWS_PER_A4}, ${PRINTED_HEIGHT_MM}mm);
+      place-content: center;
+      overflow: hidden;
+    }
+    .slot {
+      position: relative;
+      width: ${PRINTED_WIDTH_MM}mm;
+      height: ${PRINTED_HEIGHT_MM}mm;
+      overflow: visible;
+    }
+    .slot > [data-overgrip-band-design="true"] {
+      width: ${PRINTED_WIDTH_MM}mm !important;
+      height: ${PRINTED_HEIGHT_MM}mm !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: ${OVERGRIP_BLEED_MM}mm !important;
+      overflow: hidden !important;
+    }
+    .crop { position: absolute; display: block; background: #111; z-index: 50; }
+    .crop-tl-h, .crop-bl-h { left: 0.35mm; width: 1.25mm; height: 0.12mm; }
+    .crop-tr-h, .crop-br-h { right: 0.35mm; width: 1.25mm; height: 0.12mm; }
+    .crop-tl-v, .crop-tr-v { top: 0.35mm; width: 0.12mm; height: 1.25mm; }
+    .crop-bl-v, .crop-br-v { bottom: 0.35mm; width: 0.12mm; height: 1.25mm; }
+    .crop-tl-h, .crop-tr-h { top: ${OVERGRIP_BLEED_MM}mm; }
+    .crop-bl-h, .crop-br-h { bottom: ${OVERGRIP_BLEED_MM}mm; }
+    .crop-tl-v, .crop-bl-v { left: ${OVERGRIP_BLEED_MM}mm; }
+    .crop-tr-v, .crop-br-v { right: ${OVERGRIP_BLEED_MM}mm; }
+    @media screen {
+      body { display: flex; justify-content: center; background: #ececec; }
+      .sheet { background: white; box-shadow: 0 12px 42px rgba(0,0,0,.18); }
+    }
   </style>
 </head>
 <body>
-  <section class="sheet"><div class="piece">${clone.outerHTML}</div></section>
+  <section class="sheet">${copies}</section>
   <script>
     (async () => {
       try {
@@ -152,45 +201,26 @@ export function OvergripBandPreview(props: Props) {
           <div className="absolute inset-x-0 bottom-0 h-px opacity-35" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
-          <div className="relative z-10 grid h-full grid-cols-[30%_1fr_30%] items-center px-[8.333%] gap-1.5">
-            <div className="flex min-w-0 items-center gap-1.5 text-left">
-              <div className="relative flex h-[20px] w-[28px] shrink-0 items-center justify-center">
-                <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
-                <div className="relative scale-[.36]"><LeagueLogo league={league} /></div>
-              </div>
-              <p className="line-clamp-2 whitespace-normal text-[0.328rem] font-black uppercase leading-[1.05] tracking-[.03em] text-white">
-                {league.name}
-              </p>
+          <div className="relative z-10 flex h-full items-center justify-center gap-3 px-[8.333%] text-center">
+            <div className="flex h-[42px] w-[72px] shrink-0 items-center justify-center">
+              <LeagueLogo league={league} />
             </div>
-
-            <div className="flex min-w-0 flex-col items-center justify-center text-center">
-              <p className="text-[0.2rem] font-black uppercase tracking-[.16em]" style={{ color: accent }}>
-                Smash &amp; Lob
-              </p>
-              <p className="mt-[1px] text-[0.53rem] font-black uppercase leading-none tracking-[.04em] text-white">
-                Welcome Pack
-              </p>
-            </div>
-
-            <div className="flex min-w-0 justify-end text-right">
-              <p className="flex min-w-0 flex-col text-[0.57rem] leading-[1.02] text-white" style={{ fontFamily: playerFamily }}>
-                <span className="block truncate">{playerFirstName || playerName}</span>
-                {playerSurname ? <span className="block truncate">{playerSurname}</span> : null}
-              </p>
-            </div>
+            <p className="min-w-0 max-w-[64%] text-balance text-[0.92rem] font-black uppercase leading-[0.96] tracking-[.015em] text-white">
+              {league.name}
+            </p>
           </div>
         </div>
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m². Medida definitiva: {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm.
+        <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m². Medida final: {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm · sangrado: {OVERGRIP_BLEED_MM} mm por lado.
       </div>
 
       <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">PDF de impresión · papel</p>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">A4 · fajín a tamaño real · mismas proporciones y posición que la preview.</p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">A4 apaisado · {ITEMS_PER_A4} fajines · tamaño real · sangrado y marcas de corte.</p>
           </div>
           <button type="button" onClick={printPdf} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-center text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">Generar PDF / imprimir</button>
         </div>
