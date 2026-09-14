@@ -204,7 +204,7 @@ export function OvergripBandPreview({ league, seasonName, playerName, accent, pl
             <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">PDF de impresión · papel</p>
             <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">A4 · fajín a tamaño real · misma composición que la preview.</p>
           </div>
-          <button type="button" onClick={printPdf} className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">Generar PDF / imprimir</button>
+          <button type="button" onClick={printPdf} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-center text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">Generar PDF / imprimir</button>
         </div>
         {printError ? <p className="mt-2 text-xs font-bold text-red-600">{printError}</p> : null}
       </div>
