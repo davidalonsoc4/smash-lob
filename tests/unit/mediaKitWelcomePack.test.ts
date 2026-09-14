@@ -10,17 +10,17 @@ import {
 } from "@/lib/mediaKitWelcomePack"
 
 describe("Media Kit Welcome Pack", () => {
-  it("packs up to eight bag seals per A4 sheet", () => {
-    expect(WELCOME_PACK_BAG_SEAL.itemsPerA4).toBe(8)
+  it("packs up to six bag seals per A4 sheet", () => {
+    expect(WELCOME_PACK_BAG_SEAL.itemsPerA4).toBe(6)
     expect(getWelcomePackBagSealSheetCount(0)).toBe(0)
-    expect(getWelcomePackBagSealSheetCount(8)).toBe(1)
-    expect(getWelcomePackBagSealSheetCount(9)).toBe(2)
+    expect(getWelcomePackBagSealSheetCount(6)).toBe(1)
+    expect(getWelcomePackBagSealSheetCount(7)).toBe(2)
   })
 
-  it("keeps the provisional physical measurements explicit", () => {
-    expect(WELCOME_PACK_BAG_SEAL.trimWidthMm).toBe(45)
-    expect(WELCOME_PACK_BAG_SEAL.trimHeightMm).toBe(120)
-    expect(WELCOME_PACK_BAG_SEAL.faceHeightMm).toBe(60)
+  it("keeps the final physical measurements explicit", () => {
+    expect(WELCOME_PACK_BAG_SEAL.trimWidthMm).toBe(50)
+    expect(WELCOME_PACK_BAG_SEAL.trimHeightMm).toBe(130)
+    expect(WELCOME_PACK_BAG_SEAL.faceHeightMm).toBe(65)
     expect(WELCOME_PACK_BAG_SEAL.bleedMm).toBe(2)
   })
 
