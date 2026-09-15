@@ -19,9 +19,9 @@ type Props = {
   accent: string
 }
 
-const WIDTH_MM = 240
+const WIDTH_MM = 230
 const HEIGHT_MM = 130
-const SIDE_GLUE_MM = 5
+const SIDE_GLUE_MM = 0
 
 function parts(value: string) {
   const [firstName = "", ...surname] = value.trim().split(/\s+/)
@@ -38,10 +38,10 @@ function sortedPlayers(players: Player[]) {
 
 function LeagueMark({ leagueName, leagueLogoUrl }: Pick<Props, "leagueName" | "leagueLogoUrl">) {
   if (leagueLogoUrl) {
-    return <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={150} height={82} className="h-auto max-h-[72px] w-auto max-w-[138px] object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,.42)]" />
+    return <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={204} height={112} className="h-auto max-h-[98px] w-auto max-w-[188px] object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,.42)]" />
   }
   const initials = leagueName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SL"
-  return <span className="text-3xl font-black tracking-[.2em] text-white">{initials}</span>
+  return <span className="text-[2.05rem] font-black tracking-[.2em] text-white">{initials}</span>
 }
 
 function LeagueNameText({ leagueName }: { leagueName: string }) {
@@ -97,19 +97,18 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_30%,rgba(255,255,255,.025)_62%,transparent)] mix-blend-screen" />
 
-          <div className="absolute inset-y-0 left-0 z-[1] border-r border-dashed border-white/18 bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
-          <div className="absolute inset-y-0 right-0 z-[1] border-l border-dashed border-white/18 bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
+          <div className="absolute inset-y-0 left-0 z-[1] bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
+          <div className="absolute inset-y-0 right-0 z-[1] bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
 
           <div className="absolute inset-y-0 z-[2]" style={{ left: `${sideGluePercent}%`, right: `${sideGluePercent}%` }}>
             <div className="absolute -left-10 top-[-22px] h-32 w-32 rounded-full border border-white/6" />
             <div className="absolute right-[-46px] bottom-[-56px] h-40 w-40 rounded-full border border-white/6" />
 
             <div className="relative z-10 grid h-full grid-cols-[22%_30%_48%] px-3">
-              <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 px-2">
-                <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
+              <section className="relative flex min-w-0 items-center justify-center px-2">
                 <div data-sl-ball-brand="true" className="flex -rotate-90 flex-col items-center whitespace-nowrap text-center">
-                  <p data-sl-ball-brand-head="true" className="text-[3.4rem] font-black leading-none tracking-[-.05em] text-white" style={{ transform: "scale(1.45)" }}>HEAD</p>
-                  <p data-sl-ball-brand-model="true" className="mt-1 text-[0.66rem] font-black uppercase tracking-[.12em]" style={{ color: accent, WebkitTextFillColor: accent }}>
+                  <p data-sl-ball-brand-head="true" className="text-[3.55rem] font-black leading-none tracking-[-.05em] text-white" style={{ transform: "scale(1.52)" }}>HEAD</p>
+                  <p data-sl-ball-brand-model="true" className="mt-1 text-[0.69rem] font-black uppercase tracking-[.12em]" style={{ color: accent, WebkitTextFillColor: accent }}>
                     <span data-sl-ball-model-name="true" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>Padel Pro</span>{" "}
                     <span data-sl-ball-model-plus="true">S+</span>
                   </p>
@@ -117,27 +116,27 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
               </section>
 
               <section className="flex min-w-0 flex-col items-center justify-center border-r border-white/10 px-5 text-center">
-                <p className="mb-2 text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Welcome Pack</p>
-                <div className="flex min-h-[76px] w-full items-center justify-center"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div>
-                <p className="mt-1 line-clamp-2 max-w-[118px] whitespace-normal text-[0.58rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white"><LeagueNameText leagueName={leagueName} /></p>
-                <div className="mt-2 grid grid-cols-[26px_4px_26px] items-center gap-1.5">
+                <p className="mb-2 text-[0.44rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Welcome Pack</p>
+                <div className="flex min-h-[96px] w-full items-center justify-center"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div>
+                <p className="mt-1 line-clamp-2 max-w-[132px] whitespace-normal text-[0.68rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white"><LeagueNameText leagueName={leagueName} /></p>
+                <div className="mt-2 grid grid-cols-[27px_4px_27px] items-center gap-1.5">
                   <span className="h-px bg-white/18" />
                   <span className="h-[3px] w-[3px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
                   <span className="h-px bg-white/18" />
                 </div>
-                <p className="mt-1.5 text-[0.42rem] font-black uppercase tracking-[.14em] text-white/64">{seasonName}</p>
+                <p className="mt-1.5 text-[0.44rem] font-black uppercase tracking-[.14em] text-white/64">{seasonName}</p>
               </section>
 
               <section className="flex min-w-0 flex-col justify-center px-5 py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>{tx("Jugadores")}</p>
-                  <span className="rounded-full border border-white/10 bg-white/[.04] px-2 py-1 text-[0.38rem] font-black text-white/62">{roster.length}</span>
+                  <p className="text-[0.44rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>{tx("Jugadores")}</p>
+                  <span className="rounded-full border border-white/10 bg-white/[.04] px-2 py-1 text-[0.4rem] font-black text-white/62">{roster.length}</span>
                 </div>
                 <div className={`mt-3 grid min-h-0 flex-1 ${oneColumn ? "grid-cols-1" : "grid-cols-2 gap-x-4"}`}>
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate text-[0.63rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
+                        <p key={player.id} className="truncate text-[0.69rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
                       ))}
                     </div>
                   ))}
@@ -165,7 +164,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">{tx("Faja adhesiva:")}</strong> {tx("240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.")} </div>
+        <strong className="text-neutral-900">{tx("Faja adhesiva:")}</strong> {tx("230 × 130 mm a tamaño real. El bloque útil conserva las medidas de la versión anterior, eliminando los 5 mm laterales de reserva de cada lado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.")} </div>
     </div>
   )
 }

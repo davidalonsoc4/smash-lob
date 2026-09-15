@@ -7,7 +7,7 @@ import { BallCanWrapPremiumPreview } from "@/components/media-kit/BallCanWrapPre
 
 type BallCanWrapPreviewProps = ComponentProps<typeof BallCanWrapPremiumPreview>
 
-const TRIM_WIDTH_MM = 240
+const TRIM_WIDTH_MM = 230
 const TRIM_HEIGHT_MM = 130
 const BLEED_MM = 3
 const PRINT_WIDTH_MM = TRIM_WIDTH_MM + BLEED_MM * 2
@@ -153,7 +153,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
         const element = name as HTMLElement
         element.style.width = "100%"
         element.style.textAlign = "center"
-        element.style.fontSize = "0.54rem"
+        element.style.fontSize = "0.625rem"
         element.style.lineHeight = "1.08"
         element.style.paddingBottom = "1px"
         element.style.overflow = "visible"
@@ -237,7 +237,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     html, body { margin: 0; padding: 0; width: 297mm; min-width: 297mm; max-width: 297mm; height: 210mm; min-height: 210mm; max-height: 210mm; background: #fff; overflow: hidden; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .sheet { page: sl-ball-can-landscape; position: relative; width: 297mm; min-width: 297mm; max-width: 297mm; height: 210mm; min-height: 210mm; max-height: 210mm; overflow: hidden; background: #fff; break-after: page; page-break-after: always; }
-    .wrap-piece { position: absolute; left: 25.5mm; top: 14mm; width: ${PRINT_WIDTH_MM}mm; height: ${PRINT_HEIGHT_MM}mm; }
+    .wrap-piece { position: absolute; left: 30.5mm; top: 14mm; width: ${PRINT_WIDTH_MM}mm; height: ${PRINT_HEIGHT_MM}mm; }
     .trim { position: absolute; left: ${BLEED_MM}mm; top: ${BLEED_MM}mm; z-index: 10; width: ${TRIM_WIDTH_MM}mm; height: ${TRIM_HEIGHT_MM}mm; overflow: hidden; }
     .sl-ball-wrap-print-design { position: absolute !important; left: 0 !important; top: 0 !important; margin: 0 !important; }
     .bleed-segment { position: absolute; z-index: 1; overflow: hidden; }
@@ -276,10 +276,10 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     .seal-art::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(255,255,255,.07),transparent 32%,rgba(255,255,255,.02) 68%,transparent); }
     .seal-accent-top,.seal-accent-bottom { position:absolute; left:0; right:0; height:.55mm; background:${props.accent}; }
     .seal-accent-top { top:0; } .seal-accent-bottom { bottom:0; opacity:.72; }
-    .seal-content { position:absolute; left:${SEAL_BLEED_MM}mm; top:${SEAL_BLEED_MM}mm; width:${SEAL_TRIM_WIDTH_MM}mm; height:${SEAL_TRIM_HEIGHT_MM}mm; display:grid; grid-template-columns:9mm minmax(0,1fr); align-items:center; gap:.8mm; padding:1.5mm 1.4mm; color:white; font-family:Arial,Helvetica,sans-serif; }
-    .seal-logo { height:8mm; display:flex; align-items:center; justify-content:center; }
-    .seal-logo img { display:block; max-width:8.5mm; max-height:7.5mm; object-fit:contain; filter:drop-shadow(0 1mm 1.6mm rgba(0,0,0,.35)); }
-    .seal-fallback { font-weight:900; font-size:3mm; letter-spacing:.3mm; }
+    .seal-content { position:absolute; left:${SEAL_BLEED_MM}mm; top:${SEAL_BLEED_MM}mm; width:${SEAL_TRIM_WIDTH_MM}mm; height:${SEAL_TRIM_HEIGHT_MM}mm; display:grid; grid-template-columns:12mm minmax(0,1fr); align-items:center; gap:1mm; padding:1.1mm 1.4mm; color:white; font-family:Arial,Helvetica,sans-serif; }
+    .seal-logo { height:11mm; display:flex; align-items:center; justify-content:center; }
+    .seal-logo img { display:block; max-width:11.5mm; max-height:10mm; object-fit:contain; transform:rotate(90deg); filter:drop-shadow(0 1mm 1.6mm rgba(0,0,0,.35)); }
+    .seal-fallback { font-weight:900; font-size:3.4mm; letter-spacing:.3mm; }
     .seal-name { min-width:0; text-align:center; font-size:2.8mm; line-height:1; font-weight:900; text-transform:uppercase; letter-spacing:.03mm; white-space:nowrap; }
     .seal-cut-v,.seal-cut-h { position:absolute; background:#111; }
     .seal-cut-v { width:.2mm; height:3mm; } .seal-cut-h { width:3mm; height:.2mm; }
