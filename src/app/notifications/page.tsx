@@ -714,7 +714,7 @@ export default function NotificationsPage() {
     return () => {
       isMounted = false;
     };
-  }, [activeLeague.id, refreshKey]);
+  }, [activeLeague.id, refreshKey, tx]);
 
   const currentUserMatchIds = useMemo(
     () =>

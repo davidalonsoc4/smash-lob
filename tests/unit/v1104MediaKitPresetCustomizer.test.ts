@@ -23,7 +23,7 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
 
   it("orders presets from league setup through season closure", async () => {
     const page = await read("src/app/admin/media-kit/page.tsx")
-    const order = page.slice(page.indexOf("const presetOrder"), page.indexOf("const openingAccentOptions"))
+    const order = page.slice(page.indexOf("const presetOrder"), page.indexOf("const openingHeadlineFontOptions"))
 
     for (const [first, second] of [
       ['"format"', '"registration"'],
@@ -53,25 +53,29 @@ describe("v1.10.4 preset-driven media kit customizer", () => {
   })
 
   it("adds an expandable custom accent color without removing the curated palette", async () => {
-    const page = await read("src/app/admin/media-kit/page.tsx")
+    const shell = await read("src/components/media-kit/MediaKitWorkspaceShell.tsx")
 
-    expect(page).toContain("openingAccentOptions.map")
-    expect(page).toContain("showCustomAccent")
-    expect(page).toContain("customAccentDraft")
-    expect(page).toContain("aria-expanded={showCustomAccent}")
-    expect(page).toContain('aria-label={tx("Color personalizado")}')
-    expect(page).toContain('aria-label={tx("Selector de color personalizado")}')
-    expect(page).toContain('aria-label={tx(`Usar color ${color}`)}')
-    expect(page).toContain("/^#[0-9a-f]{6}$/i")
+    expect(shell).toContain("MEDIA_KIT_ACCENT_OPTIONS.map")
+    expect(shell).toContain("showCustom")
+    expect(shell).toContain("customDraft")
+    expect(shell).toContain('tx("+ Propio")')
+    expect(shell).toContain('aria-label={tx("Selector de color personalizado")}')
+    expect(shell).toContain('aria-label={tx("Código hexadecimal personalizado")}')
+    expect(shell).toContain('aria-label={tx(`Usar color ${color}`)}')
+    expect(shell).toContain("/^#[0-9a-f]{6}$/i")
   })
 
   it("adds the frequent green and automatic logo-based accent suggestions", async () => {
-    const page = await read("src/app/admin/media-kit/page.tsx")
+    const [page, shell, theme] = await Promise.all([
+      read("src/app/admin/media-kit/page.tsx"),
+      read("src/components/media-kit/MediaKitWorkspaceShell.tsx"),
+      read("src/lib/mediaKitTheme.ts"),
+    ])
 
-    expect(page).toContain('"#53B401"')
-    expect(page).toContain("extractLogoAccentPalette")
-    expect(page).toContain("Sugeridos por el logo")
-    expect(page).toContain("logoAccentSuggestions.map")
+    expect(theme).toContain('"#53B401"')
+    expect(shell).toContain("extractLogoAccentPalette")
+    expect(shell).toContain("Sugeridos por el logo")
+    expect(shell).toContain("logoColors.map")
     expect(page).toContain("openingLogoOverride ?? activeLeague.logoUrl")
   })
 

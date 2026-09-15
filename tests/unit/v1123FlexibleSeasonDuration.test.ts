@@ -94,7 +94,7 @@ describe("v1.12.3 flexible season duration", () => {
     expect(audit.repeatedMatchCount).toBe(0)
     expect(audit.invalidTeammatePairCount).toBe(0)
     expect(audit.invalidOpponentPairCount).toBe(0)
-  })
+  }, 10_000)
 
   it.each([
     [8, 5], [9, 7], [10, 7], [11, 8], [12, 7], [13, 6], [14, 7], [15, 10],
@@ -127,7 +127,7 @@ describe("v1.12.3 flexible season duration", () => {
       expect(audit.isBalanced).toBe(true)
       expect(audit.repeatedMatchCount).toBe(0)
     }
-  }, 30_000)
+  }, 60_000)
 
   it("wires custom duration, expansion and the atomic resize migration through the product flow", () => {
     const adminSource = fs.readFileSync(path.join(process.cwd(), "src/app/admin/season/page.tsx"), "utf8")

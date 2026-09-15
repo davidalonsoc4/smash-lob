@@ -25,7 +25,6 @@ import {
 import { getSeasonCountdown, formatScheduledSeasonStart, SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundMvpSelection, getSeasonMvpSelection } from "@/lib/mvp"
-import { extractLogoAccentPalette } from "@/lib/logoAccentPalette"
 import { buildMediaKitWelcomeLetter } from "@/lib/mediaKitWelcomeLetter"
 import {
   createLeagueMediaKitImage,
@@ -41,6 +40,7 @@ import {
   type LeagueMediaKitWelcomeSignatureFont,
 } from "@/lib/leagueMediaKitImage"
 import { useI18n } from "@/i18n/I18nProvider"
+import { useMediaKitSettings } from "@/context/MediaKitSettingsProvider"
 import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 
@@ -98,7 +98,6 @@ const presetOrder: LeagueMediaKitKind[] = [
   "season_final",
 ]
 
-const openingAccentOptions = ["#d7a544", "#53B401", "#bb9448", "#d4643c", "#3d9d86", "#477bd1", "#8b5fc0"]
 const openingHeadlineFontOptions: Array<{ id: LeagueMediaKitHeadlineFont; label: string; detail: string; sampleClass: string }> = [
   { id: "impact", label: "Impacto", detail: "Cartel deportivo", sampleClass: "font-black tracking-tight" },
   { id: "condensed", label: "Condensada", detail: "Alta y precisa", sampleClass: "font-black tracking-[-.08em]" },
@@ -269,9 +268,7 @@ export default function MediaKitPage() {
   const [openingTime, setOpeningTime] = useState(initialOpeningLabels.time)
   const [openingVenue, setOpeningVenue] = useState(initialOpeningVenue)
   const [openingRound, setOpeningRound] = useState(() => tx("Jornada 1"))
-  const [openingAccent, setOpeningAccent] = useState("#d7a544")
-  const [customAccentDraft, setCustomAccentDraft] = useState("#d7a544")
-  const [showCustomAccent, setShowCustomAccent] = useState(false)
+  const { accentColor: openingAccent } = useMediaKitSettings()
   const [openingHeadlineFont, setOpeningHeadlineFont] = useState<LeagueMediaKitHeadlineFont>("editorial")
   const [welcomeLetterFont, setWelcomeLetterFont] = useState<LeagueMediaKitWelcomeLetterFont>("club_classic")
   const [welcomeLogoStyle, setWelcomeLogoStyle] = useState<LeagueMediaKitWelcomeLogoStyle>("clean_stamp")
@@ -279,7 +276,6 @@ export default function MediaKitPage() {
   const [welcomeRecipientName, setWelcomeRecipientName] = useState("")
   const [welcomeRecipientGender, setWelcomeRecipientGender] = useState<"masculine" | "feminine">("masculine")
   const [openingLogoOverride, setOpeningLogoOverride] = useState<string | null>(null)
-  const [logoAccentResult, setLogoAccentResult] = useState<{ source: string; colors: string[]; failed: boolean } | null>(null)
   const [spotlightImageUrl, setSpotlightImageUrl] = useState<string | null>(null)
   const [formatRows, setFormatRows] = useState<LeagueMediaKitImageData["rows"]>(() => [
     { label: tx("Clasificación individual"), value: tx("Cada jugador compite por su propia posición y suma sus resultados jornada a jornada."), icon: mediaKitIconToken("chart") },
@@ -336,15 +332,6 @@ export default function MediaKitPage() {
     setWelcomeSignature(letter.signature)
   }
   const canManage = isLeagueAdmin(activeLeague.id)
-  const accentLogoUrl = openingLogoOverride ?? activeLeague.logoUrl
-  const logoAccentSuggestions = logoAccentResult && logoAccentResult.source === accentLogoUrl ? logoAccentResult.colors : []
-  const logoAccentStatus = !accentLogoUrl
-    ? "idle"
-    : logoAccentResult?.source !== accentLogoUrl
-      ? "loading"
-      : logoAccentResult.failed || logoAccentResult.colors.length === 0
-        ? "error"
-        : "ready"
   const scheduledLabel = formatScheduledSeasonStart(roundSettings.scheduledStartAt, locale)
   const countdown = getSeasonCountdown(roundSettings.scheduledStartAt)
   const matchdayRoundNumbers = [...new Set(sortedMatchdayMatches.map((match) => match.round))]
@@ -461,7 +448,7 @@ export default function MediaKitPage() {
     spotlightImageUrl: isSpotlightPreset ? spotlightImageUrl : undefined,
     resultRound: isResultsPreset ? selectedResultRound : undefined,
     results: isResultsPreset ? resultCards : undefined,
-  }), [activeLeague.logoUrl, activeLeague.name, activePresetKind, formatClosing, formatRows, isInformationalPreset, isResultsPreset, isScoreboardPreset, isSpotlightPreset, isWelcomePreset, matchdayDraft, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSeasonHeader, openingSubtitle, openingTime, openingTitle, openingVenue, resultCards, selectedResultRound, spotlightImageUrl, welcomeBody, welcomeDefaults.eyebrow, welcomeLetterFont, welcomeLogoStyle, welcomeSignatureFont, welcomeSignoff, welcomeSignature])
+  }), [activeLeague.logoUrl, activeLeague.name, activePresetKind, formatClosing, formatRows, isInformationalPreset, isResultsPreset, isScoreboardPreset, isSpotlightPreset, isWelcomePreset, locale, matchdayDraft, openingAccent, openingDate, openingHeadlineFont, openingLogoOverride, openingRound, openingSeasonHeader, openingSubtitle, openingTime, openingTitle, openingVenue, resultCards, selectedResultRound, spotlightImageUrl, welcomeBody, welcomeDefaults.eyebrow, welcomeLetterFont, welcomeLogoStyle, welcomeSignatureFont, welcomeSignoff, welcomeSignature])
 
   const base = { leagueName: activeLeague.name, seasonName: openingSeasonHeader, leagueLogoUrl: activeLeague.logoUrl, locale, template: "opening_day_premium_01" as const, accentColor: openingAccent, headlineFont: openingHeadlineFont }
   const pieces: Array<{ kind: LeagueMediaKitKind; data: LeagueMediaKitImageData; disabled?: boolean }> = [
@@ -564,20 +551,6 @@ export default function MediaKitPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSeason.id])
 
-  useEffect(() => {
-    let active = true
-    if (!accentLogoUrl) return () => { active = false }
-    void extractLogoAccentPalette(accentLogoUrl)
-      .then((colors) => {
-        if (!active) return
-        setLogoAccentResult({ source: accentLogoUrl, colors, failed: false })
-      })
-      .catch(() => {
-        if (!active) return
-        setLogoAccentResult({ source: accentLogoUrl, colors: [], failed: true })
-      })
-    return () => { active = false }
-  }, [accentLogoUrl])
 
   function loadPreset(kind: LeagueMediaKitKind, data: LeagueMediaKitImageData) {
     setActivePresetKind(kind)
@@ -692,16 +665,6 @@ export default function MediaKitPage() {
     setOpenIconPickerIndex(null)
   }
 
-  function selectPresetAccent(color: string) {
-    setOpeningAccent(color)
-    setCustomAccentDraft(color)
-    setShowCustomAccent(false)
-  }
-
-  function updateCustomAccent(value: string) {
-    setCustomAccentDraft(value)
-    if (/^#[0-9a-f]{6}$/i.test(value)) setOpeningAccent(value)
-  }
 
   function mediaKitFilename(kind: LeagueMediaKitKind, data: LeagueMediaKitImageData) {
     const matchdaySuffix = kind === "matchday" ? `-${slug(data.title)}-${slug(data.subtitle ?? "partido")}` : ""
@@ -1020,9 +983,14 @@ export default function MediaKitPage() {
               <div className="rounded-2xl border border-neutral-200 p-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   {isWelcomePreset ? <div className="rounded-xl bg-neutral-50 px-3 py-2"><p className="type-caption font-black text-neutral-700">{tx("Diseño de carta")}</p><p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">{tx("Tipografía editorial fija para mantener el carácter institucional del documento.")}</p></div> : <label className="type-caption font-black text-neutral-700">{tx("Tipografía del titular")}<select aria-label={tx("Diseño del titular")} value={openingHeadlineFont} onChange={(event) => setOpeningHeadlineFont(event.target.value as LeagueMediaKitHeadlineFont)} className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-black text-neutral-900 outline-none focus:border-neutral-950">{openingHeadlineFontOptions.map((option) => <option key={option.id} value={option.id}>{tx(option.label)} · {tx(option.detail)}</option>)}</select></label>}
-                  <div><p className="type-caption font-black text-neutral-700">{tx("Color de acento")}</p><div className="mt-2 flex flex-wrap items-center gap-2">{openingAccentOptions.map((color) => <button key={color} type="button" aria-label={tx(`Usar color ${color}`)} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}<button type="button" aria-label={tx("Color personalizado")} aria-expanded={showCustomAccent} onClick={() => { setShowCustomAccent((current) => !current); setCustomAccentDraft(openingAccent) }} className={`min-h-8 rounded-full border px-3 type-caption font-black ${showCustomAccent ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700"}`}>{tx("+ Propio")}</button></div>{accentLogoUrl ? <div className="mt-2 rounded-xl bg-neutral-50 px-2.5 py-2"><div className="flex items-center justify-between gap-2"><p className="type-caption font-black text-neutral-600">{tx("Sugeridos por el logo")}</p>{logoAccentStatus === "loading" ? <span className="type-caption font-bold text-neutral-400">{tx("Analizando…")}</span> : null}</div>{logoAccentStatus === "ready" ? <div className="mt-1.5 flex flex-wrap gap-2">{logoAccentSuggestions.map((color) => <button key={color} type="button" aria-label={tx(`Usar color del logo ${color}`)} title={color} onClick={() => selectPresetAccent(color)} className={`h-8 w-8 rounded-full border-2 ${!showCustomAccent && openingAccent === color ? "border-neutral-950 ring-2 ring-neutral-200" : "border-white shadow-sm"}`} style={{ backgroundColor: color }} />)}</div> : null}{logoAccentStatus === "error" ? <p className="mt-1 type-caption font-semibold text-neutral-400">{tx("No se han podido extraer colores útiles de este logo.")}</p> : null}</div> : null}</div>
+                  <div className="rounded-xl bg-neutral-50 px-3 py-2">
+                    <p className="type-caption font-black text-neutral-700">{tx("Color de acento")}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="h-7 w-7 rounded-full border-2 border-white shadow-sm ring-1 ring-neutral-200" style={{ backgroundColor: openingAccent }} />
+                      <p className="type-caption font-semibold leading-4 text-neutral-500">{tx("Se configura arriba y se comparte con Contenido digital y Welcome Pack.")}</p>
+                    </div>
+                  </div>
                 </div>
-                {showCustomAccent ? <div className="mt-3 grid grid-cols-[48px_1fr] gap-2 rounded-xl bg-neutral-50 p-2"><input aria-label={tx("Selector de color personalizado")} type="color" value={openingAccent} onChange={(event) => { setOpeningAccent(event.target.value); setCustomAccentDraft(event.target.value) }} className="h-10 w-12 cursor-pointer rounded-lg border border-neutral-200 bg-white p-1" /><input aria-label={tx("Código hexadecimal personalizado")} value={customAccentDraft} onChange={(event) => updateCustomAccent(event.target.value)} maxLength={7} placeholder="#D7A544" className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-black uppercase text-neutral-900 outline-none focus:border-neutral-950" /></div> : null}
                 <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-200 pt-3"><div><p className="type-caption font-black text-neutral-800">{tx("Logo de la liga")}</p><p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Cambio temporal para esta imagen.")}</p></div><div className="flex gap-2"><label className="cursor-pointer rounded-xl bg-neutral-100 px-3 py-2 type-caption font-black text-neutral-800">{tx("Cambiar")}<input className="sr-only" type="file" accept="image/*" onChange={(event) => handleLogoOverride(event.target.files?.[0])} /></label>{openingLogoOverride ? <button type="button" onClick={() => setOpeningLogoOverride(null)} className="inline-flex items-center justify-center rounded-xl border border-neutral-200 px-3 py-2 text-center type-caption font-black text-neutral-700">{tx("Restaurar")}</button> : null}</div></div>
               </div>
 

@@ -367,6 +367,25 @@ function getCalendarPairCounts({
   return { teammateCounts, opponentCounts }
 }
 
+type CalendarPairCounts = ReturnType<typeof getCalendarPairCounts>
+function mergeCalendarPairCounts(
+  first: CalendarPairCounts,
+  second: CalendarPairCounts,
+): CalendarPairCounts {
+  const mergeCounts = (firstCounts: Map<string, number>, secondCounts: Map<string, number>) => {
+    const merged = new Map(firstCounts)
+    secondCounts.forEach((count, pairKey) => {
+      merged.set(pairKey, (merged.get(pairKey) ?? 0) + count)
+    })
+    return merged
+  }
+
+  return {
+    teammateCounts: mergeCounts(first.teammateCounts, second.teammateCounts),
+    opponentCounts: mergeCounts(first.opponentCounts, second.opponentCounts),
+  }
+}
+
 export function auditBalancedCalendar({
   matches,
   playerIds,
@@ -1526,7 +1545,19 @@ function getPairingScore({
   matches: Pick<GeneratedMatch, "teamA" | "teamB">[]
   playerIds: string[]
 }) {
-  const { teammateCounts, opponentCounts } = getCalendarPairCounts({ matches })
+  return getPairingScoreFromCounts({
+    pairCounts: getCalendarPairCounts({ matches }),
+    playerIds,
+  })
+}
+
+function getPairingScoreFromCounts({
+  pairCounts: { teammateCounts, opponentCounts },
+  playerIds,
+}: {
+  pairCounts: CalendarPairCounts
+  playerIds: string[]
+}) {
   let maxTeammateCount = 0
   let maxOpponentCount = 0
   let teammateSquareSum = 0
@@ -1646,12 +1677,17 @@ function buildBalancedLegSequence({
   if (limit === 1) return [baseMatches]
 
   const baseSignature = getLegMatchSetSignature(baseMatches)
-  const remaining = buildBalancedLegCandidates({ baseMatches, playerIds }).filter(
-    (candidate) => getLegMatchSetSignature(candidate) !== baseSignature,
-  )
+  const remaining = buildBalancedLegCandidates({ baseMatches, playerIds })
+    .map((candidate) => ({
+      candidate,
+      pairCounts: getCalendarPairCounts({ matches: candidate }),
+      signature: getLegMatchSetSignature(candidate),
+      signatures: getLegMatchSignatureSet(candidate),
+    }))
+    .filter(({ signature }) => signature !== baseSignature)
   const selected: GeneratedMatch[][] = [baseMatches]
   const usedMatchSignatures = getLegMatchSignatureSet(baseMatches)
-  const accumulatedMatches = [...baseMatches]
+  let accumulatedPairCounts = getCalendarPairCounts({ matches: baseMatches })
 
   while (selected.length < limit) {
     let bestIndex = -1
@@ -1659,9 +1695,8 @@ function buildBalancedLegSequence({
     let bestSignature = ""
 
     for (let index = 0; index < remaining.length; index += 1) {
-      const candidate = remaining[index]
-      const candidateSignatures = getLegMatchSignatureSet(candidate)
-      if (countSignatureOverlap(usedMatchSignatures, candidateSignatures) > 0) {
+      const { candidate, pairCounts, signature, signatures } = remaining[index]
+      if (countSignatureOverlap(usedMatchSignatures, signatures) > 0) {
         continue
       }
 
@@ -1674,11 +1709,10 @@ function buildBalancedLegSequence({
         : 0
       if (boundaryByeCount > 0) continue
 
-      const score = getPairingScore({
-        matches: [...accumulatedMatches, ...candidate],
+      const score = getPairingScoreFromCounts({
+        pairCounts: mergeCalendarPairCounts(accumulatedPairCounts, pairCounts),
         playerIds,
       })
-      const signature = getLegMatchSetSignature(candidate)
       if (
         bestScore === null ||
         compareNumberTuples(score, bestScore) < 0 ||
@@ -1693,11 +1727,14 @@ function buildBalancedLegSequence({
     if (bestIndex < 0) break
 
     const [selectedCandidate] = remaining.splice(bestIndex, 1)
-    selected.push(selectedCandidate)
-    selectedCandidate.forEach((match) =>
+    selected.push(selectedCandidate.candidate)
+    selectedCandidate.candidate.forEach((match) =>
       usedMatchSignatures.add(getMatchSignature(match)),
     )
-    accumulatedMatches.push(...selectedCandidate)
+    accumulatedPairCounts = mergeCalendarPairCounts(
+      accumulatedPairCounts,
+      selectedCandidate.pairCounts,
+    )
   }
 
   return selected
@@ -1768,35 +1805,6 @@ function getRoundMatches(
   round: number,
 ) {
   return matches.filter((match) => match.round === round)
-}
-
-function rotateLegRounds({
-  leg,
-  startRound,
-  roundCount,
-}: {
-  leg: GeneratedMatch[]
-  startRound: number
-  roundCount: number
-}) {
-  const baseRoundCount = getBaseRoundCount(leg)
-  const rotated: GeneratedMatch[] = []
-
-  for (let offset = 0; offset < roundCount; offset += 1) {
-    const sourceRound = ((startRound - 1 + offset) % baseRoundCount) + 1
-    getRoundMatches(leg, sourceRound).forEach((match, matchIndex) => {
-      rotated.push(
-        cloneMatchForRound({
-          match,
-          round: offset + 1,
-          matchIndex,
-          idSuffix: `partial-${startRound}`,
-        }),
-      )
-    })
-  }
-
-  return rotated
 }
 
 function getCustomPartialScore({

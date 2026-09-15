@@ -1,0 +1,277 @@
+[data-sl-ball-brand="true"] > [data-sl-ball-brand-head="true"] {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 3.4rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.075em !important;
+  transform: scaleX(0.9);
+  transform-origin: center;
+}
+
+[data-sl-ball-brand="true"] > [data-sl-ball-brand-model="true"] {
+  font-size: 0.66rem !important;
+  letter-spacing: 0.12em !important;
+}
+
+[data-sl-ball-model-plus="true"] {
+  color: var(--ball-wrap-accent, #d4af37) !important;
+}
+
+/* Never allow legacy/smaller copies of the ball model line to coexist with the
+   definitive PADEL PRO + S+ row. */
+[data-sl-ball-brand="true"] > p:not([data-sl-ball-brand-head="true"]):not([data-sl-ball-brand-model="true"]),
+[data-sl-ball-brand-model="true"] > span:nth-of-type(n + 3) {
+  display: none !important;
+}
+
+/* Keep the rounded inset frame in the DOM, but make it fully transparent. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:first-child {
+  opacity: 0 !important;
+}
+
+/* Apply the same subtle black/16 treatment to the whole wrap background without
+   dimming logos, text, accent dividers or the bottom signature. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"],
+.sl-ball-wrap-print-design {
+  isolation: isolate;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"]::before,
+.sl-ball-wrap-print-design::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+}
+
+/* Keep the original full-height grey dividers in place but fully transparent. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child,
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2),
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) {
+  border-right-color: rgba(255, 255, 255, 0) !important;
+}
+
+/* Mirror the subtle accent divider on the right edge of the league block. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2),
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) {
+  position: relative !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2)::after,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2)::after {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  right: 0;
+  bottom: 1.25rem;
+  width: 1px;
+  background-color: var(--ball-wrap-accent, #d4af37);
+  opacity: 0.533;
+  pointer-events: none;
+}
+
+/* Cleaner premium layout: remove section labels and let the remaining content breathe. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:first-child,
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:first-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:first-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:first-child {
+  display: none !important;
+}
+
+/* With the JUGADORES header gone, remove its reserved vertical offset so the roster
+   is centered naturally by the existing flex/grid layout. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child {
+  margin-top: 0 !important;
+  transform: none !important;
+}
+
+/* Keep the player roster compact so the handwritten names sit comfortably inside
+   their third of the wrap without increasing the overall visual height. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div {
+  gap: 2px !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  font-size: 0.53rem !important;
+  line-height: 1.06 !important;
+  padding-bottom: 0.08rem !important;
+}
+
+/* The print clone keeps the exact logical width/height measured from the live preview.
+   BallCanWrapPreview then scales that clone to 240 x 130 mm. */
+.sl-ball-wrap-print-design {
+  transform-origin: top left !important;
+}
+
+/* A PDF generated from a phone opens in a desktop-sized print window. Preserve the
+   compact mobile identity sizes explicitly on that clone so PDF and mobile preview match. */
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section {
+  padding-left: 0.55rem !important;
+  padding-right: 0.55rem !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) {
+  min-height: 48px !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) img {
+  max-width: 86px !important;
+  max-height: 44px !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) > span {
+  font-size: 1.25rem !important;
+  letter-spacing: 0.14em !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(3) {
+  max-width: 90px !important;
+  font-size: 0.41rem !important;
+  line-height: 0.96 !important;
+  letter-spacing: 0.035em !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(5) {
+  font-size: 0.29rem !important;
+  letter-spacing: 0.09em !important;
+}
+
+.sl-ball-wrap-print-source-mobile > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  font-size: 0.49rem !important;
+}
+
+/* Print/PDF must contain no preview or cutting guide lines. The outer crop marks are
+   intentionally suppressed and the subtle rounded inset frame is preview-only. */
+.crop {
+  display: none !important;
+}
+
+.sl-ball-wrap-print-design > div:first-child {
+  display: none !important;
+}
+
+/* Bag seal physical format refinement: keep the approved design, update only geometry. */
+[class~="aspect-[45/120]"] {
+  aspect-ratio: 50 / 130 !important;
+}
+
+[class~="max-w-[260px]"] > div:first-child > span:last-child {
+  font-size: 0 !important;
+}
+
+[class~="max-w-[260px]"] > div:first-child > span:last-child::after {
+  content: "50 × 130 mm · definitivo";
+  font-size: 0.625rem;
+}
+
+body:has([class~="aspect-[45/120]"]) [class~="bg-amber-50"][class~="text-amber-900"] {
+  font-size: 0 !important;
+}
+
+body:has([class~="aspect-[45/120]"]) [class~="bg-amber-50"][class~="text-amber-900"]::after {
+  content: "Precinto de bolsa · 50 × 130 mm · medida definitiva.";
+  display: block;
+  font-size: 0.625rem;
+  line-height: 1rem;
+}
+
+/* Keep the visible production notes synchronized with the 50 x 130 mm format without
+   restructuring the existing Welcome Pack page. */
+div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-card:first-child [class~="grid-cols-3"] > div:first-child > p:last-child,
+div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-card:first-child [class~="grid-cols-3"] > div:nth-child(3) > p:last-child {
+  font-size: 0 !important;
+}
+
+div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-card:first-child [class~="grid-cols-3"] > div:first-child > p:last-child::after {
+  content: "50 × 130 mm";
+  font-size: 0.75rem;
+}
+
+div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-card:first-child [class~="grid-cols-3"] > div:nth-child(3) > p:last-child::after {
+  content: "65 / 65 mm";
+  font-size: 0.75rem;
+}
+
+div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-card:nth-child(2) > p:nth-child(3) {
+  font-size: 0 !important;
+}
+
+div.grid:has([class~="aspect-[45/120]"]) > [class~="space-y-4"] > section.app-card:nth-child(2) > p:nth-child(3)::after {
+  content: "Hasta 6 precintos por A4: 3 columnas × 2 filas, con sangrado y marcas provisionales de corte/pliegue.";
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+/* Mobile preview: use the same compact identity sizing that is carried into the PDF. */
+@media (max-width: 480px) {
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section {
+    padding-left: 0.55rem !important;
+    padding-right: 0.55rem !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) {
+    min-height: 48px !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) img {
+    max-width: 86px !important;
+    max-height: 44px !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > div:nth-child(2) > span {
+    font-size: 1.25rem !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(3) {
+    max-width: 90px !important;
+    font-size: 0.41rem !important;
+    line-height: 0.96 !important;
+    letter-spacing: 0.035em !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(2) > p:nth-child(5) {
+    font-size: 0.29rem !important;
+    letter-spacing: 0.09em !important;
+  }
+
+  [class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+    font-size: 0.49rem !important;
+  }
+}
+
+/* Force the combined adhesive sheet to use a physical A4 landscape page in Chromium/Edge.
+   The component already positions the artwork on a 297 x 210 mm canvas; the named page
+   prevents the print dialog from reinterpreting that canvas as portrait. */
+@page sl-ball-wrap-landscape {
+  size: 297mm 210mm;
+  margin: 0;
+}
+
+@media print {
+  .sheet:has(.wrap-piece) {
+    page: sl-ball-wrap-landscape;
+    width: 297mm !important;
+    height: 210mm !important;
+    min-width: 297mm !important;
+    min-height: 210mm !important;
+    max-width: 297mm !important;
+    max-height: 210mm !important;
+  }
+
+  body:has(.sheet > .wrap-piece) {
+    width: 297mm !important;
+    height: 210mm !important;
+    min-width: 297mm !important;
+    min-height: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+}

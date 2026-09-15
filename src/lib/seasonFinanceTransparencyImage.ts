@@ -60,7 +60,6 @@ export type SeasonFinanceTransparencyLabels = {
   }
 }
 
-
 function drawRoundedRect(
   context: CanvasRenderingContext2D,
   x: number,
@@ -127,7 +126,6 @@ function generatedLabel(value: string, locale: Locale) {
   }).format(date)
 }
 
-
 function drawCanvasBackground({
   context,
   width,
@@ -163,12 +161,15 @@ export async function createSeasonFinanceTransparencyImage({
   locale: Locale
   labels: SeasonFinanceTransparencyLabels
 }) {
-  const expensesRows = Math.max(1, data.expenseRows.length)
+  const hasExpenses = data.expenseRows.length > 0
   const pendingRows = data.paymentRows.filter((row) => row.status === "pending")
   const hasPendingRows = pendingRows.length > 0
   const paymentsSectionHeight = hasPendingRows
     ? 134 + pendingRows.length * ROW_HEIGHT
     : 154
+  const expensesSectionHeight = hasExpenses
+    ? 120 + data.expenseRows.length * ROW_HEIGHT
+    : 0
   const height =
     PAGE_PADDING * 2 +
     SHARED_EXPORT_HEADER_HEIGHT +
@@ -176,10 +177,7 @@ export async function createSeasonFinanceTransparencyImage({
     SUMMARY_CARD_HEIGHT * 2 +
     18 +
     paymentsSectionHeight +
-    20 +
-    76 +
-    44 +
-    expensesRows * ROW_HEIGHT +
+    (hasExpenses ? 20 + expensesSectionHeight : 0) +
     28 +
     FOOTER_HEIGHT
 
@@ -347,41 +345,37 @@ export async function createSeasonFinanceTransparencyImage({
     })
   }
 
-  y += paymentsSectionHeight + 20
-  drawRoundedRect(
-    context,
-    PAGE_PADDING,
-    y,
-    WIDTH - PAGE_PADDING * 2,
-    120 + Math.max(1, data.expenseRows.length) * ROW_HEIGHT,
-    24,
-    surfaceColor,
-    borderColor,
-  )
-  drawText(context, labels.expensesTitle, PAGE_PADDING + 24, y + 20, {
-    font: "900 24px Inter, Arial, sans-serif",
-    color: headingTextColor,
-  })
-  const expensesTableY = y + 58
-  drawText(context, labels.expenseColumns.concept, PAGE_PADDING + 24, expensesTableY, {
-    font: "900 15px Inter, Arial, sans-serif",
-    color: mutedTextColor,
-  })
-  drawText(context, labels.expenseColumns.date, PAGE_PADDING + 690, expensesTableY, {
-    font: "900 15px Inter, Arial, sans-serif",
-    color: mutedTextColor,
-  })
-  drawText(context, labels.expenseColumns.amount, WIDTH - PAGE_PADDING - 24, expensesTableY, {
-    font: "900 15px Inter, Arial, sans-serif",
-    color: mutedTextColor,
-    align: "right",
-  })
-  if (data.expenseRows.length === 0) {
-    drawText(context, labels.noExpenses, PAGE_PADDING + 24, expensesTableY + 34, {
-      font: "700 17px Inter, Arial, sans-serif",
+  y += paymentsSectionHeight
+  if (hasExpenses) {
+    y += 20
+    drawRoundedRect(
+      context,
+      PAGE_PADDING,
+      y,
+      WIDTH - PAGE_PADDING * 2,
+      expensesSectionHeight,
+      24,
+      surfaceColor,
+      borderColor,
+    )
+    drawText(context, labels.expensesTitle, PAGE_PADDING + 24, y + 20, {
+      font: "900 24px Inter, Arial, sans-serif",
+      color: headingTextColor,
+    })
+    const expensesTableY = y + 58
+    drawText(context, labels.expenseColumns.concept, PAGE_PADDING + 24, expensesTableY, {
+      font: "900 15px Inter, Arial, sans-serif",
       color: mutedTextColor,
     })
-  } else {
+    drawText(context, labels.expenseColumns.date, PAGE_PADDING + 690, expensesTableY, {
+      font: "900 15px Inter, Arial, sans-serif",
+      color: mutedTextColor,
+    })
+    drawText(context, labels.expenseColumns.amount, WIDTH - PAGE_PADDING - 24, expensesTableY, {
+      font: "900 15px Inter, Arial, sans-serif",
+      color: mutedTextColor,
+      align: "right",
+    })
     data.expenseRows.forEach((expense, index) => {
       const rowY = expensesTableY + 28 + index * ROW_HEIGHT
       context.strokeStyle = borderColor
@@ -403,9 +397,10 @@ export async function createSeasonFinanceTransparencyImage({
         align: "right",
       })
     })
+    y += expensesSectionHeight
   }
 
-  y += 120 + Math.max(1, data.expenseRows.length) * ROW_HEIGHT + 28
+  y += 28
   drawText(
     context,
     `${labels.generatedLabel}: ${generatedLabel(data.generatedAt, locale)}`,

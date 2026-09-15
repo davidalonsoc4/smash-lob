@@ -1,0 +1,211 @@
+/* Welcome Pack · overgrip band visual tuning.
+   Final physical geometry: 120 × 18 mm.
+   Outer glue reserves: 10 mm each side.
+   Internal empty gaps: 5 mm on both sides of the 24 mm Welcome Pack block.
+
+   The page is currently in rapid visual-review mode; these selectors are scoped to
+   the 430 px overgrip preview so the rest of the Media Kit is unaffected. */
+
+[class~="max-w-[430px]"] [class~="left-[10%]"][class~="w-[28%]"] {
+  left: 8.333333% !important; /* 10 / 120 */
+  width: 27.5% !important;   /* 33 / 120 */
+}
+
+[class~="max-w-[430px]"] [class~="left-[10%]"][class~="w-[28%]"] > [class~="min-w-0"] {
+  flex: 1 1 0%;
+  text-align: center;
+}
+
+[class~="max-w-[430px]"] [class~="left-[10%]"][class~="w-[28%]"] > [class~="min-w-0"] > p {
+  text-align: center;
+}
+
+[class~="max-w-[430px]"] [class~="right-[10%]"][class~="w-[24%]"] {
+  right: 8.333333% !important; /* 10 / 120 */
+  width: 27.5% !important;    /* 33 / 120 */
+  justify-content: center !important;
+  padding-left: 0.25rem !important;
+  padding-right: 0.25rem !important;
+  text-align: center !important;
+}
+
+[class~="max-w-[430px]"] [class~="right-[10%]"][class~="w-[24%]"] > p {
+  width: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+[class~="max-w-[430px]"] [class~="right-[10%]"][class~="w-[24%]"] > p > span {
+  width: 100%;
+  text-align: center;
+}
+
+/* The centre block remains 24 mm (20% of 120 mm), centred from 48–72 mm.
+   With the side blocks ending at 43 mm and starting again at 77 mm, this leaves
+   exactly 5 mm of content-free space on each side of Welcome Pack. */
+
+/* Welcome Pack · ball-can wrap visual tuning.
+   Final physical geometry: 240 × 130 mm.
+   The first and last 5 mm keep the same background and top accent band but contain
+   no content. The remaining 230 mm are split into 3 exactly equal 76.6667 mm blocks. */
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(2) {
+  z-index: 4 !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(4),
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(5) {
+  background: transparent !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* Legacy brand-block signature is kept hidden; the live signature sits in the league block. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > p {
+  display: none !important;
+}
+
+/* Ball-can wrap: keep handwritten descenders and flourishes visible. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3),
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div {
+  overflow: visible !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  line-height: 1.18 !important;
+  padding-bottom: 0.125rem !important;
+}
+
+/* Ball-can wrap: approximate the HEAD wordmark with a tighter, heavier face. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 1.82rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.075em !important;
+  transform: scaleX(0.9);
+  transform-origin: center;
+}
+
+/* Keep PADEL PRO neutral and reserve the original inline accent only for S+. */
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2) {
+  font-size: 0 !important;
+  letter-spacing: 0 !important;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2)::before {
+  content: "PADEL PRO ";
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.44rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2)::after {
+  content: "S+";
+  color: inherit;
+  font-size: 0.44rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+[class~="max-w-[430px]"] [class~="rounded-[14px]"] > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3) {
+  display: none !important;
+}
+
+/* Move the compact league signature a few millimetres upward without changing scale. */
+[class~="max-w-[430px]"] [data-sl-ball-wrap-signature="true"] {
+  bottom: 12px !important;
+}
+
+/* Print clone parity.
+   The print window clones only the 240 × 130 design node, so it does not naturally
+   retain the max-w-[430px] ancestor used by the live-preview selectors above.
+   Mirror the exact visual rules on the print clone so PDF and preview render alike. */
+.sl-ball-wrap-print-design > div:nth-child(2) {
+  z-index: 4 !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(4),
+.sl-ball-wrap-print-design > div:nth-child(5) {
+  background: transparent !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > p {
+  display: none !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3),
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child,
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child > div {
+  overflow: visible !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:nth-child(3) > div:last-child p {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  line-height: 1.18 !important;
+  padding-bottom: 0.125rem !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:first-child {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 1.82rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.075em !important;
+  transform: scaleX(0.9);
+  transform-origin: center;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2) {
+  font-size: 0 !important;
+  letter-spacing: 0 !important;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2)::before {
+  content: "PADEL PRO ";
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.44rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(2)::after {
+  content: "S+";
+  color: inherit;
+  font-size: 0.44rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.sl-ball-wrap-print-design > div:nth-child(6) > div:nth-child(3) > section:first-child > div:nth-child(2) > p:nth-child(3) {
+  display: none !important;
+}
+
+.sl-ball-wrap-print-design [data-sl-ball-wrap-signature="true"] {
+  bottom: 12px !important;
+}
