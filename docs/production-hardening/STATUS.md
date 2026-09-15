@@ -1593,3 +1593,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Ajuste pendiente de prueba en PRE v1.14.2: el contenido completo del precinto de bolsa se amplía para mejorar la legibilidad en impresión.
 - Ajuste pendiente de prueba en rama v1.14.3: nombre de liga autoajustable y logos de prueba de 50 mm en huecos de la última hoja.
 - Ajuste pendiente de prueba en rama v1.14.4: nueva plancha de pegatinas de logo con ancho configurable, orientación A4 automática y relleno de huecos a 50 mm.
+
+### Optimización de arranque percibido (2026-09-16)
+
+- Se crea la rama `codex/performance-optimization` desde `58443f2` para medir y mejorar la carga sin tocar `main` ni `staging`.
+- `LeagueAccessProvider` usa la última pertenencia de liga almacenada localmente para mostrar antes la aplicación mientras revalida el snapshot remoto; las operaciones protegidas siguen autorizándose en servidor.
+- La versión de la rama pasa a v1.14.5 y el changelog explica el comportamiento visible.
+- Build y presupuesto de JavaScript se mantienen dentro de los límites del repositorio. Lighthouse queda pendiente de repetir en un entorno con Chrome instalado: el runner local no dispone de una instalación de Chrome.

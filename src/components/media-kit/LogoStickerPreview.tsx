@@ -70,7 +70,7 @@ export function LogoStickerPreview({ logoUrl, leagueName, playerCount }: { logoU
         {logoUrl ? <Image unoptimized src={logoUrl} alt={leagueName} width={220} height={150} style={{ width: `${Math.min(widthMm * 2.2, 220)}px` }} className="h-auto max-h-[150px] object-contain" /> : <span className="text-xs font-bold text-neutral-400">{tx("Esta liga no tiene logo")}</span>}
       </div>
 
-      <button type="button" disabled={!logoUrl || playerCount < 1} onClick={printPdf} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-xs font-black text-white hover:bg-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400">
+      <button type="button" disabled={!logoUrl || playerCount < 1} onClick={printPdf} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-xs font-black text-white hover:bg-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400">
         {tx("Generar PDF de pegatinas")}
       </button>
       <p className="mt-2 text-[0.6875rem] font-bold leading-4 text-neutral-500">{tx(`Selecciona ${layout.orientationLabel} y escala 100 % en el diálogo de impresión.`)}</p>
