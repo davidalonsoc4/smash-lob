@@ -49,7 +49,7 @@ function LeagueLogo({ league }: { league: League }) {
         alt={league.name}
         width={160}
         height={90}
-        className="h-auto max-h-[42px] w-auto max-w-[72px] object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.34)]"
+        className="h-auto max-h-[46px] w-auto max-w-[80px] object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.34)]"
       />
     )
   }
@@ -207,8 +207,8 @@ export function OvergripBandPreview(props: Props) {
           <div className="absolute inset-x-0 bottom-0 h-px opacity-35" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
-          <div className="relative z-10 flex h-full items-center justify-center gap-3 px-[8.333%] text-center">
-            <div className="flex h-[42px] w-[72px] shrink-0 items-center justify-center">
+          <div className="relative z-10 flex h-full items-center justify-center gap-2 px-[8.333%] text-center">
+            <div className="flex h-[46px] w-[80px] shrink-0 items-center justify-center">
               <LeagueLogo league={league} />
             </div>
             <p className="min-w-0 max-w-[64%] text-balance text-[0.92rem] font-black uppercase leading-[0.96] tracking-[.015em] text-white">

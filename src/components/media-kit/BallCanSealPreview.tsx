@@ -12,10 +12,10 @@ export type BallCanSealPrintProps = {
 
 export const BALL_CAN_SEAL_PRINT = {
   trimWidthMm: 50,
-  trimHeightMm: 15,
+  trimHeightMm: 35,
   bleedMm: 2,
   printWidthMm: 54,
-  printHeightMm: 19,
+  printHeightMm: 39,
 } as const
 
 function initials(value: string) {
@@ -83,6 +83,7 @@ export function buildBallCanSealPrintStyles(accent: string) {
       display: flex;
       align-items: center;
       justify-content: center;
+      transform: rotate(-90deg);
     }
     .sl-ball-can-seal-logo img {
       display: block;
@@ -154,7 +155,7 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: BallCa
           <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">{tx("Precinto del bote · primera versión")}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Genérico de liga · logo + nombre · reutilizable entre temporadas.")}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700">50 × 15 mm</span>
+        <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700">50 × 35 mm</span>
       </div>
 
       <div className="rounded-[18px] bg-[#f4f1ea] p-4 ring-1 ring-neutral-200">
@@ -175,7 +176,7 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: BallCa
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_32%,rgba(255,255,255,.02)_68%,transparent)]" />
           <div className="relative z-10 flex h-full items-center justify-center px-2">
             <div className="flex min-w-0 items-center justify-center gap-1.5">
-              <div className="flex shrink-0 items-center justify-center">
+              <div className="flex shrink-0 -rotate-90 items-center justify-center">
                 {leagueLogoUrl ? (
                   <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={70} height={44} className="h-auto max-h-[38px] w-auto max-w-[40px] object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,.38)]" />
                 ) : (
@@ -189,7 +190,7 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: BallCa
       </div>
 
       <p className="mt-3 text-[0.625rem] font-semibold leading-4 text-neutral-500">
-        {tx("Corte 50 × 15 mm · sangrado 2 mm · impresión 54 × 19 mm · vinilo adhesivo mate. Se incluye automáticamente dos veces en el PDF de la faja.")} </p>
+        {tx("Corte 50 × 35 mm · sangrado 2 mm · impresión 54 × 39 mm · vinilo adhesivo mate. Se incluye automáticamente dos veces en el PDF de la faja.")} </p>
     </div>
   )
 }

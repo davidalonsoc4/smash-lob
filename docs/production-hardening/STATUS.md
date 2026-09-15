@@ -1579,3 +1579,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Gestión puede ampliar una temporada existente a doble vuelta o temporada larga mientras no haya resultados, usando la misma barrera de seguridad que REROLL.
 - La migración `20260826002000_resize_balanced_season_calendar.sql` realiza el redimensionado de forma atómica y limpia el estado operativo ligado a los emparejamientos sustituidos.
 - La entrega se valida localmente con las puertas habituales y requiere aplicar la migración antes de publicar el código.
+
+### Welcome Pack: refinamiento de impresión (2026-09-15)
+
+- La faja conserva su composición: se amplían visualmente el logotipo y nombre de liga con origen inferior, los nombres de jugadores ganan aproximadamente un punto y se retiran únicamente las guías discontinuas de las zonas de pegado.
+- Los dos precintos incluidos en el PDF pasan de 50 × 15 mm a 50 × 35 mm (54 × 39 mm con sangrado); su contenido permanece centrado y el logotipo gira 90 grados para el montaje vertical.
+- El fajín de overgrip amplía el espacio útil del logotipo de 72 × 42 px a 80 × 46 px y reduce su separación con el nombre de liga.
+- Validación final correcta: presupuesto de fuente de 125.531 líneas, ESLint, TypeScript, build de producción y presupuesto de build; 726 pruebas unitarias e integración y 62 pruebas Playwright superadas; auditoría runtime sin vulnerabilidades altas.

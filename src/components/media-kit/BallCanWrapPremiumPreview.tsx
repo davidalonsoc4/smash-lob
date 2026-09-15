@@ -98,8 +98,8 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_30%,rgba(255,255,255,.025)_62%,transparent)] mix-blend-screen" />
 
-          <div className="absolute inset-y-0 left-0 z-[1] border-r border-dashed border-white/18 bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
-          <div className="absolute inset-y-0 right-0 z-[1] border-l border-dashed border-white/18 bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
+          <div className="absolute inset-y-0 left-0 z-[1] bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
+          <div className="absolute inset-y-0 right-0 z-[1] bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
 
           <div className="absolute inset-y-0 z-[2]" style={{ left: `${sideGluePercent}%`, right: `${sideGluePercent}%` }}>
             <div className="absolute -left-10 top-[-22px] h-32 w-32 rounded-full border border-white/6" />
@@ -119,8 +119,8 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
 
               <section className="flex min-w-0 flex-col items-center justify-center border-r border-white/10 px-5 text-center">
                 <p className="mb-2 text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Welcome Pack</p>
-                <div className="flex min-h-[76px] w-full items-center justify-center"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div>
-                <p className="mt-1 line-clamp-2 max-w-[118px] whitespace-normal text-[0.58rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white"><LeagueNameText leagueName={leagueName} /></p>
+                <div className="flex min-h-[76px] w-full items-center justify-center"><div className="origin-bottom scale-110"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div></div>
+                <p className="mt-1 origin-bottom scale-[1.08] line-clamp-2 max-w-[118px] whitespace-normal text-[0.58rem] font-black uppercase leading-[1.05] tracking-[.055em] text-white"><LeagueNameText leagueName={leagueName} /></p>
                 <div className="mt-2 grid grid-cols-[26px_4px_26px] items-center gap-1.5">
                   <span className="h-px bg-white/18" />
                   <span className="h-[3px] w-[3px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
@@ -138,7 +138,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate text-[0.63rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
+                        <p key={player.id} className="truncate text-[0.68rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
                       ))}
                     </div>
                   ))}

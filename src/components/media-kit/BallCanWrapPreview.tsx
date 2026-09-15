@@ -15,7 +15,7 @@ const BLEED_MM = 3
 const PRINT_WIDTH_MM = TRIM_WIDTH_MM + BLEED_MM * 2
 const PRINT_HEIGHT_MM = TRIM_HEIGHT_MM + BLEED_MM * 2
 const SEAL_TRIM_WIDTH_MM = 50
-const SEAL_TRIM_HEIGHT_MM = 15
+const SEAL_TRIM_HEIGHT_MM = 35
 const SEAL_BLEED_MM = 2
 const SEAL_PRINT_WIDTH_MM = SEAL_TRIM_WIDTH_MM + SEAL_BLEED_MM * 2
 const SEAL_PRINT_HEIGHT_MM = SEAL_TRIM_HEIGHT_MM + SEAL_BLEED_MM * 2
@@ -155,7 +155,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
         const element = name as HTMLElement
         element.style.width = "100%"
         element.style.textAlign = "center"
-        element.style.fontSize = "0.54rem"
+        element.style.fontSize = "0.62rem"
         element.style.lineHeight = "1.08"
         element.style.paddingBottom = "1px"
         element.style.overflow = "visible"
@@ -279,7 +279,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     .seal-accent-top,.seal-accent-bottom { position:absolute; left:0; right:0; height:.55mm; background:${props.accent}; }
     .seal-accent-top { top:0; } .seal-accent-bottom { bottom:0; opacity:.72; }
     .seal-content { position:absolute; left:${SEAL_BLEED_MM}mm; top:${SEAL_BLEED_MM}mm; width:${SEAL_TRIM_WIDTH_MM}mm; height:${SEAL_TRIM_HEIGHT_MM}mm; display:grid; grid-template-columns:9mm minmax(0,1fr); align-items:center; gap:.8mm; padding:1.5mm 1.4mm; color:white; font-family:Arial,Helvetica,sans-serif; }
-    .seal-logo { height:8mm; display:flex; align-items:center; justify-content:center; }
+    .seal-logo { height:8mm; display:flex; align-items:center; justify-content:center; transform:rotate(-90deg); }
     .seal-logo img { display:block; max-width:8.5mm; max-height:7.5mm; object-fit:contain; filter:drop-shadow(0 1mm 1.6mm rgba(0,0,0,.35)); }
     .seal-fallback { font-weight:900; font-size:3mm; letter-spacing:.3mm; }
     .seal-name { min-width:0; text-align:center; font-size:2.8mm; line-height:1; font-weight:900; text-transform:uppercase; letter-spacing:.03mm; white-space:nowrap; }
