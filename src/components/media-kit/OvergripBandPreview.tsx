@@ -120,11 +120,13 @@ export function OvergripBandPreview(props: Props) {
   <title>Welcome Pack</title>
   ${documentPrintStyles()}
   <style>
-    @page { size: 297mm 210mm; margin: 0; }
+    @page sl-overgrip-landscape { size: A4 landscape; margin: 0; }
+    @page { size: A4 landscape; margin: 0; }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; width: 297mm; height: 210mm; background: #fff; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .sheet {
+      page: sl-overgrip-landscape;
       width: 297mm;
       height: 210mm;
       display: grid;

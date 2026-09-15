@@ -22,6 +22,7 @@
 - La selección de vueltas ya no reconstruye los conteos de parejas de todos los partidos acumulados para cada candidata: conserva los conteos de cada vuelta y los combina para puntuarla. No cambia candidatas, reglas de desempate ni auditorías; la prueba exhaustiva completa de máximos pasó de ~34 s a 15,1 s y los 24 casos focalizados pasan en 23,7 s.
 - Puerta completa de `staging` superada tras la optimización: 193 archivos / 724 pruebas unitarias e integración, build de producción dentro de presupuesto (1.023.413 bytes gzip, 97 chunks), 62 pruebas Playwright y `npm audit --omit=dev --audit-level=high` con 0 vulnerabilidades. Pendiente: push verificado de `staging`, promoción normal a `main` y repetición de la puerta final.
 - Promoción final a `main` validada: 193 archivos / 724 pruebas, build dentro de presupuesto, 62 Playwright y auditoría runtime sin vulnerabilidades. Pendiente: push verificado de `main`.
+- Ajuste local posterior en `feature/welcome-pack-media-kit`: selector de piezas en cuadrícula en móvil, guía visible de A4 vertical/horizontal, escala 100 % y ajuste manual solo si el diálogo del navegador conserva una orientación previa. Precintos y overgrips declaran páginas CSS nombradas; 9/9 pruebas focalizadas y TypeScript correctos. No se ha publicado este ajuste.
 
 # v1.13.8 — Sello azul premium reforzado (2026-08-27)
 

@@ -42,6 +42,8 @@ describe("Media Kit Welcome Pack", () => {
     expect(html).toContain(".creator-name { margin-top: .3mm; color: #f4f1ea; font-size: 1.05mm;")
     expect(html).toContain("seal-face-top { transform: rotate(180deg)")
     expect(html).toContain("seal-face-bottom { transform: none")
+    expect(html).toContain("@page sl-welcome-pack-portrait { size: A4 portrait; margin: 4mm; }")
+    expect(html).toContain(".sheet { page: sl-welcome-pack-portrait;")
     expect(html).not.toContain("logo-medallion")
     expect(html).not.toContain(".seal-face::after")
   })

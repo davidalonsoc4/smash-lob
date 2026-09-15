@@ -34,6 +34,24 @@ const futurePieces = [
   "Carnet oficial",
 ]
 
+const printDirections = {
+  "bag-seal": {
+    orientation: "A4 vertical",
+    detail: "6 precintos por hoja · escala 100 % · sin ajustar al papel.",
+    manual: "Si el diálogo conserva horizontal de una impresión anterior, selecciona Vertical antes de guardar el PDF.",
+  },
+  "overgrip-band": {
+    orientation: "A4 horizontal",
+    detail: "18 fajines por hoja · escala 100 % · sin ajustar al papel.",
+    manual: "Si el diálogo no aplica la orientación automáticamente, selecciona Horizontal antes de guardar el PDF.",
+  },
+  "ball-can-wrap": {
+    orientation: "A4 horizontal",
+    detail: "Faja de 240 × 130 mm con sangrado y dos sellos del bote.",
+    manual: "Confirma Horizontal y escala 100 % antes de la prueba física sobre el bote.",
+  },
+} as const
+
 type SealLeague = {
   name: string
   logoUrl?: string | null
@@ -219,6 +237,7 @@ export default function WelcomePackMediaKitPage() {
   const seasonName = activeSeason.name || tx("Temporada")
   const accent = normalizeWelcomePackAccentColor(accentColor)
   const sheetCount = getWelcomePackBagSealSheetCount(sortedPlayers.length)
+  const printDirection = printDirections[activePiece]
 
   function printAll() {
     if (!sortedPlayers.length) return
@@ -292,11 +311,11 @@ export default function WelcomePackMediaKitPage() {
           </div>
           <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">{tx("3 disponibles")}</span>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="grid gap-2 sm:flex sm:overflow-x-auto sm:pb-2">
           <button
             type="button"
             onClick={() => setActivePiece("bag-seal")}
-            className={`relative min-w-[240px] flex-none overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative min-w-0 overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition sm:min-w-[240px] sm:flex-none ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
@@ -315,7 +334,7 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("overgrip-band")}
-            className={`relative min-w-[240px] flex-none overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative min-w-0 overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition sm:min-w-[240px] sm:flex-none ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
@@ -334,7 +353,7 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("ball-can-wrap")}
-            className={`relative min-w-[240px] flex-none overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative min-w-0 overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition sm:min-w-[240px] sm:flex-none ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
@@ -351,13 +370,32 @@ export default function WelcomePackMediaKitPage() {
           </button>
 
           {futurePieces.map((piece) => (
-            <div key={tx(piece)} className="min-w-[180px] flex-none rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
+            <div key={tx(piece)} className="min-w-0 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400 sm:min-w-[180px] sm:flex-none">
               <p className="text-[0.625rem] font-black leading-4">{tx(piece)}</p>
               <p className="mt-0.5 text-[0.5625rem] font-bold uppercase tracking-[.08em]">{tx("Próximamente")}</p>
             </div>
           ))}
         </div>
       </section>
+
+      <AppCard className="border-amber-200 bg-amber-50/70">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="type-caption font-black uppercase tracking-[.16em] text-amber-800">{tx("Antes de imprimir")}</p>
+            <h2 className="mt-1 text-base font-black text-neutral-950">{tx(printDirection.orientation)}</h2>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-700">{tx(printDirection.detail)}</p>
+          </div>
+          <span className="inline-flex w-fit rounded-full bg-white px-3 py-1.5 text-[0.625rem] font-black uppercase tracking-[.1em] text-neutral-800 ring-1 ring-amber-200">
+            {tx("PDF desde el navegador")}
+          </span>
+        </div>
+        <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-xs font-bold leading-5 text-neutral-700 ring-1 ring-amber-100">
+          {tx(printDirection.manual)}
+        </p>
+        <p className="mt-2 text-[0.6875rem] font-medium leading-5 text-neutral-600">
+          {tx("Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.")}
+        </p>
+      </AppCard>
 
       {activePiece === "bag-seal" ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">

@@ -281,11 +281,12 @@ export function buildWelcomePackBagSealPrintHtml({
   <link rel="stylesheet" href="${WELCOME_PACK_FONT_STYLESHEET}" />
   <title>Welcome Pack · Precintos de bolsa · ${escapeHtml(leagueName)}</title>
   <style>
+    @page sl-welcome-pack-portrait { size: A4 portrait; margin: 4mm; }
     @page { size: A4 portrait; margin: 4mm; }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; }
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .sheet { width: 202mm; min-height: 289mm; display: grid; grid-template-columns: repeat(${WELCOME_PACK_BAG_SEAL.columnsPerA4}, ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm); grid-template-rows: repeat(${WELCOME_PACK_BAG_SEAL.rowsPerA4}, ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm); gap: 2mm; align-content: start; justify-content: center; break-after: page; page-break-after: always; }
+    .sheet { page: sl-welcome-pack-portrait; width: 202mm; min-height: 289mm; display: grid; grid-template-columns: repeat(${WELCOME_PACK_BAG_SEAL.columnsPerA4}, ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm); grid-template-rows: repeat(${WELCOME_PACK_BAG_SEAL.rowsPerA4}, ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm); gap: 2mm; align-content: start; justify-content: center; break-after: page; page-break-after: always; }
     .sheet:last-child { break-after: auto; page-break-after: auto; }
     .seal-cell { --accent: ${accent}; position: relative; width: ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm; height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; overflow: hidden; background: #050505; }
     .seal-trim { position: absolute; inset: ${WELCOME_PACK_BAG_SEAL.bleedMm}mm; display: grid; grid-template-rows: ${WELCOME_PACK_BAG_SEAL.faceHeightMm}mm ${WELCOME_PACK_BAG_SEAL.faceHeightMm}mm; overflow: hidden; background: #050505; }
