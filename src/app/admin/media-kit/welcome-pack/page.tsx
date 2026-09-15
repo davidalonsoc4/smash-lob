@@ -315,57 +315,57 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("bag-seal")}
-            className={`relative min-w-[176px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative h-[112px] w-[128px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
-            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "bag-seal" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+            <div className="flex items-center justify-between gap-1 border-b border-neutral-100 bg-neutral-50/90 px-2.5 py-1.5 pl-3.5">
+              <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.5rem] font-black uppercase tracking-[.08em] ${activePiece === "bag-seal" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "bag-seal" ? "bg-emerald-500" : "bg-neutral-400"}`} />
                 {activePiece === "bag-seal" ? tx("Activo") : tx("Disponible")}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">{tx("Diseño único")}</span>
+              <span className="text-[0.5rem] font-black uppercase tracking-[.06em] text-neutral-500">{tx("Único")}</span>
             </div>
-            <div className="px-4 py-3 pl-5">
-              <h3 className="text-base font-black text-neutral-950">{tx("Precinto de bolsa")}</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">{tx("Personalizado · adhesivo · doble cara espejo.")}</p>
+            <div className="px-2.5 py-2 pl-3.5">
+              <h3 className="text-sm font-black leading-4 text-neutral-950">{tx("Precinto de bolsa")}</h3>
+              <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">50 × 130 mm</p>
             </div>
           </button>
 
           <button
             type="button"
             onClick={() => setActivePiece("overgrip-band")}
-            className={`relative min-w-[176px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative h-[112px] w-[128px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
-            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "overgrip-band" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+            <div className="flex items-center justify-between gap-1 border-b border-neutral-100 bg-neutral-50/90 px-2.5 py-1.5 pl-3.5">
+              <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.5rem] font-black uppercase tracking-[.08em] ${activePiece === "overgrip-band" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "overgrip-band" ? "bg-emerald-500" : "bg-neutral-400"}`} />
                 {activePiece === "overgrip-band" ? tx("Activo") : tx("Disponible")}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">{tx("Nuevo")}</span>
+              <span className="text-[0.5rem] font-black uppercase tracking-[.06em] text-neutral-500">{tx("Nuevo")}</span>
             </div>
-            <div className="px-4 py-3 pl-5">
-              <h3 className="text-base font-black text-neutral-950">{tx("Fajín del overgrip")}</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">{tx("Personalizado · cartulina mate · diseño completo.")}</p>
+            <div className="px-2.5 py-2 pl-3.5">
+              <h3 className="text-sm font-black leading-4 text-neutral-950">{tx("Fajín del overgrip")}</h3>
+              <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">120 × 18 mm</p>
             </div>
           </button>
 
           <button
             type="button"
             onClick={() => setActivePiece("ball-can-wrap")}
-            className={`relative min-w-[176px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative h-[112px] w-[128px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
-            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "ball-can-wrap" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
+            <div className="flex items-center justify-between gap-1 border-b border-neutral-100 bg-neutral-50/90 px-2.5 py-1.5 pl-3.5">
+              <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.5rem] font-black uppercase tracking-[.08em] ${activePiece === "ball-can-wrap" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "ball-can-wrap" ? "bg-emerald-500" : "bg-neutral-400"}`} />
                 {activePiece === "ball-can-wrap" ? tx("Activo") : tx("Disponible")}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">240 × 130 mm</span>
+              <span className="text-[0.5rem] font-black text-neutral-500">240 × 130</span>
             </div>
-            <div className="px-4 py-3 pl-5">
-              <h3 className="text-base font-black text-neutral-950">{tx("Faja del bote")}</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">{tx("HEAD Padel Pro S+ · adhesiva · diseño premium.")}</p>
+            <div className="px-2.5 py-2 pl-3.5">
+              <h3 className="text-sm font-black leading-4 text-neutral-950">{tx("Faja del bote")}</h3>
+              <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">{tx("Adhesiva")}</p>
             </div>
           </button>
 
