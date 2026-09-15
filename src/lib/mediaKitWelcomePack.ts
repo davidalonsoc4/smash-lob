@@ -315,33 +315,33 @@ export function buildWelcomePackBagSealPrintHtml({
     .face-ring-a { top: 8mm; right: -6mm; width: 20mm; height: 20mm; }
     .face-ring-b { left: -5mm; top: 18mm; width: 14mm; height: 14mm; }
     .face-sheen { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,.04) 60%, rgba(255,255,255,0) 100%); mix-blend-mode: screen; }
-    .face-inner { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4.4mm 3.6mm 3.8mm; text-align: center; }
+    .face-inner { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.4mm 4.2mm 4.5mm; text-align: center; }
     .general-font-narrow-premium { font-family: "Arial Narrow", "Roboto Condensed", Arial, sans-serif; }
     .general-font-geometric { font-family: "Century Gothic", Futura, Arial, sans-serif; }
     .general-font-editorial { font-family: Georgia, "Times New Roman", serif; }
-    .eyebrow { margin-bottom: 2.2mm; color: var(--accent); font-size: 2.4mm; font-weight: 900; letter-spacing: .66mm; line-height: 1; }
-    .league-logo-wrap { position: relative; display: flex; align-items: center; justify-content: center; min-height: 15.5mm; width: 100%; margin-top: .7mm; }
-    .league-logo-wrap::before { content: ""; position: absolute; left: 6mm; right: 6mm; top: 50%; height: 4.8mm; transform: translateY(-50%); background: rgba(255,255,255,.10); filter: blur(4mm); }
-    .league-logo { position: relative; z-index: 1; max-width: 34mm; max-height: 14.5mm; object-fit: contain; filter: drop-shadow(0 2mm 4mm rgba(0,0,0,.38)); }
-    .league-logo-fallback { position: relative; z-index: 1; color: #fff; font-size: 4.8mm; font-weight: 900; letter-spacing: .52mm; text-transform: uppercase; }
-    .league-name { max-width: 37mm; margin-top: 1.9mm; overflow: hidden; color: rgba(255,255,255,.62); font-size: 2.35mm; font-weight: 850; line-height: 1.05; text-transform: uppercase; letter-spacing: .17mm; white-space: nowrap; text-overflow: ellipsis; }
-    .player-name { max-width: 39mm; margin-top: 2.8mm; color: #fff; font-size: 5.4mm; line-height: .98; text-wrap: balance; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
+    .eyebrow { margin-bottom: 2.1mm; color: var(--accent); font-size: 2.1mm; font-weight: 900; letter-spacing: .62mm; line-height: 1; }
+    .league-logo-wrap { position: relative; display: flex; align-items: center; justify-content: center; min-height: 13mm; width: 100%; margin-top: .8mm; }
+    .league-logo-wrap::before { content: ""; position: absolute; left: 7mm; right: 7mm; top: 50%; height: 4.2mm; transform: translateY(-50%); background: rgba(255,255,255,.10); filter: blur(3.8mm); }
+    .league-logo { position: relative; z-index: 1; max-width: 30mm; max-height: 12.2mm; object-fit: contain; filter: drop-shadow(0 2mm 4mm rgba(0,0,0,.38)); }
+    .league-logo-fallback { position: relative; z-index: 1; color: #fff; font-size: 4.2mm; font-weight: 900; letter-spacing: .5mm; text-transform: uppercase; }
+    .league-name { max-width: 34mm; margin-top: 1.8mm; overflow: hidden; color: rgba(255,255,255,.57); font-size: 2.05mm; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: .16mm; white-space: nowrap; text-overflow: ellipsis; }
+    .player-name { max-width: 36.5mm; margin-top: 2.7mm; color: #fff; font-size: 4.8mm; line-height: .98; text-wrap: balance; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
     .player-font-editorial-serif { font-family: Georgia, "Times New Roman", serif; }
     .player-font-clean-sans { font-family: Inter, "Segoe UI", Arial, sans-serif; font-weight: 800; }
     .player-font-manuscript-elegant { font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive; font-weight: 700; }
     .player-font-manuscript-casual { font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive; font-weight: 700; }
-    .player-font-allura { font-family: "Allura", "Segoe Script", cursive; font-size: 6.3mm; font-weight: 400; }
-    .player-font-great-vibes { font-family: "Great Vibes", "Segoe Script", cursive; font-size: 6.1mm; font-weight: 400; }
-    .player-font-petit-formal { font-family: "Petit Formal Script", "Segoe Script", cursive; font-size: 4.65mm; font-weight: 400; }
-    .rule { display: grid; grid-template-columns: 9mm 1.7mm 9mm; align-items: center; gap: 1.2mm; margin-top: 2.6mm; }
-    .rule span { height: .2mm; background: rgba(255,255,255,.24); }
-    .rule i { width: 1.6mm; height: 1.6mm; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 1.8mm rgba(255,255,255,.22); }
-    .season-name { margin-top: 2.1mm; color: rgba(255,255,255,.8); font-size: 2.4mm; font-weight: 850; text-transform: uppercase; letter-spacing: .21mm; }
-    .creator-row { margin-top: 3.2mm; display: flex; align-items: center; justify-content: center; gap: .95mm; }
-    .creator-icon { width: 3mm; height: 3mm; border-radius: .7mm; object-fit: cover; }
+    .player-font-allura { font-family: "Allura", "Segoe Script", cursive; font-size: 5.7mm; font-weight: 400; }
+    .player-font-great-vibes { font-family: "Great Vibes", "Segoe Script", cursive; font-size: 5.5mm; font-weight: 400; }
+    .player-font-petit-formal { font-family: "Petit Formal Script", "Segoe Script", cursive; font-size: 4.15mm; font-weight: 400; }
+    .rule { display: grid; grid-template-columns: 8mm 1.5mm 8mm; align-items: center; gap: 1.15mm; margin-top: 2.5mm; }
+    .rule span { height: .18mm; background: rgba(255,255,255,.24); }
+    .rule i { width: 1.45mm; height: 1.45mm; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 1.8mm rgba(255,255,255,.22); }
+    .season-name { margin-top: 2mm; color: rgba(255,255,255,.76); font-size: 2.15mm; font-weight: 850; text-transform: uppercase; letter-spacing: .2mm; }
+    .creator-row { margin-top: 3.05mm; display: flex; align-items: center; justify-content: center; gap: .85mm; }
+    .creator-icon { width: 2.6mm; height: 2.6mm; border-radius: .65mm; object-fit: cover; }
     .creator-copy { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; font-family: "Arial Narrow", Arial, sans-serif; }
-    .creator-overline { color: color-mix(in srgb, var(--accent) 82%, white 18%); font-size: .9mm; font-weight: 800; letter-spacing: .24mm; }
-    .creator-name { margin-top: .3mm; color: #f4f1ea; font-size: 1.2mm; font-weight: 900; letter-spacing: .1mm; }
+    .creator-overline { color: color-mix(in srgb, var(--accent) 82%, white 18%); font-size: .78mm; font-weight: 800; letter-spacing: .22mm; }
+    .creator-name { margin-top: .3mm; color: #f4f1ea; font-size: 1.05mm; font-weight: 900; letter-spacing: .09mm; }
     @media screen {
       body { padding: 12px; background: #e5e7eb; }
       .sheet { margin: 0 auto 16px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.14); }

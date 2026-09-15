@@ -207,7 +207,7 @@ export function OvergripBandPreview(props: Props) {
           <div className="absolute inset-x-0 bottom-0 h-px opacity-35" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
 
-          <div className="relative z-10 flex h-full items-center justify-center gap-3 px-[9.091%] text-center">
+          <div className="relative z-10 flex h-full items-center justify-center gap-3 px-[8.333%] text-center">
             <div className="flex h-[42px] w-[72px] shrink-0 items-center justify-center">
               <LeagueLogo league={league} />
             </div>
