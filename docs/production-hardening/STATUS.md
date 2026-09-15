@@ -17,6 +17,7 @@
 - La configuración de capturas de Playwright 1.62 no admite timeout específico en `toHaveScreenshot`; se elimina esa opción inválida tras el diagnóstico directo de `next build`. La espera general de 15 s se conserva para el contenido de página.
 - Validación final de feature superada con `npm run release:check`: 193 archivos / 724 pruebas unitarias e integración, build de producción dentro de presupuesto (1.023.297 bytes gzip, 97 chunks), 62 E2E Playwright y `npm audit --omit=dev --audit-level=high` con 0 vulnerabilidades. Las dos referencias visuales de CALENDARIO se actualizaron únicamente para reflejar el selector compacto; la inspección de diff confirma ese alcance.
 - Se crearon los commits locales 0e18ad8 (dependencias), 2e1da67 (Welcome Pack) y f3f7d67 (validación). Un `index.lock` vacío de 2026-09-14, sin procesos Git activos, se confirmó obsoleto y se eliminó antes de los commits. Pendiente: push verificado de feature, merge normal en staging, repetir puerta y push; después merge normal de staging en main, puerta final y push.
+- Feature publicada y verificada en origin como 5194537. El merge inicial de staging (`c4a184e`) resolvió automáticamente el revert temporal borrando MediaKitSectionNav y la regla ESLint necesaria para la página Welcome Pack; ambas se restauran desde la feature antes de repetir validación. No se ha publicado staging todavía.
 
 # v1.13.8 — Sello azul premium reforzado (2026-08-27)
 
