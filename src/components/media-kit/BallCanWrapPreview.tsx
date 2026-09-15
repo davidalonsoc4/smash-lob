@@ -14,8 +14,8 @@ const HORIZONTAL_CROP_MM = (DESIGN_WIDTH_MM - TRIM_WIDTH_MM) / 2
 const BLEED_MM = 3
 const PRINT_WIDTH_MM = TRIM_WIDTH_MM + BLEED_MM * 2
 const PRINT_HEIGHT_MM = TRIM_HEIGHT_MM + BLEED_MM * 2
-const SEAL_TRIM_WIDTH_MM = 50
-const SEAL_TRIM_HEIGHT_MM = 35
+const SEAL_TRIM_WIDTH_MM = 60
+const SEAL_TRIM_HEIGHT_MM = 15
 const SEAL_BLEED_MM = 2
 const SEAL_PRINT_WIDTH_MM = SEAL_TRIM_WIDTH_MM + SEAL_BLEED_MM * 2
 const SEAL_PRINT_HEIGHT_MM = SEAL_TRIM_HEIGHT_MM + SEAL_BLEED_MM * 2
@@ -272,7 +272,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     .crop-tl-v, .crop-bl-v { left: ${BLEED_MM}mm; }
     .crop-tr-v, .crop-br-v { right: ${BLEED_MM}mm; }
 
-    .seals { position: absolute; left: 91.5mm; top: 166mm; display: flex; gap: 8mm; }
+    .seals { position: absolute; left: 80.5mm; top: 166mm; display: flex; gap: 8mm; }
     .seal-piece { position: relative; width: ${SEAL_PRINT_WIDTH_MM}mm; height: ${SEAL_PRINT_HEIGHT_MM}mm; }
     .seal-art { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(circle at 18% 20%, ${props.accent}55 0%, transparent 28%), radial-gradient(circle at 84% 80%, ${props.accent}22 0%, transparent 32%), linear-gradient(155deg,#1a1a1a 0%,#080808 52%,#020202 100%); }
     .seal-art::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(255,255,255,.07),transparent 32%,rgba(255,255,255,.02) 68%,transparent); }

@@ -11,11 +11,11 @@ export type BallCanSealPrintProps = {
 }
 
 export const BALL_CAN_SEAL_PRINT = {
-  trimWidthMm: 50,
-  trimHeightMm: 35,
+  trimWidthMm: 60,
+  trimHeightMm: 15,
   bleedMm: 2,
-  printWidthMm: 54,
-  printHeightMm: 39,
+  printWidthMm: 64,
+  printHeightMm: 19,
 } as const
 
 function initials(value: string) {
@@ -155,7 +155,7 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: BallCa
           <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">{tx("Precinto del bote · primera versión")}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Genérico de liga · logo + nombre · reutilizable entre temporadas.")}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700">50 × 35 mm</span>
+        <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700">60 × 15 mm</span>
       </div>
 
       <div className="rounded-[18px] bg-[#f4f1ea] p-4 ring-1 ring-neutral-200">
@@ -190,7 +190,7 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: BallCa
       </div>
 
       <p className="mt-3 text-[0.625rem] font-semibold leading-4 text-neutral-500">
-        {tx("Corte 50 × 35 mm · sangrado 2 mm · impresión 54 × 39 mm · vinilo adhesivo mate. Se incluye automáticamente dos veces en el PDF de la faja.")} </p>
+        {tx("Corte 60 × 15 mm · sangrado 2 mm · impresión 64 × 19 mm · vinilo adhesivo mate. Se incluye automáticamente dos veces en el PDF de la faja.")} </p>
     </div>
   )
 }
