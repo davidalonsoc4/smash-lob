@@ -253,7 +253,6 @@ export function SeasonShareExportsCard({
     exportOptions.find((option) => option.kind === activeKind) ??
     exportOptions[0]
   const resolvedActiveKind = activeOption?.kind ?? activeKind
-  const activeDisabled = activeOption?.disabled ?? true
 
   function getFilename(kind: ExportKind) {
     const suffix =

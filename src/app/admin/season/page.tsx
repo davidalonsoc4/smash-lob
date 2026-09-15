@@ -308,7 +308,6 @@ function getSuggestedSeasonName(name: string) {
   return `${match[1].trim()} ${Number(match[2]) + 1}`;
 }
 
-function getTotalRoundCount(playerCount: number) { return getSeasonBaseRoundCount(playerCount); }
 function getMatchesPerRound(playerCount: number) { return getSeasonMatchesPerRound(playerCount); }
 
 function getManualCalendarDraftRoundCount({

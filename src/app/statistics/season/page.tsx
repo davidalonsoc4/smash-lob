@@ -276,7 +276,7 @@ export default function StatisticsSeasonPage() {
           : "No hay resultados suficientes.",
       },
     ]
-  }, [playersById, statistics.records])
+  }, [playersById, statistics.records, tx])
 
   return (
     <div className="compact-page space-y-3">

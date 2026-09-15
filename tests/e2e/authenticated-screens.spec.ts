@@ -12,6 +12,28 @@ const screens = [
   { name: "season-summary", path: "/statistics/season" },
 ] as const
 
+test("welcome pack uses the final overgrip design and prints a full A4 sheet", async ({ page, context }) => {
+  await context.addInitScript(() => { window.print = () => {} })
+  await page.goto("/admin/media-kit/welcome-pack")
+  await page.getByRole("button", { name: /Fajín del overgrip/ }).click()
+  const design = page.locator('[data-overgrip-band-design="true"]')
+  await expect(design).toBeVisible()
+  await expect(design).not.toContainText("Welcome Pack")
+  const popupPromise = page.waitForEvent("popup")
+  await page.getByRole("button", { name: "Generar PDF / imprimir" }).click()
+  const popup = await popupPromise
+  await expect(popup.locator('.slot [data-overgrip-band-design="true"]')).toHaveCount(18)
+  await expect(popup.locator(".sheet")).toBeVisible()
+  await popup.close()
+})
+
+test("calendar view selector fits without horizontal scrolling", async ({ page }) => {
+  await page.goto("/matches")
+  const selector = page.locator('[data-tour="matches-scope"] > div')
+  await expect(selector).toBeVisible()
+  expect(await selector.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+})
+
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-08-10T10:00:00+02:00"))
   await page.route("**/api/onboarding/progress", async (route) => {

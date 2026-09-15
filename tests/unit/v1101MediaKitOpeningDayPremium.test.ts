@@ -33,13 +33,15 @@ describe("v1.10.1 premium opening-day media kit", () => {
   })
 
   it("recolors the premium composition and keeps the export in 1080x1350", async () => {
-    const [page, image] = await Promise.all([
+    const [page, shell, image] = await Promise.all([
       read("src/app/admin/media-kit/page.tsx"),
+      read("src/components/media-kit/MediaKitWorkspaceShell.tsx"),
       read("src/lib/leagueMediaKitImage.ts"),
     ])
 
-    expect(page).toContain("openingAccentOptions")
-    expect(page).toContain('type="color"')
+    expect(page).toContain("useMediaKitSettings")
+    expect(shell).toContain("MEDIA_KIT_ACCENT_OPTIONS.map")
+    expect(shell).toContain('type="color"')
     expect(page).toContain("Color de acento")
     expect(image).toContain('const WIDTH = 1080')
     expect(image).toContain('const HEIGHT = 1350')

@@ -1159,6 +1159,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       resultConfirmations,
       seasonPlayers,
       seasons,
+      tx,
     ],
   );
 
@@ -1493,6 +1494,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       resultConfirmations,
       seasonPlayers,
       seasons,
+      tx,
     ],
   );
 

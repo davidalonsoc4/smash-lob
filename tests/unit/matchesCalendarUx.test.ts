@@ -18,7 +18,7 @@ describe("calendar screen usability", () => {
   it("keeps the view selector compact and marks the active round", () => {
     const source = readFileSync("src/app/matches/page.tsx", "utf8")
 
-    expect(source).toContain('className="flex items-center gap-2 overflow-x-auto"')
+    expect(source).toContain('className="flex min-w-0 items-center gap-2 overflow-hidden"')
     expect(source).toContain(
       'data-active-round={round.id === activeRoundId ? "true" : undefined}',
     )

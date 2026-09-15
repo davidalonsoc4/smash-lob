@@ -121,34 +121,6 @@ function SettingsStaticRow({
     </div>
   )
 }
-function SettingsToggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean
-  onChange: () => void
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={onChange}
-      className={`relative h-7 w-12 rounded-full transition ${
-        checked ? "bg-neutral-950" : "bg-neutral-300"
-      }`}
-    >
-      <span
-        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
-          checked ? "left-6" : "left-1"
-        }`}
-      />
-    </button>
-  )
-}
 const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b"],
   midnight: ["#365f9d", "#5a78b5", "#87b5df"],
@@ -200,7 +172,7 @@ function AppearanceSummaryPreview({
   )
 }
 function AppearanceSettingsLink() {
-  const { t, tx } = useI18n()
+  const { t } = useI18n()
   const { themeMode, visualStyle, colorfulPalette } = useTheme()
   const themeLabels: Record<ThemeMode, string> = {
     light: t.settings.appearanceLight,

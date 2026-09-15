@@ -20,9 +20,11 @@ const testEnvironment = {
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
-  workers: process.env.CI ? 2 : 4,
+  // Keep local browser/Next compilation contention aligned with CI.
+  workers: 2,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  expect: { timeout: 15_000 },
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: testAppUrl,
@@ -53,10 +55,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run dev -- --port ${testPort}`,
+    // Test the production server so routes are compiled before the suite starts.
+    command: `npm run build && npm run start -- --port ${testPort}`,
     url: testAppUrl,
     reuseExistingServer: false,
     env: testEnvironment,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 })

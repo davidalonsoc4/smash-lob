@@ -11,6 +11,8 @@ export default defineConfig({
     },
   },
   test: {
+    // Bound CPU contention so exhaustive calendar checks keep their real timeouts.
+    maxWorkers: 2,
     environment: "node",
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],

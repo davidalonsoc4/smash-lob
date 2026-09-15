@@ -104,15 +104,15 @@ export default function MatchesPage() {
       </header>
 
       <AppCard data-tour="matches-scope" className="p-2">
-        <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="flex min-w-0 items-center gap-2 overflow-hidden">
           <p className="shrink-0 type-caption font-black text-neutral-700">
-            {tx("Vista del calendario")}{" "}</p>
+            {tx("Vista")}{" "}</p>
 
-          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+          <div className="ml-auto flex min-w-0 items-center gap-1.5">
             <Link
               href="/matches"
               aria-current={activeScope === "all" ? "page" : undefined}
-              className={`inline-flex items-center gap-1 rounded-xl px-2 py-1.5 transition ${
+              className={`inline-flex min-w-0 items-center gap-1 rounded-xl px-2 py-1.5 transition ${
                 activeScope === "all"
                   ? "bg-neutral-950 text-white shadow-sm"
                   : "bg-neutral-100 text-neutral-700"
@@ -134,7 +134,7 @@ export default function MatchesPage() {
             <Link
               href="/matches?scope=mine"
               aria-current={activeScope === "mine" ? "page" : undefined}
-              className={`inline-flex items-center gap-1 rounded-xl px-2 py-1.5 transition ${
+              className={`inline-flex min-w-0 items-center gap-1 rounded-xl px-2 py-1.5 transition ${
                 activeScope === "mine"
                   ? "bg-neutral-950 text-white shadow-sm"
                   : "bg-neutral-100 text-neutral-700"
