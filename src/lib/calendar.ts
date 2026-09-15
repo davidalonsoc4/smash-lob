@@ -368,7 +368,6 @@ function getCalendarPairCounts({
 }
 
 type CalendarPairCounts = ReturnType<typeof getCalendarPairCounts>
-
 function mergeCalendarPairCounts(
   first: CalendarPairCounts,
   second: CalendarPairCounts,
