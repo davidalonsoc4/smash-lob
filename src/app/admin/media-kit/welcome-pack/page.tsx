@@ -315,7 +315,7 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("bag-seal")}
-            className={`relative h-[112px] w-[128px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative h-[82px] w-[156px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "bag-seal" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex h-full flex-col justify-center px-2.5 py-2 pl-3.5">
@@ -327,7 +327,7 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("overgrip-band")}
-            className={`relative h-[112px] w-[128px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative h-[82px] w-[156px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "overgrip-band" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex h-full flex-col justify-center px-2.5 py-2 pl-3.5">
@@ -339,7 +339,7 @@ export default function WelcomePackMediaKitPage() {
           <button
             type="button"
             onClick={() => setActivePiece("ball-can-wrap")}
-            className={`relative h-[112px] w-[128px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+            className={`relative h-[82px] w-[156px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "ball-can-wrap" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
           >
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
             <div className="flex h-full flex-col justify-center px-2.5 py-2 pl-3.5">
