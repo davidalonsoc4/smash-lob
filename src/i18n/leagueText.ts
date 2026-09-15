@@ -7,6 +7,9 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+  "Adhesiva": "Adhesive",
+  "PDF desde el navegador": "PDF from the browser",
+  "Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.": "Each piece currently generates its own sheet. The next step will combine every configured piece into one production PDF.",
   "Destinatario": "Recipient",
   "Personaliza el saludo y cualquier palabra con género sin tocar manualmente el texto de la carta.": "Personalise the greeting and any gendered wording without manually editing the letter text.",
   "Nombre": "Name",
@@ -728,6 +731,9 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+  "Adhesiva": "Itsasgarria",
+  "PDF desde el navegador": "PDFa nabigatzailetik",
+  "Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.": "Une honetan pieza bakoitzak bere orria sortzen du. Hurrengo urratsean konfiguratutako pieza guztiak ekoizpenerako PDF bakarrean elkartuko dira.",
   "Destinatario": "Hartzailea",
   "Personaliza el saludo y cualquier palabra con género sin tocar manualmente el texto de la carta.": "Pertsonalizatu agurra eta generoaren araberako hitzak gutunaren testua eskuz aldatu gabe.",
   "Nombre": "Izena",
