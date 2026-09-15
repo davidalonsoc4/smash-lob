@@ -21,6 +21,7 @@
 - La primera puerta sobre staging confirmó que los dos casos exhaustivos de calendario superan sus límites de 5/30 s en este equipo, también con un único worker. Se conserva íntegro el algoritmo determinista y todas sus alternativas, pues la generación ocurre una vez por temporada; los límites de esas dos pruebas se amplían a 10/60 s para validar el resultado completo sin falsos fallos de rendimiento local. Pendiente: suite completa, puerta staging y push solo si ambas pasan.
 - La selección de vueltas ya no reconstruye los conteos de parejas de todos los partidos acumulados para cada candidata: conserva los conteos de cada vuelta y los combina para puntuarla. No cambia candidatas, reglas de desempate ni auditorías; la prueba exhaustiva completa de máximos pasó de ~34 s a 15,1 s y los 24 casos focalizados pasan en 23,7 s.
 - Puerta completa de `staging` superada tras la optimización: 193 archivos / 724 pruebas unitarias e integración, build de producción dentro de presupuesto (1.023.413 bytes gzip, 97 chunks), 62 pruebas Playwright y `npm audit --omit=dev --audit-level=high` con 0 vulnerabilidades. Pendiente: push verificado de `staging`, promoción normal a `main` y repetición de la puerta final.
+- Promoción final a `main` validada: 193 archivos / 724 pruebas, build dentro de presupuesto, 62 Playwright y auditoría runtime sin vulnerabilidades. Pendiente: push verificado de `main`.
 
 # v1.13.8 — Sello azul premium reforzado (2026-08-27)
 
