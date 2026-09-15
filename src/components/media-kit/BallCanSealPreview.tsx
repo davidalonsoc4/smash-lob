@@ -83,7 +83,7 @@ export function buildBallCanSealPrintStyles(accent: string) {
       display: flex;
       align-items: center;
       justify-content: center;
-      transform: rotate(-90deg);
+      transform: rotate(90deg);
     }
     .sl-ball-can-seal-logo img {
       display: block;
@@ -176,7 +176,7 @@ export function BallCanSealPreview({ leagueName, leagueLogoUrl, accent }: BallCa
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_32%,rgba(255,255,255,.02)_68%,transparent)]" />
           <div className="relative z-10 flex h-full items-center justify-center px-2">
             <div className="flex min-w-0 items-center justify-center gap-1.5">
-              <div className="flex shrink-0 -rotate-90 items-center justify-center">
+              <div className="flex shrink-0 rotate-90 items-center justify-center">
                 {leagueLogoUrl ? (
                   <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={70} height={44} className="h-auto max-h-[38px] w-auto max-w-[40px] object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,.38)]" />
                 ) : (

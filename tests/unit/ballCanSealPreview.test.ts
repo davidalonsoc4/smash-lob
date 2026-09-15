@@ -24,7 +24,7 @@ describe("Ball can seal print layout", () => {
 
     expect(styles).toContain("width: 60mm")
     expect(styles).toContain("align-items: center")
-    expect(styles).toContain("transform: rotate(-90deg)")
+    expect(styles).toContain("transform: rotate(90deg)")
     expect(html).toContain('src="https://example.com/league-logo.png"')
     expect(html).toContain("Liga Norte")
   })

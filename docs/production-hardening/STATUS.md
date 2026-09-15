@@ -1583,6 +1583,6 @@ This is human acceptance evidence reported by the project owner. It was not repl
 ### Welcome Pack: refinamiento de impresión (2026-09-15)
 
 - La faja conserva su composición: se amplían visualmente el logotipo y nombre de liga con origen inferior, los nombres de jugadores ganan aproximadamente un punto y se retiran únicamente las guías discontinuas de las zonas de pegado.
-- Los dos precintos incluidos en el PDF pasan de 50 × 15 mm a 60 × 15 mm (64 × 19 mm con sangrado); su contenido permanece centrado y el logotipo gira 90 grados para el montaje vertical.
+- Los dos precintos incluidos en el PDF pasan de 50 × 15 mm a 60 × 15 mm (64 × 19 mm con sangrado); su contenido permanece centrado y el logotipo gira 90 grados en el sentido de montaje vertical.
 - El fajín de overgrip amplía el espacio útil del logotipo de 72 × 42 px a 80 × 46 px y reduce su separación con el nombre de liga.
 - Validación final correcta: presupuesto de fuente de 125.531 líneas, ESLint, TypeScript, build de producción y presupuesto de build; 726 pruebas unitarias e integración y 62 pruebas Playwright superadas; auditoría runtime sin vulnerabilidades altas.
