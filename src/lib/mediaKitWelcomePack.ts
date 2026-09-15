@@ -190,7 +190,7 @@ function faceMarkup({
     <div class="face-inner general-font-${generalFont}">
       <div class="eyebrow">WELCOME PACK</div>
       ${logoMarkup({ leagueName, logoUrl })}
-      <div class="league-name">${escapeHtml(leagueName)}</div>
+      <div class="league-name" data-fit-league-name>${escapeHtml(leagueName)}</div>
       <div class="player-name player-font-${playerNameFont}">${escapeHtml(playerName)}</div>
       <div class="rule"><span></span><i></i><span></span></div>
       <div class="season-name">${escapeHtml(seasonName)}</div>
@@ -236,6 +236,10 @@ function sealMarkup({
   </div>`
 }
 
+function logoTestMarkup(logoUrl: string) {
+  return `<div class="logo-test-cell"><img class="logo-test" src="${escapeHtml(logoUrl)}" alt="Logo de liga para prueba de pegatina" /></div>`
+}
+
 export function buildWelcomePackBagSealPrintHtml({
   players,
   leagueName,
@@ -264,11 +268,15 @@ export function buildWelcomePackBagSealPrintHtml({
   )
 
   const sheetMarkup = sheets
-    .map(
-      (sheetPlayers) => `<section class="sheet">${sheetPlayers
+    .map((sheetPlayers) => {
+      const isPartialSheet = sheetPlayers.length < WELCOME_PACK_BAG_SEAL.itemsPerA4
+      const logoTestCells = isPartialSheet && logoUrl
+        ? Array.from({ length: WELCOME_PACK_BAG_SEAL.itemsPerA4 - sheetPlayers.length }, () => logoTestMarkup(logoUrl)).join("")
+        : ""
+      return `<section class="sheet">${sheetPlayers
         .map((player) => sealMarkup({ player, leagueName, seasonName, logoUrl, playerNameFont: font, generalFont, showSignature }))
-        .join("")}</section>`,
-    )
+        .join("")}${logoTestCells}</section>`
+    })
     .join("")
 
   const foldTickTopMm = WELCOME_PACK_BAG_SEAL.printedHeightMm / 2 - 0.15
@@ -325,6 +333,8 @@ export function buildWelcomePackBagSealPrintHtml({
     .league-logo { position: relative; z-index: 1; max-width: 44mm; max-height: 18.5mm; object-fit: contain; filter: drop-shadow(0 2mm 4mm rgba(0,0,0,.38)); }
     .league-logo-fallback { position: relative; z-index: 1; color: #fff; font-size: 6mm; font-weight: 900; letter-spacing: .56mm; text-transform: uppercase; }
     .league-name { max-width: 44mm; margin-top: 1.4mm; overflow: hidden; color: rgba(255,255,255,.57); font-size: 3.05mm; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: .18mm; white-space: nowrap; text-overflow: ellipsis; }
+    .logo-test-cell { width: ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm; height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
+    .logo-test { display: block; width: 50mm; height: auto; max-height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; object-fit: contain; }
     .player-name { max-width: 45mm; margin-top: 2.2mm; color: #fff; font-size: 7.25mm; line-height: .96; text-wrap: balance; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
     .player-font-editorial-serif { font-family: Georgia, "Times New Roman", serif; }
     .player-font-clean-sans { font-family: Inter, "Segoe UI", Arial, sans-serif; font-weight: 800; }
@@ -361,7 +371,17 @@ export function buildWelcomePackBagSealPrintHtml({
         });
       })).then(function () {
         var fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
-        Promise.resolve(fontsReady).then(function () { window.setTimeout(function () { window.print(); }, 250); });
+        Promise.resolve(fontsReady).then(function () {
+          document.querySelectorAll("[data-fit-league-name]").forEach(function (element) {
+            var label = element;
+            var size = parseFloat(window.getComputedStyle(label).fontSize);
+            while (label.scrollWidth > label.clientWidth && size > 7) {
+              size -= 0.25;
+              label.style.fontSize = size + "px";
+            }
+          });
+          window.setTimeout(function () { window.print(); }, 250);
+        });
       });
     });
   </script>

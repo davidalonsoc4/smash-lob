@@ -1591,3 +1591,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - v1.14.1 publicado en PRE y Producción: `staging` y `main` en `9d96c30e46dc9df95e5efb2f7211a5cfa8a1c5cf`; PRE `dpl_81hb4LFKm4bM3CUpPfbAcqsX25tF` y Producción `dpl_DWkN7TYe8w1dupjgAzYcKmJnM5J9` READY, con alias `pre.smashandlob.com` y `smashandlob.com`. Validación focalizada: version:check, TypeScript, lint y 8 pruebas unitarias de los generadores. Smoke omitido por la indicación del proyecto.
 
 - Ajuste pendiente de prueba en PRE v1.14.2: el contenido completo del precinto de bolsa se amplía para mejorar la legibilidad en impresión.
+- Ajuste pendiente de prueba en rama v1.14.3: nombre de liga autoajustable y logos de prueba de 50 mm en huecos de la última hoja.
