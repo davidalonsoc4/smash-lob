@@ -1592,3 +1592,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - Ajuste pendiente de prueba en PRE v1.14.2: el contenido completo del precinto de bolsa se amplía para mejorar la legibilidad en impresión.
 - Ajuste pendiente de prueba en rama v1.14.3: nombre de liga autoajustable y logos de prueba de 50 mm en huecos de la última hoja.
+- Ajuste pendiente de prueba en rama v1.14.4: nueva plancha de pegatinas de logo con ancho configurable, orientación A4 automática y relleno de huecos a 50 mm.
