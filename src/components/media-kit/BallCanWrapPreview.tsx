@@ -272,7 +272,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
     .crop-tl-v, .crop-bl-v { left: ${BLEED_MM}mm; }
     .crop-tr-v, .crop-br-v { right: ${BLEED_MM}mm; }
 
-    .seals { position: absolute; left: 80.5mm; top: 166mm; display: flex; gap: 8mm; }
+    .seals { position: absolute; left: 84.5mm; top: 166mm; display: flex; gap: 0; }
     .seal-piece { position: relative; width: ${SEAL_PRINT_WIDTH_MM}mm; height: ${SEAL_PRINT_HEIGHT_MM}mm; }
     .seal-art { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(circle at 18% 20%, ${props.accent}55 0%, transparent 28%), radial-gradient(circle at 84% 80%, ${props.accent}22 0%, transparent 32%), linear-gradient(155deg,#1a1a1a 0%,#080808 52%,#020202 100%); }
     .seal-art::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(255,255,255,.07),transparent 32%,rgba(255,255,255,.02) 68%,transparent); }
