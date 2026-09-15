@@ -1,5 +1,7 @@
 "use client"
 
+import { useI18n } from "@/i18n/I18nProvider"
+
 import { useEffect, useRef, useState, type ComponentProps, type CSSProperties } from "react"
 import { BallCanWrapPremiumPreview } from "@/components/media-kit/BallCanWrapPremiumPreview"
 
@@ -46,6 +48,7 @@ function initials(value: string) {
 }
 
 export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
+  const { tx } = useI18n()
   const rootRef = useRef<HTMLDivElement>(null)
   const [printError, setPrintError] = useState<string | null>(null)
 
@@ -162,19 +165,19 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
   function printPdf() {
     const design = rootRef.current?.querySelector('[class~="rounded-[14px]"]') as HTMLElement | null
     if (!design) {
-      setPrintError("No se ha podido preparar la faja para impresión.")
+      setPrintError(tx("No se ha podido preparar la faja para impresión."))
       return
     }
 
     const bounds = design.getBoundingClientRect()
     if (!bounds.width || !bounds.height) {
-      setPrintError("La vista previa todavía no tiene un tamaño válido para impresión.")
+      setPrintError(tx("La vista previa todavía no tiene un tamaño válido para impresión."))
       return
     }
 
     const popup = window.open("", "_blank", "width=1280,height=900")
     if (!popup) {
-      setPrintError("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para generar el PDF.")
+      setPrintError(tx("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para generar el PDF."))
       return
     }
 
@@ -334,10 +337,10 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
       <div className="mx-auto mt-4 w-full max-w-[430px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">PDF de impresión · adhesivos</p>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">A4 apaisado · 1 faja + 2 precintos · tamaños reales con sangrado y marcas de corte.</p>
+            <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">{tx("PDF de impresión · adhesivos")}</p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("A4 apaisado · 1 faja + 2 precintos · tamaños reales con sangrado y marcas de corte.")}</p>
           </div>
-          <button type="button" onClick={printPdf} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-center text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">Generar PDF / imprimir</button>
+          <button type="button" onClick={printPdf} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-center text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">{tx("Generar PDF / imprimir")}</button>
         </div>
         {printError ? <p className="mt-2 text-xs font-bold text-red-600">{printError}</p> : null}
       </div>

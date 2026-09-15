@@ -1,11 +1,8 @@
-import { isValidElement, type ComponentProps, type ComponentPropsWithoutRef, type ReactElement } from "react"
-import { OvergripBandPreview as PrintableOvergripBandPreview } from "@/components/media-kit/OvergripBandPreview"
+import type { ComponentPropsWithoutRef } from "react"
 
 type AppCardProps = ComponentPropsWithoutRef<"section"> & {
   accentStrip?: boolean
 }
-
-type PrintableOvergripProps = ComponentProps<typeof PrintableOvergripBandPreview>
 
 export function AppCard({
   children,
@@ -13,15 +10,6 @@ export function AppCard({
   accentStrip = false,
   ...sectionProps
 }: AppCardProps) {
-  const isLegacyOvergripPreview =
-    isValidElement(children) &&
-    typeof children.type === "function" &&
-    children.type.name === "OvergripBandPreview"
-
-  const renderedChildren = isLegacyOvergripPreview
-    ? <PrintableOvergripBandPreview {...(children as ReactElement<PrintableOvergripProps>).props} />
-    : children
-
   return (
     <section
       {...sectionProps}
@@ -30,7 +18,7 @@ export function AppCard({
       {accentStrip ? (
         <span aria-hidden="true" className="app-card-accent-strip" />
       ) : null}
-      {renderedChildren}
+      {children}
     </section>
   )
 }

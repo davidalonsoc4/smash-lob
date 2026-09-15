@@ -1,5 +1,7 @@
 "use client"
 
+import { useI18n } from "@/i18n/I18nProvider"
+
 import { useState } from "react"
 import Image from "next/image"
 import {
@@ -58,6 +60,7 @@ function LeagueNameText({ leagueName }: { leagueName: string }) {
 }
 
 export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent }: Props) {
+  const { tx } = useI18n()
   const [playerListFont, setPlayerListFont] = useState<WelcomePackPlayerNameFont>("great-vibes")
   const roster = sortedPlayers(players)
   const oneColumn = roster.length <= 8
@@ -75,8 +78,8 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
   return (
     <div className="mx-auto w-full max-w-[430px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
-        <span>Vista previa · faja completa</span>
-        <span>{WIDTH_MM} × {HEIGHT_MM} mm · definitivo</span>
+        <span>{tx("Vista previa · faja completa")}</span>
+        <span>{WIDTH_MM} × {HEIGHT_MM} {tx("mm · definitivo")}</span>
       </div>
 
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
@@ -127,7 +130,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
 
               <section className="flex min-w-0 flex-col justify-center px-5 py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Jugadores</p>
+                  <p className="text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>{tx("Jugadores")}</p>
                   <span className="rounded-full border border-white/10 bg-white/[.04] px-2 py-1 text-[0.38rem] font-black text-white/62">{roster.length}</span>
                 </div>
                 <div className={`mt-3 grid min-h-0 flex-1 ${oneColumn ? "grid-cols-1" : "grid-cols-2 gap-x-4"}`}>
@@ -147,15 +150,14 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
 
       <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <label className="text-xs font-black text-neutral-700">
-          Tipografía del listado de jugadores
-          <select
+          {tx("Tipografía del listado de jugadores")} <select
             value={playerListFont}
             onChange={(event) => setPlayerListFont(event.target.value as WelcomePackPlayerNameFont)}
             className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
           >
             {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => (
               <option key={option.id} value={option.id}>
-                {option.label}{option.id === "great-vibes" ? " · actual" : ""}
+                {tx(option.label)}{option.id === "great-vibes" ? ` · ${tx("Actual")}` : ""}
               </option>
             ))}
           </select>
@@ -163,8 +165,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">Faja adhesiva:</strong> 240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.
-      </div>
+        <strong className="text-neutral-900">{tx("Faja adhesiva:")}</strong> {tx("240 × 130 mm a tamaño real. Se reservan 5 mm limpios por la izquierda y 5 mm por la derecha para el pegado. La marca de las bolas queda limpia y la firma de Smash & Lob se integra en el bloque de identidad de la liga.")} </div>
     </div>
   )
 }

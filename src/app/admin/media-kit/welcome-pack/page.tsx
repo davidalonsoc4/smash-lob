@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
+import { OvergripBandPreview } from "@/components/media-kit/OvergripBandPreview"
 import { BallCanWrapPreview } from "@/components/media-kit/BallCanWrapPreview"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -39,11 +40,12 @@ type SealLeague = {
 }
 
 function SmashAndLobSignature({ accent }: { accent: string }) {
+  const { tx } = useI18n()
   return (
     <div className="mt-1.5 flex items-center justify-center gap-1">
       <Image src="/icon-192.png" alt="" width={12} height={12} className="h-3 w-3 rounded-[3px] object-cover" />
       <div className="text-left leading-none" style={{ fontFamily: '"Arial Narrow", Arial, sans-serif' }}>
-        <p className="text-[0.25rem] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>Creado con</p>
+        <p className="text-[0.25rem] font-extrabold uppercase tracking-[.24em]" style={{ color: accent }}>{tx("Creado con")}</p>
         <p className="mt-0.5 text-[0.3125rem] font-black uppercase tracking-[.1em] text-[#f4f1ea]">Smash &amp; Lob</p>
       </div>
     </div>
@@ -139,152 +141,25 @@ function SealPreview(props: {
   generalFont: WelcomePackGeneralFont
   showSignature: boolean
 }) {
+  const { tx } = useI18n()
   return (
     <div className="mx-auto w-full max-w-[260px]">
       <div className="mb-2 flex items-center justify-between gap-2 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
-        <span>Vista previa</span>
+        <span>{tx("Vista previa")}</span>
         <span>
-          {WELCOME_PACK_BAG_SEAL.trimWidthMm} × {WELCOME_PACK_BAG_SEAL.trimHeightMm} mm · provisional
-        </span>
+          {WELCOME_PACK_BAG_SEAL.trimWidthMm} × {WELCOME_PACK_BAG_SEAL.trimHeightMm} {tx("mm · provisional")} </span>
       </div>
       <div className="relative mx-auto aspect-[45/120] w-[188px] overflow-hidden rounded-[16px] bg-neutral-950 shadow-[0_28px_70px_rgba(0,0,0,.34)] ring-1 ring-neutral-800">
         <SealFace {...props} reversed />
         <SealFace {...props} />
         <div className="pointer-events-none absolute inset-x-[-18px] top-1/2 z-20 flex -translate-y-1/2 items-center gap-1">
           <span className="h-px flex-1 border-t border-dashed border-amber-400/55" />
-          <span className="rounded-full bg-amber-200/90 px-1.5 py-0.5 text-[0.4375rem] font-black uppercase tracking-[.1em] text-neutral-950">pliegue</span>
+          <span className="rounded-full bg-amber-200/90 px-1.5 py-0.5 text-[0.4375rem] font-black uppercase tracking-[.1em] text-neutral-950">{tx("pliegue")}</span>
           <span className="h-px flex-1 border-t border-dashed border-amber-400/55" />
         </div>
       </div>
       <p className="mt-3 text-center text-[0.625rem] font-bold leading-4 text-neutral-500">
-        La línea de pliegue es solo una guía de la preview; el diseño impreso no lleva una franja sólida en el centro.
-      </p>
-    </div>
-  )
-}
-
-function OvergripLeagueLogo({ league }: { league: SealLeague }) {
-  const normalizedLogoUrl = league.logoUrl ? normalizeImageUrl(league.logoUrl) : null
-
-  if (normalizedLogoUrl) {
-    return (
-      <Image
-        unoptimized
-        src={normalizedLogoUrl}
-        alt={league.name}
-        width={112}
-        height={62}
-        className="relative z-10 h-auto max-h-[58px] w-auto max-w-[112px] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.38)]"
-      />
-    )
-  }
-
-  const initials = league.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SL"
-  return <span className="text-xl font-black tracking-[.22em] text-white">{initials}</span>
-}
-
-function OvergripBandPreview({
-  league,
-  seasonName,
-  playerName,
-  accent,
-  playerFont,
-  generalFont,
-}: {
-  league: SealLeague
-  seasonName: string
-  playerName: string
-  accent: string
-  playerFont: WelcomePackPlayerNameFont
-  generalFont: WelcomePackGeneralFont
-}) {
-  const generalFamily = getWelcomePackGeneralFontFamily(generalFont)
-  const playerFamily = getWelcomePackPlayerNameFontFamily(playerFont)
-  const [playerFirstName, ...playerSurnameParts] = playerName.trim().split(/\s+/)
-  const playerSurname = playerSurnameParts.join(" ")
-  const sideReservePercent = (WELCOME_PACK_OVERGRIP_BAND.sideReserveMm / WELCOME_PACK_OVERGRIP_BAND.widthMm) * 100
-
-  const premiumBackground = [
-    `radial-gradient(circle at 16% 12%, ${accent}4A 0%, transparent 27%)`,
-    "radial-gradient(circle at 82% 28%, rgba(255,255,255,.15) 0%, transparent 20%)",
-    `radial-gradient(circle at 62% 110%, ${accent}2C 0%, transparent 38%)`,
-    "linear-gradient(135deg, rgba(255,255,255,.055) 0%, transparent 28%, rgba(255,255,255,.025) 62%, transparent 100%)",
-    "linear-gradient(165deg, #1A1A1A 0%, #090909 52%, #020202 100%)",
-  ].join(", ")
-
-  return (
-    <div className="mx-auto w-full max-w-[430px]">
-      <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
-        <span>Vista previa · fajín completo</span>
-        <span>{WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm · definitivo</span>
-      </div>
-
-      <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
-        <div
-          className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[11px] border border-black/40 text-white shadow-[0_16px_30px_rgba(0,0,0,.28)]"
-          style={{
-            aspectRatio: `${WELCOME_PACK_OVERGRIP_BAND.widthMm} / ${WELCOME_PACK_OVERGRIP_BAND.heightMm}`,
-            backgroundImage: premiumBackground,
-            fontFamily: generalFamily,
-          }}
-        >
-          <div className="absolute inset-[4px] rounded-[7px] border border-white/12" />
-          <div className="absolute inset-x-0 top-0 h-[2px]" style={{ backgroundColor: accent }} />
-          <div
-            className="absolute inset-y-0 left-0 border-r border-dashed border-white/25 bg-black/10"
-            style={{ width: `${sideReservePercent}%` }}
-          />
-          <div
-            className="absolute inset-y-0 right-0 border-l border-dashed border-white/25 bg-black/10"
-            style={{ width: `${sideReservePercent}%` }}
-          />
-          <div className="absolute inset-y-0 left-[40%] border-l border-dashed border-white/10" />
-          <div className="absolute inset-y-0 right-[40%] border-l border-dashed border-white/10" />
-          <div className="absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/7" />
-          <div className="absolute right-[-25px] top-[-20px] h-24 w-24 rounded-full border border-white/7" />
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_27%,rgba(255,255,255,.03)_60%,transparent)] mix-blend-screen" />
-
-          <div className="relative z-10 h-full">
-            <div className="absolute left-[10%] top-0 flex h-full w-[28%] min-w-0 items-center gap-0 px-1">
-              <div className="relative -mr-1 flex h-[24px] w-[34px] shrink-0 items-center justify-center">
-                <div className="absolute inset-x-1 top-1/2 h-3 -translate-y-1/2 rounded-full bg-white/8 blur-md" />
-                <div className="relative scale-[.42]">
-                  <OvergripLeagueLogo league={league} />
-                </div>
-              </div>
-              <div className="min-w-0">
-                <p className="line-clamp-2 whitespace-normal text-[0.3125rem] font-black uppercase leading-[1.05] tracking-[.03em] text-white">{league.name}</p>
-                <p className="mt-px truncate text-[0.21875rem] font-bold uppercase tracking-[.06em] text-white/58">{seasonName}</p>
-              </div>
-            </div>
-
-            <div className="absolute left-1/2 top-[52%] flex w-[20%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center text-center">
-              <p className="text-[0.21875rem] font-black uppercase tracking-[.14em]" style={{ color: accent }}>Smash &amp; Lob</p>
-              <p className="mt-px text-[0.46875rem] font-black uppercase tracking-[.05em] text-white">Welcome Pack</p>
-              <div className="mt-px grid grid-cols-[12px_3px_12px] items-center gap-1">
-                <span className="h-px bg-white/20" />
-                <span className="h-[2px] w-[2px] rotate-45 rounded-[1px]" style={{ backgroundColor: accent }} />
-                <span className="h-px bg-white/20" />
-              </div>
-            </div>
-
-            <div className="absolute right-[10%] top-0 flex h-full w-[24%] min-w-0 items-center justify-start pl-1 text-left">
-              <p
-                className="flex min-w-0 flex-col text-[0.46875rem] leading-[1.02] text-white"
-                style={{ fontFamily: playerFamily }}
-              >
-                <span className="block truncate">{playerFirstName || playerName}</span>
-                {playerSurname ? <span className="block truncate">{playerSurname}</span> : null}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m².
-        Medida definitiva: {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Se reservan {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm por lateral para pegado, dejando {WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm útiles para contenido.
-      </div>
+        {tx("La línea de pliegue es solo una guía de la preview; el diseño impreso no lleva una franja sólida en el centro.")} </p>
     </div>
   )
 }
@@ -384,11 +259,10 @@ export default function WelcomePackMediaKitPage() {
 
       <AppCard className="overflow-hidden !p-0">
         <div className="bg-neutral-950 px-4 py-4 text-white">
-          <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción física</p>
+          <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">{tx("Producción física")}</p>
           <h2 className="mt-1 text-lg font-black">Welcome Pack · {activeLeague.name}</h2>
           <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-            El color de identidad se comparte con todo el Media Kit desde el selector superior.
-          </p>
+            {tx("El color de identidad se comparte con todo el Media Kit desde el selector superior.")} </p>
         </div>
         <div className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <label className="text-xs font-black text-neutral-700">
@@ -406,18 +280,17 @@ export default function WelcomePackMediaKitPage() {
             </select>
           </label>
           <div className="rounded-xl bg-amber-50 px-3 py-2 text-[0.625rem] font-bold leading-4 text-amber-900 ring-1 ring-amber-200">
-            Medidas provisionales hasta medir y probar la bolsa real a escala 100 %.
-          </div>
+            {tx("Medidas provisionales hasta medir y probar la bolsa real a escala 100 %.")} </div>
         </div>
       </AppCard>
 
       <section className="space-y-2">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Piezas</p>
-            <h2 className="text-base font-black text-neutral-950">Diseños del Welcome Pack</h2>
+            <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Piezas")}</p>
+            <h2 className="text-base font-black text-neutral-950">{tx("Diseños del Welcome Pack")}</h2>
           </div>
-          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">3 disponibles</span>
+          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">{tx("3 disponibles")}</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2">
           <button
@@ -429,13 +302,13 @@ export default function WelcomePackMediaKitPage() {
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "bag-seal" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "bag-seal" ? "bg-emerald-500" : "bg-neutral-400"}`} />
-                {activePiece === "bag-seal" ? "Activo" : "Disponible"}
+                {activePiece === "bag-seal" ? tx("Activo") : tx("Disponible")}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Diseño único</span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">{tx("Diseño único")}</span>
             </div>
             <div className="px-4 py-3 pl-5">
-              <h3 className="text-base font-black text-neutral-950">Precinto de bolsa</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · adhesivo · doble cara espejo.</p>
+              <h3 className="text-base font-black text-neutral-950">{tx("Precinto de bolsa")}</h3>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">{tx("Personalizado · adhesivo · doble cara espejo.")}</p>
             </div>
           </button>
 
@@ -448,13 +321,13 @@ export default function WelcomePackMediaKitPage() {
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "overgrip-band" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "overgrip-band" ? "bg-emerald-500" : "bg-neutral-400"}`} />
-                {activePiece === "overgrip-band" ? "Activo" : "Disponible"}
+                {activePiece === "overgrip-band" ? tx("Activo") : tx("Disponible")}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">Nuevo</span>
+              <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">{tx("Nuevo")}</span>
             </div>
             <div className="px-4 py-3 pl-5">
-              <h3 className="text-base font-black text-neutral-950">Fajín del overgrip</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">Personalizado · cartulina mate · diseño completo.</p>
+              <h3 className="text-base font-black text-neutral-950">{tx("Fajín del overgrip")}</h3>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">{tx("Personalizado · cartulina mate · diseño completo.")}</p>
             </div>
           </button>
 
@@ -467,20 +340,20 @@ export default function WelcomePackMediaKitPage() {
             <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50/90 px-4 py-2.5 pl-5">
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.12em] ${activePiece === "ball-can-wrap" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-600"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${activePiece === "ball-can-wrap" ? "bg-emerald-500" : "bg-neutral-400"}`} />
-                {activePiece === "ball-can-wrap" ? "Activo" : "Disponible"}
+                {activePiece === "ball-can-wrap" ? tx("Activo") : tx("Disponible")}
               </span>
               <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[0.5625rem] font-black uppercase tracking-[.08em] text-neutral-700 shadow-sm">240 × 130 mm</span>
             </div>
             <div className="px-4 py-3 pl-5">
-              <h3 className="text-base font-black text-neutral-950">Faja del bote</h3>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">HEAD Padel Pro S+ · adhesiva · diseño premium.</p>
+              <h3 className="text-base font-black text-neutral-950">{tx("Faja del bote")}</h3>
+              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">{tx("HEAD Padel Pro S+ · adhesiva · diseño premium.")}</p>
             </div>
           </button>
 
           {futurePieces.map((piece) => (
-            <div key={piece} className="min-w-[180px] flex-none rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
-              <p className="text-[0.625rem] font-black leading-4">{piece}</p>
-              <p className="mt-0.5 text-[0.5625rem] font-bold uppercase tracking-[.08em]">Próximamente</p>
+            <div key={tx(piece)} className="min-w-[180px] flex-none rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400">
+              <p className="text-[0.625rem] font-black leading-4">{tx(piece)}</p>
+              <p className="mt-0.5 text-[0.5625rem] font-bold uppercase tracking-[.08em]">{tx("Próximamente")}</p>
             </div>
           ))}
         </div>
@@ -490,15 +363,13 @@ export default function WelcomePackMediaKitPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
           <div className="space-y-4">
             <AppCard>
-              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
-              <h2 className="mt-1 text-base font-black">Precinto de bolsa</h2>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Personalización")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Precinto de bolsa")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-                Diseño premium: logo grande sin fondo añadido, nombre personalizable y firma “Creado con Smash &amp; Lob”.
-              </p>
+                {tx("Diseño premium: logo grande sin fondo añadido, nombre personalizable y firma “Creado con Smash & Lob”.")} </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="text-xs font-black text-neutral-700">
-                  Jugador de la vista previa
-                  <select
+                  {tx("Jugador de la vista previa")} <select
                     value={selectedPlayer?.id ?? ""}
                     onChange={(event) => setSelectedPlayerId(event.target.value)}
                     className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
@@ -511,65 +382,61 @@ export default function WelcomePackMediaKitPage() {
                   </select>
                 </label>
                 <label className="text-xs font-black text-neutral-700">
-                  Tipografía del nombre
-                  <select
+                  {tx("Tipografía del nombre")} <select
                     value={playerFont}
                     onChange={(event) => setPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
                     className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
                   >
                     {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {option.label}
+                        {tx(option.label)}
                       </option>
                     ))}
                   </select>
                   <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
-                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === playerFont)?.description}
+                    {tx(WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === playerFont)?.description ?? "")}
                   </span>
                 </label>
                 <label className="text-xs font-black text-neutral-700">
-                  Tipografía general
-                  <select
+                  {tx("Tipografía general")} <select
                     value={generalFont}
                     onChange={(event) => setGeneralFont(event.target.value as WelcomePackGeneralFont)}
                     className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
                   >
                     {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => (
-                      <option key={option.id} value={option.id}>{option.label} · {option.description}</option>
+                      <option key={option.id} value={option.id}>{tx(option.label)} · {tx(option.description)}</option>
                     ))}
                   </select>
                 </label>
                 <div className="text-xs font-black text-neutral-700">
-                  Firma Smash &amp; Lob
-                  <div className="mt-1 grid grid-cols-2 gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-                    <button type="button" onClick={() => setShowSignature(true)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>Sí</button>
-                    <button type="button" onClick={() => setShowSignature(false)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${!showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>No</button>
+                  {tx("Firma Smash & Lob")} <div className="mt-1 grid grid-cols-2 gap-1 rounded-xl border border-neutral-200 bg-neutral-50 p-1">
+                    <button type="button" onClick={() => setShowSignature(true)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{tx("Sí")}</button>
+                    <button type="button" onClick={() => setShowSignature(false)} className={`h-8 rounded-lg text-[0.6875rem] font-black ${!showSignature ? "bg-neutral-950 text-white" : "text-neutral-600"}`}>{tx("No")}</button>
                   </div>
                 </div>
               </div>
               <div className="mt-5 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-neutral-50 p-2.5">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Corte</p>
-                  <p className="mt-1 text-xs font-black">45 × 120 mm</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">{tx("Corte")}</p>
+                  <p className="mt-1 text-xs font-black">50 × 130 mm</p>
                 </div>
                 <div className="rounded-xl bg-neutral-50 p-2.5">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Sangrado</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">{tx("Sangrado")}</p>
                   <p className="mt-1 text-xs font-black">2 mm</p>
                 </div>
                 <div className="rounded-xl bg-neutral-50 p-2.5">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">Pliegue</p>
-                  <p className="mt-1 text-xs font-black">60 / 60 mm</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.1em] text-neutral-400">{tx("Pliegue")}</p>
+                  <p className="mt-1 text-xs font-black">65 / 65 mm</p>
                 </div>
               </div>
             </AppCard>
             <AppCard>
-              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Impresión eficiente</p>
-              <h2 className="mt-1 text-base font-black">Plancha A4</h2>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Impresión eficiente")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Plancha A4")}</h2>
               <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-                Hasta 8 precintos por A4: 4 columnas × 2 filas, con sangrado y marcas provisionales de corte/pliegue.
-              </p>
+                {tx("6 precintos por A4: 3 columnas × 2 filas, con sangrado y marcas de corte/pliegue.")} </p>
               <div className="mt-3 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5">
-                <span className="text-xs font-bold text-neutral-600">{sortedPlayers.length} jugadores</span>
+                <span className="text-xs font-bold text-neutral-600">{sortedPlayers.length} {tx("jugadores")}</span>
                 <span className="text-xs font-black text-neutral-950">{sheetCount} A4</span>
               </div>
             </AppCard>
@@ -590,16 +457,14 @@ export default function WelcomePackMediaKitPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
           <div className="space-y-4">
             <AppCard>
-              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Personalización</p>
-              <h2 className="mt-1 text-base font-black">Fajín del overgrip</h2>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Personalización")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Fajín del overgrip")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-                Vista única del diseño completo a imprimir, con tres zonas de contenido y 10 mm reservados para pegado en cada lateral.
-              </p>
+                {tx("Logo y nombre de liga · diseño simplificado para impresión.")} </p>
 
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="text-xs font-black text-neutral-700">
-                  Jugador de la vista previa
-                  <select
+                  {tx("Jugador de la vista previa")} <select
                     value={selectedPlayer?.id ?? ""}
                     onChange={(event) => setSelectedPlayerId(event.target.value)}
                     className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
@@ -609,44 +474,41 @@ export default function WelcomePackMediaKitPage() {
                 </label>
 
                 <label className="text-xs font-black text-neutral-700">
-                  Tipografía del nombre
-                  <select
+                  {tx("Tipografía del nombre")} <select
                     value={overgripPlayerFont}
                     onChange={(event) => setOvergripPlayerFont(event.target.value as WelcomePackPlayerNameFont)}
                     className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
                   >
-                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)}</option>)}
                   </select>
                   <span className="mt-1 block text-[0.625rem] font-semibold text-neutral-500">
-                    {WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description}
+                    {tx(WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description ?? "")}
                   </span>
                 </label>
 
                 <label className="text-xs font-black text-neutral-700">
-                  Tipografía general
-                  <select
+                  {tx("Tipografía general")} <select
                     value={overgripGeneralFont}
                     onChange={(event) => setOvergripGeneralFont(event.target.value as WelcomePackGeneralFont)}
                     className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
                   >
-                    {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label} · {option.description}</option>)}
+                    {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)} · {tx(option.description)}</option>)}
                   </select>
                 </label>
 
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Material previsto</p>
-                  <p className="mt-1 text-xs font-black text-neutral-950">{WELCOME_PACK_OVERGRIP_BAND.material}</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Material previsto")}</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">{tx(WELCOME_PACK_OVERGRIP_BAND.material)}</p>
                   <p className="mt-0.5 text-[0.625rem] font-semibold text-neutral-500">{WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m²</p>
                 </div>
               </div>
             </AppCard>
 
             <AppCard>
-              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Medidas</p>
-              <h2 className="mt-1 text-base font-black">Medidas definitivas</h2>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Medidas")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Medidas definitivas")}</h2>
               <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-                El fajín mide {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Reservamos {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm en cada lateral para el pegado; el área útil central para el diseño es de {WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm.
-              </p>
+                {tx(`El fajín mide ${WELCOME_PACK_OVERGRIP_BAND.widthMm} × ${WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Reservamos ${WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm en cada lateral para el pegado; el área útil central para el diseño es de ${WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm.`)} </p>
             </AppCard>
           </div>
 
@@ -665,38 +527,36 @@ export default function WelcomePackMediaKitPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
           <div className="space-y-4">
             <AppCard>
-              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Diseño</p>
-              <h2 className="mt-1 text-base font-black">Faja del bote de bolas</h2>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Diseño")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Faja del bote de bolas")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
-                Faja adhesiva premium para cubrir la etiqueta original del bote HEAD Padel Pro S+, manteniendo la marca del producto e integrándola con la identidad de la liga.
-              </p>
+                {tx("Faja adhesiva premium para cubrir la etiqueta original del bote HEAD Padel Pro S+, manteniendo la marca del producto e integrándola con la identidad de la liga.")} </p>
 
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Medida definitiva</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Medida definitiva")}</p>
                   <p className="mt-1 text-xs font-black text-neutral-950">240 × 130 mm</p>
                 </div>
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Material</p>
-                  <p className="mt-1 text-xs font-black text-neutral-950">Vinilo adhesivo mate</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Material")}</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">{tx("Vinilo adhesivo mate")}</p>
                 </div>
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Producto</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Producto")}</p>
                   <p className="mt-1 text-xs font-black text-neutral-950">HEAD Padel Pro S+</p>
                 </div>
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
-                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">Jugadores</p>
-                  <p className="mt-1 text-xs font-black text-neutral-950">{sortedPlayers.length} · nombre y apellido</p>
+                  <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Jugadores")}</p>
+                  <p className="mt-1 text-xs font-black text-neutral-950">{sortedPlayers.length} {tx("· nombre y apellido")}</p>
                 </div>
               </div>
             </AppCard>
 
             <AppCard>
-              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">Composición</p>
-              <h2 className="mt-1 text-base font-black">Diseño envolvente</h2>
+              <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Composición")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Diseño envolvente")}</h2>
               <p className="mt-2 text-xs font-medium leading-5 text-neutral-600">
-                Marca HEAD y Padel Pro S+ en vertical, logo y nombre de liga con temporada, listado manuscrito de jugadores ordenado alfabéticamente por nombre y después apellido, y firma “Creado con Smash &amp; Lob”. Todo sobre negro con el color de énfasis compartido del Media Kit.
-              </p>
+                {tx("Marca HEAD y Padel Pro S+ en vertical, identidad de liga y jugadores ordenados por apellido y después nombre.")} </p>
             </AppCard>
           </div>
 
@@ -716,10 +576,10 @@ export default function WelcomePackMediaKitPage() {
         <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
-              <h2 className="mt-1 text-base font-black">Imprimir todo</h2>
+              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">{tx("Producción")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Imprimir todo")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-                Incluye el precinto de bolsa para todos los jugadores de {seasonName}.
+                {tx(`Incluye el precinto de bolsa para todos los jugadores de ${seasonName}.`)}
               </p>
             </div>
             <button
@@ -728,7 +588,7 @@ export default function WelcomePackMediaKitPage() {
               disabled={!sortedPlayers.length}
               className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-center text-xs font-black text-neutral-950 hover:bg-amber-100 disabled:bg-neutral-700 disabled:text-neutral-400"
             >
-              Imprimir todo · {sortedPlayers.length}
+              {tx("Imprimir todo ·")} {sortedPlayers.length}
             </button>
           </div>
           {printError ? <p className="mt-3 rounded-xl bg-red-950/70 px-3 py-2 text-xs font-bold text-red-100">{printError}</p> : null}
@@ -737,30 +597,26 @@ export default function WelcomePackMediaKitPage() {
         <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
-              <h2 className="mt-1 text-base font-black">Medidas cerradas · diseño en revisión</h2>
+              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">{tx("Producción")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Diseño simplificado · impresión disponible")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-                El fajín ya usa la medida definitiva de {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm y respeta {WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm por lateral para el pegado. Cerraremos el diseño antes de preparar la plancha A4.
-              </p>
+                {tx("Genera la plancha A4 desde la vista previa e imprime al 100 % para comprobar el ajuste físico.")} </p>
             </div>
             <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
-              Diseño en revisión
-            </span>
+              {tx("Diseño en revisión")} </span>
           </div>
         </section>
       ) : (
         <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">Producción</p>
-              <h2 className="mt-1 text-base font-black">Medidas cerradas · prueba física pendiente</h2>
+              <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">{tx("Producción")}</p>
+              <h2 className="mt-1 text-base font-black">{tx("Medidas cerradas · prueba física pendiente")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">
-                La faja ya trabaja a 240 × 130 mm. Antes de preparar la plancha A4 definitiva haremos una prueba al 100 % sobre el bote para comprobar el cierre, el solape y la altura real del vinilo.
-              </p>
+                {tx("La faja ya trabaja a 240 × 130 mm. Antes de preparar la plancha A4 definitiva haremos una prueba al 100 % sobre el bote para comprobar el cierre, el solape y la altura real del vinilo.")} </p>
             </div>
             <span className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white/10 px-5 text-xs font-black text-neutral-300 ring-1 ring-white/15">
-              Diseño en revisión
-            </span>
+              {tx("Diseño en revisión")} </span>
           </div>
         </section>
       )}

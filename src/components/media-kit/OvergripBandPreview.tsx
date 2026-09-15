@@ -1,5 +1,7 @@
 "use client"
 
+import { useI18n } from "@/i18n/I18nProvider"
+
 import { useRef, useState } from "react"
 import Image from "next/image"
 import { normalizeImageUrl } from "@/lib/imageUrl"
@@ -64,6 +66,7 @@ function cropMarksMarkup() {
 }
 
 export function OvergripBandPreview(props: Props) {
+  const { tx } = useI18n()
   const { league, accent, generalFont } = props
   const designRef = useRef<HTMLDivElement>(null)
   const [printError, setPrintError] = useState<string | null>(null)
@@ -80,13 +83,13 @@ export function OvergripBandPreview(props: Props) {
   function printPdf() {
     const design = designRef.current
     if (!design) {
-      setPrintError("No se ha podido preparar el fajín para impresión.")
+      setPrintError(tx("No se ha podido preparar el fajín para impresión."))
       return
     }
 
     const popup = window.open("", "_blank", "width=1200,height=900")
     if (!popup) {
-      setPrintError("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para generar el PDF.")
+      setPrintError(tx("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para generar el PDF."))
       return
     }
 
@@ -114,7 +117,7 @@ export function OvergripBandPreview(props: Props) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <base href="${window.location.origin}/" />
-  <title>Fajín overgrip · ${league.name} · ${ITEMS_PER_A4} uds</title>
+  <title>Welcome Pack</title>
   ${documentPrintStyles()}
   <style>
     @page { size: 297mm 210mm; margin: 0; }
@@ -176,14 +179,15 @@ export function OvergripBandPreview(props: Props) {
   <\/script>
 </body>
 </html>`)
+    popup.document.title = `${tx("Fajín del overgrip")} · ${league.name} · ${ITEMS_PER_A4}`
     popup.document.close()
   }
 
   return (
     <div className="mx-auto w-full max-w-[430px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
-        <span>Vista previa · fajín completo</span>
-        <span>{WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm · definitivo</span>
+        <span>{tx("Vista previa · fajín completo")}</span>
+        <span>{WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} {tx("mm · definitivo")}</span>
       </div>
 
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
@@ -213,16 +217,15 @@ export function OvergripBandPreview(props: Props) {
       </div>
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
-        <strong className="text-neutral-900">Material:</strong> {WELCOME_PACK_OVERGRIP_BAND.material} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} g/m². Medida final: {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} mm · sangrado: {OVERGRIP_BLEED_MM} mm por lado.
-      </div>
+        <strong className="text-neutral-900">{tx("Material:")}</strong> {tx(WELCOME_PACK_OVERGRIP_BAND.material)} {WELCOME_PACK_OVERGRIP_BAND.minGsm}–{WELCOME_PACK_OVERGRIP_BAND.maxGsm} {tx("g/m². Medida final:")} {WELCOME_PACK_OVERGRIP_BAND.widthMm} × {WELCOME_PACK_OVERGRIP_BAND.heightMm} {tx("mm · sangrado:")} {OVERGRIP_BLEED_MM} {tx("mm por lado.")} </div>
 
       <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">PDF de impresión · papel</p>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">A4 apaisado · {ITEMS_PER_A4} fajines · tamaño real · sangrado y marcas de corte.</p>
+            <p className="text-xs font-black uppercase tracking-[.12em] text-neutral-900">{tx("PDF de impresión · papel")}</p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("A4 apaisado ·")} {ITEMS_PER_A4} {tx("fajines · tamaño real · sangrado y marcas de corte.")}</p>
           </div>
-          <button type="button" onClick={printPdf} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-center text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">Generar PDF / imprimir</button>
+          <button type="button" onClick={printPdf} className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-center text-xs font-black uppercase tracking-[.08em] text-white shadow-sm transition hover:bg-neutral-800">{tx("Generar PDF / imprimir")}</button>
         </div>
         {printError ? <p className="mt-2 text-xs font-bold text-red-600">{printError}</p> : null}
       </div>
