@@ -199,6 +199,7 @@ export default function WelcomePackMediaKitPage() {
   const [playerFont, setPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
   const [playerNameCase, setPlayerNameCase] = useState<WelcomePackPlayerNameCase>("original")
   const [playerNameScale, setPlayerNameScale] = useState(1)
+  const [ballWrapRevision, setBallWrapRevision] = useState(0)
   const [generalFont, setGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
   const [overgripPlayerFont, setOvergripPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
   const [overgripGeneralFont, setOvergripGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
@@ -588,6 +589,8 @@ export default function WelcomePackMediaKitPage() {
               onNameCaseChange={setPlayerNameCase}
               nameScale={playerNameScale}
               onNameScaleChange={setPlayerNameScale}
+              previewRevision={ballWrapRevision}
+              onApplyChanges={() => setBallWrapRevision((value) => value + 1)}
             />
           </AppCard>
         </div>

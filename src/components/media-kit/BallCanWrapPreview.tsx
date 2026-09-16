@@ -1,5 +1,4 @@
 "use client"
-
 import { useI18n } from "@/i18n/I18nProvider"
 
 import { useEffect, useRef, useState, type ComponentProps, type CSSProperties } from "react"
@@ -340,7 +339,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
   return (
     <div ref={rootRef} style={{ "--ball-wrap-accent": props.accent } as CSSProperties}>
-      <BallCanWrapPremiumPreview {...props} />
+      <BallCanWrapPremiumPreview key={props.previewRevision} {...props} />
 
       <div className="mx-auto mt-4 w-full max-w-[430px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

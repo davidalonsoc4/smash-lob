@@ -1628,4 +1628,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 
-- v1.14.21: el tamaño elegido para los nombres de la faja se aplica explícitamente tanto a la preview como al clon usado para generar el PDF.
+
+- v1.14.22: la faja del bote incorpora Aplicar cambios para regenerar la composición antes de revisar o imprimir.

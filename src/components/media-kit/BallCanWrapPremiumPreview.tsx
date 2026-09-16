@@ -21,6 +21,8 @@ type Props = {
   onNameCaseChange: (value: WelcomePackPlayerNameCase) => void
   nameScale: number
   onNameScaleChange: (value: number) => void
+  onApplyChanges: () => void
+  previewRevision: number
 }
 const WIDTH_MM = 240
 const FINAL_WIDTH_MM = 230
@@ -56,7 +58,7 @@ function LeagueNameText({ leagueName }: { leagueName: string }) {
     </>
   )
 }
-export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent, nameCase, onNameCaseChange, nameScale, onNameScaleChange }: Props) {
+export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent, nameCase, onNameCaseChange, nameScale, onNameScaleChange, onApplyChanges }: Props) {
   const { tx } = useI18n()
   const [playerListFont, setPlayerListFont] = useState<WelcomePackPlayerNameFont>("great-vibes")
   const roster = sortedPlayers(players)
@@ -163,6 +165,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
             <span className="min-w-12 text-center text-[0.6875rem] text-neutral-600">{Math.round(nameScale * 100)}%</span>
             <button type="button" aria-label={tx("Aumentar tamaño")} onClick={() => onNameScaleChange(Math.min(1.5, Number((nameScale + 0.1).toFixed(1))))} className="h-8 w-8 rounded-lg border border-neutral-200 bg-white text-base font-black">+</button>
             <button type="button" onClick={() => onNameScaleChange(1)} className="ml-1 h-8 rounded-lg border border-neutral-200 bg-neutral-50 px-2 text-[0.625rem] font-black">{tx("Restablecer")}</button>
+            <button type="button" onClick={onApplyChanges} className="ml-1 h-8 rounded-lg bg-neutral-950 px-2 text-[0.625rem] font-black text-white">{tx("Aplicar cambios")}</button>
           </div>
         </div>
       </div>
