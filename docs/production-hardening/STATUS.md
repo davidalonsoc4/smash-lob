@@ -1631,4 +1631,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 
-- v1.14.24: el grupo vertical HEAD / Padel Pro / S+ de la faja se desplaza 2 mm a la derecha sin cambios de diseño.
+
+- v1.14.25: el bloque HEAD / Padel Pro / S+ se corrige 1 mm a la izquierda, quedando 1 mm a la derecha del original.
