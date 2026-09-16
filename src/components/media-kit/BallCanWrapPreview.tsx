@@ -188,6 +188,12 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
     const sourceIsMobile = window.matchMedia("(max-width: 480px)").matches
     const clone = design.cloneNode(true) as HTMLElement
+    const printContent = clone.children.item(5) as HTMLElement | null
+    const printGrid = printContent?.children.item(2) as HTMLElement | null
+    const printPlayers = printGrid?.children.item(2) as HTMLElement | null
+    printPlayers?.querySelectorAll("p").forEach((name) => {
+      ;(name as HTMLElement).style.fontSize = `${0.62 * props.nameScale}rem`
+    })
     const scale = (DESIGN_WIDTH_MM * CSS_PX_PER_MM) / bounds.width
     clone.classList.add("sl-ball-wrap-print-design")
     if (sourceIsMobile) clone.classList.add("sl-ball-wrap-print-source-mobile")

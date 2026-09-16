@@ -1627,4 +1627,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 
-- v1.14.20: la faja del bote incorpora controles +/− y Restablecer para ajustar el tamaño de los nombres, reflejando el valor en preview y PDF.
+
+- v1.14.21: el tamaño elegido para los nombres de la faja se aplica explícitamente tanto a la preview como al clon usado para generar el PDF.
