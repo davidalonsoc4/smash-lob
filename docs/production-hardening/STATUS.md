@@ -1594,6 +1594,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Ajuste pendiente de prueba en rama v1.14.3: nombre de liga autoajustable y logos de prueba de 50 mm en huecos de la última hoja.
 - Ajuste pendiente de prueba en rama v1.14.4: nueva plancha de pegatinas de logo con ancho configurable, orientación A4 automática y relleno de huecos a 50 mm.
 
+### Optimización del snapshot de acceso (2026-09-16)
+
+- La consulta de `season_settings` usada para ocultar datos de pretemporada se incorpora al `Promise.all` principal de `/api/access`.
+- Se elimina una espera de red secuencial sin cambiar el payload, la autorización ni la generación fiable de calendarios.
+- La rama queda en v1.14.6; se validan tests focalizados, TypeScript, ESLint y build de producción.
+
 ### Optimización de arranque percibido (2026-09-16)
 
 - Se crea la rama `codex/performance-optimization` desde `58443f2` para medir y mejorar la carga sin tocar `main` ni `staging`.

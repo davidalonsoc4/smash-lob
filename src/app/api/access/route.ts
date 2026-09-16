@@ -233,6 +233,7 @@ export async function GET(request: Request) {
     matchesResult,
     matchSubstitutionsResult,
     leagueMembershipsResult,
+    preseasonSecretSettingsResult,
   ] = await Promise.all([
     supabase
       .from("seasons")
@@ -263,6 +264,10 @@ export async function GET(request: Request) {
       .from("league_memberships")
       .select("user_id,league_id,player_id,role,experience_mode")
       .in("league_id", leagueIds),
+    supabase
+      .from("season_settings")
+      .select("season_id,preseason_secret_days_before")
+      .in("league_id", leagueIds),
   ])
 
   const snapshotFailures: Array<[string, SupabaseQueryError | null]> = [
@@ -283,10 +288,6 @@ export async function GET(request: Request) {
     )
   }
 
-  const preseasonSecretSettingsResult = await supabase
-    .from("season_settings")
-    .select("season_id,preseason_secret_days_before")
-    .in("league_id", leagueIds)
   const preseasonSecretDaysBySeasonId = new Map(
     (preseasonSecretSettingsResult.error ? [] : preseasonSecretSettingsResult.data ?? []).map((settings) => [
       String(settings.season_id),
