@@ -11,6 +11,14 @@ export type WelcomePackPlayerNameFont =
   | "allura"
   | "great-vibes"
   | "petit-formal"
+  | "montserrat"
+  | "oswald"
+  | "bebas-neue"
+  | "space-grotesk"
+  | "dm-sans"
+  | "manrope"
+  | "plus-jakarta"
+  | "archivo"
 
 export type WelcomePackGeneralFont =
   | "narrow-premium"
@@ -18,7 +26,7 @@ export type WelcomePackGeneralFont =
   | "editorial"
 
 export const WELCOME_PACK_FONT_STYLESHEET =
-  "https://fonts.googleapis.com/css2?family=Allura&family=Great+Vibes&family=Petit+Formal+Script&display=swap"
+  "https://fonts.googleapis.com/css2?family=Allura&family=Archivo:wght@500;600;700;800&family=Bebas+Neue&family=DM+Sans:wght@500;600;700;800&family=Great+Vibes&family=Manrope:wght@500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Oswald:wght@500;600;700&family=Petit+Formal+Script&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
 
 export const WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS: {
   id: WelcomePackPlayerNameFont
@@ -48,6 +56,10 @@ export const WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS: {
   { id: "allura", label: "Allura", description: "Ligera y elegante." },
   { id: "great-vibes", label: "Great Vibes", description: "Caligrafía premium." },
   { id: "petit-formal", label: "Petit Formal", description: "Formal y refinada." },
+  { id: "montserrat", label: "Montserrat", description: "Mayúsculas sobrias y elegantes." }, { id: "oswald", label: "Oswald", description: "Condensada, vertical y editorial." },
+  { id: "bebas-neue", label: "Bebas Neue", description: "Display de mayúsculas con presencia." }, { id: "space-grotesk", label: "Space Grotesk", description: "Geométrica, moderna y distintiva." },
+  { id: "dm-sans", label: "DM Sans", description: "Minimalista y muy legible." }, { id: "manrope", label: "Manrope", description: "Sans contemporánea y equilibrada." },
+  { id: "plus-jakarta", label: "Plus Jakarta Sans", description: "Limpia, premium y actual." }, { id: "archivo", label: "Archivo", description: "Institucional, firme y versátil." },
 ]
 
 export const WELCOME_PACK_GENERAL_FONT_OPTIONS: Array<{
@@ -116,6 +128,14 @@ export function getWelcomePackPlayerNameFontFamily(font: WelcomePackPlayerNameFo
       return '"Great Vibes", "Segoe Script", cursive'
     case "petit-formal":
       return '"Petit Formal Script", "Segoe Script", cursive'
+    case "montserrat": return '"Montserrat", Arial, sans-serif'
+    case "oswald": return '"Oswald", "Arial Narrow", Arial, sans-serif'
+    case "bebas-neue": return '"Bebas Neue", "Arial Narrow", Arial, sans-serif'
+    case "space-grotesk": return '"Space Grotesk", Arial, sans-serif'
+    case "dm-sans": return '"DM Sans", Arial, sans-serif'
+    case "manrope": return '"Manrope", Arial, sans-serif'
+    case "plus-jakarta": return '"Plus Jakarta Sans", Arial, sans-serif'
+    case "archivo": return '"Archivo", Arial, sans-serif'
     case "manuscript-elegant":
     default:
       return '"Snell Roundhand", "Brush Script MT", "Segoe Script", cursive'
@@ -343,6 +363,10 @@ export function buildWelcomePackBagSealPrintHtml({
     .player-font-allura { font-family: "Allura", "Segoe Script", cursive; font-size: 8.1mm; font-weight: 400; }
     .player-font-great-vibes { font-family: "Great Vibes", "Segoe Script", cursive; font-size: 7.9mm; font-weight: 400; }
     .player-font-petit-formal { font-family: "Petit Formal Script", "Segoe Script", cursive; font-size: 5.9mm; font-weight: 400; }
+    .player-font-montserrat { font-family: "Montserrat", Arial, sans-serif; font-size: 6.7mm; font-weight: 700; letter-spacing: .12mm; text-transform: uppercase; } .player-font-oswald { font-family: "Oswald", "Arial Narrow", Arial, sans-serif; font-size: 7.4mm; font-weight: 600; letter-spacing: .16mm; text-transform: uppercase; }
+    .player-font-bebas-neue { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-size: 8.3mm; font-weight: 400; letter-spacing: .24mm; text-transform: uppercase; } .player-font-space-grotesk { font-family: "Space Grotesk", Arial, sans-serif; font-size: 6.9mm; font-weight: 700; letter-spacing: .08mm; text-transform: uppercase; }
+    .player-font-dm-sans { font-family: "DM Sans", Arial, sans-serif; font-size: 6.8mm; font-weight: 700; letter-spacing: .1mm; text-transform: uppercase; } .player-font-manrope { font-family: "Manrope", Arial, sans-serif; font-size: 6.7mm; font-weight: 700; letter-spacing: .1mm; text-transform: uppercase; }
+    .player-font-plus-jakarta { font-family: "Plus Jakarta Sans", Arial, sans-serif; font-size: 6.55mm; font-weight: 700; letter-spacing: .08mm; text-transform: uppercase; } .player-font-archivo { font-family: "Archivo", Arial, sans-serif; font-size: 6.9mm; font-weight: 700; letter-spacing: .12mm; text-transform: uppercase; }
     .rule { display: grid; grid-template-columns: 9mm 1.7mm 9mm; align-items: center; gap: 1.3mm; margin-top: 2.5mm; }
     .rule span { height: .18mm; background: rgba(255,255,255,.24); }
     .rule i { width: 1.7mm; height: 1.7mm; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 1.8mm rgba(255,255,255,.22); }

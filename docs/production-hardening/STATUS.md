@@ -1621,4 +1621,6 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Publicación v1.14.11 verificada: `staging` y `main` en `d8161b1`; PRE `dpl_5DABffBZqMAyUKrUWJtCix8n7vCK` y Producción `dpl_61fujbsDaFov57BubKyFsKyVJ6C8` quedaron READY con sus aliases públicos. `/api/health` devuelve `1.14.11` en ambos entornos.
 - En los precintos de bolsa, los nombres de jugador largos reducen automáticamente su tipografía hasta caber en una sola línea, conservando el estilo seleccionado.
 - El nombre del jugador deja un margen lateral adicional en los precintos cuando necesita reducirse para caber.
-- La faja del bote muestra cinco conceptos visuales independientes debajo de la preview actual, sin modificar la generación existente.
+
+
+- v1.14.16: el selector de nombres del Welcome Pack incorpora ocho tipografías modernas; la preview de la faja y la generación de PDF conservan su comportamiento actual.
