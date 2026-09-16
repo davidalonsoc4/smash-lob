@@ -1630,4 +1630,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 
-- v1.14.23: se retiran los controles experimentales de tamaño de nombres y la faja del bote vuelve a su escala fija original.
+
+- v1.14.24: el grupo vertical HEAD / Padel Pro / S+ de la faja se desplaza 2 mm a la derecha sin cambios de diseño.
