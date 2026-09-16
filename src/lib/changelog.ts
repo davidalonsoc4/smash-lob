@@ -1,6 +1,5 @@
 export type ChangelogCategory = "new" | "improvement" | "fix" | "foundation"
-export type ChangelogRelease = { version: string; date?: string
-  dateRange?: string
+export type ChangelogRelease = { version: string; date?: string; dateRange?: string
   firstDate?: string
   latestDate?: string
   title: string
@@ -9,6 +8,7 @@ export type ChangelogRelease = { version: string; date?: string
   changes: string[]
 }
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
+  { version: "v1.14.26", date: "16 de septiembre de 2026", title: "Bloque HEAD en posición original", summary: "El bloque vertical de HEAD, Padel Pro y S+ recupera exactamente su posición original.", category: "fix", changes: ["Se elimina cualquier desplazamiento horizontal del grupo."] },
   { version: "v1.14.13", date: "16 de septiembre de 2026", title: "Más margen para nombres largos", summary: "Los nombres de jugador de los precintos mantienen más espacio lateral cuando necesitan reducir su tamaño.", category: "fix", changes: ["El ancho máximo del nombre se ajusta para evitar que los textos largos queden pegados a los bordes del diseño."] },
   { version: "v1.14.12", date: "16 de septiembre de 2026", title: "Nombres largos en precintos", summary: "Los nombres de jugador de los precintos de bolsa se ajustan para conservarse en una sola línea al imprimir.", category: "fix", changes: ["Los nombres largos reducen automáticamente su tamaño hasta caber en el ancho disponible del diseño, manteniendo la tipografía elegida."] },
   { version: "v1.14.11", date: "16 de septiembre de 2026", title: "Mis ligas como punto de selección", summary: "La pantalla Mis ligas mantiene el acceso de refresco para que la elección de competición sea el siguiente paso.", category: "improvement", changes: ["Mis ligas sustituye Volver por Refrescar y conserva la pantalla como punto de entrada para seleccionar una liga."] },
