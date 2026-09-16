@@ -1619,3 +1619,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Build y presupuesto de JavaScript se mantienen dentro de los límites del repositorio. Lighthouse queda pendiente de repetir en un entorno con Chrome instalado: el runner local no dispone de una instalación de Chrome.
 
 - Publicación v1.14.11 verificada: `staging` y `main` en `d8161b1`; PRE `dpl_5DABffBZqMAyUKrUWJtCix8n7vCK` y Producción `dpl_61fujbsDaFov57BubKyFsKyVJ6C8` quedaron READY con sus aliases públicos. `/api/health` devuelve `1.14.11` en ambos entornos.
+- En los precintos de bolsa, los nombres de jugador largos reducen automáticamente su tipografía hasta caber en una sola línea, conservando el estilo seleccionado.

@@ -10,6 +10,7 @@ export type ChangelogRelease = { version: string
   changes: string[]
 }
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
+  { version: "v1.14.12", date: "16 de septiembre de 2026", title: "Nombres largos en precintos", summary: "Los nombres de jugador de los precintos de bolsa se ajustan para conservarse en una sola línea al imprimir.", category: "fix", changes: ["Los nombres largos reducen automáticamente su tamaño hasta caber en el ancho disponible del diseño, manteniendo la tipografía elegida."] },
   { version: "v1.14.11", date: "16 de septiembre de 2026", title: "Mis ligas como punto de selección", summary: "La pantalla Mis ligas mantiene el acceso de refresco para que la elección de competición sea el siguiente paso.", category: "improvement", changes: ["Mis ligas sustituye Volver por Refrescar y conserva la pantalla como punto de entrada para seleccionar una liga."] },
   { version: "v1.14.10", date: "16 de septiembre de 2026", title: "Flechas de navegación más claras", summary: "Los accesos para volver muestran ahora una flecha visible junto al texto.", category: "improvement", changes: ["HOME y todos los BackButton compartidos usan la misma flecha izquierda para hacer evidente la navegación hacia atrás."] },
   { version: "v1.14.9", date: "16 de septiembre de 2026", title: "Validación de acceso a Mis ligas", summary: "La fila funcional de HOME queda alineada con el acceso directo a Mis ligas.", category: "fix", changes: ["Los contratos de validación y tipografía reflejan el nuevo destino del control superior izquierdo."] },

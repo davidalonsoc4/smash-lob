@@ -191,7 +191,7 @@ function faceMarkup({
       <div class="eyebrow">WELCOME PACK</div>
       ${logoMarkup({ leagueName, logoUrl })}
       <div class="league-name" data-fit-league-name>${escapeHtml(leagueName)}</div>
-      <div class="player-name player-font-${playerNameFont}">${escapeHtml(playerName)}</div>
+      <div class="player-name player-font-${playerNameFont}" data-fit-player-name>${escapeHtml(playerName)}</div>
       <div class="rule"><span></span><i></i><span></span></div>
       <div class="season-name">${escapeHtml(seasonName)}</div>
       ${showSignature ? brandSignatureMarkup() : ""}
@@ -335,7 +335,7 @@ export function buildWelcomePackBagSealPrintHtml({
     .league-name { max-width: 44mm; margin-top: 1.4mm; overflow: hidden; color: rgba(255,255,255,.57); font-size: 3.05mm; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: .18mm; white-space: nowrap; text-overflow: ellipsis; }
     .logo-test-cell { width: ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm; height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
     .logo-test { display: block; width: 50mm; height: auto; max-height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; object-fit: contain; }
-    .player-name { max-width: 45mm; margin-top: 2.2mm; color: #fff; font-size: 7.25mm; line-height: .96; text-wrap: balance; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
+    .player-name { max-width: 45mm; margin-top: 2.2mm; color: #fff; font-size: 7.25mm; line-height: .96; white-space: nowrap; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
     .player-font-editorial-serif { font-family: Georgia, "Times New Roman", serif; }
     .player-font-clean-sans { font-family: Inter, "Segoe UI", Arial, sans-serif; font-weight: 800; }
     .player-font-manuscript-elegant { font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive; font-weight: 700; }
@@ -376,6 +376,14 @@ export function buildWelcomePackBagSealPrintHtml({
             var label = element;
             var size = parseFloat(window.getComputedStyle(label).fontSize);
             while (label.scrollWidth > label.clientWidth && size > 7) {
+              size -= 0.25;
+              label.style.fontSize = size + "px";
+            }
+          });
+          document.querySelectorAll("[data-fit-player-name]").forEach(function (element) {
+            var label = element;
+            var size = parseFloat(window.getComputedStyle(label).fontSize);
+            while (label.scrollWidth > label.clientWidth && size > 10) {
               size -= 0.25;
               label.style.fontSize = size + "px";
             }
