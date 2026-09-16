@@ -1,15 +1,15 @@
 "use client"
-
 import { useI18n } from "@/i18n/I18nProvider"
-
 import { useState } from "react"
 import Image from "next/image"
 import {
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
+  WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS,
+  formatWelcomePackPlayerName,
   getWelcomePackPlayerNameFontFamily,
   type WelcomePackPlayerNameFont,
+  type WelcomePackPlayerNameCase,
 } from "@/lib/mediaKitWelcomePack"
-
 type Player = { id: string; displayName: string }
 type Props = {
   leagueName: string
@@ -17,18 +17,17 @@ type Props = {
   seasonName: string
   players: Player[]
   accent: string
+  nameCase: WelcomePackPlayerNameCase
+  onNameCaseChange: (value: WelcomePackPlayerNameCase) => void
 }
-
 const WIDTH_MM = 240
 const FINAL_WIDTH_MM = 230
 const HEIGHT_MM = 130
 const SIDE_GLUE_MM = 5
-
 function parts(value: string) {
   const [firstName = "", ...surname] = value.trim().split(/\s+/)
   return { firstName, surname: surname.join(" ") }
 }
-
 function sortedPlayers(players: Player[]) {
   return [...players].sort((a, b) => {
     const left = parts(a.displayName)
@@ -36,7 +35,6 @@ function sortedPlayers(players: Player[]) {
     return left.surname.localeCompare(right.surname, "es", { sensitivity: "base" }) || left.firstName.localeCompare(right.firstName, "es", { sensitivity: "base" })
   })
 }
-
 function LeagueMark({ leagueName, leagueLogoUrl }: Pick<Props, "leagueName" | "leagueLogoUrl">) {
   if (leagueLogoUrl) {
     return <Image unoptimized src={leagueLogoUrl} alt={leagueName} width={150} height={82} className="h-auto max-h-[72px] w-auto max-w-[138px] object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,.42)]" />
@@ -44,13 +42,10 @@ function LeagueMark({ leagueName, leagueLogoUrl }: Pick<Props, "leagueName" | "l
   const initials = leagueName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SL"
   return <span className="text-3xl font-black tracking-[.2em] text-white">{initials}</span>
 }
-
 function LeagueNameText({ leagueName }: { leagueName: string }) {
   const normalized = leagueName.trim()
   const smashAndLobMatch = normalized.match(/^(SMASH\s*&\s*LOB)\s+(.+)$/i)
-
   if (!smashAndLobMatch) return <>{normalized}</>
-
   return (
     <>
       {smashAndLobMatch[1]}
@@ -59,8 +54,7 @@ function LeagueNameText({ leagueName }: { leagueName: string }) {
     </>
   )
 }
-
-export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent }: Props) {
+export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent, nameCase, onNameCaseChange }: Props) {
   const { tx } = useI18n()
   const [playerListFont, setPlayerListFont] = useState<WelcomePackPlayerNameFont>("great-vibes")
   const roster = sortedPlayers(players)
@@ -75,14 +69,12 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
     "linear-gradient(130deg, rgba(255,255,255,.055) 0%, transparent 25%, rgba(255,255,255,.018) 56%, transparent 100%)",
     "linear-gradient(165deg, #1a1a1a 0%, #090909 48%, #020202 100%)",
   ].join(", ")
-
   return (
     <div className="mx-auto w-full max-w-[430px]">
       <div className="mb-3 flex items-center justify-between gap-3 text-[0.625rem] font-black uppercase tracking-[.12em] text-neutral-500">
         <span>{tx("Vista previa · faja completa")}</span>
         <span>{FINAL_WIDTH_MM} × {HEIGHT_MM} {tx("mm · definitivo")}</span>
       </div>
-
       <div className="rounded-[22px] border border-neutral-200 bg-[#f4f1ea] p-3 shadow-[0_24px_58px_rgba(0,0,0,.18)]">
         <div
           ref={(node) => {
@@ -97,14 +89,11 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
           <div className="absolute inset-[5px] rounded-[10px] border border-white/10" />
           <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.07),transparent_30%,rgba(255,255,255,.025)_62%,transparent)] mix-blend-screen" />
-
           <div className="absolute inset-y-0 left-0 z-[1] bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
           <div className="absolute inset-y-0 right-0 z-[1] bg-[#0b0b0b]" style={{ width: `${sideGluePercent}%` }} />
-
           <div className="absolute inset-y-0 z-[2]" style={{ left: `${sideGluePercent}%`, right: `${sideGluePercent}%` }}>
             <div className="absolute -left-10 top-[-22px] h-32 w-32 rounded-full border border-white/6" />
             <div className="absolute right-[-46px] bottom-[-56px] h-40 w-40 rounded-full border border-white/6" />
-
             <div className="relative z-10 grid h-full grid-cols-[22%_30%_48%] px-3">
               <section className="relative flex min-w-0 items-center justify-center border-r border-white/10 px-2">
                 <div className="absolute inset-y-5 right-0 w-px" style={{ backgroundColor: `${accent}88` }} />
@@ -116,7 +105,6 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   </p>
                 </div>
               </section>
-
               <section className="flex min-w-0 flex-col items-center justify-center border-r border-white/10 px-5 text-center">
                 <p className="mb-2 text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>Welcome Pack</p>
                 <div className="flex min-h-[76px] w-full items-center justify-center"><div className="origin-bottom scale-110"><LeagueMark leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} /></div></div>
@@ -128,7 +116,6 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                 </div>
                 <p className="mt-1.5 text-[0.42rem] font-black uppercase tracking-[.14em] text-white/64">{seasonName}</p>
               </section>
-
               <section className="flex min-w-0 flex-col justify-center px-5 py-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[0.42rem] font-black uppercase tracking-[.2em]" style={{ color: accent }}>{tx("Jugadores")}</p>
@@ -138,7 +125,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate text-[0.68rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
+                        <p key={player.id} className="truncate text-[0.68rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{formatWelcomePackPlayerName(player.displayName, nameCase)}</p>
                       ))}
                     </div>
                   ))}
@@ -148,7 +135,6 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
           </div>
         </div>
       </div>
-
       <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <label className="text-xs font-black text-neutral-700">
           {tx("Tipografía del listado de jugadores")} <select
@@ -163,8 +149,12 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
             ))}
           </select>
         </label>
+        <label className="mt-2 block text-xs font-black text-neutral-700">
+          {tx("Formato del nombre")} <select value={nameCase} onChange={(event) => onNameCaseChange(event.target.value as WelcomePackPlayerNameCase)} className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950">
+            {WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)}</option>)}
+          </select>
+        </label>
       </div>
-
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">{tx("Faja adhesiva:")}</strong> {tx("230 × 130 mm a tamaño real. El diseño mantiene exactamente sus tamaños originales y el PDF recorta 5 mm por cada lateral.")} </div>
     </div>

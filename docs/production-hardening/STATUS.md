@@ -1,5 +1,6 @@
 # Publicación Welcome Pack — 2026-09-14 (en curso)
 
+- La rama de trabajo contiene los 11 commits pendientes sobre `origin/staging`/`origin/main` y mantiene la versión v1.14.26. La puerta local pasó código, tipos, 728 pruebas unitarias/integración y build; las referencias visuales autenticadas se regeneraron para reflejar el botón `← Mis ligas` ya implementado. Pendiente repetir `release:check` completo y promover secuencialmente a PRE y PROD.
 - Solicitud actual autoriza integrar feature → staging → main, sin force push ni espera/polling de Vercel. Esta autorización sustituye para esta entrega la restricción histórica de main de v1.1; el tag v1.0.0 queda intacto.
 - Inicio limpio: feature y origin/feature en 6f0d4c77; origin/staging en 03681f8; origin/main en aa1dc6a. Feature contiene 94 commits ausentes de staging; staging solo añade el revert temporal 03681f8 frente a feature.
 - Staging aporta frente a main d701bdb, 52c4473 y b7a853e (orígenes configurables y autenticación LAN), más cd465cd, 7b83eb8 y a302d41 (prototipo Welcome Pack), retirado temporalmente por 03681f8. Se conservará su historia y se recuperará la implementación final de feature al resolver el revert.
@@ -1621,3 +1622,16 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Publicación v1.14.11 verificada: `staging` y `main` en `d8161b1`; PRE `dpl_5DABffBZqMAyUKrUWJtCix8n7vCK` y Producción `dpl_61fujbsDaFov57BubKyFsKyVJ6C8` quedaron READY con sus aliases públicos. `/api/health` devuelve `1.14.11` en ambos entornos.
 - En los precintos de bolsa, los nombres de jugador largos reducen automáticamente su tipografía hasta caber en una sola línea, conservando el estilo seleccionado.
 - El nombre del jugador deja un margen lateral adicional en los precintos cuando necesita reducirse para caber.
+
+
+
+
+
+
+
+
+
+
+
+
+- v1.14.26: el bloque HEAD / Padel Pro / S+ vuelve a la posición original.
