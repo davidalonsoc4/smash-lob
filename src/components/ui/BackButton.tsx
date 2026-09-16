@@ -61,6 +61,7 @@ export function BackButton({ fallbackHref, label, returnToParam }: BackButtonPro
       onClick={handleBack}
       className="app-top-back-control text-sm font-semibold text-neutral-500"
     >
+      <span aria-hidden="true" className="mr-1 inline-block">←</span>
       {label}
     </a>
   )

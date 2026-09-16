@@ -762,6 +762,7 @@ export default function Home() {
     <div className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
         <Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">
+          <span aria-hidden="true" className="mr-1 inline-block">←</span>
           {tx("Mis ligas")}
         </Link>
         <div className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}>

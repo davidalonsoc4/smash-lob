@@ -1608,6 +1608,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El control superior izquierdo deja de refrescar HOME y enlaza directamente a `/leagues` con el texto `Mis ligas`.
 - Se mantienen separados el cambio de competición y el área personal de `Mis partidos`.
 - La validación de tipografía se actualiza para exigir el enlace directo a `Mis ligas` y eliminar el contrato anterior de refresco manual.
+- HOME y el componente compartido `BackButton` incorporan la flecha izquierda visible para distinguir los accesos de vuelta.
 
 ### Optimización de arranque percibido (2026-09-16)
 
