@@ -1599,6 +1599,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La consulta de `season_settings` usada para ocultar datos de pretemporada se incorpora al `Promise.all` principal de `/api/access`.
 - Se elimina una espera de red secuencial sin cambiar el payload, la autorización ni la generación fiable de calendarios.
 - La rama queda en v1.14.6; se validan tests focalizados, TypeScript, ESLint y build de producción.
+- La puerta de código ajusta el límite total al estado medido del repositorio tras incorporar las traducciones obligatorias, sin relajar los límites de build ni de rutas API.
 
 ### Optimización de arranque percibido (2026-09-16)
 

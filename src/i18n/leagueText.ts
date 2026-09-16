@@ -7,6 +7,19 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+  "4 disponibles": "4 available",
+  "Pegatinas de logo": "Logo stickers",
+  "Ancho configurable": "Configurable width",
+  "El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para imprimir las pegatinas.": "The browser blocked the print window. Allow pop-ups to print the stickers.",
+  "Solo logo · prueba de pegatinas": "Logo only · sticker test",
+  "Se genera como mínimo una pegatina por jugador. Los huecos restantes se completan con logos de 50 mm.": "At least one sticker is generated per player. Remaining spaces are filled with 50 mm logos.",
+  "Ancho del logo": "Logo width",
+  "Impresión": "Print",
+  "Mínimo": "Minimum",
+  "Por hoja": "Per sheet",
+  "Hojas": "Sheets",
+  "Esta liga no tiene logo": "This league has no logo",
+  "Generar PDF de pegatinas": "Generate sticker PDF",
   "Adhesiva": "Adhesive",
   "PDF desde el navegador": "PDF from the browser",
   "Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.": "Each piece currently generates its own sheet. The next step will combine every configured piece into one production PDF.",
@@ -731,6 +744,19 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+  "4 disponibles": "4 eskuragarri",
+  "Pegatinas de logo": "Logotipoaren eranskailuak",
+  "Ancho configurable": "Zabalera konfiguragarria",
+  "El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para imprimir las pegatinas.": "Nabigatzaileak inprimatzeko leihoa blokeatu du. Baimendu leiho berriak eranskailuak inprimatzeko.",
+  "Solo logo · prueba de pegatinas": "Logotipoa bakarrik · eranskailuen proba",
+  "Se genera como mínimo una pegatina por jugador. Los huecos restantes se completan con logos de 50 mm.": "Jokalari bakoitzeko gutxienez eranskailu bat sortzen da. Gainerako hutsuneak 50 mm-ko logotipoekin betetzen dira.",
+  "Ancho del logo": "Logotipoaren zabalera",
+  "Impresión": "Inprimaketa",
+  "Mínimo": "Gutxienez",
+  "Por hoja": "Orri bakoitzeko",
+  "Hojas": "Orriak",
+  "Esta liga no tiene logo": "Liga honek ez du logotiporik",
+  "Generar PDF de pegatinas": "Sortu eranskailuen PDFa",
   "Adhesiva": "Itsasgarria",
   "PDF desde el navegador": "PDFa nabigatzailetik",
   "Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.": "Une honetan pieza bakoitzak bere orria sortzen du. Hurrengo urratsean konfiguratutako pieza guztiak ekoizpenerako PDF bakarrean elkartuko dira.",
@@ -2157,6 +2183,7 @@ const ADDITIONAL_OVERRIDES = {
 
 const DYNAMIC_TEMPLATES = {
   en: [
+    ["Selecciona {} y escala 100 % en el diálogo de impresión.", "Select {0} and print at 100% scale."],
     ["El fajín mide {} × {} mm. Reservamos {} mm en cada lateral para el pegado; el área útil central para el diseño es de {} mm.", "The band measures {0} × {1} mm. We reserve {2} mm on each side for gluing; the central design area is {3} mm wide."],
     ["Incluye el precinto de bolsa para todos los jugadores de {}.", "Includes a bag seal for every player in {0}."],
   ["{} jugadores pendientes", "{0} pending players"],
@@ -2342,6 +2369,7 @@ const DYNAMIC_TEMPLATES = {
   ["Última actualización: {}, {}", "Last updated: {0}, {1}"]
   ],
   eu: [
+    ["Selecciona {} y escala 100 % en el diálogo de impresión.", "Hautatu {0} eta inprimatu %100eko eskalan."],
     ["El fajín mide {} × {} mm. Reservamos {} mm en cada lateral para el pegado; el área útil central para el diseño es de {} mm.", "Zerrendak {0} × {1} mm neurtzen du. Alde bakoitzean {2} mm uzten dira itsasteko; diseinuaren erdiko eremuak {3} mm ditu."],
     ["Incluye el precinto de bolsa para todos los jugadores de {}.", "{0} denboraldiko jokalari guztientzako poltsa-zigilua barne."],
   ["{} jugadores pendientes", "{0} jokalari zain"],
