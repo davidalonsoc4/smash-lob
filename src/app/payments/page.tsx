@@ -421,6 +421,7 @@ export default function PaymentsPage() {
     activeSeason
   const selectedPlayerId =
     getMembershipForLeague(selectedLeague.id)?.playerId ?? null
+  const selectedRoundSettings = getSeasonRoundSettings(selectedSeason.id)
 
   const scopedLedgerItems = useMemo(
     () =>
@@ -459,7 +460,7 @@ export default function PaymentsPage() {
       )
 
       courtCost += cost.court
-      ballCost += cost.balls
+      if (!selectedRoundSettings.organizationBallsAssigned) ballCost += cost.balls
 
       if (
         selectedPlayerId &&
@@ -474,8 +475,7 @@ export default function PaymentsPage() {
     let registrationPaid = 0
     let userRegistration = 0
     let userRegistrationPaid = 0
-    const registrationFee =
-      getSeasonRoundSettings(selectedSeason.id).registrationFee
+    const registrationFee = selectedRoundSettings.registrationFee
 
     if (registrationFee.enabled && registrationFee.amount > 0) {
       const fallbackPlayerIds = seasonPlayers
@@ -522,11 +522,11 @@ export default function PaymentsPage() {
       matchCount: scopedMatches.length,
     }
   }, [
-    getSeasonRoundSettings,
     seasonPlayers,
     selectedLeague.id,
     selectedPlayerId,
     selectedSeason.id,
+    selectedRoundSettings,
     storedMatches,
   ])
   const economyScopeLabel = `${selectedLeague.name} · ${selectedSeason.name}`
@@ -792,14 +792,16 @@ export default function PaymentsPage() {
                       {formatMoney(economicSummary.courtCost)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                    <span className="font-bold text-neutral-600">
-                      {t.payments.balls}
-                    </span>
-                    <span className="font-black text-neutral-950">
-                      {formatMoney(economicSummary.ballCost)}
-                    </span>
-                  </div>
+                  {!selectedRoundSettings.organizationBallsAssigned ? (
+                    <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                      <span className="font-bold text-neutral-600">
+                        {t.payments.balls}
+                      </span>
+                      <span className="font-black text-neutral-950">
+                        {formatMoney(economicSummary.ballCost)}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <div>
                       <p className="font-bold text-neutral-600">

@@ -85,6 +85,13 @@ export async function POST(
       { status: 409 },
     )
   }
+  const { data: seasonSettings, error: seasonSettingsError } = await access.actor.supabase
+    .from("season_settings")
+    .select("organization_balls_assigned")
+    .eq("season_id", access.actor.match.seasonId)
+    .maybeSingle()
+  if (seasonSettingsError) return NextResponse.json({ error: "season_settings_lookup_failed" }, { status: 500 })
+  const organizationBallsAssigned = seasonSettings?.organization_balls_assigned === true
 
   const body = (await parseJsonBody<ConfirmBody>(request)) ?? {}
   const action = clean(body.action, 40) || "confirm"
@@ -263,7 +270,7 @@ export async function POST(
     ? buildCourtBooking({
         participantIds: previous.participantIds,
         reservations: reservations ?? [],
-        ballPurchases: previous.courtBooking.ballPurchases,
+        ballPurchases: organizationBallsAssigned ? [] : previous.courtBooking.ballPurchases,
         previousTransfers: previous.courtBooking.transfers,
       })
     : {
@@ -332,7 +339,7 @@ export async function POST(
         court_reserved: previous.courtBooking.isReserved,
         booking_reservations: {
           reservations: previous.courtBooking.reservations,
-          ballPurchases: previous.courtBooking.ballPurchases,
+        ballPurchases: organizationBallsAssigned ? [] : previous.courtBooking.ballPurchases,
         },
         booking_transfers: previous.courtBooking.transfers,
         booking_updated_at: previous.courtBooking.updatedAt,

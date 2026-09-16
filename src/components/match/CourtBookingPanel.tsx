@@ -24,6 +24,7 @@ type CourtBookingPanelProps = {
   canManage: boolean
   canManageAllPayments?: boolean
   booking: CourtBooking
+  ballPurchasesDisabled?: boolean
   shouldFocusBooking?: boolean
   actions?: {
     update: (input: {
@@ -136,6 +137,7 @@ export function CourtBookingPanel({
   canManage,
   canManageAllPayments = false,
   booking,
+  ballPurchasesDisabled = false,
   shouldFocusBooking = false,
   actions,
 }: CourtBookingPanelProps) {
@@ -156,6 +158,7 @@ export function CourtBookingPanel({
       return 0
     })
   }, [currentUserId, teamA, teamB])
+  const effectiveBallPurchases = ballPurchasesDisabled ? [] : booking.ballPurchases
   const panelRef = useRef<HTMLDivElement | null>(null)
   const [isExpanded, setIsExpanded] = useState(
     shouldFocusBooking || (!booking.isReserved && canManage)
@@ -170,7 +173,7 @@ export function CourtBookingPanel({
   const [ballPurchaseInputs, setBallPurchaseInputs] = useState(() =>
     getInitialReservationInputs({
       participantIds,
-      reservations: booking.ballPurchases,
+      reservations: effectiveBallPurchases,
     })
   )
   const [selectedPayerIds, setSelectedPayerIds] = useState(() => {
@@ -188,7 +191,7 @@ export function CourtBookingPanel({
   const [selectedBallBuyerId, setSelectedBallBuyerId] = useState(() =>
     getInitialSelectedSinglePayerId({
       participantIds,
-      reservations: booking.ballPurchases,
+      reservations: effectiveBallPurchases,
     })
   )
   const [isPayerSelectorOpen, setIsPayerSelectorOpen] = useState(false)
@@ -241,13 +244,13 @@ export function CourtBookingPanel({
   ) + parsedBallPurchases.reduce((sum, purchase) => sum + purchase.amount, 0)
   const isCurrentUserBookingPayer = [
     ...booking.reservations,
-    ...booking.ballPurchases,
+    ...effectiveBallPurchases,
   ].some((payment) => payment.playerId === currentUserId)
   const isCurrentUserReservationPayer = booking.reservations.some(
     (reservation) => reservation.playerId === currentUserId
   )
   const canCreateBooking = canManage && !booking.isReserved
-  const hasRecordedBookingPayer = booking.reservations.length > 0 || booking.ballPurchases.length > 0
+  const hasRecordedBookingPayer = booking.reservations.length > 0 || effectiveBallPurchases.length > 0
   const canManageExistingBooking =
     canManage &&
     booking.isReserved &&
@@ -266,12 +269,12 @@ export function CourtBookingPanel({
   const totalReservedAmount = booking.reservations.reduce(
     (sum, reservation) => sum + reservation.amount,
     0
-  ) + booking.ballPurchases.reduce(
+  ) + effectiveBallPurchases.reduce(
     (sum, purchase) => sum + purchase.amount,
     0
   )
   const paidByCount = new Set(
-    [...booking.reservations, ...booking.ballPurchases].map(
+    [...booking.reservations, ...effectiveBallPurchases].map(
       (payment) => payment.playerId
     )
   ).size
@@ -281,8 +284,8 @@ export function CourtBookingPanel({
   const savedPayerNames = booking.reservations
     .map((reservation) => getPlayerName(reservation.playerId, players))
     .join(", ")
-  const savedBallBuyerName = booking.ballPurchases[0]
-    ? getPlayerName(booking.ballPurchases[0].playerId, players)
+  const savedBallBuyerName = effectiveBallPurchases[0]
+    ? getPlayerName(effectiveBallPurchases[0].playerId, players)
     : ""
   const payerSummary = getPayerSummary(selectedPayerIds, players)
   const ballBuyerSummary = getPayerSummary(
@@ -580,12 +583,14 @@ export function CourtBookingPanel({
                 {savedPayerNames || tx("Sin pagador informado")}
               </span>
             </p>
-            <p className="text-xs font-semibold leading-5 text-neutral-700">
-              <span className="font-black text-neutral-950">{tx("Bolas compradas por:")}</span>{" "}
-              <span className="font-bold">
-                {savedBallBuyerName || tx("Sin comprador informado")}
-              </span>
-            </p>
+            {!ballPurchasesDisabled ? (
+              <p className="text-xs font-semibold leading-5 text-neutral-700">
+                <span className="font-black text-neutral-950">{tx("Bolas compradas por:")}</span>{" "}
+                <span className="font-bold">
+                  {savedBallBuyerName || tx("Sin comprador informado")}
+                </span>
+              </p>
+            ) : null}
           </div>
 
           {booking.transfers.length > 0 ? (
@@ -724,7 +729,7 @@ export function CourtBookingPanel({
       {isExpanded && isEditing && canManageBooking ? (
         <form onSubmit={handleSubmit} className="mt-1.5 space-y-1.5">
           <div className="space-y-1.5">
-            <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+            {!ballPurchasesDisabled ? <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
               <button
                 type="button"
                 onClick={() =>
@@ -772,7 +777,7 @@ export function CourtBookingPanel({
                 />
                 <span className="text-xs font-black text-neutral-500">€</span>
               </label>
-            </div>
+            </div> : null}
 
             {isBallBuyerSelectorOpen ? (
               <div className="grid grid-cols-2 gap-1.5 rounded-lg border border-neutral-200 bg-white p-1.5 shadow-sm">

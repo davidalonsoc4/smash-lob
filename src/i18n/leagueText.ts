@@ -2183,6 +2183,7 @@ const ADDITIONAL_OVERRIDES = {
 
 const DYNAMIC_TEMPLATES = {
   en: [
+    ["{} custodios · {} botes repartidos", "{0} custodians · {1} cans allocated"],
     ["Selecciona {} y escala 100 % en el diálogo de impresión.", "Select {0} and print at 100% scale."],
     ["El fajín mide {} × {} mm. Reservamos {} mm en cada lateral para el pegado; el área útil central para el diseño es de {} mm.", "The band measures {0} × {1} mm. We reserve {2} mm on each side for gluing; the central design area is {3} mm wide."],
     ["Incluye el precinto de bolsa para todos los jugadores de {}.", "Includes a bag seal for every player in {0}."],
@@ -2369,6 +2370,7 @@ const DYNAMIC_TEMPLATES = {
   ["Última actualización: {}, {}", "Last updated: {0}, {1}"]
   ],
   eu: [
+    ["{} custodios · {} botes repartidos", "{0} zaindari · {1} poto banatuta"],
     ["Selecciona {} y escala 100 % en el diálogo de impresión.", "Hautatu {0} eta inprimatu %100eko eskalan."],
     ["El fajín mide {} × {} mm. Reservamos {} mm en cada lateral para el pegado; el área útil central para el diseño es de {} mm.", "Zerrendak {0} × {1} mm neurtzen du. Alde bakoitzean {2} mm uzten dira itsasteko; diseinuaren erdiko eremuak {3} mm ditu."],
     ["Incluye el precinto de bolsa para todos los jugadores de {}.", "{0} denboraldiko jokalari guztientzako poltsa-zigilua barne."],
@@ -2558,6 +2560,25 @@ const DYNAMIC_TEMPLATES = {
 
 const FINAL_OVERRIDES = {
   "en": {
+    "Reparto de botes actualizado.": "Ball allocation updated.",
+    "No se puede modificar el reparto después de registrar un resultado.": "The allocation cannot be changed after a result has been recorded.",
+    "No se ha podido guardar el reparto de botes.": "The ball allocation could not be saved.",
+    "Bolas asignadas por la organización": "Balls assigned by the organisation",
+    "Bloqueado porque ya hay un resultado registrado en esta temporada.": "Locked because a result has already been recorded in this season.",
+    "La app calcula el mínimo número de custodios y asigna un encargado a cada partido.": "The app calculates the minimum number of custodians and assigns one to each match.",
+    "Activar bolas asignadas por la organización": "Enable organisation-assigned balls",
+    "Al activarlo desaparece la compra de bolas en pagos y reservas.": "When enabled, ball purchases disappear from payments and bookings.",
+    "Prioridad en empates": "Tie-break priority",
+    "Guardar reparto": "Save allocation",
+    "La organización entrega un bote por partido. Se desactiva la compra de bolas y la app asigna el encargado con el menor número de custodios posible.": "The organisation provides one ball can per match. Ball purchases are disabled and the app assigns the custodian using the fewest possible custodians.",
+    "Activar reparto de botes": "Enable ball allocation",
+    "Ordena los jugadores para resolver los empates del reparto.": "Order players to resolve allocation ties.",
+    "Prioridad de custodios": "Custodian priority",
+    "Subir prioridad": "Move up",
+    "Bajar prioridad": "Move down",
+    "Encargado de las bolas": "Ball custodian",
+    "La organización asigna un bote nuevo para este partido.": "The organisation assigns a new ball can for this match.",
+    "Encargado de las bolas:": "Ball custodian:",
     "No se ha podido preparar la faja para impresión.": "The wrap could not be prepared for printing.",
     "La vista previa todavía no tiene un tamaño válido para impresión.": "The preview does not yet have a valid print size.",
     "Se configura arriba y se comparte con Contenido digital y Welcome Pack.": "Configured above and shared with Digital content and Welcome Pack.",
@@ -3396,6 +3417,25 @@ const FINAL_OVERRIDES = {
     "Ámbito": "Scope",
   },
   "eu": {
+    "Reparto de botes actualizado.": "Boten banaketa eguneratu da.",
+    "No se puede modificar el reparto después de registrar un resultado.": "Ezin da banaketa aldatu emaitza bat erregistratu ondoren.",
+    "No se ha podido guardar el reparto de botes.": "Ezin izan da banden banaketa gorde.",
+    "Bolas asignadas por la organización": "Antolakuntzak esleitutako pilotak",
+    "Bloqueado porque ya hay un resultado registrado en esta temporada.": "Blokeatuta, denboraldi honetan emaitza bat erregistratu delako.",
+    "La app calcula el mínimo número de custodios y asigna un encargado a cada partido.": "Aplikazioak zaindari kopuru minimoa kalkulatu eta bat esleitzen du partida bakoitzerako.",
+    "Activar bolas asignadas por la organización": "Antolakuntzak esleitutako pilotak aktibatu",
+    "Al activarlo desaparece la compra de bolas en pagos y reservas.": "Aktibatzean, ordainketa eta erreserbetako pilota-erosketa desagertzen da.",
+    "Prioridad en empates": "Berdinketen lehentasuna",
+    "Guardar reparto": "Banaketa gorde",
+    "La organización entrega un bote por partido. Se desactiva la compra de bolas y la app asigna el encargado con el menor número de custodios posible.": "Antolakuntzak poto bat ematen du partida bakoitzeko. Piloten erosketa desaktibatu eta aplikazioak zaindari gutxien dituen arduraduna esleitzen du.",
+    "Activar reparto de botes": "Potoen banaketa aktibatu",
+    "Ordena los jugadores para resolver los empates del reparto.": "Ordenatu jokalariak banaketako berdinketak ebazteko.",
+    "Prioridad de custodios": "Zaindarien lehentasuna",
+    "Subir prioridad": "Lehentasuna igo",
+    "Bajar prioridad": "Lehentasuna jaitsi",
+    "Encargado de las bolas": "Piloten arduraduna",
+    "La organización asigna un bote nuevo para este partido.": "Antolakuntzak poto berri bat esleitzen du partida honetarako.",
+    "Encargado de las bolas:": "Piloten arduraduna:",
     "No se ha podido preparar la faja para impresión.": "Ezin izan da bilgarria prestatu inprimatzeko.",
     "La vista previa todavía no tiene un tamaño válido para impresión.": "Aurrebistak oraindik ez du inprimatzeko neurri baliodunik.",
     "Se configura arriba y se comparte con Contenido digital y Welcome Pack.": "Goian konfiguratzen da eta Eduki digitalarekin eta Welcome Pack-ekin partekatzen da.",

@@ -54,6 +54,8 @@ type CreateSeasonBody = {
   playerCapacity?: unknown
   calendarMode?: unknown
   availabilityRecommendationsEnabled?: unknown
+  organizationBallsAssigned?: unknown
+  ballsAssignmentPriority?: unknown
 }
 
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/
@@ -307,6 +309,8 @@ export async function POST(
     typeof body?.availabilityRecommendationsEnabled === "boolean"
       ? body.availabilityRecommendationsEnabled
       : false
+  const organizationBallsAssigned = body?.organizationBallsAssigned === true
+  const ballsAssignmentPriority = parseUuidArray(body?.ballsAssignmentPriority ?? [])
   const mvpSystem = parseMvpSystem(body?.mvpSystem)
   const resultConfirmationMode = parseResultConfirmationMode(
     body?.resultConfirmationMode
@@ -353,6 +357,7 @@ export async function POST(
     openingRoundAt === undefined ||
     openingRoundLocation === undefined ||
     !isSeasonPlayerCountInRange(playerCapacity) ||
+    !ballsAssignmentPriority ||
     (rosterMode === "self_registration" && calendarMode !== "balanced")
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -485,6 +490,8 @@ export async function POST(
         playerCapacity,
         calendarMode,
         availabilityRecommendationsEnabled,
+        organizationBallsAssigned,
+        ballsAssignmentPriority,
       },
     })
 
@@ -527,6 +534,8 @@ export async function POST(
         playerCapacity,
         calendarMode,
         availabilityRecommendationsEnabled,
+        organizationBallsAssigned,
+        ballsAssignmentPriority,
       },
     }).catch(() => null)
 

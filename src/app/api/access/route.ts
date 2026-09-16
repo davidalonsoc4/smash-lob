@@ -250,7 +250,7 @@ export async function GET(request: Request) {
     supabase
       .from("season_settings")
       .select(
-        "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location"
+        "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location"
       )
       .in("league_id", leagueIds),
     supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
@@ -469,6 +469,10 @@ export async function GET(request: Request) {
     allowPlayerSubstitutions: settings.allow_player_substitutions !== false,
     availabilityRecommendationsEnabled:
       settings.availability_recommendations_enabled === true,
+    organizationBallsAssigned: settings.organization_balls_assigned === true,
+    ballsAssignmentPriority: Array.isArray(settings.balls_assignment_priority)
+      ? settings.balls_assignment_priority.filter((playerId): playerId is string => typeof playerId === "string")
+      : [],
   }))
   const substitutionsByMatchId = new Map<
     string,

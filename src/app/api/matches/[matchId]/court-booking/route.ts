@@ -126,6 +126,16 @@ export async function PUT(
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
+  const { data: seasonSettings, error: seasonSettingsError } = await access.actor.supabase
+    .from("season_settings")
+    .select("organization_balls_assigned")
+    .eq("season_id", access.actor.match.seasonId)
+    .maybeSingle()
+  if (seasonSettingsError) {
+    return NextResponse.json({ error: "season_settings_lookup_failed" }, { status: 500 })
+  }
+  const organizationBallsAssigned = seasonSettings?.organization_balls_assigned === true
+
   if (
     access.actor.match.status !== "scheduled" &&
     !access.actor.match.courtBooking.isReserved
@@ -138,13 +148,13 @@ export async function PUT(
 
   const body = await parseJsonBody<CourtBookingBody>(request)
   const reservations = parseReservations(body?.reservations)
-  const ballPurchases = parseReservations(body?.ballPurchases, {
+  const parsedBallPurchases = parseReservations(body?.ballPurchases, {
     allowMany: false,
   })
-
-  if (!reservations || !ballPurchases) {
+  if (!reservations || !parsedBallPurchases) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
+  const ballPurchases = organizationBallsAssigned ? [] : parsedBallPurchases
 
   if (reservations.length === 0 && ballPurchases.length === 0) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })

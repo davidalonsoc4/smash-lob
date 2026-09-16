@@ -73,6 +73,10 @@ function mapSettings({
     allowPlayerIncidents: true,
     allowPlayerSubstitutions: true,
     availabilityRecommendationsEnabled: false,
+    organizationBallsAssigned: row.organization_balls_assigned === true,
+    ballsAssignmentPriority: Array.isArray(row.balls_assignment_priority)
+      ? row.balls_assignment_priority.filter((playerId): playerId is string => typeof playerId === "string")
+      : [],
   }
 }
 

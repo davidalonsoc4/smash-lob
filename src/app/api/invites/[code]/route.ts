@@ -45,7 +45,7 @@ type SerializedError = {
 const leagueInviteSelect =
   "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
 const seasonSettingsSelect =
-  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled"
+  "league_id,season_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority"
 function toRole(role: unknown): LeagueMemberRole {
   return role === "creator" || role === "admin" || role === "player"
     ? role
@@ -452,6 +452,10 @@ async function buildInviteResponse(
     allowPlayerSubstitutions: settings.allow_player_substitutions !== false,
     availabilityRecommendationsEnabled:
       settings.availability_recommendations_enabled === true,
+    organizationBallsAssigned: settings.organization_balls_assigned === true,
+    ballsAssignmentPriority: Array.isArray(settings.balls_assignment_priority)
+      ? settings.balls_assignment_priority.filter((playerId): playerId is string => typeof playerId === "string")
+      : [],
   }))
   const claimedMemberships: UserLeagueMembership[] = (
     membershipRows ?? []

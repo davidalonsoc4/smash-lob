@@ -57,6 +57,7 @@ type MatchCardProps = {
   showChevron?: boolean;
   statusPosition?: "auto" | "left" | "right";
   hideMissingScheduleMeta?: boolean;
+  ballCustodianName?: string | null;
 };
 export function MatchCard({
   match,
@@ -75,6 +76,7 @@ export function MatchCard({
   showChevron = false,
   statusPosition = "auto",
   hideMissingScheduleMeta = false,
+  ballCustodianName = null,
 }: MatchCardProps) {
   const { tx, t, locale } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
@@ -339,6 +341,11 @@ export function MatchCard({
             <div className="mt-2 rounded-lg bg-orange-100 px-2.5 py-2 text-xs font-semibold text-orange-900">
               {t.rounds.postponedWindowWarning}
             </div>
+          ) : null}
+          {ballCustodianName ? (
+            <p className="mt-2 text-xs font-semibold text-amber-800">
+              <span className="font-black">{tx("Encargado de las bolas:")}</span>{" "}{ballCustodianName}
+            </p>
           ) : null}
         </div>
       </AppCard>

@@ -84,6 +84,8 @@ type CreateServerSeasonInput = {
   playerCapacity: number
   calendarMode: "balanced" | "manual"
   availabilityRecommendationsEnabled: boolean
+  organizationBallsAssigned: boolean
+  ballsAssignmentPriority: string[]
 }
 
 function initials(name: string) {
@@ -302,6 +304,8 @@ type EditableSeasonRoundSettings = Pick<
   | "allowPlayerIncidents"
   | "allowPlayerSubstitutions"
   | "availabilityRecommendationsEnabled"
+  | "organizationBallsAssigned"
+  | "ballsAssignmentPriority"
 >
 
 export async function updateServerSeasonRoundSettings({
@@ -321,6 +325,12 @@ export async function updateServerSeasonRoundSettings({
     supabase,
     seasonId,
   })
+  const ballsAssignmentPriority = Array.from(
+    new Set(settings.ballsAssignmentPriority ?? []),
+  )
+  if (ballsAssignmentPriority.some((playerId) => !seasonPlayerIds.includes(playerId))) {
+    throw new SeasonMutationError(400, "invalid_balls_assignment_priority")
+  }
   const registrationFee = ensureSeasonRegistrationPlayers({
     registrationFee: normalizeSeasonRegistrationFee(settings.registrationFee),
     playerIds: seasonPlayerIds,
@@ -347,6 +357,8 @@ export async function updateServerSeasonRoundSettings({
     allow_player_incidents: settings.allowPlayerIncidents,
     allow_player_substitutions: settings.allowPlayerSubstitutions,
     availability_recommendations_enabled: settings.availabilityRecommendationsEnabled,
+    organization_balls_assigned: settings.organizationBallsAssigned === true,
+    balls_assignment_priority: ballsAssignmentPriority,
   }
 
   const { data, error } = await supabase
@@ -655,7 +667,7 @@ export async function startServerExistingSeason({
   const { data: settingsRow, error: settingsLookupError } = await supabase
     .from("season_settings")
     .select(
-      "season_id,league_id,round_window_mode,season_starts_at,scheduled_start_at,preseason_secret_days_before,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
+      "season_id,league_id,round_window_mode,season_starts_at,scheduled_start_at,preseason_secret_days_before,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority",
     )
     .eq("season_id", seasonId)
     .eq("league_id", leagueId)
@@ -838,6 +850,10 @@ export async function startServerExistingSeason({
       allowPlayerSubstitutions: settingsRow.allow_player_substitutions !== false,
       availabilityRecommendationsEnabled:
         settingsRow.availability_recommendations_enabled === true,
+      organizationBallsAssigned: settingsRow.organization_balls_assigned === true,
+      ballsAssignmentPriority: Array.isArray(settingsRow.balls_assignment_priority)
+        ? settingsRow.balls_assignment_priority.filter((playerId): playerId is string => typeof playerId === "string")
+        : [],
     }
 
     return {
@@ -1375,6 +1391,8 @@ export async function createServerSeason({
     playerCapacity,
     calendarMode,
     availabilityRecommendationsEnabled,
+    organizationBallsAssigned,
+    ballsAssignmentPriority,
   } = input
   const { supabase, user, membership } = actor
   const isSelfRegistration = rosterMode === "self_registration"
@@ -1676,8 +1694,14 @@ export async function createServerSeason({
     : [
         ...uniquePlayerIds,
         ...(newPlayers ?? []).map((player) => player.id),
-        ...appLinkedPlayers.map((player) => player.id),
-      ]
+      ...appLinkedPlayers.map((player) => player.id),
+    ]
+  const cleanBallsAssignmentPriority = Array.from(
+    new Set(ballsAssignmentPriority ?? []),
+  )
+  if (cleanBallsAssignmentPriority.some((playerId) => !finalPlayerIds.includes(playerId))) {
+    throw new SeasonMutationError(400, "invalid_balls_assignment_priority")
+  }
   const selectedSelfPlayerId = isSelfRegistration
     ? selfRegistrationPlayer?.id ?? null
     : !user.isSuperuser && selfPlayerValue
@@ -1838,6 +1862,8 @@ export async function createServerSeason({
       allow_player_incidents: true,
       allow_player_substitutions: true,
       availability_recommendations_enabled: availabilityRecommendationsEnabled,
+      organization_balls_assigned: organizationBallsAssigned === true,
+      balls_assignment_priority: cleanBallsAssignmentPriority,
     })
 
   if (settingsError) {
@@ -1901,6 +1927,8 @@ export async function createServerSeason({
       allowPlayerIncidents: true,
       allowPlayerSubstitutions: true,
       availabilityRecommendationsEnabled,
+      organizationBallsAssigned,
+      ballsAssignmentPriority: cleanBallsAssignmentPriority,
     },
   ]
   const linkedMembership: UserLeagueMembership | null =
