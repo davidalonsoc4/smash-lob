@@ -15,6 +15,7 @@ import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import type { RoundWindowMode, SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import type { RosterMode } from "@/data/fakeData"
 import { isSeasonPlayerCountInRange } from "@/lib/seasonPlayerCount"
+import { isBallsAssignmentPriorityRef } from "@/lib/organizationBallsAssignment"
 import {
   createScheduledLeagueLocationValue,
   getLeagueLocationIdentityKey,
@@ -77,6 +78,13 @@ function parseUuidArray(value: unknown) {
     return null
   }
 
+  return items
+}
+
+function parseBallsAssignmentPriority(value: unknown) {
+  if (!Array.isArray(value)) return null
+  const items = value.filter((item): item is string => isBallsAssignmentPriorityRef(item))
+  if (items.length !== value.length || new Set(items).size !== items.length) return null
   return items
 }
 
@@ -310,7 +318,7 @@ export async function POST(
       ? body.availabilityRecommendationsEnabled
       : false
   const organizationBallsAssigned = body?.organizationBallsAssigned === true
-  const ballsAssignmentPriority = parseUuidArray(body?.ballsAssignmentPriority ?? [])
+  const ballsAssignmentPriority = parseBallsAssignmentPriority(body?.ballsAssignmentPriority ?? [])
   const mvpSystem = parseMvpSystem(body?.mvpSystem)
   const resultConfirmationMode = parseResultConfirmationMode(
     body?.resultConfirmationMode

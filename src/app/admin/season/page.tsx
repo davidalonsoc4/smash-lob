@@ -68,6 +68,7 @@ import { showActionFeedback } from "@/lib/actionFeedback";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment";
+import { buildBallsAssignmentPriorityEntries } from "@/lib/organizationBallsAssignment";
 import { buildSeasonRounds } from "@/lib/rounds";
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar";
 import { datetimeLocalToIso, formatNextScheduledStartForInput, isScheduledSeasonPending, toDatetimeLocalValue } from "@/lib/seasonScheduling";
@@ -3570,10 +3571,6 @@ function NewSeasonForm({
     () => new Set(selectedPlayerIds),
     [selectedPlayerIds],
   );
-  const effectiveBallsAssignmentPriority = [
-    ...ballsAssignmentPriority.filter((playerId) => selectedPlayerIdSet.has(playerId)),
-    ...selectedPlayerIds.filter((playerId) => !ballsAssignmentPriority.includes(playerId)),
-  ];
   const continuingPlayers = leaguePlayers.filter((player) =>
     selectedPlayerIdSet.has(player.id),
   );
@@ -3589,6 +3586,22 @@ function NewSeasonForm({
   const appPlayerTokenOffset = visibleNewPlayerNames.length;
   const selectedAppUserIds = selectedAppUsers.map((person) => person.userId);
   const selectedAppUserIdSet = new Set(selectedAppUserIds);
+  const ballsAssignmentPriorityEntries = buildBallsAssignmentPriorityEntries({
+    players: selectedPlayerIds.map((id) => ({ id, name: leaguePlayers.find((player) => player.id === id)?.displayName ?? currentPlayers.find((player) => player.id === id)?.displayName ?? id })),
+    newPlayerNames: rosterMode === "fixed" ? visibleNewPlayerNames : [],
+    newPlayerLabels: visibleNewPlayerNames.map((_, index) => tx(`Jugador ${selectedPlayerIds.length + index + 1}`)),
+    appPlayers: rosterMode === "fixed" ? selectedAppUsers.map((person) => ({ userId: person.userId, name: person.displayName })) : [],
+    selfPlayerName: rosterMode === "self_registration" && canLinkSelfPlayer && selfPlayerValue === getNewPlayerToken(0) ? session?.user?.name?.trim() || tx("Tú") : null,
+  });
+  const selectedBallsPriorityRefs = new Set(
+    ballsAssignmentPriorityEntries.map((entry) => entry.ref),
+  );
+  const effectiveBallsAssignmentPriority = [
+    ...ballsAssignmentPriority.filter((ref) => selectedBallsPriorityRefs.has(ref)),
+    ...ballsAssignmentPriorityEntries
+      .map((entry) => entry.ref)
+      .filter((ref) => !ballsAssignmentPriority.includes(ref)),
+  ];
   const normalizedAppPlayerQuery = appPlayerQuery.trim().toLocaleLowerCase("es");
   const isAppDirectoryLoading =
     isSupabaseBackedId(activeLeagueId) && appDirectoryLeagueId !== activeLeagueId;
@@ -5029,13 +5042,13 @@ function NewSeasonForm({
           <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
             <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad de custodios")}</p>
             <div className="mt-2 space-y-1.5">
-              {effectiveBallsAssignmentPriority.map((playerId, index) => {
-                const player = leaguePlayers.find((item) => item.id === playerId);
+              {effectiveBallsAssignmentPriority.map((priorityRef, index) => {
+                const player = ballsAssignmentPriorityEntries.find((item) => item.ref === priorityRef);
                 if (!player) return null;
                 return (
-                  <div key={playerId} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
+                  <div key={priorityRef} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
                     <span className="w-5 text-xs text-neutral-400">{index + 1}</span>
-                    <span className="min-w-0 flex-1 truncate">{player.displayName}</span>
+                    <span className="min-w-0 flex-1 truncate">{player.name}</span>
                     <button type="button" disabled={index === 0} onClick={() => setBallsAssignmentPriority(() => { const next = [...effectiveBallsAssignmentPriority]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; })} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Subir prioridad")}>↑</button>
                     <button type="button" disabled={index === effectiveBallsAssignmentPriority.length - 1} onClick={() => setBallsAssignmentPriority(() => { const next = [...effectiveBallsAssignmentPriority]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; return next; })} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Bajar prioridad")}>↓</button>
                   </div>
