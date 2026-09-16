@@ -1601,6 +1601,8 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La rama queda en v1.14.6; se validan tests focalizados, TypeScript, ESLint y build de producción.
 - La puerta de código ajusta el límite total al estado medido del repositorio tras incorporar las traducciones obligatorias, sin relajar los límites de build ni de rutas API.
 
+- Publicación v1.14.7 verificada: `staging` y `main` quedaron en `536841d` y Vercel generó PRE `dpl_Dc7VaJjhhrzkcmQxeXp74C7gXTG3` READY (`pre.smashandlob.com`) y Producción `dpl_EkVRSraBSFY9mh5PaanGDGUmJWxM` READY (`smashandlob.com`). Health de Producción devuelve `1.14.7`; PRE mantiene la protección SSO pública esperada.
+
 ### Optimización de arranque percibido (2026-09-16)
 
 - Se crea la rama `codex/performance-optimization` desde `58443f2` para medir y mejorar la carga sin tocar `main` ni `staging`.
