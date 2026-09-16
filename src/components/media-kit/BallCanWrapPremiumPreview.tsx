@@ -9,6 +9,7 @@ import {
   getWelcomePackPlayerNameFontFamily,
   type WelcomePackPlayerNameFont,
 } from "@/lib/mediaKitWelcomePack"
+import { BallCanWrapConceptPreviews } from "./BallCanWrapConceptPreviews"
 
 type Player = { id: string; displayName: string }
 type Props = {
@@ -167,6 +168,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
 
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">{tx("Faja adhesiva:")}</strong> {tx("230 × 130 mm a tamaño real. El diseño mantiene exactamente sus tamaños originales y el PDF recorta 5 mm por cada lateral.")} </div>
+      <BallCanWrapConceptPreviews leagueName={leagueName} leagueLogoUrl={leagueLogoUrl} seasonName={seasonName} players={players} accent={accent} />
     </div>
   )
 }
