@@ -155,14 +155,14 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
         const element = name as HTMLElement
         element.style.width = "100%"
         element.style.textAlign = "center"
-        element.style.fontSize = "0.62rem"
+        element.style.fontSize = `${0.62 * props.nameScale}rem`
         element.style.lineHeight = "1.08"
         element.style.paddingBottom = "1px"
         element.style.overflow = "visible"
         element.style.textOverflow = "clip"
       })
     }
-  }, [props.accent, props.leagueName, props.seasonName, props.players])
+  }, [props.accent, props.leagueName, props.seasonName, props.players, props.nameScale])
 
   function printPdf() {
     const design = rootRef.current?.querySelector('[class~="rounded-[14px]"]') as HTMLElement | null
