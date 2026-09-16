@@ -1609,6 +1609,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se mantienen separados el cambio de competición y el área personal de `Mis partidos`.
 - La validación de tipografía se actualiza para exigir el enlace directo a `Mis ligas` y eliminar el contrato anterior de refresco manual.
 - HOME y el componente compartido `BackButton` incorporan la flecha izquierda visible para distinguir los accesos de vuelta.
+- Mis ligas sustituye el botón de vuelta por `Refrescar` y mantiene la selección de competición como acción principal.
 
 ### Optimización de arranque percibido (2026-09-16)
 

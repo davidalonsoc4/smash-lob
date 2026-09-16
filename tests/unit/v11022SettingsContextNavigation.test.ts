@@ -42,7 +42,6 @@ describe("v1.10.22 settings context navigation", () => {
   it("keeps back controls in the settings descendants that already had them", () => {
     const required = [
       ["src/app/availability/page.tsx", 'fallbackHref="/settings"'],
-      ["src/app/leagues/page.tsx", 'fallbackHref="/settings"'],
       ["src/app/payments/page.tsx", 'fallbackHref="/settings"'],
       ["src/app/admin/page.tsx", 'fallbackHref="/settings"'],
       ["src/app/help/page.tsx", 'fallbackHref="/settings"'],

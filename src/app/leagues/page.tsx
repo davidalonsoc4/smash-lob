@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
 import { AppCard } from "@/components/ui/AppCard";
-import { BackButton } from "@/components/ui/BackButton";
 import { useActiveLeague } from "@/context/ActiveLeagueProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useMatchData } from "@/context/MatchDataProvider";
@@ -25,7 +25,8 @@ function getSeasonStatusLabel(season: {
 }
 
 export default function LeaguesPage() {
-  const { tx } = useI18n()
+  const { t, tx } = useI18n()
+  const router = useRouter()
   const { activeLeagueId, changeActiveLeague } = useActiveLeague();
   const {
     canAccessLeagueAdminTools,
@@ -65,7 +66,9 @@ export default function LeaguesPage() {
   return (
     <div className="space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/settings" label={tx("Volver")} />
+        <button type="button" onClick={() => router.refresh()} className="app-top-back-control text-sm font-semibold text-neutral-500">
+          {t.common.refreshApp}
+        </button>
 
         <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">{tx("Mis ligas")}</h1>
       </header>
