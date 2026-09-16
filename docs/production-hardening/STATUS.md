@@ -1625,4 +1625,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 
-- v1.14.18: Arial/Helvetica, la tipografía base de la app usada por los títulos tipo `type-caption`, queda disponible en el selector de nombres junto al formato original/mayúsculas.
+
+- v1.14.19: el selector de formato original/mayúsculas también está disponible en la faja del bote de pelotas y comparte el valor con el precinto de bolsa.

@@ -583,6 +583,8 @@ export default function WelcomePackMediaKitPage() {
               seasonName={seasonName}
               players={sortedPlayers.map((player) => ({ id: player.id, displayName: player.displayName }))}
               accent={accent}
+              nameCase={playerNameCase}
+              onNameCaseChange={setPlayerNameCase}
             />
           </AppCard>
         </div>

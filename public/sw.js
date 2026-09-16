@@ -1,4 +1,4 @@
-const CACHE_VERSION = "smash-lob-v1.14.18"
+const CACHE_VERSION = "smash-lob-v1.14.19"
 const APP_SHELL = [
   "/offline",
   "/manifest.webmanifest",

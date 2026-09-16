@@ -6,8 +6,11 @@ import { useState } from "react"
 import Image from "next/image"
 import {
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
+  WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS,
+  formatWelcomePackPlayerName,
   getWelcomePackPlayerNameFontFamily,
   type WelcomePackPlayerNameFont,
+  type WelcomePackPlayerNameCase,
 } from "@/lib/mediaKitWelcomePack"
 
 type Player = { id: string; displayName: string }
@@ -17,6 +20,8 @@ type Props = {
   seasonName: string
   players: Player[]
   accent: string
+  nameCase: WelcomePackPlayerNameCase
+  onNameCaseChange: (value: WelcomePackPlayerNameCase) => void
 }
 
 const WIDTH_MM = 240
@@ -60,7 +65,7 @@ function LeagueNameText({ leagueName }: { leagueName: string }) {
   )
 }
 
-export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent }: Props) {
+export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent, nameCase, onNameCaseChange }: Props) {
   const { tx } = useI18n()
   const [playerListFont, setPlayerListFont] = useState<WelcomePackPlayerNameFont>("great-vibes")
   const roster = sortedPlayers(players)
@@ -138,7 +143,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate text-[0.68rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{player.displayName}</p>
+                        <p key={player.id} className="truncate text-[0.68rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{formatWelcomePackPlayerName(player.displayName, nameCase)}</p>
                       ))}
                     </div>
                   ))}
@@ -161,6 +166,11 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                 {tx(option.label)}{option.id === "great-vibes" ? ` · ${tx("Actual")}` : ""}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="mt-2 block text-xs font-black text-neutral-700">
+          {tx("Formato del nombre")} <select value={nameCase} onChange={(event) => onNameCaseChange(event.target.value as WelcomePackPlayerNameCase)} className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950">
+            {WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)}</option>)}
           </select>
         </label>
       </div>
