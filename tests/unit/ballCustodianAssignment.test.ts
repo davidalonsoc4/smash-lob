@@ -29,5 +29,6 @@ describe("calculateBallCustodianAssignment", () => {
 
     expect(result.custodianPlayerIds).toEqual(["a", "b"])
     expect(result.botesByPlayerId).toEqual({ a: 1, b: 1 })
+    expect(result.totalBotes).toBe(2)
   })
 })

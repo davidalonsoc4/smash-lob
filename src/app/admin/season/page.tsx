@@ -180,6 +180,7 @@ function SeasonNavigation({
           { href: "#confirmaciones", label: "Confirmación" },
           { href: "#regla-tres-sets", label: "Tres sets" },
           { href: "#acciones-partido", label: "Acciones" },
+          { href: "#bolas-organizacion", label: "Bolas asignadas" },
         ],
       },
       {
@@ -228,6 +229,7 @@ function SeasonNavigation({
           { href: "#confirmaciones", label: "Confirmación" },
           { href: "#regla-tres-sets", label: "Tres sets" },
           { href: "#acciones-partido", label: "Acciones" },
+          { href: "#bolas-organizacion", label: "Bolas asignadas" },
         ],
       },
       {
@@ -1753,12 +1755,13 @@ function OrganizationBallsSettingsPanel({
     Boolean(match.resultRecordedAt) || Boolean(match.resultReportedByPlayerId)
   ))
   const seasonPlayers = players.filter((player) => priority.includes(player.id) || matches.some((match) => match.seasonId === roundSettings.seasonId && [...match.teamA, ...match.teamB].includes(player.id)))
+  const seasonMatches = matches.filter((match) => match.seasonId === roundSettings.seasonId)
   const normalizedPriority = [
     ...priority.filter((playerId) => seasonPlayers.some((player) => player.id === playerId)),
     ...seasonPlayers.map((player) => player.id).filter((playerId) => !priority.includes(playerId)),
   ]
   const preview = calculateBallCustodianAssignment({
-    matches: matches.filter((match) => match.seasonId === roundSettings.seasonId),
+    matches: seasonMatches,
     seasonPlayerIds: seasonPlayers.map((player) => player.id),
     priorityPlayerIds: normalizedPriority,
     playerNames: Object.fromEntries(seasonPlayers.map((player) => [player.id, player.displayName])),
@@ -1795,7 +1798,26 @@ function OrganizationBallsSettingsPanel({
       <span><span className="block text-sm font-black">{tx("Activar bolas asignadas por la organización")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Al activarlo desaparece la compra de bolas en pagos y reservas.")}</span></span>
     </label>
     {enabled ? <div className="mt-3 space-y-1.5"><p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad en empates")}</p>{normalizedPriority.map((playerId, index) => { const player = seasonPlayers.find((item) => item.id === playerId); if (!player) return null; return <div key={playerId} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-bold"><span className="w-5 text-xs text-neutral-400">{index + 1}</span><span className="min-w-0 flex-1 truncate">{player.displayName}</span><button type="button" disabled={hasRecordedResults || index === 0} onClick={() => setPriority((current) => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next })} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={hasRecordedResults || index === normalizedPriority.length - 1} onClick={() => setPriority((current) => { const next = [...current]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; return next })} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↓</button></div> })}</div> : null}
-    {enabled ? <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx(`${preview.custodianPlayerIds.length} custodios · ${preview.totalBotes} botes repartidos`)}</p> : null}
+    {enabled && seasonMatches.length > 0 ? (
+      <>
+        <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx(`${preview.custodianPlayerIds.length} custodios · ${preview.totalBotes} botes repartidos`)}</p>
+        {preview.custodianPlayerIds.length > 0 ? (
+          <div className="mt-2 space-y-1 rounded-xl bg-neutral-50 p-2.5">
+            {preview.custodianPlayerIds.map((playerId) => {
+              const player = seasonPlayers.find((item) => item.id === playerId)
+              const botes = preview.botesByPlayerId[playerId] ?? 0
+              return (
+                <div key={playerId} className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm">
+                  <span className="min-w-0 truncate font-bold">{player?.displayName ?? playerId}</span>
+                  <span className="shrink-0 text-xs font-black text-neutral-600">{tx(botes === 1 ? "1 bote" : `${botes} botes`)}</span>
+                </div>
+              )
+            })}
+          </div>
+        ) : null}
+      </>
+    ) : null}
+    {enabled && seasonMatches.length === 0 ? <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")}</p> : null}
     <button type="button" onClick={save} disabled={isSaving || !hasChanges || hasRecordedResults} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? tx("Guardando...") : tx("Guardar reparto")}</button>
     {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
   </AppCard>

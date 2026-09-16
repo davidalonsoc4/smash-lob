@@ -67,6 +67,20 @@ describe("v1.10.15 scheduled self-registration calendar preparation", () => {
     expect(prepareSql).not.toContain("active_season_id")
   })
 
+  it("waits for the complete self-registration roster before generating the calendar used by ball allocation", async () => {
+    const mutations = await read("src/lib/serverSeasonMutations.ts")
+    const prepare = mutations.slice(
+      mutations.indexOf("export async function prepareServerSelfRegistrationSeasonCalendar"),
+      mutations.indexOf("export async function startServerExistingSeason"),
+    )
+    const start = mutations.slice(mutations.indexOf("export async function startServerExistingSeason"))
+
+    expect(prepare.indexOf("playerIds.length !== capacity")).toBeGreaterThan(-1)
+    expect(prepare.indexOf("playerIds.length !== capacity")).toBeLessThan(prepare.indexOf("generateBalancedCalendar({"))
+    expect(start.indexOf("playerIds.length !== capacity")).toBeGreaterThan(-1)
+    expect(start.indexOf("playerIds.length !== capacity")).toBeLessThan(start.indexOf("generateBalancedCalendar({"))
+  })
+
   it("reuses a prepared calendar at real start instead of duplicating matches", async () => {
     const [mutations, migration] = await Promise.all([
       read("src/lib/serverSeasonMutations.ts"),
