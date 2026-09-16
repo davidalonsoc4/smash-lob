@@ -47,6 +47,8 @@ type SettingsRow = {
   allow_player_incidents?: boolean | null
   allow_player_substitutions?: boolean | null
   availability_recommendations_enabled?: boolean | null
+  organization_balls_assigned?: boolean | null
+  balls_assignment_priority?: string[] | null
 }
 
 type PlayerRow = {
@@ -133,7 +135,7 @@ export async function duplicateServerSeason({
     supabase
       .from("season_settings")
       .select(
-        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled",
+        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority",
       )
       .eq("season_id", sourceSeasonId)
       .eq("league_id", leagueId)
@@ -387,6 +389,10 @@ export async function duplicateServerSeason({
     allowPlayerSubstitutions: sourceSettings.allow_player_substitutions !== false,
     availabilityRecommendationsEnabled:
       sourceSettings.availability_recommendations_enabled === true,
+    organizationBallsAssigned: sourceSettings.organization_balls_assigned === true,
+    ballsAssignmentPriority: Array.isArray(sourceSettings.balls_assignment_priority)
+      ? sourceSettings.balls_assignment_priority.filter((playerId): playerId is string => playerIds.includes(playerId))
+      : [],
   }
 
   const { error: settingsCreateError } = await supabase
@@ -412,6 +418,8 @@ export async function duplicateServerSeason({
       allow_player_incidents: settings.allowPlayerIncidents,
       allow_player_substitutions: settings.allowPlayerSubstitutions,
       availability_recommendations_enabled: settings.availabilityRecommendationsEnabled,
+      organization_balls_assigned: settings.organizationBallsAssigned,
+      balls_assignment_priority: settings.ballsAssignmentPriority,
     })
 
   if (settingsCreateError) {

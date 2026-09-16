@@ -18,6 +18,7 @@ import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
+import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment"
 
 export default function MatchesPage() {
   const { tx, t, locale } = useI18n()
@@ -44,6 +45,14 @@ export default function MatchesPage() {
       ? match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
       : true
   )
+  const ballAssignment = roundSettings.organizationBallsAssigned
+    ? calculateBallCustodianAssignment({
+        matches: matches.filter((match) => match.seasonId === activeSeason.id),
+        seasonPlayerIds: players.map((player) => player.id),
+        priorityPlayerIds: roundSettings.ballsAssignmentPriority,
+        playerNames: Object.fromEntries(players.map((player) => [player.id, player.displayName])),
+      })
+    : null
   const activeRoundId = getActiveCalendarRoundId(activeSeason.status, rounds)
   const activeRoundRef = useRef<HTMLElement | null>(null)
 
@@ -288,6 +297,9 @@ export default function MatchesPage() {
                       leagueLocations={activeLeague.locations}
                       showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
                       hideMissingScheduleMeta
+                      ballCustodianName={ballAssignment?.byMatchId[match.id]
+                        ? players.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ?? ballAssignment.byMatchId[match.id]
+                        : null}
                     />
                   ))}
                 </div>

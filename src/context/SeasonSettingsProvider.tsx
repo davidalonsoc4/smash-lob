@@ -74,6 +74,8 @@ export type SeasonRoundSettings = {
   allowPlayerIncidents: boolean;
   allowPlayerSubstitutions: boolean;
   availabilityRecommendationsEnabled: boolean;
+  organizationBallsAssigned: boolean;
+  ballsAssignmentPriority: string[];
 };
 
 type SeasonSettingsContextValue = {
@@ -123,6 +125,8 @@ type SeasonSettingsContextValue = {
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
     availabilityRecommendationsEnabled?: boolean;
+    organizationBallsAssigned?: boolean;
+    ballsAssignmentPriority?: string[];
   }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
     leagueId: string;
@@ -150,6 +154,8 @@ type SeasonSettingsContextValue = {
     selfPlayerValue?: string | null;
     registrationRecipientPlayerId?: string | null;
     availabilityRecommendationsEnabled?: boolean;
+    organizationBallsAssigned?: boolean;
+    ballsAssignmentPriority?: string[];
   }) => { season: Season; playerIds: string[]; newPlayerIds: string[] };
 };
 
@@ -182,6 +188,7 @@ export type SeasonSnapshot = {
 function normalizeSettings(
   settings: (typeof seasonRoundSettings)[number],
 ): SeasonRoundSettings {
+  const ballsAssignmentPriority = (settings as Partial<SeasonRoundSettings>).ballsAssignmentPriority;
   return {
     leagueId: settings.leagueId,
     seasonId: settings.seasonId,
@@ -259,6 +266,13 @@ function normalizeSettings(
       (settings as Partial<SeasonRoundSettings>).allowPlayerSubstitutions !== false,
     availabilityRecommendationsEnabled:
       (settings as Partial<SeasonRoundSettings>).availabilityRecommendationsEnabled === true,
+    organizationBallsAssigned:
+      (settings as Partial<SeasonRoundSettings>).organizationBallsAssigned === true,
+    ballsAssignmentPriority: Array.isArray(ballsAssignmentPriority)
+      ? ballsAssignmentPriority.filter(
+          (playerId): playerId is string => typeof playerId === "string",
+        )
+      : [],
   };
 }
 
@@ -476,6 +490,12 @@ function parseStoredSettings(
         allowPlayerSubstitutions: storedSetting.allowPlayerSubstitutions !== false,
         availabilityRecommendationsEnabled:
           storedSetting.availabilityRecommendationsEnabled === true,
+        organizationBallsAssigned: storedSetting.organizationBallsAssigned === true,
+        ballsAssignmentPriority: Array.isArray(storedSetting.ballsAssignmentPriority)
+          ? storedSetting.ballsAssignmentPriority.filter(
+              (playerId): playerId is string => typeof playerId === "string",
+            )
+          : [],
       }));
 
     return [...mergedSettings, ...extraSettings];
@@ -508,6 +528,8 @@ function createFallbackSettings(seasonId: string): SeasonRoundSettings {
     allowPlayerIncidents: true,
     allowPlayerSubstitutions: true,
     availabilityRecommendationsEnabled: false,
+    organizationBallsAssigned: false,
+    ballsAssignmentPriority: [],
   };
 }
 
@@ -805,6 +827,8 @@ export function SeasonSettingsProvider({
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
     availabilityRecommendationsEnabled = false,
+    organizationBallsAssigned = false,
+    ballsAssignmentPriority = [],
   }: {
     leagueId: string;
     seasonName: string;
@@ -826,6 +850,8 @@ export function SeasonSettingsProvider({
     registrationFeeAmount?: number;
     registrationFeePurpose?: string;
     availabilityRecommendationsEnabled?: boolean;
+    organizationBallsAssigned?: boolean;
+    ballsAssignmentPriority?: string[];
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const cleanPlayerNames = playerNames
@@ -934,6 +960,8 @@ export function SeasonSettingsProvider({
       allowPlayerIncidents: true,
       allowPlayerSubstitutions: true,
       availabilityRecommendationsEnabled,
+      organizationBallsAssigned,
+      ballsAssignmentPriority,
     });
 
     return { seasonId, playerIds };
@@ -963,6 +991,8 @@ export function SeasonSettingsProvider({
     registrationFeeAmount = 0,
     registrationFeePurpose = "",
     availabilityRecommendationsEnabled = false,
+    organizationBallsAssigned = false,
+    ballsAssignmentPriority = [],
   }: {
     leagueId: string;
     name: string;
@@ -989,6 +1019,8 @@ export function SeasonSettingsProvider({
     selfPlayerValue?: string | null;
     registrationRecipientPlayerId?: string | null;
     availabilityRecommendationsEnabled?: boolean;
+    organizationBallsAssigned?: boolean;
+    ballsAssignmentPriority?: string[];
   }) {
     const seasonId = `${leagueId}-season-${Date.now()}`;
     const uniquePlayerIds = Array.from(new Set(playerIds));
@@ -1101,6 +1133,8 @@ export function SeasonSettingsProvider({
       allowPlayerIncidents: true,
       allowPlayerSubstitutions: true,
       availabilityRecommendationsEnabled,
+      organizationBallsAssigned,
+      ballsAssignmentPriority,
     });
 
     return { season: newSeason, playerIds: finalPlayerIds, newPlayerIds };

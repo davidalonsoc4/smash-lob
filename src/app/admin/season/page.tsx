@@ -67,6 +67,7 @@ import { recordActivityEvent } from "@/lib/activity";
 import { showActionFeedback } from "@/lib/actionFeedback";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
+import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment";
 import { buildSeasonRounds } from "@/lib/rounds";
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar";
 import { datetimeLocalToIso, formatNextScheduledStartForInput, isScheduledSeasonPending, toDatetimeLocalValue } from "@/lib/seasonScheduling";
@@ -1729,6 +1730,77 @@ function RegistrationFeeSettingsPanel({ activeLeagueId, roundSettings, canToggle
   </AppCard>;
 }
 
+function OrganizationBallsSettingsPanel({
+  activeLeagueId,
+  roundSettings,
+  players,
+  matches,
+}: {
+  activeLeagueId: string
+  roundSettings: SeasonRoundSettings
+  players: Array<{ id: string; displayName: string }>
+  matches: ReturnType<typeof useCurrentLeagueData>["matches"]
+}) {
+  const { tx } = useI18n()
+  const { updateSeasonRoundSettings } = useSeasonSettings()
+  const [enabled, setEnabled] = useState(roundSettings.organizationBallsAssigned)
+  const [priority, setPriority] = useState(roundSettings.ballsAssignmentPriority)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const hasRecordedResults = matches.some((match) => match.seasonId === roundSettings.seasonId && (
+    match.pointsA !== null || match.pointsB !== null || match.sets.length > 0 ||
+    Boolean(match.resultRecordedAt) || Boolean(match.resultReportedByPlayerId)
+  ))
+  const seasonPlayers = players.filter((player) => priority.includes(player.id) || matches.some((match) => match.seasonId === roundSettings.seasonId && [...match.teamA, ...match.teamB].includes(player.id)))
+  const normalizedPriority = [
+    ...priority.filter((playerId) => seasonPlayers.some((player) => player.id === playerId)),
+    ...seasonPlayers.map((player) => player.id).filter((playerId) => !priority.includes(playerId)),
+  ]
+  const preview = calculateBallCustodianAssignment({
+    matches: matches.filter((match) => match.seasonId === roundSettings.seasonId),
+    seasonPlayerIds: seasonPlayers.map((player) => player.id),
+    priorityPlayerIds: normalizedPriority,
+    playerNames: Object.fromEntries(seasonPlayers.map((player) => [player.id, player.displayName])),
+  })
+  const hasChanges = enabled !== roundSettings.organizationBallsAssigned ||
+    normalizedPriority.some((playerId, index) => playerId !== roundSettings.ballsAssignmentPriority[index]) ||
+    normalizedPriority.length !== roundSettings.ballsAssignmentPriority.length
+
+  async function save() {
+    if (isSaving || !hasChanges || hasRecordedResults) return
+    setIsSaving(true); setError(null)
+    const nextSettings: SeasonRoundSettings = {
+      ...roundSettings,
+      leagueId: activeLeagueId,
+      organizationBallsAssigned: enabled,
+      ballsAssignmentPriority: normalizedPriority,
+    }
+    try {
+      if (isSupabaseBackedId(roundSettings.seasonId)) await updateSupabaseSeasonRoundSettings(nextSettings)
+      updateSeasonRoundSettings(nextSettings)
+      showSavedFeedback(tx("Reparto de botes actualizado."))
+    } catch (caughtError) {
+      setError(caughtError instanceof Error && caughtError.message.includes("locked_after_result")
+        ? tx("No se puede modificar el reparto después de registrar un resultado.")
+        : tx("No se ha podido guardar el reparto de botes."))
+    } finally { setIsSaving(false) }
+  }
+
+  return <AppCard>
+    <p className="font-bold">{tx("Bolas asignadas por la organización")}</p>
+    <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{hasRecordedResults ? tx("Bloqueado porque ya hay un resultado registrado en esta temporada.") : tx("La app calcula el mínimo número de custodios y asigna un encargado a cada partido.")}</p>
+    <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+      <input type="checkbox" checked={enabled} disabled={hasRecordedResults} onChange={(event) => setEnabled(event.target.checked)} className="mt-1" />
+      <span><span className="block text-sm font-black">{tx("Activar bolas asignadas por la organización")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Al activarlo desaparece la compra de bolas en pagos y reservas.")}</span></span>
+    </label>
+    {enabled ? <div className="mt-3 space-y-1.5"><p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad en empates")}</p>{normalizedPriority.map((playerId, index) => { const player = seasonPlayers.find((item) => item.id === playerId); if (!player) return null; return <div key={playerId} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-bold"><span className="w-5 text-xs text-neutral-400">{index + 1}</span><span className="min-w-0 flex-1 truncate">{player.displayName}</span><button type="button" disabled={hasRecordedResults || index === 0} onClick={() => setPriority((current) => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next })} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={hasRecordedResults || index === normalizedPriority.length - 1} onClick={() => setPriority((current) => { const next = [...current]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; return next })} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↓</button></div> })}</div> : null}
+    {enabled ? <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx(`${preview.custodianPlayerIds.length} custodios · ${preview.totalBotes} botes repartidos`)}</p> : null}
+    <button type="button" onClick={save} disabled={isSaving || !hasChanges || hasRecordedResults} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? tx("Guardando...") : tx("Guardar reparto")}</button>
+    {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
+  </AppCard>
+}
+
+
 function BalancedCalendarAuditPanel({
   activeLeagueId,
   activeSeason,
@@ -3358,6 +3430,10 @@ function NewSeasonForm({
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
   );
+  const [organizationBallsAssigned, setOrganizationBallsAssigned] = useState(false);
+  const [ballsAssignmentPriority, setBallsAssignmentPriority] = useState<string[]>(
+    currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
+  );
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([]);
   const [appDirectory, setAppDirectory] = useState<SeasonAppDirectoryPerson[]>([]);
   const [appDirectoryLeagueId, setAppDirectoryLeagueId] = useState<string | null>(null);
@@ -3494,6 +3570,10 @@ function NewSeasonForm({
     () => new Set(selectedPlayerIds),
     [selectedPlayerIds],
   );
+  const effectiveBallsAssignmentPriority = [
+    ...ballsAssignmentPriority.filter((playerId) => selectedPlayerIdSet.has(playerId)),
+    ...selectedPlayerIds.filter((playerId) => !ballsAssignmentPriority.includes(playerId)),
+  ];
   const continuingPlayers = leaguePlayers.filter((player) =>
     selectedPlayerIdSet.has(player.id),
   );
@@ -3801,6 +3881,8 @@ function NewSeasonForm({
       mvpSystem,
       resultConfirmationMode,
       availabilityRecommendationsEnabled,
+      organizationBallsAssigned,
+      ballsAssignmentPriority: effectiveBallsAssignmentPriority,
       manualMatches,
       scheduleMode: effectiveScheduleMode,
       targetRoundCount: totalSeasonRounds,
@@ -4924,6 +5006,47 @@ function NewSeasonForm({
       </AppCard>
 
       <AppCard>
+        <p className="font-bold">{tx("Bolas asignadas por la organización")}</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          {tx("La organización entrega un bote por partido. Se desactiva la compra de bolas y la app asigna el encargado con el menor número de custodios posible.")}
+        </p>
+        <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input
+            type="checkbox"
+            checked={organizationBallsAssigned}
+            onChange={(event) => {
+              setOrganizationBallsAssigned(event.target.checked);
+              setCreationFeedback(null);
+            }}
+            className="mt-1"
+          />
+          <span>
+            <span className="block text-sm font-black">{tx("Activar reparto de botes")}</span>
+            <span className="mt-1 block text-xs text-neutral-500">{tx("Ordena los jugadores para resolver los empates del reparto.")}</span>
+          </span>
+        </label>
+        {organizationBallsAssigned ? (
+          <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad de custodios")}</p>
+            <div className="mt-2 space-y-1.5">
+              {effectiveBallsAssignmentPriority.map((playerId, index) => {
+                const player = leaguePlayers.find((item) => item.id === playerId);
+                if (!player) return null;
+                return (
+                  <div key={playerId} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
+                    <span className="w-5 text-xs text-neutral-400">{index + 1}</span>
+                    <span className="min-w-0 flex-1 truncate">{player.displayName}</span>
+                    <button type="button" disabled={index === 0} onClick={() => setBallsAssignmentPriority(() => { const next = [...effectiveBallsAssignmentPriority]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; })} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Subir prioridad")}>↑</button>
+                    <button type="button" disabled={index === effectiveBallsAssignmentPriority.length - 1} onClick={() => setBallsAssignmentPriority(() => { const next = [...effectiveBallsAssignmentPriority]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; return next; })} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Bajar prioridad")}>↓</button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+      </AppCard>
+
+      <AppCard>
         <p className="font-bold">{tx("Inscripción")}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {tx("Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.")}{" "}</p>
@@ -5652,6 +5775,15 @@ export default function AdminSeasonPage() {
             />
           </div>
 
+          <div id="bolas-organizacion" className="settings-search-target">
+            <OrganizationBallsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+              players={players}
+              matches={matches}
+            />
+          </div>
+
           <SeasonSectionIntro
             title={tx("Personas e inscripción")}
             description={tx("Gestiona la cuota de inscripción y los nombres de la plantilla activa.")}
@@ -5803,6 +5935,15 @@ export default function AdminSeasonPage() {
             <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
+            />
+          </div>
+
+          <div id="bolas-organizacion" className="settings-search-target">
+            <OrganizationBallsSettingsPanel
+              activeLeagueId={activeLeague.id}
+              roundSettings={roundSettings}
+              players={players}
+              matches={matches}
             />
           </div>
 

@@ -37,6 +37,8 @@ type UpdateSeasonSettingsBody = {
   allowPlayerIncidents?: unknown
   allowPlayerSubstitutions?: unknown
   availabilityRecommendationsEnabled?: unknown
+  organizationBallsAssigned?: unknown
+  ballsAssignmentPriority?: unknown
 }
 
 const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/
@@ -147,6 +149,12 @@ function parseRegistrationFee(value: unknown) {
   return normalizeSeasonRegistrationFee(value)
 }
 
+function parseUuidArray(value: unknown) {
+  if (!Array.isArray(value)) return null
+  const items = value.map((item) => validateUuid(item)).filter((item): item is string => Boolean(item))
+  return items.length === value.length && new Set(items).size === items.length ? items : null
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; seasonId: string }> }
@@ -201,6 +209,8 @@ export async function PUT(
     typeof body?.availabilityRecommendationsEnabled === "boolean"
       ? body.availabilityRecommendationsEnabled
       : null
+  const organizationBallsAssigned = body?.organizationBallsAssigned === true
+  const ballsAssignmentPriority = parseUuidArray(body?.ballsAssignmentPriority ?? [])
 
   if (
     !roundWindowMode ||
@@ -218,6 +228,7 @@ export async function PUT(
     allowPlayerIncidents === null ||
     allowPlayerSubstitutions === null ||
     availabilityRecommendationsEnabled === null
+    || !ballsAssignmentPriority
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
@@ -280,6 +291,36 @@ export async function PUT(
         { error: "season_settings_lookup_failed" },
         { status: 500 },
       )
+    }
+    const { data: ballsSettings, error: ballsSettingsError } = await access.actor.supabase
+      .from("season_settings")
+      .select("organization_balls_assigned,balls_assignment_priority")
+      .eq("season_id", seasonId)
+      .maybeSingle()
+    if (ballsSettingsError) {
+      return NextResponse.json({ error: "season_settings_lookup_failed" }, { status: 500 })
+    }
+
+    const { data: resultRows, error: resultLookupError } = await access.actor.supabase
+      .from("matches")
+      .select("points_a,points_b,sets,result_recorded_at,result_reported_by_player_id")
+      .eq("season_id", seasonId)
+    if (resultLookupError) return NextResponse.json({ error: "season_matches_lookup_failed" }, { status: 500 })
+    const hasRecordedResult = (resultRows ?? []).some((match) =>
+      match.points_a !== null || match.points_b !== null ||
+      (Array.isArray(match.sets) && match.sets.length > 0) ||
+      Boolean(match.result_recorded_at) || Boolean(match.result_reported_by_player_id),
+    )
+    const currentPriority = Array.isArray(ballsSettings?.balls_assignment_priority)
+      ? ballsSettings.balls_assignment_priority.filter((playerId): playerId is string => typeof playerId === "string")
+      : []
+    const priorityChanged = currentPriority.length !== ballsAssignmentPriority.length ||
+      currentPriority.some((playerId, index) => playerId !== ballsAssignmentPriority[index])
+    if (hasRecordedResult && (
+      ballsSettings?.organization_balls_assigned !== organizationBallsAssigned ||
+      priorityChanged
+    )) {
+      return NextResponse.json({ error: "organization_balls_assignment_locked_after_result" }, { status: 409 })
     }
 
     const currentRegistrationFee = normalizeSeasonRegistrationFee(
@@ -348,6 +389,8 @@ export async function PUT(
         allowPlayerIncidents,
         allowPlayerSubstitutions,
         availabilityRecommendationsEnabled,
+        organizationBallsAssigned,
+        ballsAssignmentPriority,
       },
       seasonStatus: access.season.status,
     })

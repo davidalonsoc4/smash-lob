@@ -32,6 +32,7 @@ import {
   getLeagueLocationCalendarText,
 } from "@/lib/leagueLocations"
 import { formatShortDate } from "@/lib/rounds"
+import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment"
 import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 
@@ -104,6 +105,18 @@ export default function MatchDetailPage() {
 
   const hasRoundWindow = Boolean(round?.startsAt && round?.endsAt)
   const isPostponed = match?.status === "postponed"
+  const ballAssignment = match && roundSettings.organizationBallsAssigned
+    ? calculateBallCustodianAssignment({
+        matches: matches.filter((item) => item.seasonId === activeSeason.id),
+        seasonPlayerIds: players.map((player) => player.id),
+        priorityPlayerIds: roundSettings.ballsAssignmentPriority,
+        playerNames: Object.fromEntries(players.map((player) => [player.id, player.displayName])),
+      })
+    : null
+  const ballCustodianId = match ? ballAssignment?.byMatchId[match.id] ?? null : null
+  const ballCustodianName = ballCustodianId
+    ? players.find((player) => player.id === ballCustodianId)?.displayName ?? ballCustodianId
+    : null
 
   function getRoundWindowText() {
     if (!round?.startsAt || !round?.endsAt) {
@@ -507,6 +520,14 @@ export default function MatchDetailPage() {
         />
       ) : null}
 
+      {roundSettings.organizationBallsAssigned && ballCustodianName ? (
+        <AppCard className="border-amber-100 bg-amber-50/70 p-3">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-800">{tx("Encargado de las bolas")}</p>
+          <p className="mt-1 text-sm font-black text-amber-950">{ballCustodianName}</p>
+          <p className="mt-1 text-xs font-semibold text-amber-900">{tx("La organización asigna un bote nuevo para este partido.")}</p>
+        </AppCard>
+      ) : null}
+
       {(match.status === "scheduled" || match.courtBooking.isReserved) &&
       canViewCourtBooking ? (
         <CourtBookingPanel
@@ -518,6 +539,7 @@ export default function MatchDetailPage() {
           canManage={canManageMatch}
           canManageAllPayments={mutableAdmin}
           booking={match.courtBooking}
+          ballPurchasesDisabled={roundSettings.organizationBallsAssigned}
           shouldFocusBooking={shouldFocusBooking}
         />
       ) : null}
