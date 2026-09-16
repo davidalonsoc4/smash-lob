@@ -1632,4 +1632,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 
-- v1.14.25: el bloque HEAD / Padel Pro / S+ se corrige 1 mm a la izquierda, quedando 1 mm a la derecha del original.
+
+- v1.14.26: el bloque HEAD / Padel Pro / S+ vuelve a la posición original.
