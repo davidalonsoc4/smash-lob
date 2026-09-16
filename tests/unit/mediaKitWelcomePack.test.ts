@@ -62,7 +62,7 @@ describe("Media Kit Welcome Pack", () => {
     expect(html).not.toContain("CREADO CON")
     expect(html).toContain("player-font-great-vibes")
     expect(html).toContain('data-fit-player-name')
-    expect(html).toContain('.player-name { max-width: 45mm;')
+    expect(html).toContain('.player-name { max-width: 41mm;')
     expect(html).toContain('while (label.scrollWidth > label.clientWidth && size > 10)')
     expect(html).toContain("general-font-geometric")
     expect(WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.length).toBeGreaterThanOrEqual(7)

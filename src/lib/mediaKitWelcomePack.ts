@@ -335,7 +335,7 @@ export function buildWelcomePackBagSealPrintHtml({
     .league-name { max-width: 44mm; margin-top: 1.4mm; overflow: hidden; color: rgba(255,255,255,.57); font-size: 3.05mm; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: .18mm; white-space: nowrap; text-overflow: ellipsis; }
     .logo-test-cell { width: ${WELCOME_PACK_BAG_SEAL.printedWidthMm}mm; height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
     .logo-test { display: block; width: 50mm; height: auto; max-height: ${WELCOME_PACK_BAG_SEAL.printedHeightMm}mm; object-fit: contain; }
-    .player-name { max-width: 45mm; margin-top: 2.2mm; color: #fff; font-size: 7.25mm; line-height: .96; white-space: nowrap; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
+    .player-name { max-width: 41mm; margin-top: 2.2mm; color: #fff; font-size: 7.25mm; line-height: .96; white-space: nowrap; text-shadow: 0 1.1mm 2.4mm rgba(0,0,0,.42); }
     .player-font-editorial-serif { font-family: Georgia, "Times New Roman", serif; }
     .player-font-clean-sans { font-family: Inter, "Segoe UI", Arial, sans-serif; font-weight: 800; }
     .player-font-manuscript-elegant { font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive; font-weight: 700; }
