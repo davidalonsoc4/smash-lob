@@ -154,14 +154,14 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
         const element = name as HTMLElement
         element.style.width = "100%"
         element.style.textAlign = "center"
-        element.style.fontSize = `${0.62 * props.nameScale}rem`
+        element.style.fontSize = "0.62rem"
         element.style.lineHeight = "1.08"
         element.style.paddingBottom = "1px"
         element.style.overflow = "visible"
         element.style.textOverflow = "clip"
       })
     }
-  }, [props.accent, props.leagueName, props.seasonName, props.players, props.nameScale])
+  }, [props.accent, props.leagueName, props.seasonName, props.players])
 
   function printPdf() {
     const design = rootRef.current?.querySelector('[class~="rounded-[14px]"]') as HTMLElement | null
@@ -187,12 +187,6 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
     const sourceIsMobile = window.matchMedia("(max-width: 480px)").matches
     const clone = design.cloneNode(true) as HTMLElement
-    const printContent = clone.children.item(5) as HTMLElement | null
-    const printGrid = printContent?.children.item(2) as HTMLElement | null
-    const printPlayers = printGrid?.children.item(2) as HTMLElement | null
-    printPlayers?.querySelectorAll("p").forEach((name) => {
-      ;(name as HTMLElement).style.fontSize = `${0.62 * props.nameScale}rem`
-    })
     const scale = (DESIGN_WIDTH_MM * CSS_PX_PER_MM) / bounds.width
     clone.classList.add("sl-ball-wrap-print-design")
     if (sourceIsMobile) clone.classList.add("sl-ball-wrap-print-source-mobile")
@@ -339,7 +333,7 @@ export function BallCanWrapPreview(props: BallCanWrapPreviewProps) {
 
   return (
     <div ref={rootRef} style={{ "--ball-wrap-accent": props.accent } as CSSProperties}>
-      <BallCanWrapPremiumPreview key={props.previewRevision} {...props} />
+      <BallCanWrapPremiumPreview {...props} />
 
       <div className="mx-auto mt-4 w-full max-w-[430px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

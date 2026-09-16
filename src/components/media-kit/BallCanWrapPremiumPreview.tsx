@@ -19,10 +19,6 @@ type Props = {
   accent: string
   nameCase: WelcomePackPlayerNameCase
   onNameCaseChange: (value: WelcomePackPlayerNameCase) => void
-  nameScale: number
-  onNameScaleChange: (value: number) => void
-  onApplyChanges: () => void
-  previewRevision: number
 }
 const WIDTH_MM = 240
 const FINAL_WIDTH_MM = 230
@@ -58,7 +54,7 @@ function LeagueNameText({ leagueName }: { leagueName: string }) {
     </>
   )
 }
-export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent, nameCase, onNameCaseChange, nameScale, onNameScaleChange, onApplyChanges }: Props) {
+export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonName, players, accent, nameCase, onNameCaseChange }: Props) {
   const { tx } = useI18n()
   const [playerListFont, setPlayerListFont] = useState<WelcomePackPlayerNameFont>("great-vibes")
   const roster = sortedPlayers(players)
@@ -129,7 +125,7 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
                   {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex min-w-0 flex-col justify-center gap-1.5">
                       {column.map((player) => (
-                        <p key={player.id} className="truncate leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont), fontSize: `${0.68 * nameScale}rem` }}>{formatWelcomePackPlayerName(player.displayName, nameCase)}</p>
+                        <p key={player.id} className="truncate text-[0.68rem] leading-none text-white/92" style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerListFont) }}>{formatWelcomePackPlayerName(player.displayName, nameCase)}</p>
                       ))}
                     </div>
                   ))}
@@ -158,16 +154,6 @@ export function BallCanWrapPremiumPreview({ leagueName, leagueLogoUrl, seasonNam
             {WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)}</option>)}
           </select>
         </label>
-        <div className="mt-2 flex items-center justify-between gap-2 text-xs font-black text-neutral-700">
-          <span>{tx("Tamaño del nombre")}</span>
-          <div className="flex items-center gap-1">
-            <button type="button" aria-label={tx("Reducir tamaño")} onClick={() => onNameScaleChange(Math.max(0.7, Number((nameScale - 0.1).toFixed(1))))} className="h-8 w-8 rounded-lg border border-neutral-200 bg-white text-base font-black">−</button>
-            <span className="min-w-12 text-center text-[0.6875rem] text-neutral-600">{Math.round(nameScale * 100)}%</span>
-            <button type="button" aria-label={tx("Aumentar tamaño")} onClick={() => onNameScaleChange(Math.min(1.5, Number((nameScale + 0.1).toFixed(1))))} className="h-8 w-8 rounded-lg border border-neutral-200 bg-white text-base font-black">+</button>
-            <button type="button" onClick={() => onNameScaleChange(1)} className="ml-1 h-8 rounded-lg border border-neutral-200 bg-neutral-50 px-2 text-[0.625rem] font-black">{tx("Restablecer")}</button>
-            <button type="button" onClick={onApplyChanges} className="ml-1 h-8 rounded-lg bg-neutral-950 px-2 text-[0.625rem] font-black text-white">{tx("Aplicar cambios")}</button>
-          </div>
-        </div>
       </div>
       <div className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-[0.625rem] font-semibold leading-4 text-neutral-600 ring-1 ring-neutral-200">
         <strong className="text-neutral-900">{tx("Faja adhesiva:")}</strong> {tx("230 × 130 mm a tamaño real. El diseño mantiene exactamente sus tamaños originales y el PDF recorta 5 mm por cada lateral.")} </div>
