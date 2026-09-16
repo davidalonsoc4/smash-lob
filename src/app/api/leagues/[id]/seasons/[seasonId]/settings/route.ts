@@ -12,6 +12,7 @@ import {
   updateServerSeasonRoundSettings,
 } from "@/lib/serverSeasonMutations"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { hasScheduledStartChanged } from "@/lib/organizationBallsAssignment"
 import type { SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 
 export const runtime = "nodejs"
@@ -237,8 +238,9 @@ export async function PUT(
     openingRoundEnabled && scheduledStartAt ? scheduledStartAt : openingRoundAt
 
   if (
+    access.season.status === "upcoming" &&
     scheduledStartAt &&
-    (access.season.status !== "upcoming" || new Date(scheduledStartAt).getTime() <= Date.now())
+    new Date(scheduledStartAt).getTime() <= Date.now()
   ) {
     return NextResponse.json({ error: "scheduled_start_must_be_future" }, { status: 400 })
   }
@@ -282,7 +284,7 @@ export async function PUT(
     const { data: currentSettings, error: currentSettingsError } =
       await access.actor.supabase
         .from("season_settings")
-        .select("registration_fee,opening_round_enabled,opening_round_at,opening_round_location")
+        .select("registration_fee,opening_round_enabled,opening_round_at,opening_round_location,scheduled_start_at")
         .eq("season_id", seasonId)
         .maybeSingle()
 
@@ -291,6 +293,13 @@ export async function PUT(
         { error: "season_settings_lookup_failed" },
         { status: 500 },
       )
+    }
+    const currentScheduledStartAt =
+      typeof currentSettings?.scheduled_start_at === "string"
+        ? currentSettings.scheduled_start_at
+        : null
+    if (hasScheduledStartChanged(currentScheduledStartAt, scheduledStartAt)) {
+      return NextResponse.json({ error: "scheduled_start_locked_after_start" }, { status: 409 })
     }
     const { data: ballsSettings, error: ballsSettingsError } = await access.actor.supabase
       .from("season_settings")

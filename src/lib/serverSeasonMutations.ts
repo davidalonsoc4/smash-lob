@@ -12,6 +12,7 @@ import {
   type ManualCalendarMatchDraft,
   type SeasonScheduleMode,
 } from "@/lib/calendar"
+import { resolveBallsAssignmentPriority } from "@/lib/organizationBallsAssignment"
 import {
   buildSeasonRegistrationFee,
   ensureSeasonRegistrationPlayers,
@@ -1696,10 +1697,15 @@ export async function createServerSeason({
         ...(newPlayers ?? []).map((player) => player.id),
       ...appLinkedPlayers.map((player) => player.id),
     ]
-  const cleanBallsAssignmentPriority = Array.from(
-    new Set(ballsAssignmentPriority ?? []),
-  )
-  if (cleanBallsAssignmentPriority.some((playerId) => !finalPlayerIds.includes(playerId))) {
+  const cleanBallsAssignmentPriority = resolveBallsAssignmentPriority({
+    refs: ballsAssignmentPriority ?? [],
+    finalPlayerIds,
+    newPlayerIds: (newPlayers ?? []).map((player) => player.id),
+    appUserIds: cleanAppUserIds,
+    appPlayerIds: appLinkedPlayers.map((player) => player.id),
+    selfPlayerId: shouldAutoEnrollCreator ? selfRegistrationPlayer?.id ?? null : null,
+  })
+  if (!cleanBallsAssignmentPriority) {
     throw new SeasonMutationError(400, "invalid_balls_assignment_priority")
   }
   const selectedSelfPlayerId = isSelfRegistration

@@ -31,8 +31,18 @@ describe("v1.10.0 pending-season registration settings", () => {
     )
 
     expect(route).toContain('access.season.status !== "upcoming"')
-    expect(route).toContain('.select("registration_fee,opening_round_enabled,opening_round_at,opening_round_location")')
+    expect(route).toContain('.select("registration_fee,opening_round_enabled,opening_round_at,opening_round_location,scheduled_start_at")')
     expect(route).toContain("currentRegistrationFee.enabled !== registrationFee.enabled")
     expect(route).toContain("registration_state_locked_after_start")
+  })
+
+  it("allows unrelated settings changes while preserving a past start date on an active season", async () => {
+    const route = await read(
+      "src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts",
+    )
+
+    expect(route).toContain('access.season.status === "upcoming"')
+    expect(route).toContain("hasScheduledStartChanged(currentScheduledStartAt, scheduledStartAt)")
+    expect(route).toContain("scheduled_start_locked_after_start")
   })
 })
