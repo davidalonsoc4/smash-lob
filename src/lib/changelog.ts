@@ -1,7 +1,4 @@
-export type ChangelogCategory = "new"
-  | "improvement"
-  | "fix"
-  | "foundation"
+export type ChangelogCategory = "new" | "improvement" | "fix" | "foundation"
 export type ChangelogRelease = { version: string
   date?: string
   dateRange?: string
