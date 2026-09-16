@@ -227,12 +227,12 @@ const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Prom
   readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
 ])
 assert(
-  topHomePage.includes('size="md"') && topHomePage.includes('<BackButton fallbackHref="/" label={t.common.refreshApp} />'),
-  "Inicio debe usar un logo normal junto al título y Refrescar en la fila funcional",
+  topHomePage.includes('size="md"') && topHomePage.includes('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">'),
+  "Inicio debe usar un logo normal junto al título y Mis ligas en la fila funcional",
 )
 assert(
-  topHomePage.includes('<BackButton fallbackHref="/" label={t.common.refreshApp} />') && topHomePage.includes('onClickCapture={(event) => { event.preventDefault(); event.stopPropagation(); void refreshApp(); }}'),
-  "Refrescar debe reutilizar el BackButton real y capturar su clic para refrescar sin navegar",
+  topHomePage.includes('{tx("Mis ligas")}') && !topHomePage.includes("refreshApp()"),
+  "Mis ligas debe abrir la pantalla de ligas sin conservar el refresco manual de HOME",
 )
 for (const [label, source] of [
   ["Clasificación", topRankingPage],

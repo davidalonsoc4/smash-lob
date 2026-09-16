@@ -9,13 +9,10 @@ describe("v1.6.5 HOME refresh and compact season sharing", () => {
     expect(home).not.toContain("app-home-top-logo")
   })
 
-  it("refreshes HOME data without forcing a full page reload", async () => {
+  it("opens the league list from HOME", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
-    expect(home).toContain("void refreshApp()")
-    expect(home).toContain("refreshLeagueAccess()")
-    expect(home).toContain("refreshMvpData()")
-    expect(home).toContain("await registration?.update()")
-    expect(home).not.toContain("window.location.reload()")
+    expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
+    expect(home).toContain('{tx("Mis ligas")}')
   })
 
   it("shortens the finished-season share action in every locale", async () => {
@@ -27,6 +24,5 @@ describe("v1.6.5 HOME refresh and compact season sharing", () => {
     expect(es).toContain('shareSeasonSummary: "Compartir resumen"')
     expect(en).toContain('shareSeasonSummary: "Share summary"')
     expect(eu).toContain('shareSeasonSummary: "Laburpena partekatu"')
-    expect(es).toContain('refreshApp: "Refrescar"')
   })
 })

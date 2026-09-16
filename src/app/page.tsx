@@ -13,7 +13,6 @@ import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationP
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown";
 import { AppCard } from "@/components/ui/AppCard";
-import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatCard } from "@/components/ui/StatCard";
@@ -32,7 +31,6 @@ import {
   getPlayersByIds,
 } from "@/lib/mvp";
 import { recordActivityEvent } from "@/lib/activity";
-import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements";
 import { formatMoney } from "@/lib/courtBooking";
 import { getNextMatch } from "@/lib/leagues";
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
@@ -53,18 +51,6 @@ import { detectPreseasonOpening } from "@/lib/preseasonSecrets";
 const supabaseUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isSupabaseBackedId(id: string) { return supabaseUuidPattern.test(id); }
-async function checkForPwaUpdate() {
-  if (!("serviceWorker" in navigator)) {
-    return;
-  }
-
-  try {
-    const registration = await navigator.serviceWorker.getRegistration();
-    await registration?.update();
-  } catch {
-    // El refresco de datos de HOME no debe depender de la comprobación de la PWA.
-  }
-}
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) { return { actorEmail: session?.user?.email ?? "system@smash-lob.local", actorDisplayName: session?.user?.name ?? null }; }
 
 type AwardPlayer = {
@@ -408,7 +394,6 @@ export default function Home() {
   const [isLeaguePickerOpen, setIsLeaguePickerOpen] = useState(false);
   const [isSeasonPickerOpen, setIsSeasonPickerOpen] = useState(false);
   const [selectedHomeSeasonId, setSelectedHomeSeasonId] = useState<string | null>(null);
-  const [isRefreshingHome, setIsRefreshingHome] = useState(false);
   const { currentUserId, currentUser } = useCurrentUser();
   const { activateLeague } = useActiveLeague();
   const {
@@ -416,9 +401,8 @@ export default function Home() {
     isLeagueAdmin,
     isLeagueSpectator,
     leagues,
-    refreshLeagueAccess,
   } = useLeagueAccess();
-  const { votes, refreshMvpData } = useMvp();
+  const { votes } = useMvp();
   const {
     activeLeague,
     activeSeason,
@@ -573,25 +557,6 @@ export default function Home() {
   const showScheduledRosterWaiting =
     isSeasonScheduled && scheduledHomeStage === "roster";
   const canStartUpcomingSeason = isRegistrationSettled && isRosterComplete;
-
-  async function refreshApp() {
-    if (isRefreshingHome) {
-      return;
-    }
-
-    setIsRefreshingHome(true);
-
-    try {
-      window.dispatchEvent(new Event(ANNOUNCEMENTS_REFRESH_EVENT));
-      await Promise.all([
-        refreshLeagueAccess(),
-        refreshMvpData(),
-        checkForPwaUpdate(),
-      ]);
-    } finally {
-      setIsRefreshingHome(false);
-    }
-  }
 
   async function handleToggleRegistrationPayment(
     playerId: string,
@@ -796,15 +761,9 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
-        <span
-          data-home-refresh-control
-          data-refreshing={isRefreshingHome ? "true" : "false"}
-          aria-busy={isRefreshingHome}
-          className={isRefreshingHome ? "pointer-events-none opacity-60" : undefined}
-          onClickCapture={(event) => { event.preventDefault(); event.stopPropagation(); void refreshApp(); }}
-        >
-          <BackButton fallbackHref="/" label={t.common.refreshApp} />
-        </span>
+        <Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">
+          {tx("Mis ligas")}
+        </Link>
         <div className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}>
           {activeLeague.logoUrl ? (
             <div className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale><LeagueLogo league={activeLeague} size="md" previewable /></div>
