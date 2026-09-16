@@ -1623,4 +1623,6 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El nombre del jugador deja un margen lateral adicional en los precintos cuando necesita reducirse para caber.
 
 
-- v1.14.16: el selector de nombres del Welcome Pack incorpora ocho tipografías modernas; la preview de la faja y la generación de PDF conservan su comportamiento actual.
+
+
+- v1.14.18: Arial/Helvetica, la tipografía base de la app usada por los títulos tipo `type-caption`, queda disponible en el selector de nombres junto al formato original/mayúsculas.

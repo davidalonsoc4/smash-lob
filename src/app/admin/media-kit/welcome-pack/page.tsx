@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { OvergripBandPreview } from "@/components/media-kit/OvergripBandPreview"
@@ -19,21 +18,22 @@ import {
   WELCOME_PACK_FONT_STYLESHEET,
   WELCOME_PACK_GENERAL_FONT_OPTIONS,
   WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS,
+  WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS,
   buildWelcomePackBagSealPrintHtml,
   getWelcomePackBagSealSheetCount,
   getWelcomePackGeneralFontFamily,
   getWelcomePackPlayerNameFontFamily,
+  formatWelcomePackPlayerName,
   normalizeWelcomePackAccentColor,
   type WelcomePackGeneralFont,
   type WelcomePackPlayerNameFont,
+  type WelcomePackPlayerNameCase,
 } from "@/lib/mediaKitWelcomePack"
-
 const futurePieces = [
   "Precinto del bote",
   "Sello de temporada",
   "Carnet oficial",
 ]
-
 const printDirections = {
   "bag-seal": {
     orientation: "A4 vertical",
@@ -56,12 +56,10 @@ const printDirections = {
     manual: "La vista indica si debes elegir Vertical u Horizontal según el ancho seleccionado.",
   },
 } as const
-
 type SealLeague = {
   name: string
   logoUrl?: string | null
 }
-
 function SmashAndLobSignature({ accent }: { accent: string }) {
   const { tx } = useI18n()
   return (
@@ -74,10 +72,8 @@ function SmashAndLobSignature({ accent }: { accent: string }) {
     </div>
   )
 }
-
 function SealLeagueLogo({ league }: { league: SealLeague }) {
   const normalizedLogoUrl = league.logoUrl ? normalizeImageUrl(league.logoUrl) : null
-
   if (normalizedLogoUrl) {
     return (
       <div className="relative mt-2 flex h-[58px] items-center justify-center">
@@ -86,17 +82,16 @@ function SealLeagueLogo({ league }: { league: SealLeague }) {
       </div>
     )
   }
-
   const initials = league.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "SL"
   return <div className="mt-2 flex h-[58px] items-center justify-center text-lg font-black tracking-[.22em] text-white">{initials}</div>
 }
-
 function SealFace({
   league,
   seasonName,
   playerName,
   accent,
   playerFont,
+  nameCase,
   generalFont,
   showSignature,
   reversed = false,
@@ -106,6 +101,7 @@ function SealFace({
   playerName: string
   accent: string
   playerFont: WelcomePackPlayerNameFont
+  nameCase: WelcomePackPlayerNameCase
   generalFont: WelcomePackGeneralFont
   showSignature: boolean
   reversed?: boolean
@@ -141,7 +137,7 @@ function SealFace({
           className="mt-3 max-w-[155px] text-balance text-[1.125rem] font-semibold leading-[.96] text-white drop-shadow-[0_6px_14px_rgba(0,0,0,.4)]"
           style={{ fontFamily: getWelcomePackPlayerNameFontFamily(playerFont) }}
         >
-          {playerName}
+          {formatWelcomePackPlayerName(playerName, nameCase)}
         </p>
         <div className="mt-3 grid grid-cols-[34px_8px_34px] items-center gap-2">
           <span className="h-px bg-white/20" />
@@ -154,13 +150,13 @@ function SealFace({
     </div>
   )
 }
-
 function SealPreview(props: {
   league: SealLeague
   seasonName: string
   playerName: string
   accent: string
   playerFont: WelcomePackPlayerNameFont
+  nameCase: WelcomePackPlayerNameCase
   generalFont: WelcomePackGeneralFont
   showSignature: boolean
 }) {
@@ -186,7 +182,6 @@ function SealPreview(props: {
     </div>
   )
 }
-
 export default function WelcomePackMediaKitPage() {
   const { tx } = useI18n()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -202,22 +197,20 @@ export default function WelcomePackMediaKitPage() {
   const [activePiece, setActivePiece] = useState<"bag-seal" | "overgrip-band" | "ball-can-wrap" | "logo-stickers">("bag-seal")
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [playerFont, setPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
+  const [playerNameCase, setPlayerNameCase] = useState<WelcomePackPlayerNameCase>("original")
   const [generalFont, setGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
   const [overgripPlayerFont, setOvergripPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
   const [overgripGeneralFont, setOvergripGeneralFont] = useState<WelcomePackGeneralFont>("narrow-premium")
   const [showSignature, setShowSignature] = useState(true)
   const [printError, setPrintError] = useState<string | null>(null)
   const normalizedLogoUrl = isSafeImageUrl(activeLeague.logoUrl) ? normalizeImageUrl(activeLeague.logoUrl) : null
-
   useEffect(() => {
     if (!sortedPlayers.some((player) => player.id === selectedPlayerId)) {
       setSelectedPlayerId(sortedPlayers[0]?.id ?? "")
     }
   }, [selectedPlayerId, sortedPlayers])
-
   useEffect(() => {
     if (document.querySelector('link[data-smash-welcome-pack-fonts="true"]')) return
-
     const link = document.createElement("link")
     link.rel = "stylesheet"
     link.href = WELCOME_PACK_FONT_STYLESHEET
@@ -225,7 +218,6 @@ export default function WelcomePackMediaKitPage() {
     link.dataset.smashWelcomePackFonts = "true"
     document.head.appendChild(link)
   }, [])
-
   if (!isLeagueAdmin(activeLeague.id)) {
     return (
       <div className="space-y-4">
@@ -236,24 +228,20 @@ export default function WelcomePackMediaKitPage() {
       </div>
     )
   }
-
   const selectedPlayer = sortedPlayers.find((player) => player.id === selectedPlayerId) ?? sortedPlayers[0]
   const playerName = selectedPlayer?.displayName ?? tx("Jugador")
   const seasonName = activeSeason.name || tx("Temporada")
   const accent = normalizeWelcomePackAccentColor(accentColor)
   const sheetCount = getWelcomePackBagSealSheetCount(sortedPlayers.length)
   const printDirection = printDirections[activePiece]
-
   function printAll() {
     if (!sortedPlayers.length) return
-
     const popup = window.open("", "_blank", "width=1100,height=900")
     if (!popup) {
       return setPrintError(
         tx("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para imprimir el Welcome Pack."),
       )
     }
-
     setPrintError(null)
     popup.opener = null
     popup.document.open()
@@ -265,13 +253,13 @@ export default function WelcomePackMediaKitPage() {
         logoUrl: normalizedLogoUrl,
         accentColor: accent,
         playerNameFont: playerFont,
+        nameCase: playerNameCase,
         generalFont,
         showSignature,
       }),
     )
     popup.document.close()
   }
-
   return (
     <div className="space-y-4">
       <header className="app-page-header">
@@ -280,7 +268,6 @@ export default function WelcomePackMediaKitPage() {
           <h1 className="type-page-title">Welcome Pack</h1>
         </div>
       </header>
-
       <AppCard className="overflow-hidden !p-0">
         <div className="bg-neutral-950 px-4 py-4 text-white">
           <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">{tx("Producción física")}</p>
@@ -307,7 +294,6 @@ export default function WelcomePackMediaKitPage() {
             {tx("Medidas provisionales hasta medir y probar la bolsa real a escala 100 %.")} </div>
         </div>
       </AppCard>
-
       <section className="space-y-2">
         <div className="flex items-end justify-between gap-3">
           <div>
@@ -328,7 +314,6 @@ export default function WelcomePackMediaKitPage() {
               <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">50 × 130 mm</p>
             </div>
           </button>
-
           <button
             type="button"
             onClick={() => setActivePiece("logo-stickers")}
@@ -340,7 +325,6 @@ export default function WelcomePackMediaKitPage() {
               <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">{tx("Ancho configurable")}</p>
             </div>
           </button>
-
           <button
             type="button"
             onClick={() => setActivePiece("overgrip-band")}
@@ -352,7 +336,6 @@ export default function WelcomePackMediaKitPage() {
               <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">120 × 18 mm</p>
             </div>
           </button>
-
           <button
             type="button"
             onClick={() => setActivePiece("ball-can-wrap")}
@@ -364,7 +347,6 @@ export default function WelcomePackMediaKitPage() {
               <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">{tx("Adhesiva")}</p>
             </div>
           </button>
-
           {futurePieces.map((piece) => (
             <div key={tx(piece)} className="min-w-0 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-400 sm:min-w-[180px] sm:flex-none">
               <p className="text-[0.625rem] font-black leading-4">{tx(piece)}</p>
@@ -373,7 +355,6 @@ export default function WelcomePackMediaKitPage() {
           ))}
         </div>
       </section>
-
       <AppCard className="border-amber-200 bg-amber-50/70 !p-3">
         <div className="flex items-center gap-2">
           <div>
@@ -391,7 +372,6 @@ export default function WelcomePackMediaKitPage() {
           {tx("Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.")}
         </p>
       </AppCard>
-
       {activePiece === "bag-seal" ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
           <div className="space-y-4">
@@ -412,6 +392,15 @@ export default function WelcomePackMediaKitPage() {
                         {player.displayName}
                       </option>
                     ))}
+                  </select>
+                </label>
+                <label className="text-xs font-black text-neutral-700">
+                  {tx("Formato del nombre")} <select
+                    value={playerNameCase}
+                    onChange={(event) => setPlayerNameCase(event.target.value as WelcomePackPlayerNameCase)}
+                    className="mt-1 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs font-bold text-neutral-950"
+                  >
+                    {WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)}</option>)}
                   </select>
                 </label>
                 <label className="text-xs font-black text-neutral-700">
@@ -481,6 +470,7 @@ export default function WelcomePackMediaKitPage() {
               playerName={playerName}
               accent={accent}
               playerFont={playerFont}
+              nameCase={playerNameCase}
               generalFont={generalFont}
               showSignature={showSignature}
             />
@@ -494,7 +484,6 @@ export default function WelcomePackMediaKitPage() {
               <h2 className="mt-1 text-base font-black">{tx("Fajín del overgrip")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
                 {tx("Logo y nombre de liga · diseño simplificado para impresión.")} </p>
-
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="text-xs font-black text-neutral-700">
                   {tx("Jugador de la vista previa")} <select
@@ -505,7 +494,6 @@ export default function WelcomePackMediaKitPage() {
                     {sortedPlayers.map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}
                   </select>
                 </label>
-
                 <label className="text-xs font-black text-neutral-700">
                   {tx("Tipografía del nombre")} <select
                     value={overgripPlayerFont}
@@ -518,7 +506,6 @@ export default function WelcomePackMediaKitPage() {
                     {tx(WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.find((option) => option.id === overgripPlayerFont)?.description ?? "")}
                   </span>
                 </label>
-
                 <label className="text-xs font-black text-neutral-700">
                   {tx("Tipografía general")} <select
                     value={overgripGeneralFont}
@@ -528,7 +515,6 @@ export default function WelcomePackMediaKitPage() {
                     {WELCOME_PACK_GENERAL_FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{tx(option.label)} · {tx(option.description)}</option>)}
                   </select>
                 </label>
-
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
                   <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Material previsto")}</p>
                   <p className="mt-1 text-xs font-black text-neutral-950">{tx(WELCOME_PACK_OVERGRIP_BAND.material)}</p>
@@ -536,7 +522,6 @@ export default function WelcomePackMediaKitPage() {
                 </div>
               </div>
             </AppCard>
-
             <AppCard>
               <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Medidas")}</p>
               <h2 className="mt-1 text-base font-black">{tx("Medidas definitivas")}</h2>
@@ -544,7 +529,6 @@ export default function WelcomePackMediaKitPage() {
                 {tx(`El fajín mide ${WELCOME_PACK_OVERGRIP_BAND.widthMm} × ${WELCOME_PACK_OVERGRIP_BAND.heightMm} mm. Reservamos ${WELCOME_PACK_OVERGRIP_BAND.sideReserveMm} mm en cada lateral para el pegado; el área útil central para el diseño es de ${WELCOME_PACK_OVERGRIP_BAND.contentWidthMm} mm.`)} </p>
             </AppCard>
           </div>
-
           <AppCard className="lg:sticky lg:top-3">
             <OvergripBandPreview
               league={{ name: activeLeague.name, logoUrl: normalizedLogoUrl }}
@@ -566,7 +550,6 @@ export default function WelcomePackMediaKitPage() {
               <h2 className="mt-1 text-base font-black">{tx("Faja del bote de bolas")}</h2>
               <p className="mt-1 text-xs font-medium leading-5 text-neutral-500">
                 {tx("Faja adhesiva premium para cubrir la etiqueta original del bote HEAD Padel Pro S+, manteniendo la marca del producto e integrándola con la identidad de la liga.")} </p>
-
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <div className="rounded-xl bg-neutral-50 px-3 py-2.5 ring-1 ring-neutral-200">
                   <p className="text-[0.5625rem] font-black uppercase tracking-[.12em] text-neutral-400">{tx("Medida definitiva")}</p>
@@ -586,7 +569,6 @@ export default function WelcomePackMediaKitPage() {
                 </div>
               </div>
             </AppCard>
-
             <AppCard>
               <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Composición")}</p>
               <h2 className="mt-1 text-base font-black">{tx("Diseño envolvente")}</h2>
@@ -594,7 +576,6 @@ export default function WelcomePackMediaKitPage() {
                 {tx("Marca HEAD y Padel Pro S+ en vertical, identidad de liga y jugadores ordenados por apellido y después nombre.")} </p>
             </AppCard>
           </div>
-
           <AppCard className="lg:sticky lg:top-3">
             <BallCanWrapPreview
               leagueName={activeLeague.name}
@@ -606,7 +587,6 @@ export default function WelcomePackMediaKitPage() {
           </AppCard>
         </div>
       )}
-
       {activePiece === "bag-seal" ? (
         <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

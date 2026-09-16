@@ -2,7 +2,6 @@ export type WelcomePackBagSealPlayer = {
   id: string
   displayName: string
 }
-
 export type WelcomePackPlayerNameFont =
   | "editorial-serif"
   | "clean-sans"
@@ -19,15 +18,18 @@ export type WelcomePackPlayerNameFont =
   | "manrope"
   | "plus-jakarta"
   | "archivo"
-
+  | "app-sans"
 export type WelcomePackGeneralFont =
   | "narrow-premium"
   | "geometric"
   | "editorial"
-
+export type WelcomePackPlayerNameCase = "original" | "uppercase"
+export const WELCOME_PACK_PLAYER_NAME_CASE_OPTIONS: { id: WelcomePackPlayerNameCase; label: string }[] = [
+  { id: "original", label: "Tal como viene" },
+  { id: "uppercase", label: "Todo en mayúsculas" },
+]
 export const WELCOME_PACK_FONT_STYLESHEET =
   "https://fonts.googleapis.com/css2?family=Allura&family=Archivo:wght@500;600;700;800&family=Bebas+Neue&family=DM+Sans:wght@500;600;700;800&family=Great+Vibes&family=Manrope:wght@500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Oswald:wght@500;600;700&family=Petit+Formal+Script&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
-
 export const WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS: {
   id: WelcomePackPlayerNameFont
   label: string
@@ -60,8 +62,8 @@ export const WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS: {
   { id: "bebas-neue", label: "Bebas Neue", description: "Display de mayúsculas con presencia." }, { id: "space-grotesk", label: "Space Grotesk", description: "Geométrica, moderna y distintiva." },
   { id: "dm-sans", label: "DM Sans", description: "Minimalista y muy legible." }, { id: "manrope", label: "Manrope", description: "Sans contemporánea y equilibrada." },
   { id: "plus-jakarta", label: "Plus Jakarta Sans", description: "Limpia, premium y actual." }, { id: "archivo", label: "Archivo", description: "Institucional, firme y versátil." },
+  { id: "app-sans", label: "Arial / Helvetica", description: "La tipografía base de la aplicación." },
 ]
-
 export const WELCOME_PACK_GENERAL_FONT_OPTIONS: Array<{
   id: WelcomePackGeneralFont
   label: string
@@ -71,7 +73,6 @@ export const WELCOME_PACK_GENERAL_FONT_OPTIONS: Array<{
   { id: "geometric", label: "Geométrica", description: "Moderna y limpia." },
   { id: "editorial", label: "Editorial", description: "Serifa elegante." },
 ]
-
 export const WELCOME_PACK_BAG_SEAL = {
   trimWidthMm: 50,
   trimHeightMm: 130,
@@ -83,7 +84,6 @@ export const WELCOME_PACK_BAG_SEAL = {
   rowsPerA4: 2,
   itemsPerA4: 6,
 } as const
-
 export const WELCOME_PACK_OVERGRIP_BAND = {
   material: "Cartulina mate",
   minGsm: 200,
@@ -94,7 +94,6 @@ export const WELCOME_PACK_OVERGRIP_BAND = {
   sideReserveMm: 10,
   contentWidthMm: 90,
 } as const
-
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -103,17 +102,20 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;")
 }
-
 export function normalizeWelcomePackAccentColor(value: string) {
   return /^#[0-9a-f]{6}$/i.test(value.trim()) ? value.trim().toUpperCase() : "#D7A544"
 }
-
 export function normalizeWelcomePackPlayerNameFont(value: string): WelcomePackPlayerNameFont {
   return WELCOME_PACK_PLAYER_NAME_FONT_OPTIONS.some((option) => option.id === value)
     ? (value as WelcomePackPlayerNameFont)
     : "manuscript-elegant"
 }
-
+export function normalizeWelcomePackPlayerNameCase(value: string): WelcomePackPlayerNameCase {
+  return value === "uppercase" ? "uppercase" : "original"
+}
+export function formatWelcomePackPlayerName(value: string, nameCase: WelcomePackPlayerNameCase = "original") {
+  return normalizeWelcomePackPlayerNameCase(nameCase) === "uppercase" ? value.toLocaleUpperCase("es-ES") : value
+}
 export function getWelcomePackPlayerNameFontFamily(font: WelcomePackPlayerNameFont) {
   switch (font) {
     case "clean-sans":
@@ -136,12 +138,12 @@ export function getWelcomePackPlayerNameFontFamily(font: WelcomePackPlayerNameFo
     case "manrope": return '"Manrope", Arial, sans-serif'
     case "plus-jakarta": return '"Plus Jakarta Sans", Arial, sans-serif'
     case "archivo": return '"Archivo", Arial, sans-serif'
+    case "app-sans": return 'Arial, Helvetica, sans-serif'
     case "manuscript-elegant":
     default:
       return '"Snell Roundhand", "Brush Script MT", "Segoe Script", cursive'
   }
 }
-
 export function getWelcomePackGeneralFontFamily(font: WelcomePackGeneralFont) {
   switch (font) {
     case "geometric":
@@ -153,11 +155,9 @@ export function getWelcomePackGeneralFontFamily(font: WelcomePackGeneralFont) {
       return '"Arial Narrow", "Roboto Condensed", Arial, sans-serif'
   }
 }
-
 export function getWelcomePackBagSealSheetCount(playerCount: number) {
   return Math.max(0, Math.ceil(Math.max(0, playerCount) / WELCOME_PACK_BAG_SEAL.itemsPerA4))
 }
-
 function initials(value: string) {
   return (
     value
@@ -169,22 +169,18 @@ function initials(value: string) {
       .toUpperCase() || "SL"
   )
 }
-
 function brandSignatureMarkup() {
   return `<div class="creator-row">
     <img class="creator-icon" src="/icon-192.png" alt="" />
     <span class="creator-copy"><span class="creator-overline">CREADO CON</span><span class="creator-name">SMASH &amp; LOB</span></span>
   </div>`
 }
-
 function logoMarkup({ leagueName, logoUrl }: { leagueName: string; logoUrl?: string | null }) {
   if (logoUrl) {
     return `<div class="league-logo-wrap"><img class="league-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(leagueName)}" /></div>`
   }
-
   return `<div class="league-logo-wrap"><span class="league-logo-fallback">${escapeHtml(initials(leagueName))}</span></div>`
 }
-
 function faceMarkup({
   playerName,
   leagueName,
@@ -217,13 +213,13 @@ function faceMarkup({
       ${showSignature ? brandSignatureMarkup() : ""}
     </div>`
 }
-
 function sealMarkup({
   player,
   leagueName,
   seasonName,
   logoUrl,
   playerNameFont,
+  nameCase,
   generalFont,
   showSignature,
 }: {
@@ -232,11 +228,12 @@ function sealMarkup({
   seasonName: string
   logoUrl?: string | null
   playerNameFont: WelcomePackPlayerNameFont
+  nameCase: WelcomePackPlayerNameCase
   generalFont: WelcomePackGeneralFont
   showSignature: boolean
 }) {
   const face = faceMarkup({
-    playerName: player.displayName,
+    playerName: formatWelcomePackPlayerName(player.displayName, nameCase),
     leagueName,
     seasonName,
     logoUrl,
@@ -244,7 +241,6 @@ function sealMarkup({
     generalFont,
     showSignature,
   })
-
   return `<div class="seal-cell" data-player-id="${escapeHtml(player.id)}">
     <div class="trim-guide" aria-hidden="true"></div>
     <span class="fold-tick fold-tick-left" aria-hidden="true"></span>
@@ -255,11 +251,9 @@ function sealMarkup({
     </div>
   </div>`
 }
-
 function logoTestMarkup(logoUrl: string) {
   return `<div class="logo-test-cell"><img class="logo-test" src="${escapeHtml(logoUrl)}" alt="Logo de liga para prueba de pegatina" /></div>`
 }
-
 export function buildWelcomePackBagSealPrintHtml({
   players,
   leagueName,
@@ -267,6 +261,7 @@ export function buildWelcomePackBagSealPrintHtml({
   logoUrl,
   accentColor,
   playerNameFont = "manuscript-elegant",
+  nameCase = "original",
   generalFont = "narrow-premium",
   showSignature = true,
 }: {
@@ -276,17 +271,17 @@ export function buildWelcomePackBagSealPrintHtml({
   logoUrl?: string | null
   accentColor: string
   playerNameFont?: WelcomePackPlayerNameFont
+  nameCase?: WelcomePackPlayerNameCase
   generalFont?: WelcomePackGeneralFont
   showSignature?: boolean
 }) {
   const accent = normalizeWelcomePackAccentColor(accentColor)
   const font = normalizeWelcomePackPlayerNameFont(playerNameFont)
-
+  const normalizedNameCase = normalizeWelcomePackPlayerNameCase(nameCase)
   const sheets = Array.from(
     { length: getWelcomePackBagSealSheetCount(players.length) },
     (_, index) => players.slice(index * WELCOME_PACK_BAG_SEAL.itemsPerA4, (index + 1) * WELCOME_PACK_BAG_SEAL.itemsPerA4),
   )
-
   const sheetMarkup = sheets
     .map((sheetPlayers) => {
       const isPartialSheet = sheetPlayers.length < WELCOME_PACK_BAG_SEAL.itemsPerA4
@@ -294,13 +289,11 @@ export function buildWelcomePackBagSealPrintHtml({
         ? Array.from({ length: WELCOME_PACK_BAG_SEAL.itemsPerA4 - sheetPlayers.length }, () => logoTestMarkup(logoUrl)).join("")
         : ""
       return `<section class="sheet">${sheetPlayers
-        .map((player) => sealMarkup({ player, leagueName, seasonName, logoUrl, playerNameFont: font, generalFont, showSignature }))
+        .map((player) => sealMarkup({ player, leagueName, seasonName, logoUrl, playerNameFont: font, nameCase: normalizedNameCase, generalFont, showSignature }))
         .join("")}${logoTestCells}</section>`
     })
     .join("")
-
   const foldTickTopMm = WELCOME_PACK_BAG_SEAL.printedHeightMm / 2 - 0.15
-
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -367,6 +360,7 @@ export function buildWelcomePackBagSealPrintHtml({
     .player-font-bebas-neue { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-size: 8.3mm; font-weight: 400; letter-spacing: .24mm; text-transform: uppercase; } .player-font-space-grotesk { font-family: "Space Grotesk", Arial, sans-serif; font-size: 6.9mm; font-weight: 700; letter-spacing: .08mm; text-transform: uppercase; }
     .player-font-dm-sans { font-family: "DM Sans", Arial, sans-serif; font-size: 6.8mm; font-weight: 700; letter-spacing: .1mm; text-transform: uppercase; } .player-font-manrope { font-family: "Manrope", Arial, sans-serif; font-size: 6.7mm; font-weight: 700; letter-spacing: .1mm; text-transform: uppercase; }
     .player-font-plus-jakarta { font-family: "Plus Jakarta Sans", Arial, sans-serif; font-size: 6.55mm; font-weight: 700; letter-spacing: .08mm; text-transform: uppercase; } .player-font-archivo { font-family: "Archivo", Arial, sans-serif; font-size: 6.9mm; font-weight: 700; letter-spacing: .12mm; text-transform: uppercase; }
+    .player-font-app-sans { font-family: Arial, Helvetica, sans-serif; font-size: 6.8mm; font-weight: 700; letter-spacing: .08mm; text-transform: uppercase; }
     .rule { display: grid; grid-template-columns: 9mm 1.7mm 9mm; align-items: center; gap: 1.3mm; margin-top: 2.5mm; }
     .rule span { height: .18mm; background: rgba(255,255,255,.24); }
     .rule i { width: 1.7mm; height: 1.7mm; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 1.8mm rgba(255,255,255,.22); }
