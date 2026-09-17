@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   isBallsAssignmentPriorityRef,
   hasScheduledStartChanged,
+  moveBallsAssignmentPriority,
   resolveBallsAssignmentPriority,
 } from "@/lib/organizationBallsAssignment"
 
@@ -20,6 +21,15 @@ describe("organization ball assignment priorities", () => {
     expect(hasScheduledStartChanged("2026-08-26T09:00:00.000Z", "2026-08-26T11:00:00+02:00")).toBe(false)
     expect(hasScheduledStartChanged("2026-08-26T09:00:00.000Z", null)).toBe(true)
     expect(hasScheduledStartChanged(null, "2026-09-18T09:00:00.000Z")).toBe(true)
+  })
+
+  it("moves entries in either direction and keeps boundary moves unchanged", () => {
+    const priority = ["david", "alain", "alvaro"]
+
+    expect(moveBallsAssignmentPriority(priority, 1, -1)).toEqual(["alain", "david", "alvaro"])
+    expect(moveBallsAssignmentPriority(priority, 1, 1)).toEqual(["david", "alvaro", "alain"])
+    expect(moveBallsAssignmentPriority(priority, 0, -1)).toEqual(priority)
+    expect(moveBallsAssignmentPriority(priority, 2, 1)).toEqual(priority)
   })
 
   it("resolves submitted order to the IDs created for the season roster", () => {
@@ -71,6 +81,10 @@ describe("organization ball assignment priorities", () => {
     expect(form).toContain("preview.custodianPlayerIds.map((playerId)")
     expect(form).toContain("preview.botesByPlayerId[playerId]")
     expect(form).toContain("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")
+    expect(form).toContain("moveBallsAssignmentPriority(normalizedPriority, index, -1)")
+    expect(form).toContain("moveBallsAssignmentPriority(normalizedPriority, index, 1)")
+    expect(form).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1)")
+    expect(form).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1)")
     expect(priorityHelper).toContain('ref: `new:${index}`')
     expect(priorityHelper).toContain('ref: `app:${userId}`')
     expect(mutations).toContain("resolveBallsAssignmentPriority({")

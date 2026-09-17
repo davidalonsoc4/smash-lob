@@ -1328,7 +1328,7 @@ export const es = {
     preferences: {
       match_schedule: {
         title: "Programación de partidos",
-        description: "Fechas, horas, pistas, cambios y aplazamientos de tus partidos.",
+        description: "Fechas, horas, pistas, cambios y avisos cuando te encargas de las bolas.",
       },
       match_incidents: {
         title: "Incidencias de partidos",
@@ -1336,7 +1336,7 @@ export const es = {
       },
       match_upcoming: {
         title: "Próximo partido",
-        description: "Recordatorio antes de que comience tu siguiente partido.",
+        description: "Recordatorio antes del partido, también cuando te toca llevar las bolas.",
       },
       match_chat: { title: "Mensajes del chat", description: "Avisos cuando otro participante escribe en el chat de uno de tus partidos. Las menciones @ siempre se notifican." },
       match_results: {
@@ -1484,6 +1484,8 @@ export const es = {
       match_mvp_vote_reminder: "Recordatorio para votar al MVP",
       match_mvp_awarded: "MVP del partido decidido",
       match_upcoming_reminder: "Recordatorio de partido próximo",
+      match_ball_custodian_assigned: "Encargado de llevar las bolas",
+      match_ball_custodian_reminder: "Recordatorio para llevar las bolas",
       match_chat_message: "Mensaje nuevo en el chat",
       round_in_play: "Jornada en juego",
       round_pairings_revealed: "Jornada desbloqueada",
@@ -1529,6 +1531,8 @@ export const es = {
       match_result_missing_reminder: "Resultado",
       match_result_confirmation_reminder: "Confirmación",
       match_upcoming_reminder: "Recordatorio",
+      match_ball_custodian_assigned: "Bolas asignadas",
+      match_ball_custodian_reminder: "Bolas",
       match_chat_message: "Chat",
       round_in_play: "Jornada",
       round_pairings_revealed: "Jornada",

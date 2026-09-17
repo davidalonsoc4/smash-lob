@@ -14,6 +14,8 @@ export type ActivityEventType =
   | "match_mvp_vote_reminder"
   | "match_mvp_awarded"
   | "match_upcoming_reminder"
+  | "match_ball_custodian_assigned"
+  | "match_ball_custodian_reminder"
   | "match_chat_message"
   | "round_in_play"
   | "round_pairings_revealed"
@@ -60,6 +62,27 @@ export type ActivityEvent = {
   createdAt: string;
 };
 
+export function isTargetedCustodianActivityType(
+  type: ActivityEventType,
+  metadata: Record<string, unknown>,
+) {
+  return (
+    type === "match_ball_custodian_assigned" ||
+    type === "match_ball_custodian_reminder" ||
+    (type === "match_upcoming_reminder" && Array.isArray(metadata.targetPlayerIds))
+  )
+}
+
+export function isTargetedCustodianActivityVisibleToPlayer(
+  type: ActivityEventType,
+  metadata: Record<string, unknown>,
+  playerId: string | null | undefined,
+) {
+  if (!isTargetedCustodianActivityType(type, metadata)) return true;
+  if (!playerId || !Array.isArray(metadata.targetPlayerIds)) return false;
+  return metadata.targetPlayerIds.includes(playerId);
+}
+
 const serverHandledActivityTypes = new Set<ActivityEventType>([
   "match_scheduled",
   "match_schedule_updated",
@@ -95,6 +118,8 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "player_role_updated",
   "player_unlinked",
   "match_mvp_awarded",
+  "match_ball_custodian_assigned",
+  "match_ball_custodian_reminder",
 ]);
 
 function normalizeEmail(value: string | null | undefined) {

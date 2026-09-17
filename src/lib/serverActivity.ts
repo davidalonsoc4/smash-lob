@@ -1,6 +1,10 @@
 import "server-only"
 
 import type { ServerLeagueViewer } from "@/lib/serverLeagueAccess"
+import {
+  isTargetedCustodianActivityType,
+  isTargetedCustodianActivityVisibleToPlayer,
+} from "@/lib/activity"
 
 type SupabaseClient = ServerLeagueViewer["supabase"]
 
@@ -20,6 +24,8 @@ type ActivityEventType =
   | "match_mvp_vote_reminder"
   | "match_mvp_awarded"
   | "match_upcoming_reminder"
+  | "match_ball_custodian_assigned"
+  | "match_ball_custodian_reminder"
   | "round_in_play"
   | "round_pairings_revealed"
   | "round_mvp_awarded"
@@ -112,6 +118,8 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_mvp_vote_reminder" ||
     type === "match_mvp_awarded" ||
     type === "match_upcoming_reminder" ||
+    type === "match_ball_custodian_assigned" ||
+    type === "match_ball_custodian_reminder" ||
     type === "round_in_play" ||
     type === "round_pairings_revealed" ||
     type === "round_mvp_awarded" ||
@@ -504,12 +512,19 @@ export async function fetchServerActivityEvents({
         (matchRows ?? []).map((row) => [String(row.id), Number(row.round ?? 0)]),
       )
       const now = Date.now()
-      const hiddenMatchIds = new Set<string>()
+      const hiddenEventIds = new Set<string>()
 
       for (const event of events) {
         if (!event.matchId || !event.seasonId) continue
         const seasonStatus = statusBySeasonId.get(event.seasonId)
         const settings = settingsBySeasonId.get(event.seasonId)
+        const isDutyForViewer =
+          isTargetedCustodianActivityType(event.type, event.metadata) &&
+          isTargetedCustodianActivityVisibleToPlayer(
+            event.type,
+            event.metadata,
+            viewer.membership?.playerId,
+          )
 
         if (seasonStatus === "upcoming") {
           const scheduledStartAt =
@@ -520,7 +535,7 @@ export async function fetchServerActivityEvents({
             ? new Date(scheduledStartAt).getTime()
             : Number.NaN
           if (Number.isFinite(scheduledStartMs) && scheduledStartMs > now) {
-            hiddenMatchIds.add(event.matchId)
+            if (!isDutyForViewer) hiddenEventIds.add(event.id)
             continue
           }
         }
@@ -536,16 +551,25 @@ export async function fetchServerActivityEvents({
           const effectiveReveal =
             seasonStatus === "active" ? Math.max(storedReveal, 1) : storedReveal
           const matchRound = roundByMatchId.get(event.matchId) ?? 0
-          if (matchRound > effectiveReveal) {
-            hiddenMatchIds.add(event.matchId)
+          if (matchRound > effectiveReveal && !isDutyForViewer) {
+            hiddenEventIds.add(event.id)
           }
         }
       }
 
-      events = events.filter(
-        (event) => !event.matchId || !hiddenMatchIds.has(event.matchId),
-      )
+      events = events.filter((event) => !hiddenEventIds.has(event.id))
     }
+  }
+
+  if (!viewer.isCompetitionAdmin) {
+    const viewerPlayerId = viewer.membership?.playerId ?? ""
+    events = events.filter((event) =>
+      isTargetedCustodianActivityVisibleToPlayer(
+        event.type,
+        event.metadata,
+        viewerPlayerId,
+      ),
+    )
   }
 
   const usersByEmail = await fetchUsersByEmail(
