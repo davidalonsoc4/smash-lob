@@ -32,6 +32,30 @@ test("recovers an invitation when the installed app starts", async ({ page }) =>
   await expect(page).toHaveURL(new RegExp(`${invitationPath.replace("?", "\\?")}$`))
 })
 
+test("spectator invitation opens a read-only league without signing in", async ({ page }) => {
+  const code = "SL-PUBLIC-TEST"
+  await page.route(`**/api/public-spectator/${code}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        league: { name: "Liga de prueba", description: "Competición de prueba", logoUrl: null },
+        season: { name: "Temporada activa", status: "active", totalRounds: 4, completedRounds: 1 },
+        visibility: "full",
+        ranking: [{ position: 1, name: "Ana", points: 6, gamesDiff: 5, matchesPlayed: 2, wins: 2, losses: 0 }],
+        matches: [{ round: 1, status: "finished", teams: [["Ana", "Luis"], ["Eva", "Raúl"]], score: { sets: [{ a: 6, b: 4 }], pointsA: 1, pointsB: 0 }, scheduledAt: null, location: null }],
+      }),
+    })
+  })
+
+  await page.goto(`/spectate/${code}/view`)
+  await expect(page.getByRole("heading", { name: "Liga de prueba" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Clasificación" })).toBeVisible()
+  await expect(page.getByText("Ana / Luis")).toBeVisible()
+  await expect(page.getByText("Solo lectura · no se muestran datos personales ni actividad interna")).toBeVisible()
+  await expect(page.getByRole("button", { name: /google/i })).toHaveCount(0)
+})
+
 test("shows an actionable authentication error with an incidence code", async ({
   page,
 }) => {

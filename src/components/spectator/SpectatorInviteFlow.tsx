@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
+import { addCachedSpectatorLeagueId } from "@/lib/leagueAccessCache"
+import Link from "next/link"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import {
   acceptSpectatorInvite,
   fetchSpectatorInvite,
   type SpectatorInviteSummary,
 } from "@/lib/spectatorInvites"
-import { addCachedSpectatorLeagueId } from "@/lib/leagueAccessCache"
-import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 import { useI18n } from "@/i18n/I18nProvider"
+import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 
 export function SpectatorInviteFlow() {
   const { tx } = useI18n()
@@ -65,11 +66,7 @@ export function SpectatorInviteFlow() {
     try {
       const result = await acceptSpectatorInvite(code)
       const userEmail = session?.user?.email?.trim().toLowerCase()
-
-      if (userEmail) {
-        addCachedSpectatorLeagueId(userEmail, result.leagueId)
-      }
-
+      if (userEmail) addCachedSpectatorLeagueId(userEmail, result.leagueId)
       window.localStorage.setItem("smash-lob-active-league", result.leagueId)
       await clearPendingAccessIntent()
       window.location.assign("/")
@@ -128,16 +125,33 @@ export function SpectatorInviteFlow() {
             <AppCard>
               <p className="font-black">{tx("Acceso de solo lectura")}</p>
               <p className="mt-2 text-sm font-semibold leading-6 text-neutral-500">
-                {tx("Podrás consultar la Home, el ranking, los partidos, los resultados y los perfiles de jugadores. No podrás programar, votar, confirmar resultados ni ver la actividad interna.")}{" "}</p>
+                {tx("Consulta partidos, resultados y clasificación sin crear una cuenta. El enlace da acceso de lectura a esta liga.")}{" "}</p>
 
-              <button
-                type="button"
-                onClick={handleJoin}
-                disabled={isJoining}
-                className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-400 items-center justify-center text-center"
+              <Link
+                href={`/spectate/${encodeURIComponent(code)}/view`}
+                className="mt-4 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
               >
-                {isJoining ? "Activando acceso..." : "Entrar como espectador"}
-              </button>
+                {tx("Ver liga sin iniciar sesión")}
+              </Link>
+
+              {session?.user ? (
+                <button
+                  type="button"
+                  onClick={handleJoin}
+                  disabled={isJoining}
+                  className="mt-2 flex w-full items-center justify-center rounded-2xl border border-neutral-300 px-3 py-2.5 text-center text-sm font-black text-neutral-700 disabled:text-neutral-400"
+                >
+                  {isJoining ? tx("Guardando acceso...") : tx("Añadir liga a mi cuenta")}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void signIn("google", { callbackUrl: `/spectate/${encodeURIComponent(code)}` })}
+                  className="mt-2 w-full px-3 py-2 text-center text-xs font-bold text-neutral-500 underline underline-offset-2"
+                >
+                  {tx("O inicia sesión para guardar esta liga en tu cuenta")}
+                </button>
+              )}
 
               {error ? (
                 <p className="mt-3 text-sm font-semibold text-red-600">
