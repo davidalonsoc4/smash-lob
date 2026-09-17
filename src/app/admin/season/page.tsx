@@ -1736,6 +1736,51 @@ function RegistrationFeeSettingsPanel({ activeLeagueId, roundSettings, canToggle
   </AppCard>;
 }
 
+function BallCustodianChoice({
+  name,
+  avatarUrl,
+  selected,
+  disabled = false,
+  onClick,
+}: {
+  name: string;
+  avatarUrl?: string | null;
+  selected: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      disabled={disabled}
+      onClick={onClick}
+      className={`flex min-h-14 min-w-0 items-center gap-2.5 rounded-2xl border px-3 py-2 text-left text-sm font-black transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-50 ${
+        selected
+          ? "border-neutral-950 bg-neutral-950 text-white shadow-sm"
+          : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
+      }`}
+    >
+      <PlayerAvatar
+        player={{ displayName: name, avatarUrl }}
+        size="sm"
+        className={selected ? "ring-2 ring-white/80 ring-offset-1 ring-offset-neutral-950" : ""}
+      />
+      <span className="min-w-0 flex-1 truncate">{name}</span>
+      <span
+        aria-hidden="true"
+        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs transition ${
+          selected
+            ? "bg-white text-neutral-950"
+            : "border border-neutral-300 text-neutral-400"
+        }`}
+      >
+        {selected ? "✓" : "+"}
+      </span>
+    </button>
+  );
+}
+
 function OrganizationBallsSettingsPanel({
   activeLeagueId,
   roundSettings,
@@ -1746,7 +1791,7 @@ function OrganizationBallsSettingsPanel({
 }: {
   activeLeagueId: string
   roundSettings: SeasonRoundSettings
-  players: Array<{ id: string; displayName: string }>
+  players: Array<{ id: string; displayName: string; avatarUrl?: string | null; avatarInitials?: string | null }>
   matches: ReturnType<typeof useCurrentLeagueData>["matches"]
   creatorPlayerId: string | null
   creatorPlayerName: string | null
@@ -1837,7 +1882,18 @@ function OrganizationBallsSettingsPanel({
       </div>
       {mode === "priority" ? <div className="space-y-1.5">{normalizedPriority.map((playerId, index) => { const player = seasonPlayers.find((item) => item.id === playerId); if (!player) return null; return <div key={playerId} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-bold"><span className="w-5 text-xs text-neutral-400">{index + 1}</span><span className="min-w-0 flex-1 truncate">{player.displayName}</span><button type="button" disabled={hasRecordedResults || index === 0} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, -1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={hasRecordedResults || index === normalizedPriority.length - 1} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, 1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↓</button></div> })}</div> : <div className="space-y-1.5">
         <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores que pueden ser custodios")}</p>
-        {seasonPlayers.map((player) => <label key={player.id} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-sm font-bold"><input type="checkbox" checked={normalizedCustodians.includes(player.id)} disabled={hasRecordedResults} onChange={(event) => setSelectedCustodians((current) => event.target.checked ? [...current, player.id] : current.filter((id) => id !== player.id))} /><span>{player.displayName}</span></label>)}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {seasonPlayers.map((player) => (
+            <BallCustodianChoice
+              key={player.id}
+              name={player.displayName}
+              avatarUrl={player.avatarUrl}
+              selected={normalizedCustodians.includes(player.id)}
+              disabled={hasRecordedResults}
+              onClick={() => setSelectedCustodians((current) => current.includes(player.id) ? current.filter((id) => id !== player.id) : [...current, player.id])}
+            />
+          ))}
+        </div>
         {normalizedCustodians.length === 0 ? <p className="text-xs font-semibold text-red-600">{tx("Selecciona al menos un custodio.")}</p> : null}
         {seasonMatches.length > 0 && preview.unassignedMatchIds.length > 0 ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">{tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")}</p> : null}
         {seasonMatches.length === 0 ? <p className="text-xs font-semibold text-neutral-500">{tx("La cobertura se comprobará cuando se genere el calendario.")}</p> : null}
@@ -5180,7 +5236,23 @@ function NewSeasonForm({
               </div>
             </> : <div className="mt-3 space-y-1.5">
               <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores que pueden ser custodios")}</p>
-              {ballsAssignmentPriorityEntries.map((player) => <label key={player.ref} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-bold"><input type="checkbox" checked={effectiveBallsAssignmentCustodianRefs.includes(player.ref)} onChange={(event) => setBallsAssignmentCustodianRefs((current) => event.target.checked ? [...current, player.ref] : current.filter((ref) => ref !== player.ref))} /><span>{player.name}</span></label>)}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {ballsAssignmentPriorityEntries.map((player) => {
+                  const isSelected = effectiveBallsAssignmentCustodianRefs.includes(player.ref);
+                  const profile = leaguePlayers.find((item) => item.id === player.ref) ?? currentPlayers.find((item) => item.id === player.ref);
+                  const appUserId = player.ref.startsWith("app:") ? player.ref.slice(4) : null;
+                  const avatarUrl = profile?.avatarUrl ?? (appUserId ? activeAppDirectory.find((person) => person.userId === appUserId)?.avatarUrl : null);
+                  return (
+                    <BallCustodianChoice
+                      key={player.ref}
+                      name={player.name}
+                      avatarUrl={avatarUrl}
+                      selected={isSelected}
+                      onClick={() => setBallsAssignmentCustodianRefs((current) => current.includes(player.ref) ? current.filter((ref) => ref !== player.ref) : [...current, player.ref])}
+                    />
+                  );
+                })}
+              </div>
               {effectiveBallsAssignmentCustodianRefs.length === 0 ? <p className="text-xs font-semibold text-red-600">{tx("Selecciona al menos un custodio.")}</p> : null}
               {canValidateCustodianCoverage && selectedCustodianCoverage.unassignedMatchIds.length > 0 ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">{tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")}</p> : null}
               {rosterMode === "self_registration" ? <p className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">{tx("La cobertura se comprobará cuando se genere el calendario.")}</p> : null}

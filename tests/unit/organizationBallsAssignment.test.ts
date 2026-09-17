@@ -109,4 +109,23 @@ describe("organization ball assignment priorities", () => {
     expect(migration).toContain("balls_assignment_mode IN ('priority', 'selected')")
     expect(migration).toContain("balls_assignment_custodian_ids uuid[]")
   })
+
+  it("uses visual player choices and only shows the ball-custodian notice to its owner", async () => {
+    const [form, matchCard, calendar, home] = await Promise.all([
+      readFile("src/app/admin/season/page.tsx", "utf8"),
+      readFile("src/components/matches/MatchCard.tsx", "utf8"),
+      readFile("src/app/matches/page.tsx", "utf8"),
+      readFile("src/app/page.tsx", "utf8"),
+    ])
+
+    expect(form).toContain("function BallCustodianChoice(")
+    expect(form).toContain("aria-pressed={selected}")
+    expect(form).not.toContain('type="checkbox" checked={normalizedCustodians.includes(player.id)}')
+    expect(form).not.toContain('type="checkbox" checked={effectiveBallsAssignmentCustodianRefs.includes(player.ref)}')
+    expect(calendar).toContain("ballAssignment?.byMatchId[match.id] === currentUserId")
+    expect(home).toContain("homeBallAssignment?.byMatchId[selectedNextMatch.id] === currentUserId")
+    expect(matchCard).toContain("{isCurrentUserBallCustodian ? (")
+    expect(matchCard).toContain('tx("Eres el encargado de las bolas.")')
+    expect(matchCard).not.toContain("ballCustodianName")
+  })
 })
