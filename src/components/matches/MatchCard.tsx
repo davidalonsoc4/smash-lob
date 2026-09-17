@@ -57,7 +57,7 @@ type MatchCardProps = {
   showChevron?: boolean;
   statusPosition?: "auto" | "left" | "right";
   hideMissingScheduleMeta?: boolean;
-  ballCustodianName?: string | null;
+  isCurrentUserBallCustodian?: boolean;
 };
 export function MatchCard({
   match,
@@ -76,7 +76,7 @@ export function MatchCard({
   showChevron = false,
   statusPosition = "auto",
   hideMissingScheduleMeta = false,
-  ballCustodianName = null,
+  isCurrentUserBallCustodian = false,
 }: MatchCardProps) {
   const { tx, t, locale } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
@@ -342,9 +342,9 @@ export function MatchCard({
               {t.rounds.postponedWindowWarning}
             </div>
           ) : null}
-          {ballCustodianName ? (
-            <p className="mt-2 text-xs font-semibold text-amber-800">
-              <span className="font-black">{tx("Encargado de las bolas:")}</span>{" "}{ballCustodianName}
+          {isCurrentUserBallCustodian ? (
+            <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900">
+              {tx("Eres el encargado de las bolas.")}
             </p>
           ) : null}
         </div>

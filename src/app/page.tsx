@@ -33,6 +33,10 @@ import {
 import { recordActivityEvent } from "@/lib/activity";
 import { formatMoney } from "@/lib/courtBooking";
 import { getNextMatch } from "@/lib/leagues";
+import {
+  calculateBallCustodianAssignment,
+  getOpeningRoundBallAllocation,
+} from "@/lib/ballCustodianAssignment";
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle";
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime";
 import {
@@ -408,6 +412,7 @@ export default function Home() {
     activeSeason,
     roundSettings,
     players,
+    leaguePlayers,
     rankingPlayers: seasonRankingPlayers,
     matches,
     rounds,
@@ -429,6 +434,32 @@ export default function Home() {
     : null;
   const playerPreseasonSecretDaysBefore =
     isPlayerSeasonLocked ? roundSettings.preseasonSecretDaysBefore ?? null : null;
+  const homeSeasonMatches = matches.filter((match) => match.seasonId === activeSeason.id);
+  const openingRoundCreatorPlayerId = activeLeague.createdByUserId
+    ? leaguePlayers.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
+    : null;
+  const openingRoundBallAllocation = getOpeningRoundBallAllocation(
+    homeSeasonMatches,
+    roundSettings.openingRoundEnabled && roundSettings.openingRoundAt
+      ? openingRoundCreatorPlayerId
+      : null,
+  );
+  const homeBallAssignment = roundSettings.organizationBallsAssigned
+    ? calculateBallCustodianAssignment({
+        matches: homeSeasonMatches,
+        seasonPlayerIds: players.map((player) => player.id),
+        priorityPlayerIds:
+          roundSettings.ballsAssignmentMode === "selected"
+            ? []
+            : roundSettings.ballsAssignmentPriority,
+        eligiblePlayerIds:
+          roundSettings.ballsAssignmentMode === "selected"
+            ? roundSettings.ballsAssignmentCustodianIds ?? []
+            : undefined,
+        playerNames: Object.fromEntries(players.map((player) => [player.id, player.displayName])),
+        ...openingRoundBallAllocation,
+      })
+    : null;
   const currentUserMatches = matches.filter((match) => match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId));
   const now = new Date();
   const personalLastMatch = getLastPlayedOrPendingMatch(currentUserMatches, now);
@@ -1190,6 +1221,10 @@ export default function Home() {
               highlightedPlayerLabel={matchPanelMvpLabel}
               leagueLocations={activeLeague.locations}
               showMissingScheduleHint={canShowSelectedNextMatchScheduleHint}
+              isCurrentUserBallCustodian={
+                Boolean(currentUserId) &&
+                homeBallAssignment?.byMatchId[selectedNextMatch.id] === currentUserId
+              }
             />
           ) : (
             <AppCard className="border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500">

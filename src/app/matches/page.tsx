@@ -318,11 +318,10 @@ export default function MatchesPage() {
                       leagueLocations={activeLeague.locations}
                       showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
                       hideMissingScheduleMeta
-                      ballCustodianName={ballAssignment?.byMatchId[match.id]
-                        ? players.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ??
-                          leaguePlayers.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ??
-                          ballAssignment.byMatchId[match.id]
-                        : null}
+                      isCurrentUserBallCustodian={
+                        Boolean(currentUserId) &&
+                        ballAssignment?.byMatchId[match.id] === currentUserId
+                      }
                     />
                   ))}
                 </div>
