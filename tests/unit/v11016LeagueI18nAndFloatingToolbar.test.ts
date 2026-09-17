@@ -89,13 +89,15 @@ describe("v1.10.16 league i18n and UI polish", () => {
       read("src/components/spectator/FloatingSpectatorShareButton.tsx"),
     ])
     expect(invite).toContain('? tx("Enlace copiado")')
-    expect(spectator).toContain('const title = tx(`Ver ${leagueName}`)')
     expect(spectator).toContain(
-      'const text = tx(`Sigue ${leagueName} · ${seasonName} en Smash & Lob como espectador.`)',
+      'text: tx("Comparte el enlace de esta liga para que cualquiera pueda verla como espectador.")',
     )
-    expect(spectator).toContain(
-      'title={copied ? tx("Enlace copiado") : tx("Compartir con espectadores")}',
-    )
+    expect(spectator).toContain("title={leagueName}")
+    expect(spectator).toContain('variant="spectator-qr"')
+    expect(spectator).toContain('await import("qrcode-generator")')
+    expect(spectator).toContain('createQrCode(0, "H")')
+    expect(spectator).toContain("portalToBody")
+    expect(spectator).toContain("navigator.clipboard.writeText(inviteUrl)")
   })
 
   it("keeps generated league images connected to the selected locale", async () => {

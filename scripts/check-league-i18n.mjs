@@ -548,9 +548,9 @@ if (shell.includes("rightOffsetPx")) {
 
 const spectatorShare = read("src/components/spectator/FloatingSpectatorShareButton.tsx")
 for (const marker of [
-  'const title = tx(`Ver ${leagueName}`)',
-  'const text = tx(`Sigue ${leagueName} · ${seasonName} en Smash & Lob como espectador.`)',
-  'title={copied ? tx("Enlace copiado") : tx("Compartir con espectadores")}',
+  'title: `${tx("Código QR de espectadores")} · ${leagueName}`',
+  'text: tx("Comparte el enlace de esta liga para que cualquiera pueda verla como espectador.")',
+  'title={tx("Compartir con espectadores")}',
 ]) {
   if (!spectatorShare.includes(marker)) {
     fail(`FloatingSpectatorShareButton.tsx deja sin i18n: ${marker}`)
