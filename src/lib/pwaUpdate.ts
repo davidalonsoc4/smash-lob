@@ -1,4 +1,22 @@
 export const PWA_UPDATE_RELOAD_FALLBACK_MS = 4_000
+export const PWA_UPDATE_IDLE_MS = 60_000
+export const PWA_UPDATE_RECHECK_MS = 5_000
+
+export function isPwaUpdateSafe({
+  isVisible,
+  hasFocus,
+  isEditing,
+  hasOpenDialog,
+  idleMs,
+}: {
+  isVisible: boolean
+  hasFocus: boolean
+  isEditing: boolean
+  hasOpenDialog: boolean
+  idleMs: number
+}) {
+  return isVisible && hasFocus && !isEditing && !hasOpenDialog && idleMs >= PWA_UPDATE_IDLE_MS
+}
 
 type WaitingServiceWorker = Pick<ServiceWorker, "postMessage">
 

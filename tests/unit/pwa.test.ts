@@ -1,7 +1,9 @@
 import { readFile } from "node:fs/promises"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
+  isPwaUpdateSafe,
   PWA_UPDATE_RELOAD_FALLBACK_MS,
+  PWA_UPDATE_IDLE_MS,
   requestPwaUpdate,
 } from "@/lib/pwaUpdate"
 
@@ -53,5 +55,22 @@ describe("service worker lifecycle", () => {
     vi.advanceTimersByTime(PWA_UPDATE_RELOAD_FALLBACK_MS)
 
     expect(reload).toHaveBeenCalledOnce()
+  })
+
+  it("only considers an update safe after a minute of focused, visible, idle use", () => {
+    const safeContext = {
+      isVisible: true,
+      hasFocus: true,
+      isEditing: false,
+      hasOpenDialog: false,
+      idleMs: PWA_UPDATE_IDLE_MS,
+    }
+
+    expect(isPwaUpdateSafe(safeContext)).toBe(true)
+    expect(isPwaUpdateSafe({ ...safeContext, idleMs: PWA_UPDATE_IDLE_MS - 1 })).toBe(false)
+    expect(isPwaUpdateSafe({ ...safeContext, isVisible: false })).toBe(false)
+    expect(isPwaUpdateSafe({ ...safeContext, hasFocus: false })).toBe(false)
+    expect(isPwaUpdateSafe({ ...safeContext, isEditing: true })).toBe(false)
+    expect(isPwaUpdateSafe({ ...safeContext, hasOpenDialog: true })).toBe(false)
   })
 })
