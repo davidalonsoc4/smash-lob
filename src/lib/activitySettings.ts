@@ -115,6 +115,18 @@ export const activityEventDefinitions: Record<
     personalScope: "match_participants",
     pushReady: true,
   },
+  match_ball_custodian_assigned: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
+  match_ball_custodian_reminder: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
   match_chat_message: {
     category: "match",
     defaultMode: "notify",

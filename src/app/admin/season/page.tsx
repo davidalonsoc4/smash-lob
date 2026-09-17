@@ -67,7 +67,10 @@ import { recordActivityEvent } from "@/lib/activity";
 import { showActionFeedback } from "@/lib/actionFeedback";
 import { getPublicInviteUrl } from "@/lib/inviteUrls";
 import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
-import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment";
+import {
+  calculateBallCustodianAssignment,
+  getOpeningRoundBallAllocation,
+} from "@/lib/ballCustodianAssignment";
 import { buildBallsAssignmentPriorityEntries, moveBallsAssignmentPriority } from "@/lib/organizationBallsAssignment";
 import { buildSeasonRounds } from "@/lib/rounds";
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar";
@@ -1738,11 +1741,15 @@ function OrganizationBallsSettingsPanel({
   roundSettings,
   players,
   matches,
+  creatorPlayerId,
+  creatorPlayerName,
 }: {
   activeLeagueId: string
   roundSettings: SeasonRoundSettings
   players: Array<{ id: string; displayName: string }>
   matches: ReturnType<typeof useCurrentLeagueData>["matches"]
+  creatorPlayerId: string | null
+  creatorPlayerName: string | null
 }) {
   const { tx } = useI18n()
   const { updateSeasonRoundSettings } = useSeasonSettings()
@@ -1760,11 +1767,21 @@ function OrganizationBallsSettingsPanel({
     ...priority.filter((playerId) => seasonPlayers.some((player) => player.id === playerId)),
     ...seasonPlayers.map((player) => player.id).filter((playerId) => !priority.includes(playerId)),
   ]
+  const openingRoundBallAllocation = getOpeningRoundBallAllocation(
+    seasonMatches,
+    roundSettings.openingRoundEnabled && roundSettings.openingRoundAt ? creatorPlayerId : null,
+  )
   const preview = calculateBallCustodianAssignment({
     matches: seasonMatches,
-    seasonPlayerIds: seasonPlayers.map((player) => player.id),
+    seasonPlayerIds: [...seasonPlayers.map((player) => player.id), ...(creatorPlayerId ? [creatorPlayerId] : [])],
     priorityPlayerIds: normalizedPriority,
-    playerNames: Object.fromEntries(seasonPlayers.map((player) => [player.id, player.displayName])),
+    playerNames: Object.fromEntries(
+      [
+        ...seasonPlayers,
+        ...(creatorPlayerId && creatorPlayerName ? [{ id: creatorPlayerId, displayName: creatorPlayerName }] : []),
+      ].map((player) => [player.id, player.displayName]),
+    ),
+    ...openingRoundBallAllocation,
   })
   const hasChanges = enabled !== roundSettings.organizationBallsAssigned ||
     normalizedPriority.some((playerId, index) => playerId !== roundSettings.ballsAssignmentPriority[index]) ||
@@ -1792,19 +1809,23 @@ function OrganizationBallsSettingsPanel({
 
   return <AppCard>
     <p className="font-bold">{tx("Bolas asignadas por la organización")}</p>
-    <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{hasRecordedResults ? tx("Bloqueado porque ya hay un resultado registrado en esta temporada.") : tx("La app calcula el mínimo número de custodios y asigna un encargado a cada partido.")}</p>
+    <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{hasRecordedResults ? tx("Bloqueado porque ya hay un resultado registrado en esta temporada.") : tx("La app calcula el mínimo número de custodios y asigna un encargado a cada partido. Si hay Jornada de Apertura, el organizador se encarga de todos los partidos de la Jornada 1.")}</p>
     <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
       <input type="checkbox" checked={enabled} disabled={hasRecordedResults} onChange={(event) => setEnabled(event.target.checked)} className="mt-1" />
       <span><span className="block text-sm font-black">{tx("Activar bolas asignadas por la organización")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Al activarlo desaparece la compra de bolas en pagos y reservas.")}</span></span>
     </label>
     {enabled ? <div className="mt-3 space-y-1.5"><p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad en empates")}</p>{normalizedPriority.map((playerId, index) => { const player = seasonPlayers.find((item) => item.id === playerId); if (!player) return null; return <div key={playerId} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-bold"><span className="w-5 text-xs text-neutral-400">{index + 1}</span><span className="min-w-0 flex-1 truncate">{player.displayName}</span><button type="button" disabled={hasRecordedResults || index === 0} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, -1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={hasRecordedResults || index === normalizedPriority.length - 1} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, 1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↓</button></div> })}</div> : null}
-    {enabled && seasonMatches.length > 0 ? (
+    {enabled && (seasonMatches.length > 0 || Object.keys(openingRoundBallAllocation.additionalBotesByPlayerId).length > 0) ? (
       <>
         <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx(`${preview.custodianPlayerIds.length} custodios · ${preview.totalBotes} botes repartidos`)}</p>
+        {seasonMatches.length === 0 ? <p className="text-xs font-semibold text-neutral-500">{tx("El resto del reparto se calculará cuando la plantilla esté completa y se genere el calendario.")}</p> : null}
         {preview.custodianPlayerIds.length > 0 ? (
           <div className="mt-2 space-y-1 rounded-xl bg-neutral-50 p-2.5">
             {preview.custodianPlayerIds.map((playerId) => {
-              const player = seasonPlayers.find((item) => item.id === playerId)
+              const player = seasonPlayers.find((item) => item.id === playerId) ??
+                (playerId === creatorPlayerId && creatorPlayerName
+                  ? { id: creatorPlayerId, displayName: creatorPlayerName }
+                  : players.find((item) => item.id === playerId))
               const botes = preview.botesByPlayerId[playerId] ?? 0
               return (
                 <div key={playerId} className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm">
@@ -1817,7 +1838,7 @@ function OrganizationBallsSettingsPanel({
         ) : null}
       </>
     ) : null}
-    {enabled && seasonMatches.length === 0 ? <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")}</p> : null}
+    {enabled && seasonMatches.length === 0 && Object.keys(openingRoundBallAllocation.additionalBotesByPlayerId).length === 0 ? <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")}</p> : null}
     <button type="button" onClick={save} disabled={isSaving || !hasChanges || hasRecordedResults} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? tx("Guardando...") : tx("Guardar reparto")}</button>
     {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
   </AppCard>
@@ -5077,6 +5098,11 @@ function NewSeasonForm({
                 );
               })}
             </div>
+            {openingRoundEnabled && effectiveOpeningRoundIso && registrationRecipientPlayerId ? (
+              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">
+                {tx("Los 2 botes de la Jornada de Apertura se asignarán al creador de la liga.")}
+              </p>
+            ) : null}
           </div>
         ) : null}
       </AppCard>
@@ -5577,7 +5603,7 @@ export default function AdminSeasonPage() {
   const { tx } = useI18n()
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole, isSuperuser } = useLeagueAccess();
-  const { hydrateSeasonSnapshot, seasons } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, playerProfiles, seasons } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const {
     activeLeague,
@@ -5604,9 +5630,12 @@ export default function AdminSeasonPage() {
   const [isDuplicatingSeason, setIsDuplicatingSeason] = useState(false);
   const [duplicateSeasonError, setDuplicateSeasonError] = useState<string | null>(null);
   const inviteCode = getLeagueInviteCode(activeLeague.id);
-  const registrationRecipientPlayerId = activeLeague.createdByUserId
-    ? players.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
+  const registrationRecipientPlayer = activeLeague.createdByUserId
+    ? playerProfiles.find((player) =>
+        player.leagueId === activeLeague.id && player.userId === activeLeague.createdByUserId,
+      ) ?? null
     : null;
+  const registrationRecipientPlayerId = registrationRecipientPlayer?.id ?? null;
 
   if (!canAccessAdmin) {
     return (
@@ -5816,6 +5845,8 @@ export default function AdminSeasonPage() {
               roundSettings={roundSettings}
               players={players}
               matches={matches}
+              creatorPlayerId={registrationRecipientPlayerId}
+              creatorPlayerName={registrationRecipientPlayer?.displayName ?? null}
             />
           </div>
 
@@ -5979,6 +6010,8 @@ export default function AdminSeasonPage() {
               roundSettings={roundSettings}
               players={players}
               matches={matches}
+              creatorPlayerId={registrationRecipientPlayerId}
+              creatorPlayerName={registrationRecipientPlayer?.displayName ?? null}
             />
           </div>
 

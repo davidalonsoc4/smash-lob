@@ -16,6 +16,8 @@ import { getIntlLocale } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
 import {
   fetchSupabaseActivityEvents,
+  isTargetedCustodianActivityType,
+  isTargetedCustodianActivityVisibleToPlayer,
   type ActivityEvent,
 } from "@/lib/activity"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
@@ -284,11 +286,15 @@ function isPersonalEvent({
     return true
   }
 
+  const metadata = event.metadata
+  if (isTargetedCustodianActivityType(event.type, metadata)) {
+    return isTargetedCustodianActivityVisibleToPlayer(event.type, metadata, currentUserId)
+  }
+
   if (event.matchId && currentUserMatchIds.has(event.matchId)) {
     return true
   }
 
-  const metadata = event.metadata
   const directPlayerIds = [
     metadata.playerId,
     metadata.targetPlayerId,
@@ -547,7 +553,12 @@ function ActivityPageContent() {
   )
 
   const effectiveScope: ActivityScope = canAccessAdmin ? scope : scope === "admin" ? "all" : scope
-  const visibleEvents = effectiveScope === "mine" ? personalEvents : events
+  const visibleEvents = effectiveScope === "mine"
+    ? personalEvents
+    : events.filter((event) => {
+        return !isTargetedCustodianActivityType(event.type, event.metadata) || canAccessAdmin ||
+          isTargetedCustodianActivityVisibleToPlayer(event.type, event.metadata, currentUserId)
+      })
   const hasEvents = visibleEvents.length > 0
   const normalizedDraftSettings = mergeWithDefaultActivitySettings(draftSettings)
   const notificationSettingsSummary = useMemo(() => {

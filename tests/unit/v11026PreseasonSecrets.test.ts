@@ -169,7 +169,8 @@ describe("v1.10.26 preseason secret phase", () => {
       read("src/app/api/leagues/[id]/matches/[matchId]/availability/route.ts"),
     ])
 
-    expect(activity).toContain("hiddenMatchIds")
+    expect(activity).toContain("hiddenEventIds")
+    expect(activity).toContain("isTargetedCustodianActivityVisibleToPlayer")
     expect(activity).toContain("!viewer.isCompetitionAdmin")
     expect(activity).toContain("event.matchId")
     expect(push).toContain('reason: "scheduled_season_prestart"')
