@@ -13,6 +13,7 @@ const publicMethods = new Map([
   ["/api/observability/client-error", new Set(["POST"])],
   ["/api/invites/[code]", new Set(["GET"])],
   ["/api/spectator-invites/[code]", new Set(["GET"])],
+  ["/api/public-spectator/[code]", new Set(["GET"])],
 ])
 
 const guardDetectors = [

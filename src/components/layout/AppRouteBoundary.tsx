@@ -26,7 +26,7 @@ const publicRoutes = new Set(["/about", "/privacy", "/terms", "/auth/error", "/o
 export function AppRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
-  if (publicRoutes.has(pathname)) {
+  if (publicRoutes.has(pathname) || pathname.startsWith("/spectate/")) {
     return (
       <>
         <PwaInstallPrompt />
