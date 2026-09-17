@@ -406,7 +406,7 @@ export async function GET(request: Request) {
       .limit(500),
     supabase
       .from("season_settings")
-      .select("league_id,season_id,mvp_system,result_confirmation_mode,scheduled_start_at,preseason_secret_days_before,organization_balls_assigned,balls_assignment_priority,opening_round_enabled,opening_round_at")
+      .select("league_id,season_id,mvp_system,result_confirmation_mode,scheduled_start_at,preseason_secret_days_before,organization_balls_assigned,balls_assignment_priority,balls_assignment_mode,balls_assignment_custodian_ids,opening_round_enabled,opening_round_at")
       .limit(1000),
   ]);
 

@@ -1,6 +1,7 @@
 import "server-only"
 
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
+import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment"
 import { generateBalancedCalendar, getSeasonScheduleRoundCount } from "@/lib/calendar"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type {
@@ -49,6 +50,8 @@ type SettingsRow = {
   availability_recommendations_enabled?: boolean | null
   organization_balls_assigned?: boolean | null
   balls_assignment_priority?: string[] | null
+  balls_assignment_mode?: string | null
+  balls_assignment_custodian_ids?: string[] | null
 }
 
 type PlayerRow = {
@@ -135,7 +138,7 @@ export async function duplicateServerSeason({
     supabase
       .from("season_settings")
       .select(
-        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority",
+        "season_id,league_id,round_window_mode,season_starts_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,registration_fee,schedule_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority,balls_assignment_mode,balls_assignment_custodian_ids",
       )
       .eq("season_id", sourceSeasonId)
       .eq("league_id", leagueId)
@@ -328,6 +331,22 @@ export async function duplicateServerSeason({
     playerIds,
     scheduleMode,
   })
+  if (
+    sourceSettings.organization_balls_assigned === true &&
+    sourceSettings.balls_assignment_mode === "selected"
+  ) {
+    const eligiblePlayerIds = Array.isArray(sourceSettings.balls_assignment_custodian_ids)
+      ? sourceSettings.balls_assignment_custodian_ids.filter((playerId): playerId is string => playerIds.includes(playerId))
+      : []
+    const assignment = calculateBallCustodianAssignment({
+      matches: newMatches,
+      eligiblePlayerIds,
+    })
+    if (eligiblePlayerIds.length === 0 || assignment.unassignedMatchIds.length > 0) {
+      await cleanupDuplicatedSeason({ supabase, seasonId: duplicatedSeason.id })
+      throw new SeasonDuplicationError(409, "balls_assignment_custodians_do_not_cover_schedule")
+    }
+  }
   const { data: createdMatches, error: matchesError } = await supabase
     .from("matches")
     .insert(
@@ -393,6 +412,10 @@ export async function duplicateServerSeason({
     ballsAssignmentPriority: Array.isArray(sourceSettings.balls_assignment_priority)
       ? sourceSettings.balls_assignment_priority.filter((playerId): playerId is string => playerIds.includes(playerId))
       : [],
+    ballsAssignmentMode: sourceSettings.balls_assignment_mode === "selected" ? "selected" : "priority",
+    ballsAssignmentCustodianIds: Array.isArray(sourceSettings.balls_assignment_custodian_ids)
+      ? sourceSettings.balls_assignment_custodian_ids.filter((playerId): playerId is string => playerIds.includes(playerId))
+      : [],
   }
 
   const { error: settingsCreateError } = await supabase
@@ -420,6 +443,11 @@ export async function duplicateServerSeason({
       availability_recommendations_enabled: settings.availabilityRecommendationsEnabled,
       organization_balls_assigned: settings.organizationBallsAssigned,
       balls_assignment_priority: settings.ballsAssignmentPriority,
+      balls_assignment_mode:
+        settings.ballsAssignmentMode === "selected" && (settings.ballsAssignmentCustodianIds?.length ?? 0) > 0
+          ? "selected"
+          : "priority",
+      balls_assignment_custodian_ids: settings.ballsAssignmentCustodianIds,
     })
 
   if (settingsCreateError) {

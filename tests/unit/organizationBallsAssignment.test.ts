@@ -89,4 +89,24 @@ describe("organization ball assignment priorities", () => {
     expect(priorityHelper).toContain('ref: `app:${userId}`')
     expect(mutations).toContain("resolveBallsAssignmentPriority({")
   })
+
+  it("persists the selected-custodian mode and validates schedule coverage", async () => {
+    const [route, settingsRoute, form, mutations, migration] = await Promise.all([
+      readFile("src/app/api/leagues/[id]/seasons/route.ts", "utf8"),
+      readFile("src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts", "utf8"),
+      readFile("src/app/admin/season/page.tsx", "utf8"),
+      readFile("src/lib/serverSeasonMutations.ts", "utf8"),
+      readFile("supabase/migrations/20260917120000_add_manual_ball_custodian_selection.sql", "utf8"),
+    ])
+
+    expect(route).toContain("ballsAssignmentCustodianIds")
+    expect(form).toContain('setBallsAssignmentMode("selected")')
+    expect(form).toContain("ballsAssignmentCustodianIds: effectiveBallsAssignmentCustodianRefs")
+    expect(mutations).toContain("balls_assignment_custodian_ids: cleanBallsAssignmentCustodianIds")
+    expect(mutations).toContain("balls_assignment_custodians_do_not_cover_schedule")
+    expect(settingsRoute.indexOf("const { data: ballsSettings"))
+      .toBeLessThan(settingsRoute.indexOf('if (access.season.status !== "upcoming")'))
+    expect(migration).toContain("balls_assignment_mode IN ('priority', 'selected')")
+    expect(migration).toContain("balls_assignment_custodian_ids uuid[]")
+  })
 })

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 import {
   isTargetedCustodianActivityType,
@@ -30,5 +31,12 @@ describe("ball custodian notifications", () => {
   it("uses the existing schedule and upcoming-match preferences", () => {
     expect(getNotificationPreferenceKeyForEvent("match_ball_custodian_assigned")).toBe("match_schedule")
     expect(getNotificationPreferenceKeyForEvent("match_ball_custodian_reminder")).toBe("match_upcoming")
+  })
+
+  it("creates duty notices only after a match is scheduled and outside hidden pre-start phases", async () => {
+    const source = await readFile("src/lib/serverBallCustodianNotifications.ts", "utf8")
+    expect(source).toContain('match.status !== "scheduled" || !match.scheduled_at')
+    expect(source).toContain("shouldSuppressSeasonMatchNotifications")
+    expect(source).toContain("scheduledTime > now.getTime() + 2 * 60 * 60 * 1000")
   })
 })
