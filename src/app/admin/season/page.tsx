@@ -1755,18 +1755,21 @@ function OrganizationBallsSettingsPanel({
   const { updateSeasonRoundSettings } = useSeasonSettings()
   const [enabled, setEnabled] = useState(roundSettings.organizationBallsAssigned)
   const [priority, setPriority] = useState(roundSettings.ballsAssignmentPriority)
+  const [mode, setMode] = useState<"priority" | "selected">(roundSettings.ballsAssignmentMode ?? "priority")
+  const [selectedCustodians, setSelectedCustodians] = useState(roundSettings.ballsAssignmentCustodianIds ?? [])
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const hasRecordedResults = matches.some((match) => match.seasonId === roundSettings.seasonId && (
     match.pointsA !== null || match.pointsB !== null || match.sets.length > 0 ||
     Boolean(match.resultRecordedAt) || Boolean(match.resultReportedByPlayerId)
   ))
-  const seasonPlayers = players.filter((player) => priority.includes(player.id) || matches.some((match) => match.seasonId === roundSettings.seasonId && [...match.teamA, ...match.teamB].includes(player.id)))
+  const seasonPlayers = players.filter((player) => priority.includes(player.id) || selectedCustodians.includes(player.id) || matches.some((match) => match.seasonId === roundSettings.seasonId && [...match.teamA, ...match.teamB].includes(player.id)))
   const seasonMatches = matches.filter((match) => match.seasonId === roundSettings.seasonId)
   const normalizedPriority = [
     ...priority.filter((playerId) => seasonPlayers.some((player) => player.id === playerId)),
     ...seasonPlayers.map((player) => player.id).filter((playerId) => !priority.includes(playerId)),
   ]
+  const normalizedCustodians = selectedCustodians.filter((playerId) => seasonPlayers.some((player) => player.id === playerId))
   const openingRoundBallAllocation = getOpeningRoundBallAllocation(
     seasonMatches,
     roundSettings.openingRoundEnabled && roundSettings.openingRoundAt ? creatorPlayerId : null,
@@ -1774,7 +1777,8 @@ function OrganizationBallsSettingsPanel({
   const preview = calculateBallCustodianAssignment({
     matches: seasonMatches,
     seasonPlayerIds: [...seasonPlayers.map((player) => player.id), ...(creatorPlayerId ? [creatorPlayerId] : [])],
-    priorityPlayerIds: normalizedPriority,
+    priorityPlayerIds: mode === "selected" ? [] : normalizedPriority,
+    eligiblePlayerIds: mode === "selected" ? normalizedCustodians : undefined,
     playerNames: Object.fromEntries(
       [
         ...seasonPlayers,
@@ -1784,6 +1788,9 @@ function OrganizationBallsSettingsPanel({
     ...openingRoundBallAllocation,
   })
   const hasChanges = enabled !== roundSettings.organizationBallsAssigned ||
+    mode !== (roundSettings.ballsAssignmentMode ?? "priority") ||
+    normalizedCustodians.some((playerId, index) => playerId !== (roundSettings.ballsAssignmentCustodianIds ?? [])[index]) ||
+    normalizedCustodians.length !== (roundSettings.ballsAssignmentCustodianIds ?? []).length ||
     normalizedPriority.some((playerId, index) => playerId !== roundSettings.ballsAssignmentPriority[index]) ||
     normalizedPriority.length !== roundSettings.ballsAssignmentPriority.length
 
@@ -1795,6 +1802,8 @@ function OrganizationBallsSettingsPanel({
       leagueId: activeLeagueId,
       organizationBallsAssigned: enabled,
       ballsAssignmentPriority: normalizedPriority,
+      ballsAssignmentMode: mode,
+      ballsAssignmentCustodianIds: normalizedCustodians,
     }
     try {
       if (isSupabaseBackedId(roundSettings.seasonId)) await updateSupabaseSeasonRoundSettings(nextSettings)
@@ -1814,7 +1823,26 @@ function OrganizationBallsSettingsPanel({
       <input type="checkbox" checked={enabled} disabled={hasRecordedResults} onChange={(event) => setEnabled(event.target.checked)} className="mt-1" />
       <span><span className="block text-sm font-black">{tx("Activar bolas asignadas por la organización")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Al activarlo desaparece la compra de bolas en pagos y reservas.")}</span></span>
     </label>
-    {enabled ? <div className="mt-3 space-y-1.5"><p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad en empates")}</p>{normalizedPriority.map((playerId, index) => { const player = seasonPlayers.find((item) => item.id === playerId); if (!player) return null; return <div key={playerId} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-bold"><span className="w-5 text-xs text-neutral-400">{index + 1}</span><span className="min-w-0 flex-1 truncate">{player.displayName}</span><button type="button" disabled={hasRecordedResults || index === 0} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, -1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={hasRecordedResults || index === normalizedPriority.length - 1} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, 1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↓</button></div> })}</div> : null}
+    {enabled ? <div className="mt-3 space-y-2">
+      <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Modo de reparto")}</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+          <input type="radio" name={`balls-mode-${roundSettings.seasonId}`} checked={mode === "priority"} disabled={hasRecordedResults} onChange={() => setMode("priority")} className="mt-0.5" />
+          <span><span className="block font-black">{tx("Seleccionar orden de prioridad")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Prioridad en empates")}</span></span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+          <input type="radio" name={`balls-mode-${roundSettings.seasonId}`} checked={mode === "selected"} disabled={hasRecordedResults} onChange={() => setMode("selected")} className="mt-0.5" />
+          <span><span className="block font-black">{tx("Seleccionar custodios")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Solo las personas elegidas podrán llevar botes.")}</span></span>
+        </label>
+      </div>
+      {mode === "priority" ? <div className="space-y-1.5">{normalizedPriority.map((playerId, index) => { const player = seasonPlayers.find((item) => item.id === playerId); if (!player) return null; return <div key={playerId} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-2.5 py-2 text-sm font-bold"><span className="w-5 text-xs text-neutral-400">{index + 1}</span><span className="min-w-0 flex-1 truncate">{player.displayName}</span><button type="button" disabled={hasRecordedResults || index === 0} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, -1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={hasRecordedResults || index === normalizedPriority.length - 1} onClick={() => setPriority(moveBallsAssignmentPriority(normalizedPriority, index, 1))} className="rounded-lg bg-white px-2 py-1 text-xs disabled:opacity-30">↓</button></div> })}</div> : <div className="space-y-1.5">
+        <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores que pueden ser custodios")}</p>
+        {seasonPlayers.map((player) => <label key={player.id} className="flex items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-sm font-bold"><input type="checkbox" checked={normalizedCustodians.includes(player.id)} disabled={hasRecordedResults} onChange={(event) => setSelectedCustodians((current) => event.target.checked ? [...current, player.id] : current.filter((id) => id !== player.id))} /><span>{player.displayName}</span></label>)}
+        {normalizedCustodians.length === 0 ? <p className="text-xs font-semibold text-red-600">{tx("Selecciona al menos un custodio.")}</p> : null}
+        {seasonMatches.length > 0 && preview.unassignedMatchIds.length > 0 ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">{tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")}</p> : null}
+        {seasonMatches.length === 0 ? <p className="text-xs font-semibold text-neutral-500">{tx("La cobertura se comprobará cuando se genere el calendario.")}</p> : null}
+      </div>}
+    </div> : null}
     {enabled && (seasonMatches.length > 0 || Object.keys(openingRoundBallAllocation.additionalBotesByPlayerId).length > 0) ? (
       <>
         <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx(`${preview.custodianPlayerIds.length} custodios · ${preview.totalBotes} botes repartidos`)}</p>
@@ -1839,7 +1867,7 @@ function OrganizationBallsSettingsPanel({
       </>
     ) : null}
     {enabled && seasonMatches.length === 0 && Object.keys(openingRoundBallAllocation.additionalBotesByPlayerId).length === 0 ? <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs font-semibold text-neutral-600">{tx("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")}</p> : null}
-    <button type="button" onClick={save} disabled={isSaving || !hasChanges || hasRecordedResults} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? tx("Guardando...") : tx("Guardar reparto")}</button>
+    <button type="button" onClick={save} disabled={isSaving || !hasChanges || hasRecordedResults || (enabled && mode === "selected" && (normalizedCustodians.length === 0 || (seasonMatches.length > 0 && preview.unassignedMatchIds.length > 0)))} className="mt-3 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-4 py-3 text-center text-sm font-black text-white disabled:bg-neutral-200 disabled:text-neutral-500">{isSaving ? tx("Guardando...") : tx("Guardar reparto")}</button>
     {error ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{error}</p> : null}
   </AppCard>
 }
@@ -3475,7 +3503,11 @@ function NewSeasonForm({
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
   );
   const [organizationBallsAssigned, setOrganizationBallsAssigned] = useState(false);
+  const [ballsAssignmentMode, setBallsAssignmentMode] = useState<"priority" | "selected">("priority");
   const [ballsAssignmentPriority, setBallsAssignmentPriority] = useState<string[]>(
+    currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
+  );
+  const [ballsAssignmentCustodianRefs, setBallsAssignmentCustodianRefs] = useState<string[]>(
     currentPlayers.map((player) => player.id).slice(0, defaultPlayerCount),
   );
   const [newPlayerNames, setNewPlayerNames] = useState<string[]>([]);
@@ -3645,6 +3677,7 @@ function NewSeasonForm({
       .map((entry) => entry.ref)
       .filter((ref) => !ballsAssignmentPriority.includes(ref)),
   ];
+  const effectiveBallsAssignmentCustodianRefs = ballsAssignmentCustodianRefs.filter((ref) => selectedBallsPriorityRefs.has(ref));
   const normalizedAppPlayerQuery = appPlayerQuery.trim().toLocaleLowerCase("es");
   const isAppDirectoryLoading =
     isSupabaseBackedId(activeLeagueId) && appDirectoryLeagueId !== activeLeagueId;
@@ -3691,6 +3724,27 @@ function NewSeasonForm({
       ? selfPlayerValue
       : null;
   const manualCalendarMatches = getManualCalendarMatches(manualCalendar);
+  const getCustodianRosterValue = (ref: string) => {
+    if (selectedPlayerIds.includes(ref)) return ref;
+    if (ref === "self:creator") return selfPlayerValue ?? getNewPlayerToken(0);
+    if (ref.startsWith("new:")) return getNewPlayerToken(Number(ref.slice(4)));
+    if (ref.startsWith("app:")) {
+      const appIndex = selectedAppUsers.findIndex((person) => person.userId === ref.slice(4));
+      return appIndex >= 0 ? getNewPlayerToken(appPlayerTokenOffset + appIndex) : null;
+    }
+    return null;
+  };
+  const selectedCustodianRosterIds = effectiveBallsAssignmentCustodianRefs
+    .map(getCustodianRosterValue)
+    .filter((playerId): playerId is string => Boolean(playerId));
+  const selectedCustodianCoverage = calculateBallCustodianAssignment({
+    matches: manualCalendarMatches
+      .filter((match) => !(openingRoundEnabled && effectiveOpeningRoundIso && match.round === 1))
+      .map((match, index) => ({ ...match, id: `preview-${match.round}-${index}` })),
+    seasonPlayerIds: manualPlayerOptions.map((option) => option.value),
+    eligiblePlayerIds: selectedCustodianRosterIds,
+  });
+  const canValidateCustodianCoverage = rosterMode === "fixed" && manualCalendarMatches.length > 0;
   const isManualCalendarReady =
     rosterMode === "self_registration" ||
     calendarMode !== "manual" ||
@@ -3718,6 +3772,10 @@ function NewSeasonForm({
     hasValidRegistrationFee &&
     hasValidScheduledStart &&
     hasValidOpeningRound &&
+    (!organizationBallsAssigned || ballsAssignmentMode !== "selected" || (
+      effectiveBallsAssignmentCustodianRefs.length > 0 &&
+      (!canValidateCustodianCoverage || selectedCustodianCoverage.unassignedMatchIds.length === 0)
+    )) &&
     (roundWindowMode === "none" ||
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
@@ -3939,6 +3997,8 @@ function NewSeasonForm({
       availabilityRecommendationsEnabled,
       organizationBallsAssigned,
       ballsAssignmentPriority: effectiveBallsAssignmentPriority,
+      ballsAssignmentMode,
+      ballsAssignmentCustodianIds: effectiveBallsAssignmentCustodianRefs,
       manualMatches,
       scheduleMode: effectiveScheduleMode,
       targetRoundCount: totalSeasonRounds,
@@ -3995,8 +4055,13 @@ function NewSeasonForm({
         }
       } catch (supabaseError) {
         recordSupabaseError("start-new-season", supabaseError);
+        const createErrorCode = supabaseError instanceof Error ? supabaseError.message : "";
         setError(
-          "No se ha podido crear la nueva temporada en Supabase. Revisa smash-lob-last-supabase-error.",
+          createErrorCode.includes("balls_assignment_custodians_do_not_cover_schedule")
+            ? tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")
+            : createErrorCode.includes("balls_assignment_custodian_required")
+              ? tx("Selecciona al menos un custodio.")
+              : "No se ha podido crear la nueva temporada en Supabase. Revisa smash-lob-last-supabase-error.",
         );
         setIsSaving(false);
         return;
@@ -5078,29 +5143,51 @@ function NewSeasonForm({
           />
           <span>
             <span className="block text-sm font-black">{tx("Activar reparto de botes")}</span>
-            <span className="mt-1 block text-xs text-neutral-500">{tx("Ordena los jugadores para resolver los empates del reparto.")}</span>
+            <span className="mt-1 block text-xs text-neutral-500">{tx("Elige cómo se decidirá quién puede custodiar los botes.")}</span>
           </span>
         </label>
         {organizationBallsAssigned ? (
           <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad de custodios")}</p>
-            <div className="mt-2 space-y-1.5">
-              {effectiveBallsAssignmentPriority.map((priorityRef, index) => {
-                const player = ballsAssignmentPriorityEntries.find((item) => item.ref === priorityRef);
-                if (!player) return null;
-                return (
-                  <div key={priorityRef} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
-                    <span className="w-5 text-xs text-neutral-400">{index + 1}</span>
-                    <span className="min-w-0 flex-1 truncate">{player.name}</span>
-                    <button type="button" disabled={index === 0} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Subir prioridad")}>↑</button>
-                    <button type="button" disabled={index === effectiveBallsAssignmentPriority.length - 1} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Bajar prioridad")}>↓</button>
-                  </div>
-                );
-              })}
+            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Modo de reparto")}</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+                <input type="radio" name="creation-balls-mode" checked={ballsAssignmentMode === "priority"} onChange={() => setBallsAssignmentMode("priority")} className="mt-0.5" />
+                <span><span className="block font-black">{tx("Seleccionar orden de prioridad")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("La app resuelve empates siguiendo este orden.")}</span></span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+                <input type="radio" name="creation-balls-mode" checked={ballsAssignmentMode === "selected"} onChange={() => {
+                  setBallsAssignmentMode("selected");
+                  if (effectiveBallsAssignmentCustodianRefs.length === 0) setBallsAssignmentCustodianRefs(ballsAssignmentPriorityEntries.map((item) => item.ref));
+                }} className="mt-0.5" />
+                <span><span className="block font-black">{tx("Seleccionar custodios")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Solo las personas elegidas podrán llevar botes.")}</span></span>
+              </label>
             </div>
+            {ballsAssignmentMode === "priority" ? <>
+              <p className="mt-3 text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad de custodios")}</p>
+              <div className="mt-2 space-y-1.5">
+                {effectiveBallsAssignmentPriority.map((priorityRef, index) => {
+                  const player = ballsAssignmentPriorityEntries.find((item) => item.ref === priorityRef);
+                  if (!player) return null;
+                  return (
+                    <div key={priorityRef} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
+                      <span className="w-5 text-xs text-neutral-400">{index + 1}</span>
+                      <span className="min-w-0 flex-1 truncate">{player.name}</span>
+                      <button type="button" disabled={index === 0} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Subir prioridad")}>↑</button>
+                      <button type="button" disabled={index === effectiveBallsAssignmentPriority.length - 1} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Bajar prioridad")}>↓</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </> : <div className="mt-3 space-y-1.5">
+              <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores que pueden ser custodios")}</p>
+              {ballsAssignmentPriorityEntries.map((player) => <label key={player.ref} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-bold"><input type="checkbox" checked={effectiveBallsAssignmentCustodianRefs.includes(player.ref)} onChange={(event) => setBallsAssignmentCustodianRefs((current) => event.target.checked ? [...current, player.ref] : current.filter((ref) => ref !== player.ref))} /><span>{player.name}</span></label>)}
+              {effectiveBallsAssignmentCustodianRefs.length === 0 ? <p className="text-xs font-semibold text-red-600">{tx("Selecciona al menos un custodio.")}</p> : null}
+              {canValidateCustodianCoverage && selectedCustodianCoverage.unassignedMatchIds.length > 0 ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">{tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")}</p> : null}
+              {rosterMode === "self_registration" ? <p className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">{tx("La cobertura se comprobará cuando se genere el calendario.")}</p> : null}
+            </div>}
             {openingRoundEnabled && effectiveOpeningRoundIso && registrationRecipientPlayerId ? (
               <p className="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">
-                {tx("Los 2 botes de la Jornada de Apertura se asignarán al creador de la liga.")}
+                {tx("Todos los partidos de la Jornada de Apertura se asignarán al organizador.")}
               </p>
             ) : null}
           </div>
@@ -5704,7 +5791,9 @@ export default function AdminSeasonPage() {
             ? "Solo se puede duplicar una temporada terminada."
             : code.includes("season_player_count_invalid")
               ? "La última temporada no tiene un número válido de jugadores activos."
-              : code.includes("season_duplicate_player_profiles_failed")
+              : code.includes("balls_assignment_custodians_do_not_cover_schedule")
+                ? tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")
+                : code.includes("season_duplicate_player_profiles_failed")
                 ? "No se han podido recuperar todos los jugadores de la última temporada."
                 : code.includes("season_duplicate_player_memberships_failed")
                   ? "No se han podido recuperar las vinculaciones de los jugadores."

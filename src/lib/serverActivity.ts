@@ -2,9 +2,9 @@ import "server-only"
 
 import type { ServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import {
-  isTargetedCustodianActivityType,
   isTargetedCustodianActivityVisibleToPlayer,
 } from "@/lib/activity"
+import { shouldSuppressSeasonMatchNotifications } from "@/lib/preseasonSecrets"
 
 type SupabaseClient = ServerLeagueViewer["supabase"]
 
@@ -467,7 +467,7 @@ export async function fetchServerActivityEvents({
     mapActivityEvent(item as Record<string, unknown>)
   )
 
-  if (!viewer.isCompetitionAdmin) {
+  {
     const matchSeasonIds = Array.from(
       new Set(
         events
@@ -493,7 +493,7 @@ export async function fetchServerActivityEvents({
         viewer.supabase.from("seasons").select("id,status").in("id", matchSeasonIds),
         viewer.supabase
           .from("season_settings")
-          .select("season_id,scheduled_start_at,calendar_visibility_mode,revealed_through_round")
+          .select("season_id,scheduled_start_at,preseason_secret_days_before,calendar_visibility_mode,revealed_through_round")
           .in("season_id", matchSeasonIds),
         viewer.supabase.from("matches").select("id,round").in("id", eventMatchIds),
       ])
@@ -518,26 +518,17 @@ export async function fetchServerActivityEvents({
         if (!event.matchId || !event.seasonId) continue
         const seasonStatus = statusBySeasonId.get(event.seasonId)
         const settings = settingsBySeasonId.get(event.seasonId)
-        const isDutyForViewer =
-          isTargetedCustodianActivityType(event.type, event.metadata) &&
-          isTargetedCustodianActivityVisibleToPlayer(
-            event.type,
-            event.metadata,
-            viewer.membership?.playerId,
-          )
-
-        if (seasonStatus === "upcoming") {
-          const scheduledStartAt =
-            typeof settings?.scheduled_start_at === "string"
-              ? settings.scheduled_start_at
-              : null
-          const scheduledStartMs = scheduledStartAt
-            ? new Date(scheduledStartAt).getTime()
-            : Number.NaN
-          if (Number.isFinite(scheduledStartMs) && scheduledStartMs > now) {
-            if (!isDutyForViewer) hiddenEventIds.add(event.id)
-            continue
-          }
+        if (
+          (seasonStatus === "upcoming" || seasonStatus === "active" || seasonStatus === "finished") &&
+          shouldSuppressSeasonMatchNotifications({
+            status: seasonStatus,
+            scheduledStartAt: typeof settings?.scheduled_start_at === "string" ? settings.scheduled_start_at : null,
+            secretDaysBefore: typeof settings?.preseason_secret_days_before === "number" ? settings.preseason_secret_days_before : null,
+            now,
+          })
+        ) {
+          hiddenEventIds.add(event.id)
+          continue
         }
 
         if (
@@ -551,7 +542,7 @@ export async function fetchServerActivityEvents({
           const effectiveReveal =
             seasonStatus === "active" ? Math.max(storedReveal, 1) : storedReveal
           const matchRound = roundByMatchId.get(event.matchId) ?? 0
-          if (matchRound > effectiveReveal && !isDutyForViewer) {
+          if (matchRound > effectiveReveal) {
             hiddenEventIds.add(event.id)
           }
         }

@@ -77,6 +77,10 @@ function mapSettings({
     ballsAssignmentPriority: Array.isArray(row.balls_assignment_priority)
       ? row.balls_assignment_priority.filter((playerId): playerId is string => typeof playerId === "string")
       : [],
+    ballsAssignmentMode: row.balls_assignment_mode === "selected" ? "selected" : "priority",
+    ballsAssignmentCustodianIds: Array.isArray(row.balls_assignment_custodian_ids)
+      ? row.balls_assignment_custodian_ids.filter((playerId): playerId is string => typeof playerId === "string")
+      : [],
   }
 }
 
