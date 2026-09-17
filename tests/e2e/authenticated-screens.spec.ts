@@ -1,5 +1,7 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
+import jsQR from "jsqr"
+import sharp from "sharp"
 
 const screens = [
   { name: "home", path: "/" },
@@ -32,6 +34,59 @@ test("calendar view selector fits without horizontal scrolling", async ({ page }
   const selector = page.locator('[data-tour="matches-scope"] > div')
   await expect(selector).toBeVisible()
   expect(await selector.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+})
+
+test("league spectator share shows a downloadable QR and shares the league link", async ({ page }) => {
+  const spectatorUrl = "http://localhost:3000/spectator/invite/league-code"
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async ({ url }: { url: string }) => {
+        window.sessionStorage.setItem("qa-shared-spectator-url", url)
+      },
+    })
+  })
+  await page.route("**/api/leagues/league-smash-lob/spectator-invite", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "league-code", url: spectatorUrl }),
+    })
+  })
+
+  await page.goto("/")
+  await page.getByRole("button", { name: "Compartir enlace de espectador" }).click()
+  const dialog = page.getByRole("dialog")
+  await expect(dialog).toBeVisible()
+  const qrImage = dialog.getByRole("img", { name: /Código QR de espectadores/ })
+  await expect(qrImage).toBeVisible()
+  await expect(dialog.getByRole("button", { name: "Descargar" })).toBeEnabled()
+  const qrDataUrl = await qrImage.getAttribute("src")
+  expect(qrDataUrl).toMatch(/^data:image\/svg\+xml;charset=utf-8,/)
+  const qrSvg = decodeURIComponent(qrDataUrl!.slice(qrDataUrl!.indexOf(",") + 1))
+  expect(qrSvg).toContain('fill="#171719"')
+  expect(qrSvg).toContain('href="data:image/png;base64,')
+  expect(qrSvg).toContain('width="96" height="96" rx="16"')
+  expect(qrSvg).toContain('M48,48l12,0 0,12 -12,0 0,-12z')
+  expect(qrSvg).toContain('rx="2.5"')
+  const { data, info } = await sharp(Buffer.from(qrSvg)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const decodedQr = jsQR(new Uint8ClampedArray(data), info.width, info.height)
+  expect(decodedQr?.data).toBe(spectatorUrl)
+  const popupSurface = dialog.locator(":scope > div")
+  const appSurface = page.locator('.app-shell-frame[data-home-route="true"]')
+  await expect(popupSurface).toHaveClass(/app-shell-frame/)
+  expect(await popupSurface.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(
+    await appSurface.evaluate((element) => getComputedStyle(element).backgroundColor),
+  )
+
+  const downloadPromise = page.waitForEvent("download")
+  await dialog.getByRole("button", { name: "Descargar" }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toMatch(/qr-espectador\.svg$/)
+
+  await dialog.getByRole("button", { name: "Compartir" }).click()
+  await expect(dialog.getByRole("status")).toContainText("Enlace de espectador compartido.")
+  expect(await page.evaluate(() => window.sessionStorage.getItem("qa-shared-spectator-url"))).toBe(spectatorUrl)
 })
 
 test.beforeEach(async ({ page }) => {

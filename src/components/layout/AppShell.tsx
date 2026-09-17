@@ -151,7 +151,7 @@ function InviteFloatingControls() {
 
 function SpectatorFloatingControls() {
   const { canShareSpectatorInvite } = useLeagueAccess()
-  const { activeLeague, activeSeason } = useCurrentLeagueData()
+  const { activeLeague } = useCurrentLeagueData()
 
   if (!canShareSpectatorInvite(activeLeague.id)) {
     return null
@@ -161,7 +161,6 @@ function SpectatorFloatingControls() {
     <FloatingSpectatorShareButton
       leagueId={activeLeague.id}
       leagueName={activeLeague.name}
-      seasonName={activeSeason.name}
     />
   )
 }
