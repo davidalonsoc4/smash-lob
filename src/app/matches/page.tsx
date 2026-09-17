@@ -62,7 +62,14 @@ export default function MatchesPage() {
     ? calculateBallCustodianAssignment({
         matches: seasonMatches,
         seasonPlayerIds: players.map((player) => player.id),
-        priorityPlayerIds: roundSettings.ballsAssignmentPriority,
+        priorityPlayerIds:
+          roundSettings.ballsAssignmentMode === "selected"
+            ? []
+            : roundSettings.ballsAssignmentPriority,
+        eligiblePlayerIds:
+          roundSettings.ballsAssignmentMode === "selected"
+            ? roundSettings.ballsAssignmentCustodianIds ?? []
+            : undefined,
         playerNames: Object.fromEntries(players.map((player) => [player.id, player.displayName])),
         ...openingRoundBallAllocation,
       })
@@ -311,11 +318,10 @@ export default function MatchesPage() {
                       leagueLocations={activeLeague.locations}
                       showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
                       hideMissingScheduleMeta
-                      ballCustodianName={ballAssignment?.byMatchId[match.id]
-                        ? players.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ??
-                          leaguePlayers.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ??
-                          ballAssignment.byMatchId[match.id]
-                        : null}
+                      isCurrentUserBallCustodian={
+                        Boolean(currentUserId) &&
+                        ballAssignment?.byMatchId[match.id] === currentUserId
+                      }
                     />
                   ))}
                 </div>

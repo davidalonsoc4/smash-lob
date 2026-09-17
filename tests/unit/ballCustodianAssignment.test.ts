@@ -35,6 +35,34 @@ describe("calculateBallCustodianAssignment", () => {
     expect(result.totalBotes).toBe(2)
   })
 
+  it("restricts the minimum custodian set to the selected eligible players", () => {
+    const result = calculateBallCustodianAssignment({
+      seasonPlayerIds: ["a", "b", "c", "d"],
+      eligiblePlayerIds: ["b", "c"],
+      matches: [
+        { id: "m1", round: 1, teamA: ["a", "d"], teamB: ["b", "d"] },
+        { id: "m2", round: 2, teamA: ["a", "c"], teamB: ["d", "a"] },
+      ],
+    })
+
+    expect(result.custodianPlayerIds).toEqual(["b", "c"])
+    expect(result.unassignedMatchIds).toEqual([])
+    expect(result.totalBotes).toBe(2)
+  })
+
+  it("reports matches that have no selected eligible participant", () => {
+    const result = calculateBallCustodianAssignment({
+      seasonPlayerIds: ["a", "b", "c", "d"],
+      eligiblePlayerIds: ["x"],
+      matches: [
+        { id: "m1", round: 1, teamA: ["a", "b"], teamB: ["c", "d"] },
+      ],
+    })
+
+    expect(result.byMatchId).toEqual({})
+    expect(result.unassignedMatchIds).toEqual(["m1"])
+  })
+
   it("supports additional bottles that are not attached to a match", () => {
     const result = calculateBallCustodianAssignment({
       matches: [
@@ -73,6 +101,7 @@ describe("calculateBallCustodianAssignment", () => {
       matches,
       seasonPlayerIds: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"],
       priorityPlayerIds: ["a", "c", "g", "b", "d", "e", "f", "h", "i", "j", "k", "l", "m"],
+      eligiblePlayerIds: ["a", "c", "g"],
       fixedAssignmentsByMatchId: openingAllocation.fixedAssignmentsByMatchId,
       additionalBotesByPlayerId: openingAllocation.additionalBotesByPlayerId,
     })
@@ -83,6 +112,7 @@ describe("calculateBallCustodianAssignment", () => {
     expect(result.botesByPlayerId).toEqual({ a: 1, c: 1, g: 1, creator: 3 })
     expect(result.custodianPlayerIds).toEqual(["a", "c", "g", "creator"])
     expect(result.totalBotes).toBe(6)
+    expect(result.unassignedMatchIds).toEqual([])
   })
 
   it("assigns the actual first-round match count without adding extra bottles", () => {

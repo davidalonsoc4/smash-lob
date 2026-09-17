@@ -9,6 +9,7 @@ export type BallCustodianAssignment = {
   byMatchId: Record<string, string>
   botesByPlayerId: Record<string, number>
   custodianPlayerIds: string[]
+  unassignedMatchIds: string[]
   totalBotes: number
 }
 
@@ -59,6 +60,7 @@ export function calculateBallCustodianAssignment({
   matches,
   seasonPlayerIds = [],
   priorityPlayerIds = [],
+  eligiblePlayerIds,
   playerNames = {},
   additionalBotesByPlayerId = {},
   fixedAssignmentsByMatchId = {},
@@ -66,6 +68,7 @@ export function calculateBallCustodianAssignment({
   matches: BallAssignmentMatch[]
   seasonPlayerIds?: string[]
   priorityPlayerIds?: string[]
+  eligiblePlayerIds?: string[]
   playerNames?: Record<string, string>
   additionalBotesByPlayerId?: Record<string, number>
   fixedAssignmentsByMatchId?: Record<string, string>
@@ -91,6 +94,7 @@ export function calculateBallCustodianAssignment({
       byMatchId: {},
       botesByPlayerId,
       custodianPlayerIds,
+      unassignedMatchIds: [],
       totalBotes: Object.values(botesByPlayerId).reduce((total, count) => total + count, 0),
     }
   }
@@ -110,7 +114,7 @@ export function calculateBallCustodianAssignment({
     ...Array.from(allPlayers).filter((playerId) => !priority.includes(playerId)).sort((first, second) =>
       compareText(playerNames[first] ?? first, playerNames[second] ?? second),
     ),
-  ]
+  ].filter((playerId) => eligiblePlayerIds === undefined || eligiblePlayerIds.includes(playerId))
   const candidateIndex = new Map(candidateIds.map((playerId, index) => [playerId, index]))
   const matchesNeedingCustodian = usableMatches.filter((match) => !fixedAssignmentsByMatchId[match.id])
   const matchCandidates = matchesNeedingCustodian.map((match) =>
@@ -225,6 +229,9 @@ export function calculateBallCustodianAssignment({
     byMatchId,
     botesByPlayerId: counts,
     custodianPlayerIds,
+    unassignedMatchIds: usableMatches
+      .filter((match) => !byMatchId[match.id])
+      .map((match) => match.id),
     totalBotes: Object.values(counts).reduce((total, count) => total + count, 0),
   }
 }

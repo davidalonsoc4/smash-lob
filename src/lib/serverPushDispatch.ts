@@ -13,6 +13,7 @@ import {
   getActivityDeliveryMode,
   normalizeLeagueActivitySettings,
 } from "@/lib/activitySettings";
+import { shouldSuppressSeasonMatchNotifications } from "@/lib/preseasonSecrets";
 
 export type PushDispatchResult = {
   ok: boolean;
@@ -1159,7 +1160,7 @@ export async function dispatchPushForActivityEvent(
         .maybeSingle(),
       supabase
         .from("season_settings")
-        .select("scheduled_start_at,calendar_visibility_mode,revealed_through_round")
+        .select("scheduled_start_at,preseason_secret_days_before,calendar_visibility_mode,revealed_through_round")
         .eq("season_id", event.season_id)
         .maybeSingle(),
       supabase
@@ -1173,21 +1174,15 @@ export async function dispatchPushForActivityEvent(
       return { ok: true, sent: 0, reason: "preseason_guard_unavailable" };
     }
 
-    const scheduledStartAt =
-      typeof settingsRow?.scheduled_start_at === "string"
-        ? settingsRow.scheduled_start_at
-        : null;
-    const scheduledStartMs = scheduledStartAt
-      ? new Date(scheduledStartAt).getTime()
-      : Number.NaN;
-    const scheduledSeasonStillHidden =
-      seasonRow?.status === "upcoming" &&
-      Number.isFinite(scheduledStartMs) &&
-      scheduledStartMs > Date.now();
-
-    const isCustodianDutyEvent = isBallCustodianDutyNotification(event.type);
-
-    if (scheduledSeasonStillHidden && !isCustodianDutyEvent) {
+    const seasonStatus = seasonRow?.status;
+    if (
+      (seasonStatus === "upcoming" || seasonStatus === "active" || seasonStatus === "finished") &&
+      shouldSuppressSeasonMatchNotifications({
+        status: seasonStatus,
+        scheduledStartAt: settingsRow?.scheduled_start_at,
+        secretDaysBefore: settingsRow?.preseason_secret_days_before,
+      })
+    ) {
       return { ok: true, sent: 0, reason: "scheduled_season_prestart" };
     }
 
@@ -1202,7 +1197,6 @@ export async function dispatchPushForActivityEvent(
 
     if (
       progressiveCalendar &&
-      !isCustodianDutyEvent &&
       seasonRow?.status !== "finished" &&
       matchRound > effectiveReveal
     ) {

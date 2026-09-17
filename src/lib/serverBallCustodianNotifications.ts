@@ -5,6 +5,7 @@ import {
   getOpeningRoundBallAllocation,
 } from "@/lib/ballCustodianAssignment"
 import { getScheduleLocationFallbackText } from "@/lib/leagueLocations"
+import { shouldSuppressSeasonMatchNotifications } from "@/lib/preseasonSecrets"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 
 type SupabaseClient = NonNullable<ReturnType<typeof createSupabaseServiceClient>>
@@ -14,8 +15,12 @@ export type OrganizationBallsSetting = {
   season_id: string
   organization_balls_assigned: boolean | null
   balls_assignment_priority: string[] | null
+  balls_assignment_mode?: string | null
+  balls_assignment_custodian_ids?: string[] | null
   opening_round_enabled: boolean | null
   opening_round_at: string | null
+  scheduled_start_at?: string | null
+  preseason_secret_days_before?: number | null
 }
 
 type AssignmentMatch = {
@@ -45,6 +50,11 @@ type PlayerRow = {
 type LeagueRow = {
   id: string
   created_by_user_id: string | null
+}
+
+type SeasonStatusRow = {
+  id: string
+  status: "upcoming" | "active" | "finished"
 }
 
 type CreatorMembershipRow = {
@@ -194,13 +204,18 @@ export async function runBallCustodianNotificationAutomation({
 
   const seasonIds = Array.from(new Set(organizationSettings.map((setting) => setting.season_id)))
   const leagueIds = Array.from(new Set(organizationSettings.map((setting) => setting.league_id)))
-  const [seasonMatches, leaguesResult] = await Promise.all([
+  const [seasonMatches, leaguesResult, seasonsResult] = await Promise.all([
     fetchOrganizationSeasonMatches(supabase, seasonIds),
     supabase.from("leagues").select("id,created_by_user_id").in("id", leagueIds),
+    supabase.from("seasons").select("id,status").in("id", seasonIds),
   ])
 
   if (leaguesResult.error) throw leaguesResult.error
+  if (seasonsResult.error) throw seasonsResult.error
   const leagues = (leaguesResult.data ?? []) as LeagueRow[]
+  const seasonStatusById = new Map(
+    ((seasonsResult.data ?? []) as SeasonStatusRow[]).map((season) => [season.id, season.status]),
+  )
   const creatorUserIdByLeagueId = new Map(leagues.map((league) => [league.id, league.created_by_user_id]))
   const creatorUserIds = Array.from(
     new Set(leagues.map((league) => league.created_by_user_id).filter((id): id is string => Boolean(id))),
@@ -238,12 +253,15 @@ export async function runBallCustodianNotificationAutomation({
   const priorityPlayerIds = organizationSettings.flatMap((setting) =>
     Array.isArray(setting.balls_assignment_priority) ? setting.balls_assignment_priority : [],
   )
+  const explicitlySelectedPlayerIds = organizationSettings.flatMap((setting) =>
+    Array.isArray(setting.balls_assignment_custodian_ids) ? setting.balls_assignment_custodian_ids : [],
+  )
   const fixturePlayerIds = seasonMatches.flatMap((match) => [
     ...toPlayerIds(match.team_a),
     ...toPlayerIds(match.team_b),
   ])
   const candidatePlayerIds = Array.from(
-    new Set([...priorityPlayerIds, ...fixturePlayerIds, ...creatorPlayerIdByLeagueId.values()]),
+    new Set([...priorityPlayerIds, ...explicitlySelectedPlayerIds, ...fixturePlayerIds, ...creatorPlayerIdByLeagueId.values()]),
   )
   const candidatePlayers: PlayerRow[] = []
 
@@ -270,9 +288,24 @@ export async function runBallCustodianNotificationAutomation({
   const custodianByMatchId: Record<string, string> = {}
 
   for (const setting of organizationSettings) {
+    const seasonStatus = seasonStatusById.get(setting.season_id)
+    if (
+      seasonStatus &&
+      shouldSuppressSeasonMatchNotifications({
+        status: seasonStatus,
+        scheduledStartAt: setting.scheduled_start_at,
+        secretDaysBefore: setting.preseason_secret_days_before,
+        now: now.getTime(),
+      })
+    ) {
+      continue
+    }
     const matches = matchesBySeasonId.get(setting.season_id) ?? []
     const creatorPlayerId = creatorPlayerIdByLeagueId.get(setting.league_id) ?? null
-    const seasonPlayerIds = new Set<string>(Array.isArray(setting.balls_assignment_priority) ? setting.balls_assignment_priority : [])
+    const seasonPlayerIds = new Set<string>([
+      ...(Array.isArray(setting.balls_assignment_priority) ? setting.balls_assignment_priority : []),
+      ...(Array.isArray(setting.balls_assignment_custodian_ids) ? setting.balls_assignment_custodian_ids : []),
+    ])
     matches.forEach((match) => {
       toPlayerIds(match.team_a).forEach((playerId) => seasonPlayerIds.add(playerId))
       toPlayerIds(match.team_b).forEach((playerId) => seasonPlayerIds.add(playerId))
@@ -291,7 +324,11 @@ export async function runBallCustodianNotificationAutomation({
     const assignment = calculateBallCustodianAssignment({
       matches: assignmentMatches,
       seasonPlayerIds: Array.from(seasonPlayerIds),
-      priorityPlayerIds: setting.balls_assignment_priority ?? [],
+      priorityPlayerIds: setting.balls_assignment_mode === "selected" ? [] : setting.balls_assignment_priority ?? [],
+      eligiblePlayerIds:
+        setting.balls_assignment_mode === "selected"
+          ? setting.balls_assignment_custodian_ids ?? []
+          : undefined,
       playerNames: Object.fromEntries(
         Array.from(seasonPlayerIds).map((playerId) => [playerId, playerById.get(playerId)?.display_name ?? playerId]),
       ),

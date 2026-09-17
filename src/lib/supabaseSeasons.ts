@@ -63,6 +63,8 @@ export async function updateSupabaseSeasonRoundSettings(
           availabilityRecommendationsEnabled: settings.availabilityRecommendationsEnabled,
           organizationBallsAssigned: settings.organizationBallsAssigned,
           ballsAssignmentPriority: settings.ballsAssignmentPriority,
+          ballsAssignmentMode: settings.ballsAssignmentMode ?? "priority",
+          ballsAssignmentCustodianIds: settings.ballsAssignmentCustodianIds ?? [],
         }),
         cache: "no-store",
       },
@@ -335,6 +337,8 @@ export async function startSupabaseSeason({
   availabilityRecommendationsEnabled = false,
   organizationBallsAssigned = false,
   ballsAssignmentPriority = [],
+  ballsAssignmentMode = "priority",
+  ballsAssignmentCustodianIds = [],
 }: {
   leagueId: string;
   activeSeasonId: string | null;
@@ -368,6 +372,8 @@ export async function startSupabaseSeason({
   availabilityRecommendationsEnabled?: boolean;
   organizationBallsAssigned?: boolean;
   ballsAssignmentPriority?: string[];
+  ballsAssignmentMode?: SeasonRoundSettings["ballsAssignmentMode"];
+  ballsAssignmentCustodianIds?: string[];
 }): Promise<{
   matches: MatchData[];
   seasonSnapshot: SeasonSnapshot;
@@ -413,6 +419,8 @@ export async function startSupabaseSeason({
         availabilityRecommendationsEnabled,
         organizationBallsAssigned,
         ballsAssignmentPriority,
+        ballsAssignmentMode,
+        ballsAssignmentCustodianIds,
       }),
       cache: "no-store",
     }),

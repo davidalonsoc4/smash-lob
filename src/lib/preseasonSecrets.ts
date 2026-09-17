@@ -60,6 +60,31 @@ export function getPreseasonAccessPhase({
   return now >= secretStartsAtMs ? "secrets" : "locked"
 }
 
+export function shouldSuppressSeasonMatchNotifications({
+  status,
+  scheduledStartAt,
+  secretDaysBefore,
+  now = Date.now(),
+}: {
+  status: SeasonLifecycleStatus
+  scheduledStartAt: string | null | undefined
+  secretDaysBefore: number | null | undefined
+  now?: number
+}) {
+  const phase = getPreseasonAccessPhase({
+    status,
+    scheduledStartAt,
+    secretDaysBefore,
+    now,
+  })
+  const scheduledStart = normalizeScheduledStartAt(scheduledStartAt)
+  const isScheduledButNotStarted =
+    status === "upcoming" &&
+    Boolean(scheduledStart)
+
+  return phase === "secrets" || isScheduledButNotStarted
+}
+
 function stripLegacyCourtSuffix(value: string) {
   return value.replace(/\s*(?:·|\s-\s)\s*Pista\s+\d+\s*$/i, "").trim()
 }

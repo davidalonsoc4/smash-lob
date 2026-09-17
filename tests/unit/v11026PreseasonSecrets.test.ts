@@ -7,6 +7,7 @@ import {
   getPreseasonAccessPhase,
   getSafePreseasonLocation,
   redactPreseasonMatch,
+  shouldSuppressSeasonMatchNotifications,
 } from "@/lib/preseasonSecrets"
 
 const read = (path: string) => readFile(path, "utf8")
@@ -75,6 +76,48 @@ describe("v1.10.26 preseason secret phase", () => {
     expect(getPreseasonAccessPhase({ status: "upcoming", scheduledStartAt: startsAt, secretDaysBefore: 7, now: Date.parse("2026-09-20T08:00:00.000Z") })).toBe("secrets")
     expect(getPreseasonAccessPhase({ status: "upcoming", scheduledStartAt: startsAt, secretDaysBefore: 7, now: Date.parse(startsAt) })).toBe("active")
     expect(getPreseasonAccessPhase({ status: "upcoming", scheduledStartAt: startsAt, secretDaysBefore: null, now: Date.parse("2026-09-26T08:00:00.000Z") })).toBe("locked")
+  })
+
+  it("suppresses match and custodian notifications for secret and scheduled pre-start seasons", () => {
+    const startsAt = "2026-09-27T08:00:00.000Z"
+    const beforeSecrets = Date.parse("2026-09-19T08:00:00.000Z")
+    const duringSecrets = Date.parse("2026-09-20T08:00:00.000Z")
+    expect(shouldSuppressSeasonMatchNotifications({
+      status: "upcoming",
+      scheduledStartAt: startsAt,
+      secretDaysBefore: 7,
+      now: beforeSecrets,
+    })).toBe(true)
+    expect(shouldSuppressSeasonMatchNotifications({
+      status: "upcoming",
+      scheduledStartAt: startsAt,
+      secretDaysBefore: 7,
+      now: duringSecrets,
+    })).toBe(true)
+    expect(shouldSuppressSeasonMatchNotifications({
+      status: "upcoming",
+      scheduledStartAt: startsAt,
+      secretDaysBefore: null,
+      now: Date.parse("2026-09-26T08:00:00.000Z"),
+    })).toBe(true)
+    expect(shouldSuppressSeasonMatchNotifications({
+      status: "upcoming",
+      scheduledStartAt: startsAt,
+      secretDaysBefore: 7,
+      now: Date.parse(startsAt),
+    })).toBe(true)
+    expect(shouldSuppressSeasonMatchNotifications({
+      status: "upcoming",
+      scheduledStartAt: startsAt,
+      secretDaysBefore: 7,
+      now: Date.parse("2026-09-27T08:05:00.000Z"),
+    })).toBe(true)
+    expect(shouldSuppressSeasonMatchNotifications({
+      status: "active",
+      scheduledStartAt: startsAt,
+      secretDaysBefore: 7,
+      now: duringSecrets,
+    })).toBe(false)
   })
 
   it("detects one opening when every round-one match shares Madrid date and global venue despite different courts and times", () => {
@@ -171,11 +214,12 @@ describe("v1.10.26 preseason secret phase", () => {
 
     expect(activity).toContain("hiddenEventIds")
     expect(activity).toContain("isTargetedCustodianActivityVisibleToPlayer")
-    expect(activity).toContain("!viewer.isCompetitionAdmin")
+    expect(activity).toContain("shouldSuppressSeasonMatchNotifications")
+    expect(activity).not.toContain("if (!isDutyForViewer)")
     expect(activity).toContain("event.matchId")
     expect(push).toContain('reason: "scheduled_season_prestart"')
-    expect(push).toContain('seasonRow?.status === "upcoming"')
-    expect(push).toContain("scheduledStartMs > Date.now()")
+    expect(push).toContain("shouldSuppressSeasonMatchNotifications")
+    expect(push).not.toContain("!isCustodianDutyEvent")
     expect(matchAccess).toContain("(!user.isSuperuser || !isAdmin)")
     expect(matchAccess).toContain("experienceMode")
     expect(matchAccess).toContain('seasonRow.status === "upcoming" && !isAdmin')
