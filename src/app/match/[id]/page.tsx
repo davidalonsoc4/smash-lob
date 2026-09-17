@@ -32,7 +32,10 @@ import {
   getLeagueLocationCalendarText,
 } from "@/lib/leagueLocations"
 import { formatShortDate } from "@/lib/rounds"
-import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment"
+import {
+  calculateBallCustodianAssignment,
+  getOpeningRoundBallAllocation,
+} from "@/lib/ballCustodianAssignment"
 import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 
@@ -53,6 +56,7 @@ export default function MatchDetailPage() {
     activeLeague,
     activeSeason,
     roundSettings,
+    leaguePlayers,
     rounds,
     players,
     rankingPlayers,
@@ -105,17 +109,30 @@ export default function MatchDetailPage() {
 
   const hasRoundWindow = Boolean(round?.startsAt && round?.endsAt)
   const isPostponed = match?.status === "postponed"
+  const openingRoundCreatorPlayerId = activeLeague.createdByUserId
+    ? leaguePlayers.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
+    : null
+  const seasonMatches = matches.filter((item) => item.seasonId === activeSeason.id)
+  const openingRoundBallAllocation = getOpeningRoundBallAllocation(
+    seasonMatches,
+    roundSettings.openingRoundEnabled && roundSettings.openingRoundAt
+      ? openingRoundCreatorPlayerId
+      : null,
+  )
   const ballAssignment = match && roundSettings.organizationBallsAssigned
     ? calculateBallCustodianAssignment({
-        matches: matches.filter((item) => item.seasonId === activeSeason.id),
+        matches: seasonMatches,
         seasonPlayerIds: players.map((player) => player.id),
         priorityPlayerIds: roundSettings.ballsAssignmentPriority,
         playerNames: Object.fromEntries(players.map((player) => [player.id, player.displayName])),
+        ...openingRoundBallAllocation,
       })
     : null
   const ballCustodianId = match ? ballAssignment?.byMatchId[match.id] ?? null : null
   const ballCustodianName = ballCustodianId
-    ? players.find((player) => player.id === ballCustodianId)?.displayName ?? ballCustodianId
+    ? players.find((player) => player.id === ballCustodianId)?.displayName ??
+      leaguePlayers.find((player) => player.id === ballCustodianId)?.displayName ??
+      ballCustodianId
     : null
 
   function getRoundWindowText() {

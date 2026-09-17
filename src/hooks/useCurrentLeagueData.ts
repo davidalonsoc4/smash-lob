@@ -38,6 +38,7 @@ export function useCurrentLeagueData(selectedSeasonId?: string | null) {
   }
 
   const activeLeague = baseActiveLeague
+  const leaguePlayers = playerProfiles.filter((player) => player.leagueId === activeLeague.id)
   const membership = getMembershipForLeague(activeLeague.id)
   const canManageLeague = isLeagueAdmin(activeLeague.id)
   const storedCurrentSeason = getStoredActiveSeasonByLeagueId(activeLeague.id)
@@ -139,6 +140,7 @@ export function useCurrentLeagueData(selectedSeasonId?: string | null) {
 
   return {
     activeLeague,
+    leaguePlayers,
     activeSeason,
     roundSettings,
     rounds,

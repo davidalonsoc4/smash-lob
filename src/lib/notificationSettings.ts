@@ -30,7 +30,12 @@ export const alwaysEnabledNotificationEventTypes: ActivityEventType[] = []
 export const notificationPreferenceDefinitions: NotificationPreferenceDefinition[] = [
   {
     key: "match_schedule",
-    eventTypes: ["match_scheduled", "match_schedule_updated", "match_postponed"],
+    eventTypes: [
+      "match_scheduled",
+      "match_schedule_updated",
+      "match_postponed",
+      "match_ball_custodian_assigned",
+    ],
   },
   {
     key: "match_incidents",
@@ -40,7 +45,10 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
       "match_incident_cleared",
     ],
   },
-  { key: "match_upcoming", eventTypes: ["match_upcoming_reminder"] },
+  {
+    key: "match_upcoming",
+    eventTypes: ["match_upcoming_reminder", "match_ball_custodian_reminder"],
+  },
   { key: "match_chat", eventTypes: ["match_chat_message"] },
   {
     key: "match_results",

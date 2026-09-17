@@ -12,6 +12,11 @@ export type BallCustodianAssignment = {
   totalBotes: number
 }
 
+export type OpeningRoundBallAllocation = {
+  fixedAssignmentsByMatchId: Record<string, string>
+  additionalBotesByPlayerId: Record<string, number>
+}
+
 function compareText(first: string, second: string) {
   return first.localeCompare(second, "es", { sensitivity: "base" }) || first.localeCompare(second)
 }
@@ -24,6 +29,27 @@ function compareSelection(first: number[], second: number[]) {
   return first.length - second.length
 }
 
+export function getOpeningRoundBallAllocation(
+  matches: BallAssignmentMatch[],
+  creatorPlayerId: string | null,
+): OpeningRoundBallAllocation {
+  if (!creatorPlayerId) {
+    return { fixedAssignmentsByMatchId: {}, additionalBotesByPlayerId: {} }
+  }
+
+  const openingMatchIds = matches
+    .filter((match) => Number(match.round) === 1 && [...match.teamA, ...match.teamB].some(Boolean))
+    .map((match) => match.id)
+    .sort(compareText)
+
+  return {
+    fixedAssignmentsByMatchId: Object.fromEntries(
+      openingMatchIds.map((matchId) => [matchId, creatorPlayerId]),
+    ),
+    additionalBotesByPlayerId: {},
+  }
+}
+
 /**
  * Finds a minimum-cardinality set of players that intersects every match.
  * The candidate order is the configured priority order followed by the
@@ -34,11 +60,15 @@ export function calculateBallCustodianAssignment({
   seasonPlayerIds = [],
   priorityPlayerIds = [],
   playerNames = {},
+  additionalBotesByPlayerId = {},
+  fixedAssignmentsByMatchId = {},
 }: {
   matches: BallAssignmentMatch[]
   seasonPlayerIds?: string[]
   priorityPlayerIds?: string[]
   playerNames?: Record<string, string>
+  additionalBotesByPlayerId?: Record<string, number>
+  fixedAssignmentsByMatchId?: Record<string, string>
 }): BallCustodianAssignment {
   const usableMatches = matches
     .map((match) => ({
@@ -50,12 +80,30 @@ export function calculateBallCustodianAssignment({
     .sort((first, second) => first.round - second.round || compareText(first.id, second.id))
 
   if (usableMatches.length === 0) {
-    return { byMatchId: {}, botesByPlayerId: {}, custodianPlayerIds: [], totalBotes: 0 }
+    const botesByPlayerId = Object.fromEntries(
+      Object.entries(additionalBotesByPlayerId)
+        .filter(([playerId, count]) => Boolean(playerId) && Number.isFinite(count) && count > 0)
+        .map(([playerId, count]) => [playerId, Math.floor(count)]),
+    )
+    const custodianPlayerIds = Object.keys(botesByPlayerId)
+
+    return {
+      byMatchId: {},
+      botesByPlayerId,
+      custodianPlayerIds,
+      totalBotes: Object.values(botesByPlayerId).reduce((total, count) => total + count, 0),
+    }
   }
 
   const allPlayers = new Set<string>()
   usableMatches.forEach((match) => match.players.forEach((playerId) => allPlayers.add(playerId)))
   seasonPlayerIds.forEach((playerId) => allPlayers.add(playerId))
+  Object.values(fixedAssignmentsByMatchId).forEach((playerId) => {
+    if (playerId) allPlayers.add(playerId)
+  })
+  Object.entries(additionalBotesByPlayerId).forEach(([playerId, count]) => {
+    if (playerId && Number.isFinite(count) && count > 0) allPlayers.add(playerId)
+  })
   const priority = Array.from(new Set(priorityPlayerIds)).filter((playerId) => allPlayers.has(playerId))
   const candidateIds = [
     ...priority,
@@ -64,7 +112,8 @@ export function calculateBallCustodianAssignment({
     ),
   ]
   const candidateIndex = new Map(candidateIds.map((playerId, index) => [playerId, index]))
-  const matchCandidates = usableMatches.map((match) =>
+  const matchesNeedingCustodian = usableMatches.filter((match) => !fixedAssignmentsByMatchId[match.id])
+  const matchCandidates = matchesNeedingCustodian.map((match) =>
     match.players.map((playerId) => candidateIndex.get(playerId)).filter((index): index is number => index !== undefined),
   )
   const coverage = candidateIds.map((_, candidate) => {
@@ -77,14 +126,14 @@ export function calculateBallCustodianAssignment({
   let best: number[] | null = null
 
   function search(chosen: number[], covered: Set<number>) {
-    if (covered.size === usableMatches.length) {
+    if (covered.size === matchesNeedingCustodian.length) {
       if (!best || chosen.length < best.length || (chosen.length === best.length && compareSelection(chosen, best) < 0)) {
         best = [...chosen]
       }
       return
     }
     if (best && chosen.length >= best.length) return
-    const uncoveredCount = usableMatches.length - covered.size
+    const uncoveredCount = matchesNeedingCustodian.length - covered.size
     const maxAdditionalCoverage = Math.max(
       1,
       ...coverage
@@ -126,10 +175,21 @@ export function calculateBallCustodianAssignment({
   search([], new Set<number>())
   const selected: number[] = best ? [...best] : []
   const selectedSet = new Set(selected)
-  const counts: Record<string, number> = Object.fromEntries(candidateIds.filter((_, index) => selectedSet.has(index)).map((playerId) => [playerId, 0]))
+  const counts: Record<string, number> = Object.fromEntries(
+    candidateIds
+      .filter((playerId, index) => selectedSet.has(index) || Object.values(fixedAssignmentsByMatchId).includes(playerId))
+      .map((playerId) => [playerId, 0]),
+  )
   const byMatchId: Record<string, string> = {}
 
   for (const match of usableMatches) {
+    const fixedAssignment = fixedAssignmentsByMatchId[match.id]
+    if (fixedAssignment) {
+      byMatchId[match.id] = fixedAssignment
+      counts[fixedAssignment] = (counts[fixedAssignment] ?? 0) + 1
+      continue
+    }
+
     const eligible = match.players.filter((playerId) => {
       const index = candidateIndex.get(playerId)
       return index !== undefined && selectedSet.has(index)
@@ -146,10 +206,25 @@ export function calculateBallCustodianAssignment({
     }
   }
 
+  Object.entries(additionalBotesByPlayerId).forEach(([playerId, count]) => {
+    if (!playerId || !Number.isFinite(count) || count <= 0) return
+    counts[playerId] = (counts[playerId] ?? 0) + Math.floor(count)
+  })
+
+  const custodianPlayerIds = Array.from(
+    new Set([
+      ...selected.map((index) => candidateIds[index]),
+      ...Object.values(fixedAssignmentsByMatchId).filter(Boolean),
+      ...Object.entries(additionalBotesByPlayerId)
+        .filter(([playerId, count]) => Boolean(playerId) && Number.isFinite(count) && count > 0)
+        .map(([playerId]) => playerId),
+    ]),
+  ).sort((first, second) => (candidateIndex.get(first) ?? Number.MAX_SAFE_INTEGER) - (candidateIndex.get(second) ?? Number.MAX_SAFE_INTEGER))
+
   return {
     byMatchId,
     botesByPlayerId: counts,
-    custodianPlayerIds: selected.map((index) => candidateIds[index]),
+    custodianPlayerIds,
     totalBotes: Object.values(counts).reduce((total, count) => total + count, 0),
   }
 }

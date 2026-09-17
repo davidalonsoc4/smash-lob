@@ -6,6 +6,29 @@ export function hasScheduledStartChanged(current: string | null, requested: stri
   return currentTime !== requestedTime
 }
 
+export function moveBallsAssignmentPriority(
+  priorityRefs: string[],
+  index: number,
+  direction: -1 | 1,
+) {
+  const targetIndex = index + direction
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= priorityRefs.length ||
+    targetIndex < 0 ||
+    targetIndex >= priorityRefs.length
+  ) {
+    return priorityRefs
+  }
+
+  const next = [...priorityRefs]
+  const current = next[index]
+  next[index] = next[targetIndex]
+  next[targetIndex] = current
+  return next
+}
+
 export function buildBallsAssignmentPriorityEntries({
   players,
   newPlayerNames,

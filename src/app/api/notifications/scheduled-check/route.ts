@@ -17,6 +17,7 @@ import { getPreseasonAccessPhase } from "@/lib/preseasonSecrets";
 import { runScheduledSeasonStartAutomation } from "@/lib/serverScheduledSeasonAutomation";
 import { runPersonalMatchNotificationAutomation } from "@/lib/serverPersonalMatchAutomation";
 import { runProgressiveCalendarRevealAutomation } from "@/lib/serverProgressiveCalendarAutomation";
+import { getUpcomingReminderTargets, safelyRunBallCustodianNotificationAutomation, type OrganizationBallsSetting } from "@/lib/serverBallCustodianNotifications";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type MatchRow = {
@@ -40,9 +41,7 @@ type SeasonRow = {
   status: string | null;
   total_rounds: number | null;
 };
-type SeasonSettingRow = {
-  league_id: string;
-  season_id: string;
+type SeasonSettingRow = OrganizationBallsSetting & {
   mvp_system: string | null;
   result_confirmation_mode: string | null;
   scheduled_start_at: string | null;
@@ -407,7 +406,7 @@ export async function GET(request: Request) {
       .limit(500),
     supabase
       .from("season_settings")
-      .select("league_id,season_id,mvp_system,result_confirmation_mode,scheduled_start_at,preseason_secret_days_before")
+      .select("league_id,season_id,mvp_system,result_confirmation_mode,scheduled_start_at,preseason_secret_days_before,organization_balls_assigned,balls_assignment_priority,opening_round_enabled,opening_round_at")
       .limit(1000),
   ]);
 
@@ -427,6 +426,14 @@ export async function GET(request: Request) {
 
   const matches = (scheduledResult.data ?? []) as MatchRow[];
   const settings = (settingsResult.data ?? []) as SeasonSettingRow[];
+  const ballCustodianAutomation = await safelyRunBallCustodianNotificationAutomation({ supabase, settings, reminderMatches: matches, now });
+  if (!ballCustodianAutomation) {
+    return NextResponse.json(
+      { ok: false, error: "ball_custodian_notification_automation_failed" },
+      { status: 500 },
+    );
+  }
+  const eventIds: string[] = [...seasonStartAutomation.eventIds, ...ballCustodianAutomation.eventIds];
   const preseasonAnnouncementSettings = settings.filter(
     (setting) =>
       getPreseasonAccessPhase({
@@ -491,14 +498,14 @@ export async function GET(request: Request) {
 
   if (allSeasonIds.length === 0) {
     let sent = 0;
-    for (const eventId of seasonStartAutomation.eventIds) {
+    for (const eventId of eventIds) {
       const result = await dispatchPushForActivityEvent(eventId);
       sent += result.sent;
     }
     return NextResponse.json({
       ok: true,
       created:
-        seasonStartAutomation.eventIds.length +
+        eventIds.length +
         personalMatchAutomation.created +
         progressiveCalendarAutomation.created,
       sent: sent + personalMatchAutomation.sent,
@@ -758,8 +765,6 @@ export async function GET(request: Request) {
     }
   }
 
-  const eventIds: string[] = [...seasonStartAutomation.eventIds];
-
   for (const setting of preseasonAnnouncementCandidates) {
     if (!setting.scheduled_start_at || !setting.preseason_secret_days_before) {
       continue;
@@ -847,7 +852,7 @@ export async function GET(request: Request) {
       metadata: {
         round: match.round,
         reminderMinutes: 120,
-        participantIds: getParticipantIds(match),
+        ...getUpcomingReminderTargets(match, ballCustodianAutomation.custodianByMatchId),
         scheduledAt: match.scheduled_at,
         location: match.location,
         locationText,

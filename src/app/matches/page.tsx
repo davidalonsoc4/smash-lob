@@ -18,7 +18,10 @@ import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
-import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment"
+import {
+  calculateBallCustodianAssignment,
+  getOpeningRoundBallAllocation,
+} from "@/lib/ballCustodianAssignment"
 
 export default function MatchesPage() {
   const { tx, t, locale } = useI18n()
@@ -26,7 +29,7 @@ export default function MatchesPage() {
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
   const { votes } = useMvp()
-  const { activeLeague, activeSeason, roundSettings, rounds, players, rankingPlayers, matches } =
+  const { activeLeague, activeSeason, roundSettings, rounds, leaguePlayers, players, rankingPlayers, matches } =
     useCurrentLeagueData()
   const canManageSeason = isLeagueAdmin(activeLeague.id)
   const isSeasonUpcoming = activeSeason.status === "upcoming"
@@ -45,12 +48,23 @@ export default function MatchesPage() {
       ? match.teamA.includes(currentUserId) || match.teamB.includes(currentUserId)
       : true
   )
+  const openingRoundCreatorPlayerId = activeLeague.createdByUserId
+    ? leaguePlayers.find((player) => player.userId === activeLeague.createdByUserId)?.id ?? null
+    : null
+  const seasonMatches = matches.filter((match) => match.seasonId === activeSeason.id)
+  const openingRoundBallAllocation = getOpeningRoundBallAllocation(
+    seasonMatches,
+    roundSettings.openingRoundEnabled && roundSettings.openingRoundAt
+      ? openingRoundCreatorPlayerId
+      : null,
+  )
   const ballAssignment = roundSettings.organizationBallsAssigned
     ? calculateBallCustodianAssignment({
-        matches: matches.filter((match) => match.seasonId === activeSeason.id),
+        matches: seasonMatches,
         seasonPlayerIds: players.map((player) => player.id),
         priorityPlayerIds: roundSettings.ballsAssignmentPriority,
         playerNames: Object.fromEntries(players.map((player) => [player.id, player.displayName])),
+        ...openingRoundBallAllocation,
       })
     : null
   const activeRoundId = getActiveCalendarRoundId(activeSeason.status, rounds)
@@ -298,7 +312,9 @@ export default function MatchesPage() {
                       showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
                       hideMissingScheduleMeta
                       ballCustodianName={ballAssignment?.byMatchId[match.id]
-                        ? players.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ?? ballAssignment.byMatchId[match.id]
+                        ? players.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ??
+                          leaguePlayers.find((player) => player.id === ballAssignment.byMatchId[match.id])?.displayName ??
+                          ballAssignment.byMatchId[match.id]
                         : null}
                     />
                   ))}

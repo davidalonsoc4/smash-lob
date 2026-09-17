@@ -15,6 +15,8 @@ import { getIntlLocale } from "@/i18n/leagueText";
 import type { Locale } from "@/i18n/translations";
 import {
   fetchSupabaseActivityEvents,
+  isTargetedCustodianActivityType,
+  isTargetedCustodianActivityVisibleToPlayer,
   type ActivityEvent,
 } from "@/lib/activity";
 import { formatMoney } from "@/lib/courtBooking";
@@ -209,6 +211,10 @@ function isNotificationForCurrentUser({
     return toStringArray(metadata.targetPlayerIds).includes(currentUserId);
   }
 
+  if (isTargetedCustodianActivityType(event.type, metadata)) {
+    return isTargetedCustodianActivityVisibleToPlayer(event.type, metadata, currentUserId);
+  }
+
   if (isMatchParticipantNotification(event)) {
     return (
       Boolean(event.matchId && currentUserMatchIds.has(event.matchId)) ||
@@ -287,6 +293,14 @@ function getResultText(event: ActivityEvent) {
 }
 
 function getNotificationTitle(event: ActivityEvent, currentUserId: string) {
+  if (event.type === "match_ball_custodian_assigned") {
+    return "Te encargas de las bolas"
+  }
+
+  if (event.type === "match_ball_custodian_reminder") {
+    return "Recuerda llevar las bolas"
+  }
+
   if (event.type === "season_finished") {
     return "TEMPORADA FINALIZADA";
   }
@@ -423,6 +437,13 @@ function getNotificationBody({
     return locationText
       ? `Prepárate para tu partido en ${locationText}.`
       : "Prepárate para tu partido.";
+  }
+
+  if (
+    event.type === "match_ball_custodian_assigned" ||
+    event.type === "match_ball_custodian_reminder"
+  ) {
+    return event.description?.trim() || "Te corresponde llevar los botes de bolas a este partido.";
   }
 
   if (event.type === "season_created") {

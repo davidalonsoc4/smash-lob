@@ -160,6 +160,13 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
   );
 }
 
+function isBallCustodianDutyNotification(eventType: ActivityEventType) {
+  return (
+    eventType === "match_ball_custodian_assigned" ||
+    eventType === "match_ball_custodian_reminder"
+  )
+}
+
 function getTargetUserIdsFromMetadata(event: ActivityEventRow) {
   return toStringArray(toRecord(event.metadata).targetUserIds);
 }
@@ -169,7 +176,7 @@ function getTargetPlayerIdsFromMetadata(event: ActivityEventRow) {
 
   const explicitTargetPlayerIds = toStringArray(metadata.targetPlayerIds);
 
-  if (explicitTargetPlayerIds.length > 0) {
+  if (Array.isArray(metadata.targetPlayerIds)) {
     return explicitTargetPlayerIds;
   }
 
@@ -244,6 +251,8 @@ async function getTargetPlayerIds({
   const metadataTargetPlayerIds = getTargetPlayerIdsFromMetadata(event);
 
   if (
+    (event.type === "match_upcoming_reminder" &&
+      Array.isArray(toRecord(event.metadata).targetPlayerIds)) ||
     event.type === "match_mvp_vote_reminder" ||
     event.type === "match_mvp_awarded" ||
     event.type === "match_result_confirmation_reminder" ||
@@ -406,6 +415,14 @@ function getNotificationTitle(
   event: ActivityEventRow,
   recipient: NotificationRecipient | null,
 ) {
+  if (event.type === "match_ball_custodian_assigned") {
+    return "Te encargas de las bolas"
+  }
+
+  if (event.type === "match_ball_custodian_reminder") {
+    return "Recuerda llevar las bolas"
+  }
+
   if (event.type === "season_player_joined") {
     const metadata = toRecord(event.metadata);
     const registeredCount = toNumber(metadata.registeredCount);
@@ -551,6 +568,27 @@ function getNotificationBody(
   recipient: NotificationRecipient | null,
   playerNamesById: Map<string, string>,
 ) {
+  if (isBallCustodianDutyNotification(event.type)) {
+    const metadata = toRecord(event.metadata)
+    const round = toNumber(metadata.round)
+    const dateLabel = typeof metadata.dateLabel === "string" ? metadata.dateLabel.trim() : ""
+    const location =
+      getScheduleLocationDisplayText(metadata.locationText) ??
+      getScheduleLocationDisplayText(metadata.location)
+    const schedule = [round > 0 ? `Jornada ${round}` : null, dateLabel, location]
+      .filter((item): item is string => Boolean(item))
+      .join(" · ")
+
+    if (event.type === "match_ball_custodian_reminder") {
+      return schedule
+        ? `Tu partido de ${schedule} es dentro de las próximas dos horas. No olvides llevar los botes de bolas.`
+        : "Tu partido es dentro de las próximas dos horas. No olvides llevar los botes de bolas."
+    }
+
+    return schedule
+      ? `Te corresponde llevar los botes de bolas al partido de ${schedule}.`
+      : "Te corresponde llevar los botes de bolas a tu próximo partido."
+  }
   if (event.type === "match_chat_message") {
     const metadata = toRecord(event.metadata), kind = String(metadata.chatEventKind ?? ""), status = String(metadata.coordinationStatus ?? "");
     if (kind === "coordination_status" && status === "awaiting_booking") return "Acuerdo 4/4 en fecha y hora. El partido está a la espera de reservar.";
@@ -1147,7 +1185,9 @@ export async function dispatchPushForActivityEvent(
       Number.isFinite(scheduledStartMs) &&
       scheduledStartMs > Date.now();
 
-    if (scheduledSeasonStillHidden) {
+    const isCustodianDutyEvent = isBallCustodianDutyNotification(event.type);
+
+    if (scheduledSeasonStillHidden && !isCustodianDutyEvent) {
       return { ok: true, sent: 0, reason: "scheduled_season_prestart" };
     }
 
@@ -1162,6 +1202,7 @@ export async function dispatchPushForActivityEvent(
 
     if (
       progressiveCalendar &&
+      !isCustodianDutyEvent &&
       seasonRow?.status !== "finished" &&
       matchRound > effectiveReveal
     ) {
