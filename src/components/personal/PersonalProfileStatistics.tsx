@@ -205,9 +205,9 @@ function SummarySection({ stats }: { stats: PersonalProfileStats }) {
 
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <StatTile label="Sets" value={`${stats.setsFor}-${stats.setsAgainst}`} detail={`${percentage(stats.setWinRate)} ganados`} />
-          <StatTile label="Dif. sets" value={signed(stats.setsDiff)} detail={`${decimal(stats.averageSetsFor)} a favor / partido`} />
-          <StatTile label="Juegos" value={`${stats.gamesFor}-${stats.gamesAgainst}`} detail={`${percentage(stats.gamesWinRate)} a favor`} />
-          <StatTile label="Media juegos" value={signed(stats.averageGamesDiff)} detail={`${decimal(stats.averageGamesFor)}-${decimal(stats.averageGamesAgainst)} / partido`} />
+          <StatTile label={tx("Dif. sets")} value={signed(stats.setsDiff)} detail={tx(`${decimal(stats.averageSetsFor)} a favor / partido`)} />
+          <StatTile label={tx("Juegos")} value={`${stats.gamesFor}-${stats.gamesAgainst}`} detail={tx(`${percentage(stats.gamesWinRate)} a favor`)} />
+          <StatTile label={tx("Media juegos")} value={signed(stats.averageGamesDiff)} detail={tx(`${decimal(stats.averageGamesFor)}-${decimal(stats.averageGamesAgainst)} / partido`)} />
         </div>
       </AppCard>
 
@@ -262,11 +262,11 @@ function RelationsSection({ stats, onSelect }: { stats: PersonalProfileStats; on
         <p className="text-xs font-semibold text-neutral-500">Destacados</p>
         <p className="mt-0.5 type-panel-title">Parejas y rivales</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <RelationHighlight label={tx("Con quien más juegas")} relation={stats.mostFrequentTeammate} onSelect={onSelect} detail={(row) => `${countText(row.matches, "partido", "partidos")} · ${percentage(row.winRate)} victorias`} />
-          <RelationHighlight label="Mejor pareja" relation={stats.bestTeammate} onSelect={onSelect} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
-          <RelationHighlight label="Peor pareja" relation={stats.worstTeammate} onSelect={onSelect} detail={(row) => `${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`} />
+          <RelationHighlight label={tx("Con quien más juegas")} relation={stats.mostFrequentTeammate} onSelect={onSelect} detail={(row) => tx(`${countText(row.matches, tx("partido"), tx("partidos"))} · ${percentage(row.winRate)} victorias`)} />
+          <RelationHighlight label={tx("Mejor pareja")} relation={stats.bestTeammate} onSelect={onSelect} detail={(row) => tx(`${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`)} />
+          <RelationHighlight label={tx("Peor pareja")} relation={stats.worstTeammate} onSelect={onSelect} detail={(row) => tx(`${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`)} />
           <RelationHighlight label={tx("A quien más te enfrentas")} relation={stats.mostFrequentRival} onSelect={onSelect} detail={(row) => `${countText(row.matches, "duelo", "duelos")} · ${percentage(row.winRate)} victorias`} />
-          <RelationHighlight label={tx("Rival más vencido")} relation={stats.mostBeatenRival} onSelect={onSelect} detail={(row) => `${countText(row.wins, "victoria", "victorias")} en ${countText(row.matches, "duelo", "duelos")}`} />
+          <RelationHighlight label={tx("Rival más vencido")} relation={stats.mostBeatenRival} onSelect={onSelect} detail={(row) => tx(`${countText(row.wins, tx("victoria"), tx("victorias"))} en ${countText(row.matches, tx("duelo"), tx("duelos"))}`)} />
           <RelationHighlight label={tx("Némesis")} relation={stats.nemesis} onSelect={onSelect} detail={(row) => `${countText(row.losses, "derrota", "derrotas")} en ${countText(row.matches, "duelo", "duelos")}`} />
           <RelationHighlight label="Mejor balance contra" relation={stats.bestRivalRecord} onSelect={onSelect} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
           <RelationHighlight label={tx("Rival más duro")} relation={stats.toughestRival} onSelect={onSelect} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
@@ -394,7 +394,7 @@ function HeadToHeadSection({
                 <StatTile label={tx("Partidos")} value={teammate.matches} detail={`${teammate.wins}V/${teammate.losses}D`} />
                 <StatTile label="Victorias" value={percentage(teammate.winRate)} />
                 <StatTile label="Dif. sets" value={signed(teammate.setsDiff)} detail={`${teammate.setsFor}-${teammate.setsAgainst}`} />
-                <StatTile label="Dif. juegos" value={signed(teammate.gamesDiff)} detail={`${decimal(teammate.averageGamesDiff)} / partido`} />
+                <StatTile label={tx("Dif. juegos")} value={signed(teammate.gamesDiff)} detail={tx(`${decimal(teammate.averageGamesDiff)} / partido`)} />
               </div>
             ) : (
               <p className="mt-2 text-xs font-semibold text-neutral-500">{tx("Todavía no habéis jugado juntos como pareja.")}</p>
@@ -422,7 +422,7 @@ export function PersonalProfileStatistics({
     <>
       <div data-personal-profile-sections className="grid grid-cols-3 gap-1 rounded-xl bg-neutral-100 p-1">
         {[
-          ["summary", "Resumen"],
+          ["summary", tx("Resumen")],
           ["relations", "Parejas / rivales"],
           ["head-to-head", "Cara a cara"],
         ].map(([value, label]) => (
