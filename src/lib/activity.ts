@@ -130,11 +130,13 @@ export async function fetchSupabaseActivityEvents({
   leagueId,
   limit = 50,
   createdAtFrom = null,
+  createdAtBefore = null,
   clampToViewerJoinDate = false,
 }: {
   leagueId: string;
   limit?: number;
   createdAtFrom?: string | null;
+  createdAtBefore?: string | null;
   clampToViewerJoinDate?: boolean;
 }) {
   const params = new URLSearchParams({
@@ -143,6 +145,9 @@ export async function fetchSupabaseActivityEvents({
 
   if (createdAtFrom) {
     params.set("createdAtFrom", createdAtFrom);
+  }
+  if (createdAtBefore) {
+    params.set("createdAtBefore", createdAtBefore);
   }
 
   if (clampToViewerJoinDate) {

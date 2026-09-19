@@ -433,12 +433,14 @@ export async function fetchServerActivityEvents({
   leagueId,
   limit = 50,
   createdAtFrom = null,
+  createdAtBefore = null,
   clampToViewerJoinDate = false,
 }: {
   viewer: ServerLeagueViewer
   leagueId: string
   limit?: number
   createdAtFrom?: string | null
+  createdAtBefore?: string | null
   clampToViewerJoinDate?: boolean
 }) {
   const effectiveCreatedAtFrom = resolveEffectiveCreatedAtFrom({
@@ -453,6 +455,10 @@ export async function fetchServerActivityEvents({
 
   if (effectiveCreatedAtFrom) {
     query = query.gte("created_at", effectiveCreatedAtFrom)
+  }
+
+  if (createdAtBefore) {
+    query = query.lt("created_at", createdAtBefore)
   }
 
   const { data, error } = await query
