@@ -1762,3 +1762,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Los bordes de los paneles de Mi perfil usan el acento de Competition mediante el token dinámico de la liga, eliminando el dorado fijo.
 - El nombre de la liga conserva su capitalización original para respetar la identidad de marca; las etiquetas y títulos funcionales siguen en mayúsculas.
 - Se verificó el color dinámico en el perfil y el build de producción; no se ha desplegado.
+
+## Competition visual style v3 — propuesta de rediseño (2026-09-20)
+
+- Se creó `codex/competition-visual-style-v3` desde el estado validado de v2.
+- Las superficies de Competition pasan a una composición más dimensional con gradientes suaves, bordes derivados del acento y sombras profundas, sin alterar la estructura funcional.
+- HOME, Calendario, Chats, Perfil y la navegación inferior comparten ahora un ritmo visual más marcado; las tarjetas de competición mantienen el contraste y el acento de la liga.
+- El alcance queda aislado a `data-visual-style="competition"`; Classic permanece sin cambios.
+- Revisión visual local realizada en móvil simulado para HOME, Calendario, Chats y Perfil. No se ha desplegado.

@@ -51,5 +51,7 @@ describe("Competition visual style", () => {
     expect(css).toContain('background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));')
     expect(css).toContain('text-transform: none;')
     expect(css).toContain('border-left: 2px solid color-mix(in srgb, var(--competition-accent) 55%, transparent) !important;')
+    expect(css).toContain('/* Competition v3: a more dimensional information surface.')
+    expect(css).toContain('[data-route="/chats"] .chat-list-stack')
   })
 })
