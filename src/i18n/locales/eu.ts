@@ -114,6 +114,15 @@ export const eu = {
     leaveError: "Ezin izan da plaza askatu.",
     startIncompleteError: "Ezin da denboraldia hasi plaza guztiak bete arte.",
     startIncompleteHint: "Plantilla osatzean hasi ahal izango da denboraldia.",
+    waitlistPosition: "Itxaron-zerrendako {position}. postuan zaude.",
+    waitlistWaiting: "Itxaron-zerrendan zaude.",
+    waitlistLeave: "Irten",
+    waitlistPromoted: "Zuretzat plaza bat dago. Berretsi hurrengo 48 orduetan.",
+    waitlistConfirm: "Nire plaza berretsi",
+    waitlistConfirmed: "Plaza berretsita.",
+    waitlistAdminTitle: "Itxaron-zerrenda",
+    waitlistAdminMoveUp: "Gora",
+    waitlistAdminMoveDown: "Behera",
   },
 
   onboarding: {

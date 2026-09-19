@@ -15,8 +15,10 @@ export async function joinSeasonWaitlist({
   seasonId: string
   userId: string
 }) {
+  const { data: last } = await supabase.from("season_waitlist").select("position").eq("season_id", seasonId).eq("status", "waiting").order("position", { ascending: false }).limit(1).maybeSingle()
+  const nextPosition = typeof last?.position === "number" ? last.position + 1 : 1
   const { data, error } = await supabase.from("season_waitlist").upsert(
-    { league_id: leagueId, season_id: seasonId, user_id: userId, status: "waiting" },
+    { league_id: leagueId, season_id: seasonId, user_id: userId, status: "waiting", position: nextPosition },
     { onConflict: "season_id,user_id", ignoreDuplicates: true },
   ).select("id,created_at,status").maybeSingle()
   if (error) throw new Error("waitlist_join_failed")

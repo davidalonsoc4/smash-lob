@@ -114,6 +114,15 @@ export const es = {
     leaveError: "No se ha podido liberar la plaza.",
     startIncompleteError: "No se puede comenzar la temporada hasta completar todas las plazas.",
     startIncompleteHint: "La temporada se podrá comenzar cuando la plantilla esté completa.",
+    waitlistPosition: "Estás en la posición {position} de la lista de espera.",
+    waitlistWaiting: "Estás en la lista de espera.",
+    waitlistLeave: "Salir",
+    waitlistPromoted: "Hay una plaza disponible para ti. Confírmala en las próximas 48 horas.",
+    waitlistConfirm: "Confirmar mi plaza",
+    waitlistConfirmed: "Plaza confirmada.",
+    waitlistAdminTitle: "Lista de espera",
+    waitlistAdminMoveUp: "Subir",
+    waitlistAdminMoveDown: "Bajar",
   },
 
   onboarding: {

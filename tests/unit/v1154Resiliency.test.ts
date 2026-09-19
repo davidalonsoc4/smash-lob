@@ -33,4 +33,16 @@ describe("v1.15.4 season waitlist", () => {
     expect(screen).toContain("waitlistPosition")
     expect(screen).toContain("handleLeaveWaitlist")
   })
+
+  it("keeps the queue reorderable and extracts destructive season controls", async () => {
+    const positionMigration = await readFile("supabase/migrations/20260919124500_add_season_waitlist_position.sql", "utf8")
+    const route = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/route.ts", "utf8")
+    const page = await readFile("src/app/admin/season/page.tsx", "utf8")
+    const dangerZone = await readFile("src/components/admin/season/SeasonDangerZone.tsx", "utf8")
+    expect(positionMigration).toContain("ADD COLUMN IF NOT EXISTS position")
+    expect(route).toContain("export async function PUT")
+    expect(route).toContain("orderedUserIds")
+    expect(page).toContain("SeasonDangerZone")
+    expect(dangerZone).toContain("handleDeleteSeason")
+  })
 })

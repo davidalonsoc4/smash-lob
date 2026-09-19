@@ -427,6 +427,9 @@ function getNotificationTitle(
 
   if (event.type === "season_player_joined") {
     const metadata = toRecord(event.metadata);
+    if (metadata.waitlistPromotion === true) {
+      return "Tu plaza de la lista de espera está disponible";
+    }
     const registeredCount = toNumber(metadata.registeredCount);
     const playerCapacity = toNumber(metadata.playerCapacity);
 

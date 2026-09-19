@@ -114,6 +114,15 @@ export const en = {
     leaveError: "The place could not be released.",
     startIncompleteError: "The season cannot start until every place is filled.",
     startIncompleteHint: "The season can start when the roster is complete.",
+    waitlistPosition: "You are position {position} on the waiting list.",
+    waitlistWaiting: "You are on the waiting list.",
+    waitlistLeave: "Leave",
+    waitlistPromoted: "A spot is available for you. Confirm it within the next 48 hours.",
+    waitlistConfirm: "Confirm my spot",
+    waitlistConfirmed: "Spot confirmed.",
+    waitlistAdminTitle: "Waiting list",
+    waitlistAdminMoveUp: "Move up",
+    waitlistAdminMoveDown: "Move down",
   },
 
   onboarding: {

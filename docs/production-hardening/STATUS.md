@@ -1673,4 +1673,6 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La batería manual para PRE está en `docs/preproduction/V1_15_4_PRE_MANUAL_QA.md`.
 - La nueva rama parte de `origin/main` en `01c9212` y avanza con el bloque 1: cola persistente de reintentos Push, deduplicada por evento y suscripción, backoff limitado a cinco intentos y descarte de suscripciones 404/410.
 - La migración `20260919120000_add_push_delivery_queue.sql` aún no se ha aplicado en ningún entorno.
-- Bloque 2 iniciado: `20260919123000_add_season_waitlist.sql` crea una lista FIFO persistente con RLS cerrada al cliente, y la inscripción llena devuelve una entrada `202 Accepted` en la lista de espera. La API permite consultar posición, entrar y salir. La promoción automática, confirmación de 48 horas y UI de administración quedan para el siguiente commit del bloque 2.
+- Bloque 2 en curso: `20260919123000_add_season_waitlist.sql` y `20260919124500_add_season_waitlist_position.sql` crean una lista FIFO persistente con orden reordenable por administración, RLS cerrada al cliente y posición estable.
+- La inscripción llena devuelve `202 Accepted`, el jugador puede consultar su posición, salir y confirmar una promoción durante 48 horas. La liberación de una plaza promociona automáticamente al siguiente miembro y registra un aviso dirigido al usuario.
+- La UI de administración ya permite reordenar la cola; queda pendiente cerrar la validación integral de cierre de inscripciones y los tests de promoción/reordenación antes de marcar el bloque completo.

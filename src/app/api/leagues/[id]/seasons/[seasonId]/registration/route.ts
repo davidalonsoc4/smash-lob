@@ -185,6 +185,22 @@ export async function DELETE(
         promoted_at: new Date().toISOString(),
         confirmation_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
       }).eq("id", nextWaiting.id)
+
+      await recordServerActorActivity({
+        supabase: access.actor.supabase,
+        user: access.actor.user,
+        membership: access.actor.membership,
+        leagueId,
+        seasonId,
+        type: "season_player_joined",
+        title: "Tu plaza está disponible",
+        description: "Se ha liberado una plaza. Confirma tu incorporación en las próximas 48 horas.",
+        metadata: {
+          waitlistPromotion: true,
+          targetUserIds: [nextWaiting.user_id],
+          confirmationExpiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        },
+      }).catch(() => null)
     }
 
     const targetPlayerIds = await getAdminTargetPlayerIds(access.actor, leagueId)
