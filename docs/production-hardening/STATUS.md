@@ -1777,5 +1777,6 @@ This is human acceptance evidence reported by the project owner. It was not repl
 ## Competition visual style v3 — superficies translúcidas (2026-09-20)
 
 - Las tarjetas y paneles de Competition usan superficies semitransparentes con un desenfoque suave (`backdrop-filter`) para dejar ver el fondo sin perder legibilidad.
+- Se reforzó la transparencia y se llevó el patrón geométrico al contenedor de Competition para que el efecto sea visible también en HOME, sin aclarar en exceso el texto.
 - En Chats las conversaciones mantienen una base neutra; solo las no leídas reciben un acento discreto.
 - El alcance sigue limitado a `data-visual-style="competition"`; los modos clásicos no cambian.

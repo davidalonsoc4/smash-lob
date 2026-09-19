@@ -2131,7 +2131,9 @@ html[data-visual-style="competition"] .app-shell-frame,
 html[data-visual-style="competition"] .bg-stone-50 {
   position: relative;
   isolation: isolate;
-  background: var(--competition-bg) !important;
+  background-color: var(--competition-bg) !important;
+  background-image: linear-gradient(135deg, transparent 0 48%, color-mix(in srgb, var(--competition-accent) 14%, transparent) 49% 49.25%, transparent 50%), linear-gradient(90deg, transparent 0 24px, rgb(255 255 255 / .007) 25px, transparent 26px) !important;
+  background-size: 180px 180px, 52px 52px;
 }
 
 html[data-visual-style="competition"] .app-shell-frame::before {
@@ -2417,13 +2419,13 @@ html[data-visual-style="competition"] .appearance-preview-competition .appearanc
 html[data-visual-style="competition"] .app-card,
 html[data-visual-style="competition"] .app-stat-card,
 html[data-visual-style="competition"] .app-ranking-list {
-  background: linear-gradient(145deg, rgb(37 40 46 / .76), rgb(20 21 24 / .58)) !important;
+  background: linear-gradient(145deg, rgb(48 52 59 / .46), rgb(20 21 24 / .16)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
   box-shadow: 0 18px 38px rgb(0 0 0 / .24), inset 0 1px 0 rgb(255 255 255 / .025) !important;
-  backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.15);
 }
 html[data-visual-style="competition"] .app-card-explicit-accent {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--competition-accent) 12%, transparent), rgb(20 21 24 / .58)) !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--competition-accent) 15%, transparent), rgb(20 21 24 / .16)) !important;
 }
 html[data-visual-style="competition"] .app-bottom-nav,
 html[data-visual-style="competition"] .personal-matches-bottom-nav {
@@ -2447,10 +2449,10 @@ html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
   box-shadow: 0 18px 38px rgb(0 0 0 / .2);
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack .app-card {
-  background: rgb(20 21 24 / .56) !important;
+  background: rgb(20 21 24 / .18) !important;
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unread {
-  background: color-mix(in srgb, var(--competition-accent) 9%, rgb(20 21 24 / .56)) !important;
+  background: color-mix(in srgb, var(--competition-accent) 9%, rgb(20 21 24 / .18)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 48%, var(--competition-border)) !important;
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack::before {
