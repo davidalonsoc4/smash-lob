@@ -201,7 +201,7 @@ describe("v1.11.0 progressive calendar and player experience", () => {
       read("src/lib/serverPushDispatch.ts"),
       read("src/lib/serverSeasonMutations.ts"),
       read("src/app/api/leagues/[id]/seasons/[seasonId]/repair-calendar/route.ts"),
-      read("src/app/admin/season/page.tsx"),
+      read("src/components/admin/season/BalancedCalendarAuditPanel.tsx"),
     ])
 
     expect(chats).toContain("getEffectiveRevealedThroughRound")

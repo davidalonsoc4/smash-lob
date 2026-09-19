@@ -71,6 +71,7 @@ describe("organization ball assignment priorities", () => {
   it("wires draft priority references through season creation", async () => {
     const route = await readFile("src/app/api/leagues/[id]/seasons/route.ts", "utf8")
     const form = await readFile("src/app/admin/season/page.tsx", "utf8")
+    const ballsPanel = await readFile("src/components/admin/season/OrganizationBallsSettingsPanel.tsx", "utf8")
     const priorityHelper = await readFile("src/lib/organizationBallsAssignment.ts", "utf8")
     const mutations = await readFile("src/lib/serverSeasonMutations.ts", "utf8")
 
@@ -78,11 +79,11 @@ describe("organization ball assignment priorities", () => {
     expect(form).toContain("buildBallsAssignmentPriorityEntries({")
     expect(form).toContain("{player.name}")
     expect(form).toContain('href: "#bolas-organizacion", label: "Bolas asignadas"')
-    expect(form).toContain("preview.custodianPlayerIds.map((playerId)")
-    expect(form).toContain("preview.botesByPlayerId[playerId]")
-    expect(form).toContain("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")
-    expect(form).toContain("moveBallsAssignmentPriority(normalizedPriority, index, -1)")
-    expect(form).toContain("moveBallsAssignmentPriority(normalizedPriority, index, 1)")
+    expect(ballsPanel).toContain("preview.custodianPlayerIds.map((playerId)")
+    expect(ballsPanel).toContain("preview.botesByPlayerId[playerId]")
+    expect(ballsPanel).toContain("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")
+    expect(ballsPanel).toContain("moveBallsAssignmentPriority(normalizedPriority, index, -1)")
+    expect(ballsPanel).toContain("moveBallsAssignmentPriority(normalizedPriority, index, 1)")
     expect(form).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1)")
     expect(form).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1)")
     expect(priorityHelper).toContain('ref: `new:${index}`')
@@ -111,15 +112,16 @@ describe("organization ball assignment priorities", () => {
   })
 
   it("uses visual player choices and only shows the ball-custodian notice to its owner", async () => {
-    const [form, matchCard, calendar, home] = await Promise.all([
+    const [form, ballsPanel, matchCard, calendar, home] = await Promise.all([
       readFile("src/app/admin/season/page.tsx", "utf8"),
+      readFile("src/components/admin/season/OrganizationBallsSettingsPanel.tsx", "utf8"),
       readFile("src/components/matches/MatchCard.tsx", "utf8"),
       readFile("src/app/matches/page.tsx", "utf8"),
       readFile("src/app/page.tsx", "utf8"),
     ])
 
-    expect(form).toContain("function BallCustodianChoice(")
-    expect(form).toContain("aria-pressed={selected}")
+    expect(ballsPanel).toContain("export function BallCustodianChoice(")
+    expect(ballsPanel).toContain("aria-pressed={selected}")
     expect(form).not.toContain('type="checkbox" checked={normalizedCustodians.includes(player.id)}')
     expect(form).not.toContain('type="checkbox" checked={effectiveBallsAssignmentCustodianRefs.includes(player.ref)}')
     expect(calendar).toContain("ballAssignment?.byMatchId[match.id] === currentUserId")
