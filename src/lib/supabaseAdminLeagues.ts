@@ -6,6 +6,7 @@ type LeagueAdminUpdateResult = {
   description: string
   recommendations: string
   logoUrl: string | null
+  accentColor: string
   locations: LeagueLocation[]
   statusColorsEnabled: boolean
   showRankingAvatars: boolean
@@ -77,6 +78,17 @@ export async function updateSupabaseLeagueLogo({
     leagueId: data.leagueId,
     logoUrl: data.logoUrl,
   }
+}
+
+export async function updateSupabaseLeagueAccentColor({
+  leagueId,
+  accentColor,
+}: {
+  leagueId: string
+  accentColor: string
+}) {
+  const data = await patchLeague(leagueId, { accentColor })
+  return { leagueId: data.leagueId, accentColor: data.accentColor }
 }
 
 export async function updateSupabaseLeagueLocations({

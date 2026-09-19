@@ -14,6 +14,7 @@ import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import { recordActivityEvent } from "@/lib/activity"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import type { LeagueLocation } from "@/lib/leagueLocations"
+import { DEFAULT_LEAGUE_ACCENT, normalizeAccentColor } from "@/lib/visualStyle"
 
 type LeagueIdentityFormProps = {
   leagueId: string
@@ -22,6 +23,7 @@ type LeagueIdentityFormProps = {
   initialDescription: string
   initialLogoUrl?: string | null
   initialRecommendations: string
+  initialAccentColor?: string | null
 }
 
 type LeagueLocationsFormProps = {
@@ -50,14 +52,16 @@ function LeagueIdentityForm({
   initialDescription,
   initialLogoUrl,
   initialRecommendations,
+  initialAccentColor,
 }: LeagueIdentityFormProps) {
-  const { tx } = useI18n()
+  const { tx, t } = useI18n()
   const { data: session } = useSession()
-  const { updateLeagueDetails, updateLeagueLogo } = useLeagueAccess()
+  const { updateLeagueDetails, updateLeagueLogo, updateLeagueAccentColor } = useLeagueAccess()
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
   const [recommendations, setRecommendations] = useState(initialRecommendations)
+  const [accentColor, setAccentColor] = useState(normalizeAccentColor(initialAccentColor))
   const [logoCropSource, setLogoCropSource] = useState<string | null>(null)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
   const [isSavingLogo, setIsSavingLogo] = useState(false)
@@ -92,6 +96,15 @@ function LeagueIdentityForm({
         "No se han podido guardar los datos de la liga en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
       )
       return
+    }
+
+    if (accentColor !== normalizeAccentColor(initialAccentColor)) {
+      const accentUpdated = await updateLeagueAccentColor(leagueId, accentColor)
+      if (!accentUpdated) {
+        setIsSavingDetails(false)
+        setDetailsError(t.settings.leagueAccentSaveError)
+        return
+      }
     }
 
     try {
@@ -281,6 +294,34 @@ function LeagueIdentityForm({
             />
             <p className="mt-1 text-xs text-neutral-500">
               {tx("Este bloque aparecerá como guía rápida para todos los miembros de la liga.")}{" "}</p>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-neutral-700">{t.settings.leagueAccentColor}</span>
+            <span className="mt-1 block text-xs text-neutral-500">
+              {t.settings.leagueAccentDescription}
+            </span>
+            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+              <input
+                aria-label={t.settings.leagueAccentColor}
+                type="color"
+                value={accentColor}
+                disabled={isSavingDetails}
+                onChange={(event) => {
+                  setAccentColor(normalizeAccentColor(event.target.value))
+                  setDetailsError(null)
+                }}
+                className="h-10 w-14 cursor-pointer rounded-xl border-0 bg-transparent p-0"
+              />
+              <span className="font-mono text-sm font-bold uppercase text-neutral-700">{accentColor}</span>
+              <button
+                type="button"
+                onClick={() => setAccentColor(DEFAULT_LEAGUE_ACCENT)}
+                className="ml-auto inline-flex items-center justify-center rounded-xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-700"
+              >
+                {t.common.reset}
+              </button>
+            </div>
           </label>
         </div>
 
@@ -651,6 +692,7 @@ export default function AdminLeaguePage() {
           initialDescription={activeLeague.description}
           initialLogoUrl={activeLeague.logoUrl}
           initialRecommendations={activeLeague.recommendations ?? ""}
+          initialAccentColor={activeLeague.accentColor}
         />
       </div>
 

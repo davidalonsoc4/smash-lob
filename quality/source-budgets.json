@@ -6,7 +6,7 @@
   "files": {
     "src/app/admin/season/page.tsx": 6320,
     "src/lib/changelog.ts": 2490,
-    "src/context/LeagueAccessProvider.tsx": 1950,
+    "src/context/LeagueAccessProvider.tsx": 2000,
     "src/context/MatchDataProvider.tsx": 1830,
     "src/app/page.tsx": 1510
   }

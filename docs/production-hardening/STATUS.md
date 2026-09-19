@@ -1707,3 +1707,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - PROD: se requiere enlazar explícitamente el proyecto Supabase de producción antes de aplicar migraciones; no se ha usado ni supuesto el proyecto PRE para PROD.
 - Promoción final verificada en Git: `staging` y `main` apuntan a `72898a8`. Supabase PROD (`szycbwdzestcmimziyey`) recibió y verificó `20260919100000`, `20260919120000`, `20260919123000`, `20260919124500` y `20260919131500`; PRE (`miadjotkucgluwbrgeih`) quedó sincronizada con las cinco migraciones, incluida la pendiente histórica de estado de lectura. El enlace local se dejó de nuevo en PRE.
 - Health PROD responde `200` con v1.15.4. PRE responde mediante la protección SSO de Vercel (deployment nuevo visible, sin error de aplicación); la validación funcional PRE queda condicionada a una sesión Vercel autorizada.
+
+## Competition visual style (local branch, 2026-09-19)
+
+- Se creó `codex/competition-visual-style-experimental` desde `origin/main` (`b0938fa`) sin tocar `main`, `staging`, PRE ni PROD.
+- La base de apariencia se centraliza en `src/lib/visualStyle.ts` y `ThemeProvider`: Classic es el valor seguro; Competition queda disponible solo en desarrollo local y fuerza modo oscuro.
+- Se añadió el acento persistente por liga (`leagues.accent_color`) con fallback `#D7A544`, validación hexadecimal y propagación al acceso autenticado y al espectador público.
+- La UI de Ajustes ofrece Classic/Competition y desactiva claro/sistema cuando Competition está seleccionado; la página de administración de liga permite guardar el acento.
+- Se añadió una primera capa de tokens y geometría Competition en `globals.css`, manteniendo intacto el estilo Classic.
+- TypeScript, ESLint (sin errores), build de producción, i18n, seguridad, presupuesto de código, `git diff --check` y la batería unitaria completa pasan: 203 archivos y 769 tests.

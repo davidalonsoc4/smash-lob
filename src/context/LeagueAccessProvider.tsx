@@ -18,6 +18,7 @@ import {
   deleteSupabaseLeague,
   regenerateSupabaseLeagueInviteCode,
   updateSupabaseLeagueDetails,
+  updateSupabaseLeagueAccentColor,
   updateSupabaseLeagueLocations,
   updateSupabaseLeagueLogo,
   updateSupabaseLeagueShowHistoricalProfileStats,
@@ -40,6 +41,7 @@ import {
   normalizeLeagueLocations,
   type LeagueLocation,
 } from "@/lib/leagueLocations";
+import { normalizeAccentColor } from "@/lib/visualStyle";
 import {
   readCachedSpectatorLeagueIds,
   writeCachedSpectatorLeagueIds,
@@ -101,6 +103,10 @@ type LeagueAccessContextValue = {
   updateLeagueDetails: (
     leagueId: string,
     details: { name: string; description: string; recommendations: string },
+  ) => Promise<boolean>;
+  updateLeagueAccentColor: (
+    leagueId: string,
+    accentColor: string,
   ) => Promise<boolean>;
   updateLeagueLogo: (
     leagueId: string,
@@ -293,6 +299,7 @@ function normalizeStoredLeague(league: unknown): League | null {
       item.createdByUserId !== null &&
       typeof item.createdByUserId !== "string") ||
     (typeof item.recommendations !== "undefined" && typeof item.recommendations !== "string")
+    || (typeof item.accentColor !== "undefined" && item.accentColor !== null && typeof item.accentColor !== "string")
   ) {
     return null;
   }
@@ -313,6 +320,7 @@ function normalizeStoredLeague(league: unknown): League | null {
     createdByUserId:
       typeof item.createdByUserId === "string" ? item.createdByUserId : null,
     recommendations: typeof item.recommendations === "string" ? item.recommendations : "",
+    accentColor: normalizeAccentColor(item.accentColor),
   };
 }
 
@@ -1071,6 +1079,51 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     [],
   );
 
+  const updateLeagueAccentColor = useCallback(
+    async (leagueId: string, accentColor: string) => {
+      const normalizedAccentColor = normalizeAccentColor(accentColor);
+
+      if (isSupabaseBackedId(leagueId)) {
+        try {
+          const result = await updateSupabaseLeagueAccentColor({
+            leagueId,
+            accentColor: normalizedAccentColor,
+          });
+
+          setLeagues((currentLeagues) => {
+            const nextLeagues = currentLeagues.map((league) =>
+              league.id === result.leagueId
+                ? { ...league, accentColor: normalizeAccentColor(result.accentColor) }
+                : league,
+            );
+
+            persistLeagues(nextLeagues);
+            return nextLeagues;
+          });
+
+          return true;
+        } catch (error) {
+          recordSupabaseError("update-league-accent-color", error);
+          return false;
+        }
+      }
+
+      setLeagues((currentLeagues) => {
+        const nextLeagues = currentLeagues.map((league) =>
+          league.id === leagueId
+            ? { ...league, accentColor: normalizedAccentColor }
+            : league,
+        );
+
+        persistLeagues(nextLeagues);
+        return nextLeagues;
+      });
+
+      return true;
+    },
+    [],
+  );
+
   const updateLeagueLocations = useCallback(
     async (leagueId: string, locations: LeagueLocation[]) => {
       const normalizedLocations = normalizeLeagueLocations(locations);
@@ -1817,6 +1870,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       isPlayerClaimed,
       regenerateLeagueInviteCode,
       updateLeagueDetails,
+      updateLeagueAccentColor,
       updateLeagueLogo,
       updateLeagueLocations,
       updateLeagueStatusColorsEnabled,
@@ -1861,6 +1915,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       linkCurrentUserToLeaguePlayer,
       regenerateLeagueInviteCode,
       updateLeagueDetails,
+      updateLeagueAccentColor,
       updateLeagueLogo,
       updateLeagueLocations,
       updateLeagueStatusColorsEnabled,

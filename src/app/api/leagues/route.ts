@@ -10,6 +10,7 @@ import {
   validateUuid,
 } from "@/lib/serverRequest"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import { normalizeAccentColor } from "@/lib/visualStyle"
 import type { League, UserLeagueMembership } from "@/data/fakeData"
 import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
 
@@ -50,6 +51,7 @@ function mapLeague(league: Record<string, unknown>): League {
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
+    accentColor: normalizeAccentColor(league.accent_color),
     statusColorsEnabled: league.status_colors_enabled !== false,
     showRankingAvatars: league.show_ranking_avatars !== false,
     showHistoricalProfileStats: league.show_historical_profile_stats === true,
@@ -100,9 +102,10 @@ async function insertLeagueWithAvailableSlug({
         status_colors_enabled: true,
         show_ranking_avatars: true,
         show_historical_profile_stats: false,
+        accent_color: "#D7A544",
       })
       .select(
-        "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+        "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
       )
       .single()
 

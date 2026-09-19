@@ -47,7 +47,7 @@ export async function GET(
 
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
-    .select("id,name,description,logo_url,active_season_id")
+    .select("id,name,description,logo_url,accent_color,active_season_id")
     .eq("id", invite.league_id)
     .maybeSingle()
   if (leagueError) return empty(500, "spectator_view_unavailable")
@@ -68,7 +68,7 @@ export async function GET(
 
   if (!season) {
     return applyPrivateNoStore(NextResponse.json({
-      league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null },
+      league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null, accentColor: league.accent_color ?? null },
       season: null,
       ranking: [],
       matches: [],
@@ -163,7 +163,7 @@ export async function GET(
   })
 
   return applyPrivateNoStore(NextResponse.json({
-    league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null },
+    league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null, accentColor: league.accent_color ?? null },
     season: { name: season.name, status: season.status, totalRounds: Number(season.total_rounds) || 0, completedRounds: Number(season.completed_rounds) || 0 },
     ranking,
     matches: safeMatches,

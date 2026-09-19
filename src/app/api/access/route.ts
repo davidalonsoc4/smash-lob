@@ -72,6 +72,7 @@ function mapLeague(league: Record<string, unknown>): League {
     joinMode: league.join_mode === "open" ? "open" : "closed",
     locations: normalizeLeagueLocations(league.locations),
     logoUrl: typeof league.logo_url === "string" ? league.logo_url : null,
+    accentColor: typeof league.accent_color === "string" ? league.accent_color : "#D7A544",
     statusColorsEnabled: league.status_colors_enabled !== false,
     showRankingAvatars: league.show_ranking_avatars !== false,
     showHistoricalProfileStats: league.show_historical_profile_stats === true,
@@ -170,7 +171,7 @@ export async function GET(request: Request) {
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
     )
 
   if (!isSuperuser) {

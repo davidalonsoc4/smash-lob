@@ -14,6 +14,7 @@ import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
 import { FloatingHelpButton } from "@/components/onboarding/FloatingHelpButton"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useTheme } from "@/context/ThemeProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -175,6 +176,7 @@ export function AppShell({ children }: AppShellProps) {
   const branding = getAppBranding()
   const pathname = usePathname()
   const router = useRouter()
+  const { setLeagueAccent } = useTheme()
   const {
     activeLeagueId,
     isLeagueTransitioning,
@@ -338,6 +340,10 @@ export function AppShell({ children }: AppShellProps) {
     : null
   const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
 
+  useEffect(() => {
+    setLeagueAccent(activeLeague?.accentColor)
+  }, [activeLeague?.accentColor, setLeagueAccent])
+
   if (isLeagueTransitioning) {
     const leagueName = transitioningLeague?.name ?? t.common.privateLeague
     return <LeagueTransitionSkeleton leagueName={leagueName} />
@@ -355,6 +361,7 @@ export function AppShell({ children }: AppShellProps) {
         }`}
         data-home-route={pathname === "/"}
         data-match-chat-route={isMatchChatRoute}
+        data-route={pathname}
       >
         {branding.preproduction ? (
           <div

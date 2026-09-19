@@ -10,7 +10,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
-import { type ColorfulPalette, type ThemeMode, useTheme } from "@/context/ThemeProvider"
+import { type Palette, type ThemeMode, useTheme } from "@/context/ThemeProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -121,12 +121,12 @@ function SettingsStaticRow({
     </div>
   )
 }
-const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
+const paletteSwatches: Record<Exclude<Palette, "league">, string[]> = {
+  classic: ["#111827", "#6b7280", "#d1d5db"],
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b"],
   midnight: ["#365f9d", "#5a78b5", "#87b5df"],
   sage: ["#55765f", "#7f9b83", "#a6b99d"],
   burgundy: ["#8b3f57", "#a85c70", "#d2a2ad"],
-  terracotta: ["#a95640", "#c0785e", "#ddaa84"],
   graphite: ["#4f6379", "#71879b", "#a7c5d8"],
 }
 function AppearanceSummaryPreview({
@@ -136,7 +136,7 @@ function AppearanceSummaryPreview({
 }: {
   themeMode: ThemeMode
   colorful: boolean
-  palette: ColorfulPalette
+  palette: Exclude<Palette, "league">
 }) {
   const baseClass =
     themeMode === "light"
@@ -153,12 +153,12 @@ function AppearanceSummaryPreview({
         <>
           <span
             className="absolute inset-x-1.5 top-1.5 h-2 rounded-full"
-            style={{ background: `linear-gradient(90deg, ${colorfulPaletteSwatches[palette].join(", ")})` }}
+            style={{ background: `linear-gradient(90deg, ${paletteSwatches[palette].join(", ")})` }}
           />
           <span className="absolute bottom-1.5 left-1.5 h-4 w-5 rounded-md bg-white/90" />
           <span
             className="absolute bottom-1.5 right-1.5 h-4 w-2 rounded-full"
-            style={{ backgroundColor: colorfulPaletteSwatches[palette][1] }}
+            style={{ backgroundColor: paletteSwatches[palette][1] }}
           />
         </>
       ) : (
@@ -173,23 +173,25 @@ function AppearanceSummaryPreview({
 }
 function AppearanceSettingsLink() {
   const { t } = useI18n()
-  const { themeMode, visualStyle, colorfulPalette } = useTheme()
+  const { themeMode, visualStyle, palette } = useTheme()
   const themeLabels: Record<ThemeMode, string> = {
     light: t.settings.appearanceLight,
     dark: t.settings.appearanceDark,
     system: t.settings.appearanceSystem,
   }
-  const paletteLabels: Record<ColorfulPalette, string> = {
+  const paletteLabels: Record<Exclude<Palette, "league">, string> = {
+    classic: t.settings.visualStylePlain,
     indigo: t.settings.colorfulPaletteIndigo,
     midnight: t.settings.colorfulPaletteMidnight,
     sage: t.settings.colorfulPaletteSage,
     burgundy: t.settings.colorfulPaletteBurgundy,
-    terracotta: t.settings.colorfulPaletteTerracotta,
     graphite: t.settings.colorfulPaletteGraphite,
   }
-  const colorful = visualStyle === "colorful"
+  const colorful = visualStyle === "classic" && palette !== "classic"
   const description = colorful
-    ? `${themeLabels[themeMode]} · ${t.settings.visualStyleColorful} · ${paletteLabels[colorfulPalette]}`
+    ? `${themeLabels[themeMode]} · ${t.settings.visualStylePlain} · ${paletteLabels[palette === "league" ? "classic" : palette]}`
+    : visualStyle === "competition"
+      ? `${t.settings.appearanceDark} · ${t.settings.visualStyleColorful}`
     : `${themeLabels[themeMode]} · ${t.settings.visualStylePlain}`
   return (
     <SettingsLinkRow
@@ -202,7 +204,7 @@ function AppearanceSettingsLink() {
         <AppearanceSummaryPreview
           themeMode={themeMode}
           colorful={colorful}
-          palette={colorfulPalette}
+          palette={palette === "league" ? "classic" : palette}
         />
       }
     />

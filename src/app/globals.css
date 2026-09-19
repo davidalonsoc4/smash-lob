@@ -2098,3 +2098,120 @@ html[data-match-chat-active="true"] body { background: var(--app-match-chat-safe
 .chat-list-card-unread { box-shadow: 0 6px 18px rgb(15 23 42 / .08); }
 html.dark[data-style="plain"] .chat-list-stack::before { background: linear-gradient(180deg,#dbe6f3,#536a84 58%,#9fb1c7); }
 html.colorful .chat-list-stack::before { background: linear-gradient(180deg,var(--colorful-primary),var(--colorful-secondary),var(--colorful-accent)); }
+
+/* Experimental COMPETITION visual system. It is intentionally scoped to the
+   data attribute so Classic keeps its existing rendering and tokens. */
+html[data-visual-style="competition"] {
+  --competition-bg: #0b0c0e;
+  --competition-surface: #141518;
+  --competition-surface-raised: #1b1d21;
+  --competition-surface-muted: #22252a;
+  --competition-border: #30343b;
+  --competition-border-strong: #484e58;
+  --competition-text: #f4f3ef;
+  --competition-text-muted: #a5a8af;
+  --competition-text-subtle: #737881;
+  --competition-accent: var(--league-accent, #d7a544);
+  --competition-accent-contrast: var(--league-accent-contrast, #111111);
+  --app-bottom-nav-safe-surface: var(--competition-bg);
+  --app-match-chat-safe-surface: var(--competition-bg);
+}
+
+html[data-visual-style="competition"] body {
+  background: var(--competition-bg) !important;
+  color: var(--competition-text) !important;
+}
+
+html[data-visual-style="competition"] .app-shell-outer,
+html[data-visual-style="competition"] .bg-stone-200 {
+  background: var(--competition-bg) !important;
+}
+
+html[data-visual-style="competition"] .app-shell-frame,
+html[data-visual-style="competition"] .bg-stone-50 {
+  position: relative;
+  isolation: isolate;
+  background: var(--competition-bg) !important;
+}
+
+html[data-visual-style="competition"] .app-shell-frame::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .14;
+  background-image: linear-gradient(135deg, transparent 0 48%, var(--competition-accent) 49% 49.25%, transparent 50%), linear-gradient(90deg, transparent 0 24px, rgb(255 255 255 / .05) 25px, transparent 26px);
+  background-size: 180px 180px, 52px 52px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 75%);
+}
+
+html[data-visual-style="competition"] .app-card,
+html[data-visual-style="competition"] .app-stat-card,
+html[data-visual-style="competition"] .app-ranking-list {
+  background: var(--competition-surface) !important;
+  border-color: var(--competition-border) !important;
+  color: var(--competition-text) !important;
+  box-shadow: 0 14px 34px rgb(0 0 0 / .22) !important;
+}
+
+html[data-visual-style="competition"] .app-card::before,
+html[data-visual-style="competition"] .app-stat-card::before {
+  background: var(--competition-accent) !important;
+}
+
+html[data-visual-style="competition"] .app-page-header,
+html[data-visual-style="competition"] .type-page-title,
+html[data-visual-style="competition"] .type-panel-title {
+  color: var(--competition-text) !important;
+  font-family: "Arial Narrow", "Roboto Condensed", Impact, system-ui, sans-serif;
+  letter-spacing: .035em;
+}
+
+html[data-visual-style="competition"] .type-page-title { text-transform: uppercase; }
+html[data-visual-style="competition"] .type-caption,
+html[data-visual-style="competition"] .text-neutral-500,
+html[data-visual-style="competition"] .text-neutral-400,
+html[data-visual-style="competition"] .text-neutral-600,
+html[data-visual-style="competition"] .text-stone-500 { color: var(--competition-text-muted) !important; }
+html[data-visual-style="competition"] .text-neutral-950,
+html[data-visual-style="competition"] .text-neutral-900,
+html[data-visual-style="competition"] .text-neutral-800,
+html[data-visual-style="competition"] .text-neutral-700,
+html[data-visual-style="competition"] .text-stone-950 { color: var(--competition-text) !important; }
+
+html[data-visual-style="competition"] .bg-white,
+html[data-visual-style="competition"] .bg-neutral-50,
+html[data-visual-style="competition"] .bg-neutral-100,
+html[data-visual-style="competition"] .bg-neutral-200 { background: var(--competition-surface-raised) !important; }
+html[data-visual-style="competition"] .bg-neutral-950 { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] .border-neutral-100,
+html[data-visual-style="competition"] .border-neutral-200,
+html[data-visual-style="competition"] .border-neutral-300,
+html[data-visual-style="competition"] .border-stone-100,
+html[data-visual-style="competition"] .border-stone-200 { border-color: var(--competition-border) !important; }
+
+html[data-visual-style="competition"] input,
+html[data-visual-style="competition"] select,
+html[data-visual-style="competition"] textarea {
+  background: var(--competition-surface-raised) !important;
+  border-color: var(--competition-border) !important;
+  color: var(--competition-text) !important;
+}
+html[data-visual-style="competition"] input::placeholder,
+html[data-visual-style="competition"] textarea::placeholder { color: var(--competition-text-subtle) !important; }
+
+html[data-visual-style="competition"] .app-bottom-nav,
+html[data-visual-style="competition"] .personal-matches-bottom-nav,
+html[data-visual-style="competition"] .app-floating-control {
+  background: rgb(20 21 24 / .94) !important;
+  border-color: var(--competition-border) !important;
+  color: var(--competition-text) !important;
+  backdrop-filter: blur(16px);
+}
+html[data-visual-style="competition"] .app-bottom-nav-active { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] [data-route="/"] .app-page-header,
+html[data-visual-style="competition"] [data-route="/ranking"] .app-page-header,
+html[data-visual-style="competition"] [data-route^="/round/"] .app-page-header { border-left: .25rem solid var(--competition-accent); padding-left: .75rem; }
+html[data-visual-style="competition"] [data-route="/"] .app-card,
+html[data-visual-style="competition"] [data-route="/ranking"] .app-card { border-radius: .85rem; }

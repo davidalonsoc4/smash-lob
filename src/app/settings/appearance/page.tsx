@@ -4,7 +4,7 @@ import { type ReactNode, useSyncExternalStore } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import {
-  type ColorfulPalette,
+  type Palette,
   type ThemeMode,
   type VisualStyle,
   useTheme,
@@ -18,12 +18,12 @@ import {
   subscribeAppFontSize,
 } from "@/lib/fontSizePreference"
 
-const colorfulPaletteSwatches: Record<ColorfulPalette, string[]> = {
+const paletteSwatches: Record<Exclude<Palette, "classic" | "league"> | "classic", string[]> = {
+  classic: ["#111827", "#6b7280", "#d1d5db", "#f3f4f6"],
   indigo: ["#5b5ce2", "#7c4dff", "#e94b9b", "#f2a93b"],
   midnight: ["#365f9d", "#5a78b5", "#87b5df", "#d6a45a"],
   sage: ["#55765f", "#7f9b83", "#a6b99d", "#c39a62"],
   burgundy: ["#8b3f57", "#a85c70", "#d2a2ad", "#c29572"],
-  terracotta: ["#a95640", "#c0785e", "#ddaa84", "#c89a58"],
   graphite: ["#4f6379", "#71879b", "#a7c5d8", "#c2a36d"],
 }
 
@@ -63,7 +63,7 @@ function ThemeModePreview({ mode }: { mode: ThemeMode }) {
 }
 
 function StylePreview({ style }: { style: VisualStyle }) {
-  if (style === "plain") {
+  if (style === "classic") {
     return (
       <span aria-hidden="true" className="relative block h-9 overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
         <span className="absolute inset-x-2 top-2 h-2 rounded-full bg-white" />
@@ -85,10 +85,10 @@ function StylePreview({ style }: { style: VisualStyle }) {
   )
 }
 
-function PaletteSwatches({ palette }: { palette: ColorfulPalette }) {
+function PaletteSwatches({ palette }: { palette: Exclude<Palette, "league"> }) {
   return (
     <span aria-hidden="true" className="flex items-center gap-1">
-      {colorfulPaletteSwatches[palette].map((color) => (
+      {paletteSwatches[palette].map((color) => (
         <span
           key={color}
           className="h-4 w-4 rounded-full border border-white/80 shadow-sm"
@@ -184,8 +184,9 @@ export default function AppearancePage() {
     setThemeMode,
     visualStyle,
     setVisualStyle,
-    colorfulPalette,
-    setColorfulPalette,
+    palette,
+    setPalette,
+    canUseCompetition,
   } = useTheme()
 
   const themeOptions: Array<{ value: ThemeMode; label: string }> = [
@@ -195,17 +196,17 @@ export default function AppearancePage() {
   ]
   const styleOptions: Array<{ value: VisualStyle; label: string; description: string }> = [
     {
-      value: "plain",
+      value: "classic",
       label: t.settings.visualStylePlain,
       description: t.settings.visualStylePlainDescription,
     },
     {
-      value: "colorful",
+      value: "competition",
       label: t.settings.visualStyleColorful,
       description: t.settings.visualStyleColorfulDescription,
     },
   ]
-  const paletteOptions: Array<{ value: ColorfulPalette; label: string; description: string }> = [
+  const paletteOptions: Array<{ value: Exclude<Palette, "classic" | "league">; label: string; description: string }> = [
     {
       value: "indigo",
       label: t.settings.colorfulPaletteIndigo,
@@ -227,17 +228,12 @@ export default function AppearancePage() {
       description: t.settings.colorfulPaletteBurgundyDescription,
     },
     {
-      value: "terracotta",
-      label: t.settings.colorfulPaletteTerracotta,
-      description: t.settings.colorfulPaletteTerracottaDescription,
-    },
-    {
       value: "graphite",
       label: t.settings.colorfulPaletteGraphite,
       description: t.settings.colorfulPaletteGraphiteDescription,
     },
   ]
-  const selectedPalette = paletteOptions.find((option) => option.value === colorfulPalette)
+  const selectedPalette = paletteOptions.find((option) => option.value === palette)
 
   return (
     <div className="compact-page space-y-4">
@@ -258,9 +254,9 @@ export default function AppearancePage() {
             <p className="mt-0.5 text-sm font-black text-neutral-950">
               {themeOptions.find((option) => option.value === themeMode)?.label} · {styleOptions.find((option) => option.value === visualStyle)?.label}
             </p>
-            {visualStyle === "colorful" ? (
+            {visualStyle === "classic" && palette !== "classic" ? (
               <div className="mt-1 flex items-center gap-2">
-                <PaletteSwatches palette={colorfulPalette} />
+                <PaletteSwatches palette={palette === "league" ? "classic" : palette} />
                 <p className="truncate type-caption font-bold text-neutral-500">{selectedPalette?.label}</p>
               </div>
             ) : null}
@@ -284,11 +280,12 @@ export default function AppearancePage() {
                 type="button"
                 aria-pressed={selected}
                 onClick={() => setThemeMode(option.value)}
+                disabled={visualStyle === "competition" && option.value !== "dark"}
                 className={`appearance-compact-option rounded-xl border p-2 text-left transition active:scale-[0.98] ${
                   selected
                     ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
                     : "border-neutral-200 bg-neutral-50"
-                }`}
+                } ${visualStyle === "competition" && option.value !== "dark" ? "cursor-not-allowed opacity-45" : ""}`}
               >
                 <ThemeModePreview mode={option.value} />
                 <span className="mt-1.5 flex items-center justify-between gap-1">
@@ -316,12 +313,16 @@ export default function AppearancePage() {
                 key={option.value}
                 type="button"
                 aria-pressed={selected}
-                onClick={() => setVisualStyle(option.value)}
+                onClick={() => {
+                  if (option.value === "competition" && !canUseCompetition) return
+                  setVisualStyle(option.value)
+                }}
+                disabled={option.value === "competition" && !canUseCompetition}
                 className={`appearance-compact-option rounded-xl border p-2 text-left transition active:scale-[0.98] ${
                   selected
                     ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
                     : "border-neutral-200 bg-neutral-50"
-                }`}
+                } ${option.value === "competition" && !canUseCompetition ? "cursor-not-allowed opacity-45" : ""}`}
               >
                 <StylePreview style={option.value} />
                 <span className="mt-1.5 flex items-center justify-between gap-2">
@@ -339,7 +340,7 @@ export default function AppearancePage() {
         </div>
       </AppearanceSection>
 
-      {visualStyle === "colorful" ? (
+      {visualStyle === "classic" ? (
         <AppearanceSection
           id="color-palette"
           title={t.settings.colorfulPaletteTitle}
@@ -347,13 +348,13 @@ export default function AppearancePage() {
         >
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {paletteOptions.map((option) => {
-              const selected = colorfulPalette === option.value
+              const selected = palette === option.value
               return (
                 <button
                   key={option.value}
                   type="button"
                   aria-pressed={selected}
-                  onClick={() => setColorfulPalette(option.value)}
+                  onClick={() => setPalette(option.value)}
                   className={`colorful-palette-option min-h-16 rounded-xl border px-2.5 py-2 text-left transition active:scale-[0.98] ${
                     selected
                       ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"

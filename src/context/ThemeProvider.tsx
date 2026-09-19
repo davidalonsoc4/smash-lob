@@ -1,179 +1,146 @@
 "use client"
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+  BASE_THEME_STORAGE_KEY,
+  DEFAULT_BASE_THEME,
+  DEFAULT_LEAGUE_ACCENT,
+  DEFAULT_PALETTE,
+  DEFAULT_VISUAL_STYLE,
+  LEGACY_PALETTE_STORAGE_KEY,
+  LEGACY_THEME_STORAGE_KEY,
+  migrateStoredAppearance,
+  normalizeAccentColor,
+  normalizePalette,
+  PALETTE_STORAGE_KEY,
+  type BaseTheme,
+  type Palette,
+  isCompetitionAvailable,
+  VISUAL_STYLE_STORAGE_KEY,
+  type VisualStyle,
+} from "@/lib/visualStyle"
 
-export type ThemeMode = "light" | "dark" | "system"
-export type VisualStyle = "plain" | "colorful"
-export type ColorfulPalette =
-  | "indigo"
-  | "midnight"
-  | "sage"
-  | "burgundy"
-  | "terracotta"
-  | "graphite"
+export type ThemeMode = BaseTheme
+export type { BaseTheme, Palette, VisualStyle }
+/** @deprecated Kept as a source-compatible alias for older consumers. */
+export type ColorfulPalette = Exclude<Palette, "classic" | "league">
 
 type ThemeContextValue = {
   themeMode: ThemeMode
   setThemeMode: (themeMode: ThemeMode) => void
   visualStyle: VisualStyle
   setVisualStyle: (visualStyle: VisualStyle) => void
-  colorfulPalette: ColorfulPalette
-  setColorfulPalette: (palette: ColorfulPalette) => void
-}
-
-const LEGACY_THEME_STORAGE_KEY = "smash-lob-theme"
-const THEME_MODE_STORAGE_KEY = "smash-lob-theme-mode"
-const VISUAL_STYLE_STORAGE_KEY = "smash-lob-visual-style"
-const COLORFUL_PALETTE_STORAGE_KEY = "smash-lob-colorful-palette"
-const DEFAULT_THEME_MODE: ThemeMode = "light"
-const DEFAULT_VISUAL_STYLE: VisualStyle = "colorful"
-const DEFAULT_COLORFUL_PALETTE: ColorfulPalette = "graphite"
-
-const COLORFUL_THEME_COLORS: Record<ColorfulPalette, { light: string; dark: string }> = {
-  indigo: { light: "#5b5ce2", dark: "#17172e" },
-  midnight: { light: "#365f9d", dark: "#0d1726" },
-  sage: { light: "#55765f", dark: "#101b15" },
-  burgundy: { light: "#8b3f57", dark: "#241219" },
-  terracotta: { light: "#a95640", dark: "#251713" },
-  graphite: { light: "#4f6379", dark: "#121820" },
+  palette: Palette
+  setPalette: (palette: Palette) => void
+  leagueAccent: string
+  setLeagueAccent: (accent: string | null | undefined) => void
+  canUseCompetition: boolean
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function isThemeMode(value: string | null): value is ThemeMode {
-  return value === "light" || value === "dark" || value === "system"
-}
-
-function isVisualStyle(value: string | null): value is VisualStyle {
-  return value === "plain" || value === "colorful"
-}
-
-function normalizeColorfulPalette(value: string | null): ColorfulPalette | null {
-  if (
-    value === "indigo" ||
-    value === "midnight" ||
-    value === "sage" ||
-    value === "burgundy" ||
-    value === "terracotta" ||
-    value === "graphite"
-  ) {
-    return value
+function readStoredAppearance() {
+  if (typeof window === "undefined") {
+    return {
+      baseTheme: DEFAULT_BASE_THEME,
+      visualStyle: DEFAULT_VISUAL_STYLE,
+      palette: DEFAULT_PALETTE,
+    }
   }
 
-  const legacyPaletteMap: Record<string, ColorfulPalette> = {
-    ocean: "midnight",
-    emerald: "sage",
-    coral: "burgundy",
-    sunset: "terracotta",
-  }
-
-  return value ? legacyPaletteMap[value] ?? null : null
+  return migrateStoredAppearance({
+    baseTheme: window.localStorage.getItem(BASE_THEME_STORAGE_KEY),
+    visualStyle: window.localStorage.getItem(VISUAL_STYLE_STORAGE_KEY),
+    palette: window.localStorage.getItem(PALETTE_STORAGE_KEY),
+    legacyTheme: window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY),
+    legacyPalette: window.localStorage.getItem(LEGACY_PALETTE_STORAGE_KEY),
+  })
 }
 
-function readLegacyTheme(): string | null {
-  if (typeof window === "undefined") return null
-  return window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
+function getContrastColor(value: string) {
+  const red = Number.parseInt(value.slice(1, 3), 16)
+  const green = Number.parseInt(value.slice(3, 5), 16)
+  const blue = Number.parseInt(value.slice(5, 7), 16)
+  return (0.299 * red + 0.587 * green + 0.114 * blue) / 255 > 0.58 ? "#111111" : "#FFFFFF"
 }
 
-function readStoredThemeMode(): ThemeMode {
-  if (typeof window === "undefined") return DEFAULT_THEME_MODE
-
-  const stored = window.localStorage.getItem(THEME_MODE_STORAGE_KEY)
-  if (isThemeMode(stored)) return stored
-
-  const legacy = readLegacyTheme()
-  return isThemeMode(legacy) ? legacy : DEFAULT_THEME_MODE
+function resolveDark(themeMode: ThemeMode) {
+  return themeMode === "dark" || (themeMode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 }
 
-function readStoredVisualStyle(): VisualStyle {
-  if (typeof window === "undefined") return DEFAULT_VISUAL_STYLE
-
-  const stored = window.localStorage.getItem(VISUAL_STYLE_STORAGE_KEY)
-  if (isVisualStyle(stored)) return stored
-
-  const legacy = readLegacyTheme()
-  if (legacy === "colorful") return "colorful"
-  return isThemeMode(legacy) ? "plain" : DEFAULT_VISUAL_STYLE
-}
-
-function readStoredColorfulPalette(): ColorfulPalette {
-  if (typeof window === "undefined") return DEFAULT_COLORFUL_PALETTE
-  const stored = window.localStorage.getItem(COLORFUL_PALETTE_STORAGE_KEY)
-  return normalizeColorfulPalette(stored) ?? DEFAULT_COLORFUL_PALETTE
-}
-
-function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, colorfulPalette: ColorfulPalette) {
-  const dark =
-    themeMode === "dark" ||
-    (themeMode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-  const colorful = visualStyle === "colorful"
+function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette: Palette, leagueAccent: string) {
+  const dark = visualStyle === "competition" ? true : resolveDark(themeMode)
   const resolvedTheme = dark ? "dark" : "light"
   const root = document.documentElement
+  const effectivePalette = visualStyle === "competition" ? "league" : palette
 
   root.classList.toggle("dark", dark)
-  root.classList.toggle("colorful", colorful)
+  root.classList.toggle("colorful", false)
+  root.classList.toggle("competition", visualStyle === "competition")
   root.dataset.theme = resolvedTheme
+  root.dataset.baseTheme = visualStyle === "competition" ? "dark" : themeMode
   root.dataset.style = visualStyle
-  root.dataset.colorfulPalette = colorfulPalette
+  root.dataset.visualStyle = visualStyle
+  root.dataset.palette = effectivePalette
+  root.dataset.colorfulPalette = effectivePalette
+  root.style.setProperty("--league-accent", leagueAccent)
+  root.style.setProperty("--league-accent-contrast", getContrastColor(leagueAccent))
   root.style.colorScheme = resolvedTheme
 
-  const themeColor = colorful
-    ? COLORFUL_THEME_COLORS[colorfulPalette][resolvedTheme]
-    : dark
-      ? "#0b1119"
-      : "#0a0a0a"
-
-  document
-    .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    ?.setAttribute("content", themeColor)
+  const themeColor = visualStyle === "competition" ? leagueAccent : dark ? "#0b1119" : "#0a0a0a"
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(readStoredThemeMode)
-  const [visualStyle, setVisualStyleState] = useState<VisualStyle>(readStoredVisualStyle)
-  const [colorfulPalette, setColorfulPaletteState] = useState<ColorfulPalette>(readStoredColorfulPalette)
+  const initialAppearance = readStoredAppearance()
+  const canUseCompetition = isCompetitionAvailable()
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(initialAppearance.baseTheme)
+  const [visualStyle, setVisualStyleState] = useState<VisualStyle>(
+    canUseCompetition || initialAppearance.visualStyle !== "competition"
+      ? initialAppearance.visualStyle
+      : DEFAULT_VISUAL_STYLE,
+  )
+  const [palette, setPaletteState] = useState<Palette>(initialAppearance.palette)
+  const [leagueAccent, setLeagueAccentState] = useState(DEFAULT_LEAGUE_ACCENT)
 
   useEffect(() => {
-    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, themeMode)
-    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, visualStyle)
-    window.localStorage.setItem(COLORFUL_PALETTE_STORAGE_KEY, colorfulPalette)
+    const effectiveStyle = canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE
+
+    window.localStorage.setItem(BASE_THEME_STORAGE_KEY, themeMode)
+    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)
+    window.localStorage.setItem(PALETTE_STORAGE_KEY, palette)
     window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY)
+    window.localStorage.removeItem(LEGACY_PALETTE_STORAGE_KEY)
+    applyAppearance(themeMode, effectiveStyle, palette, leagueAccent)
 
-    applyAppearance(themeMode, visualStyle, colorfulPalette)
-
-    if (themeMode !== "system") return
-
+    if (themeMode !== "system" || effectiveStyle === "competition") return
     const media = window.matchMedia("(prefers-color-scheme: dark)")
-    const handleChange = () => applyAppearance("system", visualStyle, colorfulPalette)
+    const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent)
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
-  }, [colorfulPalette, themeMode, visualStyle])
+  }, [canUseCompetition, leagueAccent, palette, themeMode, visualStyle])
 
-  function setThemeMode(nextThemeMode: ThemeMode) {
-    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, nextThemeMode)
+  const setThemeMode = useCallback((nextThemeMode: ThemeMode) => {
     setThemeModeState(nextThemeMode)
-  }
+  }, [])
 
-  function setVisualStyle(nextVisualStyle: VisualStyle) {
-    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, nextVisualStyle)
+  const setVisualStyle = useCallback((nextVisualStyle: VisualStyle) => {
+    if (nextVisualStyle === "competition" && !canUseCompetition) return
     setVisualStyleState(nextVisualStyle)
-  }
+    if (nextVisualStyle === "competition") setThemeModeState("dark")
+  }, [canUseCompetition])
 
-  function setColorfulPalette(nextPalette: ColorfulPalette) {
-    window.localStorage.setItem(COLORFUL_PALETTE_STORAGE_KEY, nextPalette)
-    setColorfulPaletteState(nextPalette)
-  }
+  const setPalette = useCallback((nextPalette: Palette) => {
+    setPaletteState(normalizePalette(nextPalette) ?? DEFAULT_PALETTE)
+  }, [])
+
+  const setLeagueAccent = useCallback((accent: string | null | undefined) => {
+    setLeagueAccentState(normalizeAccentColor(accent))
+  }, [])
 
   const value = useMemo(
-    () => ({
-      themeMode,
-      setThemeMode,
-      visualStyle,
-      setVisualStyle,
-      colorfulPalette,
-      setColorfulPalette,
-    }),
-    [colorfulPalette, themeMode, visualStyle],
+    () => ({ themeMode, setThemeMode, visualStyle, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, canUseCompetition }),
+    [canUseCompetition, leagueAccent, palette, setLeagueAccent, setPalette, setThemeMode, setVisualStyle, themeMode, visualStyle],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
@@ -181,10 +148,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const value = useContext(ThemeContext)
-
-  if (!value) {
-    throw new Error("useTheme must be used inside ThemeProvider")
-  }
-
+  if (!value) throw new Error("useTheme must be used inside ThemeProvider")
   return value
 }

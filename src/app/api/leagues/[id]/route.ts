@@ -8,6 +8,7 @@ import {
 } from "@/lib/serverImageValidation"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { normalizeAccentColor } from "@/lib/visualStyle"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,6 +22,7 @@ type UpdateLeagueBody = {
   statusColorsEnabled?: unknown
   showRankingAvatars?: unknown
   showHistoricalProfileStats?: unknown
+  accentColor?: unknown
 }
 
 function cleanString(value: unknown) {
@@ -76,6 +78,8 @@ export async function PATCH(
     body && "showHistoricalProfileStats" in body
       ? body.showHistoricalProfileStats
       : undefined
+  const accentColor =
+    body && "accentColor" in body ? body.accentColor : undefined
 
   if (hasName) {
     if (typeof body?.name !== "string" || !name) {
@@ -156,18 +160,25 @@ export async function PATCH(
     updatePayload.show_historical_profile_stats = showHistoricalProfileStats
   }
 
+  if (accentColor !== undefined) {
+    if (typeof accentColor !== "string" || !/^#[0-9a-f]{6}$/i.test(accentColor.trim())) {
+      return NextResponse.json({ error: "invalid_accent_color" }, { status: 400 })
+    }
+    updatePayload.accent_color = normalizeAccentColor(accentColor)
+  }
+
   if (Object.keys(updatePayload).length === 0) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
 
   const { supabase } = access.actor
-  const shouldTrackActivity = hasName || hasDescription || hasRecommendations || hasLogoUrl || hasLocations
+  const shouldTrackActivity = hasName || hasDescription || hasRecommendations || hasLogoUrl || hasLocations || accentColor !== undefined
 
   const { data: previousLeague, error: previousLeagueError } =
     shouldTrackActivity
       ? await supabase
           .from("leagues")
-          .select("name,description,recommendations,logo_url,locations,active_season_id")
+        .select("name,description,recommendations,logo_url,locations,accent_color,active_season_id")
           .eq("id", leagueId)
           .maybeSingle()
       : { data: null, error: null }
@@ -186,7 +197,7 @@ export async function PATCH(
       .update(updatePayload)
       .eq("id", leagueId)
       .select(
-        "id,name,description,recommendations,logo_url,locations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,active_season_id"
+        "id,name,description,recommendations,logo_url,locations,accent_color,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,active_season_id"
       )
       .single()
 
@@ -216,6 +227,8 @@ export async function PATCH(
           nextDescription: data.description ?? "",
           previousRecommendations: previousLeague?.recommendations ?? "",
           nextRecommendations: data.recommendations ?? "",
+          previousAccentColor: previousLeague?.accent_color ?? "#D7A544",
+          nextAccentColor: data.accent_color ?? "#D7A544",
         },
       }).catch(() => null)
     } else if (hasLogoUrl) {
@@ -266,6 +279,7 @@ export async function PATCH(
       description: data.description ?? "",
       recommendations: data.recommendations ?? "",
       logoUrl: typeof data.logo_url === "string" ? data.logo_url : null,
+      accentColor: normalizeAccentColor(data.accent_color),
       locations: normalizeLeagueLocations(data.locations),
       statusColorsEnabled: data.status_colors_enabled !== false,
       showRankingAvatars: data.show_ranking_avatars !== false,

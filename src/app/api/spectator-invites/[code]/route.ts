@@ -34,7 +34,7 @@ async function resolveInvite(code: string) {
 
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
-    .select("id,name,description,logo_url,active_season_id")
+    .select("id,name,description,logo_url,accent_color,active_season_id")
     .eq("id", invite.league_id)
     .single()
 
@@ -100,6 +100,7 @@ export async function GET(
         leagueName: result.league.name,
         leagueDescription: result.league.description ?? "",
         leagueLogoUrl: result.league.logo_url ?? null,
+        leagueAccentColor: result.league.accent_color ?? null,
         seasonName: result.visibleSeason?.name ?? null,
         seasonStatus: result.visibleSeason?.status ?? null,
       },
